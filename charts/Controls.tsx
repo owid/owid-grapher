@@ -30,6 +30,7 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
+import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
@@ -608,6 +609,11 @@ export class Controls {
         )
     }
 
+    @computed get hasRelatedQuestion(): boolean {
+        const { chart } = this.props
+        return !!chart.relatedQuestion && !!chart.relatedQuestionUrl
+    }
+
     @computed get footerLines(): number {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
@@ -619,7 +625,11 @@ export class Controls {
 
     @computed get footerHeight(): number {
         const numHorizontalBorderLinesinFooter = 1
-        return this.footerLines * 39 + numHorizontalBorderLinesinFooter * 1
+        return (
+            this.footerLines * 39 +
+            (this.hasRelatedQuestion ? 20 : 0) +
+            numHorizontalBorderLinesinFooter * 1
+        )
     }
 }
 
@@ -1004,7 +1014,8 @@ export class ControlsFooterView extends React.Component<{
             isSettingsMenuActive,
             hasTimeline,
             hasInlineControls,
-            hasSpace
+            hasSpace,
+            hasRelatedQuestion
         } = props.controls
         const { chart, chartView } = props.controls.props
 
@@ -1043,6 +1054,16 @@ export class ControlsFooterView extends React.Component<{
             <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu} />
         )
 
+        const relatedQuestion = hasRelatedQuestion && (
+            <div className="relatedQuestion">
+                Related:&nbsp;
+                <a href={chart.relatedQuestionUrl} target="_blank">
+                    {chart.relatedQuestion}
+                </a>
+                <FontAwesomeIcon icon={faExternalLinkAlt} />
+            </div>
+        )
+
         return (
             <div
                 className="ControlsFooter"
@@ -1053,6 +1074,7 @@ export class ControlsFooterView extends React.Component<{
                 {tabsElement}
                 {shareMenuElement}
                 {settingsMenuElement}
+                {relatedQuestion}
             </div>
         )
     }

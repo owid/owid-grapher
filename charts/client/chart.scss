@@ -2,6 +2,7 @@ $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
 $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
 $controls-color: #3f9eff;
+$primary-color-30: #fafbfd;
 
 // These should be between 0–100 in order to avoid conflicting with
 // site dropdowns, search overlays, etc.
@@ -284,6 +285,36 @@ $zindex-IndicatorDropdown: 50;
             &.active {
                 border-top-color: transparent;
             }
+        }
+    }
+
+    /* Related question
+    --------------------------------------------- */
+
+    .relatedQuestion {
+        font-size: 12px;
+        height: 20px;
+        padding: 0 15px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #e1e1e1;
+
+        a {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        a,
+        svg {
+            color: $controls-color;
+        }
+        svg {
+            margin-left: 0.4rem;
+            margin-bottom: 2px;
+            font-size: 0.8em;
+            vertical-align: unset;
         }
     }
 

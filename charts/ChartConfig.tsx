@@ -237,6 +237,8 @@ export class ChartConfigProps {
     @observable.ref tab: ChartTabOption = "chart"
     @observable.ref overlay?: ChartTabOption = undefined
 
+    @observable.ref relatedQuestion?: string = undefined
+    @observable.ref relatedQuestionUrl?: string = undefined
     @observable.ref internalNotes?: string = undefined
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl?: string = undefined
@@ -493,6 +495,19 @@ export class ChartConfig {
         )
     }
 
+    @computed get errorMessageRelatedQuestionUrl(): string | undefined {
+        return this.props.relatedQuestion
+            ? (!this.props.relatedQuestionUrl && "Missing URL") ||
+                  (!this.props.relatedQuestionUrl?.match(/^https?:\/\//) &&
+                      "URL should start with http(s)://") ||
+                  undefined
+            : undefined
+    }
+
+    @computed get hasFatalErrors(): boolean {
+        return !!this.errorMessageRelatedQuestionUrl
+    }
+
     disposers: IReactionDisposer[] = []
 
     @bind dispose() {
@@ -582,6 +597,12 @@ export class ChartConfig {
     }
     @computed get note() {
         return defaultTo(this.props.note, "")
+    }
+    @computed get relatedQuestion() {
+        return defaultTo(this.props.relatedQuestion, "")
+    }
+    @computed get relatedQuestionUrl() {
+        return defaultTo(this.props.relatedQuestionUrl, "")
     }
     @computed get internalNotes() {
         return defaultTo(this.props.internalNotes, "")

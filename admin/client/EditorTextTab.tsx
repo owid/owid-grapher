@@ -120,6 +120,26 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         softCharacterLimit={140}
                     />
                 </Section>
+                <Section name="Related">
+                    <BindString
+                        label="Related question"
+                        field="relatedQuestion"
+                        store={chart.props}
+                        placeholder="e.g. How did countries respond to the pandemic?"
+                        helpText="Short question promoting exploration of related content"
+                        softCharacterLimit={50}
+                    />
+                    {chart.props.relatedQuestion && (
+                        <BindString
+                            label="URL"
+                            field="relatedQuestionUrl"
+                            store={chart.props}
+                            placeholder="e.g. https://ourworldindata.org/coronavirus"
+                            helpText="Page or section of a page where the answer to the previous question can be found."
+                            errorMessage={chart.errorMessageRelatedQuestionUrl}
+                        />
+                    )}
+                </Section>
                 <Section name="Misc">
                     <BindString
                         label="Internal author notes"

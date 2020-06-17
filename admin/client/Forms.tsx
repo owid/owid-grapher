@@ -39,6 +39,7 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     required?: boolean
     rows?: number
     softCharacterLimit?: number
+    errorMessage?: string
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -96,6 +97,9 @@ export class TextField extends React.Component<TextFieldProps> {
                         text={props.value}
                         limit={props.softCharacterLimit}
                     />
+                )}
+                {props.errorMessage && (
+                    <ErrorMessage message={props.errorMessage} />
                 )}
             </div>
         )
@@ -524,6 +528,10 @@ export interface AutoTextFieldProps {
     softCharacterLimit?: number
 }
 
+const ErrorMessage = ({ message }: { message: string }) => (
+    <div style={{ color: "red" }}>{message}</div>
+)
+
 @observer
 class SoftCharacterLimit extends React.Component<{
     text: string
@@ -611,6 +619,7 @@ export class BindString<
     softCharacterLimit?: number
     disabled?: boolean
     rows?: number
+    errorMessage?: string
 }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = (value || undefined) as any
