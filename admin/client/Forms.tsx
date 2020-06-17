@@ -543,15 +543,16 @@ class SoftCharacterLimit extends React.Component<{
             <div
                 style={
                     text.length > limit
-                        ? { color: "red" }
+                        ? { color: "#D17D05" }
                         : { color: "rgba(0,0,0,0.3)" }
                 }
             >
                 {text.length} / {limit}
                 {text.length > limit && (
                     <p>
-                        This text is long and may cause rendering issues in
-                        smaller viewports.
+                        <FontAwesomeIcon icon={faExclamationTriangle} /> This
+                        text is long and may cause rendering issues in smaller
+                        viewports.
                     </p>
                 )}
             </div>
@@ -881,6 +882,7 @@ import { TagBadge, Tag } from "./TagBadge"
 // Better UX for case when you aren't adding new tags, only selecting from list.
 import ReactTags from "react-tag-autocomplete"
 import { Tippy } from "charts/Tippy"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer
 class EditTags extends React.Component<{
