@@ -624,12 +624,7 @@ export class Controls {
     }
 
     @computed get footerHeight(): number {
-        const numHorizontalBorderLinesinFooter = 1
-        return (
-            this.footerLines * 39 +
-            (this.hasRelatedQuestion ? 20 : 0) +
-            numHorizontalBorderLinesinFooter * 1
-        )
+        return this.footerLines * 40 + (this.hasRelatedQuestion ? 20 : 0)
     }
 }
 

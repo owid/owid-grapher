@@ -195,7 +195,7 @@ $zindex-IndicatorDropdown: 50;
         .footerRowMulti {
             box-sizing: content-box;
             width: 100%;
-            height: $footerRowHeight - 1px;
+            height: $footerRowHeight;
         }
 
         .footerRowSingle > * {
@@ -261,7 +261,7 @@ $zindex-IndicatorDropdown: 50;
             text-transform: uppercase;
             color: #777;
             font-size: 0.85em;
-            height: $footerRowHeight - 2px;
+            height: $footerRowHeight - 1;
             line-height: $footerRowHeight;
             border-bottom: 2px solid rgba(0, 0, 0, 0);
         }
