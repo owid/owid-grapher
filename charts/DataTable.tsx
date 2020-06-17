@@ -58,8 +58,8 @@ const columnNameByType: Record<ColumnKey, string> = {
     single: "Value",
     start: "Start",
     end: "End",
-    delta: "Change",
-    deltaRatio: "Change (%)"
+    delta: "Absolute Change",
+    deltaRatio: "Relative Change"
 }
 
 function inverseSortOrder(order: SortOrder): SortOrder {
