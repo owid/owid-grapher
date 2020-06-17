@@ -139,12 +139,18 @@ export const calculateRowsForGroup = (
     const newRows = Array.from(groupRows.values())
     let total_cases = 0
     let total_deaths = 0
+    let maxPopulation = 0
     // We need to compute cumulatives again because sometimes data will stop for a country.
     newRows.forEach(row => {
         total_cases += row.new_cases
         total_deaths += row.new_deaths
         row.total_cases = total_cases
         row.total_deaths = total_deaths
+        if (row.population > maxPopulation) maxPopulation = row.population
+
+        // Once we add a country to a group, we assume we will always have data for that country, so even if the
+        // country is late in reporting the data keep that country in the population count.
+        row.population = maxPopulation
     })
     return newRows
 }
