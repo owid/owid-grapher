@@ -1058,8 +1058,8 @@ export class ControlsFooterView extends React.Component<{
                     data-track-note="chart-click-related"
                 >
                     {chart.relatedQuestion}
+                    <FontAwesomeIcon icon={faExternalLinkAlt} />
                 </a>
-                <FontAwesomeIcon icon={faExternalLinkAlt} />
             </div>
         )
 
