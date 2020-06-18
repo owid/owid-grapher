@@ -252,11 +252,15 @@ export function formatValue(
     options: TickFormattingOptions
 ): string {
     const noTrailingZeroes = defaultTo(options.noTrailingZeroes, true)
-    const numberPrefixes = defaultTo(options.numberPrefixes, true)
+    const numberPrefixes = defaultTo(
+        options.numberPrefixes || options.shortNumberPrefixes,
+        true
+    )
+    const shortNumberPrefixes = defaultTo(options.shortNumberPrefixes, false)
     const showPlus = defaultTo(options.showPlus, false)
     const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
     const unit = defaultTo(options.unit, "")
-    const isNoSpaceUnit = unit[0] === "%"
+    const isNoSpaceUnit = defaultTo(options.noSpaceUnit, unit[0] === "%")
 
     let output: string = value.toString()
 
@@ -266,17 +270,29 @@ export function formatValue(
         else if (absValue >= 1e12)
             output = formatValue(
                 value / 1e12,
-                extend({}, options, { unit: "trillion", numDecimalPlaces: 2 })
+                extend({}, options, {
+                    unit: shortNumberPrefixes ? "T" : "trillion",
+                    noSpaceUnit: shortNumberPrefixes,
+                    numDecimalPlaces: 2
+                })
             )
         else if (absValue >= 1e9)
             output = formatValue(
                 value / 1e9,
-                extend({}, options, { unit: "billion", numDecimalPlaces: 2 })
+                extend({}, options, {
+                    unit: shortNumberPrefixes ? "B" : "billion",
+                    noSpaceUnit: shortNumberPrefixes,
+                    numDecimalPlaces: 2
+                })
             )
         else if (absValue >= 1e6)
             output = formatValue(
                 value / 1e6,
-                extend({}, options, { unit: "million", numDecimalPlaces: 2 })
+                extend({}, options, {
+                    unit: shortNumberPrefixes ? "M" : "million",
+                    noSpaceUnit: shortNumberPrefixes,
+                    numDecimalPlaces: 2
+                })
             )
     } else {
         const targetDigits = Math.pow(10, -numDecimalPlaces)
