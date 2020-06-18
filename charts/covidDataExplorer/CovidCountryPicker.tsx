@@ -384,34 +384,36 @@ export class CountryPicker extends React.Component<{
                         </div>
                     )}
                 </div>
-                <div className="MetricSettings">
-                    <span className="mainLabel">Sort by</span>
-                    <Select
-                        className="metricDropdown"
-                        options={this.metricOptions}
-                        value={this.metricOptions.find(
-                            option => option.value === this.metric
-                        )}
-                        onChange={option => {
-                            const value = first(asArray(option))?.value
-                            if (value) this.metric = value
-                        }}
-                        menuPlacement="bottom"
-                        components={{
-                            IndicatorSeparator: null
-                        }}
-                        styles={getStylesForTargetHeight(26)}
-                        isSearchable={false}
-                    />
-                    <span
-                        className="sort"
-                        onClick={() =>
-                            (this.sortOrder = toggleSort(this.sortOrder))
-                        }
-                    >
-                        <SortIcon order={this.sortOrder} />
-                    </span>
-                </div>
+                {(!this.isDropdownMenu || this.isOpen) && (
+                    <div className="MetricSettings">
+                        <span className="mainLabel">Sort by</span>
+                        <Select
+                            className="metricDropdown"
+                            options={this.metricOptions}
+                            value={this.metricOptions.find(
+                                option => option.value === this.metric
+                            )}
+                            onChange={option => {
+                                const value = first(asArray(option))?.value
+                                if (value) this.metric = value
+                            }}
+                            menuPlacement="bottom"
+                            components={{
+                                IndicatorSeparator: null
+                            }}
+                            styles={getStylesForTargetHeight(26)}
+                            isSearchable={false}
+                        />
+                        <span
+                            className="sort"
+                            onClick={() =>
+                                (this.sortOrder = toggleSort(this.sortOrder))
+                            }
+                        >
+                            <SortIcon order={this.sortOrder} />
+                        </span>
+                    </div>
+                )}
                 <div className="CountryListContainer">
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
