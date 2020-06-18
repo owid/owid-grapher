@@ -29,6 +29,10 @@ elif [ "$1" == "explorer" ]; then
   HOST="owid@165.22.127.239"
   ROOT="/home/owid"
   NAME="explorer"
+elif [ "$1" == "exemplars" ]; then
+  HOST="owid@165.22.127.239"
+  ROOT="/home/owid"
+  NAME="exemplars"
 elif [ "$1" == "live" ]; then
   HOST="owid@209.97.185.49"
   ROOT="/home/owid"
