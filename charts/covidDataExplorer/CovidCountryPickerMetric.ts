@@ -48,7 +48,8 @@ export const metricSpecs: Record<
                 ? formatValue(value, {
                       numDecimalPlaces: 0,
                       noTrailingZeroes: false,
-                      numberPrefixes: false
+                      numberPrefixes: true,
+                      shortNumberPrefixes: true
                   })
                 : undefined
     },
@@ -164,7 +165,7 @@ export const metricSpecs: Record<
         formatValue: value =>
             isNumber(value)
                 ? formatValue(value, {
-                      numDecimalPlaces: 1,
+                      numDecimalPlaces: 0,
                       noTrailingZeroes: false,
                       numberPrefixes: false
                   })
