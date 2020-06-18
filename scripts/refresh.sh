@@ -13,7 +13,7 @@ WORDPRESS_DB_HOST=$DB_HOST
 WORDPRESS_DB_NAME=$DB_NAME
 GRAPHER_DB_HOST=$GRAPHER_DB_HOST
 GRAPHER_DB_NAME=$GRAPHER_DB_NAME
-STAGING_SERVER=$(basename $DIR | cut -d '-' -f1)
+STAGING_SERVER_NAME=$(basename $DIR | cut -d '-' -f1)
 MYSQL="sudo mysql --default-character-set=utf8mb4"
 DL_FOLDER="/tmp"
 
@@ -83,7 +83,7 @@ import_db $DL_FOLDER/live_wordpress.sql $WORDPRESS_DB_HOST $WORDPRESS_DB_NAME
 # Wordpress uploads
 if [ "${WITH_UPLOADS}" = true ]; then
   echo "Downloading Wordress uploads"
-  rsync -hav --delete --progress owid-live:live-data/wordpress/uploads/ ~/$STAGING_SERVER-data/wordpress/uploads
+  rsync -hav --delete --progress owid-live:live-data/wordpress/uploads/ ~/$STAGING_SERVER_NAME-data/wordpress/uploads
 fi
 
 # Grapher database (owid_metadata)
