@@ -42,7 +42,7 @@ export class ExplorerControl extends React.Component<{
                     {name}
                 </div>
                 {this.props.options.map((option, index) => (
-                    <div key={index}>
+                    <div key={index} className="ControlOption">
                         <label
                             className={[
                                 option.checked ? "SelectedOption" : "Option",

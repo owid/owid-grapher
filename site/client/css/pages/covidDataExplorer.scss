@@ -136,15 +136,19 @@ html.iframe {
         background: white;
         border-radius: $chart-border-radius;
         box-shadow: $light-shadow;
-        padding: 8px 14px;
+        padding: 11px 14px;
 
         .CovidDataExplorerControl {
             display: flex;
             flex-direction: column;
             font-size: 13px;
             color: $option-color;
-            line-height: 26px;
             max-width: 22%;
+            margin-right: 10px;
+
+            &:last-child {
+                margin-right: 0;
+            }
 
             .HiddenControlHeader {
                 // Don't show hidden label in desktop but preserve space for it so options are aligned.
@@ -157,7 +161,17 @@ html.iframe {
 
             .ControlHeader {
                 font-size: 11px;
+                margin-bottom: 10px;
                 text-transform: uppercase;
+            }
+
+            .ControlOption {
+                line-height: 1.3;
+                margin-bottom: 9px;
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
             }
 
             .UnavailableOption {
@@ -170,7 +184,7 @@ html.iframe {
             }
 
             .comment {
-                line-height: normal;
+                margin-top: 4px;
                 color: $option-color;
             }
 

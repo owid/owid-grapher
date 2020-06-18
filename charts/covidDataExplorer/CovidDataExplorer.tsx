@@ -347,7 +347,7 @@ export class CovidDataExplorer extends React.Component<{
     private _isMobile() {
         return (
             window.screen.width < 450 ||
-            document.documentElement.clientWidth <= 680
+            document.documentElement.clientWidth <= 800
         )
     }
 
