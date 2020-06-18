@@ -16,11 +16,9 @@ import {
     partition,
     scrollIntoViewIfNeeded,
     last,
-    orderBy,
     max,
     isNumber,
     sortByUndefinedLast,
-    entries,
     first
 } from "charts/Util"
 import { CovidDataExplorer } from "./CovidDataExplorer"
