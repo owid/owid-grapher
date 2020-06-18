@@ -3,7 +3,7 @@ import { parseBool } from "utils/string"
 // All of this information is available to the client-side code
 // DO NOT retrieve sensitive information from the environment in here! :O
 
-export const ENV: string =
+export const ENV: "production" | "development" =
     process.env.ENV === "production" || process.env.NODE_ENV === "production"
         ? "production"
         : "development"
