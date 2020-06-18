@@ -19,6 +19,7 @@ import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
 import { renderPageById } from "site/server/siteBaking"
+import { ENV } from "settings"
 
 const adminViews = Router()
 
@@ -44,7 +45,11 @@ adminViews.get("/login", async (req, res) => {
 adminViews.post("/login", async (req, res) => {
     try {
         const session = await tryLogin(req.body.username, req.body.password)
-        res.cookie("sessionid", session.id)
+        res.cookie("sessionid", session.id, {
+            httpOnly: true,
+            sameSite: "strict",
+            secure: ENV === "production"
+        })
         res.redirect(req.query.next || "/admin")
     } catch (err) {
         res.status(400).send(
