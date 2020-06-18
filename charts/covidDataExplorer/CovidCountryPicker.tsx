@@ -521,8 +521,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
             isSelected,
             isFocused,
             hasDataForActiveMetric,
-            highlight,
-            color
+            highlight
         } = this.props
         return (
             <Flipped flipId={option.name} translate opacity>
@@ -560,14 +559,6 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                                 </div>
                             )}
                         </div>
-                        {isSelected && color && (
-                            <div className="color-marker-container">
-                                <div
-                                    className="color-marker"
-                                    style={{ backgroundColor: color }}
-                                />
-                            </div>
-                        )}
                         {barScale && isNumber(option.plotValue) ? (
                             <div className="plot">
                                 <div
