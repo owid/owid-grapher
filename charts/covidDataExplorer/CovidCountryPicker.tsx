@@ -85,6 +85,8 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed get metric(): CountryPickerMetric {
+        // On mobile, only allow sorting by location
+        if (this.isDropdownMenu) return CountryPickerMetric.location
         return this.props.covidDataExplorer.props.params.countryPickerMetric
     }
 
@@ -93,6 +95,8 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed get sortOrder(): SortOrder {
+        // On mobile, only allow sorting by location (ascending)
+        if (this.isDropdownMenu) return SortOrder.asc
         return this.props.covidDataExplorer.props.params.countryPickerSort
     }
 
@@ -384,7 +388,7 @@ export class CountryPicker extends React.Component<{
                         </div>
                     )}
                 </div>
-                {(!this.isDropdownMenu || this.isOpen) && (
+                {!this.isDropdownMenu && (
                     <div className="MetricSettings">
                         <span className="mainLabel">Sort by</span>
                         <Select
