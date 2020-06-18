@@ -1052,7 +1052,11 @@ export class ControlsFooterView extends React.Component<{
         const relatedQuestion = hasRelatedQuestion && (
             <div className="relatedQuestion">
                 Related:&nbsp;
-                <a href={chart.relatedQuestionUrl} target="_blank">
+                <a
+                    href={chart.relatedQuestionUrl}
+                    target="_blank"
+                    data-track-note="chart-click-related"
+                >
                     {chart.relatedQuestion}
                 </a>
                 <FontAwesomeIcon icon={faExternalLinkAlt} />
