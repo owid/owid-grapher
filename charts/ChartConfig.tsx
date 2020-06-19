@@ -79,6 +79,7 @@ import { TickFormattingOptions } from "./TickFormattingOptions"
 import { populationMap } from "./PopulationMap"
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import { countries } from "utils/countries"
+import { DataTableTransform } from "./DataTableTransform"
 
 declare const App: any
 declare const window: any
@@ -830,6 +831,9 @@ export class ChartConfig {
     }
     @computed get map() {
         return new MapConfig(this)
+    }
+    @computed get dataTableTransform() {
+        return new DataTableTransform(this)
     }
 
     @computed get activeTransform(): IChartTransform {

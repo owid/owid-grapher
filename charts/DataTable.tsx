@@ -15,7 +15,6 @@ import { ChartConfig } from "./ChartConfig"
 import { capitalize, some, defaultTo, orderBy, upperFirst } from "./Util"
 import { Tippy } from "./Tippy"
 import {
-    DataTableTransform,
     DataTableRow,
     TargetYearMode,
     SortOrder,
@@ -110,7 +109,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get transform() {
-        return new DataTableTransform(this.props.chart)
+        return this.props.chart.dataTableTransform
     }
 
     @computed get sortValueMapper(): (

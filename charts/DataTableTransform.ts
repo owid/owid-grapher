@@ -4,12 +4,15 @@ import {
     valuesByEntityAtYears,
     es6mapValues,
     valuesByEntityWithinYears,
-    getStartEndValues
+    getStartEndValues,
+    intersection,
+    flatten
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { getTimeWithinTimeRange, Time } from "./TimeBounds"
+import { ChartTransform } from "./ChartTransform"
 
 // Target year modes
 
@@ -113,15 +116,26 @@ function getValueUnit(unit: string) {
     return unit !== "%" ? undefined : unit
 }
 
-export class DataTableTransform {
+export class DataTableTransform extends ChartTransform {
     chart: ChartConfig
 
+    @computed get isValidConfig(): boolean {
+        return true
+    }
+
     constructor(chart: ChartConfig) {
+        super(chart)
         this.chart = chart
     }
 
+    @computed get availableYears() {
+        return intersection(flatten(this.dimensions.map(dim => dim.yearsUniq)))
+    }
+
     @computed get dimensions() {
-        return this.chart.data.filledDimensions
+        return this.chart.data.filledDimensions.filter(
+            dim => dim.includeInTable
+        )
     }
 
     @computed get entities() {
@@ -190,148 +204,136 @@ export class DataTableTransform {
     }
 
     @computed get dimensionsWithValues(): Dimension[] {
-        return this.dimensions
-            .filter(dim => dim.includeInTable)
-            .map(dim => {
-                const targetYears =
-                    // If a targetYear override is specified on the dimension (scatter plots
-                    // can do this) then use that target year and ignore the timeline.
-                    dim.targetYear !== undefined && this.chart.isScatter
-                        ? [dim.targetYear]
-                        : this.targetYears
+        return this.dimensions.map(dim => {
+            const targetYears =
+                // If a targetYear override is specified on the dimension (scatter plots
+                // can do this) then use that target year and ignore the timeline.
+                dim.targetYear !== undefined && this.chart.isScatter
+                    ? [dim.targetYear]
+                    : this.targetYears
 
-                const targetYearMode =
-                    targetYears.length < 2
-                        ? TargetYearMode.point
-                        : this.targetYearMode
+            const targetYearMode =
+                targetYears.length < 2
+                    ? TargetYearMode.point
+                    : this.targetYearMode
 
-                const valuesByEntity =
-                    targetYearMode === TargetYearMode.range
-                        ? // In the "range" mode, we receive all data values within the range. But we
-                          // only want to plot the start & end values in the table.
-                          // getStartEndValues() extracts these two values.
-                          es6mapValues(
-                              valuesByEntityWithinYears(
-                                  dim.valueByEntityAndYear,
-                                  targetYears
-                              ),
-                              getStartEndValues
-                          )
-                        : valuesByEntityAtYears(
+            const valuesByEntity =
+                targetYearMode === TargetYearMode.range
+                    ? // In the "range" mode, we receive all data values within the range. But we
+                      // only want to plot the start & end values in the table.
+                      // getStartEndValues() extracts these two values.
+                      es6mapValues(
+                          valuesByEntityWithinYears(
                               dim.valueByEntityAndYear,
-                              targetYears,
-                              dim.tolerance
-                          )
+                              targetYears
+                          ),
+                          getStartEndValues
+                      )
+                    : valuesByEntityAtYears(
+                          dim.valueByEntityAndYear,
+                          targetYears,
+                          dim.tolerance
+                      )
 
-                const isRange = targetYears.length === 2
+            const isRange = targetYears.length === 2
 
-                // Inject delta columns if we have start & end values to compare in the table.
-                // One column for absolute difference, another for % difference.
-                const deltaColumns: DimensionColumn[] = isRange
-                    ? [
-                          { key: RangeValueKey.delta },
-                          { key: RangeValueKey.deltaRatio }
-                      ]
-                    : []
+            // Inject delta columns if we have start & end values to compare in the table.
+            // One column for absolute difference, another for % difference.
+            const deltaColumns: DimensionColumn[] = isRange
+                ? [
+                      { key: RangeValueKey.delta },
+                      { key: RangeValueKey.deltaRatio }
+                  ]
+                : []
 
-                const columns: DimensionColumn[] = [
-                    ...targetYears.map((targetYear, index) => ({
-                        key: isRange
-                            ? index === 0
-                                ? RangeValueKey.start
-                                : RangeValueKey.end
-                            : SingleValueKey.single,
-                        targetYear,
-                        targetYearMode
-                    })),
-                    ...deltaColumns
-                ]
+            const columns: DimensionColumn[] = [
+                ...targetYears.map((targetYear, index) => ({
+                    key: isRange
+                        ? index === 0
+                            ? RangeValueKey.start
+                            : RangeValueKey.end
+                        : SingleValueKey.single,
+                    targetYear,
+                    targetYearMode
+                })),
+                ...deltaColumns
+            ]
 
-                const finalValueByEntity = es6mapValues(valuesByEntity, dvs => {
-                    // There is always a column, but not always a data value (in the delta column the
-                    // value needs to be calculated)
-                    if (isRange) {
-                        const [start, end]: (Value | undefined)[] = dvs
-                        const result: RangeValue = {
-                            start: {
-                                ...start,
-                                formattedValue: this.formatValue(
-                                    dim,
-                                    start?.value
-                                )
-                            },
-                            end: {
-                                ...end,
-                                formattedValue: this.formatValue(
-                                    dim,
-                                    end?.value
-                                )
-                            },
-                            delta: undefined,
-                            deltaRatio: undefined
-                        }
-
-                        if (
-                            start !== undefined &&
-                            end !== undefined &&
-                            typeof start.value === "number" &&
-                            typeof end.value === "number"
-                        ) {
-                            const deltaValue = end.value - start.value
-                            const deltaRatioValue =
-                                (end.value - start.value) / start.value
-
-                            result.delta = {
-                                value: deltaValue,
-                                formattedValue: this.formatValue(
-                                    dim,
-                                    deltaValue,
-                                    {
-                                        showPlus: true
-                                    }
-                                )
-                            }
-
-                            result.deltaRatio = {
-                                value: deltaRatioValue,
-                                formattedValue:
-                                    isFinite(deltaRatioValue) &&
-                                    !isNaN(deltaRatioValue)
-                                        ? this.formatValue(
-                                              dim,
-                                              deltaRatioValue * 100,
-                                              {
-                                                  unit: "%",
-                                                  numDecimalPlaces: 0,
-                                                  showPlus: true
-                                              }
-                                          )
-                                        : undefined
-                            }
-                        }
-                        return result
-                    } else {
-                        // if single year
-                        const dv = dvs[0]
-                        const result: SingleValue = {
-                            single: { ...dv }
-                        }
-                        if (dv !== undefined) {
-                            result.single!.formattedValue = this.formatValue(
-                                dim,
-                                dv.value
-                            )
-                        }
-                        return result
+            const finalValueByEntity = es6mapValues(valuesByEntity, dvs => {
+                // There is always a column, but not always a data value (in the delta column the
+                // value needs to be calculated)
+                if (isRange) {
+                    const [start, end]: (Value | undefined)[] = dvs
+                    const result: RangeValue = {
+                        start: {
+                            ...start,
+                            formattedValue: this.formatValue(dim, start?.value)
+                        },
+                        end: {
+                            ...end,
+                            formattedValue: this.formatValue(dim, end?.value)
+                        },
+                        delta: undefined,
+                        deltaRatio: undefined
                     }
-                })
 
-                return {
-                    dimension: dim,
-                    columns: columns,
-                    valueByEntity: finalValueByEntity
+                    if (
+                        start !== undefined &&
+                        end !== undefined &&
+                        typeof start.value === "number" &&
+                        typeof end.value === "number"
+                    ) {
+                        const deltaValue = end.value - start.value
+                        const deltaRatioValue =
+                            (end.value - start.value) / start.value
+
+                        result.delta = {
+                            value: deltaValue,
+                            formattedValue: this.formatValue(dim, deltaValue, {
+                                showPlus: true
+                            })
+                        }
+
+                        result.deltaRatio = {
+                            value: deltaRatioValue,
+                            formattedValue:
+                                isFinite(deltaRatioValue) &&
+                                !isNaN(deltaRatioValue)
+                                    ? this.formatValue(
+                                          dim,
+                                          deltaRatioValue * 100,
+                                          {
+                                              unit: "%",
+                                              numDecimalPlaces: 0,
+                                              showPlus: true
+                                          }
+                                      )
+                                    : undefined
+                        }
+                    }
+                    return result
+                } else {
+                    // if single year
+                    const dv = dvs[0]
+                    const result: SingleValue = {
+                        single: { ...dv }
+                    }
+                    if (dv !== undefined) {
+                        result.single!.formattedValue = this.formatValue(
+                            dim,
+                            dv.value
+                        )
+                    }
+                    return result
                 }
             })
+
+            return {
+                dimension: dim,
+                columns: columns,
+                valueByEntity: finalValueByEntity
+            }
+        })
     }
 
     @computed get displayDimensions(): DataTableDimension[] {
