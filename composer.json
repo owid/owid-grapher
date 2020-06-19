@@ -51,7 +51,7 @@
     "composer/installers": "1.8.0",
     "vlucas/phpdotenv": "4.1.3",
     "oscarotero/env": "1.2.0",
-    "roots/wordpress": "5.4.1",
+    "roots/wordpress": "5.4.2",
     "roots/wp-config": "1.0.0",
     "roots/wp-password-bcrypt": "1.0.0",
     "wp-api/basic-auth": "dev-master",
