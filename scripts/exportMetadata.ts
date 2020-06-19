@@ -16,6 +16,14 @@ const filePath =
         ? "/tmp/owid_metadata.sql"
         : "/tmp/owid_metadata_with_passwords.sql")
 
+const excludeTables = [
+    "sessions",
+    "password_resets",
+    "user_invitations",
+    "dataset_files",
+    "data_values"
+]
+
 async function dataExport() {
     await db.connect()
 
@@ -27,10 +35,14 @@ async function dataExport() {
 
     // Dump all tables including schema but exclude the rows of data_values
     await exec(
-        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.password_resets --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.dataset_files --ignore-table=${DB_NAME}.data_values -r ${filePath}`
+        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} ${excludeTables
+            .map(tableName => `--ignore-table=${DB_NAME}.${tableName}`)
+            .join(" ")} -r ${filePath}`
     )
     await exec(
-        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} sessions password_resets user_invitations dataset_files data_values >> ${filePath}`
+        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} ${excludeTables.join(
+            " "
+        )} >> ${filePath}`
     )
 
     if (!withPasswords) {
