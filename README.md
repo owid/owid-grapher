@@ -86,7 +86,7 @@ Below is the (current) list of Bedrock files grouped by the type of action to be
 - /web/app/plugins (should be empty)
 - /web/app/themes (should be empty)
 - /web/app/uploads (should be empty)
-- composer.lock
+- /composer.lock
 
 #### Selectively update
 
