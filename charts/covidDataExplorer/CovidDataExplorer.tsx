@@ -1130,8 +1130,7 @@ export class CovidDataExplorer extends React.Component<{
                 property: "x",
                 variableId: this.xVariableId!,
                 display: {
-                    name: this.daysSinceOption.title,
-                    includeInTable: false
+                    name: this.daysSinceOption.title
                 }
             },
             {

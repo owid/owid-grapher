@@ -230,7 +230,8 @@ export const daysSinceVariable = (
         years: dataWeNeed.map(row => row!.year),
         entities: dataWeNeed.map(row => row!.entity),
         entityNames: dataWeNeed.map(row => row!.entityName),
-        values: dataWeNeed.map(row => row!.value)
+        values: dataWeNeed.map(row => row!.value),
+        display: { includeInTable: false }
     }
 
     return variable as OwidVariable
