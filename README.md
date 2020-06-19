@@ -61,3 +61,39 @@ As a result `yarn`and `composer` need to be run from within the containers only 
 ```sh
 lando start && lando yarn start
 ```
+
+## Upgrade
+
+### Bedrock
+
+Bedrock's upgrade process is manual, and requires selective copy / paste operations from the [latest release](https://github.com/roots/bedrock/releases) files.
+
+Below is the (current) list of Bedrock files grouped by the type of action to be carried out on those files.
+
+#### Override
+
+- /config
+- /web/app/mu-plugins
+- /web/index.php
+- /web/wp-config.php
+- /phpcs.xml
+- /wp-cli.yml
+
+#### Ignore
+
+- /CHANGELOG.md
+- /README.md
+- /web/app/plugins (should be empty)
+- /web/app/themes (should be empty)
+- /web/app/uploads (should be empty)
+- composer.lock
+
+#### Selectively update
+
+- /composer.json (keep versions pinned)
+- /LICENSE.md (change unlikely)
+
+### Wordpress, Wordpress plugins
+
+1. Update composer.json with the new pinned version
+2. `lando composer update`
