@@ -55,7 +55,7 @@
     "roots/wp-config": "1.0.0",
     "roots/wp-password-bcrypt": "1.0.0",
     "wp-api/basic-auth": "dev-master",
-    "wp-graphql/wp-graphql": "0.8.1",
+    "wp-graphql/wp-graphql": "0.9.1",
     "wpackagist-plugin/add-category-to-pages": "1.2",
     "wpackagist-plugin/admin-starred-posts": "2.5",
     "wpackagist-plugin/broken-link-checker": "1.11.13",
