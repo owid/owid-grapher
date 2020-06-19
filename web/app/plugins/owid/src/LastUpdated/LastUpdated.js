@@ -2,8 +2,9 @@ import { InnerBlocks } from "@wordpress/block-editor";
 import { createBlock } from "@wordpress/blocks";
 
 const blockStyle = {
-  border: "1px dashed lightgrey",
   padding: "0 1rem",
+  color: "#616161",
+  backgroundColor: "#ebeef2",
 };
 
 const BLOCK_TEMPLATE = [

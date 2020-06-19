@@ -18,6 +18,7 @@ include 'src/ProminentLink/prominent-link.php';
 include 'src/AdditionalInformation/additional-information.php';
 include 'src/Help/help.php';
 include 'src/LastUpdated/last-updated.php';
+include 'src/Byline/byline.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 
@@ -109,6 +110,11 @@ function register()
 	register_block_type('owid/last-updated', array(
 		'editor_script' => 'owid-blocks-script',
 		'render_callback' => __NAMESPACE__ . '\blocks\last_updated\render'
+	));
+
+	register_block_type('owid/byline', array(
+		'editor_script' => 'owid-blocks-script',
+		'render_callback' => __NAMESPACE__ . '\blocks\byline\render'
 	));
 }
 

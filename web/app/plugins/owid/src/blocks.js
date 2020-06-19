@@ -3,6 +3,7 @@ import ProminentLink from "./ProminentLink/ProminentLink";
 import AdditionalInformation from "./AdditionalInformation/AdditionalInformation";
 import Help from "./Help/Help";
 import LastUpdated from "./LastUpdated/LastUpdated";
+import Byline from "./Byline/Byline";
 const { registerBlockType, registerBlockStyle } = wp.blocks;
 const { createHigherOrderComponent } = wp.compose;
 const { addFilter } = wp.hooks;
@@ -12,6 +13,7 @@ registerBlockType("owid/prominent-link", ProminentLink);
 registerBlockType("owid/additional-information", AdditionalInformation);
 registerBlockType("owid/help", Help);
 registerBlockType("owid/last-updated", LastUpdated);
+registerBlockType("owid/byline", Byline);
 
 registerBlockStyle("core/columns", {
   name: "sticky-right",
