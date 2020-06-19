@@ -14,7 +14,7 @@
         "dev-site:inspect": "yarn tsnd:inspect site/server/devServer.tsx",
         "dev-webpack": "webpack-dev-server -d",
         "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
-        "dev-tmux": "tmex dev \"yarn dev-admin\" \"yarn dev-site\" \"yarn dev-webpack\"",
+        "dev-tmux": "tmex dev \"yarn tsn admin/server/server.tsx\" \"yarn tsn site/server/devServer.tsx\" \"yarn dev-webpack\"",
         "typeorm": "yarn tsn node_modules/.bin/typeorm",
         "knex": "yarn tsn node_modules/.bin/knex --knexfile knexfile.ts",
         "migrate": "yarn knex migrate:latest && yarn typeorm migration:run",
