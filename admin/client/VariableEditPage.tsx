@@ -210,6 +210,18 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         helpText={`The day series starts on this date.`}
                                     />
                                 </FieldsRow>
+                                <FieldsRow>
+                                    <Toggle
+                                        value={
+                                            newVariable.display
+                                                .includeInTable === true
+                                        }
+                                        onValue={value =>
+                                            (newVariable.display.includeInTable = value)
+                                        }
+                                        label="Include in table"
+                                    />
+                                </FieldsRow>
                                 <BindString
                                     field="description"
                                     store={newVariable}
