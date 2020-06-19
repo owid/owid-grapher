@@ -45,7 +45,7 @@ export interface FormattedPost {
     modifiedDate: Date
     lastUpdated?: string | null
     authors: string[]
-    byline?: string
+    byline?: string | null
     info?: string | null
     html: string
     footnotes: string[]
