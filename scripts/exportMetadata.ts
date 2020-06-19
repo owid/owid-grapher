@@ -18,7 +18,6 @@ const filePath =
 
 const excludeTables = [
     "sessions",
-    "password_resets",
     "user_invitations",
     "dataset_files",
     "data_values"
