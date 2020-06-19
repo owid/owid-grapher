@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "911c6ea5bf5566f82c3002f5c642d233",
+    "content-hash": "b93fb180727468a1a54eb242a94491db",
     "packages": [
         {
             "name": "composer/installers",
@@ -794,15 +794,15 @@
         },
         {
             "name": "wpackagist-plugin/broken-link-checker",
-            "version": "1.11.12",
+            "version": "1.11.13",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/broken-link-checker/",
-                "reference": "tags/1.11.12"
+                "reference": "tags/1.11.13"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.12.zip"
+                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.13.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -920,15 +920,15 @@
         },
         {
             "name": "wpackagist-plugin/redirection",
-            "version": "4.7.2",
+            "version": "4.8",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/redirection/",
-                "reference": "tags/4.7.2"
+                "reference": "tags/4.8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/redirection.4.7.2.zip"
+                "url": "https://downloads.wordpress.org/plugin/redirection.4.8.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -974,15 +974,15 @@
         },
         {
             "name": "wpackagist-plugin/simple-history",
-            "version": "2.33.2",
+            "version": "2.34.0",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/simple-history/",
-                "reference": "tags/2.33.2"
+                "reference": "tags/2.34.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-history.2.33.2.zip"
+                "url": "https://downloads.wordpress.org/plugin/simple-history.2.34.0.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
