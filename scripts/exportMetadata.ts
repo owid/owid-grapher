@@ -27,10 +27,10 @@ async function dataExport() {
 
     // Dump all tables including schema but exclude the rows of data_values
     await exec(
-        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.dataset_files --ignore-table=${DB_NAME}.data_values -r ${filePath}`
+        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} --ignore-table=${DB_NAME}.sessions --ignore-table=${DB_NAME}.password_resets --ignore-table=${DB_NAME}.user_invitations --ignore-table=${DB_NAME}.dataset_files --ignore-table=${DB_NAME}.data_values -r ${filePath}`
     )
     await exec(
-        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} sessions user_invitations dataset_files data_values >> ${filePath}`
+        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} sessions password_resets user_invitations dataset_files data_values >> ${filePath}`
     )
 
     if (!withPasswords) {
