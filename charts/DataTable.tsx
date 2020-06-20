@@ -438,7 +438,7 @@ export const ClosestYearNotice = ({
         }
         arrow={false}
     >
-        <span className="notice">
+        <span className="data-table-notice">
             {year}{" "}
             <span className="icon">
                 <FontAwesomeIcon icon={faInfoCircle} />
