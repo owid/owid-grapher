@@ -36,7 +36,10 @@ export class ChartDimensionWithOwidVariable {
     }
 
     @computed get includeInTable(): boolean {
-        return this.variable.display.includeInTable ?? true
+        return (
+            this.property !== "color" &&
+            (this.variable.display.includeInTable ?? true)
+        )
     }
 
     @computed get unit(): string {
