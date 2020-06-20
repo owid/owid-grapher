@@ -306,17 +306,17 @@ function buildEntityAnnotations(
     data: ParsedCovidRow[],
     metric: MetricKind
 ): string | undefined {
-    if (metric === "cases") {
-        return `Spain: Note that on April 19 & May 25th the methodology has changed
-Lithuania: Note that on April 28 the methodology has changed
-Ecuador: Note that on May 8 the methodology has changed
-United Kingdom: Note that on May 20 the methodology has changed
-France: Note that on June 2 the methodology has changed`
-    } else if (metric === "deaths") {
+    if (
+        metric === "cases" ||
+        metric === "deaths" ||
+        metric === "case_fatality_rate"
+    ) {
         return `Benin: Note that on May 19 the methodology has changed
 Spain: Note that on May 25 the methodology has changed
 United Kingdom: Note that on June 1 the methodology has changed
-Panama: Note that on June 3 the methodology has changed`
+Panama: Note that on June 3 the methodology has changed
+European Union: Some EU countries changed methodology. See country-by-country series.
+India: Note that on June 17 earlier deaths were added to the total.`
     } else if (
         metric === "tests" ||
         metric === "positive_test_rate" ||
