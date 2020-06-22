@@ -457,7 +457,11 @@ const buildVariableMetadata = (
     // Show decimal places for rolling average & per capita variables
     if (perCapita > 1) {
         variable.display!.numDecimalPlaces = 2
-    } else if (rollingAverage && rollingAverage > 1) {
+    } else if (
+        name === "positive_test_rate" ||
+        name === "case_fatality_rate" ||
+        (rollingAverage && rollingAverage > 1)
+    ) {
         variable.display!.numDecimalPlaces = 1
     } else {
         variable.display!.numDecimalPlaces = 0
