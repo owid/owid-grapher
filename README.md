@@ -59,7 +59,7 @@ As a result `yarn`and `composer` need to be run from within the containers only 
 2. Start development environment
 
 ```sh
-lando start && lando yarn start
+lando start && lando dev
 ```
 
 ## Upgrade
