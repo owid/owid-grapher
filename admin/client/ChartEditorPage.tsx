@@ -39,10 +39,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
 import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
 import {
-    VisionDeficieny,
+    VisionDeficiency,
     VisionDeficiencySvgFilters,
-    VisionDeficienyDropdown,
-    VisionDeficienyEntity
+    VisionDeficiencyDropdown,
+    VisionDeficiencyEntity
 } from "./VisionDeficiencies"
 
 @observer
@@ -93,7 +93,7 @@ export class ChartEditorPage extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable simulateVisionDeficiency?: VisionDeficieny
+    @observable simulateVisionDeficiency?: VisionDeficiency
 
     async fetchChart() {
         const { chartId, chartConfig } = this.props
@@ -350,9 +350,9 @@ export class ChartEditorPage extends React.Component<{
                             style={{ width: 250, marginLeft: 15 }}
                         >
                             Emulate vision deficiency:{" "}
-                            <VisionDeficienyDropdown
+                            <VisionDeficiencyDropdown
                                 onChange={action(
-                                    (option: VisionDeficienyEntity) =>
+                                    (option: VisionDeficiencyEntity) =>
                                         (this.simulateVisionDeficiency =
                                             option.deficiency)
                                 )}

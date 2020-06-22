@@ -14,7 +14,7 @@ import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 // Transformation matrices taken from https://github.com/hail2u/color-blindness-emulation/blob/master/filters.svg?short_path=5708e81
 // "Affected" numbers from https://en.wikipedia.org/wiki/Color_blindness#Epidemiology
 
-export interface VisionDeficieny {
+export interface VisionDeficiency {
     id: string
     name: string
     group: string
@@ -23,7 +23,7 @@ export interface VisionDeficieny {
     transformationMatrix: string
 }
 
-export const visionDeficiencies: VisionDeficieny[] = [
+export const visionDeficiencies: VisionDeficiency[] = [
     // Color blindnesses first
     {
         id: "protanopia",
@@ -151,16 +151,16 @@ export const VisionDeficiencySvgFilters = () => (
 
 interface VisionDeficiencyDropdownProps {
     value?: string
-    onChange: (selected: VisionDeficienyEntity) => void
+    onChange: (selected: VisionDeficiencyEntity) => void
 }
 
-export interface VisionDeficienyEntity {
+export interface VisionDeficiencyEntity {
     label: string
     value: string
-    deficiency?: VisionDeficieny
+    deficiency?: VisionDeficiency
 }
 
-const VisionDeficiencyOption = (props: OptionProps<VisionDeficienyEntity>) => (
+const VisionDeficiencyOption = (props: OptionProps<VisionDeficiencyEntity>) => (
     <div style={{ fontSize: ".9em", lineHeight: 1 }}>
         <components.Option {...props}>
             <label>{props.label}</label>
@@ -176,7 +176,7 @@ const VisionDeficiencyOption = (props: OptionProps<VisionDeficienyEntity>) => (
 )
 
 @observer
-export class VisionDeficienyDropdown extends React.Component<
+export class VisionDeficiencyDropdown extends React.Component<
     VisionDeficiencyDropdownProps
 > {
     noDeficiencyOption = {
@@ -184,7 +184,7 @@ export class VisionDeficienyDropdown extends React.Component<
         value: "none"
     }
 
-    @computed get options(): GroupedOptionsType<VisionDeficienyEntity> {
+    @computed get options(): GroupedOptionsType<VisionDeficiencyEntity> {
         const options = visionDeficiencies.map(deficiency => ({
             label: `${deficiency.name} (${deficiency.alternativeName})`,
             value: deficiency.id,
@@ -204,7 +204,7 @@ export class VisionDeficienyDropdown extends React.Component<
         ]
     }
 
-    @action.bound onChange(selected: ValueType<VisionDeficienyEntity>) {
+    @action.bound onChange(selected: ValueType<VisionDeficiencyEntity>) {
         const value = first(asArray(selected))
         if (value) this.props.onChange(value)
     }
