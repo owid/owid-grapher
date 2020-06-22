@@ -8,10 +8,23 @@ import {
     BindString,
     BindAutoString,
     AutoTextField,
-    RadioGroup
+    RadioGroup,
+    TextField
 } from "./Forms"
 import { LogoOption } from "charts/Logos"
 import slugify from "slugify"
+import { RelatedQuestionsConfig } from "charts/ChartConfig"
+
+export const getErrorMessageRelatedQuestionUrl = (
+    question: RelatedQuestionsConfig
+): string | undefined => {
+    return question.text
+        ? (!question.url && "Missing URL") ||
+              (!question.url.match(/^https?:\/\//) &&
+                  "URL should start with http(s)://") ||
+              undefined
+        : undefined
+}
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -121,23 +134,35 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
                 <Section name="Related">
-                    <BindString
-                        label="Related question"
-                        field="relatedQuestion"
-                        store={chart.props}
-                        placeholder="e.g. How did countries respond to the pandemic?"
-                        helpText="Short question promoting exploration of related content"
-                        softCharacterLimit={50}
-                    />
-                    {chart.props.relatedQuestion && (
-                        <BindString
-                            label="URL"
-                            field="relatedQuestionUrl"
-                            store={chart.props}
-                            placeholder="e.g. https://ourworldindata.org/coronavirus"
-                            helpText="Page or section of a page where the answer to the previous question can be found."
-                            errorMessage={chart.errorMessageRelatedQuestionUrl}
-                        />
+                    {chart.props.relatedQuestions.map(
+                        (question: RelatedQuestionsConfig, idx: number) => (
+                            <div key={idx}>
+                                <TextField
+                                    label="Related question"
+                                    value={question.text || ""}
+                                    onValue={action((value: string) => {
+                                        question.text = value
+                                    })}
+                                    placeholder="e.g. How did countries respond to the pandemic?"
+                                    helpText="Short question promoting exploration of related content"
+                                    softCharacterLimit={50}
+                                />
+                                {question.text && (
+                                    <TextField
+                                        label="URL"
+                                        value={question.url || ""}
+                                        onValue={action((value: string) => {
+                                            question.url = value
+                                        })}
+                                        placeholder="e.g. https://ourworldindata.org/coronavirus"
+                                        helpText="Page or section of a page where the answer to the previous question can be found."
+                                        errorMessage={getErrorMessageRelatedQuestionUrl(
+                                            question
+                                        )}
+                                    />
+                                )}
+                            </div>
+                        )
                     )}
                 </Section>
                 <Section name="Misc">

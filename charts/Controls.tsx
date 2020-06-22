@@ -609,9 +609,12 @@ export class Controls {
         )
     }
 
-    @computed get hasRelatedQuestion(): boolean {
+    @computed get hasRelatedQuestions(): boolean {
         const { chart } = this.props
-        return !!chart.relatedQuestion && !!chart.relatedQuestionUrl
+        return (
+            !!chart.props.relatedQuestions[0].text &&
+            !!chart.props.relatedQuestions[0].url
+        )
     }
 
     @computed get footerLines(): number {
@@ -624,7 +627,7 @@ export class Controls {
     }
 
     @computed get footerHeight(): number {
-        return this.footerLines * 40 + (this.hasRelatedQuestion ? 20 : 0)
+        return this.footerLines * 40 + (this.hasRelatedQuestions ? 20 : 0)
     }
 }
 
@@ -1010,7 +1013,7 @@ export class ControlsFooterView extends React.Component<{
             hasTimeline,
             hasInlineControls,
             hasSpace,
-            hasRelatedQuestion
+            hasRelatedQuestions
         } = props.controls
         const { chart, chartView } = props.controls.props
 
@@ -1049,15 +1052,15 @@ export class ControlsFooterView extends React.Component<{
             <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu} />
         )
 
-        const relatedQuestion = hasRelatedQuestion && (
+        const relatedQuestion = hasRelatedQuestions && (
             <div className="relatedQuestion">
                 Related:&nbsp;
                 <a
-                    href={chart.relatedQuestionUrl}
+                    href={chart.props.relatedQuestions[0].url}
                     target="_blank"
                     data-track-note="chart-click-related"
                 >
-                    {chart.relatedQuestion}
+                    {chart.props.relatedQuestions[0].text}
                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                 </a>
             </div>

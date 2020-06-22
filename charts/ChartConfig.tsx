@@ -79,6 +79,7 @@ import { TickFormattingOptions } from "./TickFormattingOptions"
 import { populationMap } from "./PopulationMap"
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import { countries } from "utils/countries"
+import { getErrorMessageRelatedQuestionUrl } from "admin/client/EditorTextTab"
 
 declare const App: any
 declare const window: any
@@ -92,6 +93,11 @@ const isJsdom: boolean =
 export interface HighlightToggleConfig {
     description: string
     paramStr: string
+}
+
+export interface RelatedQuestionsConfig {
+    text: string
+    url: string
 }
 
 interface EntitySelection {
@@ -237,8 +243,9 @@ export class ChartConfigProps {
     @observable.ref tab: ChartTabOption = "chart"
     @observable.ref overlay?: ChartTabOption = undefined
 
-    @observable.ref relatedQuestion?: string = undefined
-    @observable.ref relatedQuestionUrl?: string = undefined
+    @observable relatedQuestions: RelatedQuestionsConfig[] = [
+        { text: "", url: "" }
+    ]
     @observable.ref internalNotes?: string = undefined
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl?: string = undefined
@@ -495,17 +502,10 @@ export class ChartConfig {
         )
     }
 
-    @computed get errorMessageRelatedQuestionUrl(): string | undefined {
-        return this.props.relatedQuestion
-            ? (!this.props.relatedQuestionUrl && "Missing URL") ||
-                  (!this.props.relatedQuestionUrl?.match(/^https?:\/\//) &&
-                      "URL should start with http(s)://") ||
-                  undefined
-            : undefined
-    }
-
     @computed get hasFatalErrors(): boolean {
-        return !!this.errorMessageRelatedQuestionUrl
+        return this.props.relatedQuestions.some(
+            question => !!getErrorMessageRelatedQuestionUrl(question)
+        )
     }
 
     disposers: IReactionDisposer[] = []
@@ -597,12 +597,6 @@ export class ChartConfig {
     }
     @computed get note() {
         return defaultTo(this.props.note, "")
-    }
-    @computed get relatedQuestion() {
-        return defaultTo(this.props.relatedQuestion, "")
-    }
-    @computed get relatedQuestionUrl() {
-        return defaultTo(this.props.relatedQuestionUrl, "")
     }
     @computed get internalNotes() {
         return defaultTo(this.props.internalNotes, "")
