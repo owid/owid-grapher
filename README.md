@@ -8,8 +8,9 @@
 - Custom plugin
 
 ## Requirements
+A reasonably powerful machine with 20GB+ of available disk space.
 
-- [Lando](https://lando.dev/) (Docker comes packaged with the installer, which is the recommended way to install both)
+See https://docs.lando.dev/basics/installation.html#hardware-requirements
 
 ## Custom plugin
 
@@ -17,6 +18,10 @@
 - Custom Gutenberg blocks
 
 ## Installation
+
+0. Install [Lando](https://lando.dev/) 
+
+_Docker comes packaged with the installer, which is the recommended way to install both._
 
 1. Clone
 
