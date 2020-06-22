@@ -62,7 +62,8 @@ export const DonatePage = () => {
                                     </p>
                                     <p>
                                         Thank you, <br />
-                                        Max, Esteban, Hannah, Joe and Daniel
+                                        Global Change Data Lab and the Our World
+                                        in Data team
                                     </p>
                                     <hr />
                                     <p>
