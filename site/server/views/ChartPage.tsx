@@ -89,7 +89,7 @@ export const ChartPage = (props: {
                 <SiteHeader />
                 <main>
                     <figure data-grapher-src={`/grapher/${chart.slug}`}>
-                        <LoadingIndicator color="#333" />
+                        <LoadingIndicator color="#333" position="relative" />
                     </figure>
                     <noscript id="fallback">
                         <img
