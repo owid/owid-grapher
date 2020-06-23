@@ -12,11 +12,7 @@ export class LoadingChart extends React.Component<{ bounds: Bounds }> {
         // -@danielgavrilov, 2020-01-07
         return (
             <ControlsOverlay id="loading-chart">
-                <LoadingIndicator
-                    bounds={this.props.bounds}
-                    color="#333"
-                    position="relative"
-                />
+                <LoadingIndicator bounds={this.props.bounds} color="#333" />
             </ControlsOverlay>
         )
     }

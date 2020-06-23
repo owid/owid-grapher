@@ -52,7 +52,7 @@ export const CovidDataExplorerPage = () => {
                     subnavCurrentId="data-explorer"
                 />
                 <main id={covidDataExplorerContainerId}>
-                    <LoadingIndicator color="#333" position="absolute" />
+                    <LoadingIndicator color="#333" />
                 </main>
                 <SiteFooter />
                 <script dangerouslySetInnerHTML={{ __html: script }} />
