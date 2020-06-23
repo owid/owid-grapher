@@ -864,31 +864,53 @@ $zindex-IndicatorDropdown: 50;
 
         > div {
             margin-right: 0.5em;
+            &:last-child {
+                margin-right: 0;
+            }
         }
 
+        .date {
+            font-size: 0.9rem;
+        }
+
+        .play,
+        .date {
+            transition: color 0.1s;
+            &:hover {
+                color: $controls-color;
+            }
+        }
+
+        $handle-width: 0.5em;
         .slider {
-            height: 0.6em;
+            height: 0.4em;
             flex-grow: 1;
             background: #eee;
             border-radius: 5px;
             position: relative;
             display: flex;
             align-items: center;
+            margin-right: 2 * $handle-width;
         }
 
         .handle {
             height: 1em;
-            width: 0.5em;
             border-radius: 0.2em;
-            margin-left: -5px;
+            width: $handle-width;
             background: $controls-color;
             position: absolute;
+            cursor: col-resize;
         }
 
         .interval {
             position: absolute;
             height: 0.6em;
+            margin-left: $handle-width;
             background: $controls-color;
+            cursor: grab;
+            &:active {
+                cursor: grabbing;
+            }
         }
     }
 }
