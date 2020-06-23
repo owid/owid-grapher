@@ -42,6 +42,16 @@
     }
 }
 
+#fallback {
+    // Override any sizing rules set by the above code, so the fallback chart never overlaps the
+    // site header or other site elements
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+
+    margin-top: 25px;
+}
+
 #fallback > img {
     max-width: 100%;
     border: 1px solid #ccc;
