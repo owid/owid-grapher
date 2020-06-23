@@ -91,6 +91,12 @@ export const ChartPage = (props: {
                     <figure data-grapher-src={`/grapher/${chart.slug}`}>
                         <LoadingIndicator color="#333" />
                     </figure>
+                    <noscript id="fallback">
+                        <img
+                            src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}
+                        />
+                        <p>Interactive visualization requires JavaScript</p>
+                    </noscript>
 
                     {post && (
                         <div className="related-research-data">
@@ -122,14 +128,6 @@ export const ChartPage = (props: {
                             )}
                         </div>
                     )}
-                    <noscript id="fallback">
-                        <h1>{chart.title}</h1>
-                        <p>{chart.subtitle}</p>
-                        <img
-                            src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}
-                        />
-                        <p>Interactive visualization requires JavaScript</p>
-                    </noscript>
                 </main>
                 <SiteFooter />
                 <script dangerouslySetInnerHTML={{ __html: script }} />

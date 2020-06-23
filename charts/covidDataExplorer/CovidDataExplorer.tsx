@@ -23,7 +23,6 @@ import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
-    max,
     fetchText,
     difference,
     pick,
@@ -57,7 +56,6 @@ import {
     getLeastUsedColor,
     computeCovidColumn
 } from "./CovidDataUtils"
-import { scaleLinear } from "d3-scale"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
@@ -347,7 +345,7 @@ export class CovidDataExplorer extends React.Component<{
     private _isMobile() {
         return (
             window.screen.width < 450 ||
-            document.documentElement.clientWidth <= 680
+            document.documentElement.clientWidth <= 800
         )
     }
 
@@ -685,17 +683,6 @@ export class CovidDataExplorer extends React.Component<{
     // If someone selects "Align with..." we switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
         return this.constrainedParams.aligned ? "ScatterPlot" : "LineChart"
-    }
-
-    // Keep the barScale here for perf reasons
-    @computed get barScale() {
-        const allTestsPerCase = this.countryOptions
-            .map(opt => opt.latestTotalTestsPerCase)
-            .filter(d => d) as number[]
-        const maxTestsPerCase = max(allTestsPerCase) ?? 1
-        return scaleLinear()
-            .domain([0, maxTestsPerCase])
-            .range([0, 1])
     }
 
     private initVariableAndGetId(
@@ -1130,8 +1117,7 @@ export class CovidDataExplorer extends React.Component<{
                 property: "x",
                 variableId: this.xVariableId!,
                 display: {
-                    name: this.daysSinceOption.title,
-                    includeInTable: false
+                    name: this.daysSinceOption.title
                 }
             },
             {

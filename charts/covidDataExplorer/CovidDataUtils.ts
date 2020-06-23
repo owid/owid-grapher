@@ -1,6 +1,5 @@
 import {
     dateDiffInDays,
-    maxBy,
     computeRollingAverage,
     flatten,
     cloneDeep,
@@ -36,19 +35,6 @@ export const parseCovidRow = (row: any) => {
     return row
 }
 
-export const getLatestTotalTestsPerCase = (
-    rows: ParsedCovidRow[]
-): number | undefined => {
-    const row = maxBy(
-        rows.filter(r => r.total_tests && r.total_cases),
-        r => r.date
-    )
-    if (row) {
-        return row.total_tests / row.total_cases
-    }
-    return undefined
-}
-
 const EPOCH_DATE = "2020-01-21"
 
 const dateToYear = (dateString: string): number =>
@@ -73,52 +59,98 @@ export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
             row => row.location !== "World" && row.location !== "International"
         )
 
-    const regionRows = computeRegionRows(filtered)
-    return filtered.concat(regionRows)
+    const continentRows = generateContinentRows(filtered)
+    const euRows = calculateRowsForGroup(getEuRows(filtered), "European Union")
+    return filtered.concat(continentRows, euRows)
 }
 
-export const computeRegionRows = (rows: ParsedCovidRow[]) => {
-    let newRows: ParsedCovidRow[] = []
-    const grouped = groupBy(rows, "continent")
-    Object.keys(grouped)
-        .filter(cont => cont)
-        .forEach(continentName => {
-            const groupRows = new Map<string, ParsedCovidRow>()
-            const rows = sortBy(grouped[continentName], row =>
-                moment(row.date).unix()
-            )
-            rows.forEach(row => {
-                const day = row.date
-                if (!groupRows.has(day)) {
-                    const newRow: any = {}
-                    Object.keys(row).forEach(key => (newRow[key] = undefined))
-                    groupRows.set(day, {
-                        location: row.continent,
-                        iso_code: row.continent.replace(" ", ""),
-                        date: day,
-                        new_cases: 0,
-                        new_deaths: 0,
-                        population: 0
-                    } as ParsedCovidRow)
-                }
-                const newRow = groupRows.get(day)!
-                newRow.population += row.population
-                newRow.new_cases += row.new_cases || 0
-                newRow.new_deaths += row.new_deaths || 0
-            })
-            const continentRows = Array.from(groupRows.values())
-            let total_cases = 0
-            let total_deaths = 0
-            // We need to compute cumulatives again because sometimes data will stop for a country.
-            continentRows.forEach(row => {
-                total_cases += row.new_cases
-                total_deaths += row.new_deaths
-                row.total_cases = total_cases
-                row.total_deaths = total_deaths
-            })
-            newRows = newRows.concat(continentRows)
-        })
+const getEuRows = (rows: ParsedCovidRow[]) =>
+    rows.filter(row => euCountries.has(row.location))
+
+const euCountries = new Set([
+    "Austria",
+    "Belgium",
+    "Bulgaria",
+    "Croatia",
+    "Cyprus",
+    "Czech Republic",
+    "Denmark",
+    "Estonia",
+    "Finland",
+    "France",
+    "Germany",
+    "Greece",
+    "Hungary",
+    "Ireland",
+    "Italy",
+    "Latvia",
+    "Lithuania",
+    "Luxembourg",
+    "Malta",
+    "Netherlands",
+    "Poland",
+    "Portugal",
+    "Romania",
+    "Slovakia",
+    "Slovenia",
+    "Spain",
+    "Sweden"
+])
+
+export const calculateRowsForGroup = (
+    group: ParsedCovidRow[],
+    groupName: string
+) => {
+    const groupRows = new Map<string, ParsedCovidRow>()
+    const rows = sortBy(group, row => moment(row.date).unix())
+    rows.forEach(row => {
+        const day = row.date
+        if (!groupRows.has(day)) {
+            const newRow: any = {}
+            Object.keys(row).forEach(key => (newRow[key] = undefined))
+            groupRows.set(day, {
+                location: groupName,
+                iso_code: groupName.replace(" ", ""),
+                date: day,
+                new_cases: 0,
+                new_deaths: 0,
+                population: 0
+            } as ParsedCovidRow)
+        }
+        const newRow = groupRows.get(day)!
+        newRow.population += row.population
+        newRow.new_cases += row.new_cases || 0
+        newRow.new_deaths += row.new_deaths || 0
+    })
+    const newRows = Array.from(groupRows.values())
+    let total_cases = 0
+    let total_deaths = 0
+    let maxPopulation = 0
+    // We need to compute cumulatives again because sometimes data will stop for a country.
+    newRows.forEach(row => {
+        total_cases += row.new_cases
+        total_deaths += row.new_deaths
+        row.total_cases = total_cases
+        row.total_deaths = total_deaths
+        if (row.population > maxPopulation) maxPopulation = row.population
+
+        // Once we add a country to a group, we assume we will always have data for that country, so even if the
+        // country is late in reporting the data keep that country in the population count.
+        row.population = maxPopulation
+    })
     return newRows
+}
+
+// Generates rows for each region.
+export const generateContinentRows = (rows: ParsedCovidRow[]) => {
+    const grouped = groupBy(rows, "continent")
+    return flatten(
+        Object.keys(grouped)
+            .filter(cont => cont)
+            .map(continentName =>
+                calculateRowsForGroup(grouped[continentName], continentName)
+            )
+    )
 }
 
 export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
@@ -131,7 +163,6 @@ export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
             code: iso_code,
             population,
             continent,
-            latestTotalTestsPerCase: getLatestTotalTestsPerCase(rows),
             rows
         }
     })
@@ -184,7 +215,8 @@ export const daysSinceVariable = (
         years: dataWeNeed.map(row => row!.year),
         entities: dataWeNeed.map(row => row!.entity),
         entityNames: dataWeNeed.map(row => row!.entityName),
-        values: dataWeNeed.map(row => row!.value)
+        values: dataWeNeed.map(row => row!.value),
+        display: { includeInTable: false }
     }
 
     return variable as OwidVariable
@@ -259,17 +291,17 @@ function buildEntityAnnotations(
     data: ParsedCovidRow[],
     metric: MetricKind
 ): string | undefined {
-    if (metric === "cases") {
-        return `Spain: Note that on April 19 & May 25th the methodology has changed
-Lithuania: Note that on April 28 the methodology has changed
-Ecuador: Note that on May 8 the methodology has changed
-United Kingdom: Note that on May 20 the methodology has changed
-France: Note that on June 2 the methodology has changed`
-    } else if (metric === "deaths") {
+    if (
+        metric === "cases" ||
+        metric === "deaths" ||
+        metric === "case_fatality_rate"
+    ) {
         return `Benin: Note that on May 19 the methodology has changed
 Spain: Note that on May 25 the methodology has changed
 United Kingdom: Note that on June 1 the methodology has changed
-Panama: Note that on June 3 the methodology has changed`
+Panama: Note that on June 3 the methodology has changed
+European Union: Some EU countries changed methodology. See country-by-country series.
+India: Note that on June 17 earlier deaths were added to the total.`
     } else if (
         metric === "tests" ||
         metric === "positive_test_rate" ||
@@ -410,7 +442,11 @@ const buildVariableMetadata = (
     // Show decimal places for rolling average & per capita variables
     if (perCapita > 1) {
         variable.display!.numDecimalPlaces = 2
-    } else if (rollingAverage && rollingAverage > 1) {
+    } else if (
+        name === "positive_test_rate" ||
+        name === "case_fatality_rate" ||
+        (rollingAverage && rollingAverage > 1)
+    ) {
         variable.display!.numDecimalPlaces = 1
     } else {
         variable.display!.numDecimalPlaces = 0

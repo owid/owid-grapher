@@ -38,6 +38,12 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMobile } from "@fortawesome/free-solid-svg-icons/faMobile"
 import { faDesktop } from "@fortawesome/free-solid-svg-icons/faDesktop"
+import {
+    VisionDeficiency,
+    VisionDeficiencySvgFilters,
+    VisionDeficiencyDropdown,
+    VisionDeficiencyEntity
+} from "./VisionDeficiencies"
 
 @observer
 class TabBinder extends React.Component<{ editor: ChartEditor }> {
@@ -86,6 +92,8 @@ export class ChartEditorPage extends React.Component<{
     @observable redirects?: ChartRedirect[]
     static contextType = AdminAppContext
     context!: AdminAppContextType
+
+    @observable simulateVisionDeficiency?: VisionDeficiency
 
     async fetchChart() {
         const { chartId, chartConfig } = this.props
@@ -275,7 +283,14 @@ export class ChartEditorPage extends React.Component<{
                     <SaveButtons editor={editor} />
                 </div>
                 <div className="chart-editor-view">
-                    <figure data-grapher-src>
+                    <figure
+                        data-grapher-src
+                        style={{
+                            filter:
+                                this.simulateVisionDeficiency &&
+                                `url(#${this.simulateVisionDeficiency.id})`
+                        }}
+                    >
                         {
                             <ChartView
                                 chart={chart}
@@ -286,50 +301,67 @@ export class ChartEditorPage extends React.Component<{
                                 }
                             />
                         }
-                        {/*<ChartView chart={chart} bounds={new Bounds(0, 0, 800, 600)}/>*/}
                     </figure>
-                    <div
-                        className="btn-group"
-                        data-toggle="buttons"
-                        style={{ whiteSpace: "nowrap" }}
-                    >
-                        <label
-                            className={
-                                "btn btn-light" +
-                                (previewMode === "mobile" ? " active" : "")
-                            }
-                            title="Mobile preview"
+                    <div>
+                        <div
+                            className="btn-group"
+                            data-toggle="buttons"
+                            style={{ whiteSpace: "nowrap" }}
                         >
-                            <input
-                                type="radio"
-                                onChange={action(
-                                    () => (editor.previewMode = "mobile")
-                                )}
-                                name="previewSize"
-                                id="mobile"
-                                checked={previewMode === "mobile"}
-                            />{" "}
-                            <FontAwesomeIcon icon={faMobile} />
-                        </label>
-                        <label
-                            className={
-                                "btn btn-light" +
-                                (previewMode === "desktop" ? " active" : "")
-                            }
-                            title="Desktop preview"
+                            <label
+                                className={
+                                    "btn btn-light" +
+                                    (previewMode === "mobile" ? " active" : "")
+                                }
+                                title="Mobile preview"
+                            >
+                                <input
+                                    type="radio"
+                                    onChange={action(
+                                        () => (editor.previewMode = "mobile")
+                                    )}
+                                    name="previewSize"
+                                    id="mobile"
+                                    checked={previewMode === "mobile"}
+                                />{" "}
+                                <FontAwesomeIcon icon={faMobile} />
+                            </label>
+                            <label
+                                className={
+                                    "btn btn-light" +
+                                    (previewMode === "desktop" ? " active" : "")
+                                }
+                                title="Desktop preview"
+                            >
+                                <input
+                                    onChange={action(
+                                        () => (editor.previewMode = "desktop")
+                                    )}
+                                    type="radio"
+                                    name="previewSize"
+                                    id="desktop"
+                                    checked={previewMode === "desktop"}
+                                />{" "}
+                                <FontAwesomeIcon icon={faDesktop} />
+                            </label>
+                        </div>
+                        <div
+                            className="form-group d-inline-block"
+                            style={{ width: 250, marginLeft: 15 }}
                         >
-                            <input
+                            Emulate vision deficiency:{" "}
+                            <VisionDeficiencyDropdown
                                 onChange={action(
-                                    () => (editor.previewMode = "desktop")
+                                    (option: VisionDeficiencyEntity) =>
+                                        (this.simulateVisionDeficiency =
+                                            option.deficiency)
                                 )}
-                                type="radio"
-                                name="previewSize"
-                                id="desktop"
-                                checked={previewMode === "desktop"}
-                            />{" "}
-                            <FontAwesomeIcon icon={faDesktop} />
-                        </label>
+                            />
+                        </div>
                     </div>
+
+                    {/* Include svg filters necessary for vision deficiency emulation */}
+                    <VisionDeficiencySvgFilters />
                 </div>
             </React.Fragment>
         )

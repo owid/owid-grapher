@@ -1,4 +1,5 @@
-import { SortOrder, NounKey, NounGenerator } from "./CovidTypes"
+import { SortOrder } from "charts/SortOrder"
+import { NounKey, NounGenerator } from "./CovidTypes"
 import { createNoun } from "./CovidUtils"
 
 export const ECDC_DATA_URL =

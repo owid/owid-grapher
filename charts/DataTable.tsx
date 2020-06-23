@@ -3,22 +3,17 @@ import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 
-import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { faSortAmountDownAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountDownAlt"
-import { faSortAmountUp } from "@fortawesome/free-solid-svg-icons/faSortAmountUp"
-import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
-import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
 
 import { ChartConfig } from "./ChartConfig"
-import { capitalize, some, defaultTo, orderBy, upperFirst } from "./Util"
+import { SortOrder } from "./SortOrder"
+import { capitalize, some, orderBy, upperFirst } from "./Util"
+import { SortIcon } from "./SortIcon"
 import { Tippy } from "./Tippy"
 import {
-    DataTableTransform,
     DataTableRow,
     TargetYearMode,
-    SortOrder,
     ColumnKey,
     isSingleValue,
     DataTableDimension,
@@ -58,8 +53,8 @@ const columnNameByType: Record<ColumnKey, string> = {
     single: "Value",
     start: "Start",
     end: "End",
-    delta: "Change",
-    deltaRatio: "Change (%)"
+    delta: "Absolute Change",
+    deltaRatio: "Relative Change"
 }
 
 function inverseSortOrder(order: SortOrder): SortOrder {
@@ -110,7 +105,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get transform() {
-        return new DataTableTransform(this.props.chart)
+        return this.props.chart.dataTableTransform
     }
 
     @computed get sortValueMapper(): (
@@ -393,35 +388,6 @@ function ColumnHeader(props: {
     )
 }
 
-function SortIcon(props: {
-    type?: "text" | "numeric"
-    isActiveIcon?: boolean
-    order: SortOrder
-}) {
-    const type = defaultTo(props.type, "numeric")
-    const isActiveIcon = defaultTo(props.isActiveIcon, false)
-
-    let faIcon: IconDefinition
-
-    if (type === "text") {
-        faIcon =
-            props.order === SortOrder.desc ? faSortAlphaUpAlt : faSortAlphaDown
-    } else {
-        faIcon =
-            props.order === SortOrder.desc
-                ? faSortAmountUp
-                : faSortAmountDownAlt
-    }
-
-    return (
-        <span
-            className={classnames({ "sort-icon": true, active: isActiveIcon })}
-        >
-            <FontAwesomeIcon icon={faIcon} />
-        </span>
-    )
-}
-
 export const ClosestYearNotice = ({
     targetYear,
     closestYear: year
@@ -439,8 +405,8 @@ export const ClosestYearNotice = ({
         }
         arrow={false}
     >
-        <span className="notice">
-            in {year}{" "}
+        <span className="data-table-notice">
+            {year}{" "}
             <span className="icon">
                 <FontAwesomeIcon icon={faInfoCircle} />
             </span>

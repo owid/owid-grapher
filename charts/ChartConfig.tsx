@@ -79,6 +79,7 @@ import { TickFormattingOptions } from "./TickFormattingOptions"
 import { populationMap } from "./PopulationMap"
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import { countries } from "utils/countries"
+import { DataTableTransform } from "./DataTableTransform"
 import { getErrorMessageRelatedQuestionUrl } from "admin/client/EditorTextTab"
 
 declare const App: any
@@ -364,15 +365,16 @@ export class ChartConfig {
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
         const filters = this.filters
         for (const key in json.variables) {
-            const variable = new OwidVariable(json.variables[key])
-            variable.entityNames = variable.entities.map(
-                id => entityMetaById[id].name
-            )
-            variablesById[key] = filters.length
-                ? variable.getFilteredVariable((name: string) =>
-                      this.isEntityFiltered(name)
-                  )
-                : variable
+            const variable = new OwidVariable(
+                json.variables[key]
+            ).setEntityNamesFromEntityMap(entityMetaById)
+            variablesById[key] = variable
+            if (filters.length)
+                variablesById[
+                    key
+                ] = variable.getFilteredVariable((name: string) =>
+                    this.isEntityFiltered(name)
+                )
         }
         each(entityMetaById, (e, id) => (e.id = +id))
         this.variablesById = variablesById
@@ -546,10 +548,10 @@ export class ChartConfig {
             })
         )
 
-        this.disposers.push(reaction(() => this.filters, this.downloadData))
-
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
+
+        this.disposers.push(reaction(() => this.filters, this.downloadData))
 
         // The chart props after consuming the URL parameters, but before any user interaction
         this.initialPropsRaw = toJS(this.props)
@@ -844,6 +846,9 @@ export class ChartConfig {
     }
     @computed get map() {
         return new MapConfig(this)
+    }
+    @computed get dataTableTransform() {
+        return new DataTableTransform(this)
     }
 
     @computed get activeTransform(): IChartTransform {

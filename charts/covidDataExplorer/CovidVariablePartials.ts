@@ -198,7 +198,7 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         description: "Countries and their associated continents.",
         coverage: "",
         shortUnit: "",
-        display: {},
+        display: { includeInTable: false },
         datasetName: "Countries Continents",
         source: {
             id: 44,

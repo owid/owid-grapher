@@ -48,7 +48,6 @@ export const LongFormPage = (props: {
     const pageDesc = overrides?.excerpt ?? post.excerpt
     const canonicalUrl =
         overrides?.canonicalUrl ?? `${BAKED_BASE_URL}/${post.slug}`
-    const authorsFormatted = formatAuthors(post.authors, isEntry)
 
     const citationTitle = overrides?.citationTitle ?? pageTitle
     const citationSlug = overrides?.citationSlug ?? post.slug
@@ -134,9 +133,20 @@ export const LongFormPage = (props: {
                                 </h1>
                                 {!formattingOptions.hideAuthors && (
                                     <div className="authors-byline">
-                                        <a href="/team">
-                                            by {authorsFormatted}
-                                        </a>
+                                        {post.byline ? (
+                                            <div
+                                                dangerouslySetInnerHTML={{
+                                                    __html: post.byline
+                                                }}
+                                            ></div>
+                                        ) : (
+                                            <a href="/team">
+                                                {`by ${formatAuthors(
+                                                    post.authors,
+                                                    isEntry
+                                                )}`}
+                                            </a>
+                                        )}
                                     </div>
                                 )}
                                 {isPost && <time>{formatDate(post.date)}</time>}

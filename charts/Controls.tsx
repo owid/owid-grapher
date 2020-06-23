@@ -453,7 +453,22 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
 
     render() {
         const { chart } = this.props
-        if (chart.props.tab === "map") {
+        if (chart.props.tab === "table") {
+            const years = chart.dataTableTransform.timelineYears
+            if (years.length === 0) {
+                return null
+            }
+            return (
+                <Timeline
+                    years={years}
+                    onTargetChange={this.onChartTargetChange}
+                    startYear={chart.timeDomain[0]}
+                    endYear={chart.timeDomain[1]}
+                    onStartDrag={this.onTimelineStart}
+                    onStopDrag={this.onTimelineStop}
+                />
+            )
+        } else if (chart.props.tab === "map") {
             const { map } = chart
             const years = map.data.timelineYears
             if (years.length === 0) {

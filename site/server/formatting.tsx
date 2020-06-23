@@ -45,6 +45,7 @@ export interface FormattedPost {
     modifiedDate: Date
     lastUpdated?: string | null
     authors: string[]
+    byline?: string | null
     info?: string | null
     html: string
     footnotes: string[]
@@ -224,6 +225,14 @@ export async function formatWordpressPost(
     if ($pageSubtitle.length) {
         pageSubtitle = $pageSubtitle.text()
         $pageSubtitle.remove()
+    }
+
+    // Extract page subtitle
+    let byline
+    const $byline = $(".wp-block-owid-byline")
+    if ($byline.length) {
+        byline = $byline.html()
+        $byline.remove()
     }
 
     // Replace grapher iframes with static previews
@@ -579,6 +588,7 @@ export async function formatWordpressPost(
         modifiedDate: post.modifiedDate,
         lastUpdated: lastUpdated,
         authors: post.authors,
+        byline: byline,
         info: info,
         html: getHtmlContentWithStyles($),
         footnotes: footnotes,

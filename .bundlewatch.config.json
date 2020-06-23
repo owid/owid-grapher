@@ -2,13 +2,12 @@
     "files": [
         {
             "path": "./dist/webpack/js/commons.js",
-            "maxSize": "1.5 MB",
-            "compression": "none"
+            "maxSize": "1.5 MB"
         },
         {
             "path": "./dist/webpack/js/owid.js",
-            "maxSize": "400 KB",
-            "compression": "none"
+            "maxSize": "400 KB"
         }
-    ]
+    ],
+    "defaultCompression": "none"
 }

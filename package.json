@@ -14,7 +14,7 @@
         "dev-site:inspect": "yarn tsnd:inspect site/server/devServer.tsx",
         "dev-webpack": "webpack-dev-server -d",
         "dev": "npm-run-all --race --parallel dev-admin dev-site dev-webpack",
-        "dev-tmux": "tmex dev \"yarn dev-admin\" \"yarn dev-site\" \"yarn dev-webpack\"",
+        "dev-tmux": "tmex dev \"yarn tsn admin/server/server.tsx\" \"yarn tsn site/server/devServer.tsx\" \"yarn dev-webpack\"",
         "typeorm": "yarn tsn node_modules/.bin/typeorm",
         "knex": "yarn tsn node_modules/.bin/knex --knexfile knexfile.ts",
         "migrate": "yarn knex migrate:latest && yarn typeorm migration:run",
@@ -33,8 +33,8 @@
         "deploy-queue": "yarn tsn deploy/watch.ts",
         "storybook": "yarn tsn node_modules/.bin/start-storybook -p 6006",
         "build-storybook": "build-storybook",
-        "bundlesize": "ENV=production webpack -p && bundlesize",
-        "bundlesize-json": "ENV=production webpack -p --json > dist/webpack-bundle-stats.json && bundlesize",
+        "bundlewatch": "ENV=production webpack -p && bundlewatch --config .bundlewatch.config.json",
+        "bundlewatch-json": "ENV=production webpack -p --json > dist/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json",
         "live-commit": "yarn tsn scripts/liveCommit.ts"
     },
     "dependencies": {
@@ -97,7 +97,7 @@
         "bcrypt": "^3.0.6",
         "body-parser": "^1.19.0",
         "bootstrap": "^4.3.1",
-        "bundlesize": "^0.18.0",
+        "bundlewatch": "^0.2.7",
         "cheerio": "^1.0.0-rc.2",
         "chunk-text": "^1.0.5",
         "classnames": "^2.2.6",
