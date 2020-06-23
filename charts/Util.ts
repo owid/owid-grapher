@@ -132,6 +132,7 @@ import { Vector2 } from "./Vector2"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { EPOCH_DATE } from "settings"
+import { SortOrder } from "./SortOrder"
 
 export type SVGElement = any
 export type VNode = any
@@ -251,31 +252,47 @@ export function formatValue(
     options: TickFormattingOptions
 ): string {
     const noTrailingZeroes = defaultTo(options.noTrailingZeroes, true)
-    const autoPrefix = defaultTo(options.autoPrefix, true)
+    const numberPrefixes = defaultTo(
+        options.numberPrefixes || options.shortNumberPrefixes,
+        true
+    )
+    const shortNumberPrefixes = defaultTo(options.shortNumberPrefixes, false)
     const showPlus = defaultTo(options.showPlus, false)
     const numDecimalPlaces = defaultTo(options.numDecimalPlaces, 2)
     const unit = defaultTo(options.unit, "")
-    const isNoSpaceUnit = unit[0] === "%"
+    const isNoSpaceUnit = defaultTo(options.noSpaceUnit, unit[0] === "%")
 
     let output: string = value.toString()
 
     const absValue = Math.abs(value)
-    if (!isNoSpaceUnit && autoPrefix && absValue >= 1e6) {
+    if (!isNoSpaceUnit && numberPrefixes && absValue >= 1e6) {
         if (!isFinite(absValue)) output = "Infinity"
         else if (absValue >= 1e12)
             output = formatValue(
                 value / 1e12,
-                extend({}, options, { unit: "trillion", numDecimalPlaces: 2 })
+                extend({}, options, {
+                    unit: shortNumberPrefixes ? "T" : "trillion",
+                    noSpaceUnit: shortNumberPrefixes,
+                    numDecimalPlaces: 2
+                })
             )
         else if (absValue >= 1e9)
             output = formatValue(
                 value / 1e9,
-                extend({}, options, { unit: "billion", numDecimalPlaces: 2 })
+                extend({}, options, {
+                    unit: shortNumberPrefixes ? "B" : "billion",
+                    noSpaceUnit: shortNumberPrefixes,
+                    numDecimalPlaces: 2
+                })
             )
         else if (absValue >= 1e6)
             output = formatValue(
                 value / 1e6,
-                extend({}, options, { unit: "million", numDecimalPlaces: 2 })
+                extend({}, options, {
+                    unit: shortNumberPrefixes ? "M" : "million",
+                    noSpaceUnit: shortNumberPrefixes,
+                    numDecimalPlaces: 2
+                })
             )
     } else {
         const targetDigits = Math.pow(10, -numDecimalPlaces)
@@ -801,4 +818,26 @@ export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
 
 export function linkify(s: string) {
     return linkifyHtml(s)
+}
+
+export function oneOf<T>(value: any, options: T[], defaultOption: T): T {
+    for (const option of options) {
+        if (value === option) return option
+    }
+    return defaultOption
+}
+
+export function sortByUndefinedLast<T>(
+    array: T[],
+    accessor: (t: T) => string | number | undefined,
+    order: SortOrder = SortOrder.asc
+) {
+    const sorted = sortBy(array, value => {
+        const mapped = accessor(value)
+        if (mapped === undefined) {
+            return order === SortOrder.asc ? Infinity : -Infinity
+        }
+        return mapped
+    })
+    return order === SortOrder.asc ? sorted : sorted.reverse()
 }

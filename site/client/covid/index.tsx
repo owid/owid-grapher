@@ -8,11 +8,13 @@ import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclama
 
 import { CovidTable, CovidTableProps } from "./CovidTable"
 import { CovidTableColumnKey } from "./CovidTableColumns"
-import { SortOrder, CovidSortKey } from "./CovidTypes"
+import { CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "charts/Tippy"
 import { runCovidSearchCountry } from "./CovidSearchCountry"
+import { SortOrder } from "charts/SortOrder"
+import { oneOf } from "charts/Util"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 
@@ -220,13 +222,6 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
             </React.Fragment>
         )
     }
-}
-
-function oneOf<T>(value: any, options: T[], defaultOption: T): T {
-    for (const option of options) {
-        if (value === option) return option
-    }
-    return defaultOption
 }
 
 export function runCovid() {

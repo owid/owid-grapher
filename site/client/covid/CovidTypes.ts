@@ -49,11 +49,6 @@ export type CovidSortAccessor = (
     datum: CovidCountryDatum
 ) => Date | string | number | undefined
 
-export enum SortOrder {
-    asc = "asc",
-    desc = "desc"
-}
-
 export type NounKey = "cases" | "deaths" | "tests" | "days"
 
 export type NounGenerator = (n?: number) => string

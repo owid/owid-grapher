@@ -1,6 +1,5 @@
 import {
     dateDiffInDays,
-    maxBy,
     computeRollingAverage,
     flatten,
     cloneDeep,
@@ -34,19 +33,6 @@ export const parseCovidRow = (row: any) => {
         }
     })
     return row
-}
-
-export const getLatestTotalTestsPerCase = (
-    rows: ParsedCovidRow[]
-): number | undefined => {
-    const row = maxBy(
-        rows.filter(r => r.total_tests && r.total_cases),
-        r => r.date
-    )
-    if (row) {
-        return row.total_tests / row.total_cases
-    }
-    return undefined
 }
 
 const EPOCH_DATE = "2020-01-21"
@@ -177,7 +163,6 @@ export const makeCountryOptions = (data: ParsedCovidRow[]): CountryOption[] => {
             code: iso_code,
             population,
             continent,
-            latestTotalTestsPerCase: getLatestTotalTestsPerCase(rows),
             rows
         }
     })

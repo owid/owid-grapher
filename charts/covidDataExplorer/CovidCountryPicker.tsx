@@ -4,18 +4,35 @@ import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
 import classnames from "classnames"
-import { ScaleLinear } from "d3-scale"
+import { scaleLinear, ScaleLinear } from "d3-scale"
+import Select from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
 import { FuzzySearch } from "charts/FuzzySearch"
-import { partition, sortBy, scrollIntoViewIfNeeded, last } from "charts/Util"
+import {
+    partition,
+    scrollIntoViewIfNeeded,
+    last,
+    max,
+    isNumber,
+    sortByUndefinedLast,
+    first
+} from "charts/Util"
 import { CovidDataExplorer } from "./CovidDataExplorer"
-import { CountryOption } from "./CovidTypes"
+import { CountryOptionWithValue } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
 import { Analytics } from "site/client/Analytics"
+import {
+    metricSpecs,
+    CountryPickerMetricSpec,
+    CountryPickerMetric
+} from "./CovidCountryPickerMetric"
+import { SortIcon } from "charts/SortIcon"
+import { toggleSort, SortOrder } from "charts/SortOrder"
+import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 
 enum FocusDirection {
     first = "first",
@@ -65,39 +82,79 @@ export class CountryPicker extends React.Component<{
         Analytics.logCovidCountrySelector(checked ? "select" : "deselect", code)
     }
 
-    @computed private get options(): CountryOption[] {
-        return this.props.covidDataExplorer.countryOptions
+    @computed get metric(): CountryPickerMetric {
+        // On mobile, only allow sorting by location
+        if (this.isDropdownMenu) return CountryPickerMetric.location
+        return this.props.covidDataExplorer.props.params.countryPickerMetric
     }
 
-    @computed private get selectedOptions(): CountryOption[] {
-        return this.props.covidDataExplorer.selectedCountryOptions
+    set metric(metric) {
+        this.props.covidDataExplorer.props.params.countryPickerMetric = metric
+    }
+
+    @computed get sortOrder(): SortOrder {
+        // On mobile, only allow sorting by location (ascending)
+        if (this.isDropdownMenu) return SortOrder.asc
+        return this.props.covidDataExplorer.props.params.countryPickerSort
+    }
+
+    set sortOrder(order) {
+        this.props.covidDataExplorer.props.params.countryPickerSort = order
+    }
+
+    @computed get metricOptions() {
+        return Object.entries<CountryPickerMetricSpec>(metricSpecs).map(
+            ([key, spec]) => ({
+                label: spec.label,
+                value: key as CountryPickerMetric
+            })
+        )
+    }
+
+    @computed get metricSpec(): CountryPickerMetricSpec {
+        return metricSpecs[this.metric]
+    }
+
+    @computed private get options(): CountryOptionWithValue[] {
+        return this.props.covidDataExplorer.countryOptions.map(option => ({
+            ...option,
+            plotValue: this.metricSpec.accessor(option)
+        }))
+    }
+
+    @computed private get selectedOptions(): CountryOptionWithValue[] {
+        return this.options.filter(option =>
+            this.props.covidDataExplorer.props.params.selectedCountryCodes.has(
+                option.code
+            )
+        )
     }
 
     @computed private get optionColorMap() {
         return this.props.covidDataExplorer.countryCodeToColorMap
     }
 
-    @bind private isSelected(option: CountryOption) {
+    @bind private isSelected(option: CountryOptionWithValue) {
         return this.selectedOptions.includes(option)
     }
 
-    @computed private get fuzzy(): FuzzySearch<CountryOption> {
+    @computed private get fuzzy(): FuzzySearch<CountryOptionWithValue> {
         return new FuzzySearch(this.options, "name")
     }
 
-    @computed private get searchResults(): CountryOption[] {
+    @computed private get searchResults(): CountryOptionWithValue[] {
         if (this.searchInput) {
             return this.fuzzy.search(this.searchInput)
         }
         // Show the selected up top and in order.
         const [selected, unselected] = partition(
-            sortBy(this.options, r => r.name),
+            sortByUndefinedLast(this.options, r => r.plotValue, this.sortOrder),
             this.isSelected
         )
         return [...selected, ...unselected]
     }
 
-    @computed private get focusableOptions(): CountryOption[] {
+    @computed private get focusableOptions(): CountryOptionWithValue[] {
         return this.searchResults
     }
 
@@ -106,7 +163,7 @@ export class CountryPicker extends React.Component<{
         return mod(index, this.focusableOptions.length)
     }
 
-    @computed private get focusedOption(): CountryOption | undefined {
+    @computed private get focusedOption(): CountryOptionWithValue | undefined {
         return this.focusIndex !== undefined
             ? this.focusableOptions[this.focusIndex]
             : undefined
@@ -199,7 +256,10 @@ export class CountryPicker extends React.Component<{
         this.focusIndex = undefined
     }
 
-    @action.bound private onHover(option: CountryOption, index: number) {
+    @action.bound private onHover(
+        option: CountryOptionWithValue,
+        index: number
+    ) {
         if (!this.blockOptionHover) {
             this.focusIndex = index
         }
@@ -255,6 +315,15 @@ export class CountryPicker extends React.Component<{
             }
         }
         return label
+    }
+
+    @computed get barScale() {
+        const maxValue = max(
+            this.options.map(option => option.plotValue).filter(isNumber)
+        )
+        return scaleLinear()
+            .domain([0, maxValue ?? 1])
+            .range([0, 1])
     }
 
     componentDidMount() {
@@ -317,6 +386,36 @@ export class CountryPicker extends React.Component<{
                         </div>
                     )}
                 </div>
+                {!this.isDropdownMenu && (
+                    <div className="MetricSettings">
+                        <span className="mainLabel">Sort by</span>
+                        <Select
+                            className="metricDropdown"
+                            options={this.metricOptions}
+                            value={this.metricOptions.find(
+                                option => option.value === this.metric
+                            )}
+                            onChange={option => {
+                                const value = first(asArray(option))?.value
+                                if (value) this.metric = value
+                            }}
+                            menuPlacement="bottom"
+                            components={{
+                                IndicatorSeparator: null
+                            }}
+                            styles={getStylesForTargetHeight(26)}
+                            isSearchable={false}
+                        />
+                        <span
+                            className="sort"
+                            onClick={() =>
+                                (this.sortOrder = toggleSort(this.sortOrder))
+                            }
+                        >
+                            <SortIcon order={this.sortOrder} />
+                        </span>
+                    </div>
+                )}
                 <div className="CountryListContainer">
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
@@ -353,11 +452,9 @@ export class CountryPicker extends React.Component<{
                                                 option.name
                                             )}
                                             option={option}
+                                            metricOptions={this.metricSpec}
                                             highlight={this.highlightLabel}
-                                            barScale={
-                                                this.props.covidDataExplorer
-                                                    .barScale
-                                            }
+                                            barScale={this.barScale}
                                             color={
                                                 this.optionColorMap[option.code]
                                             }
@@ -400,7 +497,8 @@ export class CountryPicker extends React.Component<{
 }
 
 interface CovidCountryOptionProps {
-    option: CountryOption
+    option: CountryOptionWithValue
+    metricOptions: CountryPickerMetricSpec
     highlight: (label: string) => JSX.Element | string
     onChange: (code: string, checked: boolean) => void
     onHover?: () => void
@@ -421,13 +519,13 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
 
     render() {
         const {
+            barScale,
             option,
             innerRef,
             isSelected,
             isFocused,
             hasDataForActiveMetric,
-            highlight,
-            color
+            highlight
         } = this.props
         return (
             <Flipped flipId={option.name} translate opacity>
@@ -457,35 +555,27 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                     <div className="info-container">
                         <div className="labels-container">
                             <div className="name">{highlight(option.name)}</div>
-                            {/* Hide testing numbers as they lack labels to be understandable */}
-                            {/* {testsPerCase && (
+                            {option.plotValue !== undefined && (
                                 <div className="metric">
-                                    {testsPerCase.toFixed(1)}
+                                    {this.props.metricOptions.formatValue(
+                                        option.plotValue
+                                    )}
                                 </div>
-                            )} */}
+                            )}
                         </div>
-                        {isSelected && color && (
-                            <div className="color-marker-container">
-                                <div
-                                    className="color-marker"
-                                    style={{ backgroundColor: color }}
-                                />
-                            </div>
-                        )}
-                        {/* Hide plot as it lacks labels to be understandable */}
-                        {/* {barScale && testsPerCase ? (
+                        {barScale && isNumber(option.plotValue) ? (
                             <div className="plot">
                                 <div
                                     className="bar"
                                     style={{
-                                        width: `${barScale(testsPerCase) *
+                                        width: `${barScale(option.plotValue) *
                                             100}%`
                                     }}
                                 />
                             </div>
                         ) : (
                             <div className="plot"></div>
-                        )} */}
+                        )}
                     </div>
                 </label>
             </Flipped>

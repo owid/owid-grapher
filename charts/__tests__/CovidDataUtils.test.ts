@@ -42,8 +42,6 @@ describe(makeCountryOptions, () => {
         const options = makeCountryOptions(parsedRows)
         const world = options[2]
         expect(world.code).toEqual("OWID_WRL")
-        const usa = options[1]
-        expect(usa.latestTotalTestsPerCase).toEqual(7544328.0 / 1180634)
     })
 })
 

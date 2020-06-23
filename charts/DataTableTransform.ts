@@ -23,13 +23,6 @@ export enum TargetYearMode {
 
 type TargetYears = [number] | [number, number]
 
-// Sorting modes
-
-export enum SortOrder {
-    asc = "asc",
-    desc = "desc"
-}
-
 // Dimensions
 
 export interface Dimension {
@@ -196,7 +189,7 @@ export class DataTableTransform extends ChartTransform {
     ): string | undefined {
         if (value === undefined) return value
         return dimension.formatValueShort(value, {
-            autoPrefix: false,
+            numberPrefixes: false,
             noTrailingZeroes: false,
             unit: getValueUnit(dimension.unit),
             ...formattingOverrides
