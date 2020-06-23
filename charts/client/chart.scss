@@ -265,6 +265,7 @@ $zindex-IndicatorDropdown: 50;
             line-height: $footerRowHeight;
             border-bottom: 2px solid rgba(0, 0, 0, 0);
             background-color: $primary-color-30;
+            transition: color 0.1s;
         }
 
         nav.tabs li.icon > a {
@@ -272,6 +273,7 @@ $zindex-IndicatorDropdown: 50;
         }
 
         nav.tabs li > a:hover {
+            color: rgba(0, 33, 71, 0.9);
             text-decoration: none;
         }
 
