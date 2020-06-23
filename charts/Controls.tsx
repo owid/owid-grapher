@@ -13,7 +13,7 @@ import {
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { Timeline } from "./HTMLTimeline"
-import { extend, keys, entries, first, max } from "./Util"
+import { extend, keys, entries, first, max, isMobile } from "./Util"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
@@ -36,6 +36,7 @@ import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
 import { MapProjection } from "./MapProjection"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
+import classNames from "classnames"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -912,7 +913,7 @@ export class ControlsFooterView extends React.Component<{
                     })}
                     <li
                         className={
-                            "tab clickable icon" +
+                            "tab clickable icon download" +
                             (chart.tab === "download" ? " active" : "")
                         }
                         data-track-note="chart-click-download"
@@ -920,7 +921,7 @@ export class ControlsFooterView extends React.Component<{
                         title="Download as .png or .svg"
                     >
                         <a>
-                            <FontAwesomeIcon icon={faDownload} />
+                            <FontAwesomeIcon icon={faDownload} /> Download
                         </a>
                     </li>
                     <li className="clickable icon">
@@ -1091,7 +1092,9 @@ export class ControlsFooterView extends React.Component<{
 
         return (
             <div
-                className="ControlsFooter"
+                className={classNames("ControlsFooter", {
+                    mobile: isMobile()
+                })}
                 style={{ height: props.controls.footerHeight }}
             >
                 {timelineElement}

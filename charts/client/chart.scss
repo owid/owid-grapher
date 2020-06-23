@@ -205,8 +205,12 @@ $zindex-IndicatorDropdown: 50;
         .footerRowMulti {
             display: flex;
 
-            > * {
-                width: 50%;
+            .inline-controls {
+                width: 40%;
+            }
+
+            nav.tabs {
+                width: 60%;
             }
         }
 
@@ -250,6 +254,10 @@ $zindex-IndicatorDropdown: 50;
             border-left: 1px solid #e1e1e1;
             display: table-cell;
             height: $footerRowHeight;
+
+            &.download {
+                width: 30%;
+            }
         }
 
         .footerRowSingle nav.tabs li:first-child {
@@ -289,6 +297,23 @@ $zindex-IndicatorDropdown: 50;
 
             &.active {
                 border-top-color: transparent;
+            }
+        }
+
+        &.mobile {
+            .footerRowSingle,
+            .footerRowMulti {
+                height: $footerRowHeightMobile - 1px;
+
+                nav.tabs li {
+                    height: $footerRowHeightMobile;
+
+                    > a {
+                        font-size: 11px;
+                        height: $footerRowHeightMobile - 2px;
+                        line-height: $footerRowHeightMobile;
+                    }
+                }
             }
         }
     }
