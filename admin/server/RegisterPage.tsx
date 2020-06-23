@@ -1,4 +1,5 @@
 import * as React from "react"
+import { webpack } from "./webpack"
 
 export function RegisterPage(props: {
     inviteEmail?: string
@@ -30,8 +31,9 @@ export function RegisterPage(props: {
                 <title>owid-admin</title>
                 <meta name="description" content="" />
                 <link
+                    href={webpack("admin.css")}
                     rel="stylesheet"
-                    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+                    type="text/css"
                 />
                 <style>{style}</style>
             </head>
