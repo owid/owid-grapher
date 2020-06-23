@@ -627,7 +627,11 @@ export class Controls {
     }
 
     @computed get footerHeight(): number {
-        return this.footerLines * 40 + (this.hasRelatedQuestions ? 20 : 0)
+        const footerRowHeight = 36 // keep in sync with chart.scss' $footerRowHeight
+        return (
+            this.footerLines * footerRowHeight +
+            (this.hasRelatedQuestions ? 20 : 0)
+        )
     }
 }
 

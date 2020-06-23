@@ -182,7 +182,7 @@ $zindex-IndicatorDropdown: 50;
     /* Controls Footer
     --------------------------------------------- */
 
-    $footerRowHeight: 40px;
+    $footerRowHeight: 36px; // keep in sync with Controls.tsx's footerRowHeight
 
     .ControlsFooter {
         width: 100%;
