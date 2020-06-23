@@ -40,6 +40,10 @@
         max-width: $max-width;
         max-height: $max-height;
     }
+
+    // Needed so the absolutely-positioned <LoadingIndicator> on /grapher pages is centered
+    // inside <figure>
+    position: relative;
 }
 
 #fallback > img {

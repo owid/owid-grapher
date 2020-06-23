@@ -293,7 +293,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 {this.isReady ? (
                     this.renderReady()
                 ) : (
-                    <LoadingIndicator color="#000" position="absolute" />
+                    <LoadingIndicator color="#000" />
                 )}
             </div>
         )
