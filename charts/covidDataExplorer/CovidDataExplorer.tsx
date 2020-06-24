@@ -1206,8 +1206,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             data: {
                 availableEntities: this.availableEntities
-            },
-            relatedQuestions: []
+            }
         },
         {
             queryStr: window.location.search || coronaDefaultView
