@@ -84,11 +84,6 @@ export const COVID_DASHBOARD: boolean = process.env.COVID_DASHBOARD
     ? parseBool(process.env.COVID_DASHBOARD)
     : false
 
-// Feature flag for DataTable in Chart
-export const DATA_TABLE: boolean = process.env.DATA_TABLE
-    ? parseBool(process.env.DATA_TABLE)
-    : false
-
 // Settings for optimizations that are applied in the baking step
 export const OPTIMIZE_SVG_EXPORTS = process.env.OPTIMIZE_SVG_EXPORTS
     ? parseBool(process.env.OPTIMIZE_SVG_EXPORTS)

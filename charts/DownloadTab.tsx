@@ -9,7 +9,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
 import { CSVGenerator } from "./CSVGenerator"
-import { DATA_TABLE } from "settings"
 
 interface DownloadTabProps {
     bounds: Bounds
@@ -266,7 +265,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         </div>
                     </a>
                 </div>
-                {DATA_TABLE && csv_download}
+                {csv_download}
             </React.Fragment>
         )
     }
