@@ -12,8 +12,6 @@ import {
 } from "mobx"
 import { bind } from "decko"
 
-import { DATA_TABLE } from "settings"
-
 import {
     extend,
     map,
@@ -635,20 +633,12 @@ export class ChartConfig {
     }
 
     set tab(value) {
-        if (
-            value === "chart" ||
-            value === "map" ||
-            (DATA_TABLE && value === "table")
-        ) {
+        if (value === "chart" || value === "map" || value === "table") {
             this.props.tab = value
             this.props.overlay = undefined
         } else {
             // table tab cannot be downloaded, so revert to default tab
-            if (
-                value === "download" &&
-                DATA_TABLE &&
-                this.props.tab === "table"
-            ) {
+            if (value === "download" && this.props.tab === "table") {
                 this.props.tab = this.origProps.tab
             }
             this.props.overlay = value
@@ -717,7 +707,7 @@ export class ChartConfig {
         return filter([
             this.props.hasChartTab && "chart",
             this.props.hasMapTab && "map",
-            DATA_TABLE ? "table" : "data",
+            "table",
             "sources",
             "download"
         ]) as ChartTabOption[]
