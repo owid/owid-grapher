@@ -32,8 +32,17 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         }
     }
 
+    componentDidMount() {
+        if (!this.props.editor.chart.props.relatedQuestions) {
+            this.props.editor.chart.props.relatedQuestions = [
+                { text: "", url: "" }
+            ]
+        }
+    }
+
     render() {
         const { chart, references } = this.props.editor
+        const { relatedQuestions } = chart.props
 
         return (
             <div>
@@ -124,36 +133,37 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
                 <Section name="Related">
-                    {chart.props.relatedQuestions.map(
-                        (question: RelatedQuestionsConfig, idx: number) => (
-                            <div key={idx}>
-                                <TextField
-                                    label="Related question"
-                                    value={question.text || ""}
-                                    onValue={action((value: string) => {
-                                        question.text = value
-                                    })}
-                                    placeholder="e.g. How did countries respond to the pandemic?"
-                                    helpText="Short question promoting exploration of related content"
-                                    softCharacterLimit={50}
-                                />
-                                {question.text && (
+                    {relatedQuestions &&
+                        relatedQuestions.map(
+                            (question: RelatedQuestionsConfig, idx: number) => (
+                                <div key={idx}>
                                     <TextField
-                                        label="URL"
-                                        value={question.url || ""}
+                                        label="Related question"
+                                        value={question.text}
                                         onValue={action((value: string) => {
-                                            question.url = value
+                                            question.text = value
                                         })}
-                                        placeholder="e.g. https://ourworldindata.org/coronavirus"
-                                        helpText="Page or section of a page where the answer to the previous question can be found."
-                                        errorMessage={getErrorMessageRelatedQuestionUrl(
-                                            question
-                                        )}
+                                        placeholder="e.g. How did countries respond to the pandemic?"
+                                        helpText="Short question promoting exploration of related content"
+                                        softCharacterLimit={50}
                                     />
-                                )}
-                            </div>
-                        )
-                    )}
+                                    {question.text && (
+                                        <TextField
+                                            label="URL"
+                                            value={question.url}
+                                            onValue={action((value: string) => {
+                                                question.url = value
+                                            })}
+                                            placeholder="e.g. https://ourworldindata.org/coronavirus"
+                                            helpText="Page or section of a page where the answer to the previous question can be found."
+                                            errorMessage={getErrorMessageRelatedQuestionUrl(
+                                                question
+                                            )}
+                                        />
+                                    )}
+                                </div>
+                            )
+                        )}
                 </Section>
                 <Section name="Misc">
                     <BindString

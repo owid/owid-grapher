@@ -624,11 +624,13 @@ export class Controls {
         )
     }
 
-    @computed get hasRelatedQuestions(): boolean {
-        const { chart } = this.props
+    @computed get hasRelatedQuestion(): boolean {
+        const { relatedQuestions } = this.props.chart.props
         return (
-            !!chart.props.relatedQuestions[0].text &&
-            !!chart.props.relatedQuestions[0].url
+            !!relatedQuestions &&
+            !!relatedQuestions.length &&
+            !!relatedQuestions[0].text &&
+            !!relatedQuestions[0].url
         )
     }
 
@@ -645,7 +647,7 @@ export class Controls {
         const footerRowHeight = 36 // keep in sync with chart.scss' $footerRowHeight
         return (
             this.footerLines * footerRowHeight +
-            (this.hasRelatedQuestions ? 20 : 0)
+            (this.hasRelatedQuestion ? 20 : 0)
         )
     }
 }
@@ -1032,9 +1034,10 @@ export class ControlsFooterView extends React.Component<{
             hasTimeline,
             hasInlineControls,
             hasSpace,
-            hasRelatedQuestions
+            hasRelatedQuestion
         } = props.controls
         const { chart, chartView } = props.controls.props
+        const { relatedQuestions } = chart.props
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">
@@ -1071,15 +1074,15 @@ export class ControlsFooterView extends React.Component<{
             <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu} />
         )
 
-        const relatedQuestion = hasRelatedQuestions && (
+        const relatedQuestionElement = relatedQuestions && hasRelatedQuestion && (
             <div className="relatedQuestion">
                 Related:&nbsp;
                 <a
-                    href={chart.props.relatedQuestions[0].url}
+                    href={relatedQuestions[0].url}
                     target="_blank"
                     data-track-note="chart-click-related"
                 >
-                    {chart.props.relatedQuestions[0].text}
+                    {relatedQuestions[0].text}
                     <FontAwesomeIcon icon={faExternalLinkAlt} />
                 </a>
             </div>
@@ -1095,7 +1098,7 @@ export class ControlsFooterView extends React.Component<{
                 {tabsElement}
                 {shareMenuElement}
                 {settingsMenuElement}
-                {relatedQuestion}
+                {relatedQuestionElement}
             </div>
         )
     }

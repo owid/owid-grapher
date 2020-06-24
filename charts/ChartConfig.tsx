@@ -244,9 +244,7 @@ export class ChartConfigProps {
     @observable.ref tab: ChartTabOption = "chart"
     @observable.ref overlay?: ChartTabOption = undefined
 
-    @observable relatedQuestions: RelatedQuestionsConfig[] = [
-        { text: "", url: "" }
-    ]
+    @observable relatedQuestions?: RelatedQuestionsConfig[]
     @observable.ref internalNotes?: string = undefined
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl?: string = undefined
@@ -505,8 +503,11 @@ export class ChartConfig {
     }
 
     @computed get hasFatalErrors(): boolean {
-        return this.props.relatedQuestions.some(
-            question => !!getErrorMessageRelatedQuestionUrl(question)
+        const { relatedQuestions } = this.props
+        return (
+            relatedQuestions?.some(
+                question => !!getErrorMessageRelatedQuestionUrl(question)
+            ) || false
         )
     }
 
