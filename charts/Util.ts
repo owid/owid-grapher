@@ -133,6 +133,7 @@ import { TickFormattingOptions } from "./TickFormattingOptions"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { EPOCH_DATE } from "settings"
 import { SortOrder } from "./SortOrder"
+import { RelatedQuestionsConfig } from "./ChartConfig"
 
 export type SVGElement = any
 export type VNode = any
@@ -840,4 +841,15 @@ export function sortByUndefinedLast<T>(
         return mapped
     })
     return order === SortOrder.asc ? sorted : sorted.reverse()
+}
+
+export const getErrorMessageRelatedQuestionUrl = (
+    question: RelatedQuestionsConfig
+): string | undefined => {
+    return question.text
+        ? (!question.url && "Missing URL") ||
+              (!question.url.match(/^https?:\/\//) &&
+                  "URL should start with http(s)://") ||
+              undefined
+        : undefined
 }

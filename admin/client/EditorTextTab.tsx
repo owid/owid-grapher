@@ -14,17 +14,7 @@ import {
 import { LogoOption } from "charts/Logos"
 import slugify from "slugify"
 import { RelatedQuestionsConfig } from "charts/ChartConfig"
-
-export const getErrorMessageRelatedQuestionUrl = (
-    question: RelatedQuestionsConfig
-): string | undefined => {
-    return question.text
-        ? (!question.url && "Missing URL") ||
-              (!question.url.match(/^https?:\/\//) &&
-                  "URL should start with http(s)://") ||
-              undefined
-        : undefined
-}
+import { getErrorMessageRelatedQuestionUrl } from "charts/Util"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {

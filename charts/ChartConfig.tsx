@@ -32,7 +32,8 @@ import {
     each,
     keys,
     flatten,
-    sortBy
+    sortBy,
+    getErrorMessageRelatedQuestionUrl
 } from "./Util"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
@@ -80,7 +81,6 @@ import { populationMap } from "./PopulationMap"
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "./DataTableTransform"
-import { getErrorMessageRelatedQuestionUrl } from "admin/client/EditorTextTab"
 
 declare const App: any
 declare const window: any
