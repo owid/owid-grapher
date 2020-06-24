@@ -9,12 +9,16 @@ import {
     BindAutoString,
     AutoTextField,
     RadioGroup,
-    TextField
+    TextField,
+    Button
 } from "./Forms"
 import { LogoOption } from "charts/Logos"
 import slugify from "slugify"
 import { RelatedQuestionsConfig } from "charts/ChartConfig"
 import { getErrorMessageRelatedQuestionUrl } from "charts/Util"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -32,11 +36,25 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         }
     }
 
-    componentDidMount() {
-        if (!this.props.editor.chart.props.relatedQuestions) {
-            this.props.editor.chart.props.relatedQuestions = [
-                { text: "", url: "" }
-            ]
+    @action.bound onAddRelatedQuestion() {
+        const { chart } = this.props.editor
+        if (!chart.props.relatedQuestions) {
+            chart.props.relatedQuestions = []
+        }
+        chart.props.relatedQuestions.push({
+            text: "",
+            url: ""
+        })
+    }
+
+    @action.bound onRemoveRelatedQuestion(idx: number) {
+        const { chart } = this.props.editor
+
+        if (chart.props.relatedQuestions) {
+            chart.props.relatedQuestions.splice(idx, 1)
+            if (chart.props.relatedQuestions.length === 0) {
+                chart.props.relatedQuestions = undefined
+            }
         }
     }
 
@@ -161,9 +179,23 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                                             )}
                                         />
                                     )}
+                                    <Button
+                                        onClick={() =>
+                                            this.onRemoveRelatedQuestion(idx)
+                                        }
+                                    >
+                                        <FontAwesomeIcon icon={faMinus} />{" "}
+                                        Remove related question
+                                    </Button>
                                 </div>
                             )
                         )}
+                    {(!relatedQuestions || !relatedQuestions.length) && (
+                        <Button onClick={this.onAddRelatedQuestion}>
+                            <FontAwesomeIcon icon={faPlus} /> Add related
+                            question
+                        </Button>
+                    )}
                 </Section>
                 <Section name="Misc">
                     <BindString
