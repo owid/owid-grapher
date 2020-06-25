@@ -14,6 +14,9 @@ excludes:
   - vendor
   - web/app/plugins/owid/node_modules
 services:
+  appserver:
+    build_as_root:
+      - ln -sf /user/.ssh/config /var/www/.ssh/config
   node:
     type: node
   database:
