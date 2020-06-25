@@ -424,6 +424,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     <div
                         onMouseDown={e => e.stopPropagation()}
                         onClick={this.onTogglePlay}
+                        className="play"
                     >
                         {isPlaying ? (
                             <FontAwesomeIcon icon={faPause} />
@@ -432,7 +433,9 @@ export class Timeline extends React.Component<TimelineProps> {
                         )}
                     </div>
                 )}
-                <div>{this.context.chart.formatYearFunction(minYear)}</div>
+                <div className="date">
+                    {this.context.chart.formatYearFunction(minYear)}
+                </div>
                 <div className="slider">
                     <div
                         className="handle startMarker"
@@ -450,7 +453,9 @@ export class Timeline extends React.Component<TimelineProps> {
                         style={{ left: `${endYearProgress * 100}%` }}
                     />
                 </div>
-                <div>{this.context.chart.formatYearFunction(maxYear)}</div>
+                <div className="date">
+                    {this.context.chart.formatYearFunction(maxYear)}
+                </div>
             </div>
         )
     }

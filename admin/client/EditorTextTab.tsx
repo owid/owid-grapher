@@ -8,10 +8,17 @@ import {
     BindString,
     BindAutoString,
     AutoTextField,
-    RadioGroup
+    RadioGroup,
+    TextField,
+    Button
 } from "./Forms"
 import { LogoOption } from "charts/Logos"
 import slugify from "slugify"
+import { RelatedQuestionsConfig } from "charts/ChartConfig"
+import { getErrorMessageRelatedQuestionUrl } from "charts/Util"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
@@ -29,8 +36,31 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         }
     }
 
+    @action.bound onAddRelatedQuestion() {
+        const { chart } = this.props.editor
+        if (!chart.props.relatedQuestions) {
+            chart.props.relatedQuestions = []
+        }
+        chart.props.relatedQuestions.push({
+            text: "",
+            url: ""
+        })
+    }
+
+    @action.bound onRemoveRelatedQuestion(idx: number) {
+        const { chart } = this.props.editor
+
+        if (chart.props.relatedQuestions) {
+            chart.props.relatedQuestions.splice(idx, 1)
+            if (chart.props.relatedQuestions.length === 0) {
+                chart.props.relatedQuestions = undefined
+            }
+        }
+    }
+
     render() {
         const { chart, references } = this.props.editor
+        const { relatedQuestions } = chart.props
 
         return (
             <div>
@@ -119,6 +149,53 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         helpText="Any important clarification needed to avoid miscommunication"
                         softCharacterLimit={140}
                     />
+                </Section>
+                <Section name="Related">
+                    {relatedQuestions &&
+                        relatedQuestions.map(
+                            (question: RelatedQuestionsConfig, idx: number) => (
+                                <div key={idx}>
+                                    <TextField
+                                        label="Related question"
+                                        value={question.text}
+                                        onValue={action((value: string) => {
+                                            question.text = value
+                                        })}
+                                        placeholder="e.g. How did countries respond to the pandemic?"
+                                        helpText="Short question promoting exploration of related content"
+                                        softCharacterLimit={50}
+                                    />
+                                    {question.text && (
+                                        <TextField
+                                            label="URL"
+                                            value={question.url}
+                                            onValue={action((value: string) => {
+                                                question.url = value
+                                            })}
+                                            placeholder="e.g. https://ourworldindata.org/coronavirus"
+                                            helpText="Page or section of a page where the answer to the previous question can be found."
+                                            errorMessage={getErrorMessageRelatedQuestionUrl(
+                                                question
+                                            )}
+                                        />
+                                    )}
+                                    <Button
+                                        onClick={() =>
+                                            this.onRemoveRelatedQuestion(idx)
+                                        }
+                                    >
+                                        <FontAwesomeIcon icon={faMinus} />{" "}
+                                        Remove related question
+                                    </Button>
+                                </div>
+                            )
+                        )}
+                    {(!relatedQuestions || !relatedQuestions.length) && (
+                        <Button onClick={this.onAddRelatedQuestion}>
+                            <FontAwesomeIcon icon={faPlus} /> Add related
+                            question
+                        </Button>
+                    )}
                 </Section>
                 <Section name="Misc">
                     <BindString

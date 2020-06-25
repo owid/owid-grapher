@@ -46,6 +46,10 @@ function EmbedTestPage(props: EmbedTestPageProps) {
             margin: 10px;
         }
 
+        figure {
+            padding-top: 3px;
+        }
+
         .row {
             padding: 10px;
             margin: 0;

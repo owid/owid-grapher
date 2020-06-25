@@ -30,7 +30,8 @@ import {
     each,
     keys,
     flatten,
-    sortBy
+    sortBy,
+    getErrorMessageRelatedQuestionUrl
 } from "./Util"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
@@ -91,6 +92,11 @@ const isJsdom: boolean =
 export interface HighlightToggleConfig {
     description: string
     paramStr: string
+}
+
+export interface RelatedQuestionsConfig {
+    text: string
+    url: string
 }
 
 interface EntitySelection {
@@ -236,6 +242,7 @@ export class ChartConfigProps {
     @observable.ref tab: ChartTabOption = "chart"
     @observable.ref overlay?: ChartTabOption = undefined
 
+    @observable relatedQuestions?: RelatedQuestionsConfig[]
     @observable.ref internalNotes?: string = undefined
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl?: string = undefined
@@ -490,6 +497,15 @@ export class ChartConfig {
         return (
             !this.props.hideLogo &&
             (this.props.logo === undefined || this.props.logo === "owid")
+        )
+    }
+
+    @computed get hasFatalErrors(): boolean {
+        const { relatedQuestions } = this.props
+        return (
+            relatedQuestions?.some(
+                question => !!getErrorMessageRelatedQuestionUrl(question)
+            ) || false
         )
     }
 

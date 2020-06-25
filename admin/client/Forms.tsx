@@ -39,6 +39,7 @@ export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     required?: boolean
     rows?: number
     softCharacterLimit?: number
+    errorMessage?: string
 }
 
 export class TextField extends React.Component<TextFieldProps> {
@@ -96,6 +97,9 @@ export class TextField extends React.Component<TextFieldProps> {
                         text={props.value}
                         limit={props.softCharacterLimit}
                     />
+                )}
+                {props.errorMessage && (
+                    <ErrorMessage message={props.errorMessage} />
                 )}
             </div>
         )
@@ -524,6 +528,10 @@ export interface AutoTextFieldProps {
     softCharacterLimit?: number
 }
 
+const ErrorMessage = ({ message }: { message: string }) => (
+    <div style={{ color: "red" }}>{message}</div>
+)
+
 @observer
 class SoftCharacterLimit extends React.Component<{
     text: string
@@ -535,15 +543,16 @@ class SoftCharacterLimit extends React.Component<{
             <div
                 style={
                     text.length > limit
-                        ? { color: "red" }
+                        ? { color: "#D17D05" }
                         : { color: "rgba(0,0,0,0.3)" }
                 }
             >
                 {text.length} / {limit}
                 {text.length > limit && (
                     <p>
-                        This text is long and may cause rendering issues in
-                        smaller viewports.
+                        <FontAwesomeIcon icon={faExclamationTriangle} /> This
+                        text is long and may cause rendering issues in smaller
+                        viewports.
                     </p>
                 )}
             </div>
@@ -611,6 +620,7 @@ export class BindString<
     softCharacterLimit?: number
     disabled?: boolean
     rows?: number
+    errorMessage?: string
 }> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = (value || undefined) as any
@@ -872,6 +882,7 @@ import { TagBadge, Tag } from "./TagBadge"
 // Better UX for case when you aren't adding new tags, only selecting from list.
 import ReactTags from "react-tag-autocomplete"
 import { Tippy } from "charts/Tippy"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer
 class EditTags extends React.Component<{

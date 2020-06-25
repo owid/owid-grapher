@@ -71,7 +71,7 @@ export class ChartLayout {
             this.footer.height -
             overlayPadding.top -
             overlayPadding.bottom -
-            30
+            25
         )
     }
 

@@ -2,6 +2,7 @@ $sans-serif-font-stack: Lato, "Helvetica Neue", Arial, sans-serif;
 $serif-font-stack: "Playfair Display", Georgia, "Times New Roman", serif;
 
 $controls-color: #3f9eff;
+$primary-color-30: #fafbfd;
 
 // These should be between 0–100 in order to avoid conflicting with
 // site dropdowns, search overlays, etc.
@@ -181,7 +182,7 @@ $zindex-IndicatorDropdown: 50;
     /* Controls Footer
     --------------------------------------------- */
 
-    $footerRowHeight: 40px;
+    $footerRowHeight: 32px; // keep in sync with Controls.tsx's footerRowHeight
 
     .ControlsFooter {
         width: 100%;
@@ -194,7 +195,7 @@ $zindex-IndicatorDropdown: 50;
         .footerRowMulti {
             box-sizing: content-box;
             width: 100%;
-            height: $footerRowHeight - 1px;
+            height: $footerRowHeight;
         }
 
         .footerRowSingle > * {
@@ -259,10 +260,12 @@ $zindex-IndicatorDropdown: 50;
             display: block;
             text-transform: uppercase;
             color: #777;
-            font-size: 0.85em;
-            height: $footerRowHeight - 2px;
+            font-size: 0.8em;
+            height: $footerRowHeight - 1;
             line-height: $footerRowHeight;
             border-bottom: 2px solid rgba(0, 0, 0, 0);
+            background-color: $primary-color-30;
+            transition: color 0.1s;
         }
 
         nav.tabs li.icon > a {
@@ -270,11 +273,14 @@ $zindex-IndicatorDropdown: 50;
         }
 
         nav.tabs li > a:hover {
+            color: rgba(0, 33, 71, 0.9);
             text-decoration: none;
         }
 
         nav.tabs li.active > a {
-            border-bottom-color: rgba(0, 33, 71, 0.9);
+            color: rgba(0, 33, 71, 0.9);
+            border-bottom-color: currentColor;
+            background-color: unset;
         }
 
         .inline-controls,
@@ -284,6 +290,39 @@ $zindex-IndicatorDropdown: 50;
             &.active {
                 border-top-color: transparent;
             }
+        }
+    }
+
+    /* Related question
+    --------------------------------------------- */
+
+    .relatedQuestion {
+        font-size: 12px;
+        height: 20px;
+        padding: 0 15px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-top: 1px solid #e1e1e1;
+
+        a {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        a,
+        svg {
+            color: $controls-color;
+        }
+        svg {
+            margin-left: 0.4rem;
+            font-size: 0.8em;
+            vertical-align: unset;
         }
     }
 
@@ -798,31 +837,53 @@ $zindex-IndicatorDropdown: 50;
 
         > div {
             margin-right: 0.5em;
+            &:last-child {
+                margin-right: 0;
+            }
         }
 
+        .date {
+            font-size: 0.9rem;
+        }
+
+        .play,
+        .date {
+            transition: color 0.1s;
+            &:hover {
+                color: $controls-color;
+            }
+        }
+
+        $handle-width: 0.5em;
         .slider {
-            height: 0.6em;
+            height: 0.4em;
             flex-grow: 1;
             background: #eee;
             border-radius: 5px;
             position: relative;
             display: flex;
             align-items: center;
+            margin-right: 2 * $handle-width;
         }
 
         .handle {
             height: 1em;
-            width: 0.5em;
             border-radius: 0.2em;
-            margin-left: -5px;
+            width: $handle-width;
             background: $controls-color;
             position: absolute;
+            cursor: col-resize;
         }
 
         .interval {
             position: absolute;
             height: 0.6em;
+            margin-left: $handle-width;
             background: $controls-color;
+            cursor: grab;
+            &:active {
+                cursor: grabbing;
+            }
         }
     }
 }
