@@ -1,5 +1,4 @@
 import * as React from "react"
-import { webpack } from "./webpack"
 
 export function LoginPage(props: { next?: string; errorMessage?: string }) {
     const style = `
@@ -27,9 +26,8 @@ export function LoginPage(props: { next?: string; errorMessage?: string }) {
                 <title>owid-admin</title>
                 <meta name="description" content="" />
                 <link
-                    href={webpack("admin.css")}
                     rel="stylesheet"
-                    type="text/css"
+                    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
                 />
                 <style>{style}</style>
             </head>
