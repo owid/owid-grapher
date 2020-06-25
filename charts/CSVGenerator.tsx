@@ -1,6 +1,6 @@
 import { computed, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { uniq, flatten, csvEscape, first, last } from "./Util"
+import { uniq, flatten, csvEscape, first, valuesByEntityAtYears } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 
 interface CSVGeneratorProps {
@@ -108,18 +108,24 @@ export class CSVGenerator {
         dim: ChartDimensionWithOwidVariable,
         entity: string
     ): [string, string | number] | null {
-        let latestYear = undefined
-        let latestValue = undefined
+        let year = undefined
+        let value = undefined
 
-        const latestYearValue = dim.yearAndValueOfLatestValueforEntity(entity)
-
-        if (latestYearValue) {
-            latestYear = dim.formatYear(first(latestYearValue) as number)
-            latestValue = last(latestYearValue)
+        if (dim.targetYear && dim.tolerance) {
+            const dataValues = valuesByEntityAtYears(
+                dim.valueByEntityAndYear,
+                [dim.targetYear],
+                dim.tolerance
+            ).get(entity)
+            const dataValue = dataValues && first(dataValues)
+            if (dataValue) {
+                year = dataValue.year
+                value = dataValue.value
+            }
         }
 
-        if (latestYear !== undefined && latestValue !== undefined) {
-            return [latestYear, latestValue]
+        if (year !== undefined && value !== undefined) {
+            return [dim.formatYear(year), value]
         } else return null
     }
 
