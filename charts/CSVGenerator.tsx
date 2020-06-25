@@ -1,10 +1,15 @@
 import { computed, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { sortBy, uniq, flatten, csvEscape, first, last } from "./Util"
+import { uniq, flatten, csvEscape, first, last } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 
 interface CSVGeneratorProps {
     chart: ChartConfig
+}
+
+interface TimeUnitDependentParams {
+    indexingYears: number[]
+    titleRow: string[]
 }
 
 export class CSVGenerator {
@@ -13,71 +18,175 @@ export class CSVGenerator {
         this.props = props
     }
 
-    @computed get csvBlob() {
-        const { chart } = this.props
-        const yearIsDayVar = chart.yearIsDayVar
-        const dayIndexedCSV = yearIsDayVar ? true : false
+    @computed get chart() {
+        return this.props.chart
+    }
 
-        const dimensions = chart.data.filledDimensions.filter(
+    @computed get csvDimensions() {
+        return this.chart.data.filledDimensions.filter(
             d => d.property !== "color"
         )
-        const uniqueEntitiesAcrossDimensions =
-            chart.sortedUniqueEntitiesAcrossDimensions
+    }
 
-        // only get days if chart has a day-indexed variable, else get years across dimensions
-        const indexingYears = sortBy(
-            dayIndexedCSV
-                ? yearIsDayVar?.yearsUniq
-                : uniq(flatten(dimensions.map(d => d.yearsUniq)))
+    /** Returns dimensions for which we want to show all values */
+    @computed get allValueDimensions() {
+        return this.csvDimensions.filter(
+            dim => !this.isSingleValueDimension(dim)
         )
+    }
 
-        const rows: string[] = []
+    @computed get singleValueDimensions() {
+        return this.csvDimensions.filter(dim =>
+            this.isSingleValueDimension(dim)
+        )
+    }
 
-        const titleRow = ["Entity", "Code", dayIndexedCSV ? "Date" : "Year"]
+    @computed get dayIndexedCSV() {
+        return this.chart.yearIsDayVar ? true : false
+    }
 
-        dimensions.forEach(dim => {
-            if (this.isFixedYearDimension(dim)) titleRow.push("Year")
+    @computed get yearIsDayVar() {
+        return this.chart.yearIsDayVar
+    }
+
+    baseTitleRow = ["Entity", "Code"]
+
+    @computed get dayBasedCSVParams(): TimeUnitDependentParams {
+        const titleRow = this.baseTitleRow
+        titleRow.push("Date")
+
+        this.csvDimensions.map(dim => {
+            if (this.isSingleValueDimension(dim)) titleRow.push("Year")
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
-        rows.push(titleRow.join(","))
 
-        uniqueEntitiesAcrossDimensions.forEach(entity => {
-            indexingYears.forEach(year => {
-                const row: (string | number)[] = [
-                    entity,
-                    chart.entityMetaByKey[entity].code ?? "",
-                    chart.formatYearFunction(year)
-                ]
+        return {
+            indexingYears: this.yearIsDayVar!.yearsUniq,
+            titleRow: titleRow
+        }
+    }
 
-                let rowHasSomeValue = false
-                dimensions.forEach(dim => {
-                    let value = null
-                    if (this.isFixedYearDimension(dim)) {
-                        const latestYearValue = dim.yearAndValueOfLatestValueforEntity(
-                            entity
-                        )
-                        if (latestYearValue) {
-                            row.push(
-                                dim.formatYear(first(latestYearValue) as number)
-                            )
-                            value = last(latestYearValue)
-                        } else row.push("")
-                    } else {
-                        value = dim.valueByEntityAndYear.get(entity)?.get(year)
-                    }
+    @computed get yearBasedCSVParams(): TimeUnitDependentParams {
+        const titleRow = this.baseTitleRow
+        titleRow.push("Year")
 
-                    if (value != null) {
-                        row.push(value)
-                        rowHasSomeValue = true
-                    } else row.push("")
-                })
+        this.csvDimensions.map(dim =>
+            titleRow.push(csvEscape(dim.fullNameWithUnit))
+        )
 
-                // Only add rows which actually have some data in them
-                if (rowHasSomeValue) rows.push(row.map(csvEscape).join(","))
+        return {
+            indexingYears: uniq(
+                flatten(this.csvDimensions.map(d => d.yearsUniq))
+            ),
+            titleRow: titleRow
+        }
+    }
+
+    @computed get timeUnitDependentParams(): TimeUnitDependentParams {
+        return this.dayIndexedCSV
+            ? this.dayBasedCSVParams
+            : this.yearBasedCSVParams
+    }
+
+    entityCode(entity: string) {
+        return this.chart.entityMetaByKey[entity].code ?? ""
+    }
+
+    private formattedYear(year: number) {
+        return this.chart.formatYearFunction(year)
+    }
+
+    private valueForDimensionEntityYear(
+        dim: ChartDimensionWithOwidVariable,
+        entity: string,
+        year: number
+    ) {
+        return dim.valueByEntityAndYear.get(entity)?.get(year)
+    }
+
+    private yearAndValueForSingleYearDimension(
+        dim: ChartDimensionWithOwidVariable,
+        entity: string
+    ): [string, string | number] | null {
+        let latestYear = undefined
+        let latestValue = undefined
+
+        const latestYearValue = dim.yearAndValueOfLatestValueforEntity(entity)
+
+        if (latestYearValue) {
+            latestYear = dim.formatYear(first(latestYearValue) as number)
+            latestValue = last(latestYearValue)
+        }
+
+        if (latestYear !== undefined && latestValue !== undefined) {
+            return [latestYear, latestValue]
+        } else return null
+    }
+
+    private dimensionsValues(entity: string, year: number) {
+        const values: (string | number)[] = []
+
+        this.allValueDimensions.map(dim => {
+            const value = this.valueForDimensionEntityYear(dim, entity, year)
+
+            if (value !== undefined) {
+                values.push(value)
+            } else values.push("")
+        })
+
+        this.singleValueDimensions.map(dim => {
+            const yearAndValue = this.yearAndValueForSingleYearDimension(
+                dim,
+                entity
+            )
+            if (yearAndValue !== null) {
+                values.push(...yearAndValue)
+            } else values.push("", "")
+        })
+        return values
+    }
+
+    private row(entity: string, year: number) {
+        const dimensionsValues = this.dimensionsValues(entity, year)
+        const rowHasSomeValue = dimensionsValues.some(v => v !== "")
+
+        if (rowHasSomeValue) {
+            return [
+                entity,
+                this.entityCode(entity),
+                this.formattedYear(year),
+                ...dimensionsValues
+            ]
+        } else return null
+    }
+
+    @computed get dataRows() {
+        const { indexingYears } = this.timeUnitDependentParams
+        const chartEntities = this.chart.sortedUniqueEntitiesAcrossDimensions
+
+        const rows: (string | number)[][] = []
+        chartEntities.map(entity => {
+            indexingYears.map(year => {
+                const row = this.row(entity, year)
+                if (row) rows.push(row)
             })
         })
 
-        return new Blob([rows.join("\n")], { type: "text/csv" })
+        return rows
+    }
+
+    @computed get csvRows() {
+        const { timeUnitDependentParams, dataRows: dataRows } = this
+        return [
+            timeUnitDependentParams.titleRow,
+            ...dataRows.map(row => row.map(csvEscape))
+        ]
+            .map(row => row.join(","))
+            .join("\n")
+    }
+
+    @computed get csvBlob() {
+        return new Blob([this.csvRows], { type: "text/csv" })
     }
 
     @computed get csvDataUri(): string {
@@ -85,7 +194,7 @@ export class CSVGenerator {
     }
 
     @computed get csvFilename(): string {
-        return this.props.chart.data.slug + ".csv"
+        return this.chart.data.slug + ".csv"
     }
 
     // IE11 compatibility
@@ -96,8 +205,12 @@ export class CSVGenerator {
         }
     }
 
-    // returns true if given dimension is year-based in a chart with day-based variable
-    private isFixedYearDimension(dim: ChartDimensionWithOwidVariable) {
-        return this.props.chart.yearIsDayVar && !dim.yearIsDayVar
+    /** Returns true for dimensions for which we want to show a single value.
+     *
+     * e.g. in a scatter plot with day-based variables and year-based variables,
+     * show only one value for the year-based variables
+     */
+    private isSingleValueDimension(dim: ChartDimensionWithOwidVariable) {
+        return this.chart.yearIsDayVar && !dim.yearIsDayVar
     }
 }
