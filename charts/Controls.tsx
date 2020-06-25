@@ -1080,6 +1080,7 @@ export class ControlsFooterView extends React.Component<{
                 <a
                     href={relatedQuestions[0].url}
                     target="_blank"
+                    rel="noopener"
                     data-track-note="chart-click-related"
                 >
                     {relatedQuestions[0].text}
