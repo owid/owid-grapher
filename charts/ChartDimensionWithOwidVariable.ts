@@ -193,7 +193,9 @@ export class ChartDimensionWithOwidVariable {
 
     yearAndValueOfLatestValueforEntity(entity: string) {
         const valueByYear = this.valueByEntityAndYear.get(entity)
-        return valueByYear ? last(Array.from(valueByYear)) ?? null : null
+        return valueByYear
+            ? last(Array.from(valueByYear)) ?? undefined
+            : undefined
     }
 
     @computed get valueByEntityAndYear(): Map<
