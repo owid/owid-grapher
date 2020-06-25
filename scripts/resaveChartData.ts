@@ -10,7 +10,7 @@ async function main() {
     const chartRows = await Chart.all()
     for (const c of chartRows) {
         const chart = new ChartConfig(c.config)
-        chart.isLocalExport = true
+        chart.isExporting = true
         const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
         const vardata = await getVariableData(variableIds)
         chart.receiveData(vardata)

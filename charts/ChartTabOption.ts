@@ -1,7 +1,1 @@
-export type ChartTabOption =
-    | "chart"
-    | "map"
-    | "data"
-    | "sources"
-    | "download"
-    | "table"
+export type ChartTabOption = "chart" | "map" | "sources" | "download" | "table"

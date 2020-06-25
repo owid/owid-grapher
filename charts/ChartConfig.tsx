@@ -12,8 +12,6 @@ import {
 } from "mobx"
 import { bind } from "decko"
 
-import { DATA_TABLE } from "settings"
-
 import {
     extend,
     map,
@@ -311,7 +309,7 @@ export class ChartConfig {
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
-    @observable.ref isLocalExport?: boolean
+    @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
 
     // at startDrag, we want to show the full axis
@@ -418,7 +416,7 @@ export class ChartConfig {
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
         if (this.isMediaCard) return 24
-        else if (this.isLocalExport) return 18
+        else if (this.isExporting) return 18
         else return this.setBaseFontSize
     }
 
@@ -468,7 +466,7 @@ export class ChartConfig {
     }
 
     @computed get isNativeEmbed(): boolean {
-        return this.isEmbed && !this.isIframe && !this.isLocalExport
+        return this.isEmbed && !this.isIframe && !this.isExporting
     }
 
     @computed.struct private get variableIds() {
@@ -651,20 +649,12 @@ export class ChartConfig {
     }
 
     set tab(value) {
-        if (
-            value === "chart" ||
-            value === "map" ||
-            (DATA_TABLE && value === "table")
-        ) {
+        if (value === "chart" || value === "map" || value === "table") {
             this.props.tab = value
             this.props.overlay = undefined
         } else {
             // table tab cannot be downloaded, so revert to default tab
-            if (
-                value === "download" &&
-                DATA_TABLE &&
-                this.props.tab === "table"
-            ) {
+            if (value === "download" && this.props.tab === "table") {
                 this.props.tab = this.origProps.tab
             }
             this.props.overlay = value
@@ -733,7 +723,7 @@ export class ChartConfig {
         return filter([
             this.props.hasChartTab && "chart",
             this.props.hasMapTab && "map",
-            DATA_TABLE ? "table" : "data",
+            "table",
             "sources",
             "download"
         ]) as ChartTabOption[]

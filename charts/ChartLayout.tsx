@@ -48,44 +48,40 @@ export class ChartLayout {
         })
     }
 
-    @computed get isHTML(): boolean {
-        return !this.props.chart.isLocalExport
+    @computed get isExporting(): boolean {
+        return !!this.props.chart.isExporting
     }
 
     @computed get svgWidth() {
-        if (this.isHTML) {
-            const { overlayPadding } = this.props.chartView.controls
-            return (
-                this.props.bounds.width -
-                overlayPadding.left -
-                overlayPadding.right
-            )
-        }
-        return this.props.bounds.width
+        if (this.isExporting) return this.props.bounds.width
+
+        const { overlayPadding } = this.props.chartView.controls
+        return (
+            this.props.bounds.width - overlayPadding.left - overlayPadding.right
+        )
     }
 
     @computed get svgHeight() {
-        if (this.isHTML) {
-            const { overlayPadding } = this.props.chartView.controls
-            return (
-                this.props.bounds.height -
-                this.header.height -
-                this.footer.height -
-                overlayPadding.top -
-                overlayPadding.bottom -
-                25
-            )
-        }
-        return this.props.bounds.height
+        if (this.isExporting) return this.props.bounds.height
+
+        const { overlayPadding } = this.props.chartView.controls
+        return (
+            this.props.bounds.height -
+            this.header.height -
+            this.footer.height -
+            overlayPadding.top -
+            overlayPadding.bottom -
+            25
+        )
     }
 
     @computed get innerBounds() {
-        if (this.isHTML) {
-            return new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15)
-        }
-        return this.paddedBounds
-            .padTop(this.header.height)
-            .padBottom(this.footer.height)
+        if (this.isExporting)
+            return this.paddedBounds
+                .padTop(this.header.height)
+                .padBottom(this.footer.height)
+
+        return new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15)
     }
 }
 
@@ -159,8 +155,8 @@ export class ChartLayoutView extends React.Component<{
     }
 
     render() {
-        return this.props.layout.isHTML
-            ? this.renderWithHTMLText()
-            : this.renderWithSVGText()
+        return this.props.layout.isExporting
+            ? this.renderWithSVGText()
+            : this.renderWithHTMLText()
     }
 }

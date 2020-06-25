@@ -18,6 +18,7 @@ import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { AxisSpec } from "./AxisSpec"
 import { ScaleType } from "./ScaleType"
 import { extend } from "./Util"
+import classNames from "classnames"
 
 interface AxisBoxProps {
     bounds: Bounds
@@ -211,7 +212,12 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
         })
 
         return (
-            <g className="AxisGridLines">
+            <g
+                className={classNames(
+                    "AxisGridLines",
+                    orient === "left" ? "horizontalLines" : "verticalLines"
+                )}
+            >
                 {scale.getTickValues().map((v, i) => {
                     if (orient === "left")
                         return (

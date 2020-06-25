@@ -1,7 +1,6 @@
 // We need to keep this until we make the EXPLORER flag obsolete (by enabling
 // the explorer on the live site)
 process.env.EXPLORER = true
-process.env.DATA_TABLE = true
 
 // For now:
 // - server tests go in the test/ dir and are run in the node environment

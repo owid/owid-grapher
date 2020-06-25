@@ -618,7 +618,7 @@ export class Controls {
         const { chart } = this.props
         return (
             chart.primaryTab === "chart" &&
-            !chart.isLocalExport &&
+            !chart.isExporting &&
             chart.data.canAddData &&
             (chart.isLineChart || chart.isStackedArea || chart.isDiscreteBar)
         )

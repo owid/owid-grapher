@@ -349,7 +349,7 @@ export class ScatterPlot extends React.Component<{
         const { currentData, sizeDomain, colorScale } = transform
 
         return (
-            <g>
+            <g className="ScatterPlot">
                 <AxisBoxView
                     axisBox={axisBox}
                     onXScaleChange={this.onXScaleChange}
