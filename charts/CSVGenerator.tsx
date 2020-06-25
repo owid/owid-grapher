@@ -7,7 +7,7 @@ interface CSVGeneratorProps {
     chart: ChartConfig
 }
 
-interface CSVParams {
+interface TimeUnitDependentParams {
     indexingYears: number[]
     titleRow: string[]
 }
@@ -51,7 +51,7 @@ export class CSVGenerator {
 
     baseTitleRow = ["Entity", "Code"]
 
-    @computed get dayBasedCSVParams(): CSVParams {
+    @computed get dayBasedCSVParams(): TimeUnitDependentParams {
         const titleRow = this.baseTitleRow
         titleRow.push("Date")
 
@@ -66,7 +66,7 @@ export class CSVGenerator {
         }
     }
 
-    @computed get yearBasedCSVParams(): CSVParams {
+    @computed get yearBasedCSVParams(): TimeUnitDependentParams {
         const titleRow = this.baseTitleRow
         titleRow.push("Year")
 
@@ -82,7 +82,7 @@ export class CSVGenerator {
         }
     }
 
-    @computed get csvParams(): CSVParams {
+    @computed get timeUnitDependentParams(): TimeUnitDependentParams {
         return this.dayIndexedCSV
             ? this.dayBasedCSVParams
             : this.yearBasedCSVParams
