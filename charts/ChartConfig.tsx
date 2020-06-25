@@ -302,7 +302,7 @@ export class ChartConfig {
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isNode: boolean
-    @observable.ref isLocalExport?: boolean
+    @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
 
     // at startDrag, we want to show the full axis
@@ -409,7 +409,7 @@ export class ChartConfig {
     @observable.ref setBaseFontSize: number = 16
     @computed get baseFontSize(): number {
         if (this.isMediaCard) return 24
-        else if (this.isLocalExport) return 18
+        else if (this.isExporting) return 18
         else return this.setBaseFontSize
     }
 
@@ -459,7 +459,7 @@ export class ChartConfig {
     }
 
     @computed get isNativeEmbed(): boolean {
-        return this.isEmbed && !this.isIframe && !this.isLocalExport
+        return this.isEmbed && !this.isIframe && !this.isExporting
     }
 
     @computed.struct private get variableIds() {

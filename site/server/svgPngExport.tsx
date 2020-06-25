@@ -31,7 +31,7 @@ export async function chartToSVG(
     vardata: any
 ): Promise<string> {
     const chart = new ChartConfig(jsonConfig)
-    chart.isLocalExport = true
+    chart.isExporting = true
     chart.receiveData(vardata)
     return chart.staticSVG
 }
@@ -43,7 +43,7 @@ export async function bakeImageExports(
     optimizeSvgs = false
 ) {
     const chart = new ChartConfig(jsonConfig)
-    chart.isLocalExport = true
+    chart.isExporting = true
     chart.receiveData(vardata)
     const outPath = path.join(outDir, chart.props.slug as string)
 

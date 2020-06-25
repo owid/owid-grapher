@@ -62,9 +62,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         const { targetWidth, targetHeight } = this
         const { chart } = this.props
 
-        chart.isLocalExport = true
+        chart.isExporting = true
         const staticSVG = chart.staticSVG
-        chart.isLocalExport = false
+        chart.isExporting = false
 
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8"

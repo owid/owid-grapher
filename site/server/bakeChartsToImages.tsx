@@ -53,7 +53,7 @@ export async function bakeChartsToImages(
             const queryStr = (url.query as unknown) as string
 
             const chart = new ChartConfig(jsonConfig, { queryStr })
-            chart.isLocalExport = true
+            chart.isExporting = true
             const { width, height } = chart.idealBounds
             const outPath = `${outDir}/${slug}${
                 queryStr ? "-" + md5(queryStr) : ""
