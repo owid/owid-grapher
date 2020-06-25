@@ -161,7 +161,7 @@ export class CSVGenerator {
     }
 
     @computed get dataRows() {
-        const { indexingYears } = this.csvParams
+        const { indexingYears } = this.timeUnitDependentParams
         const chartEntities = this.chart.sortedUniqueEntitiesAcrossDimensions
 
         const rows: (string | number)[][] = []
@@ -176,8 +176,11 @@ export class CSVGenerator {
     }
 
     @computed get csvRows() {
-        const { csvParams, dataRows: dataRows } = this
-        return [csvParams.titleRow, ...dataRows.map(row => row.map(csvEscape))]
+        const { timeUnitDependentParams, dataRows: dataRows } = this
+        return [
+            timeUnitDependentParams.titleRow,
+            ...dataRows.map(row => row.map(csvEscape))
+        ]
             .map(row => row.join(","))
             .join("\n")
     }
