@@ -125,14 +125,12 @@ export class CSVGenerator {
 
     private dimensionsValues(entity: string, year: number) {
         const values: (string | number)[] = []
-        let rowHasSomeValue = false
 
         this.allValueDimensions.map(dim => {
             const value = this.valueForDimensionEntityYear(dim, entity, year)
 
             if (value !== undefined) {
                 values.push(value)
-                rowHasSomeValue = true
             } else values.push("")
         })
 
@@ -143,15 +141,14 @@ export class CSVGenerator {
             )
             if (yearAndValue !== null) {
                 values.push(...yearAndValue)
-                rowHasSomeValue = true
             } else values.push("", "")
         })
-        return rowHasSomeValue ? values : []
+        return values
     }
 
     private row(entity: string, year: number) {
         const dimensionsValues = this.dimensionsValues(entity, year)
-        const rowHasSomeValue = dimensionsValues.length > 0
+        const rowHasSomeValue = dimensionsValues.some(v => v !== "")
 
         if (rowHasSomeValue) {
             return [
