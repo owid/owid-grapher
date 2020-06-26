@@ -206,11 +206,11 @@ $zindex-IndicatorDropdown: 50;
             display: flex;
 
             .inline-controls {
-                width: 40%;
+                flex-grow: 1;
             }
 
             nav.tabs {
-                width: 60%;
+                flex-grow: 2;
             }
         }
 
@@ -256,7 +256,9 @@ $zindex-IndicatorDropdown: 50;
             height: $footerRowHeight;
 
             &.download-tab-button {
-                width: 30%;
+                svg {
+                    margin-right: 0.15em;
+                }
             }
         }
 
@@ -274,10 +276,7 @@ $zindex-IndicatorDropdown: 50;
             border-bottom: 2px solid rgba(0, 0, 0, 0);
             background-color: $primary-color-30;
             transition: color 0.1s;
-        }
-
-        nav.tabs li.icon > a {
-            padding: 0 0.4em;
+            padding: 0 0.6em;
         }
 
         nav.tabs li > a:hover {
