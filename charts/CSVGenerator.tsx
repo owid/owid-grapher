@@ -173,8 +173,8 @@ export class CSVGenerator {
         const chartEntities = this.chart.sortedUniqueEntitiesAcrossDimensions
 
         const rows: (string | number)[][] = []
-        chartEntities.map(entity => {
-            indexingYears.map(year => {
+        chartEntities.forEach(entity => {
+            indexingYears.forEach(year => {
                 const row = this.row(entity, year)
                 if (row) rows.push(row)
             })
