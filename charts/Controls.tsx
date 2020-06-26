@@ -13,7 +13,7 @@ import {
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "./ChartView"
 import { Timeline } from "./HTMLTimeline"
-import { extend, keys, entries, first, max, isMobile } from "./Util"
+import { extend, keys, entries, first, max } from "./Util"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
@@ -1092,9 +1092,7 @@ export class ControlsFooterView extends React.Component<{
 
         return (
             <div
-                className={classNames("ControlsFooter", {
-                    mobile: isMobile()
-                })}
+                className={classNames("ControlsFooter")}
                 style={{ height: props.controls.footerHeight }}
             >
                 {timelineElement}

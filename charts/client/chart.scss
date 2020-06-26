@@ -299,23 +299,6 @@ $zindex-IndicatorDropdown: 50;
                 border-top-color: transparent;
             }
         }
-
-        &.mobile {
-            .footerRowSingle,
-            .footerRowMulti {
-                height: $footerRowHeightMobile - 1px;
-
-                nav.tabs li {
-                    height: $footerRowHeightMobile;
-
-                    > a {
-                        font-size: 11px;
-                        height: $footerRowHeightMobile - 2px;
-                        line-height: $footerRowHeightMobile;
-                    }
-                }
-            }
-        }
     }
 
     /* Related question
