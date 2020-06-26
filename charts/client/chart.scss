@@ -210,7 +210,7 @@ $zindex-IndicatorDropdown: 50;
             }
 
             nav.tabs {
-                flex-grow: 2;
+                min-width: 50%;
             }
         }
 
@@ -244,15 +244,15 @@ $zindex-IndicatorDropdown: 50;
         nav.tabs ul {
             margin: 0;
             padding: 0;
-            display: table;
+            display: flex;
             width: 100%;
             text-align: center;
         }
 
         nav.tabs li {
+            flex-grow: 1;
             list-style-type: none;
             border-left: 1px solid #e1e1e1;
-            display: table-cell;
             height: $footerRowHeight;
 
             &.download-tab-button {
