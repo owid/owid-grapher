@@ -913,7 +913,7 @@ export class ControlsFooterView extends React.Component<{
                     })}
                     <li
                         className={
-                            "tab clickable icon download" +
+                            "tab clickable icon download-tab-button" +
                             (chart.tab === "download" ? " active" : "")
                         }
                         data-track-note="chart-click-download"
