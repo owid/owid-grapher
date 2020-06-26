@@ -75,16 +75,9 @@ export class SiteSubnavigation extends React.Component<{
             <div className="offset-subnavigation">
                 <div className="site-subnavigation">
                     <div className="site-subnavigation-scroll">
-                        <div className="site-subnavigation-title">
-                            <a href={subnavLinks[0].href}>
-                                {subnavLinks[0].label}
-                                <FontAwesomeIcon icon={faChevronLeft} />
-                            </a>
-                        </div>
                         <ul className="site-subnavigation-links">
-                            {subnavLinks
-                                .slice(1)
-                                .map(({ href, label, id, highlight }) => {
+                            {subnavLinks.map(
+                                ({ href, label, id, highlight }, idx) => {
                                     const classes: string[] = []
                                     if (id === subnavCurrentId)
                                         classes.push("current")
@@ -98,10 +91,18 @@ export class SiteSubnavigation extends React.Component<{
                                             }
                                             key={href}
                                         >
-                                            <a href={href}>{label}</a>
+                                            <a href={href}>
+                                                {label}
+                                                {idx === 0 && (
+                                                    <FontAwesomeIcon
+                                                        icon={faChevronLeft}
+                                                    />
+                                                )}
+                                            </a>
                                         </li>
                                     )
-                                })}
+                                }
+                            )}
                         </ul>
                     </div>
                 </div>
