@@ -1,6 +1,6 @@
 import { computed, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { uniq, flatten, csvEscape, first, valuesByEntityAtYears } from "./Util"
+import { uniq, flatten, csvEscape, first, valuesAtYears } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 
 interface CSVGeneratorProps {
@@ -111,12 +111,14 @@ export class CSVGenerator {
         let year = undefined
         let value = undefined
 
-        if (dim.targetYear && dim.tolerance) {
-            const dataValues = valuesByEntityAtYears(
-                dim.valueByEntityAndYear,
+        const valueByYear = dim.valueByEntityAndYear.get(entity)
+
+        if (valueByYear && dim.targetYear) {
+            const dataValues = valuesAtYears(
+                valueByYear,
                 [dim.targetYear],
                 dim.tolerance
-            ).get(entity)
+            )
             const dataValue = dataValues && first(dataValues)
             if (dataValue) {
                 year = dataValue.year
