@@ -381,7 +381,7 @@ export class CountryStandardizerPage extends React.Component {
     componentDidMount() {
         // Fetch mapping from server when the input or output format changes
         this.dispose = reaction(
-            () => this.inputFormat && this.outputFormat,
+            () => [this.inputFormat, this.outputFormat],
             () => this.fetchCountryMap()
         )
 
@@ -621,7 +621,7 @@ export class CountryStandardizerPage extends React.Component {
                         </div>
                         <SelectField
                             label="Input Format"
-                            value={CountryNameFormat.NonStandardCountryName}
+                            value={this.inputFormat}
                             onValue={this.onInputFormat}
                             options={allowedInputFormats.map(def => def.key)}
                             optionLabels={allowedInputFormats.map(
@@ -632,7 +632,7 @@ export class CountryStandardizerPage extends React.Component {
                         />
                         <SelectField
                             label="Output Format"
-                            value={CountryNameFormat.OurWorldInDataName}
+                            value={this.outputFormat}
                             onValue={this.onOutputFormat}
                             options={allowedOutputFormats.map(def => def.key)}
                             optionLabels={allowedOutputFormats.map(
