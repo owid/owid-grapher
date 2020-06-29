@@ -13,13 +13,13 @@ import {
 } from "./Util"
 import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { AbstractColumn } from "./owidData/OwidTable"
+import { AbstractColumn, owidVariableId } from "./owidData/OwidTable"
 
 export class ChartDimensionWithOwidVariable {
     props: ChartDimension
     @observable.ref index: number
 
-    @computed get variableId(): number {
+    @computed get variableId(): owidVariableId {
         return this.props.variableId
     }
 

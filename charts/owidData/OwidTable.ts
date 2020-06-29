@@ -17,8 +17,12 @@ import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"
 import { csvParse } from "d3-dsv"
 
-declare type int = number
-declare type year = int
+export declare type int = number
+export declare type year = int
+export declare type entityName = string
+export declare type entityCode = string
+export declare type entityId = number
+export declare type owidVariableId = int
 declare type columnSlug = string // let's be very restrictive on valid column names to start.
 
 interface Row {
@@ -58,10 +62,11 @@ const computeRollingAveragesForEachGroup = (
     return flatten(groups)
 }
 
+// This is a row with the additional columns specific to our OWID data model
 interface OwidRow extends Row {
-    entityName: string
-    entityCode: string
-    entityId: number
+    entityName: entityName
+    entityCode: entityCode
+    entityId: entityId
     year?: year
     day?: int
     date?: string
@@ -70,7 +75,7 @@ interface OwidRow extends Row {
 export interface ColumnSpec {
     slug: columnSlug
     name?: string
-    owidVariableId?: int
+    owidVariableId?: owidVariableId
     unit?: string
     shortUnit?: string
     isDailyMeasurement?: boolean
@@ -130,13 +135,13 @@ export abstract class AbstractColumn {
         return column ? column.entityMap : undefined
     }
 
-    getAnnotationsFor(entityName: string) {
+    getAnnotationsFor(entityName: entityName) {
         const map = this.annotationsMap
         return map ? map.get(entityName) : undefined
     }
 
     @computed get entityMap() {
-        const map = new Map<string, any>()
+        const map = new Map<entityName, any>()
         const slug = this.slug
         this.rows.forEach(row => map.set(row.entityName, row[slug]))
         return map
@@ -241,7 +246,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @action.bound deleteColumnBySlug(slug: columnSlug) {
         this.rows.forEach(row => delete row[slug])
-        this.columnNames.delete(slug)
+        this.columns.delete(slug)
     }
 
     @action.bound addFilterColumn(
@@ -308,8 +313,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return map
     }
 
-    @computed get columnNames() {
-        return new Set(Array.from(this.columns.values()).map(col => col.name))
+    @computed protected get columnSlugs() {
+        return Array.from(this.columns.keys())
     }
 
     @computed get unfilteredRows() {
@@ -338,21 +343,21 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     // for debugging
     rowsWith(query: string) {
-        const cols = Array.from(this.columnNames)
+        const slugs = this.columnSlugs
         return this.rows.filter(row =>
-            cols
-                .map(cName => cName + " " + (row[cName] ?? ""))
+            slugs
+                .map(slug => slug + " " + (row[slug] ?? ""))
                 .join(" ")
                 .includes(query)
         )
     }
 
     toDelimited(delimiter = ",", rowLimit?: number) {
-        const cols = Array.from(this.columnNames)
-        const header = cols.join(delimiter) + "\n"
+        const slugs = this.columnSlugs
+        const header = slugs.join(delimiter) + "\n"
         const rows = rowLimit ? this.rows.slice(0, rowLimit) : this.rows
         const body = rows
-            .map(row => cols.map(cName => row[cName] ?? "").join(delimiter))
+            .map(row => slugs.map(slug => row[slug] ?? "").join(delimiter))
             .join("\n")
         return header + body
     }
@@ -366,7 +371,26 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
 export class BasicTable extends AbstractTable<Row> {
     static fromCsv(csv: string) {
-        return new BasicTable(csvParse(csv))
+        return new BasicTable(this.standardizeSlugs(csvParse(csv)))
+    }
+
+    private static standardizeSlugs(rows: Row[]) {
+        const colSpecs = Object.keys(rows[0]).map(name => {
+            return {
+                name: name,
+                slug: slugify(name)
+            }
+        })
+        const colsToRename = colSpecs.filter(col => col.name !== col.slug)
+        if (colsToRename.length) {
+            rows.forEach((row: Row) => {
+                colsToRename.forEach(col => {
+                    row[col.slug] = row[col.name]
+                    delete row[col.name]
+                })
+            })
+        }
+        return rows
     }
 }
 
@@ -385,7 +409,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     // todo: can we remove at some point?
     @computed get entityIdToNameMap() {
-        const map = new Map()
+        const map = new Map<entityId, entityName>()
         this.rows.forEach(row => {
             map.set(row.entityId, row.entityName)
         })
@@ -394,7 +418,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     // todo: can we remove at some point?
     @computed get entityNameToIdMap() {
-        const map = new Map()
+        const map = new Map<entityName, number>()
         this.rows.forEach(row => {
             map.set(row.entityName, row.entityId)
         })
@@ -403,7 +427,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     // todo: can we remove at some point?
     @computed get entityNameToCodeMap() {
-        const map = new Map()
+        const map = new Map<entityName, entityCode>()
         this.rows.forEach(row => {
             map.set(row.entityName, row.entityCode)
         })
@@ -423,7 +447,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     @computed get hasDayColumn() {
-        return this.columnNames.has("day")
+        return this.columns.has("day")
     }
 
     @computed get dayColumn() {

@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
-import { readVariable } from "test/fixtures"
+import { readVariable, readVariableSet } from "test/fixtures"
 import { slugify } from "charts/Util"
 
 describe(OwidTable, () => {
@@ -100,6 +100,17 @@ canada,20`
             expect(col?.values[0]).toEqual("usa")
             expect(col?.values[1]).toEqual("united kingdom")
         })
+    })
+})
+
+describe("toDelimited", () => {
+    const csv = `country,Population in 2020
+iceland,1`
+    const table = BasicTable.fromCsv(csv)
+    it("delimited uses slugs as default", () => {
+        const csv = table.toDelimited()
+        expect(csv).toEqual(`country,population-in-2020
+iceland,1`)
     })
 })
 

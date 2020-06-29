@@ -759,10 +759,10 @@ export class ChartConfig {
         if (
             this.primaryTab === "chart" &&
             this.addCountryMode !== "add-country" &&
-            this.data.selectedEntities.length === 1 &&
+            this.data.selectedEntityNames.length === 1 &&
             (!this.props.hideTitleAnnotation || this.canChangeEntity)
         ) {
-            const { selectedEntities } = this.data
+            const { selectedEntityNames: selectedEntities } = this.data
             const entityStr = selectedEntities.join(", ")
             if (entityStr.length > 0) {
                 text = text + ", " + entityStr
@@ -859,7 +859,7 @@ export class ChartConfig {
         return (
             !this.isScatter &&
             this.addCountryMode === "change-country" &&
-            this.data.availableEntities.length > 1
+            this.data.availableEntityNames.length > 1
         )
     }
 
@@ -924,7 +924,7 @@ export class ChartConfig {
         json.overlay = undefined
 
         json.data = {
-            availableEntities: this.data.availableEntities
+            availableEntities: this.data.availableEntityNames
         }
 
         // JSON doesn't support Infinity, so we use strings instead.

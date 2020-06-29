@@ -32,6 +32,7 @@ import { ChartTransform } from "./ChartTransform"
 import { Time } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { ColorScale } from "./ColorScale"
+import { entityName, year } from "./owidData/OwidTable"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -146,7 +147,7 @@ export class ScatterTransform extends ChartTransform {
         const entityIds = this.chart.props.excludedEntities || []
         const entityNameMap = this.chart.table.entityIdToNameMap
         return entityIds
-            .map(entityId => entityNameMap.get(entityId))
+            .map(entityId => entityNameMap.get(entityId)!)
             .filter(d => d)
     }
 
@@ -154,7 +155,7 @@ export class ScatterTransform extends ChartTransform {
         filterBackgroundEntities = this.hideBackgroundEntities
     ): string[] {
         let entities = filterBackgroundEntities
-            ? this.chart.data.selectedEntities
+            ? this.chart.data.selectedEntityNames
             : this.possibleEntities
 
         if (this.chart.props.matchingEntitiesOnly && this.colorDimension)
@@ -212,21 +213,22 @@ export class ScatterTransform extends ChartTransform {
     // If there's no timeline, this uses the same structure but only computes for a single year
     private getDataByEntityAndYear(
         entitiesToShow = this.getEntitiesToShow()
-    ): Map<string, Map<number, ScatterValue>> {
-        const { chart, yearsToCalculate, xOverrideYear } = this
+    ): Map<entityName, Map<year, ScatterValue>> {
+        const { chart } = this
         const { filledDimensions } = chart.data
         const validEntityLookup = keyBy(entitiesToShow)
 
-        const dataByEntityAndYear = new Map<string, Map<number, ScatterValue>>()
+        const dataByEntityAndYear = new Map<
+            entityName,
+            Map<year, ScatterValue>
+        >()
 
+        debugger
         for (const dimension of filledDimensions) {
-            const tolerance =
-                dimension.property === "size" ? Infinity : dimension.tolerance
-
             // First, we organize the data by entity
             const initialDataByEntity = new Map<
-                string,
-                { years: number[]; values: (string | number)[] }
+                entityName,
+                { years: year[]; values: (string | number)[] }
             >()
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
@@ -252,55 +254,82 @@ export class ScatterTransform extends ChartTransform {
                 byEntity.values.push(value)
             }
 
-            // Now go through each entity + timeline year and use a binary search to find the closest
-            // matching data year within tolerance
-            initialDataByEntity.forEach((byEntity, entityName) => {
-                let dataByYear = dataByEntityAndYear.get(entityName)
-                if (dataByYear === undefined) {
-                    dataByYear = new Map()
-                    dataByEntityAndYear.set(entityName, dataByYear)
-                }
-
-                for (const outputYear of yearsToCalculate) {
-                    const targetYear =
-                        xOverrideYear !== undefined &&
-                        dimension.property === "x"
-                            ? xOverrideYear
-                            : outputYear
-                    const i = sortedFindClosestIndex(byEntity.years, targetYear)
-                    const year = byEntity.years[i]
-
-                    // Skip years that aren't within tolerance of the target
-                    if (
-                        year < targetYear - tolerance ||
-                        year > targetYear + tolerance
-                    )
-                        continue
-
-                    const value = byEntity.values[i]
-
-                    let point = dataByYear.get(outputYear)
-                    if (point === undefined) {
-                        point = {
-                            year: outputYear,
-                            time: {}
-                        } as ScatterValue
-                        dataByYear.set(outputYear, point)
-                    }
-
-                    ;(point.time as any)[dimension.property] = year
-                    ;(point as any)[dimension.property] = value
-                }
-            })
+            this._useTolerance(
+                dimension,
+                dataByEntityAndYear,
+                initialDataByEntity
+            )
         }
 
+        this._removeUnwantedPoints(dataByEntityAndYear)
+
+        return dataByEntityAndYear
+    }
+
+    private _useTolerance(
+        dimension: ChartDimensionWithOwidVariable,
+        dataByEntityAndYear: Map<entityName, Map<year, ScatterValue>>,
+        initialDataByEntity: Map<
+            entityName,
+            { years: year[]; values: (string | number)[] }
+        >
+    ) {
+        const { yearsToCalculate, xOverrideYear } = this
+        const tolerance =
+            dimension.property === "size" ? Infinity : dimension.tolerance
+
+        // Now go through each entity + timeline year and use a binary search to find the closest
+        // matching data year within tolerance
+        initialDataByEntity.forEach((byEntity, entityName) => {
+            let dataByYear = dataByEntityAndYear.get(entityName)
+            if (dataByYear === undefined) {
+                dataByYear = new Map<year, ScatterValue>()
+                dataByEntityAndYear.set(entityName, dataByYear)
+            }
+
+            for (const outputYear of yearsToCalculate) {
+                const targetYear =
+                    xOverrideYear !== undefined && dimension.property === "x"
+                        ? xOverrideYear
+                        : outputYear
+                const i = sortedFindClosestIndex(byEntity.years, targetYear)
+                const year = byEntity.years[i]
+
+                // Skip years that aren't within tolerance of the target
+                if (
+                    year < targetYear - tolerance ||
+                    year > targetYear + tolerance
+                )
+                    continue
+
+                const value = byEntity.values[i]
+
+                let point = dataByYear.get(outputYear)
+                if (point === undefined) {
+                    point = {
+                        year: outputYear,
+                        time: {}
+                    } as ScatterValue
+                    dataByYear.set(outputYear, point)
+                }
+
+                ;(point.time as any)[dimension.property] = year
+                ;(point as any)[dimension.property] = value
+            }
+        })
+    }
+
+    private _removeUnwantedPoints(
+        dataByEntityAndYear: Map<entityName, Map<year, ScatterValue>>
+    ) {
+        // The exclusion of points happens as a last step in order to avoid artefacts due to
+        // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
+        // domains before creating the points, the tolerance may lead to different X-Y
+        // values being joined.
+        // -@danielgavrilov, 2020-04-29
+        const chart = this.chart
         dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
-                // The exclusion of points happens as a last step in order to avoid artefacts due to
-                // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
-                // domains before creating the points, the tolerance may lead to different X-Y
-                // values being joined.
-                // -@danielgavrilov, 2020-04-29
                 if (
                     // Exclude any points with data for only one axis
                     !has(point, "x") ||
@@ -324,8 +353,6 @@ export class ScatterTransform extends ChartTransform {
                 }
             })
         })
-
-        return dataByEntityAndYear
     }
 
     @computed get allPoints(): ScatterValue[] {

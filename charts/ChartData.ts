@@ -18,10 +18,11 @@ import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { OwidSource } from "./owidData/OwidSource"
+import { entityName, entityId, entityCode } from "./owidData/OwidTable"
 
 export interface EntityDimensionInfo {
-    entity: string
-    entityId: number
+    entityName: entityName
+    entityId: entityId
     dimension: ChartDimensionWithOwidVariable
     index: number
     entityDimensionKey: EntityDimensionKey
@@ -80,7 +81,7 @@ export class ChartData {
 
     // Make a unique string key for an entity on a variable
     makeEntityDimensionKey(
-        entityName: string,
+        entityName: entityName,
         dimensionIndex: number
     ): EntityDimensionKey {
         return `${entityName}_${dimensionIndex}`
@@ -131,7 +132,7 @@ export class ChartData {
         return map(validSelections, sel => {
             return {
                 entityDimensionKey: this.makeEntityDimensionKey(
-                    entityIdToNameMap.get(sel.entityId),
+                    entityIdToNameMap.get(sel.entityId)!,
                     sel.index
                 ),
                 color: sel.color
@@ -166,41 +167,37 @@ export class ChartData {
         this.chart.props.selectedData = selectedData
     }
 
-    @computed get selectedEntities(): string[] {
-        return uniq(this.selectedKeys.map(key => this.lookupKey(key).entity))
+    @computed get selectedEntityNames(): entityName[] {
+        return uniq(
+            this.selectedKeys.map(key => this.lookupKey(key).entityName)
+        )
     }
 
-    @computed get availableEntities(): string[] {
+    @computed get availableEntityNames(): entityName[] {
         const entitiesForDimensions = this.axisDimensions.map(dim => {
             return this.availableKeys
                 .map(key => this.lookupKey(key))
                 .filter(d => d.dimension.variableId === dim.variableId)
-                .map(d => d.entity)
+                .map(d => d.entityName)
         })
 
         return union(...entitiesForDimensions)
     }
 
-    @computed get availableEntitiesToReader(): string[] {
-        return this.chart.props.addCountryMode === "disabled"
-            ? []
-            : this.availableEntities
-    }
-
-    @action.bound setSelectedEntity(entityId: number) {
+    @action.bound setSelectedEntity(entityId: entityId) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
         this.chart.props.selectedData = selectedData
     }
 
-    @action.bound setSelectedEntitiesByCode(entityCodes: string[]) {
+    @action.bound setSelectedEntitiesByCode(entityCodes: entityCode[]) {
         const matchedEntities = new Map<string, boolean>()
         entityCodes.forEach(code => matchedEntities.set(code, false))
         if (this.chart.canChangeEntity) {
-            this.availableEntities.forEach(entityName => {
+            this.availableEntityNames.forEach(entityName => {
                 const entityId = this.chart.table.entityNameToIdMap.get(
                     entityName
-                )
+                )!
                 const entityCode = this.chart.table.entityNameToCodeMap.get(
                     entityName
                 )
@@ -215,14 +212,14 @@ export class ChartData {
         } else {
             this.selectedKeys = this.availableKeys.filter(key => {
                 const meta = this.lookupKey(key)
-                const entityName = meta.entity
+                const entityName = meta.entityName
                 const entityCode = this.chart.table.entityNameToCodeMap.get(
                     entityName
                 )
                 return [meta.shortCode, entityCode, entityName]
                     .map(key => {
-                        if (!matchedEntities.has(key)) return false
-                        matchedEntities.set(key, true)
+                        if (!matchedEntities.has(key!)) return false
+                        matchedEntities.set(key!, true)
                         return true
                     })
                     .some(item => item)
@@ -235,7 +232,7 @@ export class ChartData {
         this.chart.props.selectedData = this.chart.initialProps.selectedData
     }
 
-    @computed get selectedEntityCodes(): string[] {
+    @computed get selectedEntityCodes(): entityCode[] {
         return uniq(this.selectedKeys.map(k => this.lookupKey(k).shortCode))
     }
 
@@ -249,9 +246,9 @@ export class ChartData {
         if (!this.isReady) return
 
         const selection = map(keys, key => {
-            const { entity, index } = this.lookupKey(key)
+            const { entityName: entity, index } = this.lookupKey(key)
             return {
-                entityId: this.chart.table.entityNameToIdMap.get(entity),
+                entityId: this.chart.table.entityNameToIdMap.get(entity)!,
                 index: index,
                 color: this.keyColors[key]
             }
@@ -280,7 +277,7 @@ export class ChartData {
                 const entityCode = chart.table.entityNameToCodeMap.get(
                     entityName
                 )
-                const entityId = chart.table.entityNameToIdMap.get(entityName)
+                const entityId = chart.table.entityNameToIdMap.get(entityName)!
                 const entityDimensionKey = this.makeEntityDimensionKey(
                     entityName,
                     dimensionIndex
@@ -300,7 +297,7 @@ export class ChartData {
                 keyData.set(entityDimensionKey, {
                     entityDimensionKey,
                     entityId,
-                    entity: entityName,
+                    entityName: entityName,
                     dimension,
                     index: dimensionIndex,
                     fullLabel,
@@ -326,12 +323,15 @@ export class ChartData {
         return without(availableKeys, ...selectedKeys)
     }
 
-    @computed get availableKeysByEntity(): Map<string, EntityDimensionKey[]> {
+    @computed get availableKeysByEntity(): Map<
+        entityName,
+        EntityDimensionKey[]
+    > {
         const keysByEntity = new Map()
         this.entityDimensionMap.forEach((info, key) => {
-            const keys = keysByEntity.get(info.entity) || []
+            const keys = keysByEntity.get(info.entityName) || []
             keys.push(key)
-            keysByEntity.set(info.entity, keys)
+            keysByEntity.set(info.entityName, keys)
         })
         return keysByEntity
     }

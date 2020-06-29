@@ -6,9 +6,10 @@ import { computed, IReactionDisposer, observable } from "mobx"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartFigureView } from "./ChartFigureView"
 import { observer } from "mobx-react"
+import { owidVariableId } from "charts/owidData/OwidTable"
 
 interface Variable {
-    id: number
+    id: owidVariableId
     name: string
     unit: string
     shortUnit: string

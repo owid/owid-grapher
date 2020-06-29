@@ -153,7 +153,7 @@ export class SlopeChartTransform extends ChartTransform {
             )
             return {
                 entityDimensionKey,
-                label: entityKey.get(entityName),
+                label: entityKey.get(entityName)!,
                 color:
                     keyColors[entityDimensionKey] ||
                     colorByEntity.get(entityName) ||

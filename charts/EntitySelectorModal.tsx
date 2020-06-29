@@ -196,7 +196,7 @@ class EntitySelectorSingle extends React.Component<{
         this.props.chart.data.entityDimensionMap.forEach(meta => {
             availableItems.push({
                 id: meta.entityId,
-                label: meta.entity
+                label: meta.entityName
             })
         })
         return uniqBy(availableItems, d => d.label)

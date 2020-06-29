@@ -5,12 +5,13 @@ import { observable } from "mobx"
 import { extend } from "./Util"
 import { Time } from "./TimeBounds"
 import { OwidVariableDisplaySettings } from "./owidData/OwidVariable"
+import { owidVariableId } from "./owidData/OwidTable"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color"
 
 export class ChartDimension {
     @observable property!: dimensionProperty
-    @observable variableId!: number
+    @observable variableId!: owidVariableId
     @observable display: OwidVariableDisplaySettings = {
         name: undefined,
         unit: undefined,

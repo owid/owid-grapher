@@ -132,7 +132,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get entities() {
-        return this.chart.data.availableEntities
+        return this.chart.data.availableEntityNames
     }
 
     // TODO move this logic to chart
@@ -348,7 +348,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get displayRows(): DataTableRow[] {
-        const entities = this.chart.data.availableEntities
+        const entities = this.chart.data.availableEntityNames
         const rows = entities.map(entity => {
             const dimensionValues = this.dimensionsWithValues.map(d =>
                 d.valueByEntity.get(entity)

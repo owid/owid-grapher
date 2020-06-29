@@ -17,7 +17,10 @@ async function main() {
 
         // todo: remove?
         c.config.data = {
-            availableEntities: chart.data.availableEntitiesToReader
+            availableEntities:
+                chart.props.addCountryMode === "disabled"
+                    ? []
+                    : chart.data.availableEntityNames
         }
         console.log(c.id)
         await db
