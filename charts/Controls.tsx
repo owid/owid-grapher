@@ -912,7 +912,7 @@ export class ControlsFooterView extends React.Component<{
                     })}
                     <li
                         className={
-                            "tab clickable icon" +
+                            "tab clickable icon download-tab-button" +
                             (chart.tab === "download" ? " active" : "")
                         }
                         data-track-note="chart-click-download"
@@ -920,7 +920,7 @@ export class ControlsFooterView extends React.Component<{
                         title="Download as .png or .svg"
                     >
                         <a>
-                            <FontAwesomeIcon icon={faDownload} />
+                            <FontAwesomeIcon icon={faDownload} /> Download
                         </a>
                     </li>
                     <li className="clickable icon">
@@ -1091,7 +1091,7 @@ export class ControlsFooterView extends React.Component<{
 
         return (
             <div
-                className="ControlsFooter"
+                className={"ControlsFooter"}
                 style={{ height: props.controls.footerHeight }}
             >
                 {timelineElement}

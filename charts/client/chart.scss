@@ -205,8 +205,12 @@ $zindex-IndicatorDropdown: 50;
         .footerRowMulti {
             display: flex;
 
-            > * {
-                width: 50%;
+            .inline-controls {
+                flex-grow: 1;
+            }
+
+            nav.tabs {
+                min-width: 50%;
             }
         }
 
@@ -240,16 +244,22 @@ $zindex-IndicatorDropdown: 50;
         nav.tabs ul {
             margin: 0;
             padding: 0;
-            display: table;
+            display: flex;
             width: 100%;
             text-align: center;
         }
 
         nav.tabs li {
+            flex-grow: 1;
             list-style-type: none;
             border-left: 1px solid #e1e1e1;
-            display: table-cell;
             height: $footerRowHeight;
+
+            &.download-tab-button {
+                svg {
+                    margin-right: 0.15em;
+                }
+            }
         }
 
         .footerRowSingle nav.tabs li:first-child {
@@ -266,10 +276,7 @@ $zindex-IndicatorDropdown: 50;
             border-bottom: 2px solid rgba(0, 0, 0, 0);
             background-color: $primary-color-30;
             transition: color 0.1s;
-        }
-
-        nav.tabs li.icon > a {
-            padding: 0 0.4em;
+            padding: 0 0.6em;
         }
 
         nav.tabs li > a:hover {
