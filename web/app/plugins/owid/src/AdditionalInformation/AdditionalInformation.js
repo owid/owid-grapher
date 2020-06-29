@@ -1,15 +1,20 @@
-import { InnerBlocks } from "@wordpress/block-editor";
-import { useSelect } from "@wordpress/data";
-import { useState } from "@wordpress/element";
+import {
+  InnerBlocks,
+  __experimentalBlockVariationPicker,
+} from "@wordpress/block-editor";
+import { useSelect, useDispatch } from "@wordpress/data";
 import { SVG, Path } from "@wordpress/components";
+import { createBlock } from "@wordpress/blocks";
+import { get, map } from "lodash";
 
 const blockStyle = {
   border: "1px dashed lightgrey",
-  padding: "0 1rem"
+  padding: "0 1rem",
 };
 
-const TEMPLATE_OPTIONS = [
+const variationsTemplates = [
   {
+    name: "left-column-media",
     title: "Left column, with optional media",
     icon: (
       <SVG
@@ -25,7 +30,7 @@ const TEMPLATE_OPTIONS = [
         />
       </SVG>
     ),
-    template: [
+    innerBlocks: [
       ["core/heading", { level: 3 }],
       [
         "core/columns",
@@ -35,13 +40,14 @@ const TEMPLATE_OPTIONS = [
           [
             "core/column",
             { width: 75 },
-            [["core/paragraph", { placeholder: "Enter side content..." }]]
-          ]
-        ]
-      ]
-    ]
+            [["core/paragraph", { placeholder: "Enter side content..." }]],
+          ],
+        ],
+      ],
+    ],
   },
   {
+    name: "full-width-sticky-right",
     title: "Full width, sticky right",
     icon: (
       <SVG
@@ -57,18 +63,18 @@ const TEMPLATE_OPTIONS = [
         />
       </SVG>
     ),
-    template: [
+    innerBlocks: [
       ["core/heading", { level: 3 }],
       [
         "core/columns",
         { className: "is-style-sticky-right" },
         [
           ["core/column", {}, [["core/paragraph"]]],
-          ["core/column", {}, [["core/html"]]]
-        ]
-      ]
-    ]
-  }
+          ["core/column", {}, [["core/html"]]],
+        ],
+      ],
+    ],
+  },
 ];
 
 const AdditionalInformation = {
@@ -76,34 +82,76 @@ const AdditionalInformation = {
   icon: "info",
   category: "formatting",
   supports: {
-    html: false
+    html: false,
   },
-  edit: ({ clientId }) => {
-    // from https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/columns/edit.js
-    const { count } = useSelect(select => {
-      return {
-        count: select("core/block-editor").getBlockCount(clientId)
-      };
-    });
+  // Use of variations (previously template options) is still experimental and now undocumented.
+  // Some useful references in the meantime:
+  // - core columns blocks (where most of the following code comes from):
+  //   https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/columns/edit.js
+  // - https://plugins.trac.wordpress.org/changeset/2243801/nhsblocks (00-dashboard/index.js)
+  edit: (props) => {
+    const { clientId, name } = props;
+    const {
+      blockType,
+      defaultVariation,
+      hasInnerBlocks,
+      variations,
+    } = useSelect(
+      (select) => {
+        const {
+          getBlockVariations,
+          getBlockType,
+          getDefaultBlockVariation,
+        } = select("core/blocks");
 
-    const [template, setTemplate] = useState(
-      // As long as there is a block, we set the template to the first one in
-      // the list to prevent the template selector from appearing.
-      // Not accurate but no side-effects so far.
-      count ? TEMPLATE_OPTIONS[0].template : null
+        return {
+          blockType: getBlockType(name),
+          defaultVariation: getDefaultBlockVariation(name, "block"),
+          hasInnerBlocks:
+            select("core/block-editor").getBlocks(clientId).length > 0,
+          variations: getBlockVariations(name, "block"),
+        };
+      },
+      [clientId, name]
     );
+
+    const { replaceInnerBlocks } = useDispatch("core/block-editor");
+
+    if (hasInnerBlocks) {
+      return <InnerBlocks />;
+    }
+
+    const createBlocksFromInnerBlocksTemplate = (innerBlocksTemplate) => {
+      return map(innerBlocksTemplate, ([name, attributes, innerBlocks = []]) =>
+        createBlock(
+          name,
+          attributes,
+          createBlocksFromInnerBlocksTemplate(innerBlocks)
+        )
+      );
+    };
 
     return (
-      <div style={blockStyle}>
-        <InnerBlocks
-          template={template}
-          __experimentalTemplateOptions={TEMPLATE_OPTIONS}
-          __experimentalOnSelectTemplateOption={setTemplate}
-        />
-      </div>
+      <__experimentalBlockVariationPicker
+        icon={get(blockType, ["icon", "src"])}
+        label={get(blockType, ["title"])}
+        variations={variationsTemplates}
+        onSelect={(nextVariation = defaultVariation) => {
+          if (nextVariation.attributes) {
+            props.setAttributes(nextVariation.attributes);
+          }
+          if (nextVariation.innerBlocks) {
+            replaceInnerBlocks(
+              props.clientId,
+              createBlocksFromInnerBlocksTemplate(nextVariation.innerBlocks)
+            );
+          }
+        }}
+        allowSkip={false}
+      />
     );
   },
-  save: props => <InnerBlocks.Content />
+  save: (props) => <InnerBlocks.Content />,
 };
 
 export default AdditionalInformation;
