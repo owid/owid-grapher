@@ -430,7 +430,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         window.chartView = this
         window.chart = this.chart
         urlBinding.bindUrlToWindow(this.chart.url)
-        autorun(() => (document.title = this.chart.data.currentTitle))
+        autorun(() => (document.title = this.chart.currentTitle))
     }
 
     componentDidMount() {

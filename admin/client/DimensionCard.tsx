@@ -74,7 +74,7 @@ export class DimensionCard extends React.Component<{
                             className="dimensionLink"
                             target="_blank"
                         >
-                            {dimension.variable.name}
+                            {dimension.column.name}
                         </Link>
                     </div>
                     <div>
@@ -109,7 +109,7 @@ export class DimensionCard extends React.Component<{
                             field="unit"
                             store={dimension.props.display}
                             auto={dimension.unit}
-                            helpText={`Original database unit: ${dimension.variable.unit}`}
+                            helpText={`Original database unit: ${dimension.column.unit}`}
                         />
                         <BindAutoString
                             label="Short (axis) unit"

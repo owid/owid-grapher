@@ -138,10 +138,10 @@ export class StackedBarTransform extends ChartTransform {
 
             for (let i = 0; i <= dimension.years.length; i += 1) {
                 const year = dimension.years[i]
-                const entity = dimension.entityNames[i]
+                const entityName = dimension.entityNames[i]
                 const value = +dimension.values[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                    entity,
+                    entityName,
                     dimIndex
                 )
                 let series = seriesByKey.get(entityDimensionKey)

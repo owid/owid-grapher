@@ -18,7 +18,7 @@ export class Header {
     }
 
     @computed get titleText() {
-        return this.props.chart.data.currentTitle
+        return this.props.chart.currentTitle
     }
 
     @computed get subtitleText() {

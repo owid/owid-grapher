@@ -1,4 +1,7 @@
-import { OwidVariable } from "charts/owidData/OwidVariable"
+import { ColumnSpec } from "charts/owidData/OwidTable"
+import { MetricKind } from "./CovidTypes"
+import { cloneDeep } from "lodash"
+import { getColumnSlug } from "./CovidDataUtils"
 
 // Normally all variables come from the WP backend. In this attempt I try and generate variables client side.
 // This map contains the meta data for these generated variables which they then can extend. There's the obvious
@@ -6,10 +9,12 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 // transformations, but for generating slightly more complex variables like rolling windows with certain parameters,
 // which are easy with Pandas, become not as simple if we have to roll our own data transformation library.
 // We may want to revert to a Chart Builder that cannot generate variables on the fly.
-export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
+export const columnSpecs: { [name: string]: ColumnSpec } = {
     positive_test_rate: {
-        id: 142721,
+        owidVariableId: 142721,
+        slug: "cumulative_positivity_rate",
         name: "cumulative_positivity_rate",
+        annotationsColumnSlug: "tests_units",
         unit: "",
         description:
             "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
@@ -37,8 +42,10 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     tests_per_case: {
-        id: 142754,
+        owidVariableId: 142754,
+        slug: "short_term_tests_per_case",
         name: "short_term_tests_per_case",
+        annotationsColumnSlug: "tests_units",
         unit: "",
         description:
             "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis.",
@@ -64,7 +71,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     case_fatality_rate: {
-        id: 142600,
+        slug: "case_fatality_rate",
+        owidVariableId: 142600,
         name:
             "Case fatality rate of COVID-19 (%) (Only observations with ≥100 cases)",
         unit: "",
@@ -87,7 +95,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     cases: {
-        id: 142581,
+        slug: "cases",
+        owidVariableId: 142581,
         name: "Confirmed cases of COVID-19",
         unit: "",
         description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
@@ -113,7 +122,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     deaths: {
-        id: 142583,
+        slug: "deaths",
+        owidVariableId: 142583,
         name: "Confirmed deaths due to COVID-19",
         unit: "",
         description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
@@ -139,11 +149,13 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     tests: {
-        id: 142601,
+        slug: "tests",
+        owidVariableId: 142601,
         name: "tests",
         unit: "",
         description: "",
         coverage: "",
+        annotationsColumnSlug: "tests_units",
         datasetId: "covid",
         shortUnit: "",
         display: {
@@ -167,7 +179,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     days_since: {
-        id: 99999,
+        slug: "days_since",
+        owidVariableId: 99999,
         name: "",
         unit: "",
         description: "",
@@ -192,7 +205,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     continents: {
-        id: 123,
+        owidVariableId: 123,
+        slug: "continent",
         name: "Countries Continents",
         unit: "",
         description: "Countries and their associated continents.",
@@ -210,4 +224,76 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
             additionalInfo: ""
         }
     }
+}
+
+type MetricKey = {
+    [K in MetricKind]: number
+}
+
+const buildCovidVariableId = (
+    name: MetricKind,
+    perCapita: number,
+    rollingAverage?: number,
+    daily?: boolean
+): number => {
+    const arbitraryStartingPrefix = 1145
+    const names: MetricKey = {
+        tests: 0,
+        cases: 1,
+        deaths: 2,
+        positive_test_rate: 3,
+        case_fatality_rate: 4,
+        tests_per_case: 5
+    }
+    const parts = [
+        arbitraryStartingPrefix,
+        names[name],
+        daily ? 1 : 0,
+        perCapita,
+        rollingAverage
+    ]
+    return parseInt(parts.join(""))
+}
+
+export const buildColumnSpec = (
+    name: MetricKind,
+    perCapita: number,
+    daily?: boolean,
+    rollingAverage?: number,
+    updatedTime?: string
+): ColumnSpec => {
+    const spec = cloneDeep(columnSpecs[name]) as ColumnSpec
+    spec.slug = getColumnSlug(name, perCapita, daily, rollingAverage)
+    spec.owidVariableId = buildCovidVariableId(
+        name,
+        perCapita,
+        rollingAverage,
+        daily
+    )
+    spec.source!.name = `${spec.source!.name}${updatedTime}`
+
+    const messages: { [index: number]: string } = {
+        1: "",
+        1e3: " per thousand people",
+        1e6: " per million people"
+    }
+
+    spec.display!.name = `${daily ? "Daily " : "Cumulative "}${
+        spec.display!.name
+    }${messages[perCapita]}`
+
+    // Show decimal places for rolling average & per capita variables
+    if (perCapita > 1) {
+        spec.display!.numDecimalPlaces = 2
+    } else if (
+        name === "positive_test_rate" ||
+        name === "case_fatality_rate" ||
+        (rollingAverage && rollingAverage > 1)
+    ) {
+        spec.display!.numDecimalPlaces = 1
+    } else {
+        spec.display!.numDecimalPlaces = 0
+    }
+
+    return spec
 }

@@ -1,44 +1,32 @@
 #! /usr/bin/env yarn jest
 
 import {
-    buildCovidVariableId,
-    daysSinceVariable,
     parseCovidRow,
     makeCountryOptions,
     getLeastUsedColor,
-    buildCovidVariable,
-    generateContinentRows
+    generateContinentRows,
+    addDaysSinceColumn
 } from "../covidDataExplorer/CovidDataUtils"
-import uniq from "lodash/uniq"
 import { csvParse } from "d3-dsv"
 import { testData } from "../../test/fixtures/CovidTestData"
+import { ParsedCovidCsvRow } from "charts/covidDataExplorer/CovidTypes"
+import { OwidTable } from "charts/owidData/OwidTable"
 
-describe(buildCovidVariableId, () => {
-    it("computes unique variable ids", () => {
-        expect(
-            uniq([
-                buildCovidVariableId("tests", 1000, 3, true),
-                buildCovidVariableId("cases", 1000, 3, true),
-                buildCovidVariableId("tests", 100, 3, true),
-                buildCovidVariableId("tests", 1000, 0, true),
-                buildCovidVariableId("tests", 1000, 3, false)
-            ]).length
-        ).toEqual(5)
-    })
-})
+const getRows = () => {
+    const testRows: ParsedCovidCsvRow[] = csvParse(testData) as any
+    return testRows.map(parseCovidRow)
+}
 
 describe(parseCovidRow, () => {
+    const parsedRows = getRows()
     it("correctly parses data from mega file", () => {
-        const testRows = csvParse(testData)
-        const parsedRows = testRows.map(parseCovidRow)
         expect(parsedRows[0].total_cases).toEqual(2)
     })
 })
 
 describe(makeCountryOptions, () => {
+    const parsedRows = getRows()
     it("correctly computes options", () => {
-        const testRows = csvParse(testData)
-        const parsedRows = testRows.map(parseCovidRow)
         const options = makeCountryOptions(parsedRows)
         const world = options[2]
         expect(world.code).toEqual("OWID_WRL")
@@ -46,9 +34,7 @@ describe(makeCountryOptions, () => {
 })
 
 describe(generateContinentRows, () => {
-    const testRows = csvParse(testData)
-    const parsedRows = testRows.map(parseCovidRow)
-
+    const parsedRows = getRows()
     it("correctly groups continents and adds rows for each", () => {
         const regionRows = generateContinentRows(parsedRows)
         expect(regionRows.length).toEqual(6)
@@ -56,35 +42,31 @@ describe(generateContinentRows, () => {
     })
 })
 
-describe(buildCovidVariable, () => {
-    const testRows = csvParse(testData)
-    const parsedRows = testRows.map(parseCovidRow)
-    const options = makeCountryOptions(parsedRows)
-    const map = new Map()
-    options.forEach((country, index) => {
-        map.set(country.name, index)
-    })
-    const totalCases3DaySmoothing = buildCovidVariable(
-        123,
-        "cases",
-        map,
-        parsedRows,
-        row => row.total_cases,
-        1,
+describe("build covid column", () => {
+    const parsedRows = getRows()
+    const table = new OwidTable(parsedRows)
+    table.addRollingAverageColumn(
+        { slug: "totalCasesSmoothed" },
         3,
-        true,
-        " Updated 2/2/2020"
+        row => row.total_cases,
+        "day",
+        "entityName"
     )
+
     it("correctly builds a grapher variable", () => {
-        expect(totalCases3DaySmoothing.values[3]).toEqual(14.5)
+        expect(table.rows[3].totalCasesSmoothed).toEqual(14.5)
     })
+
     it("correctly builds a days since variable", () => {
-        const variable = daysSinceVariable(
-            totalCases3DaySmoothing,
-            1,
+        const slug = addDaysSinceColumn(
+            table,
+            "totalCasesSmoothed",
+            123,
+            5,
             "Some title"
         )
-        expect(variable.values[3]).toEqual(12)
+        expect(table.rows[2][slug]).toEqual(0)
+        expect(table.rows[3][slug]).toEqual(1)
     })
 })
 

@@ -133,12 +133,8 @@ export class ScatterTransform extends ChartTransform {
         return this.chart.addCountryMode === "disabled"
     }
     @computed private get possibleEntities(): string[] {
-        const yEntities = this.yDimension
-            ? this.yDimension.variable.entitiesUniq
-            : []
-        const xEntities = this.xDimension
-            ? this.xDimension.variable.entitiesUniq
-            : []
+        const yEntities = this.yDimension ? this.yDimension.entityNamesUniq : []
+        const xEntities = this.xDimension ? this.xDimension.entityNamesUniq : []
         return intersection(yEntities, xEntities)
     }
 
@@ -148,11 +144,9 @@ export class ScatterTransform extends ChartTransform {
 
     @computed get excludedEntities(): string[] {
         const entityIds = this.chart.props.excludedEntities || []
+        const entityNameMap = this.chart.table.entityIdToNameMap
         return entityIds
-            .map(id => {
-                const meta = this.chart.entityMetaById[id]
-                return meta && meta.name
-            })
+            .map(entityId => entityNameMap.get(entityId))
             .filter(d => d)
     }
 
@@ -166,7 +160,7 @@ export class ScatterTransform extends ChartTransform {
         if (this.chart.props.matchingEntitiesOnly && this.colorDimension)
             entities = intersection(
                 entities,
-                this.colorDimension.variable.entitiesUniq
+                this.colorDimension.entityNamesUniq
             )
 
         if (this.excludedEntities)
@@ -213,6 +207,7 @@ export class ScatterTransform extends ChartTransform {
         this.chart.props.compareEndPointsOnly = value || undefined
     }
 
+    // todo: move this sort of thing to OwidTable
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     private getDataByEntityAndYear(
@@ -236,9 +231,9 @@ export class ScatterTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = dimension.values[i]
-                const entity = dimension.entityNames[i]
+                const entityName = dimension.entityNames[i]
 
-                if (!validEntityLookup[entity]) continue
+                if (!validEntityLookup[entityName]) continue
 
                 if (
                     (dimension.property === "x" ||
@@ -247,10 +242,10 @@ export class ScatterTransform extends ChartTransform {
                 )
                     continue
 
-                let byEntity = initialDataByEntity.get(entity)
+                let byEntity = initialDataByEntity.get(entityName)
                 if (!byEntity) {
                     byEntity = { years: [], values: [] }
-                    initialDataByEntity.set(entity, byEntity)
+                    initialDataByEntity.set(entityName, byEntity)
                 }
 
                 byEntity.years.push(year)
@@ -259,11 +254,11 @@ export class ScatterTransform extends ChartTransform {
 
             // Now go through each entity + timeline year and use a binary search to find the closest
             // matching data year within tolerance
-            initialDataByEntity.forEach((byEntity, entity) => {
-                let dataByYear = dataByEntityAndYear.get(entity)
+            initialDataByEntity.forEach((byEntity, entityName) => {
+                let dataByYear = dataByEntityAndYear.get(entityName)
                 if (dataByYear === undefined) {
                     dataByYear = new Map()
-                    dataByEntityAndYear.set(entity, dataByYear)
+                    dataByEntityAndYear.set(entityName, dataByYear)
                 }
 
                 for (const outputYear of yearsToCalculate) {
@@ -581,10 +576,10 @@ export class ScatterTransform extends ChartTransform {
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"
-        this.getDataByEntityAndYear().forEach((dataByYear, entity) => {
+        this.getDataByEntityAndYear().forEach((dataByYear, entityName) => {
             // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
             const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                entity,
+                entityName,
                 0
             )
 

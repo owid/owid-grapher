@@ -47,9 +47,7 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(
-            this.chart.data.axisDimensions.map(d => d.variable.yearsUniq)
-        )
+        return flatten(this.chart.data.axisDimensions.map(d => d.yearsUniq))
     }
 
     @computed.struct get xDomain(): [number, number] {
@@ -126,15 +124,15 @@ export class SlopeChartTransform extends ChartTransform {
 
         const { yDimension, xDomain, colorByEntity, sizeByEntity, chart } = this
         const { keyColors } = chart.data
-        const entityKey = this.chart.entityMetaByKey
+        const entityKey = this.chart.table.entityIdToNameMap
 
         const minYear = Math.max(xDomain[0])
         const maxYear = Math.min(xDomain[1])
 
-        const entities = yDimension.entitiesUniq
-        let data: SlopeChartSeries[] = entities.map(entity => {
+        const entityNames = yDimension.entityNamesUniq
+        let data: SlopeChartSeries[] = entityNames.map(entityName => {
             const slopeValues: SlopeChartValue[] = []
-            const yValues = yDimension.valueByEntityAndYear.get(entity)
+            const yValues = yDimension.valueByEntityAndYear.get(entityName)
             if (yValues !== undefined) {
                 yValues.forEach((value, year) => {
                     if (year === minYear || year === maxYear) {
@@ -150,17 +148,17 @@ export class SlopeChartTransform extends ChartTransform {
             }
 
             const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                entity,
+                entityName,
                 yDimension.index
             )
             return {
                 entityDimensionKey,
-                label: entityKey[entity].name,
+                label: entityKey.get(entityName),
                 color:
                     keyColors[entityDimensionKey] ||
-                    colorByEntity.get(entity) ||
+                    colorByEntity.get(entityName) ||
                     "#ff7f0e",
-                size: sizeByEntity.get(entity) || 1,
+                size: sizeByEntity.get(entityName) || 1,
                 values: slopeValues
             }
         })

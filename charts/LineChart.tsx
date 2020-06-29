@@ -37,6 +37,8 @@ export interface LineChartValue {
 
 export interface LineChartSeries {
     entityDimensionKey: EntityDimensionKey
+    entityName: string
+    columnSlug: string
     color: string
     values: LineChartValue[]
     classed?: string
@@ -71,6 +73,14 @@ export class LineChart extends React.Component<{
         return this.props.chart.lineChart
     }
 
+    getAnnotationFor(series: LineChartSeries) {
+        return (
+            this.chart.table.columnsBySlug
+                .get(series.columnSlug)!
+                .getAnnotationsFor(series.entityName) || undefined
+        )
+    }
+
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed private get legendItems(): HeightedLegendItem[] {
@@ -82,10 +92,6 @@ export class LineChart extends React.Component<{
 
         return toShow.map(series => {
             const lastValue = (last(series.values) as LineChartValue).y
-            const annotation =
-                this.chart.data.getAnnotationForKey(
-                    series.entityDimensionKey
-                ) || undefined
             return {
                 color: series.color,
                 entityDimensionKey: series.entityDimensionKey,
@@ -95,7 +101,7 @@ export class LineChart extends React.Component<{
                     : `${this.chart.data.getLabelForKey(
                           series.entityDimensionKey
                       )}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
-                annotation,
+                annotation: this.getAnnotationFor(series),
                 yValue: lastValue
             }
         })
@@ -155,9 +161,7 @@ export class LineChart extends React.Component<{
                                 v => v.x === hoverX
                             )
 
-                            const annotation = chart.data.getAnnotationForKey(
-                                series.entityDimensionKey
-                            )
+                            const annotation = this.getAnnotationFor(series)
 
                             // It sometimes happens that data is missing for some years for a particular
                             // entity. If the user hovers over these years, we want to show a "No data"

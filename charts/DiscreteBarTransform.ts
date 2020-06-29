@@ -27,9 +27,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(
-            this.primaryDimensions.map(dim => dim.variable.yearsUniq)
-        )
+        return flatten(this.primaryDimensions.map(dim => dim.yearsUniq))
     }
 
     @computed get hasTimeline(): boolean {
@@ -73,9 +71,9 @@ export class DiscreteBarTransform extends ChartTransform {
 
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entityNames[i]
+                const entityName = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                    entity,
+                    entityName,
                     dimIndex
                 )
 
@@ -183,9 +181,9 @@ export class DiscreteBarTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
-                const entity = dimension.entityNames[i]
+                const entityName = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                    entity,
+                    entityName,
                     dimIndex
                 )
 

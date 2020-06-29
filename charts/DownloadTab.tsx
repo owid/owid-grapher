@@ -111,7 +111,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return `${this.props.chart.url.baseUrl}.png${this.props.chart.url.queryStr}`
     }
     @computed get baseFilename() {
-        return this.props.chart.data.slug
+        return this.props.chart.slug
     }
     @computed get svgPreviewUrl() {
         return this.svgDataUri

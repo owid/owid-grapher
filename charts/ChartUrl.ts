@@ -186,7 +186,7 @@ export class ChartUrl implements ObservableUrl {
     @computed get baseUrl(): string | undefined {
         if (this.externalBaseUrl) return this.externalBaseUrl
         if (this.chart.isPublished)
-            return `${BAKED_GRAPHER_URL}/${this.chart.data.slug}`
+            return `${BAKED_GRAPHER_URL}/${this.chart.slug}`
         else return undefined
     }
 
@@ -208,7 +208,7 @@ export class ChartUrl implements ObservableUrl {
         ) {
             return formatTimeURIComponent(
                 chart.map.targetYear,
-                !!chart.yearIsDayVar
+                !!chart.table.hasDayColumn
             )
         } else {
             return undefined
@@ -224,17 +224,20 @@ export class ChartUrl implements ObservableUrl {
         ) {
             const [minTime, maxTime] = chart.timeDomain
             if (minTime === maxTime)
-                return formatTimeURIComponent(minTime, !!chart.yearIsDayVar)
+                return formatTimeURIComponent(
+                    minTime,
+                    !!chart.table.hasDayColumn
+                )
             // It's not possible to have an unbounded right minTime or an unbounded left maxTime,
             // because minTime <= maxTime and because the === case is addressed above.
             // So the direction of the unbounded is unambiguous, and we can format it as an empty
             // string.
             const start = isUnbounded(minTime)
                 ? ""
-                : formatTimeURIComponent(minTime, !!chart.yearIsDayVar)
+                : formatTimeURIComponent(minTime, !!chart.table.hasDayColumn)
             const end = isUnbounded(maxTime)
                 ? ""
-                : formatTimeURIComponent(maxTime, !!chart.yearIsDayVar)
+                : formatTimeURIComponent(maxTime, !!chart.table.hasDayColumn)
             return `${start}..${end}`
         } else {
             return undefined

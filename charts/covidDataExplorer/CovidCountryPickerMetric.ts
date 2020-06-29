@@ -5,7 +5,7 @@ import {
     formatValue,
     isNumber
 } from "charts/Util"
-import { ParsedCovidRow, CountryOption } from "./CovidTypes"
+import { ParsedCovidCsvRow, CountryOption } from "./CovidTypes"
 
 export enum CountryPickerMetric {
     location = "location",
@@ -174,8 +174,8 @@ export const metricSpecs: Record<
 }
 
 function getLatestFromRows(
-    rows: ParsedCovidRow[],
-    accessor: (row: ParsedCovidRow) => number | string | undefined
+    rows: ParsedCovidCsvRow[],
+    accessor: (row: ParsedCovidCsvRow) => number | string | undefined
 ): ReturnType<CountryPickerMetricAccessor> {
     return last(excludeUndefined(sortBy(rows, row => row.date).map(accessor)))
 }

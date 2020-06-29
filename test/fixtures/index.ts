@@ -2,7 +2,7 @@ import * as fs from "fs"
 
 import { Indicator } from "charts/Indicator"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { OwidVariablesAndEntityKey } from "charts/owidData/OwidVariableSet"
+import { OwidVariablesAndEntityKey } from "charts/owidData/OwidVariable"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 

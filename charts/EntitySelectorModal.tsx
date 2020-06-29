@@ -300,7 +300,7 @@ export class EntitySelectorModal extends React.Component<{
     onDismiss: () => void
 }> {
     render() {
-        return this.props.chart.data.canChangeEntity ? (
+        return this.props.chart.canChangeEntity ? (
             <EntitySelectorSingle {...this.props} />
         ) : (
             <EntitySelectorMulti {...this.props} />

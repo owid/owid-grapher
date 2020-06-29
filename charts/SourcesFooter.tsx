@@ -25,7 +25,7 @@ export class SourcesFooter {
     }
 
     @computed get sourcesText(): string {
-        const sourcesLine = this.props.chart.data.sourcesLine
+        const sourcesLine = this.props.chart.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
@@ -42,13 +42,13 @@ export class SourcesFooter {
     }
 
     @computed get finalUrl(): string {
-        const { originUrl } = this.props.chart.data
+        const originUrl = this.props.chart.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
     @computed get finalUrlText(): string | undefined {
-        const { originUrl } = this.props.chart.data
+        const originUrl = this.props.chart.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room

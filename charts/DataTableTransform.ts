@@ -158,11 +158,11 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get minYear(): Time {
-        return this.chart.data.minYear
+        return this.chart.minYear
     }
 
     @computed get maxYear(): Time {
-        return this.chart.data.maxYear
+        return this.chart.maxYear
     }
 
     // TODO move this logic to chart
@@ -332,7 +332,7 @@ export class DataTableTransform extends ChartTransform {
     @computed get displayDimensions(): DataTableDimension[] {
         return this.dimensionsWithValues.map(d => ({
             key: d.dimension.variableId,
-            name: d.dimension.displayName || d.dimension.variable.name || "",
+            name: d.dimension.displayName || d.dimension.column.name || "",
             unit: getHeaderUnit(d.dimension.unit),
             // A top-level header is only sortable if it has a single nested column, because
             // in that case the nested column is not rendered.

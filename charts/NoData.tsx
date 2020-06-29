@@ -37,13 +37,13 @@ export class Message extends React.Component<{
             >
                 <p className="message">{message || "No available data"}</p>
                 <div className="actions">
-                    {chart.data.canAddData && (
+                    {chart.canAddData && (
                         <button className="action" onClick={this.onDataSelect}>
                             <FontAwesomeIcon icon={faPlus} /> Add{" "}
                             {chart.entityType}
                         </button>
                     )}
-                    {chart.data.canChangeEntity && (
+                    {chart.canChangeEntity && (
                         <button className="action" onClick={this.onDataSelect}>
                             <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
                             {chart.entityType}

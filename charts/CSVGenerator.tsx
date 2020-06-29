@@ -42,11 +42,11 @@ export class CSVGenerator {
     }
 
     @computed get dayIndexedCSV() {
-        return this.chart.yearIsDayVar ? true : false
+        return this.dayColumn ? true : false
     }
 
-    @computed get yearIsDayVar() {
-        return this.chart.yearIsDayVar
+    @computed private get dayColumn() {
+        return this.props.chart.table.dayColumn
     }
 
     baseTitleRow = ["Entity", "Code"]
@@ -64,7 +64,7 @@ export class CSVGenerator {
         })
 
         return {
-            indexingYears: this.yearIsDayVar!.yearsUniq,
+            indexingYears: this.dayColumn!.valuesUniq,
             titleRow: titleRow
         }
     }
@@ -92,7 +92,7 @@ export class CSVGenerator {
     }
 
     entityCode(entity: string) {
-        return this.chart.entityMetaByKey[entity].code ?? ""
+        return this.chart.table.entityNameToCodeMap.get(entity) ?? ""
     }
 
     private formattedYear(year: number) {
@@ -205,7 +205,7 @@ export class CSVGenerator {
     }
 
     @computed get csvFilename(): string {
-        return this.chart.data.slug + ".csv"
+        return this.chart.slug + ".csv"
     }
 
     // IE11 compatibility
@@ -222,6 +222,6 @@ export class CSVGenerator {
      * show only one value for the year-based variables
      */
     private isSingleValueDimension(dim: ChartDimensionWithOwidVariable) {
-        return this.chart.yearIsDayVar && !dim.yearIsDayVar
+        return this.dayColumn && !dim.column.isDailyMeasurement
     }
 }

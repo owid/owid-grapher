@@ -150,7 +150,7 @@ export class ExploreView extends React.Component<ExploreProps> {
 
         // We ignore the disposer here, because this reaction lasts for the
         // lifetime of the window. -@jasoncrawford 2019-12-16
-        autorun(() => (document.title = this.chart.data.currentTitle))
+        autorun(() => (document.title = this.chart.currentTitle))
     }
 
     componentDidCatch(error: any, info: any) {

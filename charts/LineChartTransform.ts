@@ -57,9 +57,9 @@ export class LineChartTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
-                const entity = dimension.entityNames[i]
+                const entityName = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                    entity,
+                    entityName,
                     dimIndex
                 )
                 let series = seriesByKey.get(entityDimensionKey)
@@ -72,6 +72,8 @@ export class LineChartTransform extends ChartTransform {
                 if (!series) {
                     series = {
                         values: [],
+                        entityName,
+                        columnSlug: dimension.column.slug,
                         entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,
@@ -112,29 +114,27 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get predomainData() {
-        if (this.isRelativeMode) {
-            return cloneDeep(this.initialData).map(series => {
-                const startIndex = findIndex(
-                    series.values,
-                    v => v.time >= this.startYear && v.y !== 0
-                )
-                if (startIndex < 0) {
-                    series.values = []
-                    return series
-                } else {
-                    const relativeValues = series.values.slice(startIndex)
-                    // Clone to avoid overwriting in next loop
-                    const indexValue = clone(relativeValues[0])
-                    series.values = relativeValues.map(v => {
-                        v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
-                        return v
-                    })
-                }
+        if (!this.isRelativeMode) return this.initialData
+
+        return cloneDeep(this.initialData).map(series => {
+            const startIndex = findIndex(
+                series.values,
+                v => v.time >= this.startYear && v.y !== 0
+            )
+            if (startIndex < 0) {
+                series.values = []
                 return series
-            })
-        } else {
-            return this.initialData
-        }
+            } else {
+                const relativeValues = series.values.slice(startIndex)
+                // Clone to avoid overwriting in next loop
+                const indexValue = clone(relativeValues[0])
+                series.values = relativeValues.map(v => {
+                    v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
+                    return v
+                })
+            }
+            return series
+        })
     }
 
     @computed get allValues(): LineChartValue[] {
