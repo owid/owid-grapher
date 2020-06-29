@@ -55,8 +55,11 @@ export class CSVGenerator {
         const titleRow = this.baseTitleRow
         titleRow.push("Date")
 
-        this.csvDimensions.map(dim => {
-            if (this.isSingleValueDimension(dim)) titleRow.push("Year")
+        this.allValueDimensions.map(dim =>
+            titleRow.push(csvEscape(dim.fullNameWithUnit))
+        )
+        this.singleValueDimensions.map(dim => {
+            titleRow.push("Year")
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
 
