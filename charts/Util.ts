@@ -588,26 +588,34 @@ export interface DataValue {
     value: number | string | undefined
 }
 
+export function valuesAtYears(
+    valueByYear: Map<number, string | number>,
+    targetYears: number[],
+    tolerance: number = 0
+) {
+    const years = Array.from(valueByYear.keys())
+    const values = targetYears.map(targetYear => {
+        let value
+        const year = findClosestYear(years, targetYear, tolerance)
+        if (year !== undefined) {
+            value = valueByYear.get(year)
+        }
+        return {
+            year,
+            value
+        }
+    })
+    return values
+}
+
 export function valuesByEntityAtYears(
     valueByEntityAndYear: Map<string, Map<number, string | number>>,
     targetYears: number[],
     tolerance: number = 0
 ): Map<string, DataValue[]> {
-    return es6mapValues(valueByEntityAndYear, valueByYear => {
-        const years = Array.from(valueByYear.keys())
-        const values = targetYears.map(targetYear => {
-            let value
-            const year = findClosestYear(years, targetYear, tolerance)
-            if (year !== undefined) {
-                value = valueByYear.get(year)
-            }
-            return {
-                year,
-                value
-            }
-        })
-        return values
-    })
+    return es6mapValues(valueByEntityAndYear, valueByYear =>
+        valuesAtYears(valueByYear, targetYears, tolerance)
+    )
 }
 
 export function valuesByEntityWithinYears(

@@ -1,6 +1,6 @@
 import { computed, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { uniq, flatten, csvEscape, first, last } from "./Util"
+import { uniq, flatten, csvEscape, first, valuesAtYears } from "./Util"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 
 interface CSVGeneratorProps {
@@ -108,18 +108,26 @@ export class CSVGenerator {
         dim: ChartDimensionWithOwidVariable,
         entity: string
     ): [string, string | number] | null {
-        let latestYear = undefined
-        let latestValue = undefined
+        let year = undefined
+        let value = undefined
 
-        const latestYearValue = dim.yearAndValueOfLatestValueforEntity(entity)
+        const valueByYear = dim.valueByEntityAndYear.get(entity)
 
-        if (latestYearValue) {
-            latestYear = dim.formatYear(first(latestYearValue) as number)
-            latestValue = last(latestYearValue)
+        if (valueByYear && dim.targetYear) {
+            const dataValues = valuesAtYears(
+                valueByYear,
+                [dim.targetYear],
+                dim.tolerance
+            )
+            const dataValue = dataValues && first(dataValues)
+            if (dataValue) {
+                year = dataValue.year
+                value = dataValue.value
+            }
         }
 
-        if (latestYear !== undefined && latestValue !== undefined) {
-            return [latestYear, latestValue]
+        if (year !== undefined && value !== undefined) {
+            return [dim.formatYear(year), value]
         } else return null
     }
 
@@ -165,8 +173,8 @@ export class CSVGenerator {
         const chartEntities = this.chart.sortedUniqueEntitiesAcrossDimensions
 
         const rows: (string | number)[][] = []
-        chartEntities.map(entity => {
-            indexingYears.map(year => {
+        chartEntities.forEach(entity => {
+            indexingYears.forEach(year => {
                 const row = this.row(entity, year)
                 if (row) rows.push(row)
             })
