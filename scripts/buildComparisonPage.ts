@@ -17,8 +17,22 @@ const files = fs.readdirSync(oldFolder).map(path => {
     const oldSvg = fs.readFileSync(oldSvgPath, "utf8")
     const newSvg = fs.readFileSync(newSvgPath, "utf8")
     const changed = oldSvg !== newSvg
-
-    return { path, oldSvg, changed, newSvg, oldSvgPath, newSvgPath }
+    const slug = oldSvgPath
+        .split("/")
+        .pop()!
+        .split("_v")[0]
+    const prodUrl = `http://ourworldindata.org/grapher/${slug}`
+    const devUrl = `http://localhost:3099/grapher/${slug}`
+    return {
+        path,
+        oldSvg,
+        changed,
+        newSvg,
+        oldSvgPath,
+        newSvgPath,
+        devUrl,
+        prodUrl
+    }
 })
 
 const changed = files.filter(file => !file.missing).filter(file => file.changed)
@@ -28,7 +42,16 @@ console.log(changed.length + " changed")
 const table = changed
     .map(
         file =>
-            `<tr><td><img src="${file.oldSvgPath}">${file.oldSvgPath}</td><td><img src="${file.newSvgPath}">${file.newSvgPath}</td></tr>`
+            `<tr>
+ <td>
+            <a href="${file.oldSvgPath}"> <img src="${file.oldSvgPath}"> </a>
+            <a href="${file.prodUrl}">${file.prodUrl}</a>
+    </td>
+    <td>
+            <a href="${file.newSvgPath}"> <img src="${file.newSvgPath}"> </a>
+            <a href="${file.devUrl}">${file.devUrl}</a>
+    </td>
+</tr>`
     )
     .join("\n")
 
