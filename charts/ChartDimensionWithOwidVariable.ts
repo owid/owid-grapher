@@ -155,6 +155,7 @@ export class ChartDimensionWithOwidVariable {
     }
 
     @computed get values() {
+        // todo: move unitConversionFactor
         const { unitConversionFactor } = this
         if (unitConversionFactor !== 1)
             return this.column.values.map(

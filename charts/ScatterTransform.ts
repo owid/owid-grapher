@@ -209,6 +209,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     // todo: move this sort of thing to OwidTable
+    // todo: add unit tests for this thing
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     private getDataByEntityAndYear(
@@ -240,8 +241,9 @@ export class ScatterTransform extends ChartTransform {
                     (dimension.property === "x" ||
                         dimension.property === "y") &&
                     !isNumber(value)
-                )
+                ) {
                     continue
+                }
 
                 let byEntity = initialDataByEntity.get(entityName)
                 if (!byEntity) {
@@ -311,8 +313,10 @@ export class ScatterTransform extends ChartTransform {
                 if (
                     year < targetYear - tolerance ||
                     year > targetYear + tolerance
-                )
+                ) {
+                    console.log(year, targetYear, tolerance, dimension.property)
                     continue
+                }
 
                 const value = byEntity.values[i]
 
@@ -325,7 +329,8 @@ export class ScatterTransform extends ChartTransform {
                     dataByYear.set(outputYear, point)
                 }
 
-                ;(point.time as any)[dimension.property] = year
+                if (dimension.property === "x") console.log(value)
+                ;(point as any)[dimension.property] = year
                 ;(point as any)[dimension.property] = value
             }
         })
@@ -342,18 +347,23 @@ export class ScatterTransform extends ChartTransform {
         const chart = this.chart
         dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
-                if (
-                    // Exclude any points with data for only one axis
-                    !has(point, "x") ||
-                    !has(point, "y") ||
-                    // Exclude points that go beyond min/max of X axis
+                // Exclude any points with data for only one axis
+                if (!has(point, "x") || !has(point, "y")) {
+                    dataByYear.delete(year)
+                }
+                // Exclude points that go beyond min/max of X axis
+                else if (
                     (chart.xAxis.removePointsOutsideDomain &&
                         chart.xAxis.min !== undefined &&
                         point.x < chart.xAxis.min) ||
                     (chart.xAxis.removePointsOutsideDomain &&
                         chart.xAxis.max !== undefined &&
-                        point.x > chart.xAxis.max) ||
-                    // Exclude points that go beyond min/max of Y axis
+                        point.x > chart.xAxis.max)
+                ) {
+                    dataByYear.delete(year)
+                }
+                // Exclude points that go beyond min/max of Y axis
+                else if (
                     (chart.yAxis.removePointsOutsideDomain &&
                         chart.yAxis.min !== undefined &&
                         point.y < chart.yAxis.min) ||
