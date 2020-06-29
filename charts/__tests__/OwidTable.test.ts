@@ -2,7 +2,6 @@
 
 import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
 import { readVariable, readVariableSet } from "test/fixtures"
-import { slugify } from "charts/Util"
 
 describe(OwidTable, () => {
     // Scenarios
