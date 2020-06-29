@@ -223,7 +223,6 @@ export class ScatterTransform extends ChartTransform {
             Map<year, ScatterValue>
         >()
 
-        debugger
         for (const dimension of filledDimensions) {
             // First, we organize the data by entity
             const initialDataByEntity = new Map<
@@ -264,6 +263,19 @@ export class ScatterTransform extends ChartTransform {
         this._removeUnwantedPoints(dataByEntityAndYear)
 
         return dataByEntityAndYear
+    }
+
+    // useing for debugging
+    private _flattenPoints(
+        dataByEntityAndYear: Map<entityName, Map<year, ScatterValue>>
+    ) {
+        const allPoints: ScatterValue[] = []
+        for (const [entity, map] of dataByEntityAndYear) {
+            for (const [year, point] of map) {
+                allPoints.push(point)
+            }
+        }
+        return allPoints
     }
 
     private _useTolerance(
