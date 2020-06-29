@@ -11,7 +11,7 @@ import {
     insertMissingValuePlaceholders,
     diffDateISOStringInDays
 } from "charts/Util"
-import { max, min, flatten, sortedUniq } from "lodash"
+import { max, min, flatten, sortedUniq, sortBy } from "lodash"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"
@@ -601,7 +601,8 @@ export class OwidTable extends AbstractTable<OwidRow> {
             Object.assign({}, ...groupMap[groupKey])
         )
 
-        return new OwidTable(joinedRows, columnSpecs)
+        const sorted = sortBy(joinedRows, ["year", "day"])
+        return new OwidTable(sorted, columnSpecs)
     }
 
     // todo: remove

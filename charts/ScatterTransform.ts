@@ -294,6 +294,7 @@ export class ScatterTransform extends ChartTransform {
 
         // Now go through each entity + timeline year and use a binary search to find the closest
         // matching data year within tolerance
+        // NOTE: this code assumes years is sorted asc!!!
         initialDataByEntity.forEach((byEntity, entityName) => {
             let dataByYear = dataByEntityAndYear.get(entityName)
             if (dataByYear === undefined) {
