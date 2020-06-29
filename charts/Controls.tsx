@@ -36,7 +36,6 @@ import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
 import { MapProjection } from "./MapProjection"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
-import classNames from "classnames"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -1092,7 +1091,7 @@ export class ControlsFooterView extends React.Component<{
 
         return (
             <div
-                className={classNames("ControlsFooter")}
+                className={"ControlsFooter"}
                 style={{ height: props.controls.footerHeight }}
             >
                 {timelineElement}
