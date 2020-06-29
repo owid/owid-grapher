@@ -12,7 +12,7 @@ interface LoadableFigure {
     queryStr: string
     element: HTMLElement
     jsonConfig?: any
-    isActive?: true
+    isLoaded?: true
 }
 
 // Given the html for a chart, extract the JSON config fragment
@@ -46,7 +46,7 @@ class MultiEmbedder {
     }
 
     private figureIsLoaded(figure: LoadableFigure): boolean {
-        return !!figure.isActive
+        return !!figure.isLoaded
     }
 
     private figureCanBeLoaded(figure: LoadableFigure): boolean {
@@ -77,8 +77,8 @@ class MultiEmbedder {
     }
 
     private loadFigure(figure: LoadableFigure) {
-        if (!figure.isActive && figure.jsonConfig) {
-            figure.isActive = true
+        if (!figure.isLoaded && figure.jsonConfig) {
+            figure.isLoaded = true
             figure.element.classList.remove("grapherPreview")
             ChartView.bootstrap({
                 jsonConfig: figure.jsonConfig,
@@ -208,7 +208,7 @@ export class Grapher {
      * Finds all <figure data-grapher-src="..."> elements in the document and loads the iframeless
      * interactive charts when the user's viewport approaches them. Sets up a scroll event listener.
      *
-     * BEWARE: this method is hardcoded in some scripts, make sure to check thoroughlybefore making
+     * BEWARE: this method is hardcoded in some scripts, make sure to check thoroughly before making
      * any changes.
      */
     public static embedAll() {
