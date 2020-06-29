@@ -35,6 +35,42 @@ async function getChartsBySlug() {
     return chartsBySlug
 }
 
+export async function bakeChartToImage(
+    jsonConfig: ChartConfigProps,
+    outDir: string,
+    slug: string,
+    queryStr: string = "",
+    optimizeSvgs: boolean = false
+) {
+    // the type definition for url.query is wrong (bc we have query string parsing disabled),
+    // so we have to explicitly cast it
+    const chart = new ChartConfig(jsonConfig, { queryStr })
+    chart.isExporting = true
+    const { width, height } = chart.idealBounds
+    const outPath = `${outDir}/${slug}${queryStr ? "-" + md5(queryStr) : ""}_v${
+        jsonConfig.version
+    }_${width}x${height}.svg`
+    console.log(outPath)
+
+    if (!fs.existsSync(outPath)) {
+        const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+        const vardata = await getVariableData(variableIds)
+        chart.receiveData(vardata)
+
+        let svgCode = chart.staticSVG
+        if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
+
+        fs.writeFile(outPath, svgCode)
+    }
+}
+
+export async function bakeAllSVGS(outDir: string) {
+    const chartsBySlug = await getChartsBySlug()
+    for (const [slug, config] of chartsBySlug) {
+        await bakeChartToImage(config, outDir, slug)
+    }
+}
+
 export async function bakeChartsToImages(
     chartUrls: string[],
     outDir: string,
@@ -48,30 +84,13 @@ export async function bakeChartsToImages(
         const slug = _.last(url.pathname.split("/")) as string
         const jsonConfig = chartsBySlug.get(slug)
         if (jsonConfig) {
-            // the type definition for url.query is wrong (bc we have query string parsing disabled),
-            // so we have to explicitly cast it
-            const queryStr = (url.query as unknown) as string
-
-            const chart = new ChartConfig(jsonConfig, { queryStr })
-            chart.isExporting = true
-            const { width, height } = chart.idealBounds
-            const outPath = `${outDir}/${slug}${
-                queryStr ? "-" + md5(queryStr) : ""
-            }_v${jsonConfig.version}_${width}x${height}.svg`
-            console.log(outPath)
-
-            if (!fs.existsSync(outPath)) {
-                const variableIds = _.uniq(
-                    chart.dimensions.map(d => d.variableId)
-                )
-                const vardata = await getVariableData(variableIds)
-                chart.receiveData(vardata)
-
-                let svgCode = chart.staticSVG
-                if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
-
-                fs.writeFile(outPath, svgCode)
-            }
+            bakeChartToImage(
+                jsonConfig,
+                outDir,
+                slug,
+                (url.query as unknown) as string,
+                optimizeSvgs
+            )
         }
     }
 }
