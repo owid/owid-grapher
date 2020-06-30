@@ -1,25 +1,12 @@
 import { bind } from "decko"
 
-import { ChartView } from "charts/ChartView"
-import { throttle, isMobile, fetchText } from "charts/Util"
+import { throttle, isMobile } from "charts/Util"
 import {
     GlobalEntitySelection,
     pageContainsGlobalEntityControl
 } from "./global-entity/GlobalEntitySelection"
-
-interface LoadableFigure {
-    configUrl: string
-    queryStr: string
-    element: HTMLElement
-    jsonConfig?: any
-    isLoaded?: true
-}
-
-// Given the html for a chart, extract the JSON config fragment
-export function readConfigFromHTML(html: string): any {
-    const m = html.match(/jsonConfig\s*=\s*(\{.+\})/)
-    return m ? JSON.parse(m[1]) : undefined
-}
+import { Figure } from "./figures/Figure"
+import { ChartFigure } from "./figures/ChartFigure"
 
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
@@ -34,8 +21,8 @@ export function shouldProgressiveEmbed() {
 
 /** Private class – use `Grapher` to access functionality. */
 class MultiEmbedder {
-    figures: LoadableFigure[] = []
-    globalEntitySelection?: GlobalEntitySelection
+    private figures: Figure[] = []
+    private globalEntitySelection?: GlobalEntitySelection
 
     constructor(
         options: {
@@ -45,26 +32,21 @@ class MultiEmbedder {
         this.globalEntitySelection = options.globalEntitySelection
     }
 
-    private figureIsLoaded(figure: LoadableFigure): boolean {
-        return !!figure.isLoaded
-    }
-
-    private figureCanBeLoaded(figure: LoadableFigure): boolean {
-        return figure.jsonConfig != null
-    }
-
-    private addFigure(figure: LoadableFigure) {
+    @bind private addFigure(figure: Figure) {
         // Prevent adding duplicates
-        if (!this.figures.map(f => f.element).includes(figure.element)) {
+        if (!this.figures.map(f => f.container).includes(figure.container)) {
             this.figures.push(figure)
         }
     }
 
-    private shouldLoadFigure(figure: LoadableFigure) {
+    @bind private shouldLoadFigure(figure: Figure) {
+        if (figure.isLoaded) return false
+        if (!shouldProgressiveEmbed() && figure.hasPreview) return false
+
         const preloadDistance = window.innerHeight * 4
         const windowTop = window.pageYOffset
         const windowBottom = window.pageYOffset + window.innerHeight
-        const figureRect = figure.element.getBoundingClientRect()
+        const figureRect = figure.boundingRect
         const bodyRect = document.body.getBoundingClientRect()
         const figureTop = figureRect.top - bodyRect.top
         const figureBottom = figureRect.bottom - bodyRect.top
@@ -74,21 +56,6 @@ class MultiEmbedder {
             figureRect.width > 0 &&
             figureRect.height > 0
         )
-    }
-
-    private loadFigure(figure: LoadableFigure) {
-        if (!figure.isLoaded && figure.jsonConfig) {
-            figure.isLoaded = true
-            figure.element.classList.remove("grapherPreview")
-            ChartView.bootstrap({
-                jsonConfig: figure.jsonConfig,
-                containerNode: figure.element,
-                isEmbed:
-                    figure.element.parentNode !== document.body || undefined,
-                queryStr: figure.queryStr,
-                globalEntitySelection: this.globalEntitySelection
-            })
-        }
     }
 
     private loadVisibleFiguresThrottled = throttle(
@@ -103,15 +70,11 @@ class MultiEmbedder {
      * otherwise automatically loads interactive charts when they approach the viewport.
      */
     @bind public loadVisibleFigures() {
-        this.figures.forEach(figure => {
-            if (
-                !this.figureIsLoaded(figure) &&
-                this.figureCanBeLoaded(figure) &&
-                this.shouldLoadFigure(figure)
-            ) {
-                this.loadFigure(figure)
-            }
-        })
+        this.figures.filter(this.shouldLoadFigure).forEach(figure =>
+            figure.load({
+                globalEntitySelection: this.globalEntitySelection
+            })
+        )
     }
 
     /**
@@ -122,31 +85,7 @@ class MultiEmbedder {
     @bind public addFiguresFromDOM(
         container: HTMLElement | Document = document
     ) {
-        const figures = Array.from(
-            container.querySelectorAll<HTMLElement>("*[data-grapher-src]")
-        )
-
-        for (const element of figures) {
-            const dataSrc = element.getAttribute("data-grapher-src")
-            if (dataSrc) {
-                // Only load inline embeds if the device is powerful enough, or if there's no static preview available
-                if (shouldProgressiveEmbed() || !element.querySelector("img")) {
-                    const [configUrl, queryStr] = dataSrc.split(/\?/)
-                    const figure: LoadableFigure = {
-                        configUrl,
-                        queryStr,
-                        element
-                    }
-                    this.addFigure(figure)
-
-                    fetchText(configUrl).then(html => {
-                        figure.jsonConfig = readConfigFromHTML(html)
-                        this.loadVisibleFiguresThrottled()
-                    })
-                }
-            }
-        }
-
+        ChartFigure.figuresFromDOM(container).forEach(this.addFigure)
         return this
     }
 
