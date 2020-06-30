@@ -1147,3 +1147,807 @@ Zambia,ZMB,\\"Mar 23, 2020\\",0.16318576915654062,0
 Zimbabwe,ZWE,\\"Mar 22, 2020\\",0.13456299691171192,0
 Zimbabwe,ZWE,\\"Mar 23, 2020\\",0.13456299691171192,0"
 `;
+
+exports[`CSV data downloads two day-based variables, one year-based variable 1`] = `
+"Entity,Code,Date,Case fatality rate of COVID-19 (%),Total confirmed deaths due to COVID-19 (deaths),Year,Median Age
+Afghanistan,AFG,\\"Jun 27, 2020\\",2.243,683,2100,43.200001
+Afghanistan,AFG,\\"Jun 28, 2020\\",2.296,703,2100,43.200001
+Afghanistan,AFG,\\"Jun 29, 2020\\",2.328,721,2100,43.200001
+Africa,,\\"Jun 27, 2020\\",2.583,9276,2100,35.200001
+Africa,,\\"Jun 28, 2020\\",2.552,9480,2100,35.200001
+Africa,,\\"Jun 29, 2020\\",2.524,9660,2100,35.200001
+Albania,ALB,\\"Jun 27, 2020\\",2.248,51,2100,53.200001
+Albania,ALB,\\"Jun 28, 2020\\",2.275,53,2100,53.200001
+Albania,ALB,\\"Jun 29, 2020\\",2.29,55,2100,53.200001
+Algeria,DZA,\\"Jun 27, 2020\\",6.977,885,2100,47.200001
+Algeria,DZA,\\"Jun 28, 2020\\",6.878,892,2100,47.200001
+Algeria,DZA,\\"Jun 29, 2020\\",6.758,897,2100,47.200001
+Andorra,AND,\\"Jun 27, 2020\\",6.082,52,,
+Andorra,AND,\\"Jun 28, 2020\\",6.082,52,,
+Andorra,AND,\\"Jun 29, 2020\\",6.082,52,,
+Angola,AGO,\\"Jun 27, 2020\\",4.717,10,2100,31
+Angola,AGO,\\"Jun 28, 2020\\",4.098,10,2100,31
+Angola,AGO,\\"Jun 29, 2020\\",4.12,11,2100,31
+Anguilla,AIA,\\"Jun 27, 2020\\",,0,,
+Anguilla,AIA,\\"Jun 28, 2020\\",,0,,
+Anguilla,AIA,\\"Jun 29, 2020\\",,0,,
+Antigua and Barbuda,ATG,\\"Jun 27, 2020\\",,3,2100,47.299999
+Antigua and Barbuda,ATG,\\"Jun 28, 2020\\",,3,2100,47.299999
+Antigua and Barbuda,ATG,\\"Jun 29, 2020\\",,3,2100,47.299999
+Argentina,ARG,\\"Jun 27, 2020\\",2.225,1167,2100,46.900002
+Argentina,ARG,\\"Jun 28, 2020\\",2.091,1207,2100,46.900002
+Argentina,ARG,\\"Jun 29, 2020\\",2.108,1217,2100,46.900002
+Armenia,ARM,\\"Jun 27, 2020\\",1.757,420,2100,50.599998
+Armenia,ARM,\\"Jun 28, 2020\\",1.729,426,2100,50.599998
+Armenia,ARM,\\"Jun 29, 2020\\",1.723,433,2100,50.599998
+Aruba,ABW,\\"Jun 27, 2020\\",2.97,3,2100,46.900002
+Aruba,ABW,\\"Jun 28, 2020\\",2.97,3,2100,46.900002
+Aruba,ABW,\\"Jun 29, 2020\\",2.97,3,2100,46.900002
+Asia,,\\"Jun 27, 2020\\",2.493,52902,2100,46.099998
+Asia,,\\"Jun 28, 2020\\",2.488,53943,2100,46.099998
+Asia,,\\"Jun 29, 2020\\",2.475,54823,2100,46.099998
+Asia excl. China,,\\"Jun 27, 2020\\",2.369,48261,,
+Asia excl. China,,\\"Jun 28, 2020\\",2.366,49302,,
+Asia excl. China,,\\"Jun 29, 2020\\",2.356,50182,,
+Australia,AUS,\\"Jun 27, 2020\\",1.369,104,2100,46.700001
+Australia,AUS,\\"Jun 28, 2020\\",1.361,104,2100,46.700001
+Australia,AUS,\\"Jun 29, 2020\\",1.353,104,2100,46.700001
+Australia/New Zealand,,\\"Jun 27, 2020\\",,,2100,46.900002
+Australia/New Zealand,,\\"Jun 28, 2020\\",,,2100,46.900002
+Australia/New Zealand,,\\"Jun 29, 2020\\",,,2100,46.900002
+Austria,AUT,\\"Jun 27, 2020\\",3.989,698,2100,49.400002
+Austria,AUT,\\"Jun 28, 2020\\",3.986,700,2100,49.400002
+Austria,AUT,\\"Jun 29, 2020\\",3.983,702,2100,49.400002
+Azerbaijan,AZE,\\"Jun 27, 2020\\",1.217,187,2100,46.099998
+Azerbaijan,AZE,\\"Jun 28, 2020\\",1.215,193,2100,46.099998
+Azerbaijan,AZE,\\"Jun 29, 2020\\",1.206,198,2100,46.099998
+Bahamas,BHS,\\"Jun 27, 2020\\",10.577,11,2100,47.5
+Bahamas,BHS,\\"Jun 28, 2020\\",10.577,11,2100,47.5
+Bahamas,BHS,\\"Jun 29, 2020\\",10.577,11,2100,47.5
+Bahrain,BHR,\\"Jun 27, 2020\\",0.314,78,2100,49
+Bahrain,BHR,\\"Jun 28, 2020\\",0.309,78,2100,49
+Bahrain,BHR,\\"Jun 29, 2020\\",0.323,83,2100,49
+Bangladesh,BGD,\\"Jun 27, 2020\\",1.273,1661,2100,50.599998
+Bangladesh,BGD,\\"Jun 28, 2020\\",1.265,1695,2100,50.599998
+Bangladesh,BGD,\\"Jun 29, 2020\\",1.261,1738,2100,50.599998
+Barbados,BRB,\\"Jun 27, 2020\\",,7,2100,46.299999
+Barbados,BRB,\\"Jun 28, 2020\\",,7,2100,46.299999
+Barbados,BRB,\\"Jun 29, 2020\\",,7,2100,46.299999
+Belarus,BLR,\\"Jun 27, 2020\\",0.614,373,2100,45.299999
+Belarus,BLR,\\"Jun 28, 2020\\",0.617,377,2100,45.299999
+Belarus,BLR,\\"Jun 29, 2020\\",0.623,383,2100,45.299999
+Belgium,BEL,\\"Jun 27, 2020\\",15.925,9731,2100,47.099998
+Belgium,BEL,\\"Jun 28, 2020\\",15.9,9732,2100,47.099998
+Belgium,BEL,\\"Jun 29, 2020\\",15.86,9732,2100,47.099998
+Belize,BLZ,\\"Jun 27, 2020\\",,2,2100,44.200001
+Belize,BLZ,\\"Jun 28, 2020\\",,2,2100,44.200001
+Belize,BLZ,\\"Jun 29, 2020\\",,2,2100,44.200001
+Benin,BEN,\\"Jun 27, 2020\\",1.33,14,2100,32.599998
+Benin,BEN,\\"Jun 28, 2020\\",1.246,14,2100,32.599998
+Benin,BEN,\\"Jun 29, 2020\\",1.393,16,2100,32.599998
+Bermuda,BMU,\\"Jun 27, 2020\\",6.164,9,,
+Bermuda,BMU,\\"Jun 28, 2020\\",6.164,9,,
+Bermuda,BMU,\\"Jun 29, 2020\\",6.164,9,,
+Bhutan,BTN,\\"Jun 27, 2020\\",,0,2100,48.799999
+Bhutan,BTN,\\"Jun 28, 2020\\",,0,2100,48.799999
+Bhutan,BTN,\\"Jun 29, 2020\\",,0,2100,48.799999
+Bolivia,BOL,\\"Jun 27, 2020\\",3.174,934,2100,45.099998
+Bolivia,BOL,\\"Jun 28, 2020\\",3.162,970,2100,45.099998
+Bolivia,BOL,\\"Jun 29, 2020\\",3.217,1014,2100,45.099998
+Bonaire Sint Eustatius and Saba,BES,\\"Jun 27, 2020\\",,0,,
+Bonaire Sint Eustatius and Saba,BES,\\"Jun 28, 2020\\",,0,,
+Bonaire Sint Eustatius and Saba,BES,\\"Jun 29, 2020\\",,0,,
+Bosnia and Herzegovina,BIH,\\"Jun 27, 2020\\",4.499,177,2100,49.799999
+Bosnia and Herzegovina,BIH,\\"Jun 28, 2020\\",4.524,178,2100,49.799999
+Bosnia and Herzegovina,BIH,\\"Jun 29, 2020\\",4.358,179,2100,49.799999
+Botswana,BWA,\\"Jun 27, 2020\\",0.8,1,2100,44.099998
+Botswana,BWA,\\"Jun 28, 2020\\",0.8,1,2100,44.099998
+Botswana,BWA,\\"Jun 29, 2020\\",0.8,1,2100,44.099998
+Brazil,BRA,\\"Jun 27, 2020\\",4.389,55961,2100,50.799999
+Brazil,BRA,\\"Jun 28, 2020\\",4.344,57070,2100,50.799999
+Brazil,BRA,\\"Jun 29, 2020\\",4.287,57622,2100,50.799999
+British Virgin Islands,VGB,\\"Jun 27, 2020\\",,1,,
+British Virgin Islands,VGB,\\"Jun 28, 2020\\",,1,,
+British Virgin Islands,VGB,\\"Jun 29, 2020\\",,1,,
+Brunei,BRN,\\"Jun 27, 2020\\",2.128,3,2100,49
+Brunei,BRN,\\"Jun 28, 2020\\",2.128,3,2100,49
+Brunei,BRN,\\"Jun 29, 2020\\",2.128,3,2100,49
+Bulgaria,BGR,\\"Jun 27, 2020\\",4.764,215,2100,47.799999
+Bulgaria,BGR,\\"Jun 28, 2020\\",4.67,216,2100,47.799999
+Bulgaria,BGR,\\"Jun 29, 2020\\",4.669,219,2100,47.799999
+Burkina Faso,BFA,\\"Jun 27, 2020\\",5.632,53,2100,33.900002
+Burkina Faso,BFA,\\"Jun 28, 2020\\",5.632,53,2100,33.900002
+Burkina Faso,BFA,\\"Jun 29, 2020\\",5.527,53,2100,33.900002
+Burundi,BDI,\\"Jun 27, 2020\\",0.694,1,2100,31.9
+Burundi,BDI,\\"Jun 28, 2020\\",0.694,1,2100,31.9
+Burundi,BDI,\\"Jun 29, 2020\\",0.588,1,2100,31.9
+Cambodia,KHM,\\"Jun 27, 2020\\",0,0,2100,45.700001
+Cambodia,KHM,\\"Jun 28, 2020\\",0,0,2100,45.700001
+Cambodia,KHM,\\"Jun 29, 2020\\",0,0,2100,45.700001
+Cameroon,CMR,\\"Jun 27, 2020\\",2.486,313,2100,35.099998
+Cameroon,CMR,\\"Jun 28, 2020\\",2.486,313,2100,35.099998
+Cameroon,CMR,\\"Jun 29, 2020\\",2.486,313,2100,35.099998
+Canada,CAN,\\"Jun 27, 2020\\",8.278,,2100,47.700001
+Canada,CAN,\\"Jun 28, 2020\\",8.266,8516,2100,47.700001
+Canada,CAN,\\"Jun 29, 2020\\",8.255,8522,2100,47.700001
+Cape Verde,CPV,\\"Jun 27, 2020\\",,,2100,47.900002
+Cape Verde,CPV,\\"Jun 28, 2020\\",1.1,12,2100,47.900002
+Cape Verde,CPV,\\"Jun 29, 2020\\",1.039,12,2100,47.900002
+Caribbean,,\\"Jun 27, 2020\\",,,2100,47.5
+Caribbean,,\\"Jun 28, 2020\\",,,2100,47.5
+Caribbean,,\\"Jun 29, 2020\\",,,2100,47.5
+Cayman Islands,CYM,\\"Jun 28, 2020\\",0.51,1,,
+Cayman Islands,CYM,\\"Jun 29, 2020\\",0.51,1,,
+Central African Republic,CAF,\\"Jun 27, 2020\\",,,2100,37.700001
+Central African Republic,CAF,\\"Jun 28, 2020\\",1.312,45,2100,37.700001
+Central African Republic,CAF,\\"Jun 29, 2020\\",1.312,45,2100,37.700001
+Central America,,\\"Jun 27, 2020\\",,,2100,49.599998
+Central America,,\\"Jun 28, 2020\\",,,2100,49.599998
+Central America,,\\"Jun 29, 2020\\",,,2100,49.599998
+Central Asia,,\\"Jun 27, 2020\\",,,2100,43.900002
+Central Asia,,\\"Jun 28, 2020\\",,,2100,43.900002
+Central Asia,,\\"Jun 29, 2020\\",,,2100,43.900002
+Chad,TCD,\\"Jun 27, 2020\\",,,2100,33.400002
+Chad,TCD,\\"Jun 28, 2020\\",8.555,74,2100,33.400002
+Chad,TCD,\\"Jun 29, 2020\\",8.545,74,2100,33.400002
+Channel Islands,OWID_CIS,\\"Jun 27, 2020\\",,,2100,49.599998
+Channel Islands,OWID_CIS,\\"Jun 28, 2020\\",,,2100,49.599998
+Channel Islands,OWID_CIS,\\"Jun 29, 2020\\",,,2100,49.599998
+Chile,CHL,\\"Jun 27, 2020\\",,,2100,50.099998
+Chile,CHL,\\"Jun 28, 2020\\",1.997,5347,2100,50.099998
+Chile,CHL,\\"Jun 29, 2020\\",2.026,5509,2100,50.099998
+China,CHN,\\"Jun 27, 2020\\",,,2100,49.599998
+China,CHN,\\"Jun 28, 2020\\",5.477,4641,2100,49.599998
+China,CHN,\\"Jun 29, 2020\\",5.476,4641,2100,49.599998
+Colombia,COL,\\"Jun 27, 2020\\",,,2100,49.400002
+Colombia,COL,\\"Jun 28, 2020\\",3.317,2939,2100,49.400002
+Colombia,COL,\\"Jun 29, 2020\\",3.385,3106,2100,49.400002
+Comoros,COM,\\"Jun 27, 2020\\",2.834,,2100,36
+Comoros,COM,\\"Jun 28, 2020\\",2.834,7,2100,36
+Comoros,COM,\\"Jun 29, 2020\\",2.574,7,2100,36
+Congo,COG,\\"Jun 27, 2020\\",3.156,,2100,33.599998
+Congo,COG,\\"Jun 28, 2020\\",3.213,40,2100,33.599998
+Congo,COG,\\"Jun 29, 2020\\",3.213,40,2100,33.599998
+Costa Rica,CRI,\\"Jun 27, 2020\\",0.423,,2100,51.099998
+Costa Rica,CRI,\\"Jun 28, 2020\\",0.403,12,2100,51.099998
+Costa Rica,CRI,\\"Jun 29, 2020\\",0.479,15,2100,51.099998
+Cote d'Ivoire,CIV,\\"Jun 27, 2020\\",0.72,,2100,30.700001
+Cote d'Ivoire,CIV,\\"Jun 28, 2020\\",0.732,64,2100,30.700001
+Cote d'Ivoire,CIV,\\"Jun 29, 2020\\",0.738,66,2100,30.700001
+Croatia,HRV,\\"Jun 27, 2020\\",4.214,,2100,50.5
+Croatia,HRV,\\"Jun 28, 2020\\",4.078,107,2100,50.5
+Croatia,HRV,\\"Jun 29, 2020\\",3.976,107,2100,50.5
+Cuba,CUB,\\"Jun 27, 2020\\",3.656,,2100,50.799999
+Cuba,CUB,\\"Jun 28, 2020\\",3.691,86,2100,50.799999
+Cuba,CUB,\\"Jun 29, 2020\\",3.688,86,2100,50.799999
+Curacao,CUW,\\"Jun 27, 2020\\",,,2100,48.299999
+Curacao,CUW,\\"Jun 28, 2020\\",,1,2100,48.299999
+Curacao,CUW,\\"Jun 29, 2020\\",,1,2100,48.299999
+Cyprus,CYP,\\"Jun 27, 2020\\",1.915,,2100,50.400002
+Cyprus,CYP,\\"Jun 28, 2020\\",1.911,19,2100,50.400002
+Cyprus,CYP,\\"Jun 29, 2020\\",1.911,19,2100,50.400002
+Czech Republic,CZE,\\"Jun 27, 2020\\",3.126,,2100,47.799999
+Czech Republic,CZE,\\"Jun 28, 2020\\",3.071,347,2100,47.799999
+Czech Republic,CZE,\\"Jun 29, 2020\\",2.999,348,2100,47.799999
+Democratic Republic of Congo,COD,\\"Jun 27, 2020\\",2.274,,2100,35.799999
+Democratic Republic of Congo,COD,\\"Jun 28, 2020\\",2.274,149,2100,35.799999
+Democratic Republic of Congo,COD,\\"Jun 29, 2020\\",2.3,157,2100,35.799999
+Denmark,DNK,\\"Jun 27, 2020\\",4.765,,2100,46.700001
+Denmark,DNK,\\"Jun 28, 2020\\",4.765,604,2100,46.700001
+Denmark,DNK,\\"Jun 29, 2020\\",4.765,604,2100,46.700001
+Djibouti,DJI,\\"Jun 27, 2020\\",1.12,,2100,42.200001
+Djibouti,DJI,\\"Jun 28, 2020\\",1.12,52,2100,42.200001
+Djibouti,DJI,\\"Jun 29, 2020\\",1.12,52,2100,42.200001
+Dominica,DMA,\\"Jun 28, 2020\\",,0,,
+Dominica,DMA,\\"Jun 29, 2020\\",,0,,
+Dominican Republic,DOM,\\"Jun 27, 2020\\",2.392,,2100,49
+Dominican Republic,DOM,\\"Jun 28, 2020\\",2.345,718,2100,49
+Dominican Republic,DOM,\\"Jun 29, 2020\\",2.314,726,2100,49
+Eastern Africa,,\\"Jun 27, 2020\\",,,2100,36
+Eastern Africa,,\\"Jun 28, 2020\\",,,2100,36
+Eastern Africa,,\\"Jun 29, 2020\\",,,2100,36
+Eastern Asia,,\\"Jun 27, 2020\\",,,2100,49.799999
+Eastern Asia,,\\"Jun 28, 2020\\",,,2100,49.799999
+Eastern Asia,,\\"Jun 29, 2020\\",,,2100,49.799999
+Eastern Europe,,\\"Jun 27, 2020\\",,,2100,45.700001
+Eastern Europe,,\\"Jun 28, 2020\\",,,2100,45.700001
+Eastern Europe,,\\"Jun 29, 2020\\",,,2100,45.700001
+Ecuador,ECU,\\"Jun 27, 2020\\",8.181,,2100,48.400002
+Ecuador,ECU,\\"Jun 28, 2020\\",8.106,4424,2100,48.400002
+Ecuador,ECU,\\"Jun 29, 2020\\",8.016,4429,2100,48.400002
+Egypt,EGY,\\"Jun 27, 2020\\",4.175,,2100,42.200001
+Egypt,EGY,\\"Jun 28, 2020\\",4.236,2708,2100,42.200001
+Egypt,EGY,\\"Jun 29, 2020\\",4.278,2789,2100,42.200001
+El Salvador,SLV,\\"Jun 27, 2020\\",2.592,,2100,51.700001
+El Salvador,SLV,\\"Jun 28, 2020\\",2.562,152,2100,51.700001
+El Salvador,SLV,\\"Jun 29, 2020\\",2.764,164,2100,51.700001
+Equatorial Guinea,GNQ,\\"Jun 27, 2020\\",1.599,,2100,38.400002
+Equatorial Guinea,GNQ,\\"Jun 28, 2020\\",1.599,32,2100,38.400002
+Equatorial Guinea,GNQ,\\"Jun 29, 2020\\",1.599,32,2100,38.400002
+Eritrea,ERI,\\"Jun 27, 2020\\",0,,2100,39.299999
+Eritrea,ERI,\\"Jun 28, 2020\\",0,0,2100,39.299999
+Eritrea,ERI,\\"Jun 29, 2020\\",0,0,2100,39.299999
+Estonia,EST,\\"Jun 27, 2020\\",3.474,,2100,49
+Estonia,EST,\\"Jun 28, 2020\\",3.474,69,2100,49
+Estonia,EST,\\"Jun 29, 2020\\",3.473,69,2100,49
+Ethiopia,ETH,\\"Jun 27, 2020\\",1.641,,2100,43
+Ethiopia,ETH,\\"Jun 28, 2020\\",1.688,94,2100,43
+Ethiopia,ETH,\\"Jun 29, 2020\\",1.723,98,2100,43
+Europe,,\\"Jun 27, 2020\\",8.097,,2100,47.799999
+Europe,,\\"Jun 28, 2020\\",8.07,190175,2100,47.799999
+Europe,,\\"Jun 29, 2020\\",8.04,190431,2100,47.799999
+European Union,,\\"Jun 27, 2020\\",10.85,,,
+European Union,,\\"Jun 28, 2020\\",10.832,132755,,
+European Union,,\\"Jun 29, 2020\\",10.818,132820,,
+Faeroe Islands,FRO,\\"Jun 27, 2020\\",0,,,
+Faeroe Islands,FRO,\\"Jun 28, 2020\\",0,0,,
+Faeroe Islands,FRO,\\"Jun 29, 2020\\",0,0,,
+Falkland Islands,FLK,\\"Jun 28, 2020\\",,0,,
+Falkland Islands,FLK,\\"Jun 29, 2020\\",,0,,
+Fiji,FJI,\\"Jun 27, 2020\\",,,2100,45.099998
+Fiji,FJI,\\"Jun 28, 2020\\",,0,2100,45.099998
+Fiji,FJI,\\"Jun 29, 2020\\",,0,2100,45.099998
+Finland,FIN,\\"Jun 27, 2020\\",4.561,,2100,47.900002
+Finland,FIN,\\"Jun 28, 2020\\",4.561,328,2100,47.900002
+Finland,FIN,\\"Jun 29, 2020\\",4.561,328,2100,47.900002
+France,FRA,\\"Jun 27, 2020\\",18.276,,2100,47.299999
+France,FRA,\\"Jun 28, 2020\\",18.276,29778,2100,47.299999
+France,FRA,\\"Jun 29, 2020\\",18.276,29778,2100,47.299999
+French Guiana,GUF,\\"Jun 27, 2020\\",,,2100,42.200001
+French Guiana,GUF,\\"Jun 28, 2020\\",,,2100,42.200001
+French Guiana,GUF,\\"Jun 29, 2020\\",,,2100,42.200001
+French Polynesia,PYF,\\"Jun 27, 2020\\",,,2100,49.900002
+French Polynesia,PYF,\\"Jun 28, 2020\\",,0,2100,49.900002
+French Polynesia,PYF,\\"Jun 29, 2020\\",,0,2100,49.900002
+Gabon,GAB,\\"Jun 27, 2020\\",0.768,,2100,40.200001
+Gabon,GAB,\\"Jun 28, 2020\\",0.768,40,2100,40.200001
+Gabon,GAB,\\"Jun 29, 2020\\",0.768,40,2100,40.200001
+Gambia,GMB,\\"Jun 27, 2020\\",,,2100,35.900002
+Gambia,GMB,\\"Jun 28, 2020\\",,2,2100,35.900002
+Gambia,GMB,\\"Jun 29, 2020\\",,2,2100,35.900002
+Georgia,GEO,\\"Jun 27, 2020\\",1.52,,2100,47.299999
+Georgia,GEO,\\"Jun 28, 2020\\",1.623,15,2100,47.299999
+Georgia,GEO,\\"Jun 29, 2020\\",1.62,15,2100,47.299999
+Germany,DEU,\\"Jun 27, 2020\\",4.634,,2100,50
+Germany,DEU,\\"Jun 28, 2020\\",4.629,8957,2100,50
+Germany,DEU,\\"Jun 29, 2020\\",4.625,8961,2100,50
+Ghana,GHA,\\"Jun 27, 2020\\",0.65,,2100,36.400002
+Ghana,GHA,\\"Jun 28, 2020\\",0.627,103,2100,36.400002
+Ghana,GHA,\\"Jun 29, 2020\\",0.645,112,2100,36.400002
+Gibraltar,GIB,\\"Jun 27, 2020\\",0,,,
+Gibraltar,GIB,\\"Jun 28, 2020\\",0,0,,
+Gibraltar,GIB,\\"Jun 29, 2020\\",0,0,,
+Greece,GRC,\\"Jun 27, 2020\\",5.713,,2100,51.900002
+Greece,GRC,\\"Jun 28, 2020\\",5.674,191,2100,51.900002
+Greece,GRC,\\"Jun 29, 2020\\",5.658,191,2100,51.900002
+Greenland,GRL,\\"Jun 28, 2020\\",,0,,
+Greenland,GRL,\\"Jun 29, 2020\\",,0,,
+Grenada,GRD,\\"Jun 27, 2020\\",,,2100,51.900002
+Grenada,GRD,\\"Jun 28, 2020\\",,0,2100,51.900002
+Grenada,GRD,\\"Jun 29, 2020\\",,0,2100,51.900002
+Guadeloupe,GLP,\\"Jun 27, 2020\\",,,2100,51.5
+Guadeloupe,GLP,\\"Jun 28, 2020\\",,,2100,51.5
+Guadeloupe,GLP,\\"Jun 29, 2020\\",,,2100,51.5
+Guam,GUM,\\"Jun 27, 2020\\",2.016,,2100,49.900002
+Guam,GUM,\\"Jun 28, 2020\\",2.016,5,2100,49.900002
+Guam,GUM,\\"Jun 29, 2020\\",1.976,5,2100,49.900002
+Guatemala,GTM,\\"Jun 27, 2020\\",4.246,,2100,46.400002
+Guatemala,GTM,\\"Jun 28, 2020\\",4.306,706,2100,46.400002
+Guatemala,GTM,\\"Jun 29, 2020\\",4.294,727,2100,46.400002
+Guernsey,GGY,\\"Jun 27, 2020\\",5.159,,,
+Guernsey,GGY,\\"Jun 28, 2020\\",5.159,13,,
+Guernsey,GGY,\\"Jun 29, 2020\\",5.159,13,,
+Guinea,GIN,\\"Jun 27, 2020\\",0.551,,2100,35.900002
+Guinea,GIN,\\"Jun 28, 2020\\",0.567,30,2100,35.900002
+Guinea,GIN,\\"Jun 29, 2020\\",0.58,31,2100,35.900002
+Guinea-Bissau,GNB,\\"Jun 27, 2020\\",1.221,,2100,35.200001
+Guinea-Bissau,GNB,\\"Jun 28, 2020\\",1.301,21,2100,35.200001
+Guinea-Bissau,GNB,\\"Jun 29, 2020\\",1.301,21,2100,35.200001
+Guyana,GUY,\\"Jun 27, 2020\\",5.217,,2100,44.299999
+Guyana,GUY,\\"Jun 28, 2020\\",5.217,12,2100,44.299999
+Guyana,GUY,\\"Jun 29, 2020\\",5.217,12,2100,44.299999
+Haiti,HTI,\\"Jun 27, 2020\\",1.713,,2100,42.599998
+Haiti,HTI,\\"Jun 28, 2020\\",1.731,100,2100,42.599998
+Haiti,HTI,\\"Jun 29, 2020\\",1.779,104,2100,42.599998
+High income,,\\"Jun 27, 2020\\",6.472,,2100,47.700001
+High income,,\\"Jun 28, 2020\\",6.415,321018,2100,47.700001
+High income,,\\"Jun 29, 2020\\",6.357,321597,2100,47.700001
+Honduras,HND,\\"Jun 27, 2020\\",2.945,,2100,48.099998
+Honduras,HND,\\"Jun 28, 2020\\",2.816,479,2100,48.099998
+Honduras,HND,\\"Jun 29, 2020\\",2.649,479,2100,48.099998
+Hong Kong,HKG,\\"Jun 27, 2020\\",,,2100,48.700001
+Hong Kong,HKG,\\"Jun 28, 2020\\",,,2100,48.700001
+Hong Kong,HKG,\\"Jun 29, 2020\\",,,2100,48.700001
+Hungary,HUN,\\"Jun 27, 2020\\",14.005,,2100,48.599998
+Hungary,HUN,\\"Jun 28, 2020\\",13.968,578,2100,48.599998
+Hungary,HUN,\\"Jun 29, 2020\\",14.027,581,2100,48.599998
+Iceland,ISL,\\"Jun 27, 2020\\",0.546,,2100,49.900002
+Iceland,ISL,\\"Jun 28, 2020\\",0.545,10,2100,49.900002
+Iceland,ISL,\\"Jun 29, 2020\\",0.544,10,2100,49.900002
+India,IND,\\"Jun 27, 2020\\",3.082,,2100,45.900002
+India,IND,\\"Jun 28, 2020\\",3.043,16095,2100,45.900002
+India,IND,\\"Jun 29, 2020\\",3.005,16475,2100,45.900002
+Indonesia,IDN,\\"Jun 27, 2020\\",5.217,,2100,43.900002
+Indonesia,IDN,\\"Jun 28, 2020\\",5.15,2720,2100,43.900002
+Indonesia,IDN,\\"Jun 29, 2020\\",5.099,2754,2100,43.900002
+Iran,IRN,\\"Jun 27, 2020\\",4.653,,2100,51.200001
+Iran,IRN,\\"Jun 28, 2020\\",4.707,10364,2100,51.200001
+Iran,IRN,\\"Jun 29, 2020\\",4.719,10508,2100,51.200001
+Iraq,IRQ,\\"Jun 27, 2020\\",3.785,,2100,34.5
+Iraq,IRQ,\\"Jun 28, 2020\\",3.837,1660,2100,34.5
+Iraq,IRQ,\\"Jun 29, 2020\\",3.868,1756,2100,34.5
+Ireland,IRL,\\"Jun 27, 2020\\",6.807,,2100,47.5
+Ireland,IRL,\\"Jun 28, 2020\\",6.817,1734,2100,47.5
+Ireland,IRL,\\"Jun 29, 2020\\",6.82,1735,2100,47.5
+Isle of Man,IMN,\\"Jun 27, 2020\\",7.143,,,
+Isle of Man,IMN,\\"Jun 28, 2020\\",7.143,24,,
+Isle of Man,IMN,\\"Jun 29, 2020\\",7.143,24,,
+Israel,ISR,\\"Jun 27, 2020\\",1.377,,2100,45
+Israel,ISR,\\"Jun 28, 2020\\",1.353,317,2100,45
+Israel,ISR,\\"Jun 29, 2020\\",1.339,318,2100,45
+Italy,ITA,\\"Jun 27, 2020\\",14.464,,2100,50.5
+Italy,ITA,\\"Jun 28, 2020\\",14.457,34716,2100,50.5
+Italy,ITA,\\"Jun 29, 2020\\",14.455,34738,2100,50.5
+Jamaica,JAM,\\"Jun 27, 2020\\",1.458,,2100,56
+Jamaica,JAM,\\"Jun 28, 2020\\",1.449,10,2100,56
+Jamaica,JAM,\\"Jun 29, 2020\\",1.437,10,2100,56
+Japan,JPN,\\"Jun 27, 2020\\",5.307,,2100,51.799999
+Japan,JPN,\\"Jun 28, 2020\\",5.28,971,2100,51.799999
+Japan,JPN,\\"Jun 29, 2020\\",5.261,972,2100,51.799999
+Jersey,JEY,\\"Jun 27, 2020\\",9.718,,,
+Jersey,JEY,\\"Jun 28, 2020\\",9.718,31,,
+Jersey,JEY,\\"Jun 29, 2020\\",9.718,31,,
+Jordan,JOR,\\"Jun 27, 2020\\",0.815,,2100,44.799999
+Jordan,JOR,\\"Jun 28, 2020\\",0.81,9,2100,44.799999
+Jordan,JOR,\\"Jun 29, 2020\\",0.803,9,2100,44.799999
+Kazakhstan,KAZ,\\"Jun 27, 2020\\",0.738,,2100,43.400002
+Kazakhstan,KAZ,\\"Jun 28, 2020\\",0.833,173,2100,43.400002
+Kazakhstan,KAZ,\\"Jun 29, 2020\\",0.858,183,2100,43.400002
+Kenya,KEN,\\"Jun 27, 2020\\",2.476,,2100,40
+Kenya,KEN,\\"Jun 28, 2020\\",2.426,141,2100,40
+Kenya,KEN,\\"Jun 29, 2020\\",2.356,143,2100,40
+Kiribati,KIR,\\"Jun 27, 2020\\",,,2100,36.799999
+Kiribati,KIR,\\"Jun 28, 2020\\",,,2100,36.799999
+Kiribati,KIR,\\"Jun 29, 2020\\",,,2100,36.799999
+Kosovo,OWID_KOS,\\"Jun 27, 2020\\",1.706,,,
+Kosovo,OWID_KOS,\\"Jun 28, 2020\\",1.706,37,,
+Kosovo,OWID_KOS,\\"Jun 29, 2020\\",1.706,37,,
+Kuwait,KWT,\\"Jun 27, 2020\\",0.78,,2100,43.5
+Kuwait,KWT,\\"Jun 28, 2020\\",0.775,344,2100,43.5
+Kuwait,KWT,\\"Jun 29, 2020\\",0.774,348,2100,43.5
+Kyrgyzstan,KGZ,\\"Jun 27, 2020\\",1.019,,2100,43.299999
+Kyrgyzstan,KGZ,\\"Jun 28, 2020\\",0.99,47,2100,43.299999
+Kyrgyzstan,KGZ,\\"Jun 29, 2020\\",0.997,50,2100,43.299999
+Laos,LAO,\\"Jun 27, 2020\\",,,2100,47.400002
+Laos,LAO,\\"Jun 28, 2020\\",,0,2100,47.400002
+Laos,LAO,\\"Jun 29, 2020\\",,0,2100,47.400002
+Latin America & Caribbean,,\\"Jun 27, 2020\\",,,2100,49.200001
+Latin America & Caribbean,,\\"Jun 28, 2020\\",,,2100,49.200001
+Latin America & Caribbean,,\\"Jun 29, 2020\\",,,2100,49.200001
+Latvia,LVA,\\"Jun 27, 2020\\",2.698,,2100,47.599998
+Latvia,LVA,\\"Jun 28, 2020\\",2.691,30,2100,47.599998
+Latvia,LVA,\\"Jun 29, 2020\\",2.688,30,2100,47.599998
+Least developed countries,,\\"Jun 27, 2020\\",,,2100,36
+Least developed countries,,\\"Jun 28, 2020\\",,,2100,36
+Least developed countries,,\\"Jun 29, 2020\\",,,2100,36
+Lebanon,LBN,\\"Jun 27, 2020\\",1.945,,2100,51.099998
+Lebanon,LBN,\\"Jun 28, 2020\\",1.92,33,2100,51.099998
+Lebanon,LBN,\\"Jun 29, 2020\\",1.954,34,2100,51.099998
+Lesotho,LSO,\\"Jun 27, 2020\\",,,2100,40.700001
+Lesotho,LSO,\\"Jun 28, 2020\\",,0,2100,40.700001
+Lesotho,LSO,\\"Jun 29, 2020\\",,0,2100,40.700001
+Less developed regions,,\\"Jun 27, 2020\\",,,2100,41
+Less developed regions,,\\"Jun 28, 2020\\",,,2100,41
+Less developed regions,,\\"Jun 29, 2020\\",,,2100,41
+\\"Less developed regions, excluding China\\",,\\"Jun 27, 2020\\",,,2100,40.099998
+\\"Less developed regions, excluding China\\",,\\"Jun 28, 2020\\",,,2100,40.099998
+\\"Less developed regions, excluding China\\",,\\"Jun 29, 2020\\",,,2100,40.099998
+\\"Less developed regions, excluding least developed countries\\",,\\"Jun 27, 2020\\",,,2100,43.599998
+\\"Less developed regions, excluding least developed countries\\",,\\"Jun 28, 2020\\",,,2100,43.599998
+\\"Less developed regions, excluding least developed countries\\",,\\"Jun 29, 2020\\",,,2100,43.599998
+Liberia,LBR,\\"Jun 27, 2020\\",4.971,,2100,35.799999
+Liberia,LBR,\\"Jun 28, 2020\\",4.664,34,2100,35.799999
+Liberia,LBR,\\"Jun 29, 2020\\",4.427,34,2100,35.799999
+Libya,LBY,\\"Jun 27, 2020\\",2.579,,2100,46.299999
+Libya,LBY,\\"Jun 28, 2020\\",2.525,18,2100,46.299999
+Libya,LBY,\\"Jun 29, 2020\\",2.756,21,2100,46.299999
+Liechtenstein,LIE,\\"Jun 28, 2020\\",,1,,
+Liechtenstein,LIE,\\"Jun 29, 2020\\",,1,,
+Lithuania,LTU,\\"Jun 27, 2020\\",,,2100,46.400002
+Lithuania,LTU,\\"Jun 28, 2020\\",4.302,78,2100,46.400002
+Lithuania,LTU,\\"Jun 29, 2020\\",4.295,78,2100,46.400002
+Low income,,\\"Jun 27, 2020\\",,,2100,35.5
+Low income,,\\"Jun 28, 2020\\",2.184,2140,2100,35.5
+Low income,,\\"Jun 29, 2020\\",2.18,2188,2100,35.5
+Lower middle income,,\\"Jun 27, 2020\\",,,2100,40.799999
+Lower middle income,,\\"Jun 28, 2020\\",2.732,34361,2100,40.799999
+Lower middle income,,\\"Jun 29, 2020\\",2.711,35072,2100,40.799999
+Luxembourg,LUX,\\"Jun 27, 2020\\",,,2100,46.099998
+Luxembourg,LUX,\\"Jun 28, 2020\\",2.608,110,2100,46.099998
+Luxembourg,LUX,\\"Jun 29, 2020\\",2.593,110,2100,46.099998
+Macao,MAC,\\"Jun 27, 2020\\",,,2100,47.400002
+Macao,MAC,\\"Jun 28, 2020\\",,,2100,47.400002
+Macao,MAC,\\"Jun 29, 2020\\",,,2100,47.400002
+Macedonia,MKD,\\"Jun 27, 2020\\",,,2100,48.700001
+Macedonia,MKD,\\"Jun 28, 2020\\",4.682,277,2100,48.700001
+Macedonia,MKD,\\"Jun 29, 2020\\",4.695,286,2100,48.700001
+Madagascar,MDG,\\"Jun 27, 2020\\",,,2100,35.900002
+Madagascar,MDG,\\"Jun 28, 2020\\",0.798,16,2100,35.900002
+Madagascar,MDG,\\"Jun 29, 2020\\",0.866,18,2100,35.900002
+Malawi,MWI,\\"Jun 27, 2020\\",,,2100,37.099998
+Malawi,MWI,\\"Jun 28, 2020\\",1.252,13,2100,37.099998
+Malawi,MWI,\\"Jun 29, 2020\\",1.134,13,2100,37.099998
+Malaysia,MYS,\\"Jun 27, 2020\\",,,2100,47.599998
+Malaysia,MYS,\\"Jun 28, 2020\\",1.404,121,2100,47.599998
+Malaysia,MYS,\\"Jun 29, 2020\\",1.401,121,2100,47.599998
+Maldives,MDV,\\"Jun 27, 2020\\",,,2100,51.200001
+Maldives,MDV,\\"Jun 28, 2020\\",0.347,8,2100,51.200001
+Maldives,MDV,\\"Jun 29, 2020\\",0.344,8,2100,51.200001
+Mali,MLI,\\"Jun 27, 2020\\",,,2100,34.299999
+Mali,MLI,\\"Jun 28, 2020\\",5.335,113,2100,34.299999
+Mali,MLI,\\"Jun 29, 2020\\",5.31,114,2100,34.299999
+Malta,MLT,\\"Jun 27, 2020\\",,,2100,50
+Malta,MLT,\\"Jun 28, 2020\\",1.343,9,2100,50
+Malta,MLT,\\"Jun 29, 2020\\",1.343,9,2100,50
+Martinique,MTQ,\\"Jun 27, 2020\\",,,2100,51.400002
+Martinique,MTQ,\\"Jun 28, 2020\\",,,2100,51.400002
+Martinique,MTQ,\\"Jun 29, 2020\\",,,2100,51.400002
+Mauritania,MRT,\\"Jun 27, 2020\\",,,2100,33.299999
+Mauritania,MRT,\\"Jun 28, 2020\\",3.071,120,2100,33.299999
+Mauritania,MRT,\\"Jun 29, 2020\\",3.071,120,2100,33.299999
+Mauritius,MUS,\\"Jun 27, 2020\\",,,2100,48.799999
+Mauritius,MUS,\\"Jun 28, 2020\\",2.933,10,2100,48.799999
+Mauritius,MUS,\\"Jun 29, 2020\\",2.933,10,2100,48.799999
+Mayotte,MYT,\\"Jun 27, 2020\\",,,2100,44.700001
+Mayotte,MYT,\\"Jun 28, 2020\\",,,2100,44.700001
+Mayotte,MYT,\\"Jun 29, 2020\\",,,2100,44.700001
+Melanesia,OWID_MNS,\\"Jun 27, 2020\\",,,2100,38
+Melanesia,OWID_MNS,\\"Jun 28, 2020\\",,,2100,38
+Melanesia,OWID_MNS,\\"Jun 29, 2020\\",,,2100,38
+Mexico,MEX,\\"Jun 27, 2020\\",,,2100,50.400002
+Mexico,MEX,\\"Jun 28, 2020\\",12.397,26381,2100,50.400002
+Mexico,MEX,\\"Jun 29, 2020\\",12.289,26648,2100,50.400002
+Micronesia (country),FSM,\\"Jun 27, 2020\\",,,2100,42.299999
+Micronesia (country),FSM,\\"Jun 28, 2020\\",,,2100,42.299999
+Micronesia (country),FSM,\\"Jun 29, 2020\\",,,2100,42.299999
+Micronesia (region),,\\"Jun 27, 2020\\",,,2100,42.900002
+Micronesia (region),,\\"Jun 28, 2020\\",,,2100,42.900002
+Micronesia (region),,\\"Jun 29, 2020\\",,,2100,42.900002
+Middle Africa,,\\"Jun 27, 2020\\",,,2100,34.400002
+Middle Africa,,\\"Jun 28, 2020\\",,,2100,34.400002
+Middle Africa,,\\"Jun 29, 2020\\",,,2100,34.400002
+Middle income,,\\"Jun 27, 2020\\",,,2100,43
+Middle income,,\\"Jun 28, 2020\\",,,2100,43
+Middle income,,\\"Jun 29, 2020\\",,,2100,43
+Moldova,MDA,\\"Jun 27, 2020\\",,,2100,49.299999
+Moldova,MDA,\\"Jun 28, 2020\\",3.24,521,2100,49.299999
+Moldova,MDA,\\"Jun 29, 2020\\",3.262,530,2100,49.299999
+Monaco,MCO,\\"Jun 28, 2020\\",4.854,5,,
+Monaco,MCO,\\"Jun 29, 2020\\",4.854,5,,
+Mongolia,MNG,\\"Jun 27, 2020\\",,,2100,42.599998
+Mongolia,MNG,\\"Jun 28, 2020\\",0,0,2100,42.599998
+Mongolia,MNG,\\"Jun 29, 2020\\",0,0,2100,42.599998
+Montenegro,MNE,\\"Jun 27, 2020\\",,,2100,50.299999
+Montenegro,MNE,\\"Jun 28, 2020\\",1.919,9,2100,50.299999
+Montenegro,MNE,\\"Jun 29, 2020\\",2.287,11,2100,50.299999
+Montserrat,MSR,\\"Jun 28, 2020\\",,1,,
+Montserrat,MSR,\\"Jun 29, 2020\\",,1,,
+More developed regions,,\\"Jun 27, 2020\\",,,2100,47.099998
+More developed regions,,\\"Jun 28, 2020\\",,,2100,47.099998
+More developed regions,,\\"Jun 29, 2020\\",,,2100,47.099998
+Morocco,MAR,\\"Jun 27, 2020\\",,,2100,49.5
+Morocco,MAR,\\"Jun 28, 2020\\",1.852,220,2100,49.5
+Morocco,MAR,\\"Jun 29, 2020\\",1.834,221,2100,49.5
+Mozambique,MOZ,\\"Jun 27, 2020\\",,,2100,34.299999
+Mozambique,MOZ,\\"Jun 28, 2020\\",0.596,5,2100,34.299999
+Mozambique,MOZ,\\"Jun 29, 2020\\",0.582,5,2100,34.299999
+Myanmar,MMR,\\"Jun 27, 2020\\",,,2100,42.599998
+Myanmar,MMR,\\"Jun 28, 2020\\",2.027,6,2100,42.599998
+Myanmar,MMR,\\"Jun 29, 2020\\",2.007,6,2100,42.599998
+Namibia,NAM,\\"Jun 27, 2020\\",,,2100,41.099998
+Namibia,NAM,\\"Jun 28, 2020\\",0,0,2100,41.099998
+Namibia,NAM,\\"Jun 29, 2020\\",0,0,2100,41.099998
+Nepal,NPL,\\"Jun 27, 2020\\",,,2100,51.099998
+Nepal,NPL,\\"Jun 28, 2020\\",0.23,27,2100,51.099998
+Nepal,NPL,\\"Jun 29, 2020\\",0.219,28,2100,51.099998
+Netherlands,NLD,\\"Jun 27, 2020\\",,,2100,48.700001
+Netherlands,NLD,\\"Jun 28, 2020\\",12.192,6105,2100,48.700001
+Netherlands,NLD,\\"Jun 29, 2020\\",12.174,6105,2100,48.700001
+New Caledonia,NCL,\\"Jun 27, 2020\\",,,2100,46.799999
+New Caledonia,NCL,\\"Jun 28, 2020\\",,0,2100,46.799999
+New Caledonia,NCL,\\"Jun 29, 2020\\",,0,2100,46.799999
+New Zealand,NZL,\\"Jun 27, 2020\\",,,2100,48.599998
+New Zealand,NZL,\\"Jun 28, 2020\\",1.871,22,2100,48.599998
+New Zealand,NZL,\\"Jun 29, 2020\\",1.868,22,2100,48.599998
+Nicaragua,NIC,\\"Jun 27, 2020\\",,,2100,51.400002
+Nicaragua,NIC,\\"Jun 28, 2020\\",3.41,74,2100,51.400002
+Nicaragua,NIC,\\"Jun 29, 2020\\",3.41,74,2100,51.400002
+Niger,NER,\\"Jun 27, 2020\\",,,2100,29.4
+Niger,NER,\\"Jun 28, 2020\\",6.273,67,2100,29.4
+Niger,NER,\\"Jun 29, 2020\\",6.238,67,2100,29.4
+Nigeria,NGA,\\"Jun 27, 2020\\",,,2100,33.099998
+Nigeria,NGA,\\"Jun 28, 2020\\",2.318,558,2100,33.099998
+Nigeria,NGA,\\"Jun 29, 2020\\",2.3,565,2100,33.099998
+North America,,\\"Jun 28, 2020\\",5.547,163586,,
+North America,,\\"Jun 29, 2020\\",5.481,164185,,
+North Korea,PRK,\\"Jun 27, 2020\\",,,2100,46.900002
+North Korea,PRK,\\"Jun 28, 2020\\",,,2100,46.900002
+North Korea,PRK,\\"Jun 29, 2020\\",,,2100,46.900002
+Northern Africa,,\\"Jun 27, 2020\\",,,2100,41.200001
+Northern Africa,,\\"Jun 28, 2020\\",,,2100,41.200001
+Northern Africa,,\\"Jun 29, 2020\\",,,2100,41.200001
+Northern America,,\\"Jun 27, 2020\\",,,2100,45.599998
+Northern America,,\\"Jun 28, 2020\\",,,2100,45.599998
+Northern America,,\\"Jun 29, 2020\\",,,2100,45.599998
+Northern Europe,,\\"Jun 27, 2020\\",,,2100,47.5
+Northern Europe,,\\"Jun 28, 2020\\",,,2100,47.5
+Northern Europe,,\\"Jun 29, 2020\\",,,2100,47.5
+Northern Mariana Islands,MNP,\\"Jun 28, 2020\\",,2,,
+Northern Mariana Islands,MNP,\\"Jun 29, 2020\\",,2,,
+Norway,NOR,\\"Jun 27, 2020\\",,,2100,47.099998
+Norway,NOR,\\"Jun 28, 2020\\",2.825,249,2100,47.099998
+Norway,NOR,\\"Jun 29, 2020\\",2.825,249,2100,47.099998
+Oceania,,\\"Jun 27, 2020\\",,,2100,43.799999
+Oceania,,\\"Jun 28, 2020\\",1.445,133,2100,43.799999
+Oceania,,\\"Jun 29, 2020\\",1.436,133,2100,43.799999
+Oman,OMN,\\"Jun 27, 2020\\",,,2100,49.5
+Oman,OMN,\\"Jun 28, 2020\\",0.43,159,2100,49.5
+Oman,OMN,\\"Jun 29, 2020\\",0.427,163,2100,49.5
+Pakistan,PAK,\\"Jun 27, 2020\\",,,2100,41.5
+Pakistan,PAK,\\"Jun 28, 2020\\",2.029,4118,2100,41.5
+Pakistan,PAK,\\"Jun 29, 2020\\",2.018,4167,2100,41.5
+Palestine,PSE,\\"Jun 27, 2020\\",,,2100,40.400002
+Palestine,PSE,\\"Jun 28, 2020\\",0.292,6,2100,40.400002
+Palestine,PSE,\\"Jun 29, 2020\\",0.311,7,2100,40.400002
+Panama,PAN,\\"Jun 27, 2020\\",,,2100,47.599998
+Panama,PAN,\\"Jun 28, 2020\\",1.931,592,2100,47.599998
+Panama,PAN,\\"Jun 29, 2020\\",1.906,604,2100,47.599998
+Papua New Guinea,PNG,\\"Jun 27, 2020\\",,,2100,37.200001
+Papua New Guinea,PNG,\\"Jun 28, 2020\\",,0,2100,37.200001
+Papua New Guinea,PNG,\\"Jun 29, 2020\\",,0,2100,37.200001
+Paraguay,PRY,\\"Jun 27, 2020\\",,,2100,45.900002
+Paraguay,PRY,\\"Jun 28, 2020\\",0.772,15,2100,45.900002
+Paraguay,PRY,\\"Jun 29, 2020\\",0.705,15,2100,45.900002
+Peru,PER,\\"Jun 27, 2020\\",,,2100,48.900002
+Peru,PER,\\"Jun 28, 2020\\",3.31,9135,2100,48.900002
+Peru,PER,\\"Jun 29, 2020\\",3.334,9317,2100,48.900002
+Philippines,PHL,\\"Jun 27, 2020\\",,,2100,42.099998
+Philippines,PHL,\\"Jun 28, 2020\\",3.551,1236,2100,42.099998
+Philippines,PHL,\\"Jun 29, 2020\\",3.509,1244,2100,42.099998
+Poland,POL,\\"Jun 27, 2020\\",,,2100,51.5
+Poland,POL,\\"Jun 28, 2020\\",4.256,1435,2100,51.5
+Poland,POL,\\"Jun 29, 2020\\",4.241,1438,2100,51.5
+Polynesia,OWID_PYA,\\"Jun 27, 2020\\",,,2100,45.299999
+Polynesia,OWID_PYA,\\"Jun 28, 2020\\",,,2100,45.299999
+Polynesia,OWID_PYA,\\"Jun 29, 2020\\",,,2100,45.299999
+Portugal,PRT,\\"Jun 27, 2020\\",,,2100,52.5
+Portugal,PRT,\\"Jun 28, 2020\\",3.79,1561,2100,52.5
+Portugal,PRT,\\"Jun 29, 2020\\",3.755,1564,2100,52.5
+Puerto Rico,PRI,\\"Jun 27, 2020\\",,,2100,53.599998
+Puerto Rico,PRI,\\"Jun 28, 2020\\",2.151,152,2100,53.599998
+Puerto Rico,PRI,\\"Jun 29, 2020\\",2.128,153,2100,53.599998
+Qatar,QAT,\\"Jun 27, 2020\\",,,2100,47
+Qatar,QAT,\\"Jun 28, 2020\\",0.117,110,2100,47
+Qatar,QAT,\\"Jun 29, 2020\\",0.117,110,2100,47
+Reunion,REU,\\"Jun 27, 2020\\",,,2100,51.200001
+Reunion,REU,\\"Jun 28, 2020\\",,,2100,51.200001
+Reunion,REU,\\"Jun 29, 2020\\",,,2100,51.200001
+Romania,ROU,\\"Jun 27, 2020\\",,,2100,48.599998
+Romania,ROU,\\"Jun 28, 2020\\",6.106,1589,2100,48.599998
+Romania,ROU,\\"Jun 29, 2020\\",6.126,1612,2100,48.599998
+Russia,RUS,\\"Jun 27, 2020\\",,,2100,43.900002
+Russia,RUS,\\"Jun 28, 2020\\",1.429,8969,2100,43.900002
+Russia,RUS,\\"Jun 29, 2020\\",1.43,9073,2100,43.900002
+Rwanda,RWA,\\"Jun 27, 2020\\",,,2100,43.099998
+Rwanda,RWA,\\"Jun 28, 2020\\",0.228,2,2100,43.099998
+Rwanda,RWA,\\"Jun 29, 2020\\",0.222,2,2100,43.099998
+Saint Kitts and Nevis,KNA,\\"Jun 28, 2020\\",,0,,
+Saint Kitts and Nevis,KNA,\\"Jun 29, 2020\\",,0,,
+Saint Lucia,LCA,\\"Jun 27, 2020\\",,,2100,52.5
+Saint Lucia,LCA,\\"Jun 28, 2020\\",,0,2100,52.5
+Saint Lucia,LCA,\\"Jun 29, 2020\\",,0,2100,52.5
+Saint Vincent and the Grenadines,VCT,\\"Jun 27, 2020\\",,,2100,51.099998
+Saint Vincent and the Grenadines,VCT,\\"Jun 28, 2020\\",,0,2100,51.099998
+Saint Vincent and the Grenadines,VCT,\\"Jun 29, 2020\\",,0,2100,51.099998
+Samoa,WSM,\\"Jun 27, 2020\\",,,2100,42.700001
+Samoa,WSM,\\"Jun 28, 2020\\",,,2100,42.700001
+Samoa,WSM,\\"Jun 29, 2020\\",,,2100,42.700001
+San Marino,SMR,\\"Jun 28, 2020\\",6.017,42,,
+San Marino,SMR,\\"Jun 29, 2020\\",6.017,42,,
+Sao Tome and Principe,STP,\\"Jun 27, 2020\\",,,2100,34.799999
+Sao Tome and Principe,STP,\\"Jun 28, 2020\\",1.823,13,2100,34.799999
+Sao Tome and Principe,STP,\\"Jun 29, 2020\\",1.823,13,2100,34.799999
+Saudi Arabia,SAU,\\"Jun 27, 2020\\",,,2100,47.5
+Saudi Arabia,SAU,\\"Jun 28, 2020\\",0.846,1511,2100,47.5
+Saudi Arabia,SAU,\\"Jun 29, 2020\\",0.85,1551,2100,47.5
+Senegal,SEN,\\"Jun 27, 2020\\",,,2100,34.799999
+Senegal,SEN,\\"Jun 28, 2020\\",1.579,102,2100,34.799999
+Senegal,SEN,\\"Jun 29, 2020\\",1.594,105,2100,34.799999
+Serbia,SRB,\\"Jun 27, 2020\\",,,2100,48.700001
+Serbia,SRB,\\"Jun 28, 2020\\",1.936,267,2100,48.700001
+Serbia,SRB,\\"Jun 29, 2020\\",1.922,270,2100,48.700001
+Seychelles,SYC,\\"Jun 27, 2020\\",,,2100,47.400002
+Seychelles,SYC,\\"Jun 28, 2020\\",,0,2100,47.400002
+Seychelles,SYC,\\"Jun 29, 2020\\",,0,2100,47.400002
+Sierra Leone,SLE,\\"Jun 27, 2020\\",,,2100,37.299999
+Sierra Leone,SLE,\\"Jun 28, 2020\\",4.184,59,2100,37.299999
+Sierra Leone,SLE,\\"Jun 29, 2020\\",4.205,60,2100,37.299999
+Singapore,SGP,\\"Jun 27, 2020\\",,,2100,56.799999
+Singapore,SGP,\\"Jun 28, 2020\\",0.06,26,2100,56.799999
+Singapore,SGP,\\"Jun 29, 2020\\",0.06,26,2100,56.799999
+Sint Maarten (Dutch part),SXM,\\"Jun 28, 2020\\",,15,,
+Sint Maarten (Dutch part),SXM,\\"Jun 29, 2020\\",,15,,
+Slovakia,SVK,\\"Jun 27, 2020\\",,,2100,48.599998
+Slovakia,SVK,\\"Jun 28, 2020\\",1.69,28,2100,48.599998
+Slovakia,SVK,\\"Jun 29, 2020\\",1.683,28,2100,48.599998
+Slovenia,SVN,\\"Jun 27, 2020\\",,,2100,49
+Slovenia,SVN,\\"Jun 28, 2020\\",7.061,111,2100,49
+Slovenia,SVN,\\"Jun 29, 2020\\",7.021,111,2100,49
+Solomon Islands,SLB,\\"Jun 27, 2020\\",,,2100,40.400002
+Solomon Islands,SLB,\\"Jun 28, 2020\\",,,2100,40.400002
+Solomon Islands,SLB,\\"Jun 29, 2020\\",,,2100,40.400002
+Somalia,SOM,\\"Jun 27, 2020\\",,,2100,31.1
+Somalia,SOM,\\"Jun 28, 2020\\",3.127,90,2100,31.1
+Somalia,SOM,\\"Jun 29, 2020\\",3.11,90,2100,31.1
+South Africa,ZAF,\\"Jun 27, 2020\\",,,2100,43.299999
+South Africa,ZAF,\\"Jun 28, 2020\\",1.831,2413,2100,43.299999
+South Africa,ZAF,\\"Jun 29, 2020\\",1.778,2456,2100,43.299999
+South America,,\\"Jun 27, 2020\\",,,2100,49.099998
+South America,,\\"Jun 28, 2020\\",3.871,81197,2100,49.099998
+South America,,\\"Jun 29, 2020\\",3.845,82323,2100,49.099998
+South Korea,KOR,\\"Jun 27, 2020\\",,,2100,51.599998
+South Korea,KOR,\\"Jun 28, 2020\\",2.218,282,2100,51.599998
+South Korea,KOR,\\"Jun 29, 2020\\",2.211,282,2100,51.599998
+South Sudan,SSD,\\"Jun 27, 2020\\",,,2100,35.299999
+South Sudan,SSD,\\"Jun 28, 2020\\",1.839,36,2100,35.299999
+South Sudan,SSD,\\"Jun 29, 2020\\",1.81,36,2100,35.299999
+South-Central Asia,,\\"Jun 27, 2020\\",,,2100,45.599998
+South-Central Asia,,\\"Jun 28, 2020\\",,,2100,45.599998
+South-Central Asia,,\\"Jun 29, 2020\\",,,2100,45.599998
+South-Eastern Asia,,\\"Jun 27, 2020\\",,,2100,44.5
+South-Eastern Asia,,\\"Jun 28, 2020\\",,,2100,44.5
+South-Eastern Asia,,\\"Jun 29, 2020\\",,,2100,44.5
+Southern Africa,,\\"Jun 27, 2020\\",,,2100,43
+Southern Africa,,\\"Jun 28, 2020\\",,,2100,43
+Southern Africa,,\\"Jun 29, 2020\\",,,2100,43
+Southern Asia,,\\"Jun 27, 2020\\",,,2100,45.700001
+Southern Asia,,\\"Jun 28, 2020\\",,,2100,45.700001
+Southern Asia,,\\"Jun 29, 2020\\",,,2100,45.700001
+Southern Europe,,\\"Jun 27, 2020\\",,,2100,51
+Southern Europe,,\\"Jun 28, 2020\\",,,2100,51
+Southern Europe,,\\"Jun 29, 2020\\",,,2100,51
+Spain,ESP,\\"Jun 27, 2020\\",,,2100,51.700001
+Spain,ESP,\\"Jun 28, 2020\\",11.393,28343,2100,51.700001
+Spain,ESP,\\"Jun 29, 2020\\",,,2100,51.700001
+Sri Lanka,LKA,\\"Jun 27, 2020\\",,,2100,51.400002
+Sri Lanka,LKA,\\"Jun 28, 2020\\",0.541,11,2100,51.400002
+Sri Lanka,LKA,\\"Jun 29, 2020\\",0.54,11,2100,51.400002
+Sub-Saharan Africa,,\\"Jun 27, 2020\\",,,2100,34.599998
+Sub-Saharan Africa,,\\"Jun 28, 2020\\",,,2100,34.599998
+Sub-Saharan Africa,,\\"Jun 29, 2020\\",,,2100,34.599998
+Sudan,SDN,\\"Jun 27, 2020\\",,,2100,34.599998
+Sudan,SDN,\\"Jun 28, 2020\\",6.178,572,2100,34.599998
+Sudan,SDN,\\"Jun 29, 2020\\",6.178,572,2100,34.599998
+Suriname,SUR,\\"Jun 27, 2020\\",,,2100,45.700001
+Suriname,SUR,\\"Jun 28, 2020\\",2.558,10,2100,45.700001
+Suriname,SUR,\\"Jun 29, 2020\\",2.245,11,2100,45.700001
+Swaziland,SWZ,\\"Jun 27, 2020\\",,,2100,41.799999
+Swaziland,SWZ,\\"Jun 28, 2020\\",1.074,8,2100,41.799999
+Swaziland,SWZ,\\"Jun 29, 2020\\",1.408,11,2100,41.799999
+Sweden,SWE,\\"Jun 27, 2020\\",,,2100,46.5
+Sweden,SWE,\\"Jun 28, 2020\\",8.106,5280,2100,46.5
+Sweden,SWE,\\"Jun 29, 2020\\",8.106,5280,2100,46.5
+Switzerland,CHE,\\"Jun 27, 2020\\",,,2100,49.400002
+Switzerland,CHE,\\"Jun 28, 2020\\",5.341,1681,2100,49.400002
+Switzerland,CHE,\\"Jun 29, 2020\\",5.331,1681,2100,49.400002
+Syria,SYR,\\"Jun 27, 2020\\",,,2100,47.099998
+Syria,SYR,\\"Jun 28, 2020\\",3.516,9,2100,47.099998
+Syria,SYR,\\"Jun 29, 2020\\",3.516,9,2100,47.099998
+Taiwan,TWN,\\"Jun 27, 2020\\",,,2100,50.299999
+Taiwan,TWN,\\"Jun 28, 2020\\",1.566,7,2100,50.299999
+Taiwan,TWN,\\"Jun 29, 2020\\",1.566,7,2100,50.299999
+Tajikistan,TJK,\\"Jun 27, 2020\\",,,2100,41.700001
+Tajikistan,TJK,\\"Jun 28, 2020\\",0.897,52,2100,41.700001
+Tajikistan,TJK,\\"Jun 29, 2020\\",0.889,52,2100,41.700001
+Tanzania,TZA,\\"Jun 27, 2020\\",,,2100,32.799999
+Tanzania,TZA,\\"Jun 28, 2020\\",4.126,21,2100,32.799999
+Tanzania,TZA,\\"Jun 29, 2020\\",4.126,21,2100,32.799999
+Thailand,THA,\\"Jun 27, 2020\\",,,2100,50.5
+Thailand,THA,\\"Jun 28, 2020\\",1.834,58,2100,50.5
+Thailand,THA,\\"Jun 29, 2020\\",1.834,58,2100,50.5
+Timor,TLS,\\"Jun 27, 2020\\",,,2100,38.099998
+Timor,TLS,\\"Jun 28, 2020\\",,0,2100,38.099998
+Timor,TLS,\\"Jun 29, 2020\\",,0,2100,38.099998
+Togo,TGO,\\"Jun 27, 2020\\",,,2100,33.799999
+Togo,TGO,\\"Jun 28, 2020\\",2.276,14,2100,33.799999
+Togo,TGO,\\"Jun 29, 2020\\",2.181,14,2100,33.799999
+Tonga,TON,\\"Jun 27, 2020\\",,,2100,40.099998
+Tonga,TON,\\"Jun 28, 2020\\",,,2100,40.099998
+Tonga,TON,\\"Jun 29, 2020\\",,,2100,40.099998
+Trinidad and Tobago,TTO,\\"Jun 27, 2020\\",,,2100,45.900002
+Trinidad and Tobago,TTO,\\"Jun 28, 2020\\",6.452,8,2100,45.900002
+Trinidad and Tobago,TTO,\\"Jun 29, 2020\\",6.349,8,2100,45.900002
+Tunisia,TUN,\\"Jun 27, 2020\\",4.296,,2100,47.700001
+Tunisia,TUN,\\"Jun 28, 2020\\",4.281,50,2100,47.700001
+Tunisia,TUN,\\"Jun 29, 2020\\",4.277,50,2100,47.700001
+Turkey,TUR,\\"Jun 27, 2020\\",2.604,,2100,50.200001
+Turkey,TUR,\\"Jun 28, 2020\\",2.594,5082,2100,50.200001
+Turkey,TUR,\\"Jun 29, 2020\\",2.584,5097,2100,50.200001
+Turkmenistan,TKM,\\"Jun 27, 2020\\",,,2100,41.799999
+Turkmenistan,TKM,\\"Jun 28, 2020\\",,,2100,41.799999
+Turkmenistan,TKM,\\"Jun 29, 2020\\",,,2100,41.799999
+Turks and Caicos Islands,TCA,\\"Jun 28, 2020\\",,1,,
+Turks and Caicos Islands,TCA,\\"Jun 29, 2020\\",,1,,
+Uganda,UGA,\\"Jun 27, 2020\\",0,,2100,34.5
+Uganda,UGA,\\"Jun 28, 2020\\",0,0,2100,34.5
+Uganda,UGA,\\"Jun 29, 2020\\",0,0,2100,34.5
+Ukraine,UKR,\\"Jun 27, 2020\\",2.641,,2100,46.5
+Ukraine,UKR,\\"Jun 28, 2020\\",2.639,1110,2100,46.5
+Ukraine,UKR,\\"Jun 29, 2020\\",2.627,1129,2100,46.5
+United Arab Emirates,ARE,\\"Jun 27, 2020\\",0.66,,2100,45.700001
+United Arab Emirates,ARE,\\"Jun 28, 2020\\",0.657,311,2100,45.700001
+United Arab Emirates,ARE,\\"Jun 29, 2020\\",0.655,313,2100,45.700001
+United Kingdom,GBR,\\"Jun 27, 2020\\",14.033,,2100,47.700001
+United Kingdom,GBR,\\"Jun 28, 2020\\",14.025,43514,2100,47.700001
+United Kingdom,GBR,\\"Jun 29, 2020\\",13.996,43550,2100,47.700001
+United States,USA,\\"Jun 27, 2020\\",5.067,,2100,45.299999
+United States,USA,\\"Jun 28, 2020\\",5.001,125539,2100,45.299999
+United States,USA,\\"Jun 29, 2020\\",4.935,125804,2100,45.299999
+United States Virgin Islands,VIR,\\"Jun 27, 2020\\",,,2100,56
+United States Virgin Islands,VIR,\\"Jun 28, 2020\\",,6,2100,56
+United States Virgin Islands,VIR,\\"Jun 29, 2020\\",,6,2100,56
+Upper middle income,,\\"Jun 27, 2020\\",3.936,,2100,47.700001
+Upper middle income,,\\"Jun 28, 2020\\",3.924,140664,2100,47.700001
+Upper middle income,,\\"Jun 29, 2020\\",3.899,142355,2100,47.700001
+Uruguay,URY,\\"Jun 27, 2020\\",2.829,26,2100,48.900002
+Uruguay,URY,\\"Jun 28, 2020\\",2.814,26,2100,48.900002
+Uruguay,URY,\\"Jun 29, 2020\\",2.906,27,2100,48.900002
+Uzbekistan,UZB,\\"Jun 27, 2020\\",0.267,20,2100,45.900002
+Uzbekistan,UZB,\\"Jun 28, 2020\\",0.259,20,2100,45.900002
+Uzbekistan,UZB,\\"Jun 29, 2020\\",0.274,22,2100,45.900002
+Vanuatu,VUT,\\"Jun 27, 2020\\",,,2100,41.200001
+Vanuatu,VUT,\\"Jun 28, 2020\\",,,2100,41.200001
+Vanuatu,VUT,\\"Jun 29, 2020\\",,,2100,41.200001
+Vatican,VAT,\\"Jun 27, 2020\\",,0,,
+Vatican,VAT,\\"Jun 28, 2020\\",,0,,
+Vatican,VAT,\\"Jun 29, 2020\\",,0,,
+Venezuela,VEN,\\"Jun 27, 2020\\",0.858,41,2100,47.700001
+Venezuela,VEN,\\"Jun 28, 2020\\",0.819,42,2100,47.700001
+Venezuela,VEN,\\"Jun 29, 2020\\",0.831,44,2100,47.700001
+Vietnam,VNM,\\"Jun 27, 2020\\",0,0,2100,47.400002
+Vietnam,VNM,\\"Jun 28, 2020\\",0,0,2100,47.400002
+Vietnam,VNM,\\"Jun 29, 2020\\",0,0,2100,47.400002
+Western Africa,,\\"Jun 27, 2020\\",,,2100,33
+Western Africa,,\\"Jun 28, 2020\\",,,2100,33
+Western Africa,,\\"Jun 29, 2020\\",,,2100,33
+Western Asia,,\\"Jun 27, 2020\\",,,2100,42.400002
+Western Asia,,\\"Jun 28, 2020\\",,,2100,42.400002
+Western Asia,,\\"Jun 29, 2020\\",,,2100,42.400002
+Western Europe,,\\"Jun 27, 2020\\",,,2100,48.599998
+Western Europe,,\\"Jun 28, 2020\\",,,2100,48.599998
+Western Europe,,\\"Jun 29, 2020\\",,,2100,48.599998
+Western Sahara,ESH,\\"Jun 27, 2020\\",,1,2100,44.099998
+Western Sahara,ESH,\\"Jun 28, 2020\\",0.481,1,2100,44.099998
+Western Sahara,ESH,\\"Jun 29, 2020\\",0.481,1,2100,44.099998
+World,OWID_WRL,\\"Jun 27, 2020\\",5.054,493896,2100,41.599998
+World,OWID_WRL,\\"Jun 28, 2020\\",5.009,498521,2100,41.599998
+World,OWID_WRL,\\"Jun 29, 2020\\",4.96,501562,2100,41.599998
+World excl. China,,\\"Jun 27, 2020\\",5.051,489255,,
+World excl. China,,\\"Jun 28, 2020\\",5.005,493880,,
+World excl. China,,\\"Jun 29, 2020\\",4.955,496921,,
+World excl. China and South Korea,,\\"Jun 27, 2020\\",5.054,488973,,
+World excl. China and South Korea,,\\"Jun 28, 2020\\",5.008,493598,,
+World excl. China and South Korea,,\\"Jun 29, 2020\\",4.959,496639,,
+\\"World excl. China, South Korea, Japan and Singapore\\",,\\"Jun 27, 2020\\",5.076,487976,,
+\\"World excl. China, South Korea, Japan and Singapore\\",,\\"Jun 28, 2020\\",5.03,492601,,
+\\"World excl. China, South Korea, Japan and Singapore\\",,\\"Jun 29, 2020\\",4.98,495641,,
+Yemen,YEM,\\"Jun 27, 2020\\",26.905,293,2100,43.099998
+Yemen,YEM,\\"Jun 28, 2020\\",26.836,296,2100,43.099998
+Yemen,YEM,\\"Jun 29, 2020\\",27.013,302,2100,43.099998
+Zambia,ZMB,\\"Jun 27, 2020\\",1.372,21,2100,31.299999
+Zambia,ZMB,\\"Jun 28, 2020\\",1.372,21,2100,31.299999
+Zambia,ZMB,\\"Jun 29, 2020\\",1.413,22,2100,31.299999
+Zimbabwe,ZWE,\\"Jun 27, 2020\\",1.07,6,2100,41.099998
+Zimbabwe,ZWE,\\"Jun 28, 2020\\",1.058,6,2100,41.099998
+Zimbabwe,ZWE,\\"Jun 29, 2020\\",1.058,6,2100,41.099998"
+`;

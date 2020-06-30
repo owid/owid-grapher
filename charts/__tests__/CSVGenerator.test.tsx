@@ -36,6 +36,12 @@ describe("CSV data downloads", () => {
         testIfCSVMatchesSnapshot(new CSVGenerator({ chart }), done)
     })
 
+    test("two day-based variables, one year-based variable", done => {
+        const chart = setupChart(4058, [142600, 97587, 142583, 123])
+        chart.scatter.xOverrideYear = 2100
+        testIfCSVMatchesSnapshot(new CSVGenerator({ chart }), done)
+    })
+
     test("two day-based variables", done => {
         const csvGenerator = setupCSVGenerator(4054, [142586, 142587, 123])
         testIfCSVMatchesSnapshot(csvGenerator, done)
