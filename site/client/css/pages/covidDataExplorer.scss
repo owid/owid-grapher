@@ -30,7 +30,7 @@ html.iframe .CovidDataExplorer,
 }
 
 html.iframe .CovidDataExplorerFigure,
-.CovidDataExplorerFigure.is-embed {
+.is-embed .CovidDataExplorerFigure {
     min-height: auto !important;
     max-height: none;
 }
