@@ -60,6 +60,11 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
             href: "/policy-responses-covid",
             id: "policy-responses"
         },
+        {
+            label: "Exemplars",
+            href: "/identify-covid-exemplars",
+            id: "exemplars"
+        },
         { label: "All charts", href: "/coronavirus-data", id: "data" }
     ]
 }
