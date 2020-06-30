@@ -70,15 +70,11 @@ export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
     updated: string
+    queryStr?: string
     isEmbed?: boolean
     globalEntitySelection?: GlobalEntitySelection
 }> {
-    static async bootstrap({
-        containerNode,
-        isEmbed,
-        queryStr,
-        globalEntitySelection
-    }: {
+    static async bootstrap(props: {
         containerNode: HTMLElement
         isEmbed?: boolean
         queryStr?: string
@@ -86,18 +82,18 @@ export class CovidDataExplorer extends React.Component<{
     }) {
         const typedData = await fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
-        const startingParams = new CovidQueryParams(
-            queryStr || coronaDefaultView
-        )
+        const queryStr = props.queryStr || coronaDefaultView
+        const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
             <CovidDataExplorer
                 data={typedData}
                 updated={updated}
                 params={startingParams}
-                isEmbed={isEmbed}
-                globalEntitySelection={globalEntitySelection}
+                queryStr={queryStr}
+                isEmbed={props.isEmbed}
+                globalEntitySelection={props.globalEntitySelection}
             />,
-            containerNode
+            props.containerNode
         )
     }
 
@@ -1219,6 +1215,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         },
         {
+            queryStr: this.props.queryStr,
             globalEntitySelection: this.props.globalEntitySelection
         }
     )
