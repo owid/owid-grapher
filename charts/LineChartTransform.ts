@@ -73,7 +73,6 @@ export class LineChartTransform extends ChartTransform {
                     series = {
                         values: [],
                         entityName,
-                        columnSlug: dimension.column.slug,
                         entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,

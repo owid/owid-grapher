@@ -386,13 +386,13 @@ export function domainExtent(
 }
 
 // Take an arbitrary string and turn it into a nice url slug
-export function slugify(s: string) {
-    s = s
-        .toLowerCase()
+export const slugify = (str: string) => slugifySameCase(str.toLowerCase())
+export const slugifySameCase = (str: string) =>
+    str
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
-    return s.trim().replace(/ +/g, "-")
-}
+        .trim()
+        .replace(/ +/g, "-")
 
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids

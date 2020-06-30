@@ -55,6 +55,28 @@ describe("from legacy", () => {
     })
 })
 
+describe("annotations column", () => {
+    const csv = `entityName,pop,notes,year
+usa,322,in hundreds of millions,2000
+hi,1,in millions,2000
+hi,1,,2001`
+    const specs = new Map()
+    const table = BasicTable.fromCsv(csv)
+    table.addColumnSpec({ slug: "pop", annotationsColumnSlug: "notes" })
+
+    it("can get annotations for a row", () => {
+        const annotationsColumn = table.columnsBySlug.get("pop")
+            ?.annotationsColumn
+        expect(annotationsColumn?.spec.slug).toBe("notes")
+
+        const entityNameMap = annotationsColumn?.entityNameMap!
+
+        expect(entityNameMap.size).toEqual(2)
+        expect(entityNameMap.get("hi")).toEqual("in millions")
+        expect(entityNameMap.get("usa")).toEqual("in hundreds of millions")
+    })
+})
+
 describe("from csv", () => {
     const csv = `country,population
 iceland,1
@@ -108,7 +130,7 @@ iceland,1`
     const table = BasicTable.fromCsv(csv)
     it("delimited uses slugs as default", () => {
         const csv = table.toDelimited()
-        expect(csv).toEqual(`country,population-in-2020
+        expect(csv).toEqual(`country,Population-in-2020
 iceland,1`)
     })
 })

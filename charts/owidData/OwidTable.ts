@@ -5,7 +5,7 @@ import {
     OwidVariablesAndEntityKey
 } from "./OwidVariable"
 import {
-    slugify,
+    slugifySameCase,
     groupBy,
     computeRollingAverage,
     insertMissingValuePlaceholders,
@@ -128,23 +128,26 @@ export abstract class AbstractColumn {
         return this.spec.coverage
     }
 
-    @computed private get annotationsMap() {
-        if (!this.spec.annotationsColumnSlug) return undefined
-        const column = this.table.columnsBySlug.get(
-            this.spec.annotationsColumnSlug
-        )
-        return column ? column.entityMap : undefined
+    @computed get annotationsColumn() {
+        return this.spec.annotationsColumnSlug
+            ? this.table.columnsBySlug.get(this.spec.annotationsColumnSlug)
+            : undefined
     }
 
-    getAnnotationsFor(entityName: entityName) {
-        const map = this.annotationsMap
-        return map ? map.get(entityName) : undefined
+    // todo: remove/generalize?
+    @computed get entityNameMap() {
+        return this.mapBy("entityName")
     }
 
-    @computed get entityMap() {
-        const map = new Map<entityName, any>()
+    mapBy(columnSlug: columnSlug) {
+        const map = new Map<any, any>()
         const slug = this.slug
-        this.rows.forEach(row => map.set(row.entityName, row[slug]))
+        this.rows.forEach(row => {
+            const value = row[slug]
+            // For now the behavior is to not overwrite an existing value with a falsey one
+            if (value !== undefined && value !== "")
+                map.set(row[columnSlug], value)
+        })
         return map
     }
 
@@ -208,21 +211,28 @@ class BooleanColumn extends AbstractColumn {}
 // Todo: Add NumberColumn, AbstractTemporalColumn, DayColumn, YearColumn, EntityColumn, etc
 
 declare type ColumnSpecs = Map<columnSlug, ColumnSpec>
+declare type ColumnSpecObject = { [columnSlug: string]: ColumnSpec }
 
 abstract class AbstractTable<ROW_TYPE extends Row> {
     @observable.ref rows: ROW_TYPE[]
     @observable protected columns: Map<columnSlug, AbstractColumn> = new Map()
 
-    constructor(rows: ROW_TYPE[], columnSpecs?: ColumnSpecs) {
+    constructor(
+        rows: ROW_TYPE[],
+        columnSpecs?: ColumnSpecs | ColumnSpecObject
+    ) {
         this.rows = rows
-        if (!columnSpecs) this.detectAndAddColumnsFromRows(rows)
-        else
-            Array.from(columnSpecs.keys()).forEach(slug => {
-                this.columns.set(
-                    slug,
-                    new AnyColumn(this, columnSpecs.get(slug)!)
-                )
-            })
+        if (!columnSpecs) return this.detectAndAddColumnsFromRows(rows)
+
+        if (!(columnSpecs instanceof Map))
+            columnSpecs = new Map(
+                Object.entries(columnSpecs as ColumnSpecObject)
+            )
+
+        const specs = columnSpecs as ColumnSpecs
+        Array.from(specs.keys()).forEach(slug => {
+            this.columns.set(slug, new AnyColumn(this, specs.get(slug)!))
+        })
     }
 
     protected detectAndAddColumnsFromRows(rows: Row[]) {
@@ -233,6 +243,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             if (!cols.has(slug))
                 cols.set(slug, new AnyColumn(this, specs.get(slug)!))
         })
+        return this
     }
 
     static makeSpecsFromRows(rows: any[]): ColumnSpecs {
@@ -389,7 +400,7 @@ export class BasicTable extends AbstractTable<Row> {
         const colSpecs = Object.keys(rows[0]).map(name => {
             return {
                 name: name,
-                slug: slugify(name)
+                slug: slugifySameCase(name)
             }
         })
         const colsToRename = colSpecs.filter(col => col.name !== col.slug)
@@ -500,7 +511,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     private static columnSpecFromLegacyVariable(
         variable: OwidVariable
     ): ColumnSpec {
-        const slug = variable.id + "-" + slugify(variable.name) // todo: remove?
+        const slug = variable.id + "-" + slugifySameCase(variable.name) // todo: remove?
         const {
             unit,
             shortUnit,
