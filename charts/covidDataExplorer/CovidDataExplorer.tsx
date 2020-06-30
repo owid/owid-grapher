@@ -58,13 +58,10 @@ import {
 } from "./CovidDataUtils"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
-import {
-    covidDashboardSlug,
-    covidDataExplorerContainerId,
-    coronaDefaultView
-} from "./CovidConstants"
+import { covidDashboardSlug, coronaDefaultView } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
+import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
 
 const abSeed = Math.random()
 
@@ -74,15 +71,18 @@ export class CovidDataExplorer extends React.Component<{
     params: CovidQueryParams
     updated: string
     isEmbed?: boolean
+    globalEntitySelection?: GlobalEntitySelection
 }> {
     static async bootstrap({
         containerNode,
         isEmbed,
-        queryStr
+        queryStr,
+        globalEntitySelection
     }: {
         containerNode: HTMLElement
         isEmbed?: boolean
         queryStr?: string
+        globalEntitySelection?: GlobalEntitySelection
     }) {
         const typedData = await fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
@@ -95,6 +95,7 @@ export class CovidDataExplorer extends React.Component<{
                 updated={updated}
                 params={startingParams}
                 isEmbed={isEmbed}
+                globalEntitySelection={globalEntitySelection}
             />,
             containerNode
         )
@@ -1218,7 +1219,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         },
         {
-            queryStr: window.location.search || coronaDefaultView
+            globalEntitySelection: this.props.globalEntitySelection
         }
     )
 }

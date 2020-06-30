@@ -40,7 +40,8 @@ export class CovidExplorerFigure extends Figure {
             CovidDataExplorer.bootstrap({
                 containerNode: this.container,
                 isEmbed: true,
-                queryStr: this.props.queryStr
+                queryStr: this.props.queryStr,
+                globalEntitySelection: loadProps.globalEntitySelection
             })
         }
     }
