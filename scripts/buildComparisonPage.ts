@@ -37,7 +37,12 @@ const files = fs.readdirSync(oldFolder).map(path => {
 
 const changed = files.filter(file => !file.missing).filter(file => file.changed)
 
-console.log(changed.length + " changed")
+console.log(
+    `${changed.length} (${Math.round(
+        (100 * changed.length) / files.length
+    )}%) out of ${files.length} are different. ${files.length -
+        changed.length} unchanged.`
+)
 
 const table = changed
     .map(

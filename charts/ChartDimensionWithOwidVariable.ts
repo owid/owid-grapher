@@ -154,8 +154,9 @@ export class ChartDimensionWithOwidVariable {
             : formatYear
     }
 
+    // todo: remove unitConversionFactor concept? use computed columns instead?
+    // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
     @computed get values() {
-        // todo: move unitConversionFactor
         const { unitConversionFactor } = this
         if (unitConversionFactor !== 1)
             return this.column.values.map(

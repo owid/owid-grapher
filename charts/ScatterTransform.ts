@@ -234,10 +234,10 @@ export class ScatterTransform extends ChartTransform {
                 entityName,
                 { years: year[]; values: (string | number)[] }
             >()
-            const columnSlug = dimension.column.slug
-            dimension.column.rows.forEach(row => {
+            const rows = dimension.column.rows
+            dimension.values.forEach((value, index) => {
+                const row = rows[index]
                 const year = row.year ?? row.day
-                const value = row[columnSlug]
                 const entityName = row.entityName
 
                 if (!validEntityLookup[entityName]) return
