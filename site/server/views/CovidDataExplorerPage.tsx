@@ -16,7 +16,11 @@ import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 
 export const CovidDataExplorerPage = () => {
-    const script = `window.CovidDataExplorer.bootstrap()`
+    const script = `
+    window.CovidDataExplorer.bootstrap({
+        containerNode: document.getElementById("${covidDataExplorerContainerId}")
+    })
+`
 
     const iframeScript = `
     if (window != window.top) {

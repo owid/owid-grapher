@@ -74,9 +74,11 @@ export class CovidDataExplorer extends React.Component<{
     params: CovidQueryParams
     updated: string
 }> {
-    static async bootstrap(
-        containerNode = document.getElementById(covidDataExplorerContainerId)
-    ) {
+    static async bootstrap({
+        containerNode
+    }: {
+        containerNode: HTMLElement
+    }) {
         const typedData = await fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
         const startingParams = new CovidQueryParams(
