@@ -11,7 +11,10 @@ import {
     entries,
     minBy,
     fromPairs,
-    sortBy
+    sortBy,
+    memoize,
+    retryPromise,
+    fetchText
 } from "charts/Util"
 import moment from "moment"
 import { ParsedCovidRow, MetricKind, CountryOption } from "./CovidTypes"
@@ -51,8 +54,8 @@ export const covidDataPath =
 export const covidLastUpdatedPath =
     "https://covid.ourworldindata.org/data/owid-covid-data-last-updated-timestamp.txt"
 
-export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
-    const rawData = await csv(covidDataPath)
+const _fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
+    const rawData = await retryPromise(() => csv(covidDataPath))
     const filtered = rawData
         .map(parseCovidRow)
         .filter(
@@ -63,6 +66,14 @@ export const fetchAndParseData = async (): Promise<ParsedCovidRow[]> => {
     const euRows = calculateRowsForGroup(getEuRows(filtered), "European Union")
     return filtered.concat(continentRows, euRows)
 }
+
+// Cache the fetch request so we don't make any additional requests if
+// the function is called multiple times
+export const fetchAndParseData = memoize(_fetchAndParseData)
+
+export const fetchLastUpdatedTime = memoize(() =>
+    retryPromise(() => fetchText(covidLastUpdatedPath))
+)
 
 const getEuRows = (rows: ParsedCovidRow[]) =>
     rows.filter(row => euCountries.has(row.location))

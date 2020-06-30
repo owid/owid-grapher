@@ -24,7 +24,6 @@ import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
-    fetchText,
     difference,
     pick,
     lastOfNonEmptyArray,
@@ -52,10 +51,10 @@ import {
     buildCovidVariableId,
     makeCountryOptions,
     covidDataPath,
-    covidLastUpdatedPath,
     getTrajectoryOptions,
     getLeastUsedColor,
-    computeCovidColumn
+    computeCovidColumn,
+    fetchLastUpdatedTime
 } from "./CovidDataUtils"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -85,7 +84,7 @@ export class CovidDataExplorer extends React.Component<{
         globalEntitySelection?: GlobalEntitySelection
     }) {
         const typedData = await fetchAndParseData()
-        const updated = await fetchText(covidLastUpdatedPath)
+        const updated = await fetchLastUpdatedTime()
         const queryStr = props.queryStr || coronaDefaultView
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
