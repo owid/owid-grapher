@@ -397,7 +397,13 @@ export class CountryPicker extends React.Component<{
                             )}
                             onChange={option => {
                                 const value = first(asArray(option))?.value
-                                if (value) this.metric = value
+                                if (value) {
+                                    this.metric = value
+                                    Analytics.logCovidCountrySelector(
+                                        "sortBy",
+                                        value
+                                    )
+                                }
                             }}
                             menuPlacement="bottom"
                             components={{
@@ -408,9 +414,14 @@ export class CountryPicker extends React.Component<{
                         />
                         <span
                             className="sort"
-                            onClick={() =>
-                                (this.sortOrder = toggleSort(this.sortOrder))
-                            }
+                            onClick={() => {
+                                const sortOrder = toggleSort(this.sortOrder)
+                                this.sortOrder = sortOrder
+                                Analytics.logCovidCountrySelector(
+                                    "sortOrder",
+                                    sortOrder
+                                )
+                            }}
                         >
                             <SortIcon order={this.sortOrder} />
                         </span>

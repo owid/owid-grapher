@@ -52,7 +52,7 @@ export class Analytics {
     }
 
     static logCovidCountrySelector(
-        action: "enter" | "select" | "deselect",
+        action: "enter" | "select" | "deselect" | "sortBy" | "sortOrder",
         note?: string
     ) {
         this.logToAmplitude("COVID_DATA_EXPLORER_COUNTRY_SELECTOR", {
