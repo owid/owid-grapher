@@ -15,7 +15,8 @@ import {
     observable,
     IReactionDisposer,
     observe,
-    Lambda
+    Lambda,
+    reaction
 } from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
@@ -61,7 +62,10 @@ import moment from "moment"
 import { covidDashboardSlug, coronaDefaultView } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
-import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
+import {
+    GlobalEntitySelection,
+    GlobalEntitySelectionModes
+} from "site/client/global-entity/GlobalEntitySelection"
 
 const abSeed = Math.random()
 
@@ -1015,6 +1019,7 @@ export class CovidDataExplorer extends React.Component<{
         this._updateChart()
 
         this.observeChartEntitySelection()
+        this.observeGlobalEntitySelection()
 
         const win = window as any
         win.covidDataExplorer = this
@@ -1065,6 +1070,30 @@ export class CovidDataExplorer extends React.Component<{
                 }
             })
         )
+    }
+
+    private observeGlobalEntitySelection() {
+        const { globalEntitySelection } = this.props
+        if (globalEntitySelection) {
+            this.disposers.push(
+                reaction(
+                    () => [
+                        globalEntitySelection.mode,
+                        globalEntitySelection.selectedEntities
+                    ],
+                    () => {
+                        const { mode, selectedEntities } = globalEntitySelection
+                        if (mode === GlobalEntitySelectionModes.override) {
+                            this.props.params.selectedCountryCodes = new Set(
+                                selectedEntities.map(entity => entity.code)
+                            )
+                            this.updateChart()
+                        }
+                    },
+                    { fireImmediately: true }
+                )
+            )
+        }
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -1215,8 +1244,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         },
         {
-            queryStr: this.props.queryStr,
-            globalEntitySelection: this.props.globalEntitySelection
+            queryStr: this.props.queryStr
         }
     )
 }
