@@ -105,8 +105,8 @@ export class TestIndexPage extends React.Component {
                             </Link>
                         </li>
                         <li>
-                            <Link native to="/test/chartFeatureUsage.json">
-                                Download JSON Report
+                            <Link native to="/test/compareSvgs">
+                                View changed SVGs
                             </Link>
                         </li>
                     </ul>
