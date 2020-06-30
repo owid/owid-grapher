@@ -1,9 +1,16 @@
 import {
   InnerBlocks,
+  InspectorControls,
   __experimentalBlockVariationPicker,
 } from "@wordpress/block-editor";
 import { useSelect, useDispatch } from "@wordpress/data";
-import { SVG, Path } from "@wordpress/components";
+import {
+  SVG,
+  Path,
+  PanelBody,
+  PanelRow,
+  ToggleControl,
+} from "@wordpress/components";
 import { createBlock } from "@wordpress/blocks";
 import { get, map } from "lodash";
 
@@ -84,13 +91,17 @@ const AdditionalInformation = {
   supports: {
     html: false,
   },
+  attributes: {
+    defaultOpen: {
+      type: "boolean",
+    },
+  },
   // Use of variations (previously template options) is still experimental and now undocumented.
   // Some useful references in the meantime:
   // - core columns blocks (where most of the following code comes from):
   //   https://github.com/WordPress/gutenberg/blob/master/packages/block-library/src/columns/edit.js
   // - https://plugins.trac.wordpress.org/changeset/2243801/nhsblocks (00-dashboard/index.js)
-  edit: (props) => {
-    const { clientId, name } = props;
+  edit: ({ clientId, name, attributes: { defaultOpen }, setAttributes }) => {
     const {
       blockType,
       defaultVariation,
@@ -117,10 +128,6 @@ const AdditionalInformation = {
 
     const { replaceInnerBlocks } = useDispatch("core/block-editor");
 
-    if (hasInnerBlocks) {
-      return <InnerBlocks />;
-    }
-
     const createBlocksFromInnerBlocksTemplate = (innerBlocksTemplate) => {
       return map(innerBlocksTemplate, ([name, attributes, innerBlocks = []]) =>
         createBlock(
@@ -132,25 +139,50 @@ const AdditionalInformation = {
     };
 
     return (
-      <__experimentalBlockVariationPicker
-        icon={get(blockType, ["icon", "src"])}
-        label={get(blockType, ["title"])}
-        variations={variationsTemplates}
-        onSelect={(nextVariation = defaultVariation) => {
-          if (nextVariation.attributes) {
-            props.setAttributes(nextVariation.attributes);
-          }
-          if (nextVariation.innerBlocks) {
-            replaceInnerBlocks(
-              props.clientId,
-              createBlocksFromInnerBlocksTemplate(nextVariation.innerBlocks)
-            );
-          }
-        }}
-        allowSkip={false}
-      />
+      <>
+        <InspectorControls>
+          <PanelBody title="Default visibility" initialOpen={true}>
+            <PanelRow>
+              <ToggleControl
+                label={`${defaultOpen ? "Open" : "Closed"} by default`}
+                help="Defines whether the block is open (expanded) or closed (collapsed) by default. The reader will still be able to toggle the block's visibility independently of that setting."
+                checked={!!defaultOpen}
+                onChange={(isChecked) => {
+                  setAttributes({ defaultOpen: isChecked });
+                }}
+              />
+            </PanelRow>
+          </PanelBody>
+        </InspectorControls>
+        <div style={blockStyle}>
+          {hasInnerBlocks ? (
+            <InnerBlocks />
+          ) : (
+            <__experimentalBlockVariationPicker
+              icon={get(blockType, ["icon", "src"])}
+              label={get(blockType, ["title"])}
+              variations={variationsTemplates}
+              onSelect={(nextVariation = defaultVariation) => {
+                if (nextVariation.attributes) {
+                  setAttributes(nextVariation.attributes);
+                }
+                if (nextVariation.innerBlocks) {
+                  replaceInnerBlocks(
+                    clientId,
+                    createBlocksFromInnerBlocksTemplate(
+                      nextVariation.innerBlocks
+                    )
+                  );
+                }
+              }}
+              allowSkip={false}
+            />
+          )}
+        </div>
+      </>
     );
   },
+
   save: (props) => <InnerBlocks.Content />,
 };
 
