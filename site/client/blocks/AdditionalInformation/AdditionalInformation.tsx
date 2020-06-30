@@ -24,15 +24,19 @@ const AdditionalInformation = ({
     content,
     title,
     image,
-    variation
+    variation,
+    defaultOpen
 }: {
     content: string | null
     title: string | null
     image: string | null
     variation: string
+    defaultOpen: boolean
 }) => {
-    const [height, setHeight] = useState<number | string>(0)
-    const [hasBeenOpened, setHasBeenOpened] = useState(false)
+    const [height, setHeight] = useState<number | string>(
+        defaultOpen ? "auto" : 0
+    )
+    const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen)
     const refContainer = useRef<HTMLDivElement>(null)
     const classes = [CLASS_NAME]
 
@@ -96,6 +100,7 @@ const AdditionalInformation = ({
     return (
         <div
             data-variation={variation}
+            data-default-open={defaultOpen}
             ref={refContainer}
             className={classes.join(" ")}
         >
@@ -141,6 +146,7 @@ export const render = ($: CheerioStatic) => {
                 : $block.find("content").html() // the title has been removed so the rest of a variation "full width" block is content.
         // Side note: "content" refers here to the <content> tag output by the block on the PHP side, not
         // the ".content" class.
+        const defaultOpen = $block.attr("default-open") === "true"
         const rendered = ReactDOMServer.renderToString(
             <div className="block-wrapper">
                 <AdditionalInformation
@@ -148,6 +154,7 @@ export const render = ($: CheerioStatic) => {
                     title={title}
                     image={image}
                     variation={variation}
+                    defaultOpen={defaultOpen}
                 />
             </div>
         )
@@ -162,6 +169,7 @@ export const hydrate = () => {
         const titleEl = block.querySelector("h3")
         const title = titleEl ? titleEl.textContent : null
         const variation = block.getAttribute("data-variation") || ""
+        const defaultOpen = block.getAttribute("data-default-open") === "true"
         const figureEl = block.querySelector(".content-wrapper > figure")
         const image = figureEl ? figureEl.innerHTML : null
         const contentEl = block.querySelector(".content")
@@ -172,6 +180,7 @@ export const hydrate = () => {
                 title={title}
                 image={image}
                 variation={variation}
+                defaultOpen={defaultOpen}
             />,
             blockWrapper
         )
