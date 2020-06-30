@@ -33,6 +33,7 @@ import { Time } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { ColorScale } from "./ColorScale"
 import { entityName, year } from "./owidData/OwidTable"
+import { ScaleType } from "./ScaleType"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -77,7 +78,7 @@ export class ScatterTransform extends ChartTransform {
             return "Missing Y axis variable"
         else if (!some(filledDimensions, d => d.property === "x"))
             return "Missing X axis variable"
-        else if (isEmpty(this.possibleEntities))
+        else if (isEmpty(this.possibleEntityNames))
             return "No entities with data for both X and Y"
         else if (isEmpty(this.possibleDataYears))
             return "No years with data for both X and Y"
@@ -133,17 +134,19 @@ export class ScatterTransform extends ChartTransform {
     @computed private get hideBackgroundEntities(): boolean {
         return this.chart.addCountryMode === "disabled"
     }
-    @computed private get possibleEntities(): string[] {
+    @computed private get possibleEntityNames(): entityName[] {
         const yEntities = this.yDimension ? this.yDimension.entityNamesUniq : []
         const xEntities = this.xDimension ? this.xDimension.entityNamesUniq : []
         return intersection(yEntities, xEntities)
     }
 
+    // todo: remove
     @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
         return this.currentData.map(series => series.entityDimensionKey)
     }
 
-    @computed get excludedEntities(): string[] {
+    // todo: move to table
+    @computed get excludedEntityNames(): entityName[] {
         const entityIds = this.chart.props.excludedEntities || []
         const entityNameMap = this.chart.table.entityIdToNameMap
         return entityIds
@@ -151,25 +154,26 @@ export class ScatterTransform extends ChartTransform {
             .filter(d => d)
     }
 
-    getEntitiesToShow(
+    // todo: remove. do this at table filter level
+    getEntityNamesToShow(
         filterBackgroundEntities = this.hideBackgroundEntities
-    ): string[] {
-        let entities = filterBackgroundEntities
+    ): entityName[] {
+        let entityNames = filterBackgroundEntities
             ? this.chart.data.selectedEntityNames
-            : this.possibleEntities
+            : this.possibleEntityNames
 
         if (this.chart.props.matchingEntitiesOnly && this.colorDimension)
-            entities = intersection(
-                entities,
+            entityNames = intersection(
+                entityNames,
                 this.colorDimension.entityNamesUniq
             )
 
-        if (this.excludedEntities)
-            entities = entities.filter(
-                entity => !includes(this.excludedEntities, entity)
+        if (this.excludedEntityNames)
+            entityNames = entityNames.filter(
+                entity => !includes(this.excludedEntityNames, entity)
             )
 
-        return entities
+        return entityNames
     }
 
     // The years for which there MAY be data on the scatterplot
@@ -213,7 +217,7 @@ export class ScatterTransform extends ChartTransform {
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
     private getDataByEntityAndYear(
-        entitiesToShow = this.getEntitiesToShow()
+        entitiesToShow = this.getEntityNamesToShow()
     ): Map<entityName, Map<year, ScatterValue>> {
         const { chart } = this
         const { filledDimensions } = chart.data
@@ -230,20 +234,19 @@ export class ScatterTransform extends ChartTransform {
                 entityName,
                 { years: year[]; values: (string | number)[] }
             >()
-            for (let i = 0; i < dimension.years.length; i++) {
-                const year = dimension.years[i]
-                const value = dimension.values[i]
-                const entityName = dimension.entityNames[i]
+            const columnSlug = dimension.column.slug
+            dimension.column.rows.forEach(row => {
+                const year = row.year ?? row.day
+                const value = row[columnSlug]
+                const entityName = row.entityName
 
-                if (!validEntityLookup[entityName]) continue
-
+                if (!validEntityLookup[entityName]) return
                 if (
                     (dimension.property === "x" ||
                         dimension.property === "y") &&
                     !isNumber(value)
-                ) {
-                    continue
-                }
+                )
+                    return
 
                 let byEntity = initialDataByEntity.get(entityName)
                 if (!byEntity) {
@@ -253,7 +256,7 @@ export class ScatterTransform extends ChartTransform {
 
                 byEntity.years.push(year)
                 byEntity.values.push(value)
-            }
+            })
 
             this._useTolerance(
                 dimension,
@@ -265,19 +268,6 @@ export class ScatterTransform extends ChartTransform {
         this._removeUnwantedPoints(dataByEntityAndYear)
 
         return dataByEntityAndYear
-    }
-
-    // useing for debugging
-    private _flattenPoints(
-        dataByEntityAndYear: Map<entityName, Map<year, ScatterValue>>
-    ) {
-        const allPoints: ScatterValue[] = []
-        for (const [entity, map] of dataByEntityAndYear) {
-            for (const [year, point] of map) {
-                allPoints.push(point)
-            }
-        }
-        return allPoints
     }
 
     private _useTolerance(
@@ -315,7 +305,6 @@ export class ScatterTransform extends ChartTransform {
                     year < targetYear - tolerance ||
                     year > targetYear + tolerance
                 ) {
-                    console.log(year, targetYear, tolerance, dimension.property)
                     continue
                 }
 
@@ -324,14 +313,14 @@ export class ScatterTransform extends ChartTransform {
                 let point = dataByYear.get(outputYear)
                 if (point === undefined) {
                     point = {
+                        entityName,
                         year: outputYear,
                         time: {}
                     } as ScatterValue
                     dataByYear.set(outputYear, point)
                 }
 
-                if (dimension.property === "x") console.log(value)
-                ;(point as any)[dimension.property] = year
+                ;(point as any).time[dimension.property] = year
                 ;(point as any)[dimension.property] = value
             }
         })
@@ -397,6 +386,25 @@ export class ScatterTransform extends ChartTransform {
         return flatten(this.currentData.map(g => g.values))
     }
 
+    private relativeMinAndMax(property: "x" | "y"): [number, number] {
+        let minChange = 0
+        let maxChange = 0
+
+        const values = this.allPoints.filter(
+            point => point.x !== 0 && point.y !== 0
+        )
+        for (let i = 0; i < values.length; i++) {
+            const indexValue = values[i]
+            for (let j = i; j < values.length; j++) {
+                const targetValue = values[j]
+                const change = cagr(indexValue, targetValue, property)
+                if (change < minChange) minChange = change
+                if (change > maxChange) maxChange = change
+            }
+        }
+        return [minChange, maxChange]
+    }
+
     // domains across the entire timeline
     @computed private get xDomainDefault(): [number, number] {
         if (!this.chart.useTimelineDomains) {
@@ -409,30 +417,12 @@ export class ScatterTransform extends ChartTransform {
             )
         }
 
-        if (this.isRelativeMode) {
-            let minChange = 0
-            let maxChange = 0
-            this.getDataByEntityAndYear().forEach(dataByYear => {
-                const values = Array.from(dataByYear.values()).filter(
-                    v => v.x !== 0 && v.y !== 0
-                )
-                for (let i = 0; i < values.length; i++) {
-                    const indexValue = values[i]
-                    for (let j = i; j < values.length; j++) {
-                        const targetValue = values[j]
-                        const change = cagrX(indexValue, targetValue)
-                        if (change < minChange) minChange = change
-                        if (change > maxChange) maxChange = change
-                    }
-                }
-            })
-            return [minChange, maxChange]
-        } else {
-            return domainExtent(
-                this.allPoints.map(v => v.x),
-                this.xScaleType
-            )
-        }
+        if (this.isRelativeMode) return this.relativeMinAndMax("x")
+
+        return domainExtent(
+            this.allPoints.map(v => v.x),
+            this.xScaleType
+        )
     }
 
     @computed private get yDomainDefault(): [number, number] {
@@ -446,42 +436,19 @@ export class ScatterTransform extends ChartTransform {
             )
         }
 
-        if (this.isRelativeMode) {
-            let minChange = 0
-            let maxChange = 0
-            this.getDataByEntityAndYear().forEach(dataByYear => {
-                const values = Array.from(dataByYear.values()).filter(
-                    v => v.x !== 0 && v.y !== 0
-                )
-                for (let i = 0; i < values.length; i++) {
-                    const indexValue = values[i]
-                    for (let j = i; j < values.length; j++) {
-                        const targetValue = values[j]
-                        const change = cagrY(indexValue, targetValue)
-                        if (change < minChange) minChange = change
-                        if (change > maxChange) maxChange = change
-                    }
-                }
-            })
-            return [minChange, maxChange]
-        } else {
-            return domainExtent(
-                this.allPoints.map(v => v.y),
-                this.yScaleType
-            )
-        }
+        if (this.isRelativeMode) return this.relativeMinAndMax("y")
+
+        return domainExtent(
+            this.allPoints.map(v => v.y),
+            this.yScaleType
+        )
     }
 
     @computed private get selectedPoints() {
-        const selectedPoints: ScatterValue[] = []
-        this.getDataByEntityAndYear(this.getEntitiesToShow(true)).forEach(
-            dataByYear => {
-                dataByYear.forEach(point => {
-                    selectedPoints.push(point)
-                })
-            }
+        const entitiesFor = new Set(this.getEntityNamesToShow(true))
+        return this.allPoints.filter(
+            point => point.entityName && entitiesFor.has(point.entityName)
         )
-        return selectedPoints
     }
 
     @computed private get pointsForAxisDomains() {
@@ -609,6 +576,57 @@ export class ScatterTransform extends ChartTransform {
         return this.xDimension ? this.xDimension.formatYear : formatYear
     }
 
+    // todo: add unit tests
+    private _filterValues(
+        values: ScatterValue[],
+        startYear: year,
+        endYear: year,
+        yScaleType: ScaleType,
+        xScaleType: ScaleType,
+        isRelativeMode: boolean,
+        xOverrideYear?: year
+    ) {
+        // Only allow tolerance data to occur once in any given chart (no duplicate data points)
+        // Prioritize the start and end years first, then the "true" year
+
+        // NOTE: since groupBy() creates an object, the values may be reordered. we reorder a few lines below.
+        values = map(
+            groupBy(values, v => v.time.y),
+            (vals: ScatterValue[]) =>
+                sortBy(vals, v =>
+                    v.year === startYear || v.year === endYear
+                        ? -Infinity
+                        : Math.abs(v.year - v.time.y)
+                )[0]
+        )
+
+        if (xOverrideYear === undefined) {
+            // NOTE: since groupBy() creates an object, the values may be reordered
+            values = map(
+                groupBy(values, v => v.time.x),
+                (vals: ScatterValue[]) =>
+                    sortBy(vals, v =>
+                        v.year === startYear || v.year === endYear
+                            ? -Infinity
+                            : Math.abs(v.year - v.time.x)
+                    )[0]
+            )
+        }
+
+        // Sort values by year again in case groupBy() above reordered the values
+        values = sortBy(values, v => v.year)
+
+        // Don't allow values <= 0 for log scales
+        if (yScaleType === "log") values = values.filter(v => v.y > 0)
+        if (xScaleType === "log") values = values.filter(v => v.x > 0)
+
+        // Don't allow values *equal* to zero for CAGR mode
+        if (isRelativeMode) values = values.filter(v => v.y !== 0 && v.x !== 0)
+
+        return values
+    }
+
+    // todo: refactor/remove and/or add unit tests
     @computed get currentData(): ScatterSeries[] {
         if (!this.chart.data.isReady) return []
 
@@ -649,7 +667,7 @@ export class ScatterTransform extends ChartTransform {
             // Use most recent size and color values
             // const lastPoint = last(group.values)
 
-            if (group && group.values.length) {
+            if (group.values.length) {
                 const keyColor = keyColors[entityDimensionKey]
                 if (keyColor !== undefined) {
                     group.color = keyColor
@@ -667,49 +685,16 @@ export class ScatterTransform extends ChartTransform {
             }
         })
 
-        currentData = currentData.map(series => {
-            // Only allow tolerance data to occur once in any given chart (no duplicate data points)
-            // Prioritize the start and end years first, then the "true" year
-            let values = series.values
-
-            // NOTE: since groupBy() creates an object, the values may be reordered
-            values = map(
-                groupBy(values, v => v.time.y),
-                (vals: ScatterValue[]) =>
-                    sortBy(vals, v =>
-                        v.year === startYear || v.year === endYear
-                            ? -Infinity
-                            : Math.abs(v.year - v.time.y)
-                    )[0]
+        currentData.forEach(series => {
+            series.values = this._filterValues(
+                series.values,
+                startYear,
+                endYear,
+                yScaleType,
+                xScaleType,
+                isRelativeMode,
+                xOverrideYear
             )
-
-            if (xOverrideYear === undefined) {
-                // NOTE: since groupBy() creates an object, the values may be reordered
-                values = map(
-                    groupBy(values, v => v.time.x),
-                    (vals: ScatterValue[]) =>
-                        sortBy(vals, v =>
-                            v.year === startYear || v.year === endYear
-                                ? -Infinity
-                                : Math.abs(v.year - v.time.x)
-                        )[0]
-                )
-            }
-
-            // Sort values by year again in case groupBy() above reordered the values
-            values = sortBy(values, v => v.year)
-
-            // Don't allow values <= 0 for log scales
-            if (yScaleType === "log") values = values.filter(v => v.y > 0)
-            if (xScaleType === "log") values = values.filter(v => v.x > 0)
-
-            // Don't allow values *equal* to zero for CAGR mode
-            if (isRelativeMode)
-                values = values.filter(v => v.y !== 0 && v.x !== 0)
-
-            return extend({}, series, {
-                values: values
-            })
         })
 
         currentData = currentData.filter(series => {
@@ -740,8 +725,8 @@ export class ScatterTransform extends ChartTransform {
                 const targetValue = lastOfNonEmptyArray(series.values)
                 series.values = [
                     {
-                        x: cagrX(indexValue, targetValue),
-                        y: cagrY(indexValue, targetValue),
+                        x: cagr(indexValue, targetValue, "x"),
+                        y: cagr(indexValue, targetValue, "y"),
                         size: targetValue.size,
                         year: targetValue.year,
                         time: {
@@ -758,29 +743,14 @@ export class ScatterTransform extends ChartTransform {
     }
 }
 
-function cagrX(indexValue: ScatterValue, targetValue: ScatterValue) {
+function cagr(
+    indexValue: ScatterValue,
+    targetValue: ScatterValue,
+    property: "x" | "y"
+) {
     if (targetValue.year - indexValue.year === 0) return 0
     else {
-        const frac = targetValue.x / indexValue.x
-        if (frac < 0)
-            return (
-                -(
-                    Math.pow(-frac, 1 / (targetValue.year - indexValue.year)) -
-                    1
-                ) * 100
-            )
-        else
-            return (
-                (Math.pow(frac, 1 / (targetValue.year - indexValue.year)) - 1) *
-                100
-            )
-    }
-}
-
-function cagrY(indexValue: ScatterValue, targetValue: ScatterValue) {
-    if (targetValue.year - indexValue.year === 0) return 0
-    else {
-        const frac = targetValue.y / indexValue.y
+        const frac = targetValue[property] / indexValue[property]
         if (frac < 0)
             return (
                 -(

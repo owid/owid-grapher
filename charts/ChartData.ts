@@ -79,6 +79,7 @@ export class ChartData {
         )
     }
 
+    // todo: remove
     // Make a unique string key for an entity on a variable
     makeEntityDimensionKey(
         entityName: entityName,
@@ -93,10 +94,12 @@ export class ChartData {
         return keyBy(this.filledDimensions, "property")
     }
 
+    // todo: remove
     @computed get hasSelection() {
         return this.chart.props.selectedData.length > 0
     }
 
+    // todo: remove
     @computed private get selectionData(): Array<{
         entityDimensionKey: EntityDimensionKey
         color?: Color
@@ -140,10 +143,12 @@ export class ChartData {
         })
     }
 
+    // todo: remove
     selectEntityDimensionKey(key: EntityDimensionKey) {
         this.selectedKeys = this.selectedKeys.concat([key])
     }
 
+    // todo: remove
     @computed.struct get keyColors(): {
         [entityDimensionKey: string]: Color | undefined
     } {
@@ -156,6 +161,7 @@ export class ChartData {
         return keyColors
     }
 
+    // todo: remove
     setKeyColor(key: EntityDimensionKey, color: Color | undefined) {
         const meta = this.lookupKey(key)
         const selectedData = cloneDeep(this.chart.props.selectedData)
@@ -167,12 +173,14 @@ export class ChartData {
         this.chart.props.selectedData = selectedData
     }
 
+    // todo: remove
     @computed get selectedEntityNames(): entityName[] {
         return uniq(
             this.selectedKeys.map(key => this.lookupKey(key).entityName)
         )
     }
 
+    // todo: remove
     @computed get availableEntityNames(): entityName[] {
         const entitiesForDimensions = this.axisDimensions.map(dim => {
             return this.availableKeys
@@ -184,12 +192,14 @@ export class ChartData {
         return union(...entitiesForDimensions)
     }
 
+    // todo: remove
     @action.bound setSelectedEntity(entityId: entityId) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
         this.chart.props.selectedData = selectedData
     }
 
+    // todo: remove
     @action.bound setSelectedEntitiesByCode(entityCodes: entityCode[]) {
         const matchedEntities = new Map<string, boolean>()
         entityCodes.forEach(code => matchedEntities.set(code, false))
@@ -228,14 +238,17 @@ export class ChartData {
         return matchedEntities
     }
 
+    // todo: remove
     @action.bound resetSelectedEntities() {
         this.chart.props.selectedData = this.chart.initialProps.selectedData
     }
 
+    // todo: remove
     @computed get selectedEntityCodes(): entityCode[] {
         return uniq(this.selectedKeys.map(k => this.lookupKey(k).shortCode))
     }
 
+    // todo: remove
     @computed get selectedKeys(): EntityDimensionKey[] {
         return this.selectionData.map(d => d.entityDimensionKey)
     }
@@ -256,12 +269,14 @@ export class ChartData {
         chart.props.selectedData = selection
     }
 
+    // todo: remove
     @computed get selectedKeysByKey(): {
         [entityDimensionKey: string]: EntityDimensionKey
     } {
         return keyBy(this.selectedKeys)
     }
 
+    // todo: remove this
     // Calculate the available entityDimensionKeys and their associated info
     @computed get entityDimensionMap(): Map<
         EntityDimensionKey,
@@ -314,15 +329,18 @@ export class ChartData {
         return keyData
     }
 
+    // todo: remove
     @computed.struct get availableKeys(): EntityDimensionKey[] {
         return sortBy([...Array.from(this.entityDimensionMap.keys())])
     }
 
+    // todo: remove
     @computed.struct get remainingKeys(): EntityDimensionKey[] {
         const { availableKeys, selectedKeys } = this
         return without(availableKeys, ...selectedKeys)
     }
 
+    // todo: remove
     @computed get availableKeysByEntity(): Map<
         entityName,
         EntityDimensionKey[]
@@ -336,16 +354,19 @@ export class ChartData {
         return keysByEntity
     }
 
+    // todo: remove
     lookupKey(key: EntityDimensionKey): EntityDimensionInfo {
         const keyDatum = this.entityDimensionMap.get(key)
         if (keyDatum !== undefined) return keyDatum
         else throw new Error(`Unknown data key: ${key}`)
     }
 
+    // todo: remove
     getLabelForKey(key: EntityDimensionKey): string {
         return this.lookupKey(key).label
     }
 
+    // todo: remove
     toggleKey(key: EntityDimensionKey) {
         if (includes(this.selectedKeys, key)) {
             this.selectedKeys = this.selectedKeys.filter(k => k !== key)

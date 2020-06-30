@@ -52,7 +52,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
     }
 
     @computed get excludedEntityChoices(): string[] {
-        return this.props.chart.scatter.getEntitiesToShow()
+        return this.props.chart.scatter.getEntityNamesToShow()
     }
 
     @action.bound onExcludeEntity(entity: string) {
@@ -142,9 +142,9 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                         onValue={v => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}
                     />
-                    {chart.scatter.excludedEntities && (
+                    {chart.scatter.excludedEntityNames && (
                         <ul className="excludedEntities">
-                            {chart.scatter.excludedEntities.map(entity => (
+                            {chart.scatter.excludedEntityNames.map(entity => (
                                 <li key={entity}>
                                     <div
                                         className="clickable"

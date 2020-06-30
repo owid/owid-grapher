@@ -88,6 +88,7 @@ export interface ColumnSpec {
 
     // More advanced options:
     isFilterColumn?: boolean
+    isSelectionColumn?: boolean
     annotationsColumnSlug?: columnSlug
 }
 
@@ -191,7 +192,7 @@ export abstract class AbstractColumn {
         return sortedUniq(this.values)
     }
 
-    @computed private get rows() {
+    @computed get rows() {
         const slug = this.spec.slug
         return this.table.unfilteredRows.filter(row => row[slug] !== undefined)
     }
@@ -255,6 +256,16 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     ) {
         return this._addComputedColumn(
             { slug, isFilterColumn: true, fn: predicate },
+            BooleanColumn
+        )
+    }
+
+    @action.bound addSelectionColumn(
+        slug: columnSlug,
+        predicate: (row: Row) => boolean
+    ) {
+        return this._addComputedColumn(
+            { slug, isSelectionColumn: true, fn: predicate },
             BooleanColumn
         )
     }
