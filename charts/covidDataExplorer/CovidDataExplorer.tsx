@@ -73,12 +73,15 @@ export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
     updated: string
+    isEmbed?: boolean
 }> {
     static async bootstrap({
         containerNode,
+        isEmbed,
         queryStr
     }: {
         containerNode: HTMLElement
+        isEmbed?: boolean
         queryStr?: string
     }) {
         const typedData = await fetchAndParseData()
@@ -91,6 +94,7 @@ export class CovidDataExplorer extends React.Component<{
                 data={typedData}
                 updated={updated}
                 params={startingParams}
+                isEmbed={isEmbed}
             />,
             containerNode
         )
@@ -450,11 +454,12 @@ export class CovidDataExplorer extends React.Component<{
         return (
             <>
                 <div
-                    className={classnames([
-                        `CovidDataExplorer`,
-                        this.isMobile ? "mobile-explorer" : undefined,
-                        showControls ? "" : "HideControls"
-                    ])}
+                    className={classnames({
+                        CovidDataExplorer: true,
+                        "mobile-explorer": this.isMobile,
+                        HideControls: !showControls,
+                        "is-embed": this.props.isEmbed
+                    })}
                 >
                     {showControls && this.header}
                     {showControls && this.controlBar}

@@ -7,6 +7,7 @@ import {
 } from "./global-entity/GlobalEntitySelection"
 import { Figure } from "./figures/Figure"
 import { ChartFigure } from "./figures/ChartFigure"
+import { CovidExplorerFigure } from "./figures/CovidExplorerFigure"
 
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts
@@ -86,6 +87,7 @@ class MultiEmbedder {
         container: HTMLElement | Document = document
     ) {
         ChartFigure.figuresFromDOM(container).forEach(this.addFigure)
+        CovidExplorerFigure.figuresFromDOM(container).forEach(this.addFigure)
         return this
     }
 

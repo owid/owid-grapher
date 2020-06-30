@@ -11,28 +11,28 @@ $chart-box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
 $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 2px 2px;
 
-html.iframe {
-    #covidDataExplorerContainer {
-        height: 100vh;
-        min-height: auto !important;
-        max-height: none;
-        // leave some padding for shadows
-        padding: 3px;
-    }
+html.iframe #covidDataExplorerContainer {
+    height: 100vh;
+    min-height: auto !important;
+    max-height: none;
+    // leave some padding for shadows
+    padding: 3px;
+}
 
-    .CovidDataExplorer {
-        height: 100%;
-        min-height: auto !important;
-        max-height: none;
-        min-width: auto !important;
-        max-width: none;
-        padding: 0;
-    }
+html.iframe .CovidDataExplorer,
+.CovidDataExplorer.is-embed {
+    height: 100%;
+    min-height: auto !important;
+    max-height: none;
+    min-width: auto !important;
+    max-width: none;
+    padding: 0;
+}
 
-    .CovidDataExplorerFigure {
-        min-height: auto !important;
-        max-height: none;
-    }
+html.iframe .CovidDataExplorerFigure,
+.CovidDataExplorerFigure.is-embed {
+    min-height: auto !important;
+    max-height: none;
 }
 
 .CovidDataExplorer {
