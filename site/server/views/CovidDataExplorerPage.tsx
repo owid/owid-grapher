@@ -17,8 +17,12 @@ import { SiteSubnavigation } from "./SiteSubnavigation"
 
 export const CovidDataExplorerPage = () => {
     const script = `
+    var div = document.getElementById("${covidDataExplorerContainerId}");
     window.CovidDataExplorer.bootstrap({
-        containerNode: document.getElementById("${covidDataExplorerContainerId}")
+        containerNode: div,
+        queryStr: window.location.search
+    }).then(function(view) {
+        view.bindToWindow();
     })
 `
 

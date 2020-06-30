@@ -75,16 +75,18 @@ export class CovidDataExplorer extends React.Component<{
     updated: string
 }> {
     static async bootstrap({
-        containerNode
+        containerNode,
+        queryStr
     }: {
         containerNode: HTMLElement
+        queryStr?: string
     }) {
         const typedData = await fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
         const startingParams = new CovidQueryParams(
-            window.location.search || coronaDefaultView
+            queryStr || coronaDefaultView
         )
-        ReactDOM.render(
+        return ReactDOM.render(
             <CovidDataExplorer
                 data={typedData}
                 updated={updated}
@@ -1005,8 +1007,6 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     componentDidMount() {
-        this.bindToWindow()
-
         this.chart.hideEntityControls = true
         this.chart.externalCsvLink = covidDataPath
         this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
@@ -1065,6 +1065,8 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
+    // Binds chart properties to global window title and URL. This should only
+    // ever be invoked from top-level JavaScript.
     bindToWindow() {
         const url = new CovidUrl(this.chart.url, this.props.params)
         urlBinding.bindUrlToWindow(url)
