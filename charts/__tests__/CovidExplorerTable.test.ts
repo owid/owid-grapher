@@ -5,12 +5,13 @@ import {
     makeCountryOptions,
     getLeastUsedColor,
     generateContinentRows,
-    addDaysSinceColumn
-} from "../covidDataExplorer/CovidDataUtils"
+    CovidExplorerTable
+} from "../covidDataExplorer/CovidExplorerTable"
 import { csvParse } from "d3-dsv"
 import { testData } from "../../test/fixtures/CovidTestData"
 import { ParsedCovidCsvRow } from "charts/covidDataExplorer/CovidTypes"
 import { OwidTable } from "charts/owidData/OwidTable"
+import uniq from "lodash/uniq"
 
 const getRows = () => {
     const testRows: ParsedCovidCsvRow[] = csvParse(testData) as any
@@ -44,8 +45,8 @@ describe(generateContinentRows, () => {
 
 describe("build covid column", () => {
     const parsedRows = getRows()
-    const table = new OwidTable(parsedRows)
-    table.addRollingAverageColumn(
+    const dataTable = new CovidExplorerTable(new OwidTable([]), parsedRows)
+    dataTable.table.addRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
         3,
         row => row.total_cases,
@@ -54,19 +55,18 @@ describe("build covid column", () => {
     )
 
     it("correctly builds a grapher variable", () => {
-        expect(table.rows[3].totalCasesSmoothed).toEqual(14.5)
+        expect(dataTable.table.rows[3].totalCasesSmoothed).toEqual(14.5)
     })
 
     it("correctly builds a days since variable", () => {
-        const slug = addDaysSinceColumn(
-            table,
+        const slug = dataTable.addDaysSinceColumn(
             "totalCasesSmoothed",
             123,
             5,
             "Some title"
         )
-        expect(table.rows[2][slug]).toEqual(0)
-        expect(table.rows[3][slug]).toEqual(1)
+        expect(dataTable.table.rows[2][slug]).toEqual(0)
+        expect(dataTable.table.rows[3][slug]).toEqual(1)
     })
 })
 
@@ -79,5 +79,22 @@ describe(getLeastUsedColor, () => {
         expect(
             getLeastUsedColor(["red", "green"], ["red", "green", "green"])
         ).toEqual("red")
+    })
+})
+
+describe("column specs", () => {
+    const dataTable = new CovidExplorerTable(new OwidTable([]), [])
+    it("computes unique variable ids", () => {
+        expect(
+            uniq(
+                [
+                    dataTable.buildColumnSpec("tests", 1000, true, 3),
+                    dataTable.buildColumnSpec("cases", 1000, true, 3),
+                    dataTable.buildColumnSpec("tests", 100, true, 3),
+                    dataTable.buildColumnSpec("tests", 1000, true, 0),
+                    dataTable.buildColumnSpec("tests", 1000, false, 3)
+                ].map(spec => spec.owidVariableId)
+            ).length
+        ).toEqual(5)
     })
 })

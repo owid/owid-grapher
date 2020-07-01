@@ -31,7 +31,6 @@ import {
     SmoothingOption,
     TotalFrequencyOption,
     DailyFrequencyOption,
-    MetricKind,
     CountryOption,
     CovidGrapherRow
 } from "./CovidTypes"
@@ -43,10 +42,9 @@ import {
     makeCountryOptions,
     covidDataPath,
     covidLastUpdatedPath,
-    getTrajectoryOptions,
     getLeastUsedColor,
-    addDaysSinceColumn
-} from "./CovidDataUtils"
+    CovidExplorerTable
+} from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
@@ -56,8 +54,6 @@ import {
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
-import { columnSpecs, buildColumnSpec } from "./CovidColumnSpecs"
-import { RowToValueMapper } from "charts/owidData/OwidTable"
 
 const abSeed = Math.random()
 
@@ -500,7 +496,7 @@ export class CovidDataExplorer extends React.Component<{
         return this.countryOptions.map(country => country.name)
     }
 
-    @computed get perCapitaDivisor() {
+    @computed private get perCapitaDivisor() {
         if (this.constrainedParams.testsMetric) return 1000
         return 1000000
     }
@@ -653,233 +649,16 @@ export class CovidDataExplorer extends React.Component<{
         return this.constrainedParams.aligned ? "ScatterPlot" : "LineChart"
     }
 
-    private initColumn(
-        columnName: MetricKind,
-        rowFn: RowToValueMapper,
-        daily: boolean = false,
-        perCapita = this.constrainedParams.perCapita ? this.perCapitaDivisor : 1
-    ) {
-        const smoothing = this.constrainedParams.smoothing
-        const spec = buildColumnSpec(
-            columnName,
-            perCapita,
-            daily,
-            smoothing,
-            columnName === "tests" ? "" : " - " + this.lastUpdated
-        )
-
-        const table = this.chart.table
-        if (table.columnsBySlug.has(spec.slug)) return
-
-        // The 7 day test smoothing is already calculated, so for now just reuse that instead of recalculating.
-        const alreadySmoothed =
-            (columnName === "tests" ||
-                columnName === "tests_per_case" ||
-                columnName === "positive_test_rate") &&
-            smoothing === 7
-
-        if (perCapita > 1) {
-            const originalRowFn = rowFn
-            rowFn = row => {
-                const value = originalRowFn(row)
-                if (value === undefined) return undefined
-                const pop = row.population
-                if (!pop) {
-                    console.log(
-                        `Warning: Missing population for ${row.location}. Excluding from perCapita`
-                    )
-                    return undefined
-                }
-                return perCapita * (value / pop)
-            }
-        }
-
-        if (smoothing && !alreadySmoothed)
-            table.addRollingAverageColumn(
-                spec,
-                smoothing,
-                rowFn,
-                "day",
-                "entityName"
-            )
-        else table.addComputedColumn({ ...spec, fn: rowFn })
-    }
-
     @computed get currentYVarId() {
-        const params = this.constrainedParams
-        return buildColumnSpec(
-            this.metricName,
-            params.perCapita ? this.perCapitaDivisor : 1,
-            params.dailyFreq,
-            params.smoothing
+        return this.covidExplorerTable.buildColumnSpecFromParams(
+            this.constrainedParams
         ).owidVariableId!
     }
 
-    private get metricName(): MetricKind {
-        const params = this.constrainedParams
-        if (params.testsMetric) return "tests"
-        if (params.casesMetric) return "cases"
-        if (params.deathsMetric) return "deaths"
-        if (params.cfrMetric) return "case_fatality_rate"
-        if (params.testsPerCaseMetric) return "tests_per_case"
-        return "positive_test_rate"
-    }
-
-    initRequestedColumns() {
-        const params = this.constrainedParams
-
-        if (params.casesMetric && params.dailyFreq)
-            this.initColumn(this.metricName, row => row.new_cases, true)
-        if (params.casesMetric && params.totalFreq)
-            this.initColumn(this.metricName, row => row.total_cases)
-
-        const needsDeaths = params.testsMetric && params.aligned
-        if ((params.deathsMetric && params.dailyFreq) || needsDeaths)
-            this.initColumn("deaths", row => row.new_deaths, true)
-        if ((params.deathsMetric && params.totalFreq) || needsDeaths)
-            this.initColumn("deaths", row => row.total_deaths)
-
-        if (params.testsMetric && params.dailyFreq)
-            this.initColumn(
-                this.metricName,
-                row => {
-                    return params.smoothing === 7
-                        ? row.new_tests_smoothed
-                        : row.new_tests
-                },
-                true
-            )
-        if (params.testsMetric && params.totalFreq)
-            this.initColumn(this.metricName, row => row.total_tests)
-
-        if (params.cfrMetric && params.dailyFreq)
-            this.initColumn(
-                this.metricName,
-                row =>
-                    row.total_cases < 100
-                        ? undefined
-                        : row.new_cases && row.new_deaths
-                        ? (100 * row.new_deaths) / row.new_cases
-                        : 0,
-                true
-            )
-        if (params.cfrMetric && params.totalFreq)
-            this.initColumn(this.metricName, row =>
-                row.total_cases < 100
-                    ? undefined
-                    : row.total_deaths && row.total_cases
-                    ? (100 * row.total_deaths) / row.total_cases
-                    : 0
-            )
-
-        if (params.testsPerCaseMetric && params.dailyFreq) {
-            if (params.smoothing) {
-                const casesSlug = this.addNewCasesSmoothedColumn()
-                this.initColumn(
-                    this.metricName,
-                    row => {
-                        if (
-                            row.new_tests_smoothed === undefined ||
-                            !(row as any)[casesSlug]
-                        )
-                            return undefined
-                        const tpc =
-                            row.new_tests_smoothed / (row as any)[casesSlug]
-                        return tpc >= 1 ? tpc : undefined
-                    },
-                    true
-                )
-            } else {
-                this.initColumn(
-                    this.metricName,
-                    row => {
-                        if (row.new_tests === undefined || row.new_cases)
-                            return undefined
-                        const tpc = row.new_tests / row.new_cases
-                        return tpc >= 1 ? tpc : undefined
-                    },
-                    true
-                )
-            }
-        }
-        if (params.testsPerCaseMetric && params.totalFreq)
-            this.initColumn(this.metricName, row => {
-                if (row.total_tests === undefined || !row.total_cases)
-                    return undefined
-                const tpc = row.total_tests / row.total_cases
-                return tpc >= 1 ? tpc : undefined
-            })
-
-        if (params.positiveTestRate && params.dailyFreq) {
-            const casesSlug = this.addNewCasesSmoothedColumn()
-            this.initColumn(
-                this.metricName,
-                row => {
-                    const testCount =
-                        params.smoothing === 7
-                            ? row.new_tests_smoothed
-                            : row.new_tests
-
-                    const cases =
-                        params.smoothing === 7
-                            ? (row as any)[casesSlug]
-                            : row.new_cases
-
-                    if (!testCount) return undefined
-
-                    const rate = cases / testCount
-                    return rate >= 0 && rate <= 1 ? rate : undefined
-                },
-                true
-            )
-        }
-        if (params.positiveTestRate && params.totalFreq)
-            this.initColumn(this.metricName, row => {
-                if (row.total_cases === undefined || !row.total_tests)
-                    return undefined
-                const rate = row.total_cases / row.total_tests
-                return rate >= 0 && rate <= 1 ? rate : undefined
-            })
-
-        if (params.aligned) {
-            const option = this.daysSinceOption
-            addDaysSinceColumn(
-                this.chart.table,
-                option.sourceSlug,
-                option.id,
-                option.threshold,
-                option.title
-            )
-        }
-    }
-
-    private addNewCasesSmoothedColumn() {
-        const smoothing = this.constrainedParams.smoothing
-        const slug = `new_cases_smoothed_${smoothing}day`
-        if (this.chart.table.columnsBySlug.has(slug)) return slug
-        this.chart.table.addRollingAverageColumn(
-            {
-                slug
-            },
-            smoothing,
-            row => row.new_cases,
-            "day",
-            "entityName"
-        )
-
-        return slug
-    }
-
     @computed get daysSinceOption() {
-        const params = this.constrainedParams
-        const kind = params.casesMetric ? "cases" : "deaths"
-        const options = getTrajectoryOptions(
-            kind,
-            params.dailyFreq,
-            params.perCapita,
-            params.smoothing
+        return this.covidExplorerTable.getTrajectoryOptions(
+            this.constrainedParams
         )
-        return options
     }
 
     updateChart() {
@@ -890,9 +669,12 @@ export class CovidDataExplorer extends React.Component<{
         }, 1)
     }
 
-    private initTable() {
-        this.chart.table.addRowsAndDetectColumns(this.props.data)
-        this.chart.table.addColumnSpec(columnSpecs.continents)
+    @computed get covidExplorerTable() {
+        return new CovidExplorerTable(
+            this.chart.table,
+            this.props.data,
+            this.lastUpdated
+        )
     }
 
     // We can't create a new chart object with every radio change because the Chart component itself
@@ -900,8 +682,7 @@ export class CovidDataExplorer extends React.Component<{
     // manually update the chart when the chart builderselections change.
     // todo: cleanup
     @action.bound private _updateChart() {
-        if (!this.chart.table.rows.length) this.initTable()
-        this.initRequestedColumns()
+        this.covidExplorerTable.initRequestedColumns(this.constrainedParams)
         const chartProps = this.chart.props
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle

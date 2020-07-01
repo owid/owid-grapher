@@ -1,7 +1,4 @@
 import { ColumnSpec } from "charts/owidData/OwidTable"
-import { MetricKind } from "./CovidTypes"
-import { cloneDeep } from "lodash"
-import { getColumnSlug } from "./CovidDataUtils"
 
 // Normally all variables come from the WP backend. In this attempt I try and generate variables client side.
 // This map contains the meta data for these generated variables which they then can extend. There's the obvious
@@ -224,76 +221,4 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
             additionalInfo: ""
         }
     }
-}
-
-type MetricKey = {
-    [K in MetricKind]: number
-}
-
-const buildCovidVariableId = (
-    name: MetricKind,
-    perCapita: number,
-    rollingAverage?: number,
-    daily?: boolean
-): number => {
-    const arbitraryStartingPrefix = 1145
-    const names: MetricKey = {
-        tests: 0,
-        cases: 1,
-        deaths: 2,
-        positive_test_rate: 3,
-        case_fatality_rate: 4,
-        tests_per_case: 5
-    }
-    const parts = [
-        arbitraryStartingPrefix,
-        names[name],
-        daily ? 1 : 0,
-        perCapita,
-        rollingAverage
-    ]
-    return parseInt(parts.join(""))
-}
-
-export const buildColumnSpec = (
-    name: MetricKind,
-    perCapita: number,
-    daily?: boolean,
-    rollingAverage?: number,
-    updatedTime?: string
-): ColumnSpec => {
-    const spec = cloneDeep(columnSpecs[name]) as ColumnSpec
-    spec.slug = getColumnSlug(name, perCapita, daily, rollingAverage)
-    spec.owidVariableId = buildCovidVariableId(
-        name,
-        perCapita,
-        rollingAverage,
-        daily
-    )
-    spec.source!.name = `${spec.source!.name}${updatedTime}`
-
-    const messages: { [index: number]: string } = {
-        1: "",
-        1e3: " per thousand people",
-        1e6: " per million people"
-    }
-
-    spec.display!.name = `${daily ? "Daily " : "Cumulative "}${
-        spec.display!.name
-    }${messages[perCapita]}`
-
-    // Show decimal places for rolling average & per capita variables
-    if (perCapita > 1) {
-        spec.display!.numDecimalPlaces = 2
-    } else if (
-        name === "positive_test_rate" ||
-        name === "case_fatality_rate" ||
-        (rollingAverage && rollingAverage > 1)
-    ) {
-        spec.display!.numDecimalPlaces = 1
-    } else {
-        spec.display!.numDecimalPlaces = 0
-    }
-
-    return spec
 }
