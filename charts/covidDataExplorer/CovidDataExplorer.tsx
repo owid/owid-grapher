@@ -24,8 +24,7 @@ import {
     pick,
     lastOfNonEmptyArray,
     throttle,
-    capitalize,
-    intersection
+    capitalize
 } from "charts/Util"
 import {
     SmoothingOption,
@@ -83,8 +82,6 @@ export class CovidDataExplorer extends React.Component<{
     @observable private chartContainerRef: React.RefObject<
         HTMLDivElement
     > = React.createRef()
-
-    private selectionChangeFromBuilder = false
 
     @action.bound clearSelectionCommand() {
         this.props.params.selectedCountryCodes.clear()
@@ -564,7 +561,7 @@ export class CovidDataExplorer extends React.Component<{
         })
     }
 
-    @computed get countryCodeToEntityIdMap() {
+    @computed private get countryCodeToEntityIdMap() {
         const countryCodeMap = new Map<entityCode, entityId>()
         this.countryOptions.forEach(country => {
             countryCodeMap.set(country.code, country.entityId)
@@ -572,31 +569,15 @@ export class CovidDataExplorer extends React.Component<{
         return countryCodeMap
     }
 
-    private availableCountriesCache: Map<string, Set<string>> = new Map()
-
     @computed get availableCountriesForMetric() {
-        let key: string
-        if (this.xVariableId && this.xColumn && this.yColumn) {
-            key = this.xVariableId + "-" + this.currentYVarId
-            if (!this.availableCountriesCache.get(key)) {
-                const data = intersection(
-                    Array.from(this.xColumn.entityNamesUniq.values()),
-                    Array.from(this.yColumn.entityNamesUniq.values())
+        if (this.xVariableId && this.xColumn && this.yColumn)
+            return new Set(
+                [...this.xColumn.entityNamesUniq].filter(entityName =>
+                    this.yColumn.entityNamesUniq.has(entityName)
                 )
-                this.availableCountriesCache.set(key, new Set(data))
-            }
-        } else if (this.yColumn) {
-            key = this.currentYVarId + ""
-            if (!this.availableCountriesCache.get(key)) {
-                this.availableCountriesCache.set(
-                    key,
-                    this.yColumn.entityNamesUniq
-                )
-            }
-        } else {
-            return new Set()
-        }
-        return this.availableCountriesCache.get(key)!
+            )
+        else if (this.yColumn) return this.yColumn.entityNamesUniq
+        return new Set()
     }
 
     private _countryCodeToColorMapCache: {
@@ -652,6 +633,7 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
+    private selectionChangeFromBuilder = false
     updateChart() {
         // Updating the chart may take a second so render the Data Explorer controls immediately then the chart.
         setTimeout(() => {
