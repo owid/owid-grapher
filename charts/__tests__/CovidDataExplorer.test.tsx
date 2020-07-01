@@ -4,14 +4,14 @@ import { CovidDataExplorer } from "../covidDataExplorer/CovidDataExplorer"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 import { testData } from "../../test/fixtures/CovidTestData"
 import { csvParse } from "d3-dsv"
-import { parseCovidRow } from "charts/covidDataExplorer/CovidExplorerTable"
+import { CovidExplorerTable } from "charts/covidDataExplorer/CovidExplorerTable"
 import React from "react"
 import { shallow } from "enzyme"
 import { ParsedCovidCsvRow } from "charts/covidDataExplorer/CovidTypes"
 
 const getRows = () => {
     const testRows: ParsedCovidCsvRow[] = csvParse(testData) as any
-    return testRows.map(parseCovidRow)
+    return testRows.map(CovidExplorerTable.parseCovidRow)
 }
 
 describe(CovidDataExplorer, () => {

@@ -65,6 +65,7 @@ export interface CountryOption {
     code: string
     continent: string
     population: number
+    entityId: number
     rows: ParsedCovidCsvRow[]
 }
 

@@ -38,8 +38,6 @@ import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
 import {
-    fetchAndParseData,
-    makeCountryOptions,
     covidDataPath,
     covidLastUpdatedPath,
     getLeastUsedColor,
@@ -54,6 +52,7 @@ import {
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
+import { entityCode, entityId } from "charts/owidData/OwidTable"
 
 const abSeed = Math.random()
 
@@ -66,7 +65,7 @@ export class CovidDataExplorer extends React.Component<{
     static async bootstrap(
         containerNode = document.getElementById(covidDataExplorerContainerId)
     ) {
-        const typedData = await fetchAndParseData()
+        const typedData = await CovidExplorerTable.fetchAndParseData()
         const updated = await fetchText(covidLastUpdatedPath)
         const startingParams = new CovidQueryParams(
             window.location.search || coronaDefaultView
@@ -483,7 +482,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get countryOptions(): CountryOption[] {
-        return makeCountryOptions(this.props.data)
+        return CovidExplorerTable.makeCountryOptions(this.props.data)
     }
 
     @computed get selectedCountryOptions(): CountryOption[] {
@@ -497,15 +496,15 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get perCapitaDivisor() {
-        if (this.constrainedParams.testsMetric) return 1000
-        return 1000000
+        if (this.constrainedParams.testsMetric) return 1e3
+        return 1e6
     }
 
     @computed private get perCapitaOptions() {
         return {
             1: "",
-            1000: "per 1,000 people",
-            1000000: "per million people"
+            1e3: "per 1,000 people",
+            1e6: "per million people"
         }
     }
 
@@ -555,7 +554,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get selectedData() {
-        const countryCodeMap = this.countryCodeMap
+        const countryCodeMap = this.countryCodeToEntityIdMap
         return Array.from(this.props.params.selectedCountryCodes).map(code => {
             return {
                 index: 0,
@@ -565,20 +564,12 @@ export class CovidDataExplorer extends React.Component<{
         })
     }
 
-    @computed get countryMap() {
-        const map = new Map<string, number>()
-        this.countryOptions.forEach((country, index) => {
-            map.set(country.name, index)
+    @computed get countryCodeToEntityIdMap() {
+        const countryCodeMap = new Map<entityCode, entityId>()
+        this.countryOptions.forEach(country => {
+            countryCodeMap.set(country.code, country.entityId)
         })
-        return map
-    }
-
-    @computed get countryCodeMap() {
-        const map = new Map<string, number>()
-        this.countryOptions.forEach((country, index) => {
-            map.set(country.code, index)
-        })
-        return map
+        return countryCodeMap
     }
 
     private availableCountriesCache: Map<string, Set<string>> = new Map()

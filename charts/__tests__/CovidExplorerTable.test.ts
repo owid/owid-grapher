@@ -1,10 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import {
-    parseCovidRow,
-    makeCountryOptions,
     getLeastUsedColor,
-    generateContinentRows,
     CovidExplorerTable
 } from "../covidDataExplorer/CovidExplorerTable"
 import { csvParse } from "d3-dsv"
@@ -16,29 +13,29 @@ import { CovidConstrainedQueryParams } from "charts/covidDataExplorer/CovidChart
 
 const getRows = () => {
     const testRows: ParsedCovidCsvRow[] = csvParse(testData) as any
-    return testRows.map(parseCovidRow)
+    return testRows.map(CovidExplorerTable.parseCovidRow)
 }
 
-describe(parseCovidRow, () => {
+describe("parse row", () => {
     const parsedRows = getRows()
     it("correctly parses data from mega file", () => {
         expect(parsedRows[0].total_cases).toEqual(2)
     })
 })
 
-describe(makeCountryOptions, () => {
+describe("makeCountryOptions", () => {
     const parsedRows = getRows()
     it("correctly computes options", () => {
-        const options = makeCountryOptions(parsedRows)
+        const options = CovidExplorerTable.makeCountryOptions(parsedRows)
         const world = options[2]
         expect(world.code).toEqual("OWID_WRL")
     })
 })
 
-describe(generateContinentRows, () => {
+describe("generateContinentRows", () => {
     const parsedRows = getRows()
     it("correctly groups continents and adds rows for each", () => {
-        const regionRows = generateContinentRows(parsedRows)
+        const regionRows = CovidExplorerTable.generateContinentRows(parsedRows)
         expect(regionRows.length).toEqual(6)
         expect(regionRows[regionRows.length - 1].total_cases).toEqual(46451)
     })

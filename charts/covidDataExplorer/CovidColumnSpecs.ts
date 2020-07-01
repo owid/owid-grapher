@@ -222,3 +222,49 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
         }
     }
 }
+
+// todo: add annotations back
+// `Benin: Note that on May 19 the methodology has changed
+// Spain: Note that on May 25 the methodology has changed
+// United Kingdom: Note that on June 1 the methodology has changed
+// Panama: Note that on June 3 the methodology has changed
+// European Union: Some EU countries changed methodology. See country-by-country series.
+// India: Note that on June 17 earlier deaths were added to the total.`
+
+export const trajectoryOptions = {
+    deaths: {
+        total: {
+            title: "Days since the 5th total confirmed death",
+            threshold: 5,
+            id: 4561
+        },
+        daily: {
+            title: "Days since 5 daily new deaths first reported",
+            threshold: 5,
+            id: 4562
+        },
+        perCapita: {
+            title: "Days since total confirmed deaths reached 0.1 per million",
+            threshold: 0.1,
+            id: 4563
+        }
+    },
+    cases: {
+        total: {
+            title: "Days since the 100th confirmed case",
+            threshold: 100,
+            id: 4564
+        },
+        daily: {
+            title: "Days since confirmed cases first reached 30 per day",
+            threshold: 30,
+            id: 4565
+        },
+        perCapita: {
+            title:
+                "Days since the total confirmed cases per million people reached 1",
+            threshold: 1,
+            id: 4566
+        }
+    }
+}
