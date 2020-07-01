@@ -20,6 +20,8 @@ import { bakeGlobalEntityControl } from "site/client/global-entity/GlobalEntityC
 import { Footnote } from "site/client/Footnote"
 import { Country } from "utils/countries"
 import { covidDefaultCountryPlaceholder } from "./covid/CovidConstants"
+import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -284,6 +286,27 @@ export async function formatWordpressPost(
                 }
             }
         }
+    }
+
+    // Replace explorer iframes with iframeless embed
+    const explorerIframes = $("iframe")
+        .toArray()
+        .filter(el => (el.attribs["src"] || "").includes(covidDashboardSlug))
+    for (const el of explorerIframes) {
+        const $el = $(el)
+        const src = el.attribs["src"].trim()
+        const style = el.attribs["style"]
+        const cssClass = el.attribs["class"]
+        const $figure = $(
+            ReactDOMServer.renderToStaticMarkup(
+                <figure data-explorer-src={src} className={cssClass}>
+                    <LoadingIndicator color="#333" />
+                </figure>
+            )
+        )
+        $figure.attr("style", style)
+        $el.after($figure)
+        $el.remove()
     }
 
     // Any remaining iframes

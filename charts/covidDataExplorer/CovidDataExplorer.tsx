@@ -15,7 +15,8 @@ import {
     observable,
     IReactionDisposer,
     observe,
-    Lambda
+    Lambda,
+    reaction
 } from "mobx"
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
@@ -23,7 +24,6 @@ import { bind } from "decko"
 import { ChartDimension } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
-    fetchText,
     difference,
     pick,
     lastOfNonEmptyArray,
@@ -51,20 +51,20 @@ import {
     buildCovidVariableId,
     makeCountryOptions,
     covidDataPath,
-    covidLastUpdatedPath,
     getTrajectoryOptions,
     getLeastUsedColor,
-    computeCovidColumn
+    computeCovidColumn,
+    fetchLastUpdatedTime
 } from "./CovidDataUtils"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
-import {
-    covidDashboardSlug,
-    covidDataExplorerContainerId,
-    coronaDefaultView
-} from "./CovidConstants"
+import { covidDashboardSlug, coronaDefaultView } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
+import {
+    GlobalEntitySelection,
+    GlobalEntitySelectionModes
+} from "site/client/global-entity/GlobalEntitySelection"
 
 const abSeed = Math.random()
 
@@ -73,22 +73,30 @@ export class CovidDataExplorer extends React.Component<{
     data: ParsedCovidRow[]
     params: CovidQueryParams
     updated: string
+    queryStr?: string
+    isEmbed?: boolean
+    globalEntitySelection?: GlobalEntitySelection
 }> {
-    static async bootstrap(
-        containerNode = document.getElementById(covidDataExplorerContainerId)
-    ) {
+    static async bootstrap(props: {
+        containerNode: HTMLElement
+        isEmbed?: boolean
+        queryStr?: string
+        globalEntitySelection?: GlobalEntitySelection
+    }) {
         const typedData = await fetchAndParseData()
-        const updated = await fetchText(covidLastUpdatedPath)
-        const startingParams = new CovidQueryParams(
-            window.location.search || coronaDefaultView
-        )
-        ReactDOM.render(
+        const updated = await fetchLastUpdatedTime()
+        const queryStr = props.queryStr || coronaDefaultView
+        const startingParams = new CovidQueryParams(queryStr)
+        return ReactDOM.render(
             <CovidDataExplorer
                 data={typedData}
                 updated={updated}
                 params={startingParams}
+                queryStr={queryStr}
+                isEmbed={props.isEmbed}
+                globalEntitySelection={props.globalEntitySelection}
             />,
-            containerNode
+            props.containerNode
         )
     }
 
@@ -446,11 +454,12 @@ export class CovidDataExplorer extends React.Component<{
         return (
             <>
                 <div
-                    className={classnames([
-                        `CovidDataExplorer`,
-                        this.isMobile ? "mobile-explorer" : undefined,
-                        showControls ? "" : "HideControls"
-                    ])}
+                    className={classnames({
+                        CovidDataExplorer: true,
+                        "mobile-explorer": this.isMobile,
+                        HideControls: !showControls,
+                        "is-embed": this.props.isEmbed
+                    })}
                 >
                     {showControls && this.header}
                     {showControls && this.controlBar}
@@ -1003,14 +1012,13 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     componentDidMount() {
-        this.bindToWindow()
-
         this.chart.hideEntityControls = true
         this.chart.externalCsvLink = covidDataPath
         this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
 
         this.observeChartEntitySelection()
+        this.observeGlobalEntitySelection()
 
         const win = window as any
         win.covidDataExplorer = this
@@ -1063,6 +1071,32 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
+    private observeGlobalEntitySelection() {
+        const { globalEntitySelection } = this.props
+        if (globalEntitySelection) {
+            this.disposers.push(
+                reaction(
+                    () => [
+                        globalEntitySelection.mode,
+                        globalEntitySelection.selectedEntities
+                    ],
+                    () => {
+                        const { mode, selectedEntities } = globalEntitySelection
+                        if (mode === GlobalEntitySelectionModes.override) {
+                            this.props.params.selectedCountryCodes = new Set(
+                                selectedEntities.map(entity => entity.code)
+                            )
+                            this.updateChart()
+                        }
+                    },
+                    { fireImmediately: true }
+                )
+            )
+        }
+    }
+
+    // Binds chart properties to global window title and URL. This should only
+    // ever be invoked from top-level JavaScript.
     bindToWindow() {
         const url = new CovidUrl(this.chart.url, this.props.params)
         urlBinding.bindUrlToWindow(url)
@@ -1209,7 +1243,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         },
         {
-            queryStr: window.location.search || coronaDefaultView
+            queryStr: this.props.queryStr
         }
     )
 }

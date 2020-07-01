@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { readConfigFromHTML } from "site/client/Grapher"
+import { readConfigFromHTML } from "site/client/figures/ChartFigure"
 import {
     computed,
     observable,
