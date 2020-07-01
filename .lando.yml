@@ -7,7 +7,7 @@ config:
   via: nginx
   xdebug: true
   config:
-    vhosts: .lando/vhosts.conf.tpl
+    vhosts: .lando/config/vhosts.conf
 excludes:
   # prevent those from being synced back to the host
   # (reduces CPU usage after installing large amount of deps)
