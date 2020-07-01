@@ -335,7 +335,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return map
     }
 
-    @computed protected get columnSlugs() {
+    @computed get columnSlugs() {
         return Array.from(this.columns.keys())
     }
 

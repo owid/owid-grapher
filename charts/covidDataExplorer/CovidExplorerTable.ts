@@ -131,7 +131,7 @@ export class CovidExplorerTable {
         return spec
     }
 
-    private initColumn(
+    initColumn(
         params: CovidConstrainedQueryParams,
         rowFn: RowToValueMapper,
         daily: boolean = false,
@@ -195,19 +195,8 @@ export class CovidExplorerTable {
         return "positive_test_rate"
     }
 
-    initRequestedColumns(params: CovidConstrainedQueryParams) {
-        if (params.casesMetric && params.dailyFreq)
-            this.initColumn(params, row => row.new_cases, true)
-        if (params.casesMetric && params.totalFreq)
-            this.initColumn(params, row => row.total_cases)
-
-        const needsDeaths = params.testsMetric && params.aligned
-        if ((params.deathsMetric && params.dailyFreq) || needsDeaths)
-            this.initColumn(params, row => row.new_deaths, true, "deaths") // we need to hard code metric name here bc of needsDeaths. todo: cleanup
-        if ((params.deathsMetric && params.totalFreq) || needsDeaths)
-            this.initColumn(params, row => row.total_deaths, false, "deaths") // we need to hard code metric name here bc of needsDeaths. todo: cleanup
-
-        if (params.testsMetric && params.dailyFreq)
+    initTestingColumn(params: CovidConstrainedQueryParams) {
+        if (params.dailyFreq)
             this.initColumn(
                 params,
                 row => {
@@ -217,30 +206,12 @@ export class CovidExplorerTable {
                 },
                 true
             )
-        if (params.testsMetric && params.totalFreq)
+        else if (params.totalFreq)
             this.initColumn(params, row => row.total_tests)
+    }
 
-        if (params.cfrMetric && params.dailyFreq)
-            this.initColumn(
-                params,
-                row =>
-                    row.total_cases < 100
-                        ? undefined
-                        : row.new_cases && row.new_deaths
-                        ? (100 * row.new_deaths) / row.new_cases
-                        : 0,
-                true
-            )
-        if (params.cfrMetric && params.totalFreq)
-            this.initColumn(params, row =>
-                row.total_cases < 100
-                    ? undefined
-                    : row.total_deaths && row.total_cases
-                    ? (100 * row.total_deaths) / row.total_cases
-                    : 0
-            )
-
-        if (params.testsPerCaseMetric && params.dailyFreq) {
+    initTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
+        if (params.dailyFreq) {
             if (params.smoothing) {
                 const casesSlug = this.addNewCasesSmoothedColumn(
                     params.smoothing
@@ -271,16 +242,47 @@ export class CovidExplorerTable {
                     true
                 )
             }
-        }
-        if (params.testsPerCaseMetric && params.totalFreq)
+        } else if (params.totalFreq)
             this.initColumn(params, row => {
                 if (row.total_tests === undefined || !row.total_cases)
                     return undefined
                 const tpc = row.total_tests / row.total_cases
                 return tpc >= 1 ? tpc : undefined
             })
+    }
 
-        if (params.positiveTestRate && params.dailyFreq) {
+    initCfrColumn(params: CovidConstrainedQueryParams) {
+        if (params.dailyFreq)
+            this.initColumn(
+                params,
+                row =>
+                    row.total_cases < 100
+                        ? undefined
+                        : row.new_cases && row.new_deaths
+                        ? (100 * row.new_deaths) / row.new_cases
+                        : 0,
+                true
+            )
+        else if (params.totalFreq)
+            this.initColumn(params, row =>
+                row.total_cases < 100
+                    ? undefined
+                    : row.total_deaths && row.total_cases
+                    ? (100 * row.total_deaths) / row.total_cases
+                    : 0
+            )
+    }
+
+    initCasesColumn(params: CovidConstrainedQueryParams) {
+        this.initColumn(
+            params,
+            params.dailyFreq ? row => row.new_cases : row => row.total_cases,
+            params.dailyFreq
+        )
+    }
+
+    initTestRateColumn(params: CovidConstrainedQueryParams) {
+        if (params.dailyFreq) {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
             this.initColumn(
                 params,
@@ -303,15 +305,43 @@ export class CovidExplorerTable {
                 true
             )
         }
-        if (params.positiveTestRate && params.totalFreq)
+        if (params.totalFreq)
             this.initColumn(params, row => {
                 if (row.total_cases === undefined || !row.total_tests)
                     return undefined
                 const rate = row.total_cases / row.total_tests
                 return rate >= 0 && rate <= 1 ? rate : undefined
             })
+    }
+
+    initDeathsColumn(params: CovidConstrainedQueryParams) {
+        this.initColumn(
+            params,
+            params.dailyFreq ? row => row.new_deaths : row => row.total_deaths,
+            params.dailyFreq
+        )
+    }
+
+    initRequestedColumns(params: CovidConstrainedQueryParams) {
+        if (params.casesMetric) this.initCasesColumn(params)
+        if (params.deathsMetric) this.initDeathsColumn(params)
+        if (params.testsMetric) this.initTestingColumn(params)
+        if (params.testsPerCaseMetric) this.initTestsPerCaseColumn(params)
+        if (params.cfrMetric) this.initCfrColumn(params)
+        if (params.positiveTestRate) this.initTestRateColumn(params)
 
         if (params.aligned) {
+            // If we are an aligned chart showing tests, we need to make a start of
+            // pandemic column from deaths rate
+            if (params.testsMetric) {
+                const newParams: CovidConstrainedQueryParams = {
+                    ...params
+                } as CovidConstrainedQueryParams
+                newParams.testsMetric = false
+                newParams.deathsMetric = true
+                this.initDeathsColumn(newParams)
+            }
+
             const option = this.getTrajectoryOptions(params)
             this.addDaysSinceColumn(
                 option.sourceSlug,

@@ -12,6 +12,7 @@ import { testData } from "../../test/fixtures/CovidTestData"
 import { ParsedCovidCsvRow } from "charts/covidDataExplorer/CovidTypes"
 import { OwidTable } from "charts/owidData/OwidTable"
 import uniq from "lodash/uniq"
+import { CovidConstrainedQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 
 const getRows = () => {
     const testRows: ParsedCovidCsvRow[] = csvParse(testData) as any
@@ -67,6 +68,47 @@ describe("build covid column", () => {
         )
         expect(dataTable.table.rows[2][slug]).toEqual(0)
         expect(dataTable.table.rows[3][slug]).toEqual(1)
+    })
+})
+
+describe("builds aligned tests column", () => {
+    const parsedRows = getRows()
+    const dataTable = new CovidExplorerTable(new OwidTable([]), parsedRows)
+
+    it("it has testing data", () => {
+        expect(dataTable.table.columnSlugs.includes("tests-daily")).toEqual(
+            false
+        )
+
+        const params: Partial<CovidConstrainedQueryParams> = {
+            testsMetric: true,
+            dailyFreq: true
+        }
+        dataTable.initTestingColumn(params as CovidConstrainedQueryParams)
+
+        expect(dataTable.table.columnSlugs.includes("tests-daily")).toEqual(
+            true
+        )
+
+        const newParams = { ...params, perCapita: true }
+        dataTable.initTestingColumn(newParams as CovidConstrainedQueryParams)
+
+        expect(
+            dataTable.table.columnSlugs.includes("tests-perThousand-daily")
+        ).toEqual(true)
+
+        const params3: Partial<CovidConstrainedQueryParams> = {
+            aligned: true,
+            perCapita: true,
+            testsMetric: true,
+            totalFreq: true
+        }
+
+        dataTable.initRequestedColumns(params3 as CovidConstrainedQueryParams)
+
+        expect(
+            dataTable.table.columnSlugs.includes("deaths-perMil-cumulative")
+        ).toEqual(true)
     })
 })
 
