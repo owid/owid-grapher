@@ -59,13 +59,13 @@ export const LongFormPage = (props: {
     const citationAuthorsFormatted = formatAuthors(citationAuthors)
 
     let hasSidebar = false
+    const endNotes = { text: "Endnotes", slug: "endnotes" }
     const tocHeadings: TocHeading[] = [...post.tocHeadings]
     if (tocHeadings.some(tocHeading => !tocHeading.isSubheading)) {
         hasSidebar = true
         if (post.footnotes.length) {
             tocHeadings.push({
-                text: "References",
-                slug: "references",
+                ...endNotes,
                 isSubheading: false
             })
         }
@@ -220,10 +220,10 @@ export const LongFormPage = (props: {
                                             <div className="wp-block-column">
                                                 {post.footnotes.length ? (
                                                     <React.Fragment>
-                                                        <h3 id="references">
-                                                            References
+                                                        <h3 id={endNotes.slug}>
+                                                            {endNotes.text}
                                                         </h3>
-                                                        <ol className="references">
+                                                        <ol className="endnotes">
                                                             {post.footnotes.map(
                                                                 (
                                                                     footnote,
