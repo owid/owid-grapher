@@ -1,11 +1,11 @@
 import { GlobalEntitySelection } from "../global-entity/GlobalEntitySelection"
 
-export abstract class Figure {
-    abstract get isLoaded(): boolean
-    abstract get hasPreview(): boolean
-    abstract get container(): HTMLElement
-    abstract get boundingRect(): DOMRect
-    abstract load(props: LoadProps): void
+export interface Figure {
+    readonly isLoaded: boolean
+    readonly hasPreview: boolean
+    readonly container: HTMLElement
+    readonly boundingRect: DOMRect
+    readonly load: (props: LoadProps) => void
 }
 
 export interface LoadProps {

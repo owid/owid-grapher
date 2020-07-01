@@ -9,10 +9,9 @@ interface CovidExplorerFigureProps {
     container: HTMLElement
 }
 
-export class CovidExplorerFigure extends Figure {
+export class CovidExplorerFigure implements Figure {
     private props: CovidExplorerFigureProps
     constructor(props: CovidExplorerFigureProps) {
-        super()
         this.props = props
     }
 

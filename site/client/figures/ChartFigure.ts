@@ -17,10 +17,9 @@ interface ChartFigureProps {
     container: HTMLElement // TODO rename to container
 }
 
-export class ChartFigure extends Figure {
+export class ChartFigure implements Figure {
     private props: ChartFigureProps
     constructor(props: ChartFigureProps) {
-        super()
         this.props = props
     }
 
