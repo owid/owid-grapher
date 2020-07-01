@@ -135,9 +135,7 @@ export const runLightbox = () => {
         document.body.appendChild(lightboxContainer)
     }
     Array.from(
-        document.querySelectorAll<HTMLImageElement>(
-            ".article-content .wp-block-column:nth-child(2) img, .article-content .wp-block-columns.is-style-side-by-side img"
-        )
+        document.querySelectorAll<HTMLImageElement>(".article-content img")
     ).forEach(img => {
         if (
             img.closest(".wp-block-owid-prominent-link") ||
