@@ -76,10 +76,7 @@ export class CovidExplorerTable {
         const annotationRows = csvParse(covidAnnotations) as AnnotationsRow[]
         annotationRows.forEach(annoRow => {
             const rows = index.get(annoRow.location)
-            if (!rows) {
-                console.log(annoRow.location + " not found")
-                return
-            }
+            if (!rows) return
             // If no date on annotation apply to all rows
             const applyTo = annoRow.date
                 ? rows.filter(row => row.date === annoRow.date)
