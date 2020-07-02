@@ -763,25 +763,22 @@ export class CovidDataExplorer extends React.Component<{
                     this.selectionChangeFromBuilder = false
                     return
                 }
-                // Change can only be of 'update' type since we are observing an object property.
-                if (change.type === "update") {
-                    // We want to find the added/removed entities based on the chart selection, not
-                    // taking the explorer selection into account. This is because there can be
-                    // entities excluded in the chart selection because we have no data for them,
-                    // but which may be selected in the explorer.
-                    const newCodes = change.newValue
-                    const oldCodes = change.oldValue ?? []
-                    const added = difference(newCodes, oldCodes)
-                    const removed = difference(oldCodes, newCodes)
-                    added.forEach(code =>
-                        this.toggleSelectedCountry(code, true)
-                    )
-                    removed.forEach(code =>
-                        this.toggleSelectedCountry(code, false)
-                    )
-                    // Trigger an update in order to apply color changes
-                    this._updateChart()
-                }
+                const newCodes = change.newValue
+                const oldCodes = change.oldValue ?? []
+
+                if (newCodes.join(" ") === oldCodes.join(" ")) return
+
+                // We want to find the added/removed entities based on the chart selection, not
+                // taking the explorer selection into account. This is because there can be
+                // entities excluded in the chart selection because we have no data for them,
+                // but which may be selected in the explorer.
+                const added = difference(newCodes, oldCodes)
+                const removed = difference(oldCodes, newCodes)
+                added.forEach(code => this.toggleSelectedCountry(code, true))
+                removed.forEach(code => this.toggleSelectedCountry(code, false))
+                // Trigger an update in order to apply color changes
+                console.log(newCodes.join(" "))
+                this._updateChart()
             })
         )
     }
