@@ -6,7 +6,6 @@ import { extend } from "./Util"
 import { Time } from "./TimeBounds"
 import { OwidVariableDisplaySettings } from "./owidData/OwidVariable"
 import { owidVariableId } from "./owidData/OwidTable"
-import { ChartConfig } from "./ChartConfig"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color"
 

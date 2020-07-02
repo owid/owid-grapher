@@ -37,9 +37,7 @@ class EntityDimensionKeyItem extends React.Component<
     }
 
     @action.bound onRemove() {
-        this.props.chart.data.selectedKeys = this.props.chart.data.selectedKeys.filter(
-            e => e !== this.props.entityDimensionKey
-        )
+        this.props.chart.data.deselect(this.props.entityDimensionKey)
     }
 
     render() {

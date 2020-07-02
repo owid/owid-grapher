@@ -1,3 +1,5 @@
+// todo: remove file
+
 import {
     map,
     keyBy,
@@ -153,7 +155,7 @@ export class ChartData {
     }
 
     // todo: remove
-    @action.bound setSelectedEntity(entityId: entityId) {
+    @action.bound setSingleSelectedEntity(entityId: entityId) {
         const selectedData = cloneDeep(this.chart.props.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
         this.chart.props.selectedData = selectedData
@@ -176,7 +178,7 @@ export class ChartData {
                     entityName === entityCodes[0]
                 ) {
                     matchedEntities.set(entityCodes[0], true)
-                    this.setSelectedEntity(entityId)
+                    this.setSingleSelectedEntity(entityId)
                 }
             })
         } else {
@@ -206,6 +208,13 @@ export class ChartData {
     // todo: remove
     @computed get selectedEntityCodes(): entityCode[] {
         return uniq(this.selectedKeys.map(k => this.lookupKey(k).shortCode))
+    }
+
+    // todo: remove
+    deselect(entityDimensionKey: EntityDimensionKey) {
+        this.selectedKeys = this.selectedKeys.filter(
+            e => e !== entityDimensionKey
+        )
     }
 
     // todo: remove

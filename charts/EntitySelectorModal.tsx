@@ -191,7 +191,7 @@ class EntitySelectorSingle extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableEntities() {
+    @computed private get availableEntities() {
         const availableItems: { id: number; label: string }[] = []
         this.props.chart.data.entityDimensionMap.forEach(meta => {
             availableItems.push({
@@ -242,7 +242,7 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityId: number) {
-        this.props.chart.data.setSelectedEntity(entityId)
+        this.props.chart.data.setSingleSelectedEntity(entityId)
         this.props.onDismiss()
     }
 
