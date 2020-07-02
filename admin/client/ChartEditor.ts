@@ -95,7 +95,7 @@ export class ChartEditor {
                 ? "desktop"
                 : "mobile"
         when(
-            () => this.chart.data.isReady,
+            () => this.chart.isReady,
             () =>
                 (this.savedChartConfig = JSON.stringify(this.currentChartJson))
         )

@@ -23,9 +23,7 @@ export class CSVGenerator {
     }
 
     @computed get csvDimensions() {
-        return this.chart.data.filledDimensions.filter(
-            d => d.property !== "color"
-        )
+        return this.chart.filledDimensions.filter(d => d.property !== "color")
     }
 
     /** Returns dimensions for which we want to show all values */

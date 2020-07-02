@@ -24,11 +24,11 @@ import { ColorScale } from "./ColorScale"
 // of a discrete bar chart
 export class StackedBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === "y")
+        return this.hasYDimension
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing variable"
         else if (
@@ -42,13 +42,10 @@ export class StackedBarTransform extends ChartTransform {
     @computed get primaryDimension():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === "y")
+        return find(this.chart.filledDimensions, d => d.property === "y")
     }
     @computed get colorDimension(): ChartDimensionWithOwidVariable | undefined {
-        return find(
-            this.chart.data.filledDimensions,
-            d => d.property === "color"
-        )
+        return find(this.chart.filledDimensions, d => d.property === "color")
     }
 
     @computed get availableYears(): Time[] {
@@ -101,7 +98,7 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return find(this.chart.data.filledDimensions, d => d.property === "y")
+        return find(this.chart.filledDimensions, d => d.property === "y")
     }
 
     @computed get yTickFormat() {
@@ -129,7 +126,8 @@ export class StackedBarTransform extends ChartTransform {
 
     @computed get groupedData(): StackedBarSeries[] {
         const { chart, timelineYears } = this
-        const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
+        const { selectedKeys, selectedKeysByKey } = chart.data
+        const filledDimensions = chart.filledDimensions
 
         let groupedData: StackedBarSeries[] = []
 

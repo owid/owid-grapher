@@ -36,7 +36,7 @@ export class MapData extends ChartTransform {
     }
 
     @computed get isValidConfig() {
-        return !!this.chart.data.primaryVariableId
+        return !!this.chart.primaryVariableId
     }
 
     ensureValidConfig() {
@@ -46,12 +46,10 @@ export class MapData extends ChartTransform {
         autorun(() => {
             const hasVariable =
                 chart.map.variableId &&
-                this.chart.table.columnsByOwidVarId.get(chart.map.variableId)
-            if (!hasVariable && chart.data.primaryVariableId)
+                chart.table.columnsByOwidVarId.get(chart.map.variableId)
+            if (!hasVariable && chart.primaryVariableId)
                 runInAction(
-                    () =>
-                        (chart.map.props.variableId =
-                            chart.data.primaryVariableId)
+                    () => (chart.map.props.variableId = chart.primaryVariableId)
                 )
         })
     }
@@ -81,7 +79,7 @@ export class MapData extends ChartTransform {
     }
 
     @computed get dimension(): ChartDimensionWithOwidVariable | undefined {
-        return this.chart.data.filledDimensions.find(
+        return this.chart.filledDimensions.find(
             d => d.variableId === this.map.variableId
         )
     }

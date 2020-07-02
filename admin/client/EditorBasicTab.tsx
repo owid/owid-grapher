@@ -49,11 +49,11 @@ class DimensionSlotView extends React.Component<{
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
-            () => chart.props.type && chart.data.primaryDimensions,
+            () => chart.props.type && chart.primaryDimensions,
             () => {
                 if (chart.isScatter || chart.isSlopeChart) {
                     chart.data.selectedKeys = []
-                } else if (chart.data.primaryDimensions.length > 1) {
+                } else if (chart.primaryDimensions.length > 1) {
                     const entityName = includes(
                         chart.data.availableEntityNames,
                         "World"
@@ -174,7 +174,10 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !chart.props.dimensions.find(d => d.property === "color")
         ) {
             chart.props.dimensions = chart.props.dimensions.concat(
-                new ChartDimension({ variableId: 123, property: "color" })
+                new ChartDimension(
+                    { variableId: 123, property: "color" },
+                    chart
+                )
             )
         }
 
@@ -183,7 +186,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !chart.props.dimensions.find(d => d.property === "color")
         ) {
             chart.props.dimensions = chart.props.dimensions.concat(
-                new ChartDimension({ variableId: 72, property: "size" })
+                new ChartDimension({ variableId: 72, property: "size" }, chart)
             )
         }
     }

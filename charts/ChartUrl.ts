@@ -247,12 +247,12 @@ export class ChartUrl implements ObservableUrl {
     @computed private get countryParam(): string | undefined {
         const { chart, origChartProps } = this
         if (
-            chart.data.isReady &&
+            chart.isReady &&
             JSON.stringify(chart.props.selectedData) !==
                 JSON.stringify(origChartProps.selectedData)
         ) {
             return EntityUrlBuilder.entitiesToQueryParams(
-                chart.data.selectedEntityCodes
+                chart.selectedEntityCodes
             )
         } else {
             return undefined
@@ -382,7 +382,7 @@ export class ChartUrl implements ObservableUrl {
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
         when(
-            () => chart.data.isReady,
+            () => chart.isReady,
             () => {
                 runInAction(() => {
                     if (country) {

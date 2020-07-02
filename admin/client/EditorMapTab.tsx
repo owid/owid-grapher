@@ -29,7 +29,7 @@ class VariableSection extends React.Component<{ mapConfig: MapConfig }> {
 
     render() {
         const { mapConfig } = this.props
-        const { filledDimensions } = mapConfig.chart.data
+        const { filledDimensions } = mapConfig.chart
 
         if (isEmpty(filledDimensions))
             return (

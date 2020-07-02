@@ -5,10 +5,8 @@ import {
     uniqWith,
     cloneDeep,
     union,
-    each,
     sortBy,
     without,
-    find,
     uniq,
     lastOfNonEmptyArray
 } from "./Util"
@@ -36,6 +34,7 @@ export interface SourceWithDimension {
     dimension: ChartDimensionWithOwidVariable
 }
 
+// remove
 // This component computes useful information using both the chart configuration and the actual data
 // Where possible, code should go in the individual chart type transforms instead and be exposed via interface
 export class ChartData {
@@ -45,40 +44,6 @@ export class ChartData {
         this.chart = chart
     }
 
-    // ChartData is ready to go iff we have retrieved data for every variable associated with the chart
-    @computed get isReady(): boolean {
-        return this.loadingVarIds.length === 0
-    }
-
-    @computed get loadingVarIds(): number[] {
-        const { chart } = this
-        return chart.dimensions
-            .map(dim => dim.variableId)
-            .filter(id => !chart.table.columnsByOwidVarId.has(id))
-    }
-
-    @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {
-        if (!this.isReady) return []
-
-        return map(this.chart.dimensions, (dim, i) => {
-            return new ChartDimensionWithOwidVariable(
-                i,
-                dim,
-                this.chart.table.columnsByOwidVarId.get(dim.variableId)!
-            )
-        })
-    }
-
-    @computed get primaryDimensions() {
-        return this.filledDimensions.filter(dim => dim.property === "y")
-    }
-
-    @computed get axisDimensions() {
-        return this.filledDimensions.filter(
-            dim => dim.property === "y" || dim.property === "x"
-        )
-    }
-
     // todo: remove
     // Make a unique string key for an entity on a variable
     makeEntityDimensionKey(
@@ -86,12 +51,6 @@ export class ChartData {
         dimensionIndex: number
     ): EntityDimensionKey {
         return `${entityName}_${dimensionIndex}`
-    }
-
-    @computed get dimensionsByField(): {
-        [key: string]: ChartDimensionWithOwidVariable
-    } {
-        return keyBy(this.filledDimensions, "property")
     }
 
     // todo: remove
@@ -104,7 +63,8 @@ export class ChartData {
         entityDimensionKey: EntityDimensionKey
         color?: Color
     }> {
-        const { chart, primaryDimensions } = this
+        const { chart } = this
+        const primaryDimensions = chart.primaryDimensions
         const entityIdToNameMap = chart.table.entityIdToNameMap
         let validSelections = chart.props.selectedData.filter(sel => {
             // Must be a dimension that's on the chart
@@ -182,7 +142,7 @@ export class ChartData {
 
     // todo: remove
     @computed get availableEntityNames(): entityName[] {
-        const entitiesForDimensions = this.axisDimensions.map(dim => {
+        const entitiesForDimensions = this.chart.axisDimensions.map(dim => {
             return this.availableKeys
                 .map(key => this.lookupKey(key))
                 .filter(d => d.dimension.variableId === dim.variableId)
@@ -253,10 +213,11 @@ export class ChartData {
         return this.selectionData.map(d => d.entityDimensionKey)
     }
 
+    // remove
     // Map keys back to their components for storage
     set selectedKeys(keys: EntityDimensionKey[]) {
         const { chart } = this
-        if (!this.isReady) return
+        if (!chart.isReady) return
 
         const selection = map(keys, key => {
             const { entityName: entity, index } = this.lookupKey(key)
@@ -282,9 +243,10 @@ export class ChartData {
         EntityDimensionKey,
         EntityDimensionInfo
     > {
-        if (!this.isReady) return new Map()
-        const { chart, primaryDimensions } = this
+        if (!this.chart.isReady) return new Map()
+        const { chart } = this
         const { isSingleEntity, isSingleVariable } = chart
+        const primaryDimensions = chart.primaryDimensions
 
         const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
         primaryDimensions.forEach((dimension, dimensionIndex) => {
@@ -373,26 +335,5 @@ export class ChartData {
         } else {
             this.selectedKeys = this.selectedKeys.concat([key])
         }
-    }
-
-    @computed get primaryVariableId() {
-        const yDimension = find(this.chart.dimensions, { property: "y" })
-        return yDimension ? yDimension.variableId : undefined
-    }
-
-    @computed get sourcesWithDimension(): SourceWithDimension[] {
-        const { filledDimensions } = this
-
-        const sources: SourceWithDimension[] = []
-        each(filledDimensions, dim => {
-            const { column } = dim
-            // HACK (Mispy): Ignore the default color source on scatterplots.
-            if (
-                column.name !== "Countries Continents" &&
-                column.name !== "Total population (Gapminder)"
-            )
-                sources.push({ source: column.source!, dimension: dim })
-        })
-        return sources
     }
 }

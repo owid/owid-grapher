@@ -126,9 +126,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get dimensions() {
-        return this.chart.data.filledDimensions.filter(
-            dim => dim.includeInTable
-        )
+        return this.chart.filledDimensions.filter(dim => dim.includeInTable)
     }
 
     @computed get entities() {

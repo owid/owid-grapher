@@ -277,7 +277,7 @@ export class MapTab extends React.Component<MapTabProps> {
 
         return (
             <ChartLayoutView layout={this.layout}>
-                {this.props.chart.data.isReady ? (
+                {this.props.chart.isReady ? (
                     <MapWithLegend
                         bounds={layout.innerBounds}
                         choroplethData={map.data.choroplethData}

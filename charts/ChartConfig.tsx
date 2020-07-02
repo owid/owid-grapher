@@ -27,14 +27,16 @@ import {
     flatten,
     sortBy,
     getErrorMessageRelatedQuestionUrl,
-    slugify
+    slugify,
+    each,
+    find
 } from "./Util"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
 import { OwidVariablesAndEntityKey } from "./owidData/OwidVariable"
-import { ChartData } from "./ChartData"
+import { ChartData, SourceWithDimension } from "./ChartData"
 import { OwidTable } from "./owidData/OwidTable"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapConfig, MapConfigProps } from "./MapConfig"
@@ -49,7 +51,11 @@ import { Color } from "./Color"
 import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
-import { ChartDimension, dimensionProperty } from "./ChartDimension"
+import {
+    ChartDimension,
+    dimensionProperty,
+    DimensionSpec
+} from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
@@ -154,13 +160,16 @@ export class DimensionSlot {
     }
 
     @computed get dimensionsWithData(): ChartDimensionWithOwidVariable[] {
-        return this.chart.data.filledDimensions.filter(
+        return this.chart.filledDimensions.filter(
             d => d.property === this.property
         )
     }
 
     createDimension(variableId: number) {
-        return new ChartDimension({ property: this.property, variableId })
+        return new ChartDimension(
+            { property: this.property, variableId },
+            this.chart
+        )
     }
 }
 
@@ -404,10 +413,24 @@ export class ChartConfig {
 
     @computed get sortedUniqueEntitiesAcrossDimensions() {
         return sortBy(
-            uniq(
-                flatten(this.data.filledDimensions.map(d => d.entityNamesUniq))
-            )
+            uniq(flatten(this.filledDimensions.map(d => d.entityNamesUniq)))
         )
+    }
+
+    // ChartData is ready to go iff we have retrieved data for every variable associated with the chart
+    @computed get isReady(): boolean {
+        return this.loadingVarIds.length === 0
+    }
+
+    @computed get primaryVariableId() {
+        const yDimension = find(this.dimensions, { property: "y" })
+        return yDimension ? yDimension.variableId : undefined
+    }
+
+    @computed private get loadingVarIds(): number[] {
+        return this.dimensions
+            .map(dim => dim.variableId)
+            .filter(id => !this.table.columnsByOwidVarId.has(id))
     }
 
     data: ChartData
@@ -698,6 +721,22 @@ export class ChartConfig {
         return validDimensions
     }
 
+    @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {
+        if (!this.isReady) return []
+
+        return map(this.dimensions, (dim, i) => {
+            return new ChartDimensionWithOwidVariable(
+                i,
+                dim,
+                this.table.columnsByOwidVarId.get(dim.variableId)!
+            )
+        })
+    }
+
+    @computed get primaryDimensions() {
+        return this.filledDimensions.filter(dim => dim.property === "y")
+    }
+
     @computed get dimensions() {
         return this.props.dimensions
     }
@@ -749,7 +788,7 @@ export class ChartConfig {
         extend(this.props.yAxis, json["yAxis"])
 
         this.props.dimensions = (json.dimensions || []).map(
-            (j: any) => new ChartDimension(j)
+            (dimSpec: DimensionSpec) => new ChartDimension(dimSpec, this)
         )
     }
 
@@ -826,7 +865,7 @@ export class ChartConfig {
     }
 
     @computed get isSingleVariable(): boolean {
-        return this.data.primaryDimensions.length === 1
+        return this.primaryDimensions.length === 1
     }
 
     // XXX refactor into the transforms
@@ -863,8 +902,24 @@ export class ChartConfig {
         )
     }
 
+    @computed get sourcesWithDimension(): SourceWithDimension[] {
+        const { filledDimensions } = this
+
+        const sources: SourceWithDimension[] = []
+        each(filledDimensions, dim => {
+            const { column } = dim
+            // HACK (Mispy): Ignore the default color source on scatterplots.
+            if (
+                column.name !== "Countries Continents" &&
+                column.name !== "Total population (Gapminder)"
+            )
+                sources.push({ source: column.source!, dimension: dim })
+        })
+        return sources
+    }
+
     @computed private get defaultSourcesLine(): string {
-        let sourceNames = this.data.sourcesWithDimension.map(
+        let sourceNames = this.sourcesWithDimension.map(
             source => source.source.name
         )
 
@@ -883,12 +938,16 @@ export class ChartConfig {
         return uniq(sourceNames).join(", ")
     }
 
+    @computed get axisDimensions() {
+        return this.filledDimensions.filter(
+            dim => dim.property === "y" || dim.property === "x"
+        )
+    }
+
     @computed private get defaultTitle(): string {
-        const { primaryDimensions } = this.data
+        const { primaryDimensions } = this
         if (this.isScatter)
-            return this.data.axisDimensions
-                .map(d => d.displayName)
-                .join(" vs. ")
+            return this.axisDimensions.map(d => d.displayName).join(" vs. ")
         else if (
             primaryDimensions.length > 1 &&
             uniq(map(primaryDimensions, d => d.column.datasetName)).length === 1

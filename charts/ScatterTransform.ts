@@ -67,13 +67,13 @@ export class ScatterTransform extends ChartTransform {
 
     @computed get isValidConfig(): boolean {
         return (
-            this.chart.dimensions.some(d => d.property === "y") &&
+            this.hasYDimension &&
             this.chart.dimensions.some(d => d.property === "x")
         )
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.data
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (!some(filledDimensions, d => d.property === "x"))
@@ -91,17 +91,15 @@ export class ScatterTransform extends ChartTransform {
     @computed private get yDimension():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return this.chart.data.filledDimensions.find(d => d.property === "y")
+        return this.chart.filledDimensions.find(d => d.property === "y")
     }
     @computed private get xDimension():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return this.chart.data.filledDimensions.find(d => d.property === "x")
+        return this.chart.filledDimensions.find(d => d.property === "x")
     }
     @computed get colorDimension(): ChartDimensionWithOwidVariable | undefined {
-        return this.chart.data.filledDimensions.find(
-            d => d.property === "color"
-        )
+        return this.chart.filledDimensions.find(d => d.property === "color")
     }
 
     // Possible to override the x axis dimension to target a special year
@@ -220,7 +218,7 @@ export class ScatterTransform extends ChartTransform {
         entitiesToShow = this.getEntityNamesToShow()
     ): Map<entityName, Map<year, ScatterValue>> {
         const { chart } = this
-        const { filledDimensions } = chart.data
+        const { filledDimensions } = chart
         const validEntityLookup = keyBy(entitiesToShow)
 
         const dataByEntityAndYear = new Map<
@@ -628,7 +626,7 @@ export class ScatterTransform extends ChartTransform {
 
     // todo: refactor/remove and/or add unit tests
     @computed get currentData(): ScatterSeries[] {
-        if (!this.chart.data.isReady) return []
+        if (!this.chart.isReady) return []
 
         const {
             chart,

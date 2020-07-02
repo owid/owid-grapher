@@ -16,7 +16,7 @@ import {
 import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { bind } from "decko"
-import { ChartDimension } from "../ChartDimension"
+import { ChartDimension, DimensionSpec } from "../ChartDimension"
 import * as urlBinding from "charts/UrlBinding"
 import {
     fetchText,
@@ -669,7 +669,9 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.type = this.chartType
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
-        chartProps.dimensions = this.dimensions
+        chartProps.dimensions = this.dimensionSpecs.map(
+            spec => new ChartDimension(spec, this.chart)
+        )
         chartProps.map.variableId = this.currentYVarId
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
 
@@ -803,15 +805,15 @@ export class CovidDataExplorer extends React.Component<{
         this.disposers.forEach(dispose => dispose())
     }
 
-    @computed get yColumn() {
+    @computed private get yColumn() {
         return this.chart.table.columnsByOwidVarId.get(this.currentYVarId)!
     }
 
-    @computed get xColumn() {
+    @computed private get xColumn() {
         return this.chart.table.columnsByOwidVarId.get(this.xVariableId!)!
     }
 
-    @computed get dimensions(): ChartDimension[] {
+    @computed private get dimensionSpecs(): DimensionSpec[] {
         if (this.chartType === "LineChart")
             return [
                 {

@@ -73,8 +73,8 @@ export class LineChart extends React.Component<{
     }
 
     @computed get annotationsMap() {
-        const annotationsColumn = this.props.chart.data.primaryDimensions[0]
-            .column.annotationsColumn
+        const annotationsColumn = this.props.chart.primaryDimensions[0].column
+            .annotationsColumn
         return annotationsColumn ? annotationsColumn.entityNameMap : new Map()
     }
 

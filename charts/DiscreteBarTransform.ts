@@ -11,11 +11,11 @@ import { Time } from "./TimeBounds"
 // of a discrete bar chart
 export class DiscreteBarTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === "y")
+        return this.hasYDimension
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing variable"
         else if (isEmpty(this.currentData)) return "No matching data"
@@ -23,7 +23,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get primaryDimensions(): ChartDimensionWithOwidVariable[] {
-        return this.chart.data.filledDimensions.filter(d => d.property === "y")
+        return this.chart.filledDimensions.filter(d => d.property === "y")
     }
 
     @computed get availableYears(): Time[] {
@@ -61,7 +61,8 @@ export class DiscreteBarTransform extends ChartTransform {
 
     @computed get currentData(): DiscreteBarDatum[] {
         const { chart, targetYear } = this
-        const { filledDimensions, selectedKeysByKey } = chart.data
+        const { filledDimensions } = chart
+        const { selectedKeysByKey } = chart.data
         const dataByEntityDimensionKey: {
             [entityDimensionKey: string]: DiscreteBarDatum
         } = {}
@@ -175,7 +176,8 @@ export class DiscreteBarTransform extends ChartTransform {
         }
 
         const { chart } = this
-        const { filledDimensions, selectedKeysByKey } = chart.data
+        const { selectedKeysByKey } = chart.data
+        const filledDimensions = chart.filledDimensions
         const allData: DiscreteBarDatum[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {

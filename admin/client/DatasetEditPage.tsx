@@ -113,7 +113,7 @@ class VariableEditRow extends React.Component<{
             chart.props.hasMapTab = false
             if (chart.isScatter || chart.isSlopeChart) {
                 chart.data.selectedKeys = []
-            } else if (chart.data.primaryDimensions.length > 1) {
+            } else if (chart.primaryDimensions.length > 1) {
                 const entity = _.includes(
                     chart.data.availableEntityNames,
                     "World"
@@ -126,7 +126,7 @@ class VariableEditRow extends React.Component<{
                 chart.props.addCountryMode = "change-country"
             } else {
                 chart.props.addCountryMode = "add-country"
-                if (chart.data.filledDimensions[0].yearsUniq.length === 1) {
+                if (chart.filledDimensions[0].yearsUniq.length === 1) {
                     chart.props.type = ChartType.DiscreteBar
                     chart.data.selectedKeys =
                         chart.data.availableKeys.length > 15
@@ -148,7 +148,7 @@ class VariableEditRow extends React.Component<{
         this.chart = new ChartConfig(this.chartConfig as any, { isEmbed: true })
 
         this.dispose2 = when(
-            () => this.chart !== undefined && this.chart.data.isReady,
+            () => this.chart !== undefined && this.chart.isReady,
             () => this.chartIsReady(this.chart as ChartConfig)
         )
 

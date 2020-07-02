@@ -51,7 +51,7 @@ export function subscribeChartToGlobalEntitySelection(
 ): IReactionDisposer {
     return reaction(
         () => [
-            chart.data.isReady,
+            chart.isReady,
             globalSelection.mode,
             globalSelection.selectedEntities
         ],

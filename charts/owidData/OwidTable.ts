@@ -23,7 +23,7 @@ export declare type entityName = string
 export declare type entityCode = string
 export declare type entityId = number
 export declare type owidVariableId = int
-declare type columnSlug = string // let's be very restrictive on valid column names to start.
+export declare type columnSlug = string // let's be very restrictive on valid column names to start.
 
 interface Row {
     [columnName: string]: any

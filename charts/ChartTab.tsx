@@ -39,7 +39,7 @@ export class ChartTab extends React.Component<{
         const { chart, chartView } = this.props
         const bounds = this.layout.innerBounds
 
-        if (!chart.data.isReady) {
+        if (!chart.isReady) {
             return <LoadingChart bounds={bounds} />
         } else if (chart.isSlopeChart) {
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart} />

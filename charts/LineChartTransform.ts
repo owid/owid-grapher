@@ -25,11 +25,11 @@ import { Time } from "./TimeBounds"
 // of a line chart
 export class LineChartTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
-        return this.chart.dimensions.some(d => d.property === "y")
+        return this.hasYDimension
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData)) return "No matching data"
@@ -47,7 +47,8 @@ export class LineChartTransform extends ChartTransform {
     @computed get initialData(): LineChartSeries[] {
         const { chart } = this
         const { yAxis } = chart
-        const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
+        const { selectedKeys, selectedKeysByKey } = chart.data
+        const filledDimensions = chart.filledDimensions
 
         let chartData: LineChartSeries[] = []
 
@@ -164,7 +165,7 @@ export class LineChartTransform extends ChartTransform {
     @computed get yDimensionFirst():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return this.chart.data.filledDimensions.find(d => d.property === "y")
+        return this.chart.filledDimensions.find(d => d.property === "y")
     }
 
     @computed get yDomainDefault(): [number, number] {

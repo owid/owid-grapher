@@ -24,7 +24,7 @@ export class SourcesTab extends React.Component<{
     }
 
     @computed private get sourcesWithDimensions() {
-        return this.props.chart.data.sourcesWithDimension
+        return this.props.chart.sourcesWithDimension
     }
 
     private renderSource(sourceWithDimension: SourceWithDimension) {

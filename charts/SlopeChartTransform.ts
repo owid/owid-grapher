@@ -11,11 +11,11 @@ import { ColorScale } from "./ColorScale"
 // of a line chart
 export class SlopeChartTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
-        return this.chart.dimensions.some(d => d.property === "y")
+        return this.hasYDimension
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.data)) return "No matching data"
@@ -47,7 +47,7 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(this.chart.data.axisDimensions.map(d => d.yearsUniq))
+        return flatten(this.chart.axisDimensions.map(d => d.yearsUniq))
     }
 
     @computed.struct get xDomain(): [number, number] {
@@ -55,24 +55,19 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed.struct get sizeDim(): ChartDimensionWithOwidVariable | undefined {
-        return find(
-            this.chart.data.filledDimensions,
-            d => d.property === "size"
-        )
+        return find(this.chart.filledDimensions, d => d.property === "size")
     }
 
     @computed.struct get colorDimension():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return this.chart.data.filledDimensions.find(
-            d => d.property === "color"
-        )
+        return this.chart.filledDimensions.find(d => d.property === "color")
     }
 
     @computed.struct get yDimension():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === "y")
+        return find(this.chart.filledDimensions, d => d.property === "y")
     }
 
     // helper method to directly get the associated color value given an Entity
