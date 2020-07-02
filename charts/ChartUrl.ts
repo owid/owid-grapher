@@ -381,23 +381,23 @@ export class ChartUrl implements ObservableUrl {
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
+        if (chart.props.useV2 || !country) return
         when(
             () => chart.isReady,
             () => {
                 runInAction(() => {
-                    if (country) {
-                        const entityCodes = EntityUrlBuilder.queryParamToEntities(
-                            country
-                        )
-                        const matchedEntities = this.chart.data.setSelectedEntitiesByCode(
-                            entityCodes
-                        )
-                        const notFoundEntities = Array.from(
-                            matchedEntities.keys()
-                        ).filter(key => !matchedEntities.get(key))
-                        if (notFoundEntities.length)
-                            Analytics.logEntitiesNotFoundError(notFoundEntities)
-                    }
+                    const entityCodes = EntityUrlBuilder.queryParamToEntities(
+                        country
+                    )
+                    const matchedEntities = this.chart.data.setSelectedEntitiesByCode(
+                        entityCodes
+                    )
+                    const notFoundEntities = Array.from(
+                        matchedEntities.keys()
+                    ).filter(key => !matchedEntities.get(key))
+
+                    if (notFoundEntities.length)
+                        Analytics.logEntitiesNotFoundError(notFoundEntities)
                 })
             }
         )
