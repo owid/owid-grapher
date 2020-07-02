@@ -51,7 +51,10 @@ export class ScatterTransform extends ChartTransform {
                 return that.colorDimension?.sortedNumericValues ?? []
             },
             get categoricalValues() {
-                return that.colorDimension?.categoricalValues ?? []
+                return (
+                    that.colorDimension?.column.sortedUniqNonEmptyStringVals ??
+                    []
+                )
             },
             get hasNoDataBin() {
                 return that.allPoints.some(point => point.color === undefined)

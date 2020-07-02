@@ -169,10 +169,6 @@ export class ChartDimensionWithOwidVariable {
         return sortBy(this.values.filter(isNumber))
     }
 
-    @computed get categoricalValues(): string[] {
-        return sortedUniq(sortBy(this.values.filter(isString)))
-    }
-
     get yearsUniq() {
         return sortedUniq(this.years)
     }

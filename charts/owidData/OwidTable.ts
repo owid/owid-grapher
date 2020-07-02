@@ -11,7 +11,7 @@ import {
     insertMissingValuePlaceholders,
     diffDateISOStringInDays
 } from "charts/Util"
-import { max, min, flatten, sortedUniq, sortBy } from "lodash"
+import { max, min, flatten, sortedUniq, sortBy, isString } from "lodash"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"
@@ -171,6 +171,11 @@ export abstract class AbstractColumn {
         return this.spec.name ?? this.spec.slug
     }
 
+    // todo: is the isString necessary?
+    @computed get sortedUniqNonEmptyStringVals(): string[] {
+        return this.sortedUniqValues.filter(isString).filter(i => i)
+    }
+
     @computed get slug() {
         return this.spec.slug
     }
@@ -191,7 +196,7 @@ export abstract class AbstractColumn {
     }
 
     // todo: remove
-    @computed get valuesUniq() {
+    @computed get sortedUniqValues() {
         return sortedUniq(this.values)
     }
 

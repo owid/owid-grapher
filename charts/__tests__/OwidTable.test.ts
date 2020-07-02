@@ -142,18 +142,38 @@ describe("rolling averages", () => {
             entityName: "United States",
             population: 3e8,
             entityId: 1,
-            entityCode: "USA"
+            entityCode: "USA",
+            continent: "North America"
+        },
+        {
+            year: 2020,
+            entityName: "World",
+            population: 10e8,
+            entityId: 12,
+            entityCode: "World",
+            continent: ""
         }
     ]
+    const colLength = Object.keys(rows[0]).length
     const table = new OwidTable(rows)
     it("a column can be added", () => {
-        expect(table.rows.length).toEqual(1)
-        expect(Array.from(table.columnsByName.keys()).length).toEqual(5)
+        expect(table.rows.length).toEqual(2)
+        expect(Array.from(table.columnsByName.keys()).length).toEqual(colLength)
         table.addComputedColumn({
             slug: "populationInMillions",
             fn: row => row.population / 1000000
         })
         expect(table.rows[0].populationInMillions).toEqual(300)
-        expect(Array.from(table.columnsByName.keys()).length).toEqual(6)
+        expect(Array.from(table.columnsByName.keys()).length).toEqual(
+            colLength + 1
+        )
+    })
+
+    // sortedUniqNonEmptyStringVals
+    it("cam get values for color legend", () => {
+        expect(
+            table.columnsBySlug.get("continent")?.sortedUniqNonEmptyStringVals
+                .length
+        ).toEqual(1)
     })
 })

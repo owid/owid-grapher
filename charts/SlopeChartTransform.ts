@@ -35,7 +35,10 @@ export class SlopeChartTransform extends ChartTransform {
                 return that.colorDimension?.sortedNumericValues ?? []
             },
             get categoricalValues() {
-                return that.colorDimension?.categoricalValues ?? []
+                return (
+                    that.colorDimension?.column.sortedUniqNonEmptyStringVals ??
+                    []
+                )
             },
             get hasNoDataBin() {
                 return false
