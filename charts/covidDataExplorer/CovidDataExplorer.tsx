@@ -749,6 +749,7 @@ export class CovidDataExplorer extends React.Component<{
         // call resize for the first time to initialize chart
         this.onResize()
         this.chart.embedExplorerCheckbox = this.controlsToggleElement
+        ;(window as any).covidDataExplorer = this
     }
 
     componentWillUnmount() {
@@ -759,6 +760,7 @@ export class CovidDataExplorer extends React.Component<{
 
     onResizeThrottled?: () => void
 
+    // todo: remove
     private observeChartEntitySelection() {
         this.disposers.push(
             observe(this.chart.data, "selectedEntityCodes", change => {

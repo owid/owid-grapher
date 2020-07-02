@@ -41,9 +41,10 @@ const computeRollingAveragesForEachGroup = (
     let currentGroup = rows[0][groupColName]
     let currentRows: Row[] = []
     // Assumes items are sorted by entity
-    for (let i = 0; i < rows.length; i++) {
+    for (let i = 0; i <= rows.length; i++) {
         const row = rows[i]
         const groupName = row && row[groupColName]
+
         if (currentGroup !== groupName) {
             const averages = computeRollingAverage(
                 insertMissingValuePlaceholders(
