@@ -1,11 +1,5 @@
 import { ColumnSpec } from "charts/owidData/OwidTable"
 
-// Normally all variables come from the WP backend. In this attempt I try and generate variables client side.
-// This map contains the meta data for these generated variables which they then can extend. There's the obvious
-// issue that this file can get out of data with the WP backend. In addition, this approach is fine for simple
-// transformations, but for generating slightly more complex variables like rolling windows with certain parameters,
-// which are easy with Pandas, become not as simple if we have to roll our own data transformation library.
-// We may want to revert to a Chart Builder that cannot generate variables on the fly.
 export const columnSpecs: { [name: string]: ColumnSpec } = {
     positive_test_rate: {
         owidVariableId: 142721,
@@ -71,6 +65,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
     },
     case_fatality_rate: {
         slug: "case_fatality_rate",
+        annotationsColumnSlug: "case_fatality_rate_annotations",
         owidVariableId: 142600,
         isDailyMeasurement: true,
         name:
@@ -98,6 +93,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
         slug: "cases",
         owidVariableId: 142581,
         isDailyMeasurement: true,
+        annotationsColumnSlug: "cases_annotations",
         name: "Confirmed cases of COVID-19",
         unit: "",
         description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
@@ -126,6 +122,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
         slug: "deaths",
         owidVariableId: 142583,
         isDailyMeasurement: true,
+        annotationsColumnSlug: "deaths_annotations",
         name: "Confirmed deaths due to COVID-19",
         unit: "",
         description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
@@ -230,14 +227,6 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
         }
     }
 }
-
-// todo: add annotations back
-// `Benin: Note that on May 19 the methodology has changed
-// Spain: Note that on May 25 the methodology has changed
-// United Kingdom: Note that on June 1 the methodology has changed
-// Panama: Note that on June 3 the methodology has changed
-// European Union: Some EU countries changed methodology. See country-by-country series.
-// India: Note that on June 17 earlier deaths were added to the total.`
 
 export const trajectoryOptions = {
     deaths: {

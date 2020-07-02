@@ -28,6 +28,7 @@ import { NoData } from "./NoData"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { entityName } from "./owidData/OwidTable"
 
 export interface LineChartValue {
     x: number
@@ -73,9 +74,14 @@ export class LineChart extends React.Component<{
     }
 
     @computed get annotationsMap() {
-        const annotationsColumn = this.props.chart.primaryDimensions[0].column
-            .annotationsColumn
-        return annotationsColumn ? annotationsColumn.entityNameMap : new Map()
+        return this.props.chart.primaryDimensions[0].column.annotationsColumn
+            ?.entityNameMap
+    }
+
+    getAnnotationsForSeries(entityName: entityName) {
+        const annotationsMap = this.annotationsMap
+        const annos = annotationsMap?.get(entityName)
+        return annos ? Array.from(annos.values()).join(" & ") : undefined
     }
 
     // Order of the legend items on a line chart should visually correspond
@@ -87,7 +93,6 @@ export class LineChart extends React.Component<{
         if (toShow.some(g => !!g.isProjection))
             toShow = this.transform.groupedData.filter(g => g.isProjection)
 
-        const annotationsMap = this.annotationsMap
         return toShow.map(series => {
             const lastValue = (last(series.values) as LineChartValue).y
             return {
@@ -99,7 +104,7 @@ export class LineChart extends React.Component<{
                     : `${this.chart.data.getLabelForKey(
                           series.entityDimensionKey
                       )}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
-                annotation: this.annotationsMap.get(series.entityName),
+                annotation: this.getAnnotationsForSeries(series.entityName),
                 yValue: lastValue
             }
         })
@@ -159,7 +164,7 @@ export class LineChart extends React.Component<{
                                 v => v.x === hoverX
                             )
 
-                            const annotation = this.annotationsMap.get(
+                            const annotation = this.getAnnotationsForSeries(
                                 series.entityName
                             )
 

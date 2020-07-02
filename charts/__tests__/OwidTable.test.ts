@@ -72,8 +72,8 @@ hi,1,,2001`
         const entityNameMap = annotationsColumn?.entityNameMap!
 
         expect(entityNameMap.size).toEqual(2)
-        expect(entityNameMap.get("hi")).toEqual("in millions")
-        expect(entityNameMap.get("usa")).toEqual("in hundreds of millions")
+        expect(entityNameMap.get("hi")).toContain("in millions")
+        expect(entityNameMap.get("usa")).toContain("in hundreds of millions")
     })
 })
 

@@ -140,15 +140,20 @@ export abstract class AbstractColumn {
         return this.mapBy("entityName")
     }
 
-    mapBy(columnSlug: columnSlug) {
-        const map = new Map<any, any>()
+    private mapBy(columnSlug: columnSlug) {
+        const map = new Map<any, Set<any>>()
         const slug = this.slug
         this.rows.forEach(row => {
             const value = row[slug]
             // For now the behavior is to not overwrite an existing value with a falsey one
-            if (value !== undefined && value !== "")
-                map.set(row[columnSlug], value)
+            if (value === undefined || value === "") return
+
+            const indexVal = row[columnSlug]
+            if (!map.has(indexVal)) !map.set(indexVal, new Set())
+
+            map.get(indexVal)!.add(value)
         })
+
         return map
     }
 
@@ -460,6 +465,15 @@ export class OwidTable extends AbstractTable<OwidRow> {
         const map = new Map<entityName, entityCode>()
         this.rows.forEach(row => {
             map.set(row.entityName, row.entityCode)
+        })
+        return map
+    }
+
+    @computed get entityIndex() {
+        const map = new Map<entityName, OwidRow[]>()
+        this.rows.forEach(row => {
+            if (!map.has(row.entityName)) map.set(row.entityName, [])
+            map.get(row.entityName)!.push(row)
         })
         return map
     }

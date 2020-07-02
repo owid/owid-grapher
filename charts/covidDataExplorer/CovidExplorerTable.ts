@@ -23,16 +23,26 @@ import {
 } from "./CovidTypes"
 import { columnSpecs, trajectoryOptions } from "./CovidColumnSpecs"
 import { csv } from "d3-fetch"
+import { csvParse } from "d3-dsv"
 import {
     OwidTable,
     ComputedColumnSpec,
     RowToValueMapper,
-    ColumnSpec
+    ColumnSpec,
+    entityName
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams } from "./CovidChartUrl"
+import { covidAnnotations } from "./CovidAnnotations"
 
 type MetricKey = {
     [K in MetricKind]: number
+}
+
+interface AnnotationsRow {
+    location: entityName
+    date: string
+    cases_annotations: string
+    deaths_annotations: string
 }
 
 export class CovidExplorerTable {
@@ -46,7 +56,47 @@ export class CovidExplorerTable {
         this.table = table
         this.table.addRowsAndDetectColumns(data)
         this.table.addColumnSpec(columnSpecs.continents)
+        this.addAnnotationColumns()
         this.lastUpdated = lastUpdated
+    }
+
+    private addAnnotationColumns() {
+        const caseSlug = "cases_annotations"
+        const deathSlug = "deaths_annotations"
+        const cfrSlug = "case_fatality_rate_annotations"
+        this.table.addColumnSpec({ slug: caseSlug })
+        this.table.addColumnSpec({
+            slug: deathSlug
+        })
+        this.table.addColumnSpec({
+            slug: cfrSlug
+        })
+
+        const index = this.table.entityIndex
+        const annotationRows = csvParse(covidAnnotations) as AnnotationsRow[]
+        annotationRows.forEach(annoRow => {
+            const rows = index.get(annoRow.location)
+            if (!rows) {
+                console.log(annoRow.location + " not found")
+                return
+            }
+            // If no date on annotation apply to all rows
+            const applyTo = annoRow.date
+                ? rows.filter(row => row.date === annoRow.date)
+                : rows
+            const datePrefix = annoRow.date
+                ? moment(annoRow.date).format("MMM D") + ": "
+                : ""
+            applyTo.forEach(row => {
+                if (annoRow[caseSlug])
+                    row[caseSlug] = datePrefix + annoRow[caseSlug]
+                if (annoRow[deathSlug])
+                    row[deathSlug] = datePrefix + annoRow[deathSlug]
+                row[cfrSlug] = `${datePrefix}${annoRow[caseSlug] || ""}${
+                    annoRow[deathSlug]
+                }`
+            })
+        })
     }
 
     static async fetchAndParseData(): Promise<CovidGrapherRow[]> {
