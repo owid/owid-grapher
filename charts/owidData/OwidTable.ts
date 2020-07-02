@@ -9,9 +9,13 @@ import {
     groupBy,
     computeRollingAverage,
     insertMissingValuePlaceholders,
-    diffDateISOStringInDays
+    diffDateISOStringInDays,
+    max,
+    min,
+    flatten,
+    sortBy,
+    isString
 } from "charts/Util"
-import { max, min, flatten, sortedUniq, sortBy, isString } from "lodash"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"
