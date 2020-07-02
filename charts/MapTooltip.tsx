@@ -3,7 +3,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
 import { Tooltip } from "./Tooltip"
-import { isMobile, takeWhile, last, first } from "./Util"
+import { takeWhile, last, first } from "./Util"
 import { SparkBars, SparkBarsDatum, SparkBarsProps } from "./SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
@@ -14,6 +14,7 @@ interface MapTooltipProps {
     mapToDataEntities: { [id: string]: string }
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
+    headerHeight: number
     isEntityClickable?: boolean
 }
 
@@ -21,6 +22,10 @@ interface MapTooltipProps {
 export class MapTooltip extends React.Component<MapTooltipProps> {
     static contextType = ChartViewContext
     context!: ChartViewContextType
+
+    @computed get chart() {
+        return this.context.chart
+    }
 
     sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.year
 
@@ -71,6 +76,51 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return lastVal ? this.sparkBarsDatumXAccessor(lastVal) : undefined
     }
 
+    @computed get renderSparkBars() {
+        const { chart } = this
+        return chart.hasChartTab && chart.isLineChart
+    }
+
+    @computed get darkestColorInColorScheme() {
+        const { colorScale } = this.chart.map.data
+        return colorScale.isColorSchemeInverted
+            ? first(colorScale.baseColors)
+            : last(colorScale.baseColors)
+    }
+
+    @computed get barColor() {
+        const { colorScale } = this.chart.map.data
+        return colorScale.singleColorScale && !colorScale.isCustomColors
+            ? this.darkestColorInColorScheme
+            : undefined
+    }
+
+    @computed get tooltipHeightByType() {
+        return {
+            sparkBar: -134,
+            dataValue: -102,
+            noData: -65
+        }
+    }
+
+    @computed get tooltipHeight() {
+        const { tooltipDatum } = this.props
+        const { renderSparkBars, tooltipHeightByType } = this
+
+        if (tooltipDatum) {
+            return renderSparkBars
+                ? tooltipHeightByType["sparkBar"]
+                : tooltipHeightByType["dataValue"]
+        } else {
+            return tooltipHeightByType["noData"]
+        }
+    }
+
+    @computed get tooltipVerticalOffsetFromCursor() {
+        // 10 == visual adjustment
+        return this.tooltipHeight + this.props.headerHeight + 10
+    }
+
     render() {
         const {
             tooltipTarget,
@@ -80,24 +130,19 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             isEntityClickable
         } = this.props
 
-        const chart = this.context.chart
-        const renderPlot = chart.hasChartTab && chart.isLineChart
-        const darkestColor = chart.map.data.colorScale.isColorSchemeInverted
-            ? first(chart.map.data.colorScale.baseColors)
-            : last(chart.map.data.colorScale.baseColors)
-        const barColor =
-            chart.map.data.colorScale.singleColorScale &&
-            !chart.map.data.colorScale.isCustomColors
-                ? darkestColor
-                : undefined
+        const {
+            renderSparkBars,
+            barColor,
+            tooltipVerticalOffsetFromCursor
+        } = this
         return (
             <Tooltip
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}
                 style={{ textAlign: "center", padding: "8px" }}
-                offsetX={30}
-                offsetY={isMobile && -50}
+                offsetX={15}
+                offsetY={tooltipVerticalOffsetFromCursor}
             >
                 <h3
                     style={{
@@ -119,7 +164,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                     {tooltipDatum ? (
                         <div className="map-tooltip">
                             <div className="trend">
-                                {renderPlot && (
+                                {renderSparkBars && (
                                     <div className="plot">
                                         <SparkBars<SparkBarsDatum>
                                             {...this.sparkBarsProps}
@@ -130,7 +175,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 )}
                                 <div
                                     className={
-                                        "value" + (renderPlot ? "" : " no-plot")
+                                        "value" +
+                                        (renderSparkBars ? "" : " no-plot")
                                     }
                                 >
                                     <CovidTimeSeriesValue
@@ -142,7 +188,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                             tooltipDatum.year as number
                                         )}
                                         valueColor={
-                                            renderPlot ? barColor : "black"
+                                            renderSparkBars ? barColor : "black"
                                         }
                                     />
                                 </div>

@@ -41,6 +41,7 @@ interface MapWithLegendProps {
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
+    headerHeight: number
 }
 
 @observer
@@ -190,8 +191,12 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         )
     }
 
+    @computed get choroplethMapBounds() {
+        return this.props.bounds.padBottom(this.mapLegend.height + 15)
+    }
+
     render() {
-        const { choroplethData, projection, defaultFill, bounds } = this.props
+        const { choroplethData, projection, defaultFill } = this.props
         const {
             focusBracket,
             focusEntity,
@@ -205,13 +210,14 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             formatYear: this.props.formatYear,
             mapToDataEntities: this.props.mapToDataEntities,
             tooltipDatum: this.tooltipDatum,
+            headerHeight: this.props.headerHeight,
             isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId)
         }
 
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
-                    bounds={bounds.padBottom(mapLegend.height + 15)}
+                    bounds={this.choroplethMapBounds}
                     choroplethData={choroplethData}
                     projection={projection}
                     defaultFill={defaultFill}
@@ -288,6 +294,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         defaultFill={map.data.colorScale.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
                         formatYear={map.data.formatYear}
+                        headerHeight={layout.header.height}
                     />
                 ) : (
                     <LoadingChart bounds={layout.innerBounds} />
