@@ -186,7 +186,8 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
         display: {
             zeroDay: "2020-01-21",
             yearIsDay: true,
-            numDecimalPlaces: 0
+            numDecimalPlaces: 0,
+            includeInTable: false
         },
         datasetName: "COVID-2019 - ECDC (2020)",
         source: {
