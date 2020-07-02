@@ -25,11 +25,11 @@ import { Time } from "./TimeBounds"
 // of a line chart
 export class LineChartTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
-        return this.chart.dimensions.some(d => d.property === "y")
+        return this.hasYDimension
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData)) return "No matching data"
@@ -47,7 +47,8 @@ export class LineChartTransform extends ChartTransform {
     @computed get initialData(): LineChartSeries[] {
         const { chart } = this
         const { yAxis } = chart
-        const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
+        const { selectedKeys, selectedKeysByKey } = chart.data
+        const filledDimensions = chart.filledDimensions
 
         let chartData: LineChartSeries[] = []
 
@@ -57,9 +58,9 @@ export class LineChartTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
-                const entity = dimension.entityNames[i]
+                const entityName = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                    entity,
+                    entityName,
                     dimIndex
                 )
                 let series = seriesByKey.get(entityDimensionKey)
@@ -72,6 +73,7 @@ export class LineChartTransform extends ChartTransform {
                 if (!series) {
                     series = {
                         values: [],
+                        entityName,
                         entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,
@@ -112,29 +114,27 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get predomainData() {
-        if (this.isRelativeMode) {
-            return cloneDeep(this.initialData).map(series => {
-                const startIndex = findIndex(
-                    series.values,
-                    v => v.time >= this.startYear && v.y !== 0
-                )
-                if (startIndex < 0) {
-                    series.values = []
-                    return series
-                } else {
-                    const relativeValues = series.values.slice(startIndex)
-                    // Clone to avoid overwriting in next loop
-                    const indexValue = clone(relativeValues[0])
-                    series.values = relativeValues.map(v => {
-                        v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
-                        return v
-                    })
-                }
+        if (!this.isRelativeMode) return this.initialData
+
+        return cloneDeep(this.initialData).map(series => {
+            const startIndex = findIndex(
+                series.values,
+                v => v.time >= this.startYear && v.y !== 0
+            )
+            if (startIndex < 0) {
+                series.values = []
                 return series
-            })
-        } else {
-            return this.initialData
-        }
+            } else {
+                const relativeValues = series.values.slice(startIndex)
+                // Clone to avoid overwriting in next loop
+                const indexValue = clone(relativeValues[0])
+                series.values = relativeValues.map(v => {
+                    v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
+                    return v
+                })
+            }
+            return series
+        })
     }
 
     @computed get allValues(): LineChartValue[] {
@@ -165,7 +165,7 @@ export class LineChartTransform extends ChartTransform {
     @computed get yDimensionFirst():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return this.chart.data.filledDimensions.find(d => d.property === "y")
+        return this.chart.filledDimensions.find(d => d.property === "y")
     }
 
     @computed get yDomainDefault(): [number, number] {

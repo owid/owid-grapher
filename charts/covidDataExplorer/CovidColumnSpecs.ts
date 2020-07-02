@@ -1,4 +1,4 @@
-import { OwidVariable } from "charts/owidData/OwidVariable"
+import { ColumnSpec } from "charts/owidData/OwidTable"
 
 // Normally all variables come from the WP backend. In this attempt I try and generate variables client side.
 // This map contains the meta data for these generated variables which they then can extend. There's the obvious
@@ -6,10 +6,12 @@ import { OwidVariable } from "charts/owidData/OwidVariable"
 // transformations, but for generating slightly more complex variables like rolling windows with certain parameters,
 // which are easy with Pandas, become not as simple if we have to roll our own data transformation library.
 // We may want to revert to a Chart Builder that cannot generate variables on the fly.
-export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
+export const columnSpecs: { [name: string]: ColumnSpec } = {
     positive_test_rate: {
-        id: 142721,
+        owidVariableId: 142721,
+        slug: "cumulative_positivity_rate",
         name: "cumulative_positivity_rate",
+        annotationsColumnSlug: "tests_units",
         unit: "",
         description:
             "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
@@ -37,8 +39,10 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     tests_per_case: {
-        id: 142754,
+        owidVariableId: 142754,
+        slug: "short_term_tests_per_case",
         name: "short_term_tests_per_case",
+        annotationsColumnSlug: "tests_units",
         unit: "",
         description:
             "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis.",
@@ -64,7 +68,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     case_fatality_rate: {
-        id: 142600,
+        slug: "case_fatality_rate",
+        owidVariableId: 142600,
         name:
             "Case fatality rate of COVID-19 (%) (Only observations with ≥100 cases)",
         unit: "",
@@ -87,7 +92,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     cases: {
-        id: 142581,
+        slug: "cases",
+        owidVariableId: 142581,
         name: "Confirmed cases of COVID-19",
         unit: "",
         description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
@@ -113,7 +119,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     deaths: {
-        id: 142583,
+        slug: "deaths",
+        owidVariableId: 142583,
         name: "Confirmed deaths due to COVID-19",
         unit: "",
         description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
@@ -139,11 +146,13 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     tests: {
-        id: 142601,
+        slug: "tests",
+        owidVariableId: 142601,
         name: "tests",
         unit: "",
         description: "",
         coverage: "",
+        annotationsColumnSlug: "tests_units",
         datasetId: "covid",
         shortUnit: "",
         display: {
@@ -167,7 +176,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     days_since: {
-        id: 99999,
+        slug: "days_since",
+        owidVariableId: 99999,
         name: "",
         unit: "",
         description: "",
@@ -192,7 +202,8 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
         }
     },
     continents: {
-        id: 123,
+        owidVariableId: 123,
+        slug: "continent",
         name: "Countries Continents",
         unit: "",
         description: "Countries and their associated continents.",
@@ -208,6 +219,52 @@ export const variablePartials: { [name: string]: Partial<OwidVariable> } = {
             link: "",
             retrievedDate: "",
             additionalInfo: ""
+        }
+    }
+}
+
+// todo: add annotations back
+// `Benin: Note that on May 19 the methodology has changed
+// Spain: Note that on May 25 the methodology has changed
+// United Kingdom: Note that on June 1 the methodology has changed
+// Panama: Note that on June 3 the methodology has changed
+// European Union: Some EU countries changed methodology. See country-by-country series.
+// India: Note that on June 17 earlier deaths were added to the total.`
+
+export const trajectoryOptions = {
+    deaths: {
+        total: {
+            title: "Days since the 5th total confirmed death",
+            threshold: 5,
+            id: 4561
+        },
+        daily: {
+            title: "Days since 5 daily new deaths first reported",
+            threshold: 5,
+            id: 4562
+        },
+        perCapita: {
+            title: "Days since total confirmed deaths reached 0.1 per million",
+            threshold: 0.1,
+            id: 4563
+        }
+    },
+    cases: {
+        total: {
+            title: "Days since the 100th confirmed case",
+            threshold: 100,
+            id: 4564
+        },
+        daily: {
+            title: "Days since confirmed cases first reached 30 per day",
+            threshold: 30,
+            id: 4565
+        },
+        perCapita: {
+            title:
+                "Days since the total confirmed cases per million people reached 1",
+            threshold: 1,
+            id: 4566
         }
     }
 }

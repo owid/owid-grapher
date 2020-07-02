@@ -25,11 +25,11 @@ import { Time } from "./TimeBounds"
 // of a stacked area chart
 export class StackedAreaTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
-        return some(this.chart.dimensions, d => d.property === "y")
+        return this.hasYDimension
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (
@@ -44,7 +44,8 @@ export class StackedAreaTransform extends ChartTransform {
     // "lines up" i.e. has a data point for every year
     @computed get groupedData(): StackedAreaSeries[] {
         const { chart } = this
-        const { filledDimensions, selectedKeys, selectedKeysByKey } = chart.data
+        const { selectedKeys, selectedKeysByKey } = chart.data
+        const filledDimensions = chart.filledDimensions
 
         let groupedData: StackedAreaSeries[] = []
 
@@ -55,9 +56,9 @@ export class StackedAreaTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const value = +dimension.values[i]
-                const entity = dimension.entityNames[i]
+                const entityName = dimension.entityNames[i]
                 const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                    entity,
+                    entityName,
                     dimIndex
                 )
                 let series = seriesByKey.get(entityDimensionKey)
@@ -256,7 +257,7 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return find(this.chart.data.filledDimensions, d => d.property === "y")
+        return find(this.chart.filledDimensions, d => d.property === "y")
     }
 
     @computed get yAxis(): AxisSpec {

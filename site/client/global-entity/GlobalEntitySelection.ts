@@ -51,12 +51,12 @@ export function subscribeChartToGlobalEntitySelection(
 ): IReactionDisposer {
     return reaction(
         () => [
-            chart.data.isReady,
+            chart.isReady,
             globalSelection.mode,
             globalSelection.selectedEntities
         ],
         () => {
-            if (!chart.data.canAddData && !chart.data.canChangeEntity) {
+            if (!chart.canAddData && !chart.canChangeEntity) {
                 // Chart doesn't support changing entities - do nothing
                 return
             }

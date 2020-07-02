@@ -6,12 +6,12 @@ import { MapData } from "./MapData"
 import { defaultTo } from "./Util"
 import { TimeBound, TimeBoundValue } from "./TimeBounds"
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
-import { ColorScale } from "./ColorScale"
+import { owidVariableId } from "./owidData/OwidTable"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
 export class MapConfigProps {
-    @observable.ref variableId?: number
+    @observable.ref variableId?: owidVariableId
     @observable.ref targetYear?: number
     @observable.ref timeTolerance?: number
     @observable.ref hideTimeline?: true

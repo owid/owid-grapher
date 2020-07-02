@@ -11,11 +11,11 @@ import { ColorScale } from "./ColorScale"
 // of a line chart
 export class SlopeChartTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
-        return this.chart.dimensions.some(d => d.property === "y")
+        return this.hasYDimension
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.data)) return "No matching data"
@@ -35,7 +35,10 @@ export class SlopeChartTransform extends ChartTransform {
                 return that.colorDimension?.sortedNumericValues ?? []
             },
             get categoricalValues() {
-                return that.colorDimension?.categoricalValues ?? []
+                return (
+                    that.colorDimension?.column.sortedUniqNonEmptyStringVals ??
+                    []
+                )
             },
             get hasNoDataBin() {
                 return false
@@ -47,9 +50,7 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(
-            this.chart.data.axisDimensions.map(d => d.variable.yearsUniq)
-        )
+        return flatten(this.chart.axisDimensions.map(d => d.yearsUniq))
     }
 
     @computed.struct get xDomain(): [number, number] {
@@ -57,24 +58,19 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed.struct get sizeDim(): ChartDimensionWithOwidVariable | undefined {
-        return find(
-            this.chart.data.filledDimensions,
-            d => d.property === "size"
-        )
+        return find(this.chart.filledDimensions, d => d.property === "size")
     }
 
     @computed.struct get colorDimension():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return this.chart.data.filledDimensions.find(
-            d => d.property === "color"
-        )
+        return this.chart.filledDimensions.find(d => d.property === "color")
     }
 
     @computed.struct get yDimension():
         | ChartDimensionWithOwidVariable
         | undefined {
-        return find(this.chart.data.filledDimensions, d => d.property === "y")
+        return find(this.chart.filledDimensions, d => d.property === "y")
     }
 
     // helper method to directly get the associated color value given an Entity
@@ -126,15 +122,14 @@ export class SlopeChartTransform extends ChartTransform {
 
         const { yDimension, xDomain, colorByEntity, sizeByEntity, chart } = this
         const { keyColors } = chart.data
-        const entityKey = this.chart.entityMetaByKey
 
         const minYear = Math.max(xDomain[0])
         const maxYear = Math.min(xDomain[1])
 
-        const entities = yDimension.entitiesUniq
-        let data: SlopeChartSeries[] = entities.map(entity => {
+        const entityNames = yDimension.entityNamesUniq
+        let data: SlopeChartSeries[] = entityNames.map(entityName => {
             const slopeValues: SlopeChartValue[] = []
-            const yValues = yDimension.valueByEntityAndYear.get(entity)
+            const yValues = yDimension.valueByEntityAndYear.get(entityName)
             if (yValues !== undefined) {
                 yValues.forEach((value, year) => {
                     if (year === minYear || year === maxYear) {
@@ -150,17 +145,17 @@ export class SlopeChartTransform extends ChartTransform {
             }
 
             const entityDimensionKey = chart.data.makeEntityDimensionKey(
-                entity,
+                entityName,
                 yDimension.index
             )
             return {
                 entityDimensionKey,
-                label: entityKey[entity].name,
+                label: entityName,
                 color:
                     keyColors[entityDimensionKey] ||
-                    colorByEntity.get(entity) ||
+                    colorByEntity.get(entityName) ||
                     "#ff7f0e",
-                size: sizeByEntity.get(entity) || 1,
+                size: sizeByEntity.get(entityName) || 1,
                 values: slopeValues
             }
         })

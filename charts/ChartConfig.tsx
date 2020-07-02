@@ -19,30 +19,25 @@ import {
     includes,
     uniqWith,
     isEqual,
-    first,
     defaultTo,
     formatDay,
     formatYear,
     uniq,
-    values,
-    keyBy,
     fetchJSON,
-    each,
-    keys,
     flatten,
     sortBy,
-    getErrorMessageRelatedQuestionUrl
+    getErrorMessageRelatedQuestionUrl,
+    slugify,
+    each,
+    find
 } from "./Util"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartTabOption } from "./ChartTabOption"
-import { OwidVariable, FilterPredicate } from "./owidData/OwidVariable"
-import {
-    OwidVariablesAndEntityKey,
-    EntityMeta
-} from "./owidData/OwidVariableSet"
-import { ChartData } from "./ChartData"
+import { OwidVariablesAndEntityKey } from "./owidData/OwidVariable"
+import { ChartData, SourceWithDimension } from "./ChartData"
+import { OwidTable } from "./owidData/OwidTable"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { MapConfig, MapConfigProps } from "./MapConfig"
 import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
@@ -56,7 +51,11 @@ import { Color } from "./Color"
 import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
-import { ChartDimension, dimensionProperty } from "./ChartDimension"
+import {
+    ChartDimension,
+    dimensionProperty,
+    DimensionSpec
+} from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
@@ -75,10 +74,12 @@ import {
     subscribeChartToGlobalEntitySelection
 } from "site/client/global-entity/GlobalEntitySelection"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { populationMap } from "./PopulationMap"
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "./DataTableTransform"
+import { getWindowQueryParams } from "utils/client/url"
+import { populationMap } from "./PopulationMap"
+import { EntityDimensionKey } from "./EntityDimensionKey"
 
 declare const App: any
 declare const window: any
@@ -160,7 +161,7 @@ export class DimensionSlot {
     }
 
     @computed get dimensionsWithData(): ChartDimensionWithOwidVariable[] {
-        return this.chart.data.filledDimensions.filter(
+        return this.chart.filledDimensions.filter(
             d => d.property === this.property
         )
     }
@@ -207,6 +208,9 @@ export class ChartConfigProps {
     @observable.ref externalDataUrl?: string = undefined
     @observable.ref owidDataset?: OwidVariablesAndEntityKey = undefined
     @observable.ref entitiesAreCountries?: boolean = undefined
+
+    // Todo: remove once we migrate to all tables
+    useV2?: boolean = false
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref minTime?: TimeBound = undefined
@@ -315,14 +319,9 @@ export class ChartConfig {
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
-    @observable.ref variablesById: { [id: number]: OwidVariable } = {}
-    @observable.ref entityMetaById: { [id: number]: EntityMeta } = {}
-
-    @computed get availableEntities(): string[] {
-        return keys(this.entityMetaByKey)
-    }
-
     @action.bound async downloadData() {
+        if (this.props.useV2) return
+
         if (this.props.externalDataUrl) {
             const json = await fetchJSON(this.props.externalDataUrl)
             this.receiveData(json)
@@ -350,6 +349,8 @@ export class ChartConfig {
         }
     }
 
+    @observable.ref table: OwidTable = new OwidTable([])
+
     // Provide a way to insert an arbitrary element into the embed popup.
     // The "hideControls" property is a param on the explorer, so to maintain
     // modularity between the explorer and chart I am injecting the checkbox this way.
@@ -357,37 +358,21 @@ export class ChartConfig {
     @observable.ref embedExplorerCheckbox?: JSX.Element
 
     @action.bound receiveData(json: OwidVariablesAndEntityKey) {
-        const variablesById: { [id: string]: OwidVariable } = {}
-        const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
-        const filters = this.filters
-        for (const key in json.variables) {
-            const variable = new OwidVariable(
-                json.variables[key]
-            ).setEntityNamesFromEntityMap(entityMetaById)
-            variablesById[key] = variable
-            if (filters.length)
-                variablesById[
-                    key
-                ] = variable.getFilteredVariable((name: string) =>
-                    this.isEntityFiltered(name)
-                )
-        }
-        each(entityMetaById, (e, id) => (e.id = +id))
-        this.variablesById = variablesById
-        this.entityMetaById = entityMetaById
+        this.table = OwidTable.fromLegacy(json)
+        this.updatePopulationFilter()
     }
 
-    isEntityFiltered(name: string) {
-        return this.filters.some(fn => fn(name) === false)
-    }
-
-    isEntitySelected(name: string) {
-        return this.selectedCountryNames.has(name)
-    }
-
+    // todo: refactor
     @computed get selectedCountryNames() {
-        const countryCodes = EntityUrlBuilder.queryParamToEntities(
-            this.url.params.country || ""
+        // Get the countries that are already selected
+        let countryCodes = EntityUrlBuilder.queryParamToEntities(
+            this.url?.params.country || ""
+        )
+        // Get the countries from the url
+        countryCodes = countryCodes.concat(
+            EntityUrlBuilder.queryParamToEntities(
+                getWindowQueryParams().country || ""
+            )
         )
         return new Set<string>(
             countryCodes
@@ -395,22 +380,6 @@ export class ChartConfig {
                 .filter(i => i)
                 .map(c => c!.name)
         )
-    }
-
-    @computed get filters() {
-        const filters: FilterPredicate[] = []
-        if (this.props.minPopulationFilter)
-            filters.push((name: string) =>
-                populationMap[name]
-                    ? populationMap[name] >= this.props.minPopulationFilter! ||
-                      this.isEntitySelected(name)
-                    : true
-            )
-        return filters
-    }
-
-    @computed get entityMetaByKey() {
-        return keyBy(this.entityMetaById, "name")
     }
 
     @observable.ref setBaseFontSize: number = 16
@@ -424,22 +393,14 @@ export class ChartConfig {
         this.setBaseFontSize = val
     }
 
-    @computed get yearIsDayVar() {
-        return first(this.variables.filter(v => v.display.yearIsDay))
-    }
-
-    @computed get variables(): OwidVariable[] {
-        return values(this.variablesById)
-    }
-
     @computed get formatYearFunction() {
-        const yearIsDayVar = this.yearIsDayVar
-        return yearIsDayVar ? (day: number) => formatDay(day) : formatYear
+        return this.table.hasDayColumn
+            ? (day: number) => formatDay(day)
+            : formatYear
     }
 
     @computed get formatYearTickFunction() {
-        const yearIsDayVar = this.yearIsDayVar
-        return yearIsDayVar
+        return this.table.hasDayColumn
             ? (day: number, options?: TickFormattingOptions) =>
                   formatDay(
                       day,
@@ -450,8 +411,24 @@ export class ChartConfig {
 
     @computed get sortedUniqueEntitiesAcrossDimensions() {
         return sortBy(
-            uniq(flatten(this.data.filledDimensions.map(d => d.entitiesUniq)))
+            uniq(flatten(this.filledDimensions.map(d => d.entityNamesUniq)))
         )
+    }
+
+    // ChartData is ready to go iff we have retrieved data for every variable associated with the chart
+    @computed get isReady(): boolean {
+        return this.loadingVarIds.length === 0
+    }
+
+    @computed get primaryVariableId() {
+        const yDimension = find(this.dimensions, { property: "y" })
+        return yDimension ? yDimension.variableId : undefined
+    }
+
+    @computed private get loadingVarIds(): number[] {
+        return this.dimensions
+            .map(dim => dim.variableId)
+            .filter(id => !this.table.columnsByOwidVarId.has(id))
     }
 
     data: ChartData
@@ -484,7 +461,7 @@ export class ChartConfig {
     }
 
     @computed get showAddEntityControls() {
-        return !this.hideEntityControls && this.data.canAddData
+        return !this.hideEntityControls && this.canAddData
     }
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
@@ -547,10 +524,17 @@ export class ChartConfig {
             })
         )
 
+        this.disposers.push(
+            reaction(
+                () => this.props.minPopulationFilter,
+                () => {
+                    this.updatePopulationFilter()
+                }
+            )
+        )
+
         this.data = new ChartData(this)
         this.url = new ChartUrl(this, options.queryStr)
-
-        this.disposers.push(reaction(() => this.filters, this.downloadData))
 
         // The chart props after consuming the URL parameters, but before any user interaction
         this.initialPropsRaw = toJS(this.props)
@@ -565,6 +549,18 @@ export class ChartConfig {
         }
 
         if (!this.isNode) this.ensureValidConfig()
+    }
+
+    updatePopulationFilter() {
+        const slug = "pop_filter"
+        const minPop = this.props.minPopulationFilter
+        if (!minPop) this.table.deleteColumnBySlug(slug)
+        else
+            this.table.addFilterColumn(slug, row => {
+                const name = row.entityName
+                const pop = populationMap[name]
+                return !pop || pop >= minPop
+            })
     }
 
     ensureValidConfig() {
@@ -605,6 +601,14 @@ export class ChartConfig {
     @computed get originUrl() {
         return defaultTo(this.props.originUrl, "")
     }
+
+    // todo: do we need this?
+    @computed get originUrlWithProtocol(): string {
+        let url = this.originUrl
+        if (!url.startsWith("http")) url = "https://" + url
+        return url
+    }
+
     @computed get isPublished() {
         return defaultTo(this.props.isPublished, false)
     }
@@ -715,8 +719,32 @@ export class ChartConfig {
         return validDimensions
     }
 
+    @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {
+        if (!this.isReady) return []
+
+        return map(this.dimensions, (dim, i) => {
+            return new ChartDimensionWithOwidVariable(
+                i,
+                dim,
+                this.table.columnsByOwidVarId.get(dim.variableId)!
+            )
+        })
+    }
+
+    @computed get primaryDimensions() {
+        return this.filledDimensions.filter(dim => dim.property === "y")
+    }
+
     @computed get dimensions() {
         return this.props.dimensions
+    }
+
+    @computed private get defaultSlug(): string {
+        return slugify(this.title)
+    }
+
+    @computed get slug(): string {
+        return defaultTo(this.props.slug, this.defaultSlug)
     }
 
     @computed get availableTabs(): ChartTabOption[] {
@@ -758,8 +786,180 @@ export class ChartConfig {
         extend(this.props.yAxis, json["yAxis"])
 
         this.props.dimensions = (json.dimensions || []).map(
-            (j: any) => new ChartDimension(j)
+            (dimSpec: DimensionSpec) => new ChartDimension(dimSpec)
         )
+    }
+
+    @computed get currentTitle(): string {
+        let text = this.title
+
+        if (
+            this.primaryTab === "chart" &&
+            this.addCountryMode !== "add-country" &&
+            this.data.selectedEntityNames.length === 1 &&
+            (!this.props.hideTitleAnnotation || this.canChangeEntity)
+        ) {
+            const { selectedEntityNames: selectedEntities } = this.data
+            const entityStr = selectedEntities.join(", ")
+            if (entityStr.length > 0) {
+                text = text + ", " + entityStr
+            }
+        }
+
+        if (
+            !this.props.hideTitleAnnotation &&
+            this.isLineChart &&
+            this.lineChart.isRelativeMode
+        ) {
+            text =
+                "Change in " +
+                (text.charAt(1).match(/[A-Z]/)
+                    ? text
+                    : text.charAt(0).toLowerCase() + text.slice(1))
+        }
+
+        // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe
+        /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
+            const label = labelsByRegion[chart.map.props.projection]
+            text = text + ` in ${label}`
+        }*/
+
+        if (
+            !this.props.hideTitleAnnotation ||
+            (this.isLineChart &&
+                this.lineChart.isSingleYear &&
+                this.lineChart.hasTimeline) ||
+            (this.primaryTab === "map" && this.map.data.hasTimeline)
+        ) {
+            const { minYear, maxYear } = this
+            const timeFrom = this.formatYearFunction(minYear)
+            const timeTo = this.formatYearFunction(maxYear)
+            const time =
+                timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+
+            text = text + ", " + time
+        }
+
+        return text.trim()
+    }
+
+    @computed get maxYear(): number {
+        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
+        //    return undefined
+        if (this.tab === "table") return this.dataTableTransform.endYear
+        else if (this.primaryTab === "map") return this.map.data.targetYear
+        else if (this.isScatter && !this.scatter.failMessage)
+            return this.scatter.endYear
+        else if (this.isDiscreteBar && !this.discreteBar.failMessage)
+            return this.discreteBar.targetYear
+        else return this.lineChart.endYear
+    }
+
+    @computed get isSingleEntity(): boolean {
+        return (
+            this.table.availableEntities.length === 1 ||
+            this.addCountryMode === "change-country"
+        )
+    }
+
+    @computed get isSingleVariable(): boolean {
+        return this.primaryDimensions.length === 1
+    }
+
+    // XXX refactor into the transforms
+    @computed get minYear(): number {
+        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
+        //    return undefined
+        if (this.tab === "table") return this.dataTableTransform.startYear
+        else if (this.primaryTab === "map") return this.map.data.targetYear
+        else if (this.isScatter && !this.scatter.failMessage)
+            return this.scatter.startYear
+        else if (this.isDiscreteBar && !this.discreteBar.failMessage)
+            return this.discreteBar.targetYear
+        else return this.lineChart.startYear
+    }
+
+    @computed get sourcesLine(): string {
+        return this.props.sourceDesc !== undefined
+            ? this.props.sourceDesc
+            : this.defaultSourcesLine
+    }
+
+    @computed get canAddData(): boolean {
+        return (
+            this.addCountryMode === "add-country" &&
+            this.data.availableKeys.length > 1
+        )
+    }
+
+    @computed get canChangeEntity(): boolean {
+        return (
+            !this.isScatter &&
+            this.addCountryMode === "change-country" &&
+            this.data.availableEntityNames.length > 1
+        )
+    }
+
+    @computed get sourcesWithDimension(): SourceWithDimension[] {
+        const { filledDimensions } = this
+
+        const sources: SourceWithDimension[] = []
+        each(filledDimensions, dim => {
+            const { column } = dim
+            // HACK (Mispy): Ignore the default color source on scatterplots.
+            if (
+                column.name !== "Countries Continents" &&
+                column.name !== "Total population (Gapminder)"
+            )
+                sources.push({ source: column.source!, dimension: dim })
+        })
+        return sources
+    }
+
+    @computed private get defaultSourcesLine(): string {
+        let sourceNames = this.sourcesWithDimension.map(
+            source => source.source.name
+        )
+
+        // Shorten automatic source names for certain major sources
+        sourceNames = sourceNames.map(sourceName => {
+            for (const majorSource of [
+                "World Bank – WDI",
+                "World Bank",
+                "ILOSTAT"
+            ]) {
+                if (sourceName.startsWith(majorSource)) return majorSource
+            }
+            return sourceName
+        })
+
+        return uniq(sourceNames).join(", ")
+    }
+
+    @computed get axisDimensions() {
+        return this.filledDimensions.filter(
+            dim => dim.property === "y" || dim.property === "x"
+        )
+    }
+
+    @computed private get defaultTitle(): string {
+        const { primaryDimensions } = this
+        if (this.isScatter)
+            return this.axisDimensions.map(d => d.displayName).join(" vs. ")
+        else if (
+            primaryDimensions.length > 1 &&
+            uniq(map(primaryDimensions, d => d.column.datasetName)).length === 1
+        )
+            return primaryDimensions[0].column.datasetName!
+        else if (primaryDimensions.length === 2)
+            return primaryDimensions.map(d => d.displayName).join(" and ")
+        else return primaryDimensions.map(d => d.displayName).join(", ")
+    }
+
+    @computed get title(): string {
+        return this.props.title !== undefined
+            ? this.props.title
+            : this.defaultTitle
     }
 
     @computed.struct get json(): Readonly<any> {
@@ -768,11 +968,11 @@ export class ChartConfig {
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
         if (!this.props.title) {
-            json.title = this.data.title
+            json.title = this.title
             json.isAutoTitle = true
         }
         if (!this.props.slug) {
-            json.slug = this.data.slug
+            json.slug = this.slug
             json.isAutoSlug = true
         }
 
@@ -781,7 +981,7 @@ export class ChartConfig {
         json.overlay = undefined
 
         json.data = {
-            availableEntities: this.data.availableEntities
+            availableEntities: this.data.availableEntityNames
         }
 
         // JSON doesn't support Infinity, so we use strings instead.

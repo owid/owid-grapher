@@ -378,7 +378,7 @@ export class HeightedLegendComponent extends React.Component<
         const nonOverlappingMinHeight =
             sumBy(this.initialMarks, mark => mark.bounds.height) +
             this.initialMarks.length * LEGEND_ITEM_MIN_SPACING
-        const availableHeight = this.context.chart.data.canAddData
+        const availableHeight = this.context.chart.canAddData
             ? this.props.yScale.rangeSize - ADD_BUTTON_HEIGHT
             : this.props.yScale.rangeSize
 

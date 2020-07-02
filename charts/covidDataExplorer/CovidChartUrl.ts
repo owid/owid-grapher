@@ -117,7 +117,7 @@ export class CovidQueryParams {
     }
 }
 
-class CovidConstrainedQueryParams extends CovidQueryParams {
+export class CovidConstrainedQueryParams extends CovidQueryParams {
     constructor(queryString: string) {
         super(queryString)
         if (this.allowEverything) return this

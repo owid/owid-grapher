@@ -386,13 +386,13 @@ export function domainExtent(
 }
 
 // Take an arbitrary string and turn it into a nice url slug
-export function slugify(s: string) {
-    s = s
-        .toLowerCase()
+export const slugify = (str: string) => slugifySameCase(str.toLowerCase())
+export const slugifySameCase = (str: string) =>
+    str
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
-    return s.trim().replace(/ +/g, "-")
-}
+        .trim()
+        .replace(/ +/g, "-")
 
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids
@@ -418,6 +418,7 @@ export function keysOf<T, K extends keyof T>(obj: T): K[] {
 
 // Based on https://stackoverflow.com/a/30245398/1983739
 // In case of tie returns higher value
+// todo: add unit tests
 export function sortedFindClosestIndex(array: number[], value: number): number {
     if (array.length === 0) return -1
 
@@ -693,16 +694,17 @@ export function parseFloatOrUndefined(s: string | undefined) {
 }
 
 export function computeRollingAverage(
-    numbers: (number | undefined)[],
+    numbers: (number | undefined | null)[],
     windowSize: number,
     align: "right" | "center" = "right"
 ) {
-    const result: (number | undefined)[] = []
+    const result: (number | undefined | null)[] = []
 
     for (let valueIndex = 0; valueIndex < numbers.length; valueIndex++) {
         // If a value is undefined in the original input, keep it undefined in the output
-        if (numbers[valueIndex] === undefined) {
-            result[valueIndex] = undefined
+        const currentVal = numbers[valueIndex]
+        if (currentVal === undefined || currentVal === null) {
+            result[valueIndex] = currentVal
             continue
         }
 
@@ -726,8 +728,8 @@ export function computeRollingAverage(
             windowIndex++
         ) {
             const value = numbers[windowIndex]
-            if (value !== undefined) {
-                sum += value
+            if (value !== undefined && value !== null) {
+                sum += value!
                 count++
             }
         }
@@ -756,7 +758,7 @@ export function insertMissingValuePlaceholders(
         map.set(year, index)
     })
     while (year <= endYear) {
-        filledRange.push(values[map.get(year)])
+        filledRange.push(map.has(year) ? values[map.get(year)] : null)
         year++
     }
     return filledRange

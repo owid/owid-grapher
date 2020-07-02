@@ -16,7 +16,7 @@ export declare type MetricKind =
     | "positive_test_rate"
 
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
-export interface ParsedCovidRow {
+export interface ParsedCovidCsvRow {
     iso_code: string
     location: string
     continent: string
@@ -52,13 +52,21 @@ export interface ParsedCovidRow {
     hospital_beds_per_thousand: number
 }
 
+export interface CovidGrapherRow extends ParsedCovidCsvRow {
+    entityName: string
+    entityCode: string
+    entityId: number
+    day: number
+}
+
 export interface CountryOption {
     name: string
     slug: countrySlug
     code: string
     continent: string
     population: number
-    rows: ParsedCovidRow[]
+    entityId: number
+    rows: ParsedCovidCsvRow[]
 }
 
 export type CountryOptionWithValue = CountryOption & {

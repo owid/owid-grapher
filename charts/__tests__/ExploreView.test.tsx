@@ -44,9 +44,9 @@ function mockDataResponse() {
 
 async function whenReady(chartView: ChartView): Promise<void> {
     return new Promise(resolve => {
-        const data = chartView.chart.data
-        observe(data, "isReady", () => {
-            if (data.isReady) resolve()
+        const chart = chartView.chart
+        observe(chart, "isReady", () => {
+            if (chart.isReady) resolve()
         })
     })
 }

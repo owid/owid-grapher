@@ -12,6 +12,8 @@ import { ADMIN_BASE_URL, BAKED_GRAPHER_URL, BAKED_BASE_URL } from "settings"
 import * as querystring from "querystring"
 import * as _ from "lodash"
 import * as url from "url"
+import * as fs from "fs-extra"
+import md5 from "md5"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 
@@ -396,9 +398,95 @@ testPages.get("/embedVariants", async (req, res) => {
     res.send(renderToHtmlPage(<EmbedVariantsTestPage charts={charts} />))
 })
 
-testPages.get("/chartFeatureUsage.json", async (req, res) => {
-    const report = await Chart.getChartFeatureUsage()
-    res.send(JSON.stringify(report, null, 2))
+const getListOfLiveSVGs = () => {
+    // TODO: Stored this on list on prod as a text file on bake so devs don't need to rebake from main locally.
+    const liveSvgFolder = __dirname + "/../../public/liveSvgs/"
+    return fs.readdirSync(liveSvgFolder).map(filename => {
+        const liveSvgPath = liveSvgFolder + filename
+        return {
+            liveSvgPath,
+            filename,
+            md5: md5(fs.readFileSync(liveSvgPath, "utf8"))
+        }
+    })
+}
+
+const getChangeList = () => {
+    const newSvgFolder = __dirname + "/../../public/devSvgs/"
+    const liveList = getListOfLiveSVGs()
+
+    const files = liveList.map(liveSvg => {
+        const { filename } = liveSvg
+        const devSvgPath = newSvgFolder + filename
+        if (!fs.existsSync(devSvgPath)) return { missing: devSvgPath }
+
+        const newSvg = fs.readFileSync(devSvgPath, "utf8")
+        const changed = md5(newSvg) !== liveSvg.md5
+        const slug = filename.split("_v")[0]
+        const liveInteractiveUrl = `https://ourworldindata.org/grapher/${slug}`
+        const devInteractiveUrl = `${BAKED_GRAPHER_URL}/${slug}`
+        return {
+            changed,
+            liveSvgPath: `${BAKED_BASE_URL}/liveSvgs/${filename}`,
+            devSvgPath: `${BAKED_BASE_URL}/devSvgs/${filename}`,
+            devInteractiveUrl,
+            liveInteractiveUrl
+        }
+    })
+    return files
+}
+
+const getComparePage = () => {
+    const files = getChangeList()
+    const missing = files.filter(file => file.missing)
+    const notMissing = files.filter(file => !file.missing)
+    const changed = notMissing.filter(file => file.changed)
+
+    const rows = changed.map(file => (
+        <tr>
+            <td>
+                <a href={file.liveSvgPath}>
+                    <img src={file.liveSvgPath} />
+                </a>
+                <a href={file.liveInteractiveUrl}>{file.liveInteractiveUrl}</a>
+            </td>
+            <td>
+                <a href={file.devSvgPath}>
+                    <img src={file.devSvgPath} />
+                </a>
+                <a href={file.devInteractiveUrl}>{file.devInteractiveUrl}</a>
+            </td>
+        </tr>
+    ))
+
+    const summaryMessage = `${changed.length} (${Math.round(
+        (100 * changed.length) / notMissing.length
+    )}%) out of ${notMissing.length} are different. ${notMissing.length -
+        changed.length} unchanged. ${
+        missing.length
+    } files on live missing locally.`
+
+    const missingDivs = missing.map(el => <div>${el.missing}</div>)
+
+    return renderToHtmlPage(
+        <div>
+            <div>{summaryMessage}</div>
+            <table>{rows}</table>
+            <div>{missing.length && <>{missingDivs}</>}</div>
+        </div>
+    )
+}
+
+testPages.get("/compareSvgs", async (req, res) => {
+    try {
+        res.send(getComparePage())
+    } catch (err) {
+        console.log(err)
+        res.send(
+            `Error building comparison page. Have you run 'bakeSvgsForComparison.ts' script yet to generate local SVG folders? Error: ` +
+                err
+        )
+    }
 })
 
 testPages.get("/:slug.svg", async (req, res) => {

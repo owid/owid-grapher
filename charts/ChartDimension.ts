@@ -5,12 +5,23 @@ import { observable } from "mobx"
 import { extend } from "./Util"
 import { Time } from "./TimeBounds"
 import { OwidVariableDisplaySettings } from "./owidData/OwidVariable"
+import { owidVariableId } from "./owidData/OwidTable"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color"
 
-export class ChartDimension {
+export interface DimensionSpec {
+    property: dimensionProperty
+    variableId: owidVariableId
+    targetYear?: Time
+    display?: OwidVariableDisplaySettings
+}
+
+export class ChartDimension implements DimensionSpec {
     @observable property!: dimensionProperty
-    @observable variableId!: number
+    @observable variableId!: owidVariableId
+
+    // check on: malaria-deaths-comparisons and computing-efficiency
+
     @observable display: OwidVariableDisplaySettings = {
         name: undefined,
         unit: undefined,
@@ -28,20 +39,11 @@ export class ChartDimension {
     // for future charts
     @observable saveToVariable?: true = undefined
 
-    constructor(json: any) {
-        for (const key in this) {
-            if (key === "display") {
-                extend(this.display, json.display)
-                continue
-            }
+    constructor(spec: DimensionSpec) {
+        if (spec.display) extend(this.display, spec.display)
 
-            if (key in json) {
-                ;(this as any)[key] = (json as any)[key]
-            }
-
-            // XXX migrate this away (remember targetYear)
-            if ((json as any)[key] === "" || (json as any)[key] === null)
-                (this as any)[key] = undefined
-        }
+        this.targetYear = spec.targetYear
+        this.variableId = spec.variableId
+        this.property = spec.property
     }
 }

@@ -24,20 +24,20 @@ export class SourcesTab extends React.Component<{
     }
 
     @computed private get sourcesWithDimensions() {
-        return this.props.chart.data.sourcesWithDimension
+        return this.props.chart.sourcesWithDimension
     }
 
     private renderSource(sourceWithDimension: SourceWithDimension) {
         const source = sourceWithDimension.source
         const dimension = sourceWithDimension.dimension
-        const { variable } = dimension
+        const { column } = dimension
 
         const editUrl = Cookies.get("isAdmin")
-            ? `${ADMIN_BASE_URL}/admin/datasets/${variable.datasetId}`
+            ? `${ADMIN_BASE_URL}/admin/datasets/${column.datasetId}`
             : undefined
 
-        const minYear = min(variable.years)
-        const maxYear = max(variable.years)
+        const minYear = min(column.years)
+        const maxYear = max(column.years)
         let timespan = ""
         if (minYear !== undefined && maxYear !== undefined)
             timespan = `${dimension.formatYear(
@@ -47,7 +47,7 @@ export class SourcesTab extends React.Component<{
         return (
             <div key={source.id} className="datasource-wrapper">
                 <h2>
-                    {variable.name}{" "}
+                    {column.name}{" "}
                     {editUrl && (
                         <a href={editUrl} target="_blank">
                             <FontAwesomeIcon icon={faPencilAlt} />
@@ -56,20 +56,20 @@ export class SourcesTab extends React.Component<{
                 </h2>
                 <table className="variable-desc">
                     <tbody>
-                        {variable.description ? (
+                        {column.description ? (
                             <tr>
                                 <td>Variable description</td>
                                 <td
                                     dangerouslySetInnerHTML={{
-                                        __html: formatText(variable.description)
+                                        __html: formatText(column.description)
                                     }}
                                 />
                             </tr>
                         ) : null}
-                        {variable.coverage ? (
+                        {column.coverage ? (
                             <tr>
                                 <td>Variable geographic coverage</td>
-                                <td>{variable.coverage}</td>
+                                <td>{column.coverage}</td>
                             </tr>
                         ) : null}
                         {timespan ? (

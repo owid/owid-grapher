@@ -191,12 +191,12 @@ class EntitySelectorSingle extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableEntities() {
+    @computed private get availableEntities() {
         const availableItems: { id: number; label: string }[] = []
         this.props.chart.data.entityDimensionMap.forEach(meta => {
             availableItems.push({
                 id: meta.entityId,
-                label: meta.entity
+                label: meta.entityName
             })
         })
         return uniqBy(availableItems, d => d.label)
@@ -242,7 +242,7 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityId: number) {
-        this.props.chart.data.setSelectedEntity(entityId)
+        this.props.chart.data.setSingleSelectedEntity(entityId)
         this.props.onDismiss()
     }
 
@@ -300,7 +300,7 @@ export class EntitySelectorModal extends React.Component<{
     onDismiss: () => void
 }> {
     render() {
-        return this.props.chart.data.canChangeEntity ? (
+        return this.props.chart.canChangeEntity ? (
             <EntitySelectorSingle {...this.props} />
         ) : (
             <EntitySelectorMulti {...this.props} />

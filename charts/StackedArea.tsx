@@ -26,7 +26,7 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "./EntityDimensionKey" // todo: remove
 
 export interface StackedAreaValue {
     x: number
@@ -37,7 +37,7 @@ export interface StackedAreaValue {
 }
 
 export interface StackedAreaSeries {
-    entityDimensionKey: EntityDimensionKey
+    entityDimensionKey: EntityDimensionKey // todo: remove
     color: string
     values: StackedAreaValue[]
     classed?: string
@@ -47,7 +47,7 @@ export interface StackedAreaSeries {
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     axisBox: AxisBox
     data: StackedAreaSeries[]
-    focusKeys: EntityDimensionKey[]
+    focusKeys: EntityDimensionKey[] // todo: remove
     onHover: (hoverIndex: number | undefined) => void
 }
 

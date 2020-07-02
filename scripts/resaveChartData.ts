@@ -15,7 +15,13 @@ async function main() {
         const vardata = await getVariableData(variableIds)
         chart.receiveData(vardata)
 
-        c.config.data = chart.data.json
+        // todo: remove?
+        c.config.data = {
+            availableEntities:
+                chart.props.addCountryMode === "disabled"
+                    ? []
+                    : chart.data.availableEntityNames
+        }
         console.log(c.id)
         await db
             .table("charts")

@@ -7,7 +7,7 @@ import {
     isUnboundedRight,
     getClosestTime
 } from "./TimeBounds"
-import { defaultTo, first, last, sortedUniq, sortBy } from "./Util"
+import { defaultTo, first, last, sortedUniq, sortBy, some } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { ColorScale } from "./ColorScale"
@@ -33,6 +33,10 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     abstract get isValidConfig(): boolean
+
+    @computed get hasYDimension() {
+        return some(this.chart.dimensions, d => d.property === "y")
+    }
 
     /**
      * An array of all the years in the datapoints that can be plotted. Can contain duplicates and

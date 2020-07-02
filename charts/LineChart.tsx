@@ -37,6 +37,7 @@ export interface LineChartValue {
 
 export interface LineChartSeries {
     entityDimensionKey: EntityDimensionKey
+    entityName: string
     color: string
     values: LineChartValue[]
     classed?: string
@@ -71,6 +72,12 @@ export class LineChart extends React.Component<{
         return this.props.chart.lineChart
     }
 
+    @computed get annotationsMap() {
+        const annotationsColumn = this.props.chart.primaryDimensions[0].column
+            .annotationsColumn
+        return annotationsColumn ? annotationsColumn.entityNameMap : new Map()
+    }
+
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed private get legendItems(): HeightedLegendItem[] {
@@ -80,12 +87,9 @@ export class LineChart extends React.Component<{
         if (toShow.some(g => !!g.isProjection))
             toShow = this.transform.groupedData.filter(g => g.isProjection)
 
+        const annotationsMap = this.annotationsMap
         return toShow.map(series => {
             const lastValue = (last(series.values) as LineChartValue).y
-            const annotation =
-                this.chart.data.getAnnotationForKey(
-                    series.entityDimensionKey
-                ) || undefined
             return {
                 color: series.color,
                 entityDimensionKey: series.entityDimensionKey,
@@ -95,7 +99,7 @@ export class LineChart extends React.Component<{
                     : `${this.chart.data.getLabelForKey(
                           series.entityDimensionKey
                       )}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
-                annotation,
+                annotation: this.annotationsMap.get(series.entityName),
                 yValue: lastValue
             }
         })
@@ -155,8 +159,8 @@ export class LineChart extends React.Component<{
                                 v => v.x === hoverX
                             )
 
-                            const annotation = chart.data.getAnnotationForKey(
-                                series.entityDimensionKey
+                            const annotation = this.annotationsMap.get(
+                                series.entityName
                             )
 
                             // It sometimes happens that data is missing for some years for a particular

@@ -15,12 +15,13 @@ import { DimensionSlot } from "charts/ChartConfig"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
 import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
+import { owidVariableId } from "charts/owidData/OwidTable"
 
 interface VariableSelectorProps {
     editor: ChartEditor
     slot: DimensionSlot
     onDismiss: () => void
-    onComplete: (variableIds: number[]) => void
+    onComplete: (variableIds: owidVariableId[]) => void
 }
 
 interface Variable {

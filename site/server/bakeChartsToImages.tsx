@@ -40,7 +40,8 @@ export async function bakeChartToImage(
     outDir: string,
     slug: string,
     queryStr: string = "",
-    optimizeSvgs: boolean = false
+    optimizeSvgs: boolean = false,
+    overwriteExisting = false
 ) {
     // the type definition for url.query is wrong (bc we have query string parsing disabled),
     // so we have to explicitly cast it
@@ -52,22 +53,22 @@ export async function bakeChartToImage(
     }_${width}x${height}.svg`
     console.log(outPath)
 
-    if (!fs.existsSync(outPath)) {
-        const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
-        const vardata = await getVariableData(variableIds)
-        chart.receiveData(vardata)
+    if (fs.existsSync(outPath) && !overwriteExisting) return
 
-        let svgCode = chart.staticSVG
-        if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
+    const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+    const vardata = await getVariableData(variableIds)
+    chart.receiveData(vardata)
 
-        fs.writeFile(outPath, svgCode)
-    }
+    let svgCode = chart.staticSVG
+    if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
+
+    fs.writeFile(outPath, svgCode)
 }
 
 export async function bakeAllSVGS(outDir: string) {
     const chartsBySlug = await getChartsBySlug()
     for (const [slug, config] of chartsBySlug) {
-        await bakeChartToImage(config, outDir, slug)
+        await bakeChartToImage(config, outDir, slug, undefined, undefined, true)
     }
 }
 

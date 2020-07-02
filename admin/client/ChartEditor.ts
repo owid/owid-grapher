@@ -95,7 +95,7 @@ export class ChartEditor {
                 ? "desktop"
                 : "mobile"
         when(
-            () => this.chart.data.isReady,
+            () => this.chart.isReady,
             () =>
                 (this.savedChartConfig = JSON.stringify(this.currentChartJson))
         )
@@ -215,7 +215,7 @@ export class ChartEditor {
     }
 
     publishChart() {
-        const url = `${BAKED_GRAPHER_URL}/${this.chart.data.slug}`
+        const url = `${BAKED_GRAPHER_URL}/${this.chart.slug}`
 
         if (window.confirm(`Publish chart at ${url}?`)) {
             this.chart.props.isPublished = true

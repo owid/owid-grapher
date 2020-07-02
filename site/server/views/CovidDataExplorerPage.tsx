@@ -6,7 +6,7 @@ import { SiteFooter } from "./SiteFooter"
 import {
     covidLastUpdatedPath,
     covidDataPath
-} from "charts/covidDataExplorer/CovidDataUtils"
+} from "charts/covidDataExplorer/CovidExplorerTable"
 import {
     covidDashboardSlug,
     coronaOpenGraphImagePath,

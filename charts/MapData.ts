@@ -36,7 +36,7 @@ export class MapData extends ChartTransform {
     }
 
     @computed get isValidConfig() {
-        return !!this.chart.data.primaryVariable
+        return !!this.chart.primaryVariableId
     }
 
     ensureValidConfig() {
@@ -46,11 +46,11 @@ export class MapData extends ChartTransform {
         autorun(() => {
             const hasVariable =
                 chart.map.variableId &&
-                chart.variablesById[chart.map.variableId]
-            if (!hasVariable && chart.data.primaryVariable) {
-                const variableId = chart.data.primaryVariable.id
-                runInAction(() => (chart.map.props.variableId = variableId))
-            }
+                chart.table.columnsByOwidVarId.get(chart.map.variableId)
+            if (!hasVariable && chart.primaryVariableId)
+                runInAction(
+                    () => (chart.map.props.variableId = chart.primaryVariableId)
+                )
         })
     }
 
@@ -74,12 +74,12 @@ export class MapData extends ChartTransform {
         const { map } = this
         return (
             map.variableId !== undefined &&
-            !!this.chart.variablesById[map.variableId]
+            !!this.chart.table.columnsByOwidVarId.get(map.variableId)
         )
     }
 
     @computed get dimension(): ChartDimensionWithOwidVariable | undefined {
-        return this.chart.data.filledDimensions.find(
+        return this.chart.filledDimensions.find(
             d => d.variableId === this.map.variableId
         )
     }
@@ -92,7 +92,7 @@ export class MapData extends ChartTransform {
         const idLookup = keyBy(
             MapTopology.objects.world.geometries.map((g: any) => g.id)
         )
-        const entities = this.dimension.variable.entitiesUniq.filter(
+        const entities = this.dimension.entityNamesUniq.filter(
             e => !!idLookup[entityNameForMap(e)]
         )
         return keyBy(entities)
@@ -103,7 +103,7 @@ export class MapData extends ChartTransform {
         if (!this.dimension) return {}
 
         const entities: { [id: string]: string } = {}
-        for (const entity of this.dimension.variable.entitiesUniq) {
+        for (const entity of this.dimension.entityNamesUniq) {
             entities[entityNameForMap(entity)] = entity
         }
         return entities
