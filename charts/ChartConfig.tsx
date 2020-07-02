@@ -166,10 +166,7 @@ export class DimensionSlot {
     }
 
     createDimension(variableId: number) {
-        return new ChartDimension(
-            { property: this.property, variableId },
-            this.chart
-        )
+        return new ChartDimension({ property: this.property, variableId })
     }
 }
 
@@ -788,7 +785,7 @@ export class ChartConfig {
         extend(this.props.yAxis, json["yAxis"])
 
         this.props.dimensions = (json.dimensions || []).map(
-            (dimSpec: DimensionSpec) => new ChartDimension(dimSpec, this)
+            (dimSpec: DimensionSpec) => new ChartDimension(dimSpec)
         )
     }
 

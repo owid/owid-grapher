@@ -670,7 +670,7 @@ export class CovidDataExplorer extends React.Component<{
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
-            spec => new ChartDimension(spec, this.chart)
+            spec => new ChartDimension(spec)
         )
         chartProps.map.variableId = this.currentYVarId
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme

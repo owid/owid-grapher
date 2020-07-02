@@ -73,7 +73,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.data
+        const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (!some(filledDimensions, d => d.property === "x"))

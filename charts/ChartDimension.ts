@@ -5,7 +5,7 @@ import { observable } from "mobx"
 import { extend } from "./Util"
 import { Time } from "./TimeBounds"
 import { OwidVariableDisplaySettings } from "./owidData/OwidVariable"
-import { owidVariableId, columnSlug } from "./owidData/OwidTable"
+import { owidVariableId } from "./owidData/OwidTable"
 import { ChartConfig } from "./ChartConfig"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color"
@@ -20,7 +20,6 @@ export interface DimensionSpec {
 export class ChartDimension implements DimensionSpec {
     @observable property!: dimensionProperty
     @observable variableId!: owidVariableId
-    @observable columnSlug!: columnSlug
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
@@ -41,10 +40,7 @@ export class ChartDimension implements DimensionSpec {
     // for future charts
     @observable saveToVariable?: true = undefined
 
-    private chart: ChartConfig
-
-    constructor(spec: DimensionSpec, chart: ChartConfig) {
-        this.chart = chart
+    constructor(spec: DimensionSpec) {
         if (spec.display) extend(this.display, spec.display)
 
         this.targetYear = spec.targetYear

@@ -174,10 +174,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !chart.props.dimensions.find(d => d.property === "color")
         ) {
             chart.props.dimensions = chart.props.dimensions.concat(
-                new ChartDimension(
-                    { variableId: 123, property: "color" },
-                    chart
-                )
+                new ChartDimension({ variableId: 123, property: "color" })
             )
         }
 
@@ -186,7 +183,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !chart.props.dimensions.find(d => d.property === "color")
         ) {
             chart.props.dimensions = chart.props.dimensions.concat(
-                new ChartDimension({ variableId: 72, property: "size" }, chart)
+                new ChartDimension({ variableId: 72, property: "size" })
             )
         }
     }

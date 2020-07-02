@@ -252,7 +252,7 @@ export class ChartUrl implements ObservableUrl {
                 JSON.stringify(origChartProps.selectedData)
         ) {
             return EntityUrlBuilder.entitiesToQueryParams(
-                chart.selectedEntityCodes
+                chart.data.selectedEntityCodes
             )
         } else {
             return undefined
