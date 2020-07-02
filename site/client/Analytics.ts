@@ -62,6 +62,12 @@ export class Analytics {
         this.logToGA("CovidDataExplorerCountrySelector", action, note)
     }
 
+    static logCovidCountryProfileSearch(country: string) {
+        const key = "COVID_COUNTRY_PROFILE_SEARCH"
+        this.logToAmplitude(key, { country })
+        this.logToGA(key, country)
+    }
+
     static logSiteClick(text: string, href?: string, note?: string) {
         this.logToAmplitude("OWID_SITE_CLICK", {
             text,

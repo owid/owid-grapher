@@ -75,11 +75,13 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     popstate: false
 })
 
+const dataTrackAttr = "data-track-note"
+
 document.addEventListener("click", async ev => {
     const targetElement = ev.target as HTMLElement
     const trackedElement = getParent(
         targetElement,
-        (el: HTMLElement) => el.getAttribute("data-track-note") !== null
+        (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
     )
     if (trackedElement) {
         // Note that browsers will cancel all pending requests once a user
@@ -89,7 +91,7 @@ document.addEventListener("click", async ev => {
         Analytics.logSiteClick(
             trackedElement.innerText,
             trackedElement.getAttribute("href") || undefined,
-            trackedElement.getAttribute("data-track-note") || undefined
+            trackedElement.getAttribute(dataTrackAttr) || undefined
         )
     }
 })

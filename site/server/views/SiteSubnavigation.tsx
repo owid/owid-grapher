@@ -84,6 +84,11 @@ export class SiteSubnavigation extends React.Component<{
                             {subnavLinks.map(
                                 ({ href, label, id, highlight }, idx) => {
                                     const classes: string[] = []
+                                    const dataTrackNote = [
+                                        subnavId,
+                                        "subnav",
+                                        id
+                                    ].join("-")
                                     if (id === subnavCurrentId)
                                         classes.push("current")
                                     if (highlight) classes.push("highlight")
@@ -96,7 +101,10 @@ export class SiteSubnavigation extends React.Component<{
                                             }
                                             key={href}
                                         >
-                                            <a href={href}>
+                                            <a
+                                                href={href}
+                                                data-track-note={dataTrackNote}
+                                            >
                                                 {label}
                                                 {idx === 0 && (
                                                     <FontAwesomeIcon
