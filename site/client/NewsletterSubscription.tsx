@@ -3,8 +3,19 @@ import { useState } from "react"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Analytics } from "./Analytics"
 
-export const NewsletterSubscription = () => {
+export enum NewsletterSubscriptionContext {
+    Homepage = "homepage",
+    MobileMenu = "mobile-menu",
+    Floating = "floating"
+}
+
+export const NewsletterSubscription = ({
+    context
+}: {
+    context?: NewsletterSubscriptionContext
+}) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const subscribeText = "Subscribe to receive updates"
@@ -21,7 +32,7 @@ export const NewsletterSubscription = () => {
                         }}
                     />
                     <div className="box">
-                        <NewsletterSubscriptionForm />
+                        <NewsletterSubscriptionForm context={context} />
                     </div>
                 </>
             )}
@@ -47,7 +58,7 @@ export const NewsletterSubscription = () => {
 export const NewsletterSubscriptionForm = ({
     context
 }: {
-    context?: string
+    context?: NewsletterSubscriptionContext
 }) => {
     const IMMEDIATE = "1"
     const BIWEEKLY = "2"
@@ -137,6 +148,13 @@ export const NewsletterSubscriptionForm = ({
                     type="submit"
                     className="owid-inline-button"
                     disabled={!isSubmittable}
+                    onClick={() =>
+                        Analytics.logSiteClick(
+                            `Subscribe [${context ?? "other-contexts"}]`,
+                            undefined,
+                            "newsletter-subscribe"
+                        )
+                    }
                 >
                     Subscribe
                 </button>

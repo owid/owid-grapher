@@ -25,7 +25,10 @@ import { faAngleUp } from "@fortawesome/free-solid-svg-icons/faAngleUp"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 
 import { AmazonMenu } from "./AmazonMenu"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionContext
+} from "./NewsletterSubscription"
 
 @observer
 export class Header extends React.Component<{
@@ -280,7 +283,11 @@ export class Header extends React.Component<{
                 {this.showNewsletterSubscription && (
                     <div className="newsletter-subscription">
                         <div className="box">
-                            <NewsletterSubscriptionForm />
+                            <NewsletterSubscriptionForm
+                                context={
+                                    NewsletterSubscriptionContext.MobileMenu
+                                }
+                            />
                         </div>
                     </div>
                 )}

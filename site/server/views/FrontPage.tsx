@@ -13,7 +13,10 @@ import { faFacebookSquare } from "@fortawesome/free-brands-svg-icons/faFacebookS
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { splitOnLastWord } from "utils/server/serverUtil"
-import { NewsletterSubscriptionForm } from "site/client/NewsletterSubscription"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionContext
+} from "site/client/NewsletterSubscription"
 
 export const FrontPage = (props: {
     entries: CategoryWithEntries[]
@@ -331,7 +334,11 @@ export const FrontPage = (props: {
                                         <h2>Subscribe to our newsletter</h2>
                                         <div className="root">
                                             {/* Hydrated in runSiteTools() */}
-                                            <NewsletterSubscriptionForm context="homepage" />
+                                            <NewsletterSubscriptionForm
+                                                context={
+                                                    NewsletterSubscriptionContext.Homepage
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </div>

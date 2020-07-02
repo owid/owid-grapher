@@ -3,13 +3,16 @@ import * as ReactDOM from "react-dom"
 import { FeedbackPrompt } from "./Feedback"
 import {
     NewsletterSubscription,
-    NewsletterSubscriptionForm
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionContext
 } from "./NewsletterSubscription"
 
 const SiteTools = () => {
     return (
         <>
-            <NewsletterSubscription />
+            <NewsletterSubscription
+                context={NewsletterSubscriptionContext.Floating}
+            />
             <FeedbackPrompt />
         </>
     )
@@ -23,7 +26,9 @@ export const runSiteTools = () => {
     )
     if (newsletterSubscriptionFormRootHomepage) {
         ReactDOM.hydrate(
-            <NewsletterSubscriptionForm context="homepage" />,
+            <NewsletterSubscriptionForm
+                context={NewsletterSubscriptionContext.Homepage}
+            />,
             newsletterSubscriptionFormRootHomepage
         )
     }
