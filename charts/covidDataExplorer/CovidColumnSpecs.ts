@@ -9,6 +9,7 @@ import { ColumnSpec } from "charts/owidData/OwidTable"
 export const columnSpecs: { [name: string]: ColumnSpec } = {
     positive_test_rate: {
         owidVariableId: 142721,
+        isDailyMeasurement: true,
         slug: "cumulative_positivity_rate",
         name: "cumulative_positivity_rate",
         annotationsColumnSlug: "tests_units",
@@ -40,6 +41,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
     },
     tests_per_case: {
         owidVariableId: 142754,
+        isDailyMeasurement: true,
         slug: "short_term_tests_per_case",
         name: "short_term_tests_per_case",
         annotationsColumnSlug: "tests_units",
@@ -70,6 +72,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
     case_fatality_rate: {
         slug: "case_fatality_rate",
         owidVariableId: 142600,
+        isDailyMeasurement: true,
         name:
             "Case fatality rate of COVID-19 (%) (Only observations with ≥100 cases)",
         unit: "",
@@ -94,6 +97,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
     cases: {
         slug: "cases",
         owidVariableId: 142581,
+        isDailyMeasurement: true,
         name: "Confirmed cases of COVID-19",
         unit: "",
         description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
@@ -121,6 +125,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
     deaths: {
         slug: "deaths",
         owidVariableId: 142583,
+        isDailyMeasurement: true,
         name: "Confirmed deaths due to COVID-19",
         unit: "",
         description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
@@ -148,6 +153,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
     tests: {
         slug: "tests",
         owidVariableId: 142601,
+        isDailyMeasurement: true,
         name: "tests",
         unit: "",
         description: "",
@@ -178,6 +184,7 @@ export const columnSpecs: { [name: string]: ColumnSpec } = {
     days_since: {
         slug: "days_since",
         owidVariableId: 99999,
+        isDailyMeasurement: true,
         name: "",
         unit: "",
         description: "",
