@@ -5,6 +5,7 @@ import { countries } from "utils/countries"
 import { covidCountryProfileRootPath } from "site/server/covid/CovidConstants"
 import { asArray } from "utils/client/react-select"
 import { Analytics } from "../Analytics"
+import { sortBy } from "charts/Util"
 
 interface CountrySelectOption {
     label: string
@@ -13,9 +14,10 @@ interface CountrySelectOption {
 
 const CovidSearchCountry = () => {
     const [isLoading, setIsLoading] = useState(false)
+    const sorted = sortBy(countries, "name")
     return (
         <Select
-            options={countries.map(c => {
+            options={sorted.map(c => {
                 return { label: c.name, value: c.slug }
             })}
             onChange={(selected: ValueType<CountrySelectOption>) => {

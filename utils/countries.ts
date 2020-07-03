@@ -10,7 +10,7 @@ interface FilterableCountry extends Country {
     filter?: true
 }
 
-const allCountries: FilterableCountry[] = [
+const allCountriesSortedByCode: FilterableCountry[] = [
     {
         name: "Aruba",
         code: "ABW",
@@ -1505,7 +1505,7 @@ const allCountries: FilterableCountry[] = [
     }
 ]
 
-export const countries: Country[] = allCountries.filter(
+export const countries: Country[] = allCountriesSortedByCode.filter(
     country => !country.filter
 )
 
