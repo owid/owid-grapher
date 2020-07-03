@@ -3,11 +3,13 @@ import {
     render as renderAdditionalInformation
 } from "./AdditionalInformation/AdditionalInformation"
 import { render as renderHelp } from "./Help/Help"
+import { render as renderProminentLink } from "./ProminentLink/ProminentLink"
 import { shouldProgressiveEmbed } from "../Grapher"
 
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)
     renderHelp($)
+    renderProminentLink($)
 }
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
