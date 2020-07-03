@@ -814,9 +814,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             !hideLines &&
                             series.values
                                 .slice(1, -1)
-                                .map(v => (
+                                .map((v, index) => (
                                     <circle
-                                        key={v.label}
+                                        key={index}
                                         cx={v.position.x}
                                         cy={v.position.y}
                                         r={radius}
