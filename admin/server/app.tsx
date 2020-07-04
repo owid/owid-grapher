@@ -18,7 +18,7 @@ const app = express()
 // Parse cookies https://github.com/expressjs/cookie-parser
 app.use(cookieParser())
 
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 
 // Require authentication (only for /admin requests)
 app.use(authMiddleware)

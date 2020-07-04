@@ -19,5 +19,3 @@ datasetsExport
 .pending
 coverage/
 public/head.txt
-public/liveSvgs/
-public/devSvgs/

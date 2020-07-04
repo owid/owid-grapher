@@ -12,7 +12,7 @@ global.App = { isEditor: false }
 
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 
-async function getChartsBySlug() {
+export async function getChartsBySlug() {
     const chartsBySlug: Map<string, ChartConfigProps> = new Map()
     const chartsById = new Map()
 
@@ -41,7 +41,8 @@ export async function bakeChartToImage(
     slug: string,
     queryStr: string = "",
     optimizeSvgs: boolean = false,
-    overwriteExisting = false
+    overwriteExisting = false,
+    verbose = true
 ) {
     // the type definition for url.query is wrong (bc we have query string parsing disabled),
     // so we have to explicitly cast it
@@ -51,7 +52,7 @@ export async function bakeChartToImage(
     const outPath = `${outDir}/${slug}${queryStr ? "-" + md5(queryStr) : ""}_v${
         jsonConfig.version
     }_${width}x${height}.svg`
-    console.log(outPath)
+    if (verbose) console.log(outPath)
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
 
@@ -63,13 +64,7 @@ export async function bakeChartToImage(
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
 
     fs.writeFile(outPath, svgCode)
-}
-
-export async function bakeAllSVGS(outDir: string) {
-    const chartsBySlug = await getChartsBySlug()
-    for (const [slug, config] of chartsBySlug) {
-        await bakeChartToImage(config, outDir, slug, undefined, undefined, true)
-    }
+    return svgCode
 }
 
 export async function bakeChartsToImages(
