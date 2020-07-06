@@ -649,6 +649,7 @@ export class CovidDataExplorer extends React.Component<{
     private renderControlsThenUpdateChart() {
         // Updating the chart may take a second so render the Data Explorer controls immediately then the chart.
         setTimeout(() => {
+            this.selectionChangeFromBuilder = true
             this._updateChart()
         }, 1)
     }
