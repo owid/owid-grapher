@@ -9,12 +9,16 @@ describe(CovidQueryParams, () => {
     })
 
     it("computes constrained params correctly", () => {
-        const params = new CovidQueryParams(`cfrMetric=true&dailyFreq=true`)
+        const params = new CovidQueryParams(
+            `cfrMetric=true&dailyFreq=true&smoothing=7`
+        )
         expect(params.dailyFreq).toEqual(true)
         expect(params.totalFreq).toEqual(false)
+        expect(params.smoothing).toEqual(7)
         const constrainedParams = params.constrainedParams
         expect(constrainedParams.dailyFreq).toEqual(false)
         expect(constrainedParams.totalFreq).toEqual(true)
+        expect(constrainedParams.smoothing).toEqual(0)
     })
 
     it("switches to 7-day smoothing param if on daily but daily is restricted", () => {
