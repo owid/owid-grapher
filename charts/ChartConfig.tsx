@@ -79,7 +79,6 @@ import { countries } from "utils/countries"
 import { DataTableTransform } from "./DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "./PopulationMap"
-import { EntityDimensionKey } from "./EntityDimensionKey"
 
 declare const App: any
 declare const window: any
