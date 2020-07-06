@@ -82,15 +82,10 @@ class ProminentLink extends React.Component<{
     }
 
     render() {
-        const updatedURL = this.originalURLPath.includes(
-            "total-covid-deaths-region"
-        )
-            ? this.props.originalURL
-            : this.updatedURL
         return (
             <a
                 dangerouslySetInnerHTML={{ __html: this.props.innerHTML ?? "" }}
-                href={updatedURL}
+                href={this.updatedURL}
             />
         )
     }
