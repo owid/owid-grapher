@@ -113,7 +113,7 @@ export class CovidExplorerTable {
         return filtered.concat(continentRows, euRows)
     }
 
-    buildCovidVariableId(
+    private static buildCovidVariableId(
         name: MetricKind,
         perCapita: number,
         rollingAverage?: number,
@@ -180,7 +180,7 @@ export class CovidExplorerTable {
     ): ColumnSpec {
         const spec = cloneDeep(columnSpecs[name]) as ColumnSpec
         spec.slug = this.getColumnSlug(name, perCapita, daily, rollingAverage)
-        spec.owidVariableId = this.buildCovidVariableId(
+        spec.owidVariableId = CovidExplorerTable.buildCovidVariableId(
             name,
             perCapita,
             rollingAverage,
@@ -383,7 +383,11 @@ export class CovidExplorerTable {
 
     private groupFilterSlug = "group_filter"
     addGroupFilterColumn() {
-        this.table.addFilterColumn(this.groupFilterSlug, row => row.continent)
+        if (!this.table.columnsBySlug.has(this.groupFilterSlug))
+            this.table.addFilterColumn(
+                this.groupFilterSlug,
+                row => row.continent
+            )
     }
 
     removeGroupFilterColumn() {
