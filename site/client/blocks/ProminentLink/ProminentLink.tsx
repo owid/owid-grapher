@@ -51,7 +51,6 @@ class ProminentLink extends React.Component<{
     }
 
     @computed get entitiesInGlobalEntitySelection(): string[] {
-        // return Grapher.globalEntitySelection.url?.params.country ?? ""
         return Grapher.globalEntitySelection.selectedEntities.map(
             entity => entity.code
         )
