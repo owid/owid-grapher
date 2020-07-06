@@ -9,7 +9,6 @@ import { shouldProgressiveEmbed } from "../Grapher"
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)
     renderHelp($)
-    renderProminentLink($)
 }
 export const runBlocks = () => {
     if (!shouldProgressiveEmbed()) {
@@ -20,4 +19,5 @@ export const runBlocks = () => {
             .classList.add("is-not-chart-interactive")
     }
     hydrateAdditionalInformation()
+    renderProminentLink()
 }
