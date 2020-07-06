@@ -320,15 +320,8 @@ export class CovidExplorerTable {
     }
 
     initCfrColumn(params: CovidConstrainedQueryParams) {
-        if (params.dailyFreq)
-            this.initColumn(params, row =>
-                row.total_cases < 100
-                    ? undefined
-                    : row.new_cases && row.new_deaths
-                    ? (100 * row.new_deaths) / row.new_cases
-                    : 0
-            )
-        else if (params.totalFreq)
+        // We do not support daily freq for CFR
+        if (params.totalFreq)
             this.initColumn(params, row =>
                 row.total_cases < 100
                     ? undefined

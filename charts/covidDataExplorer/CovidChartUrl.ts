@@ -123,10 +123,13 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (this.allowEverything) return this
         const available = this.available
         const wasDaily = this.dailyFreq
+        const defaults = new CovidQueryParams("")
+
         Object.keys(available).forEach(key => {
             const typedKey = key as keyof typeof available
+            // If the key is not available, set it to the default value (generally is false, but for smoothing is 0)
             if (!available[typedKey] && (this as any)[key])
-                (this as any)[key] = false
+                (this as any)[key] = defaults[key as keyof CovidQueryParams]
         })
 
         // We always need either total or daily freq
