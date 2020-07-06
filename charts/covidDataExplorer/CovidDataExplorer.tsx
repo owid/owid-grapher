@@ -685,6 +685,11 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.map.variableId = this.currentYVarId
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
 
+        // Do not show unselected groups on scatterplots
+        if (this.chartType === "ScatterPlot")
+            this.covidExplorerTable.addGroupFilterColumn()
+        else this.covidExplorerTable.removeGroupFilterColumn()
+
         if (this.constrainedParams.testsPerCaseMetric)
             Object.assign(chartProps.map, this.mapConfigs.tests_per_case)
         if (this.constrainedParams.positiveTestRate)

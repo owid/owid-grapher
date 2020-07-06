@@ -381,6 +381,15 @@ export class CovidExplorerTable {
         )
     }
 
+    private groupFilterSlug = "group_filter"
+    addGroupFilterColumn() {
+        this.table.addFilterColumn(this.groupFilterSlug, row => row.continent)
+    }
+
+    removeGroupFilterColumn() {
+        this.table.deleteColumnBySlug(this.groupFilterSlug)
+    }
+
     initRequestedColumns(params: CovidConstrainedQueryParams) {
         if (params.casesMetric) this.initCasesColumn(params)
         if (params.deathsMetric) this.initDeathsColumn(params)

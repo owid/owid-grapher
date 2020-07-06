@@ -446,6 +446,10 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return Array.from(new Set(this.rows.map(row => row.entityName)))
     }
 
+    @computed get unfilteredEntities() {
+        return new Set(this.unfilteredRows.map(row => row.entityName))
+    }
+
     // todo: can we remove at some point?
     @computed get entityIdToNameMap() {
         const map = new Map<entityId, entityName>()
