@@ -563,20 +563,20 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get selectedData() {
-        const countryCodeMap = this.countryCodeToEntityIdMap
+        const countryCodeMap = this.countryCodeToCountryOptionMap
         return Array.from(this.props.params.selectedCountryCodes).map(code => {
             return {
                 index: 0,
-                entityId: countryCodeMap.get(code)!,
+                entityId: countryCodeMap.get(code)!.entityId,
                 color: this.countryCodeToColorMap[code]
             }
         })
     }
 
-    @computed private get countryCodeToEntityIdMap() {
-        const countryCodeMap = new Map<entityCode, entityId>()
+    @computed private get countryCodeToCountryOptionMap() {
+        const countryCodeMap = new Map<entityCode, CountryOption>()
         this.countryOptions.forEach(country => {
-            countryCodeMap.set(country.code, country.entityId)
+            countryCodeMap.set(country.code, country)
         })
         return countryCodeMap
     }
@@ -686,6 +686,12 @@ export class CovidDataExplorer extends React.Component<{
         )
         chartProps.map.variableId = this.currentYVarId
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
+
+        this.covidExplorerTable.table.setSelectedEntities(
+            Array.from(this.props.params.selectedCountryCodes.values()).map(
+                code => this.countryCodeToCountryOptionMap.get(code)!.name
+            )
+        )
 
         // Do not show unselected groups on scatterplots
         if (this.chartType === "ScatterPlot")
