@@ -1,26 +1,118 @@
 import * as React from "react"
-import ReactDOMServer from "react-dom/server"
+import ReactDOM from "react-dom"
+import { Grapher } from "site/client/Grapher"
+import { observer } from "mobx-react"
+import { computed } from "mobx"
+import {
+    strToQueryParams,
+    queryParamsToStr,
+    splitURLintoPathAndQueryString,
+    QueryParams
+} from "utils/client/url"
+import { EntityUrlBuilder } from "charts/ChartUrl"
+import { union, isEmpty } from "charts/Util"
 
 const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
-const ProminentLink = ({ content }: { content: string | null }) => {
-    return (
-        <div className={PROMINENT_LINK_CLASSNAME}>
-            <a dangerouslySetInnerHTML={{ __html: content ?? "" }} href=""></a>
-        </div>
-    )
-}
+@observer
+class ProminentLink extends React.Component<{
+    originalURL: string
+    innerHTML: string | null
+}> {
+    @computed get originalURLPath() {
+        return splitURLintoPathAndQueryString(this.props.originalURL).path
+    }
 
-export const render = ($: CheerioStatic) => {
-    $(`.${PROMINENT_LINK_CLASSNAME}>a`).each((index, el) => {
-        const $block = $(el)
-        const innerHTML = $block.html()
+    @computed get originalURLQueryString() {
+        return splitURLintoPathAndQueryString(this.props.originalURL)
+            .queryString
+    }
 
-        const rendered = ReactDOMServer.renderToStaticMarkup(
-            <ProminentLink content={innerHTML} />
+    @computed get originalURLQueryParams() {
+        const { originalURLQueryString } = this
+
+        return originalURLQueryString
+            ? strToQueryParams(originalURLQueryString)
+            : undefined
+    }
+
+    @computed get originalURLEntityCodes() {
+        const originalEntityQueryParam = this.originalURLQueryParams?.[
+            "country"
+        ]
+
+        const entityQueryParamExists =
+            originalEntityQueryParam != undefined &&
+            !isEmpty(originalEntityQueryParam)
+
+        return entityQueryParamExists
+            ? EntityUrlBuilder.queryParamToEntities(originalEntityQueryParam!)
+            : []
+    }
+
+    @computed get entitiesInGlobalEntitySelection() {
+        // return Grapher.globalEntitySelection.url?.params.country ?? ""
+        return Grapher.globalEntitySelection.selectedEntities.map(
+            entity => entity.code
+        )
+    }
+
+    @computed get updatedEntityQueryParam() {
+        const newEntityList = union(
+            this.originalURLEntityCodes,
+            this.entitiesInGlobalEntitySelection
         )
 
-        $block.after(rendered)
-        $block.remove()
-    })
+        return EntityUrlBuilder.entitiesToQueryParam(newEntityList)
+    }
+
+    @computed get updatedURLParams(): QueryParams {
+        const { originalURLQueryParams, updatedEntityQueryParam } = this
+
+        return {
+            ...originalURLQueryParams,
+            ...(!isEmpty(updatedEntityQueryParam) && {
+                country: updatedEntityQueryParam
+            })
+        }
+    }
+
+    @computed get updatedURL() {
+        return this.originalURLPath + queryParamsToStr(this.updatedURLParams)
+    }
+
+    render() {
+        const updatedURL = this.originalURLPath.includes(
+            "total-covid-deaths-region"
+        )
+            ? this.props.originalURL
+            : this.updatedURL
+        return (
+            <a
+                dangerouslySetInnerHTML={{ __html: this.props.innerHTML ?? "" }}
+                href={updatedURL}
+            />
+        )
+    }
+}
+
+export const render = () => {
+    document
+        .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
+        .forEach(el => {
+            const anchorTag = el.querySelector("a")
+            if (!anchorTag) return
+
+            const originalUrl = anchorTag.href
+            const innerHTML = anchorTag.innerHTML
+
+            const rendered = (
+                <ProminentLink
+                    originalURL={originalUrl}
+                    innerHTML={innerHTML}
+                />
+            )
+
+            ReactDOM.render(rendered, el)
+        })
 }
