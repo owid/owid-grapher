@@ -42,8 +42,7 @@ describe("generateContinentRows", () => {
 })
 
 describe("build covid column", () => {
-    const parsedRows = getRows()
-    const dataTable = new CovidExplorerTable(new OwidTable([]), parsedRows)
+    const dataTable = new CovidExplorerTable(new OwidTable([]), getRows())
     dataTable.table.addRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
         3,
@@ -69,8 +68,7 @@ describe("build covid column", () => {
 })
 
 describe("builds aligned tests column", () => {
-    const parsedRows = getRows()
-    const dataTable = new CovidExplorerTable(new OwidTable([]), parsedRows)
+    const dataTable = new CovidExplorerTable(new OwidTable([]), getRows())
 
     it("it has testing data", () => {
         expect(dataTable.table.columnSlugs.includes("tests-daily")).toEqual(
@@ -118,6 +116,15 @@ describe(getLeastUsedColor, () => {
         expect(
             getLeastUsedColor(["red", "green"], ["red", "green", "green"])
         ).toEqual("red")
+    })
+})
+
+describe("do not include unselected groups in aligned charts", () => {
+    const dataTable = new CovidExplorerTable(new OwidTable([]), getRows())
+    it("can filter rows without continent", () => {
+        expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
+        dataTable.addGroupFilterColumn()
+        expect(dataTable.table.unfilteredEntities.has("World")).toBeFalsy()
     })
 })
 
