@@ -6,7 +6,7 @@ import { Figure, LoadProps } from "./Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 
 interface CovidExplorerFigureProps {
-    queryStr: string
+    queryStr?: string
     container: HTMLElement
 }
 
