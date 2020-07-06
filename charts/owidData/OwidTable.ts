@@ -356,23 +356,45 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return Array.from(this.columns.keys())
     }
 
+    @computed get isSelectedFn() {
+        const selectionColumnSlugs = this.selectionColumnSlugs
+        return selectionColumnSlugs.length
+            ? (row: Row) => selectionColumnSlugs.some(slug => row[slug])
+            : undefined
+    }
+
+    @computed get selectedRows() {
+        const isSelectedFn = this.isSelectedFn
+        return isSelectedFn ? this.rows.filter(row => isSelectedFn(row)) : []
+    }
+
+    // Returns all rows that are not filtered OR are selected
     @computed get unfilteredRows() {
         const slugs = this.filterColumnSlugs
+        const isSelectedFn = this.isSelectedFn
         const filterFns = slugs.map(
             slug =>
                 (this.columnsBySlug.get(slug)!.spec as ComputedColumnSpec).fn
         )
-        const filterFn = (row: Row) =>
-            slugs.every((slug, index) => {
+        const filterFn = (row: Row) => {
+            if (isSelectedFn && isSelectedFn(row)) return true
+            return slugs.every((slug, index) => {
                 if (row[slug] === undefined) row[slug] = filterFns[index](row)
                 return row[slug]
             })
+        }
         return slugs.length ? this.rows.filter(filterFn) : this.rows
     }
 
     @computed private get filterColumnSlugs() {
         return this.columnsAsArray
             .filter(col => col.spec.isFilterColumn)
+            .map(col => col.slug)
+    }
+
+    @computed private get selectionColumnSlugs() {
+        return this.columnsAsArray
+            .filter(col => col.spec.isSelectionColumn)
             .map(col => col.slug)
     }
 
@@ -504,6 +526,51 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     @computed get dayColumn() {
         return this.columns.get("day")
+    }
+
+    @computed get rowsByEntityName() {
+        const map = new Map<entityName, OwidRow[]>()
+        this.rows.forEach(row => {
+            const name = row.entityName
+            if (!map.has(name)) map.set(name, [])
+            map.get(name)!.push(row)
+        })
+        return map
+    }
+
+    // Clears and sets selected entities
+    @action.bound setSelectedEntities(entityNames: entityName[]) {
+        this.initDefaultEntitySelectionColumn()
+        const set = new Set(entityNames)
+        this.rows.forEach(row => {
+            row[this.defaultEntitySelectionSlug] = set.has(row.entityName)
+        })
+        return this
+    }
+
+    private defaultEntitySelectionSlug = "is_entity_selected"
+    private initDefaultEntitySelectionColumn() {
+        if (!this.columnsBySlug.has(this.defaultEntitySelectionSlug))
+            this.addColumnSpec({
+                slug: this.defaultEntitySelectionSlug,
+                isSelectionColumn: true
+            })
+    }
+
+    @action.bound selectEntity(entityName: entityName) {
+        this.initDefaultEntitySelectionColumn()
+
+        this.rowsByEntityName
+            .get(entityName)
+            ?.forEach(row => (row[this.defaultEntitySelectionSlug] = true))
+        return this
+    }
+
+    @action.bound deselectEntity(entityName: entityName) {
+        this.rowsByEntityName
+            .get(entityName)
+            ?.forEach(row => delete row[this.defaultEntitySelectionSlug])
+        return this
     }
 
     specToObject() {

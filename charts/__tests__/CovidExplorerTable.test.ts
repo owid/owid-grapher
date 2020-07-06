@@ -125,6 +125,12 @@ describe("do not include unselected groups in aligned charts", () => {
         expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
         dataTable.addGroupFilterColumn()
         expect(dataTable.table.unfilteredEntities.has("World")).toBeFalsy()
+        dataTable.table.selectEntity("World")
+        expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
+        dataTable.table.deselectEntity("World")
+        expect(dataTable.table.unfilteredEntities.has("World")).toBeFalsy()
+        dataTable.table.setSelectedEntities(["World"])
+        expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
     })
 })
 
