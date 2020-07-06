@@ -51,7 +51,7 @@ export class EntityUrlBuilder {
     private static v1Delimiter = "+"
     private static v2Delimiter = "~"
 
-    static entitiesToQueryParams(entities: entityCodeOrName[]) {
+    static entitiesToQueryParam(entities: entityCodeOrName[]) {
         // Always include a v2Delimiter in a v2 link. When decoding we will drop any empty strings.
         if (entities.length === 1)
             return encodeURIComponent(this.v2Delimiter + entities[0])
@@ -78,7 +78,7 @@ export class EntityUrlBuilder {
     }
 
     private static decodeV2Link(queryParam: string) {
-        // Faceboook turns %20 into +. v2 links will never contain a +, so we can safely replace all of them with %20.
+        // Facebook turns %20 into +. v2 links will never contain a +, so we can safely replace all of them with %20.
         return decodeURIComponent(queryParam.replace(/\+/g, "%20"))
             .split(this.v2Delimiter)
             .filter(item => item)
@@ -251,7 +251,7 @@ export class ChartUrl implements ObservableUrl {
             JSON.stringify(chart.props.selectedData) !==
                 JSON.stringify(origChartProps.selectedData)
         ) {
-            return EntityUrlBuilder.entitiesToQueryParams(
+            return EntityUrlBuilder.entitiesToQueryParam(
                 chart.data.selectedEntityCodes
             )
         } else {

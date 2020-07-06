@@ -373,7 +373,7 @@ describe(EntityUrlBuilder, () => {
     encodeTests.forEach(testCase => {
         it(`correctly encodes url strings`, () => {
             expect(
-                EntityUrlBuilder.entitiesToQueryParams(testCase.entities)
+                EntityUrlBuilder.entitiesToQueryParam(testCase.entities)
             ).toEqual(testCase.queryString)
         })
 
