@@ -94,7 +94,8 @@ export class CovidDataExplorer extends React.Component<{
 
     @action.bound clearSelectionCommand() {
         this.props.params.selectedCountryCodes.clear()
-        this.updateChart()
+        this.selectionChangeFromBuilder = true
+        this.renderControlsThenUpdateChart()
     }
 
     setTotalFrequencyCommand(option: TotalFrequencyOption) {
@@ -127,7 +128,7 @@ export class CovidDataExplorer extends React.Component<{
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.casesMetric = true
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             },
             {
@@ -137,7 +138,7 @@ export class CovidDataExplorer extends React.Component<{
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.deathsMetric = true
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             },
 
@@ -148,7 +149,7 @@ export class CovidDataExplorer extends React.Component<{
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.cfrMetric = true
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             }
         ]
@@ -161,7 +162,7 @@ export class CovidDataExplorer extends React.Component<{
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.testsMetric = true
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             },
             {
@@ -171,7 +172,7 @@ export class CovidDataExplorer extends React.Component<{
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.testsPerCaseMetric = true
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             },
             {
@@ -181,7 +182,7 @@ export class CovidDataExplorer extends React.Component<{
                 onChange: value => {
                     this.clearMetricsCommand()
                     this.props.params.positiveTestRate = true
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             }
         ]
@@ -213,7 +214,7 @@ export class CovidDataExplorer extends React.Component<{
                     this.setDailyFrequencyCommand(false)
                     this.setSmoothingCommand(0)
 
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             },
             {
@@ -222,7 +223,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.constrainedParams.smoothing === 7,
                 onChange: () => {
                     this.setSmoothingCommand(7)
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                     this.setDailyFrequencyCommand(true)
                     this.setTotalFrequencyCommand(false)
                 }
@@ -238,7 +239,7 @@ export class CovidDataExplorer extends React.Component<{
                     this.setTotalFrequencyCommand(false)
                     this.setSmoothingCommand(0)
 
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             }
         ]
@@ -263,7 +264,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.constrainedParams.perCapita,
                 onChange: value => {
                     this.props.params.perCapita = value
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             }
         ]
@@ -284,7 +285,7 @@ export class CovidDataExplorer extends React.Component<{
                 checked: this.constrainedParams.aligned,
                 onChange: value => {
                     this.props.params.aligned = value
-                    this.updateChart()
+                    this.renderControlsThenUpdateChart()
                 }
             }
         ]
@@ -312,7 +313,8 @@ export class CovidDataExplorer extends React.Component<{
 
     @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
         this.toggleSelectedCountry(code, value)
-        this.updateChart()
+        this.selectionChangeFromBuilder = true
+        this.renderControlsThenUpdateChart()
     }
 
     @computed get lastUpdated() {
@@ -644,10 +646,9 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private selectionChangeFromBuilder = false
-    updateChart() {
+    private renderControlsThenUpdateChart() {
         // Updating the chart may take a second so render the Data Explorer controls immediately then the chart.
         setTimeout(() => {
-            this.selectionChangeFromBuilder = true
             this._updateChart()
         }, 1)
     }
@@ -789,7 +790,6 @@ export class CovidDataExplorer extends React.Component<{
                 added.forEach(code => this.toggleSelectedCountry(code, true))
                 removed.forEach(code => this.toggleSelectedCountry(code, false))
                 // Trigger an update in order to apply color changes
-                console.log(newCodes.join(" "))
                 this._updateChart()
             })
         )
@@ -810,7 +810,7 @@ export class CovidDataExplorer extends React.Component<{
                             this.props.params.selectedCountryCodes = new Set(
                                 selectedEntities.map(entity => entity.code)
                             )
-                            this.updateChart()
+                            this.renderControlsThenUpdateChart()
                         }
                     },
                     { fireImmediately: true }
