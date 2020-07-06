@@ -23,12 +23,12 @@ class ProminentLink extends React.Component<{
         return splitURLintoPathAndQueryString(this.props.originalURL).path
     }
 
-    @computed get originalURLQueryString() {
+    @computed get originalURLQueryString(): string | undefined {
         return splitURLintoPathAndQueryString(this.props.originalURL)
             .queryString
     }
 
-    @computed get originalURLQueryParams() {
+    @computed get originalURLQueryParams(): QueryParams | undefined {
         const { originalURLQueryString } = this
 
         return originalURLQueryString
@@ -36,7 +36,7 @@ class ProminentLink extends React.Component<{
             : undefined
     }
 
-    @computed get originalURLEntityCodes() {
+    @computed get originalURLEntityCodes(): string[] {
         const originalEntityQueryParam = this.originalURLQueryParams?.[
             "country"
         ]
@@ -50,14 +50,14 @@ class ProminentLink extends React.Component<{
             : []
     }
 
-    @computed get entitiesInGlobalEntitySelection() {
+    @computed get entitiesInGlobalEntitySelection(): string[] {
         // return Grapher.globalEntitySelection.url?.params.country ?? ""
         return Grapher.globalEntitySelection.selectedEntities.map(
             entity => entity.code
         )
     }
 
-    @computed get updatedEntityQueryParam() {
+    @computed get updatedEntityQueryParam(): string {
         const newEntityList = union(
             this.originalURLEntityCodes,
             this.entitiesInGlobalEntitySelection
