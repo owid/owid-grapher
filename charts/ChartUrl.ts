@@ -381,7 +381,12 @@ export class ChartUrl implements ObservableUrl {
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
-        if (chart.props.useV2 || !country) return
+        if (
+            chart.props.useV2 ||
+            !country ||
+            chart.addCountryMode === "disabled"
+        )
+            return
         when(
             () => chart.isReady,
             () => {
