@@ -53,8 +53,16 @@ import {
 import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
+import { chartToExplorerQueryStr } from "site/server/bakeCovidExplorer"
 
 const abSeed = Math.random()
+
+interface BootstrapProps {
+    containerNode: HTMLElement
+    isEmbed?: boolean
+    queryStr?: string
+    globalEntitySelection?: GlobalEntitySelection
+}
 
 @observer
 export class CovidDataExplorer extends React.Component<{
@@ -69,12 +77,7 @@ export class CovidDataExplorer extends React.Component<{
     isEmbed?: boolean
     globalEntitySelection?: GlobalEntitySelection
 }> {
-    static async bootstrap(props: {
-        containerNode: HTMLElement
-        isEmbed?: boolean
-        queryStr?: string
-        globalEntitySelection?: GlobalEntitySelection
-    }) {
+    static async bootstrap(props: BootstrapProps) {
         const [typedData, updated, covidMeta] = await Promise.all([
             fetchAndParseData(),
             fetchLastUpdatedTime(),
@@ -104,6 +107,25 @@ export class CovidDataExplorer extends React.Component<{
     // creating radio button groups, etc.
     private getScopedName(name: string) {
         return `${name}_${this.uniqId}`
+    }
+
+    static async redirectAndBootstrap(
+        explorerQueryStr: string,
+        props: BootstrapProps
+    ) {
+        const queryStr = chartToExplorerQueryStr(
+            explorerQueryStr,
+            props.queryStr
+        )
+        window.history.replaceState(
+            null,
+            document.title,
+            `${BAKED_BASE_URL}/${covidDashboardSlug}${queryStr}`
+        )
+        return CovidDataExplorer.bootstrap({
+            ...props,
+            queryStr
+        })
     }
 
     @observable private chartContainerRef: React.RefObject<

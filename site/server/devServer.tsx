@@ -42,6 +42,7 @@ import {
 } from "charts/covidDataExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
+import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorer"
 
 const devServer = express()
 
@@ -88,7 +89,14 @@ devServer.get("/grapher/latest", async (req, res) => {
 devServer.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
-    res.send(await chartPageFromSlug(req.params.slug))
+    if (req.params.slug in chartExplorerRedirectsBySlug) {
+        const { explorerQueryStr } = chartExplorerRedirectsBySlug[
+            req.params.slug
+        ]
+        res.send(await renderCovidDataExplorerPage({ explorerQueryStr }))
+    } else {
+        res.send(await chartPageFromSlug(req.params.slug))
+    }
 })
 
 devServer.get("/", async (req, res) => {

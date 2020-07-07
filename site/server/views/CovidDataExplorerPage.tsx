@@ -14,21 +14,32 @@ import {
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 
-export const CovidDataExplorerPage = () => {
-    const script = `
-    var div = document.getElementById("${covidDataExplorerContainerId}");
-    window.CovidDataExplorer.bootstrap({
-        containerNode: div,
-        queryStr: window.location.search
-    }).then(function(view) {
-        view.bindToWindow();
-    })
-`
+export interface CovidDataExplorerPageProps {
+    explorerQueryStr?: string
+}
 
+export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
     const iframeScript = `
     if (window != window.top) {
         document.documentElement.classList.add('iframe')
     }
+`
+
+    // This script allows us to replace existing Grapher pages with Explorer pages.
+    // Part of the reason for doing the redirect client-side is that Netlify doesn't support
+    // redirecting while preserving all query parameters.
+    const script = `
+    var props = {
+        containerNode: document.getElementById("${covidDataExplorerContainerId}"),
+        queryStr: window.location.search,
+        isEmbed: window != window.top
+    };
+    window.CovidDataExplorer.redirectAndBootstrap(
+        "${props.explorerQueryStr ?? ""}",
+        props
+    ).then(function(view) {
+        view.bindToWindow();
+    })
 `
 
     return (

@@ -54,6 +54,7 @@ import {
 } from "charts/covidDataExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
+import { chartExplorerRedirects } from "./bakeCovidExplorer"
 
 // Static site generator using Wordpress
 
@@ -530,6 +531,21 @@ export class SiteBaker {
         return Promise.all(requests)
     }
 
+    async bakeExplorerRedirects() {
+        for (const chartExplorerRedirect of chartExplorerRedirects) {
+            const { slugs, explorerQueryStr } = chartExplorerRedirect
+            const html = await renderCovidDataExplorerPage({ explorerQueryStr })
+            await Promise.all(
+                slugs.map(slug =>
+                    this.stageWrite(
+                        `${BAKED_SITE_DIR}/grapher/${slug}.html`,
+                        html
+                    )
+                )
+            )
+        }
+    }
+
     async bakeAll() {
         // Ensure caches are correctly initialized
         this.flushCache()
@@ -544,6 +560,7 @@ export class SiteBaker {
         await this.bakeCovidCountryProfiles()
         await this.bakePosts()
         await this.bakeCharts()
+        await this.bakeExplorerRedirects()
         // Clear caches to allow garbage collection while waiting for next run
         this.flushCache()
     }
