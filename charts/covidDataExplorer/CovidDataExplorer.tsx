@@ -23,7 +23,8 @@ import {
     pick,
     lastOfNonEmptyArray,
     throttle,
-    capitalize
+    capitalize,
+    chartToExplorerQueryStr
 } from "charts/Util"
 import { CountryOption, CovidGrapherRow } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"

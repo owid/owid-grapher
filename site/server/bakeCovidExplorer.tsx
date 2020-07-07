@@ -1,6 +1,10 @@
 import { BAKED_BASE_URL } from "settings"
-import { queryParamsToStr, strToQueryParams } from "utils/client/url"
-import { fromPairs, flatten, urlToSlug } from "charts/Util"
+import {
+    fromPairs,
+    flatten,
+    urlToSlug,
+    chartToExplorerQueryStr
+} from "charts/Util"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 
 interface ChartExplorerRedirect {
@@ -32,18 +36,6 @@ export const chartExplorerRedirectsBySlug: Record<
         )
     )
 )
-
-export function chartToExplorerQueryStr(
-    explorerQueryStr?: string,
-    chartQueryStr?: string
-) {
-    return queryParamsToStr({
-        ...strToQueryParams(explorerQueryStr ?? ""),
-        ...strToQueryParams(chartQueryStr ?? ""),
-        // Always hide controls when redirecting chart to explorer
-        hideControls: "true"
-    })
-}
 
 export function replaceChartIframesWithExplorerIframes($: CheerioStatic) {
     const grapherIframes = $("iframe")
