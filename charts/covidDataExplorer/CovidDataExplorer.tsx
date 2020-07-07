@@ -450,7 +450,8 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
-        const showControls = !this.props.params.hideControls
+        const showControls =
+            !this.props.params.hideControls || !this.props.isEmbed
         return (
             <>
                 <div
