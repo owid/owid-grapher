@@ -562,12 +562,13 @@ export class CovidDataExplorer extends React.Component<{
         return ""
     }
 
-    @computed get selectedData() {
+    @computed private get selectedData() {
         const countryCodeMap = this.countryCodeToCountryOptionMap
         return Array.from(this.props.params.selectedCountryCodes).map(code => {
+            const countryOption = countryCodeMap.get(code)
             return {
                 index: 0,
-                entityId: countryCodeMap.get(code)!.entityId,
+                entityId: countryOption ? countryOption.entityId : 0,
                 color: this.countryCodeToColorMap[code]
             }
         })
@@ -662,6 +663,13 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
+    private getSelectedEntityNames() {
+        return Array.from(this.props.params.selectedCountryCodes.values())
+            .map(code => this.countryCodeToCountryOptionMap.get(code))
+            .filter(i => i)
+            .map(option => option!.name)
+    }
+
     // We can't create a new chart object with every radio change because the Chart component itself
     // maintains state (for example, which tab is currently active). Temporary workaround is just to
     // manually update the chart when the chart builderselections change.
@@ -688,9 +696,7 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
 
         this.covidExplorerTable.table.setSelectedEntities(
-            Array.from(this.props.params.selectedCountryCodes.values()).map(
-                code => this.countryCodeToCountryOptionMap.get(code)!.name
-            )
+            this.getSelectedEntityNames()
         )
 
         // Do not show unselected groups on scatterplots
