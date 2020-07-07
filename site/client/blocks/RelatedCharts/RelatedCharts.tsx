@@ -38,13 +38,21 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
                                 key={chart.slug}
                             >
                                 <a
-                                    href="#all-charts-preview"
-                                    onClick={() =>
-                                        setCurrentChart({
-                                            title: chart.title,
-                                            slug: chart.slug
-                                        })
-                                    }
+                                    href={`/grapher/${chart.slug}`}
+                                    onClick={event => {
+                                        // Allow opening charts in new tab/window with ⌘+CLICK
+                                        if (
+                                            !event.metaKey &&
+                                            !event.shiftKey &&
+                                            !event.ctrlKey
+                                        ) {
+                                            setCurrentChart({
+                                                title: chart.title,
+                                                slug: chart.slug
+                                            })
+                                            event.preventDefault()
+                                        }
+                                    }}
                                 >
                                     {chart.title}
                                 </a>
