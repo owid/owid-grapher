@@ -144,7 +144,7 @@
         "moment": "^2.24.0",
         "moment-locales-webpack-plugin": "^1.2.0",
         "mysql": "^2.17.1",
-        "netlify-cli": "^2.15.0",
+        "netlify-cli": "^2.58.0",
         "node-fetch": "^2.6.0",
         "node-sass": "^4.12.0",
         "nodemailer": "^6.2.1",
