@@ -28,6 +28,7 @@
         display: block; // prevent stretching large images on Safari
         & > * {
             max-height: 100vh; // prevent tall images from overflowing
+            background: white;
         }
     }
 
