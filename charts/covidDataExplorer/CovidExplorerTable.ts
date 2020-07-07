@@ -31,8 +31,9 @@ import {
     ColumnSpec,
     entityName
 } from "charts/owidData/OwidTable"
-import { CovidConstrainedQueryParams } from "./CovidChartUrl"
+import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import { covidAnnotations } from "./CovidAnnotations"
+import { computed } from "mobx"
 
 type MetricKey = {
     [K in MetricKind]: number
@@ -230,7 +231,7 @@ export class CovidExplorerTable {
         )
 
         const table = this.table
-        if (table.columnsBySlug.has(spec.slug)) return
+        if (table.columnsBySlug.has(spec.slug)) return spec
 
         // The 7 day test smoothing is already calculated, so for now just reuse that instead of recalculating.
         const alreadySmoothed =
@@ -265,6 +266,7 @@ export class CovidExplorerTable {
                 "entityName"
             )
         else table.addComputedColumn({ ...spec, fn: rowFn })
+        return spec
     }
 
     getMetricName(params: CovidConstrainedQueryParams): MetricKind {
@@ -335,10 +337,21 @@ export class CovidExplorerTable {
         )
     }
 
+    getShortTermPositivityRateVarId() {
+        const params = new CovidQueryParams("")
+        params.smoothing = 7
+        params.casesMetric = false
+        params.perCapita = false
+        params.dailyFreq = true
+        params.positiveTestRate = true
+        const spec = this.initTestRateColumn(params.constrainedParams)
+        return spec.owidVariableId
+    }
+
     initTestRateColumn(params: CovidConstrainedQueryParams) {
         if (params.dailyFreq) {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
-            this.initColumn(params, row => {
+            return this.initColumn(params, row => {
                 const testCount =
                     params.smoothing === 7
                         ? row.new_tests_smoothed
@@ -358,17 +371,16 @@ export class CovidExplorerTable {
                 return rate >= 0 && rate <= 1 ? rate : undefined
             })
         }
-        if (params.totalFreq)
-            this.initColumn(params, row => {
-                if (row.total_cases === undefined || !row.total_tests)
-                    return undefined
+        return this.initColumn(params, row => {
+            if (row.total_cases === undefined || !row.total_tests)
+                return undefined
 
-                if (row.entityName === "Peru" || row.entityName === "Ecuador")
-                    return undefined
+            if (row.entityName === "Peru" || row.entityName === "Ecuador")
+                return undefined
 
-                const rate = row.total_cases / row.total_tests
-                return rate >= 0 && rate <= 1 ? rate : undefined
-            })
+            const rate = row.total_cases / row.total_tests
+            return rate >= 0 && rate <= 1 ? rate : undefined
+        })
     }
 
     initDeathsColumn(params: CovidConstrainedQueryParams) {

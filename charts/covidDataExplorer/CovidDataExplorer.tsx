@@ -53,6 +53,7 @@ import {
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
 import { entityCode, entityId } from "charts/owidData/OwidTable"
+import { epiColorScale } from "./CovidColumnSpecs"
 
 const abSeed = Math.random()
 
@@ -709,6 +710,11 @@ export class CovidDataExplorer extends React.Component<{
         if (this.constrainedParams.positiveTestRate)
             Object.assign(chartProps.map, this.mapConfigs.positive_test_rate)
 
+        if (this.chartType === "ScatterPlot") {
+            chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId() as any
+            chartProps.colorScale = epiColorScale as any
+        }
+
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
@@ -894,7 +900,9 @@ export class CovidDataExplorer extends React.Component<{
             {
                 property: "color",
                 variableId: 123,
-                display: {}
+                display: {
+                    tolerance: 10
+                }
             }
         ]
     }
