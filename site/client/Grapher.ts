@@ -88,6 +88,8 @@ class MultiEmbedder {
     ) {
         ChartFigure.figuresFromDOM(container).forEach(this.addFigure)
         CovidExplorerFigure.figuresFromDOM(container).forEach(this.addFigure)
+        // Trigger load for any added figures
+        this.loadVisibleFiguresThrottled()
         return this
     }
 
