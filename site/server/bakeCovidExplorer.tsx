@@ -10,16 +10,16 @@ interface ChartExplorerRedirect {
 }
 
 export const chartExplorerRedirects: ChartExplorerRedirect[] = [
-    {
-        id: 4018,
-        slugs: [
-            "total-cases-covid-19",
-            "total-confirmed-cases-of-covid-19",
-            "total-cases-covid-19-who"
-        ],
-        explorerQueryStr:
-            "zoomToSelection=true&casesMetric=true&totalFreq=true&smoothing=0&hideControls=true&country=OWID_WRL"
-    }
+    // {
+    //     id: 4018,
+    //     slugs: [
+    //         "total-cases-covid-19",
+    //         "total-confirmed-cases-of-covid-19",
+    //         "total-cases-covid-19-who"
+    //     ],
+    //     explorerQueryStr:
+    //         "zoomToSelection=true&casesMetric=true&totalFreq=true&smoothing=0&country=OWID_WRL"
+    // }
 ]
 
 export const chartExplorerRedirectsBySlug: Record<
