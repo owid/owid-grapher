@@ -1,5 +1,7 @@
+import { BAKED_BASE_URL } from "settings"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
-import { fromPairs, flatten } from "charts/Util"
+import { fromPairs, flatten, urlToSlug } from "charts/Util"
+import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 
 interface ChartExplorerRedirect {
     id: number
@@ -41,4 +43,27 @@ export function chartToExplorerQueryStr(
         // Always hide controls when redirecting chart to explorer
         hideControls: "true"
     })
+}
+
+export function replaceChartIframesWithExplorerIframes($: CheerioStatic) {
+    const grapherIframes = $("iframe")
+        .toArray()
+        .filter(el => (el.attribs["src"] || "").match(/\/grapher\//))
+    for (const el of grapherIframes) {
+        const url = el.attribs["src"].trim()
+        const slug = urlToSlug(url)
+        if (slug in chartExplorerRedirectsBySlug) {
+            const { explorerQueryStr } = chartExplorerRedirectsBySlug[slug]
+            const matchQueryStr = url.match(/\?([^#]*)/)
+            const chartQueryStr = matchQueryStr ? matchQueryStr[1] : ""
+            const queryStr = chartToExplorerQueryStr(
+                explorerQueryStr,
+                chartQueryStr
+            )
+            // Replace Grapher iframe src with explorer src
+            el.attribs[
+                "src"
+            ] = `${BAKED_BASE_URL}/${covidDashboardSlug}${queryStr}`
+        }
+    }
 }
