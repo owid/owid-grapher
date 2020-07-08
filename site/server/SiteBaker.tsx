@@ -54,7 +54,7 @@ import {
 } from "charts/covidDataExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirects } from "./bakeCovidExplorer"
+import { chartExplorerRedirects } from "./bakeCovidExplorerRedirects"
 
 // Static site generator using Wordpress
 

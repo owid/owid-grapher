@@ -42,7 +42,7 @@ import {
 } from "charts/covidDataExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorer"
+import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorerRedirects"
 
 const devServer = express()
 

@@ -23,7 +23,7 @@ import { covidDefaultCountryPlaceholder } from "./covid/CovidConstants"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
-import { replaceChartIframesWithExplorerIframes } from "./bakeCovidExplorer"
+import { replaceChartIframesWithExplorerIframes } from "./bakeCovidExplorerRedirects"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
