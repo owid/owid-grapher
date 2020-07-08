@@ -2,7 +2,6 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import * as glob from "glob"
 import { without } from "lodash"
-import * as shell from "shelljs"
 import * as _ from "lodash"
 import * as cheerio from "cheerio"
 import * as wpdb from "db/wpdb"
@@ -47,6 +46,8 @@ import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
 import { countries } from "utils/countries"
+import { exec } from "utils/server/serverUtil"
+import { log } from "utils/server/log"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 import {
     covidCountryProfileRootPath,
@@ -383,13 +384,13 @@ export class SiteBaker {
 
     // Bake the static assets
     async bakeAssets() {
-        shell.exec(
+        await exec(
             `rsync -havL --delete ${WORDPRESS_DIR}/web/app/uploads ${BAKED_SITE_DIR}/`
         )
-        shell.exec(
+        await exec(
             `rm -rf ${BAKED_SITE_DIR}/assets && cp -r ${BASE_DIR}/dist/webpack ${BAKED_SITE_DIR}/assets`
         )
-        shell.exec(
+        await exec(
             `rsync -hav --delete ${BASE_DIR}/public/* ${BAKED_SITE_DIR}/`
         )
 
@@ -563,34 +564,39 @@ export class SiteBaker {
         console.log(msg || outPath)
     }
 
-    exec(cmd: string) {
+    async silentExec(cmd: string) {
         console.log(cmd)
-        shell.exec(cmd)
+        try {
+            return await exec(cmd)
+        } catch (error) {
+            // Log error to Slack, but do not throw error
+            return log.error(error)
+        }
     }
 
     async deploy(commitMsg: string, authorEmail?: string, authorName?: string) {
         // Deploy directly to Netlify (faster than using the github hook)
         if (fs.existsSync(path.join(BAKED_SITE_DIR, ".netlify/state.json"))) {
-            this.exec(
+            await this.silentExec(
                 `cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod --timeout 6000`
             )
         }
 
         // Ensure there is a git repo in there
-        this.exec(`cd ${BAKED_SITE_DIR} && git init`)
+        await this.silentExec(`cd ${BAKED_SITE_DIR} && git init`)
 
         // Prettify HTML source for easier debugging
         // Target root level HTML files only (entries and posts) for performance
         // reasons.
         // TODO: check again --only-changed
-        // this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
+        // await this.exec(`cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/prettier --write "./*.html"`)
 
         if (authorEmail && authorName && commitMsg) {
-            this.exec(
+            await this.silentExec(
                 `cd ${BAKED_SITE_DIR} && git add -A . && git commit --author='${authorName} <${authorEmail}>' -a -m '${commitMsg}' && git push origin master`
             )
         } else {
-            this.exec(
+            await this.silentExec(
                 `cd ${BAKED_SITE_DIR} && git add -A . && git commit -a -m '${commitMsg}' && git push origin master`
             )
         }

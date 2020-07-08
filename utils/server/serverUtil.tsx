@@ -5,29 +5,37 @@ import urljoin from "url-join"
 import * as settings from "settings"
 import * as shell from "shelljs"
 
-export const promisifiedExec: (
-    command: string,
-    options?: shell.ExecOptions
-) => Promise<string> = (command, options) => {
-    return new Promise((resolve, reject) => {
-        shell.exec(command, options || {}, (code, stdout, stderr) => {
-            if (code !== 0) return reject(stderr)
-            else return resolve(stdout)
-        })
-    })
+export interface ExecReturn {
+    code: number
+    stdout: string
+    stderr: string
 }
 
-export async function exec(
+export class ExecError extends Error implements ExecReturn {
+    code: number
+    stdout: string
+    stderr: string
+
+    constructor(props: ExecReturn) {
+        super(props.stderr)
+        this.code = props.code
+        this.stdout = props.stdout
+        this.stderr = props.stderr
+    }
+}
+
+export function exec(
     command: string,
     options?: shell.ExecOptions
-): Promise<string> {
-    try {
-        return await promisifiedExec(command, options)
-    } catch (err) {
-        const error = new Error(`Received exit code ${err} from: ${command}`)
-        ;(error as any).code = err
-        throw error
-    }
+): Promise<ExecReturn> {
+    return new Promise((resolve, reject) => {
+        shell.exec(command, options || {}, (code, stdout, stderr) => {
+            if (code !== 0) {
+                return reject(new ExecError({ code, stdout, stderr }))
+            }
+            return resolve({ code, stdout, stderr })
+        })
+    })
 }
 
 // Exception format that can be easily given as an API error
