@@ -569,7 +569,7 @@ export class SiteBaker {
         // Deploy directly to Netlify (faster than using the github hook)
         if (fs.existsSync(path.join(BAKED_SITE_DIR, ".netlify/state.json"))) {
             this.exec(
-                `cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod`
+                `cd ${BAKED_SITE_DIR} && ${BASE_DIR}/node_modules/.bin/netlify deploy -d . --prod --timeout 6000`
             )
         }
 
