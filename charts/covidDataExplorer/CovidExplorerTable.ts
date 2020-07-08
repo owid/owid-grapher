@@ -288,32 +288,29 @@ export class CovidExplorerTable {
     }
 
     initTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
-        if (params.dailyFreq) {
-            if (params.smoothing) {
-                const casesSlug = this.addNewCasesSmoothedColumn(
-                    params.smoothing
+        if (params.dailyFreq && params.smoothing) {
+            const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
+            this.initColumn(params, row => {
+                if (
+                    row.new_tests_smoothed === undefined ||
+                    !(row as any)[casesSlug]
                 )
-                this.initColumn(params, row => {
-                    if (
-                        row.new_tests_smoothed === undefined ||
-                        !(row as any)[casesSlug]
-                    )
-                        return undefined
-                    const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
-                    return tpc >= 1 ? tpc : undefined
-                })
-            } else {
-                this.initColumn(params, row => {
-                    if (row.new_tests === undefined || row.new_cases)
-                        return undefined
-                    const tpc = row.new_tests / row.new_cases
-                    return tpc >= 1 ? tpc : undefined
-                })
-            }
+                    return undefined
+
+                if (row.entityName === "Peru" || row.entityName === "Ecuador")
+                    return undefined
+
+                const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
+                return tpc >= 1 ? tpc : undefined
+            })
         } else if (params.totalFreq)
             this.initColumn(params, row => {
                 if (row.total_tests === undefined || !row.total_cases)
                     return undefined
+
+                if (row.entityName === "Peru" || row.entityName === "Ecuador")
+                    return undefined
+
                 const tpc = row.total_tests / row.total_cases
                 return tpc >= 1 ? tpc : undefined
             })
@@ -352,6 +349,9 @@ export class CovidExplorerTable {
                         ? (row as any)[casesSlug]
                         : row.new_cases
 
+                if (row.entityName === "Peru" || row.entityName === "Ecuador")
+                    return undefined
+
                 if (!testCount) return undefined
 
                 const rate = cases / testCount
@@ -362,6 +362,10 @@ export class CovidExplorerTable {
             this.initColumn(params, row => {
                 if (row.total_cases === undefined || !row.total_tests)
                     return undefined
+
+                if (row.entityName === "Peru" || row.entityName === "Ecuador")
+                    return undefined
+
                 const rate = row.total_cases / row.total_tests
                 return rate >= 0 && rate <= 1 ? rate : undefined
             })
