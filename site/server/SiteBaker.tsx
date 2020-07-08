@@ -525,6 +525,7 @@ export class SiteBaker {
     }
 
     async bakeAll() {
+        // Ensure caches are correctly initialized
         this.flushCache()
         await this.bakeRedirects()
         await this.bakeEmbeds()
@@ -537,6 +538,8 @@ export class SiteBaker {
         await this.bakeCovidCountryProfiles()
         await this.bakePosts()
         await this.bakeCharts()
+        // Clear caches to allow garbage collection while waiting for next run
+        this.flushCache()
     }
 
     async ensureDir(relPath: string) {
