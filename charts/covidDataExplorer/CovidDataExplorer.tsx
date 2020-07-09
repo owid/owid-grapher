@@ -54,6 +54,7 @@ import {
 } from "site/client/global-entity/GlobalEntitySelection"
 import { entityCode, entityId } from "charts/owidData/OwidTable"
 import { epiColorScale, mapConfigs } from "./CovidColumnSpecs"
+import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 
 const abSeed = Math.random()
 
@@ -694,8 +695,6 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.dimensions = this.dimensionSpecs.map(
             spec => new ChartDimension(spec)
         )
-        chartProps.map.variableId = this.currentYVarId
-        chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
 
         this.covidExplorerTable.table.setSelectedEntities(
             this.getSelectedEntityNames()
@@ -706,21 +705,44 @@ export class CovidDataExplorer extends React.Component<{
             this.covidExplorerTable.addGroupFilterColumn()
         else this.covidExplorerTable.removeGroupFilterColumn()
 
-        if (params.testsPerCaseMetric)
-            Object.assign(chartProps.map, mapConfigs.tests_per_case)
-        if (params.positiveTestRate)
-            Object.assign(chartProps.map, mapConfigs.positive_test_rate)
-
-        if (
-            this.chartType === "ScatterPlot" &&
-            (params.casesMetric || params.testsMetric)
-        ) {
-            chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId() as any
-            chartProps.colorScale = epiColorScale as any
-        }
+        this._updateMap()
+        this._updateScatterLineColor()
 
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
+    }
+
+    private _updateScatterLineColor() {
+        const chartProps = this.chart.props
+        const params = this.constrainedParams
+        const useEpiColors =
+            this.chartType === "ScatterPlot" &&
+            (params.casesMetric || params.testsMetric)
+        if (useEpiColors) {
+            chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId() as any
+            chartProps.colorScale = epiColorScale as any
+        } else if (chartProps.dimensions[2]) {
+            chartProps.dimensions[2].variableId = 123
+            chartProps.colorScale = new ColorScaleConfigProps({
+                legendDescription: "Continent"
+            })
+        }
+    }
+
+    private _updateMap() {
+        const chartProps = this.chart.props
+        const params = this.constrainedParams
+
+        if (params.testsPerCaseMetric)
+            Object.assign(chartProps.map, mapConfigs.tests_per_case)
+        else if (params.positiveTestRate)
+            Object.assign(chartProps.map, mapConfigs.positive_test_rate)
+        else {
+            Object.assign(chartProps.map, mapConfigs.default)
+            chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
+        }
+
+        chartProps.map.variableId = this.currentYVarId
     }
 
     componentDidMount() {
@@ -933,20 +955,7 @@ export class CovidDataExplorer extends React.Component<{
             hasMapTab: true,
             tab: "chart",
             isPublished: true,
-            map: {
-                variableId: 123,
-                timeTolerance: 7,
-                projection: "World",
-                colorScale: {
-                    baseColorScheme: this.mapColorScheme,
-                    colorSchemeValues: [],
-                    colorSchemeLabels: [],
-                    customNumericColors: [],
-                    customCategoryColors: {},
-                    customCategoryLabels: {},
-                    customHiddenCategories: {}
-                }
-            },
+            map: mapConfigs.default as any,
             data: {
                 availableEntities: this.availableEntities
             }

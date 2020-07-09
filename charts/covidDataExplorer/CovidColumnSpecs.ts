@@ -300,6 +300,19 @@ export const epiColorScale = {
 }
 
 export const mapConfigs = {
+    default: {
+        variableId: 123,
+        timeTolerance: 7,
+        projection: "World",
+        colorScale: {
+            colorSchemeValues: [],
+            colorSchemeLabels: [],
+            customNumericColors: [],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {}
+        }
+    },
     // Sync with chart 4197
     tests_per_case: {
         timeTolerance: 10,
