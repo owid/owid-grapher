@@ -723,10 +723,18 @@ export class CovidDataExplorer extends React.Component<{
             chartProps.colorScale = epiColorScale as any
         } else if (chartProps.dimensions[2]) {
             chartProps.dimensions[2].variableId = 123
-            chartProps.colorScale = new ColorScaleConfigProps({
-                legendDescription: "Continent"
-            })
+            chartProps.colorScale = this.defaultColorScale
         }
+    }
+
+    private defaultColorScale = {
+        baseColorScheme: undefined,
+        colorSchemeValues: [],
+        colorSchemeLabels: [],
+        customNumericColors: [],
+        customCategoryColors: this.customCategoryColors,
+        customCategoryLabels: {},
+        customHiddenCategories: {}
     }
 
     private _updateMap() {
@@ -941,15 +949,7 @@ export class CovidDataExplorer extends React.Component<{
             addCountryMode: "add-country",
             stackMode: "absolute",
             useV2: true,
-            colorScale: {
-                baseColorScheme: undefined,
-                colorSchemeValues: [],
-                colorSchemeLabels: [],
-                customNumericColors: [],
-                customCategoryColors: this.customCategoryColors,
-                customCategoryLabels: {},
-                customHiddenCategories: {}
-            },
+            colorScale: this.defaultColorScale,
             hideRelativeToggle: true,
             hasChartTab: true,
             hasMapTab: true,
