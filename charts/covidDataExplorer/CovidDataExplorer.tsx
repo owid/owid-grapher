@@ -676,7 +676,8 @@ export class CovidDataExplorer extends React.Component<{
     // manually update the chart when the chart builderselections change.
     // todo: cleanup
     @action.bound private _updateChart() {
-        this.covidExplorerTable.initRequestedColumns(this.constrainedParams)
+        const params = this.constrainedParams
+        this.covidExplorerTable.initRequestedColumns(params)
         const chartProps = this.chart.props
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
@@ -705,12 +706,15 @@ export class CovidDataExplorer extends React.Component<{
             this.covidExplorerTable.addGroupFilterColumn()
         else this.covidExplorerTable.removeGroupFilterColumn()
 
-        if (this.constrainedParams.testsPerCaseMetric)
+        if (params.testsPerCaseMetric)
             Object.assign(chartProps.map, this.mapConfigs.tests_per_case)
-        if (this.constrainedParams.positiveTestRate)
+        if (params.positiveTestRate)
             Object.assign(chartProps.map, this.mapConfigs.positive_test_rate)
 
-        if (this.chartType === "ScatterPlot") {
+        if (
+            this.chartType === "ScatterPlot" &&
+            (params.casesMetric || params.testsMetric)
+        ) {
             chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId() as any
             chartProps.colorScale = epiColorScale as any
         }
