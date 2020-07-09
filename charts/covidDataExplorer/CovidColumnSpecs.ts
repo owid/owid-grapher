@@ -303,20 +303,27 @@ export const mapConfigs = {
     // Sync with chart 4197
     tests_per_case: {
         timeTolerance: 10,
-        baseColorScheme: "RdYlBu",
-        colorSchemeValues: [5, 10, 20, 40, 100, 1000, 5000],
-        isManualBuckets: true,
-        equalSizeBins: true,
-        customColorsActive: true,
-        customNumericColors: [
-            "#951009",
-            "#d73027",
-            "#f97953",
-            "#fed390",
-            "#7babc8",
-            "#4575b4",
-            "#1d4579"
-        ]
+        projection: "World",
+        colorScale: {
+            equalSizeBins: true,
+            baseColorScheme: "RdYlBu",
+            isManualBuckets: true,
+            colorSchemeLabels: [],
+            colorSchemeValues: [5, 10, 30, 50, 100, 1000, 5000],
+            customColorsActive: true,
+            customNumericColors: [
+                "#a6192c",
+                "#ce1919",
+                "#f79008",
+                "#4f8bd2",
+                "#5875a6",
+                "#3b4c61",
+                "#192f4d"
+            ],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {}
+        }
     },
     // Sync with chart 4198
     positive_test_rate: {
