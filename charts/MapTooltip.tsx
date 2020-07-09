@@ -14,7 +14,6 @@ interface MapTooltipProps {
     mapToDataEntities: { [id: string]: string }
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
-    headerHeight: number
     isEntityClickable?: boolean
 }
 
@@ -118,7 +117,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
     @computed get tooltipVerticalOffsetFromCursor() {
         // 10 == visual adjustment
-        return this.tooltipHeight + this.props.headerHeight + 10
+        return 10
     }
 
     render() {
@@ -143,6 +142,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 style={{ textAlign: "center", padding: "8px" }}
                 offsetX={15}
                 offsetY={tooltipVerticalOffsetFromCursor}
+                offsetYDirection={"upward"}
             >
                 <h3
                     style={{

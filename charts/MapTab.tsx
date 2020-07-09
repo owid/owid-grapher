@@ -41,7 +41,6 @@ interface MapWithLegendProps {
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
-    headerHeight: number
 }
 
 @observer
@@ -61,7 +60,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             d.id === undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
-        const mouse = getRelativeMouse(this.base.current, ev)
+        const mouse = getRelativeMouse(this.context.chartView.base.current, ev)
         if (d.id !== undefined)
             this.tooltipTarget = {
                 x: mouse.x,
@@ -210,7 +209,6 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             formatYear: this.props.formatYear,
             mapToDataEntities: this.props.mapToDataEntities,
             tooltipDatum: this.tooltipDatum,
-            headerHeight: this.props.headerHeight,
             isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId)
         }
 
@@ -294,7 +292,6 @@ export class MapTab extends React.Component<MapTabProps> {
                         defaultFill={map.data.colorScale.noDataColor}
                         mapToDataEntities={map.data.mapToDataEntities}
                         formatYear={map.data.formatYear}
-                        headerHeight={layout.header.height}
                     />
                 ) : (
                     <LoadingChart bounds={layout.innerBounds} />
