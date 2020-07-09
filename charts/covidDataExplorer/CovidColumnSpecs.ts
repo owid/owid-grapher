@@ -298,3 +298,50 @@ export const epiColorScale = {
     },
     customHiddenCategories: {}
 }
+
+export const mapConfigs = {
+    // Sync with chart 4197
+    tests_per_case: {
+        timeTolerance: 10,
+        baseColorScheme: "RdYlBu",
+        colorSchemeValues: [5, 10, 20, 40, 100, 1000, 5000],
+        isManualBuckets: true,
+        equalSizeBins: true,
+        customColorsActive: true,
+        customNumericColors: [
+            "#951009",
+            "#d73027",
+            "#f97953",
+            "#fed390",
+            "#7babc8",
+            "#4575b4",
+            "#1d4579"
+        ]
+    },
+    // Sync with chart 4198
+    positive_test_rate: {
+        timeTolerance: 10,
+        projection: "World",
+        colorScale: {
+            equalSizeBins: true,
+            baseColorScheme: "RdYlBu",
+            isManualBuckets: true,
+            colorSchemeInvert: true,
+            colorSchemeLabels: [],
+            colorSchemeValues: [0.1, 1, 2, 3, 10, 20, 50],
+            customColorsActive: true,
+            customNumericColors: [
+                "#192f4d",
+                "#3b4c61",
+                "#5875a6",
+                "#4f8bd2",
+                "#f79008",
+                "#ce1919",
+                "#a6192c"
+            ],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {}
+        }
+    }
+}

@@ -53,7 +53,7 @@ import {
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
 import { entityCode, entityId } from "charts/owidData/OwidTable"
-import { epiColorScale } from "./CovidColumnSpecs"
+import { epiColorScale, mapConfigs } from "./CovidColumnSpecs"
 
 const abSeed = Math.random()
 
@@ -707,9 +707,9 @@ export class CovidDataExplorer extends React.Component<{
         else this.covidExplorerTable.removeGroupFilterColumn()
 
         if (params.testsPerCaseMetric)
-            Object.assign(chartProps.map, this.mapConfigs.tests_per_case)
+            Object.assign(chartProps.map, mapConfigs.tests_per_case)
         if (params.positiveTestRate)
-            Object.assign(chartProps.map, this.mapConfigs.positive_test_rate)
+            Object.assign(chartProps.map, mapConfigs.positive_test_rate)
 
         if (
             this.chartType === "ScatterPlot" &&
@@ -721,46 +721,6 @@ export class CovidDataExplorer extends React.Component<{
 
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
-    }
-
-    private mapConfigs = {
-        // Sync with chart 4197
-        tests_per_case: {
-            timeTolerance: 10,
-            baseColorScheme: "RdYlBu",
-            colorSchemeValues: [5, 10, 20, 40, 100, 1000, 5000],
-            isManualBuckets: true,
-            equalSizeBins: true,
-            customColorsActive: true,
-            customNumericColors: [
-                "#951009",
-                "#d73027",
-                "#f97953",
-                "#fed390",
-                "#7babc8",
-                "#4575b4",
-                "#1d4579"
-            ]
-        },
-        // Sync with chart 4198
-        positive_test_rate: {
-            timeTolerance: 10,
-            baseColorScheme: "RdYlBu",
-            colorSchemeValues: [0.1, 1, 2, 5, 10, 20, 50],
-            isManualBuckets: true,
-            equalSizeBins: true,
-            colorSchemeInvert: true,
-            customColorsActive: true,
-            customNumericColors: [
-                "#24508b",
-                "#4575b4",
-                "#7fa9c3",
-                "#f1c26d",
-                "#fc8d59",
-                "#d73027",
-                "#91231e"
-            ]
-        }
     }
 
     componentDidMount() {
