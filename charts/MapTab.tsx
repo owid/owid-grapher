@@ -190,12 +190,8 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         )
     }
 
-    @computed get choroplethMapBounds() {
-        return this.props.bounds.padBottom(this.mapLegend.height + 15)
-    }
-
     render() {
-        const { choroplethData, projection, defaultFill } = this.props
+        const { choroplethData, projection, defaultFill, bounds } = this.props
         const {
             focusBracket,
             focusEntity,
@@ -215,7 +211,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
-                    bounds={this.choroplethMapBounds}
+                    bounds={bounds.padBottom(this.mapLegend.height + 15)}
                     choroplethData={choroplethData}
                     projection={projection}
                     defaultFill={defaultFill}
