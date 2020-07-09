@@ -94,32 +94,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             : undefined
     }
 
-    @computed get tooltipHeightByType() {
-        return {
-            sparkBar: -134,
-            dataValue: -102,
-            noData: -65
-        }
-    }
-
-    @computed get tooltipHeight() {
-        const { tooltipDatum } = this.props
-        const { renderSparkBars, tooltipHeightByType } = this
-
-        if (tooltipDatum) {
-            return renderSparkBars
-                ? tooltipHeightByType["sparkBar"]
-                : tooltipHeightByType["dataValue"]
-        } else {
-            return tooltipHeightByType["noData"]
-        }
-    }
-
-    @computed get tooltipVerticalOffsetFromCursor() {
-        // 10 == visual adjustment
-        return 10
-    }
-
     render() {
         const {
             tooltipTarget,
@@ -129,11 +103,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             isEntityClickable
         } = this.props
 
-        const {
-            renderSparkBars,
-            barColor,
-            tooltipVerticalOffsetFromCursor
-        } = this
+        const { renderSparkBars, barColor } = this
         return (
             <Tooltip
                 key="mapTooltip"
@@ -141,7 +111,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 y={tooltipTarget.y}
                 style={{ textAlign: "center", padding: "8px" }}
                 offsetX={15}
-                offsetY={tooltipVerticalOffsetFromCursor}
+                offsetY={10}
                 offsetYDirection={"upward"}
             >
                 <h3
