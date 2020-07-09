@@ -211,7 +211,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
-                    bounds={bounds.padBottom(this.mapLegend.height + 15)}
+                    bounds={bounds.padBottom(mapLegend.height + 15)}
                     choroplethData={choroplethData}
                     projection={projection}
                     defaultFill={defaultFill}
