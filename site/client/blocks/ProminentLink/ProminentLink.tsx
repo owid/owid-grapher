@@ -23,12 +23,12 @@ class ProminentLink extends React.Component<{
         return splitURLintoPathAndQueryString(this.props.originalURL).path
     }
 
-    @computed get originalURLQueryString(): string | undefined {
+    @computed private get originalURLQueryString(): string | undefined {
         return splitURLintoPathAndQueryString(this.props.originalURL)
             .queryString
     }
 
-    @computed get originalURLQueryParams(): QueryParams | undefined {
+    @computed private get originalURLQueryParams(): QueryParams | undefined {
         const { originalURLQueryString } = this
 
         return originalURLQueryString
@@ -36,7 +36,7 @@ class ProminentLink extends React.Component<{
             : undefined
     }
 
-    @computed get originalURLEntityCodes(): string[] {
+    @computed private get originalURLEntityCodes(): string[] {
         const originalEntityQueryParam = this.originalURLQueryParams?.[
             "country"
         ]
@@ -50,13 +50,13 @@ class ProminentLink extends React.Component<{
             : []
     }
 
-    @computed get entitiesInGlobalEntitySelection(): string[] {
+    @computed private get entitiesInGlobalEntitySelection(): string[] {
         return Grapher.globalEntitySelection.selectedEntities.map(
             entity => entity.code
         )
     }
 
-    @computed get updatedEntityQueryParam(): string {
+    @computed private get updatedEntityQueryParam(): string {
         const newEntityList = union(
             this.originalURLEntityCodes,
             this.entitiesInGlobalEntitySelection
@@ -65,7 +65,7 @@ class ProminentLink extends React.Component<{
         return EntityUrlBuilder.entitiesToQueryParam(newEntityList)
     }
 
-    @computed get updatedURLParams(): QueryParams {
+    @computed private get updatedURLParams(): QueryParams {
         const { originalURLQueryParams, updatedEntityQueryParam } = this
 
         return {
@@ -76,7 +76,7 @@ class ProminentLink extends React.Component<{
         }
     }
 
-    @computed get updatedURL() {
+    @computed private get updatedURL() {
         return this.originalURLPath + queryParamsToStr(this.updatedURLParams)
     }
 
