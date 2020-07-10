@@ -3,9 +3,10 @@ import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 import { excludeUndefined } from "charts/Util"
 
 import { Figure, LoadProps } from "./Figure"
+import { splitURLintoPathAndQueryString } from "utils/client/url"
 
 interface CovidExplorerFigureProps {
-    queryStr: string
+    queryStr?: string
     container: HTMLElement
 }
 
@@ -55,7 +56,10 @@ export class CovidExplorerFigure implements Figure {
             elements.map(element => {
                 const dataSrc = element.getAttribute("data-explorer-src")
                 if (!dataSrc) return undefined
-                const [explorerUrl, queryStr] = dataSrc.split(/\?/)
+                const {
+                    path: explorerUrl,
+                    queryString: queryStr
+                } = splitURLintoPathAndQueryString(dataSrc)
                 if (!explorerUrl.includes(covidDashboardSlug)) return undefined
                 return new CovidExplorerFigure({
                     queryStr,

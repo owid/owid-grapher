@@ -104,7 +104,7 @@ export class CovidQueryParams {
         params.hideControls = this.hideControls ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
         params.smoothing = this.smoothing
-        params.country = EntityUrlBuilder.entitiesToQueryParams(
+        params.country = EntityUrlBuilder.entitiesToQueryParam(
             Array.from(this.selectedCountryCodes)
         )
         params.pickerMetric = this.countryPickerMetric

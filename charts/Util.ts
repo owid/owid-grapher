@@ -863,3 +863,10 @@ export const getErrorMessageRelatedQuestionUrl = (
               undefined
         : undefined
 }
+
+export function getAttributesOfHTMLElement(el: HTMLElement) {
+    const attributes: { [key: string]: string } = {}
+    each(el.attributes, attr => (attributes[attr.name] = attr.value))
+
+    return attributes
+}
