@@ -10,22 +10,25 @@ import {
     QueryParams
 } from "utils/client/url"
 import { EntityUrlBuilder } from "charts/ChartUrl"
-import { union, isEmpty } from "charts/Util"
+import { union, isEmpty, getAttributesOfHTMLElement } from "charts/Util"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
 @observer
 class ProminentLink extends React.Component<{
-    originalURL: string
+    originalAnchorAttributes: { [key: string]: string }
     innerHTML: string | null
 }> {
     @computed get originalURLPath() {
-        return splitURLintoPathAndQueryString(this.props.originalURL).path
+        return splitURLintoPathAndQueryString(
+            this.props.originalAnchorAttributes.href
+        ).path
     }
 
     @computed private get originalURLQueryString(): string | undefined {
-        return splitURLintoPathAndQueryString(this.props.originalURL)
-            .queryString
+        return splitURLintoPathAndQueryString(
+            this.props.originalAnchorAttributes.href
+        ).queryString
     }
 
     @computed private get originalURLQueryParams(): QueryParams | undefined {
@@ -84,6 +87,7 @@ class ProminentLink extends React.Component<{
         return (
             <a
                 dangerouslySetInnerHTML={{ __html: this.props.innerHTML ?? "" }}
+                {...this.props.originalAnchorAttributes}
                 href={this.updatedURL}
             />
         )
@@ -97,13 +101,12 @@ export const renderProminentLink = () => {
             const anchorTag = el.querySelector("a")
             if (!anchorTag) return
 
-            const originalUrl = anchorTag.href
-            const innerHTML = anchorTag.innerHTML
-
             const rendered = (
                 <ProminentLink
-                    originalURL={originalUrl}
-                    innerHTML={innerHTML}
+                    originalAnchorAttributes={getAttributesOfHTMLElement(
+                        anchorTag
+                    )}
+                    innerHTML={anchorTag.innerHTML}
                 />
             )
 
