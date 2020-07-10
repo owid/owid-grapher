@@ -52,9 +52,8 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
-import { entityCode, entityId } from "charts/owidData/OwidTable"
-import { epiColorScale, mapConfigs } from "./CovidColumnSpecs"
-import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
+import { entityCode } from "charts/owidData/OwidTable"
+import { colorScales, mapConfigs } from "./CovidColumnSpecs"
 
 const abSeed = Math.random()
 
@@ -706,35 +705,27 @@ export class CovidDataExplorer extends React.Component<{
         else this.covidExplorerTable.removeGroupFilterColumn()
 
         this._updateMap()
-        this._updateScatterLineColor()
+        this._updateColorScale()
 
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
 
-    private _updateScatterLineColor() {
+    private _updateColorScale() {
         const chartProps = this.chart.props
         const params = this.constrainedParams
         const useEpiColors =
-            this.chartType === "ScatterPlot" &&
-            (params.casesMetric || params.testsMetric)
+            (this.chartType === "ScatterPlot" &&
+                (params.casesMetric || params.testsMetric) &&
+                    params.colorScale !== "continents") ||
+            params.colorScale === "ptr"
         if (useEpiColors) {
-            chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId() as any
-            chartProps.colorScale = epiColorScale as any
+            chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId()!
+            chartProps.colorScale = colorScales.epi
         } else if (chartProps.dimensions[2]) {
             chartProps.dimensions[2].variableId = 123
-            chartProps.colorScale = this.defaultColorScale
+            chartProps.colorScale = colorScales.continents
         }
-    }
-
-    private defaultColorScale = {
-        baseColorScheme: undefined,
-        colorSchemeValues: [],
-        colorSchemeLabels: [],
-        customNumericColors: [],
-        customCategoryColors: this.customCategoryColors,
-        customCategoryLabels: {},
-        customHiddenCategories: {}
     }
 
     private _updateMap() {
@@ -907,21 +898,6 @@ export class CovidDataExplorer extends React.Component<{
             : this.daysSinceOption.id
     }
 
-    get customCategoryColors() {
-        const colors = lastOfNonEmptyArray(
-            ColorSchemes["continents"]!.colorSets
-        )
-        return {
-            Africa: colors[0],
-            Antarctica: colors[1],
-            Asia: colors[2],
-            Europe: colors[3],
-            "North America": colors[4],
-            Oceania: colors[5],
-            "South America": colors[6]
-        }
-    }
-
     @observable.ref chart: ChartConfig = new ChartConfig(
         {
             slug: covidDashboardSlug,
@@ -949,7 +925,7 @@ export class CovidDataExplorer extends React.Component<{
             addCountryMode: "add-country",
             stackMode: "absolute",
             useV2: true,
-            colorScale: this.defaultColorScale,
+            colorScale: colorScales.continents,
             hideRelativeToggle: true,
             hasChartTab: true,
             hasMapTab: true,

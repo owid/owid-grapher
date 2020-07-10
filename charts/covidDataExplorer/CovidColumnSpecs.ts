@@ -1,4 +1,6 @@
 import { ColumnSpec } from "charts/owidData/OwidTable"
+import { continentColors } from "charts/ColorSchemes"
+import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 
 export const columnSpecs: { [name: string]: ColumnSpec } = {
     positive_test_rate: {
@@ -265,38 +267,51 @@ export const trajectoryOptions = {
         }
     }
 }
-
-// Chart 4258
-export const epiColorScale = {
-    baseColorScheme: "Magma",
-    isManualBuckets: true,
-    colorSchemeInvert: true,
-    colorSchemeLabels: [
-        "<0.1% of tests",
-        "0.1% - 1%",
-        "1% - 2%",
-        "2% - 3%",
-        "3% - 10%",
-        "10% - 20%",
-        "more than 20%"
-    ],
-    colorSchemeValues: [0.1, 1, 2, 3, 10, 20, 50],
-    legendDescription: "Positive rate",
-    customColorsActive: true,
-    customNumericColors: [
-        "#192f4d",
-        "#3b4c61",
-        "#5875a6",
-        "#4f8bd2",
-        "#f6762a",
-        "#ce1919",
-        "#a6192c"
-    ],
-    customCategoryColors: {},
-    customCategoryLabels: {
-        "No data": "no testing data"
+export const colorScales: { [name: string]: ColorScaleConfigProps } = {
+    epi: {
+        // Chart 4258
+        baseColorScheme: "Magma",
+        isManualBuckets: true,
+        colorSchemeInvert: true,
+        colorSchemeLabels: [
+            "<0.1% of tests",
+            "0.1% - 1%",
+            "1% - 2%",
+            "2% - 3%",
+            "3% - 10%",
+            "10% - 20%",
+            "more than 20%"
+        ],
+        colorSchemeValues: [0.1, 1, 2, 3, 10, 20, 50],
+        legendDescription: "Positive rate",
+        customColorsActive: true,
+        customNumericColors: [
+            "#192f4d",
+            "#3b4c61",
+            "#5875a6",
+            "#4f8bd2",
+            "#f6762a",
+            "#ce1919",
+            "#a6192c"
+        ],
+        customCategoryColors: {},
+        customCategoryLabels: {
+            "No data": "no testing data"
+        },
+        customHiddenCategories: {}
     },
-    customHiddenCategories: {}
+    continents: {
+        legendDescription: "Continent",
+        baseColorScheme: undefined,
+        colorSchemeValues: [],
+        colorSchemeLabels: [],
+        customNumericColors: [],
+        customCategoryColors: continentColors,
+        customCategoryLabels: {
+            "No data": "Other"
+        },
+        customHiddenCategories: {}
+    }
 }
 
 export const mapConfigs = {

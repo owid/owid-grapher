@@ -33,7 +33,6 @@ import {
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import { covidAnnotations } from "./CovidAnnotations"
-import { computed } from "mobx"
 
 type MetricKey = {
     [K in MetricKind]: number
@@ -396,7 +395,7 @@ export class CovidExplorerTable {
         if (!this.table.columnsBySlug.has(this.groupFilterSlug))
             this.table.addFilterColumn(
                 this.groupFilterSlug,
-                row => row.continent
+                row => !row.group_members
             )
     }
 
@@ -528,13 +527,16 @@ export class CovidExplorerTable {
     ) => {
         const rowsByDay = new Map<string, CovidGrapherRow>()
         const rows = sortBy(group, row => moment(row.date).unix())
+        const groupMembers = new Set()
         rows.forEach(row => {
             const day = row.date
+            groupMembers.add(row.iso_code)
             if (!rowsByDay.has(day)) {
                 const newRow: any = {}
                 Object.keys(row).forEach(key => (newRow[key] = undefined))
                 rowsByDay.set(day, {
                     location: groupName,
+                    continent: row.continent,
                     iso_code: groupName.replace(" ", ""),
                     date: day,
                     day: dateToYear(day),
@@ -555,12 +557,14 @@ export class CovidExplorerTable {
         let total_cases = 0
         let total_deaths = 0
         let maxPopulation = 0
+        const group_members = Array.from(groupMembers).join("")
         // We need to compute cumulatives again because sometimes data will stop for a country.
         newRows.forEach(row => {
             total_cases += row.new_cases
             total_deaths += row.new_deaths
             row.total_cases = total_cases
             row.total_deaths = total_deaths
+            row.group_members = group_members
             if (row.population > maxPopulation) maxPopulation = row.population
 
             // Once we add a country to a group, we assume we will always have data for that country, so even if the
@@ -610,16 +614,16 @@ export class CovidExplorerTable {
             const isNumeric = !CovidExplorerTable.keepStrings.has(key)
             if (isNumeric)
                 (row as any)[key] = parseFloatOrUndefined((row as any)[key])
-            if (key === "iso_code" && !row.iso_code) {
-                if (row.location === "World") row.iso_code = "OWID_WRL"
-                else if (row.location === "International")
-                    row.iso_code = "OWID_INT"
-            }
         })
+
+        if (row.location === "International") row.iso_code = "OWID_INT"
+
         newRow.entityName = row.location
         newRow.entityCode = row.iso_code
         newRow.day = dateToYear(row.date)
         newRow.entityId = CovidExplorerTable.getEntityGuid(row.location)
+
+        if (newRow.location === "World") newRow.group_members = "All"
 
         return row as CovidGrapherRow
     }
