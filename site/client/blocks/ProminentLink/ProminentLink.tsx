@@ -12,7 +12,7 @@ import {
 import { EntityUrlBuilder } from "charts/ChartUrl"
 import { union, isEmpty } from "charts/Util"
 
-const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
+export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
 @observer
 class ProminentLink extends React.Component<{
