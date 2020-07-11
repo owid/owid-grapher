@@ -328,6 +328,105 @@ export const mapConfigs = {
             customHiddenCategories: {}
         }
     },
+    // Sync with chart 4020
+    deaths_total: {
+        timeTolerance: 2,
+        projection: "World",
+        colorScale: {
+            equalSizeBins: true,
+            baseColorScheme: "RdPu",
+            isManualBuckets: true,
+            colorSchemeLabels: [],
+            colorSchemeValues: [5, 10, 50, 500, 5000, 10000, 50000, 100000],
+            customNumericColors: [null, null, null],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {}
+        }
+    },
+    // Sync with chart 4021
+    deaths_daily: {
+        timeTolerance: 2,
+        projection: "World",
+        colorScale: {
+            equalSizeBins: true,
+            baseColorScheme: "OrRd",
+            isManualBuckets: true,
+            colorSchemeLabels: ["", null, null, null, null, null],
+            colorSchemeValues: [1, 5, 10, 50, 250, 500, 1000, 2500],
+            colorSchemeMinValue: 0,
+            customNumericColors: [null, null, null],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {}
+        }
+    },
+    // Sync with chart 4019
+    daily_cases: {
+        timeTolerance: 2,
+        projection: "World",
+        colorScale: {
+            equalSizeBins: true,
+            baseColorScheme: "BuPu",
+            isManualBuckets: true,
+            colorSchemeLabels: [],
+            colorSchemeValues: [10, 20, 50, 100, 500, 1000, 5000, 10000, 50000],
+            customNumericColors: [null, null],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {}
+        }
+    },
+    // Sync with chart 4018
+    total_cases: {
+        timeTolerance: 2,
+        projection: "World",
+        colorScale: {
+            equalSizeBins: true,
+            baseColorScheme: "Reds",
+            isManualBuckets: true,
+            colorSchemeLabels: [
+                "none",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            colorSchemeValues: [
+                1,
+                10,
+                50,
+                100,
+                500,
+                10000,
+                100000,
+                500000,
+                1000000,
+                5000000
+            ],
+            customColorsActive: true,
+            customNumericColors: [
+                "#58888f",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            customCategoryColors: {},
+            customCategoryLabels: {},
+            customHiddenCategories: {}
+        }
+    },
     // Sync with chart 4197
     tests_per_case: {
         timeTolerance: 10,

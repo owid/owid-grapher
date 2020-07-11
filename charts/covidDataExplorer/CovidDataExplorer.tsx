@@ -736,9 +736,28 @@ export class CovidDataExplorer extends React.Component<{
             Object.assign(chartProps.map, mapConfigs.tests_per_case)
         else if (params.positiveTestRate)
             Object.assign(chartProps.map, mapConfigs.positive_test_rate)
+        else if (params.casesMetric)
+            Object.assign(
+                chartProps.map,
+                params.totalFreq
+                    ? mapConfigs.total_cases
+                    : mapConfigs.daily_cases
+            )
+        else if (params.deathsMetric)
+            Object.assign(
+                chartProps.map,
+                params.totalFreq
+                    ? mapConfigs.deaths_total
+                    : mapConfigs.deaths_daily
+            )
         else {
             Object.assign(chartProps.map, mapConfigs.default)
-            chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
+            chartProps.map.colorScale.baseColorScheme = this.constrainedParams
+                .testsMetric
+                ? undefined
+                : this.constrainedParams.casesMetric
+                ? "YlOrBr"
+                : "OrRd"
         }
 
         chartProps.map.variableId = this.currentYVarId
@@ -828,14 +847,6 @@ export class CovidDataExplorer extends React.Component<{
     bindToWindow() {
         const url = new CovidUrl(this.chart.url, this.props.params)
         urlBinding.bindUrlToWindow(url)
-    }
-
-    @computed get mapColorScheme() {
-        return this.constrainedParams.testsMetric
-            ? undefined
-            : this.constrainedParams.casesMetric
-            ? "YlOrBr"
-            : "OrRd"
     }
 
     disposers: (IReactionDisposer | Lambda)[] = []
