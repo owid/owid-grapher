@@ -519,12 +519,9 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get perCapitaTitle() {
-        return (
-            " " +
-            this.perCapitaOptions[
-                this.constrainedParams.perCapita ? this.perCapitaDivisor : 1
-            ]
-        )
+        return this.constrainedParams.perCapita
+            ? " " + this.perCapitaOptions[this.perCapitaDivisor]
+            : ""
     }
 
     @computed private get chartTitle() {
