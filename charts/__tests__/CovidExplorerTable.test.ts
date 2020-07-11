@@ -28,7 +28,7 @@ describe("makeCountryOptions", () => {
     it("correctly computes options", () => {
         const options = CovidExplorerTable.makeCountryOptions(parsedRows)
         const world = options[2]
-        expect(world.code).toEqual("OWID_WRL")
+        expect(world.name).toEqual("World")
     })
 })
 

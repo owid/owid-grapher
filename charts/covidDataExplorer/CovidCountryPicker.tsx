@@ -359,6 +359,8 @@ export class CountryPicker extends React.Component<{
         const availableCountries = this.props.covidDataExplorer
             .availableCountriesForMetric
 
+        const selectedDebugMessage = `${selectedCountries.length} selected. ${availableCountries.size} available. ${this.options.length} options total.`
+
         return (
             <div className="CountryPicker" onKeyDown={this.onKeyDown}>
                 <div className="CovidSearchInput">
@@ -488,6 +490,7 @@ export class CountryPicker extends React.Component<{
                             </VerticalScrollContainer>
                             <div className="CountrySelectionControls">
                                 <div
+                                    title={selectedDebugMessage}
                                     className="ClearSelectionButton"
                                     data-track-note="covid-clear-selection"
                                     onClick={

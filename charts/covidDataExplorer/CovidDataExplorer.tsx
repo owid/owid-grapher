@@ -52,7 +52,8 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
-import { entityCode, entityId } from "charts/owidData/OwidTable"
+import { entityCode } from "charts/owidData/OwidTable"
+import { colorScales, mapConfigs } from "./CovidColumnSpecs"
 
 const abSeed = Math.random()
 
@@ -675,7 +676,8 @@ export class CovidDataExplorer extends React.Component<{
     // manually update the chart when the chart builderselections change.
     // todo: cleanup
     @action.bound private _updateChart() {
-        this.covidExplorerTable.initRequestedColumns(this.constrainedParams)
+        const params = this.constrainedParams
+        this.covidExplorerTable.initRequestedColumns(params)
         const chartProps = this.chart.props
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
@@ -692,8 +694,6 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.dimensions = this.dimensionSpecs.map(
             spec => new ChartDimension(spec)
         )
-        chartProps.map.variableId = this.currentYVarId
-        chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
 
         this.covidExplorerTable.table.setSelectedEntities(
             this.getSelectedEntityNames()
@@ -704,53 +704,44 @@ export class CovidDataExplorer extends React.Component<{
             this.covidExplorerTable.addGroupFilterColumn()
         else this.covidExplorerTable.removeGroupFilterColumn()
 
-        if (this.constrainedParams.testsPerCaseMetric)
-            Object.assign(chartProps.map, this.mapConfigs.tests_per_case)
-        if (this.constrainedParams.positiveTestRate)
-            Object.assign(chartProps.map, this.mapConfigs.positive_test_rate)
+        this._updateMap()
+        this._updateColorScale()
 
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
 
-    private mapConfigs = {
-        // Sync with chart 4197
-        tests_per_case: {
-            timeTolerance: 10,
-            baseColorScheme: "RdYlBu",
-            colorSchemeValues: [5, 10, 20, 40, 100, 1000, 5000],
-            isManualBuckets: true,
-            equalSizeBins: true,
-            customColorsActive: true,
-            customNumericColors: [
-                "#951009",
-                "#d73027",
-                "#f97953",
-                "#fed390",
-                "#7babc8",
-                "#4575b4",
-                "#1d4579"
-            ]
-        },
-        // Sync with chart 4198
-        positive_test_rate: {
-            timeTolerance: 10,
-            baseColorScheme: "RdYlBu",
-            colorSchemeValues: [0.1, 1, 2, 5, 10, 20, 50],
-            isManualBuckets: true,
-            equalSizeBins: true,
-            colorSchemeInvert: true,
-            customColorsActive: true,
-            customNumericColors: [
-                "#24508b",
-                "#4575b4",
-                "#7fa9c3",
-                "#f1c26d",
-                "#fc8d59",
-                "#d73027",
-                "#91231e"
-            ]
+    private _updateColorScale() {
+        const chartProps = this.chart.props
+        const params = this.constrainedParams
+        const useEpiColors =
+            (this.chartType === "ScatterPlot" &&
+                (params.casesMetric || params.testsMetric) &&
+                    params.colorScale !== "continents") ||
+            params.colorScale === "ptr"
+        if (useEpiColors) {
+            chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId()!
+            chartProps.colorScale = colorScales.epi
+        } else if (chartProps.dimensions[2]) {
+            chartProps.dimensions[2].variableId = 123
+            chartProps.colorScale = colorScales.continents
         }
+    }
+
+    private _updateMap() {
+        const chartProps = this.chart.props
+        const params = this.constrainedParams
+
+        if (params.testsPerCaseMetric)
+            Object.assign(chartProps.map, mapConfigs.tests_per_case)
+        else if (params.positiveTestRate)
+            Object.assign(chartProps.map, mapConfigs.positive_test_rate)
+        else {
+            Object.assign(chartProps.map, mapConfigs.default)
+            chartProps.map.colorScale.baseColorScheme = this.mapColorScheme
+        }
+
+        chartProps.map.variableId = this.currentYVarId
     }
 
     componentDidMount() {
@@ -894,7 +885,9 @@ export class CovidDataExplorer extends React.Component<{
             {
                 property: "color",
                 variableId: 123,
-                display: {}
+                display: {
+                    tolerance: 10
+                }
             }
         ]
     }
@@ -903,21 +896,6 @@ export class CovidDataExplorer extends React.Component<{
         return this.chartType === "LineChart"
             ? undefined
             : this.daysSinceOption.id
-    }
-
-    get customCategoryColors() {
-        const colors = lastOfNonEmptyArray(
-            ColorSchemes["continents"]!.colorSets
-        )
-        return {
-            Africa: colors[0],
-            Antarctica: colors[1],
-            Asia: colors[2],
-            Europe: colors[3],
-            "North America": colors[4],
-            Oceania: colors[5],
-            "South America": colors[6]
-        }
     }
 
     @observable.ref chart: ChartConfig = new ChartConfig(
@@ -947,34 +925,13 @@ export class CovidDataExplorer extends React.Component<{
             addCountryMode: "add-country",
             stackMode: "absolute",
             useV2: true,
-            colorScale: {
-                baseColorScheme: undefined,
-                colorSchemeValues: [],
-                colorSchemeLabels: [],
-                customNumericColors: [],
-                customCategoryColors: this.customCategoryColors,
-                customCategoryLabels: {},
-                customHiddenCategories: {}
-            },
+            colorScale: colorScales.continents,
             hideRelativeToggle: true,
             hasChartTab: true,
             hasMapTab: true,
             tab: "chart",
             isPublished: true,
-            map: {
-                variableId: 123,
-                timeTolerance: 7,
-                projection: "World",
-                colorScale: {
-                    baseColorScheme: this.mapColorScheme,
-                    colorSchemeValues: [],
-                    colorSchemeLabels: [],
-                    customNumericColors: [],
-                    customCategoryColors: {},
-                    customCategoryLabels: {},
-                    customHiddenCategories: {}
-                }
-            },
+            map: mapConfigs.default as any,
             data: {
                 availableEntities: this.availableEntities
             }
