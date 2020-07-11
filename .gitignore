@@ -19,3 +19,4 @@ datasetsExport
 .pending
 coverage/
 public/head.txt
+public/covidChartAndVariableMeta.json
