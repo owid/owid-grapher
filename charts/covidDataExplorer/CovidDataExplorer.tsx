@@ -717,7 +717,7 @@ export class CovidDataExplorer extends React.Component<{
         const useEpiColors =
             (this.chartType === "ScatterPlot" &&
                 (params.casesMetric || params.testsMetric) &&
-                    params.colorScale !== "continents") ||
+                params.colorScale !== "continents") ||
             params.colorScale === "ptr"
         if (useEpiColors) {
             chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId()!
