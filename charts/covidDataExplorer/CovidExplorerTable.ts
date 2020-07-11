@@ -11,7 +11,8 @@ import {
     cloneDeep,
     retryPromise,
     memoize,
-    fetchText
+    fetchText,
+    fetchJSON
 } from "charts/Util"
 import moment from "moment"
 import {
@@ -21,7 +22,6 @@ import {
     CovidGrapherRow,
     SmoothingOption
 } from "./CovidTypes"
-import { columnSpecs, trajectoryOptions } from "./CovidColumnSpecs"
 import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"
 import {
@@ -33,6 +33,11 @@ import {
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import { covidAnnotations } from "./CovidAnnotations"
+import {
+    covidDataPath,
+    covidLastUpdatedPath,
+    covidChartAndVariableMetaPath
+} from "./CovidConstants"
 
 type MetricKey = {
     [K in MetricKind]: number
@@ -45,19 +50,123 @@ interface AnnotationsRow {
     deaths_annotations: string
 }
 
+const trajectoryOptions = {
+    deaths: {
+        total: {
+            title: "Days since the 5th total confirmed death",
+            threshold: 5,
+            id: 4561
+        },
+        daily: {
+            title: "Days since 5 daily new deaths first reported",
+            threshold: 5,
+            id: 4562
+        },
+        perCapita: {
+            title: "Days since total confirmed deaths reached 0.1 per million",
+            threshold: 0.1,
+            id: 4563
+        }
+    },
+    cases: {
+        total: {
+            title: "Days since the 100th confirmed case",
+            threshold: 100,
+            id: 4564
+        },
+        daily: {
+            title: "Days since confirmed cases first reached 30 per day",
+            threshold: 30,
+            id: 4565
+        },
+        perCapita: {
+            title:
+                "Days since the total confirmed cases per million people reached 1",
+            threshold: 1,
+            id: 4566
+        }
+    }
+}
+
 export class CovidExplorerTable {
     table: OwidTable
-    lastUpdated: string
+    columnSpecs: { [name: string]: ColumnSpec } = {}
+
     constructor(
         table: OwidTable,
         data: CovidGrapherRow[],
-        lastUpdated: string = ""
+        owidVariableSpecs = {}
     ) {
+        this.initColumnSpecs(owidVariableSpecs)
         this.table = table
         this.table.addRowsAndDetectColumns(data)
-        this.table.addColumnSpec(columnSpecs.continents)
+        this.table.addColumnSpec(this.columnSpecs.continents)
         this.addAnnotationColumns()
-        this.lastUpdated = lastUpdated
+    }
+
+    private initColumnSpecs(owidVariableSpecs: any) {
+        this.columnSpecs = {
+            positive_test_rate: {
+                ...owidVariableSpecs[142721],
+                owidVariableId: 142721,
+                isDailyMeasurement: true,
+                annotationsColumnSlug: "tests_units",
+                description:
+                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country."
+            } as any,
+            tests_per_case: {
+                ...owidVariableSpecs[142754],
+                isDailyMeasurement: true,
+                annotationsColumnSlug: "tests_units",
+                description:
+                    "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis."
+            } as any,
+            case_fatality_rate: {
+                ...owidVariableSpecs[142600],
+                annotationsColumnSlug: "case_fatality_rate_annotations",
+                owidVariableId: 142600,
+                isDailyMeasurement: true,
+                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
+            } as any,
+            cases: {
+                ...owidVariableSpecs[142582],
+                owidVariableId: 142582,
+                isDailyMeasurement: true,
+                annotationsColumnSlug: "cases_annotations",
+                name: "Confirmed cases of COVID-19",
+                description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
+            } as any,
+            deaths: {
+                ...owidVariableSpecs[142583],
+                owidVariableId: 142583,
+                isDailyMeasurement: true,
+                annotationsColumnSlug: "deaths_annotations",
+                name: "Confirmed deaths due to COVID-19",
+                description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
+            } as any,
+            tests: {
+                ...owidVariableSpecs[142601],
+                owidVariableId: 142601,
+                isDailyMeasurement: true,
+                description: "",
+                name: "tests",
+                annotationsColumnSlug: "tests_units"
+            } as any,
+            days_since: {
+                ...owidVariableSpecs[142712],
+                owidVariableId: 142712,
+                isDailyMeasurement: true,
+                description: "",
+                name: "days_since"
+            } as any,
+            continents: {
+                ...owidVariableSpecs[123],
+                owidVariableId: 123,
+                description: "",
+                name: "continent",
+                slug: "continent"
+            } as any
+        }
     }
 
     private addAnnotationColumns() {
@@ -175,10 +284,9 @@ export class CovidExplorerTable {
         name: MetricKind,
         perCapita: number,
         daily?: boolean,
-        rollingAverage?: number,
-        updatedTime?: string
+        rollingAverage?: number
     ): ColumnSpec {
-        const spec = cloneDeep(columnSpecs[name]) as ColumnSpec
+        const spec = cloneDeep(this.columnSpecs[name]) as ColumnSpec
         spec.slug = this.getColumnSlug(name, perCapita, daily, rollingAverage)
         spec.owidVariableId = CovidExplorerTable.buildCovidVariableId(
             name,
@@ -186,13 +294,14 @@ export class CovidExplorerTable {
             rollingAverage,
             daily
         )
-        spec.source!.name = `${spec.source!.name}${updatedTime}`
 
         const messages: { [index: number]: string } = {
             1: "",
             1e3: " per thousand people",
             1e6: " per million people"
         }
+
+        if (!spec.display) spec.display = {}
 
         spec.display!.name = `${daily ? "Daily " : "Cumulative "}${
             spec.display!.name
@@ -225,8 +334,7 @@ export class CovidExplorerTable {
             columnName,
             perCapita,
             params.dailyFreq,
-            smoothing,
-            columnName === "tests" ? "" : " - " + this.lastUpdated
+            smoothing
         )
 
         const table = this.table
@@ -442,7 +550,7 @@ export class CovidExplorerTable {
         const table = this.table
         const slug = `daysSince${sourceColumnSlug}Hit${threshold}`
         const spec: ComputedColumnSpec = {
-            ...columnSpecs.days_since,
+            ...this.columnSpecs.days_since,
             name: title,
             owidVariableId: id,
             slug,
@@ -653,14 +761,12 @@ const dateToYear = (dateString: string): number =>
         moment.utc("2020-01-21").toDate()
     )
 
-export const covidDataPath =
-    "https://covid.ourworldindata.org/data/owid-covid-data.csv"
-
-export const covidLastUpdatedPath =
-    "https://covid.ourworldindata.org/data/owid-covid-data-last-updated-timestamp.txt"
-
 export const fetchLastUpdatedTime = memoize(() =>
     retryPromise(() => fetchText(covidLastUpdatedPath))
+)
+
+export const fetchCovidChartAndVariableMeta = memoize(() =>
+    retryPromise(() => fetchJSON(covidChartAndVariableMetaPath))
 )
 
 export function getLeastUsedColor(

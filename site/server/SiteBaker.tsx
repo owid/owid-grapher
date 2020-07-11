@@ -47,11 +47,12 @@ import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
 import { countries } from "utils/countries"
-import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 import {
-    covidCountryProfileRootPath,
-    covidCountryProfileSlug
-} from "./covid/CovidConstants"
+    covidDashboardSlug,
+    covidChartAndVariableMetaFilename
+} from "charts/covidDataExplorer/CovidConstants"
+import { covidCountryProfileRootPath } from "./covid/CovidConstants"
+import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 
 // Static site generator using Wordpress
 
@@ -333,6 +334,10 @@ export class SiteBaker {
                 await renderCovidDataExplorerPage()
             )
         }
+        await this.stageWrite(
+            `${BAKED_SITE_DIR}/${covidChartAndVariableMetaFilename}`,
+            await bakeCovidChartAndVariableMeta()
+        )
     }
 
     // Pages that are expected by google scholar for indexing

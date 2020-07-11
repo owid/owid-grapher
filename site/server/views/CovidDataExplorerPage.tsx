@@ -4,13 +4,12 @@ import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import {
-    covidLastUpdatedPath,
-    covidDataPath
-} from "charts/covidDataExplorer/CovidExplorerTable"
-import {
     covidDashboardSlug,
     coronaOpenGraphImagePath,
-    covidDataExplorerContainerId
+    covidDataExplorerContainerId,
+    covidLastUpdatedPath,
+    covidDataPath,
+    covidChartAndVariableMetaPath
 } from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { SiteSubnavigation } from "./SiteSubnavigation"
@@ -43,6 +42,12 @@ export const CovidDataExplorerPage = () => {
                 <link
                     rel="preload"
                     href={covidDataPath}
+                    as="fetch"
+                    crossOrigin="anonymous"
+                />
+                <link
+                    rel="preload"
+                    href={covidChartAndVariableMetaPath}
                     as="fetch"
                     crossOrigin="anonymous"
                 />

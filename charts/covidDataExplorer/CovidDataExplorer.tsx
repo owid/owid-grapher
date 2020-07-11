@@ -37,23 +37,27 @@ import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
 import {
-    covidDataPath,
     fetchAndParseData,
     fetchLastUpdatedTime,
     getLeastUsedColor,
-    CovidExplorerTable
+    CovidExplorerTable,
+    fetchCovidChartAndVariableMeta
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
-import { covidDashboardSlug, coronaDefaultView } from "./CovidConstants"
+import {
+    covidDashboardSlug,
+    coronaDefaultView,
+    covidDataPath
+} from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { ColorScheme, ColorSchemes } from "charts/ColorSchemes"
+import { ColorScheme, ColorSchemes, continentColors } from "charts/ColorSchemes"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
 import { entityCode } from "charts/owidData/OwidTable"
-import { colorScales, mapConfigs } from "./CovidColumnSpecs"
+import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 
 const abSeed = Math.random()
 
@@ -61,6 +65,10 @@ const abSeed = Math.random()
 export class CovidDataExplorer extends React.Component<{
     data: CovidGrapherRow[]
     params: CovidQueryParams
+    covidChartAndVariableMeta: {
+        charts: any
+        variables: any
+    }
     updated: string
     queryStr?: string
     isEmbed?: boolean
@@ -74,6 +82,7 @@ export class CovidDataExplorer extends React.Component<{
     }) {
         const typedData = await fetchAndParseData()
         const updated = await fetchLastUpdatedTime()
+        const covidMeta = await fetchCovidChartAndVariableMeta()
         const queryStr = props.queryStr || coronaDefaultView
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
@@ -81,6 +90,7 @@ export class CovidDataExplorer extends React.Component<{
                 data={typedData}
                 updated={updated}
                 params={startingParams}
+                covidChartAndVariableMeta={covidMeta}
                 queryStr={queryStr}
                 isEmbed={props.isEmbed}
                 globalEntitySelection={props.globalEntitySelection}
@@ -316,12 +326,6 @@ export class CovidDataExplorer extends React.Component<{
         this.toggleSelectedCountry(code, value)
         this.selectionChangeFromBuilder = true
         this.renderControlsThenUpdateChart()
-    }
-
-    @computed get lastUpdated() {
-        const time = moment.utc(this.props.updated)
-        const formatString = "Do MMM, kk:mm [(GMT]Z[)]"
-        return `Data last updated ${time.local().format(formatString)}`
     }
 
     @computed get howLongAgo() {
@@ -657,7 +661,7 @@ export class CovidDataExplorer extends React.Component<{
         return new CovidExplorerTable(
             this.chart.table,
             this.props.data,
-            this.lastUpdated
+            this.props.covidChartAndVariableMeta.variables
         )
     }
 
@@ -718,16 +722,17 @@ export class CovidDataExplorer extends React.Component<{
             params.colorScale === "ptr"
         if (useEpiColors) {
             chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId()!
-            chartProps.colorScale = colorScales.epi
+            chartProps.colorScale = this.colorScales.epi
         } else if (chartProps.dimensions[2]) {
             chartProps.dimensions[2].variableId = 123
-            chartProps.colorScale = colorScales.continents
+            chartProps.colorScale = this.colorScales.continents
         }
     }
 
     private _updateMap() {
         const chartProps = this.chart.props
         const params = this.constrainedParams
+        const mapConfigs = this.mapConfigs
 
         if (params.testsPerCaseMetric)
             Object.assign(chartProps.map, mapConfigs.tests_per_case)
@@ -757,6 +762,7 @@ export class CovidDataExplorer extends React.Component<{
                 : "OrRd"
         }
 
+        chartProps.map.targetYear = undefined
         chartProps.map.variableId = this.currentYVarId
     }
 
@@ -906,6 +912,52 @@ export class CovidDataExplorer extends React.Component<{
             : this.daysSinceOption.id
     }
 
+    @computed private get colorScales(): {
+        [name: string]: ColorScaleConfigProps
+    } {
+        return {
+            epi: this.props.covidChartAndVariableMeta.charts[4258]
+                ?.colorScale as any,
+            continents: {
+                legendDescription: "Continent",
+                baseColorScheme: undefined,
+                colorSchemeValues: [],
+                colorSchemeLabels: [],
+                customNumericColors: [],
+                customCategoryColors: continentColors,
+                customCategoryLabels: {
+                    "No data": "Other"
+                },
+                customHiddenCategories: {}
+            }
+        }
+    }
+
+    @computed private get mapConfigs() {
+        const charts = this.props.covidChartAndVariableMeta.charts
+        return {
+            default: {
+                variableId: 123,
+                timeTolerance: 7,
+                projection: "World",
+                colorScale: {
+                    colorSchemeValues: [],
+                    colorSchemeLabels: [],
+                    customNumericColors: [],
+                    customCategoryColors: {},
+                    customCategoryLabels: {},
+                    customHiddenCategories: {}
+                }
+            },
+            total_cases: charts[4018]?.map,
+            daily_cases: charts[4019]?.map,
+            deaths_total: charts[4020]?.map,
+            deaths_daily: charts[4021]?.map,
+            tests_per_case: charts[4197]?.map,
+            positive_test_rate: charts[4198]?.map
+        }
+    }
+
     @observable.ref chart: ChartConfig = new ChartConfig(
         {
             slug: covidDashboardSlug,
@@ -933,13 +985,13 @@ export class CovidDataExplorer extends React.Component<{
             addCountryMode: "add-country",
             stackMode: "absolute",
             useV2: true,
-            colorScale: colorScales.continents,
+            colorScale: this.colorScales.continents,
             hideRelativeToggle: true,
             hasChartTab: true,
             hasMapTab: true,
             tab: "chart",
             isPublished: true,
-            map: mapConfigs.default as any,
+            map: this.mapConfigs.default as any,
             data: {
                 availableEntities: this.availableEntities
             }

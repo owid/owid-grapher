@@ -14,6 +14,11 @@ const getRows = () => {
     return testRows.map(CovidExplorerTable.parseCovidRow)
 }
 
+const dummyMeta = {
+    charts: {},
+    variables: {}
+}
+
 describe(CovidDataExplorer, () => {
     it("renders the Covid Data Explorer", () => {
         const parsedRows = getRows()
@@ -22,6 +27,7 @@ describe(CovidDataExplorer, () => {
             <CovidDataExplorer
                 data={parsedRows}
                 params={startingParams}
+                covidChartAndVariableMeta={dummyMeta}
                 updated="2020-05-09T18:59:31"
             />
         )
