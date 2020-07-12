@@ -35,7 +35,11 @@ import {
 } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
-import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
+import {
+    CovidQueryParams,
+    CovidUrl,
+    CovidConstrainedQueryParams
+} from "./CovidChartUrl"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
@@ -732,16 +736,9 @@ export class CovidDataExplorer extends React.Component<{
 
     private _updateMap() {
         const chartProps = this.chart.props
-        const params = this.constrainedParams
-
-        const key = [
-            params.metricName,
-            params.totalFreq ? "total" : "daily",
-            params.perCapita ? "per_capita" : ""
+        const sourceChartId = (sourceCharts as any)[
+            this.constrainedParams.sourceChartKey
         ]
-            .filter(i => i)
-            .join("_")
-        const sourceChartId = (sourceCharts as any)[key]
 
         Object.assign(
             chartProps.map,

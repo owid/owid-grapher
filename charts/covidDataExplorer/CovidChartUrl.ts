@@ -124,6 +124,16 @@ export class CovidQueryParams {
     toString() {
         return queryParamsToStr(this.toParams)
     }
+
+    @computed get sourceChartKey() {
+        return [
+            this.metricName,
+            this.totalFreq ? "total" : "daily",
+            this.perCapita ? "per_capita" : ""
+        ]
+            .filter(i => i)
+            .join("_")
+    }
 }
 
 export class CovidConstrainedQueryParams extends CovidQueryParams {

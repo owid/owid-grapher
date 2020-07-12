@@ -32,4 +32,11 @@ describe(CovidQueryParams, () => {
         expect(constrainedParams.smoothing).toEqual(7)
         expect(constrainedParams.totalFreq).toEqual(false)
     })
+
+    it("computes the correct source chart key given current params", () => {
+        const params = new CovidQueryParams(
+            `casesMetric=true&dailyFreq=true&perCapita=true`
+        )
+        expect(params.sourceChartKey).toEqual("cases_daily_per_capita")
+    })
 })
