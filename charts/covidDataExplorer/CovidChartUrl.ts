@@ -12,7 +12,8 @@ import {
     PerCapita,
     AlignedOption,
     SmoothingOption,
-    colorScaleOption
+    colorScaleOption,
+    MetricKind
 } from "./CovidTypes"
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 
@@ -84,6 +85,15 @@ export class CovidQueryParams {
         }
     }
 
+    @computed get metricName(): MetricKind {
+        if (this.testsMetric) return "tests"
+        if (this.casesMetric) return "cases"
+        if (this.deathsMetric) return "deaths"
+        if (this.cfrMetric) return "case_fatality_rate"
+        if (this.testsPerCaseMetric) return "tests_per_case"
+        return "positive_test_rate"
+    }
+
     @computed get toParams(): QueryParams {
         const params: any = {}
         params.testsMetric = this.testsMetric ? true : undefined
@@ -108,7 +118,11 @@ export class CovidQueryParams {
     }
 
     @computed get constrainedParams() {
-        return new CovidConstrainedQueryParams(queryParamsToStr(this.toParams))
+        return new CovidConstrainedQueryParams(this.toString())
+    }
+
+    toString() {
+        return queryParamsToStr(this.toParams)
     }
 }
 
