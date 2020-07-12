@@ -48,7 +48,8 @@ import moment from "moment"
 import {
     covidDashboardSlug,
     coronaDefaultView,
-    covidDataPath
+    covidDataPath,
+    sourceCharts
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes, continentColors } from "charts/ColorSchemes"
@@ -732,35 +733,21 @@ export class CovidDataExplorer extends React.Component<{
     private _updateMap() {
         const chartProps = this.chart.props
         const params = this.constrainedParams
-        const mapConfigs = this.mapConfigs
 
-        if (params.testsPerCaseMetric)
-            Object.assign(chartProps.map, mapConfigs.tests_per_case)
-        else if (params.positiveTestRate)
-            Object.assign(chartProps.map, mapConfigs.positive_test_rate)
-        else if (params.casesMetric)
-            Object.assign(
-                chartProps.map,
-                params.totalFreq
-                    ? mapConfigs.total_cases
-                    : mapConfigs.daily_cases
-            )
-        else if (params.deathsMetric)
-            Object.assign(
-                chartProps.map,
-                params.totalFreq
-                    ? mapConfigs.deaths_total
-                    : mapConfigs.deaths_daily
-            )
-        else {
-            Object.assign(chartProps.map, mapConfigs.default)
-            chartProps.map.colorScale.baseColorScheme = this.constrainedParams
-                .testsMetric
-                ? undefined
-                : this.constrainedParams.casesMetric
-                ? "YlOrBr"
-                : "OrRd"
-        }
+        const key = [
+            params.metricName,
+            params.totalFreq ? "total" : "daily",
+            params.perCapita ? "per_capita" : ""
+        ]
+            .filter(i => i)
+            .join("_")
+        const sourceChartId = (sourceCharts as any)[key]
+
+        Object.assign(
+            chartProps.map,
+            this.props.covidChartAndVariableMeta.charts[sourceChartId]?.map ||
+                this.defaultMapConfig
+        )
 
         chartProps.map.targetYear = undefined
         chartProps.map.variableId = this.currentYVarId
@@ -916,7 +903,7 @@ export class CovidDataExplorer extends React.Component<{
         [name: string]: ColorScaleConfigProps
     } {
         return {
-            epi: this.props.covidChartAndVariableMeta.charts[4258]
+            epi: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]
                 ?.colorScale as any,
             continents: {
                 legendDescription: "Continent",
@@ -933,28 +920,19 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    @computed private get mapConfigs() {
-        const charts = this.props.covidChartAndVariableMeta.charts
+    private defaultMapConfig() {
         return {
-            default: {
-                variableId: 123,
-                timeTolerance: 7,
-                projection: "World",
-                colorScale: {
-                    colorSchemeValues: [],
-                    colorSchemeLabels: [],
-                    customNumericColors: [],
-                    customCategoryColors: {},
-                    customCategoryLabels: {},
-                    customHiddenCategories: {}
-                }
-            },
-            total_cases: charts[4018]?.map,
-            daily_cases: charts[4019]?.map,
-            deaths_total: charts[4020]?.map,
-            deaths_daily: charts[4021]?.map,
-            tests_per_case: charts[4197]?.map,
-            positive_test_rate: charts[4198]?.map
+            variableId: 123,
+            timeTolerance: 7,
+            projection: "World",
+            colorScale: {
+                colorSchemeValues: [],
+                colorSchemeLabels: [],
+                customNumericColors: [],
+                customCategoryColors: {},
+                customCategoryLabels: {},
+                customHiddenCategories: {}
+            }
         }
     }
 
@@ -991,7 +969,7 @@ export class CovidDataExplorer extends React.Component<{
             hasMapTab: true,
             tab: "chart",
             isPublished: true,
-            map: this.mapConfigs.default as any,
+            map: this.defaultMapConfig as any,
             data: {
                 availableEntities: this.availableEntities
             }

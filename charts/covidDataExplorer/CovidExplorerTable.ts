@@ -36,7 +36,8 @@ import { covidAnnotations } from "./CovidAnnotations"
 import {
     covidDataPath,
     covidLastUpdatedPath,
-    covidChartAndVariableMetaPath
+    covidChartAndVariableMetaPath,
+    sourceVariables
 } from "./CovidConstants"
 
 type MetricKey = {
@@ -107,66 +108,62 @@ export class CovidExplorerTable {
     private initColumnSpecs(owidVariableSpecs: any) {
         this.columnSpecs = {
             positive_test_rate: {
-                ...owidVariableSpecs[142721],
-                owidVariableId: 142721,
+                ...owidVariableSpecs[sourceVariables.positive_test_rate],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "tests_units",
                 description:
                     "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country."
             } as any,
             tests_per_case: {
-                ...owidVariableSpecs[142754],
+                ...owidVariableSpecs[sourceVariables.tests_per_case],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "tests_units",
                 description:
                     "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis."
             } as any,
             case_fatality_rate: {
-                ...owidVariableSpecs[142600],
+                ...owidVariableSpecs[sourceVariables.case_fatality_rate],
                 annotationsColumnSlug: "case_fatality_rate_annotations",
-                owidVariableId: 142600,
                 isDailyMeasurement: true,
                 description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
             } as any,
             cases: {
-                ...owidVariableSpecs[142582],
-                owidVariableId: 142582,
+                ...owidVariableSpecs[sourceVariables.cases],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "cases_annotations",
                 name: "Confirmed cases of COVID-19",
                 description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
             } as any,
             deaths: {
-                ...owidVariableSpecs[142583],
-                owidVariableId: 142583,
+                ...owidVariableSpecs[sourceVariables.deaths],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "deaths_annotations",
                 name: "Confirmed deaths due to COVID-19",
                 description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
             } as any,
             tests: {
-                ...owidVariableSpecs[142601],
-                owidVariableId: 142601,
+                ...owidVariableSpecs[sourceVariables.tests],
                 isDailyMeasurement: true,
                 description: "",
                 name: "tests",
                 annotationsColumnSlug: "tests_units"
             } as any,
             days_since: {
-                ...owidVariableSpecs[142712],
-                owidVariableId: 142712,
+                ...owidVariableSpecs[sourceVariables.days_since],
                 isDailyMeasurement: true,
                 description: "",
                 name: "days_since"
             } as any,
             continents: {
-                ...owidVariableSpecs[123],
-                owidVariableId: 123,
+                ...owidVariableSpecs[sourceVariables.continents],
                 description: "",
                 name: "continent",
                 slug: "continent"
             } as any
         }
+        Object.keys(this.columnSpecs).forEach(key => {
+            this.columnSpecs[key].owidVariableId = (sourceVariables as any)[key]
+        })
     }
 
     private addAnnotationColumns() {
@@ -249,7 +246,7 @@ export class CovidExplorerTable {
 
     buildColumnSpecFromParams(params: CovidConstrainedQueryParams) {
         return this.buildColumnSpec(
-            this.getMetricName(params),
+            params.metricName,
             this.perCapitaDivisor(params),
             params.dailyFreq,
             params.smoothing
@@ -327,7 +324,7 @@ export class CovidExplorerTable {
         params: CovidConstrainedQueryParams,
         rowFn: RowToValueMapper
     ) {
-        const columnName = this.getMetricName(params)
+        const columnName = params.metricName
         const perCapita = this.perCapitaDivisor(params)
         const smoothing = params.smoothing
         const spec = this.buildColumnSpec(
@@ -374,15 +371,6 @@ export class CovidExplorerTable {
             )
         else table.addComputedColumn({ ...spec, fn: rowFn })
         return spec
-    }
-
-    getMetricName(params: CovidConstrainedQueryParams): MetricKind {
-        if (params.testsMetric) return "tests"
-        if (params.casesMetric) return "cases"
-        if (params.deathsMetric) return "deaths"
-        if (params.cfrMetric) return "case_fatality_rate"
-        if (params.testsPerCaseMetric) return "tests_per_case"
-        return "positive_test_rate"
     }
 
     initTestingColumn(params: CovidConstrainedQueryParams) {
@@ -523,9 +511,9 @@ export class CovidExplorerTable {
             // If we are an aligned chart showing tests, we need to make a start of
             // pandemic column from deaths rate
             if (params.testsMetric) {
-                const newParams: CovidConstrainedQueryParams = {
-                    ...params
-                } as CovidConstrainedQueryParams
+                const newParams = new CovidConstrainedQueryParams(
+                    params.toString()
+                )
                 newParams.testsMetric = false
                 newParams.deathsMetric = true
                 this.initDeathsColumn(newParams)

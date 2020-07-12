@@ -11,3 +11,41 @@ export const covidLastUpdatedPath =
 export const covidChartAndVariableMetaFilename =
     "covidChartAndVariableMeta.json"
 export const covidChartAndVariableMetaPath = `/${covidChartAndVariableMetaFilename}`
+
+export const sourceCharts = {
+    epi: 4258,
+
+    cases_total: 4018,
+    cases_daily: 4019,
+    cases_total_per_capita: 4051,
+    cases_daily_per_capita: 4051, // todo
+
+    deaths_total: 4020,
+    deaths_daily: 4021,
+    deaths_total_per_capita: 4029,
+    deaths_daily_per_capita: 4030,
+
+    tests_total: 4191, // ?
+    tests_daily: 4191, // ?
+    tests_total_per_capita: 4191, // ?
+    tests_daily_per_capita: 4191, // ?
+
+    tests_per_case_total: 4197, // ?
+    tests_per_case_daily: 4197,
+
+    positive_test_rate_total: 4198, // ?
+    positive_test_rate_daily: 4198,
+
+    case_fatality_rate_total: 4056
+}
+
+export const sourceVariables = {
+    positive_test_rate: 142721,
+    tests_per_case: 142754,
+    case_fatality_rate: 142600,
+    cases: 142582,
+    deaths: 142583,
+    tests: 142601,
+    days_since: 142712,
+    continents: 123
+}
