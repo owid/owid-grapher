@@ -18,7 +18,7 @@ export const sourceCharts = {
     cases_total: 4018,
     cases_daily: 4019,
     cases_total_per_capita: 4051,
-    cases_daily_per_capita: 4051, // todo: is there a custom one to use?
+    cases_daily_per_capita: 4028,
 
     deaths_total: 4020,
     deaths_daily: 4021,
