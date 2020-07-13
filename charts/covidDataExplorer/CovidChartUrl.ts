@@ -18,14 +18,16 @@ import {
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 
 export class CovidQueryParams {
-    @observable casesMetric: boolean = true
-    @observable totalFreq: boolean = true
-
+    // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
+    // for back compat.
+    @observable casesMetric: boolean = false
     @observable testsMetric: boolean = false
     @observable testsPerCaseMetric: boolean = false
     @observable positiveTestRate: boolean = false
     @observable deathsMetric: boolean = false
     @observable cfrMetric: boolean = false
+
+    @observable totalFreq: boolean = false
     @observable dailyFreq: boolean = false
     @observable perCapita: PerCapita = false
     @observable aligned: AlignedOption = false
@@ -42,11 +44,9 @@ export class CovidQueryParams {
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
     constructor(queryString: string) {
-        if (!queryString) return this
-
         const params = strToQueryParams(queryString)
-        this.casesMetric = !!params.casesMetric
-        this.totalFreq = !!params.totalFreq
+        if (params.casesMetric) this.casesMetric = true
+        if (params.totalFreq) this.totalFreq = true
         if (params.testsMetric) this.testsMetric = true
         if (params.testsPerCaseMetric) this.testsPerCaseMetric = true
         if (params.positiveTestRate) this.positiveTestRate = true
@@ -160,8 +160,19 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             else if (wasDaily && available.smoothing) {
                 this.dailyFreq = true
                 this.smoothing = 7
-            }
+            } else this.totalFreq = true
         }
+
+        // Ensure there is always a metric
+        const hasMetric = [
+            this.cfrMetric,
+            this.casesMetric,
+            this.deathsMetric,
+            this.testsMetric,
+            this.testsPerCaseMetric,
+            this.positiveTestRate
+        ].some(i => i)
+        if (!hasMetric) this.casesMetric = true
     }
 
     @computed get allowEverything() {

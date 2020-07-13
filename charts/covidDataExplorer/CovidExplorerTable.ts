@@ -436,7 +436,6 @@ export class CovidExplorerTable {
         // We init this column for the epi line colors on ScatterPlots
         const params = new CovidQueryParams("")
         params.smoothing = 7
-        params.casesMetric = false
         params.perCapita = false
         params.dailyFreq = true
         params.positiveTestRate = true
