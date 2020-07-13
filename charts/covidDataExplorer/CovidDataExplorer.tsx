@@ -954,7 +954,6 @@ export class CovidDataExplorer extends React.Component<{
                 label: ""
             },
             selectedData: [],
-            entitiesAreCountries: true,
             dimensions: [],
             scatterPointLabelStrategy: "y",
             addCountryMode: "add-country",

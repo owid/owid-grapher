@@ -36,6 +36,7 @@ import { TimeBound } from "./TimeBounds"
 import { Bounds } from "./Bounds"
 import { MapProjection } from "./MapProjection"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
+import { populationMap } from "./PopulationMap"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -399,8 +400,10 @@ class FilterSmallCountriesToggle extends React.Component<{
         this.props.chart.minPopulationFilter = this.props.chart
             .minPopulationFilter
             ? undefined
-            : 1000000
+            : FilterSmallCountriesToggle.MIN_POP
     }
+
+    static MIN_POP = 1e6
 
     render() {
         const label = "Hide countries < 1 million people"
@@ -1015,7 +1018,7 @@ export class ControlsFooterView extends React.Component<{
                     <ZoomToggle chart={chart.props} />
                 )}
 
-                {chart.isScatter && chart.props.entitiesAreCountries && (
+                {chart.isScatter && this.hasSmallCountries && (
                     <FilterSmallCountriesToggle chart={chart.props} />
                 )}
 
@@ -1023,6 +1026,16 @@ export class ControlsFooterView extends React.Component<{
                     <AbsRelToggle chart={chart} />
                 )}
             </div>
+        )
+    }
+
+    // Checks if the data 1) is about countries and 2) has countries with <1M people. Used to partly determine whether to show the filter control.
+    @computed private get hasSmallCountries() {
+        const { chart } = this.props.controls.props
+        return chart.table.availableEntities.some(
+            entityName =>
+                populationMap[entityName] &&
+                populationMap[entityName] < FilterSmallCountriesToggle.MIN_POP
         )
     }
 

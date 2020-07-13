@@ -206,7 +206,6 @@ export class ChartConfigProps {
     // TODO: These 2 are currently in development. Do not save to DB.
     @observable.ref externalDataUrl?: string = undefined
     @observable.ref owidDataset?: OwidVariablesAndEntityKey = undefined
-    @observable.ref entitiesAreCountries?: boolean = undefined
 
     // Todo: remove once we migrate to all tables
     useV2?: boolean = false
