@@ -4,6 +4,10 @@ import { extend } from "../Util"
 import { observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 
+export class OwidVariableTableDisplaySettings {
+    @observable showRelativeChange: boolean = true
+    @observable showAbsoluteChange: boolean = true
+}
 export class OwidVariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined
@@ -16,6 +20,7 @@ export class OwidVariableDisplaySettings {
     @observable zeroDay?: string = undefined
     @observable entityAnnotationsMap?: string = undefined
     @observable includeInTable?: boolean = true
+    @observable tableDisplay?: OwidVariableTableDisplaySettings
 }
 
 export class OwidVariable {

@@ -3,7 +3,7 @@ import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
@@ -54,6 +54,7 @@ import {
 import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
+import { OwidVariableTableDisplaySettings } from "charts/owidData/OwidVariable"
 
 const abSeed = Math.random()
 
@@ -713,6 +714,7 @@ export class CovidDataExplorer extends React.Component<{
 
         this._updateMap()
         this._updateColorScale()
+        this._updateTableDisplaySettings()
 
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
@@ -735,20 +737,45 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    private _updateMap() {
-        const chartProps = this.chart.props
+    @computed get sourceChart(): ChartConfigProps | undefined {
         const sourceChartId = (sourceCharts as any)[
             this.constrainedParams.sourceChartKey
         ]
 
+        return this.props.covidChartAndVariableMeta.charts[sourceChartId]
+    }
+
+    private _updateMap() {
+        const chartProps = this.chart.props
+
         Object.assign(
             chartProps.map,
-            this.props.covidChartAndVariableMeta.charts[sourceChartId]?.map ||
-                this.defaultMapConfig
+            this.sourceChart?.map || this.defaultMapConfig
         )
 
         chartProps.map.targetYear = undefined
         chartProps.map.variableId = this.yColumn.spec.owidVariableId
+    }
+
+    private _updateTableDisplaySettings() {
+        const tableDisplaySettingsByDimensionProperty: {
+            [dimensionProperty: string]:
+                | OwidVariableTableDisplaySettings
+                | undefined
+        } = {}
+
+        // get table display settings for every dimension on source chart
+        this.sourceChart?.dimensions.forEach(
+            dim =>
+                (tableDisplaySettingsByDimensionProperty[dim.property] =
+                    dim.display.tableDisplay)
+        )
+
+        this.chart.filledDimensions.forEach(dim => {
+            dim.props.display.tableDisplay =
+                tableDisplaySettingsByDimensionProperty[dim.property] ??
+                new OwidVariableTableDisplaySettings()
+        })
     }
 
     componentDidMount() {

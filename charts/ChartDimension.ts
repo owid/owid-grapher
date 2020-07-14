@@ -4,7 +4,10 @@
 import { observable } from "mobx"
 import { extend } from "./Util"
 import { Time } from "./TimeBounds"
-import { OwidVariableDisplaySettings } from "./owidData/OwidVariable"
+import {
+    OwidVariableDisplaySettings,
+    OwidVariableTableDisplaySettings
+} from "./owidData/OwidVariable"
 import { owidVariableId } from "./owidData/OwidTable"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color"
@@ -29,7 +32,8 @@ export class ChartDimension implements DimensionSpec {
         isProjection: undefined,
         conversionFactor: undefined,
         numDecimalPlaces: undefined,
-        tolerance: undefined
+        tolerance: undefined,
+        tableDisplay: new OwidVariableTableDisplaySettings()
     }
 
     // XXX move this somewhere else, it's only used for scatter x override

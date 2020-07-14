@@ -226,12 +226,15 @@ export class DataTableTransform extends ChartTransform {
 
             // Inject delta columns if we have start & end values to compare in the table.
             // One column for absolute difference, another for % difference.
-            const deltaColumns: DimensionColumn[] = isRange
-                ? [
-                      { key: RangeValueKey.delta },
-                      { key: RangeValueKey.deltaRatio }
-                  ]
-                : []
+            const deltaColumns: DimensionColumn[] = []
+            if (isRange) {
+                const tableDisplay = dim.props.display.tableDisplay
+
+                tableDisplay?.showAbsoluteChange &&
+                    deltaColumns.push({ key: RangeValueKey.delta })
+                tableDisplay?.showRelativeChange &&
+                    deltaColumns.push({ key: RangeValueKey.deltaRatio })
+            }
 
             const columns: DimensionColumn[] = [
                 ...targetYears.map((targetYear, index) => ({
