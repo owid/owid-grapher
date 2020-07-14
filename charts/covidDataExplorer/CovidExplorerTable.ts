@@ -110,14 +110,12 @@ export class CovidExplorerTable {
             positive_test_rate: {
                 ...owidVariableSpecs[sourceVariables.positive_test_rate],
                 isDailyMeasurement: true,
-                annotationsColumnSlug: "tests_units",
                 description:
                     "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country."
             } as any,
             tests_per_case: {
                 ...owidVariableSpecs[sourceVariables.tests_per_case],
                 isDailyMeasurement: true,
-                annotationsColumnSlug: "tests_units",
                 description:
                     "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis."
             } as any,
