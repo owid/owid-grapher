@@ -949,6 +949,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             yAxis: {
                 min: 0,
+                removePointsOutsideDomain: true,
                 scaleType: "linear",
                 canChangeScaleType: true,
                 label: ""
