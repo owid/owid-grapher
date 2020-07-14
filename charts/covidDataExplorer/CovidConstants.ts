@@ -49,3 +49,41 @@ export const sourceVariables = {
     days_since: 142712,
     continents: 123
 }
+
+export const trajectoryOptions = {
+    deaths: {
+        total: {
+            name: "Days since the 5th total confirmed death",
+            threshold: 5,
+            owidVariableId: 4561
+        },
+        daily: {
+            name: "Days since 5 daily new deaths first reported",
+            threshold: 5,
+            owidVariableId: 4562
+        },
+        perCapita: {
+            name: "Days since total confirmed deaths reached 0.1 per million",
+            threshold: 0.1,
+            owidVariableId: 4563
+        }
+    },
+    cases: {
+        total: {
+            name: "Days since the 100th confirmed case",
+            threshold: 100,
+            owidVariableId: 4564
+        },
+        daily: {
+            name: "Days since confirmed cases first reached 30 per day",
+            threshold: 30,
+            owidVariableId: 4565
+        },
+        perCapita: {
+            name:
+                "Days since the total confirmed cases per million people reached 1",
+            threshold: 1,
+            owidVariableId: 4566
+        }
+    }
+}

@@ -37,7 +37,8 @@ import {
     covidDataPath,
     covidLastUpdatedPath,
     covidChartAndVariableMetaPath,
-    sourceVariables
+    sourceVariables,
+    trajectoryOptions
 } from "./CovidConstants"
 
 type MetricKey = {
@@ -49,44 +50,6 @@ interface AnnotationsRow {
     date: string
     cases_annotations: string
     deaths_annotations: string
-}
-
-const trajectoryOptions = {
-    deaths: {
-        total: {
-            title: "Days since the 5th total confirmed death",
-            threshold: 5,
-            id: 4561
-        },
-        daily: {
-            title: "Days since 5 daily new deaths first reported",
-            threshold: 5,
-            id: 4562
-        },
-        perCapita: {
-            title: "Days since total confirmed deaths reached 0.1 per million",
-            threshold: 0.1,
-            id: 4563
-        }
-    },
-    cases: {
-        total: {
-            title: "Days since the 100th confirmed case",
-            threshold: 100,
-            id: 4564
-        },
-        daily: {
-            title: "Days since confirmed cases first reached 30 per day",
-            threshold: 30,
-            id: 4565
-        },
-        perCapita: {
-            title:
-                "Days since the total confirmed cases per million people reached 1",
-            threshold: 1,
-            id: 4566
-        }
-    }
 }
 
 export class CovidExplorerTable {
@@ -245,14 +208,10 @@ export class CovidExplorerTable {
     buildColumnSpecFromParams(params: CovidConstrainedQueryParams) {
         return this.buildColumnSpec(
             params.metricName,
-            this.perCapitaDivisor(params),
+            params.perCapitaDivisor,
             params.dailyFreq,
             params.smoothing
         )
-    }
-
-    perCapitaDivisor(params: CovidConstrainedQueryParams) {
-        return params.perCapita ? (params.testsMetric ? 1e3 : 1e6) : 1
     }
 
     private getColumnSlug(
@@ -323,7 +282,7 @@ export class CovidExplorerTable {
         rowFn: RowToValueMapper
     ) {
         const columnName = params.metricName
-        const perCapita = this.perCapitaDivisor(params)
+        const perCapita = params.perCapitaDivisor
         const smoothing = params.smoothing
         const spec = this.buildColumnSpec(
             columnName,
@@ -519,9 +478,9 @@ export class CovidExplorerTable {
             const option = this.getTrajectoryOptions(params)
             this.addDaysSinceColumn(
                 option.sourceSlug,
-                option.id,
+                option.owidVariableId,
                 option.threshold,
-                option.title
+                option.name
             )
         }
     }

@@ -115,6 +115,10 @@ export class CovidQueryParams {
         return params as QueryParams
     }
 
+    get perCapitaDivisor() {
+        return this.perCapita ? (this.testsMetric ? 1e3 : 1e6) : 1
+    }
+
     @computed get constrainedParams() {
         return new CovidConstrainedQueryParams(this.toString())
     }
