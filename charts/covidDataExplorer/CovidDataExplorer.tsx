@@ -85,9 +85,11 @@ export class CovidDataExplorer extends React.Component<{
         queryStr?: string
         globalEntitySelection?: GlobalEntitySelection
     }) {
-        const typedData = await fetchAndParseData()
-        const updated = await fetchLastUpdatedTime()
-        const covidMeta = await fetchCovidChartAndVariableMeta()
+        const [typedData, updated, covidMeta] = await Promise.all([
+            fetchAndParseData(),
+            fetchLastUpdatedTime(),
+            fetchCovidChartAndVariableMeta()
+        ])
         const queryStr = props.queryStr || coronaDefaultView
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
