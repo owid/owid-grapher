@@ -106,6 +106,16 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
+    private uniqId = Math.random()
+        .toString(36)
+        .substr(2, 8)
+
+    // Since there can be multiple explorers embedded on a page, we need to use distinct names when
+    // creating radio button groups, etc.
+    private getScopedName(name: string) {
+        return `${name}_${this.uniqId}`
+    }
+
     @observable private chartContainerRef: React.RefObject<
         HTMLDivElement
     > = React.createRef()
@@ -207,13 +217,15 @@ export class CovidDataExplorer extends React.Component<{
         return (
             <>
                 <ExplorerControl
-                    name="metric"
+                    title="Metric"
+                    name={this.getScopedName("metric")}
                     options={options}
                     isCheckbox={false}
                 ></ExplorerControl>
                 <ExplorerControl
-                    hideLabel={true}
-                    name="metric2"
+                    title="Metric"
+                    hideTitle={true}
+                    name={this.getScopedName("metric")}
                     options={optionsColumn2}
                     isCheckbox={false}
                 ></ExplorerControl>
@@ -263,7 +275,8 @@ export class CovidDataExplorer extends React.Component<{
         ]
         return (
             <ExplorerControl
-                name="interval"
+                title="Interval"
+                name={this.getScopedName("interval")}
                 options={options}
                 isCheckbox={false}
             ></ExplorerControl>
@@ -288,7 +301,8 @@ export class CovidDataExplorer extends React.Component<{
         ]
         return (
             <ExplorerControl
-                name="count"
+                title="Count"
+                name={this.getScopedName("count")}
                 isCheckbox={true}
                 options={options}
             ></ExplorerControl>
@@ -309,7 +323,8 @@ export class CovidDataExplorer extends React.Component<{
         ]
         return (
             <ExplorerControl
-                name="timeline"
+                title="Timeline"
+                name={this.getScopedName("timeline")}
                 isCheckbox={true}
                 options={options}
                 comment={this.daysSinceOption.title}

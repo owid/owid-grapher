@@ -12,11 +12,12 @@ export interface ControlOption {
 
 @observer
 export class ExplorerControl extends React.Component<{
+    title: string
     name: string
-    isCheckbox?: boolean
     options: ControlOption[]
+    isCheckbox?: boolean
     comment?: string
-    hideLabel?: boolean
+    hideTitle?: boolean
 }> {
     @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
         this.props.options[parseInt(ev.currentTarget.value)].onChange(
@@ -25,23 +26,25 @@ export class ExplorerControl extends React.Component<{
     }
 
     render() {
-        const { name, comment, hideLabel } = this.props
+        const {
+            title,
+            name,
+            comment,
+            options,
+            isCheckbox,
+            hideTitle
+        } = this.props
         return (
-            <div
-                className={classNames(
-                    "CovidDataExplorerControl",
-                    this.props.name
-                )}
-            >
+            <div className={classNames("CovidDataExplorerControl", name)}>
                 <div
                     className={
                         "ControlHeader" +
-                        (hideLabel === true ? " HiddenControlHeader" : "")
+                        (hideTitle === true ? " HiddenControlHeader" : "")
                     }
                 >
-                    {name}
+                    {title}
                 </div>
-                {this.props.options.map((option, index) => (
+                {options.map((option, index) => (
                     <div key={index} className="ControlOption">
                         <label
                             className={[
@@ -56,9 +59,7 @@ export class ExplorerControl extends React.Component<{
                                 onChange={
                                     option.available ? this.onChange : undefined
                                 }
-                                type={
-                                    this.props.isCheckbox ? "checkbox" : "radio"
-                                }
+                                type={isCheckbox ? "checkbox" : "radio"}
                                 disabled={!option.available}
                                 name={name}
                                 checked={option.available && option.checked}
