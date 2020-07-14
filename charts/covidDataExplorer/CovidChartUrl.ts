@@ -36,9 +36,7 @@ export class CovidQueryParams {
     @observable colorScale?: colorScaleOption = undefined
 
     // Country picker params
-    @observable selectedCountryCodes: Set<string> = new Set(
-        "USA GBR CAN BRA AUS IND ESP DEU FRA".split(" ")
-    )
+    @observable selectedCountryCodes: Set<string> = new Set()
     @observable countryPickerMetric: CountryPickerMetric =
         CountryPickerMetric.location
     @observable countryPickerSort: SortOrder = SortOrder.asc
