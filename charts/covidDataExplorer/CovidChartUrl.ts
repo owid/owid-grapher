@@ -16,6 +16,7 @@ import {
     MetricKind
 } from "./CovidTypes"
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
+import { ChartTypeType } from "charts/ChartType"
 
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
@@ -117,6 +118,11 @@ export class CovidQueryParams {
 
     get perCapitaDivisor() {
         return this.perCapita ? (this.testsMetric ? 1e3 : 1e6) : 1
+    }
+
+    // If someone selects "Align with..." we switch to a scatterplot chart type.
+    @computed get chartType(): ChartTypeType {
+        return this.aligned ? "ScatterPlot" : "LineChart"
     }
 
     @computed get constrainedParams() {
