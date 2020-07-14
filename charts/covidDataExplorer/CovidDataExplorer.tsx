@@ -327,7 +327,7 @@ export class CovidDataExplorer extends React.Component<{
                 name={this.getScopedName("timeline")}
                 isCheckbox={true}
                 options={options}
-                comment={this.daysSinceOption.title}
+                comment={this.daysSinceOption.name}
             ></ExplorerControl>
         )
     }
@@ -894,7 +894,7 @@ export class CovidDataExplorer extends React.Component<{
                 property: "x",
                 variableId: this.xVariableId!,
                 display: {
-                    name: this.daysSinceOption.title
+                    name: this.daysSinceOption.name
                 }
             },
             {
@@ -910,7 +910,7 @@ export class CovidDataExplorer extends React.Component<{
     @computed private get xVariableId() {
         return this.chartType === "LineChart"
             ? undefined
-            : this.daysSinceOption.id
+            : this.daysSinceOption.owidVariableId
     }
 
     @computed private get colorScales(): {
