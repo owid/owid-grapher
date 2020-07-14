@@ -101,7 +101,7 @@ if [ "${WITH_CHARTDATA}" = true ]; then
   if [ "${SKIP_DB_DL}" = false ]; then
     echo "Downloading live Grapher chartdata database (owid_chartdata)"
     curl -Lo $DL_FOLDER/owid_chartdata.sql.gz https://files.ourworldindata.org/owid_chartdata.sql.gz
-    gunzip $DL_FOLDER/owid_chartdata.sql.gz
+    gunzip -f $DL_FOLDER/owid_chartdata.sql.gz
   fi
   echo "Importing live Grapher chartdata database (owid_chartdata)"
   import_db $DL_FOLDER/owid_chartdata.sql $GRAPHER_DB_HOST $GRAPHER_DB_NAME
