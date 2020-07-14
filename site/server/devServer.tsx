@@ -36,8 +36,12 @@ import { countryProfilePage, countriesIndexPage } from "./countryProfiles"
 import { makeSitemap } from "./sitemap"
 import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "./svgPngExport"
-import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import {
+    covidDashboardSlug,
+    covidChartAndVariableMetaPath
+} from "charts/covidDataExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
+import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 
 const devServer = express()
 
@@ -113,6 +117,10 @@ devServer.get(
         res.send(await covidCountryProfileCountryPage(req.params.countrySlug))
     }
 )
+
+devServer.get(covidChartAndVariableMetaPath, async (req, res) => {
+    res.send(await bakeCovidChartAndVariableMeta())
+})
 
 // Route only available on the dev server
 devServer.get("/covid", async (req, res) => {
