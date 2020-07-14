@@ -653,11 +653,6 @@ export class CovidDataExplorer extends React.Component<{
         return this._countryCodeToColorMapCache
     }
 
-    // If someone selects "Align with..." we switch to a scatterplot chart type.
-    @computed get chartType(): ChartTypeType {
-        return this.constrainedParams.aligned ? "ScatterPlot" : "LineChart"
-    }
-
     @computed get currentYVarId() {
         return this.covidExplorerTable.buildColumnSpecFromParams(
             this.constrainedParams
@@ -708,10 +703,13 @@ export class CovidDataExplorer extends React.Component<{
 
         // If we switch to scatter, set zoomToSelection to true. I don't set it to true initially in the chart
         // config because then it won't appear in the URL.
-        if (chartProps.type === "LineChart" && this.chartType === "ScatterPlot")
+        if (
+            chartProps.type === "LineChart" &&
+            params.chartType === "ScatterPlot"
+        )
             chartProps.zoomToSelection = true
 
-        chartProps.type = this.chartType
+        chartProps.type = params.chartType
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
@@ -723,7 +721,7 @@ export class CovidDataExplorer extends React.Component<{
         )
 
         // Do not show unselected groups on scatterplots
-        if (this.chartType === "ScatterPlot")
+        if (params.chartType === "ScatterPlot")
             this.covidExplorerTable.addGroupFilterColumn()
         else this.covidExplorerTable.removeGroupFilterColumn()
 
@@ -738,7 +736,7 @@ export class CovidDataExplorer extends React.Component<{
         const chartProps = this.chart.props
         const params = this.constrainedParams
         const useEpiColors =
-            (this.chartType === "ScatterPlot" &&
+            (params.chartType === "ScatterPlot" &&
                 (params.casesMetric || params.testsMetric) &&
                 params.colorScale !== "continents") ||
             params.colorScale === "ptr"
@@ -868,7 +866,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get dimensionSpecs(): DimensionSpec[] {
-        if (this.chartType === "LineChart")
+        if (this.constrainedParams.chartType === "LineChart")
             return [
                 {
                     property: "y",
@@ -908,7 +906,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get xVariableId() {
-        return this.chartType === "LineChart"
+        return this.constrainedParams.chartType === "LineChart"
             ? undefined
             : this.daysSinceOption.owidVariableId
     }
@@ -953,7 +951,7 @@ export class CovidDataExplorer extends React.Component<{
     @observable.ref chart: ChartConfig = new ChartConfig(
         {
             slug: covidDashboardSlug,
-            type: this.chartType,
+            type: this.constrainedParams.chartType,
             isExplorable: false,
             id: 4128,
             version: 9,
