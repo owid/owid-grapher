@@ -24,7 +24,7 @@ export class GlobalEntitySelectionUrl implements ObservableUrl {
         const entities = this.globalEntitySelection.selectedEntities
         // Do not add 'country' param unless at least one country is selected
         if (entities.length > 0) {
-            params.country = EntityUrlBuilder.entitiesToQueryParams(
+            params.country = EntityUrlBuilder.entitiesToQueryParam(
                 entities.map(entity => entity.code)
             )
         }

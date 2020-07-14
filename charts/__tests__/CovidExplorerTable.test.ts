@@ -9,7 +9,11 @@ import { testData } from "../../test/fixtures/CovidTestData"
 import { ParsedCovidCsvRow } from "charts/covidDataExplorer/CovidTypes"
 import { OwidTable } from "charts/owidData/OwidTable"
 import uniq from "lodash/uniq"
-import { CovidConstrainedQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
+import {
+    CovidConstrainedQueryParams,
+    CovidQueryParams
+} from "charts/covidDataExplorer/CovidChartUrl"
+import { queryParamsToStr } from "utils/client/url"
 
 const getRows = () => {
     const testRows: ParsedCovidCsvRow[] = csvParse(testData) as any
@@ -28,7 +32,7 @@ describe("makeCountryOptions", () => {
     it("correctly computes options", () => {
         const options = CovidExplorerTable.makeCountryOptions(parsedRows)
         const world = options[2]
-        expect(world.code).toEqual("OWID_WRL")
+        expect(world.name).toEqual("World")
     })
 })
 
@@ -75,31 +79,31 @@ describe("builds aligned tests column", () => {
             false
         )
 
-        const params: Partial<CovidConstrainedQueryParams> = {
-            testsMetric: true,
-            dailyFreq: true
-        }
-        dataTable.initTestingColumn(params as CovidConstrainedQueryParams)
+        const params = new CovidQueryParams("testsMetric=true&dailyFreq=true")
+        dataTable.initTestingColumn(params.constrainedParams)
 
         expect(dataTable.table.columnSlugs.includes("tests-daily")).toEqual(
             true
         )
 
-        const newParams = { ...params, perCapita: true }
-        dataTable.initTestingColumn(newParams as CovidConstrainedQueryParams)
+        const newParams = new CovidQueryParams(params.toString())
+        newParams.perCapita = true
+        dataTable.initTestingColumn(newParams.constrainedParams)
 
         expect(
             dataTable.table.columnSlugs.includes("tests-perThousand-daily")
         ).toEqual(true)
 
-        const params3: Partial<CovidConstrainedQueryParams> = {
-            aligned: true,
-            perCapita: true,
-            testsMetric: true,
-            totalFreq: true
-        }
+        const params3 = new CovidQueryParams(
+            queryParamsToStr({
+                aligned: "true",
+                perCapita: "true",
+                testsMetric: "true",
+                totalFreq: "true"
+            })
+        )
 
-        dataTable.initRequestedColumns(params3 as CovidConstrainedQueryParams)
+        dataTable.initRequestedColumns(params3.constrainedParams)
 
         expect(
             dataTable.table.columnSlugs.includes("deaths-perMil-cumulative")

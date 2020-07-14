@@ -7,6 +7,8 @@ export declare type TotalFrequencyOption = boolean
 
 export declare type countrySlug = string
 
+export declare type colorScaleOption = "continents" | "ptr"
+
 export declare type MetricKind =
     | "deaths"
     | "cases"
@@ -53,6 +55,7 @@ export interface ParsedCovidCsvRow {
 }
 
 export interface CovidGrapherRow extends ParsedCovidCsvRow {
+    group_members?: string
     entityName: string
     entityCode: string
     entityId: number

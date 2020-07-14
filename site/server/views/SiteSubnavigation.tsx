@@ -66,6 +66,41 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
             id: "exemplars"
         },
         { label: "All charts", href: "/coronavirus-data", id: "data" }
+    ],
+    co2: [
+        {
+            label: "CO₂ and GHG Emissions",
+            href: "/co2-and-other-greenhouse-gas-emissions",
+            id: "co2-and-ghg-emissions"
+        },
+        {
+            label: "By country",
+            href: "/co2-country-profile",
+            id: "by-country",
+            highlight: true
+        },
+        { label: "CO₂ emissions", href: "/co2-emissions", id: "co2-emissions" },
+        { label: "By fuel", href: "/emissions-by-fuel", id: "by-fuel" },
+        {
+            label: "GHG emissions",
+            href: "/greenhouse-gas-emissions",
+            id: "ghg-emissions"
+        },
+        {
+            label: "By sector",
+            href: "/emissions-by-sector",
+            id: "by-sector"
+        },
+        {
+            label: "Future emissions",
+            href: "/future-emissions",
+            id: "future-emissions"
+        },
+        {
+            label: "Atm concentrations",
+            href: "/atmospheric-concentrations",
+            id: "atm-concentrations"
+        }
     ]
 }
 

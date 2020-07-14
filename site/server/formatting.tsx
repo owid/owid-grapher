@@ -22,6 +22,7 @@ import { Country } from "utils/countries"
 import { covidDefaultCountryPlaceholder } from "./covid/CovidConstants"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -430,7 +431,7 @@ export async function formatWordpressPost(
                     tocHeadings.push(tocHeading)
                     parentHeading = tocHeading
                 } else if (
-                    $heading.closest(".wp-block-owid-prominent-link").length ===
+                    $heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length ===
                         0 &&
                     $heading.closest(".wp-block-owid-additional-information")
                         .length === 0
@@ -449,7 +450,7 @@ export async function formatWordpressPost(
         // Add deep link for headings not contained in <a> tags already
         // (e.g. within a prominent link block)
         if (
-            !$heading.closest(".wp-block-owid-prominent-link").length && // already wrapped in <a>
+            !$heading.closest(`.${PROMINENT_LINK_CLASSNAME}`).length && // already wrapped in <a>
             !$heading.closest(".wp-block-owid-additional-information").length && // prioritize clean SSR of AdditionalInformation
             !$heading.closest(".wp-block-help").length
         ) {
@@ -577,7 +578,7 @@ export async function formatWordpressPost(
                     // TODO: remove temporary support for pre-Gutenberg images and associated captions
                     el.name === "h6" ||
                     ($el.find("img").length !== 0 &&
-                        !$el.hasClass("wp-block-owid-prominent-link") &&
+                        !$el.hasClass(PROMINENT_LINK_CLASSNAME) &&
                         !$el.find(
                             ".wp-block-owid-additional-information[data-variation='merge-left']"
                         ))

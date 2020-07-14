@@ -8,22 +8,32 @@ import {
 } from "utils/client/url"
 import { SortOrder } from "charts/SortOrder"
 import { omit, oneOf } from "../Util"
-import { PerCapita, AlignedOption, SmoothingOption } from "./CovidTypes"
+import {
+    PerCapita,
+    AlignedOption,
+    SmoothingOption,
+    colorScaleOption,
+    MetricKind
+} from "./CovidTypes"
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 
 export class CovidQueryParams {
+    // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
+    // for back compat.
+    @observable casesMetric: boolean = false
     @observable testsMetric: boolean = false
     @observable testsPerCaseMetric: boolean = false
     @observable positiveTestRate: boolean = false
     @observable deathsMetric: boolean = false
-    @observable casesMetric: boolean = false
     @observable cfrMetric: boolean = false
+
     @observable totalFreq: boolean = false
     @observable dailyFreq: boolean = false
     @observable perCapita: PerCapita = false
     @observable aligned: AlignedOption = false
     @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
+    @observable colorScale?: colorScaleOption = undefined
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
@@ -33,25 +43,28 @@ export class CovidQueryParams {
 
     constructor(queryString: string) {
         const params = strToQueryParams(queryString)
-        if (!Object.keys(params).length) this.setDefaults()
-        else this.setFromQueryString(params)
-    }
-
-    private setFromQueryString(params: QueryParams) {
+        if (params.casesMetric) this.casesMetric = true
+        if (params.totalFreq) this.totalFreq = true
         if (params.testsMetric) this.testsMetric = true
         if (params.testsPerCaseMetric) this.testsPerCaseMetric = true
         if (params.positiveTestRate) this.positiveTestRate = true
         if (params.deathsMetric) this.deathsMetric = true
-        if (params.casesMetric) this.casesMetric = true
         if (params.cfrMetric) this.cfrMetric = true
-        if (params.totalFreq) this.totalFreq = true
         if (params.dailyFreq) this.dailyFreq = true
         if (params.perCapita) this.perCapita = true
         if (params.hideControls) this.hideControls = true
         if (params.aligned) this.aligned = true
         if (params.smoothing)
             this.smoothing = parseInt(params.smoothing) as SmoothingOption
-        if (params.country) this.setCountrySelectionFromChartUrl(params.country)
+        if (params.country) {
+            this.selectedCountryCodes.clear()
+            EntityUrlBuilder.queryParamToEntities(
+                params.country
+            ).forEach(code => this.selectedCountryCodes.add(code))
+        }
+        if (params.colorScale)
+            this.colorScale = params.colorScale as colorScaleOption
+
         if (params.pickerMetric) {
             const metric = oneOf<CountryPickerMetric | undefined>(
                 params.pickerMetric,
@@ -70,24 +83,13 @@ export class CovidQueryParams {
         }
     }
 
-    private setCountrySelectionFromChartUrl(chartCountries: string) {
-        EntityUrlBuilder.queryParamToEntities(chartCountries).forEach(code =>
-            this.selectedCountryCodes.add(code)
-        )
-    }
-
-    private setDefaults() {
-        this.testsMetric = false
-        this.testsPerCaseMetric = false
-        this.positiveTestRate = false
-        this.deathsMetric = false
-        this.casesMetric = true
-        this.cfrMetric = false
-        this.hideControls = false
-        this.totalFreq = true
-        "USA GBR CAN BRA AUS IND ESP DEU FRA"
-            .split(" ")
-            .forEach(code => this.selectedCountryCodes.add(code))
+    @computed get metricName(): MetricKind {
+        if (this.testsMetric) return "tests"
+        if (this.casesMetric) return "cases"
+        if (this.deathsMetric) return "deaths"
+        if (this.cfrMetric) return "case_fatality_rate"
+        if (this.testsPerCaseMetric) return "tests_per_case"
+        return "positive_test_rate"
     }
 
     @computed get toParams(): QueryParams {
@@ -103,8 +105,9 @@ export class CovidQueryParams {
         params.aligned = this.aligned ? true : undefined
         params.hideControls = this.hideControls ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
+        params.colorScale = this.colorScale || undefined
         params.smoothing = this.smoothing
-        params.country = EntityUrlBuilder.entitiesToQueryParams(
+        params.country = EntityUrlBuilder.entitiesToQueryParam(
             Array.from(this.selectedCountryCodes)
         )
         params.pickerMetric = this.countryPickerMetric
@@ -113,7 +116,21 @@ export class CovidQueryParams {
     }
 
     @computed get constrainedParams() {
-        return new CovidConstrainedQueryParams(queryParamsToStr(this.toParams))
+        return new CovidConstrainedQueryParams(this.toString())
+    }
+
+    toString() {
+        return queryParamsToStr(this.toParams)
+    }
+
+    @computed get sourceChartKey() {
+        return [
+            this.metricName,
+            this.totalFreq ? "total" : "daily",
+            this.perCapita ? "per_capita" : ""
+        ]
+            .filter(i => i)
+            .join("_")
     }
 }
 
@@ -141,8 +158,19 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             else if (wasDaily && available.smoothing) {
                 this.dailyFreq = true
                 this.smoothing = 7
-            }
+            } else this.totalFreq = true
         }
+
+        // Ensure there is always a metric
+        const hasMetric = [
+            this.cfrMetric,
+            this.casesMetric,
+            this.deathsMetric,
+            this.testsMetric,
+            this.testsPerCaseMetric,
+            this.positiveTestRate
+        ].some(i => i)
+        if (!hasMetric) this.casesMetric = true
     }
 
     @computed get allowEverything() {

@@ -2,6 +2,7 @@ import { ChartView } from "charts/ChartView"
 import { excludeUndefined, fetchText } from "charts/Util"
 
 import { Figure, LoadProps } from "./Figure"
+import { splitURLintoPathAndQueryString } from "utils/client/url"
 
 /**
  * Given the HTML of a ChartPage, it extracts the chart's config as JSON
@@ -13,7 +14,7 @@ export function readConfigFromHTML(html: string): any {
 
 interface ChartFigureProps {
     configUrl: string
-    queryStr: string
+    queryStr?: string
     container: HTMLElement // TODO rename to container
 }
 
@@ -68,10 +69,12 @@ export class ChartFigure implements Figure {
             elements.map(element => {
                 const dataSrc = element.getAttribute("data-grapher-src")
                 if (!dataSrc) return undefined
-                const [configUrl, queryStr] = dataSrc.split(/\?/)
+                const { path, queryString } = splitURLintoPathAndQueryString(
+                    dataSrc
+                )
                 return new ChartFigure({
-                    configUrl,
-                    queryStr,
+                    configUrl: path,
+                    queryStr: queryString,
                     container: element
                 })
             })

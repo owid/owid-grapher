@@ -65,3 +65,10 @@ export function setWindowQueryStr(str: string) {
         window.location.pathname + str + window.location.hash
     )
 }
+
+export function splitURLintoPathAndQueryString(
+    url: string
+): { path: string; queryString: string | undefined } {
+    const [path, queryString] = url.split(/\?/)
+    return { path: path, queryString: queryString }
+}

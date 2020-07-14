@@ -10,6 +10,7 @@ export interface TooltipProps {
     y: number
     offsetX?: number
     offsetY?: number
+    offsetYDirection?: "upward" | "downward"
     style?: React.CSSProperties
     children?: React.ReactNode
 }
@@ -28,7 +29,10 @@ export class TooltipView extends React.Component {
         const tooltip = chart.tooltip
 
         const offsetX = defaultTo(tooltip.offsetX, 0)
-        const offsetY = defaultTo(tooltip.offsetY, 0)
+        let offsetY = defaultTo(tooltip.offsetY, 0)
+        if (tooltip.offsetYDirection === "upward") {
+            offsetY = -offsetY - (bounds?.height ?? 0)
+        }
 
         let x = tooltip.x + offsetX
         let y = tooltip.y + offsetY

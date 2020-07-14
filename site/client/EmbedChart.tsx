@@ -10,13 +10,15 @@ import {
 } from "mobx"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartFigureView } from "./ChartFigureView"
+import { splitURLintoPathAndQueryString } from "utils/client/url"
+
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
     @computed get configUrl(): string {
-        return this.props.src.split(/\?/)[0]
+        return splitURLintoPathAndQueryString(this.props.src).path
     }
-    @computed get queryStr(): string {
-        return this.props.src.split(/\?/)[1]
+    @computed get queryStr(): string | undefined {
+        return splitURLintoPathAndQueryString(this.props.src).queryString
     }
     @observable chart?: ChartConfig
 

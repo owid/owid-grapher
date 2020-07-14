@@ -60,7 +60,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             d.id === undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
-        const mouse = getRelativeMouse(this.base.current, ev)
+        const mouse = getRelativeMouse(this.context.chartView.base.current, ev)
         if (d.id !== undefined)
             this.tooltipTarget = {
                 x: mouse.x,
