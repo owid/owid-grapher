@@ -109,7 +109,7 @@ export class CovidDataExplorer extends React.Component<{
         return `${name}_${this.uniqId}`
     }
 
-    static async redirectAndBootstrap(
+    static async replaceStateAndBootstrap(
         explorerQueryStr: string,
         props: BootstrapProps
     ) {

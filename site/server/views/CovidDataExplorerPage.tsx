@@ -34,7 +34,7 @@ export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
         queryStr: window.location.search,
         isEmbed: window != window.top
     };
-    window.CovidDataExplorer.redirectAndBootstrap(
+    window.CovidDataExplorer.replaceStateAndBootstrap(
         "${props.explorerQueryStr ?? ""}",
         props
     ).then(function(view) {
