@@ -230,7 +230,7 @@ export function formatYear(year: number): string {
         return ""
     }
 
-    return year < 0 ? `${Math.abs(year)} BCE` : year.toString()
+    return year < 0 ? `${format(",.0f")(Math.abs(year))} BCE` : year.toString()
 }
 
 // Bind a "mobx component"
