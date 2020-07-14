@@ -300,7 +300,8 @@ export async function formatWordpressPost(
     for (const el of explorerIframes) {
         const $el = $(el)
         const src = el.attribs["src"].trim()
-        const style = el.attribs["style"]
+        // set a default style if none exists on the existing iframe
+        const style = el.attribs["style"] || "width: 100%; height: 600px;"
         const cssClass = el.attribs["class"]
         const $figure = $(
             ReactDOMServer.renderToStaticMarkup(
