@@ -25,10 +25,10 @@ export const sourceCharts = {
     deaths_total_per_capita: 4029,
     deaths_daily_per_capita: 4030,
 
-    tests_total: 4191, // todo: is there a custom one to use?
-    tests_daily: 4191, // todo: is there a custom one to use?
+    tests_total: 4191,
+    tests_daily: 4307,
     tests_total_per_capita: 4162,
-    tests_daily_per_capita: 4191, // todo: is there a custom one to use?
+    tests_daily_per_capita: 4191,
 
     tests_per_case_total: 4197,
     tests_per_case_daily: 4197,
