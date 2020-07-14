@@ -54,7 +54,6 @@ import {
 import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
-import { chartToExplorerQueryStr } from "site/server/bakeCovidExplorer"
 
 const abSeed = Math.random()
 
