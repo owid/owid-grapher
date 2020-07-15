@@ -53,7 +53,7 @@ export class ExplorerControl extends React.Component<{
                                     ? "AvailableOption"
                                     : "UnavailableOption"
                             ].join(" ")}
-                            data-track-note={`covid-click-${name}`}
+                            data-track-note={`covid-click-${title.toLowerCase()}`}
                         >
                             <input
                                 onChange={
