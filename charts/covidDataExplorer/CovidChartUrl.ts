@@ -30,6 +30,9 @@ export class CovidQueryParams {
     @observable deathsMetric: boolean = false
     @observable cfrMetric: boolean = false
 
+    @observable yColumn?: string
+    @observable xColumn?: string
+
     @observable totalFreq: boolean = false
     @observable dailyFreq: boolean = false
     @observable perCapita: PerCapita = false
@@ -84,6 +87,9 @@ export class CovidQueryParams {
             )
             if (sort) this.countryPickerSort = sort
         }
+
+        this.yColumn = params.yColumn
+        this.xColumn = params.xColumn
     }
 
     @computed get metricName(): MetricKind {
@@ -97,6 +103,8 @@ export class CovidQueryParams {
 
     @computed get toParams(): QueryParams {
         const params: any = {}
+        params.xColumn = this.xColumn ? this.xColumn : undefined
+        params.yColumn = this.yColumn ? this.yColumn : undefined
         params.testsMetric = this.testsMetric ? true : undefined
         params.deathsMetric = this.deathsMetric ? true : undefined
         params.casesMetric = this.casesMetric ? true : undefined
@@ -128,6 +136,7 @@ export class CovidQueryParams {
     }
 
     @computed get yColumnSlug() {
+        if (this.yColumn) return this.yColumn
         return buildColumnSlug(
             this.metricName,
             this.perCapitaDivisor,
@@ -137,6 +146,7 @@ export class CovidQueryParams {
     }
 
     @computed get xColumnSlug() {
+        if (this.xColumn) return this.xColumn
         return this.chartType === "ScatterPlot"
             ? this.trajectoryColumnOption.slug
             : undefined

@@ -83,8 +83,34 @@ export class CovidExplorerTable {
         this.initColumnSpecs(owidVariableSpecs)
         this.table = table
         this.table.addRowsAndDetectColumns(data)
+        this.table.columnsBySlug.forEach(col => {
+            // Ensure all columns have a OwidVarId for now. Todo: rely on just column slug in Grapher.
+            if (!col.spec.owidVariableId)
+                col.spec = CovidExplorerTable.makeSpec(col.spec)
+        })
         this.table.addColumnSpec(this.columnSpecs.continents)
         this.addAnnotationColumns()
+    }
+    private static colOwidVarIdGuid = 90210
+    private static makeSpec(spec: ColumnSpec): ColumnSpec {
+        return {
+            owidVariableId: CovidExplorerTable.colOwidVarIdGuid++,
+            unit: "",
+            description: "",
+            coverage: "",
+            display: { includeInTable: false },
+            datasetName: "",
+            source: {
+                id: 1,
+                name: "",
+                dataPublishedBy: "",
+                dataPublisherSource: "",
+                link: "",
+                retrievedDate: "",
+                additionalInfo: ""
+            },
+            ...spec
+        }
     }
 
     private initColumnSpecs(owidVariableSpecs: any) {
