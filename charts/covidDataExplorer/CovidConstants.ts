@@ -50,7 +50,7 @@ export const sourceVariables = {
     continents: 123
 }
 
-export const trajectoryOptions = {
+export const trajectoryColumnSpecs = {
     deaths: {
         total: {
             name: "Days since the 5th total confirmed death",

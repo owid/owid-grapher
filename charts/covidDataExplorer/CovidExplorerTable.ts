@@ -38,7 +38,7 @@ import {
     covidLastUpdatedPath,
     covidChartAndVariableMetaPath,
     sourceVariables,
-    trajectoryOptions
+    trajectoryColumnSpecs
 } from "./CovidConstants"
 
 type MetricKey = {
@@ -51,6 +51,25 @@ interface AnnotationsRow {
     cases_annotations: string
     deaths_annotations: string
 }
+
+export const buildColumnSlug = (
+    name: MetricKind,
+    perCapita: number,
+    daily?: boolean,
+    rollingAverage?: number
+) =>
+    [
+        name,
+        perCapita === 1e3
+            ? "perThousand"
+            : perCapita === 1e6
+            ? "perMil"
+            : undefined,
+        daily ? "daily" : "cumulative",
+        rollingAverage ? rollingAverage + "DayAvg" : undefined
+    ]
+        .filter(i => i)
+        .join("-")
 
 export class CovidExplorerTable {
     table: OwidTable
@@ -205,26 +224,6 @@ export class CovidExplorerTable {
         return parseInt(parts.join(""))
     }
 
-    buildColumnSlug(
-        name: MetricKind,
-        perCapita: number,
-        daily?: boolean,
-        rollingAverage?: number
-    ) {
-        return [
-            name,
-            perCapita === 1e3
-                ? "perThousand"
-                : perCapita === 1e6
-                ? "perMil"
-                : undefined,
-            daily ? "daily" : "cumulative",
-            rollingAverage ? rollingAverage + "DayAvg" : undefined
-        ]
-            .filter(i => i)
-            .join("-")
-    }
-
     buildColumnSpec(
         name: MetricKind,
         perCapita: number,
@@ -232,7 +231,7 @@ export class CovidExplorerTable {
         rollingAverage?: number
     ): ColumnSpec {
         const spec = cloneDeep(this.columnSpecs[name]) as ColumnSpec
-        spec.slug = this.buildColumnSlug(name, perCapita, daily, rollingAverage)
+        spec.slug = buildColumnSlug(name, perCapita, daily, rollingAverage)
         spec.owidVariableId = CovidExplorerTable.buildCovidVariableId(
             name,
             perCapita,
@@ -466,8 +465,9 @@ export class CovidExplorerTable {
                 this.initDeathsColumn(newParams)
             }
 
-            const option = this.getTrajectoryOptions(params)
+            const option = params.trajectoryColumnOption
             this.addDaysSinceColumn(
+                option.slug,
                 option.sourceSlug,
                 option.owidVariableId,
                 option.threshold,
@@ -477,13 +477,12 @@ export class CovidExplorerTable {
     }
 
     addDaysSinceColumn(
+        slug: string,
         sourceColumnSlug: string,
         id: number,
         threshold: number,
         title: string
     ) {
-        const table = this.table
-        const slug = `daysSince${sourceColumnSlug}Hit${threshold}`
         const spec: ComputedColumnSpec = {
             ...this.columnSpecs.days_since,
             name: title,
@@ -503,27 +502,8 @@ export class CovidExplorerTable {
 
         let currentCountry: number
         let countryExceededThresholdOnDay: number
-        table.addComputedColumn(spec)
+        this.table.addComputedColumn(spec)
         return slug
-    }
-
-    getTrajectoryOptions(params: CovidConstrainedQueryParams) {
-        const key = params.casesMetric ? "cases" : "deaths"
-        const daily = params.dailyFreq
-        const perCapita = params.perCapita
-        const smoothing = params.smoothing
-        const option = {
-            ...trajectoryOptions[key][
-                perCapita ? "perCapita" : daily ? "daily" : "total"
-            ],
-            sourceSlug: this.buildColumnSlug(
-                key,
-                perCapita ? 1e6 : 1,
-                daily,
-                smoothing
-            )
-        }
-        return option
     }
 
     private addNewCasesSmoothedColumn(smoothing: SmoothingOption) {
