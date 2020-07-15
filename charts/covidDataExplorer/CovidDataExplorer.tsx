@@ -45,7 +45,8 @@ import {
     fetchLastUpdatedTime,
     getLeastUsedColor,
     CovidExplorerTable,
-    fetchCovidChartAndVariableMeta
+    fetchCovidChartAndVariableMeta,
+    buildColumnSlug
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -327,7 +328,7 @@ export class CovidDataExplorer extends React.Component<{
                 name={this.getScopedName("timeline")}
                 isCheckbox={true}
                 options={options}
-                comment={this.daysSinceOption.name}
+                comment={this.constrainedParams.trajectoryColumnOption.name}
             ></ExplorerControl>
         )
     }
@@ -653,12 +654,6 @@ export class CovidDataExplorer extends React.Component<{
         return this._countryCodeToColorMapCache
     }
 
-    @computed get daysSinceOption() {
-        return this.covidExplorerTable.getTrajectoryOptions(
-            this.constrainedParams
-        )
-    }
-
     private selectionChangeFromBuilder = false
     private renderControlsThenUpdateChart() {
         // Updating the chart may take a second so render the Data Explorer controls immediately then the chart.
@@ -668,12 +663,15 @@ export class CovidDataExplorer extends React.Component<{
         }, 1)
     }
 
+    private table?: CovidExplorerTable
     @computed get covidExplorerTable() {
-        return new CovidExplorerTable(
-            this.chart.table,
-            this.props.data,
-            this.props.covidChartAndVariableMeta.variables
-        )
+        if (!this.table)
+            this.table = new CovidExplorerTable(
+                this.chart.table,
+                this.props.data,
+                this.props.covidChartAndVariableMeta.variables
+            )
+        return this.table
     }
 
     private getSelectedEntityNames() {
@@ -852,24 +850,16 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get yColumn() {
-        const params = this.constrainedParams
-        const yColumnSlug = this.covidExplorerTable.buildColumnSlug(
-            params.metricName,
-            params.perCapitaDivisor,
-            params.dailyFreq,
-            params.smoothing
-        )
-        return this.chart.table.columnsBySlug.get(yColumnSlug)!
+        return this.chart.table.columnsBySlug.get(
+            this.constrainedParams.yColumnSlug
+        )!
     }
 
     @computed private get xColumn() {
-        const xVariableId =
-            this.constrainedParams.chartType === "LineChart"
-                ? undefined
-                : this.daysSinceOption.owidVariableId
-
-        return xVariableId
-            ? this.chart.table.columnsByOwidVarId.get(xVariableId)!
+        return this.constrainedParams.xColumnSlug
+            ? this.chart.table.columnsBySlug.get(
+                  this.constrainedParams.xColumnSlug!
+              )!
             : undefined
     }
 

@@ -17,6 +17,8 @@ import {
 } from "./CovidTypes"
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
+import { trajectoryColumnSpecs } from "./CovidConstants"
+import { buildColumnSlug } from "./CovidExplorerTable"
 
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
@@ -123,6 +125,44 @@ export class CovidQueryParams {
     // If someone selects "Align with..." we switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
         return this.aligned ? "ScatterPlot" : "LineChart"
+    }
+
+    @computed get yColumnSlug() {
+        return buildColumnSlug(
+            this.metricName,
+            this.perCapitaDivisor,
+            this.dailyFreq,
+            this.smoothing
+        )
+    }
+
+    @computed get xColumnSlug() {
+        return this.chartType === "ScatterPlot"
+            ? this.trajectoryColumnOption.slug
+            : undefined
+    }
+
+    @computed get trajectoryColumnOption() {
+        const key = this.casesMetric ? "cases" : "deaths"
+        const config =
+            trajectoryColumnSpecs[key][
+                this.perCapita
+                    ? "perCapita"
+                    : this.dailyFreq
+                    ? "daily"
+                    : "total"
+            ]
+        const sourceSlug = buildColumnSlug(
+            key,
+            this.perCapita ? 1e6 : 1,
+            this.dailyFreq,
+            this.smoothing
+        )
+        return {
+            ...config,
+            slug: `daysSince${sourceSlug}Hit${config.threshold}`,
+            sourceSlug
+        }
     }
 
     @computed get constrainedParams() {

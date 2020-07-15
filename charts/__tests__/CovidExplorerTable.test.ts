@@ -61,6 +61,7 @@ describe("build covid column", () => {
 
     it("correctly builds a days since variable", () => {
         const slug = dataTable.addDaysSinceColumn(
+            "daysSince",
             "totalCasesSmoothed",
             123,
             5,
