@@ -105,10 +105,6 @@ function getHeaderUnit(unit: string) {
     return unit !== "%" ? unit : "percent"
 }
 
-function getValueUnit(unit: string) {
-    return unit !== "%" ? undefined : unit
-}
-
 export class DataTableTransform extends ChartTransform {
     chart: ChartConfig
 
@@ -189,7 +185,7 @@ export class DataTableTransform extends ChartTransform {
         return dimension.formatValueShort(value, {
             numberPrefixes: false,
             noTrailingZeroes: false,
-            unit: getValueUnit(dimension.unit),
+            unit: dimension.shortUnit,
             ...formattingOverrides
         })
     }
