@@ -607,7 +607,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed get availableCountriesForMetric() {
-        if (this.xVariableId && this.xColumn && this.yColumn)
+        if (this.xColumn && this.yColumn)
             return new Set(
                 [...this.xColumn.entityNamesUniq].filter(entityName =>
                     this.yColumn.entityNamesUniq.has(entityName)
@@ -651,12 +651,6 @@ export class CovidDataExplorer extends React.Component<{
         }
 
         return this._countryCodeToColorMapCache
-    }
-
-    @computed get currentYVarId() {
-        return this.covidExplorerTable.buildColumnSpecFromParams(
-            this.constrainedParams
-        ).owidVariableId!
     }
 
     @computed get daysSinceOption() {
@@ -762,7 +756,7 @@ export class CovidDataExplorer extends React.Component<{
         )
 
         chartProps.map.targetYear = undefined
-        chartProps.map.variableId = this.currentYVarId
+        chartProps.map.variableId = this.yColumn.spec.owidVariableId
     }
 
     componentDidMount() {
@@ -858,19 +852,34 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get yColumn() {
-        return this.chart.table.columnsByOwidVarId.get(this.currentYVarId)!
+        const params = this.constrainedParams
+        const yColumnSlug = this.covidExplorerTable.buildColumnSlug(
+            params.metricName,
+            params.perCapitaDivisor,
+            params.dailyFreq,
+            params.smoothing
+        )
+        return this.chart.table.columnsBySlug.get(yColumnSlug)!
     }
 
     @computed private get xColumn() {
-        return this.chart.table.columnsByOwidVarId.get(this.xVariableId!)!
+        const xVariableId =
+            this.constrainedParams.chartType === "LineChart"
+                ? undefined
+                : this.daysSinceOption.owidVariableId
+
+        return xVariableId
+            ? this.chart.table.columnsByOwidVarId.get(xVariableId)!
+            : undefined
     }
 
     @computed private get dimensionSpecs(): DimensionSpec[] {
+        const yColumn = this.yColumn
         if (this.constrainedParams.chartType === "LineChart")
             return [
                 {
                     property: "y",
-                    variableId: this.currentYVarId,
+                    variableId: yColumn.spec.owidVariableId!,
                     display: {
                         // Allow ± 1 day difference in data plotted on bar charts
                         // This is what we use for charts on the Grapher too
@@ -880,19 +889,21 @@ export class CovidDataExplorer extends React.Component<{
                 }
             ]
 
+        const xColumn = this.xColumn!
+
         return [
             {
                 property: "y",
-                variableId: this.currentYVarId,
+                variableId: yColumn.spec.owidVariableId!,
                 display: {
                     name: this.chartTitle
                 }
             },
             {
                 property: "x",
-                variableId: this.xVariableId!,
+                variableId: xColumn.spec.owidVariableId!,
                 display: {
-                    name: this.daysSinceOption.name
+                    name: xColumn.spec.name
                 }
             },
             {
@@ -903,12 +914,6 @@ export class CovidDataExplorer extends React.Component<{
                 }
             }
         ]
-    }
-
-    @computed private get xVariableId() {
-        return this.constrainedParams.chartType === "LineChart"
-            ? undefined
-            : this.daysSinceOption.owidVariableId
     }
 
     @computed private get colorScales(): {

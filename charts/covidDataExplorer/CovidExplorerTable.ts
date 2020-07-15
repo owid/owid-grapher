@@ -205,16 +205,7 @@ export class CovidExplorerTable {
         return parseInt(parts.join(""))
     }
 
-    buildColumnSpecFromParams(params: CovidConstrainedQueryParams) {
-        return this.buildColumnSpec(
-            params.metricName,
-            params.perCapitaDivisor,
-            params.dailyFreq,
-            params.smoothing
-        )
-    }
-
-    private getColumnSlug(
+    buildColumnSlug(
         name: MetricKind,
         perCapita: number,
         daily?: boolean,
@@ -241,7 +232,7 @@ export class CovidExplorerTable {
         rollingAverage?: number
     ): ColumnSpec {
         const spec = cloneDeep(this.columnSpecs[name]) as ColumnSpec
-        spec.slug = this.getColumnSlug(name, perCapita, daily, rollingAverage)
+        spec.slug = this.buildColumnSlug(name, perCapita, daily, rollingAverage)
         spec.owidVariableId = CovidExplorerTable.buildCovidVariableId(
             name,
             perCapita,
@@ -525,7 +516,7 @@ export class CovidExplorerTable {
             ...trajectoryOptions[key][
                 perCapita ? "perCapita" : daily ? "daily" : "total"
             ],
-            sourceSlug: this.getColumnSlug(
+            sourceSlug: this.buildColumnSlug(
                 key,
                 perCapita ? 1e6 : 1,
                 daily,
