@@ -179,6 +179,26 @@ export class CovidQueryParams {
         return new CovidConstrainedQueryParams(this.toString())
     }
 
+    setMetric(option: MetricKind) {
+        this.casesMetric = option === "cases"
+        this.testsMetric = option === "tests"
+        this.deathsMetric = option === "deaths"
+        this.cfrMetric = option === "case_fatality_rate"
+        this.testsPerCaseMetric = option === "tests_per_case"
+        this.positiveTestRate = option === "positive_test_rate"
+    }
+
+    setTimeline(option: "daily" | "total" | "smoothed") {
+        this.totalFreq = false
+        this.dailyFreq = false
+        this.smoothing = 0
+        if (option === "smoothed") {
+            this.smoothing = 7
+            this.dailyFreq = true
+        } else if (option === "daily") this.dailyFreq = true
+        else this.totalFreq = true
+    }
+
     toString() {
         return queryParamsToStr(this.toParams)
     }
