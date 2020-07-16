@@ -67,7 +67,8 @@ import {
     maxTimeToJSON,
     TimeBound,
     Time,
-    TimeBounds
+    TimeBounds,
+    TimeBoundValue
 } from "./TimeBounds"
 import {
     GlobalEntitySelection,
