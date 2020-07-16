@@ -14,7 +14,6 @@ import {
     Lambda,
     reaction
 } from "mobx"
-import { ChartTypeType } from "charts/ChartType"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ChartDimension, DimensionSpec } from "../ChartDimension"
@@ -35,18 +34,13 @@ import {
 } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
-import {
-    CovidQueryParams,
-    CovidUrl,
-    CovidConstrainedQueryParams
-} from "./CovidChartUrl"
+import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
     getLeastUsedColor,
     CovidExplorerTable,
-    fetchCovidChartAndVariableMeta,
-    buildColumnSlug
+    fetchCovidChartAndVariableMeta
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
