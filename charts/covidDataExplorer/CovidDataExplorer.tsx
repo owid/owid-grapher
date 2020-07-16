@@ -121,36 +121,15 @@ export class CovidDataExplorer extends React.Component<{
         this.renderControlsThenUpdateChart()
     }
 
-    setTotalFrequencyCommand(option: TotalFrequencyOption) {
-        this.props.params.totalFreq = option
-    }
-
-    setDailyFrequencyCommand(option: DailyFrequencyOption) {
-        this.props.params.dailyFreq = option
-    }
-
-    setSmoothingCommand(option: SmoothingOption) {
-        this.props.params.smoothing = option
-    }
-
-    clearMetricsCommand() {
-        this.props.params.casesMetric = false
-        this.props.params.testsMetric = false
-        this.props.params.deathsMetric = false
-        this.props.params.cfrMetric = false
-        this.props.params.testsPerCaseMetric = false
-        this.props.params.positiveTestRate = false
-    }
-
     private get metricPicker() {
+        const params = this.props.params
         const options: ControlOption[] = [
             {
                 available: true,
                 label: "Confirmed cases",
                 checked: this.constrainedParams.casesMetric,
                 onChange: value => {
-                    this.clearMetricsCommand()
-                    this.props.params.casesMetric = true
+                    params.setMetric("cases")
                     this.renderControlsThenUpdateChart()
                 }
             },
@@ -159,8 +138,7 @@ export class CovidDataExplorer extends React.Component<{
                 label: "Confirmed deaths",
                 checked: this.constrainedParams.deathsMetric,
                 onChange: value => {
-                    this.clearMetricsCommand()
-                    this.props.params.deathsMetric = true
+                    params.setMetric("deaths")
                     this.renderControlsThenUpdateChart()
                 }
             },
@@ -170,8 +148,7 @@ export class CovidDataExplorer extends React.Component<{
                 label: "Case fatality rate",
                 checked: this.constrainedParams.cfrMetric,
                 onChange: value => {
-                    this.clearMetricsCommand()
-                    this.props.params.cfrMetric = true
+                    params.setMetric("case_fatality_rate")
                     this.renderControlsThenUpdateChart()
                 }
             }
@@ -183,8 +160,7 @@ export class CovidDataExplorer extends React.Component<{
                 label: "Tests",
                 checked: this.constrainedParams.testsMetric,
                 onChange: value => {
-                    this.clearMetricsCommand()
-                    this.props.params.testsMetric = true
+                    params.setMetric("tests")
                     this.renderControlsThenUpdateChart()
                 }
             },
@@ -193,8 +169,7 @@ export class CovidDataExplorer extends React.Component<{
                 label: "Tests per confirmed case",
                 checked: this.constrainedParams.testsPerCaseMetric,
                 onChange: value => {
-                    this.clearMetricsCommand()
-                    this.props.params.testsPerCaseMetric = true
+                    params.setMetric("tests_per_case")
                     this.renderControlsThenUpdateChart()
                 }
             },
@@ -203,8 +178,7 @@ export class CovidDataExplorer extends React.Component<{
                 label: "Share of positive tests",
                 checked: this.constrainedParams.positiveTestRate,
                 onChange: value => {
-                    this.clearMetricsCommand()
-                    this.props.params.positiveTestRate = true
+                    params.setMetric("positive_test_rate")
                     this.renderControlsThenUpdateChart()
                 }
             }
@@ -229,16 +203,14 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private get frequencyPicker() {
+        const params = this.props.params
         const options: ControlOption[] = [
             {
                 available: true,
                 label: "Cumulative",
                 checked: this.constrainedParams.totalFreq,
-                onChange: value => {
-                    this.setTotalFrequencyCommand(value)
-                    this.setDailyFrequencyCommand(false)
-                    this.setSmoothingCommand(0)
-
+                onChange: () => {
+                    params.setTimeline("total")
                     this.renderControlsThenUpdateChart()
                 }
             },
@@ -247,10 +219,8 @@ export class CovidDataExplorer extends React.Component<{
                 label: "7-day rolling average",
                 checked: this.constrainedParams.smoothing === 7,
                 onChange: () => {
-                    this.setSmoothingCommand(7)
+                    params.setTimeline("smoothed")
                     this.renderControlsThenUpdateChart()
-                    this.setDailyFrequencyCommand(true)
-                    this.setTotalFrequencyCommand(false)
                 }
             },
             {
@@ -258,12 +228,9 @@ export class CovidDataExplorer extends React.Component<{
                 label: "New per day",
                 checked:
                     this.constrainedParams.dailyFreq &&
-                    this.props.params.smoothing === 0,
-                onChange: value => {
-                    this.setDailyFrequencyCommand(value)
-                    this.setTotalFrequencyCommand(false)
-                    this.setSmoothingCommand(0)
-
+                    this.constrainedParams.smoothing === 0,
+                onChange: () => {
+                    params.setTimeline("daily")
                     this.renderControlsThenUpdateChart()
                 }
             }
