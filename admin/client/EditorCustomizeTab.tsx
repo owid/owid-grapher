@@ -82,13 +82,6 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
         return this.props.editor.chart
     }
 
-    @computed get minTime() {
-        return this.chart.props.minTime
-    }
-    @computed get maxTime() {
-        return this.chart.props.maxTime
-    }
-
     @computed get timelineMinTime() {
         return this.chart.props.timelineMinTime
     }
@@ -96,12 +89,12 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
         return this.chart.props.timelineMaxTime
     }
 
-    @action.bound onMinTime(value: number | undefined) {
-        this.chart.props.minTime = value
+    @action.bound setDefaultTimelineStartYear(value: number | undefined) {
+        this.chart.props.selectedTimelineStartYear = value
     }
 
-    @action.bound onMaxTime(value: number | undefined) {
-        this.chart.props.maxTime = value
+    @action.bound setDefaultTimelineEndYear(value: number | undefined) {
+        this.chart.props.selectedTimelineEndYear = value
     }
 
     @action.bound onTimelineMinTime(value: number | undefined) {
@@ -130,8 +123,8 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                     {features.timeDomain && (
                         <NumberField
                             label="Selection start"
-                            value={chart.props.minTime}
-                            onValue={debounce(this.onMinTime)}
+                            value={chart.props.selectedTimelineStartYear}
+                            onValue={debounce(this.setDefaultTimelineStartYear)}
                             allowNegative
                         />
                     )}
@@ -141,8 +134,8 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                                 ? "Selection end"
                                 : "Selected year"
                         }
-                        value={chart.props.maxTime}
-                        onValue={debounce(this.onMaxTime)}
+                        value={chart.props.selectedTimelineEndYear}
+                        onValue={debounce(this.setDefaultTimelineEndYear)}
                         allowNegative
                     />
                 </FieldsRow>

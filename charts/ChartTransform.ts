@@ -75,33 +75,43 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     /**
-     * The minimum year that appears in the plotted data, after the raw data is filtered.
-     *
-     * Derived from the timeline selection start.
+     * Returns:
+     * - either the first year selected in the Timeline,
+     * - or, if the Timeline has an unbounded start, the earliest year in the data,
+     * - or, if no data exists, a hard-coded default minimum year
      */
     @computed get startYear(): Time {
-        const minYear = this.chart.timeDomain[0]
-        if (isUnboundedLeft(minYear)) {
+        const selectedTimelineYears = this.chart.selectedTimelineYears[0]
+        if (isUnboundedLeft(selectedTimelineYears)) {
             return this.minTimelineYear
-        } else if (isUnboundedRight(minYear)) {
+        } else if (isUnboundedRight(selectedTimelineYears)) {
             return this.maxTimelineYear
         }
-        return getClosestTime(this.timelineYears, minYear, this.minTimelineYear)
+        return getClosestTime(
+            this.timelineYears,
+            selectedTimelineYears,
+            this.minTimelineYear
+        )
     }
 
     /**
-     * The maximum year that appears in the plotted data, after the raw data is filtered.
-     *
-     * Derived from the timeline selection end.
+     * Returns:
+     * - either the last year selected in the Timeline,
+     * - or, if the Timeline has an unbounded end, the latest year in the data,
+     * - or, if no data exists, a hard-coded default maximum year
      */
     @computed get endYear(): Time {
-        const maxYear = this.chart.timeDomain[1]
-        if (isUnboundedLeft(maxYear)) {
+        const selectedTimelineYears = this.chart.selectedTimelineYears[1]
+        if (isUnboundedLeft(selectedTimelineYears)) {
             return this.minTimelineYear
-        } else if (isUnboundedRight(maxYear)) {
+        } else if (isUnboundedRight(selectedTimelineYears)) {
             return this.maxTimelineYear
         }
-        return getClosestTime(this.timelineYears, maxYear, this.maxTimelineYear)
+        return getClosestTime(
+            this.timelineYears,
+            selectedTimelineYears,
+            this.maxTimelineYear
+        )
     }
 
     @computed get hasTimeline(): boolean {

@@ -61,8 +61,8 @@ import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
 import { BAKED_GRAPHER_URL } from "settings"
 import {
-    minTimeFromJSON,
-    maxTimeFromJSON,
+    selectedTimelineStartYearFromJSON,
+    selectedTimelineEndYearFromJSON,
     minTimeToJSON,
     maxTimeToJSON,
     TimeBound,
@@ -211,8 +211,8 @@ export class ChartConfigProps {
     useV2?: boolean = false
 
     @observable.ref selectedData: EntitySelection[] = []
-    @observable.ref minTime?: TimeBound = undefined
-    @observable.ref maxTime?: TimeBound = undefined
+    @observable.ref selectedTimelineStartYear?: TimeBound = undefined
+    @observable.ref selectedTimelineEndYear?: TimeBound = undefined
 
     @observable.ref timelineMinTime?: Time = undefined
     @observable.ref timelineMaxTime?: Time = undefined
@@ -663,17 +663,17 @@ export class ChartConfig {
         }
     }
 
-    @computed get timeDomain(): TimeBounds {
+    @computed get selectedTimelineYears(): TimeBounds {
         return [
-            // Handle `undefined` values in minTime/maxTime
-            minTimeFromJSON(this.props.minTime),
-            maxTimeFromJSON(this.props.maxTime)
+            this.props.selectedTimelineStartYear ??
+                TimeBoundValue.unboundedLeft,
+            this.props.selectedTimelineEndYear ?? TimeBoundValue.unboundedRight
         ]
     }
 
-    set timeDomain(value: TimeBounds) {
-        this.props.minTime = value[0]
-        this.props.maxTime = value[1]
+    set selectedTimelineYears(value: TimeBounds) {
+        this.props.selectedTimelineStartYear = value[0]
+        this.props.selectedTimelineEndYear = value[1]
     }
 
     @computed get xAxis() {
@@ -770,13 +770,17 @@ export class ChartConfig {
             this.props.slug = undefined
 
         // JSON doesn't support Infinity, so we use strings instead.
-        this.props.minTime = minTimeFromJSON(json.minTime)
-        this.props.maxTime = maxTimeFromJSON(json.maxTime)
+        this.props.selectedTimelineStartYear = selectedTimelineStartYearFromJSON(
+            json.minTime
+        )
+        this.props.selectedTimelineEndYear = selectedTimelineEndYearFromJSON(
+            json.maxTime
+        )
 
         if (json.map) {
             this.props.map = new MapConfigProps({
                 ...json.map,
-                targetYear: maxTimeFromJSON(json.map.targetYear)
+                targetYear: selectedTimelineEndYearFromJSON(json.map.targetYear)
             })
         }
 
@@ -983,8 +987,8 @@ export class ChartConfig {
         }
 
         // JSON doesn't support Infinity, so we use strings instead.
-        json.minTime = minTimeToJSON(this.props.minTime)
-        json.maxTime = maxTimeToJSON(this.props.maxTime)
+        json.minTime = minTimeToJSON(this.props.selectedTimelineStartYear)
+        json.maxTime = maxTimeToJSON(this.props.selectedTimelineEndYear)
 
         if (this.props.map) {
             json.map.targetYear = maxTimeToJSON(this.props.map.targetYear)

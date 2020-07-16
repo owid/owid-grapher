@@ -2,57 +2,63 @@
 
 import {
     TimeBoundValue,
-    minTimeFromJSON,
-    maxTimeFromJSON,
+    selectedTimelineStartYearFromJSON,
+    selectedTimelineEndYearFromJSON,
     minTimeToJSON,
     maxTimeToJSON
 } from "charts/TimeBounds"
 
-describe(minTimeFromJSON, () => {
+describe(selectedTimelineStartYearFromJSON, () => {
     it("handles unbounded left", () => {
-        expect(minTimeFromJSON("earliest")).toEqual(
+        expect(selectedTimelineStartYearFromJSON("earliest")).toEqual(
             TimeBoundValue.unboundedLeft
         )
     })
     it("handles unbounded right", () => {
-        expect(minTimeFromJSON("latest")).toEqual(TimeBoundValue.unboundedRight)
+        expect(selectedTimelineStartYearFromJSON("latest")).toEqual(
+            TimeBoundValue.unboundedRight
+        )
     })
     it("handles undefined", () => {
-        expect(minTimeFromJSON(undefined)).toEqual(TimeBoundValue.unboundedLeft)
+        expect(selectedTimelineStartYearFromJSON(undefined)).toEqual(
+            TimeBoundValue.unboundedLeft
+        )
     })
     it("handles number", () => {
-        expect(minTimeFromJSON(1990)).toEqual(1990)
+        expect(selectedTimelineStartYearFromJSON(1990)).toEqual(1990)
     })
     it("handles negative number", () => {
-        expect(minTimeFromJSON(-1990)).toEqual(-1990)
+        expect(selectedTimelineStartYearFromJSON(-1990)).toEqual(-1990)
     })
     it("handles zero", () => {
-        expect(minTimeFromJSON(0)).toEqual(0)
+        expect(selectedTimelineStartYearFromJSON(0)).toEqual(0)
     })
 })
 
-describe(maxTimeFromJSON, () => {
+describe(selectedTimelineEndYearFromJSON, () => {
     it("handles unbounded left", () => {
-        expect(maxTimeFromJSON("earliest")).toEqual(
+        expect(selectedTimelineEndYearFromJSON("earliest")).toEqual(
             TimeBoundValue.unboundedLeft
         )
     })
     it("handles unbounded right", () => {
-        expect(maxTimeFromJSON("latest")).toEqual(TimeBoundValue.unboundedRight)
+        expect(selectedTimelineEndYearFromJSON("latest")).toEqual(
+            TimeBoundValue.unboundedRight
+        )
     })
     it("handles undefined", () => {
-        expect(maxTimeFromJSON(undefined)).toEqual(
+        expect(selectedTimelineEndYearFromJSON(undefined)).toEqual(
             TimeBoundValue.unboundedRight
         )
     })
     it("handles number", () => {
-        expect(maxTimeFromJSON(1990)).toEqual(1990)
+        expect(selectedTimelineEndYearFromJSON(1990)).toEqual(1990)
     })
     it("handles negative number", () => {
-        expect(maxTimeFromJSON(-1990)).toEqual(-1990)
+        expect(selectedTimelineEndYearFromJSON(-1990)).toEqual(-1990)
     })
     it("handles zero", () => {
-        expect(maxTimeFromJSON(0)).toEqual(0)
+        expect(selectedTimelineEndYearFromJSON(0)).toEqual(0)
     })
 })
 

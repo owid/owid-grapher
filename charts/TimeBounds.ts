@@ -89,16 +89,16 @@ function toJSON(bound: TimeBound | undefined): string | number | undefined {
     return bound
 }
 
-export function minTimeFromJSON(
-    minTime: TimeBound | string | undefined
+export function selectedTimelineStartYearFromJSON(
+    selectedTimelineStartYear: TimeBound | string | undefined
 ): TimeBound {
-    return fromJSON(minTime, TimeBoundValue.unboundedLeft)
+    return fromJSON(selectedTimelineStartYear, TimeBoundValue.unboundedLeft)
 }
 
-export function maxTimeFromJSON(
-    maxTime: TimeBound | string | undefined
+export function selectedTimelineEndYearFromJSON(
+    selectedTimelineEndYear: TimeBound | string | undefined
 ): TimeBound {
-    return fromJSON(maxTime, TimeBoundValue.unboundedRight)
+    return fromJSON(selectedTimelineEndYear, TimeBoundValue.unboundedRight)
 }
 
 export const minTimeToJSON = toJSON

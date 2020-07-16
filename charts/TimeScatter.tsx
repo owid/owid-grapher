@@ -594,7 +594,7 @@ export class TimeScatter extends React.Component<{
         targetStartYear: TimeBound
         targetEndYear: TimeBound
     }) {
-        this.chart.timeDomain = [targetStartYear, targetEndYear]
+        this.chart.selectedTimelineYears = [targetStartYear, targetEndYear]
     }
 
     @computed get axisBox() {

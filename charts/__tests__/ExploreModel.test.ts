@@ -25,7 +25,7 @@ describe(ExploreModel, () => {
         })
 
         it("populates the chart params", () => {
-            expect(model.chart.timeDomain).toEqual([1960, 2000])
+            expect(model.chart.selectedTimelineYears).toEqual([1960, 2000])
         })
     })
 

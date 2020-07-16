@@ -443,7 +443,10 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         targetStartYear: TimeBound
         targetEndYear: TimeBound
     }) {
-        this.props.chart.timeDomain = [targetStartYear, targetEndYear]
+        this.props.chart.selectedTimelineYears = [
+            targetStartYear,
+            targetEndYear
+        ]
     }
 
     @action.bound onTimelineStart() {
@@ -465,8 +468,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.timeDomain[0]}
-                    endYear={chart.timeDomain[1]}
+                    startYear={chart.selectedTimelineYears[0]}
+                    endYear={chart.selectedTimelineYears[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                 />
@@ -493,8 +496,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.timeDomain[0]}
-                    endYear={chart.timeDomain[1]}
+                    startYear={chart.selectedTimelineYears[0]}
+                    endYear={chart.selectedTimelineYears[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                 />
@@ -506,8 +509,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.timeDomain[0]}
-                    endYear={chart.timeDomain[1]}
+                    startYear={chart.selectedTimelineYears[0]}
+                    endYear={chart.selectedTimelineYears[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     singleYearPlay={true}
@@ -520,8 +523,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.timeDomain[0]}
-                    endYear={chart.timeDomain[1]}
+                    startYear={chart.selectedTimelineYears[0]}
+                    endYear={chart.selectedTimelineYears[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                     disablePlay={true}
@@ -534,8 +537,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={chart.timeDomain[0]}
-                    endYear={chart.timeDomain[1]}
+                    startYear={chart.selectedTimelineYears[0]}
+                    endYear={chart.selectedTimelineYears[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
                 />

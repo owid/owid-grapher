@@ -219,25 +219,36 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChartProps } = this
 
         if (
-            chart.props.minTime !== origChartProps.minTime ||
-            chart.props.maxTime !== origChartProps.maxTime
+            chart.props.selectedTimelineStartYear !==
+                origChartProps.selectedTimelineStartYear ||
+            chart.props.selectedTimelineEndYear !==
+                origChartProps.selectedTimelineEndYear
         ) {
-            const [minTime, maxTime] = chart.timeDomain
-            if (minTime === maxTime)
+            const [
+                selectedTimelineStartYear,
+                selectedTimelineEndYear
+            ] = chart.selectedTimelineYears
+            if (selectedTimelineStartYear === selectedTimelineEndYear)
                 return formatTimeURIComponent(
-                    minTime,
+                    selectedTimelineStartYear,
                     !!chart.table.hasDayColumn
                 )
             // It's not possible to have an unbounded right minTime or an unbounded left maxTime,
             // because minTime <= maxTime and because the === case is addressed above.
             // So the direction of the unbounded is unambiguous, and we can format it as an empty
             // string.
-            const start = isUnbounded(minTime)
+            const start = isUnbounded(selectedTimelineStartYear)
                 ? ""
-                : formatTimeURIComponent(minTime, !!chart.table.hasDayColumn)
-            const end = isUnbounded(maxTime)
+                : formatTimeURIComponent(
+                      selectedTimelineStartYear,
+                      !!chart.table.hasDayColumn
+                  )
+            const end = isUnbounded(selectedTimelineEndYear)
                 ? ""
-                : formatTimeURIComponent(maxTime, !!chart.table.hasDayColumn)
+                : formatTimeURIComponent(
+                      selectedTimelineEndYear,
+                      !!chart.table.hasDayColumn
+                  )
             return `${start}..${end}`
         } else {
             return undefined
@@ -343,7 +354,7 @@ export class ChartUrl implements ObservableUrl {
             )
             if (reIntRange.test(time) || reDateRange.test(time)) {
                 const [start, end] = time.split("..")
-                chart.timeDomain = [
+                chart.selectedTimelineYears = [
                     parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
                     parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
                 ]
@@ -352,7 +363,7 @@ export class ChartUrl implements ObservableUrl {
                     time,
                     TimeBoundValue.unboundedRight
                 )
-                chart.timeDomain = [t, t]
+                chart.selectedTimelineYears = [t, t]
             }
         }
 
