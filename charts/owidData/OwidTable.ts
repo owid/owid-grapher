@@ -98,7 +98,11 @@ export interface ColumnSpec {
 }
 
 // todo: remove index param?
-export declare type RowToValueMapper = (row: Row, index?: int) => any
+export declare type RowToValueMapper = (
+    row: Row,
+    index?: int,
+    table?: AbstractTable<Row>
+) => any
 
 export interface ComputedColumnSpec extends ColumnSpec {
     fn: RowToValueMapper
@@ -280,7 +284,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @action.bound addFilterColumn(
         slug: columnSlug,
-        predicate: (row: Row) => boolean
+        predicate: RowToValueMapper
     ) {
         return this._addComputedColumn(
             { slug, isFilterColumn: true, fn: predicate },
@@ -306,7 +310,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         this.columns.set(slug, new columnType(this, spec))
         const fn = spec.fn
         this.rows.forEach((row, index) => {
-            ;(row as any)[slug] = fn(row, index)
+            ;(row as any)[slug] = fn(row, index, this)
         })
     }
 
@@ -363,27 +367,42 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             : undefined
     }
 
+    isSelected(row: Row) {
+        return this.isSelectedFn && this.isSelectedFn(row)
+    }
+
     @computed get selectedRows() {
         const isSelectedFn = this.isSelectedFn
         return isSelectedFn ? this.rows.filter(row => isSelectedFn(row)) : []
     }
 
-    // Returns all rows that are not filtered OR are selected
+    // Currently only used for debugging
+    get filteredRows() {
+        const unfiltered = new Set(this.unfilteredRows)
+        return this.rows.filter(row => !unfiltered.has(row))
+    }
+
     @computed get unfilteredRows() {
-        const slugs = this.filterColumnSlugs
-        const isSelectedFn = this.isSelectedFn
-        const filterFns = slugs.map(
+        const filterFn = this.combinedFilterFn
+        const res = this.filterColumnSlugs.length
+            ? this.rows.filter(row => filterFn(row))
+            : this.rows
+
+        return res
+    }
+
+    @computed private get combinedFilterFn() {
+        const filterSlugs = this.filterColumnSlugs
+        const filterFns = filterSlugs.map(
             slug =>
                 (this.columnsBySlug.get(slug)!.spec as ComputedColumnSpec).fn
         )
-        const filterFn = (row: Row) => {
-            if (isSelectedFn && isSelectedFn(row)) return true
-            return slugs.every((slug, index) => {
-                if (row[slug] === undefined) row[slug] = filterFns[index](row)
+        return (row: Row) => {
+            return filterSlugs.every((slug, index) => {
+                row[slug] = filterFns[index](row, index, this)
                 return row[slug]
             })
         }
-        return slugs.length ? this.rows.filter(filterFn) : this.rows
     }
 
     @computed private get filterColumnSlugs() {

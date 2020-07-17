@@ -25,13 +25,7 @@ import {
     throttle,
     capitalize
 } from "charts/Util"
-import {
-    SmoothingOption,
-    TotalFrequencyOption,
-    DailyFrequencyOption,
-    CountryOption,
-    CovidGrapherRow
-} from "./CovidTypes"
+import { CountryOption, CovidGrapherRow } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
@@ -630,15 +624,15 @@ export class CovidDataExplorer extends React.Component<{
         }, 1)
     }
 
-    private table?: CovidExplorerTable
+    private _covidExplorerTable?: CovidExplorerTable
     @computed get covidExplorerTable() {
-        if (!this.table)
-            this.table = new CovidExplorerTable(
+        if (!this._covidExplorerTable)
+            this._covidExplorerTable = new CovidExplorerTable(
                 this.chart.table,
                 this.props.data,
                 this.props.covidChartAndVariableMeta.variables
             )
-        return this.table
+        return this._covidExplorerTable
     }
 
     private getSelectedEntityNames() {
@@ -654,7 +648,8 @@ export class CovidDataExplorer extends React.Component<{
     // todo: cleanup
     @action.bound private _updateChart() {
         const params = this.constrainedParams
-        this.covidExplorerTable.initRequestedColumns(params)
+        const { covidExplorerTable } = this
+        covidExplorerTable.initRequestedColumns(params)
         const chartProps = this.chart.props
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
@@ -675,14 +670,18 @@ export class CovidDataExplorer extends React.Component<{
             spec => new ChartDimension(spec)
         )
 
-        this.covidExplorerTable.table.setSelectedEntities(
+        covidExplorerTable.table.setSelectedEntities(
             this.getSelectedEntityNames()
         )
 
+        if ((params.casesMetric || params.deathsMetric) && !params.totalFreq)
+            covidExplorerTable.addNegativeFilterColumn(params.yColumnSlug)
+        else covidExplorerTable.removeNegativeFilterColumn()
+
         // Do not show unselected groups on scatterplots
         if (params.chartType === "ScatterPlot")
-            this.covidExplorerTable.addGroupFilterColumn()
-        else this.covidExplorerTable.removeGroupFilterColumn()
+            covidExplorerTable.addGroupFilterColumn()
+        else covidExplorerTable.removeGroupFilterColumn()
 
         this._updateMap()
         this._updateColorScale()

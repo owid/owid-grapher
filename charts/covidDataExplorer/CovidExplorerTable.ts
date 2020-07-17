@@ -29,7 +29,8 @@ import {
     ComputedColumnSpec,
     RowToValueMapper,
     ColumnSpec,
-    entityName
+    entityName,
+    columnSlug
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import { covidAnnotations } from "./CovidAnnotations"
@@ -460,15 +461,33 @@ export class CovidExplorerTable {
 
     private groupFilterSlug = "group_filter"
     addGroupFilterColumn() {
-        if (!this.table.columnsBySlug.has(this.groupFilterSlug))
+        if (!this.table.columnsBySlug.has(this.groupFilterSlug)) {
             this.table.addFilterColumn(
                 this.groupFilterSlug,
-                row => !row.group_members
+                (row, index, table) =>
+                    !row.group_members || table!.isSelected(row)
             )
+        }
     }
 
     removeGroupFilterColumn() {
         this.table.deleteColumnBySlug(this.groupFilterSlug)
+    }
+
+    private negativeFilterSlug: columnSlug = ""
+    addNegativeFilterColumn(slugName: columnSlug) {
+        const filterSlug = "filter_negatives_in_" + slugName
+        if (filterSlug !== this.negativeFilterSlug)
+            this.removeNegativeFilterColumn()
+        if (!this.table.columnsBySlug.has(filterSlug))
+            this.table.addFilterColumn(filterSlug, row => !(row[slugName] < 0))
+        this.negativeFilterSlug = filterSlug
+    }
+
+    removeNegativeFilterColumn() {
+        if (this.negativeFilterSlug)
+            this.table.deleteColumnBySlug(this.negativeFilterSlug)
+        this.negativeFilterSlug = ""
     }
 
     initRequestedColumns(params: CovidConstrainedQueryParams) {

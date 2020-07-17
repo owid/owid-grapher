@@ -554,10 +554,10 @@ export class ChartConfig {
         const minPop = this.props.minPopulationFilter
         if (!minPop) this.table.deleteColumnBySlug(slug)
         else
-            this.table.addFilterColumn(slug, row => {
+            this.table.addFilterColumn(slug, (row, index, table) => {
                 const name = row.entityName
                 const pop = populationMap[name]
-                return !pop || pop >= minPop
+                return !pop || pop >= minPop || table!.isSelected(row)
             })
     }
 
