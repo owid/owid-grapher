@@ -268,6 +268,7 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (this.allowEverything) return this
         const available = this.available
         const defaults = new CovidQueryParams("")
+        const wasDaily = this.dailyFreq
 
         Object.keys(available).forEach(key => {
             const typedKey = key as keyof typeof available
@@ -282,7 +283,7 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             if (!available.dailyFreq && !available.smoothing)
                 this.totalFreq = true
             // If it was daily, but only so that smoothing could happen, we need to set daily to true
-            else if (this.smoothing && available.smoothing) {
+            else if ((wasDaily || this.smoothing) && available.smoothing) {
                 this.dailyFreq = true
                 this.smoothing = 7
             } else this.totalFreq = true
