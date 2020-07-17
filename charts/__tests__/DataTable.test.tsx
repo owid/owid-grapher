@@ -64,8 +64,8 @@ describe(DataTable, () => {
             const chart = setupChart(677, [104402], {
                 type: "LineChart",
                 tab: "chart",
-                selectedTimelineStartYear: 1990,
-                selectedTimelineEndYear: 2017
+                minTime: 1990,
+                maxTime: 2017
             })
             view = mount(<DataTable chart={chart} />)
         })

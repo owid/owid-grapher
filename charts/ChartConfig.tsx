@@ -666,9 +666,13 @@ export class ChartConfig {
 
     @computed get selectedTimelineYears(): TimeBounds {
         return [
-            this.props.selectedTimelineStartYear ??
-                TimeBoundValue.unboundedLeft,
-            this.props.selectedTimelineEndYear ?? TimeBoundValue.unboundedRight
+            // this.props.selectedTimelineStartYear ??
+            //     TimeBoundValue.unboundedLeft,
+            // this.props.selectedTimelineEndYear ?? TimeBoundValue.unboundedRight
+            selectedTimelineStartYearFromJSON(
+                this.props.selectedTimelineStartYear
+            ),
+            selectedTimelineEndYearFromJSON(this.props.selectedTimelineEndYear)
         ]
     }
 

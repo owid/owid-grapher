@@ -81,15 +81,15 @@ export abstract class ChartTransform implements IChartTransform {
      * - or, if no data exists, a hard-coded default minimum year
      */
     @computed get startYear(): Time {
-        const selectedTimelineYears = this.chart.selectedTimelineYears[0]
-        if (isUnboundedLeft(selectedTimelineYears)) {
+        const selectedTimelineStartYear = this.chart.selectedTimelineYears[0]
+        if (isUnboundedLeft(selectedTimelineStartYear)) {
             return this.minTimelineYear
-        } else if (isUnboundedRight(selectedTimelineYears)) {
+        } else if (isUnboundedRight(selectedTimelineStartYear)) {
             return this.maxTimelineYear
         }
         return getClosestTime(
             this.timelineYears,
-            selectedTimelineYears,
+            selectedTimelineStartYear,
             this.minTimelineYear
         )
     }
@@ -101,15 +101,15 @@ export abstract class ChartTransform implements IChartTransform {
      * - or, if no data exists, a hard-coded default maximum year
      */
     @computed get endYear(): Time {
-        const selectedTimelineYears = this.chart.selectedTimelineYears[1]
-        if (isUnboundedLeft(selectedTimelineYears)) {
+        const selectedTimelineEndYear = this.chart.selectedTimelineYears[1]
+        if (isUnboundedLeft(selectedTimelineEndYear)) {
             return this.minTimelineYear
-        } else if (isUnboundedRight(selectedTimelineYears)) {
+        } else if (isUnboundedRight(selectedTimelineEndYear)) {
             return this.maxTimelineYear
         }
         return getClosestTime(
             this.timelineYears,
-            selectedTimelineYears,
+            selectedTimelineEndYear,
             this.maxTimelineYear
         )
     }

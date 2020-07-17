@@ -162,7 +162,7 @@ export class DataTableTransform extends ChartTransform {
     // TODO move this logic to chart
     @computed get targetYears(): TargetYears {
         const mapTarget = this.chart.map.targetYear
-        const [startYear, endYear] = this.chart.timeDomain
+        const [startYear, endYear] = this.chart.selectedTimelineYears
         const timeRange: [Time, Time] = [this.minYear, this.maxYear]
         if (this.chart.tab === "map") {
             return [getTimeWithinTimeRange(timeRange, mapTarget)]
