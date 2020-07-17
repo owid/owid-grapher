@@ -52,6 +52,7 @@ import {
 } from "site/client/global-entity/GlobalEntitySelection"
 import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
+import * as Mousetrap from "mousetrap"
 
 const abSeed = Math.random()
 
@@ -739,6 +740,8 @@ export class CovidDataExplorer extends React.Component<{
         this.onResize()
         this.chart.embedExplorerCheckbox = this.controlsToggleElement
         ;(window as any).covidDataExplorer = this
+        Mousetrap.bind("right", () => this.playNextCommand())
+        Mousetrap.bind("left", () => this.playPreviousCommand())
     }
 
     componentWillUnmount() {
@@ -764,6 +767,7 @@ export class CovidDataExplorer extends React.Component<{
         this.props.params.setParamsFromQueryString(combo)
         this.renderControlsThenUpdateChart()
     }
+
     onResizeThrottled?: () => void
 
     // todo: remove
