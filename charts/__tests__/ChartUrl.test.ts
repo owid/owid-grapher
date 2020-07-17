@@ -18,8 +18,8 @@ function fromQueryParams(
 
 function toQueryParams(props?: Partial<ChartConfigProps>) {
     const chart = createConfig({
-        minTime: -5000,
-        maxTime: 5000,
+        selectedTimelineStartYear: -5000,
+        selectedTimelineEndYear: 5000,
         map: new MapConfigProps({ targetYear: 5000 })
     })
     chart.update(props)
@@ -92,8 +92,8 @@ describe(ChartUrl, () => {
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
-                        minTime: test.param[0],
-                        maxTime: test.param[1]
+                        selectedTimelineStartYear: test.param[0],
+                        selectedTimelineEndYear: test.param[1]
                     })
                     expect(params.time).toEqual(test.query)
                 })
@@ -102,7 +102,7 @@ describe(ChartUrl, () => {
             it("empty string doesn't change time", () => {
                 const chart = fromQueryParams(
                     { time: "" },
-                    { minTime: 0, maxTime: 5 }
+                    { selectedTimelineStartYear: 0, selectedTimelineEndYear: 5 }
                 )
                 const [start, end] = chart.selectedTimelineYears
                 expect(start).toEqual(0)
@@ -111,16 +111,16 @@ describe(ChartUrl, () => {
 
             it("doesn't include URL param if it's identical to original config", () => {
                 const chart = createConfig({
-                    minTime: 0,
-                    maxTime: 75
+                    selectedTimelineStartYear: 0,
+                    selectedTimelineEndYear: 75
                 })
                 expect(chart.url.params.time).toEqual(undefined)
             })
 
             it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
                 const chart = createConfig({
-                    minTime: undefined,
-                    maxTime: 75
+                    selectedTimelineStartYear: undefined,
+                    selectedTimelineEndYear: 75
                 })
                 expect(chart.url.params.time).toEqual(undefined)
             })
@@ -219,8 +219,8 @@ describe(ChartUrl, () => {
                     it(`encode ${test.name}`, () => {
                         const chart = setupChart(4066, [142708])
                         chart.update({
-                            minTime: test.param[0],
-                            maxTime: test.param[1]
+                            selectedTimelineStartYear: test.param[0],
+                            selectedTimelineEndYear: test.param[1]
                         })
                         const params = chart.url.params
                         expect(params.time).toEqual(test.query)

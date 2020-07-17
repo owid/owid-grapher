@@ -212,6 +212,11 @@ export class ChartConfigProps {
     useV2?: boolean = false
 
     @observable.ref selectedData: EntitySelection[] = []
+
+    // minTime === selectedTimelineStartYear, etc.
+    // Temporary hack until we migrate minTime in the JSON to selectedTimelineStartYear
+    private readonly minTime?: TimeBound = undefined
+    private readonly maxTime?: TimeBound = undefined
     @observable.ref selectedTimelineStartYear?: TimeBound = undefined
     @observable.ref selectedTimelineEndYear?: TimeBound = undefined
 
@@ -775,11 +780,12 @@ export class ChartConfig {
             this.props.slug = undefined
 
         // JSON doesn't support Infinity, so we use strings instead.
+        // minTime === selectedTimelineStartYear, etc.
         this.props.selectedTimelineStartYear = selectedTimelineStartYearFromJSON(
-            json.minTime
+            json.selectedTimelineStartYear ?? json.minTime
         )
         this.props.selectedTimelineEndYear = selectedTimelineEndYearFromJSON(
-            json.maxTime
+            json.selectedTimelineEndYear ?? json.maxTime
         )
 
         if (json.map) {
@@ -992,6 +998,7 @@ export class ChartConfig {
         }
 
         // JSON doesn't support Infinity, so we use strings instead.
+        // minTime === selectedTimelineStartYear, etc.
         json.minTime = minTimeToJSON(this.props.selectedTimelineStartYear)
         json.maxTime = maxTimeToJSON(this.props.selectedTimelineEndYear)
 
