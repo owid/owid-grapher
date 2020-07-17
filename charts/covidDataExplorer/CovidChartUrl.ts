@@ -19,6 +19,7 @@ import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
 import { buildColumnSlug } from "./CovidExplorerTable"
+import { uniq } from "lodash"
 
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
@@ -47,21 +48,64 @@ export class CovidQueryParams {
         CountryPickerMetric.location
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
-    constructor(queryString: string) {
+    allAvailableCombos(): string[] {
+        const metrics = [
+            "casesMetric",
+            "deathsMetric",
+            "cfrMetric",
+            "testsMetric",
+            "testsPerCaseMetric",
+            "positiveTestRate"
+        ]
+        const timelines = ["totalFreq", 7, "dailyFreq"]
+        const perCapita = [true, false]
+        const aligned = [true, false]
+        const yScale = ["log", "linear"] // todo
+        const tab = ["map", "chart"] // todo
+        const combos: any = []
+        metrics.forEach(metric => {
+            timelines.forEach(timeline => {
+                perCapita.forEach(perCapita => {
+                    aligned.forEach(aligned => {
+                        const combo: any = {}
+                        combo[metric] = true
+                        if (timeline !== 7) combo[timeline] = true
+                        else combo.smoothing = 7
+                        combo.perCapita = perCapita
+                        combo.aligned = aligned
+                        combos.push(combo)
+                    })
+                })
+            })
+        })
+
+        return uniq(
+            combos.map((combo: any) =>
+                new CovidQueryParams(
+                    queryParamsToStr(combo)
+                ).constrainedParams.toString()
+            )
+        )
+    }
+
+    setParamsFromQueryString(queryString: string) {
         const params = strToQueryParams(queryString)
-        if (params.casesMetric) this.casesMetric = true
-        if (params.totalFreq) this.totalFreq = true
-        if (params.testsMetric) this.testsMetric = true
-        if (params.testsPerCaseMetric) this.testsPerCaseMetric = true
-        if (params.positiveTestRate) this.positiveTestRate = true
-        if (params.deathsMetric) this.deathsMetric = true
-        if (params.cfrMetric) this.cfrMetric = true
-        if (params.dailyFreq) this.dailyFreq = true
-        if (params.perCapita) this.perCapita = true
-        if (params.hideControls) this.hideControls = true
-        if (params.aligned) this.aligned = true
-        if (params.smoothing)
-            this.smoothing = parseInt(params.smoothing) as SmoothingOption
+        this.casesMetric = params.casesMetric === "true"
+        this.totalFreq = params.totalFreq === "true"
+        this.testsMetric = params.testsMetric === "true"
+        this.testsPerCaseMetric = params.testsPerCaseMetric === "true"
+        this.positiveTestRate = params.positiveTestRate === "true"
+        this.deathsMetric = params.deathsMetric === "true"
+        this.cfrMetric = params.cfrMetric === "true"
+        this.dailyFreq = params.dailyFreq === "true"
+        this.perCapita = params.perCapita === "true"
+        this.hideControls = params.hideControls === "true"
+        this.aligned = params.aligned === "true"
+
+        this.smoothing = params.smoothing
+            ? (parseInt(params.smoothing) as SmoothingOption)
+            : 0
+
         if (params.country) {
             this.selectedCountryCodes.clear()
             EntityUrlBuilder.queryParamToEntities(
@@ -90,6 +134,10 @@ export class CovidQueryParams {
 
         this.yColumn = params.yColumn
         this.xColumn = params.xColumn
+    }
+
+    constructor(queryString: string) {
+        this.setParamsFromQueryString(queryString)
     }
 
     @computed get metricName(): MetricKind {
@@ -219,7 +267,6 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         super(queryString)
         if (this.allowEverything) return this
         const available = this.available
-        const wasDaily = this.dailyFreq
         const defaults = new CovidQueryParams("")
 
         Object.keys(available).forEach(key => {
@@ -235,7 +282,7 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             if (!available.dailyFreq && !available.smoothing)
                 this.totalFreq = true
             // If it was daily, but only so that smoothing could happen, we need to set daily to true
-            else if (wasDaily && available.smoothing) {
+            else if (this.smoothing && available.smoothing) {
                 this.dailyFreq = true
                 this.smoothing = 7
             } else this.totalFreq = true
