@@ -9,14 +9,14 @@ import { MapConfigProps } from "charts/MapConfig"
 
 function fromQueryParams(
     params: ChartQueryParams,
-    props?: Partial<ChartConfigProps> | any
+    props?: Partial<ChartConfigProps>
 ) {
     const chart = createConfig(props)
     chart.url.populateFromQueryParams(params)
     return chart
 }
 
-function toQueryParams(props?: Partial<ChartConfigProps> | any) {
+function toQueryParams(props?: Partial<ChartConfigProps>) {
     const chart = createConfig({
         minTime: -5000,
         maxTime: 5000,

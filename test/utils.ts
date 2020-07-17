@@ -3,7 +3,7 @@ import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import * as fixtures from "./fixtures"
 import { first } from "lodash"
 
-export function createConfig(props?: Partial<ChartConfigProps> | any) {
+export function createConfig(props?: Partial<ChartConfigProps>) {
     const config = new ChartConfig(new ChartConfigProps(props))
     // ensureValidConfig() is only run on non-node environments, so we have
     // to manually trigger it.
@@ -14,7 +14,7 @@ export function createConfig(props?: Partial<ChartConfigProps> | any) {
 export function setupChart(
     id: number,
     varIds: number[],
-    configOverrides?: Partial<ChartConfigProps> | any
+    configOverrides?: Partial<ChartConfigProps>
 ) {
     const variableSet =
         varIds.length > 1
