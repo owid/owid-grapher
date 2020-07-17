@@ -747,6 +747,23 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
+    private currentIndex = -1
+    playNextCommand() {
+        this.playIndex(++this.currentIndex)
+    }
+
+    playPreviousCommand() {
+        this.playIndex(--this.currentIndex)
+    }
+
+    playIndex(index: number) {
+        const combos = this.constrainedParams.allAvailableCombos()
+        index = index >= combos.length ? index - combos.length : index
+        index = index < 0 ? combos.length + index : index
+        const combo = combos[index]
+        this.props.params.setParamsFromQueryString(combo)
+        this.renderControlsThenUpdateChart()
+    }
     onResizeThrottled?: () => void
 
     // todo: remove
