@@ -413,12 +413,15 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         )
     }
 
-    toDelimited(delimiter = ",", rowLimit?: number) {
-        const slugs = this.columnSlugs
+    extract(slugs = this.columnSlugs) {
+        return this.rows.map(row => slugs.map(slug => row[slug] ?? ""))
+    }
+
+    toDelimited(slugs = this.columnSlugs, rowLimit?: number, delimiter = ",") {
         const header = slugs.join(delimiter) + "\n"
-        const rows = rowLimit ? this.rows.slice(0, rowLimit) : this.rows
-        const body = rows
-            .map(row => slugs.map(slug => row[slug] ?? "").join(delimiter))
+        const body = this.extract(slugs)
+            .slice(0, rowLimit)
+            .map(row => row.join(delimiter))
             .join("\n")
         return header + body
     }
