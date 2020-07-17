@@ -121,6 +121,12 @@ export class CovidDataExplorer extends React.Component<{
         this.renderControlsThenUpdateChart()
     }
 
+    @action.bound selectAllCommand() {
+        this.countryOptions.forEach(option =>
+            this.props.params.selectedCountryCodes.add(option.code)
+        )
+    }
+
     private get metricPicker() {
         const params = this.props.params
         const options: ControlOption[] = [
