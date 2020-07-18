@@ -313,6 +313,7 @@ export class ChartConfig {
     @observable.ref isNode: boolean
     @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
+    @observable isPlaying: boolean = false
 
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false

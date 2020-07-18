@@ -57,7 +57,6 @@ export class Timeline extends React.Component<TimelineProps> {
 
     disposers!: IReactionDisposer[]
 
-    @observable isPlaying: boolean = false
     @observable dragTarget?: string
 
     @computed get isDragging(): boolean {
@@ -84,6 +83,10 @@ export class Timeline extends React.Component<TimelineProps> {
         if (this.props.years.length === 0) {
             console.warn("invoking HTMLTimeline with empty years array")
         }
+    }
+
+    @computed get isPlaying() {
+        return this.context.chart.isPlaying
     }
 
     componentDidUpdate() {
@@ -166,7 +169,7 @@ export class Timeline extends React.Component<TimelineProps> {
                 const elapsed = time - lastTime
 
                 if (endYearUI >= maxYear) {
-                    this.isPlaying = false
+                    this.context.chart.isPlaying = false
                 } else {
                     const nextYear = years[years.indexOf(endYearUI) + 1]
                     const yearsToNext = nextYear - endYearUI
@@ -404,7 +407,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @action.bound onTogglePlay() {
-        this.isPlaying = !this.isPlaying
+        this.context.chart.isPlaying = !this.isPlaying
     }
 
     render() {
