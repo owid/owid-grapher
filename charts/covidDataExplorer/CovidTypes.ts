@@ -7,7 +7,7 @@ export declare type TotalFrequencyOption = boolean
 
 export declare type countrySlug = string
 
-export declare type colorScaleOption = "continents" | "ptr"
+export declare type colorScaleOption = "continents" | "ptr" | "none"
 
 export declare type MetricKind =
     | "deaths"
