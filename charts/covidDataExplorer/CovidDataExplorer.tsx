@@ -26,7 +26,7 @@ import {
     capitalize,
     mergeQueryStr
 } from "charts/Util"
-import { CountryOption, CovidGrapherRow } from "./CovidTypes"
+import { CountryOption, CovidGrapherRow, colorScaleOption } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
@@ -720,19 +720,9 @@ export class CovidDataExplorer extends React.Component<{
 
     private _updateColorScale() {
         const chartProps = this.chart.props
-        const params = this.constrainedParams
-        const useEpiColors =
-            (params.chartType === "ScatterPlot" &&
-                (params.casesMetric || params.testsMetric) &&
-                params.colorScale !== "continents") ||
-            params.colorScale === "ptr"
-        if (useEpiColors) {
-            chartProps.dimensions[2].variableId = this.covidExplorerTable.getShortTermPositivityRateVarId()!
-            chartProps.colorScale = this.colorScales.epi
-        } else if (chartProps.dimensions[2]) {
-            chartProps.dimensions[2].variableId = 123
-            chartProps.colorScale = this.colorScales.continents
-        }
+        chartProps.colorScale = this.colorScales[
+            this.constrainedParams.colorStrategy
+        ]
     }
 
     @computed get sourceChart(): ChartConfigProps | undefined {
@@ -882,57 +872,64 @@ export class CovidDataExplorer extends React.Component<{
             : undefined
     }
 
-    @computed private get dimensionSpecs(): DimensionSpec[] {
+    @computed private get yDimension(): DimensionSpec {
         const yColumn = this.yColumn
-        if (this.constrainedParams.chartType === "LineChart")
-            return [
-                {
-                    property: "y",
-                    variableId: yColumn.spec.owidVariableId!,
-                    display: {
-                        // Allow ± 1 day difference in data plotted on bar charts
-                        // This is what we use for charts on the Grapher too
-                        tolerance: 1,
-                        name: this.chartTitle,
-                        tableDisplay: yColumn.display.tableDisplay
-                    }
-                }
-            ]
-
-        const xColumn = this.xColumn!
-
-        return [
-            {
-                property: "y",
-                variableId: yColumn.spec.owidVariableId!,
-                display: {
-                    name: this.chartTitle,
-                    tableDisplay: yColumn.display.tableDisplay
-                }
-            },
-            {
-                property: "x",
-                variableId: xColumn.spec.owidVariableId!,
-                display: {
-                    name: xColumn.spec.name,
-                    tableDisplay: xColumn.display.tableDisplay
-                }
-            },
-            {
-                property: "color",
-                variableId: 123,
-                display: {
-                    tolerance: 10
-                }
+        return {
+            property: "y",
+            variableId: yColumn.spec.owidVariableId!,
+            display: {
+                // Allow ± 1 day difference in data plotted on bar charts
+                // This is what we use for charts on the Grapher too
+                tolerance: 1,
+                name: this.chartTitle,
+                tableDisplay: yColumn.display.tableDisplay
             }
-        ]
+        }
+    }
+
+    @computed private get xDimension(): DimensionSpec {
+        const xColumn = this.xColumn!
+        return {
+            property: "x",
+            variableId: xColumn.spec.owidVariableId!,
+            display: {
+                name: xColumn.spec.name,
+                tableDisplay: xColumn.display.tableDisplay
+            }
+        }
+    }
+
+    @computed private get dimensionSpecs(): DimensionSpec[] {
+        if (this.constrainedParams.chartType === "LineChart")
+            return [this.yDimension]
+
+        const dimensions = [this.yDimension, this.xDimension]
+
+        if (this.constrainedParams.colorStrategy !== "none")
+            dimensions.push(this.colorDimension)
+        return dimensions
+    }
+
+    @computed private get colorDimension(): DimensionSpec {
+        const variableId =
+            this.constrainedParams.colorStrategy === "continents"
+                ? 123
+                : this.covidExplorerTable.getShortTermPositivityRateVarId()!
+
+        return {
+            property: "color",
+            variableId,
+            display: {
+                tolerance: 10
+            }
+        }
     }
 
     @computed private get colorScales(): {
         [name: string]: ColorScaleConfigProps
     } {
         return {
-            epi: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]
+            ptr: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]
                 ?.colorScale as any,
             continents: {
                 legendDescription: "Continent",
@@ -943,6 +940,18 @@ export class CovidDataExplorer extends React.Component<{
                 customCategoryColors: continentColors,
                 customCategoryLabels: {
                     "No data": "Other"
+                },
+                customHiddenCategories: {}
+            },
+            none: {
+                legendDescription: "",
+                baseColorScheme: undefined,
+                colorSchemeValues: [],
+                colorSchemeLabels: [],
+                customNumericColors: [],
+                customCategoryColors: continentColors,
+                customCategoryLabels: {
+                    "No data": ""
                 },
                 customHiddenCategories: {}
             }

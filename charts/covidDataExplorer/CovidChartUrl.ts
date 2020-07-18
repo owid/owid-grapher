@@ -192,6 +192,16 @@ export class CovidQueryParams {
         return this.aligned ? "ScatterPlot" : "LineChart"
     }
 
+    @computed get colorStrategy(): colorScaleOption {
+        if (this.chartType !== "ScatterPlot") return "none"
+
+        if (this.colorScale) return this.colorScale
+
+        if (this.casesMetric || this.testsMetric) return "ptr"
+
+        return "continents"
+    }
+
     @computed get yColumnSlug() {
         if (this.yColumn) return this.yColumn
         return buildColumnSlug(
