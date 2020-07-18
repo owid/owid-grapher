@@ -12,7 +12,9 @@ import {
     insertMissingValuePlaceholders,
     rollingMap,
     groupMap,
-    mergeQueryStr
+    mergeQueryStr,
+    next,
+    previous
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -76,6 +78,49 @@ describe(getStartEndValues, () => {
         ]) as DataValue[]
         expect(extent[0].year).toEqual(2014)
         expect(extent[1].year).toEqual(2017)
+    })
+})
+
+describe(next, () => {
+    const scenarios = [
+        {
+            list: [55, 33, 22],
+            current: 33,
+            next: 22,
+            previous: 55
+        },
+        {
+            list: [55, 33, 22],
+            current: 44,
+            next: 55,
+            previous: 22
+        },
+        {
+            list: [55, 33, 22],
+            current: 22,
+            next: 55,
+            previous: 33
+        },
+        {
+            list: [55, 33, 22],
+            current: 55,
+            next: 33,
+            previous: 22
+        },
+        {
+            list: [55],
+            current: 55,
+            next: 55,
+            previous: 55
+        }
+    ]
+    it("iterates correctly", () => {
+        scenarios.forEach(scenario => {
+            expect(next(scenario.list, scenario.current)).toBe(scenario.next)
+            expect(previous(scenario.list, scenario.current)).toBe(
+                scenario.previous
+            )
+        })
     })
 })
 
