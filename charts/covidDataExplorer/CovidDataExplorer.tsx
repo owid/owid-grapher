@@ -66,6 +66,71 @@ interface BootstrapProps {
     globalEntitySelection?: GlobalEntitySelection
 }
 
+declare type keyboardCombo = string
+
+interface Command {
+    combo: keyboardCombo
+    fn: () => any
+    title: string
+    category: string
+}
+
+@observer
+export class CommandCenter extends React.Component<{ commands: Command[] }> {
+    render() {
+        const style: any = {
+            position: "fixed",
+            display: "none",
+            top: 100,
+            left: 100,
+            right: 100,
+            bottom: 100,
+            background: "white",
+            zIndex: 1000,
+            opacity: 0.7
+        }
+        let lastCat = ""
+        const commands = this.props.commands.map(command => {
+            let cat = undefined
+            if (command.category !== lastCat) {
+                lastCat = command.category
+                cat = (
+                    <tr>
+                        <td>
+                            <strong>{lastCat}</strong>
+                        </td>
+                        <td></td>
+                    </tr>
+                )
+            }
+            return (
+                <>
+                    {cat}
+                    <tr>
+                        <td>{command.combo}</td>
+                        <td>
+                            <a onClick={() => command.fn()}>{command.title}</a>
+                        </td>
+                    </tr>
+                </>
+            )
+        })
+
+        return (
+            <div id="keyboardHelp" style={style}>
+                <h3>Keyboard Shortcuts</h3>
+                <table>
+                    <thead>
+                        <th></th>
+                        <th></th>
+                    </thead>
+                    <tbody>{commands}</tbody>
+                </table>
+            </div>
+        )
+    }
+}
+
 @observer
 export class CovidDataExplorer extends React.Component<{
     data: CovidGrapherRow[]
@@ -456,6 +521,7 @@ export class CovidDataExplorer extends React.Component<{
     render() {
         return (
             <>
+                <CommandCenter commands={this.keyboardShortcuts} />
                 <div
                     className={classnames({
                         CovidDataExplorer: true,
@@ -767,8 +833,163 @@ export class CovidDataExplorer extends React.Component<{
         this.onResize()
         this.chart.embedExplorerCheckbox = this.controlsToggleElement
         ;(window as any).covidDataExplorer = this
-        Mousetrap.bind("right", () => this.playNextCommand())
-        Mousetrap.bind("left", () => this.playPreviousCommand())
+
+        this.keyboardShortcuts.forEach(shortcut => {
+            Mousetrap.bind(shortcut.combo, shortcut.fn)
+        })
+    }
+
+    get keyboardShortcuts(): Command[] {
+        return [
+            {
+                combo: "right",
+                fn: () => this.playIndex(++this.currentIndex),
+                title: "Play next",
+                category: "Browse"
+            },
+            {
+                combo: "left",
+                fn: () => this.playIndex(--this.currentIndex),
+                title: "Play previous",
+                category: "Browse"
+            },
+            {
+                combo: "t",
+                fn: () =>
+                    (this.chart.props.tab = next(
+                        ["chart", "map"],
+                        this.chart.props.tab
+                    )),
+                title: "Toggle Chart/Map tab",
+                category: "Navigation"
+            },
+            {
+                combo: "?",
+                fn: () =>
+                    (document.getElementById("keyboardHelp")!.style.display =
+                        document.getElementById("keyboardHelp")!.style
+                            .display === "none"
+                            ? "block"
+                            : "none"),
+                title: "Toggle Help",
+                category: "Navigation"
+            },
+            {
+                combo: "esc",
+                fn: () => this.clearSelectionCommand(),
+                title: "Clear selected countries",
+                category: "Selection"
+            },
+            {
+                combo: "a",
+                fn: () => this.selectAllCommand(),
+                title: "Select all countries",
+                category: "Selection"
+            },
+            {
+                combo: "c",
+                fn: () => {
+                    this.props.params.colorScale = next(
+                        ["continents", "ptr", "none"],
+                        this.props.params.colorScale
+                    )
+                    this.renderControlsThenUpdateChart()
+                },
+                title: "Change color scheme",
+                category: "Chart"
+            },
+            {
+                combo: "l",
+                fn: () =>
+                    (this.chart.props.yAxis.scaleType = next(
+                        ["linear", "log"],
+                        this.chart.props.yAxis.scaleType
+                    )),
+                title: "Toggle Y log/linear",
+                category: "Chart"
+            },
+            {
+                combo: "shift+l",
+                fn: () =>
+                    (this.chart.props.xAxis.scaleType = next(
+                        ["linear", "log"],
+                        this.chart.props.xAxis.scaleType
+                    )),
+                title: "Toggle X log/linear",
+                category: "Chart"
+            },
+            {
+                combo: "y",
+                fn: () => this.toggleDimensionColumnCommand("y"),
+                title: "Next Y Option",
+                category: "Chart"
+            },
+            {
+                combo: "x",
+                fn: () => this.toggleDimensionColumnCommand("x"),
+                title: "Next X Option",
+                category: "Chart"
+            },
+
+            {
+                combo: "shift+y",
+                fn: () => this.toggleDimensionColumnCommand("y", true),
+                title: "Previous Y Option",
+                category: "Chart"
+            },
+
+            {
+                combo: "shift+x",
+                fn: () => this.toggleDimensionColumnCommand("x", true),
+                title: "Previous X Option",
+                category: "Chart"
+            },
+
+            {
+                combo: "s",
+                fn: () => this.toggleDimensionColumnCommand("size"),
+                title: "Next Size Option",
+                category: "Chart"
+            },
+            {
+                combo: "shift+s",
+                fn: () => this.toggleDimensionColumnCommand("size", true),
+                title: "Previous Size Option",
+                category: "Chart"
+            },
+            {
+                combo: "z",
+                fn: () => {
+                    this.chart.url.setTimeFromTimeQueryParam("latest")
+                    this.renderControlsThenUpdateChart()
+                },
+                title: "Latest period",
+                category: "Timeline"
+            },
+            {
+                combo: "shift+z",
+                fn: () => {
+                    this.chart.url.setTimeFromTimeQueryParam("earliest")
+                    this.renderControlsThenUpdateChart()
+                },
+                title: "Earliest period",
+                category: "Timeline"
+            },
+            {
+                combo: "p",
+                fn: () => (this.chart.isPlaying = !this.chart.isPlaying),
+                title: "Play/Pause",
+                category: "Timeline"
+            }
+        ]
+    }
+
+    toggleDimensionColumnCommand(axis: "y" | "x" | "size", backwards = false) {
+        const key = `${axis}Column`
+        const params = this.props.params as any
+        const fn = backwards ? previous : next
+        params[key] = fn(this.covidExplorerTable.table.columnSlugs, params[key])
+        this.renderControlsThenUpdateChart()
     }
 
     componentWillUnmount() {
@@ -778,14 +999,6 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private currentIndex = -1
-    playNextCommand() {
-        this.playIndex(++this.currentIndex)
-    }
-
-    playPreviousCommand() {
-        this.playIndex(--this.currentIndex)
-    }
-
     playIndex(index: number) {
         const combos = this.constrainedParams.allAvailableCombos()
         index = index >= combos.length ? index - combos.length : index
