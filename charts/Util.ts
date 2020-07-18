@@ -358,6 +358,17 @@ export function lastOfNonEmptyArray<T>(arr: T[]): T {
     return last(arr) as T
 }
 
+export function next<T>(set: T[], current: T) {
+    let nextIndex = set.indexOf(current) + 1
+    nextIndex = nextIndex === -1 ? 0 : nextIndex
+    return set[nextIndex === set.length ? 0 : nextIndex]
+}
+
+export function previous<T>(set: T[], current: T) {
+    let nextIndex = set.indexOf(current) - 1
+    return set[nextIndex < 0 ? set.length - 1 : nextIndex]
+}
+
 // Calculate the extents of a set of numbers, with safeguards for log scales
 export function domainExtent(
     numValues: number[],
