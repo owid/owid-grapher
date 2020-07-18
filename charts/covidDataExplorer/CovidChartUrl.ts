@@ -33,6 +33,7 @@ export class CovidQueryParams {
 
     @observable yColumn?: string
     @observable xColumn?: string
+    @observable sizeColumn?: string
 
     @observable totalFreq: boolean = false
     @observable dailyFreq: boolean = false
@@ -134,6 +135,7 @@ export class CovidQueryParams {
 
         this.yColumn = params.yColumn
         this.xColumn = params.xColumn
+        this.sizeColumn = params.sizeColumn
     }
 
     constructor(queryString: string) {
@@ -162,6 +164,7 @@ export class CovidQueryParams {
         const params: any = {}
         params.xColumn = this.xColumn ? this.xColumn : undefined
         params.yColumn = this.yColumn ? this.yColumn : undefined
+        params.sizeColumn = this.sizeColumn ? this.sizeColumn : undefined
         params.testsMetric = this.testsMetric ? true : undefined
         params.deathsMetric = this.deathsMetric ? true : undefined
         params.casesMetric = this.casesMetric ? true : undefined
