@@ -24,7 +24,9 @@ import {
     lastOfNonEmptyArray,
     throttle,
     capitalize,
-    mergeQueryStr
+    mergeQueryStr,
+    next,
+    previous
 } from "charts/Util"
 import { CountryOption, CovidGrapherRow, colorScaleOption } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
@@ -142,6 +144,8 @@ export class CovidDataExplorer extends React.Component<{
         this.countryOptions.forEach(option =>
             this.props.params.selectedCountryCodes.add(option.code)
         )
+        this.selectionChangeFromBuilder = true
+        this.renderControlsThenUpdateChart()
     }
 
     private get metricPicker() {
@@ -692,6 +696,7 @@ export class CovidDataExplorer extends React.Component<{
             chartProps.zoomToSelection = true
 
         chartProps.type = params.chartType
+        chartProps.yAxis.label = this.yAxisLabel
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
@@ -872,6 +877,14 @@ export class CovidDataExplorer extends React.Component<{
             : undefined
     }
 
+    @computed private get sizeColumn() {
+        return this.constrainedParams.sizeColumn
+            ? this.chart.table.columnsBySlug.get(
+                  this.constrainedParams.sizeColumn!
+              )!
+            : undefined
+    }
+
     @computed private get yDimension(): DimensionSpec {
         const yColumn = this.yColumn
         return {
@@ -907,7 +920,15 @@ export class CovidDataExplorer extends React.Component<{
 
         if (this.constrainedParams.colorStrategy !== "none")
             dimensions.push(this.colorDimension)
+        if (this.sizeColumn) dimensions.push(this.sizeDimension)
         return dimensions
+    }
+
+    @computed private get sizeDimension(): DimensionSpec {
+        return {
+            property: "size",
+            variableId: this.sizeColumn?.spec.owidVariableId!
+        }
     }
 
     @computed private get colorDimension(): DimensionSpec {
@@ -974,6 +995,12 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
+    @computed private get yAxisLabel() {
+        return this.constrainedParams.yColumn
+            ? this.constrainedParams.yColumnSlug
+            : ""
+    }
+
     @observable.ref chart: ChartConfig = new ChartConfig(
         {
             slug: covidDashboardSlug,
@@ -993,7 +1020,7 @@ export class CovidDataExplorer extends React.Component<{
                 removePointsOutsideDomain: true,
                 scaleType: "linear",
                 canChangeScaleType: true,
-                label: ""
+                label: this.yAxisLabel
             },
             selectedData: [],
             dimensions: [],
