@@ -275,6 +275,30 @@ export class ChartUrl implements ObservableUrl {
         }
     }*/
 
+    setTimeFromTimeQueryParam(time: string) {
+        const { chart } = this
+        // We want to support unbounded time parameters, so that time=2015.. extends from 2015
+        // to the latest year, and time=..2020 extends from earliest year to 2020. Also,
+        // time=.. extends from the earliest to latest available year.
+        const reIntComponent = new RegExp("\\-?\\d+")
+        const reIntRange = new RegExp(
+            `^(${reIntComponent.source})?\\.\\.(${reIntComponent.source})?$`
+        )
+        const reDateRange = new RegExp(
+            `^(${reISODateComponent.source})?\\.\\.(${reISODateComponent.source})?$`
+        )
+        if (reIntRange.test(time) || reDateRange.test(time)) {
+            const [start, end] = time.split("..")
+            chart.timeDomain = [
+                parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
+                parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
+            ]
+        } else {
+            const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)
+            chart.timeDomain = [t, t]
+        }
+    }
+
     /**
      * Applies query parameters to the chart config
      */
@@ -330,31 +354,7 @@ export class ChartUrl implements ObservableUrl {
         }
 
         const time = params.time
-        if (time) {
-            // We want to support unbounded time parameters, so that time=2015.. extends from 2015
-            // to the latest year, and time=..2020 extends from earliest year to 2020. Also,
-            // time=.. extends from the earliest to latest available year.
-            const reIntComponent = new RegExp("\\-?\\d+")
-            const reIntRange = new RegExp(
-                `^(${reIntComponent.source})?\\.\\.(${reIntComponent.source})?$`
-            )
-            const reDateRange = new RegExp(
-                `^(${reISODateComponent.source})?\\.\\.(${reISODateComponent.source})?$`
-            )
-            if (reIntRange.test(time) || reDateRange.test(time)) {
-                const [start, end] = time.split("..")
-                chart.timeDomain = [
-                    parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
-                    parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
-                ]
-            } else {
-                const t = parseTimeURIComponent(
-                    time,
-                    TimeBoundValue.unboundedRight
-                )
-                chart.timeDomain = [t, t]
-            }
-        }
+        if (time) this.setTimeFromTimeQueryParam(time)
 
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined) {
