@@ -8,7 +8,7 @@ export class OwidVariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined
     @observable shortUnit?: string = undefined
-    @observable isProjection?: true = undefined
+    @observable isProjection?: boolean = undefined
     @observable conversionFactor?: number = undefined
     @observable numDecimalPlaces?: number = undefined
     @observable tolerance?: number = undefined

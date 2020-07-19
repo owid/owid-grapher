@@ -38,7 +38,7 @@ export class DimensionCard extends React.Component<{
     }
 
     @action.bound onIsProjection(value: boolean) {
-        this.props.dimension.props.display.isProjection = value || undefined
+        this.props.dimension.props.display.isProjection = value
     }
 
     @action.bound onSaveToVariable(value: boolean) {
