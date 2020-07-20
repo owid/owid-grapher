@@ -562,7 +562,7 @@ export class CovidDataExplorer extends React.Component<{
         const smoothing = this.constrainedParams.smoothing
             ? `Shown is the rolling ${this.constrainedParams.smoothing}-day average. `
             : ""
-        return `${smoothing}` + this.yColumn.description
+        return `${smoothing}${this.yColumn?.description || ""}`
     }
 
     @computed get note() {
