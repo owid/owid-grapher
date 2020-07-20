@@ -24,6 +24,7 @@ import {
     SingleValueKey,
     Value
 } from "./DataTableTransform"
+import { Time, TimeBoundValue } from "./TimeBounds"
 
 export interface DataTableProps {
     chart: ChartConfig
@@ -101,11 +102,15 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get entityType() {
-        return this.props.chart.entityType
+        return this.chart.entityType
+    }
+
+    @computed get chart() {
+        return this.props.chart
     }
 
     @computed get transform() {
-        return this.props.chart.dataTableTransform
+        return this.chart.dataTableTransform
     }
 
     @computed get sortValueMapper(): (
@@ -345,49 +350,68 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    @computed
-    private get isInitializedWithData(): boolean {
-        return this.transform.dimensions.length > 0
-    }
+    @observable private autoSelectedYear?: Time = undefined
+    private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE: number = 0.5
 
+    /**
+     * If the user or the editor hasn't specified a start, auto-select a start year
+     *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
+     */
     @action
     autoSelectStartYear() {
         if (
-            !this.props.chart.userHasSetTimeline &&
+            !this.chart.userHasSetTimeline &&
             !this.transform.initialTimelineStartYearSpecified
         ) {
-            const possibleValues = this.transform.chart.table.availableEntities
-                .length
+            const possibleValues = this.chart.table.availableEntities.length
             let startingYear: number | undefined = undefined
             this.transform.dimensions.forEach(dim => {
                 const numValuesByYear = countBy(dim.years)
                 const startYear = sortBy(
                     Object.entries(numValuesByYear),
                     value => +value[0]
-                ).find(year => year[1] / possibleValues > 0.5)?.[0]
+                ).find(
+                    year =>
+                        year[1] / possibleValues >
+                        this.AUTO_SELECTION_THRESHOLD_PERCENTAGE
+                )?.[0]
                 if (startYear) {
                     startingYear = parseInt(startYear)
                     return false
                 }
                 return true
             })
-            if (startingYear)
-                this.transform.chart.timeDomain = [
-                    startingYear,
-                    this.transform.endYear
-                ]
+            if (startingYear !== undefined) {
+                this.chart.timeDomain = [startingYear, this.transform.endYear]
+                this.autoSelectedYear = startingYear
+            }
         }
+    }
+
+    @action
+    revertAutoSelectedStartYear() {
+        this.chart.timeDomain = [
+            this.chart.initialProps.minTime ?? TimeBoundValue.unboundedLeft,
+            this.transform.endYear
+        ]
     }
 
     componentDidMount() {
         when(
-            () => this.isInitializedWithData,
+            () =>
+                this.transform.dimensions.length > 0 &&
+                this.chart.controlsLoaded,
             () => this.autoSelectStartYear()
         )
     }
 
     componentWillUnmount() {
-        console.log("unmounting")
+        // if current Timeline startYear is auto-selected and hasn't been changed by user, revert
+        if (
+            this.autoSelectedYear &&
+            this.autoSelectedYear == this.transform.startYear
+        )
+            this.revertAutoSelectedStartYear()
     }
 
     render() {

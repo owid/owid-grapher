@@ -471,6 +471,8 @@ export class ChartConfig {
     @observable hideEntityControls: boolean = false
     externalCsvLink = ""
 
+    @observable controlsLoaded: boolean = false
+
     @computed get hasOWIDLogo(): boolean {
         return (
             !this.props.hideLogo &&
