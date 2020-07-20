@@ -23,7 +23,8 @@ import {
     pick,
     lastOfNonEmptyArray,
     throttle,
-    capitalize
+    capitalize,
+    chartToExplorerQueryStr
 } from "charts/Util"
 import { CountryOption, CovidGrapherRow } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
@@ -56,6 +57,13 @@ import * as Mousetrap from "mousetrap"
 
 const abSeed = Math.random()
 
+interface BootstrapProps {
+    containerNode: HTMLElement
+    isEmbed?: boolean
+    queryStr?: string
+    globalEntitySelection?: GlobalEntitySelection
+}
+
 @observer
 export class CovidDataExplorer extends React.Component<{
     data: CovidGrapherRow[]
@@ -69,12 +77,7 @@ export class CovidDataExplorer extends React.Component<{
     isEmbed?: boolean
     globalEntitySelection?: GlobalEntitySelection
 }> {
-    static async bootstrap(props: {
-        containerNode: HTMLElement
-        isEmbed?: boolean
-        queryStr?: string
-        globalEntitySelection?: GlobalEntitySelection
-    }) {
+    static async bootstrap(props: BootstrapProps) {
         const [typedData, updated, covidMeta] = await Promise.all([
             fetchAndParseData(),
             fetchLastUpdatedTime(),
@@ -104,6 +107,25 @@ export class CovidDataExplorer extends React.Component<{
     // creating radio button groups, etc.
     private getScopedName(name: string) {
         return `${name}_${this.uniqId}`
+    }
+
+    static async replaceStateAndBootstrap(
+        explorerQueryStr: string,
+        props: BootstrapProps
+    ) {
+        const queryStr = chartToExplorerQueryStr(
+            explorerQueryStr,
+            props.queryStr
+        )
+        window.history.replaceState(
+            null,
+            document.title,
+            `${BAKED_BASE_URL}/${covidDashboardSlug}${queryStr}`
+        )
+        return CovidDataExplorer.bootstrap({
+            ...props,
+            queryStr
+        })
     }
 
     @observable private chartContainerRef: React.RefObject<
@@ -428,21 +450,21 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
-        const showControls = !this.props.params.hideControls
         return (
             <>
                 <div
                     className={classnames({
                         CovidDataExplorer: true,
                         "mobile-explorer": this.isMobile,
-                        HideControls: !showControls,
+                        HideControls: !this.showExplorerControls,
                         "is-embed": this.props.isEmbed
                     })}
                 >
-                    {showControls && this.header}
-                    {showControls && this.controlBar}
-                    {showControls && this.countryPicker}
-                    {showControls && this.customizeChartMobileButton}
+                    {this.showExplorerControls && this.header}
+                    {this.showExplorerControls && this.controlBar}
+                    {this.showExplorerControls && this.countryPicker}
+                    {this.showExplorerControls &&
+                        this.customizeChartMobileButton}
                     <div
                         className="CovidDataExplorerFigure"
                         ref={this.chartContainerRef}
@@ -478,6 +500,10 @@ export class CovidDataExplorer extends React.Component<{
         this.chart.embedExplorerCheckbox = this.controlsToggleElement
         this._updateChart()
         requestAnimationFrame(() => this.onResize())
+    }
+
+    @computed get showExplorerControls() {
+        return !this.props.params.hideControls || !this.props.isEmbed
     }
 
     @computed get countryOptions(): CountryOption[] {
@@ -539,7 +565,7 @@ export class CovidDataExplorer extends React.Component<{
         const smoothing = this.constrainedParams.smoothing
             ? `Shown is the rolling ${this.constrainedParams.smoothing}-day average. `
             : ""
-        return `${smoothing}` + this.yColumn.description
+        return `${smoothing}${this.yColumn?.description || ""}`
     }
 
     @computed get note() {
@@ -725,7 +751,8 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     componentDidMount() {
-        this.chart.hideEntityControls = true
+        // Show 'Add country' & 'Select countries' controls if the explorer controls are hidden.
+        this.chart.hideEntityControls = this.showExplorerControls
         this.chart.externalCsvLink = covidDataPath
         this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()

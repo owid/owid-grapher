@@ -134,6 +134,7 @@ import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { EPOCH_DATE } from "settings"
 import { SortOrder } from "./SortOrder"
 import { RelatedQuestionsConfig } from "./ChartConfig"
+import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 
 export type SVGElement = any
 export type VNode = any
@@ -867,6 +868,17 @@ export const getErrorMessageRelatedQuestionUrl = (
 export function getAttributesOfHTMLElement(el: HTMLElement) {
     const attributes: { [key: string]: string } = {}
     each(el.attributes, attr => (attributes[attr.name] = attr.value))
-
     return attributes
+}
+
+export function chartToExplorerQueryStr(
+    explorerQueryStr?: string,
+    chartQueryStr?: string
+) {
+    return queryParamsToStr({
+        ...strToQueryParams(explorerQueryStr ?? ""),
+        ...strToQueryParams(chartQueryStr ?? ""),
+        // Always hide controls when redirecting chart to explorer
+        hideControls: "true"
+    })
 }

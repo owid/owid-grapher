@@ -23,6 +23,7 @@ import { covidDefaultCountryPlaceholder } from "./covid/CovidConstants"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
+import { replaceChartIframesWithExplorerIframes } from "./bakeCovidExplorerRedirects"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -238,6 +239,9 @@ export async function formatWordpressPost(
         $byline.remove()
     }
 
+    // Replace grapher iframes with explorer iframes
+    replaceChartIframesWithExplorerIframes($)
+
     // Replace grapher iframes with static previews
     const GRAPHER_PREVIEW_CLASS = "grapherPreview"
     if (grapherExports) {
@@ -296,7 +300,8 @@ export async function formatWordpressPost(
     for (const el of explorerIframes) {
         const $el = $(el)
         const src = el.attribs["src"].trim()
-        const style = el.attribs["style"]
+        // set a default style if none exists on the existing iframe
+        const style = el.attribs["style"] || "width: 100%; height: 600px;"
         const cssClass = el.attribs["class"]
         const $figure = $(
             ReactDOMServer.renderToStaticMarkup(

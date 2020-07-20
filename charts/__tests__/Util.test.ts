@@ -11,8 +11,10 @@ import {
     computeRollingAverage,
     insertMissingValuePlaceholders,
     rollingMap,
-    groupMap
+    groupMap,
+    chartToExplorerQueryStr
 } from "../Util"
+import { strToQueryParams } from "utils/client/url"
 
 describe(findClosestYear, () => {
     describe("without tolerance", () => {
@@ -247,5 +249,24 @@ describe(groupMap, () => {
         expect(group.get(0)).toEqual([0])
         expect(group.get(1)).toEqual([1, 1, 1])
         expect(group.get("a")).toEqual(["a"])
+    })
+})
+
+describe(chartToExplorerQueryStr, () => {
+    it("chart params override explorer params", () => {
+        const params = strToQueryParams(
+            chartToExplorerQueryStr(
+                "yScale=log&testsMetric=true&country=~GBR",
+                "country=GBR~ESP"
+            )
+        )
+        expect(params.yScale).toEqual("log")
+        expect(params.country).toEqual("GBR~ESP")
+    })
+
+    it("always sets hideControls=true", () => {
+        expect(chartToExplorerQueryStr("", undefined)).toEqual(
+            "?hideControls=true"
+        )
     })
 })

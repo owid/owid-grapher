@@ -38,7 +38,10 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { FeedbackPage } from "./views/FeedbackPage"
 import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "charts/Indicator"
-import { CovidDataExplorerPage } from "./views/CovidDataExplorerPage"
+import {
+    CovidDataExplorerPage,
+    CovidDataExplorerPageProps
+} from "./views/CovidDataExplorerPage"
 import {
     covidCountryProfileSlug,
     covidCountryProfileRootPath
@@ -93,8 +96,10 @@ export async function renderCovidPage() {
     return renderToHtmlPage(<CovidPage />)
 }
 
-export async function renderCovidDataExplorerPage() {
-    return renderToHtmlPage(<CovidDataExplorerPage />)
+export async function renderCovidDataExplorerPage(
+    props?: CovidDataExplorerPageProps
+) {
+    return renderToHtmlPage(<CovidDataExplorerPage {...props} />)
 }
 
 export async function renderExplorableIndicatorsJson() {
