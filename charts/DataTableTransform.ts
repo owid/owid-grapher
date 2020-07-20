@@ -1,4 +1,4 @@
-import { computed, observable } from "mobx"
+import { computed } from "mobx"
 
 import {
     valuesByEntityAtYears,
@@ -15,7 +15,6 @@ import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { isUnbounded, getTimeWithinTimeRange, Time } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
-import { observer } from "mobx-react"
 
 // Target year modes
 

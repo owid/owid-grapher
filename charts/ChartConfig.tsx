@@ -675,8 +675,6 @@ export class ChartConfig {
     }
 
     set timeDomain(value: TimeBounds) {
-        console.log(`time to ${value}`)
-        debugger
         this.props.minTime = value[0]
         this.props.maxTime = value[1]
     }
