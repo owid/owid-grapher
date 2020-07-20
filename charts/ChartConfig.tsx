@@ -471,7 +471,7 @@ export class ChartConfig {
     @observable hideEntityControls: boolean = false
     externalCsvLink = ""
 
-    @observable controlsLoaded: boolean = false
+    @observable timelineLoaded: boolean = false
 
     @computed get hasOWIDLogo(): boolean {
         return (
