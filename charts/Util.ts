@@ -873,12 +873,13 @@ export function getAttributesOfHTMLElement(el: HTMLElement) {
 
 export function chartToExplorerQueryStr(
     explorerQueryStr?: string,
-    chartQueryStr?: string
+    chartQueryStr?: string,
+    additionalOptions: any = { hideControls: "true" }
 ) {
     return queryParamsToStr({
         ...strToQueryParams(explorerQueryStr ?? ""),
         ...strToQueryParams(chartQueryStr ?? ""),
-        // Always hide controls when redirecting chart to explorer
-        hideControls: "true"
+        // Default is to always hide controls when redirecting chart to explorer
+        ...additionalOptions
     })
 }

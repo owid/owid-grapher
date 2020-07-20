@@ -118,7 +118,8 @@ export class CovidDataExplorer extends React.Component<{
     ) {
         const queryStr = chartToExplorerQueryStr(
             explorerQueryStr,
-            props.queryStr
+            props.queryStr,
+            {}
         )
         window.history.replaceState(
             null,
