@@ -385,9 +385,6 @@ export class Timeline extends React.Component<TimelineProps> {
                         ]
                     })
                 }
-            }),
-            autorun(() => {
-                this.context.chart.timelineLoaded = true
             })
         ]
     }

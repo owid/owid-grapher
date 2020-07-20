@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, observable, action, when } from "mobx"
+import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 
@@ -8,7 +8,7 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
 import { ChartConfig } from "./ChartConfig"
 import { SortOrder } from "./SortOrder"
-import { capitalize, some, orderBy, upperFirst, countBy, sortBy } from "./Util"
+import { capitalize, some, orderBy, upperFirst } from "./Util"
 import { SortIcon } from "./SortIcon"
 import { Tippy } from "./Tippy"
 import {
@@ -24,7 +24,7 @@ import {
     SingleValueKey,
     Value
 } from "./DataTableTransform"
-import { Time, TimeBoundValue } from "./TimeBounds"
+import { TimeBoundValue } from "./TimeBounds"
 
 export interface DataTableProps {
     chart: ChartConfig
@@ -350,58 +350,6 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    @observable private autoSelectedStartYear?: Time = undefined
-    private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE: number = 0.5
-
-    /**
-     * If the user or the editor hasn't specified a start, auto-select a start year
-     *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
-     */
-    @action
-    autoSelectStartYear() {
-        if (
-            !this.chart.userHasSetTimeline &&
-            !this.transform.initialTimelineStartYearSpecified
-        ) {
-            const numEntitiesInTable = this.chart.table.availableEntities.length
-            let autoSelectedStartYear: number | undefined = undefined
-            this.transform.dimensions.forEach(dim => {
-                const numberOfEntitiesWithDataByYearSortedByYear = sortBy(
-                    Object.entries(countBy(dim.years)),
-                    value => value[0]
-                )
-
-                const firstYearWithSufficientData = numberOfEntitiesWithDataByYearSortedByYear.find(
-                    year => {
-                        const numValuesInYear = year[1]
-                        const percentEntitiesWithData =
-                            numValuesInYear / numEntitiesInTable
-                        return (
-                            percentEntitiesWithData >=
-                            this.AUTO_SELECTION_THRESHOLD_PERCENTAGE
-                        )
-                    }
-                )?.[0]
-
-                if (firstYearWithSufficientData) {
-                    autoSelectedStartYear = parseInt(
-                        firstYearWithSufficientData
-                    )
-                    return false
-                }
-                return true
-            })
-
-            if (autoSelectedStartYear !== undefined) {
-                this.chart.timeDomain = [
-                    autoSelectedStartYear,
-                    this.transform.endYear
-                ]
-                this.autoSelectedStartYear = autoSelectedStartYear
-            }
-        }
-    }
-
     @action
     revertAutoSelectedStartYear() {
         this.chart.timeDomain = [
@@ -410,20 +358,11 @@ export class DataTable extends React.Component<DataTableProps> {
         ]
     }
 
-    componentDidMount() {
-        when(
-            () =>
-                this.transform.dimensions.length > 0 &&
-                this.chart.timelineLoaded,
-            () => this.autoSelectStartYear()
-        )
-    }
-
     componentWillUnmount() {
         // if current Timeline startYear is auto-selected and hasn't been changed by user, revert
         if (
-            this.autoSelectedStartYear &&
-            this.autoSelectedStartYear == this.transform.startYear
+            this.transform.autoSelectedStartYear &&
+            this.transform.autoSelectedStartYear == this.transform.startYear
         )
             this.revertAutoSelectedStartYear()
     }

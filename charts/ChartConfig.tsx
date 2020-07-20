@@ -471,8 +471,6 @@ export class ChartConfig {
     @observable hideEntityControls: boolean = false
     externalCsvLink = ""
 
-    @observable timelineLoaded: boolean = false
-
     @computed get hasOWIDLogo(): boolean {
         return (
             !this.props.hideLogo &&
@@ -677,6 +675,8 @@ export class ChartConfig {
     }
 
     set timeDomain(value: TimeBounds) {
+        console.log(`time to ${value}`)
+        debugger
         this.props.minTime = value[0]
         this.props.maxTime = value[1]
     }

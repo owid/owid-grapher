@@ -1,4 +1,4 @@
-import { computed } from "mobx"
+import { computed, observable } from "mobx"
 
 import {
     valuesByEntityAtYears,
@@ -6,13 +6,16 @@ import {
     valuesByEntityWithinYears,
     getStartEndValues,
     intersection,
-    flatten
+    flatten,
+    sortBy,
+    countBy
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { isUnbounded, getTimeWithinTimeRange, Time } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
+import { observer } from "mobx-react"
 
 // Target year modes
 
@@ -108,13 +111,56 @@ function getHeaderUnit(unit: string) {
 export class DataTableTransform extends ChartTransform {
     chart: ChartConfig
 
-    @computed get isValidConfig(): boolean {
-        return true
-    }
-
     constructor(chart: ChartConfig) {
         super(chart)
         this.chart = chart
+    }
+
+    private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE: number = 0.5
+
+    /**
+     * If the user or the editor hasn't specified a start, auto-select a start year
+     *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
+     */
+    @computed get autoSelectedStartYear(): number | undefined {
+        let autoSelectedStartYear: number | undefined = undefined
+
+        if (
+            this.chart.userHasSetTimeline ||
+            this.initialTimelineStartYearSpecified
+        )
+            return undefined
+
+        const numEntitiesInTable = this.chart.table.availableEntities.length
+        this.dimensions.forEach(dim => {
+            const numberOfEntitiesWithDataByYearSortedByYear = sortBy(
+                Object.entries(countBy(dim.years)),
+                value => value[0]
+            )
+
+            const firstYearWithSufficientData = numberOfEntitiesWithDataByYearSortedByYear.find(
+                year => {
+                    const numValuesInYear = year[1]
+                    const percentEntitiesWithData =
+                        numValuesInYear / numEntitiesInTable
+                    return (
+                        percentEntitiesWithData >=
+                        this.AUTO_SELECTION_THRESHOLD_PERCENTAGE
+                    )
+                }
+            )?.[0]
+
+            if (firstYearWithSufficientData) {
+                autoSelectedStartYear = parseInt(firstYearWithSufficientData)
+                return false
+            }
+            return true
+        })
+        return autoSelectedStartYear
+    }
+
+    @computed get isValidConfig(): boolean {
+        return true
     }
 
     @computed get availableYears() {
