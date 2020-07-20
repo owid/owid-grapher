@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, observable, action } from "mobx"
+import { computed, observable, action, when } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 
@@ -8,7 +8,7 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
 import { ChartConfig } from "./ChartConfig"
 import { SortOrder } from "./SortOrder"
-import { capitalize, some, orderBy, upperFirst } from "./Util"
+import { capitalize, some, orderBy, upperFirst, countBy, sortBy } from "./Util"
 import { SortIcon } from "./SortIcon"
 import { Tippy } from "./Tippy"
 import {
@@ -305,7 +305,10 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderEntityRow(row: DataTableRow, dimensions: DataTableDimension[]) {
+    private renderEntityRow(
+        row: DataTableRow,
+        dimensions: DataTableDimension[]
+    ) {
         const { sort } = this.tableState
         return (
             <tr key={row.entity}>
@@ -340,6 +343,51 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.displayRows.map(row =>
             this.renderEntityRow(row, this.displayDimensions)
         )
+    }
+
+    @computed
+    private get isInitializedWithData(): boolean {
+        return this.transform.dimensions.length > 0
+    }
+
+    @action
+    autoSelectStartYear() {
+        if (
+            !this.props.chart.userHasSetTimeline &&
+            !this.transform.initialTimelineStartYearSpecified
+        ) {
+            const possibleValues = this.transform.chart.table.availableEntities
+                .length
+            let startingYear: number | undefined = undefined
+            this.transform.dimensions.forEach(dim => {
+                const numValuesByYear = countBy(dim.years)
+                const startYear = sortBy(
+                    Object.entries(numValuesByYear),
+                    value => +value[0]
+                ).find(year => year[1] / possibleValues > 0.5)?.[0]
+                if (startYear) {
+                    startingYear = parseInt(startYear)
+                    return false
+                }
+                return true
+            })
+            if (startingYear)
+                this.transform.chart.timeDomain = [
+                    startingYear,
+                    this.transform.endYear
+                ]
+        }
+    }
+
+    componentDidMount() {
+        when(
+            () => this.isInitializedWithData,
+            () => this.autoSelectStartYear()
+        )
+    }
+
+    componentWillUnmount() {
+        console.log("unmounting")
     }
 
     render() {

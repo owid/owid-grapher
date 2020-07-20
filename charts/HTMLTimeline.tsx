@@ -240,6 +240,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
+        if (!this.isPlaying) this.context.chart.userHasSetTimeline = true
 
         const clampedYear = this.getClampedYear(inputYear)
 

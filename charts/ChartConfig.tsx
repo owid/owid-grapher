@@ -318,6 +318,8 @@ export class ChartConfig {
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
+    @observable userHasSetTimeline: boolean = false
+
     @action.bound async downloadData() {
         if (this.props.useV2) return
 

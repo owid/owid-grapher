@@ -11,7 +11,7 @@ import {
 import { ChartConfig } from "./ChartConfig"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { getTimeWithinTimeRange, Time } from "./TimeBounds"
+import { isUnbounded, getTimeWithinTimeRange, Time } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
 
 // Target year modes
@@ -151,19 +151,16 @@ export class DataTableTransform extends ChartTransform {
         return TargetYearMode.point
     }
 
-    @computed get minYear(): Time {
-        return this.chart.minYear
+    @computed get initialTimelineStartYearSpecified(): boolean {
+        const initialMinTime = this.chart.initialProps.minTime
+        if (initialMinTime) return !isUnbounded(initialMinTime)
+        return false
     }
 
-    @computed get maxYear(): Time {
-        return this.chart.maxYear
-    }
-
-    // TODO move this logic to chart
     @computed get targetYears(): TargetYears {
         const mapTarget = this.chart.map.targetYear
         const [startYear, endYear] = this.chart.timeDomain
-        const timeRange: [Time, Time] = [this.minYear, this.maxYear]
+        const timeRange: [Time, Time] = [this.chart.minYear, this.chart.maxYear]
         if (this.chart.tab === "map") {
             return [getTimeWithinTimeRange(timeRange, mapTarget)]
         } else if (startYear === endYear) {
@@ -174,6 +171,9 @@ export class DataTableTransform extends ChartTransform {
                 getTimeWithinTimeRange(timeRange, endYear)
             ]
         }
+        // return this.startYear == this.endYear
+        //     ? [this.startYear]
+        //     : [this.startYear, this.endYear]
     }
 
     formatValue(
