@@ -83,7 +83,10 @@ export class CovidDataExplorer extends React.Component<{
             fetchLastUpdatedTime(),
             fetchCovidChartAndVariableMeta()
         ])
-        const queryStr = props.queryStr || coronaDefaultView
+        const queryStr =
+            props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
+                ? props.queryStr
+                : coronaDefaultView
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
             <CovidDataExplorer

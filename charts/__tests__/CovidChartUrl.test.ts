@@ -8,6 +8,21 @@ describe(CovidQueryParams, () => {
         expect(params.cfrMetric).toEqual(true)
     })
 
+    it("can compute whether a covid param is set", () => {
+        expect(CovidQueryParams.hasAnyCovidParam("")).toBeFalsy()
+        expect(
+            CovidQueryParams.hasAnyCovidParam("someTrackingId=3223")
+        ).toBeFalsy()
+        expect(
+            CovidQueryParams.hasAnyCovidParam("hideControls=true&smoothing=0")
+        ).toBeTruthy()
+        expect(
+            CovidQueryParams.hasAnyCovidParam(
+                "testsMetric=true&smoothing=0&country=&pickerMetric=location&pickerSort=asc"
+            )
+        ).toBeTruthy()
+    })
+
     it("computes constrained params correctly", () => {
         const params = new CovidQueryParams(
             `cfrMetric=true&dailyFreq=true&smoothing=7`

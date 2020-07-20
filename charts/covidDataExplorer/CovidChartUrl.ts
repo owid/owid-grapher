@@ -19,7 +19,7 @@ import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
 import { buildColumnSlug } from "./CovidExplorerTable"
-import { uniq } from "lodash"
+import { uniq, intersection } from "lodash"
 
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
@@ -138,6 +138,15 @@ export class CovidQueryParams {
 
     constructor(queryString: string) {
         this.setParamsFromQueryString(queryString)
+    }
+
+    static hasAnyCovidParam(queryString: string) {
+        return (
+            intersection(
+                Object.keys(new CovidQueryParams("")),
+                Object.keys(strToQueryParams(queryString))
+            ).length > 0
+        )
     }
 
     @computed get metricName(): MetricKind {
