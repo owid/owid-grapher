@@ -13,6 +13,12 @@ interface ChartExplorerRedirect {
     explorerQueryStr: string
 }
 
+/**
+ * The chart IDs are not used anywhere, they are here just for reference.
+ * We need to include any slug changes below that may happen after deploying this.
+ * We are manually tracking the slugs because deleting/unpublishing a chart automatically
+ * deletes all chart redirects (old slugs).
+ */
 export const chartExplorerRedirects: ChartExplorerRedirect[] = [
     {
         id: 4018,
