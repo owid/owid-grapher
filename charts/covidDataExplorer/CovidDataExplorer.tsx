@@ -450,22 +450,21 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     render() {
-        const showControls =
-            !this.props.params.hideControls || !this.props.isEmbed
         return (
             <>
                 <div
                     className={classnames({
                         CovidDataExplorer: true,
                         "mobile-explorer": this.isMobile,
-                        HideControls: !showControls,
+                        HideControls: !this.showExplorerControls,
                         "is-embed": this.props.isEmbed
                     })}
                 >
-                    {showControls && this.header}
-                    {showControls && this.controlBar}
-                    {showControls && this.countryPicker}
-                    {showControls && this.customizeChartMobileButton}
+                    {this.showExplorerControls && this.header}
+                    {this.showExplorerControls && this.controlBar}
+                    {this.showExplorerControls && this.countryPicker}
+                    {this.showExplorerControls &&
+                        this.customizeChartMobileButton}
                     <div
                         className="CovidDataExplorerFigure"
                         ref={this.chartContainerRef}
@@ -501,6 +500,10 @@ export class CovidDataExplorer extends React.Component<{
         this.chart.embedExplorerCheckbox = this.controlsToggleElement
         this._updateChart()
         requestAnimationFrame(() => this.onResize())
+    }
+
+    @computed get showExplorerControls() {
+        return !this.props.params.hideControls || !this.props.isEmbed
     }
 
     @computed get countryOptions(): CountryOption[] {
@@ -748,7 +751,8 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     componentDidMount() {
-        this.chart.hideEntityControls = true
+        // Show 'Add country' & 'Select countries' controls if the explorer controls are hidden.
+        this.chart.hideEntityControls = this.showExplorerControls
         this.chart.externalCsvLink = covidDataPath
         this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
