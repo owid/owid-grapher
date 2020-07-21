@@ -57,6 +57,7 @@ import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
+import { TimeBoundValue } from "charts/TimeBounds"
 
 const abSeed = Math.random()
 
@@ -778,18 +779,37 @@ export class CovidDataExplorer extends React.Component<{
         })
     }
 
+    playDefaultViewCommand() {
+        const props = this.chart.props
+        props.tab = "chart"
+        props.xAxis.scaleType = "linear"
+        props.yAxis.scaleType = "log"
+        this.chart.timeDomain = [
+            TimeBoundValue.unboundedLeft,
+            TimeBoundValue.unboundedRight
+        ]
+        this.props.params.setParamsFromQueryString(coronaDefaultView)
+        this.renderControlsThenUpdateChart()
+    }
+
     get keyboardShortcuts(): Command[] {
         return [
             {
+                combo: "h",
+                fn: () => this.playDefaultViewCommand(),
+                title: "Default view",
+                category: "Browse"
+            },
+            {
                 combo: "right",
                 fn: () => this.playIndex(++this.currentIndex),
-                title: "Play next",
+                title: "Show next",
                 category: "Browse"
             },
             {
                 combo: "left",
                 fn: () => this.playIndex(--this.currentIndex),
-                title: "Play previous",
+                title: "Show previous",
                 category: "Browse"
             },
             {
@@ -817,13 +837,13 @@ export class CovidDataExplorer extends React.Component<{
             {
                 combo: "esc",
                 fn: () => this.clearSelectionCommand(),
-                title: "Clear selected countries",
+                title: "Clear selection",
                 category: "Selection"
             },
             {
                 combo: "a",
                 fn: () => this.selectAllCommand(),
-                title: "Select all countries",
+                title: "Select all",
                 category: "Selection"
             },
             {
