@@ -28,7 +28,7 @@ import {
     next,
     previous
 } from "charts/Util"
-import { CountryOption, CovidGrapherRow, colorScaleOption } from "./CovidTypes"
+import { CountryOption, CovidGrapherRow } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
@@ -688,6 +688,11 @@ export class CovidDataExplorer extends React.Component<{
         const params = this.constrainedParams
         const { covidExplorerTable } = this
         covidExplorerTable.initRequestedColumns(params)
+
+        // Init column for epi color strategy if needed
+        if (params.colorStrategy === "ptr")
+            this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()!
+
         const chartProps = this.chart.props
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
@@ -1105,7 +1110,7 @@ export class CovidDataExplorer extends React.Component<{
         const variableId =
             this.constrainedParams.colorStrategy === "continents"
                 ? 123
-                : this.covidExplorerTable.getShortTermPositivityRateVarId()!
+                : this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()!
 
         return {
             property: "color",

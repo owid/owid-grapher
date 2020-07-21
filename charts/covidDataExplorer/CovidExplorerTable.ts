@@ -413,7 +413,7 @@ export class CovidExplorerTable {
         )
     }
 
-    getShortTermPositivityRateVarId() {
+    initAndGetShortTermPositivityRateVarId() {
         // We init this column for the epi line colors on ScatterPlots
         const params = new CovidQueryParams("")
         params.smoothing = 7
