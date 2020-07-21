@@ -4,49 +4,38 @@ import {
     getLeastUsedColor,
     CovidExplorerTable
 } from "../covidDataExplorer/CovidExplorerTable"
-import { csvParse } from "d3-dsv"
-import { testData } from "../../test/fixtures/CovidTestData"
-import { ParsedCovidCsvRow } from "charts/covidDataExplorer/CovidTypes"
+import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
 import { OwidTable } from "charts/owidData/OwidTable"
 import uniq from "lodash/uniq"
-import {
-    CovidConstrainedQueryParams,
-    CovidQueryParams
-} from "charts/covidDataExplorer/CovidChartUrl"
+import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 import { queryParamsToStr } from "utils/client/url"
 
-const getRows = () => {
-    const testRows: ParsedCovidCsvRow[] = csvParse(testData) as any
-    return testRows.map(CovidExplorerTable.parseCovidRow)
-}
-
 describe("parse row", () => {
-    const parsedRows = getRows()
     it("correctly parses data from mega file", () => {
-        expect(parsedRows[0].total_cases).toEqual(2)
+        expect(covidSampleRows[0].total_cases).toEqual(2)
     })
 })
 
 describe("makeCountryOptions", () => {
-    const parsedRows = getRows()
     it("correctly computes options", () => {
-        const options = CovidExplorerTable.makeCountryOptions(parsedRows)
+        const options = CovidExplorerTable.makeCountryOptions(covidSampleRows)
         const world = options[2]
         expect(world.name).toEqual("World")
     })
 })
 
 describe("generateContinentRows", () => {
-    const parsedRows = getRows()
     it("correctly groups continents and adds rows for each", () => {
-        const regionRows = CovidExplorerTable.generateContinentRows(parsedRows)
+        const regionRows = CovidExplorerTable.generateContinentRows(
+            covidSampleRows
+        )
         expect(regionRows.length).toEqual(6)
         expect(regionRows[regionRows.length - 1].total_cases).toEqual(46451)
     })
 })
 
 describe("build covid column", () => {
-    const dataTable = new CovidExplorerTable(new OwidTable([]), getRows())
+    const dataTable = new CovidExplorerTable(new OwidTable([]), covidSampleRows)
     dataTable.table.addRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
         3,
@@ -73,7 +62,7 @@ describe("build covid column", () => {
 })
 
 describe("builds aligned tests column", () => {
-    const dataTable = new CovidExplorerTable(new OwidTable([]), getRows())
+    const dataTable = new CovidExplorerTable(new OwidTable([]), covidSampleRows)
 
     it("it has testing data", () => {
         expect(dataTable.table.columnSlugs.includes("tests-daily")).toEqual(
@@ -125,7 +114,7 @@ describe(getLeastUsedColor, () => {
 })
 
 describe("do not include unselected groups in aligned charts", () => {
-    const dataTable = new CovidExplorerTable(new OwidTable([]), getRows())
+    const dataTable = new CovidExplorerTable(new OwidTable([]), covidSampleRows)
     it("can filter rows without continent", () => {
         expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
         dataTable.addGroupFilterColumn()
