@@ -58,6 +58,7 @@ import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
+import { startCase } from "lodash"
 
 const abSeed = Math.random()
 
@@ -552,6 +553,10 @@ export class CovidDataExplorer extends React.Component<{
     @computed private get chartTitle() {
         let title = ""
         const params = this.constrainedParams
+
+        if (params.yColumn || params.xColumn)
+            return startCase(`${this.yColumn.name} by ${this.xColumn?.name}`)
+
         const freq = params.dailyFreq ? "Daily new" : "Cumulative"
         if (params.cfrMetric)
             title = `Case fatality rate of the ongoing COVID-19 pandemic`
@@ -572,14 +577,20 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get subtitle() {
-        const smoothing = this.constrainedParams.smoothing
-            ? `Shown is the rolling ${this.constrainedParams.smoothing}-day average. `
+        const params = this.constrainedParams
+        if (params.yColumn || params.xColumn) return ""
+
+        const smoothing = params.smoothing
+            ? `Shown is the rolling ${params.smoothing}-day average. `
             : ""
         return `${smoothing}${this.yColumn?.description || ""}`
     }
 
     @computed get note() {
         const params = this.constrainedParams
+
+        if (params.yColumn || params.xColumn) return ""
+
         if (params.testsMetric)
             return "For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found on ourworldindata.org/covid-testing."
         return ""
@@ -821,10 +832,10 @@ export class CovidDataExplorer extends React.Component<{
                 combo: "t",
                 fn: () =>
                     (this.chart.props.tab = next(
-                        ["chart", "map"],
+                        ["chart", "map", "table"],
                         this.chart.props.tab
                     )),
-                title: "Toggle Chart/Map tab",
+                title: "Toggle tab",
                 category: "Navigation"
             },
             {
@@ -840,15 +851,12 @@ export class CovidDataExplorer extends React.Component<{
                 category: "Navigation"
             },
             {
-                combo: "esc",
-                fn: () => this.clearSelectionCommand(),
-                title: "Clear selection",
-                category: "Selection"
-            },
-            {
                 combo: "a",
-                fn: () => this.selectAllCommand(),
-                title: "Select all",
+                fn: () =>
+                    this.selectedData.length
+                        ? this.clearSelectionCommand()
+                        : this.selectAllCommand(),
+                title: "Select/Deselect all",
                 category: "Selection"
             },
             {
@@ -860,7 +868,7 @@ export class CovidDataExplorer extends React.Component<{
                     )
                     this.renderControlsThenUpdateChart()
                 },
-                title: "Change color scheme",
+                title: "Change line colors",
                 category: "Chart"
             },
             {
@@ -950,7 +958,10 @@ export class CovidDataExplorer extends React.Component<{
         const key = `${axis}Column`
         const params = this.props.params as any
         const fn = backwards ? previous : next
-        params[key] = fn(this.covidExplorerTable.table.columnSlugs, params[key])
+        params[key] = fn(
+            this.covidExplorerTable.table.numericColumnSlugs,
+            params[key]
+        )
         this.renderControlsThenUpdateChart()
     }
 

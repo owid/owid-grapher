@@ -52,6 +52,10 @@ interface AnnotationsRow {
     deaths_annotations: string
 }
 
+const stringColumnSlugs = new Set(
+    `iso_code location date tests_units continent`.split(" ")
+)
+
 export const buildColumnSlug = (
     name: MetricKind,
     perCapita: number,
@@ -82,15 +86,26 @@ export class CovidExplorerTable {
     ) {
         this.initColumnSpecs(owidVariableSpecs)
         this.table = table
-        this.table.addRowsAndDetectColumns(data)
+        this.table.rows = data
+        this.table.addSpecs(this.getBaseSpecs(data[0]))
         this.table.columnsBySlug.forEach(col => {
             // Ensure all columns have a OwidVarId for now. Todo: rely on just column slug in Grapher.
             if (!col.spec.owidVariableId)
                 col.spec = CovidExplorerTable.makeSpec(col.spec)
         })
-        this.table.addColumnSpec(this.columnSpecs.continents)
+        this.table.addCategoricalColumnSpec(this.columnSpecs.continents)
         this.addAnnotationColumns()
     }
+
+    private getBaseSpecs(row: CovidGrapherRow) {
+        return Object.keys(row).map(slug => {
+            return {
+                slug,
+                type: stringColumnSlugs.has(slug) ? "String" : "Numeric"
+            }
+        })
+    }
+
     private static colOwidVarIdGuid = 90210
     private static makeSpec(spec: ColumnSpec): ColumnSpec {
         return {
@@ -184,11 +199,11 @@ export class CovidExplorerTable {
         const caseSlug = "cases_annotations"
         const deathSlug = "deaths_annotations"
         const cfrSlug = "case_fatality_rate_annotations"
-        this.table.addColumnSpec({ slug: caseSlug })
-        this.table.addColumnSpec({
+        this.table.addStringColumnSpec({ slug: caseSlug })
+        this.table.addStringColumnSpec({
             slug: deathSlug
         })
-        this.table.addColumnSpec({
+        this.table.addStringColumnSpec({
             slug: cfrSlug
         })
 
@@ -350,7 +365,7 @@ export class CovidExplorerTable {
                 "day",
                 "entityName"
             )
-        else table.addComputedColumn({ ...spec, fn: rowFn })
+        else table.addNumericComputedColumn({ ...spec, fn: rowFn })
         return spec
     }
 
@@ -554,7 +569,7 @@ export class CovidExplorerTable {
 
         let currentCountry: number
         let countryExceededThresholdOnDay: number
-        this.table.addComputedColumn(spec)
+        this.table.addNumericComputedColumn(spec)
         return slug
     }
 
@@ -679,14 +694,10 @@ export class CovidExplorerTable {
         "Sweden"
     ])
 
-    private static keepStrings = new Set(
-        `iso_code location date tests_units continent`.split(" ")
-    )
-
     static parseCovidRow(row: ParsedCovidCsvRow): CovidGrapherRow {
         const newRow: Partial<CovidGrapherRow> = row
         Object.keys(row).forEach(key => {
-            const isNumeric = !CovidExplorerTable.keepStrings.has(key)
+            const isNumeric = !stringColumnSlugs.has(key)
             if (isNumeric)
                 (row as any)[key] = parseFloatOrUndefined((row as any)[key])
         })

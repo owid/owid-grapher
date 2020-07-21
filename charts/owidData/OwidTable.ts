@@ -78,6 +78,13 @@ interface OwidRow extends Row {
     date?: string
 }
 
+declare type columnTypes =
+    | "Numeric"
+    | "String"
+    | "Categorical"
+    | "Boolean"
+    | "Temporal"
+
 export interface ColumnSpec {
     slug: columnSlug
     name?: string
@@ -93,9 +100,10 @@ export interface ColumnSpec {
     display?: OwidVariableDisplaySettings
 
     // More advanced options:
-    isFilterColumn?: boolean
-    isSelectionColumn?: boolean
     annotationsColumnSlug?: columnSlug
+    fn?: RowToValueMapper
+
+    type?: columnTypes
 }
 
 // todo: remove index param?
@@ -229,8 +237,21 @@ export abstract class AbstractColumn {
 }
 
 class AnyColumn extends AbstractColumn {}
+class StringColumn extends AbstractColumn {}
+class TemporalColumn extends AbstractColumn {}
+class CategoricalColumn extends AbstractColumn {}
 class BooleanColumn extends AbstractColumn {}
-// Todo: Add NumberColumn, AbstractTemporalColumn, DayColumn, YearColumn, EntityColumn, etc
+class FilterColumn extends BooleanColumn {}
+class SelectionColumn extends BooleanColumn {}
+class NumericColumn extends AbstractColumn {}
+const columnTypeMap: { [key in columnTypes]: any } = {
+    String: StringColumn,
+    Temporal: TemporalColumn,
+    Categorical: CategoricalColumn,
+    Numeric: NumericColumn,
+    Boolean: BooleanColumn
+}
+// Todo: Add DayColumn, YearColumn, EntityColumn, etc?
 
 declare type ColumnSpecs = Map<columnSlug, ColumnSpec>
 declare type ColumnSpecObject = { [columnSlug: string]: ColumnSpec }
@@ -241,35 +262,36 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     constructor(
         rows: ROW_TYPE[],
-        columnSpecs?: ColumnSpecs | ColumnSpecObject
+        columnSpecs:
+            | ColumnSpecs
+            | ColumnSpec[]
+            | ColumnSpecObject = AbstractTable.makeSpecsFromRows(rows)
     ) {
         this.rows = cloneDeep(rows)
-        if (!columnSpecs) return this.detectAndAddColumnsFromRows(this.rows)
+        this.addSpecs(columnSpecs)
+    }
 
-        if (!(columnSpecs instanceof Map))
+    addSpecs(columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[]) {
+        if (Array.isArray(columnSpecs))
+            columnSpecs = new Map(columnSpecs.map(spec => [spec.slug, spec]))
+        else if (!(columnSpecs instanceof Map))
             columnSpecs = new Map(
                 Object.entries(columnSpecs as ColumnSpecObject)
             )
-
         const specs = columnSpecs as ColumnSpecs
-        Array.from(specs.keys()).forEach(slug => {
-            this.columns.set(slug, new AnyColumn(this, specs.get(slug)!))
-        })
-    }
-
-    protected detectAndAddColumnsFromRows(rows: Row[]) {
-        const specs = AbstractTable.makeSpecsFromRows(rows)
         const cols = this.columns
         Array.from(specs.keys()).forEach(slug => {
-            // At the moment do not overwrite existing columns
-            if (!cols.has(slug))
-                cols.set(slug, new AnyColumn(this, specs.get(slug)!))
+            const spec = specs.get(slug)!
+            const columnType =
+                (spec.type && columnTypeMap[spec.type]) || AnyColumn
+            // At the moment we do not overwrite existing columns
+            if (!cols.has(slug)) cols.set(slug, new columnType(this, spec))
         })
-        return this
     }
 
     static makeSpecsFromRows(rows: any[]): ColumnSpecs {
         const map = new Map()
+        // Todo: type detection
         rows.forEach(row => {
             Object.keys(row).forEach(key => {
                 map.set(key, { slug: key })
@@ -287,41 +309,40 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         slug: columnSlug,
         predicate: RowToValueMapper
     ) {
-        return this._addComputedColumn(
-            { slug, isFilterColumn: true, fn: predicate },
-            BooleanColumn
-        )
+        this._addComputedColumn(new FilterColumn(this, { slug, fn: predicate }))
     }
 
     @action.bound addSelectionColumn(
         slug: columnSlug,
         predicate: (row: Row) => boolean
     ) {
-        return this._addComputedColumn(
-            { slug, isSelectionColumn: true, fn: predicate },
-            BooleanColumn
+        this._addComputedColumn(
+            new SelectionColumn(this, { slug, fn: predicate })
         )
     }
 
-    private _addComputedColumn(
-        spec: ComputedColumnSpec,
-        columnType = AnyColumn
-    ) {
-        const slug = spec.slug
-        this.columns.set(slug, new columnType(this, spec))
-        const fn = spec.fn
+    private _addComputedColumn(column: AbstractColumn) {
+        const slug = column.spec.slug
+        this.columns.set(slug, column)
+        const fn = column.spec.fn!
         this.rows.forEach((row, index) => {
             ;(row as any)[slug] = fn(row, index, this)
         })
     }
 
-    @action.bound addColumnSpec(spec: ColumnSpec) {
-        this.columns.set(spec.slug, new AnyColumn(this, spec))
+    @action.bound addStringColumnSpec(spec: ColumnSpec) {
+        this.columns.set(spec.slug, new StringColumn(this, spec))
         return this
     }
 
-    @action.bound addComputedColumn(spec: ComputedColumnSpec) {
-        return this._addComputedColumn(spec)
+    @action.bound addCategoricalColumnSpec(spec: ColumnSpec) {
+        this.columns.set(spec.slug, new CategoricalColumn(this, spec))
+        return this
+    }
+
+    @action.bound addNumericComputedColumn(spec: ComputedColumnSpec) {
+        this._addComputedColumn(new NumericColumn(this, spec))
+        return this
     }
 
     // todo: this won't work when adding rows dynamically
@@ -339,10 +360,12 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             dateColName,
             windowSize
         )
-        this._addComputedColumn({
-            ...spec,
-            fn: (row, index) => (row[spec.slug] = averages[index!])
-        })
+        this._addComputedColumn(
+            new NumericColumn(this, {
+                ...spec,
+                fn: (row, index) => (row[spec.slug] = averages[index!])
+            })
+        )
     }
 
     @computed get columnsBySlug() {
@@ -359,6 +382,12 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed get columnSlugs() {
         return Array.from(this.columns.keys())
+    }
+
+    @computed get numericColumnSlugs() {
+        return this.columnsAsArray
+            .filter(col => col instanceof NumericColumn)
+            .map(col => col.slug)
     }
 
     @computed get isSelectedFn() {
@@ -408,13 +437,13 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed private get filterColumnSlugs() {
         return this.columnsAsArray
-            .filter(col => col.spec.isFilterColumn)
+            .filter(col => col instanceof FilterColumn)
             .map(col => col.slug)
     }
 
     @computed private get selectionColumnSlugs() {
         return this.columnsAsArray
-            .filter(col => col.spec.isSelectionColumn)
+            .filter(col => col instanceof SelectionColumn)
             .map(col => col.slug)
     }
 
@@ -448,7 +477,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @action.bound addRowsAndDetectColumns(rows: ROW_TYPE[]) {
         this.rows = this.rows.concat(cloneDeep(rows))
-        this.detectAndAddColumnsFromRows(rows)
+        this.addSpecs(AbstractTable.makeSpecsFromRows(rows))
         return this
     }
 }
@@ -574,10 +603,12 @@ export class OwidTable extends AbstractTable<OwidRow> {
     private defaultEntitySelectionSlug = "is_entity_selected"
     private initDefaultEntitySelectionColumn() {
         if (!this.columnsBySlug.has(this.defaultEntitySelectionSlug))
-            this.addColumnSpec({
-                slug: this.defaultEntitySelectionSlug,
-                isSelectionColumn: true
-            })
+            this.columns.set(
+                this.defaultEntitySelectionSlug,
+                new SelectionColumn(this, {
+                    slug: this.defaultEntitySelectionSlug
+                })
+            )
     }
 
     @action.bound selectEntity(entityName: entityName) {
@@ -655,20 +686,23 @@ export class OwidTable extends AbstractTable<OwidRow> {
             datasetName,
             display,
             source,
-            owidVariableId: variable.id
+            owidVariableId: variable.id,
+            type: "Numeric"
         }
     }
 
     static fromLegacy(json: OwidVariablesAndEntityKey) {
         let rows: OwidRow[] = []
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
-        const columnSpecs = new Map()
+        const columnSpecs: Map<columnSlug, ColumnSpec> = new Map()
         columnSpecs.set("entityName", {
-            slug: "entityName"
+            slug: "entityName",
+            type: "Categorical"
         })
-        columnSpecs.set("entityId", { slug: "entityId" })
+        columnSpecs.set("entityId", { slug: "entityId", type: "Categorical" })
         columnSpecs.set("entityCode", {
-            slug: "entityCode"
+            slug: "entityCode",
+            type: "Categorical"
         })
 
         for (const key in json.variables) {
@@ -684,8 +718,8 @@ export class OwidTable extends AbstractTable<OwidRow> {
             const columnSpec = this.columnSpecFromLegacyVariable(variable)
             const columnSlug = columnSpec.slug
             columnSpec.isDailyMeasurement
-                ? columnSpecs.set("day", { slug: "day" })
-                : columnSpecs.set("year", { slug: "year" })
+                ? columnSpecs.set("day", { slug: "day", type: "Temporal" })
+                : columnSpecs.set("year", { slug: "year", type: "Temporal" })
             columnSpecs.set(columnSlug, columnSpec)
 
             // todo: remove. move annotations to their own first class column.
@@ -699,7 +733,8 @@ export class OwidTable extends AbstractTable<OwidRow> {
                     variable.display.entityAnnotationsMap
                 )
                 columnSpecs.set(annotationsColumnSlug, {
-                    slug: annotationsColumnSlug
+                    slug: annotationsColumnSlug,
+                    type: "String"
                 })
                 columnSpec.annotationsColumnSlug = annotationsColumnSlug
             }
