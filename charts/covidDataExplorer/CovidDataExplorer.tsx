@@ -56,6 +56,7 @@ import {
 import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
+import { CommandPalette, Command } from "./CommandPalette"
 
 const abSeed = Math.random()
 
@@ -64,71 +65,6 @@ interface BootstrapProps {
     isEmbed?: boolean
     queryStr?: string
     globalEntitySelection?: GlobalEntitySelection
-}
-
-declare type keyboardCombo = string
-
-interface Command {
-    combo: keyboardCombo
-    fn: () => any
-    title: string
-    category: string
-}
-
-@observer
-export class CommandCenter extends React.Component<{ commands: Command[] }> {
-    render() {
-        const style: any = {
-            position: "fixed",
-            display: "none",
-            top: 100,
-            left: 100,
-            right: 100,
-            bottom: 100,
-            background: "white",
-            zIndex: 1000,
-            opacity: 0.7
-        }
-        let lastCat = ""
-        const commands = this.props.commands.map(command => {
-            let cat = undefined
-            if (command.category !== lastCat) {
-                lastCat = command.category
-                cat = (
-                    <tr>
-                        <td>
-                            <strong>{lastCat}</strong>
-                        </td>
-                        <td></td>
-                    </tr>
-                )
-            }
-            return (
-                <>
-                    {cat}
-                    <tr>
-                        <td>{command.combo}</td>
-                        <td>
-                            <a onClick={() => command.fn()}>{command.title}</a>
-                        </td>
-                    </tr>
-                </>
-            )
-        })
-
-        return (
-            <div id="keyboardHelp" style={style}>
-                <h3>Keyboard Shortcuts</h3>
-                <table>
-                    <thead>
-                        <th></th>
-                        <th></th>
-                    </thead>
-                    <tbody>{commands}</tbody>
-                </table>
-            </div>
-        )
-    }
 }
 
 @observer
@@ -521,7 +457,10 @@ export class CovidDataExplorer extends React.Component<{
     render() {
         return (
             <>
-                <CommandCenter commands={this.keyboardShortcuts} />
+                <CommandPalette
+                    commands={this.keyboardShortcuts}
+                    display="none"
+                />
                 <div
                     className={classnames({
                         CovidDataExplorer: true,
@@ -865,12 +804,13 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 combo: "?",
-                fn: () =>
-                    (document.getElementById("keyboardHelp")!.style.display =
-                        document.getElementById("keyboardHelp")!.style
-                            .display === "none"
-                            ? "block"
-                            : "none"),
+                fn: () => {
+                    const element = document.getElementsByClassName(
+                        "CommandPalette"
+                    )[0] as HTMLElement
+                    element.style.display =
+                        element.style.display === "none" ? "block" : "none"
+                },
                 title: "Toggle Help",
                 category: "Navigation"
             },
@@ -925,26 +865,23 @@ export class CovidDataExplorer extends React.Component<{
                 category: "Chart"
             },
             {
-                combo: "x",
-                fn: () => this.toggleDimensionColumnCommand("x"),
-                title: "Next X Option",
-                category: "Chart"
-            },
-
-            {
                 combo: "shift+y",
                 fn: () => this.toggleDimensionColumnCommand("y", true),
                 title: "Previous Y Option",
                 category: "Chart"
             },
-
+            {
+                combo: "x",
+                fn: () => this.toggleDimensionColumnCommand("x"),
+                title: "Next X Option",
+                category: "Chart"
+            },
             {
                 combo: "shift+x",
                 fn: () => this.toggleDimensionColumnCommand("x", true),
                 title: "Previous X Option",
                 category: "Chart"
             },
-
             {
                 combo: "s",
                 fn: () => this.toggleDimensionColumnCommand("size"),

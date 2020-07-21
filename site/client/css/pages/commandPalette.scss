@@ -1,0 +1,33 @@
+.CommandPalette {
+    position: fixed;
+    top: 100;
+    left: 100;
+    font-size: 0.8em;
+    background: white;
+    z-index: 1000;
+    opacity: 0.95;
+    padding: 14px;
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+
+    .paletteTitle {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .commandCategory {
+        font-weight: bold;
+        margin-top: 1.4em;
+    }
+
+    .commandCombo {
+        width: 5em;
+        display: inline-block;
+    }
+
+    .commandCategory,
+    .commandOption {
+        line-height: 1.4em;
+    }
+}

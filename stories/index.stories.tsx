@@ -9,6 +9,10 @@ import "charts/client/chart.scss"
 import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
 import { covidSampleRows } from "test/fixtures/CovidSampleRows"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
+import {
+    CommandPalette,
+    Command
+} from "charts/covidDataExplorer/CommandPalette"
 
 storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)
 
@@ -51,6 +55,30 @@ storiesOf("CovidDataExplorer", module)
             </>
         )
     })
+
+storiesOf("CommandPalette", module).add("testCommands", () => {
+    const demoCommands: Command[] = [
+        {
+            combo: "ctrl+o",
+            fn: () => {},
+            title: "Open",
+            category: "File"
+        },
+        {
+            combo: "ctrl+s",
+            fn: () => {},
+            title: "Save",
+            category: "File"
+        },
+        {
+            combo: "ctrl+c",
+            fn: () => {},
+            title: "Copy",
+            category: "Edit"
+        }
+    ]
+    return <CommandPalette commands={demoCommands} display="block" />
+})
 
 // storiesOf('Button', module)
 //   .add('with text', () => <Button onClick={action('clicked')}>Hello Button</Button>)
