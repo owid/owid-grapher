@@ -132,7 +132,14 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
         explorerQueryStr:
             "yScale=log&zoomToSelection=true&testsMetric=true&totalFreq=true&aligned=true&perCapita=true&smoothing=0&country="
     }
-]
+].map(redirect => ({
+    ...redirect,
+    // Ensure all have hideControls=true, unless specified otherwise.
+    explorerQueryStr: mergeQueryStr(
+        "hideControls=true",
+        redirect.explorerQueryStr
+    )
+}))
 
 export const chartExplorerRedirectsBySlug: Record<
     string,
