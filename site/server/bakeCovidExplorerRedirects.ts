@@ -1,10 +1,5 @@
 import { BAKED_BASE_URL } from "settings"
-import {
-    fromPairs,
-    flatten,
-    urlToSlug,
-    chartToExplorerQueryStr
-} from "charts/Util"
+import { fromPairs, flatten, urlToSlug, mergeQueryStr } from "charts/Util"
 import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
 
 interface ChartExplorerRedirect {
@@ -161,10 +156,7 @@ export function replaceChartIframesWithExplorerIframes($: CheerioStatic) {
             const { explorerQueryStr } = chartExplorerRedirectsBySlug[slug]
             const matchQueryStr = url.match(/\?([^#]*)/)
             const chartQueryStr = matchQueryStr ? matchQueryStr[1] : ""
-            const queryStr = chartToExplorerQueryStr(
-                explorerQueryStr,
-                chartQueryStr
-            )
+            const queryStr = mergeQueryStr(explorerQueryStr, chartQueryStr)
             // Replace Grapher iframe src with explorer src
             el.attribs[
                 "src"

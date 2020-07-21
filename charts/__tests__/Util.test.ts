@@ -12,7 +12,7 @@ import {
     insertMissingValuePlaceholders,
     rollingMap,
     groupMap,
-    chartToExplorerQueryStr
+    mergeQueryStr
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -252,10 +252,10 @@ describe(groupMap, () => {
     })
 })
 
-describe(chartToExplorerQueryStr, () => {
+describe(mergeQueryStr, () => {
     it("chart params override explorer params", () => {
         const params = strToQueryParams(
-            chartToExplorerQueryStr(
+            mergeQueryStr(
                 "yScale=log&testsMetric=true&country=~GBR",
                 "country=GBR~ESP"
             )
@@ -264,9 +264,7 @@ describe(chartToExplorerQueryStr, () => {
         expect(params.country).toEqual("GBR~ESP")
     })
 
-    it("always sets hideControls=true", () => {
-        expect(chartToExplorerQueryStr("", undefined)).toEqual(
-            "?hideControls=true"
-        )
+    it("handles undefined", () => {
+        expect(mergeQueryStr(undefined, "")).toEqual("")
     })
 })

@@ -24,7 +24,7 @@ import {
     lastOfNonEmptyArray,
     throttle,
     capitalize,
-    chartToExplorerQueryStr
+    mergeQueryStr
 } from "charts/Util"
 import { CountryOption, CovidGrapherRow } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
@@ -116,11 +116,7 @@ export class CovidDataExplorer extends React.Component<{
         explorerQueryStr: string,
         props: BootstrapProps
     ) {
-        const queryStr = chartToExplorerQueryStr(
-            explorerQueryStr,
-            props.queryStr,
-            {}
-        )
+        const queryStr = mergeQueryStr(explorerQueryStr, props.queryStr)
         window.history.replaceState(
             null,
             document.title,

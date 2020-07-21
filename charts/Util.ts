@@ -58,6 +58,7 @@ import mapKeys from "lodash/mapKeys"
 import memoize from "lodash/memoize"
 import takeWhile from "lodash/takeWhile"
 import upperFirst from "lodash/upperFirst"
+import assign from "lodash/assign"
 
 export {
     isEqual,
@@ -871,15 +872,8 @@ export function getAttributesOfHTMLElement(el: HTMLElement) {
     return attributes
 }
 
-export function chartToExplorerQueryStr(
-    explorerQueryStr?: string,
-    chartQueryStr?: string,
-    additionalOptions: any = { hideControls: "true" }
-) {
-    return queryParamsToStr({
-        ...strToQueryParams(explorerQueryStr ?? ""),
-        ...strToQueryParams(chartQueryStr ?? ""),
-        // Default is to always hide controls when redirecting chart to explorer
-        ...additionalOptions
-    })
+export function mergeQueryStr(...queryStrs: (string | undefined)[]) {
+    return queryParamsToStr(
+        assign({}, ...excludeUndefined(queryStrs).map(strToQueryParams))
+    )
 }
