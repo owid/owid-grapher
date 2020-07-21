@@ -77,6 +77,10 @@ export class Analytics {
         this.logToGA("SiteClick", note || "unknown-category", text)
     }
 
+    static logKeyboardShortcut(shortcut: string, combo: string) {
+        this.logToGA("KeyboardShortcut", shortcut, combo)
+    }
+
     static logPageLoad() {
         this.logToAmplitude("OWID_PAGE_LOAD")
     }
