@@ -59,6 +59,7 @@ import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { startCase } from "lodash"
+import { Analytics } from "site/client/Analytics"
 
 const abSeed = Math.random()
 
@@ -791,7 +792,10 @@ export class CovidDataExplorer extends React.Component<{
         ;(window as any).covidDataExplorer = this
 
         this.keyboardShortcuts.forEach(shortcut => {
-            Mousetrap.bind(shortcut.combo, shortcut.fn)
+            Mousetrap.bind(shortcut.combo, () => {
+                shortcut.fn()
+                Analytics.logKeyboardShortcut(shortcut.title, shortcut.combo)
+            })
         })
     }
 
