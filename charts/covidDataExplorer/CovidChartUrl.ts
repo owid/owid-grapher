@@ -195,9 +195,9 @@ export class CovidQueryParams {
     }
 
     @computed get colorStrategy(): colorScaleOption {
-        if (this.chartType !== "ScatterPlot") return "none"
-
         if (this.colorScale) return this.colorScale
+
+        if (this.chartType !== "ScatterPlot") return "none"
 
         if (this.casesMetric || this.testsMetric) return "ptr"
 

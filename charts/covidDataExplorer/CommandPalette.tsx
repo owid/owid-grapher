@@ -20,20 +20,20 @@ export class CommandPalette extends React.Component<{
             display: this.props.display
         }
         let lastCat = ""
-        const commands = this.props.commands.map(command => {
+        const commands = this.props.commands.map((command, index) => {
             let cat = undefined
             if (command.category !== lastCat) {
                 lastCat = command.category
                 cat = <div className="commandCategory">{lastCat}</div>
             }
             return (
-                <>
+                <div key={`command${index}`}>
                     {cat}
                     <div className="commandOption">
                         <span className="commandCombo">{command.combo}</span>
                         <a onClick={() => command.fn()}>{command.title}</a>
                     </div>
-                </>
+                </div>
             )
         })
 
