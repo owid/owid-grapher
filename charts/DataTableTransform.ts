@@ -115,6 +115,10 @@ export class DataTableTransform extends ChartTransform {
         this.chart = chart
     }
 
+    @computed private get loadedWithData(): boolean {
+        return this.dimensions.length > 0
+    }
+
     private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE: number = 0.5
 
     /**
@@ -126,22 +130,24 @@ export class DataTableTransform extends ChartTransform {
 
         if (
             this.chart.userHasSetTimeline ||
-            this.initialTimelineStartYearSpecified
+            this.initialTimelineStartYearSpecified ||
+            !this.loadedWithData
         )
             return undefined
 
-        const numEntitiesInTable = this.chart.table.availableEntities.length
+        const numEntitiesInTable = this.entities.length
+
         this.dimensions.forEach(dim => {
-            const numberOfEntitiesWithDataByYearSortedByYear = sortBy(
+            const numberOfEntitiesWithDataSortedByYear = sortBy(
                 Object.entries(countBy(dim.years)),
-                value => value[0]
+                value => parseInt(value[0])
             )
 
-            const firstYearWithSufficientData = numberOfEntitiesWithDataByYearSortedByYear.find(
+            const firstYearWithSufficientData = numberOfEntitiesWithDataSortedByYear.find(
                 year => {
-                    const numValuesInYear = year[1]
+                    const numEntitiesWithData = year[1]
                     const percentEntitiesWithData =
-                        numValuesInYear / numEntitiesInTable
+                        numEntitiesWithData / numEntitiesInTable
                     return (
                         percentEntitiesWithData >=
                         this.AUTO_SELECTION_THRESHOLD_PERCENTAGE
@@ -155,6 +161,7 @@ export class DataTableTransform extends ChartTransform {
             }
             return true
         })
+
         return autoSelectedStartYear
     }
 
@@ -389,8 +396,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get displayRows(): DataTableRow[] {
-        const entities = this.chart.data.availableEntityNames
-        const rows = entities.map(entity => {
+        const rows = this.entities.map(entity => {
             const dimensionValues = this.dimensionsWithValues.map(d =>
                 d.valueByEntity.get(entity)
             )

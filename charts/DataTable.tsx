@@ -359,12 +359,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     componentWillUnmount() {
-        // if current Timeline startYear is auto-selected and hasn't been changed by user, revert
-        if (
-            this.transform.autoSelectedStartYear &&
-            this.transform.autoSelectedStartYear == this.transform.startYear
-        )
-            this.revertAutoSelectedStartYear()
+        if (!this.chart.userHasSetTimeline) this.revertAutoSelectedStartYear()
     }
 
     render() {
