@@ -5,9 +5,10 @@ import { observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 
 export class OwidVariableTableDisplaySettings {
-    @observable showRelativeChange: boolean = true
     @observable showAbsoluteChange: boolean = true
+    @observable showRelativeChange: boolean = true
 }
+
 export class OwidVariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined

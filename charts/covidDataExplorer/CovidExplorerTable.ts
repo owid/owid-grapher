@@ -120,8 +120,11 @@ export class CovidExplorerTable {
                 ...owidVariableSpecs[sourceVariables.positive_test_rate],
                 isDailyMeasurement: true,
                 description:
-                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country."
-            } as any,
+                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
+                display: {
+                    tableDisplay: { showRelativeChange: false }
+                }
+            } as ColumnSpec,
             tests_per_case: {
                 ...owidVariableSpecs[sourceVariables.tests_per_case],
                 isDailyMeasurement: true,
@@ -132,7 +135,10 @@ export class CovidExplorerTable {
                 ...owidVariableSpecs[sourceVariables.case_fatality_rate],
                 annotationsColumnSlug: "case_fatality_rate_annotations",
                 isDailyMeasurement: true,
-                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
+                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
+                display: {
+                    tableDisplay: { showRelativeChange: false }
+                }
             } as any,
             cases: {
                 ...owidVariableSpecs[sourceVariables.cases],

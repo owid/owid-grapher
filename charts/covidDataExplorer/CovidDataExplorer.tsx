@@ -714,7 +714,6 @@ export class CovidDataExplorer extends React.Component<{
 
         this._updateMap()
         this._updateColorScale()
-        this._updateTableDisplaySettings()
 
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
@@ -755,27 +754,6 @@ export class CovidDataExplorer extends React.Component<{
 
         chartProps.map.targetYear = undefined
         chartProps.map.variableId = this.yColumn.spec.owidVariableId
-    }
-
-    private _updateTableDisplaySettings() {
-        const tableDisplaySettingsByDimensionProperty: {
-            [dimensionProperty: string]:
-                | OwidVariableTableDisplaySettings
-                | undefined
-        } = {}
-
-        // get table display settings for every dimension on source chart
-        this.sourceChart?.dimensions.forEach(
-            dim =>
-                (tableDisplaySettingsByDimensionProperty[dim.property] =
-                    dim.display.tableDisplay)
-        )
-
-        this.chart.filledDimensions.forEach(dim => {
-            dim.props.display.tableDisplay =
-                tableDisplaySettingsByDimensionProperty[dim.property] ??
-                new OwidVariableTableDisplaySettings()
-        })
     }
 
     componentDidMount() {

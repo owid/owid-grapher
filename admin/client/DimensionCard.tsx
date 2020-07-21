@@ -15,6 +15,10 @@ import { faChevronUp } from "@fortawesome/free-solid-svg-icons/faChevronUp"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    OwidVariableDisplaySettings,
+    OwidVariableTableDisplaySettings
+} from "charts/owidData/OwidVariable"
 
 @observer
 export class DimensionCard extends React.Component<{
@@ -46,8 +50,11 @@ export class DimensionCard extends React.Component<{
     }
 
     @computed private get tableDisplaySettings() {
-        const { tableDisplay } = this.props.dimension.props.display
-        if (!tableDisplay) return
+        const { spec } = this.props.dimension.column
+        if (!spec.display) spec.display = new OwidVariableDisplaySettings()
+        if (!spec.display.tableDisplay)
+            spec.display.tableDisplay = new OwidVariableTableDisplaySettings()
+        const { tableDisplay } = spec.display
         return (
             <React.Fragment>
                 <hr className="ui divider" />
