@@ -113,8 +113,6 @@ export class CovidQueryParams {
                 params.country
             ).forEach(code => this.selectedCountryCodes.add(code))
         }
-        if (params.colorScale)
-            this.colorScale = params.colorScale as colorScaleOption
 
         if (params.pickerMetric) {
             const metric = oneOf<CountryPickerMetric | undefined>(
@@ -136,6 +134,7 @@ export class CovidQueryParams {
         this.yColumn = params.yColumn
         this.xColumn = params.xColumn
         this.sizeColumn = params.sizeColumn
+        this.colorScale = params.colorScale as colorScaleOption
     }
 
     constructor(queryString: string) {
