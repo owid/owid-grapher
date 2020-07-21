@@ -62,7 +62,7 @@ hi,1,in millions,2000
 hi,1,,2001`
     const specs = new Map()
     const table = BasicTable.fromCsv(csv)
-    table.addColumnSpec({ slug: "pop", annotationsColumnSlug: "notes" })
+    table.addStringColumnSpec({ slug: "pop", annotationsColumnSlug: "notes" })
 
     it("can get annotations for a row", () => {
         const annotationsColumn = table.columnsBySlug.get("pop")
