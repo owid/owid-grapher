@@ -23,7 +23,7 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
             "total-cases-covid-19-who"
         ],
         explorerQueryStr:
-            "zoomToSelection=true&casesMetric=true&dailyFreq=true&smoothing=0&country=~OWID_WRL"
+            "zoomToSelection=true&casesMetric=true&totalFreq=true&smoothing=0&country=~OWID_WRL"
     },
     {
         id: 4019,
