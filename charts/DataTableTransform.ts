@@ -13,7 +13,7 @@ import {
 import { ChartConfig } from "./ChartConfig"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { isUnbounded, getTimeWithinTimeRange, Time } from "./TimeBounds"
+import { getTimeWithinTimeRange, Time, isUnboundedLeft } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
 
 // Target year modes
@@ -205,7 +205,7 @@ export class DataTableTransform extends ChartTransform {
 
     @computed get initialTimelineStartYearSpecified(): boolean {
         const initialMinTime = this.chart.initialProps.minTime
-        if (initialMinTime) return !isUnbounded(initialMinTime)
+        if (initialMinTime) return !isUnboundedLeft(initialMinTime)
         return false
     }
 
