@@ -121,6 +121,7 @@ export class CovidExplorerTable {
                 description:
                     "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
                 display: {
+                    shortUnit: "%",
                     tableDisplay: { hideRelativeChange: true }
                 }
             },
@@ -136,6 +137,7 @@ export class CovidExplorerTable {
                 isDailyMeasurement: true,
                 description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
                 display: {
+                    shortUnit: "%",
                     tableDisplay: { hideRelativeChange: true }
                 }
             },
