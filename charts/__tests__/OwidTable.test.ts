@@ -29,7 +29,7 @@ describe(OwidTable, () => {
     })
 
     it("a column can be added", () => {
-        table.addComputedColumn({
+        table.addNumericComputedColumn({
             slug: "populationInMillions",
             fn: row => row.population / 1000000
         })
@@ -141,12 +141,12 @@ iceland,1`
     const rows = [{ country: "USA" }, { country: "Germany" }]
     const table = new BasicTable(rows)
     it("does not modify rows", () => {
-        table.addComputedColumn({
+        table.addNumericComputedColumn({
             slug: "firstLetter",
-            fn: row => row.country.substr(0, 1)
+            fn: row => row.country.length
         })
         expect(table.columnsBySlug.get("firstLetter")?.values.join("")).toEqual(
-            `UG`
+            `37`
         )
         expect((rows[0] as any).firstLetter).toEqual(undefined)
     })
@@ -184,7 +184,7 @@ describe("rolling averages", () => {
     it("a column can be added", () => {
         expect(table.rows.length).toEqual(rows.length)
         expect(Array.from(table.columnsByName.keys()).length).toEqual(colLength)
-        table.addComputedColumn({
+        table.addNumericComputedColumn({
             slug: "populationInMillions",
             fn: row => row.population / 1000000
         })
