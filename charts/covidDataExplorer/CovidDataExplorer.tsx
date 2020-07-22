@@ -3,7 +3,7 @@ import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
@@ -151,7 +151,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Confirmed cases",
                 checked: this.constrainedParams.casesMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("cases")
                     this.renderControlsThenUpdateChart()
                 }
@@ -160,7 +160,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Confirmed deaths",
                 checked: this.constrainedParams.deathsMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("deaths")
                     this.renderControlsThenUpdateChart()
                 }
@@ -170,7 +170,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Case fatality rate",
                 checked: this.constrainedParams.cfrMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("case_fatality_rate")
                     this.renderControlsThenUpdateChart()
                 }
@@ -182,7 +182,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Tests",
                 checked: this.constrainedParams.testsMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("tests")
                     this.renderControlsThenUpdateChart()
                 }
@@ -191,7 +191,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Tests per confirmed case",
                 checked: this.constrainedParams.testsPerCaseMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("tests_per_case")
                     this.renderControlsThenUpdateChart()
                 }
@@ -200,7 +200,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Share of positive tests",
                 checked: this.constrainedParams.positiveTestRate,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("positive_test_rate")
                     this.renderControlsThenUpdateChart()
                 }
@@ -735,16 +735,20 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    private _updateMap() {
-        const chartProps = this.chart.props
+    @computed get sourceChart(): ChartConfigProps | undefined {
         const sourceChartId = (sourceCharts as any)[
             this.constrainedParams.sourceChartKey
         ]
 
+        return this.props.covidChartAndVariableMeta.charts[sourceChartId]
+    }
+
+    private _updateMap() {
+        const chartProps = this.chart.props
+
         Object.assign(
             chartProps.map,
-            this.props.covidChartAndVariableMeta.charts[sourceChartId]?.map ||
-                this.defaultMapConfig
+            this.sourceChart?.map || this.defaultMapConfig
         )
 
         chartProps.map.targetYear = undefined
@@ -889,7 +893,8 @@ export class CovidDataExplorer extends React.Component<{
                         // Allow ± 1 day difference in data plotted on bar charts
                         // This is what we use for charts on the Grapher too
                         tolerance: 1,
-                        name: this.chartTitle
+                        name: this.chartTitle,
+                        tableDisplay: yColumn.display.tableDisplay
                     }
                 }
             ]
@@ -901,14 +906,16 @@ export class CovidDataExplorer extends React.Component<{
                 property: "y",
                 variableId: yColumn.spec.owidVariableId!,
                 display: {
-                    name: this.chartTitle
+                    name: this.chartTitle,
+                    tableDisplay: yColumn.display.tableDisplay
                 }
             },
             {
                 property: "x",
                 variableId: xColumn.spec.owidVariableId!,
                 display: {
-                    name: xColumn.spec.name
+                    name: xColumn.spec.name,
+                    tableDisplay: xColumn.display.tableDisplay
                 }
             },
             {

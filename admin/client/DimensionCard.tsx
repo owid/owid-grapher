@@ -45,6 +45,28 @@ export class DimensionCard extends React.Component<{
         this.props.dimension.props.saveToVariable = value || undefined
     }
 
+    private get tableDisplaySettings() {
+        const { tableDisplay } = this.props.dimension.props.display
+        if (!tableDisplay) return
+        return (
+            <React.Fragment>
+                <hr className="ui divider" />
+                Table:
+                <Toggle
+                    label="Hide absolute change column"
+                    value={tableDisplay.hideAbsoluteChange}
+                    onValue={value => (tableDisplay.hideAbsoluteChange = value)}
+                />
+                <Toggle
+                    label="Hide relative change column"
+                    value={tableDisplay.hideRelativeChange}
+                    onValue={value => (tableDisplay.hideRelativeChange = value)}
+                />
+                <hr className="ui divider" />
+            </React.Fragment>
+        )
+    }
+
     render() {
         const { dimension, editor } = this.props
         const { chart } = editor
@@ -131,6 +153,7 @@ export class DimensionCard extends React.Component<{
                             auto={dimension.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
                         />
+                        {this.tableDisplaySettings}
                         {(chart.isScatter ||
                             chart.isDiscreteBar ||
                             chart.isLineChart) && (
