@@ -135,6 +135,23 @@ iceland,1`)
     })
 })
 
+describe("immutability", () => {
+    const csv = `country,Population in 2020
+iceland,1`
+    const rows = [{ country: "USA" }, { country: "Germany" }]
+    const table = new BasicTable(rows)
+    it("does not modify rows", () => {
+        table.addComputedColumn({
+            slug: "firstLetter",
+            fn: row => row.country.substr(0, 1)
+        })
+        expect(table.columnsBySlug.get("firstLetter")?.values.join("")).toEqual(
+            `UG`
+        )
+        expect((rows[0] as any).firstLetter).toEqual(undefined)
+    })
+})
+
 describe("rolling averages", () => {
     const rows = [
         {

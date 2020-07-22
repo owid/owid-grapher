@@ -916,7 +916,7 @@ export class ChartConfig {
 
     @computed private get defaultSourcesLine(): string {
         let sourceNames = this.sourcesWithDimension.map(
-            source => source.source.name
+            source => source.source?.name || ""
         )
 
         // Shorten automatic source names for certain major sources

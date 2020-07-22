@@ -14,21 +14,43 @@ storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)
 
 storiesOf("ChartStoryView", module).add("normal", () => <ChartStoryView />)
 
-storiesOf("CovidDataExplorer", module).add("normal", () => {
-    const startingParams = new CovidQueryParams("")
-    const dummyMeta = {
-        charts: {},
-        variables: {}
-    }
-    return (
-        <CovidDataExplorer
-            data={covidSampleRows}
-            params={startingParams}
-            covidChartAndVariableMeta={dummyMeta}
-            updated="2020-05-09T18:59:31"
-        />
-    )
-})
+storiesOf("CovidDataExplorer", module)
+    .add("single", () => {
+        const dummyMeta = {
+            charts: {},
+            variables: {}
+        }
+        return (
+            <CovidDataExplorer
+                data={covidSampleRows}
+                params={new CovidQueryParams("")}
+                covidChartAndVariableMeta={dummyMeta}
+                updated="2020-05-09T18:59:31"
+            />
+        )
+    })
+    .add("multiple", () => {
+        const dummyMeta = {
+            charts: {},
+            variables: {}
+        }
+        return (
+            <>
+                <CovidDataExplorer
+                    data={covidSampleRows}
+                    params={new CovidQueryParams("")}
+                    covidChartAndVariableMeta={dummyMeta}
+                    updated="2020-05-09T18:59:31"
+                />
+                <CovidDataExplorer
+                    data={covidSampleRows}
+                    params={new CovidQueryParams("")}
+                    covidChartAndVariableMeta={dummyMeta}
+                    updated="2020-05-09T18:59:31"
+                />
+            </>
+        )
+    })
 
 // storiesOf('Button', module)
 //   .add('with text', () => <Button onClick={action('clicked')}>Hello Button</Button>)

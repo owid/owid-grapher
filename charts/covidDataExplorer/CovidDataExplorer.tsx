@@ -652,13 +652,14 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private _covidExplorerTable?: CovidExplorerTable
-    @computed get covidExplorerTable() {
-        if (!this._covidExplorerTable)
+    get covidExplorerTable() {
+        if (!this._covidExplorerTable) {
             this._covidExplorerTable = new CovidExplorerTable(
                 this.chart.table,
                 this.props.data,
                 this.props.covidChartAndVariableMeta.variables
             )
+        }
         return this._covidExplorerTable
     }
 

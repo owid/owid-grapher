@@ -14,7 +14,8 @@ import {
     min,
     flatten,
     sortBy,
-    isString
+    isString,
+    cloneDeep
 } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -242,8 +243,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         rows: ROW_TYPE[],
         columnSpecs?: ColumnSpecs | ColumnSpecObject
     ) {
-        this.rows = rows
-        if (!columnSpecs) return this.detectAndAddColumnsFromRows(rows)
+        this.rows = cloneDeep(rows)
+        if (!columnSpecs) return this.detectAndAddColumnsFromRows(this.rows)
 
         if (!(columnSpecs instanceof Map))
             columnSpecs = new Map(
@@ -257,7 +258,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     }
 
     protected detectAndAddColumnsFromRows(rows: Row[]) {
-        const specs = AbstractTable.makeSpecsFromRows(this.rows)
+        const specs = AbstractTable.makeSpecsFromRows(rows)
         const cols = this.columns
         Array.from(specs.keys()).forEach(slug => {
             // At the moment do not overwrite existing columns
@@ -446,7 +447,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     }
 
     @action.bound addRowsAndDetectColumns(rows: ROW_TYPE[]) {
-        this.rows = this.rows.concat(rows)
+        this.rows = this.rows.concat(cloneDeep(rows))
         this.detectAndAddColumnsFromRows(rows)
         return this
     }
