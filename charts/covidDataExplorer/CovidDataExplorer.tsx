@@ -82,6 +82,7 @@ export class CovidDataExplorer extends React.Component<{
     queryStr?: string
     isEmbed?: boolean
     globalEntitySelection?: GlobalEntitySelection
+    enableKeyboardShortcuts?: boolean
 }> {
     static async bootstrap(props: BootstrapProps) {
         const [typedData, updated, covidMeta] = await Promise.all([
@@ -103,6 +104,7 @@ export class CovidDataExplorer extends React.Component<{
                 queryStr={queryStr}
                 isEmbed={props.isEmbed}
                 globalEntitySelection={props.globalEntitySelection}
+                enableKeyboardShortcuts={true}
             />,
             props.containerNode
         )
@@ -791,12 +793,16 @@ export class CovidDataExplorer extends React.Component<{
         this.chart.embedExplorerCheckbox = this.controlsToggleElement
         ;(window as any).covidDataExplorer = this
 
-        this.keyboardShortcuts.forEach(shortcut => {
-            Mousetrap.bind(shortcut.combo, () => {
-                shortcut.fn()
-                Analytics.logKeyboardShortcut(shortcut.title, shortcut.combo)
+        if (this.props.enableKeyboardShortcuts)
+            this.keyboardShortcuts.forEach(shortcut => {
+                Mousetrap.bind(shortcut.combo, () => {
+                    shortcut.fn()
+                    Analytics.logKeyboardShortcut(
+                        shortcut.title,
+                        shortcut.combo
+                    )
+                })
             })
-        })
     }
 
     playDefaultViewCommand() {
