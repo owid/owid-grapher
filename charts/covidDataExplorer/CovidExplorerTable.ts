@@ -122,57 +122,57 @@ export class CovidExplorerTable {
                 description:
                     "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
                 display: {
-                    tableDisplay: { showRelativeChange: false }
+                    tableDisplay: { hideRelativeChange: true }
                 }
-            } as ColumnSpec,
+            },
             tests_per_case: {
                 ...owidVariableSpecs[sourceVariables.tests_per_case],
                 isDailyMeasurement: true,
                 description:
                     "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis."
-            } as any,
+            },
             case_fatality_rate: {
                 ...owidVariableSpecs[sourceVariables.case_fatality_rate],
                 annotationsColumnSlug: "case_fatality_rate_annotations",
                 isDailyMeasurement: true,
                 description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
                 display: {
-                    tableDisplay: { showRelativeChange: false }
+                    tableDisplay: { hideRelativeChange: true }
                 }
-            } as any,
+            },
             cases: {
                 ...owidVariableSpecs[sourceVariables.cases],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "cases_annotations",
                 name: "Confirmed cases of COVID-19",
                 description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
-            } as any,
+            },
             deaths: {
                 ...owidVariableSpecs[sourceVariables.deaths],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "deaths_annotations",
                 name: "Confirmed deaths due to COVID-19",
                 description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
-            } as any,
+            },
             tests: {
                 ...owidVariableSpecs[sourceVariables.tests],
                 isDailyMeasurement: true,
                 description: "",
                 name: "tests",
                 annotationsColumnSlug: "tests_units"
-            } as any,
+            },
             days_since: {
                 ...owidVariableSpecs[sourceVariables.days_since],
                 isDailyMeasurement: true,
                 description: "",
                 name: "days_since"
-            } as any,
+            },
             continents: {
                 ...owidVariableSpecs[sourceVariables.continents],
                 description: "",
                 name: "continent",
                 slug: "continent"
-            } as any
+            }
         }
         Object.keys(this.columnSpecs).forEach(key => {
             this.columnSpecs[key].owidVariableId = (sourceVariables as any)[key]

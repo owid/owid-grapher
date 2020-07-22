@@ -53,14 +53,14 @@ export class DimensionCard extends React.Component<{
                 <hr className="ui divider" />
                 Table:
                 <Toggle
-                    label="Show absolute change column"
-                    value={tableDisplay.showAbsoluteChange}
-                    onValue={value => (tableDisplay.showAbsoluteChange = value)}
+                    label="Hide absolute change column"
+                    value={tableDisplay.hideAbsoluteChange}
+                    onValue={value => (tableDisplay.hideAbsoluteChange = value)}
                 />
                 <Toggle
-                    label="Show relative change column"
-                    value={tableDisplay.showRelativeChange}
-                    onValue={value => (tableDisplay.showRelativeChange = value)}
+                    label="Hide relative change column"
+                    value={tableDisplay.hideRelativeChange}
+                    onValue={value => (tableDisplay.hideRelativeChange = value)}
                 />
                 <hr className="ui divider" />
             </React.Fragment>
