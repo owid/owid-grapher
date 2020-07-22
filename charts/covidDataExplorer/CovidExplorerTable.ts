@@ -30,7 +30,8 @@ import {
     RowToValueMapper,
     ColumnSpec,
     entityName,
-    columnSlug
+    columnSlug,
+    columnTypes
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import { covidAnnotations } from "./CovidAnnotations"
@@ -101,7 +102,9 @@ export class CovidExplorerTable {
         return Object.keys(row).map(slug => {
             return {
                 slug,
-                type: stringColumnSlugs.has(slug) ? "String" : "Numeric"
+                type: stringColumnSlugs.has(slug)
+                    ? "String"
+                    : ("Numeric" as columnTypes)
             }
         })
     }

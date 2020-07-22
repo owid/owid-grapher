@@ -78,7 +78,7 @@ interface OwidRow extends Row {
     date?: string
 }
 
-declare type columnTypes =
+export declare type columnTypes =
     | "Numeric"
     | "String"
     | "Categorical"
