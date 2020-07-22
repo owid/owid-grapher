@@ -19,7 +19,7 @@ storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)
 storiesOf("ChartStoryView", module).add("normal", () => <ChartStoryView />)
 
 storiesOf("CovidDataExplorer", module)
-    .add("single", () => {
+    .add("single with keyboard shortcuts", () => {
         const dummyMeta = {
             charts: {},
             variables: {}
@@ -30,6 +30,7 @@ storiesOf("CovidDataExplorer", module)
                 params={new CovidQueryParams("")}
                 covidChartAndVariableMeta={dummyMeta}
                 updated="2020-05-09T18:59:31"
+                enableKeyboardShortcuts={true}
             />
         )
     })
