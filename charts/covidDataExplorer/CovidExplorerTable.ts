@@ -38,8 +38,7 @@ import {
     covidDataPath,
     covidLastUpdatedPath,
     covidChartAndVariableMetaPath,
-    sourceVariables,
-    trajectoryColumnSpecs
+    sourceVariables
 } from "./CovidConstants"
 
 type MetricKey = {

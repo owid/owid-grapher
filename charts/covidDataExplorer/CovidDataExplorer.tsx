@@ -54,6 +54,7 @@ import {
 import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
+
 const abSeed = Math.random()
 
 interface BootstrapProps {
