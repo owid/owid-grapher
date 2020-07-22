@@ -32,7 +32,8 @@ export class ChartDimension implements DimensionSpec {
         isProjection: undefined,
         conversionFactor: undefined,
         numDecimalPlaces: undefined,
-        tolerance: undefined
+        tolerance: undefined,
+        tableDisplay: new OwidVariableTableDisplaySettings()
     }
 
     // XXX move this somewhere else, it's only used for scatter x override

@@ -168,6 +168,8 @@ export class ChartEditor {
     async saveChart({ onError }: { onError?: () => void } = {}) {
         const { chart, isNewChart, currentChartJson } = this
 
+        debugger
+
         const targetUrl = isNewChart
             ? "/api/charts"
             : `/api/charts/${chart.props.id}`

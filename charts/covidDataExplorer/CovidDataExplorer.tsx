@@ -150,7 +150,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Confirmed cases",
                 checked: this.constrainedParams.casesMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("cases")
                     this.renderControlsThenUpdateChart()
                 }
@@ -159,7 +159,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Confirmed deaths",
                 checked: this.constrainedParams.deathsMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("deaths")
                     this.renderControlsThenUpdateChart()
                 }
@@ -169,7 +169,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Case fatality rate",
                 checked: this.constrainedParams.cfrMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("case_fatality_rate")
                     this.renderControlsThenUpdateChart()
                 }
@@ -181,7 +181,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Tests",
                 checked: this.constrainedParams.testsMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("tests")
                     this.renderControlsThenUpdateChart()
                 }
@@ -190,7 +190,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Tests per confirmed case",
                 checked: this.constrainedParams.testsPerCaseMetric,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("tests_per_case")
                     this.renderControlsThenUpdateChart()
                 }
@@ -199,7 +199,7 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: "Share of positive tests",
                 checked: this.constrainedParams.positiveTestRate,
-                onChange: value => {
+                onChange: () => {
                     params.setMetric("positive_test_rate")
                     this.renderControlsThenUpdateChart()
                 }
@@ -892,7 +892,8 @@ export class CovidDataExplorer extends React.Component<{
                         // Allow ± 1 day difference in data plotted on bar charts
                         // This is what we use for charts on the Grapher too
                         tolerance: 1,
-                        name: this.chartTitle
+                        name: this.chartTitle,
+                        tableDisplay: yColumn.display.tableDisplay
                     }
                 }
             ]
@@ -904,14 +905,16 @@ export class CovidDataExplorer extends React.Component<{
                 property: "y",
                 variableId: yColumn.spec.owidVariableId!,
                 display: {
-                    name: this.chartTitle
+                    name: this.chartTitle,
+                    tableDisplay: yColumn.display.tableDisplay
                 }
             },
             {
                 property: "x",
                 variableId: xColumn.spec.owidVariableId!,
                 display: {
-                    name: xColumn.spec.name
+                    name: xColumn.spec.name,
+                    tableDisplay: xColumn.display.tableDisplay
                 }
             },
             {
