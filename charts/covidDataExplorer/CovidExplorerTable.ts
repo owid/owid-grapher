@@ -88,7 +88,7 @@ export class CovidExplorerTable {
         this.initColumnSpecs(owidVariableSpecs)
         this.table = table
         this.table.rows = data
-        this.table.addSpecs(this.getBaseSpecs(data[0]))
+        this.table.addSpecs(this.getBaseSpecs(data[0] || {}))
         this.table.columnsBySlug.forEach(col => {
             // Ensure all columns have a OwidVarId for now. Todo: rely on just column slug in Grapher.
             if (!col.spec.owidVariableId)
@@ -190,12 +190,17 @@ export class CovidExplorerTable {
         })
 
         // Todo: move to the grapher specs?
-        this.columnSpecs.positive_test_rate.display!.tableDisplay = {
-            hideRelativeChange: true
-        } as any
-        this.columnSpecs.case_fatality_rate.display!.tableDisplay = {
-            hideRelativeChange: true
-        } as any
+        const ptrDisplay = this.columnSpecs.positive_test_rate.display
+        if (ptrDisplay)
+            ptrDisplay.tableDisplay = {
+                hideRelativeChange: true
+            } as any
+
+        const cfrDisplay = this.columnSpecs.case_fatality_rate.display
+        if (cfrDisplay)
+            cfrDisplay.tableDisplay = {
+                hideRelativeChange: true
+            } as any
     }
 
     private addAnnotationColumns() {
