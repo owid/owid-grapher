@@ -137,11 +137,7 @@ export class CovidExplorerTable {
                 ...owidVariableSpecs[sourceVariables.positive_test_rate],
                 isDailyMeasurement: true,
                 description:
-                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
-                display: {
-                    shortUnit: "%",
-                    tableDisplay: { hideRelativeChange: true }
-                }
+                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country."
             },
             tests_per_case: {
                 ...owidVariableSpecs[sourceVariables.tests_per_case],
@@ -153,11 +149,7 @@ export class CovidExplorerTable {
                 ...owidVariableSpecs[sourceVariables.case_fatality_rate],
                 annotationsColumnSlug: "case_fatality_rate_annotations",
                 isDailyMeasurement: true,
-                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
-                display: {
-                    shortUnit: "%",
-                    tableDisplay: { hideRelativeChange: true }
-                }
+                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
             },
             cases: {
                 ...owidVariableSpecs[sourceVariables.cases],
@@ -196,6 +188,14 @@ export class CovidExplorerTable {
         Object.keys(this.columnSpecs).forEach(key => {
             this.columnSpecs[key].owidVariableId = (sourceVariables as any)[key]
         })
+
+        // Todo: move to the grapher specs?
+        this.columnSpecs.positive_test_rate.display!.tableDisplay = {
+            hideRelativeChange: true
+        } as any
+        this.columnSpecs.case_fatality_rate.display!.tableDisplay = {
+            hideRelativeChange: true
+        } as any
     }
 
     private addAnnotationColumns() {
