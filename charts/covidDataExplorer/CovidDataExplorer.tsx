@@ -829,13 +829,13 @@ export class CovidDataExplorer extends React.Component<{
             {
                 combo: "right",
                 fn: () => this.playIndex(++this.currentIndex),
-                title: "Show next",
+                title: "Next view",
                 category: "Browse"
             },
             {
                 combo: "left",
                 fn: () => this.playIndex(--this.currentIndex),
-                title: "Show previous",
+                title: "Previous view",
                 category: "Browse"
             },
             {
@@ -870,6 +870,18 @@ export class CovidDataExplorer extends React.Component<{
                 category: "Selection"
             },
             {
+                combo: "f",
+                fn: () => {
+                    this.chart.props.minPopulationFilter =
+                        this.chart.props.minPopulationFilter === 2e9
+                            ? undefined
+                            : 2e9
+                    this.renderControlsThenUpdateChart()
+                },
+                title: "Hide unselected",
+                category: "Selection"
+            },
+            {
                 combo: "c",
                 fn: () => {
                     this.props.params.colorScale = next(
@@ -892,67 +904,18 @@ export class CovidDataExplorer extends React.Component<{
                 category: "Chart"
             },
             {
-                combo: "shift+l",
-                fn: () =>
-                    (this.chart.props.xAxis.scaleType = next(
-                        ["linear", "log"],
-                        this.chart.props.xAxis.scaleType
-                    )),
-                title: "Toggle X log/linear",
-                category: "Chart"
-            },
-            {
-                combo: "y",
-                fn: () => this.toggleDimensionColumnCommand("y"),
-                title: "Next Y Option",
-                category: "Chart"
-            },
-            {
-                combo: "shift+y",
-                fn: () => this.toggleDimensionColumnCommand("y", true),
-                title: "Previous Y Option",
-                category: "Chart"
-            },
-            {
-                combo: "x",
-                fn: () => this.toggleDimensionColumnCommand("x"),
-                title: "Next X Option",
-                category: "Chart"
-            },
-            {
-                combo: "shift+x",
-                fn: () => this.toggleDimensionColumnCommand("x", true),
-                title: "Previous X Option",
-                category: "Chart"
-            },
-            {
-                combo: "s",
-                fn: () => this.toggleDimensionColumnCommand("size"),
-                title: "Next Size Option",
-                category: "Chart"
-            },
-            {
-                combo: "shift+s",
-                fn: () => this.toggleDimensionColumnCommand("size", true),
-                title: "Previous Size Option",
-                category: "Chart"
-            },
-            {
                 combo: "z",
                 fn: () => {
-                    this.chart.url.setTimeFromTimeQueryParam("latest")
+                    // Todo: add tests for this
+                    this.chart.url.setTimeFromTimeQueryParam(
+                        next(
+                            ["latest", "earliest", ".."],
+                            this.chart.url.timeParam!
+                        )
+                    )
                     this.renderControlsThenUpdateChart()
                 },
-                title: "Latest period",
-                category: "Timeline"
-            },
-            {
-                combo: "shift+z",
-                fn: () => {
-                    this.chart.url.setTimeFromTimeQueryParam("earliest")
-                    this.renderControlsThenUpdateChart()
-                },
-                title: "Earliest period",
+                title: "Latest/Earliest/All period",
                 category: "Timeline"
             },
             {
