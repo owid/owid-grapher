@@ -99,6 +99,16 @@ describe("builds aligned tests column", () => {
             dataTable.table.columnSlugs.includes("deaths-perMil-cumulative")
         ).toEqual(true)
     })
+
+    const dataTable2 = new CovidExplorerTable(
+        new OwidTable([]),
+        covidSampleRows
+    )
+    it("rows are immutable", () => {
+        expect(
+            dataTable2.table.columnSlugs.includes("tests-perThousand-daily")
+        ).toEqual(false)
+    })
 })
 
 describe(getLeastUsedColor, () => {

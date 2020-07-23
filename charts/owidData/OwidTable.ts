@@ -257,7 +257,7 @@ declare type ColumnSpecs = Map<columnSlug, ColumnSpec>
 declare type ColumnSpecObject = { [columnSlug: string]: ColumnSpec }
 
 abstract class AbstractTable<ROW_TYPE extends Row> {
-    @observable.ref rows: ROW_TYPE[]
+    @observable.ref rows: ROW_TYPE[] = [] // Todo: make readonly
     @observable protected columns: Map<columnSlug, AbstractColumn> = new Map()
 
     constructor(
@@ -267,8 +267,13 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             | ColumnSpec[]
             | ColumnSpecObject = AbstractTable.makeSpecsFromRows(rows)
     ) {
-        this.rows = cloneDeep(rows)
+        this.setRows(rows)
         this.addSpecs(columnSpecs)
+    }
+
+    // Clones and sets rows
+    setRows(rows: ROW_TYPE[]) {
+        this.rows = cloneDeep(rows)
     }
 
     addSpecs(columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[]) {
