@@ -18,6 +18,15 @@ export namespace log {
             return `_${title}_${tripleBackticks}${code}${tripleBackticks}\n`
         }
 
+        const blocks = [{ title: "Stack", code: err.stack }]
+
+        if (err.stderr) {
+            blocks.push({
+                title: "stderr",
+                code: err.stderr
+            })
+        }
+
         const attachment = {
             fallback: `${err.name}: ${err.message}`,
             color: err.status < 500 ? "warning" : "danger",
@@ -29,7 +38,7 @@ export namespace log {
             //     { title: 'Status Code', value: err.status, short: true },
             //     { title: 'Remote Address', value: getRemoteAddress(req), short: true }
             //   ],
-            text: [{ title: "Stack", code: err.stack }]
+            text: blocks
                 .map(data => createCodeBlock(data.title, data.code))
                 .join(""),
             mrkdwn_in: ["text"],
