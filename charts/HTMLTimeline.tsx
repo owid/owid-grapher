@@ -361,10 +361,7 @@ export class Timeline extends React.Component<TimelineProps> {
             }),
             autorun(
                 () => {
-                    if (
-                        this.props.onTargetChange &&
-                        this.context.chart.userHasSetTimeline
-                    ) {
+                    if (this.props.onTargetChange) {
                         this.props.onTargetChange({
                             targetStartYear: this.startYearClosest,
                             targetEndYear: this.endYearClosest
