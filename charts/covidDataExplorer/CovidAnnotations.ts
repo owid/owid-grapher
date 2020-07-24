@@ -3,7 +3,7 @@ export const covidAnnotations = `location,date,cases_annotations,deaths_annotati
 Spain,2020-04-19,methodology change,
 Spain,2020-04-25,methodology change,methodology change
 Ecuador,2020-05-08,methodology change,
-United Kingdom,2020-07-03,methodology change,
+United Kingdom,2020-05-20,methodology change,
 France,2020-06-02,methodology change,
 India,2020-06-17,,earlier deaths added
 Chile,2020-06-18,earlier cases added,
