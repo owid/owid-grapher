@@ -29,7 +29,7 @@ function getStore() {
 
 function getDefaultModel() {
     const model = new ExploreModel(getStore())
-    model.indicatorId = indicator.id
+    model.setIndicatorId(indicator.id)
     return model
 }
 
@@ -77,7 +77,7 @@ describe(ExploreView, () => {
 
         it("applies the chart type", async () => {
             const model = getDefaultModel()
-            model.chartType = "WorldMap"
+            model.setChartType("WorldMap")
             const view = await renderWithModel(model)
             expect(view.find(ChoroplethMap)).toHaveLength(1)
         })
@@ -179,7 +179,7 @@ describe(ExploreView, () => {
             const view = mount(<ExploreView bounds={bounds} model={model} />)
             expect(view.find(ChartView)).toHaveLength(1)
 
-            model.indicatorId = indicator.id
+            model.setIndicatorId(indicator.id)
             await updateViewWhenReady(view)
             expect(view.find(".chart h1")).toHaveLength(1)
             expect(view.find(".chart h1").text()).toContain(indicator.title)

@@ -1,4 +1,4 @@
-import { computed } from "mobx"
+import { computed, action } from "mobx"
 
 import { ObservableUrl } from "./UrlBinding"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
@@ -47,17 +47,17 @@ export class ExploreUrl implements ObservableUrl {
         this.populateFromQueryParams(strToQueryParams(queryStr))
     }
 
-    populateFromQueryParams(params: ExploreQueryParams) {
+    @action.bound populateFromQueryParams(params: ExploreQueryParams) {
         const { model } = this
 
         const chartType = params.type
         if (chartType) {
-            model.chartType = chartType as ExplorerChartType
+            model.setChartType(chartType as ExplorerChartType)
         }
 
         if (params.indicator) {
             const id = parseInt(params.indicator)
-            model.indicatorId = isNaN(id) ? undefined : id
+            model.setIndicatorId(isNaN(id) ? undefined : id)
         }
 
         this.chartUrl.populateFromQueryParams(params)
