@@ -1,6 +1,7 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import {
+    configure,
     observable,
     computed,
     action,
@@ -59,7 +60,7 @@ import {
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
-import { BAKED_GRAPHER_URL } from "settings"
+import { BAKED_GRAPHER_URL, ENV } from "settings"
 import {
     minTimeFromJSON,
     maxTimeFromJSON,
@@ -83,6 +84,9 @@ import { populationMap } from "./PopulationMap"
 
 declare const App: any
 declare const window: any
+
+const IS_DEV = ENV === "development"
+if (IS_DEV) configure({ enforceActions: "observed" })
 
 // That node check is taken from the "detect-node" npm package: https://www.npmjs.com/package/detect-node
 const isNode: boolean =

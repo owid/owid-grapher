@@ -5,7 +5,7 @@
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  */
-import { computed, when, runInAction, observable } from "mobx"
+import { computed, when, runInAction, observable, action } from "mobx"
 
 import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
@@ -302,7 +302,7 @@ export class ChartUrl implements ObservableUrl {
     /**
      * Applies query parameters to the chart config
      */
-    populateFromQueryParams(params: ChartQueryParams) {
+    @action.bound populateFromQueryParams(params: ChartQueryParams) {
         const { chart } = this
 
         // Set tab if specified

@@ -812,8 +812,12 @@ export class ControlsOverlay extends React.Component<{
         this.context.chartView.overlays[this.props.id] = this
     }
 
-    componentWillUnmount() {
+    @action.bound deleteOverlay() {
         delete this.context.chartView.overlays[this.props.id]
+    }
+
+    componentWillUnmount() {
+        this.deleteOverlay()
     }
 
     render() {
