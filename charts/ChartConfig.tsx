@@ -86,7 +86,8 @@ declare const App: any
 declare const window: any
 
 const IS_DEV = ENV === "development"
-if (IS_DEV) configure({ enforceActions: "observed" })
+const ENFORCE_ACTIONS = false
+if (IS_DEV && ENFORCE_ACTIONS) configure({ enforceActions: "observed" })
 
 // That node check is taken from the "detect-node" npm package: https://www.npmjs.com/package/detect-node
 const isNode: boolean =
