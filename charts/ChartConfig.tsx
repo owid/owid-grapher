@@ -67,7 +67,8 @@ import {
     maxTimeToJSON,
     TimeBound,
     Time,
-    TimeBounds
+    TimeBounds,
+    TimeBoundValue
 } from "./TimeBounds"
 import {
     GlobalEntitySelection,
@@ -649,11 +650,27 @@ export class ChartConfig {
         return defaultTo(this.props.entityTypePlural, "countries")
     }
 
+    /** If the start year was autoselected in the DataTable, revert. */
+    @action
+    revertAutoSelectedStartYear() {
+        this.timeDomain = [
+            this.initialProps.minTime ?? TimeBoundValue.unboundedLeft,
+            this.timeDomain[1]
+        ]
+    }
+
     @computed get tab() {
         return this.props.overlay ? this.props.overlay : this.props.tab
     }
 
     set tab(value) {
+        if (
+            this.props.tab === "table" &&
+            value === "chart" &&
+            !this.userHasSetTimeline
+        )
+            this.revertAutoSelectedStartYear()
+
         if (value === "chart" || value === "map" || value === "table") {
             this.props.tab = value
             this.props.overlay = undefined

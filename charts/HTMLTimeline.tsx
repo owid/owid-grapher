@@ -389,7 +389,6 @@ export class Timeline extends React.Component<TimelineProps> {
                             this.startYearClosest,
                             this.endYearClosest
                         ]
-                        this.updateChartTimeDomain()
                     })
                 }
             })

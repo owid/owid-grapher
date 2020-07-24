@@ -24,7 +24,6 @@ import {
     SingleValueKey,
     Value
 } from "./DataTableTransform"
-import { TimeBoundValue } from "./TimeBounds"
 
 export interface DataTableProps {
     chart: ChartConfig
@@ -348,18 +347,6 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.displayRows.map(row =>
             this.renderEntityRow(row, this.displayDimensions)
         )
-    }
-
-    @action
-    revertAutoSelectedStartYear() {
-        this.chart.timeDomain = [
-            this.chart.initialProps.minTime ?? TimeBoundValue.unboundedLeft,
-            this.transform.endYear
-        ]
-    }
-
-    componentWillUnmount() {
-        if (!this.chart.userHasSetTimeline) this.revertAutoSelectedStartYear()
     }
 
     render() {
