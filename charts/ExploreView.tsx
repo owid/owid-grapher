@@ -99,7 +99,7 @@ export class ExploreView extends React.Component<ExploreProps> {
                 data-type={button.type}
                 className={`chart-type-button ${isSelected ? "selected" : ""}`}
                 onClick={() => {
-                    this.model.chartType = button.type
+                    this.model.setChartType(button.type)
                 }}
             >
                 <FontAwesomeIcon icon={button.icon} />

@@ -1,4 +1,4 @@
-import { observable, computed, autorun, IReactionDisposer } from "mobx"
+import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
 import { ChartType, ChartTypeType } from "./ChartType"
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
@@ -40,6 +40,22 @@ export class ExploreModel {
     store: RootStore
     disposers: IReactionDisposer[] = []
 
+    @action.bound setIndicatorId(id?: number) {
+        this.indicatorId = id
+    }
+
+    @action.bound setChartType(chartType: ExplorerChartType) {
+        this.chartType = chartType
+        this.updateChartFromExplorer()
+    }
+
+    @action.bound updateChartFromExplorer() {
+        this.chart.props.type = this.configChartType
+        this.chart.props.hasMapTab = this.isMap
+        this.chart.props.hasChartTab = !this.isMap
+        this.chart.tab = this.isMap ? "map" : "chart"
+    }
+
     constructor(store: RootStore) {
         this.store = store
         this.chart = new ChartConfig()
@@ -51,13 +67,6 @@ export class ExploreModel {
         // observable properties, and on this autorun block to connect them to the Explore controls.
         // -@jasoncrawford 2019-12-04
         this.disposers.push(
-            autorun(() => {
-                this.chart.props.type = this.configChartType
-                this.chart.props.hasMapTab = this.isMap
-                this.chart.props.hasChartTab = !this.isMap
-                this.chart.tab = this.isMap ? "map" : "chart"
-            }),
-
             autorun(() => {
                 if (this.indicatorEntry === null) {
                     this.chart.update({ dimensions: [] })

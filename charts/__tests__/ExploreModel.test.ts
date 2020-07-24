@@ -32,7 +32,7 @@ describe(ExploreModel, () => {
     describe("when you set an area type", () => {
         beforeAll(() => {
             model = new ExploreModel(store)
-            model.chartType = ChartType.StackedArea
+            model.setChartType(ChartType.StackedArea)
         })
 
         it("updates the chart type to area", () => {
@@ -55,7 +55,7 @@ describe(ExploreModel, () => {
     describe("when you set a map type", () => {
         beforeAll(() => {
             model = new ExploreModel(store)
-            model.chartType = ExploreModel.WorldMap
+            model.setChartType(ExploreModel.WorldMap)
         })
 
         it("updates the chart type to line", () => {
