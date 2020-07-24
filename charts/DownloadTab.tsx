@@ -32,7 +32,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     @observable pngBlob?: Blob
     @observable pngBlobUrl?: string
     @observable pngDataUri?: string
-    @observable isReady: boolean = false
+    @observable private isReady: boolean = false
     @action.bound export() {
         if (!HTMLCanvasElement.prototype.toBlob) {
             // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
@@ -91,20 +91,24 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                     canvas.toBlob(blob => {
                         this.pngBlob = blob as Blob
                         this.pngBlobUrl = URL.createObjectURL(blob)
-                        this.isReady = true
+                        this.markAsReady()
                     })
                 } catch (e) {
                     console.error(e)
-                    this.isReady = true
+                    this.markAsReady()
                 }
             }
             img.onerror = err => {
                 console.error(JSON.stringify(err))
-                this.isReady = true
+                this.markAsReady()
             }
             img.src = this.svgDataUri
         }
         reader.readAsDataURL(this.svgBlob as Blob)
+    }
+
+    @action.bound markAsReady() {
+        this.isReady = true
     }
 
     @computed get fallbackPngUrl() {
