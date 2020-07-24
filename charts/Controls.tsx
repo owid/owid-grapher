@@ -462,14 +462,18 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             if (years.length === 0) {
                 return null
             }
+
+            if (dataTableTransform.autoSelectedStartYear)
+                chart.timeDomain = [
+                    dataTableTransform.autoSelectedStartYear,
+                    chart.timeDomain[1]
+                ]
+
             return (
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={
-                        dataTableTransform.autoSelectedStartYear ??
-                        chart.timeDomain[0]
-                    }
+                    startYear={chart.timeDomain[0]}
                     endYear={chart.timeDomain[1]}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
