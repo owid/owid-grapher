@@ -18,19 +18,23 @@ export class AdminLayout extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable isFAQ: boolean = false
-    @observable isSidebar: boolean = false
+    @observable private showFAQ: boolean = false
+    @observable private showSidebar: boolean = false
 
     @action.bound onToggleFAQ() {
-        this.isFAQ = !this.isFAQ
+        this.showFAQ = !this.showFAQ
     }
 
     @action.bound onToggleSidebar() {
-        this.isSidebar = !this.isSidebar
+        this.showSidebar = !this.showSidebar
+    }
+
+    @action.bound private setInitialSidebarState(value: boolean) {
+        this.showSidebar = value
     }
 
     componentDidMount() {
-        this.isSidebar = !this.props.noSidebar
+        this.setInitialSidebarState(!this.props.noSidebar)
         this.componentDidUpdate()
     }
 
@@ -52,10 +56,12 @@ export class AdminLayout extends React.Component<{
 
     render() {
         const { admin } = this.context
-        const { isFAQ, isSidebar, environmentSpan } = this
+        const { showFAQ: isFAQ, showSidebar, environmentSpan } = this
 
         return (
-            <div className={"AdminLayout" + (isSidebar ? " withSidebar" : "")}>
+            <div
+                className={"AdminLayout" + (showSidebar ? " withSidebar" : "")}
+            >
                 {isFAQ && <EditorFAQ onClose={this.onToggleFAQ} />}
                 <nav className="navbar navbar-dark bg-dark flex-row navbar-expand-lg">
                     <button
@@ -97,7 +103,7 @@ export class AdminLayout extends React.Component<{
                         </li>
                     </ul>
                 </nav>
-                {isSidebar && <AdminSidebar />}
+                {showSidebar && <AdminSidebar />}
                 {this.props.children}
             </div>
         )
