@@ -569,7 +569,7 @@ export class ChartConfig {
             })
     }
 
-    ensureValidConfig() {
+    @action.bound ensureValidConfig() {
         const disposers = [
             autorun(() => {
                 if (!this.availableTabs.includes(this.props.tab)) {
