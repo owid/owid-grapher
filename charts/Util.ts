@@ -59,6 +59,7 @@ import memoize from "lodash/memoize"
 import takeWhile from "lodash/takeWhile"
 import upperFirst from "lodash/upperFirst"
 import assign from "lodash/assign"
+import countBy from "lodash/countBy"
 
 export {
     isEqual,
@@ -119,7 +120,8 @@ export {
     mapKeys,
     memoize,
     takeWhile,
-    upperFirst
+    upperFirst,
+    countBy
 }
 
 import moment from "moment"

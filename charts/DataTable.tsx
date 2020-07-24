@@ -101,11 +101,15 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get entityType() {
-        return this.props.chart.entityType
+        return this.chart.entityType
+    }
+
+    @computed get chart() {
+        return this.props.chart
     }
 
     @computed get transform() {
-        return this.props.chart.dataTableTransform
+        return this.chart.dataTableTransform
     }
 
     @computed get sortValueMapper(): (
@@ -305,7 +309,10 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    renderEntityRow(row: DataTableRow, dimensions: DataTableDimension[]) {
+    private renderEntityRow(
+        row: DataTableRow,
+        dimensions: DataTableDimension[]
+    ) {
         const { sort } = this.tableState
         return (
             <tr key={row.entity}>

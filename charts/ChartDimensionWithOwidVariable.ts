@@ -18,6 +18,7 @@ import {
     owidVariableId,
     entityName
 } from "./owidData/OwidTable"
+import { Time } from "./TimeBounds"
 
 export class ChartDimensionWithOwidVariable {
     props: ChartDimension
@@ -160,7 +161,7 @@ export class ChartDimensionWithOwidVariable {
 
     // todo: remove unitConversionFactor concept? use computed columns instead?
     // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
-    @computed get values() {
+    @computed get values(): (number | string)[] {
         const { unitConversionFactor } = this
         if (unitConversionFactor !== 1)
             return this.column.values.map(
@@ -177,7 +178,7 @@ export class ChartDimensionWithOwidVariable {
         return sortedUniq(this.years)
     }
 
-    get years() {
+    get years(): Time[] {
         return this.column.years
     }
 

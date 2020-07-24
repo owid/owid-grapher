@@ -95,6 +95,7 @@ export class Timeline extends React.Component<TimelineProps> {
             runInAction(() => {
                 this.startYearRaw = this.props.startYear
                 this.endYearRaw = this.props.endYear
+                this.updateChartTimeDomain()
             })
         }
     }
@@ -185,6 +186,8 @@ export class Timeline extends React.Component<TimelineProps> {
 
             lastTime = time
             this.animRequest = requestAnimationFrame(playFrame)
+
+            this.updateChartTimeDomain()
         })
 
         this.animRequest = requestAnimationFrame(playFrame)
@@ -240,6 +243,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
+        if (!this.isPlaying) this.context.chart.userHasSetTimeline = true
 
         const clampedYear = this.getClampedYear(inputYear)
 
@@ -322,10 +326,23 @@ export class Timeline extends React.Component<TimelineProps> {
         this.queuedAnimationFrame = requestAnimationFrame(() => {
             this.onDrag(this.getInputYearFromMouse(ev as any))
         })
+
+        this.updateChartTimeDomain()
     }
 
     @action.bound onMouseUp() {
         this.dragTarget = undefined
+
+        this.updateChartTimeDomain()
+    }
+
+    @action updateChartTimeDomain() {
+        if (this.props.onTargetChange) {
+            this.props.onTargetChange({
+                targetStartYear: this.startYearClosest,
+                targetEndYear: this.endYearClosest
+            })
+        }
     }
 
     // Allow proper dragging behavior even if mouse leaves timeline area
@@ -333,6 +350,7 @@ export class Timeline extends React.Component<TimelineProps> {
         runInAction(() => {
             this.startYearRaw = this.props.startYear
             this.endYearRaw = this.props.endYear
+            this.updateChartTimeDomain()
         })
 
         document.documentElement.addEventListener("mouseup", this.onMouseUp)
@@ -358,17 +376,6 @@ export class Timeline extends React.Component<TimelineProps> {
                     if (onStopDrag) onStopDrag()
                 }
             }),
-            autorun(
-                () => {
-                    if (this.props.onTargetChange) {
-                        this.props.onTargetChange({
-                            targetStartYear: this.startYearClosest,
-                            targetEndYear: this.endYearClosest
-                        })
-                    }
-                },
-                { delay: 0 }
-            ),
             autorun(() => {
                 // If we're not playing or dragging, lock the input to the closest year (no interpolation)
                 const { isPlaying, isDragging } = this

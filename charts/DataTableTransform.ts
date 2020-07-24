@@ -6,12 +6,14 @@ import {
     valuesByEntityWithinYears,
     getStartEndValues,
     intersection,
-    flatten
+    flatten,
+    sortBy,
+    countBy
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-import { getTimeWithinTimeRange, Time } from "./TimeBounds"
+import { getTimeWithinTimeRange, Time, isUnboundedLeft } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
 
 // Target year modes
@@ -108,13 +110,63 @@ function getHeaderUnit(unit: string) {
 export class DataTableTransform extends ChartTransform {
     chart: ChartConfig
 
-    @computed get isValidConfig(): boolean {
-        return true
-    }
-
     constructor(chart: ChartConfig) {
         super(chart)
         this.chart = chart
+    }
+
+    @computed private get loadedWithData(): boolean {
+        return this.dimensions.length > 0
+    }
+
+    private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE: number = 0.5
+
+    /**
+     * If the user or the editor hasn't specified a start, auto-select a start year
+     *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
+     */
+    @computed get autoSelectedStartYear(): number | undefined {
+        let autoSelectedStartYear: number | undefined = undefined
+
+        if (
+            this.chart.userHasSetTimeline ||
+            this.initialTimelineStartYearSpecified ||
+            !this.loadedWithData
+        )
+            return undefined
+
+        const numEntitiesInTable = this.entities.length
+
+        this.dimensions.forEach(dim => {
+            const numberOfEntitiesWithDataSortedByYear = sortBy(
+                Object.entries(countBy(dim.years)),
+                value => parseInt(value[0])
+            )
+
+            const firstYearWithSufficientData = numberOfEntitiesWithDataSortedByYear.find(
+                year => {
+                    const numEntitiesWithData = year[1]
+                    const percentEntitiesWithData =
+                        numEntitiesWithData / numEntitiesInTable
+                    return (
+                        percentEntitiesWithData >=
+                        this.AUTO_SELECTION_THRESHOLD_PERCENTAGE
+                    )
+                }
+            )?.[0]
+
+            if (firstYearWithSufficientData) {
+                autoSelectedStartYear = parseInt(firstYearWithSufficientData)
+                return false
+            }
+            return true
+        })
+
+        return autoSelectedStartYear
+    }
+
+    @computed get isValidConfig(): boolean {
+        return true
     }
 
     @computed get availableYears() {
@@ -151,19 +203,16 @@ export class DataTableTransform extends ChartTransform {
         return TargetYearMode.point
     }
 
-    @computed get minYear(): Time {
-        return this.chart.minYear
+    @computed get initialTimelineStartYearSpecified(): boolean {
+        const initialMinTime = this.chart.initialProps.minTime
+        if (initialMinTime) return !isUnboundedLeft(initialMinTime)
+        return false
     }
 
-    @computed get maxYear(): Time {
-        return this.chart.maxYear
-    }
-
-    // TODO move this logic to chart
     @computed get targetYears(): TargetYears {
         const mapTarget = this.chart.map.targetYear
         const [startYear, endYear] = this.chart.timeDomain
-        const timeRange: [Time, Time] = [this.minYear, this.maxYear]
+        const timeRange: [Time, Time] = [this.chart.minYear, this.chart.maxYear]
         if (this.chart.tab === "map") {
             return [getTimeWithinTimeRange(timeRange, mapTarget)]
         } else if (startYear === endYear) {
@@ -174,6 +223,9 @@ export class DataTableTransform extends ChartTransform {
                 getTimeWithinTimeRange(timeRange, endYear)
             ]
         }
+        // return this.startYear == this.endYear
+        //     ? [this.startYear]
+        //     : [this.startYear, this.endYear]
     }
 
     formatValue(
@@ -344,8 +396,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get displayRows(): DataTableRow[] {
-        const entities = this.chart.data.availableEntityNames
-        const rows = entities.map(entity => {
+        const rows = this.entities.map(entity => {
             const dimensionValues = this.dimensionsWithValues.map(d =>
                 d.valueByEntity.get(entity)
             )
