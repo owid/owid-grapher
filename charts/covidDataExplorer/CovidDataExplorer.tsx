@@ -327,7 +327,7 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
-    toggleSelectedCountry(code: string, value?: boolean) {
+    @action.bound toggleSelectedCountry(code: string, value?: boolean) {
         if (value) {
             this.props.params.selectedCountryCodes.add(code)
         } else if (value === false) {
@@ -805,7 +805,7 @@ export class CovidDataExplorer extends React.Component<{
             })
     }
 
-    playDefaultViewCommand() {
+    @action.bound playDefaultViewCommand() {
         const props = this.chart.props
         props.tab = "chart"
         props.xAxis.scaleType = "linear"
@@ -818,6 +818,21 @@ export class CovidDataExplorer extends React.Component<{
         this.renderControlsThenUpdateChart()
     }
 
+    @action.bound toggleTabCommand() {
+        this.chart.props.tab = next(
+            ["chart", "map", "table"],
+            this.chart.props.tab
+        )
+    }
+
+    @action.bound toggleKeyboardHelpCommand() {
+        const element = document.getElementsByClassName(
+            "CommandPalette"
+        )[0] as HTMLElement
+        element.style.display =
+            element.style.display === "none" ? "block" : "none"
+    }
+
     get keyboardShortcuts(): Command[] {
         return [
             {
@@ -828,35 +843,25 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 combo: "right",
-                fn: () => this.playIndex(++this.currentIndex),
+                fn: () => this.playIndexCommand(++this.currentIndex),
                 title: "Next view",
                 category: "Browse"
             },
             {
                 combo: "left",
-                fn: () => this.playIndex(--this.currentIndex),
+                fn: () => this.playIndexCommand(--this.currentIndex),
                 title: "Previous view",
                 category: "Browse"
             },
             {
                 combo: "t",
-                fn: () =>
-                    (this.chart.props.tab = next(
-                        ["chart", "map", "table"],
-                        this.chart.props.tab
-                    )),
+                fn: () => this.toggleTabCommand(),
                 title: "Toggle tab",
                 category: "Navigation"
             },
             {
                 combo: "?",
-                fn: () => {
-                    const element = document.getElementsByClassName(
-                        "CommandPalette"
-                    )[0] as HTMLElement
-                    element.style.display =
-                        element.style.display === "none" ? "block" : "none"
-                },
+                fn: () => this.toggleKeyboardHelpCommand(),
                 title: "Toggle Help",
                 category: "Navigation"
             },
@@ -871,63 +876,74 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 combo: "f",
-                fn: () => {
-                    this.chart.props.minPopulationFilter =
-                        this.chart.props.minPopulationFilter === 2e9
-                            ? undefined
-                            : 2e9
-                    this.renderControlsThenUpdateChart()
-                },
+                fn: () => this.toggleFilterAllCommand(),
                 title: "Hide unselected",
                 category: "Selection"
             },
             {
                 combo: "c",
-                fn: () => {
-                    this.props.params.colorScale = next(
-                        ["continents", "ptr", "none"],
-                        this.props.params.colorScale
-                    )
-                    this.renderControlsThenUpdateChart()
-                },
+                fn: () => this.toggleColorStrategyCommand(),
                 title: "Change line colors",
                 category: "Chart"
             },
             {
                 combo: "l",
-                fn: () =>
-                    (this.chart.props.yAxis.scaleType = next(
-                        ["linear", "log"],
-                        this.chart.props.yAxis.scaleType
-                    )),
+                fn: () => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
                 category: "Chart"
             },
             {
                 combo: "z",
-                fn: () => {
-                    // Todo: add tests for this
-                    this.chart.url.setTimeFromTimeQueryParam(
-                        next(
-                            ["latest", "earliest", ".."],
-                            this.chart.url.timeParam!
-                        )
-                    )
-                    this.renderControlsThenUpdateChart()
-                },
+                fn: () => this.toggleTimelineCommand(),
                 title: "Latest/Earliest/All period",
                 category: "Timeline"
             },
             {
                 combo: "p",
-                fn: () => (this.chart.isPlaying = !this.chart.isPlaying),
+                fn: () => this.togglePlayingCommand(),
                 title: "Play/Pause",
                 category: "Timeline"
             }
         ]
     }
 
-    toggleDimensionColumnCommand(axis: "y" | "x" | "size", backwards = false) {
+    @action.bound toggleYScaleTypeCommand() {
+        this.chart.props.yAxis.scaleType = next(
+            ["linear", "log"],
+            this.chart.props.yAxis.scaleType
+        )
+    }
+
+    @action.bound toggleTimelineCommand() {
+        // Todo: add tests for this
+        this.chart.url.setTimeFromTimeQueryParam(
+            next(["latest", "earliest", ".."], this.chart.url.timeParam!)
+        )
+        this.renderControlsThenUpdateChart()
+    }
+
+    @action.bound toggleColorStrategyCommand() {
+        this.props.params.colorScale = next(
+            ["continents", "ptr", "none"],
+            this.props.params.colorScale
+        )
+        this.renderControlsThenUpdateChart()
+    }
+
+    @action.bound toggleFilterAllCommand() {
+        this.chart.props.minPopulationFilter =
+            this.chart.props.minPopulationFilter === 2e9 ? undefined : 2e9
+        this.renderControlsThenUpdateChart()
+    }
+
+    @action.bound togglePlayingCommand() {
+        this.chart.isPlaying = !this.chart.isPlaying
+    }
+
+    @action.bound toggleDimensionColumnCommand(
+        axis: "y" | "x" | "size",
+        backwards = false
+    ) {
         const key = `${axis}Column`
         const params = this.props.params as any
         const fn = backwards ? previous : next
@@ -945,7 +961,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private currentIndex = -1
-    playIndex(index: number) {
+    @action.bound playIndexCommand(index: number) {
         const combos = this.constrainedParams.allAvailableCombos()
         index = index >= combos.length ? index - combos.length : index
         index = index < 0 ? combos.length + index : index
