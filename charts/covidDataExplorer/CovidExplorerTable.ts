@@ -624,7 +624,7 @@ export class CovidExplorerTable {
         groupName: string
     ) => {
         const rowsByDay = new Map<string, CovidGrapherRow>()
-        const rows = sortBy(group, row => moment(row.date).unix())
+        const rows = sortBy(group, row => dateToYear(row.date))
         const groupMembers = new Set()
         rows.forEach(row => {
             const day = row.date
