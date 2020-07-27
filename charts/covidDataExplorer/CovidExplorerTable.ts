@@ -741,11 +741,18 @@ export class CovidExplorerTable {
 
 export const fetchAndParseData = memoize(CovidExplorerTable.fetchAndParseData)
 
-const dateToYear = (dateString: string): number =>
-    dateDiffInDays(
-        moment.utc(dateString).toDate(),
-        moment.utc("2020-01-21").toDate()
-    )
+const dateToYearCache = new Map<string, number>() // Cache for performance
+const dateToYear = (dateString: string): number => {
+    if (!dateToYearCache.has(dateString))
+        dateToYearCache.set(
+            dateString,
+            dateDiffInDays(
+                moment.utc(dateString).toDate(),
+                moment.utc("2020-01-21").toDate()
+            )
+        )
+    return dateToYearCache.get(dateString)!
+}
 
 export const fetchLastUpdatedTime = memoize(() =>
     retryPromise(() => fetchText(covidLastUpdatedPath))
