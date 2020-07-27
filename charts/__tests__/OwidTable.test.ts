@@ -114,7 +114,7 @@ canada,20`
         })
 
         it("adding rows works with filters", () => {
-            table.addRowsAndDetectColumns([
+            table.cloneAndAddRowsAndDetectColumns([
                 { country: "ireland", population: "7" },
                 { country: "united kingdom", population: "60" }
             ])

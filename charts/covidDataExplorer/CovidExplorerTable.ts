@@ -87,7 +87,7 @@ export class CovidExplorerTable {
     ) {
         this.initColumnSpecs(owidVariableSpecs)
         this.table = table
-        this.table.setRows(data)
+        this.table.cloneAndSetRows(data)
         this.table.addSpecs(this.getBaseSpecs(data[0] || {}))
         this.table.columnsBySlug.forEach(col => {
             // Ensure all columns have a OwidVarId for now. Todo: rely on just column slug in Grapher.

@@ -257,7 +257,7 @@ declare type ColumnSpecs = Map<columnSlug, ColumnSpec>
 declare type ColumnSpecObject = { [columnSlug: string]: ColumnSpec }
 
 abstract class AbstractTable<ROW_TYPE extends Row> {
-    @observable.ref rows: ROW_TYPE[] = [] // Todo: make readonly
+    @observable.ref private _rows: ROW_TYPE[] = []
     @observable protected columns: Map<columnSlug, AbstractColumn> = new Map()
 
     constructor(
@@ -267,13 +267,17 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             | ColumnSpec[]
             | ColumnSpecObject = AbstractTable.makeSpecsFromRows(rows)
     ) {
-        this.setRows(rows)
+        this.cloneAndSetRows(rows)
         this.addSpecs(columnSpecs)
     }
 
-    // Clones and sets rows
-    setRows(rows: ROW_TYPE[]) {
-        this.rows = cloneDeep(rows)
+    @computed get rows() {
+        return this._rows
+    }
+
+
+    cloneAndSetRows(rows: ROW_TYPE[]) {
+        this._rows = cloneDeep(rows)
     }
 
     addSpecs(columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[]) {
@@ -480,8 +484,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return header + body
     }
 
-    @action.bound addRowsAndDetectColumns(rows: ROW_TYPE[]) {
-        this.rows = this.rows.concat(cloneDeep(rows))
+    @action.bound cloneAndAddRowsAndDetectColumns(rows: ROW_TYPE[]) {
+        this._rows = this.rows.concat(cloneDeep(rows))
         this.addSpecs(AbstractTable.makeSpecsFromRows(rows))
         return this
     }
