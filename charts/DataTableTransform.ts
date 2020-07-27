@@ -175,7 +175,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get dimensions() {
-        return this.chart.tableOnlyDimensions.length
+        return this.chart.multiMetricTableMode
             ? this.chart.tableOnlyDimensions
             : this.chart.filledDimensions.filter(dim => dim.includeInTable)
     }
@@ -187,7 +187,8 @@ export class DataTableTransform extends ChartTransform {
     // TODO move this logic to chart
     @computed get targetYearMode(): TargetYearMode {
         const { tab } = this.chart
-        if (tab === "chart") {
+        if (tab !== "map") {
+            if (this.chart.multiMetricTableMode) return TargetYearMode.point
             if (
                 (this.chart.isLineChart &&
                     !this.chart.lineChart.isSingleYear) ||
@@ -277,7 +278,8 @@ export class DataTableTransform extends ChartTransform {
                           dim.tolerance
                       )
 
-            const isRange = targetYears.length === 2
+            // const isRange = targetYears.length === 2
+            const isRange = this.targetYearMode === TargetYearMode.range
 
             // Inject delta columns if we have start & end values to compare in the table.
             // One column for absolute difference, another for % difference.

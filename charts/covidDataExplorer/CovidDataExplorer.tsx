@@ -63,7 +63,7 @@ import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
-import { startCase } from "lodash"
+import { startCase, flatten } from "lodash"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 
@@ -562,20 +562,19 @@ export class CovidDataExplorer extends React.Component<{
             : ""
     }
 
-    private metricLongName(metric: MetricKind) {
+    private metricLongName(metric: MetricKind, dailyFreq: boolean) {
         let longName = ""
-        const params = this.constrainedParams
 
-        const freq = params.dailyFreq ? "Daily new" : "Cumulative"
+        const freq = dailyFreq ? "Daily new" : "Cumulative"
         if (metric === "case_fatality_rate")
             longName = `Case fatality rate of the ongoing COVID-19 pandemic`
         else if (metric === "positive_test_rate")
             longName = `The share of ${
-                params.dailyFreq ? "daily " : ""
+                dailyFreq ? "daily " : ""
             }COVID-19 tests that are positive`
         else if (metric === "tests_per_case")
             longName = `${
-                params.totalFreq ? `Cumulative tests` : `Tests`
+                !dailyFreq ? `Cumulative tests` : `Tests`
             } conducted per confirmed case of COVID-19`
         else if (metric === "tests") longName = `${freq} COVID-19 tests`
         else if (metric === "deaths")
@@ -591,7 +590,10 @@ export class CovidDataExplorer extends React.Component<{
         if (params.yColumn || params.xColumn)
             return startCase(`${this.yColumn.name} by ${this.xColumn?.name}`)
 
-        return this.metricLongName(this.constrainedParams.metricName)
+        return this.metricLongName(
+            this.constrainedParams.metricName,
+            params.dailyFreq
+        )
     }
 
     @computed private get subtitle() {
@@ -724,10 +726,21 @@ export class CovidDataExplorer extends React.Component<{
             const dataTableParams = new CovidConstrainedQueryParams(
                 params.toString()
             )
+
             this.constrainedParams.tableMetrics.forEach(metric => {
-                dataTableParams.setMetric(metric, "multi")
+                dataTableParams.setMetric(metric)
+                dataTableParams.dailyFreq = false
+                if (
+                    metric === "deaths" ||
+                    metric === "cases" ||
+                    metric === "tests"
+                ) { // generate daily columns too
+                    covidExplorerTable.initRequestedColumns(dataTableParams)
+                    dataTableParams.dailyFreq = !dataTableParams.dailyFreq
+                }
+
+                covidExplorerTable.initRequestedColumns(dataTableParams)
             })
-            covidExplorerTable.initRequestedColumns(dataTableParams)
         }
         covidExplorerTable.initRequestedColumns(params)
 
@@ -756,6 +769,7 @@ export class CovidDataExplorer extends React.Component<{
             spec => new ChartDimension(spec)
         )
 
+        // for the multimetric table
         this.chart.tableOnlyDimensions = this.tableOnlyDimensions.map(
             (dimSpec, index) =>
                 new ChartDimensionWithOwidVariable(
@@ -1098,28 +1112,45 @@ export class CovidDataExplorer extends React.Component<{
             : undefined
     }
 
+    _buildTableOnlyDimensionSpec = (metric: MetricKind, dailyFreq: boolean) => {
+        const params = this.constrainedParams
+        const colSlug = buildColumnSlug(
+            metric,
+            params.perCapitaDivisor,
+            dailyFreq,
+            params.smoothing
+        )
+
+        const column = this.chart.table.columnsBySlug.get(colSlug)
+
+        if (!column) console.log(`failing column is ${colSlug}`)
+        return {
+            property: "table",
+            variableId: column?.spec.owidVariableId,
+            display: {
+                tolerance: 1,
+                name: this.metricLongName(metric, dailyFreq),
+                tableDisplay: column?.display.tableDisplay
+            }
+        } as DimensionSpec
+    }
+
     @computed get tableOnlyDimensions(): DimensionSpec[] {
-        return (
-            this.constrainedParams.tableMetrics?.map(metricName => {
-                const columnSlug = buildColumnSlug(
-                    metricName,
-                    this.constrainedParams.perCapitaDivisor,
-                    this.constrainedParams.dailyFreq,
-                    this.constrainedParams.smoothing
+        const params = this.constrainedParams
+        return flatten(
+            params.tableMetrics?.map(metric => {
+                const specs = [this._buildTableOnlyDimensionSpec(metric, false)]
+
+                if (
+                    metric === "deaths" ||
+                    metric === "cases" ||
+                    metric === "tests"
                 )
+                    // add daily column
+                    specs.push(this._buildTableOnlyDimensionSpec(metric, true))
 
-                const column = this.chart.table.columnsBySlug.get(columnSlug)
-
-                return {
-                    property: "table",
-                    variableId: column?.spec.owidVariableId,
-                    display: {
-                        tolerance: 1,
-                        name: this.metricLongName(metricName),
-                        tableDisplay: column?.display.tableDisplay
-                    }
-                } as DimensionSpec
-            }) ?? []
+                return specs
+            })
         )
     }
 
