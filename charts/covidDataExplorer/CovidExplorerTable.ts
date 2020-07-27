@@ -327,10 +327,11 @@ export class CovidExplorerTable {
     }
 
     private initColumn(
+        metricName: MetricKind,
         params: CovidConstrainedQueryParams,
         rowFn: RowToValueMapper
     ) {
-        const columnName = params.metricName
+        const columnName = metricName
         const perCapita = params.perCapitaDivisor
         const smoothing = params.smoothing
         const spec = this.buildColumnSpec(
@@ -381,19 +382,19 @@ export class CovidExplorerTable {
 
     initTestingColumn(params: CovidConstrainedQueryParams) {
         if (params.dailyFreq)
-            this.initColumn(params, row => {
+            this.initColumn("tests", params, row => {
                 return params.smoothing === 7
                     ? row.new_tests_smoothed
                     : row.new_tests
             })
         else if (params.totalFreq)
-            this.initColumn(params, row => row.total_tests)
+            this.initColumn("tests", params, row => row.total_tests)
     }
 
     initTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
         if (params.dailyFreq && params.smoothing) {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
-            this.initColumn(params, row => {
+            this.initColumn("tests_per_case", params, row => {
                 if (
                     row.new_tests_smoothed === undefined ||
                     !(row as any)[casesSlug]
@@ -407,7 +408,7 @@ export class CovidExplorerTable {
                 return tpc >= 1 ? tpc : undefined
             })
         } else if (params.totalFreq)
-            this.initColumn(params, row => {
+            this.initColumn("tests_per_case", params, row => {
                 if (row.total_tests === undefined || !row.total_cases)
                     return undefined
 
@@ -422,7 +423,7 @@ export class CovidExplorerTable {
     initCfrColumn(params: CovidConstrainedQueryParams) {
         // We do not support daily freq for CFR
         if (params.totalFreq)
-            this.initColumn(params, row =>
+            this.initColumn("case_fatality_rate", params, row =>
                 row.total_cases < 100
                     ? undefined
                     : row.total_deaths && row.total_cases
@@ -433,6 +434,7 @@ export class CovidExplorerTable {
 
     initCasesColumn(params: CovidConstrainedQueryParams) {
         this.initColumn(
+            "cases",
             params,
             params.dailyFreq ? row => row.new_cases : row => row.total_cases
         )
@@ -452,7 +454,7 @@ export class CovidExplorerTable {
     initTestRateColumn(params: CovidConstrainedQueryParams) {
         if (params.dailyFreq) {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
-            return this.initColumn(params, row => {
+            return this.initColumn("positive_test_rate", params, row => {
                 const testCount =
                     params.smoothing === 7
                         ? row.new_tests_smoothed
@@ -472,7 +474,7 @@ export class CovidExplorerTable {
                 return rate >= 0 && rate <= 1 ? rate : undefined
             })
         }
-        return this.initColumn(params, row => {
+        return this.initColumn("positive_test_rate", params, row => {
             if (row.total_cases === undefined || !row.total_tests)
                 return undefined
 
@@ -485,7 +487,9 @@ export class CovidExplorerTable {
     }
 
     initDeathsColumn(params: CovidConstrainedQueryParams) {
+        console.log(`initing death`)
         this.initColumn(
+            "deaths",
             params,
             params.dailyFreq ? row => row.new_deaths : row => row.total_deaths
         )

@@ -7,7 +7,7 @@ import {
     queryParamsToStr
 } from "utils/client/url"
 import { SortOrder } from "charts/SortOrder"
-import { omit, oneOf } from "../Util"
+import { omit, oneOf, uniq, intersection } from "../Util"
 import {
     PerCapita,
     AlignedOption,
@@ -19,7 +19,24 @@ import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
 import { buildColumnSlug } from "./CovidExplorerTable"
-import { uniq, intersection } from "lodash"
+
+export const metricMap: { [key: string]: MetricKind } = {
+    casesMetric: "cases",
+    deathsMetric: "deaths",
+    cfrMetric: "case_fatality_rate",
+    testsMetric: "tests",
+    testsPerCaseMetric: "tests_per_case",
+    positiveTestRate: "positive_test_rate"
+}
+
+export const metricMap2: { [key: string]: string } = {
+    cases: "casesMetric",
+    deaths: "deathsMetric",
+    case_fatality_rate: "cfrMetric",
+    tests: "testsMetric",
+    tests_per_case: "testsPerCaseMetric",
+    positive_test_rate: "positiveTestRate"
+}
 
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
@@ -42,6 +59,8 @@ export class CovidQueryParams {
     @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
     @observable colorScale?: colorScaleOption = undefined
+
+    @observable tableMetrics?: MetricKind[] = []
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
@@ -102,6 +121,8 @@ export class CovidQueryParams {
         this.perCapita = params.perCapita === "true"
         this.hideControls = params.hideControls === "true"
         this.aligned = params.aligned === "true"
+
+        this.tableMetrics = getTableMetrics(params.tableMetrics)
 
         this.smoothing = params.smoothing
             ? (parseInt(params.smoothing) as SmoothingOption)
@@ -182,6 +203,7 @@ export class CovidQueryParams {
         )
         params.pickerMetric = this.countryPickerMetric
         params.pickerSort = this.countryPickerSort
+        params.tableMetrics = this.tableMetrics?.join("~")
         return params as QueryParams
     }
 
@@ -248,13 +270,22 @@ export class CovidQueryParams {
         return new CovidConstrainedQueryParams(this.toString())
     }
 
-    setMetric(option: MetricKind) {
-        this.casesMetric = option === "cases"
-        this.testsMetric = option === "tests"
-        this.deathsMetric = option === "deaths"
-        this.cfrMetric = option === "case_fatality_rate"
-        this.testsPerCaseMetric = option === "tests_per_case"
-        this.positiveTestRate = option === "positive_test_rate"
+    setMetric(option: MetricKind, metricMode: "single" | "multi" = "single") {
+        if (metricMode === "single") {
+            this.casesMetric = false
+            this.testsMetric = false
+            this.deathsMetric = false
+            this.cfrMetric = false
+            this.testsPerCaseMetric = false
+            this.positiveTestRate = false
+        }
+
+        if (option === "cases") this.casesMetric = true
+        if (option === "tests") this.testsMetric = true
+        if (option === "deaths") this.deathsMetric = true
+        if (option === "case_fatality_rate") this.cfrMetric = true
+        if (option === "tests_per_case") this.testsPerCaseMetric = true
+        if (option === "positive_test_rate") this.positiveTestRate = true
     }
 
     setTimeline(option: "daily" | "total" | "smoothed") {
@@ -369,4 +400,10 @@ export class CovidUrl implements ObservableUrl {
     @computed get debounceMode(): boolean {
         return this.chartUrl.debounceMode
     }
+}
+
+function getTableMetrics(queryParam?: string): MetricKind[] | undefined {
+    if (!queryParam) return undefined
+    const metricStrings = queryParam.split("~")
+    return metricStrings.map(metric => metric as MetricKind)
 }

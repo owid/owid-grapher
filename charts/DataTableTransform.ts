@@ -15,6 +15,7 @@ import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { getTimeWithinTimeRange, Time, isUnboundedLeft } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
+import { union } from "lodash"
 
 // Target year modes
 
@@ -174,11 +175,16 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get dimensions() {
-        return this.chart.filledDimensions.filter(dim => dim.includeInTable)
+        return this.chart.tableOnlyDimensions.length
+            ? this.chart.tableOnlyDimensions
+            : this.chart.filledDimensions.filter(dim => dim.includeInTable)
     }
 
     @computed get entities() {
-        return this.chart.data.availableEntityNames
+        return union(
+            this.chart.data.availableEntityNames,
+            flatten(this.dimensions.map(dim => dim.entityNamesUniq))
+        )
     }
 
     // TODO move this logic to chart

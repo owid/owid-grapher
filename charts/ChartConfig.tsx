@@ -742,6 +742,8 @@ export class ChartConfig {
         return validDimensions
     }
 
+    @observable tableOnlyDimensions: ChartDimensionWithOwidVariable[] = []
+
     @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {
         if (!this.isReady) return []
 

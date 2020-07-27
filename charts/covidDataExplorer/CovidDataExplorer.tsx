@@ -31,13 +31,19 @@ import {
 import { CountryOption, CovidGrapherRow } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
-import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
+import {
+    CovidQueryParams,
+    CovidUrl,
+    metricMap2,
+    CovidConstrainedQueryParams
+} from "./CovidChartUrl"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
     getLeastUsedColor,
     CovidExplorerTable,
-    fetchCovidChartAndVariableMeta
+    fetchCovidChartAndVariableMeta,
+    buildColumnSlug
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -58,8 +64,9 @@ import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
-import { startCase } from "lodash"
+import { startCase, cloneDeep, clone, cloneDeepWith } from "lodash"
 import { Analytics } from "site/client/Analytics"
+import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 
 const abSeed = Math.random()
 
@@ -707,6 +714,16 @@ export class CovidDataExplorer extends React.Component<{
     @action.bound private _updateChart() {
         const params = this.constrainedParams
         const { covidExplorerTable } = this
+
+        if (this.constrainedParams.tableMetrics) {
+            const tableParams = new CovidConstrainedQueryParams(
+                params.toString()
+            )
+            this.constrainedParams.tableMetrics.map(metric => {
+                tableParams.setMetric(metric, "multi")
+            })
+            covidExplorerTable.initRequestedColumns(tableParams)
+        }
         covidExplorerTable.initRequestedColumns(params)
 
         // Init column for epi color strategy if needed
@@ -732,6 +749,15 @@ export class CovidDataExplorer extends React.Component<{
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
             spec => new ChartDimension(spec)
+        )
+
+        this.chart.tableOnlyDimensions = this.tableOnlyDimensions.map(
+            (dimSpec, index) =>
+                new ChartDimensionWithOwidVariable(
+                    index,
+                    new ChartDimension(dimSpec),
+                    this.chart.table.columnsByOwidVarId.get(dimSpec.variableId)!
+                )
         )
 
         covidExplorerTable.table.setSelectedEntities(
@@ -1065,6 +1091,32 @@ export class CovidDataExplorer extends React.Component<{
                   this.constrainedParams.sizeColumn!
               )!
             : undefined
+    }
+
+    @computed get tableOnlyDimensions(): DimensionSpec[] {
+        return (
+            this.constrainedParams.tableMetrics?.map(metricName => {
+                const columnSlug = buildColumnSlug(
+                    metricName,
+                    this.constrainedParams.perCapitaDivisor,
+                    this.constrainedParams.dailyFreq,
+                    this.constrainedParams.smoothing
+                )
+
+                const column = this.chart.table.columnsBySlug.get(columnSlug)
+                console.log(`looking for slug ${columnSlug}. Found ${column}`)
+
+                return {
+                    property: "table",
+                    variableId: column?.spec.owidVariableId,
+                    display: {
+                        tolerance: 1,
+                        name: column?.spec.name,
+                        tableDisplay: column?.display.tableDisplay
+                    }
+                } as DimensionSpec
+            }) ?? []
+        )
     }
 
     @computed private get yDimension(): DimensionSpec {
