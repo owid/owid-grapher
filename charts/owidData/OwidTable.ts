@@ -265,9 +265,12 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         columnSpecs:
             | ColumnSpecs
             | ColumnSpec[]
-            | ColumnSpecObject = AbstractTable.makeSpecsFromRows(rows)
+            | ColumnSpecObject = AbstractTable.makeSpecsFromRows(rows),
+        cloneRows = true
     ) {
-        this.cloneAndSetRows(rows)
+        // Allow skipping of the clone for perf gains.
+        if (cloneRows) this.cloneAndSetRows(rows)
+        else this.setRowsWithoutCloning(rows)
         this.addSpecs(columnSpecs)
     }
 
@@ -275,6 +278,10 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return this._rows
     }
 
+    // The name is explicit to warn that these rows may be modified by this class.
+    setRowsWithoutCloning(rows: ROW_TYPE[]) {
+        this._rows = rows
+    }
 
     cloneAndSetRows(rows: ROW_TYPE[]) {
         this._rows = cloneDeep(rows)
@@ -786,7 +793,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         )
 
         const sorted = sortBy(joinedRows, ["year", "day"])
-        return new OwidTable(sorted, columnSpecs)
+        return new OwidTable(sorted, columnSpecs, false)
     }
 
     // todo: remove

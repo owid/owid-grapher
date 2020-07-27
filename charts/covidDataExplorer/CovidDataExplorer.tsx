@@ -68,6 +68,7 @@ interface BootstrapProps {
     isEmbed?: boolean
     queryStr?: string
     globalEntitySelection?: GlobalEntitySelection
+    isExplorerPage?: boolean
 }
 
 @observer
@@ -81,6 +82,7 @@ export class CovidDataExplorer extends React.Component<{
     updated: string
     queryStr?: string
     isEmbed?: boolean
+    isExplorerPage?: boolean
     globalEntitySelection?: GlobalEntitySelection
     enableKeyboardShortcuts?: boolean
 }> {
@@ -103,6 +105,7 @@ export class CovidDataExplorer extends React.Component<{
                 covidChartAndVariableMeta={covidMeta}
                 queryStr={queryStr}
                 isEmbed={props.isEmbed}
+                isExplorerPage={props.isExplorerPage}
                 globalEntitySelection={props.globalEntitySelection}
                 enableKeyboardShortcuts={true}
             />,
@@ -681,7 +684,8 @@ export class CovidDataExplorer extends React.Component<{
             this._covidExplorerTable = new CovidExplorerTable(
                 this.chart.table,
                 this.props.data,
-                this.props.covidChartAndVariableMeta.variables
+                this.props.covidChartAndVariableMeta.variables,
+                this.props.isExplorerPage
             )
         }
         return this._covidExplorerTable

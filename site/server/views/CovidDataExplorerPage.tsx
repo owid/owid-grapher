@@ -32,6 +32,7 @@ export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
     var props = {
         containerNode: document.getElementById("${covidDataExplorerContainerId}"),
         queryStr: window.location.search,
+        isExplorerPage: true,
         isEmbed: window != window.top
     };
     window.CovidDataExplorer.replaceStateAndBootstrap(
