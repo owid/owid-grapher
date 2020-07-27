@@ -10,7 +10,7 @@ import {
 } from "./owidData/OwidVariable"
 import { owidVariableId } from "./owidData/OwidTable"
 
-export declare type dimensionProperty = "y" | "x" | "size" | "color"
+export declare type dimensionProperty = "y" | "x" | "size" | "color" | "table"
 
 export interface DimensionSpec {
     property: dimensionProperty
