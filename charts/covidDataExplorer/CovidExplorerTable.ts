@@ -487,7 +487,6 @@ export class CovidExplorerTable {
     }
 
     initDeathsColumn(params: CovidConstrainedQueryParams) {
-        console.log(`initing death`)
         this.initColumn(
             "deaths",
             params,

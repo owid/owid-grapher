@@ -34,7 +34,6 @@ import { CountryPicker } from "./CovidCountryPicker"
 import {
     CovidQueryParams,
     CovidUrl,
-    metricMap2,
     CovidConstrainedQueryParams
 } from "./CovidChartUrl"
 import {
@@ -64,7 +63,7 @@ import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
-import { startCase, cloneDeep, clone, cloneDeepWith } from "lodash"
+import { startCase } from "lodash"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 
@@ -1110,7 +1109,6 @@ export class CovidDataExplorer extends React.Component<{
                 )
 
                 const column = this.chart.table.columnsBySlug.get(columnSlug)
-                console.log(`looking for slug ${columnSlug}. Found ${column}`)
 
                 return {
                     property: "table",
