@@ -652,10 +652,8 @@ export class OwidTable extends AbstractTable<OwidRow> {
         const entityAnnotationsMap = new Map<string, string>()
         const delimiter = ":"
         annotations.split("\n").forEach(line => {
-            const [key, ...words] = line
-                .split(delimiter)
-                .map(word => word.trim())
-            entityAnnotationsMap.set(key, words.join(delimiter))
+            const [key, ...words] = line.split(delimiter)
+            entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
         })
         return entityAnnotationsMap
     }
