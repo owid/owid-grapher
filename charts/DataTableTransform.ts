@@ -181,10 +181,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get entities() {
-        return union(
-            this.chart.data.availableEntityNames,
-            flatten(this.dimensions.map(dim => dim.entityNamesUniq))
-        )
+        return union(...this.dimensions.map(dim => dim.entityNamesUniq))
     }
 
     // TODO move this logic to chart
