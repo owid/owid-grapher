@@ -721,13 +721,13 @@ export class CovidDataExplorer extends React.Component<{
         const { covidExplorerTable } = this
 
         if (this.constrainedParams.tableMetrics) {
-            const tableParams = new CovidConstrainedQueryParams(
+            const dataTableParams = new CovidConstrainedQueryParams(
                 params.toString()
             )
-            this.constrainedParams.tableMetrics.map(metric => {
-                tableParams.setMetric(metric, "multi")
+            this.constrainedParams.tableMetrics.forEach(metric => {
+                dataTableParams.setMetric(metric, "multi")
             })
-            covidExplorerTable.initRequestedColumns(tableParams)
+            covidExplorerTable.initRequestedColumns(dataTableParams)
         }
         covidExplorerTable.initRequestedColumns(params)
 

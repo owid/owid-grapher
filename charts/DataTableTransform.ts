@@ -8,14 +8,14 @@ import {
     intersection,
     flatten,
     sortBy,
-    countBy
+    countBy,
+    union
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { getTimeWithinTimeRange, Time, isUnboundedLeft } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
-import { union } from "lodash"
 
 // Target year modes
 

@@ -20,24 +20,6 @@ import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
 import { buildColumnSlug } from "./CovidExplorerTable"
 
-export const metricMap: { [key: string]: MetricKind } = {
-    casesMetric: "cases",
-    deathsMetric: "deaths",
-    cfrMetric: "case_fatality_rate",
-    testsMetric: "tests",
-    testsPerCaseMetric: "tests_per_case",
-    positiveTestRate: "positive_test_rate"
-}
-
-export const metricMap2: { [key: string]: string } = {
-    cases: "casesMetric",
-    deaths: "deathsMetric",
-    case_fatality_rate: "cfrMetric",
-    tests: "testsMetric",
-    tests_per_case: "testsPerCaseMetric",
-    positive_test_rate: "positiveTestRate"
-}
-
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
     // for back compat.
