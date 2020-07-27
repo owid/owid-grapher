@@ -252,22 +252,13 @@ export class CovidQueryParams {
         return new CovidConstrainedQueryParams(this.toString())
     }
 
-    setMetric(option: MetricKind, metricMode: "single" | "multi" = "single") {
-        if (metricMode === "single") {
-            this.casesMetric = false
-            this.testsMetric = false
-            this.deathsMetric = false
-            this.cfrMetric = false
-            this.testsPerCaseMetric = false
-            this.positiveTestRate = false
-        }
-
-        if (option === "cases") this.casesMetric = true
-        if (option === "tests") this.testsMetric = true
-        if (option === "deaths") this.deathsMetric = true
-        if (option === "case_fatality_rate") this.cfrMetric = true
-        if (option === "tests_per_case") this.testsPerCaseMetric = true
-        if (option === "positive_test_rate") this.positiveTestRate = true
+    setMetric(option: MetricKind) {
+        this.casesMetric = option === "cases"
+        this.testsMetric = option === "tests"
+        this.deathsMetric = option === "deaths"
+        this.cfrMetric = option === "case_fatality_rate"
+        this.testsPerCaseMetric = option === "tests_per_case"
+        this.positiveTestRate = option === "positive_test_rate"
     }
 
     setTimeline(option: "daily" | "total" | "smoothed") {
