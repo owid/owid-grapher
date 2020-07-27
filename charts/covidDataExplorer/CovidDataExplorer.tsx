@@ -26,7 +26,9 @@ import {
     capitalize,
     mergeQueryStr,
     next,
-    previous
+    previous,
+    startCase,
+    flatten
 } from "charts/Util"
 import { CountryOption, CovidGrapherRow, MetricKind } from "./CovidTypes"
 import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
@@ -63,7 +65,6 @@ import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
-import { startCase, flatten } from "lodash"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 
