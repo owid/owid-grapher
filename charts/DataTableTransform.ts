@@ -278,8 +278,8 @@ export class DataTableTransform extends ChartTransform {
                           dim.tolerance
                       )
 
-            // const isRange = targetYears.length === 2
-            const isRange = this.targetYearMode === TargetYearMode.range
+            const isRange = targetYears.length === 2
+            // const isRange = this.targetYearMode === TargetYearMode.range
 
             // Inject delta columns if we have start & end values to compare in the table.
             // One column for absolute difference, another for % difference.

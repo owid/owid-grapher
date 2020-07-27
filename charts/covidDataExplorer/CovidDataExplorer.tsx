@@ -734,7 +734,8 @@ export class CovidDataExplorer extends React.Component<{
                     metric === "deaths" ||
                     metric === "cases" ||
                     metric === "tests"
-                ) { // generate daily columns too
+                ) {
+                    // generate daily columns too
                     covidExplorerTable.initRequestedColumns(dataTableParams)
                     dataTableParams.dailyFreq = !dataTableParams.dailyFreq
                 }
@@ -1123,7 +1124,6 @@ export class CovidDataExplorer extends React.Component<{
 
         const column = this.chart.table.columnsBySlug.get(colSlug)
 
-        if (!column) console.log(`failing column is ${colSlug}`)
         return {
             property: "table",
             variableId: column?.spec.owidVariableId,
