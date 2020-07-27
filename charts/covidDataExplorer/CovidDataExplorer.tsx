@@ -604,14 +604,16 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed private get selectedData() {
         const countryCodeMap = this.countryCodeToCountryOptionMap
-        return Array.from(this.props.params.selectedCountryCodes).map(code => {
-            const countryOption = countryCodeMap.get(code)
-            return {
-                index: 0,
-                entityId: countryOption ? countryOption.entityId : 0,
-                color: this.countryCodeToColorMap[code]
-            }
-        })
+        return Array.from(this.props.params.selectedCountryCodes)
+            .map(code => countryCodeMap.get(code))
+            .filter(i => i)
+            .map(countryOption => {
+                return {
+                    index: 0,
+                    entityId: countryOption ? countryOption.entityId : 0,
+                    color: this.countryCodeToColorMap[countryOption!.code]
+                }
+            })
     }
 
     @computed private get countryCodeToCountryOptionMap() {
