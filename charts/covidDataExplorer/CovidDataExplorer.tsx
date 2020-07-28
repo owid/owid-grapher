@@ -68,6 +68,7 @@ import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
+import { emptyString } from "react-select/src/utils"
 
 const abSeed = Math.random()
 
@@ -297,11 +298,7 @@ export class CovidDataExplorer extends React.Component<{
         const options: ControlOption[] = [
             {
                 available: this.constrainedParams.available.perCapita,
-                label: capitalize(
-                    this.perCapitaOptions[
-                        perCapitaDivisor(this.constrainedParams.metricName)
-                    ]
-                ),
+                label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
                 checked: this.constrainedParams.perCapita,
                 onChange: value => {
                     this.props.params.perCapita = value
@@ -587,8 +584,9 @@ export class CovidDataExplorer extends React.Component<{
         else if (metric === "cases")
             longName = `${freq} confirmed COVID-19 cases`
 
-        if (isCountMetric(metric)) return longName + this.perCapitaTitle(metric)
-        return longName
+        return isCountMetric(metric)
+            ? longName + this.perCapitaTitle(metric)
+            : longName
     }
 
     @computed private get chartTitle() {
@@ -1094,7 +1092,7 @@ export class CovidDataExplorer extends React.Component<{
             : undefined
     }
 
-    private _buildTableOnlyDimensionSpec = (
+    private _buildDataTableOnlyDimensionSpec = (
         metric: MetricKind,
         dailyFreq: boolean
     ) => {
@@ -1122,11 +1120,15 @@ export class CovidDataExplorer extends React.Component<{
         const params = this.constrainedParams
         return flatten(
             params.tableMetrics?.map(metric => {
-                const specs = [this._buildTableOnlyDimensionSpec(metric, false)]
+                const specs = [
+                    this._buildDataTableOnlyDimensionSpec(metric, false)
+                ]
 
                 if (isCountMetric(metric)) {
                     // add daily column
-                    specs.push(this._buildTableOnlyDimensionSpec(metric, true))
+                    specs.push(
+                        this._buildDataTableOnlyDimensionSpec(metric, true)
+                    )
                 }
 
                 return specs
