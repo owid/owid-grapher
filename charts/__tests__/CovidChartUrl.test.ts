@@ -27,12 +27,12 @@ describe(CovidQueryParams, () => {
         const params = new CovidQueryParams(
             `cfrMetric=true&dailyFreq=true&smoothing=7`
         )
-        expect(params.dailyFreq).toEqual(true)
-        expect(params.totalFreq).toEqual(false)
+        expect(params.isDailyOrSmoothed).toEqual(true)
+        expect(params.interval).toEqual("smoothed")
         expect(params.smoothing).toEqual(7)
-        const constrainedParams = params.constrainedParams
-        expect(constrainedParams.dailyFreq).toEqual(false)
-        expect(constrainedParams.totalFreq).toEqual(true)
+        const constrainedParams = params.toConstrainedParams()
+        expect(constrainedParams.interval).toEqual("total")
+        expect(constrainedParams.isDailyOrSmoothed).toEqual(false)
         expect(constrainedParams.smoothing).toEqual(0)
     })
 
@@ -40,12 +40,11 @@ describe(CovidQueryParams, () => {
         const params = new CovidQueryParams(
             `positiveTestRate=true&dailyFreq=true`
         )
-        expect(params.dailyFreq).toEqual(true)
-        expect(params.totalFreq).toEqual(false)
+        expect(params.isDailyOrSmoothed).toEqual(true)
+        expect(params.interval).toEqual("daily")
         const constrainedParams = params.constrainedParams
-        expect(constrainedParams.dailyFreq).toEqual(true)
+        expect(constrainedParams.interval).toEqual("smoothed")
         expect(constrainedParams.smoothing).toEqual(7)
-        expect(constrainedParams.totalFreq).toEqual(false)
     })
 
     it("computes the correct source chart key given current params", () => {

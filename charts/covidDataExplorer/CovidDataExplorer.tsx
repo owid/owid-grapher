@@ -28,8 +28,12 @@ import {
     next,
     previous
 } from "charts/Util"
-import { CountryOption, CovidGrapherRow } from "./CovidTypes"
-import { ControlOption, ExplorerControl } from "./CovidExplorerControl"
+import { CountryOption, CovidGrapherRow, IntervalOption } from "./CovidTypes"
+import {
+    ControlOption,
+    ExplorerControl,
+    DropdownOption
+} from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
 import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
 import {
@@ -239,44 +243,56 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private get frequencyPicker() {
-        const params = this.props.params
-        const options: ControlOption[] = [
+        const writeableParams = this.props.params
+        const { available } = this.constrainedParams
+        const options: DropdownOption[] = [
             {
                 available: true,
                 label: "Cumulative",
-                checked: this.constrainedParams.totalFreq,
-                onChange: () => {
-                    params.setTimeline("total")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "total"
             },
             {
-                available: this.constrainedParams.available.smoothing,
+                available: available.smoothed,
                 label: "7-day rolling average",
-                checked: this.constrainedParams.smoothing === 7,
-                onChange: () => {
-                    params.setTimeline("smoothed")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "smoothed"
             },
             {
-                available: this.constrainedParams.available.dailyFreq,
+                available: available.daily,
                 label: "New per day",
-                checked:
-                    this.constrainedParams.dailyFreq &&
-                    this.constrainedParams.smoothing === 0,
-                onChange: () => {
-                    params.setTimeline("daily")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "daily"
+            },
+            {
+                available: available.weekly,
+                label: "Weekly",
+                value: "weekly"
+            },
+            {
+                available: available.weekly,
+                label: "Weekly change",
+                value: "weeklyChange"
+            },
+            {
+                available: available.weekly,
+                label: "Biweekly",
+                value: "biweekly"
+            },
+            {
+                available: available.weekly,
+                label: "Biweekly Change",
+                value: "biweeklyChange"
             }
         ]
         return (
             <ExplorerControl
                 title="Interval"
                 name={this.getScopedName("interval")}
-                options={options}
-                isCheckbox={false}
+                dropdownOptions={options}
+                value={this.constrainedParams.interval}
+                options={[]}
+                onChange={(value: string) => {
+                    writeableParams.setTimeline(value as IntervalOption)
+                    this.renderControlsThenUpdateChart()
+                }}
             ></ExplorerControl>
         )
     }
@@ -286,9 +302,10 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get perCapitaPicker() {
+        const { available } = this.constrainedParams
         const options: ControlOption[] = [
             {
-                available: this.constrainedParams.available.perCapita,
+                available: available.perCapita,
                 label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
                 checked: this.constrainedParams.perCapita,
                 onChange: value => {
@@ -307,10 +324,11 @@ export class CovidDataExplorer extends React.Component<{
         )
     }
 
-    private get alignedPicker() {
+    @computed private get alignedPicker() {
+        const { available } = this.constrainedParams
         const options: ControlOption[] = [
             {
-                available: this.constrainedParams.available.aligned,
+                available: available.aligned,
                 label: "Align outbreaks",
                 checked: this.constrainedParams.aligned,
                 onChange: value => {
@@ -559,20 +577,22 @@ export class CovidDataExplorer extends React.Component<{
     @computed private get chartTitle() {
         let title = ""
         const params = this.constrainedParams
+        const interval = params.interval
 
         if (params.yColumn || params.xColumn)
             return startCase(`${this.yColumn.name} by ${this.xColumn?.name}`)
 
-        const freq = params.dailyFreq ? "Daily new" : "Cumulative"
+        const isCumulative = interval === "total"
+        const freq = params.intervalTitle
         if (params.cfrMetric)
             title = `Case fatality rate of the ongoing COVID-19 pandemic`
         else if (params.positiveTestRate)
             title = `The share of ${
-                params.dailyFreq ? "daily " : ""
+                isCumulative ? "" : "daily "
             }COVID-19 tests that are positive`
         else if (params.testsPerCaseMetric)
             title = `${
-                params.totalFreq ? `Cumulative tests` : `Tests`
+                isCumulative ? `Cumulative tests` : `Tests`
             } conducted per confirmed case of COVID-19`
         else if (params.testsMetric) title = `${freq} COVID-19 tests`
         else if (params.deathsMetric)
@@ -582,9 +602,28 @@ export class CovidDataExplorer extends React.Component<{
         return title + this.perCapitaTitle
     }
 
+    @computed private get weekSubtitle() {
+        const params = this.constrainedParams
+        const metric = params.deathsMetric ? "deaths" : "cases"
+
+        if (params.interval === "weekly")
+            return `Weekly confirmed ${metric} refer to the cumulative number of confirmed ${metric} over the previous week.`
+        if (params.interval === "biweekly")
+            return `Biweekly confirmed ${metric} refer to the cumulative number of confirmed ${metric} over the previous two weeks.`
+        if (params.interval === "weeklyChange")
+            return `The weekly growth rate on any given date measures the percentage change in number of confirmed ${metric} over the last seven days relative to the number in the previous seven days.`
+        if (params.interval === "biweeklyChange")
+            return `The biweekly growth rate on any given date measures the percentage change in the number of new confirmed ${metric} over the last 14 days relative to the number in the previous 14 days.`
+
+        console.log("Error generating subtitle")
+        return ""
+    }
+
     @computed private get subtitle() {
         const params = this.constrainedParams
         if (params.yColumn || params.xColumn) return ""
+
+        if (params.isWeekly || params.isBiweekly) return this.weekSubtitle
 
         const smoothing = params.smoothing
             ? `Shown is the rolling ${params.smoothing}-day average. `
@@ -700,6 +739,19 @@ export class CovidDataExplorer extends React.Component<{
             .map(option => option!.name)
     }
 
+    @computed get canDoLogScale() {
+        if (
+            this.constrainedParams.positiveTestRate ||
+            this.constrainedParams.cfrMetric ||
+            (this.constrainedParams.intervalChange &&
+                this.constrainedParams.intervalChange > 1)
+        )
+            return false
+        return true
+    }
+
+    private switchBackToLog = false
+
     // We can't create a new chart object with every radio change because the Chart component itself
     // maintains state (for example, which tab is currently active). Temporary workaround is just to
     // manually update the chart when the chart builderselections change.
@@ -711,7 +763,7 @@ export class CovidDataExplorer extends React.Component<{
 
         // Init column for epi color strategy if needed
         if (params.colorStrategy === "ptr")
-            this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()!
+            this.shortTermPositivityRateVarId = this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()
 
         const chartProps = this.chart.props
         chartProps.title = this.chartTitle
@@ -729,6 +781,18 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.type = params.chartType
         chartProps.yAxis.label = this.yAxisLabel
 
+        if (!this.canDoLogScale) {
+            this.switchBackToLog = chartProps.yAxis.scaleType === "log"
+            chartProps.yAxis.scaleType = "linear"
+            chartProps.yAxis.canChangeScaleType = undefined
+        } else {
+            chartProps.yAxis.canChangeScaleType = true
+            if (this.switchBackToLog) {
+                chartProps.yAxis.scaleType = "log"
+                this.switchBackToLog = false
+            }
+        }
+
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
             spec => new ChartDimension(spec)
@@ -738,7 +802,10 @@ export class CovidDataExplorer extends React.Component<{
             this.getSelectedEntityNames()
         )
 
-        if ((params.casesMetric || params.deathsMetric) && !params.totalFreq)
+        if (
+            (params.casesMetric || params.deathsMetric) &&
+            !(params.interval === "total")
+        )
             covidExplorerTable.addNegativeFilterColumn(params.yColumnSlug)
         else covidExplorerTable.removeNegativeFilterColumn()
 
@@ -1069,6 +1136,10 @@ export class CovidDataExplorer extends React.Component<{
 
     @computed private get yDimension(): DimensionSpec {
         const yColumn = this.yColumn
+        const unit = this.constrainedParams.isWeeklyOrBiweeklyChange
+            ? "%"
+            : undefined
+
         return {
             property: "y",
             variableId: yColumn.spec.owidVariableId!,
@@ -1076,6 +1147,7 @@ export class CovidDataExplorer extends React.Component<{
                 // Allow ± 1 day difference in data plotted on bar charts
                 // This is what we use for charts on the Grapher too
                 tolerance: 1,
+                unit,
                 name: this.chartTitle,
                 tableDisplay: yColumn.display.tableDisplay
             }
@@ -1113,11 +1185,12 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
+    private shortTermPositivityRateVarId: number = 0
     @computed private get colorDimension(): DimensionSpec {
         const variableId =
             this.constrainedParams.colorStrategy === "continents"
                 ? 123
-                : this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()!
+                : this.shortTermPositivityRateVarId
 
         return {
             property: "color",

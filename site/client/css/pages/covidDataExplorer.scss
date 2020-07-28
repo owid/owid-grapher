@@ -212,6 +212,13 @@ html.iframe .CovidDataExplorerFigure,
         }
     }
 
+    .intervalDropdown {
+        font-size: 14px;
+        font-weight: 700;
+        color: $primary-color;
+        min-width: 120px;
+    }
+
     &.mobile-explorer {
         grid-template-columns: auto;
         grid-template-rows: 0fr 0fr 0fr 1fr;

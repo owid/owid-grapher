@@ -1,9 +1,25 @@
 export declare type PerCapita = boolean
 export declare type AlignedOption = boolean
-export declare type SmoothingOption = 0 | 3 | 7
+export declare type SmoothingOption = 0 | 3 | 7 | 14
 
-export declare type DailyFrequencyOption = boolean
-export declare type TotalFrequencyOption = boolean
+export declare type IntervalOption =
+    | "daily"
+    | "weekly"
+    | "total"
+    | "smoothed"
+    | "biweekly"
+    | "weeklyChange"
+    | "biweeklyChange"
+
+export const intervalOptions: IntervalOption[] = [
+    "daily",
+    "weekly",
+    "total",
+    "smoothed",
+    "biweekly",
+    "weeklyChange",
+    "biweeklyChange"
+]
 
 export declare type countrySlug = string
 
