@@ -44,7 +44,8 @@ import {
     getLeastUsedColor,
     CovidExplorerTable,
     fetchCovidChartAndVariableMeta,
-    buildColumnSlug
+    buildColumnSlug,
+    perCapitaDivisor
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -296,7 +297,11 @@ export class CovidDataExplorer extends React.Component<{
         const options: ControlOption[] = [
             {
                 available: this.constrainedParams.available.perCapita,
-                label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
+                label: capitalize(
+                    this.perCapitaOptions[
+                        perCapitaDivisor(this.constrainedParams.metricName)
+                    ]
+                ),
                 checked: this.constrainedParams.perCapita,
                 onChange: value => {
                     this.props.params.perCapita = value
@@ -545,8 +550,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get perCapitaDivisor() {
-        if (this.constrainedParams.testsMetric) return 1e3
-        return 1e6
+        return perCapitaDivisor(this.constrainedParams.metricName)
     }
 
     @computed private get perCapitaOptions() {
@@ -557,9 +561,9 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    @computed private get perCapitaTitle() {
+    private perCapitaTitle(metric: MetricKind) {
         return this.constrainedParams.perCapita
-            ? " " + this.perCapitaOptions[this.perCapitaDivisor]
+            ? " " + this.perCapitaOptions[perCapitaDivisor(metric)]
             : ""
     }
 
@@ -583,7 +587,8 @@ export class CovidDataExplorer extends React.Component<{
         else if (metric === "cases")
             longName = `${freq} confirmed COVID-19 cases`
 
-        return longName + this.perCapitaTitle
+        if (isCountMetric(metric)) return longName + this.perCapitaTitle(metric)
+        return longName
     }
 
     @computed private get chartTitle() {
@@ -1093,12 +1098,11 @@ export class CovidDataExplorer extends React.Component<{
         metric: MetricKind,
         dailyFreq: boolean
     ) => {
-        const params = this.constrainedParams
         const colSlug = buildColumnSlug(
             metric,
-            params.perCapitaDivisor,
+            this.constrainedParams.perCapita ? perCapitaDivisor(metric) : 1,
             dailyFreq,
-            params.smoothing
+            0
         )
 
         const column = this.chart.table.columnsBySlug.get(colSlug)
@@ -1107,7 +1111,7 @@ export class CovidDataExplorer extends React.Component<{
             property: "table",
             variableId: column?.spec.owidVariableId,
             display: {
-                tolerance: 1,
+                tolerance: 2,
                 name: this.metricLongName(metric, dailyFreq),
                 tableDisplay: column?.display.tableDisplay
             }
@@ -1120,13 +1124,10 @@ export class CovidDataExplorer extends React.Component<{
             params.tableMetrics?.map(metric => {
                 const specs = [this._buildTableOnlyDimensionSpec(metric, false)]
 
-                if (
-                    metric === "deaths" ||
-                    metric === "cases" ||
-                    metric === "tests"
-                )
+                if (isCountMetric(metric)) {
                     // add daily column
                     specs.push(this._buildTableOnlyDimensionSpec(metric, true))
+                }
 
                 return specs
             })
@@ -1137,18 +1138,13 @@ export class CovidDataExplorer extends React.Component<{
         const params = this.constrainedParams
         const { covidExplorerTable } = this
 
-        const dataTableParams = new CovidConstrainedQueryParams(
-            params.toString()
-        )
+        const dataTableParams = new CovidConstrainedQueryParams("")
+        dataTableParams.perCapita = params.perCapita
 
         params.tableMetrics?.forEach(metric => {
             dataTableParams.setMetric(metric)
             dataTableParams.dailyFreq = false
-            if (
-                metric === "deaths" ||
-                metric === "cases" ||
-                metric === "tests"
-            ) {
+            if (isCountMetric(metric)) {
                 // generate daily columns too
                 covidExplorerTable.initRequestedColumns(dataTableParams)
                 dataTableParams.dailyFreq = !dataTableParams.dailyFreq
@@ -1327,4 +1323,8 @@ export class CovidDataExplorer extends React.Component<{
             queryStr: this.props.queryStr
         }
     )
+}
+
+function isCountMetric(metric: MetricKind) {
+    return metric === "deaths" || metric === "cases" || metric === "tests"
 }

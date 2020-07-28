@@ -18,7 +18,7 @@ import {
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
-import { buildColumnSlug } from "./CovidExplorerTable"
+import { buildColumnSlug, perCapitaDivisor } from "./CovidExplorerTable"
 
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
@@ -189,10 +189,6 @@ export class CovidQueryParams {
         return params as QueryParams
     }
 
-    get perCapitaDivisor() {
-        return this.perCapita ? (this.testsMetric ? 1e3 : 1e6) : 1
-    }
-
     // If someone selects "Align with..." we switch to a scatterplot chart type.
     @computed get chartType(): ChartTypeType {
         return this.aligned ? "ScatterPlot" : "LineChart"
@@ -212,7 +208,7 @@ export class CovidQueryParams {
         if (this.yColumn) return this.yColumn
         return buildColumnSlug(
             this.metricName,
-            this.perCapitaDivisor,
+            this.perCapita ? perCapitaDivisor(this.metricName) : 1,
             this.dailyFreq,
             this.smoothing
         )
