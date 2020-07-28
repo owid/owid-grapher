@@ -753,7 +753,7 @@ export class CovidDataExplorer extends React.Component<{
         // multimetric table
         if (this.constrainedParams.tableMetrics) {
             this._generateDataTableColumnsInTable()
-            this._addDataTableOnlyDimensionsToChart
+            this._addDataTableOnlyDimensionsToChart()
         }
 
         covidExplorerTable.table.setSelectedEntities(
