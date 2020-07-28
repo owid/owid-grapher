@@ -90,6 +90,7 @@ export class CountryPicker extends React.Component<{
 
     set metric(metric) {
         this.props.covidDataExplorer.props.params.countryPickerMetric = metric
+        this.sortOrder = metric === "location" ? SortOrder.asc : SortOrder.desc
     }
 
     @computed get sortOrder(): SortOrder {
@@ -425,7 +426,14 @@ export class CountryPicker extends React.Component<{
                                 )
                             }}
                         >
-                            <SortIcon type="text" order={this.sortOrder} />
+                            <SortIcon
+                                type={
+                                    this.metric === "location"
+                                        ? "text"
+                                        : "numeric"
+                                }
+                                order={this.sortOrder}
+                            />
                         </span>
                     </div>
                 )}
