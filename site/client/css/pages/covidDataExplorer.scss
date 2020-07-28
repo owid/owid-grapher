@@ -213,10 +213,11 @@ html.iframe .CovidDataExplorerFigure,
     }
 
     .intervalDropdown {
-        font-size: 14px;
-        font-weight: 700;
-        color: $primary-color;
+        font-size: 13px;
+        font-weight: 400;
+        // color: $primary-color;
         min-width: 120px;
+        border: 0;
     }
 
     &.mobile-explorer {
