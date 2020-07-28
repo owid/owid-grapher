@@ -85,19 +85,32 @@ export class ExplorerControl extends React.Component<{
                 }
             })
 
+        const styles = getStylesForTargetHeight(16, {
+            control: {
+                border /* Keep it subtle */: 0,
+                boxShadow:
+                    "none" /* Remove the outline style because text is too close to it */
+            },
+            singleValue: {
+                color: "#7a899e" /* Match the unselected text */,
+                marginLeft:
+                    "-3px" /* Shift the text left to align with header */
+            }
+        })
+
         return (
             <Select
                 className="intervalDropdown"
+                classNamePrefix="intervalDropdown"
                 options={options}
                 value={options.find(
                     option => option.value === this.props.value
                 )}
                 onChange={(option: any) => this.customOnChange(option.value)}
-                menuPlacement="bottom"
                 components={{
                     IndicatorSeparator: null
                 }}
-                styles={getStylesForTargetHeight(26)}
+                styles={styles}
                 isSearchable={false}
             />
         )
