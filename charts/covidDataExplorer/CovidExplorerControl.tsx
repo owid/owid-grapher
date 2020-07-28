@@ -2,6 +2,8 @@ import React from "react"
 import { observer } from "mobx-react"
 import { action } from "mobx"
 import classNames from "classnames"
+import Select from "react-select"
+import { getStylesForTargetHeight } from "utils/client/react-select"
 
 export interface ControlOption {
     label: string
@@ -10,13 +12,22 @@ export interface ControlOption {
     available: boolean
 }
 
+export interface DropdownOption {
+    label: string
+    available: boolean
+    value: string
+}
+
 @observer
 export class ExplorerControl extends React.Component<{
     title: string
     name: string
+    value?: string
     options: ControlOption[]
+    dropdownOptions?: DropdownOption[]
     isCheckbox?: boolean
     comment?: string
+    onChange?: (value: string) => void
     hideTitle?: boolean
 }> {
     @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
@@ -25,15 +36,83 @@ export class ExplorerControl extends React.Component<{
         )
     }
 
+    renderOption(option: ControlOption, index: number) {
+        const { title, name, comment, isCheckbox } = this.props
+        return (
+            <div key={index} className="ControlOption">
+                <label
+                    className={[
+                        option.checked ? "SelectedOption" : "Option",
+                        option.available
+                            ? "AvailableOption"
+                            : "UnavailableOption"
+                    ].join(" ")}
+                    data-track-note={`covid-click-${title.toLowerCase()}`}
+                >
+                    <input
+                        onChange={option.available ? this.onChange : undefined}
+                        type={isCheckbox ? "checkbox" : "radio"}
+                        disabled={!option.available}
+                        name={name}
+                        checked={option.available && option.checked}
+                        value={index}
+                    />{" "}
+                    {option.label}
+                    {comment && (
+                        <div
+                            className={[
+                                "comment",
+                                option.available
+                                    ? "AvailableOption"
+                                    : "UnavailableOption"
+                            ].join(" ")}
+                        >
+                            {comment}
+                        </div>
+                    )}
+                </label>
+            </div>
+        )
+    }
+
+    get renderDropdown() {
+        const options = this.props.dropdownOptions!.map(option => {
+            return {
+                label: option.label,
+                value: option.value
+            }
+        })
+
+        return (
+            <Select
+                className="intervalDropdown"
+                options={options}
+                value={options.find(
+                    option => option.value === this.props.value
+                )}
+                onChange={(option: any) => this.customOnChange(option.value)}
+                menuPlacement="bottom"
+                components={{
+                    IndicatorSeparator: null
+                }}
+                styles={getStylesForTargetHeight(26)}
+                isSearchable={false}
+            />
+        )
+    }
+
+    @action.bound customOnChange(value: string) {
+        this.props.onChange!(value)
+    }
+
+    get renderOptions() {
+        return this.props.options.map((option, index) =>
+            this.renderOption(option, index)
+        )
+    }
+
     render() {
-        const {
-            title,
-            name,
-            comment,
-            options,
-            isCheckbox,
-            hideTitle
-        } = this.props
+        const { title, hideTitle } = this.props
         return (
             <div className={classNames("CovidDataExplorerControl", name)}>
                 <div
@@ -44,43 +123,9 @@ export class ExplorerControl extends React.Component<{
                 >
                     {title}
                 </div>
-                {options.map((option, index) => (
-                    <div key={index} className="ControlOption">
-                        <label
-                            className={[
-                                option.checked ? "SelectedOption" : "Option",
-                                option.available
-                                    ? "AvailableOption"
-                                    : "UnavailableOption"
-                            ].join(" ")}
-                            data-track-note={`covid-click-${title.toLowerCase()}`}
-                        >
-                            <input
-                                onChange={
-                                    option.available ? this.onChange : undefined
-                                }
-                                type={isCheckbox ? "checkbox" : "radio"}
-                                disabled={!option.available}
-                                name={name}
-                                checked={option.available && option.checked}
-                                value={index}
-                            />{" "}
-                            {option.label}
-                            {comment && (
-                                <div
-                                    className={[
-                                        "comment",
-                                        option.available
-                                            ? "AvailableOption"
-                                            : "UnavailableOption"
-                                    ].join(" ")}
-                                >
-                                    {comment}
-                                </div>
-                            )}
-                        </label>
-                    </div>
-                ))}
+                {this.props.dropdownOptions?.length
+                    ? this.renderDropdown
+                    : this.renderOptions}
             </div>
         )
     }

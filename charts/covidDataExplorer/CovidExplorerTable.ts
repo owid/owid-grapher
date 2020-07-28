@@ -20,7 +20,9 @@ import {
     MetricKind,
     CountryOption,
     CovidGrapherRow,
-    SmoothingOption
+    SmoothingOption,
+    IntervalOption,
+    intervalOptions
 } from "./CovidTypes"
 import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"
@@ -60,7 +62,7 @@ const stringColumnSlugs = new Set(
 export const buildColumnSlug = (
     name: MetricKind,
     perCapita: number,
-    daily?: boolean,
+    interval: IntervalOption,
     rollingAverage?: number
 ) =>
     [
@@ -70,7 +72,7 @@ export const buildColumnSlug = (
             : perCapita === 1e6
             ? "perMil"
             : undefined,
-        daily ? "daily" : "cumulative",
+        interval,
         rollingAverage ? rollingAverage + "DayAvg" : undefined
     ]
         .filter(i => i)
@@ -258,12 +260,7 @@ export class CovidExplorerTable {
         return filtered.concat(continentRows, euRows)
     }
 
-    private static buildCovidVariableId(
-        name: MetricKind,
-        perCapita: number,
-        rollingAverage?: number,
-        daily?: boolean
-    ): number {
+    private static buildCovidVariableId(params: CovidQueryParams): number {
         const arbitraryStartingPrefix = 1145
         const names: MetricKey = {
             tests: 0,
@@ -275,28 +272,23 @@ export class CovidExplorerTable {
         }
         const parts = [
             arbitraryStartingPrefix,
-            names[name],
-            daily ? 1 : 0,
-            perCapita,
-            rollingAverage
+            names[params.metricName],
+            intervalOptions.indexOf(params.interval),
+            params.perCapitaDivisor,
+            params.smoothing
         ]
         return parseInt(parts.join(""))
     }
 
-    buildColumnSpec(
-        name: MetricKind,
-        perCapita: number,
-        daily?: boolean,
-        rollingAverage?: number
-    ): ColumnSpec {
+    buildColumnSpec(params: CovidQueryParams): ColumnSpec {
+        const name = params.metricName
+        const perCapita = params.perCapitaDivisor
+        const interval = params.interval
+        const rollingAverage = params.smoothing
+
         const spec = cloneDeep(this.columnSpecs[name]) as ColumnSpec
-        spec.slug = buildColumnSlug(name, perCapita, daily, rollingAverage)
-        spec.owidVariableId = CovidExplorerTable.buildCovidVariableId(
-            name,
-            perCapita,
-            rollingAverage,
-            daily
-        )
+        spec.slug = buildColumnSlug(name, perCapita, interval, rollingAverage)
+        spec.owidVariableId = CovidExplorerTable.buildCovidVariableId(params)
 
         const messages: { [index: number]: string } = {
             1: "",
@@ -306,9 +298,9 @@ export class CovidExplorerTable {
 
         if (!spec.display) spec.display = {}
 
-        spec.display!.name = `${daily ? "Daily " : "Cumulative "}${
-            spec.display!.name
-        }${messages[perCapita]}`
+        spec.display!.name = `${params.intervalTitle} ${spec.display!.name}${
+            messages[perCapita]
+        }`
 
         // Show decimal places for rolling average & per capita variables
         if (perCapita > 1) {
@@ -333,12 +325,7 @@ export class CovidExplorerTable {
         const columnName = params.metricName
         const perCapita = params.perCapitaDivisor
         const smoothing = params.smoothing
-        const spec = this.buildColumnSpec(
-            columnName,
-            perCapita,
-            params.dailyFreq,
-            smoothing
-        )
+        const spec = this.buildColumnSpec(params)
 
         const table = this.table
         if (table.columnsBySlug.has(spec.slug)) return spec
@@ -373,25 +360,25 @@ export class CovidExplorerTable {
                 smoothing,
                 rowFn,
                 "day",
-                "entityName"
+                "entityName",
+                params.rollingMultiplier,
+                params.intervalChange
             )
         else table.addNumericComputedColumn({ ...spec, fn: rowFn })
         return spec
     }
 
     initTestingColumn(params: CovidConstrainedQueryParams) {
-        if (params.dailyFreq)
-            this.initColumn(params, row => {
-                return params.smoothing === 7
-                    ? row.new_tests_smoothed
-                    : row.new_tests
-            })
-        else if (params.totalFreq)
+        if (params.interval === "daily")
+            this.initColumn(params, row => row.new_tests)
+        else if (params.interval === "smoothed")
+            this.initColumn(params, row => row.new_tests_smoothed)
+        else if (params.interval === "total")
             this.initColumn(params, row => row.total_tests)
     }
 
     initTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
-        if (params.dailyFreq && params.smoothing) {
+        if (params.interval === "smoothed") {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
             this.initColumn(params, row => {
                 if (
@@ -406,7 +393,7 @@ export class CovidExplorerTable {
                 const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
                 return tpc >= 1 ? tpc : undefined
             })
-        } else if (params.totalFreq)
+        } else if (params.interval === "total")
             this.initColumn(params, row => {
                 if (row.total_tests === undefined || !row.total_cases)
                     return undefined
@@ -421,7 +408,7 @@ export class CovidExplorerTable {
 
     initCfrColumn(params: CovidConstrainedQueryParams) {
         // We do not support daily freq for CFR
-        if (params.totalFreq)
+        if (params.interval === "total")
             this.initColumn(params, row =>
                 row.total_cases < 100
                     ? undefined
@@ -434,7 +421,9 @@ export class CovidExplorerTable {
     initCasesColumn(params: CovidConstrainedQueryParams) {
         this.initColumn(
             params,
-            params.dailyFreq ? row => row.new_cases : row => row.total_cases
+            params.interval === "total"
+                ? row => row.total_cases
+                : row => row.new_cases
         )
     }
 
@@ -443,14 +432,14 @@ export class CovidExplorerTable {
         const params = new CovidQueryParams("")
         params.smoothing = 7
         params.perCapita = false
-        params.dailyFreq = true
+        params.interval = "smoothed"
         params.positiveTestRate = true
-        const spec = this.initTestRateColumn(params.constrainedParams)
-        return spec.owidVariableId
+        const spec = this.initTestRateColumn(params.toConstrainedParams())
+        return spec.owidVariableId!
     }
 
     initTestRateColumn(params: CovidConstrainedQueryParams) {
-        if (params.dailyFreq) {
+        if (params.isDailyOrSmoothed) {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
             return this.initColumn(params, row => {
                 const testCount =
@@ -487,7 +476,9 @@ export class CovidExplorerTable {
     initDeathsColumn(params: CovidConstrainedQueryParams) {
         this.initColumn(
             params,
-            params.dailyFreq ? row => row.new_deaths : row => row.total_deaths
+            params.interval === "total"
+                ? row => row.total_deaths
+                : row => row.new_deaths
         )
     }
 

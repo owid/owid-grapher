@@ -367,7 +367,9 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         windowSize: int,
         valueAccessor: (row: Row) => any,
         dateColName: columnSlug,
-        groupBy: columnSlug
+        groupBy: columnSlug,
+        multiplier = 1,
+        intervalChange?: number
     ) {
         const averages = computeRollingAveragesForEachGroup(
             this.rows,
@@ -379,7 +381,14 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         this._addComputedColumn(
             new NumericColumn(this, {
                 ...spec,
-                fn: (row, index) => (row[spec.slug] = averages[index!])
+                fn: (row, index) => {
+                    const val = averages[index!]
+                    if (!intervalChange) return val ? val * multiplier : val
+                    const previousValue = averages[index! - intervalChange]
+                    return previousValue === undefined || previousValue === 0
+                        ? undefined
+                        : (100 * (val - previousValue)) / previousValue
+                }
             })
         )
     }
