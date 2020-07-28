@@ -1098,7 +1098,9 @@ export class CovidDataExplorer extends React.Component<{
     ) => {
         const colSlug = buildColumnSlug(
             metric,
-            this.constrainedParams.perCapita ? perCapitaDivisor(metric) : 1,
+            this.constrainedParams.perCapita && isCountMetric(metric)
+                ? perCapitaDivisor(metric)
+                : 1,
             dailyFreq,
             0
         )
@@ -1141,15 +1143,18 @@ export class CovidDataExplorer extends React.Component<{
         const { covidExplorerTable } = this
 
         const dataTableParams = new CovidConstrainedQueryParams("")
-        dataTableParams.perCapita = params.perCapita
 
         params.tableMetrics?.forEach(metric => {
             dataTableParams.setMetric(metric)
             dataTableParams.dailyFreq = false
+            dataTableParams.totalFreq = true
+            dataTableParams.perCapita = false
             if (isCountMetric(metric)) {
-                // generate daily columns too
+                dataTableParams.perCapita = params.perCapita
                 covidExplorerTable.initRequestedColumns(dataTableParams)
-                dataTableParams.dailyFreq = !dataTableParams.dailyFreq
+                // generate daily columns too
+                dataTableParams.dailyFreq = true
+                dataTableParams.totalFreq = false
             }
 
             covidExplorerTable.initRequestedColumns(dataTableParams)
