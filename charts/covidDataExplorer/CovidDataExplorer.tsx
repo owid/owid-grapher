@@ -68,7 +68,6 @@ import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
-import { emptyString } from "react-select/src/utils"
 
 const abSeed = Math.random()
 
