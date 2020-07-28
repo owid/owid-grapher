@@ -76,12 +76,14 @@ export class ExplorerControl extends React.Component<{
     }
 
     get renderDropdown() {
-        const options = this.props.dropdownOptions!.map(option => {
-            return {
-                label: option.label,
-                value: option.value
-            }
-        })
+        const options = this.props
+            .dropdownOptions!.filter(option => option.available)
+            .map(option => {
+                return {
+                    label: option.label,
+                    value: option.value
+                }
+            })
 
         return (
             <Select
