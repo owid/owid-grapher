@@ -1,3 +1,5 @@
+import { MetricKind } from "./CovidTypes"
+
 export const covidDashboardSlug = "coronavirus-data-explorer"
 export const coronaOpenGraphImagePath = "coronavirus-data-explorer.png"
 export const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
@@ -86,4 +88,13 @@ export const trajectoryColumnSpecs = {
             owidVariableId: 4566
         }
     }
+}
+
+export const metricLabels: { [key in MetricKind]: string } = {
+    cases: "Confirmed cases",
+    deaths: "Confirmed deaths",
+    tests: "Tests",
+    case_fatality_rate: "Case fatality rate",
+    tests_per_case: "Tests per confirmed case",
+    positive_test_rate: "Share of positive tests"
 }

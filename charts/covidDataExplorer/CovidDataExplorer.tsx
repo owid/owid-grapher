@@ -53,7 +53,8 @@ import {
     covidDashboardSlug,
     coronaDefaultView,
     covidDataPath,
-    sourceCharts
+    sourceCharts,
+    metricLabels
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes, continentColors } from "charts/ColorSchemes"
@@ -170,7 +171,7 @@ export class CovidDataExplorer extends React.Component<{
         const options: ControlOption[] = [
             {
                 available: true,
-                label: "Confirmed cases",
+                label: metricLabels.cases,
                 checked: this.constrainedParams.casesMetric,
                 onChange: () => {
                     params.setMetric("cases")
@@ -179,7 +180,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 available: true,
-                label: "Confirmed deaths",
+                label: metricLabels.deaths,
                 checked: this.constrainedParams.deathsMetric,
                 onChange: () => {
                     params.setMetric("deaths")
@@ -189,7 +190,7 @@ export class CovidDataExplorer extends React.Component<{
 
             {
                 available: true,
-                label: "Case fatality rate",
+                label: metricLabels.case_fatality_rate,
                 checked: this.constrainedParams.cfrMetric,
                 onChange: () => {
                     params.setMetric("case_fatality_rate")
@@ -201,7 +202,7 @@ export class CovidDataExplorer extends React.Component<{
         const optionsColumn2: ControlOption[] = [
             {
                 available: true,
-                label: "Tests",
+                label: metricLabels.tests,
                 checked: this.constrainedParams.testsMetric,
                 onChange: () => {
                     params.setMetric("tests")
@@ -210,7 +211,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 available: true,
-                label: "Tests per confirmed case",
+                label: metricLabels.tests_per_case,
                 checked: this.constrainedParams.testsPerCaseMetric,
                 onChange: () => {
                     params.setMetric("tests_per_case")
@@ -219,7 +220,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 available: true,
-                label: "Share of positive tests",
+                label: metricLabels.positive_test_rate,
                 checked: this.constrainedParams.positiveTestRate,
                 onChange: () => {
                     params.setMetric("positive_test_rate")
@@ -1105,13 +1106,15 @@ export class CovidDataExplorer extends React.Component<{
         )
 
         const column = this.chart.table.columnsBySlug.get(colSlug)
-
         return {
             property: "table",
             variableId: column?.spec.owidVariableId,
             display: {
                 tolerance: 2,
-                name: this.metricLongName(metric, dailyFreq),
+                name:
+                    metricLabels[metric] +
+                    (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
+                unit: dailyFreq ? "daily new" : "cumulative",
                 tableDisplay: column?.display.tableDisplay
             }
         } as DimensionSpec
