@@ -1089,7 +1089,10 @@ export class CovidDataExplorer extends React.Component<{
             : undefined
     }
 
-    _buildTableOnlyDimensionSpec = (metric: MetricKind, dailyFreq: boolean) => {
+    private _buildTableOnlyDimensionSpec = (
+        metric: MetricKind,
+        dailyFreq: boolean
+    ) => {
         const params = this.constrainedParams
         const colSlug = buildColumnSlug(
             metric,
@@ -1111,7 +1114,7 @@ export class CovidDataExplorer extends React.Component<{
         } as DimensionSpec
     }
 
-    @computed get dataTableOnlyDimensions(): DimensionSpec[] {
+    @computed private get dataTableOnlyDimensions(): DimensionSpec[] {
         const params = this.constrainedParams
         return flatten(
             params.tableMetrics?.map(metric => {
