@@ -425,7 +425,7 @@ export class CountryPicker extends React.Component<{
                                 )
                             }}
                         >
-                            <SortIcon order={this.sortOrder} />
+                            <SortIcon type="text" order={this.sortOrder} />
                         </span>
                     </div>
                 )}

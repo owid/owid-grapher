@@ -170,7 +170,9 @@ export class DataTable extends React.Component<DataTableProps> {
         const order =
             sort.dimIndex === dimIndex && sort.columnKey === columnKey
                 ? inverseSortOrder(sort.order)
-                : SortOrder.asc
+                : dimIndex === ENTITY_DIM_INDEX
+                ? SortOrder.asc
+                : SortOrder.desc
 
         this.storedState.sort.dimIndex = dimIndex
         this.storedState.sort.columnKey = columnKey
@@ -370,10 +372,10 @@ function ColumnHeader(props: {
     colType: "entity" | "dimension" | "subdimension"
     dataType: "text" | "numeric"
 }) {
-    const { sortable, sortedCol } = props
+    const { sortable, sortedCol, colType } = props
     return (
         <th
-            className={classnames(props.colType, {
+            className={classnames(colType, {
                 sortable: sortable,
                 sorted: sortedCol
             })}
@@ -387,7 +389,11 @@ function ColumnHeader(props: {
                     type={props.dataType}
                     isActiveIcon={sortedCol}
                     order={
-                        sortedCol ? props.sortOrder : DEFAULT_SORT_STATE.order
+                        sortedCol
+                            ? props.sortOrder
+                            : colType === "entity"
+                            ? SortOrder.asc
+                            : SortOrder.desc
                     }
                 />
             )}
