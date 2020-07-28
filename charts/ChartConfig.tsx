@@ -742,10 +742,10 @@ export class ChartConfig {
         return validDimensions
     }
 
-    @observable tableOnlyDimensions: ChartDimensionWithOwidVariable[] = []
+    @observable dataTableOnlyDimensions: ChartDimensionWithOwidVariable[] = []
 
     @computed get multiMetricTableMode(): boolean {
-        return this.tableOnlyDimensions.length > 0
+        return this.dataTableOnlyDimensions.length > 0
     }
 
     @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {

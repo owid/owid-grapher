@@ -176,7 +176,7 @@ export class DataTableTransform extends ChartTransform {
 
     @computed get dimensions() {
         return this.chart.multiMetricTableMode
-            ? this.chart.tableOnlyDimensions
+            ? this.chart.dataTableOnlyDimensions
             : this.chart.filledDimensions.filter(dim => dim.includeInTable)
     }
 

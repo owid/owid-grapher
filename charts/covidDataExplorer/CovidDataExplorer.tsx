@@ -723,27 +723,6 @@ export class CovidDataExplorer extends React.Component<{
         const params = this.constrainedParams
         const { covidExplorerTable } = this
 
-        if (this.constrainedParams.tableMetrics) {
-            const dataTableParams = new CovidConstrainedQueryParams(
-                params.toString()
-            )
-
-            this.constrainedParams.tableMetrics.forEach(metric => {
-                dataTableParams.setMetric(metric)
-                dataTableParams.dailyFreq = false
-                if (
-                    metric === "deaths" ||
-                    metric === "cases" ||
-                    metric === "tests"
-                ) {
-                    // generate daily columns too
-                    covidExplorerTable.initRequestedColumns(dataTableParams)
-                    dataTableParams.dailyFreq = !dataTableParams.dailyFreq
-                }
-
-                covidExplorerTable.initRequestedColumns(dataTableParams)
-            })
-        }
         covidExplorerTable.initRequestedColumns(params)
 
         // Init column for epi color strategy if needed
@@ -771,15 +750,11 @@ export class CovidDataExplorer extends React.Component<{
             spec => new ChartDimension(spec)
         )
 
-        // for the multimetric table
-        this.chart.tableOnlyDimensions = this.tableOnlyDimensions.map(
-            (dimSpec, index) =>
-                new ChartDimensionWithOwidVariable(
-                    index,
-                    new ChartDimension(dimSpec),
-                    this.chart.table.columnsByOwidVarId.get(dimSpec.variableId)!
-                )
-        )
+        // multimetric table
+        if (this.constrainedParams.tableMetrics) {
+            this._generateDataTableColumnsInTable()
+            this._addDataTableOnlyDimensionsToChart
+        }
 
         covidExplorerTable.table.setSelectedEntities(
             this.getSelectedEntityNames()
@@ -1136,7 +1111,7 @@ export class CovidDataExplorer extends React.Component<{
         } as DimensionSpec
     }
 
-    @computed get tableOnlyDimensions(): DimensionSpec[] {
+    @computed get dataTableOnlyDimensions(): DimensionSpec[] {
         const params = this.constrainedParams
         return flatten(
             params.tableMetrics?.map(metric => {
@@ -1152,6 +1127,42 @@ export class CovidDataExplorer extends React.Component<{
 
                 return specs
             })
+        )
+    }
+
+    @action private _generateDataTableColumnsInTable() {
+        const params = this.constrainedParams
+        const { covidExplorerTable } = this
+
+        const dataTableParams = new CovidConstrainedQueryParams(
+            params.toString()
+        )
+
+        params.tableMetrics?.forEach(metric => {
+            dataTableParams.setMetric(metric)
+            dataTableParams.dailyFreq = false
+            if (
+                metric === "deaths" ||
+                metric === "cases" ||
+                metric === "tests"
+            ) {
+                // generate daily columns too
+                covidExplorerTable.initRequestedColumns(dataTableParams)
+                dataTableParams.dailyFreq = !dataTableParams.dailyFreq
+            }
+
+            covidExplorerTable.initRequestedColumns(dataTableParams)
+        })
+    }
+
+    @action private _addDataTableOnlyDimensionsToChart() {
+        this.chart.dataTableOnlyDimensions = this.dataTableOnlyDimensions.map(
+            (dimSpec, index) =>
+                new ChartDimensionWithOwidVariable(
+                    index,
+                    new ChartDimension(dimSpec),
+                    this.chart.table.columnsByOwidVarId.get(dimSpec.variableId)!
+                )
         )
     }
 
