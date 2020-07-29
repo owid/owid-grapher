@@ -331,7 +331,11 @@ export class DataTableTransform extends ChartTransform {
                         result.delta = {
                             value: deltaValue,
                             formattedValue: this.formatValue(dim, deltaValue, {
-                                showPlus: true
+                                showPlus: true,
+                                unit:
+                                    dim.shortUnit === "%"
+                                        ? "p.p."
+                                        : dim.shortUnit
                             })
                         }
 
