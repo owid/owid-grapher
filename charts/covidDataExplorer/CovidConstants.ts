@@ -21,11 +21,15 @@ export const sourceCharts = {
     cases_daily: 4019,
     cases_total_per_capita: 4051,
     cases_daily_per_capita: 4028,
+    cases_weeklys: 4195,
+    cases_weeklys_change: 4194,
 
     deaths_total: 4020,
     deaths_daily: 4021,
     deaths_total_per_capita: 4029,
     deaths_daily_per_capita: 4030,
+    deaths_weeklys: 4196,
+    deaths_weeklys_change: 4193,
 
     tests_total: 4191,
     tests_daily: 4307,

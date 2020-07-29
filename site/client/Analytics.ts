@@ -89,6 +89,8 @@ export class Analytics {
         if (DEBUG && IS_DEV) {
             console.log("Analytics.logToAmplitude", name, props)
         }
+        if (!window.amplitude) return
+
         props = Object.assign(
             {},
             {
@@ -100,8 +102,7 @@ export class Analytics {
             },
             props
         )
-        if (window.amplitude)
-            window.amplitude.getInstance().logEvent(name, props)
+        window.amplitude.getInstance().logEvent(name, props)
     }
 
     private static logToGA(

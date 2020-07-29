@@ -1,4 +1,4 @@
-import { computed, observable } from "mobx"
+import { computed, observable, action } from "mobx"
 import { ObservableUrl } from "../UrlBinding"
 import { ChartUrl, EntityUrlBuilder } from "../ChartUrl"
 import {
@@ -13,12 +13,27 @@ import {
     AlignedOption,
     SmoothingOption,
     colorScaleOption,
-    MetricKind
+    MetricKind,
+    IntervalOption,
+    intervalOptions
 } from "./CovidTypes"
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
 import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
+
+// Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
+// This method is for backward compat.
+const legacyTimeToInterval = (
+    totalFreq: boolean,
+    dailyFreq: boolean,
+    smoothing: boolean
+): IntervalOption | undefined => {
+    if (totalFreq) return "total"
+    else if (smoothing) return "smoothed"
+    else if (dailyFreq) return "daily"
+    return undefined
+}
 
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
@@ -34,8 +49,6 @@ export class CovidQueryParams {
     @observable xColumn?: string
     @observable sizeColumn?: string
 
-    @observable totalFreq: boolean = false
-    @observable dailyFreq: boolean = false
     @observable perCapita: PerCapita = false
     @observable aligned: AlignedOption = false
     @observable hideControls: boolean = false
@@ -50,6 +63,8 @@ export class CovidQueryParams {
         CountryPickerMetric.location
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
+    @observable interval: IntervalOption = "daily"
+
     allAvailableCombos(): string[] {
         const metrics = [
             "casesMetric",
@@ -59,20 +74,19 @@ export class CovidQueryParams {
             "testsPerCaseMetric",
             "positiveTestRate"
         ]
-        const timelines = ["totalFreq", 7, "dailyFreq"]
         const perCapita = [true, false]
         const aligned = [true, false]
         const yScale = ["log", "linear"] // todo
         const tab = ["map", "chart"] // todo
         const combos: any = []
         metrics.forEach(metric => {
-            timelines.forEach(timeline => {
+            intervalOptions.forEach(interval => {
                 perCapita.forEach(perCapita => {
                     aligned.forEach(aligned => {
                         const combo: any = {}
                         combo[metric] = true
-                        if (timeline !== 7) combo[timeline] = true
-                        else combo.smoothing = 7
+                        combo.interval = interval
+                        if (interval === "smoothed") combo.smoothing = 7
                         combo.perCapita = perCapita
                         combo.aligned = aligned
                         combos.push(combo)
@@ -83,23 +97,29 @@ export class CovidQueryParams {
 
         return uniq(
             combos.map((combo: any) =>
-                new CovidQueryParams(
-                    queryParamsToStr(combo)
-                ).constrainedParams.toString()
+                new CovidQueryParams(queryParamsToStr(combo))
+                    .toConstrainedParams()
+                    .toString()
             )
         )
     }
 
-    setParamsFromQueryString(queryString: string) {
+    @action.bound setParamsFromQueryString(queryString: string) {
         const params = strToQueryParams(queryString)
+        this.interval =
+            (params.interval as IntervalOption) ||
+            legacyTimeToInterval(
+                !!params.totalFreq,
+                !!params.dailyFreq,
+                !!params.smoothing
+            )
+
         this.casesMetric = params.casesMetric === "true"
-        this.totalFreq = params.totalFreq === "true"
         this.testsMetric = params.testsMetric === "true"
         this.testsPerCaseMetric = params.testsPerCaseMetric === "true"
         this.positiveTestRate = params.positiveTestRate === "true"
         this.deathsMetric = params.deathsMetric === "true"
         this.cfrMetric = params.cfrMetric === "true"
-        this.dailyFreq = params.dailyFreq === "true"
         this.perCapita = params.perCapita === "true"
         this.hideControls = params.hideControls === "true"
         this.aligned = params.aligned === "true"
@@ -162,6 +182,19 @@ export class CovidQueryParams {
         return "positive_test_rate"
     }
 
+    @computed get intervalTitle() {
+        const titles: { [K in IntervalOption]: string } = {
+            total: "Cumulative",
+            daily: "Daily new",
+            smoothed: "Daily new",
+            weekly: "Weekly",
+            biweekly: "Biweekly",
+            weeklyChange: "Week by week change of",
+            biweeklyChange: "Biweekly change of"
+        }
+        return titles[this.interval]
+    }
+
     @computed get toParams(): QueryParams {
         const params: any = {}
         params.xColumn = this.xColumn ? this.xColumn : undefined
@@ -173,8 +206,7 @@ export class CovidQueryParams {
         params.cfrMetric = this.cfrMetric ? true : undefined
         params.testsPerCaseMetric = this.testsPerCaseMetric ? true : undefined
         params.positiveTestRate = this.positiveTestRate ? true : undefined
-        params.dailyFreq = this.dailyFreq ? true : undefined
-        params.totalFreq = this.totalFreq ? true : undefined
+        params.interval = this.interval // or undefined?
         params.aligned = this.aligned ? true : undefined
         params.hideControls = this.hideControls ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
@@ -214,9 +246,13 @@ export class CovidQueryParams {
         return buildColumnSlug(
             this.metricName,
             this.perCapitaAdjustment,
-            this.dailyFreq,
+            this.interval,
             this.smoothing
         )
+    }
+
+    @computed get isDailyOrSmoothed() {
+        return this.interval === "daily" || this.interval === "smoothed"
     }
 
     @computed get xColumnSlug() {
@@ -232,14 +268,14 @@ export class CovidQueryParams {
             trajectoryColumnSpecs[key][
                 this.perCapita
                     ? "perCapita"
-                    : this.dailyFreq
+                    : this.isDailyOrSmoothed
                     ? "daily"
                     : "total"
             ]
         const sourceSlug = buildColumnSlug(
             key,
             this.perCapita ? 1e6 : 1,
-            this.dailyFreq,
+            this.interval,
             this.smoothing
         )
         return {
@@ -250,6 +286,10 @@ export class CovidQueryParams {
     }
 
     @computed get constrainedParams() {
+        return this.toConstrainedParams()
+    }
+
+    toConstrainedParams() {
         return new CovidConstrainedQueryParams(this.toString())
     }
 
@@ -262,29 +302,43 @@ export class CovidQueryParams {
         this.positiveTestRate = option === "positive_test_rate"
     }
 
-    setTimeline(option: "daily" | "total" | "smoothed") {
-        this.totalFreq = false
-        this.dailyFreq = false
-        this.smoothing = 0
-        if (option === "smoothed") {
-            this.smoothing = 7
-            this.dailyFreq = true
-        } else if (option === "daily") this.dailyFreq = true
-        else this.totalFreq = true
+    setTimeline(option: IntervalOption) {
+        this.interval = option
+        this.smoothing = option === "smoothed" ? 7 : 0
     }
 
     toString() {
         return queryParamsToStr(this.toParams)
     }
 
+    get isWeekly() {
+        return this.interval === "weekly" || this.interval === "weeklyChange"
+    }
+
+    get isBiweekly() {
+        return (
+            this.interval === "biweekly" || this.interval === "biweeklyChange"
+        )
+    }
+
     @computed get sourceChartKey() {
+        let interval: string = this.interval
+        if (interval === "smoothed") interval = "daily"
+        if (this.isWeekly || this.isBiweekly) interval = "weeklys"
         return [
             this.metricName,
-            this.totalFreq ? "total" : "daily",
-            this.perCapita ? "per_capita" : ""
+            interval,
+            this.perCapita ? "per_capita" : "",
+            this.intervalChange ? "change" : ""
         ]
             .filter(i => i)
             .join("_")
+    }
+
+    get intervalChange() {
+        if (this.interval === "weeklyChange") return 7
+        else if (this.interval === "biweeklyChange") return 14
+        return undefined
     }
 }
 
@@ -292,28 +346,35 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
     constructor(queryString: string) {
         super(queryString)
         if (this.allowEverything) return this
+
         const available = this.available
-        const defaults = new CovidQueryParams("")
-        const wasDaily = this.dailyFreq
 
-        Object.keys(available).forEach(key => {
-            const typedKey = key as keyof typeof available
-            // If the key is not available, set it to the default value (generally is false, but for smoothing is 0)
-            if (!available[typedKey] && (this as any)[key])
-                (this as any)[key] = defaults[key as keyof CovidQueryParams]
-        })
+        if (this.perCapita && !available.perCapita) this.perCapita = false
+        if (this.aligned && !available.aligned) this.aligned = false
 
-        // We always need either total or daily freq
-        if (!this.totalFreq && !this.dailyFreq) {
-            // If daily is not available, we need to set totalFreq to true
-            if (!available.dailyFreq && !available.smoothing)
-                this.totalFreq = true
-            // If it was daily, but only so that smoothing could happen, we need to set daily to true
-            else if ((wasDaily || this.smoothing) && available.smoothing) {
-                this.dailyFreq = true
-                this.smoothing = 7
-            } else this.totalFreq = true
+        if ((this.isWeekly || this.isBiweekly) && !available.weekly)
+            this.interval = "total"
+
+        if (this.smoothing && !available.smoothed) {
+            this.smoothing = 0
+            if (this.interval === "smoothed") this.interval = "total"
         }
+
+        if (this.interval === "daily" && !available.daily) {
+            if (available.smoothed) {
+                this.interval = "smoothed"
+                this.smoothing = 7
+            } else {
+                this.interval = "total"
+            }
+        }
+
+        if (!this.interval)
+            this.interval =
+                this.smoothing && available.smoothed ? "smoothed" : "total"
+
+        if (this.isWeekly) this.smoothing = 7
+        if (this.isBiweekly) this.smoothing = 14
 
         // Ensure there is always a metric
         const hasMetric = [
@@ -327,16 +388,32 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (!hasMetric) this.casesMetric = true
     }
 
-    @computed get allowEverything() {
+    get allowEverything() {
         return false
     }
 
-    @computed get available() {
+    get rollingMultiplier() {
+        if (this.isWeekly) return 7
+        else if (this.isBiweekly) return 14
+        return 1
+    }
+
+    get isWeeklyOrBiweeklyChange() {
+        return (
+            this.interval === "biweeklyChange" ||
+            this.interval === "weeklyChange"
+        )
+    }
+
+    get available() {
+        const weekly = this.casesMetric || this.deathsMetric
+        const isWeekly = (this.isWeekly || this.isBiweekly) && weekly // If weekly is set AND available
         const constraints = {
-            perCapita: !this.isRate,
-            aligned: !this.isRate,
-            dailyFreq: !this.isRate,
-            smoothing: !this.cfrMetric
+            perCapita: !this.isRate && !isWeekly,
+            aligned: !this.isRate && !isWeekly,
+            daily: !this.isRate,
+            smoothed: !this.cfrMetric,
+            weekly
         }
 
         if (this.allowEverything) {
@@ -348,7 +425,7 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         return constraints
     }
 
-    @computed private get isRate() {
+    private get isRate() {
         return (
             this.cfrMetric || this.testsPerCaseMetric || this.positiveTestRate
         )

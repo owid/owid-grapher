@@ -5,7 +5,7 @@ import {
     CovidExplorerTable
 } from "../covidDataExplorer/CovidExplorerTable"
 import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
-import { OwidTable } from "charts/owidData/OwidTable"
+import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
 import uniq from "lodash/uniq"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 import { queryParamsToStr } from "utils/client/url"
@@ -59,6 +59,44 @@ describe("build covid column", () => {
         expect(dataTable.table.rows[2][slug]).toEqual(0)
         expect(dataTable.table.rows[3][slug]).toEqual(1)
     })
+
+    const rows = []
+    for (let index = 0; index < 30; index++) {
+        rows.push({
+            entityName: "USA",
+            cases: index < 15 ? 10 : 20,
+            day: index
+        })
+    }
+    const table = new BasicTable(rows)
+    table.addRollingAverageColumn(
+        { slug: "weeklyCases" },
+        7,
+        row => row.cases,
+        "day",
+        "entityName",
+        7
+    )
+
+    it("correctly builds weekly average", () => {
+        expect(table.rows[3].weeklyCases).toEqual(70)
+    })
+
+    table.addRollingAverageColumn(
+        { slug: "weeklyChange" },
+        7,
+        row => row.cases,
+        "day",
+        "entityName",
+        7,
+        7
+    )
+
+    it("correctly builds weekly change", () => {
+        expect(table.rows[3].weeklyChange).toEqual(undefined)
+        expect(table.rows[8].weeklyChange).toEqual(0)
+        expect(table.rows[21].weeklyChange).toEqual(100)
+    })
 })
 
 describe("builds aligned tests column", () => {
@@ -70,7 +108,7 @@ describe("builds aligned tests column", () => {
         )
 
         const params = new CovidQueryParams("testsMetric=true&dailyFreq=true")
-        dataTable.initTestingColumn(params.constrainedParams)
+        dataTable.initTestingColumn(params.toConstrainedParams())
 
         expect(dataTable.table.columnSlugs.includes("tests-daily")).toEqual(
             true
@@ -78,7 +116,7 @@ describe("builds aligned tests column", () => {
 
         const newParams = new CovidQueryParams(params.toString())
         newParams.perCapita = true
-        dataTable.initTestingColumn(newParams.constrainedParams)
+        dataTable.initTestingColumn(newParams.toConstrainedParams())
 
         expect(
             dataTable.table.columnSlugs.includes("tests-perThousand-daily")
@@ -93,10 +131,10 @@ describe("builds aligned tests column", () => {
             })
         )
 
-        dataTable.initRequestedColumns(params3.constrainedParams)
+        dataTable.initRequestedColumns(params3.toConstrainedParams())
 
         expect(
-            dataTable.table.columnSlugs.includes("deaths-perMil-cumulative")
+            dataTable.table.columnSlugs.includes("deaths-perMil-total")
         ).toEqual(true)
     })
 
@@ -144,13 +182,20 @@ describe("column specs", () => {
         expect(
             uniq(
                 [
-                    dataTable.buildColumnSpec("tests", 1000, true, 3),
-                    dataTable.buildColumnSpec("cases", 1000, true, 3),
-                    dataTable.buildColumnSpec("tests", 100, true, 3),
-                    dataTable.buildColumnSpec("tests", 1000, true, 0),
-                    dataTable.buildColumnSpec("tests", 1000, false, 3)
-                ].map(spec => spec.owidVariableId)
+                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "positiveTestRate=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=false",
+                    "testsMetric=true&dailyFreq=true&smoothing=0&perCapita=true",
+                    "testsMetric=true&totalFreq=true&smoothing=3&perCapita=true"
+                ].map(
+                    queryStr =>
+                        dataTable.buildColumnSpec(
+                            new CovidQueryParams(queryStr)
+                        ).owidVariableId
+                )
             ).length
-        ).toEqual(5)
+        ).toEqual(6)
     })
 })
