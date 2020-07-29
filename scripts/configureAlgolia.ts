@@ -68,7 +68,8 @@ export async function configureAlgolia() {
         ["gdp", "economic growth"],
         ["overpopulation", "population growth"],
         ["covid", "covid-19", "coronavirus", "corona"],
-        ["flu", "influenza"]
+        ["flu", "influenza"],
+        ["co2", "CO₂", "carbon dioxide"]
     ]
 
     // Send all our country variant names to algolia as synonyms
