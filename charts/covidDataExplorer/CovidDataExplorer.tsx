@@ -750,6 +750,7 @@ export class CovidDataExplorer extends React.Component<{
         this._updateMap()
         this._updateColorScale()
 
+        chartProps.id = this.sourceChartId
         chartProps.selectedData = this.selectedData
         this.chart.url.externallyProvidedParams = this.props.params.toParams
     }
@@ -761,12 +762,12 @@ export class CovidDataExplorer extends React.Component<{
         ]
     }
 
-    @computed get sourceChart(): ChartConfigProps | undefined {
-        const sourceChartId = (sourceCharts as any)[
-            this.constrainedParams.sourceChartKey
-        ]
+    @computed get sourceChartId(): number {
+        return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
+    }
 
-        return this.props.covidChartAndVariableMeta.charts[sourceChartId]
+    @computed get sourceChart(): ChartConfigProps | undefined {
+        return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
     private _updateMap() {
