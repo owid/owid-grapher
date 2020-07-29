@@ -91,7 +91,7 @@ describe(DataTable, () => {
 
         it("renders absolute change values", () => {
             const cell = view.find("tbody .dimension-delta").first()
-            expect(cell.text()).toBe("-9.18%")
+            expect(cell.text()).toBe("-9.18 pp")
         })
 
         it("renders relative change values", () => {
