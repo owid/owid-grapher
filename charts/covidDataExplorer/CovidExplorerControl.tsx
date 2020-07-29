@@ -102,6 +102,7 @@ export class ExplorerControl extends React.Component<{
             <Select
                 className="intervalDropdown"
                 classNamePrefix="intervalDropdown"
+                menuPlacement="auto"
                 options={options}
                 value={options.find(
                     option => option.value === this.props.value
