@@ -71,7 +71,8 @@ export async function configureAlgolia() {
         ["flu", "influenza"],
         ["co2", "CO₂", "carbon dioxide"],
         ["ch4", "CH₄", "methane"],
-        ["n2o", "N₂O", "NOx", "NOₓ", "nitrous oxide"]
+        ["n2o", "N₂O", "nitrous oxide"],
+        ["NOx", "NOₓ", "nitrogen dioxide"]
     ]
 
     // Send all our country variant names to algolia as synonyms
