@@ -90,7 +90,6 @@ export class CountryPicker extends React.Component<{
 
     set metric(metric) {
         this.props.covidDataExplorer.props.params.countryPickerMetric = metric
-        this.sortOrder = metric === "location" ? SortOrder.asc : SortOrder.desc
     }
 
     @computed get sortOrder(): SortOrder {
@@ -401,11 +400,17 @@ export class CountryPicker extends React.Component<{
                             onChange={option => {
                                 const value = first(asArray(option))?.value
                                 if (value) {
-                                    this.metric = value
-                                    Analytics.logCovidCountrySelector(
-                                        "sortBy",
-                                        value
-                                    )
+                                    runInAction(() => {
+                                        this.sortOrder =
+                                            value === "location"
+                                                ? SortOrder.asc
+                                                : SortOrder.desc
+                                        this.metric = value
+                                        Analytics.logCovidCountrySelector(
+                                            "sortBy",
+                                            value
+                                        )
+                                    })
                                 }
                             }}
                             menuPlacement="bottom"
