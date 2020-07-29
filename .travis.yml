@@ -8,9 +8,3 @@ before_script:
 script:
     - yarn testcheck
 cache: yarn
-notifications:
-    email:
-        recipients:
-            - tech@ourworldindata.org
-        on_success: never
-        on_failure: always
