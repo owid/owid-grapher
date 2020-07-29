@@ -793,6 +793,8 @@ export class CovidDataExplorer extends React.Component<{
             }
         }
 
+        chartProps.yAxis.min = params.intervalChange ? undefined : 0
+
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
             spec => new ChartDimension(spec)
@@ -804,7 +806,8 @@ export class CovidDataExplorer extends React.Component<{
 
         if (
             (params.casesMetric || params.deathsMetric) &&
-            !(params.interval === "total")
+            !(params.interval === "total") &&
+            !params.intervalChange
         )
             covidExplorerTable.addNegativeFilterColumn(params.yColumnSlug)
         else covidExplorerTable.removeNegativeFilterColumn()
