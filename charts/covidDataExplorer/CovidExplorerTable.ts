@@ -274,7 +274,7 @@ export class CovidExplorerTable {
             arbitraryStartingPrefix,
             names[params.metricName],
             intervalOptions.indexOf(params.interval),
-            params.perCapitaDivisor,
+            params.perCapitaAdjustment,
             params.smoothing
         ]
         return parseInt(parts.join(""))
@@ -282,7 +282,7 @@ export class CovidExplorerTable {
 
     buildColumnSpec(params: CovidQueryParams): ColumnSpec {
         const name = params.metricName
-        const perCapita = params.perCapitaDivisor
+        const perCapita = params.perCapitaAdjustment
         const interval = params.interval
         const rollingAverage = params.smoothing
 
