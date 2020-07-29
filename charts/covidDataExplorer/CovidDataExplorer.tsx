@@ -45,7 +45,7 @@ import {
     CovidExplorerTable,
     fetchCovidChartAndVariableMeta,
     buildColumnSlug,
-    perCapitaDivisor
+    perCapitaDivisorByMetric
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -547,7 +547,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get perCapitaDivisor() {
-        return perCapitaDivisor(this.constrainedParams.metricName)
+        return perCapitaDivisorByMetric(this.constrainedParams.metricName)
     }
 
     @computed private get perCapitaOptions() {
@@ -560,7 +560,7 @@ export class CovidDataExplorer extends React.Component<{
 
     private perCapitaTitle(metric: MetricKind) {
         return this.constrainedParams.perCapita
-            ? " " + this.perCapitaOptions[perCapitaDivisor(metric)]
+            ? " " + this.perCapitaOptions[perCapitaDivisorByMetric(metric)]
             : ""
     }
 
@@ -1099,7 +1099,7 @@ export class CovidDataExplorer extends React.Component<{
         const colSlug = buildColumnSlug(
             metric,
             this.constrainedParams.perCapita && isCountMetric(metric)
-                ? perCapitaDivisor(metric)
+                ? perCapitaDivisorByMetric(metric)
                 : 1,
             dailyFreq,
             0

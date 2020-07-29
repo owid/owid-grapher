@@ -331,9 +331,7 @@ export class CovidExplorerTable {
         rowFn: RowToValueMapper
     ) {
         const columnName = params.metricName
-        const perCapita = params.perCapita
-            ? perCapitaDivisor(params.metricName)
-            : 1
+        const perCapita = params.perCapitaAdjustment
         const smoothing = params.smoothing
         const spec = this.buildColumnSpec(
             columnName,
@@ -788,6 +786,6 @@ export function getLeastUsedColor(
     return mostUnusedColor[0]
 }
 
-export function perCapitaDivisor(metric: MetricKind) {
+export function perCapitaDivisorByMetric(metric: MetricKind) {
     return metric === "tests" ? 1e3 : 1e6
 }
