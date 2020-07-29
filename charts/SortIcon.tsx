@@ -4,8 +4,8 @@ import classnames from "classnames"
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import { faSortAlphaUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAlphaUpAlt"
 import { faSortAlphaDown } from "@fortawesome/free-solid-svg-icons/faSortAlphaDown"
-import { faSortAmountUp } from "@fortawesome/free-solid-svg-icons/faSortAmountUp"
-import { faSortAmountDownAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountDownAlt"
+import { faSortAmountUpAlt } from "@fortawesome/free-solid-svg-icons/faSortAmountUpAlt"
+import { faSortAmountDown } from "@fortawesome/free-solid-svg-icons/faSortAmountDown"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { defaultTo } from "./Util"
@@ -27,8 +27,8 @@ export function SortIcon(props: {
     } else {
         faIcon =
             props.order === SortOrder.desc
-                ? faSortAmountUp
-                : faSortAmountDownAlt
+                ? faSortAmountDown
+                : faSortAmountUpAlt
     }
 
     return (
