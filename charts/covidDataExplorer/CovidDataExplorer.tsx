@@ -564,40 +564,32 @@ export class CovidDataExplorer extends React.Component<{
             : ""
     }
 
-    private metricLongName(metric: MetricKind, dailyFreq: boolean) {
-        let longName = ""
-
-        const freq = dailyFreq ? "Daily new" : "Cumulative"
-        if (metric === "case_fatality_rate")
-            longName = `Case fatality rate of the ongoing COVID-19 pandemic`
-        else if (metric === "positive_test_rate")
-            longName = `The share of ${
-                dailyFreq ? "daily " : ""
-            }COVID-19 tests that are positive`
-        else if (metric === "tests_per_case")
-            longName = `${
-                !dailyFreq ? `Cumulative tests` : `Tests`
-            } conducted per confirmed case of COVID-19`
-        else if (metric === "tests") longName = `${freq} COVID-19 tests`
-        else if (metric === "deaths")
-            longName = `${freq} confirmed COVID-19 deaths`
-        else if (metric === "cases")
-            longName = `${freq} confirmed COVID-19 cases`
-
-        return isCountMetric(metric)
-            ? longName + this.perCapitaTitle(metric)
-            : longName
-    }
-
     @computed private get chartTitle() {
+        let title = ""
         const params = this.constrainedParams
+        const interval = params.interval
+
         if (params.yColumn || params.xColumn)
             return startCase(`${this.yColumn.name} by ${this.xColumn?.name}`)
 
-        return this.metricLongName(
-            this.constrainedParams.metricName,
-            params.dailyFreq
-        )
+        const isCumulative = interval === "total"
+        const freq = params.intervalTitle
+        if (params.cfrMetric)
+            title = `Case fatality rate of the ongoing COVID-19 pandemic`
+        else if (params.positiveTestRate)
+            title = `The share of ${
+                isCumulative ? "" : "daily "
+            }COVID-19 tests that are positive`
+        else if (params.testsPerCaseMetric)
+            title = `${
+                isCumulative ? `Cumulative tests` : `Tests`
+            } conducted per confirmed case of COVID-19`
+        else if (params.testsMetric) title = `${freq} COVID-19 tests`
+        else if (params.deathsMetric)
+            title = `${freq} confirmed COVID-19 deaths`
+        else if (params.casesMetric) title = `${freq} confirmed COVID-19 cases`
+
+        return title + this.perCapitaTitle(params.metricName)
     }
 
     @computed private get subtitle() {
