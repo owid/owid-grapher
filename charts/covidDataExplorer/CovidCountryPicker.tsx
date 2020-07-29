@@ -353,6 +353,12 @@ export class CountryPicker extends React.Component<{
         }
     }
 
+    @action updateMetric(value: CountryPickerMetric) {
+        this.sortOrder = value === "location" ? SortOrder.asc : SortOrder.desc
+        this.metric = value
+        Analytics.logCovidCountrySelector("sortBy", value)
+    }
+
     render() {
         const countries = this.searchResults
         const selectedCountries = this.selectedOptions
@@ -399,19 +405,7 @@ export class CountryPicker extends React.Component<{
                             )}
                             onChange={option => {
                                 const value = first(asArray(option))?.value
-                                if (value) {
-                                    runInAction(() => {
-                                        this.sortOrder =
-                                            value === "location"
-                                                ? SortOrder.asc
-                                                : SortOrder.desc
-                                        this.metric = value
-                                        Analytics.logCovidCountrySelector(
-                                            "sortBy",
-                                            value
-                                        )
-                                    })
-                                }
+                                if (value) this.updateMetric(value)
                             }}
                             menuPlacement="bottom"
                             components={{
