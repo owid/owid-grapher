@@ -320,9 +320,20 @@ export class CovidQueryParams {
         let interval: string = this.interval
         if (interval === "smoothed") interval = "daily"
         if (this.isWeekly || this.isBiweekly) interval = "weeklys"
-        return [this.metricName, interval, this.perCapita ? "per_capita" : ""]
+        return [
+            this.metricName,
+            interval,
+            this.perCapita ? "per_capita" : "",
+            this.intervalChange ? "change" : ""
+        ]
             .filter(i => i)
             .join("_")
+    }
+
+    get intervalChange() {
+        if (this.interval === "weeklyChange") return 7
+        else if (this.interval === "biweeklyChange") return 14
+        return undefined
     }
 }
 
@@ -380,12 +391,6 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (this.isWeekly) return 7
         else if (this.isBiweekly) return 14
         return 1
-    }
-
-    get intervalChange() {
-        if (this.interval === "weeklyChange") return 7
-        else if (this.interval === "biweeklyChange") return 14
-        return undefined
     }
 
     get isWeeklyOrBiweeklyChange() {
