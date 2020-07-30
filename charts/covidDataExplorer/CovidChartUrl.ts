@@ -49,6 +49,7 @@ export class CovidQueryParams {
     @observable yColumn?: string
     @observable xColumn?: string
     @observable sizeColumn?: string
+    @observable chartType?: ChartTypeType
 
     @observable perCapita: PerCapita = false
     @observable aligned: AlignedOption = false
@@ -155,6 +156,7 @@ export class CovidQueryParams {
         this.xColumn = params.xColumn
         this.sizeColumn = params.sizeColumn
         this.colorScale = params.colorScale as colorScaleOption
+        this.chartType = params.chartType as ChartTypeType
     }
 
     constructor(queryString: string) {
@@ -197,6 +199,7 @@ export class CovidQueryParams {
         params.xColumn = this.xColumn ? this.xColumn : undefined
         params.yColumn = this.yColumn ? this.yColumn : undefined
         params.sizeColumn = this.sizeColumn ? this.sizeColumn : undefined
+        params.chartType = this.chartType ? this.chartType : undefined
         params.testsMetric = this.testsMetric ? true : undefined
         params.deathsMetric = this.deathsMetric ? true : undefined
         params.casesMetric = this.casesMetric ? true : undefined
@@ -222,14 +225,18 @@ export class CovidQueryParams {
     }
 
     // If someone selects "Align with..." we switch to a scatterplot chart type.
-    @computed get chartType(): ChartTypeType {
-        return this.aligned ? "ScatterPlot" : "LineChart"
+    @computed get type(): ChartTypeType {
+        return this.chartType
+            ? this.chartType
+            : this.aligned
+            ? "ScatterPlot"
+            : "LineChart"
     }
 
     @computed get colorStrategy(): colorScaleOption {
         if (this.colorScale) return this.colorScale
 
-        if (this.chartType !== "ScatterPlot") return "none"
+        if (this.type !== "ScatterPlot") return "none"
 
         if (this.casesMetric || this.testsMetric) return "ptr"
 
@@ -252,7 +259,7 @@ export class CovidQueryParams {
 
     @computed get xColumnSlug() {
         if (this.xColumn) return this.xColumn
-        return this.chartType === "ScatterPlot"
+        return this.type === "ScatterPlot"
             ? this.trajectoryColumnOption.slug
             : undefined
     }
