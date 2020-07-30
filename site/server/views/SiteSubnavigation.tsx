@@ -2,6 +2,8 @@ import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
 
+export const co2CountryProfilePath = "/co2-country-profile"
+
 interface SubnavItem {
     label: string
     href: string
@@ -75,7 +77,7 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
         },
         {
             label: "By country",
-            href: "/co2-country-profile",
+            href: co2CountryProfilePath,
             id: "by-country",
             highlight: true
         },
