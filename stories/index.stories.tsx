@@ -13,6 +13,7 @@ import {
     CommandPalette,
     Command
 } from "charts/covidDataExplorer/CommandPalette"
+import { ChartSwitcher } from "charts/ChartSwitcher"
 
 storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)
 
@@ -79,6 +80,10 @@ storiesOf("CommandPalette", module).add("testCommands", () => {
         }
     ]
     return <CommandPalette commands={demoCommands} display="block" />
+})
+
+storiesOf("ChartSwitcher", module).add("basics", () => {
+    return <ChartSwitcher />
 })
 
 // storiesOf('Button', module)

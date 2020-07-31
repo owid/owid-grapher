@@ -30,6 +30,7 @@ import {
 import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
+import { ExplorerCreatePage } from "admin/client/ExplorerCreatePage"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -128,6 +129,11 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 exact
                                 path="/charts"
                                 component={ChartIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/explorers/create"
+                                component={ExplorerCreatePage}
                             />
                             <Route
                                 exact
