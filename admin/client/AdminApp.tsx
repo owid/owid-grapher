@@ -77,7 +77,9 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
 class AdminLoader extends React.Component<{ admin: Admin }> {
     render() {
         const { admin } = this.props
-        return admin.isLoading ? <LoadingBlocker /> : null
+        return admin.isLoading && admin.showLoadingIndicator ? (
+            <LoadingBlocker />
+        ) : null
     }
 }
 
