@@ -14,7 +14,9 @@ import {
     groupMap,
     mergeQueryStr,
     next,
-    previous
+    previous,
+    parseDelimited,
+    toJsTable
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -285,6 +287,29 @@ describe(rollingMap, () => {
     })
     it("handles arrays with multiple elements", () => {
         expect(rollingMap([1, 2, 4, 8], (a, b) => b - a)).toEqual([1, 2, 4])
+    })
+})
+
+describe(parseDelimited, () => {
+    it("detects delimiter and parses delimited", () => {
+        const str = `foo,bar
+1,2`
+        expect(parseDelimited(str)).toEqual(
+            parseDelimited(str.replace(/,/g, "\t"))
+        )
+    })
+})
+
+describe(toJsTable, () => {
+    it("turns an arraw of objects into arrays", () => {
+        const str = `gdp,pop
+1,2`
+        expect(toJsTable(parseDelimited(str))).toEqual([
+            ["gdp", "pop"],
+            ["1", "2"]
+        ])
+
+        expect(toJsTable(parseDelimited(""))).toEqual([])
     })
 })
 

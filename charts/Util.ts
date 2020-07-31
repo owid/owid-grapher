@@ -140,6 +140,7 @@ import { EPOCH_DATE } from "settings"
 import { SortOrder } from "./SortOrder"
 import { RelatedQuestionsConfig } from "./ChartConfig"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
+import { dsvFormat } from "d3"
 
 export type SVGElement = any
 export type VNode = any
@@ -703,6 +704,16 @@ export function parseIntOrUndefined(s: string | undefined) {
     const value = parseInt(s)
     return isNaN(value) ? undefined : value
 }
+
+export const parseDelimited = (str: string) => {
+    const delimiter = str.includes("\t") ? "\t" : ","
+    return dsvFormat(delimiter).parse(str)
+}
+
+export const toJsTable = (rows: any[]) =>
+    rows.length
+        ? [Object.keys(rows[0]), ...rows.map(row => Object.values(row))]
+        : []
 
 export function parseFloatOrUndefined(s: string | undefined) {
     if (s === undefined) return undefined
