@@ -8,8 +8,44 @@ import { getStylesForTargetHeight } from "utils/client/react-select"
 export interface ControlOption {
     label: string
     checked: boolean
-    onChange: (checked: boolean) => void
+    value: string
     available: boolean
+}
+
+export class ExplorerControlBar extends React.Component<{
+    isMobile: boolean
+    showControls: boolean
+    closeControls: () => void
+}> {
+    render() {
+        const { isMobile, showControls, closeControls } = this.props
+        const mobileCloseButton = isMobile ? (
+            <a
+                className="btn btn-primary mobile-button"
+                onClick={closeControls}
+            >
+                Done
+            </a>
+        ) : (
+            undefined
+        )
+
+        const showMobileControls = isMobile && showControls
+        return (
+            <div
+                className={`DataExplorerControlBar${
+                    showMobileControls
+                        ? ` show-controls-popup`
+                        : isMobile
+                        ? ` hide-controls-popup`
+                        : ""
+                }`}
+            >
+                {this.props.children}
+                {mobileCloseButton}
+            </div>
+        )
+    }
 }
 
 export interface DropdownOption {
@@ -19,25 +55,32 @@ export interface DropdownOption {
 }
 
 @observer
-export class ExplorerControl extends React.Component<{
+export class ExplorerControlPanel extends React.Component<{
     title: string
     name: string
+    explorerName: string
     value?: string
     options: ControlOption[]
     dropdownOptions?: DropdownOption[]
     isCheckbox?: boolean
     comment?: string
-    onChange?: (value: string) => void
+    onChange: (value: string) => void
     hideTitle?: boolean
 }> {
-    @action.bound onChange(ev: React.ChangeEvent<HTMLInputElement>) {
-        this.props.options[parseInt(ev.currentTarget.value)].onChange(
-            ev.currentTarget.checked
-        )
-    }
-
     renderOption(option: ControlOption, index: number) {
-        const { title, name, comment, isCheckbox } = this.props
+        const {
+            title,
+            name,
+            comment,
+            isCheckbox,
+            explorerName,
+            value
+        } = this.props
+        const onChangeValue = isCheckbox
+            ? option.checked
+                ? ""
+                : option.value
+            : option.value
         return (
             <div key={index} className="ControlOption">
                 <label
@@ -47,15 +90,15 @@ export class ExplorerControl extends React.Component<{
                             ? "AvailableOption"
                             : "UnavailableOption"
                     ].join(" ")}
-                    data-track-note={`covid-click-${title.toLowerCase()}`}
+                    data-track-note={`${explorerName}-click-${title.toLowerCase()}`}
                 >
                     <input
-                        onChange={option.available ? this.onChange : undefined}
+                        onChange={() => this.props.onChange(onChangeValue)}
                         type={isCheckbox ? "checkbox" : "radio"}
                         disabled={!option.available}
                         name={name}
                         checked={option.available && option.checked}
-                        value={index}
+                        value={value}
                     />{" "}
                     {option.label}
                     {comment && (
@@ -123,7 +166,7 @@ export class ExplorerControl extends React.Component<{
     render() {
         const { title, hideTitle } = this.props
         return (
-            <div className={classNames("CovidDataExplorerControl", name)}>
+            <div key={name} className={classNames("DataExplorerControl", name)}>
                 <div
                     className={
                         "ControlHeader" +

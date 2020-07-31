@@ -33,14 +33,15 @@ import {
 import {
     CountryOption,
     CovidGrapherRow,
-    MetricKind,
-    IntervalOption
+    IntervalOption,
+    MetricKind
 } from "./CovidTypes"
 import {
     ControlOption,
-    ExplorerControl,
-    DropdownOption
-} from "./CovidExplorerControl"
+    ExplorerControlPanel,
+    DropdownOption,
+    ExplorerControlBar
+} from "../ExplorerControls"
 import { CountryPicker } from "./CovidCountryPicker"
 import {
     CovidQueryParams,
@@ -182,29 +183,20 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: metricLabels.cases,
                 checked: this.constrainedParams.casesMetric,
-                onChange: () => {
-                    params.setMetric("cases")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "cases"
             },
             {
                 available: true,
                 label: metricLabels.deaths,
                 checked: this.constrainedParams.deathsMetric,
-                onChange: () => {
-                    params.setMetric("deaths")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "deaths"
             },
 
             {
                 available: true,
                 label: metricLabels.case_fatality_rate,
                 checked: this.constrainedParams.cfrMetric,
-                onChange: () => {
-                    params.setMetric("case_fatality_rate")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "case_fatality_rate"
             }
         ]
 
@@ -213,47 +205,47 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: metricLabels.tests,
                 checked: this.constrainedParams.testsMetric,
-                onChange: () => {
-                    params.setMetric("tests")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "tests"
             },
             {
                 available: true,
                 label: metricLabels.tests_per_case,
                 checked: this.constrainedParams.testsPerCaseMetric,
-                onChange: () => {
-                    params.setMetric("tests_per_case")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "tests_per_case"
             },
             {
                 available: true,
                 label: metricLabels.positive_test_rate,
                 checked: this.constrainedParams.positiveTestRate,
-                onChange: () => {
-                    params.setMetric("positive_test_rate")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "positive_test_rate"
             }
         ]
         return (
             <>
-                <ExplorerControl
+                <ExplorerControlPanel
                     title="Metric"
+                    explorerName="covid"
                     name={this.getScopedName("metric")}
                     options={options}
+                    onChange={this.changeMetric}
                     isCheckbox={false}
-                ></ExplorerControl>
-                <ExplorerControl
+                />
+                <ExplorerControlPanel
                     title="Metric"
+                    explorerName="covid"
                     hideTitle={true}
                     name={this.getScopedName("metric")}
+                    onChange={this.changeMetric}
                     options={optionsColumn2}
                     isCheckbox={false}
-                ></ExplorerControl>
+                />
             </>
         )
+    }
+
+    @action.bound changeMetric(value: string) {
+        this.props.params.setMetric(value as MetricKind)
+        this.renderControlsThenUpdateChart()
     }
 
     private get frequencyPicker() {
@@ -297,7 +289,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
         return (
-            <ExplorerControl
+            <ExplorerControlPanel
                 title="Interval"
                 name={this.getScopedName("interval")}
                 dropdownOptions={options}
@@ -307,7 +299,8 @@ export class CovidDataExplorer extends React.Component<{
                     writeableParams.setTimeline(value as IntervalOption)
                     this.renderControlsThenUpdateChart()
                 }}
-            ></ExplorerControl>
+                explorerName="covid"
+            />
         )
     }
 
@@ -322,19 +315,21 @@ export class CovidDataExplorer extends React.Component<{
                 available: available.perCapita,
                 label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
                 checked: this.constrainedParams.perCapita,
-                onChange: value => {
-                    this.props.params.perCapita = value
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "true"
             }
         ]
         return (
-            <ExplorerControl
+            <ExplorerControlPanel
                 title="Count"
                 name={this.getScopedName("count")}
                 isCheckbox={true}
                 options={options}
-            ></ExplorerControl>
+                explorerName="covid"
+                onChange={value => {
+                    this.props.params.perCapita = value === "true"
+                    this.renderControlsThenUpdateChart()
+                }}
+            />
         )
     }
 
@@ -345,20 +340,22 @@ export class CovidDataExplorer extends React.Component<{
                 available: available.aligned,
                 label: "Align outbreaks",
                 checked: this.constrainedParams.aligned,
-                onChange: value => {
-                    this.props.params.aligned = value
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "true"
             }
         ]
         return (
-            <ExplorerControl
+            <ExplorerControlPanel
                 title="Timeline"
                 name={this.getScopedName("timeline")}
                 isCheckbox={true}
                 options={options}
+                onChange={value => {
+                    this.props.params.aligned = value === "true"
+                    this.renderControlsThenUpdateChart()
+                }}
                 comment={this.constrainedParams.trajectoryColumnOption.name}
-            ></ExplorerControl>
+                explorerName="covid"
+            />
         )
     }
 
@@ -383,12 +380,6 @@ export class CovidDataExplorer extends React.Component<{
     @computed get howLongAgo() {
         return moment.utc(this.props.updated).fromNow()
     }
-
-    @action.bound mobileToggleCustomizePopup() {
-        this.showControlsPopup = !this.showControlsPopup
-    }
-
-    @observable showControlsPopup = false
 
     @action.bound onResize() {
         this.isMobile = this._isMobile()
@@ -447,36 +438,29 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     get controlBar() {
-        const mobileDoneButton = this.isMobile ? (
-            <a
-                className="btn btn-primary mobile-button"
-                onClick={this.mobileToggleCustomizePopup}
-            >
-                Done
-            </a>
-        ) : (
-            undefined
-        )
-
-        const showMobileControls = this.isMobile && this.showControlsPopup
         return (
-            <div
-                className={`CovidDataExplorerControlBar${
-                    showMobileControls
-                        ? ` show-controls-popup`
-                        : this.isMobile
-                        ? ` hide-controls-popup`
-                        : ""
-                }`}
+            <ExplorerControlBar
+                isMobile={this.isMobile}
+                showControls={this.showMobileControlsPopup}
+                closeControls={this.closeControls}
             >
                 {this.metricPicker}
                 {this.frequencyPicker}
                 {this.perCapitaPicker}
                 {this.alignedPicker}
-                {mobileDoneButton}
-            </div>
+            </ExplorerControlBar>
         )
     }
+
+    @action.bound closeControls() {
+        this.showMobileControlsPopup = false
+    }
+
+    @action.bound toggleMobileControls() {
+        this.showMobileControlsPopup = !this.showMobileControlsPopup
+    }
+
+    @observable showMobileControlsPopup = false
 
     get customizeChartMobileButton() {
         // A/B Test.
@@ -484,7 +468,7 @@ export class CovidDataExplorer extends React.Component<{
         return this.isMobile ? (
             <a
                 className="btn btn-primary mobile-button"
-                onClick={this.mobileToggleCustomizePopup}
+                onClick={this.toggleMobileControls}
                 data-track-note="covid-customize-chart"
             >
                 <FontAwesomeIcon icon={faChartLine} /> {buttonLabel}
