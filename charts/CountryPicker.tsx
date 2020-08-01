@@ -27,7 +27,7 @@ import { Analytics } from "site/client/Analytics"
 import { SortIcon } from "charts/SortIcon"
 import { toggleSort, SortOrder } from "charts/SortOrder"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
-import { AbstractColumn, BasicTable, OwidTable } from "./owidData/OwidTable"
+import { AbstractColumn, OwidTable } from "./owidData/OwidTable"
 
 enum FocusDirection {
     first = "first",
@@ -50,6 +50,24 @@ interface MetricState {
     countryPickerMetric: string
     countryPickerSort: SortOrder
     selectedCountryCodes: Set<string>
+}
+
+// A stub class for testing
+export class CountryPickerHolder extends React.Component {
+    render() {
+        return (
+            <div
+                style={{
+                    padding: "20px",
+                    height: "500px",
+                    width: "300px",
+                    display: "grid"
+                }}
+            >
+                {this.props.children}
+            </div>
+        )
+    }
 }
 
 @observer

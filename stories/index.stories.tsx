@@ -11,7 +11,8 @@ import { covidSampleRows } from "test/fixtures/CovidSampleRows"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 import { CommandPalette, Command } from "charts/CommandPalette"
 import { ChartSwitcher } from "charts/ChartSwitcher"
-import { CountryPicker } from "charts/CountryPicker"
+import { CountryPicker, CountryPickerHolder } from "charts/CountryPicker"
+import { OwidTable } from "charts/owidData/OwidTable"
 
 storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)
 
@@ -84,9 +85,24 @@ storiesOf("ChartSwitcher", module).add("basics", () => {
     return <ChartSwitcher />
 })
 
-storiesOf("CountryPicker", module).add("country picker", () => {
-    return <CountryPicker />
-})
+storiesOf("CountryPicker", module)
+    .add("empty picker", () => {
+        return (
+            <CountryPickerHolder>
+                <CountryPicker />
+            </CountryPickerHolder>
+        )
+    })
+    .add("a few options", () => {
+        const table = OwidTable.fromDelimited(`entityName,entityId,entityCode,pop,gdp
+usa,1,usa,100,200
+canada,2,can,200,300`)
+        return (
+            <CountryPickerHolder>
+                <CountryPicker table={table} />
+            </CountryPickerHolder>
+        )
+    })
 
 // storiesOf('Button', module)
 //   .add('with text', () => <Button onClick={action('clicked')}>Hello Button</Button>)

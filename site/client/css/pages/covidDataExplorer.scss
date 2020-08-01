@@ -1,5 +1,4 @@
 $controls-color: #3f9eff;
-$ideal-ratio: 680/480;
 
 $grid-gap: 10px;
 $placeholder-height: 800px;
@@ -106,12 +105,6 @@ html.iframe .CovidDataExplorerFigure,
         .chart {
             position: absolute;
         }
-    }
-
-    .intervalDropdown {
-        font-size: 13px;
-        font-weight: 400;
-        min-width: 150px;
     }
 }
 
