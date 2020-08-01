@@ -52,24 +52,6 @@ interface MetricState {
     selectedCountryCodes: Set<string>
 }
 
-// A stub class for testing
-export class CountryPickerHolder extends React.Component {
-    render() {
-        return (
-            <div
-                style={{
-                    padding: "20px",
-                    height: "500px",
-                    width: "300px",
-                    display: "grid"
-                }}
-            >
-                {this.props.children}
-            </div>
-        )
-    }
-}
-
 @observer
 export class CountryPicker extends React.Component<{
     explorerName: string
@@ -82,21 +64,21 @@ export class CountryPicker extends React.Component<{
     selectedCountries: string[]
     userState: MetricState
     isDropdownMenu?: boolean
-    activeColumnSlugs: string[]
+    countriesMustHaveColumns: string[]
     pickerColumns: Set<string>
 }> {
     // Set default props
     static defaultProps = {
         explorerName: "",
+        table: new OwidTable([]),
         optionColorMap: {},
         toggleCountryCommand: () => {},
         clearSelectionCommand: () => {},
         userState: {},
         isDropdownMenu: false,
         selectedCountries: [],
-        activeColumnSlugs: [],
-        pickerColumns: new Set(),
-        table: new OwidTable([])
+        countriesMustHaveColumns: [],
+        pickerColumns: new Set()
     }
 
     @observable private searchInput?: string
@@ -168,7 +150,11 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed get availableCountriesForCurrentView() {
-        return this.props.table.entitiesWith(this.props.activeColumnSlugs)
+        if (!this.props.countriesMustHaveColumns.length)
+            return this.props.table.availableEntities
+        return this.props.table.entitiesWith(
+            this.props.countriesMustHaveColumns
+        )
     }
 
     @computed private get optionsWithMetricValue(): CountryOptionWithValue[] {

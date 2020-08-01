@@ -16,7 +16,8 @@ import {
     sortBy,
     isString,
     cloneDeep,
-    parseDelimited
+    parseDelimited,
+    intersectionOfSets
 } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -239,9 +240,12 @@ export abstract class AbstractColumn {
         return this.rows.map(row => (row.year ?? row.day)!)
     }
 
+    // Rows containing a value for this column
     @computed get rows() {
         const slug = this.spec.slug
-        return this.table.unfilteredRows.filter(row => row[slug] !== undefined)
+        return this.table.unfilteredRows.filter(
+            row => row[slug] !== undefined && row[slug] !== ""
+        )
     }
 
     @computed get values() {
@@ -722,12 +726,11 @@ export class OwidTable extends AbstractTable<OwidRow> {
         if (columnSlugs.length === 1)
             return this.columnsBySlug.get(columnSlugs[0])!.entityNamesUniq
 
-        const columns = columnSlugs.map(slug => this.columnsBySlug.get(slug))
-        const entityNames = columns
-            .map(col => col!.entityNamesUniq)
-            .map(set => Array.from(set))
-        const arr = intersection<string[]>(entityNames) as any
-        return new Set(arr)
+        return intersectionOfSets(
+            columnSlugs.map(
+                slug => this.columnsBySlug.get(slug)?.entityNamesUniq!
+            )
+        )
     }
 
     private static annotationsToMap(annotations: string) {

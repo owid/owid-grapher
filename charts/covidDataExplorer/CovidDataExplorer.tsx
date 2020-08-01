@@ -441,7 +441,7 @@ export class CovidDataExplorer extends React.Component<{
                 optionColorMap={this.countryNameToColorMap}
                 selectedCountries={this.selectedEntityNames}
                 userState={this.props.params}
-                activeColumnSlugs={this.activeColumnSlugs}
+                countriesMustHaveColumns={this.activeColumnSlugs}
                 clearSelectionCommand={this.clearSelectionCommand}
                 toggleCountryCommand={this.toggleSelectedCountryCommand}
             ></CountryPicker>

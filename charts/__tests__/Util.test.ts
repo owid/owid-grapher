@@ -16,7 +16,8 @@ import {
     next,
     previous,
     parseDelimited,
-    toJsTable
+    toJsTable,
+    intersectionOfSets
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -297,6 +298,26 @@ describe(parseDelimited, () => {
         expect(parseDelimited(str)).toEqual(
             parseDelimited(str.replace(/,/g, "\t"))
         )
+    })
+})
+
+describe(intersectionOfSets, () => {
+    it("can detect set intersections", () => {
+        const setA = new Set(["a", "b", "c"])
+        const setB = new Set(["a", "b", "c", "d"])
+        const setC = new Set(["a", "c", "d"])
+        const setD = new Set(["a", "c", "d"])
+        const setE = new Set([""])
+
+        expect(
+            Array.from(intersectionOfSets([setA, setB, setC, setD]).values())
+        ).toEqual(["a", "c"])
+        expect(
+            Array.from(
+                intersectionOfSets([setA, setB, setC, setD, setE]).values()
+            )
+        ).toEqual([])
+        expect(intersectionOfSets([]).size).toEqual(new Set().size)
     })
 })
 

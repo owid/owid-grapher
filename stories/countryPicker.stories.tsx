@@ -1,0 +1,74 @@
+import * as React from "react"
+
+import { storiesOf } from "@storybook/react"
+
+import "site/client/owid.scss"
+import "charts/client/chart.scss"
+import { CountryPicker } from "charts/CountryPicker"
+import { OwidTable } from "charts/owidData/OwidTable"
+import { observable, action } from "mobx"
+import { observer } from "mobx-react"
+
+class CountryPickerHolder extends React.Component {
+    render() {
+        return (
+            <div
+                style={{
+                    padding: "20px",
+                    height: "500px",
+                    width: "300px",
+                    display: "grid"
+                }}
+            >
+                {this.props.children}
+            </div>
+        )
+    }
+}
+
+// A stub class for testing
+@observer
+class CountryPickerIntegrated extends React.Component {
+    table = OwidTable.fromDelimited(`entityName,entityId,entityCode,pop,gdp
+usa,1,usa,100,200
+canada,2,can,200,300
+france,3,fra,,400`)
+
+    @observable selected: string[] = ["canada"]
+
+    @action.bound clearSelection() {
+        this.selected = []
+    }
+
+    @action.bound toggleSelection(name: string) {
+        this.selected.includes(name)
+            ? (this.selected = this.selected.filter(i => i !== name))
+            : this.selected.push(name)
+    }
+
+    render() {
+        return (
+            <CountryPickerHolder>
+                <CountryPicker
+                    table={this.table}
+                    selectedCountries={this.selected}
+                    countriesMustHaveColumns={["pop", "gdp"]}
+                    clearSelectionCommand={this.clearSelection}
+                    toggleCountryCommand={this.toggleSelection}
+                />
+            </CountryPickerHolder>
+        )
+    }
+}
+
+storiesOf("CountryPicker", module)
+    .add("empty picker", () => {
+        return (
+            <CountryPickerHolder>
+                <CountryPicker />
+            </CountryPickerHolder>
+        )
+    })
+    .add("a few options", () => {
+        return <CountryPickerIntegrated />
+    })
