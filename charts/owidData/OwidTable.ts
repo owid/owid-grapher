@@ -15,12 +15,13 @@ import {
     flatten,
     sortBy,
     isString,
-    cloneDeep
+    cloneDeep,
+    parseDelimited
 } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"
-import { csvParse } from "d3-dsv"
+import { intersection } from "lodash"
 
 export declare type int = number
 export declare type year = int
@@ -32,6 +33,13 @@ export declare type columnSlug = string // let's be very restrictive on valid co
 
 interface Row {
     [columnName: string]: any
+}
+
+const globalEntityIds = new Map()
+export const generateEntityId = (entityName: string) => {
+    if (!globalEntityIds.has(entityName))
+        globalEntityIds.set(entityName, globalEntityIds.size)
+    return globalEntityIds.get(entityName)
 }
 
 // Todo: replace with someone else's library
@@ -66,6 +74,12 @@ const computeRollingAveragesForEachGroup = (
         currentRows.push(row)
     }
     return flatten(groups)
+}
+
+enum OwidRequiredColumns {
+    entityName = "entityName",
+    entityCode = "entityCode",
+    entityId = "entityId"
 }
 
 // This is a row with the additional columns specific to our OWID data model
@@ -212,7 +226,7 @@ export abstract class AbstractColumn {
 
     // todo: remove
     @computed get entityNamesUniq() {
-        return new Set(this.entityNames)
+        return new Set<string>(this.entityNames)
     }
 
     // todo: remove
@@ -233,6 +247,16 @@ export abstract class AbstractColumn {
     @computed get values() {
         const slug = this.spec.slug
         return this.rows.map(row => row[slug])
+    }
+
+    @computed get latestValuesMap() {
+        const map = new Map<entityName, any>()
+        this.rows.forEach(row => map.set(row.entityName, row[this.slug]))
+        return map
+    }
+
+    getLatestValueForEntity(entityName: string) {
+        return this.latestValuesMap.get(entityName)
     }
 }
 
@@ -472,7 +496,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             .map(col => col.slug)
     }
 
-    @computed private get columnsAsArray() {
+    @computed get columnsAsArray() {
         return Array.from(this.columns.values())
     }
 
@@ -508,14 +532,14 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 }
 
 export class BasicTable extends AbstractTable<Row> {
-    static fromCsv(csv: string) {
-        return new BasicTable(this.standardizeSlugs(csvParse(csv)))
+    static fromDelimited(csvOrTsv: string) {
+        return new BasicTable(this.standardizeSlugs(parseDelimited(csvOrTsv)))
     }
 
     private static standardizeSlugs(rows: Row[]) {
         const colSpecs = Object.keys(rows[0]).map(name => {
             return {
-                name: name,
+                name,
                 slug: slugifySameCase(name)
             }
         })
@@ -533,6 +557,23 @@ export class BasicTable extends AbstractTable<Row> {
 }
 
 export class OwidTable extends AbstractTable<OwidRow> {
+    static fromDelimited(csvOrTsv: string) {
+        const parsed = parseDelimited(csvOrTsv)
+        const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
+        const missingColumns: string[] = []
+        Object.keys(OwidRequiredColumns).forEach(slug => {
+            if (!colSlugs.includes(slug)) missingColumns.push(slug)
+        })
+        if (missingColumns.length)
+            throw new Error(
+                `Table is missing required OWID columns: '${missingColumns.join(
+                    ","
+                )}'`
+            )
+
+        return new OwidTable((parsed as any) as OwidRow[])
+    }
+
     @computed get columnsByOwidVarId() {
         const map = new Map<number, AbstractColumn>()
         Array.from(this.columns.values()).forEach((column, index) => {
@@ -554,6 +595,15 @@ export class OwidTable extends AbstractTable<OwidRow> {
         const map = new Map<entityId, entityName>()
         this.rows.forEach(row => {
             map.set(row.entityId, row.entityName)
+        })
+        return map
+    }
+
+    // todo: can we remove at some point?
+    @computed get entityCodeToNameMap() {
+        const map = new Map<entityCode, entityName>()
+        this.rows.forEach(row => {
+            map.set(row.entityCode, row.entityName)
         })
         return map
     }
@@ -665,6 +715,19 @@ export class OwidTable extends AbstractTable<OwidRow> {
             columns: this.specToObject(),
             rows: this.rows
         }
+    }
+
+    entitiesWith(columnSlugs: string[]): Set<string> {
+        if (!columnSlugs.length) return new Set()
+        if (columnSlugs.length === 1)
+            return this.columnsBySlug.get(columnSlugs[0])!.entityNamesUniq
+
+        const columns = columnSlugs.map(slug => this.columnsBySlug.get(slug))
+        const entityNames = columns
+            .map(col => col!.entityNamesUniq)
+            .map(set => Array.from(set))
+        const arr = intersection<string[]>(entityNames) as any
+        return new Set(arr)
     }
 
     private static annotationsToMap(annotations: string) {
