@@ -9,10 +9,7 @@ import "charts/client/chart.scss"
 import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
 import { covidSampleRows } from "test/fixtures/CovidSampleRows"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
-import {
-    CommandPalette,
-    Command
-} from "charts/covidDataExplorer/CommandPalette"
+import { CommandPalette, Command } from "charts/CommandPalette"
 import { ChartSwitcher } from "charts/ChartSwitcher"
 
 storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)

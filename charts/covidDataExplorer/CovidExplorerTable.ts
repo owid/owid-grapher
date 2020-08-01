@@ -36,11 +36,11 @@ import {
     columnTypes
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
-import { covidAnnotations } from "./CovidAnnotations"
 import {
     covidDataPath,
     covidLastUpdatedPath,
     covidChartAndVariableMetaPath,
+    covidAnnotations,
     sourceVariables,
     testRateExcludeList
 } from "./CovidConstants"
