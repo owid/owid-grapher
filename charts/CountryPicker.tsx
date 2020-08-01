@@ -78,7 +78,7 @@ export class CountryPicker extends React.Component<{
         selectedCountries: [],
         activeColumnSlugs: [],
         pickerColumns: new Set(),
-        table: new BasicTable([])
+        table: new OwidTable([])
     }
 
     @observable private searchInput?: string
@@ -149,16 +149,12 @@ export class CountryPicker extends React.Component<{
         return this.activeColumn?.latestValuesMap
     }
 
-    @computed get countryOptions() {
-        return this.props.table.availableEntities
-    }
-
     @computed get availableCountriesForCurrentView() {
         return this.props.table.entitiesWith(this.props.activeColumnSlugs)
     }
 
     @computed private get optionsWithMetricValue(): CountryOptionWithValue[] {
-        return this.countryOptions.map(name => ({
+        return this.props.table.availableEntities.map(name => ({
             name,
             plotValue: this.activeColumn?.getLatestValueForEntity(name)
         }))

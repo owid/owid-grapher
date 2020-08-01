@@ -169,7 +169,7 @@ export class CovidDataExplorer extends React.Component<{
 
     @action.bound selectAllCommand() {
         const codeMap = this.chart.table.entityNameToCodeMap
-        this.countryOptions.forEach(option =>
+        this.chart.table.availableEntities.forEach(option =>
             this.props.params.selectedCountryCodes.add(codeMap.get(option)!)
         )
         this.selectionChangeFromBuilder = true
@@ -560,13 +560,9 @@ export class CovidDataExplorer extends React.Component<{
         return !this.props.params.hideControls || !this.props.isEmbed
     }
 
-    @computed get countryOptions(): string[] {
-        return this.chart.table.availableEntities
-    }
-
     @computed get selectedCountryOptions(): string[] {
         const codeMap = this.chart.table.entityNameToCodeMap
-        return this.countryOptions.filter(option =>
+        return this.chart.table.availableEntities.filter(option =>
             this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
         )
     }
@@ -1375,7 +1371,7 @@ export class CovidDataExplorer extends React.Component<{
             isPublished: true,
             map: this.defaultMapConfig as any,
             data: {
-                availableEntities: this.countryOptions
+                availableEntities: []
             }
         },
         {

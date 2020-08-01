@@ -101,12 +101,6 @@ export class CovidExplorerTable {
         })
         this.table.addCategoricalColumnSpec(this.columnSpecs.continents)
         this.addAnnotationColumns()
-
-        // Init tests per case for the country picker
-        const params = new CovidQueryParams("")
-        params.interval = "smoothed"
-        params.testsPerCaseMetric = true
-        this.initTestsPerCaseColumn(params.toConstrainedParams())
     }
 
     private getBaseSpecs(row: CovidGrapherRow) {
@@ -523,6 +517,12 @@ export class CovidExplorerTable {
         if (params.testsPerCaseMetric) this.initTestsPerCaseColumn(params)
         if (params.cfrMetric) this.initCfrColumn(params)
         if (params.positiveTestRate) this.initTestRateColumn(params)
+
+        // Init tests per case for the country picker
+        const tpc = new CovidQueryParams("")
+        tpc.interval = "smoothed"
+        tpc.testsPerCaseMetric = true
+        this.initTestsPerCaseColumn(tpc.toConstrainedParams())
 
         if (params.aligned) {
             // If we are an aligned chart showing tests, we need to make a start of
