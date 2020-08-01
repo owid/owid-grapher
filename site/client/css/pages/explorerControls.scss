@@ -113,3 +113,23 @@
         }
     }
 }
+
+@keyframes slideUp {
+    0% {
+        bottom: -150%;
+    }
+
+    100% {
+        bottom: 0;
+    }
+}
+
+@keyframes slideDown {
+    0% {
+        bottom: 0%;
+    }
+
+    100% {
+        bottom: -150%;
+    }
+}

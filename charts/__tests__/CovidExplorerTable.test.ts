@@ -18,9 +18,11 @@ describe("parse row", () => {
 
 describe("makeCountryOptions", () => {
     it("correctly computes options", () => {
-        const options = CovidExplorerTable.makeCountryOptions(covidSampleRows)
-        const world = options[2]
-        expect(world.name).toEqual("World")
+        const dataTable = new CovidExplorerTable(
+            new OwidTable([]),
+            covidSampleRows
+        )
+        expect(dataTable.table.availableEntities[2]).toEqual("World")
     })
 })
 

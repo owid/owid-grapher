@@ -18,7 +18,6 @@ import moment from "moment"
 import {
     ParsedCovidCsvRow,
     MetricKind,
-    CountryOption,
     CovidGrapherRow,
     SmoothingOption,
     IntervalOption,
@@ -33,7 +32,8 @@ import {
     ColumnSpec,
     entityName,
     columnSlug,
-    columnTypes
+    columnTypes,
+    generateEntityId
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import {
@@ -101,6 +101,12 @@ export class CovidExplorerTable {
         })
         this.table.addCategoricalColumnSpec(this.columnSpecs.continents)
         this.addAnnotationColumns()
+
+        // Init tests per case for the country picker
+        const params = new CovidQueryParams("")
+        params.interval = "smoothed"
+        params.testsPerCaseMetric = true
+        this.initTestsPerCaseColumn(params.toConstrainedParams())
     }
 
     private getBaseSpecs(row: CovidGrapherRow) {
@@ -602,13 +608,6 @@ export class CovidExplorerTable {
         )
     }
 
-    private static globalEntityIds = new Map()
-    private static getEntityGuid(entityName: string) {
-        if (!this.globalEntityIds.has(entityName))
-            this.globalEntityIds.set(entityName, this.globalEntityIds.size)
-        return this.globalEntityIds.get(entityName)
-    }
-
     private static calculateRowsForGroup = (
         group: ParsedCovidCsvRow[],
         groupName: string
@@ -631,7 +630,7 @@ export class CovidExplorerTable {
                     new_cases: 0,
                     entityName: groupName,
                     entityCode: groupName.replace(" ", ""),
-                    entityId: CovidExplorerTable.getEntityGuid(groupName),
+                    entityId: generateEntityId(groupName),
                     new_deaths: 0,
                     population: 0
                 } as CovidGrapherRow)
@@ -705,27 +704,11 @@ export class CovidExplorerTable {
         newRow.entityName = row.location
         newRow.entityCode = row.iso_code
         newRow.day = dateToYear(row.date)
-        newRow.entityId = CovidExplorerTable.getEntityGuid(row.location)
+        newRow.entityId = generateEntityId(row.location)
 
         if (newRow.location === "World") newRow.group_members = "All"
 
         return row as CovidGrapherRow
-    }
-
-    static makeCountryOptions(data: ParsedCovidCsvRow[]): CountryOption[] {
-        const rowsByCountry = groupBy(data, "iso_code")
-        return map(rowsByCountry, rows => {
-            const { location, iso_code, population, continent } = rows[0]
-            return {
-                name: location,
-                slug: location,
-                code: iso_code,
-                population,
-                continent,
-                entityId: CovidExplorerTable.getEntityGuid(location),
-                rows
-            }
-        })
     }
 }
 

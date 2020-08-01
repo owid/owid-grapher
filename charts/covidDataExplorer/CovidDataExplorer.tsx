@@ -31,10 +31,10 @@ import {
     flatten
 } from "charts/Util"
 import {
-    CountryOption,
     CovidGrapherRow,
     IntervalOption,
-    MetricKind
+    MetricKind,
+    CovidCountryPickerMetric
 } from "./CovidTypes"
 import {
     ControlOption,
@@ -42,12 +42,12 @@ import {
     DropdownOption,
     ExplorerControlBar
 } from "../ExplorerControls"
-import { CountryPicker } from "./CovidCountryPicker"
 import {
     CovidQueryParams,
     CovidUrl,
     CovidConstrainedQueryParams
 } from "./CovidChartUrl"
+import { CountryPicker } from "../CountryPicker"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
@@ -72,7 +72,6 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
-import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "../CommandPalette"
@@ -169,8 +168,9 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @action.bound selectAllCommand() {
+        const codeMap = this.chart.table.entityNameToCodeMap
         this.countryOptions.forEach(option =>
-            this.props.params.selectedCountryCodes.add(option.code)
+            this.props.params.selectedCountryCodes.add(codeMap.get(option)!)
         )
         this.selectionChangeFromBuilder = true
         this.renderControlsThenUpdateChart()
@@ -371,8 +371,12 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
-        this.toggleSelectedCountry(code, value)
+    @action.bound toggleSelectedCountryCommand(
+        countryName: string,
+        value?: boolean
+    ) {
+        const codeMap = this.chart.table.entityNameToCodeMap
+        this.toggleSelectedCountry(codeMap.get(countryName)!, value)
         this.selectionChangeFromBuilder = true
         this.renderControlsThenUpdateChart()
     }
@@ -430,11 +434,28 @@ export class CovidDataExplorer extends React.Component<{
     get countryPicker() {
         return (
             <CountryPicker
-                covidDataExplorer={this}
-                toggleCountryCommand={this.toggleSelectedCountryCommand}
+                explorerName="Covid"
+                table={this.chart.table}
+                pickerColumns={new Set(Object.keys(CovidCountryPickerMetric))}
                 isDropdownMenu={this.isMobile}
+                optionColorMap={this.countryNameToColorMap}
+                selectedCountries={this.selectedEntityNames}
+                userState={this.props.params}
+                activeColumnSlugs={this.activeColumnSlugs}
+                clearSelectionCommand={this.clearSelectionCommand}
+                toggleCountryCommand={this.toggleSelectedCountryCommand}
             ></CountryPicker>
         )
+    }
+
+    @computed get activeColumnSlugs(): string[] {
+        return [this.xColumn?.slug, this.yColumn?.slug].filter(
+            i => i
+        ) as string[]
+    }
+
+    @action.bound changePickerMetric(metric: CovidCountryPickerMetric) {
+        this.props.params.countryPickerMetric = metric
     }
 
     get controlBar() {
@@ -539,18 +560,15 @@ export class CovidDataExplorer extends React.Component<{
         return !this.props.params.hideControls || !this.props.isEmbed
     }
 
-    @computed get countryOptions(): CountryOption[] {
-        return CovidExplorerTable.makeCountryOptions(this.props.data)
+    @computed get countryOptions(): string[] {
+        return this.chart.table.availableEntities
     }
 
-    @computed get selectedCountryOptions(): CountryOption[] {
+    @computed get selectedCountryOptions(): string[] {
+        const codeMap = this.chart.table.entityNameToCodeMap
         return this.countryOptions.filter(option =>
-            this.props.params.selectedCountryCodes.has(option.code)
+            this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
         )
-    }
-
-    @computed private get availableEntities() {
-        return this.countryOptions.map(country => country.name)
     }
 
     @computed private get perCapitaDivisor() {
@@ -639,72 +657,56 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get selectedData() {
-        const countryCodeMap = this.countryCodeToCountryOptionMap
+        const countryCodeMap = this.chart.table.entityCodeToNameMap
+        const entityIdMap = this.chart.table.entityNameToIdMap
         return Array.from(this.props.params.selectedCountryCodes)
             .map(code => countryCodeMap.get(code))
             .filter(i => i)
             .map(countryOption => {
                 return {
                     index: 0,
-                    entityId: countryOption ? countryOption.entityId : 0,
-                    color: this.countryCodeToColorMap[countryOption!.code]
+                    entityId: countryOption
+                        ? entityIdMap.get(countryOption)!
+                        : 0,
+                    color: this.countryNameToColorMap[countryOption!]
                 }
             })
     }
 
-    @computed private get countryCodeToCountryOptionMap() {
-        const countryCodeMap = new Map<entityCode, CountryOption>()
-        this.countryOptions.forEach(country => {
-            countryCodeMap.set(country.code, country)
-        })
-        return countryCodeMap
-    }
-
-    @computed get availableCountriesForMetric() {
-        if (this.xColumn && this.yColumn)
-            return new Set(
-                [...this.xColumn.entityNamesUniq].filter(entityName =>
-                    this.yColumn.entityNamesUniq.has(entityName)
-                )
-            )
-        else if (this.yColumn) return this.yColumn.entityNamesUniq
-        return new Set()
-    }
-
-    private _countryCodeToColorMapCache: {
+    private _countryNameToColorMapCache: {
         [key: string]: string | undefined
     } = {}
 
-    @computed get countryCodeToColorMap(): {
+    @computed get countryNameToColorMap(): {
         [key: string]: string | undefined
     } {
-        const codes = this.selectedCountryOptions.map(country => country.code)
-        // If there isn't a color for every country code, we need to update the color map
-        if (!codes.every(code => code in this._countryCodeToColorMapCache)) {
-            // Omit any unselected country codes from color map
-            const newColorMap = pick(this._countryCodeToColorMapCache, codes)
-            // Check for code *key* existence, not value.
+        const names = this.selectedCountryOptions.map(country => country)
+        // If there isn't a color for every country name, we need to update the color map
+        if (!names.every(name => name in this._countryNameToColorMapCache)) {
+            // Omit any unselected country names from color map
+            const newColorMap = pick(this._countryNameToColorMapCache, names)
+            // Check for name *key* existence, not value.
             // `undefined` value means we want the color to be automatic, determined by the chart.
-            const codesWithoutColor = codes.filter(
-                code => !(code in newColorMap)
+            const namesWithoutColor = names.filter(
+                name => !(name in newColorMap)
             )
-            // For codes that don't have a color, assign one.
-            codesWithoutColor.forEach(code => {
+            // For names that don't have a color, assign one.
+            namesWithoutColor.forEach(name => {
                 const scheme = ColorSchemes["owid-distinct"] as ColorScheme
                 const availableColors = lastOfNonEmptyArray(scheme.colorSets)
                 const usedColors = Object.values(newColorMap).filter(
                     color => color !== undefined
                 ) as string[]
-                newColorMap[code] = getLeastUsedColor(
+                newColorMap[name] = getLeastUsedColor(
                     availableColors,
                     usedColors
                 )
             })
             // Update the country color map cache
-            this._countryCodeToColorMapCache = newColorMap
+            this._countryNameToColorMapCache = newColorMap
         }
 
-        return this._countryCodeToColorMapCache
+        return this._countryNameToColorMapCache
     }
 
     private selectionChangeFromBuilder = false
@@ -729,11 +731,11 @@ export class CovidDataExplorer extends React.Component<{
         return this._covidExplorerTable
     }
 
-    private getSelectedEntityNames() {
+    @computed get selectedEntityNames(): string[] {
+        const entityCodeMap = this.chart.table.entityCodeToNameMap
         return Array.from(this.props.params.selectedCountryCodes.values())
-            .map(code => this.countryCodeToCountryOptionMap.get(code))
-            .filter(i => i)
-            .map(option => option!.name)
+            .map(code => entityCodeMap.get(code))
+            .filter(i => i) as string[]
     }
 
     @computed get canDoLogScale() {
@@ -801,9 +803,7 @@ export class CovidDataExplorer extends React.Component<{
             this._addDataTableOnlyDimensionsToChart()
         }
 
-        covidExplorerTable.table.setSelectedEntities(
-            this.getSelectedEntityNames()
-        )
+        covidExplorerTable.table.setSelectedEntities(this.selectedEntityNames)
 
         if (
             (params.casesMetric || params.deathsMetric) &&
@@ -1375,7 +1375,7 @@ export class CovidDataExplorer extends React.Component<{
             isPublished: true,
             map: this.defaultMapConfig as any,
             data: {
-                availableEntities: this.availableEntities
+                availableEntities: this.countryOptions
             }
         },
         {

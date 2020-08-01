@@ -11,6 +11,7 @@ import { covidSampleRows } from "test/fixtures/CovidSampleRows"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 import { CommandPalette, Command } from "charts/CommandPalette"
 import { ChartSwitcher } from "charts/ChartSwitcher"
+import { CountryPicker } from "charts/CountryPicker"
 
 storiesOf("FeedbackForm", module).add("normal", () => <FeedbackForm />)
 
@@ -81,6 +82,10 @@ storiesOf("CommandPalette", module).add("testCommands", () => {
 
 storiesOf("ChartSwitcher", module).add("basics", () => {
     return <ChartSwitcher />
+})
+
+storiesOf("CountryPicker", module).add("country picker", () => {
+    return <CountryPicker />
 })
 
 // storiesOf('Button', module)
