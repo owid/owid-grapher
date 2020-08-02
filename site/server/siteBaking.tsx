@@ -354,9 +354,6 @@ const getCountryProfilePost = memoize(
             grapherExports
         )
 
-        console.log(formattedPost)
-        console.log(profileFormattingOptions)
-
         return [formattedPost, profileFormattingOptions]
     }
 )
