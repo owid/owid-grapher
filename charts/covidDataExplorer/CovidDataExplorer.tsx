@@ -786,13 +786,10 @@ export class CovidDataExplorer extends React.Component<{
 
         // If we switch to scatter, set zoomToSelection to true. I don't set it to true initially in the chart
         // config because then it won't appear in the URL.
-        if (
-            chartProps.type === "LineChart" &&
-            params.chartType === "ScatterPlot"
-        )
+        if (chartProps.type === "LineChart" && params.type === "ScatterPlot")
             chartProps.zoomToSelection = true
 
-        chartProps.type = params.chartType
+        chartProps.type = params.type
         chartProps.yAxis.label = this.yAxisLabel
 
         if (!this.canDoLogScale) {
@@ -833,7 +830,7 @@ export class CovidDataExplorer extends React.Component<{
         else covidExplorerTable.removeNegativeFilterColumn()
 
         // Do not show unselected groups on scatterplots
-        if (params.chartType === "ScatterPlot")
+        if (params.type === "ScatterPlot")
             covidExplorerTable.addGroupFilterColumn()
         else covidExplorerTable.removeGroupFilterColumn()
 
@@ -1270,7 +1267,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get dimensionSpecs(): DimensionSpec[] {
-        if (this.constrainedParams.chartType === "LineChart")
+        if (this.constrainedParams.type !== "ScatterPlot")
             return [this.yDimension]
 
         const dimensions = [this.yDimension, this.xDimension]
@@ -1362,7 +1359,7 @@ export class CovidDataExplorer extends React.Component<{
     @observable.ref chart: ChartConfig = new ChartConfig(
         {
             slug: covidDashboardSlug,
-            type: this.constrainedParams.chartType,
+            type: this.constrainedParams.type,
             isExplorable: false,
             id: 4128,
             version: 9,

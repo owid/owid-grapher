@@ -41,7 +41,8 @@ import {
     covidDataPath,
     covidLastUpdatedPath,
     covidChartAndVariableMetaPath,
-    sourceVariables
+    sourceVariables,
+    testRateExcludeList
 } from "./CovidConstants"
 
 type MetricKey = {
@@ -387,8 +388,7 @@ export class CovidExplorerTable {
                 )
                     return undefined
 
-                if (row.entityName === "Peru" || row.entityName === "Ecuador")
-                    return undefined
+                if (testRateExcludeList.has(row.entityName)) return undefined
 
                 const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
                 return tpc >= 1 ? tpc : undefined
@@ -398,8 +398,7 @@ export class CovidExplorerTable {
                 if (row.total_tests === undefined || !row.total_cases)
                     return undefined
 
-                if (row.entityName === "Peru" || row.entityName === "Ecuador")
-                    return undefined
+                if (testRateExcludeList.has(row.entityName)) return undefined
 
                 const tpc = row.total_tests / row.total_cases
                 return tpc >= 1 ? tpc : undefined
@@ -452,8 +451,7 @@ export class CovidExplorerTable {
                         ? (row as any)[casesSlug]
                         : row.new_cases
 
-                if (row.entityName === "Peru" || row.entityName === "Ecuador")
-                    return undefined
+                if (testRateExcludeList.has(row.entityName)) return undefined
 
                 if (!testCount) return undefined
 
@@ -465,8 +463,7 @@ export class CovidExplorerTable {
             if (row.total_cases === undefined || !row.total_tests)
                 return undefined
 
-            if (row.entityName === "Peru" || row.entityName === "Ecuador")
-                return undefined
+            if (testRateExcludeList.has(row.entityName)) return undefined
 
             const rate = row.total_cases / row.total_tests
             return rate >= 0 && rate <= 1 ? rate : undefined
