@@ -187,7 +187,7 @@ export class DataTableTransform extends ChartTransform {
     // TODO move this logic to chart
     @computed get targetYearMode(): TargetYearMode {
         const { tab } = this.chart
-        if (tab !== "map") {
+        if (tab === "chart") {
             if (this.chart.multiMetricTableMode) return TargetYearMode.point
             if (
                 (this.chart.isLineChart &&
