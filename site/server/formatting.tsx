@@ -736,7 +736,7 @@ export async function formatPost(
     }
 }
 
-export function formatCovidCountryProfile(
+export function formatCountryProfile(
     post: FormattedPost,
     country: Country
 ): FormattedPost {

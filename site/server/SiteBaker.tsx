@@ -27,7 +27,7 @@ import {
     renderNotFoundPage,
     renderExplorableIndicatorsJson,
     renderCovidDataExplorerPage,
-    renderCovidCountryProfile,
+    renderCountryProfile,
     flushCache as siteBakingFlushCache
 } from "./siteBaking"
 import {
@@ -55,6 +55,7 @@ import {
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirects } from "./bakeCovidExplorerRedirects"
+import { countryProfileTypes } from "site/client/covid/CovidSearchCountry"
 
 // Static site generator using Wordpress
 
@@ -191,23 +192,26 @@ export class SiteBaker {
         this.grapherExports = await getGrapherExportsByUrl()
     }
 
-    async bakeCovidCountryProfiles() {
-        // Delete all country profiles before regenerating them
-        await fs.remove(`${BAKED_SITE_DIR}/${covidCountryProfileRootPath}`)
+    async bakeCountryProfiles() {
+        countryProfileTypes.forEach(async profile => {
+            // Delete all country profiles before regenerating them
+            await fs.remove(`${BAKED_SITE_DIR}/${profile.rootPath}`)
 
-        // Not necessary, as this is done by stageWrite already
-        // await this.ensureDir(covidCountryProfileRootPath)
-        for (const country of countries) {
-            const html = await renderCovidCountryProfile(
-                country,
-                this.grapherExports
-            )
-            const outPath = path.join(
-                BAKED_SITE_DIR,
-                `${covidCountryProfileRootPath}/${country.slug}.html`
-            )
-            await this.stageWrite(outPath, html)
-        }
+            // Not necessary, as this is done by stageWrite already
+            // await this.ensureDir(profile.rootPath)
+            for (const country of countries) {
+                const html = await renderCountryProfile(
+                    profile,
+                    country,
+                    this.grapherExports
+                )
+                const outPath = path.join(
+                    BAKED_SITE_DIR,
+                    `${profile.rootPath}/${country.slug}.html`
+                )
+                await this.stageWrite(outPath, html)
+            }
+        })
     }
 
     // Bake an individual post/page
@@ -557,7 +561,7 @@ export class SiteBaker {
         await this.bakeAssets()
         await this.bakeSpecialPages()
         await this.bakeGoogleScholar()
-        await this.bakeCovidCountryProfiles()
+        await this.bakeCountryProfiles()
         await this.bakePosts()
         await this.bakeCharts()
         await this.bakeExplorerRedirects()

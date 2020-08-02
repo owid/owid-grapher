@@ -13,17 +13,14 @@ import { WORDPRESS_URL, BAKED_BASE_URL, BLOG_SLUG } from "settings"
 import * as db from "db/db"
 import Knex from "knex"
 import fetch from "node-fetch"
-import urlSlug from "url-slug"
 
-import { defaultTo } from "charts/Util"
+import { defaultTo, memoize } from "charts/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { JsonError } from "utils/server/serverUtil"
-import {
-    covidLandingSlug,
-    covidCountryProfileSlug
-} from "site/server/covid/CovidConstants"
+import { covidCountryProfileSlug } from "site/server/covid/CovidConstants"
+import { CountryProfileSpec } from "site/client/covid/CovidSearchCountry"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -556,14 +553,14 @@ export async function getFullPost(
     }
 }
 
-let cachedCovidLandingPost: Promise<FullPost> | undefined
-export async function getCovidLandingPost() {
-    if (cachedCovidLandingPost) return cachedCovidLandingPost
+export const getCountryProfileLandingPost = memoize(
+    _getCountryProfileLandingPost
+)
+async function _getCountryProfileLandingPost(profileSpec: CountryProfileSpec) {
+    const landingPagePostApi = await getPostBySlug(profileSpec.landingPageSlug)
+    const landingPost = getFullPost(landingPagePostApi)
 
-    const landingPagePostApi = await getPostBySlug(covidLandingSlug)
-    cachedCovidLandingPost = getFullPost(landingPagePostApi)
-
-    return cachedCovidLandingPost
+    return landingPost
 }
 
 let cachedPosts: Promise<FullPost[]> | undefined
@@ -633,6 +630,6 @@ export function flushCache() {
     cachedEntries = []
     cachedFeaturedImages = undefined
     cachedPosts = undefined
-    cachedCovidLandingPost = undefined
+    getCountryProfileLandingPost.cache.clear?.()
     cachedTables = undefined
 }

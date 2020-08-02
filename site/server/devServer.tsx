@@ -19,7 +19,7 @@ import {
     renderExplorableIndicatorsJson,
     renderCovidPage,
     renderCovidDataExplorerPage,
-    covidCountryProfileCountryPage
+    countryProfileCountryPage
 } from "site/server/siteBaking"
 import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
 import {
@@ -43,6 +43,7 @@ import {
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorerRedirects"
+import { countryProfileTypes } from "site/client/covid/CovidSearchCountry"
 
 const devServer = express()
 
@@ -122,9 +123,26 @@ devServer.get(`/${covidDashboardSlug}`, async (req, res) => {
 devServer.get(
     `/${covidCountryProfileRootPath}/:countrySlug`,
     async (req, res) => {
-        res.send(await covidCountryProfileCountryPage(req.params.countrySlug))
+        res.send(
+            await countryProfileCountryPage(
+                countryProfileTypes.find(
+                    profile => profile.project === "coronavirus"
+                )!,
+                req.params.countrySlug
+            )
+        )
     }
 )
+
+const co2Profile = countryProfileTypes.find(
+    profile => profile.project === "co2"
+)!
+
+devServer.get(`/${co2Profile.rootPath}/:countrySlug`, async (req, res) => {
+    res.send(
+        await countryProfileCountryPage(co2Profile, req.params.countrySlug)
+    )
+})
 
 devServer.get(covidChartAndVariableMetaPath, async (req, res) => {
     res.send(await bakeCovidChartAndVariableMeta())

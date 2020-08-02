@@ -18,7 +18,7 @@ import {
     extractFormattingOptions,
     FormattedPost,
     FormattingOptions,
-    formatCovidCountryProfile
+    formatCountryProfile
 } from "./formatting"
 import {
     bakeGrapherUrls,
@@ -42,11 +42,9 @@ import {
     CovidDataExplorerPage,
     CovidDataExplorerPageProps
 } from "./views/CovidDataExplorerPage"
-import {
-    covidCountryProfileSlug,
-    covidCountryProfileRootPath
-} from "./covid/CovidConstants"
 import { getCountry, Country } from "utils/countries"
+import { CountryProfileSpec } from "site/client/covid/CovidSearchCountry"
+import { memoize } from "lodash"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -333,70 +331,56 @@ export async function feedbackPage() {
     return renderToHtmlPage(<FeedbackPage />)
 }
 
-let cachedCovidCountryProfilePostFormatted: FormattedPost | undefined
-let cachedCovidCountryProfilePostFormattingOptions:
-    | FormattingOptions
-    | undefined
-async function getCovidCountryProfilePost(
-    grapherExports?: GrapherExports
-): Promise<[FormattedPost, FormattingOptions]> {
-    if (
-        cachedCovidCountryProfilePostFormatted &&
-        cachedCovidCountryProfilePostFormattingOptions
-    ) {
-        return [
-            cachedCovidCountryProfilePostFormatted,
-            cachedCovidCountryProfilePostFormattingOptions
-        ]
+const getCountryProfilePost = memoize(
+    async (
+        profileSpec: CountryProfileSpec,
+        grapherExports?: GrapherExports
+    ): Promise<[FormattedPost, FormattingOptions]> => {
+        // Get formatted content from generic covid country profile page.
+        console.log(`slug is ${profileSpec.genericProfileSlug}`)
+        const genericCountryProfilePostApi = await wpdb.getPostBySlug(
+            profileSpec.genericProfileSlug
+        )
+
+        const genericCountryProfilePost = await wpdb.getFullPost(
+            genericCountryProfilePostApi
+        )
+
+        const profileFormattingOptions = extractFormattingOptions(
+            genericCountryProfilePost.content
+        )
+        const formattedPost = await formatPost(
+            genericCountryProfilePost,
+            profileFormattingOptions,
+            grapherExports
+        )
+
+        return [formattedPost, profileFormattingOptions]
     }
+)
 
-    // Get formatted content from generic covid country profile page.
-    const genericCountryProfilePostApi = await wpdb.getPostBySlug(
-        covidCountryProfileSlug
-    )
-
-    const genericCountryProfilePost = await wpdb.getFullPost(
-        genericCountryProfilePostApi
-    )
-    cachedCovidCountryProfilePostFormattingOptions = extractFormattingOptions(
-        genericCountryProfilePost.content
-    )
-
-    cachedCovidCountryProfilePostFormatted = await formatPost(
-        genericCountryProfilePost,
-        cachedCovidCountryProfilePostFormattingOptions,
-        grapherExports
-    )
-
-    return [
-        cachedCovidCountryProfilePostFormatted,
-        cachedCovidCountryProfilePostFormattingOptions
-    ]
-}
-
-export async function renderCovidCountryProfile(
+export async function renderCountryProfile(
+    profileSpec: CountryProfileSpec,
     country: Country,
     grapherExports?: GrapherExports
 ) {
-    const [formatted, formattingOptions] = await getCovidCountryProfilePost(
+    const [formatted, formattingOptions] = await getCountryProfilePost(
+        profileSpec,
         grapherExports
     )
 
-    const formattedCountryProfile = formatCovidCountryProfile(
-        formatted,
-        country
-    )
+    const formattedCountryProfile = formatCountryProfile(formatted, country)
 
-    const landing = await wpdb.getCovidLandingPost()
+    const landing = await wpdb.getCountryProfileLandingPost(profileSpec)
 
     const overrides: PageOverrides = {
-        pageTitle: `${country.name}: Coronavirus Pandemic`,
+        pageTitle: `${country.name}: ${profileSpec.pageTitle}`,
         citationTitle: landing.title,
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
         citationAuthors: landing.authors,
         publicationDate: landing.date,
-        canonicalUrl: `${BAKED_BASE_URL}/${covidCountryProfileRootPath}/${country.slug}`,
+        canonicalUrl: `${BAKED_BASE_URL}/${profileSpec.rootPath}/${country.slug}`,
         excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`
     }
     return renderToHtmlPage(
@@ -409,17 +393,19 @@ export async function renderCovidCountryProfile(
     )
 }
 
-export async function covidCountryProfileCountryPage(countrySlug: string) {
+export async function countryProfileCountryPage(
+    profileSpec: CountryProfileSpec,
+    countrySlug: string
+) {
     const country = getCountry(countrySlug)
     if (!country) {
         throw new JsonError(`No such country ${countrySlug}`, 404)
     } else {
         // Voluntarily not dealing with grapherExports on devServer for simplicity
-        return renderCovidCountryProfile(country)
+        return renderCountryProfile(profileSpec, country)
     }
 }
 
 export function flushCache() {
-    cachedCovidCountryProfilePostFormatted = undefined
-    cachedCovidCountryProfilePostFormattingOptions = undefined
+    getCountryProfilePost.cache.clear?.()
 }
