@@ -43,8 +43,8 @@ import {
     CovidDataExplorerPageProps
 } from "./views/CovidDataExplorerPage"
 import { getCountry, Country } from "utils/countries"
-import { CountryProfileSpec } from "site/client/covid/CovidSearchCountry"
 import { memoize } from "charts/Util"
+import { CountryProfileSpec } from "site/client/CountryProfileConstants"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {

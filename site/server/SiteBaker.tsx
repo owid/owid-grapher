@@ -56,9 +56,9 @@ import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirects } from "./bakeCovidExplorerRedirects"
 import {
-    countryProfileTypes,
+    countryProfileSpecs,
     co2CountryProfileRootPath
-} from "site/client/covid/CovidSearchCountry"
+} from "site/client/CountryProfileConstants"
 
 // Static site generator using Wordpress
 
@@ -196,21 +196,21 @@ export class SiteBaker {
     }
 
     async bakeCountryProfiles() {
-        countryProfileTypes.forEach(async profile => {
+        countryProfileSpecs.forEach(async spec => {
             // Delete all country profiles before regenerating them
-            await fs.remove(`${BAKED_SITE_DIR}/${profile.rootPath}`)
+            await fs.remove(`${BAKED_SITE_DIR}/${spec.rootPath}`)
 
             // Not necessary, as this is done by stageWrite already
             // await this.ensureDir(profile.rootPath)
             for (const country of countries) {
                 const html = await renderCountryProfile(
-                    profile,
+                    spec,
                     country,
                     this.grapherExports
                 )
                 const outPath = path.join(
                     BAKED_SITE_DIR,
-                    `${profile.rootPath}/${country.slug}.html`
+                    `${spec.rootPath}/${country.slug}.html`
                 )
                 await this.stageWrite(outPath, html)
             }

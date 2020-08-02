@@ -43,7 +43,7 @@ import {
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorerRedirects"
-import { countryProfileTypes } from "site/client/covid/CovidSearchCountry"
+import { countryProfileSpecs } from "site/client/CountryProfileConstants"
 
 const devServer = express()
 
@@ -125,8 +125,8 @@ devServer.get(
     async (req, res) => {
         res.send(
             await countryProfileCountryPage(
-                countryProfileTypes.find(
-                    profile => profile.project === "coronavirus"
+                countryProfileSpecs.find(
+                    spec => spec.project === "coronavirus"
                 )!,
                 req.params.countrySlug
             )
@@ -134,9 +134,7 @@ devServer.get(
     }
 )
 
-const co2Profile = countryProfileTypes.find(
-    profile => profile.project === "co2"
-)!
+const co2Profile = countryProfileSpecs.find(spec => spec.project === "co2")!
 
 devServer.get(`/${co2Profile.rootPath}/:countrySlug`, async (req, res) => {
     res.send(

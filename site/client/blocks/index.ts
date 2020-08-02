@@ -5,7 +5,7 @@ import {
 import { render as renderHelp } from "./Help/Help"
 import { renderProminentLink } from "./ProminentLink/ProminentLink"
 import { shouldProgressiveEmbed } from "../Grapher"
-import { runSearchCountry } from "../covid/CovidSearchCountry"
+import { runSearchCountry } from "../SearchCountry"
 
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)
