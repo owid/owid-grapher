@@ -354,6 +354,9 @@ const getCountryProfilePost = memoize(
             grapherExports
         )
 
+        console.log(formattedPost)
+        console.log(profileFormattingOptions)
+
         return [formattedPost, profileFormattingOptions]
     }
 )
@@ -368,6 +371,7 @@ export async function renderCountryProfile(
         grapherExports
     )
 
+    // const formattedCountryProfile = formatted
     const formattedCountryProfile = formatCountryProfile(formatted, country)
 
     const landing = await wpdb.getCountryProfileLandingPost(profileSpec)

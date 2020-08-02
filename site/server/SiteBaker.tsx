@@ -55,7 +55,10 @@ import {
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirects } from "./bakeCovidExplorerRedirects"
-import { countryProfileTypes } from "site/client/covid/CovidSearchCountry"
+import {
+    countryProfileTypes,
+    co2CountryProfileRootPath
+} from "site/client/covid/CovidSearchCountry"
 
 // Static site generator using Wordpress
 
@@ -269,6 +272,7 @@ export class SiteBaker {
                     !path.startsWith("explore") &&
                     !path.startsWith(covidDashboardSlug) &&
                     !path.startsWith(covidCountryProfileRootPath) &&
+                    !path.startsWith(co2CountryProfileRootPath) &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&

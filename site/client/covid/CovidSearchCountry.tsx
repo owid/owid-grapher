@@ -10,6 +10,7 @@ import {
 import { asArray } from "utils/client/react-select"
 import { Analytics } from "../Analytics"
 import { sortBy } from "charts/Util"
+import { co2CountryProfilePath } from "site/server/views/SiteSubnavigation"
 
 interface CountrySelectOption {
     label: string
@@ -27,6 +28,8 @@ export interface CountryProfileSpec {
     rootPath: string
 }
 
+export const co2CountryProfileRootPath = "co2/country"
+
 export const countryProfileTypes: CountryProfileSpec[] = [
     {
         project: "coronavirus",
@@ -42,7 +45,7 @@ export const countryProfileTypes: CountryProfileSpec[] = [
         genericProfileSlug: "co2-country-profile",
         landingPageSlug: "co2-and-greenhouse-gas-emissions-landing-page",
         selector: ".wp-block-co2-search-country",
-        rootPath: "co2/country"
+        rootPath: co2CountryProfileRootPath
     }
 ]
 
