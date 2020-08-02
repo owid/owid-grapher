@@ -337,7 +337,6 @@ const getCountryProfilePost = memoize(
         grapherExports?: GrapherExports
     ): Promise<[FormattedPost, FormattingOptions]> => {
         // Get formatted content from generic covid country profile page.
-        console.log(`slug is ${profileSpec.genericProfileSlug}`)
         const genericCountryProfilePostApi = await wpdb.getPostBySlug(
             profileSpec.genericProfileSlug
         )

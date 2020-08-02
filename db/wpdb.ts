@@ -554,14 +554,15 @@ export async function getFullPost(
 }
 
 export const getCountryProfileLandingPost = memoize(
-    _getCountryProfileLandingPost
-)
-async function _getCountryProfileLandingPost(profileSpec: CountryProfileSpec) {
-    const landingPagePostApi = await getPostBySlug(profileSpec.landingPageSlug)
-    const landingPost = getFullPost(landingPagePostApi)
+    async (profileSpec: CountryProfileSpec) => {
+        const landingPagePostApi = await getPostBySlug(
+            profileSpec.landingPageSlug
+        )
+        const landingPost = getFullPost(landingPagePostApi)
 
-    return landingPost
-}
+        return landingPost
+    }
+)
 
 let cachedPosts: Promise<FullPost[]> | undefined
 export async function getBlogIndex(): Promise<FullPost[]> {
