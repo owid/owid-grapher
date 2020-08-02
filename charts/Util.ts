@@ -60,6 +60,7 @@ import takeWhile from "lodash/takeWhile"
 import upperFirst from "lodash/upperFirst"
 import assign from "lodash/assign"
 import countBy from "lodash/countBy"
+import startCase from "lodash/startCase"
 
 export {
     isEqual,
@@ -121,7 +122,8 @@ export {
     memoize,
     takeWhile,
     upperFirst,
-    countBy
+    countBy,
+    startCase
 }
 
 import moment from "moment"
@@ -367,7 +369,7 @@ export function next<T>(set: T[], current: T) {
 }
 
 export function previous<T>(set: T[], current: T) {
-    let nextIndex = set.indexOf(current) - 1
+    const nextIndex = set.indexOf(current) - 1
     return set[nextIndex < 0 ? set.length - 1 : nextIndex]
 }
 

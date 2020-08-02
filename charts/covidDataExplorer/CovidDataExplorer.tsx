@@ -26,22 +26,35 @@ import {
     capitalize,
     mergeQueryStr,
     next,
-    previous
+    previous,
+    startCase,
+    flatten
 } from "charts/Util"
-import { CountryOption, CovidGrapherRow, IntervalOption } from "./CovidTypes"
+import {
+    CountryOption,
+    CovidGrapherRow,
+    MetricKind,
+    IntervalOption
+} from "./CovidTypes"
 import {
     ControlOption,
     ExplorerControl,
     DropdownOption
 } from "./CovidExplorerControl"
 import { CountryPicker } from "./CovidCountryPicker"
-import { CovidQueryParams, CovidUrl } from "./CovidChartUrl"
+import {
+    CovidQueryParams,
+    CovidUrl,
+    CovidConstrainedQueryParams
+} from "./CovidChartUrl"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
     getLeastUsedColor,
     CovidExplorerTable,
-    fetchCovidChartAndVariableMeta
+    fetchCovidChartAndVariableMeta,
+    buildColumnSlug,
+    perCapitaDivisorByMetric
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -49,7 +62,8 @@ import {
     covidDashboardSlug,
     coronaDefaultView,
     covidDataPath,
-    sourceCharts
+    sourceCharts,
+    metricLabels
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes, continentColors } from "charts/ColorSchemes"
@@ -62,8 +76,8 @@ import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
-import { startCase } from "lodash"
 import { Analytics } from "site/client/Analytics"
+import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 
 const abSeed = Math.random()
 
@@ -166,7 +180,7 @@ export class CovidDataExplorer extends React.Component<{
         const options: ControlOption[] = [
             {
                 available: true,
-                label: "Confirmed cases",
+                label: metricLabels.cases,
                 checked: this.constrainedParams.casesMetric,
                 onChange: () => {
                     params.setMetric("cases")
@@ -175,7 +189,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 available: true,
-                label: "Confirmed deaths",
+                label: metricLabels.deaths,
                 checked: this.constrainedParams.deathsMetric,
                 onChange: () => {
                     params.setMetric("deaths")
@@ -185,7 +199,7 @@ export class CovidDataExplorer extends React.Component<{
 
             {
                 available: true,
-                label: "Case fatality rate",
+                label: metricLabels.case_fatality_rate,
                 checked: this.constrainedParams.cfrMetric,
                 onChange: () => {
                     params.setMetric("case_fatality_rate")
@@ -197,7 +211,7 @@ export class CovidDataExplorer extends React.Component<{
         const optionsColumn2: ControlOption[] = [
             {
                 available: true,
-                label: "Tests",
+                label: metricLabels.tests,
                 checked: this.constrainedParams.testsMetric,
                 onChange: () => {
                     params.setMetric("tests")
@@ -206,7 +220,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 available: true,
-                label: "Tests per confirmed case",
+                label: metricLabels.tests_per_case,
                 checked: this.constrainedParams.testsPerCaseMetric,
                 onChange: () => {
                     params.setMetric("tests_per_case")
@@ -215,7 +229,7 @@ export class CovidDataExplorer extends React.Component<{
             },
             {
                 available: true,
-                label: "Share of positive tests",
+                label: metricLabels.positive_test_rate,
                 checked: this.constrainedParams.positiveTestRate,
                 onChange: () => {
                     params.setMetric("positive_test_rate")
@@ -556,8 +570,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get perCapitaDivisor() {
-        if (this.constrainedParams.testsMetric) return 1e3
-        return 1e6
+        return perCapitaDivisorByMetric(this.constrainedParams.metricName)
     }
 
     @computed private get perCapitaOptions() {
@@ -568,9 +581,9 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    @computed private get perCapitaTitle() {
+    private perCapitaTitle(metric: MetricKind) {
         return this.constrainedParams.perCapita
-            ? " " + this.perCapitaOptions[this.perCapitaDivisor]
+            ? " " + this.perCapitaOptions[perCapitaDivisorByMetric(metric)]
             : ""
     }
 
@@ -599,7 +612,7 @@ export class CovidDataExplorer extends React.Component<{
             title = `${freq} confirmed COVID-19 deaths`
         else if (params.casesMetric) title = `${freq} confirmed COVID-19 cases`
 
-        return title + this.perCapitaTitle
+        return title + this.perCapitaTitle(params.metricName)
     }
 
     @computed private get weekSubtitle() {
@@ -759,6 +772,7 @@ export class CovidDataExplorer extends React.Component<{
     @action.bound private _updateChart() {
         const params = this.constrainedParams
         const { covidExplorerTable } = this
+
         covidExplorerTable.initRequestedColumns(params)
 
         // Init column for epi color strategy if needed
@@ -796,6 +810,12 @@ export class CovidDataExplorer extends React.Component<{
         chartProps.dimensions = this.dimensionSpecs.map(
             spec => new ChartDimension(spec)
         )
+
+        // multimetric table
+        if (this.constrainedParams.tableMetrics) {
+            this._generateDataTableColumnsInTable()
+            this._addDataTableOnlyDimensionsToChart()
+        }
 
         covidExplorerTable.table.setSelectedEntities(
             this.getSelectedEntityNames()
@@ -1134,6 +1154,86 @@ export class CovidDataExplorer extends React.Component<{
             : undefined
     }
 
+    private _buildDataTableOnlyDimensionSpec = (
+        metric: MetricKind,
+        interval: IntervalOption
+    ) => {
+        const colSlug = buildColumnSlug(
+            metric,
+            this.constrainedParams.perCapita && isCountMetric(metric)
+                ? perCapitaDivisorByMetric(metric)
+                : 1,
+            interval,
+            0
+        )
+
+        const column = this.chart.table.columnsBySlug.get(colSlug)
+        return {
+            property: "table",
+            variableId: column?.spec.owidVariableId,
+            display: {
+                tolerance: 2,
+                name:
+                    metricLabels[metric] +
+                    (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
+                unit: interval === "daily" ? "daily new" : "cumulative",
+                tableDisplay: column?.display.tableDisplay
+            }
+        } as DimensionSpec
+    }
+
+    @computed private get dataTableOnlyDimensions(): DimensionSpec[] {
+        const params = this.constrainedParams
+        return flatten(
+            params.tableMetrics?.map(metric => {
+                const specs = [
+                    this._buildDataTableOnlyDimensionSpec(metric, "total")
+                ]
+
+                if (isCountMetric(metric)) {
+                    // add daily column
+                    specs.push(
+                        this._buildDataTableOnlyDimensionSpec(metric, "daily")
+                    )
+                }
+
+                return specs
+            })
+        )
+    }
+
+    @action private _generateDataTableColumnsInTable() {
+        const params = this.constrainedParams
+        const { covidExplorerTable } = this
+
+        const dataTableParams = new CovidConstrainedQueryParams("")
+
+        params.tableMetrics?.forEach(metric => {
+            dataTableParams.setMetric(metric)
+            dataTableParams.interval = "total"
+            dataTableParams.perCapita = false
+            if (isCountMetric(metric)) {
+                dataTableParams.perCapita = params.perCapita
+                covidExplorerTable.initRequestedColumns(dataTableParams)
+                // generate daily columns too
+                dataTableParams.interval = "daily"
+            }
+
+            covidExplorerTable.initRequestedColumns(dataTableParams)
+        })
+    }
+
+    @action private _addDataTableOnlyDimensionsToChart() {
+        this.chart.dataTableOnlyDimensions = this.dataTableOnlyDimensions.map(
+            (dimSpec, index) =>
+                new ChartDimensionWithOwidVariable(
+                    index,
+                    new ChartDimension(dimSpec),
+                    this.chart.table.columnsByOwidVarId.get(dimSpec.variableId)!
+                )
+        )
+    }
+
     @computed private get yDimension(): DimensionSpec {
         const yColumn = this.yColumn
         const unit = this.constrainedParams.isWeeklyOrBiweeklyChange
@@ -1298,4 +1398,8 @@ export class CovidDataExplorer extends React.Component<{
             queryStr: this.props.queryStr
         }
     )
+}
+
+function isCountMetric(metric: MetricKind) {
+    return metric === "deaths" || metric === "cases" || metric === "tests"
 }

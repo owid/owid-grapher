@@ -7,7 +7,7 @@ import {
     queryParamsToStr
 } from "utils/client/url"
 import { SortOrder } from "charts/SortOrder"
-import { omit, oneOf } from "../Util"
+import { omit, oneOf, uniq, intersection } from "../Util"
 import {
     PerCapita,
     AlignedOption,
@@ -20,8 +20,7 @@ import {
 import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
-import { buildColumnSlug } from "./CovidExplorerTable"
-import { uniq, intersection } from "lodash"
+import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.
@@ -56,6 +55,8 @@ export class CovidQueryParams {
     @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
     @observable colorScale?: colorScaleOption = undefined
+
+    @observable tableMetrics?: MetricKind[] = []
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
@@ -123,6 +124,8 @@ export class CovidQueryParams {
         this.perCapita = params.perCapita === "true"
         this.hideControls = params.hideControls === "true"
         this.aligned = params.aligned === "true"
+
+        this.tableMetrics = getTableMetrics(params.tableMetrics)
 
         this.smoothing = params.smoothing
             ? (parseInt(params.smoothing) as SmoothingOption)
@@ -217,11 +220,13 @@ export class CovidQueryParams {
         )
         params.pickerMetric = this.countryPickerMetric
         params.pickerSort = this.countryPickerSort
+        params.tableMetrics = this.tableMetrics?.join("~")
         return params as QueryParams
     }
 
-    get perCapitaDivisor() {
-        return this.perCapita ? (this.testsMetric ? 1e3 : 1e6) : 1
+    /** If perCapita is enabled, will return size of divisor i.e. 1000, else 1 */
+    @computed get perCapitaAdjustment() {
+        return this.perCapita ? perCapitaDivisorByMetric(this.metricName) : 1
     }
 
     // If someone selects "Align with..." we switch to a scatterplot chart type.
@@ -247,7 +252,7 @@ export class CovidQueryParams {
         if (this.yColumn) return this.yColumn
         return buildColumnSlug(
             this.metricName,
-            this.perCapitaDivisor,
+            this.perCapitaAdjustment,
             this.interval,
             this.smoothing
         )
@@ -453,4 +458,10 @@ export class CovidUrl implements ObservableUrl {
     @computed get debounceMode(): boolean {
         return this.chartUrl.debounceMode
     }
+}
+
+function getTableMetrics(queryParam?: string): MetricKind[] | undefined {
+    if (!queryParam) return undefined
+    const metricStrings = queryParam.split("~")
+    return metricStrings.map(metric => metric as MetricKind)
 }

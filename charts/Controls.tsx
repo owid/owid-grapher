@@ -452,17 +452,22 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             if (years.length === 0) {
                 return null
             }
+
+            const startYear =
+                dataTableTransform.autoSelectedStartYear ?? chart.timeDomain[0]
+            const endYear = chart.multiMetricTableMode
+                ? startYear
+                : chart.timeDomain[1]
+
             return (
                 <Timeline
                     years={years}
                     onTargetChange={this.onChartTargetChange}
-                    startYear={
-                        dataTableTransform.autoSelectedStartYear ??
-                        chart.timeDomain[0]
-                    }
-                    endYear={chart.timeDomain[1]}
+                    startYear={startYear}
+                    endYear={endYear}
                     onStartDrag={this.onTimelineStart}
                     onStopDrag={this.onTimelineStop}
+                    singleYearMode={chart.multiMetricTableMode}
                 />
             )
         } else if (chart.props.tab === "map") {

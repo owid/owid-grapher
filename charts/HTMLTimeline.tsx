@@ -444,7 +444,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     </div>
                 )}
                 <div className="date">
-                    {this.context.chart.formatYearFunction(minYear)}
+                    {this.context.chart.formatYearFunction(startYearUI)}
                 </div>
                 <div className="slider">
                     <div

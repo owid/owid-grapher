@@ -8,7 +8,8 @@ import {
     intersection,
     flatten,
     sortBy,
-    countBy
+    countBy,
+    union
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
@@ -174,17 +175,20 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get dimensions() {
-        return this.chart.filledDimensions.filter(dim => dim.includeInTable)
+        return this.chart.multiMetricTableMode
+            ? this.chart.dataTableOnlyDimensions
+            : this.chart.filledDimensions.filter(dim => dim.includeInTable)
     }
 
     @computed get entities() {
-        return this.chart.data.availableEntityNames
+        return union(...this.dimensions.map(dim => dim.entityNamesUniq))
     }
 
     // TODO move this logic to chart
     @computed get targetYearMode(): TargetYearMode {
         const { tab } = this.chart
         if (tab === "chart") {
+            if (this.chart.multiMetricTableMode) return TargetYearMode.point
             if (
                 (this.chart.isLineChart &&
                     !this.chart.lineChart.isSingleYear) ||

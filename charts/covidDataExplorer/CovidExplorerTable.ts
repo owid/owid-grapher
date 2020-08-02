@@ -275,7 +275,7 @@ export class CovidExplorerTable {
             arbitraryStartingPrefix,
             names[params.metricName],
             intervalOptions.indexOf(params.interval),
-            params.perCapitaDivisor,
+            params.perCapitaAdjustment,
             params.smoothing
         ]
         return parseInt(parts.join(""))
@@ -283,7 +283,7 @@ export class CovidExplorerTable {
 
     buildColumnSpec(params: CovidQueryParams): ColumnSpec {
         const name = params.metricName
-        const perCapita = params.perCapitaDivisor
+        const perCapita = params.perCapitaAdjustment
         const interval = params.interval
         const rollingAverage = params.smoothing
 
@@ -324,7 +324,7 @@ export class CovidExplorerTable {
         rowFn: RowToValueMapper
     ) {
         const columnName = params.metricName
-        const perCapita = params.perCapitaDivisor
+        const perCapita = params.perCapitaAdjustment
         const smoothing = params.smoothing
         const spec = this.buildColumnSpec(params)
 
@@ -772,4 +772,8 @@ export function getLeastUsedColor(
         number
     ]
     return mostUnusedColor[0]
+}
+
+export function perCapitaDivisorByMetric(metric: MetricKind) {
+    return metric === "tests" ? 1e3 : 1e6
 }
