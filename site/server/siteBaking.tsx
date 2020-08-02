@@ -368,7 +368,6 @@ export async function renderCountryProfile(
         grapherExports
     )
 
-    // const formattedCountryProfile = formatted
     const formattedCountryProfile = formatCountryProfile(formatted, country)
 
     const landing = await wpdb.getCountryProfileLandingPost(profileSpec)
