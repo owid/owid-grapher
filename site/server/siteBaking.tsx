@@ -44,7 +44,7 @@ import {
 } from "./views/CovidDataExplorerPage"
 import { getCountry, Country } from "utils/countries"
 import { CountryProfileSpec } from "site/client/covid/CovidSearchCountry"
-import { memoize } from "lodash"
+import { memoize } from "charts/Util"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
