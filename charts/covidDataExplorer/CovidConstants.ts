@@ -4,7 +4,6 @@ export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"
 export const coronaOpenGraphImagePath = "coronavirus-data-explorer.png"
 export const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
-export const covidDataExplorerContainerId = "covidDataExplorerContainer"
 export const coronaDefaultView =
     "yScale=log&zoomToSelection=true&casesMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=USA~GBR~CAN~BRA~AUS~IND~DEU~MEX~ZAF~COL~KOR~NOR~UGA~NGA&pickerMetric=location&pickerSort=asc"
 export const covidDataPath =
@@ -14,6 +13,12 @@ export const covidLastUpdatedPath =
 export const covidChartAndVariableMetaFilename =
     "covidChartAndVariableMeta.json"
 export const covidChartAndVariableMetaPath = `/${covidChartAndVariableMetaFilename}`
+
+export const covidPreloads = [
+    covidDataPath,
+    covidChartAndVariableMetaPath,
+    covidLastUpdatedPath
+]
 
 export const testRateExcludeList = new Set(["Peru", "Ecuador", "Brazil"])
 

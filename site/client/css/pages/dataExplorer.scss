@@ -1,0 +1,16 @@
+$placeholder-height: 800px;
+
+#dataExplorerContainer {
+    min-height: $placeholder-height;
+    width: 100%;
+    position: relative;
+    padding: 8px;
+}
+
+html.iframe #dataExplorerContainer {
+    height: 100vh;
+    min-height: auto !important;
+    max-height: none;
+    // leave some padding for shadows
+    padding: 3px;
+}

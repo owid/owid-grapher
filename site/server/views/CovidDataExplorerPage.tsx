@@ -1,20 +1,12 @@
 import * as React from "react"
-import * as settings from "settings"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
 import {
     covidDashboardSlug,
     coronaOpenGraphImagePath,
-    covidDataExplorerContainerId,
-    covidLastUpdatedPath,
-    covidDataPath,
-    covidChartAndVariableMetaPath,
-    covidPageTitle
+    covidPageTitle,
+    covidPreloads
 } from "charts/covidDataExplorer/CovidConstants"
-import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { SiteSubnavigation } from "./SiteSubnavigation"
-import { EmbedDetector } from "./EmbedDetector"
+import { ExplorerPage } from "./ExplorerPage"
 
 export interface CovidDataExplorerPageProps {
     explorerQueryStr?: string
@@ -26,7 +18,7 @@ export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
     // redirecting while preserving all query parameters.
     const script = `
     var props = {
-        containerNode: document.getElementById("${covidDataExplorerContainerId}"),
+        containerNode: document.getElementById("dataExplorerContainer"),
         queryStr: window.location.search,
         isExplorerPage: true,
         isEmbed: window != window.top
@@ -39,45 +31,22 @@ export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
     })
 `
 
+    const subNav = (
+        <SiteSubnavigation
+            subnavId="coronavirus"
+            subnavCurrentId="data-explorer"
+        />
+    )
+
     return (
-        <html>
-            <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/${covidDashboardSlug}`}
-                pageTitle={covidPageTitle}
-                imageUrl={`${settings.BAKED_BASE_URL}/${coronaOpenGraphImagePath}`}
-            >
-                <EmbedDetector />
-                <link
-                    rel="preload"
-                    href={covidDataPath}
-                    as="fetch"
-                    crossOrigin="anonymous"
-                />
-                <link
-                    rel="preload"
-                    href={covidChartAndVariableMetaPath}
-                    as="fetch"
-                    crossOrigin="anonymous"
-                />
-                <link
-                    rel="preload"
-                    href={covidLastUpdatedPath}
-                    as="fetch"
-                    crossOrigin="anonymous"
-                />
-            </Head>
-            <body className="ChartPage">
-                <SiteHeader hideAlertBanner={true} />
-                <SiteSubnavigation
-                    subnavId="coronavirus"
-                    subnavCurrentId="data-explorer"
-                />
-                <main id={covidDataExplorerContainerId}>
-                    <LoadingIndicator color="#333" />
-                </main>
-                <SiteFooter />
-                <script dangerouslySetInnerHTML={{ __html: script }} />
-            </body>
-        </html>
+        <ExplorerPage
+            subNav={subNav}
+            title={covidPageTitle}
+            slug={covidDashboardSlug}
+            imagePath={coronaOpenGraphImagePath}
+            preloads={covidPreloads}
+            inlineJs={script}
+            hideAlertBanner={true}
+        />
     )
 }
