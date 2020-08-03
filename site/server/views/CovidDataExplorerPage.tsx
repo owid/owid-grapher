@@ -6,7 +6,7 @@ import {
     covidPreloads
 } from "charts/covidDataExplorer/CovidConstants"
 import { SiteSubnavigation } from "./SiteSubnavigation"
-import { ExplorerPage } from "./ExplorerPage"
+import { DataExplorerPage } from "./DataExplorerPage"
 
 export interface CovidDataExplorerPageProps {
     explorerQueryStr?: string
@@ -39,7 +39,7 @@ export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
     )
 
     return (
-        <ExplorerPage
+        <DataExplorerPage
             subNav={subNav}
             title={covidPageTitle}
             slug={covidDashboardSlug}

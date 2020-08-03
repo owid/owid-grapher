@@ -56,29 +56,6 @@ html.iframe .CovidDataExplorerFigure,
         border-radius: 0.25rem;
     }
 
-    .CovidHeaderBox {
-        padding: 8px;
-        min-width: 200px;
-        background: white;
-        border-radius: $chart-border-radius;
-        box-shadow: $light-shadow;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-around;
-
-        .CovidTitle {
-            font-size: 28px;
-            font-weight: bold;
-            line-height: 32px;
-            font-family: "Playfair Display";
-        }
-
-        .CovidLastUpdated {
-            color: #7a899e;
-            font-size: 13px;
-        }
-    }
-
     .CovidDataExplorerFigure {
         display: flex;
         align-items: center;

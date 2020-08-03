@@ -79,8 +79,6 @@ import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 
-const abSeed = Math.random()
-
 interface BootstrapProps {
     containerNode: HTMLElement
     isEmbed?: boolean
@@ -414,10 +412,10 @@ export class CovidDataExplorer extends React.Component<{
 
     get header() {
         return (
-            <div className="CovidHeaderBox">
+            <div className="DataExplorerHeaderBox">
                 <div>Coronavirus Pandemic</div>
-                <div className="CovidTitle">Data Explorer</div>
-                <div className="CovidLastUpdated" title={this.howLongAgo}>
+                <div className="ExplorerTitle">Data Explorer</div>
+                <div className="ExplorerLastUpdated" title={this.howLongAgo}>
                     Download the complete <em>Our World in Data</em>{" "}
                     <a
                         href="https://github.com/owid/covid-19-data/tree/master/public/data"
@@ -484,15 +482,13 @@ export class CovidDataExplorer extends React.Component<{
     @observable showMobileControlsPopup = false
 
     get customizeChartMobileButton() {
-        // A/B Test.
-        const buttonLabel = abSeed > 0.5 ? `Customize chart` : `Change metric`
         return this.isMobile ? (
             <a
                 className="btn btn-primary mobile-button"
                 onClick={this.toggleMobileControls}
                 data-track-note="covid-customize-chart"
             >
-                <FontAwesomeIcon icon={faChartLine} /> {buttonLabel}
+                <FontAwesomeIcon icon={faChartLine} /> Customize chart
             </a>
         ) : (
             undefined

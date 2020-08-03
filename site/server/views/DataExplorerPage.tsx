@@ -6,17 +6,17 @@ import { SiteFooter } from "./SiteFooter"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
 
-export interface ExplorerPageSettings {
+export interface DataExplorerPageSettings {
     title: string
     slug: string
     imagePath: string
     preloads: string[]
     inlineJs: string
-    hideAlertBanner: boolean
+    hideAlertBanner?: boolean
     subNav?: JSX.Element
 }
 
-export const ExplorerPage = (props: ExplorerPageSettings) => {
+export const DataExplorerPage = (props: DataExplorerPageSettings) => {
     return (
         <html>
             <Head
@@ -36,7 +36,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
                 ))}
             </Head>
             <body className="ChartPage">
-                <SiteHeader hideAlertBanner={props.hideAlertBanner} />
+                <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
                 {props.subNav}
                 <main id="dataExplorerContainer">
                     <LoadingIndicator color="#333" />

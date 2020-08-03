@@ -20,6 +20,8 @@ import {
     renderCovidPage,
     renderCovidDataExplorerPage,
     countryProfileCountryPage
+    covidCountryProfileCountryPage,
+    renderCustomDataExplorerPage
 } from "site/server/siteBaking"
 import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
 import {
@@ -118,6 +120,10 @@ devServer.get("/explore", async (req, res) => {
 
 devServer.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidDataExplorerPage())
+})
+
+devServer.get(`/custom-data-explorer`, async (req, res) => {
+    res.send(await renderCustomDataExplorerPage())
 })
 
 devServer.get(

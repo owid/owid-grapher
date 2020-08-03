@@ -45,6 +45,7 @@ import {
 import { getCountry, Country } from "utils/countries"
 import { memoize } from "charts/Util"
 import { CountryProfileSpec } from "site/client/CountryProfileConstants"
+import { CustomDataExplorerPage } from "./views/CustomDataExplorerPage"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -98,6 +99,10 @@ export async function renderCovidDataExplorerPage(
     props?: CovidDataExplorerPageProps
 ) {
     return renderToHtmlPage(<CovidDataExplorerPage {...props} />)
+}
+
+export async function renderCustomDataExplorerPage() {
+    return renderToHtmlPage(<CustomDataExplorerPage />)
 }
 
 export async function renderExplorableIndicatorsJson() {

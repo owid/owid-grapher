@@ -23,7 +23,7 @@ describe(CovidDataExplorer, () => {
             />
         )
 
-        const headerText = element.find(".CovidHeaderBox").text()
+        const headerText = element.find(".DataExplorerHeaderBox").text()
 
         // Need to split it off because the lines are in separate elements
         expect(headerText).toContain("Coronavirus Pandemic")
