@@ -9,22 +9,18 @@ import {
     covidDataExplorerContainerId,
     covidLastUpdatedPath,
     covidDataPath,
-    covidChartAndVariableMetaPath
+    covidChartAndVariableMetaPath,
+    covidPageTitle
 } from "charts/covidDataExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { SiteSubnavigation } from "./SiteSubnavigation"
+import { EmbedDetector } from "./EmbedDetector"
 
 export interface CovidDataExplorerPageProps {
     explorerQueryStr?: string
 }
 
 export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
-    const iframeScript = `
-    if (window != window.top) {
-        document.documentElement.classList.add('iframe')
-    }
-`
-
     // This script allows us to replace existing Grapher pages with Explorer pages.
     // Part of the reason for doing the redirect client-side is that Netlify doesn't support
     // redirecting while preserving all query parameters.
@@ -47,10 +43,10 @@ export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
         <html>
             <Head
                 canonicalUrl={`${settings.BAKED_BASE_URL}/${covidDashboardSlug}`}
-                pageTitle="Coronavirus Pandemic Data Explorer"
+                pageTitle={covidPageTitle}
                 imageUrl={`${settings.BAKED_BASE_URL}/${coronaOpenGraphImagePath}`}
             >
-                <script dangerouslySetInnerHTML={{ __html: iframeScript }} />
+                <EmbedDetector />
                 <link
                     rel="preload"
                     href={covidDataPath}
