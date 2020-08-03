@@ -151,7 +151,7 @@ export class CountryPicker extends React.Component<{
 
     @computed get availableCountriesForCurrentView() {
         if (!this.props.countriesMustHaveColumns.length)
-            return this.props.table.availableEntities
+            return this.props.table.availableEntitiesSet
         return this.props.table.entitiesWith(
             this.props.countriesMustHaveColumns
         )

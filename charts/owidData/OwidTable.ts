@@ -587,7 +587,11 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     @computed get availableEntities() {
-        return Array.from(new Set(this.rows.map(row => row.entityName)))
+        return Array.from(this.availableEntitiesSet)
+    }
+
+    @computed get availableEntitiesSet() {
+        return new Set(this.rows.map(row => row.entityName))
     }
 
     @computed get unfilteredEntities() {
