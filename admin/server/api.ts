@@ -439,6 +439,15 @@ api.get("/charts/:chartId.config.json", async (req: Request, res: Response) => {
     return expectChartById(req.params.chartId)
 })
 
+api.get("/charts/explorer-charts.json", async (req: Request, res: Response) => {
+    const chartIds = req.query.chartIds.split("~")
+    const configs = []
+    for (const chartId of chartIds) {
+        configs.push(await expectChartById(chartId))
+    }
+    return configs
+})
+
 api.get("/editorData/namespaces.json", async (req: Request, res: Response) => {
     const rows = (await db.query(
         `SELECT DISTINCT namespace AS name, namespaces.description FROM datasets JOIN namespaces ON namespaces.name = datasets.namespace`
