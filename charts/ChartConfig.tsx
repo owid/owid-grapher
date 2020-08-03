@@ -904,6 +904,7 @@ export class ChartConfig {
             return this.scatter.endYear
         else if (this.isDiscreteBar && !this.discreteBar.failMessage)
             return this.discreteBar.targetYear
+        else if (this.isSlopeChart) return this.slopeChart.endYear
         else return this.lineChart.endYear
     }
 
@@ -928,6 +929,7 @@ export class ChartConfig {
             return this.scatter.startYear
         else if (this.isDiscreteBar && !this.discreteBar.failMessage)
             return this.discreteBar.targetYear
+        else if (this.isSlopeChart) return this.slopeChart.startYear
         else return this.lineChart.startYear
     }
 
