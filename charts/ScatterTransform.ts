@@ -730,6 +730,7 @@ export class ScatterTransform extends ChartTransform {
                         y: cagr(indexValue, targetValue, "y"),
                         size: targetValue.size,
                         year: targetValue.year,
+                        color: targetValue.color,
                         time: {
                             y: targetValue.time.y,
                             x: targetValue.time.x,
