@@ -66,6 +66,8 @@ export class CovidQueryParams {
 
     @observable interval: IntervalOption = "daily"
 
+    @observable everythingAvailable = false
+
     allAvailableCombos(): string[] {
         const metrics = [
             "casesMetric",
@@ -124,6 +126,7 @@ export class CovidQueryParams {
         this.perCapita = params.perCapita === "true"
         this.hideControls = params.hideControls === "true"
         this.aligned = params.aligned === "true"
+        this.everythingAvailable = params.everythingAvailable === "true"
 
         this.tableMetrics = getTableMetrics(params.tableMetrics)
 
@@ -214,6 +217,7 @@ export class CovidQueryParams {
         params.hideControls = this.hideControls ? true : undefined
         params.perCapita = this.perCapita ? true : undefined
         params.colorScale = this.colorScale || undefined
+        params.everythingAvailable = this.everythingAvailable || undefined
         params.smoothing = this.smoothing
         params.country = EntityUrlBuilder.entitiesToQueryParam(
             Array.from(this.selectedCountryCodes)
@@ -352,7 +356,6 @@ export class CovidQueryParams {
 export class CovidConstrainedQueryParams extends CovidQueryParams {
     constructor(queryString: string) {
         super(queryString)
-        if (this.allowEverything) return this
 
         const available = this.available
 
@@ -395,10 +398,6 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (!hasMetric) this.casesMetric = true
     }
 
-    get allowEverything() {
-        return false
-    }
-
     get rollingMultiplier() {
         if (this.isWeekly) return 7
         else if (this.isBiweekly) return 14
@@ -423,7 +422,7 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             weekly
         }
 
-        if (this.allowEverything) {
+        if (this.everythingAvailable) {
             Object.keys(constraints).forEach(key => {
                 constraints[key as keyof typeof constraints] = true
             })
