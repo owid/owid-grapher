@@ -8,24 +8,34 @@ import { Bounds } from "./Bounds"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { ChartView } from "./ChartView"
 import moment from "moment"
+import { CountryPicker } from "./CountryPicker"
+import { ExplorerControlBar } from "./ExplorerControls"
+import { ChartConfig } from "./ChartConfig"
 
 @observer
 export class DataExplorer extends React.Component<{
     explorerName: string
-    updated: string
+    controlPanels: JSX.Element[]
+    chart: ChartConfig
+    explorerShortName: string
+    updated?: string
     subheaderElement: JSX.Element
+    hideControls: boolean
     isEmbed: boolean
+    selectedCountryCodes: Set<string>
 }> {
     get keyboardShortcuts(): Command[] {
         return []
     }
 
     @computed get showExplorerControls() {
-        return !this.props.params.hideControls || !this.props.isEmbed
+        return !this.props.hideControls || !this.props.isEmbed
     }
 
     @computed get howLongAgo() {
-        return moment.utc(this.props.updated).fromNow()
+        return this.props.updated
+            ? moment.utc(this.props.updated).fromNow()
+            : ""
     }
 
     @action.bound toggleMobileControls() {
@@ -93,6 +103,71 @@ export class DataExplorer extends React.Component<{
         )
     }
 
+    get countryPicker() {
+        return (
+            <CountryPicker
+                explorerName={this.props.explorerShortName}
+                table={this.props.chart.table}
+                isDropdownMenu={this.isMobile}
+                selectedCountries={this.selectedEntityNames}
+                clearSelectionCommand={this.clearSelectionCommand}
+                toggleCountryCommand={this.toggleSelectedCountryCommand}
+            ></CountryPicker>
+        )
+    }
+
+    @action.bound toggleSelectedCountryCommand(
+        countryName: string,
+        value?: boolean
+    ) {
+        const codeMap = this.props.chart.table.entityNameToCodeMap
+        this.toggleSelectedCountry(codeMap.get(countryName)!, value)
+        this.selectionChangeFromBuilder = true
+    }
+
+    private selectionChangeFromBuilder = false
+
+    @action.bound toggleSelectedCountry(code: string, value?: boolean) {
+        const selectedCountryCodes = this.props.selectedCountryCodes
+        if (value) {
+            selectedCountryCodes.add(code)
+        } else if (value === false) {
+            selectedCountryCodes.delete(code)
+        } else if (selectedCountryCodes.has(code)) {
+            selectedCountryCodes.delete(code)
+        } else {
+            selectedCountryCodes.add(code)
+        }
+    }
+
+    @action.bound clearSelectionCommand() {
+        this.props.selectedCountryCodes.clear()
+        this.selectionChangeFromBuilder = true
+    }
+
+    @computed get selectedEntityNames(): string[] {
+        const entityCodeMap = this.props.chart.table.entityCodeToNameMap
+        return Array.from(this.props.selectedCountryCodes.values())
+            .map(code => entityCodeMap.get(code))
+            .filter(i => i) as string[]
+    }
+
+    get controlBar() {
+        return (
+            <ExplorerControlBar
+                isMobile={this.isMobile}
+                showControls={this.showMobileControlsPopup}
+                closeControls={this.closeControls}
+            >
+                {this.props.controlPanels}
+            </ExplorerControlBar>
+        )
+    }
+
+    @action.bound closeControls() {
+        this.showMobileControlsPopup = false
+    }
+
     render() {
         return (
             <>
@@ -120,7 +195,7 @@ export class DataExplorer extends React.Component<{
                         {this.chartBounds && (
                             <ChartView
                                 bounds={this.chartBounds}
-                                chart={this.chart}
+                                chart={this.props.chart}
                                 isEmbed={true}
                             ></ChartView>
                         )}

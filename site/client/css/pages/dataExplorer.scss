@@ -1,4 +1,8 @@
 $placeholder-height: 800px;
+$chart-border-radius: 2px;
+
+$light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.08) 0px 2px 2px;
 
 #dataExplorerContainer {
     min-height: $placeholder-height;
