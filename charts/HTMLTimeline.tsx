@@ -57,7 +57,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     disposers!: IReactionDisposer[]
 
-    @observable dragTarget?: string
+    @observable dragTarget?: "start" | "end" | "both"
 
     @computed get isDragging(): boolean {
         return !!this.dragTarget
@@ -417,8 +417,19 @@ export class Timeline extends React.Component<TimelineProps> {
         this.context.chart.isPlaying = !this.isPlaying
     }
 
+    @computed get startYearDisplayed() {
+        return this.context.chart.minYear
+    }
+
+    @computed get endYearDisplayed(): number {
+        return this.startYearClosest === this.endYearClosest
+            ? this.maxYear
+            : this.context.chart.maxYear
+    }
+
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
+        const { chart } = this.context
 
         const startYearProgress = (startYearUI - minYear) / (maxYear - minYear)
         const endYearProgress = (endYearUI - minYear) / (maxYear - minYear)
@@ -444,7 +455,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     </div>
                 )}
                 <div className="date">
-                    {this.context.chart.formatYearFunction(minYear)}
+                    {chart.formatYearFunction(this.startYearDisplayed)}
                 </div>
                 <div className="slider">
                     <div
@@ -464,7 +475,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     />
                 </div>
                 <div className="date">
-                    {this.context.chart.formatYearFunction(maxYear)}
+                    {chart.formatYearFunction(this.endYearDisplayed)}
                 </div>
             </div>
         )
