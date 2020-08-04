@@ -13,7 +13,8 @@ declare type chartId = number
 export class CustomDataExplorer extends React.Component<{
     chartConfigs: Map<chartId, ChartConfigProps>
     explorerConfig: any
-    explorerName: string
+    explorerNamespace: string
+    explorerTitle: string
 }> {
     get chart() {
         const newId = this.switcherOptions.chartId
@@ -42,11 +43,11 @@ export class CustomDataExplorer extends React.Component<{
     @observable switcherOptions = new SwitcherOptions(this.switcherConfig, "")
 
     render() {
-        const { explorerName } = this.props
+        const { explorerNamespace: explorerName, explorerTitle } = this.props
         const panels = this.switcherOptions.groups.map(group => (
             <ExplorerControlPanel
                 title={group.title}
-                explorerName={this.props.explorerName}
+                explorerName={this.props.explorerNamespace}
                 name={group.title}
                 options={group.options}
                 isCheckbox={group.isCheckbox}
@@ -56,13 +57,20 @@ export class CustomDataExplorer extends React.Component<{
             />
         ))
 
+        const headerElement = (
+            <>
+                <div></div>
+                <div className="ExplorerTitle">{explorerTitle}</div>
+                <div className="ExplorerLastUpdated"></div>
+            </>
+        )
+
         return (
             <DataExplorer
-                subheaderElement={<span></span>}
+                headerElement={headerElement}
                 controlPanels={panels}
                 explorerName={explorerName}
                 chart={this.chart}
-                explorerShortName={"foo"}
                 hideControls={false}
                 isEmbed={false}
                 selectedCountryCodes={new Set()}

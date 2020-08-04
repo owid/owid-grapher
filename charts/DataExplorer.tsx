@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Bounds } from "./Bounds"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { ChartView } from "./ChartView"
-import moment from "moment"
 import { CountryPicker } from "./CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import { ChartConfig } from "./ChartConfig"
@@ -18,9 +17,7 @@ export class DataExplorer extends React.Component<{
     explorerName: string
     controlPanels: JSX.Element[]
     chart: ChartConfig
-    explorerShortName: string
-    updated?: string
-    subheaderElement: JSX.Element
+    headerElement: JSX.Element
     hideControls: boolean
     isEmbed: boolean
     selectedCountryCodes: Set<string>
@@ -31,12 +28,6 @@ export class DataExplorer extends React.Component<{
 
     @computed get showExplorerControls() {
         return !this.props.hideControls || !this.props.isEmbed
-    }
-
-    @computed get howLongAgo() {
-        return this.props.updated
-            ? moment.utc(this.props.updated).fromNow()
-            : ""
     }
 
     @action.bound toggleMobileControls() {
@@ -91,23 +82,10 @@ export class DataExplorer extends React.Component<{
         )
     }
 
-    get header() {
-        const { explorerName, subheaderElement } = this.props
-        return (
-            <div className="DataExplorerHeaderBox">
-                <div>{explorerName}</div>
-                <div className="ExplorerTitle">Data Explorer</div>
-                <div className="ExplorerLastUpdated" title={this.howLongAgo}>
-                    {subheaderElement}
-                </div>
-            </div>
-        )
-    }
-
     get countryPicker() {
         return (
             <CountryPicker
-                explorerName={this.props.explorerShortName}
+                explorerName={this.props.explorerName}
                 table={this.props.chart.table}
                 isDropdownMenu={this.isMobile}
                 selectedCountries={this.selectedEntityNames}
@@ -198,7 +176,11 @@ export class DataExplorer extends React.Component<{
                         "is-embed": this.props.isEmbed
                     })}
                 >
-                    {this.showExplorerControls && this.header}
+                    {this.showExplorerControls && (
+                        <div className="DataExplorerHeaderBox">
+                            {this.props.headerElement}
+                        </div>
+                    )}
                     {this.showExplorerControls && this.controlBar}
                     {this.showExplorerControls && this.countryPicker}
                     {this.showExplorerControls &&

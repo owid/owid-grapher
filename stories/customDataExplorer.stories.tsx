@@ -53,7 +53,8 @@ export const Default = () => {
     return (
         <CustomDataExplorer
             chartConfigs={configs}
-            explorerName="co2explorer"
+            explorerNamespace="CO₂"
+            explorerTitle="CO₂ Data Explorer"
             explorerConfig={defaultConfig}
         />
     )
