@@ -16,6 +16,7 @@ export interface CountryProfileSpec {
 }
 
 export const co2CountryProfileRootPath = "co2/country"
+export const co2CountryProfilePath = "/co2-country-profile"
 
 export const countryProfileSpecs: CountryProfileSpec[] = [
     {
