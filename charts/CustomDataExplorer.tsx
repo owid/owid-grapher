@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { DataExplorer } from "./DataExplorer"
+import { DataExplorer, DataExplorerParams } from "./DataExplorer"
 import { ChartConfigProps, ChartConfig } from "./ChartConfig"
 import { SwitcherOptions } from "./SwitcherOptions"
 import { ExplorerControlPanel } from "./ExplorerControls"
@@ -60,15 +60,19 @@ export class CustomDataExplorer extends React.Component<{
             </>
         )
 
+        const params: DataExplorerParams = {
+            hideControls: false,
+            selectedCountryCodes: new Set()
+        }
+
         return (
             <DataExplorer
                 headerElement={headerElement}
                 controlPanels={panels}
                 explorerName={explorerName}
                 chart={this.chart}
-                hideControls={false}
+                params={params}
                 isEmbed={false}
-                selectedCountryCodes={new Set()}
             />
         )
     }

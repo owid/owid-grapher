@@ -12,22 +12,26 @@ import { ExplorerControlBar } from "./ExplorerControls"
 import { ChartConfig } from "./ChartConfig"
 import { throttle } from "./Util"
 
+export interface DataExplorerParams {
+    hideControls: boolean
+    selectedCountryCodes: Set<string>
+}
+
 @observer
 export class DataExplorer extends React.Component<{
     explorerName: string
     controlPanels: JSX.Element[]
     chart: ChartConfig
     headerElement: JSX.Element
-    hideControls: boolean
+    params: DataExplorerParams
     isEmbed: boolean
-    selectedCountryCodes: Set<string>
 }> {
     get keyboardShortcuts(): Command[] {
         return []
     }
 
     @computed get showExplorerControls() {
-        return !this.props.hideControls || !this.props.isEmbed
+        return !this.props.params.hideControls || !this.props.isEmbed
     }
 
     @action.bound toggleMobileControls() {
@@ -107,7 +111,7 @@ export class DataExplorer extends React.Component<{
     private selectionChangeFromBuilder = false
 
     @action.bound toggleSelectedCountry(code: string, value?: boolean) {
-        const selectedCountryCodes = this.props.selectedCountryCodes
+        const selectedCountryCodes = this.props.params.selectedCountryCodes
         if (value) {
             selectedCountryCodes.add(code)
         } else if (value === false) {
@@ -120,13 +124,13 @@ export class DataExplorer extends React.Component<{
     }
 
     @action.bound clearSelectionCommand() {
-        this.props.selectedCountryCodes.clear()
+        this.props.params.selectedCountryCodes.clear()
         this.selectionChangeFromBuilder = true
     }
 
     @computed get selectedEntityNames(): string[] {
         const entityCodeMap = this.props.chart.table.entityCodeToNameMap
-        return Array.from(this.props.selectedCountryCodes.values())
+        return Array.from(this.props.params.selectedCountryCodes.values())
             .map(code => entityCodeMap.get(code))
             .filter(i => i) as string[]
     }

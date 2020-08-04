@@ -393,6 +393,53 @@ export class CountryPicker extends React.Component<{
         )
     }
 
+    get pickerMenu() {
+        return (
+            !this.isDropdownMenu &&
+            this.props.pickerColumns.size > 0 && (
+                <div className="MetricSettings">
+                    <span className="mainLabel">Sort by</span>
+                    <Select
+                        className="metricDropdown"
+                        options={this.metricOptions}
+                        value={this.metricOptions.find(
+                            option => option.value === this.metric
+                        )}
+                        onChange={option => {
+                            const value = first(asArray(option))?.value
+                            if (value) this.updateMetric(value)
+                        }}
+                        menuPlacement="bottom"
+                        components={{
+                            IndicatorSeparator: null
+                        }}
+                        styles={getStylesForTargetHeight(26)}
+                        isSearchable={false}
+                    />
+                    <span
+                        className="sort"
+                        onClick={() => {
+                            const sortOrder = toggleSort(this.sortOrder)
+                            this.props.userState.countryPickerSort = sortOrder
+                            Analytics.logCountrySelectorEvent(
+                                this.props.explorerName,
+                                "sortOrder",
+                                sortOrder
+                            )
+                        }}
+                    >
+                        <SortIcon
+                            type={
+                                this.metric === "location" ? "text" : "numeric"
+                            }
+                            order={this.sortOrder}
+                        />
+                    </span>
+                </div>
+            )
+        )
+    }
+
     render() {
         const countries = this.searchResults
         const selectedCountries = this.props.selectedCountries
@@ -427,49 +474,7 @@ export class CountryPicker extends React.Component<{
                         </div>
                     )}
                 </div>
-                {!this.isDropdownMenu && (
-                    <div className="MetricSettings">
-                        <span className="mainLabel">Sort by</span>
-                        <Select
-                            className="metricDropdown"
-                            options={this.metricOptions}
-                            value={this.metricOptions.find(
-                                option => option.value === this.metric
-                            )}
-                            onChange={option => {
-                                const value = first(asArray(option))?.value
-                                if (value) this.updateMetric(value)
-                            }}
-                            menuPlacement="bottom"
-                            components={{
-                                IndicatorSeparator: null
-                            }}
-                            styles={getStylesForTargetHeight(26)}
-                            isSearchable={false}
-                        />
-                        <span
-                            className="sort"
-                            onClick={() => {
-                                const sortOrder = toggleSort(this.sortOrder)
-                                this.props.userState.countryPickerSort = sortOrder
-                                Analytics.logCountrySelectorEvent(
-                                    this.props.explorerName,
-                                    "sortOrder",
-                                    sortOrder
-                                )
-                            }}
-                        >
-                            <SortIcon
-                                type={
-                                    this.metric === "location"
-                                        ? "text"
-                                        : "numeric"
-                                }
-                                order={this.sortOrder}
-                            />
-                        </span>
-                    </div>
-                )}
+                {this.pickerMenu}
                 <div className="CountryListContainer">
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
