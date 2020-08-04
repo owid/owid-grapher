@@ -3,6 +3,7 @@ import "site/client/owid.scss"
 import "charts/client/chart.scss"
 import { CustomDataExplorer } from "charts/CustomDataExplorer"
 import { co2ChartConfigs } from "./co2Explorer.test"
+import { SwitcherOptions } from "charts/SwitcherOptions"
 
 const defaultConfig = `chartId	Gas	Accounting	Fuel	Count	Relative to world total
 488	CO2	Production-based	Total	Per country	FALSE
@@ -37,25 +38,16 @@ export default {
     title: "CustomDataExplorer"
 }
 
-export const Default = () => {
-    // ;`http://localhost:3030/admin/api/charts/${chartId}.config.json`
-
-    // http://localhost:3030/admin/api/charts/explorer-charts.config.json?chartIds=488~3219~486~485~3218~4267~530~3621~3488~4331~696~4250~4251~4253~4255~4332~4249~4252~4254~4256~4333~4147~4239~4222~4243~4224~4244
-
-    // const chartIds = defaultConfig
-    //     .split("\n")
-    //     .slice(1)
-    //     .map(line => line.split("\t")[0])
-    // console.log(chartIds.join("~"))
-
+export const CarbonDioxide = () => {
     const configs = new Map()
     co2ChartConfigs.forEach(config => configs.set(config.id, config))
+    const switcher = new SwitcherOptions(defaultConfig, "")
     return (
         <CustomDataExplorer
             chartConfigs={configs}
             explorerNamespace="CO₂"
             explorerTitle="CO₂ Data Explorer"
-            explorerConfig={defaultConfig}
+            switcher={switcher}
         />
     )
 }

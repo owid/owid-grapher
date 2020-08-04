@@ -164,7 +164,7 @@ export class ExplorerControlPanel extends React.Component<{
     }
 
     render() {
-        const { title, hideTitle } = this.props
+        const { title, hideTitle, name } = this.props
         return (
             <div key={name} className={classNames("DataExplorerControl", name)}>
                 <div

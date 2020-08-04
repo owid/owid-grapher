@@ -1,6 +1,5 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable } from "mobx"
 import { DataExplorer } from "./DataExplorer"
 import { ChartConfigProps, ChartConfig } from "./ChartConfig"
 import { SwitcherOptions } from "./SwitcherOptions"
@@ -12,16 +11,15 @@ declare type chartId = number
 @observer
 export class CustomDataExplorer extends React.Component<{
     chartConfigs: Map<chartId, ChartConfigProps>
-    explorerConfig: any
+    switcher: SwitcherOptions
     explorerNamespace: string
     explorerTitle: string
 }> {
     get chart() {
-        const newId = this.switcherOptions.chartId
+        const newId = this.props.switcher.chartId
         if (newId === this.lastId) return this._chart!
 
         const params = this.changedParams
-
         const props =
             this.props.chartConfigs.get(newId) || new ChartConfigProps()
 
@@ -39,12 +37,9 @@ export class CustomDataExplorer extends React.Component<{
     private _chart?: ChartConfig = undefined
     private lastId = 0
 
-    @observable switcherConfig = this.props.explorerConfig
-    @observable switcherOptions = new SwitcherOptions(this.switcherConfig, "")
-
     render() {
         const { explorerNamespace: explorerName, explorerTitle } = this.props
-        const panels = this.switcherOptions.groups.map(group => (
+        const panels = this.props.switcher.groups.map(group => (
             <ExplorerControlPanel
                 title={group.title}
                 explorerName={this.props.explorerNamespace}
@@ -52,7 +47,7 @@ export class CustomDataExplorer extends React.Component<{
                 options={group.options}
                 isCheckbox={group.isCheckbox}
                 onChange={value => {
-                    this.switcherOptions.setValue(group.title, value)
+                    this.props.switcher.setValue(group.title, value)
                 }}
             />
         ))
