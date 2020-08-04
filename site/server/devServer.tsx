@@ -125,16 +125,14 @@ devServer.get(
     async (req, res) => {
         res.send(
             await countryProfileCountryPage(
-                countryProfileSpecs.find(
-                    spec => spec.project === "coronavirus"
-                )!,
+                countryProfileSpecs.get("coronavirus")!,
                 req.params.countrySlug
             )
         )
     }
 )
 
-const co2Profile = countryProfileSpecs.find(spec => spec.project === "co2")!
+const co2Profile = countryProfileSpecs.get("co2")!
 
 devServer.get(`/${co2Profile.rootPath}/:countrySlug`, async (req, res) => {
     res.send(

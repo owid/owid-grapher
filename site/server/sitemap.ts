@@ -44,7 +44,7 @@ export async function makeSitemap() {
 
     urls = urls
         .concat(
-            ...countryProfileSpecs.map(spec => {
+            ...Array.from(countryProfileSpecs.values()).map(spec => {
                 return countries.map(c => ({
                     loc: urljoin(BAKED_BASE_URL, spec.rootPath, c.slug)
                 }))
