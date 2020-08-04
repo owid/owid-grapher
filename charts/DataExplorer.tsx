@@ -11,6 +11,7 @@ import moment from "moment"
 import { CountryPicker } from "./CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import { ChartConfig } from "./ChartConfig"
+import { throttle } from "./Util"
 
 @observer
 export class DataExplorer extends React.Component<{
@@ -167,6 +168,20 @@ export class DataExplorer extends React.Component<{
     @action.bound closeControls() {
         this.showMobileControlsPopup = false
     }
+
+    componentDidMount() {
+        this.onResizeThrottled = throttle(this.onResize, 100)
+        window.addEventListener("resize", this.onResizeThrottled)
+        this.onResize()
+    }
+
+    componentWillUnmount() {
+        if (this.onResizeThrottled) {
+            window.removeEventListener("resize", this.onResizeThrottled)
+        }
+    }
+
+    onResizeThrottled?: () => void
 
     render() {
         return (

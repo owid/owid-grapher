@@ -1,10 +1,11 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action, observable, autorun } from "mobx"
+import { observable } from "mobx"
 import { DataExplorer } from "./DataExplorer"
 import { ChartConfigProps, ChartConfig } from "./ChartConfig"
 import { SwitcherOptions } from "./SwitcherOptions"
 import { ExplorerControlPanel } from "./ExplorerControls"
+import { ChartQueryParams } from "./ChartUrl"
 
 declare type chartId = number
 
@@ -14,12 +15,28 @@ export class CustomDataExplorer extends React.Component<{
     explorerConfig: any
     explorerName: string
 }> {
-    @computed get chart() {
-        return new ChartConfig(
-            this.props.chartConfigs.get(this.switcherOptions.chartId) ||
-                new ChartConfigProps()
-        )
+    get chart() {
+        const newId = this.switcherOptions.chartId
+        if (newId === this.lastId) return this._chart!
+
+        const params = this.changedParams
+
+        const props =
+            this.props.chartConfigs.get(newId) || new ChartConfigProps()
+
+        this._chart = new ChartConfig(props)
+        this._chart.url.populateFromQueryParams(params)
+
+        this.lastId = newId
+        return this._chart!
     }
+
+    get changedParams(): ChartQueryParams {
+        return this._chart?.url.params || {}
+    }
+
+    private _chart?: ChartConfig = undefined
+    private lastId = 0
 
     @observable switcherConfig = this.props.explorerConfig
     @observable switcherOptions = new SwitcherOptions(this.switcherConfig, "")
