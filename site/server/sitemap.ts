@@ -5,7 +5,7 @@ import moment from "moment"
 import * as db from "db/db"
 import { countries } from "utils/countries"
 import urljoin from "url-join"
-import { covidCountryProfileRootPath } from "./covid/CovidConstants"
+import { countryProfileSpecs } from "site/client/CountryProfileConstants"
 
 interface SitemapUrl {
     loc: string
@@ -44,13 +44,11 @@ export async function makeSitemap() {
 
     urls = urls
         .concat(
-            countries.map(c => ({
-                loc: urljoin(
-                    BAKED_BASE_URL,
-                    covidCountryProfileRootPath,
-                    c.slug
-                )
-            }))
+            ...Array.from(countryProfileSpecs.values()).map(spec => {
+                return countries.map(c => ({
+                    loc: urljoin(BAKED_BASE_URL, spec.rootPath, c.slug)
+                }))
+            })
         )
         .concat(
             posts.map(p => ({

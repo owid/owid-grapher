@@ -2,17 +2,17 @@ import React, { useState } from "react"
 import ReactDOM from "react-dom"
 import Select, { ValueType } from "react-select"
 import { countries } from "utils/countries"
-import { covidCountryProfileRootPath } from "site/server/covid/CovidConstants"
 import { asArray } from "utils/client/react-select"
-import { Analytics } from "../Analytics"
+import { Analytics } from "./Analytics"
 import { sortBy } from "charts/Util"
+import { countryProfileSpecs } from "./CountryProfileConstants"
 
 interface CountrySelectOption {
     label: string
     value: string
 }
 
-const CovidSearchCountry = () => {
+const SearchCountry = (props: { countryProfileRootPath: string }) => {
     const [isLoading, setIsLoading] = useState(false)
     const sorted = sortBy(countries, "name")
     return (
@@ -24,7 +24,7 @@ const CovidSearchCountry = () => {
                 const country = asArray(selected)[0].value
                 Analytics.logCovidCountryProfileSearch(country)
                 setIsLoading(true)
-                window.location.href = `${covidCountryProfileRootPath}/${country}`
+                window.location.href = `${props.countryProfileRootPath}/${country}`
             }}
             isLoading={isLoading}
             placeholder="Search for a country..."
@@ -32,13 +32,18 @@ const CovidSearchCountry = () => {
     )
 }
 
-export function runCovidSearchCountry() {
-    const elements = Array.from(
-        document.querySelectorAll(".wp-block-covid-search-country")
-    )
-    elements.forEach(element => {
-        ReactDOM.render(<CovidSearchCountry />, element)
+export function runSearchCountry() {
+    countryProfileSpecs.forEach(profileSpec => {
+        const elements = Array.from(
+            document.querySelectorAll(profileSpec.selector)
+        )
+        elements.forEach(element => {
+            ReactDOM.render(
+                <SearchCountry countryProfileRootPath={profileSpec.rootPath} />,
+                element
+            )
+        })
     })
 }
 
-export default CovidSearchCountry
+export default SearchCountry
