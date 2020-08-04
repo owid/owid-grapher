@@ -131,7 +131,7 @@ fi
 
   # Static build to update the public frontend code
   cd $FINAL_TARGET
-  yarn tsn scripts/bakeSite.ts "$GIT_EMAIL" "$GIT_NAME"
+  yarn bake "$GIT_EMAIL" "$GIT_NAME"
 
   # Restart the deploy queue
   pm2 start $NAME-deploy-queue
