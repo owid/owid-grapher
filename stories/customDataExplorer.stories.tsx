@@ -1,7 +1,4 @@
 import * as React from "react"
-
-import { storiesOf } from "@storybook/react"
-
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
 import { CustomDataExplorer } from "charts/CustomDataExplorer"
@@ -36,7 +33,11 @@ const defaultConfig = `chartId	Gas	Accounting	Fuel	Count	Relative to world total
 4224	Nitrous oxide			Per country	
 4244	Nitrous oxide			Per capita	`
 
-storiesOf("CustomDataExplorer", module).add("basic", () => {
+export default {
+    title: "CustomDataExplorer"
+}
+
+export const Default = () => {
     // ;`http://localhost:3030/admin/api/charts/${chartId}.config.json`
 
     // http://localhost:3030/admin/api/charts/explorer-charts.config.json?chartIds=488~3219~486~485~3218~4267~530~3621~3488~4331~696~4250~4251~4253~4255~4332~4249~4252~4254~4256~4333~4147~4239~4222~4243~4224~4244
@@ -56,4 +57,4 @@ storiesOf("CustomDataExplorer", module).add("basic", () => {
             explorerConfig={defaultConfig}
         />
     )
-})
+}

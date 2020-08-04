@@ -1,12 +1,13 @@
 import * as React from "react"
-
-import { storiesOf } from "@storybook/react"
-
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
 import { CommandPalette, Command } from "charts/CommandPalette"
 
-storiesOf("CommandPalette", module).add("testCommands", () => {
+export default {
+    title: "CommandPalette"
+}
+
+export const Default = () => {
     const demoCommands: Command[] = [
         {
             combo: "ctrl+o",
@@ -28,4 +29,4 @@ storiesOf("CommandPalette", module).add("testCommands", () => {
         }
     ]
     return <CommandPalette commands={demoCommands} display="block" />
-})
+}

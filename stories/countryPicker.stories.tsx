@@ -1,7 +1,4 @@
 import * as React from "react"
-
-import { storiesOf } from "@storybook/react"
-
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
 import { CountryPicker } from "charts/CountryPicker"
@@ -61,14 +58,14 @@ france,3,fra,,400`)
     }
 }
 
-storiesOf("CountryPicker", module)
-    .add("empty picker", () => {
-        return (
-            <CountryPickerHolder>
-                <CountryPicker />
-            </CountryPickerHolder>
-        )
-    })
-    .add("a few options", () => {
-        return <CountryPickerIntegrated />
-    })
+export default {
+    title: "CountryPicker"
+}
+
+export const Empty = () => (
+    <CountryPickerHolder>
+        <CountryPicker />
+    </CountryPickerHolder>
+)
+
+export const Default = () => <CountryPickerIntegrated />
