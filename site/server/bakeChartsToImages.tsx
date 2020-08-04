@@ -12,27 +12,32 @@ global.App = { isEditor: false }
 
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 
-export async function getChartsBySlug() {
-    const chartsBySlug: Map<string, ChartConfigProps> = new Map()
-    const chartsById = new Map()
+export async function getChartsAndRedirectsBySlug() {
+    const { chartsBySlug, chartsById } = await getChartsBySlug()
 
-    const chartsQuery = db.query(`SELECT * FROM charts`)
     const redirectQuery = db.query(
         `SELECT slug, chart_id FROM chart_slug_redirects`
     )
-
-    for (const row of await chartsQuery) {
-        const chart = JSON.parse(row.config)
-        chart.id = row.id
-        chartsBySlug.set(chart.slug, chart)
-        chartsById.set(row.id, chart)
-    }
 
     for (const row of await redirectQuery) {
         chartsBySlug.set(row.slug, chartsById.get(row.chart_id))
     }
 
     return chartsBySlug
+}
+
+export async function getChartsBySlug() {
+    const chartsBySlug: Map<string, ChartConfigProps> = new Map()
+    const chartsById = new Map()
+
+    const chartsQuery = db.query(`SELECT * FROM charts`)
+    for (const row of await chartsQuery) {
+        const chart = JSON.parse(row.config)
+        chart.id = row.id
+        chartsBySlug.set(chart.slug, chart)
+        chartsById.set(row.id, chart)
+    }
+    return { chartsBySlug, chartsById }
 }
 
 export async function bakeChartToImage(
@@ -73,7 +78,7 @@ export async function bakeChartsToImages(
     optimizeSvgs = false
 ) {
     await fs.mkdirp(outDir)
-    const chartsBySlug = await getChartsBySlug()
+    const chartsBySlug = await getChartsAndRedirectsBySlug()
 
     for (const urlStr of chartUrls) {
         const url = parseUrl(urlStr)
