@@ -6,6 +6,7 @@
     },
     "scripts": {
         "tsn": "ts-node --transpile-only -r tsconfig-paths/register -r dotenv/config",
+        "tsnr": "node -r ts-node/register/transpile-only -r tsconfig-paths/register -r dotenv/config",
         "tsnd": "ts-node-dev --transpileOnly --respawn --no-notify --no-deps -r tsconfig-paths/register -r source-map-support/register -r dotenv/config",
         "dev-admin": "yarn tsnd admin/server/server.tsx",
         "dev-site": "yarn tsnd site/server/devServer.tsx",
@@ -29,8 +30,8 @@
         "testcheck": "yarn prettify:check && yarn typecheck && yarn test",
         "deploy": "./bin/deploy.sh",
         "serve": "yarn tsn admin/server/server.tsx",
-        "bake": "yarn tsn scripts/bakeSite.ts",
-        "deploy-queue": "yarn tsn deploy/watch.ts",
+        "bake": "yarn tsnr --max-old-space-size=4096 scripts/bakeSite.ts",
+        "deploy-queue": "yarn tsnr --max-old-space-size=4096 deploy/watch.ts",
         "storybook": "yarn tsn node_modules/.bin/start-storybook -p 6006",
         "build-storybook": "build-storybook",
         "bundlewatch": "ENV=production webpack -p && bundlewatch --config .bundlewatch.config.json",
