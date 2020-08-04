@@ -61,7 +61,8 @@ export class CountryPicker extends React.Component<{
     }
     toggleCountryCommand: (countryName: string, value?: boolean) => void
     clearSelectionCommand: () => void
-    selectedCountries: string[]
+    availableEntities: string[]
+    selectedEntities: string[]
     userState: MetricState
     isDropdownMenu?: boolean
     countriesMustHaveColumns: string[]
@@ -76,7 +77,8 @@ export class CountryPicker extends React.Component<{
         clearSelectionCommand: () => {},
         userState: {},
         isDropdownMenu: false,
-        selectedCountries: [],
+        availableEntities: [],
+        selectedEntities: [],
         countriesMustHaveColumns: [],
         pickerColumns: new Set()
     }
@@ -145,10 +147,6 @@ export class CountryPicker extends React.Component<{
         return this.availableColumns.find(col => col.slug === this.metric)!
     }
 
-    @computed private get plotValues() {
-        return this.activeColumn?.latestValuesMap
-    }
-
     @computed get availableCountriesForCurrentView() {
         if (!this.props.countriesMustHaveColumns.length)
             return this.props.table.availableEntitiesSet
@@ -158,14 +156,14 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed private get optionsWithMetricValue(): CountryOptionWithValue[] {
-        return this.props.table.availableEntities.map(name => ({
+        return this.props.availableEntities.map(name => ({
             name,
             plotValue: this.activeColumn?.getLatestValueForEntity(name)
         }))
     }
 
     @bind private isSelected(option: CountryOptionWithValue) {
-        return this.props.selectedCountries.includes(option.name)
+        return this.props.selectedEntities.includes(option.name)
     }
 
     @computed private get fuzzy(): FuzzySearch<CountryOptionWithValue> {
@@ -442,7 +440,7 @@ export class CountryPicker extends React.Component<{
 
     render() {
         const countries = this.searchResults
-        const selectedCountries = this.props.selectedCountries
+        const selectedCountries = this.props.selectedEntities
         const availableCountries = this.availableCountriesForCurrentView
 
         const selectedDebugMessage = `${selectedCountries.length} selected. ${availableCountries.size} available. ${this.optionsWithMetricValue.length} options total.`

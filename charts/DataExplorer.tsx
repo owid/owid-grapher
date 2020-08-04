@@ -22,6 +22,7 @@ export class DataExplorer extends React.Component<{
     explorerName: string
     controlPanels: JSX.Element[]
     chart: ChartConfig
+    availableEntities: string[]
     headerElement: JSX.Element
     params: DataExplorerParams
     isEmbed: boolean
@@ -92,7 +93,8 @@ export class DataExplorer extends React.Component<{
                 explorerName={this.props.explorerName}
                 table={this.props.chart.table}
                 isDropdownMenu={this.isMobile}
-                selectedCountries={this.selectedEntityNames}
+                availableEntities={this.props.availableEntities}
+                selectedEntities={this.selectedEntityNames}
                 clearSelectionCommand={this.clearSelectionCommand}
                 toggleCountryCommand={this.toggleSelectedCountryCommand}
             ></CountryPicker>

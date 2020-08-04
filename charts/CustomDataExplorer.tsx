@@ -5,6 +5,8 @@ import { ChartConfigProps, ChartConfig } from "./ChartConfig"
 import { SwitcherOptions } from "./SwitcherOptions"
 import { ExplorerControlPanel } from "./ExplorerControls"
 import { ChartQueryParams } from "./ChartUrl"
+import { observable, when } from "mobx"
+import { uniq } from "./Util"
 
 declare type chartId = number
 
@@ -26,6 +28,15 @@ export class CustomDataExplorer extends React.Component<{
         this._chart = new ChartConfig(props)
         this._chart.url.populateFromQueryParams(params)
 
+        when(
+            () => this._chart!.isReady,
+            () =>
+                (this.availableEntities = uniq([
+                    ...this.availableEntities,
+                    ...this._chart!.table.availableEntities
+                ]))
+        )
+
         this.lastId = newId
         return this._chart!
     }
@@ -36,6 +47,8 @@ export class CustomDataExplorer extends React.Component<{
 
     private _chart?: ChartConfig = undefined
     private lastId = 0
+
+    @observable availableEntities: string[] = []
 
     render() {
         const { explorerNamespace: explorerName, explorerTitle } = this.props
@@ -70,6 +83,7 @@ export class CustomDataExplorer extends React.Component<{
                 headerElement={headerElement}
                 controlPanels={panels}
                 explorerName={explorerName}
+                availableEntities={this.availableEntities}
                 chart={this.chart}
                 params={params}
                 isEmbed={false}
