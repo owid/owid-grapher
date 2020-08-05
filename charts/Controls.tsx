@@ -599,7 +599,7 @@ export class Controls {
     @computed get hasInlineControls(): boolean {
         const { chart } = this.props
         return (
-            chart.tab === "chart" &&
+            (chart.tab === "chart" || chart.tab === "table") &&
             ((chart.canAddData && !this.hasFloatingAddButton) ||
                 chart.isScatter ||
                 chart.canChangeEntity ||
@@ -972,7 +972,8 @@ export class ControlsFooterView extends React.Component<{
         const { chart } = props.controls.props
         return (
             <div className="extraControls">
-                {chart.canAddData &&
+                {chart.tab === "chart" &&
+                    chart.canAddData &&
                     !hasFloatingAddButton &&
                     !chart.hideEntityControls && (
                         <button
@@ -994,41 +995,53 @@ export class ControlsFooterView extends React.Component<{
                         </button>
                     )}
 
-                {chart.canChangeEntity && !chart.hideEntityControls && (
-                    <button
-                        type="button"
-                        onClick={this.onDataSelect}
-                        data-track-note="chart-change-entity"
-                    >
-                        <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                        {chart.entityType}
-                    </button>
-                )}
+                {chart.tab === "chart" &&
+                    chart.canChangeEntity &&
+                    !chart.hideEntityControls && (
+                        <button
+                            type="button"
+                            onClick={this.onDataSelect}
+                            data-track-note="chart-change-entity"
+                        >
+                            <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                            {chart.entityType}
+                        </button>
+                    )}
 
-                {chart.isScatter && chart.highlightToggle && (
-                    <HighlightToggle
-                        chart={chart}
-                        highlightToggle={chart.highlightToggle}
-                    />
-                )}
-                {chart.isStackedArea && chart.stackedArea.canToggleRelative && (
-                    <AbsRelToggle chart={chart} />
-                )}
-                {chart.isScatter && chart.scatter.canToggleRelative && (
-                    <AbsRelToggle chart={chart} />
-                )}
-                {chart.isScatter && chart.data.hasSelection && (
-                    <ZoomToggle chart={chart.props} />
-                )}
+                {chart.tab === "chart" &&
+                    chart.isScatter &&
+                    chart.highlightToggle && (
+                        <HighlightToggle
+                            chart={chart}
+                            highlightToggle={chart.highlightToggle}
+                        />
+                    )}
+                {chart.tab === "chart" &&
+                    chart.isStackedArea &&
+                    chart.stackedArea.canToggleRelative && (
+                        <AbsRelToggle chart={chart} />
+                    )}
+                {chart.tab === "chart" &&
+                    chart.isScatter &&
+                    chart.scatter.canToggleRelative && (
+                        <AbsRelToggle chart={chart} />
+                    )}
+                {chart.tab === "chart" &&
+                    chart.isScatter &&
+                    chart.data.hasSelection && (
+                        <ZoomToggle chart={chart.props} />
+                    )}
 
-                {chart.isScatter &&
+                {(chart.tab === "table" || chart.isScatter) &&
                     chart.hasCountriesSmallerThanFilterOption && (
                         <FilterSmallCountriesToggle chart={chart} />
                     )}
 
-                {chart.isLineChart && chart.lineChart.canToggleRelative && (
-                    <AbsRelToggle chart={chart} />
-                )}
+                {chart.tab === "chart" &&
+                    chart.isLineChart &&
+                    chart.lineChart.canToggleRelative && (
+                        <AbsRelToggle chart={chart} />
+                    )}
             </div>
         )
     }

@@ -696,8 +696,10 @@ export class ChartConfig {
             this.props.tab === "table" &&
             value === "chart" &&
             !this.userHasSetTimeline
-        )
+        ) {
             this.revertAutoSelectedStartYear()
+            this.props.minPopulationFilter && this.toggleMinPopulationFilter()
+        }
 
         if (value === "chart" || value === "map" || value === "table") {
             this.props.tab = value
