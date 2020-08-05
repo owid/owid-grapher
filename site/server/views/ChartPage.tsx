@@ -13,6 +13,7 @@ import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { EmbedDetector } from "./EmbedDetector"
 
 export const ChartPage = (props: {
     chart: ChartConfigProps
@@ -30,12 +31,6 @@ export const ChartPage = (props: {
         "exports",
         `${chart.slug}.png?v=${chart.version}`
     )
-
-    const iframeScript = `
-    if (window != window.top) {
-        document.documentElement.classList.add('iframe')
-    }
-`
 
     const script = `
         var jsonConfig = ${JSON.stringify(chart)};
@@ -70,7 +65,7 @@ export const ChartPage = (props: {
             >
                 <meta property="og:image:width" content="850" />
                 <meta property="og:image:height" content="600" />
-                <script dangerouslySetInnerHTML={{ __html: iframeScript }} />
+                <EmbedDetector />
                 <noscript>
                     <style>{`
                     figure { display: none !important; }
