@@ -153,9 +153,12 @@ export class ChartDimensionWithOwidVariable {
         }
     }
 
-    @computed get formatYear(): (year: number) => string {
+    @computed get formatYear(): (
+        year: number,
+        options?: { format?: string }
+    ) => string {
         return this.column.isDailyMeasurement
-            ? (year: number) => formatDay(year)
+            ? (year: number, options?) => formatDay(year, options)
             : formatYear
     }
 

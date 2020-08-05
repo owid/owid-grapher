@@ -92,7 +92,7 @@ export interface DataTableDimension extends Sortable {
     name: string
     unit?: string
     columns: DataTableColumn[]
-    formatYear: (num: number) => string
+    formatYear: (num: number, options?: { format?: string }) => string
 }
 
 export type DataTableColumn = DimensionColumn & Sortable
