@@ -14,7 +14,10 @@ import {
     groupMap,
     mergeQueryStr,
     next,
-    previous
+    previous,
+    parseDelimited,
+    toJsTable,
+    intersectionOfSets
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -285,6 +288,49 @@ describe(rollingMap, () => {
     })
     it("handles arrays with multiple elements", () => {
         expect(rollingMap([1, 2, 4, 8], (a, b) => b - a)).toEqual([1, 2, 4])
+    })
+})
+
+describe(parseDelimited, () => {
+    it("detects delimiter and parses delimited", () => {
+        const str = `foo,bar
+1,2`
+        expect(parseDelimited(str)).toEqual(
+            parseDelimited(str.replace(/,/g, "\t"))
+        )
+    })
+})
+
+describe(intersectionOfSets, () => {
+    it("can detect set intersections", () => {
+        const setA = new Set(["a", "b", "c"])
+        const setB = new Set(["a", "b", "c", "d"])
+        const setC = new Set(["a", "c", "d"])
+        const setD = new Set(["a", "c", "d"])
+        const setE = new Set([""])
+
+        expect(
+            Array.from(intersectionOfSets([setA, setB, setC, setD]).values())
+        ).toEqual(["a", "c"])
+        expect(
+            Array.from(
+                intersectionOfSets([setA, setB, setC, setD, setE]).values()
+            )
+        ).toEqual([])
+        expect(intersectionOfSets([]).size).toEqual(new Set().size)
+    })
+})
+
+describe(toJsTable, () => {
+    it("turns an arraw of objects into arrays", () => {
+        const str = `gdp,pop
+1,2`
+        expect(toJsTable(parseDelimited(str))).toEqual([
+            ["gdp", "pop"],
+            ["1", "2"]
+        ])
+
+        expect(toJsTable(parseDelimited(""))).toEqual([])
     })
 })
 
