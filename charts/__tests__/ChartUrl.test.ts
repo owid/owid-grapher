@@ -33,6 +33,7 @@ describe(ChartUrl, () => {
                 name: string
                 query: string
                 param: TimeBounds
+                irreversible?: boolean
             }[] = [
                 { name: "single year", query: "1500", param: [1500, 1500] },
                 {
@@ -59,27 +60,51 @@ describe(ChartUrl, () => {
                 },
                 { name: "two years", query: "2000..2005", param: [2000, 2005] },
                 {
+                    name: "negative years",
+                    query: "-500..-1",
+                    param: [-500, -1]
+                },
+                {
                     name: "right unbounded",
-                    query: "2000..",
+                    query: "2000..latest",
                     param: [2000, TimeBoundValue.unboundedRight]
                 },
                 {
                     name: "left unbounded",
-                    query: "..2005",
+                    query: "earliest..2005",
                     param: [TimeBoundValue.unboundedLeft, 2005]
                 },
                 {
-                    name: "unbounded (both)",
-                    query: "..",
+                    name: "left unbounded",
+                    query: "earliest..latest",
                     param: [
                         TimeBoundValue.unboundedLeft,
                         TimeBoundValue.unboundedRight
                     ]
                 },
+
+                // The queries below can be considered legacy and are no longer generated this way,
+                // but we still want to support existing URLs of this form
                 {
-                    name: "negative years",
-                    query: "-500..-1",
-                    param: [-500, -1]
+                    name: "right unbounded [legacy]",
+                    query: "2000..",
+                    param: [2000, TimeBoundValue.unboundedRight],
+                    irreversible: true
+                },
+                {
+                    name: "left unbounded [legacy]",
+                    query: "..2005",
+                    param: [TimeBoundValue.unboundedLeft, 2005],
+                    irreversible: true
+                },
+                {
+                    name: "both unbounded [legacy]",
+                    query: "..",
+                    param: [
+                        TimeBoundValue.unboundedLeft,
+                        TimeBoundValue.unboundedRight
+                    ],
+                    irreversible: true
                 }
             ]
 
@@ -90,13 +115,15 @@ describe(ChartUrl, () => {
                     expect(start).toEqual(test.param[0])
                     expect(end).toEqual(test.param[1])
                 })
-                it(`encode ${test.name}`, () => {
-                    const params = toQueryParams({
-                        minTime: test.param[0],
-                        maxTime: test.param[1]
+                if (!test.irreversible) {
+                    it(`encode ${test.name}`, () => {
+                        const params = toQueryParams({
+                            minTime: test.param[0],
+                            maxTime: test.param[1]
+                        })
+                        expect(params.time).toEqual(test.query)
                     })
-                    expect(params.time).toEqual(test.query)
-                })
+                }
             }
 
             it("empty string doesn't change time", () => {
@@ -170,23 +197,48 @@ describe(ChartUrl, () => {
                     param: [-20, 11]
                 },
                 {
+                    name: "left unbounded (date)",
+                    query: "earliest..2020-02-01",
+                    param: [TimeBoundValue.unboundedLeft, 11]
+                },
+                {
                     name: "right unbounded (date)",
-                    query: "2020-01-01..",
+                    query: "2020-01-01..latest",
                     param: [-20, TimeBoundValue.unboundedRight]
                 },
                 {
-                    name: "left unbounded (date)",
-                    query: "..2020-01-01",
-                    param: [TimeBoundValue.unboundedLeft, -20]
-                },
-                {
-                    name: "both unbounded",
-                    query: "..",
+                    name: "both unbounded (date)",
+                    query: "earliest..latest",
                     param: [
                         TimeBoundValue.unboundedLeft,
                         TimeBoundValue.unboundedRight
                     ]
                 },
+
+                // The queries below can be considered legacy and are no longer generated this way,
+                // but we still want to support existing URLs of this form
+                {
+                    name: "right unbounded (date) [legacy]",
+                    query: "2020-01-01..",
+                    param: [-20, TimeBoundValue.unboundedRight],
+                    irreversible: true
+                },
+                {
+                    name: "left unbounded (date) [legacy]",
+                    query: "..2020-01-01",
+                    param: [TimeBoundValue.unboundedLeft, -20],
+                    irreversible: true
+                },
+                {
+                    name: "both unbounded [legacy]",
+                    query: "..",
+                    param: [
+                        TimeBoundValue.unboundedLeft,
+                        TimeBoundValue.unboundedRight
+                    ],
+                    irreversible: true
+                },
+
                 {
                     name: "single day (number)",
                     query: "5",
