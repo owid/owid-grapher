@@ -47,6 +47,32 @@ describe(CovidQueryParams, () => {
         expect(constrainedParams.smoothing).toEqual(7)
     })
 
+    it("converts legacy urls correctly", () => {
+        const cases = [
+            {
+                str: `deathsMetric=true&dailyFreq=true&smoothing=0`,
+                interval: "daily",
+                smoothing: 0
+            },
+            {
+                str: `deathsMetric=true&totalFreq=true&smoothing=0`,
+                interval: "total",
+                smoothing: 0
+            },
+            {
+                str: `deathsMetric=true&dailyFreq=true&smoothing=7`,
+                interval: "smoothed",
+                smoothing: 7
+            }
+        ]
+
+        cases.forEach(testCase => {
+            const params = new CovidQueryParams(testCase.str)
+            expect(params.interval).toEqual(testCase.interval)
+            expect(params.smoothing).toEqual(testCase.smoothing)
+        })
+    })
+
     it("computes the correct source chart key given current params", () => {
         const params = new CovidQueryParams(
             `casesMetric=true&dailyFreq=true&perCapita=true`

@@ -112,9 +112,9 @@ export class CovidQueryParams {
         this.interval =
             (params.interval as IntervalOption) ||
             legacyTimeToInterval(
-                !!params.totalFreq,
-                !!params.dailyFreq,
-                !!params.smoothing
+                params.totalFreq === "true",
+                params.dailyFreq === "true",
+                params.smoothing === "3" || params.smoothing === "7" // Support the 2 old smoothing options
             )
 
         this.casesMetric = params.casesMetric === "true"
