@@ -268,7 +268,7 @@ export class DataTable extends React.Component<DataTableProps> {
         column: DataTableColumn,
         dv: DimensionValue | undefined,
         sorted: boolean,
-        formatYear: (y: number) => string
+        formatYear: (num: number, options?: { format?: string }) => string
     ) {
         let value: Value | undefined
 
@@ -298,7 +298,9 @@ export class DataTable extends React.Component<DataTableProps> {
                     column.targetYear !== undefined &&
                     column.targetYear !== value.year && (
                         <ClosestYearNotice
-                            closestYear={formatYear(value.year)}
+                            closestYear={formatYear(value.year, {
+                                format: "MMM D"
+                            })}
                             targetYear={formatYear(column.targetYear)}
                         />
                     )}
