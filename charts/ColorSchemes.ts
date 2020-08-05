@@ -7,12 +7,12 @@ import { Color } from "./Color"
 type ColorSchemeProps = { displayName: string; singleColorScale: boolean }
 
 export const continentColors = {
-    Africa: "#98064A",
+    Africa: "#923E8B",
     Antarctica: "#5887A1",
     Asia: "#2D8587",
     Europe: "#4C5C78",
     "North America": "#E04E4B",
-    Oceania: "#662C68",
+    Oceania: "#A8633C",
     "South America": "#932834"
 }
 
