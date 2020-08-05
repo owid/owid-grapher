@@ -124,4 +124,19 @@ describe(DataTable, () => {
             expect(notice.prop("targetYear")).toBe("2016")
         })
     })
+
+    describe("when you try to hide countries", () => {
+        let view: ShallowWrapper
+        beforeAll(() => {
+            const chart = setupChart(677, [104402], {
+                minPopulationFilter: 1e6
+            })
+
+            view = shallow(<DataTable chart={chart} />)
+        })
+
+        it("renders no small countries", () => {
+            expect(view.find("tbody tr")).toHaveLength(187)
+        })
+    })
 })
