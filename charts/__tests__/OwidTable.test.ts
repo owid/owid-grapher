@@ -61,7 +61,7 @@ usa,322,in hundreds of millions,2000
 hi,1,in millions,2000
 hi,1,,2001`
     const specs = new Map()
-    const table = BasicTable.fromCsv(csv)
+    const table = BasicTable.fromDelimited(csv)
     table.addStringColumnSpec({ slug: "pop", annotationsColumnSlug: "notes" })
 
     it("can get annotations for a row", () => {
@@ -83,7 +83,7 @@ iceland,1
 france,50
 usa,300
 canada,20`
-    const table = BasicTable.fromCsv(csv)
+    const table = BasicTable.fromDelimited(csv)
 
     it("a table can be made from csv", () => {
         expect(table.rows.length).toEqual(4)
@@ -127,7 +127,7 @@ canada,20`
 describe("toDelimited", () => {
     const csv = `country,Population in 2020
 iceland,1`
-    const table = BasicTable.fromCsv(csv)
+    const table = BasicTable.fromDelimited(csv)
     it("delimited uses slugs as default", () => {
         const csv = table.toDelimited()
         expect(csv).toEqual(`country,Population-in-2020
@@ -136,8 +136,6 @@ iceland,1`)
 })
 
 describe("immutability", () => {
-    const csv = `country,Population in 2020
-iceland,1`
     const rows = [{ country: "USA" }, { country: "Germany" }]
     const table = new BasicTable(rows)
     it("does not modify rows", () => {
@@ -149,6 +147,22 @@ iceland,1`
             `37`
         )
         expect((rows[0] as any).firstLetter).toEqual(undefined)
+    })
+})
+
+describe("getting entities with all requires columns", () => {
+    const csv = `entityName,entityCode,entityId,gdp,pop
+iceland,ice,1,123,3
+usa,us,2,23,
+france,fr,3,23,4`
+    const table = OwidTable.fromDelimited(csv)
+    it("gets entities only with values for that column", () => {
+        expect(table.columnsBySlug.get("pop")?.entityNamesUniq.size).toEqual(2)
+    })
+
+    it("filters rows correctly", () => {
+        expect(table.entitiesWith(["gdp"]).size).toEqual(3)
+        expect(table.entitiesWith(["gdp", "pop"]).size).toEqual(2)
     })
 })
 
