@@ -12,7 +12,7 @@ import { ExplorerControlBar } from "./ExplorerControls"
 import { ChartConfig } from "./ChartConfig"
 import { throttle } from "./Util"
 
-export interface DataExplorerParams {
+export interface DataExplorerOptions {
     hideControls: boolean
     selectedCountryCodes: Set<string>
 }
@@ -24,7 +24,7 @@ export class DataExplorer extends React.Component<{
     chart: ChartConfig
     availableEntities: string[]
     headerElement: JSX.Element
-    params: DataExplorerParams
+    params: DataExplorerOptions
     isEmbed: boolean
 }> {
     get keyboardShortcuts(): Command[] {
@@ -106,13 +106,7 @@ export class DataExplorer extends React.Component<{
         value?: boolean
     ) {
         const codeMap = this.props.chart.table.entityNameToCodeMap
-        this.toggleSelectedCountry(codeMap.get(countryName)!, value)
-        this.selectionChangeFromBuilder = true
-    }
-
-    private selectionChangeFromBuilder = false
-
-    @action.bound toggleSelectedCountry(code: string, value?: boolean) {
+        const code = codeMap.get(countryName)!
         const selectedCountryCodes = this.props.params.selectedCountryCodes
         if (value) {
             selectedCountryCodes.add(code)
@@ -123,7 +117,11 @@ export class DataExplorer extends React.Component<{
         } else {
             selectedCountryCodes.add(code)
         }
+
+        this.selectionChangeFromBuilder = true
     }
+
+    private selectionChangeFromBuilder = false
 
     @action.bound clearSelectionCommand() {
         this.props.params.selectedCountryCodes.clear()

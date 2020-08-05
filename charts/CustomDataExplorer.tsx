@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { DataExplorer, DataExplorerParams } from "./DataExplorer"
+import { DataExplorer, DataExplorerOptions } from "./DataExplorer"
 import { ChartConfigProps, ChartConfig } from "./ChartConfig"
 import { SwitcherOptions } from "./SwitcherOptions"
 import { ExplorerControlPanel } from "./ExplorerControls"
@@ -30,15 +30,34 @@ export class CustomDataExplorer extends React.Component<{
 
         when(
             () => this._chart!.isReady,
-            () =>
-                (this.availableEntities = uniq([
+            () => {
+                this.availableEntities = uniq([
                     ...this.availableEntities,
                     ...this._chart!.table.availableEntities
-                ]))
+                ]).sort()
+
+                this._chart!.props.selectedData = this.selectedData
+            }
         )
 
         this.lastId = newId
         return this._chart!
+    }
+
+    private get selectedData() {
+        const countryCodeMap = this.chart.table.entityCodeToNameMap
+        const entityIdMap = this.chart.table.entityNameToIdMap
+        return Array.from(this.userOptions.selectedCountryCodes)
+            .map(code => countryCodeMap.get(code))
+            .filter(i => i)
+            .map(countryOption => {
+                return {
+                    index: 0,
+                    entityId: countryOption
+                        ? entityIdMap.get(countryOption)!
+                        : 0
+                }
+            })
     }
 
     get changedParams(): ChartQueryParams {
@@ -50,9 +69,8 @@ export class CustomDataExplorer extends React.Component<{
 
     @observable availableEntities: string[] = []
 
-    render() {
-        const { explorerNamespace: explorerName, explorerTitle } = this.props
-        const panels = this.props.switcher.groups.map(group => (
+    get panels() {
+        return this.props.switcher.groups.map(group => (
             <ExplorerControlPanel
                 title={group.title}
                 explorerName={this.props.explorerNamespace}
@@ -64,28 +82,32 @@ export class CustomDataExplorer extends React.Component<{
                 }}
             />
         ))
+    }
 
-        const headerElement = (
+    get header() {
+        return (
             <>
                 <div></div>
-                <div className="ExplorerTitle">{explorerTitle}</div>
+                <div className="ExplorerTitle">{this.props.explorerTitle}</div>
                 <div className="ExplorerLastUpdated"></div>
             </>
         )
+    }
 
-        const params: DataExplorerParams = {
-            hideControls: false,
-            selectedCountryCodes: new Set()
-        }
+    @observable userOptions: DataExplorerOptions = {
+        hideControls: false,
+        selectedCountryCodes: new Set()
+    }
 
+    render() {
         return (
             <DataExplorer
-                headerElement={headerElement}
-                controlPanels={panels}
-                explorerName={explorerName}
+                headerElement={this.header}
+                controlPanels={this.panels}
+                explorerName={this.props.explorerNamespace}
                 availableEntities={this.availableEntities}
                 chart={this.chart}
-                params={params}
+                params={this.userOptions}
                 isEmbed={false}
             />
         )
