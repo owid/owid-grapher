@@ -3,8 +3,7 @@
 import { SwitcherOptions } from "charts/SwitcherOptions"
 
 describe(SwitcherOptions, () => {
-    const options = new SwitcherOptions(
-        `chartId,country,indicator,interval,perCapita
+    const code = `chartId,country,indicator,interval,perCapita
 21,usa,GDP,annual,FALSE
 24,usa,GDP,annual,Per million
 26,usa,GDP,monthly,
@@ -12,12 +11,24 @@ describe(SwitcherOptions, () => {
 33,france,Life expectancy,,
 55,spain,GDP,,FALSE
 56,spain,GDP,,Per million`
-    )
+    const options = new SwitcherOptions(code)
 
     it("starts with a selected chart", () => {
         expect(options.chartId).toEqual(21)
         expect(options.toObject().country).toEqual("usa")
         expect(options.toObject().indicator).toEqual("GDP")
+    })
+
+    it("can detect needed chart configs", () => {
+        expect(SwitcherOptions.getRequiredChartIds(code)).toEqual([
+            21,
+            24,
+            26,
+            29,
+            33,
+            55,
+            56
+        ])
     })
 
     it("can detect unavailable options", () => {

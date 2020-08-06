@@ -2,23 +2,30 @@ import React from "react"
 import { observer } from "mobx-react"
 import { CommandPalette, Command } from "./CommandPalette"
 import classNames from "classnames"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, when, reaction } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Bounds } from "./Bounds"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { ChartView } from "./ChartView"
 import { CountryPicker } from "./CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
-import { ChartConfig } from "./ChartConfig"
-import { throttle } from "./Util"
+import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { throttle, uniq } from "./Util"
+import { SwitcherOptions } from "./SwitcherOptions"
+import { ExplorerControlPanel } from "./ExplorerControls"
+import { ChartQueryParams } from "./ChartUrl"
+import ReactDOM from "react-dom"
 
-export interface DataExplorerOptions {
+interface DataExplorerOptions {
     hideControls: boolean
     selectedCountryCodes: Set<string>
 }
 
+declare type chartId = number
+
+// TODO: Migrate CovidExplorer to use this class as well
 @observer
-export class DataExplorer extends React.Component<{
+class DataExplorerShell extends React.Component<{
     explorerName: string
     controlPanels: JSX.Element[]
     chart: ChartConfig
@@ -203,6 +210,144 @@ export class DataExplorer extends React.Component<{
                     </div>
                 </div>
             </>
+        )
+    }
+}
+
+@observer
+export class SwitcherDataExplorer extends React.Component<{
+    chartConfigs: Map<chartId, ChartConfigProps>
+    switcher: SwitcherOptions
+    explorerNamespace: string
+    explorerTitle: string
+}> {
+    static bootstrap(
+        containerNode: HTMLElement,
+        chartConfigs: ChartConfigProps[],
+        switcherCode: string,
+        title: string
+    ) {
+        const switcher = new SwitcherOptions(switcherCode, "")
+
+        const chartConfigsMap: Map<number, ChartConfigProps> = new Map()
+        chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
+
+        const view = ReactDOM.render(
+            <SwitcherDataExplorer
+                chartConfigs={chartConfigsMap}
+                explorerNamespace="explorer"
+                explorerTitle={title}
+                switcher={switcher}
+            />,
+            containerNode
+        )
+    }
+
+    componentWillMount() {
+        reaction(() => this.props.switcher.chartId, this.updateChart, {
+            fireImmediately: true
+        })
+
+        const win = window as any
+        win.switcherDataExplorer = this
+    }
+
+    @action.bound updateChart() {
+        const newId: number = this.props.switcher.chartId
+        if (newId === this.lastId) return
+
+        const params = this.changedParams
+        const props =
+            this.props.chartConfigs.get(newId) || new ChartConfigProps()
+
+        this._chart = new ChartConfig(props)
+        this._chart.url.populateFromQueryParams(params)
+
+        console.log(this._chart)
+
+        when(
+            () => this._chart!.isReady,
+            () => {
+                this.availableEntities = uniq([
+                    ...this.availableEntities,
+                    ...this._chart!.table.availableEntities
+                ]).sort()
+
+                this._chart!.props.selectedData = this.selectedData
+            }
+        )
+
+        this.lastId = newId
+    }
+
+    private get selectedData() {
+        const table = this._chart!.table
+        const countryCodeMap = table.entityCodeToNameMap
+        const entityIdMap = table.entityNameToIdMap
+        return Array.from(this.userOptions.selectedCountryCodes)
+            .map(code => countryCodeMap.get(code))
+            .filter(i => i)
+            .map(countryOption => {
+                return {
+                    index: 0,
+                    entityId: countryOption
+                        ? entityIdMap.get(countryOption)!
+                        : 0
+                }
+            })
+    }
+
+    get changedParams(): ChartQueryParams {
+        return this._chart?.url.params || {}
+    }
+
+    @observable private _chart?: ChartConfig = undefined
+    private lastId = 0
+
+    @observable availableEntities: string[] = []
+
+    get panels() {
+        return this.props.switcher.groups.map(group => (
+            <ExplorerControlPanel
+                key={group.title}
+                title={group.title}
+                explorerName={this.props.explorerNamespace}
+                name={group.title}
+                options={group.options}
+                isCheckbox={group.isCheckbox}
+                onChange={value => {
+                    this.props.switcher.setValue(group.title, value)
+                }}
+            />
+        ))
+    }
+
+    get header() {
+        return (
+            <>
+                <div></div>
+                <div className="ExplorerTitle">{this.props.explorerTitle}</div>
+                <div className="ExplorerLastUpdated"></div>
+            </>
+        )
+    }
+
+    @observable userOptions: DataExplorerOptions = {
+        hideControls: false,
+        selectedCountryCodes: new Set()
+    }
+
+    render() {
+        return (
+            <DataExplorerShell
+                headerElement={this.header}
+                controlPanels={this.panels}
+                explorerName={this.props.explorerNamespace}
+                availableEntities={this.availableEntities}
+                chart={this._chart!}
+                params={this.userOptions}
+                isEmbed={false}
+            />
         )
     }
 }

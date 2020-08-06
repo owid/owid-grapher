@@ -1,5 +1,4 @@
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
-import { tsvParse } from "d3"
 import { uniq, parseDelimited } from "./Util"
 import { ControlOption } from "./ExplorerControls"
 import { action, observable, computed } from "mobx"
@@ -32,6 +31,12 @@ export class SwitcherOptions {
 
     toObject() {
         return { ...this._settings }
+    }
+
+    static getRequiredChartIds(code: string) {
+        return parseDelimited(code)
+            .map(row => parseInt(row.chartId!))
+            .filter(id => !isNaN(id))
     }
 
     toConstrainedOptions() {

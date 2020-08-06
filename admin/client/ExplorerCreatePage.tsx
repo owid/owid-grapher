@@ -2,7 +2,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContextType, AdminAppContext } from "./AdminAppContext"
-import { CustomDataExplorer } from "charts/CustomDataExplorer"
+import { SwitcherDataExplorer } from "charts/DataExplorers"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
@@ -32,9 +32,7 @@ export class ExplorerCreatePage extends React.Component {
     }
 
     @computed get chartIds() {
-        return parseDelimited(this.switcherCode)
-            .map(row => parseInt(row.chartId!))
-            .filter(id => !isNaN(id))
+        return SwitcherOptions.getRequiredChartIds(this.switcherCode)
     }
 
     @action.bound async fetchChartConfigs(chartIds: number[]) {
@@ -115,7 +113,7 @@ export class ExplorerCreatePage extends React.Component {
                             />
                         </div>
                     </Draggable>
-                    <CustomDataExplorer
+                    <SwitcherDataExplorer
                         chartConfigs={this.chartConfigs}
                         explorerNamespace="explorer"
                         explorerTitle="Data Explorer"
