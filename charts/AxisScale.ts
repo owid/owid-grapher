@@ -9,10 +9,17 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed, toJS } from "mobx"
 
-import { extend, rollingMap, min } from "./Util"
+import { extend, rollingMap, min, isMobile, uniq } from "./Util"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 
 export type ScaleType = "linear" | "log"
+
+export interface Tickmark {
+    value: number
+    priority: number
+    gridLineOnly?: boolean
+    isFirstOrLastTick?: boolean
+}
 
 export class AxisScale {
     @observable scaleType: ScaleType
@@ -76,26 +83,51 @@ export class AxisScale {
         return Math.min(this.range[1], this.range[0])
     }
 
-    getTickValues(): number[] {
-        const { scaleType, domain, d3_scale } = this
+    // When this is a log axis, only show so many grid lines because otherwise
+    // the chart would get too overwhelming. Different for mobile because screens
+    // are usually smaller.
+    @computed get maxLogLines() {
+        return isMobile() ? 15 : 20
+    }
 
-        let ticks: number[] = []
+    getTickValues(): Tickmark[] {
+        const { scaleType, d3_scale, maxLogLines } = this
+
+        let ticks: Tickmark[]
         if (scaleType === "log") {
-            let minPower10 = Math.ceil(Math.log(domain[0]) / Math.log(10))
-            if (!isFinite(minPower10)) minPower10 = 0
-            let maxPower10 = Math.floor(Math.log(domain[1]) / Math.log(10))
-            if (maxPower10 <= minPower10) maxPower10 += 1
+            ticks = d3_scale.ticks(maxLogLines).map(tickValue => {
+                // 10^x
+                if (Math.fround(Math.log10(tickValue)) % 1 === 0)
+                    return { value: tickValue, priority: 1 }
+                // 5 * 10^x
+                else if (Math.fround(Math.log10(tickValue * 2)) % 1 === 0)
+                    return { value: tickValue, priority: 2 }
+                // 2 * 10^x
+                else if (Math.fround(Math.log10(tickValue / 2)) % 1 === 0)
+                    return { value: tickValue, priority: 3 }
+                else
+                    return { value: tickValue, priority: 4, gridLineOnly: true }
+            })
 
-            for (let i = minPower10; i <= maxPower10; i++) {
-                ticks.push(Math.pow(10, i))
+            // Remove some tickmarks again because the chart would get too
+            // overwhelming otherwise
+            for (let prio = 4; prio > 1; prio--) {
+                if (ticks.length > maxLogLines) {
+                    ticks = ticks.filter(tick => tick.priority < prio)
+                }
             }
         } else {
-            ticks = d3_scale.ticks(6)
+            // Only use priority 2 here because we want the start / end ticks
+            // to be priority 1
+            ticks = d3_scale
+                .ticks(6)
+                .map(tickValue => ({ value: tickValue, priority: 2 }))
         }
 
-        if (this.hideFractionalTicks) ticks = ticks.filter(t => t % 1 === 0)
+        if (this.hideFractionalTicks)
+            ticks = ticks.filter(t => t.value % 1 === 0)
 
-        return ticks
+        return uniq(ticks)
     }
 
     getTickFormattingOptions(): TickFormattingOptions {
@@ -121,7 +153,9 @@ export class AxisScale {
         //
         // -@danielgavrilov, 2020-05-27
         const tickValues = this.getTickValues()
-        const minDist = min(rollingMap(tickValues, (a, b) => Math.abs(a - b)))
+        const minDist = min(
+            rollingMap(tickValues, (a, b) => Math.abs(a.value - b.value))
+        )
         if (minDist !== undefined) {
             // Find the decimal places required to reach the first non-zero digit
             const dp = Math.ceil(-Math.log10(minDist))
@@ -132,8 +166,8 @@ export class AxisScale {
 
     getFormattedTicks(): string[] {
         const options = this.getTickFormattingOptions()
-        return this.getTickValues().map(value =>
-            this.tickFormat(value, options)
+        return this.getTickValues().map(tickmark =>
+            this.tickFormat(tickmark.value, options)
         )
     }
 
