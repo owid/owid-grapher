@@ -228,16 +228,15 @@ export class ChartUrl implements ObservableUrl {
                     minTime,
                     !!chart.table.hasDayColumn
                 )
-            // It's not possible to have an unbounded right minTime or an unbounded left maxTime,
-            // because minTime <= maxTime and because the === case is addressed above.
-            // So the direction of the unbounded is unambiguous, and we can format it as an empty
-            // string.
-            const start = isUnbounded(minTime)
-                ? ""
-                : formatTimeURIComponent(minTime, !!chart.table.hasDayColumn)
-            const end = isUnbounded(maxTime)
-                ? ""
-                : formatTimeURIComponent(maxTime, !!chart.table.hasDayColumn)
+
+            const start = formatTimeURIComponent(
+                minTime,
+                !!chart.table.hasDayColumn
+            )
+            const end = formatTimeURIComponent(
+                maxTime,
+                !!chart.table.hasDayColumn
+            )
             return `${start}..${end}`
         } else {
             return undefined
@@ -277,15 +276,18 @@ export class ChartUrl implements ObservableUrl {
 
     setTimeFromTimeQueryParam(time: string) {
         const { chart } = this
-        // We want to support unbounded time parameters, so that time=2015.. extends from 2015
-        // to the latest year, and time=..2020 extends from earliest year to 2020. Also,
-        // time=.. extends from the earliest to latest available year.
+
+        // In the past we supported unbounded time parameters like time=2015.. which would be
+        // equivalent to time=2015..latest. We don't actively generate these kinds of URL any
+        // more because URLs ending with dots are not interpreted correctly by many services
+        // (Twitter, Facebook and others) - but we still want to recognize incoming requests
+        // for these "legacy" URLs!
         const reIntComponent = new RegExp("\\-?\\d+")
         const reIntRange = new RegExp(
-            `^(${reIntComponent.source})?\\.\\.(${reIntComponent.source})?$`
+            `^(${reIntComponent.source}|earliest)?\\.\\.(${reIntComponent.source}|latest)?$`
         )
         const reDateRange = new RegExp(
-            `^(${reISODateComponent.source})?\\.\\.(${reISODateComponent.source})?$`
+            `^(${reISODateComponent.source}|earliest)?\\.\\.(${reISODateComponent.source}|latest)?$`
         )
         if (reIntRange.test(time) || reDateRange.test(time)) {
             const [start, end] = time.split("..")
