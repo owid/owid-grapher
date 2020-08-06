@@ -830,7 +830,7 @@ export class CovidDataExplorer extends React.Component<{
         else covidExplorerTable.removeNegativeFilterColumn()
 
         // Do not show unselected groups on scatterplots
-        if (params.type === "ScatterPlot")
+        if (params.type === "ScatterPlot" && this.chart.tab === "chart")
             covidExplorerTable.addGroupFilterColumn()
         else covidExplorerTable.removeGroupFilterColumn()
 
