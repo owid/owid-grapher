@@ -38,8 +38,6 @@
         "live-commit": "yarn tsn scripts/liveCommit.ts"
     },
     "dependencies": {
-        "@emotion/core": "^10.0.10",
-        "@emotion/styled": "^10.0.12",
         "@fortawesome/fontawesome-svg-core": "^1.2.19",
         "@fortawesome/free-brands-svg-icons": "^5.9.0",
         "@fortawesome/free-regular-svg-icons": "^5.9.0",

@@ -35,7 +35,7 @@ module.exports = (env, argv) => {
         },
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".css"],
-            modules: [path.join(__dirname, "node_modules"), __dirname]
+            modules: ["node_modules", __dirname]
         },
         module: {
             rules: [
