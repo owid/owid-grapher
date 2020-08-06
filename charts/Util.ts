@@ -140,7 +140,7 @@ import { EPOCH_DATE } from "settings"
 import { SortOrder } from "./SortOrder"
 import { RelatedQuestionsConfig } from "./ChartConfig"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
-import { dsvFormat } from "d3"
+import { dsvFormat } from "d3-dsv"
 
 export type SVGElement = any
 export type VNode = any
