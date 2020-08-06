@@ -21,18 +21,13 @@ import {
     sortByUndefinedLast,
     first
 } from "charts/Util"
-import { CovidDataExplorer } from "./CovidDataExplorer"
-import { CountryOptionWithValue } from "./CovidTypes"
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
 import { Analytics } from "site/client/Analytics"
-import {
-    metricSpecs,
-    CountryPickerMetricSpec,
-    CountryPickerMetric
-} from "./CovidCountryPickerMetric"
+
 import { SortIcon } from "charts/SortIcon"
 import { toggleSort, SortOrder } from "charts/SortOrder"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
+import { AbstractColumn, OwidTable } from "./owidData/OwidTable"
 
 enum FocusDirection {
     first = "first",
@@ -41,17 +36,53 @@ enum FocusDirection {
     down = "down"
 }
 
+interface CountryOptionWithValue {
+    name: string
+    plotValue: number | string | undefined
+}
+
 /** Modulo that wraps negative numbers too */
 function mod(n: number, m: number) {
     return ((n % m) + m) % m
 }
 
+interface MetricState {
+    countryPickerMetric: string
+    countryPickerSort: SortOrder
+    selectedCountryCodes: Set<string>
+}
+
 @observer
 export class CountryPicker extends React.Component<{
-    covidDataExplorer: CovidDataExplorer
-    toggleCountryCommand: (countryCode: string, value?: boolean) => void
+    explorerName: string
+    table: OwidTable
+    optionColorMap: {
+        [key: string]: string | undefined
+    }
+    toggleCountryCommand: (countryName: string, value?: boolean) => void
+    clearSelectionCommand: () => void
+    availableEntities: string[]
+    selectedEntities: string[]
+    userState: MetricState
     isDropdownMenu?: boolean
+    countriesMustHaveColumns: string[]
+    pickerColumns: Set<string>
 }> {
+    // Set default props
+    static defaultProps = {
+        explorerName: "",
+        table: new OwidTable([]),
+        optionColorMap: {},
+        toggleCountryCommand: () => {},
+        clearSelectionCommand: () => {},
+        userState: {},
+        isDropdownMenu: false,
+        availableEntities: [],
+        selectedEntities: [],
+        countriesMustHaveColumns: [],
+        pickerColumns: new Set()
+    }
+
     @observable private searchInput?: string
     @observable private searchInputRef: React.RefObject<
         HTMLInputElement
@@ -75,71 +106,68 @@ export class CountryPicker extends React.Component<{
         return !!this.props.isDropdownMenu
     }
 
-    @action.bound private selectCountryCode(code: string, checked?: boolean) {
-        this.props.toggleCountryCommand(code, checked)
+    @action.bound private selectCountryName(name: string, checked?: boolean) {
+        this.props.toggleCountryCommand(name, checked)
         // Clear search input
         this.searchInput = ""
-        Analytics.logCovidCountrySelector(checked ? "select" : "deselect", code)
+        Analytics.logCountrySelectorEvent(
+            this.props.explorerName,
+            checked ? "select" : "deselect",
+            name
+        )
     }
 
-    @computed get metric(): CountryPickerMetric {
+    @computed get metric(): string {
         // On mobile, only allow sorting by location
-        if (this.isDropdownMenu) return CountryPickerMetric.location
-        return this.props.covidDataExplorer.props.params.countryPickerMetric
-    }
-
-    set metric(metric) {
-        this.props.covidDataExplorer.props.params.countryPickerMetric = metric
+        return this.props.userState.countryPickerMetric
     }
 
     @computed get sortOrder(): SortOrder {
         // On mobile, only allow sorting by location (ascending)
         if (this.isDropdownMenu) return SortOrder.asc
-        return this.props.covidDataExplorer.props.params.countryPickerSort
+        return this.props.userState.countryPickerSort
     }
 
-    set sortOrder(order) {
-        this.props.covidDataExplorer.props.params.countryPickerSort = order
+    @computed get availableColumns() {
+        return this.props.table.columnsAsArray.filter(col =>
+            this.props.pickerColumns.has(col.slug)
+        )
     }
 
     @computed get metricOptions() {
-        return Object.entries<CountryPickerMetricSpec>(metricSpecs).map(
-            ([key, spec]) => ({
-                label: spec.label,
-                value: key as CountryPickerMetric
-            })
+        return this.availableColumns.map(col => {
+            return {
+                label: col.spec.name,
+                value: col.slug
+            }
+        })
+    }
+
+    @computed get activeColumn(): AbstractColumn {
+        return this.availableColumns.find(col => col.slug === this.metric)!
+    }
+
+    @computed get availableCountriesForCurrentView() {
+        if (!this.props.countriesMustHaveColumns.length)
+            return this.props.table.availableEntitiesSet
+        return this.props.table.entitiesWith(
+            this.props.countriesMustHaveColumns
         )
     }
 
-    @computed get metricSpec(): CountryPickerMetricSpec {
-        return metricSpecs[this.metric]
-    }
-
-    @computed private get options(): CountryOptionWithValue[] {
-        return this.props.covidDataExplorer.countryOptions.map(option => ({
-            ...option,
-            plotValue: this.metricSpec.accessor(option)
+    @computed private get optionsWithMetricValue(): CountryOptionWithValue[] {
+        return this.props.availableEntities.map(name => ({
+            name,
+            plotValue: this.activeColumn?.getLatestValueForEntity(name)
         }))
     }
 
-    @computed private get selectedOptions(): CountryOptionWithValue[] {
-        return this.options.filter(option =>
-            this.props.covidDataExplorer.props.params.selectedCountryCodes.has(
-                option.code
-            )
-        )
-    }
-
-    @computed private get optionColorMap() {
-        return this.props.covidDataExplorer.countryCodeToColorMap
-    }
-
     @bind private isSelected(option: CountryOptionWithValue) {
-        return this.selectedOptions.includes(option)
+        return this.props.selectedEntities.includes(option.name)
     }
 
     @computed private get fuzzy(): FuzzySearch<CountryOptionWithValue> {
-        return new FuzzySearch(this.options, "name")
+        return new FuzzySearch(this.optionsWithMetricValue, "name")
     }
 
     @computed private get searchResults(): CountryOptionWithValue[] {
@@ -148,24 +176,24 @@ export class CountryPicker extends React.Component<{
         }
         // Show the selected up top and in order.
         const [selected, unselected] = partition(
-            sortByUndefinedLast(this.options, r => r.plotValue, this.sortOrder),
+            sortByUndefinedLast(
+                this.optionsWithMetricValue,
+                option => option.plotValue,
+                this.sortOrder
+            ),
             this.isSelected
         )
         return [...selected, ...unselected]
     }
 
-    @computed private get focusableOptions(): CountryOptionWithValue[] {
-        return this.searchResults
-    }
-
     private normalizeFocusIndex(index: number): number | undefined {
-        if (this.focusableOptions.length === 0) return undefined
-        return mod(index, this.focusableOptions.length)
+        if (this.searchResults.length === 0) return undefined
+        return mod(index, this.searchResults.length)
     }
 
-    @computed private get focusedOption(): CountryOptionWithValue | undefined {
+    @computed private get focusedOption(): string | undefined {
         return this.focusIndex !== undefined
-            ? this.focusableOptions[this.focusIndex]
+            ? this.searchResults[this.focusIndex].name
             : undefined
     }
 
@@ -213,10 +241,14 @@ export class CountryPicker extends React.Component<{
                     break
                 }
                 if (!this.focusedOption) return
-                const { code } = this.focusedOption
-                this.selectCountryCode(code)
+                const name = this.focusedOption
+                this.selectCountryName(name)
                 this.clearSearchInput()
-                Analytics.logCovidCountrySelector("enter", code)
+                Analytics.logCountrySelectorEvent(
+                    this.props.explorerName,
+                    "enter",
+                    name
+                )
                 break
             case "ArrowUp":
                 this.focusOptionDirection(FocusDirection.up)
@@ -241,9 +273,7 @@ export class CountryPicker extends React.Component<{
         }
     }
 
-    @action.bound private onSearchBlur(
-        event: React.FocusEvent<HTMLInputElement>
-    ) {
+    @action.bound private onSearchBlur() {
         // Do not allow focus on elements inside menu; shift focus back to search input.
         if (
             this.scrollContainerRef.current &&
@@ -256,10 +286,7 @@ export class CountryPicker extends React.Component<{
         this.focusIndex = undefined
     }
 
-    @action.bound private onHover(
-        option: CountryOptionWithValue,
-        index: number
-    ) {
+    @action.bound private onHover(index: number) {
         if (!this.blockOptionHover) {
             this.focusIndex = index
         }
@@ -319,7 +346,9 @@ export class CountryPicker extends React.Component<{
 
     @computed get barScale() {
         const maxValue = max(
-            this.options.map(option => option.plotValue).filter(isNumber)
+            this.optionsWithMetricValue
+                .map(option => option.plotValue)
+                .filter(isNumber)
         )
         return scaleLinear()
             .domain([0, maxValue ?? 1])
@@ -353,23 +382,72 @@ export class CountryPicker extends React.Component<{
         }
     }
 
-    @action updateMetric(value: CountryPickerMetric) {
-        this.sortOrder = value === "location" ? SortOrder.asc : SortOrder.desc
-        this.metric = value
-        Analytics.logCovidCountrySelector("sortBy", value)
+    @action updateMetric(value: string) {
+        this.props.userState.countryPickerMetric = value
+        Analytics.logCountrySelectorEvent(
+            this.props.explorerName,
+            "sortBy",
+            value
+        )
+    }
+
+    get pickerMenu() {
+        return (
+            !this.isDropdownMenu &&
+            this.props.pickerColumns.size > 0 && (
+                <div className="MetricSettings">
+                    <span className="mainLabel">Sort by</span>
+                    <Select
+                        className="metricDropdown"
+                        options={this.metricOptions}
+                        value={this.metricOptions.find(
+                            option => option.value === this.metric
+                        )}
+                        onChange={option => {
+                            const value = first(asArray(option))?.value
+                            if (value) this.updateMetric(value)
+                        }}
+                        menuPlacement="bottom"
+                        components={{
+                            IndicatorSeparator: null
+                        }}
+                        styles={getStylesForTargetHeight(26)}
+                        isSearchable={false}
+                    />
+                    <span
+                        className="sort"
+                        onClick={() => {
+                            const sortOrder = toggleSort(this.sortOrder)
+                            this.props.userState.countryPickerSort = sortOrder
+                            Analytics.logCountrySelectorEvent(
+                                this.props.explorerName,
+                                "sortOrder",
+                                sortOrder
+                            )
+                        }}
+                    >
+                        <SortIcon
+                            type={
+                                this.metric === "location" ? "text" : "numeric"
+                            }
+                            order={this.sortOrder}
+                        />
+                    </span>
+                </div>
+            )
+        )
     }
 
     render() {
         const countries = this.searchResults
-        const selectedCountries = this.selectedOptions
-        const availableCountries = this.props.covidDataExplorer
-            .availableCountriesForMetric
+        const selectedCountries = this.props.selectedEntities
+        const availableCountries = this.availableCountriesForCurrentView
 
-        const selectedDebugMessage = `${selectedCountries.length} selected. ${availableCountries.size} available. ${this.options.length} options total.`
+        const selectedDebugMessage = `${selectedCountries.length} selected. ${availableCountries.size} available. ${this.optionsWithMetricValue.length} options total.`
 
         return (
             <div className="CountryPicker" onKeyDown={this.onKeyDown}>
-                <div className="CovidSearchInput">
+                <div className="CountryPickerSearchInput">
                     <input
                         className={classnames("input-field", {
                             "with-done-button": this.showDoneButton
@@ -383,7 +461,7 @@ export class CountryPicker extends React.Component<{
                         onFocus={this.onSearchFocus}
                         onBlur={this.onSearchBlur}
                         ref={this.searchInputRef}
-                        data-track-note="covid-country-search-input"
+                        data-track-note={`${this.props.explorerName}-country-search-input`}
                     />
                     <div className="search-icon">
                         <FontAwesomeIcon icon={faSearch} />
@@ -394,48 +472,7 @@ export class CountryPicker extends React.Component<{
                         </div>
                     )}
                 </div>
-                {!this.isDropdownMenu && (
-                    <div className="MetricSettings">
-                        <span className="mainLabel">Sort by</span>
-                        <Select
-                            className="metricDropdown"
-                            options={this.metricOptions}
-                            value={this.metricOptions.find(
-                                option => option.value === this.metric
-                            )}
-                            onChange={option => {
-                                const value = first(asArray(option))?.value
-                                if (value) this.updateMetric(value)
-                            }}
-                            menuPlacement="bottom"
-                            components={{
-                                IndicatorSeparator: null
-                            }}
-                            styles={getStylesForTargetHeight(26)}
-                            isSearchable={false}
-                        />
-                        <span
-                            className="sort"
-                            onClick={() => {
-                                const sortOrder = toggleSort(this.sortOrder)
-                                this.sortOrder = sortOrder
-                                Analytics.logCovidCountrySelector(
-                                    "sortOrder",
-                                    sortOrder
-                                )
-                            }}
-                        >
-                            <SortIcon
-                                type={
-                                    this.metric === "location"
-                                        ? "text"
-                                        : "numeric"
-                                }
-                                order={this.sortOrder}
-                            />
-                        </span>
-                    </div>
-                )}
+                {this.pickerMenu}
                 <div className="CountryListContainer">
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
@@ -461,27 +498,24 @@ export class CountryPicker extends React.Component<{
                                     }}
                                     // We only want to animate when the selection changes, but not on changes due to
                                     // searching
-                                    flipKey={selectedCountries
-                                        .map(s => s.name)
-                                        .join(",")}
+                                    flipKey={selectedCountries.join(",")}
                                 >
                                     {countries.map((option, index) => (
-                                        <CovidCountryOption
+                                        <PickerOption
                                             key={index}
                                             hasDataForActiveMetric={availableCountries.has(
                                                 option.name
                                             )}
                                             option={option}
-                                            metricOptions={this.metricSpec}
                                             highlight={this.highlightLabel}
                                             barScale={this.barScale}
                                             color={
-                                                this.optionColorMap[option.code]
+                                                this.props.optionColorMap[
+                                                    option.name
+                                                ]
                                             }
-                                            onChange={this.selectCountryCode}
-                                            onHover={() =>
-                                                this.onHover(option, index)
-                                            }
+                                            onChange={this.selectCountryName}
+                                            onHover={() => this.onHover(index)}
                                             isSelected={this.isSelected(option)}
                                             isFocused={
                                                 this.focusIndex === index
@@ -499,11 +533,8 @@ export class CountryPicker extends React.Component<{
                                 <div
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
-                                    data-track-note="covid-clear-selection"
-                                    onClick={
-                                        this.props.covidDataExplorer
-                                            .clearSelectionCommand
-                                    }
+                                    data-track-note={`${this.props.explorerName}-clear-selection`}
+                                    onClick={this.props.clearSelectionCommand}
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear
                                     selection
@@ -517,11 +548,10 @@ export class CountryPicker extends React.Component<{
     }
 }
 
-interface CovidCountryOptionProps {
+interface CountryOptionProps {
     option: CountryOptionWithValue
-    metricOptions: CountryPickerMetricSpec
     highlight: (label: string) => JSX.Element | string
-    onChange: (code: string, checked: boolean) => void
+    onChange: (name: string, checked: boolean) => void
     onHover?: () => void
     innerRef?: React.RefObject<HTMLLabelElement>
     isFocused?: boolean
@@ -531,11 +561,11 @@ interface CovidCountryOptionProps {
     hasDataForActiveMetric: boolean
 }
 
-class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
+class PickerOption extends React.Component<CountryOptionProps> {
     @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>) {
         event.stopPropagation()
         event.preventDefault()
-        this.props.onChange(this.props.option.code, !this.props.isSelected)
+        this.props.onChange(this.props.option.name, !this.props.isSelected)
     }
 
     render() {
@@ -568,7 +598,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                         <input
                             type="checkbox"
                             checked={isSelected}
-                            value={option.code}
+                            value={option.name}
                             tabIndex={-1}
                             readOnly
                         />
@@ -577,11 +607,7 @@ class CovidCountryOption extends React.Component<CovidCountryOptionProps> {
                         <div className="labels-container">
                             <div className="name">{highlight(option.name)}</div>
                             {option.plotValue !== undefined && (
-                                <div className="metric">
-                                    {this.props.metricOptions.formatValue(
-                                        option.plotValue
-                                    )}
-                                </div>
+                                <div className="metric">{option.plotValue}</div>
                             )}
                         </div>
                         {barScale && isNumber(option.plotValue) ? (

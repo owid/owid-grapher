@@ -877,6 +877,7 @@ export function oneOf<T>(value: any, options: T[], defaultOption: T): T {
 export function intersectionOfSets<T>(sets: Set<T>[]) {
     if (!sets.length) return new Set<T>()
     const intersection = new Set<T>(sets[0])
+
     sets.slice(1).forEach(set => {
         for (const elem of intersection) {
             if (!set.has(elem)) {

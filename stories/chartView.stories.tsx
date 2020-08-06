@@ -83,6 +83,7 @@ class ChartStoryView extends React.Component {
             } as ChartConfigProps,
             {}
         )
+
         chart.receiveData(chartViewData as any)
 
         return (

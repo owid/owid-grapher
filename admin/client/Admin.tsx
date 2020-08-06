@@ -46,6 +46,8 @@ export class Admin {
         return this.currentRequests.length > 0
     }
 
+    @observable showLoadingIndicator = true
+
     start(containerNode: HTMLElement) {
         ReactDOM.render(<AdminApp admin={this} />, containerNode)
     }

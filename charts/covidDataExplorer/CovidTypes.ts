@@ -21,8 +21,6 @@ export const intervalOptions: IntervalOption[] = [
     "biweeklyChange"
 ]
 
-export declare type countrySlug = string
-
 export declare type colorScaleOption = "continents" | "ptr" | "none"
 
 export declare type MetricKind =
@@ -87,16 +85,15 @@ export interface CovidGrapherRow extends ParsedCovidCsvRow {
     day: number
 }
 
-export interface CountryOption {
-    name: string
-    slug: countrySlug
-    code: string
-    continent: string
-    population: number
-    entityId: number
-    rows: ParsedCovidCsvRow[]
-}
-
-export type CountryOptionWithValue = CountryOption & {
-    plotValue: number | string | undefined
+export enum CovidCountryPickerMetric {
+    location = "location",
+    population = "population",
+    population_density = "population_density",
+    median_age = "median_age",
+    aged_65_older = "aged_65_older",
+    aged_70_older = "aged_70_older",
+    gdp_per_capita = "gdp_per_capita",
+    extreme_poverty = "extreme_poverty",
+    hospital_beds_per_thousand = "hospital_beds_per_thousand",
+    tests_per_case = "tests_per_case"
 }

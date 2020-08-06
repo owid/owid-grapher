@@ -15,9 +15,9 @@ import {
     colorScaleOption,
     MetricKind,
     IntervalOption,
-    intervalOptions
+    intervalOptions,
+    CovidCountryPickerMetric
 } from "./CovidTypes"
-import { CountryPickerMetric } from "./CovidCountryPickerMetric"
 import { ChartTypeType } from "charts/ChartType"
 import { trajectoryColumnSpecs } from "./CovidConstants"
 import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
@@ -60,8 +60,8 @@ export class CovidQueryParams {
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
-    @observable countryPickerMetric: CountryPickerMetric =
-        CountryPickerMetric.location
+    @observable countryPickerMetric: CovidCountryPickerMetric =
+        CovidCountryPickerMetric.location
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
     @observable interval: IntervalOption = "daily"
@@ -142,9 +142,9 @@ export class CovidQueryParams {
         }
 
         if (params.pickerMetric) {
-            const metric = oneOf<CountryPickerMetric | undefined>(
+            const metric = oneOf<CovidCountryPickerMetric | undefined>(
                 params.pickerMetric,
-                Object.values(CountryPickerMetric),
+                Object.values(CovidCountryPickerMetric),
                 undefined
             )
             if (metric) this.countryPickerMetric = metric

@@ -30,6 +30,7 @@ import {
 import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
+import { ExplorerCreatePage } from "admin/client/ExplorerCreatePage"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -77,7 +78,9 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
 class AdminLoader extends React.Component<{ admin: Admin }> {
     render() {
         const { admin } = this.props
-        return admin.isLoading ? <LoadingBlocker /> : null
+        return admin.isLoading && admin.showLoadingIndicator ? (
+            <LoadingBlocker />
+        ) : null
     }
 }
 
@@ -126,6 +129,11 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 exact
                                 path="/charts"
                                 component={ChartIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/explorers/create"
+                                component={ExplorerCreatePage}
                             />
                             <Route
                                 exact

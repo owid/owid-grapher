@@ -736,7 +736,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         if (columnSlugs.length === 1)
             return this.columnsBySlug.get(columnSlugs[0])!.entityNamesUniq
 
-        return intersectionOfSets(
+        return intersectionOfSets<string>(
             columnSlugs.map(
                 slug => this.columnsBySlug.get(slug)?.entityNamesUniq!
             )
