@@ -870,7 +870,7 @@ export function intersectionOfSets<T>(sets: Set<T>[]) {
     if (!sets.length) return new Set<T>()
     const intersection = new Set<T>(sets[0])
     sets.slice(1).forEach(set => {
-        for (let elem of intersection) {
+        for (const elem of intersection) {
             if (!set.has(elem)) {
                 intersection.delete(elem)
             }
