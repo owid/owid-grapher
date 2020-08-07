@@ -219,6 +219,11 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
                 )}
             >
                 {scale.getTickValues().map((t, i) => {
+                    const color = t.faint
+                        ? "#eee"
+                        : t.value === 0
+                        ? "#ccc"
+                        : "#d3d3d3"
                     if (orient === "left")
                         return (
                             <line
@@ -227,7 +232,7 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
                                 y1={scale.place(t.value)}
                                 x2={bounds.right.toFixed(2)}
                                 y2={scale.place(t.value)}
-                                stroke={t.value === 0 ? "#ccc" : "#ddd"}
+                                stroke={color}
                                 strokeDasharray={
                                     t.value !== 0 ? "3,2" : undefined
                                 }
@@ -241,7 +246,7 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
                                 y1={bounds.bottom.toFixed(2)}
                                 x2={scale.place(t.value)}
                                 y2={bounds.top.toFixed(2)}
-                                stroke={t.value === 0 ? "#ccc" : "#ddd"}
+                                stroke={color}
                                 strokeDasharray={
                                     t.value !== 0 ? "3,2" : undefined
                                 }

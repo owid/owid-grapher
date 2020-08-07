@@ -17,6 +17,7 @@ export type ScaleType = "linear" | "log"
 export interface Tickmark {
     value: number
     priority: number
+    faint?: boolean
     gridLineOnly?: boolean
     isFirstOrLastTick?: boolean
 }
@@ -83,11 +84,10 @@ export class AxisScale {
         return Math.min(this.range[1], this.range[0])
     }
 
-    // When this is a log axis, only show so many grid lines because otherwise
-    // the chart would get too overwhelming. Different for mobile because screens
-    // are usually smaller.
+    // When this is a log axis, only show so many grid lines because otherwise the chart would get
+    // too overwhelming. Different for mobile because screens are usually smaller.
     @computed get maxLogLines() {
-        return isMobile() ? 9 : 11
+        return isMobile() ? 8 : 10
     }
 
     getTickValues(): Tickmark[] {
@@ -95,6 +95,33 @@ export class AxisScale {
 
         let ticks: Tickmark[]
         if (scaleType === "log") {
+            // This is a wild heuristic that decides how many tick lines and grid lines we want to
+            // show for log charts.
+            //
+            // It tries to achive multiple goals:
+            // * make it obvious for the user which values they're looking at
+            // * ideally, make it very clear that this is a log axis by looking like log paper
+            // * (but) don't overwhelm the user
+            // * avoid cases where only one tick is shown for the whole axis (we had those!)
+            //
+            // This code roughly works as follows:
+            // First, we let d3 generate ticks for the axis. d3 gives values of the form `y * 10^x`,
+            // with 0 < y < 10.
+            // We then assign priorities to these values:
+            // * priority 1 (highest) to values of the form `1 * 10^x` (e.g. 100)
+            // * priority 2 to values of the form `2 * 10^x` or `5 * 10^x` (e.g. 5, 2000)
+            // * priority 3 (lowest) to all other ("in-between") values (e.g. 70, 300)
+            //
+            // We then decide depending on the number of tick candidates what to do:
+            // * if we have less than `maxLogLines`, just show all
+            // * if we have betwenn `maxLogLines` and `2 * maxLogLines`, show all "in-between" lines
+            //   as faint grid lines without labels to give the chart that log paper look.
+            //   We also show all priority 1 and 2 lines with labels, because there aren't too many
+            //   of them.
+            // * otherwise, remove priority 3 and, if necessary, priority 2 labels until we're below
+            //   `maxLogLines` labels overall
+            //
+            // -@MarcelGerber, 2020-08-07
             const tickCandidates = d3_scale.ticks(maxLogLines)
             ticks = tickCandidates.map(tickValue => {
                 // 10^x
@@ -106,18 +133,25 @@ export class AxisScale {
                 // 2 * 10^x
                 else if (Math.fround(Math.log10(tickValue / 2)) % 1 === 0)
                     return { value: tickValue, priority: 2 }
-                else
-                    return {
-                        value: tickValue,
-                        priority: 4
-                    }
+                else return { value: tickValue, priority: 3 }
             })
 
-            // Remove some tickmarks again because the chart would get too
-            // overwhelming otherwise
-            for (let prio = 4; prio > 1; prio--) {
-                if (ticks.length > maxLogLines) {
-                    ticks = ticks.filter(tick => tick.priority < prio)
+            if (ticks.length > maxLogLines) {
+                if (ticks.length <= 2 * maxLogLines) {
+                    // Convert all "in-between" lines to faint grid lines without labels
+                    ticks = ticks.map(tick => {
+                        if (tick.priority === 3)
+                            tick = { ...tick, faint: true, gridLineOnly: true }
+                        return tick
+                    })
+                } else {
+                    // Remove some tickmarks again because the chart would get too overwhelming
+                    // otherwise
+                    for (let prio = 3; prio > 1; prio--) {
+                        if (ticks.length > maxLogLines) {
+                            ticks = ticks.filter(tick => tick.priority < prio)
+                        }
+                    }
                 }
             }
         } else {
