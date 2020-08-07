@@ -12,6 +12,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons/faUser"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faNewspaper } from "@fortawesome/free-solid-svg-icons/faNewspaper"
+import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 
 export const AdminSidebar = () => (
     <aside className="AdminSidebar">
@@ -68,6 +69,11 @@ export const AdminSidebar = () => (
                 <Link to="/test">
                     <FontAwesomeIcon icon={faEye} /> Test
                 </Link>
+            </li>
+            <li>
+                <a href="/admin/storybook" target="storybook">
+                    <FontAwesomeIcon icon={faBook} /> Storybook
+                </a>
             </li>
             <li className="header">UTILITIES</li>
             <li>
