@@ -87,7 +87,7 @@ export class AxisScale {
     // the chart would get too overwhelming. Different for mobile because screens
     // are usually smaller.
     @computed get maxLogLines() {
-        return isMobile() ? 15 : 20
+        return isMobile() ? 9 : 11
     }
 
     getTickValues(): Tickmark[] {
@@ -95,7 +95,8 @@ export class AxisScale {
 
         let ticks: Tickmark[]
         if (scaleType === "log") {
-            ticks = d3_scale.ticks(maxLogLines).map(tickValue => {
+            const tickCandidates = d3_scale.ticks(maxLogLines)
+            ticks = tickCandidates.map(tickValue => {
                 // 10^x
                 if (Math.fround(Math.log10(tickValue)) % 1 === 0)
                     return { value: tickValue, priority: 1 }
@@ -104,9 +105,12 @@ export class AxisScale {
                     return { value: tickValue, priority: 2 }
                 // 2 * 10^x
                 else if (Math.fround(Math.log10(tickValue / 2)) % 1 === 0)
-                    return { value: tickValue, priority: 3 }
+                    return { value: tickValue, priority: 2 }
                 else
-                    return { value: tickValue, priority: 4, gridLineOnly: true }
+                    return {
+                        value: tickValue,
+                        priority: 4
+                    }
             })
 
             // Remove some tickmarks again because the chart would get too
