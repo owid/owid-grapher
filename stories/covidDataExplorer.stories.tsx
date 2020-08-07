@@ -57,18 +57,3 @@ export const MultiMetricExplorer = () => {
         />
     )
 }
-
-export const MultiMetricExplorerPerCapita = () => {
-    const startingParams = new CovidQueryParams(
-        "?tab=table&tableMetrics=cases~deaths~tests~tests_per_case~case_fatality_rate~positive_test_rate"
-    )
-    return (
-        <CovidDataExplorer
-            data={covidSampleRows}
-            params={startingParams}
-            queryStr="?tab=table&time=2020-05-06"
-            covidChartAndVariableMeta={EMPTY_DUMMY_META}
-            updated="2020-05-09T18:59:31"
-        />
-    )
-}
