@@ -5,7 +5,7 @@ import * as util from "util"
 import { JsonError, filenamify, exec } from "utils/server/serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
-import { GIT_DATASETS_DIR, TMP_DIR } from "serverSettings"
+import { GIT_DATASETS_DIR, TMP_DIR, GIT_CONTENT_DIR } from "serverSettings"
 import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL } from "settings"
 import * as db from "db/db"
 
@@ -21,6 +21,25 @@ async function execFormatted(cmd: string, args: string[]) {
     const formatCmd = util.format(cmd, ...args.map(s => quote([s])))
     console.log(formatCmd)
     await exec(formatCmd)
+}
+
+export async function saveFileToGitContentDirectory(
+    filename: string,
+    content: string,
+    commitName: string,
+    commitEmail: string
+) {
+    const path = GIT_CONTENT_DIR + filename
+    const isNew = fs.existsSync(path)
+    await fs.writeFile(path, content, "utf8")
+    await execFormatted(
+        `cd %s && (git diff-index --quiet HEAD || (git commit -m ${
+            isNew ? "Adding" : "Updating"
+        } ${filename} --quiet --author="${commitName ||
+            GIT_DEFAULT_USERNAME} <${commitEmail ||
+            GIT_DEFAULT_EMAIL}>" && git push))`,
+        [GIT_CONTENT_DIR]
+    )
 }
 
 export async function removeDatasetFromGitRepo(

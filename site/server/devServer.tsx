@@ -19,9 +19,7 @@ import {
     renderExplorableIndicatorsJson,
     renderCovidPage,
     renderCovidDataExplorerPage,
-    countryProfileCountryPage,
-    renderSwitcherDataExplorerPage,
-    switcherExplorerForm
+    countryProfileCountryPage
 } from "site/server/siteBaking"
 import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
 import {
@@ -46,6 +44,10 @@ import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
+import {
+    renderSwitcherDataExplorerPage,
+    switcherExplorerForm
+} from "./DataExplorerBaker"
 
 const devServer = express()
 devServer.use(express.urlencoded())
@@ -128,9 +130,13 @@ devServer.get(`/custom-data-explorer`, async (req, res) => {
     res.send(switcherExplorerForm())
 })
 
-devServer.post(`/custom-data-explorer`, async (req, res) => {
+devServer.post(`/data-explorer-preview`, async (req, res) => {
     res.send(
-        await renderSwitcherDataExplorerPage(req.body.title, req.body.code)
+        await renderSwitcherDataExplorerPage(
+            req.body.title,
+            req.body.code,
+            "data-explorer-preview"
+        )
     )
 })
 

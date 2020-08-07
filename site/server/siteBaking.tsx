@@ -40,13 +40,11 @@ import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "charts/Indicator"
 import {
     CovidDataExplorerPage,
-    CovidDataExplorerPageProps,
-    SwitcherDataExplorerPage
+    CovidDataExplorerPageProps
 } from "./views/DataExplorerPages"
 import { getCountry, Country } from "utils/countries"
 import { memoize } from "charts/Util"
 import { CountryProfileSpec } from "site/client/CountryProfileConstants"
-import { SwitcherOptions } from "charts/SwitcherOptions"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {
@@ -100,36 +98,6 @@ export async function renderCovidDataExplorerPage(
     props?: CovidDataExplorerPageProps
 ) {
     return renderToHtmlPage(<CovidDataExplorerPage {...props} />)
-}
-
-export const switcherExplorerForm = () =>
-    renderToHtmlPage(
-        <form method="POST">
-            <input type="text" placeholder="Title" name="title" />
-            <br />
-            <textarea name="code" placeholder="Code"></textarea>
-            <br />
-            <input type="submit" />
-        </form>
-    )
-
-export async function renderSwitcherDataExplorerPage(
-    title: string,
-    switcherCode: string
-) {
-    const chartIds = SwitcherOptions.getRequiredChartIds(switcherCode)
-    const chartConfigs: any[] = await db.query(
-        `SELECT config FROM charts WHERE id IN (?)`,
-        [chartIds]
-    )
-
-    return renderToHtmlPage(
-        <SwitcherDataExplorerPage
-            title={title}
-            switcherCode={switcherCode}
-            chartConfigs={chartConfigs.map(row => JSON.parse(row.config))}
-        />
-    )
 }
 
 export async function renderExplorableIndicatorsJson() {

@@ -9,7 +9,12 @@ import * as db from "db/db"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
-import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
+import {
+    BASE_DIR,
+    BAKED_SITE_DIR,
+    WORDPRESS_DIR,
+    GIT_CONTENT_DIR
+} from "serverSettings"
 const { BLOG_POSTS_PER_PAGE, OPTIMIZE_SVG_EXPORTS } = settings
 import {
     renderToHtmlPage,
@@ -59,6 +64,7 @@ import {
     countryProfileSpecs,
     co2CountryProfileRootPath
 } from "site/client/CountryProfileConstants"
+import { bakeAllPublishedExplorers } from "./DataExplorerBaker"
 
 // Static site generator using Wordpress
 
@@ -328,6 +334,7 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/sitemap.xml`,
             await makeSitemap()
         )
+
         if (settings.EXPLORER) {
             await this.stageWrite(
                 `${BAKED_SITE_DIR}/explore.html`,
@@ -348,6 +355,8 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/${covidChartAndVariableMetaFilename}`,
             await bakeCovidChartAndVariableMeta()
         )
+
+        await bakeAllPublishedExplorers()
     }
 
     // Pages that are expected by google scholar for indexing

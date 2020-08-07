@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
-
+import * as fs from "fs-extra"
 import * as express from "express"
 import { Router } from "express"
 import * as _ from "lodash"
@@ -8,7 +8,11 @@ import * as bodyParser from "body-parser"
 
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import { UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE } from "serverSettings"
+import {
+    UNCATEGORIZED_TAG_ID,
+    BAKE_ON_CHANGE,
+    GIT_CONTENT_DIR
+} from "serverSettings"
 import {
     JsonError,
     expectInt,
@@ -26,7 +30,8 @@ import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
 import {
     syncDatasetToGitRepo,
-    removeDatasetFromGitRepo
+    removeDatasetFromGitRepo,
+    saveFileToGitContentDirectory
 } from "admin/server/gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
@@ -618,6 +623,16 @@ api.post("/charts/:chartId/star", async (req: Request, res: Response) => {
 api.post("/charts", async (req: Request, res: Response) => {
     const chartId = await saveChart(res.locals.user, req.body)
     return { success: true, chartId: chartId }
+})
+
+api.post("/content", async (req: Request, res: Response) => {
+    await saveFileToGitContentDirectory(
+        req.body.filename,
+        req.body.content,
+        res.locals.user.fullName,
+        res.locals.user.email
+    )
+    return { success: true }
 })
 
 api.post("/charts/:chartId/setTags", async (req: Request, res: Response) => {

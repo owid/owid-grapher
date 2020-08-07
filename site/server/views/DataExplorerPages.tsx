@@ -59,6 +59,7 @@ const DataExplorerPage = (props: DataExplorerPageSettings) => {
 
 interface SwitcherDataExplorerPageProps {
     title: string
+    slug: string
     switcherCode: string
     chartConfigs: ChartConfigProps[]
 }
@@ -75,7 +76,7 @@ window.SwitcherDataExplorer.bootstrap(document.getElementById("dataExplorerConta
     return (
         <DataExplorerPage
             title={props.title}
-            slug="custom-data-explorer"
+            slug={props.slug}
             imagePath=""
             preloads={[]}
             inlineJs={script}

@@ -21,3 +21,4 @@ coverage/
 public/head.txt
 public/covidChartAndVariableMeta.json
 .storybook/build
+owid-content/
