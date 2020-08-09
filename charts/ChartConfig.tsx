@@ -699,12 +699,9 @@ export class ChartConfig {
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     set tab(value) {
-        if (this.props.tab === "chart" && value === "table")
+        if (this.props.tab === "chart")
             this.chartMinPopulationFilter = this.props.minPopulationFilter
-        if (
-            this.props.tab === "table" &&
-            (value === "chart" || value === "map")
-        )
+        if (this.props.tab === "table" && value !== "table")
             this.revertDataTableSpecificState()
 
         if (value === "chart" || value === "map" || value === "table") {
