@@ -78,7 +78,7 @@ export const GIT_DATASETS_DIR: string =
 export const TMP_DIR: string = process.env.TMP_DIR || "/tmp"
 
 export const GIT_CONTENT_DIR: string =
-    process.env.GIT_CONTENT_DIR || path.join(BASE_DIR, "owid-content")
+    process.env.GIT_CONTENT_DIR || path.join(BASE_DIR, "/../owid-content")
 
 export const UNCATEGORIZED_TAG_ID: number = process.env.UNCATEGORIZED_TAG_ID
     ? parseInt(process.env.UNCATEGORIZED_TAG_ID as any)
