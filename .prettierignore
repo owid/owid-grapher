@@ -6,3 +6,4 @@ package.json
 test/fixtures
 covidChartAndVariableMeta.json
 .storybook/build
+owid-content/
