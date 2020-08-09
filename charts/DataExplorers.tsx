@@ -263,8 +263,6 @@ export class SwitcherDataExplorer extends React.Component<{
         this._chart = new ChartConfig(props)
         this._chart.url.populateFromQueryParams(params)
 
-        console.log(this._chart)
-
         when(
             () => this._chart!.isReady,
             () => {

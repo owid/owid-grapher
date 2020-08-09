@@ -112,6 +112,7 @@ class ChartRow extends React.Component<{
                         </div>
                     )}
                 </td>
+                <td style={{ minWidth: "100px" }}>{chart.id}</td>
                 <td style={{ minWidth: "100px" }}>{showChartType(chart)}</td>
                 <td style={{ minWidth: "340px" }}>
                     <EditableTags
@@ -227,6 +228,7 @@ export class ChartList extends React.Component<{
                     <tr>
                         <th></th>
                         <th>Chart</th>
+                        <th>Id</th>
                         <th>Type</th>
                         <th>Tags</th>
                         <th>Published</th>

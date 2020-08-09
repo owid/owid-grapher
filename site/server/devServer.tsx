@@ -44,13 +44,9 @@ import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
-import {
-    renderSwitcherDataExplorerPage,
-    switcherExplorerForm
-} from "./DataExplorerBaker"
 
 const devServer = express()
-devServer.use(express.urlencoded())
+devServer.use(express.urlencoded({ extended: true }))
 devServer.use(express.json())
 
 devServer.get("/sitemap.xml", async (req, res) => {
@@ -124,20 +120,6 @@ devServer.get("/explore", async (req, res) => {
 
 devServer.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidDataExplorerPage())
-})
-
-devServer.get(`/custom-data-explorer`, async (req, res) => {
-    res.send(switcherExplorerForm())
-})
-
-devServer.post(`/data-explorer-preview`, async (req, res) => {
-    res.send(
-        await renderSwitcherDataExplorerPage(
-            req.body.title,
-            req.body.code,
-            "data-explorer-preview"
-        )
-    )
 })
 
 devServer.get(

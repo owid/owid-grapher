@@ -6,33 +6,47 @@ import { SwitcherDataExplorer } from "charts/DataExplorers"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { parseDelimited, toJsTable } from "charts/Util"
-import { SwitcherOptions } from "charts/SwitcherOptions"
+import { jsTableToDelimited, trimTable, JsTable } from "charts/Util"
 import Draggable from "react-draggable"
 import { faArrowsAlt } from "@fortawesome/free-solid-svg-icons/faArrowsAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import classNames from "classnames"
-
-const defaultConfig = `chartId,Device
-35,Internet
-46,Mobile`
+import { DataExplorerProgram } from "site/server/DataExplorerProgram"
+import { readRemoteFile, writeRemoteFile } from "./OwidContent"
+import { Prompt } from "react-router-dom"
 
 @observer
-export class ExplorerCreatePage extends React.Component {
+export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
+    @action
     componentDidMount() {
-        this.context.admin.showLoadingIndicator = false
-        this.updateConfig()
+        this.context.admin.loadingIndicatorSetting = "off"
+        this.fetchDataExplorerProgramOnLoad()
+        const win = window as any
+        win.DataExplorerProgram = DataExplorerProgram
     }
 
+    @action
     componentWillUnmount() {
-        this.context.admin.showLoadingIndicator = true
+        this.context.admin.loadingIndicatorSetting = "default"
     }
 
-    @computed get chartIds() {
-        return SwitcherOptions.getRequiredChartIds(this.switcherCode)
+    @action.bound async fetchDataExplorerProgramOnLoad() {
+        const content = await readRemoteFile(
+            DataExplorerProgram.fullPath(this.props.slug)
+        )
+        this.sourceOnDisk = content
+        this.setProgram(content)
+    }
+
+    @action.bound setProgram(code: string) {
+        this.dataExplorerProgram = new DataExplorerProgram(
+            this.dataExplorerProgram.slug,
+            code
+        )
+        this.fetchChartConfigs(this.dataExplorerProgram.requiredChartIds)
     }
 
     @action.bound async fetchChartConfigs(chartIds: number[]) {
@@ -54,71 +68,102 @@ export class ExplorerCreatePage extends React.Component {
     hotTableComponent = React.createRef<HotTable>()
 
     @action.bound updateConfig() {
-        const newVersion = this.hotTableComponent.current?.hotInstance.getData()
+        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as JsTable
         if (newVersion) {
-            const delimited = newVersion
-                .map((row: any) =>
-                    row
-                        .map((cell: any) => (cell === null ? "" : cell))
-                        .join(",")
-                )
-                .join("\n")
-            if (this.switcherCode === delimited) return
-            this.switcherCode = delimited
-            this.switcher = new SwitcherOptions(this.switcherCode, "")
-            this.fetchChartConfigs(this.chartIds)
+            const program = DataExplorerProgram.fromArrays(
+                this.dataExplorerProgram.slug,
+                newVersion
+            )
+            if (this.dataExplorerProgram.toString() === program.toString())
+                return
+            this.setProgram(program.toString())
         }
     }
 
-    @observable switcherCode = defaultConfig
-    switcher = new SwitcherOptions(this.switcherCode, "")
+    @observable sourceOnDisk: string =
+        DataExplorerProgram.defaultExplorerProgram
 
-    @observable showEditor = true
+    @observable
+    dataExplorerProgram: DataExplorerProgram = new DataExplorerProgram(
+        this.props.slug,
+        DataExplorerProgram.defaultExplorerProgram
+    )
+
+    @action.bound async saveExplorer() {
+        const slug = prompt(
+            "Slug for this explorer",
+            this.dataExplorerProgram.slug
+        )
+        if (!slug) return
+        this.context.admin.loadingIndicatorSetting = "loading"
+        this.dataExplorerProgram.slug = slug
+        await writeRemoteFile(
+            this.dataExplorerProgram.fullPath,
+            this.dataExplorerProgram.toString()
+        )
+        this.context.admin.loadingIndicatorSetting = "off"
+        this.sourceOnDisk = this.dataExplorerProgram.toString()
+    }
+
+    @computed get isModified(): boolean {
+        return this.sourceOnDisk !== this.dataExplorerProgram.toString()
+    }
 
     render() {
-        const data = toJsTable(parseDelimited(this.switcherCode))
+        const data = this.dataExplorerProgram.toArrays()
         return (
             <AdminLayout title="Create Explorer">
-                <main>
-                    <Draggable handle=".handle">
-                        <div
-                            className={classNames(
-                                "ExplorerEditor",
-                                this.showEditor ? "" : "HideEditor"
-                            )}
-                        >
-                            <div className="handle">
-                                &nbsp; <FontAwesomeIcon icon={faArrowsAlt} />
-                                &nbsp; Explorer Editor{" "}
-                                <span
-                                    onClick={() =>
-                                        (this.showEditor = !this.showEditor)
-                                    }
-                                >
-                                    {this.showEditor ? "Minimize" : "Expand"}
-                                </span>
-                            </div>
-                            <HotTable
-                                data={data}
-                                colHeaders={false}
-                                contextMenu={true}
-                                allowInsertRow={true}
-                                allowInsertColumn={true}
-                                minCols={8}
-                                minRows={20}
-                                ref={this.hotTableComponent as any}
-                                rowHeaders={true}
-                                afterChange={() => this.updateConfig()}
-                                licenseKey={"non-commercial-and-evaluation"}
-                            />
-                        </div>
-                    </Draggable>
-                    <SwitcherDataExplorer
-                        chartConfigs={this.chartConfigs}
-                        explorerNamespace="explorer"
-                        explorerTitle="Data Explorer"
-                        switcher={this.switcher}
-                    />
+                <Prompt
+                    when={this.isModified}
+                    message="Are you sure you want to leave? Unsaved changes will be lost."
+                />
+                <main style={{ padding: 0, position: "relative" }}>
+                    <div
+                        style={{
+                            right: "15px",
+                            top: "5px",
+                            position: "absolute",
+                            zIndex: 2
+                        }}
+                    >
+                        {this.isModified ? (
+                            <button
+                                className="btn btn-primary"
+                                onClick={this.saveExplorer}
+                            >
+                                Save
+                            </button>
+                        ) : (
+                            <button className="btn btn-secondary">
+                                Unmodified
+                            </button>
+                        )}
+                    </div>
+                    <div style={{ height: "500px", overflow: "scroll" }}>
+                        <SwitcherDataExplorer
+                            chartConfigs={this.chartConfigs}
+                            explorerNamespace="explorer"
+                            explorerTitle={this.dataExplorerProgram.title || ""}
+                            switcher={this.dataExplorerProgram.switcher}
+                        />
+                    </div>
+                    <div>
+                        <HotTable
+                            data={data}
+                            colHeaders={false}
+                            contextMenu={true}
+                            allowInsertRow={true}
+                            allowInsertColumn={true}
+                            width="100%"
+                            stretchH="all"
+                            minCols={8}
+                            minRows={20}
+                            ref={this.hotTableComponent as any}
+                            rowHeaders={true}
+                            afterChange={() => this.updateConfig()}
+                            licenseKey={"non-commercial-and-evaluation"}
+                        />
+                    </div>
                 </main>
             </AdminLayout>
         )

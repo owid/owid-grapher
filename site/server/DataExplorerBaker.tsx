@@ -1,13 +1,11 @@
-#! /usr/bin/env yarn tsn
-
 import * as fs from "fs-extra"
 import * as path from "path"
 import * as db from "db/db"
 import React from "react"
 import { SwitcherDataExplorerPage } from "./views/DataExplorerPages"
 import { renderToHtmlPage } from "utils/server/serverUtil"
-import { SwitcherOptions } from "charts/SwitcherOptions"
 import { GIT_CONTENT_DIR, BAKED_SITE_DIR } from "serverSettings"
+import { explorerFileSuffix, DataExplorerProgram } from "./DataExplorerProgram"
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = `${GIT_CONTENT_DIR}/explorers/`,
@@ -18,24 +16,23 @@ export const bakeAllPublishedExplorers = async (
     await bakeExplorersToDir(outputFolder, published)
 }
 
-// Todo: JSON schema?
-interface DataExplorerProgram {
-    slug: string
-    title: string
-    switcherCode: string
-    isPublished: boolean
-}
-
-const getAllDataExplorers = async (directory: string) => {
+export const getAllDataExplorers = async (
+    directory = `${GIT_CONTENT_DIR}/explorers/`
+) => {
     if (!fs.existsSync(directory)) return []
     const files = await fs.readdir(directory)
     const explorerFiles = files.filter(filename =>
-        filename.endsWith(".explorer.json")
+        filename.endsWith(explorerFileSuffix)
     )
     const explorers: DataExplorerProgram[] = []
-    for (const file of explorerFiles) {
-        const content = await fs.readFile(directory + "/" + file, "utf8")
-        explorers.push(JSON.parse(content))
+    for (const filename of explorerFiles) {
+        const content = await fs.readFile(directory + "/" + filename, "utf8")
+        explorers.push(
+            new DataExplorerProgram(
+                filename.replace(explorerFileSuffix, ""),
+                content
+            )
+        )
     }
     return explorers
 }
@@ -54,9 +51,8 @@ const bakeExplorersToDir = async (
         await write(
             `${directory}/${explorer.slug}.html`,
             await renderSwitcherDataExplorerPage(
-                explorer.title,
-                explorer.switcherCode,
-                explorer.slug
+                explorer.slug,
+                explorer.toString()
             )
         )
     }
@@ -65,38 +61,28 @@ const bakeExplorersToDir = async (
 export const switcherExplorerForm = () =>
     renderToHtmlPage(
         <form method="POST">
-            <input type="text" placeholder="Title" name="title" />
-            <br />
-            <textarea name="code" placeholder="Code"></textarea>
+            <textarea name="code" placeholder="Code" rows={30}></textarea>
             <br />
             <input type="submit" />
         </form>
     )
 
 export async function renderSwitcherDataExplorerPage(
-    title: string,
-    switcherCode: string,
-    slug: string
+    slug: string,
+    code: string
 ) {
-    const chartIds = SwitcherOptions.getRequiredChartIds(switcherCode)
+    const program = new DataExplorerProgram(slug, code)
     const chartConfigs: any[] = await db.query(
         `SELECT config FROM charts WHERE id IN (?)`,
-        [chartIds]
+        [program.requiredChartIds]
     )
 
     return renderToHtmlPage(
         <SwitcherDataExplorerPage
-            title={title}
+            title={program.title || ""}
             slug={slug}
-            switcherCode={switcherCode}
+            switcherCode={program.switcherCode || ""}
             chartConfigs={chartConfigs.map(row => JSON.parse(row.config))}
         />
     )
 }
-
-const main = async () => {
-    await bakeAllPublishedExplorers()
-    db.end()
-}
-
-if (!module.parent) main()

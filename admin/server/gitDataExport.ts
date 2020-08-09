@@ -29,17 +29,36 @@ export async function saveFileToGitContentDirectory(
     commitName: string,
     commitEmail: string
 ) {
-    const path = GIT_CONTENT_DIR + filename
-    const isNew = fs.existsSync(path)
+    const path = GIT_CONTENT_DIR + "/" + filename
     await fs.writeFile(path, content, "utf8")
+
+    const commitMsg = fs.existsSync(path)
+        ? `Adding ${filename}`
+        : `Updating ${filename}`
+
     await execFormatted(
-        `cd %s && (git diff-index --quiet HEAD || (git commit -m ${
-            isNew ? "Adding" : "Updating"
-        } ${filename} --quiet --author="${commitName ||
+        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
             GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" && git push))`,
-        [GIT_CONTENT_DIR]
+            GIT_DEFAULT_EMAIL}>" && git push`,
+        [GIT_CONTENT_DIR, commitMsg]
     )
+    return ""
+}
+
+export async function deleteFileFromGitContentDirectory(
+    filename: string,
+    commitName: string,
+    commitEmail: string
+) {
+    const path = GIT_CONTENT_DIR + "/" + filename
+    await fs.unlink(path)
+    await execFormatted(
+        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
+            GIT_DEFAULT_USERNAME} <${commitEmail ||
+            GIT_DEFAULT_EMAIL}>" && git push`,
+        [GIT_CONTENT_DIR, `Deleted ${filename}`]
+    )
+    return ""
 }
 
 export async function removeDatasetFromGitRepo(

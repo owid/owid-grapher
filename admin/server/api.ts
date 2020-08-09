@@ -1,4 +1,5 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
+
 import * as fs from "fs-extra"
 import * as express from "express"
 import { Router } from "express"
@@ -31,7 +32,8 @@ import { User } from "db/model/User"
 import {
     syncDatasetToGitRepo,
     removeDatasetFromGitRepo,
-    saveFileToGitContentDirectory
+    saveFileToGitContentDirectory,
+    deleteFileFromGitContentDirectory
 } from "admin/server/gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
@@ -42,6 +44,7 @@ import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "admin/client/ChartEditor"
 import { enqueueDeploy } from "deploy/queue"
 import { isExplorable } from "utils/charts"
+import { getAllDataExplorers } from "site/server/DataExplorerBaker"
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -49,6 +52,7 @@ class FunctionalRouter {
     router: Router
     constructor() {
         this.router = Router()
+        this.router.use(express.urlencoded({ extended: true }))
         // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
         this.router.use(express.json({ limit: "50mb" }))
     }
@@ -453,6 +457,18 @@ api.get("/charts/explorer-charts.json", async (req: Request, res: Response) => {
     return configs
 })
 
+api.get("/explorers.json", async (req: Request, res: Response) => {
+    const explorers = await getAllDataExplorers()
+    return {
+        explorers: explorers.map(explorer => {
+            return {
+                program: explorer.toString(),
+                slug: explorer.slug
+            }
+        })
+    }
+})
+
 api.get("/editorData/namespaces.json", async (req: Request, res: Response) => {
     const rows = (await db.query(
         `SELECT DISTINCT namespace AS name, namespaces.description FROM datasets JOIN namespaces ON namespaces.name = datasets.namespace`
@@ -625,14 +641,34 @@ api.post("/charts", async (req: Request, res: Response) => {
     return { success: true, chartId: chartId }
 })
 
-api.post("/content", async (req: Request, res: Response) => {
-    await saveFileToGitContentDirectory(
-        req.body.filename,
+api.post("/owid-content", async (req: Request, res: Response) => {
+    const filename = req.body.filename
+    if (filename.includes("..")) return "Invalid filename"
+    const errorMessage = await saveFileToGitContentDirectory(
+        filename,
         req.body.content,
         res.locals.user.fullName,
         res.locals.user.email
     )
-    return { success: true }
+    return { success: errorMessage ? false : true }
+})
+
+api.get("/owid-content", async (req: Request, res: Response) => {
+    const filepath = `${GIT_CONTENT_DIR}/${req.query.path.replace(/\~/g, "/")}`
+    if (filepath.includes("..")) return { success: false }
+    const content = await fs.readFile(filepath, "utf8")
+    return { content }
+})
+
+api.delete("/owid-content", async (req: Request, res: Response) => {
+    const filepath = req.query.path.replace(/\~/g, "/")
+    if (filepath.includes("..")) return { success: false }
+    const errorMessage = await deleteFileFromGitContentDirectory(
+        filepath,
+        res.locals.user.fullName,
+        res.locals.user.email
+    )
+    return { success: errorMessage ? false : true }
 })
 
 api.post("/charts/:chartId/setTags", async (req: Request, res: Response) => {

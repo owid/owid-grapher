@@ -31,6 +31,7 @@ import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
 import { ExplorerCreatePage } from "admin/client/ExplorerCreatePage"
+import { ExplorersIndexPage } from "./ExplorersIndexPage"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -78,9 +79,7 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
 class AdminLoader extends React.Component<{ admin: Admin }> {
     render() {
         const { admin } = this.props
-        return admin.isLoading && admin.showLoadingIndicator ? (
-            <LoadingBlocker />
-        ) : null
+        return admin.showLoadingIndicator ? <LoadingBlocker /> : null
     }
 }
 
@@ -132,8 +131,12 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                             />
                             <Route
                                 exact
-                                path="/explorers/create"
-                                component={ExplorerCreatePage}
+                                path="/explorers/:slug"
+                                render={({ match }) => (
+                                    <ExplorerCreatePage
+                                        slug={match.params.slug}
+                                    />
+                                )}
                             />
                             <Route
                                 exact
@@ -169,6 +172,11 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 exact
                                 path="/variables"
                                 component={VariablesIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/explorers"
+                                component={ExplorersIndexPage}
                             />
                             <Route
                                 exact

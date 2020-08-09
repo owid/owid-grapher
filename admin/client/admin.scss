@@ -39,7 +39,7 @@ body {
     }
 
     .navbar {
-        z-index: 2;
+        z-index: 3;
         font-size: 0.95rem;
     }
 
@@ -786,30 +786,5 @@ main:not(.ChartEditorPage) {
         flex: 1;
         font-weight: 700;
         color: #007bff;
-    }
-}
-
-$light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
-    rgba(0, 0, 0, 0.08) 0px 2px 2px;
-
-.ExplorerEditor {
-    box-shadow: $light-shadow;
-    background: white;
-    z-index: 100;
-    position: fixed;
-
-    .handle {
-        cursor: move;
-        height: 24px;
-
-        span {
-            text-decoration: underline;
-        }
-    }
-
-    &.HideEditor {
-        height: 24px;
-        width: 200px;
-        overflow: hidden;
     }
 }

@@ -23,8 +23,6 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }))
 // Require authentication (only for /admin requests)
 app.use(authMiddleware)
 
-//app.use(express.urlencoded())
-
 app.use("/api", publicApi.router)
 
 app.use("/admin/api", api.router)
