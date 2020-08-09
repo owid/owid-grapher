@@ -4,7 +4,8 @@ import { covidSampleRows } from "test/fixtures/CovidSampleRows"
 import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
 
 export default {
-    title: "CovidDataExplorer"
+    title: "CovidDataExplorer",
+    component: CovidDataExplorer
 }
 
 const EMPTY_DUMMY_META = {
