@@ -1,5 +1,5 @@
 import { SwitcherOptions } from "charts/SwitcherOptions"
-import { parseDelimited, toJsTable } from "charts/Util"
+import { trimGrid } from "charts/Util"
 
 export const explorerFileSuffix = ".explorer.tsv"
 
@@ -39,10 +39,6 @@ data
     private edgeDelimiter = edgeDelimiter
 
     private lines: string[]
-
-    toString() {
-        return this.lines.join(this.nodeDelimiter)
-    }
 
     private getLineValue(key: string) {
         const line = this.lines.find(line =>
@@ -87,6 +83,16 @@ data
 
     toArrays() {
         return this.lines.map(line => line.split(this.cellDelimiter))
+    }
+
+    toString() {
+        return this.prettify()
+    }
+
+    private prettify() {
+        return trimGrid(this.toArrays())
+            .map(line => line.join(this.cellDelimiter))
+            .join(this.nodeDelimiter)
     }
 
     get switcher() {

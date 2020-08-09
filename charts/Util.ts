@@ -150,6 +150,7 @@ export type VNode = any
 declare type HeaderRow = string[]
 declare type ValueRow = any[]
 export type JsTable = [HeaderRow, ...ValueRow]
+export type Grid = any[][]
 
 interface TouchListLike {
     [index: number]: {
@@ -730,31 +731,34 @@ export const toJsTable = (rows: any[]): JsTable | undefined =>
           ]
         : undefined
 
+const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
+
+const isCellEmpty = (cell: any) =>
+    cell === null || cell === undefined || cell === ""
+
 // Drop empty rows and columns
-export const trimRows = (jsTable: JsTable): JsTable => {
+export const trimEmptyRows = (grid: Grid): Grid => {
     let trimAt = undefined
-    for (let index = jsTable.length - 1; index >= 0; index--) {
-        const rowIsEmpty = jsTable[index].every(
-            (cell: any) => cell === null || cell === undefined || cell === ""
-        )
-        if (!rowIsEmpty) break
+    for (let index = grid.length - 1; index >= 0; index--) {
+        if (!isRowEmpty(grid[index])) break
         trimAt = index
     }
-    return trimAt === undefined
-        ? jsTable
-        : (jsTable.slice(0, trimAt) as JsTable)
+    return trimAt === undefined ? grid : grid.slice(0, trimAt)
 }
 
-export const trimTable = (jsTable: JsTable): JsTable => {
-    return trimRows(jsTable)
+const trimArray = (arr: any[]) => {
+    let index: number
+    for (index = arr.length - 1; index >= 0; index--) {
+        if (!isCellEmpty(arr[index])) break
+    }
+    return arr.slice(0, index + 1)
 }
 
-//     const lastFilledRow = jsTable.indexOf
-//     return [
-//         filledHeader,
-//         ...jsTable.slice(1).map(row => row.slice(0, filledHeader.length))
-//     ]
-// }
+export const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
+
+export const trimGrid = (grid: Grid): Grid => {
+    return trimEmptyColumns(trimEmptyRows(grid))
+}
 
 export const dropDiscontinuousRows = (jsTable: JsTable): JsTable => {
     const firstDiscontinousRow = jsTable.findIndex(

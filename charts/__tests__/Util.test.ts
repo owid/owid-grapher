@@ -21,8 +21,8 @@ import {
     roundSigFig,
     getAvailableSlugSync,
     jsTableToDelimited,
-    trimTable,
-    trimRows,
+    trimGrid,
+    trimEmptyRows,
     JsTable
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
@@ -349,12 +349,13 @@ describe("jsTables", () => {
 123 345 usa    
 `)
         )
-        expect(jsTableToDelimited(trimTable(table!), " ")).toEqual(`gdp pop code
+        expect(jsTableToDelimited(trimGrid(table!) as JsTable, " "))
+            .toEqual(`gdp pop code
 123 345 usa`)
     })
 })
 
-describe(trimRows, () => {
+describe(trimEmptyRows, () => {
     it("trims rows", () => {
         const testCases: { input: JsTable; length: number }[] = [
             {
@@ -376,7 +377,9 @@ describe(trimRows, () => {
         ]
 
         testCases.forEach(testCase => {
-            expect(trimRows(testCase.input).length).toEqual(testCase.length)
+            expect(trimEmptyRows(testCase.input).length).toEqual(
+                testCase.length
+            )
         })
     })
 })
