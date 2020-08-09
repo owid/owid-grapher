@@ -1,10 +1,9 @@
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
-import { uniq, parseDelimited } from "./Util"
+import { uniq, parseDelimited, isCellEmpty } from "./Util"
 import { ControlOption } from "./ExplorerControls"
 import { action, observable, computed } from "mobx"
 
 const CHART_ID_SYMBOL = "chartId"
-const NA_SYMBOL = ""
 const FALSE_SYMBOL = "FALSE"
 
 interface Group {
@@ -63,7 +62,7 @@ export class SwitcherOptions {
         const optionMap: any = {}
         this.columnNames.forEach((title, index) => {
             optionMap[title] = uniq(this.parsed.map(row => row[title])).filter(
-                i => i !== NA_SYMBOL
+                cell => !isCellEmpty(cell)
             ) as string[]
         })
         return optionMap
@@ -93,7 +92,7 @@ export class SwitcherOptions {
                     key =>
                         row[key] === query[key] ||
                         (groupName && groupName !== key
-                            ? row[key] === NA_SYMBOL
+                            ? isCellEmpty(row[key])
                             : false)
                 )
         )

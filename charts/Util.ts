@@ -733,7 +733,7 @@ export const toJsTable = (rows: any[]): JsTable | undefined =>
 
 const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
 
-const isCellEmpty = (cell: any) =>
+export const isCellEmpty = (cell: any) =>
     cell === null || cell === undefined || cell === ""
 
 // Drop empty rows and columns
