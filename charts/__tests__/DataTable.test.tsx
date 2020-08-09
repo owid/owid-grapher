@@ -6,6 +6,7 @@ import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 import { setupChart } from "test/utils"
 
 import { DataTable, ClosestYearNotice } from "../DataTable"
+import { ChartConfig } from "charts/ChartConfig"
 
 describe(DataTable, () => {
     describe("when you render a table", () => {
@@ -126,16 +127,19 @@ describe(DataTable, () => {
     })
 
     describe("when you try to hide countries", () => {
+        let chart: ChartConfig
         let view: ShallowWrapper
         beforeAll(() => {
-            const chart = setupChart(677, [104402], {
-                minPopulationFilter: 1e6
-            })
-
+            chart = setupChart(677, [104402])
             view = shallow(<DataTable chart={chart} />)
         })
 
-        it("renders no small countries", () => {
+        it("initially renders small countries", () => {
+            expect(view.find("tbody tr")).toHaveLength(224)
+        })
+
+        it("renders no small countries after filter is added", () => {
+            chart.toggleMinPopulationFilter()
             expect(view.find("tbody tr")).toHaveLength(187)
         })
     })
