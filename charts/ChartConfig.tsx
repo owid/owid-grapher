@@ -678,26 +678,31 @@ export class ChartConfig {
         return defaultTo(this.props.entityTypePlural, "countries")
     }
 
-    /** If the start year was autoselected in the DataTable, revert. */
+    /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
+    private chartMinPopulationFilter?: number = undefined
     @action
-    revertAutoSelectedStartYear() {
-        this.timeDomain = [
-            this.initialProps.minTime ?? TimeBoundValue.unboundedLeft,
-            this.timeDomain[1]
-        ]
+    revertDataTableSpecificState() {
+        /** If the start year was autoselected in the DataTable, revert. */
+        if (!this.userHasSetTimeline)
+            this.timeDomain = [
+                this.initialProps.minTime ?? TimeBoundValue.unboundedLeft,
+                this.timeDomain[1]
+            ]
+
+        /** Revert the state of minPopulationFilter */
+        this.props.minPopulationFilter = this.chartMinPopulationFilter
     }
 
     @computed get tab() {
         return this.props.overlay ? this.props.overlay : this.props.tab
     }
 
+    /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     set tab(value) {
-        if (
-            this.props.tab === "table" &&
-            value === "chart" &&
-            !this.userHasSetTimeline
-        )
-            this.revertAutoSelectedStartYear()
+        if (this.props.tab === "chart")
+            this.chartMinPopulationFilter = this.props.minPopulationFilter
+        if (this.props.tab === "table" && value !== "table")
+            this.revertDataTableSpecificState()
 
         if (value === "chart" || value === "map" || value === "table") {
             this.props.tab = value
