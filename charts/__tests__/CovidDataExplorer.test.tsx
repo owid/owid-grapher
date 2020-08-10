@@ -59,7 +59,7 @@ class ExplorerDataTableTest {
     }
 }
 
-describe.only("When you try to create a multimetric Data Explorer", () => {
+describe("When you try to create a multimetric Data Explorer", () => {
     let dataTableTester: ExplorerDataTableTest
     beforeAll(() => {
         const explorerParams = new CovidQueryParams(
