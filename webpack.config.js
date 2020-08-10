@@ -57,7 +57,9 @@ module.exports = (env, argv) => {
                         {
                             loader: "sass-loader",
                             options: {
-                                outputStyle: "expanded" // Needed so autoprefixer comments are included
+                                sassOptions: {
+                                    outputStyle: "expanded" // Needed so autoprefixer comments are included
+                                }
                             }
                         }
                     ]
