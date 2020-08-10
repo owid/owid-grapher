@@ -44,6 +44,7 @@ export const CarbonDioxide = () => {
     const switcher = new SwitcherOptions(defaultConfig, "")
     return (
         <SwitcherDataExplorer
+            bindToWindow={false}
             chartConfigs={configs}
             explorerNamespace="CO₂"
             explorerTitle="CO₂ Data Explorer"

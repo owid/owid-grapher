@@ -14,11 +14,7 @@ import { SiteFooter } from "./SiteFooter"
 // -@jasoncrawford 2 Dec 2019
 
 export const ExplorePage = () => {
-    const script = `
-        var div = document.getElementById('explore');
-        var view = window.ExploreView.bootstrap({ containerNode: div, queryStr: window.location.search });
-        view.bindToWindow();
-    `
+    const script = `window.ExploreView.bootstrap({ containerNode: document.getElementById('explore'), queryStr: window.location.search }).bindToWindow();`
 
     return (
         <html>

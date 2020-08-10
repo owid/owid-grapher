@@ -1,5 +1,5 @@
 import { computed, observable, action } from "mobx"
-import { ObservableUrl } from "../UrlBinding"
+import { ObservableUrl } from "../UrlBinder"
 import { ChartUrl, EntityUrlBuilder } from "../ChartUrl"
 import {
     QueryParams,
@@ -7,7 +7,7 @@ import {
     queryParamsToStr
 } from "utils/client/url"
 import { SortOrder } from "charts/SortOrder"
-import { omit, oneOf, uniq, intersection } from "../Util"
+import { oneOf, uniq, intersection } from "../Util"
 import {
     PerCapita,
     AlignedOption,
@@ -435,27 +435,6 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         return (
             this.cfrMetric || this.testsPerCaseMetric || this.positiveTestRate
         )
-    }
-}
-
-export class CovidUrl implements ObservableUrl {
-    chartUrl: ChartUrl
-    covidQueryParams: CovidQueryParams
-
-    constructor(chartUrl: ChartUrl, covidQueryParams: CovidQueryParams) {
-        this.chartUrl = chartUrl
-        this.covidQueryParams = covidQueryParams
-    }
-
-    @computed get params(): QueryParams {
-        // Omit `country` from chart params, it will be managed by the explorer.
-        const chartParams = omit(this.chartUrl.params, "country")
-        const covidParams = this.covidQueryParams.toParams
-        return { ...chartParams, ...covidParams }
-    }
-
-    @computed get debounceMode(): boolean {
-        return this.chartUrl.debounceMode
     }
 }
 

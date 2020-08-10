@@ -13,12 +13,27 @@ import { ChartConfig, ChartConfigProps } from "./ChartConfig"
 import { throttle, uniq } from "./Util"
 import { SwitcherOptions } from "./SwitcherOptions"
 import { ExplorerControlPanel } from "./ExplorerControls"
-import { ChartQueryParams } from "./ChartUrl"
+import {
+    ChartQueryParams,
+    ExtendedChartUrl,
+    EntityUrlBuilder
+} from "./ChartUrl"
 import ReactDOM from "react-dom"
+import { UrlBinder } from "charts/UrlBinder"
+import { QueryParams } from "utils/client/url"
 
-interface DataExplorerOptions {
-    hideControls: boolean
-    selectedCountryCodes: Set<string>
+class DataExplorerQueryParams {
+    hideControls: boolean = false
+    selectedCountryCodes: Set<string> = new Set<string>()
+
+    @computed get toParams(): QueryParams {
+        const params: any = {}
+        params.hideControls = this.hideControls ? true : undefined
+        params.country = EntityUrlBuilder.entitiesToQueryParam(
+            Array.from(this.selectedCountryCodes)
+        )
+        return params as QueryParams
+    }
 }
 
 declare type chartId = number
@@ -31,7 +46,7 @@ class DataExplorerShell extends React.Component<{
     chart: ChartConfig
     availableEntities: string[]
     headerElement: JSX.Element
-    params: DataExplorerOptions
+    params: DataExplorerQueryParams
     isEmbed: boolean
 }> {
     get keyboardShortcuts(): Command[] {
@@ -214,33 +229,54 @@ class DataExplorerShell extends React.Component<{
     }
 }
 
-@observer
-export class SwitcherDataExplorer extends React.Component<{
+export interface SwitcherDataExplorerProps {
     chartConfigs: Map<chartId, ChartConfigProps>
     switcher: SwitcherOptions
     explorerNamespace: string
     explorerTitle: string
-}> {
+    bindToWindow: boolean
+}
+
+@observer
+export class SwitcherDataExplorer extends React.Component<
+    SwitcherDataExplorerProps
+> {
     static bootstrap(
         containerNode: HTMLElement,
         chartConfigs: ChartConfigProps[],
         switcherCode: string,
-        title: string
+        title: string,
+        bindToWindow: boolean
     ) {
         const switcher = new SwitcherOptions(switcherCode, "")
 
         const chartConfigsMap: Map<number, ChartConfigProps> = new Map()
         chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
 
-        const view = ReactDOM.render(
+        return ReactDOM.render(
             <SwitcherDataExplorer
                 chartConfigs={chartConfigsMap}
                 explorerNamespace="explorer"
                 explorerTitle={title}
                 switcher={switcher}
+                bindToWindow={bindToWindow}
             />,
             containerNode
         )
+    }
+
+    urlBinding?: UrlBinder
+
+    bindToWindow() {
+        const url = new ExtendedChartUrl(this._chart!.url, [
+            this.props.switcher.toParams(),
+            this.userOptions.toParams
+        ])
+
+        if (this.urlBinding) this.urlBinding.unbindFromWindow()
+        else this.urlBinding = new UrlBinder()
+
+        this.urlBinding.bindToWindow(url)
     }
 
     componentWillMount() {
@@ -262,6 +298,8 @@ export class SwitcherDataExplorer extends React.Component<{
 
         this._chart = new ChartConfig(props)
         this._chart.url.populateFromQueryParams(params)
+
+        if (this.props.bindToWindow) this.bindToWindow()
 
         when(
             () => this._chart!.isReady,
@@ -330,10 +368,7 @@ export class SwitcherDataExplorer extends React.Component<{
         )
     }
 
-    @observable userOptions: DataExplorerOptions = {
-        hideControls: false,
-        selectedCountryCodes: new Set()
-    }
+    @observable userOptions = new DataExplorerQueryParams()
 
     render() {
         return (

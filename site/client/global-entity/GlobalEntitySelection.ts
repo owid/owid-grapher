@@ -4,7 +4,7 @@ import { Country, countries } from "utils/countries"
 import { ChartConfig } from "charts/ChartConfig"
 import { excludeUndefined } from "charts/Util"
 import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
-import { bindUrlToWindow } from "charts/UrlBinding"
+import { UrlBinder } from "charts/UrlBinder"
 
 export enum GlobalEntitySelectionModes {
     none = "none",
@@ -40,7 +40,7 @@ export class GlobalEntitySelection {
         if (!this.isBoundToWindow) {
             this.url = new GlobalEntitySelectionUrl(this)
             this.url.populateFromQueryStr(window.location.search)
-            bindUrlToWindow(this.url)
+            new UrlBinder().bindToWindow(this.url)
         }
     }
 }

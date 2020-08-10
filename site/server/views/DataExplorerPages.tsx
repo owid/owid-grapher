@@ -71,7 +71,7 @@ export const SwitcherDataExplorerPage = (
 const chartConfigs = ${JSON.stringify(props.chartConfigs)};
 window.SwitcherDataExplorer.bootstrap(document.getElementById("dataExplorerContainer"), chartConfigs, switcherConfig, "${
         props.title
-    }")`
+    }", true)`
 
     return (
         <DataExplorerPage
@@ -97,14 +97,13 @@ export const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
         containerNode: document.getElementById("dataExplorerContainer"),
         queryStr: window.location.search,
         isExplorerPage: true,
-        isEmbed: window != window.top
+        isEmbed: window != window.top,
+        bindToWindow: true
     };
     window.CovidDataExplorer.replaceStateAndBootstrap(
         "${props.explorerQueryStr ?? ""}",
         props
-    ).then(function(view) {
-        view.bindToWindow();
-    })
+    )
 `
     const subNav = (
         <SiteSubnavigation

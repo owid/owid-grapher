@@ -32,6 +32,10 @@ export class SwitcherOptions {
         return { ...this._settings }
     }
 
+    @observable toParams() {
+        return this.toObject()
+    }
+
     static getRequiredChartIds(code: string) {
         return parseDelimited(code)
             .map(row => parseInt(row.chartId!))

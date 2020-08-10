@@ -9,7 +9,13 @@ import { computed, when, runInAction, observable, action } from "mobx"
 
 import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
-import { includes, defaultTo, formatDay, diffDateISOStringInDays } from "./Util"
+import {
+    includes,
+    defaultTo,
+    formatDay,
+    diffDateISOStringInDays,
+    omit
+} from "./Util"
 import { ChartTabOption } from "./ChartTabOption"
 import { ChartConfig } from "./ChartConfig"
 import {
@@ -18,7 +24,7 @@ import {
     QueryParams
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
-import { ObservableUrl } from "./UrlBinding"
+import { ObservableUrl } from "./UrlBinder"
 import {
     formatTimeBound,
     isUnbounded,
@@ -418,5 +424,27 @@ export class ChartUrl implements ObservableUrl {
 
              chart.activeLegendKeys = keys
          }*/
+    }
+}
+
+interface ParamObject {
+    toParams: QueryParams
+}
+
+export class ExtendedChartUrl implements ObservableUrl {
+    chartUrl: ChartUrl
+    private _params: ParamObject[]
+
+    constructor(chartUrl: ChartUrl, params: ParamObject[]) {
+        this.chartUrl = chartUrl
+        this._params = params
+    }
+
+    @computed get params(): QueryParams {
+        return Object.assign({}, this.chartUrl.params, ...this._params)
+    }
+
+    @computed get debounceMode(): boolean {
+        return this.chartUrl.debounceMode
     }
 }
