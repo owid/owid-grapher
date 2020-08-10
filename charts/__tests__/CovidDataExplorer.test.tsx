@@ -6,6 +6,7 @@ import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
 import { MetricOptions } from "charts/covidDataExplorer/CovidTypes"
+import { defaultTo } from "charts/Util"
 
 const dummyMeta = {
     charts: {},
@@ -31,14 +32,28 @@ describe(CovidDataExplorer, () => {
         expect(headerText).toContain("Data Explorer")
     })
 })
-
 class ExplorerDataTableTest {
-    view: ReactWrapper
     params: CovidQueryParams
+    view: ReactWrapper
 
-    constructor(view: ReactWrapper, params: CovidQueryParams) {
-        this.view = view
-        this.params = params
+    static defaultParams: string =
+        "?tab=table&tableMetrics=cases~deaths~tests~tests_per_case~case_fatality_rate~positive_test_rate"
+
+    constructor(params?: CovidQueryParams) {
+        this.params = defaultTo(
+            params,
+            new CovidQueryParams(ExplorerDataTableTest.defaultParams)
+        )
+
+        this.view = mount(
+            <CovidDataExplorer
+                data={covidSampleRows}
+                params={this.params}
+                queryStr="?tab=table&time=2020-05-06"
+                covidChartAndVariableMeta={dummyMeta}
+                updated="2020-05-09T18:59:31"
+            />
+        )
     }
 
     // untested with subheaders
@@ -62,23 +77,7 @@ class ExplorerDataTableTest {
 describe("When you try to create a multimetric Data Explorer", () => {
     let dataTableTester: ExplorerDataTableTest
     beforeAll(() => {
-        const explorerParams = new CovidQueryParams(
-            "?tab=table&tableMetrics=cases~deaths~tests~tests_per_case~case_fatality_rate~positive_test_rate"
-        )
-        const explorerView = mount(
-            <CovidDataExplorer
-                data={covidSampleRows}
-                params={explorerParams}
-                queryStr="?tab=table&time=2020-05-06"
-                covidChartAndVariableMeta={dummyMeta}
-                updated="2020-05-09T18:59:31"
-            />
-        )
-
-        dataTableTester = new ExplorerDataTableTest(
-            explorerView,
-            explorerParams
-        )
+        dataTableTester = new ExplorerDataTableTest()
     })
 
     it("renders a table", () => {
@@ -99,36 +98,6 @@ describe("When you try to create a multimetric Data Explorer", () => {
         ])
     })
 
-    describe("when you fewer metrics", () => {
-        const explorerParams = new CovidQueryParams(
-            "?tab=table&tableMetrics=cases~deaths~tests_per_case"
-        )
-        const explorerView = mount(
-            <CovidDataExplorer
-                data={covidSampleRows}
-                params={explorerParams}
-                queryStr="?tab=table&time=2020-05-06"
-                covidChartAndVariableMeta={dummyMeta}
-                updated="2020-05-09T18:59:31"
-            />
-        )
-
-        const dataTableTester = new ExplorerDataTableTest(
-            explorerView,
-            explorerParams
-        )
-
-        test("table headers show only the metrics you select", () => {
-            expect(dataTableTester.headers).toEqual([
-                "Confirmed cases",
-                "Confirmed cases",
-                "Confirmed deaths",
-                "Confirmed deaths",
-                "Tests per confirmed case"
-            ])
-        })
-    })
-
     const SECOND_ROW = [
         "United States",
         "1.20 million",
@@ -146,20 +115,67 @@ describe("When you try to create a multimetric Data Explorer", () => {
         expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
     })
 
-    describe("It doesn't change on the following options", () => {
-        it("does not change if explorer metrics change", () => {
+    describe("when you have fewer metrics", () => {
+        let dataTableTester: ExplorerDataTableTest
+        beforeAll(() => {
+            const explorerParams = new CovidQueryParams(
+                "?tab=table&tableMetrics=cases~deaths~tests_per_case"
+            )
+            dataTableTester = new ExplorerDataTableTest(explorerParams)
+        })
+
+        test("table headers show only the metrics you select", () => {
+            expect(dataTableTester.headers).toEqual([
+                "Confirmed cases",
+                "Confirmed cases",
+                "Confirmed deaths",
+                "Confirmed deaths",
+                "Tests per confirmed case"
+            ])
+        })
+    })
+
+    describe("It doesn't change when", () => {
+        let dataTableTester: ExplorerDataTableTest
+        beforeAll(() => {
+            dataTableTester = new ExplorerDataTableTest()
+        })
+
+        it("explorer metrics change", () => {
             MetricOptions.forEach(metric => {
                 dataTableTester.params.setMetric(metric)
                 expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
             })
         })
 
-        it("does not change if 'align outbreaks' is changed", () => {
+        it("'align outbreaks' is changed", () => {
             dataTableTester.params.aligned = false
             expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
 
             dataTableTester.params.aligned = true
             expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
+        })
+    })
+
+    describe("It does update when", () => {
+        test("'per capita' is enabled", () => {
+            const params = new CovidQueryParams(
+                ExplorerDataTableTest.defaultParams
+            )
+            params.perCapita = true
+            const dataTableTester = new ExplorerDataTableTest(params)
+            expect(dataTableTester.bodyRow(1)).toEqual([
+                "United States",
+                "602.24 million",
+                "11.92 million",
+                "35.54 million",
+                "1.07 million",
+                "May 5 3.77 million",
+                "May 5 129,477.00",
+                "May 5 6",
+                "5.9",
+                "May 5 0.2"
+            ])
         })
     })
 })
