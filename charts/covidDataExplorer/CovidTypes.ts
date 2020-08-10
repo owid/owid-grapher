@@ -33,6 +33,15 @@ export declare type MetricKind =
     | "tests_per_case"
     | "positive_test_rate"
 
+export const MetricOptions: MetricKind[] = [
+    "deaths",
+    "cases",
+    "tests",
+    "case_fatality_rate",
+    "tests_per_case",
+    "positive_test_rate"
+]
+
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
 export interface ParsedCovidCsvRow {
     iso_code: string
