@@ -18,7 +18,6 @@ import {
     renderBlogByPageNum,
     renderExplorableIndicatorsJson,
     renderCovidPage,
-    renderCovidDataExplorerPage,
     countryProfileCountryPage
 } from "site/server/siteBaking"
 import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
@@ -44,6 +43,7 @@ import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
+import { renderCovidDataExplorerPage } from "dataExplorer/admin/DataExplorerBaker"
 
 const devServer = express()
 devServer.use(express.urlencoded({ extended: true }))

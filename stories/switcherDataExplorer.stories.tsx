@@ -1,7 +1,7 @@
 import * as React from "react"
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
-import { SwitcherDataExplorer } from "dataExplorer/client/DataExplorers"
+import { SwitcherDataExplorer } from "dataExplorer/client/SwitcherDataExplorer"
 import { SwitcherOptions } from "dataExplorer/client/SwitcherOptions"
 
 const defaultConfig = `chartId	Gas	Accounting	Fuel	Count	Relative to world total

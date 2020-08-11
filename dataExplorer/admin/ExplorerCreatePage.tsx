@@ -5,7 +5,7 @@ import {
     AdminAppContextType,
     AdminAppContext
 } from "admin/client/AdminAppContext"
-import { SwitcherDataExplorer } from "dataExplorer/client/DataExplorers"
+import { SwitcherDataExplorer } from "dataExplorer/client/SwitcherDataExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"

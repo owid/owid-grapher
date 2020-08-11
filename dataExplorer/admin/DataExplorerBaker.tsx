@@ -2,13 +2,27 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import * as db from "db/db"
 import React from "react"
-import { SwitcherDataExplorerPage } from "dataExplorer/client/DataExplorerPages"
 import { renderToHtmlPage } from "utils/server/serverUtil"
 import { GIT_CONTENT_DIR, BAKED_SITE_DIR } from "serverSettings"
 import {
     explorerFileSuffix,
     DataExplorerProgram
 } from "../client/DataExplorerProgram"
+import * as settings from "settings"
+import { Head } from "site/server/views/Head"
+import { SiteHeader } from "site/server/views/SiteHeader"
+import { SiteFooter } from "site/server/views/SiteFooter"
+import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { EmbedDetector } from "site/server/views/EmbedDetector"
+
+import {
+    covidDashboardSlug,
+    coronaOpenGraphImagePath,
+    covidPageTitle,
+    covidPreloads
+} from "charts/covidDataExplorer/CovidConstants"
+import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
+import { ChartConfigProps } from "charts/ChartConfig"
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = `${GIT_CONTENT_DIR}/explorers/`,
@@ -86,6 +100,120 @@ export async function renderSwitcherDataExplorerPage(
             slug={slug}
             switcherCode={program.switcherCode || ""}
             chartConfigs={chartConfigs.map(row => JSON.parse(row.config))}
+        />
+    )
+}
+
+export async function renderCovidDataExplorerPage(
+    props?: CovidDataExplorerPageProps
+) {
+    return renderToHtmlPage(<CovidDataExplorerPage {...props} />)
+}
+
+interface DataExplorerPageSettings {
+    title: string
+    slug: string
+    imagePath: string
+    preloads: string[]
+    inlineJs: string
+    hideAlertBanner?: boolean
+    subNav?: JSX.Element
+}
+
+const DataExplorerPage = (props: DataExplorerPageSettings) => {
+    return (
+        <html>
+            <Head
+                canonicalUrl={`${settings.BAKED_BASE_URL}/${props.slug}`}
+                pageTitle={props.title}
+                imageUrl={`${settings.BAKED_BASE_URL}/${props.imagePath}`}
+            >
+                <EmbedDetector />
+                {props.preloads.map((url: string, index: number) => (
+                    <link
+                        key={`preload${index}`}
+                        rel="preload"
+                        href={url}
+                        as="fetch"
+                        crossOrigin="anonymous"
+                    />
+                ))}
+            </Head>
+            <body className="ChartPage">
+                <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
+                {props.subNav}
+                <main id="dataExplorerContainer">
+                    <LoadingIndicator color="#333" />
+                </main>
+                <SiteFooter />
+                <script dangerouslySetInnerHTML={{ __html: props.inlineJs }} />
+            </body>
+        </html>
+    )
+}
+
+interface SwitcherDataExplorerPageProps {
+    title: string
+    slug: string
+    switcherCode: string
+    chartConfigs: ChartConfigProps[]
+}
+
+const SwitcherDataExplorerPage = (props: SwitcherDataExplorerPageProps) => {
+    const script = `const switcherConfig = \`${props.switcherCode}\`;
+const chartConfigs = ${JSON.stringify(props.chartConfigs)};
+window.SwitcherDataExplorer.bootstrap(document.getElementById("dataExplorerContainer"), chartConfigs, switcherConfig, "${
+        props.title
+    }", true)`
+
+    return (
+        <DataExplorerPage
+            title={props.title}
+            slug={props.slug}
+            imagePath=""
+            preloads={[]}
+            inlineJs={script}
+        />
+    )
+}
+
+interface CovidDataExplorerPageProps {
+    explorerQueryStr?: string
+}
+
+const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
+    // This script allows us to replace existing Grapher pages with Explorer pages.
+    // Part of the reason for doing the redirect client-side is that Netlify doesn't support
+    // redirecting while preserving all query parameters.
+    const script = `
+    var props = {
+        containerNode: document.getElementById("dataExplorerContainer"),
+        queryStr: window.location.search,
+        isExplorerPage: true,
+        isEmbed: window != window.top,
+        bindToWindow: true
+    };
+    window.CovidDataExplorer.replaceStateAndBootstrap(
+        "${props.explorerQueryStr ?? ""}",
+        props
+    )
+`
+    const subNav = (
+        <SiteSubnavigation
+            subnavId="coronavirus"
+            subnavCurrentId="data-explorer"
+        />
+    )
+
+    return (
+        <DataExplorerPage
+            subNav={subNav}
+            title={covidPageTitle}
+            slug={covidDashboardSlug}
+            imagePath={coronaOpenGraphImagePath}
+            preloads={covidPreloads}
+            inlineJs={script}
+            hideAlertBanner={true}
         />
     )
 }

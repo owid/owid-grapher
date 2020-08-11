@@ -31,7 +31,6 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderExplorableIndicatorsJson,
-    renderCovidDataExplorerPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache
 } from "./siteBaking"
@@ -64,7 +63,10 @@ import {
     countryProfileSpecs,
     co2CountryProfileRootPath
 } from "site/client/CountryProfileConstants"
-import { bakeAllPublishedExplorers } from "../../dataExplorer/admin/DataExplorerBaker"
+import {
+    bakeAllPublishedExplorers,
+    renderCovidDataExplorerPage
+} from "../../dataExplorer/admin/DataExplorerBaker"
 
 // Static site generator using Wordpress
 
