@@ -396,7 +396,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         dateColName: columnSlug,
         groupBy: columnSlug,
         multiplier = 1,
-        intervalChange?: number
+        intervalChange?: number,
+        transformation: (value: any, row: Row) => any = value => value
     ) {
         const averages = computeRollingAveragesForEachGroup(
             this.rows,
@@ -405,17 +406,20 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             dateColName,
             windowSize
         )
+
+        const some_fn: RowToValueMapper = (row, index) => {
+            const val = averages[index!]
+            if (!intervalChange) return val ? val * multiplier : val
+            const previousValue = averages[index! - intervalChange]
+            return previousValue === undefined || previousValue === 0
+                ? undefined
+                : (100 * (val - previousValue)) / previousValue
+        }
+
         this._addComputedColumn(
             new NumericColumn(this, {
                 ...spec,
-                fn: (row, index) => {
-                    const val = averages[index!]
-                    if (!intervalChange) return val ? val * multiplier : val
-                    const previousValue = averages[index! - intervalChange]
-                    return previousValue === undefined || previousValue === 0
-                        ? undefined
-                        : (100 * (val - previousValue)) / previousValue
-                }
+                fn: (row, index) => transformation(some_fn(row, index), row)
             })
         )
     }
