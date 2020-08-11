@@ -122,7 +122,7 @@ body.blog h2 {
 }
 
 body.blog ul.posts {
-    @include posts-list;
+    @include posts-list(20);
 }
 
 body.blog li.post h3 {

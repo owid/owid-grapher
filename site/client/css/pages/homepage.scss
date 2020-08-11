@@ -402,7 +402,7 @@
 
 .homepage-posts--explainers {
     ul {
-        @include posts-list;
+        @include posts-list(8);
     }
 
     .thumbnail {
