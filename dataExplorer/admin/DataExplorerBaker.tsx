@@ -14,6 +14,7 @@ import { SiteHeader } from "site/server/views/SiteHeader"
 import { SiteFooter } from "site/server/views/SiteFooter"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { EmbedDetector } from "site/server/views/EmbedDetector"
+import { Request, Response } from "admin/server/authentication"
 
 import {
     covidDashboardSlug,
@@ -22,8 +23,59 @@ import {
     covidPreloads
 } from "charts/covidDataExplorer/CovidConstants"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
-import { ChartConfigProps } from "charts/ChartConfig"
 import { SwitcherBootstrapProps } from "dataExplorer/client/SwitcherDataExplorer"
+import { FunctionalRouter } from "admin/server/FunctionalRouter"
+import { getChartById } from "db/model/Chart"
+import { Router } from "express"
+
+export const addExplorerApiRoutes = (app: FunctionalRouter) => {
+    // http://localhost:3030/admin/api/explorers.json
+    // Download all explorers for the admin index page
+    app.get("/explorers.json", async () => {
+        const explorers = await getAllDataExplorers()
+        return {
+            explorers: explorers.map(explorer => {
+                return {
+                    program: explorer.toString(),
+                    slug: explorer.slug
+                }
+            })
+        }
+    })
+
+    // Download all chart configs for Explorer create page
+    app.get(
+        "/charts/explorer-charts.json",
+        async (req: Request, res: Response) => {
+            const chartIds = req.query.chartIds.split("~")
+            const configs = []
+            for (const chartId of chartIds) {
+                try {
+                    configs.push(await getChartById(chartId))
+                } catch (err) {
+                    console.log(`Error with chartId '${chartId}'`)
+                }
+            }
+            return configs
+        }
+    )
+}
+
+export const addExplorerAdminRoutes = (app: Router) => {
+    // http://localhost:3030/admin/data-explorer-preview
+    app.get(`/data-explorer-preview`, async (req, res) => {
+        res.send(switcherExplorerForm())
+    })
+
+    app.post(`/data-explorer-preview`, async (req, res) => {
+        res.send(
+            await renderSwitcherDataExplorerPage(
+                "data-explorer-preview",
+                req.body.code
+            )
+        )
+    })
+}
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = `${GIT_CONTENT_DIR}/explorers/`,
@@ -34,7 +86,7 @@ export const bakeAllPublishedExplorers = async (
     await bakeExplorersToDir(outputFolder, published)
 }
 
-export const getAllDataExplorers = async (
+const getAllDataExplorers = async (
     directory = `${GIT_CONTENT_DIR}/explorers/`
 ) => {
     if (!fs.existsSync(directory)) return []
@@ -76,7 +128,7 @@ const bakeExplorersToDir = async (
     }
 }
 
-export const switcherExplorerForm = () =>
+const switcherExplorerForm = () =>
     renderToHtmlPage(
         <form method="POST">
             <textarea name="code" placeholder="Code" rows={30}></textarea>
@@ -85,10 +137,7 @@ export const switcherExplorerForm = () =>
         </form>
     )
 
-export async function renderSwitcherDataExplorerPage(
-    slug: string,
-    code: string
-) {
+async function renderSwitcherDataExplorerPage(slug: string, code: string) {
     const program = new DataExplorerProgram(slug, code)
     const chartConfigs: any[] = await db.query(
         `SELECT config FROM charts WHERE id IN (?)`,

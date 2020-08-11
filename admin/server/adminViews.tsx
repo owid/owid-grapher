@@ -20,10 +20,7 @@ import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
 import { renderPageById } from "site/server/siteBaking"
 import { ENV } from "settings"
-import {
-    switcherExplorerForm,
-    renderSwitcherDataExplorerPage
-} from "dataExplorer/admin/DataExplorerBaker"
+import { addExplorerAdminRoutes } from "dataExplorer/admin/DataExplorerBaker"
 
 const adminViews = Router()
 
@@ -180,17 +177,6 @@ adminViews.get("/posts/preview/:postId", async (req, res) => {
     res.send(await renderPageById(postId, true))
 })
 
-adminViews.get(`/data-explorer-preview`, async (req, res) => {
-    res.send(switcherExplorerForm())
-})
-
-adminViews.post(`/data-explorer-preview`, async (req, res) => {
-    res.send(
-        await renderSwitcherDataExplorerPage(
-            "data-explorer-preview",
-            req.body.code
-        )
-    )
-})
+addExplorerAdminRoutes(adminViews)
 
 export { adminViews }

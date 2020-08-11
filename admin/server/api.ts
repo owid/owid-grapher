@@ -1,8 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
 import * as fs from "fs-extra"
-import * as express from "express"
-import { Router } from "express"
 import * as _ from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
@@ -21,7 +19,7 @@ import {
     absoluteUrl
 } from "utils/server/serverUtil"
 import { sendMail } from "admin/server/mail"
-import { OldChart, Chart } from "db/model/Chart"
+import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./authentication"
 import { getVariableData, writeVariableCSV } from "db/model/Variable"
@@ -44,56 +42,10 @@ import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "admin/client/ChartEditor"
 import { enqueueDeploy } from "deploy/queue"
 import { isExplorable } from "utils/charts"
-import { getAllDataExplorers } from "dataExplorer/admin/DataExplorerBaker"
-
-// Little wrapper to automatically send returned objects as JSON, makes
-// the API code a bit cleaner
-class FunctionalRouter {
-    router: Router
-    constructor() {
-        this.router = Router()
-        this.router.use(express.urlencoded({ extended: true }))
-        // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
-        this.router.use(express.json({ limit: "50mb" }))
-    }
-
-    wrap(callback: (req: Request, res: Response) => Promise<any>) {
-        return async (req: Request, res: Response) => {
-            res.send(await callback(req, res))
-        }
-    }
-
-    get(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.get(targetPath, this.wrap(callback))
-    }
-
-    post(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.post(targetPath, this.wrap(callback))
-    }
-
-    put(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.put(targetPath, this.wrap(callback))
-    }
-
-    delete(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.delete(targetPath, this.wrap(callback))
-    }
-}
+import { FunctionalRouter } from "./FunctionalRouter"
+import { addExplorerApiRoutes } from "dataExplorer/admin/DataExplorerBaker"
 
 const api = new FunctionalRouter()
-
 const publicApi = new FunctionalRouter()
 
 // Call this to trigger build and deployment of static charts on change
@@ -110,22 +62,6 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
         authorEmail: user.email,
         message: commitMessage
     })
-}
-
-async function getChartById(
-    chartId: number
-): Promise<ChartConfigProps | undefined> {
-    const chart = (
-        await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId])
-    )[0]
-
-    if (chart) {
-        const config = JSON.parse(chart.config)
-        config.id = chart.id
-        return config
-    } else {
-        return undefined
-    }
 }
 
 async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
@@ -446,27 +382,6 @@ api.get("/charts.json", async (req: Request, res: Response) => {
 
 api.get("/charts/:chartId.config.json", async (req: Request, res: Response) => {
     return expectChartById(req.params.chartId)
-})
-
-api.get("/charts/explorer-charts.json", async (req: Request, res: Response) => {
-    const chartIds = req.query.chartIds.split("~")
-    const configs = []
-    for (const chartId of chartIds) {
-        configs.push(await expectChartById(chartId))
-    }
-    return configs
-})
-
-api.get("/explorers.json", async (req: Request, res: Response) => {
-    const explorers = await getAllDataExplorers()
-    return {
-        explorers: explorers.map(explorer => {
-            return {
-                program: explorer.toString(),
-                slug: explorer.slug
-            }
-        })
-    }
 })
 
 api.get("/editorData/namespaces.json", async (req: Request, res: Response) => {
@@ -1763,6 +1678,8 @@ publicApi.router.get(
         }
     }
 )
+
+addExplorerApiRoutes(api)
 
 // Legacy code, preventing modification, just in case
 //
