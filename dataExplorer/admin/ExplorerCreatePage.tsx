@@ -11,7 +11,7 @@ import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { JsTable } from "charts/Util"
 import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
-import { readRemoteFile, writeRemoteFile } from "admin/client/OwidContent"
+import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
 
 @observer
@@ -33,9 +33,9 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     @action.bound async fetchDataExplorerProgramOnLoad() {
-        const content = await readRemoteFile(
-            DataExplorerProgram.fullPath(this.props.slug)
-        )
+        const content = await readRemoteFile({
+            filepath: DataExplorerProgram.fullPath(this.props.slug)
+        })
         this.sourceOnDisk = content
         this.setProgram(content)
     }
@@ -96,10 +96,10 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         if (!slug) return
         this.context.admin.loadingIndicatorSetting = "loading"
         this.dataExplorerProgram.slug = slug
-        await writeRemoteFile(
-            this.dataExplorerProgram.fullPath,
-            this.dataExplorerProgram.toString()
-        )
+        await writeRemoteFile({
+            filepath: this.dataExplorerProgram.fullPath,
+            content: this.dataExplorerProgram.toString()
+        })
         this.context.admin.loadingIndicatorSetting = "off"
         this.sourceOnDisk = this.dataExplorerProgram.toString()
     }

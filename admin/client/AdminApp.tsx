@@ -140,6 +140,11 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                             />
                             <Route
                                 exact
+                                path="/explorers"
+                                component={ExplorersIndexPage}
+                            />
+                            <Route
+                                exact
                                 path="/users/:userId"
                                 render={({ match }) => (
                                     <UserEditPage
@@ -172,11 +177,6 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 exact
                                 path="/variables"
                                 component={VariablesIndexPage}
-                            />
-                            <Route
-                                exact
-                                path="/explorers"
-                                component={ExplorersIndexPage}
                             />
                             <Route
                                 exact

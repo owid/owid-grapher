@@ -3,7 +3,7 @@ import * as path from "path"
 import * as db from "db/db"
 import React from "react"
 import { renderToHtmlPage } from "utils/server/serverUtil"
-import { GIT_CONTENT_DIR, BAKED_SITE_DIR } from "serverSettings"
+import { BAKED_SITE_DIR } from "serverSettings"
 import {
     explorerFileSuffix,
     DataExplorerProgram
@@ -27,6 +27,9 @@ import { SwitcherBootstrapProps } from "dataExplorer/client/SwitcherDataExplorer
 import { FunctionalRouter } from "admin/server/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
 import { Router } from "express"
+import { GIT_CMS_DIR } from "gitCms/constants"
+
+const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
 export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     // http://localhost:3030/admin/api/explorers.json
@@ -72,7 +75,7 @@ export const addExplorerAdminRoutes = (app: Router) => {
 
 const getExplorerCodeBySlug = async (
     slug: string,
-    directory = `${GIT_CONTENT_DIR}/explorers/`
+    directory = storageFolder
 ) => {
     const path = directory + "/" + slug + explorerFileSuffix
     if (!fs.existsSync(path)) return undefined
@@ -80,7 +83,7 @@ const getExplorerCodeBySlug = async (
 }
 
 export const bakeAllPublishedExplorers = async (
-    inputFolder = `${GIT_CONTENT_DIR}/explorers/`,
+    inputFolder = storageFolder,
     outputFolder = `${BAKED_SITE_DIR}/explorers/`
 ) => {
     const dataExplorers = await getAllDataExplorers(inputFolder)
@@ -88,9 +91,7 @@ export const bakeAllPublishedExplorers = async (
     await bakeExplorersToDir(outputFolder, published)
 }
 
-const getAllDataExplorers = async (
-    directory = `${GIT_CONTENT_DIR}/explorers/`
-) => {
+const getAllDataExplorers = async (directory = storageFolder) => {
     if (!fs.existsSync(directory)) return []
     const files = await fs.readdir(directory)
     const explorerFiles = files.filter(filename =>

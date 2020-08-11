@@ -18,11 +18,11 @@ import { AdminLayout } from "admin/client/AdminLayout"
 import { FieldsRow } from "admin/client/Forms"
 import { getAvailableSlugSync } from "charts/Util"
 import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
-import { deleteRemoteFile, writeRemoteFile } from "admin/client/OwidContent"
+import { deleteRemoteFile, writeRemoteFile } from "gitCms/client"
 import { BAKED_BASE_URL } from "settings"
+import { GIT_CMS_REPO } from "gitCms/constants"
 
-const contentRepo =
-    "https://github.com/owid/owid-content/commits/master/explorers/"
+const contentRepo = GIT_CMS_REPO + "/commits/master/explorers/"
 
 @observer
 class ExplorerRow extends React.Component<{
@@ -232,7 +232,10 @@ export class ExplorersIndexPage extends React.Component {
         explorer.isPublished = !explorer.isPublished
 
         this.context.admin.loadingIndicatorSetting = "loading"
-        await writeRemoteFile(explorer.fullPath, explorer.toString())
+        await writeRemoteFile({
+            filepath: explorer.fullPath,
+            content: explorer.toString()
+        })
         this.context.admin.loadingIndicatorSetting = "default"
         this.getData()
     }
@@ -241,7 +244,7 @@ export class ExplorersIndexPage extends React.Component {
         if (!confirm(`Are you sure you want to delete "${filename}"?`)) return
 
         this.context.admin.loadingIndicatorSetting = "loading"
-        await deleteRemoteFile(`explorers/${filename}`)
+        await deleteRemoteFile({ filepath: `explorers/${filename}` })
         this.context.admin.loadingIndicatorSetting = "default"
         this.getData()
     }

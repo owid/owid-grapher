@@ -4,6 +4,7 @@ import { quote } from "shell-quote"
 import urljoin from "url-join"
 import * as settings from "settings"
 import * as shell from "shelljs"
+import * as util from "util"
 
 export interface ExecReturn {
     code: number
@@ -104,6 +105,12 @@ export const splitOnLastWord = (s: string) => {
         start: endIndex === 0 ? "" : s.substring(0, endIndex),
         end: s.substring(endIndex)
     }
+}
+
+export async function execFormatted(cmd: string, args: string[]) {
+    const formatCmd = util.format(cmd, ...args.map(s => quote([s])))
+    console.log(formatCmd)
+    await exec(formatCmd)
 }
 
 import filenamify from "filenamify"

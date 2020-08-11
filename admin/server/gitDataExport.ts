@@ -1,11 +1,14 @@
 import * as path from "path"
 import * as fs from "fs-extra"
-import { quote } from "shell-quote"
-import * as util from "util"
-import { JsonError, filenamify, exec } from "utils/server/serverUtil"
+import {
+    JsonError,
+    filenamify,
+    exec,
+    execFormatted
+} from "utils/server/serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
-import { GIT_DATASETS_DIR, TMP_DIR, GIT_CONTENT_DIR } from "serverSettings"
+import { GIT_DATASETS_DIR, TMP_DIR } from "serverSettings"
 import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL } from "settings"
 import * as db from "db/db"
 
@@ -15,50 +18,6 @@ async function datasetToReadme(dataset: Dataset): Promise<string> {
         source.description &&
         source.description.additionalInfo) ||
         ""}`
-}
-
-async function execFormatted(cmd: string, args: string[]) {
-    const formatCmd = util.format(cmd, ...args.map(s => quote([s])))
-    console.log(formatCmd)
-    await exec(formatCmd)
-}
-
-export async function saveFileToGitContentDirectory(
-    filename: string,
-    content: string,
-    commitName: string,
-    commitEmail: string
-) {
-    const path = GIT_CONTENT_DIR + "/" + filename
-    await fs.writeFile(path, content, "utf8")
-
-    const commitMsg = fs.existsSync(path)
-        ? `Adding ${filename}`
-        : `Updating ${filename}`
-
-    await execFormatted(
-        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
-            GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" && git push`,
-        [GIT_CONTENT_DIR, commitMsg]
-    )
-    return ""
-}
-
-export async function deleteFileFromGitContentDirectory(
-    filename: string,
-    commitName: string,
-    commitEmail: string
-) {
-    const path = GIT_CONTENT_DIR + "/" + filename
-    await fs.unlink(path)
-    await execFormatted(
-        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
-            GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" && git push`,
-        [GIT_CONTENT_DIR, `Deleted ${filename}`]
-    )
-    return ""
 }
 
 export async function removeDatasetFromGitRepo(

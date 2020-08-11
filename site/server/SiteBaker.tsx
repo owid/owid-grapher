@@ -9,12 +9,7 @@ import * as db from "db/db"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
 import { LongFormPage } from "./views/LongFormPage"
-import {
-    BASE_DIR,
-    BAKED_SITE_DIR,
-    WORDPRESS_DIR,
-    GIT_CONTENT_DIR
-} from "serverSettings"
+import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
 const { BLOG_POSTS_PER_PAGE, OPTIMIZE_SVG_EXPORTS } = settings
 import {
     renderToHtmlPage,

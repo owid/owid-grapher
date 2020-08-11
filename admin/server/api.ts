@@ -1,17 +1,12 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
-import * as fs from "fs-extra"
 import * as _ from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
 
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import {
-    UNCATEGORIZED_TAG_ID,
-    BAKE_ON_CHANGE,
-    GIT_CONTENT_DIR
-} from "serverSettings"
+import { UNCATEGORIZED_TAG_ID, BAKE_ON_CHANGE } from "serverSettings"
 import {
     JsonError,
     expectInt,
@@ -29,9 +24,7 @@ import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
 import {
     syncDatasetToGitRepo,
-    removeDatasetFromGitRepo,
-    saveFileToGitContentDirectory,
-    deleteFileFromGitContentDirectory
+    removeDatasetFromGitRepo
 } from "admin/server/gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
@@ -44,6 +37,7 @@ import { enqueueDeploy } from "deploy/queue"
 import { isExplorable } from "utils/charts"
 import { FunctionalRouter } from "./FunctionalRouter"
 import { addExplorerApiRoutes } from "dataExplorer/admin/DataExplorerBaker"
+import { addGitCmsApiRoutes } from "gitCms/server"
 
 const api = new FunctionalRouter()
 const publicApi = new FunctionalRouter()
@@ -554,36 +548,6 @@ api.post("/charts/:chartId/star", async (req: Request, res: Response) => {
 api.post("/charts", async (req: Request, res: Response) => {
     const chartId = await saveChart(res.locals.user, req.body)
     return { success: true, chartId: chartId }
-})
-
-api.post("/owid-content", async (req: Request, res: Response) => {
-    const filename = req.body.filename
-    if (filename.includes("..")) return "Invalid filename"
-    const errorMessage = await saveFileToGitContentDirectory(
-        filename,
-        req.body.content,
-        res.locals.user.fullName,
-        res.locals.user.email
-    )
-    return { success: errorMessage ? false : true }
-})
-
-api.get("/owid-content", async (req: Request, res: Response) => {
-    const filepath = `${GIT_CONTENT_DIR}/${req.query.path.replace(/\~/g, "/")}`
-    if (filepath.includes("..")) return { success: false }
-    const content = await fs.readFile(filepath, "utf8")
-    return { content }
-})
-
-api.delete("/owid-content", async (req: Request, res: Response) => {
-    const filepath = req.query.path.replace(/\~/g, "/")
-    if (filepath.includes("..")) return { success: false }
-    const errorMessage = await deleteFileFromGitContentDirectory(
-        filepath,
-        res.locals.user.fullName,
-        res.locals.user.email
-    )
-    return { success: errorMessage ? false : true }
 })
 
 api.post("/charts/:chartId/setTags", async (req: Request, res: Response) => {
@@ -1680,6 +1644,7 @@ publicApi.router.get(
 )
 
 addExplorerApiRoutes(api)
+addGitCmsApiRoutes(api)
 
 // Legacy code, preventing modification, just in case
 //
