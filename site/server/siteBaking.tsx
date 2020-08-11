@@ -194,7 +194,14 @@ export async function renderFrontPage() {
     const entries = await wpdb.getEntriesByCategory()
     const posts = await wpdb.getBlogIndex()
     const totalCharts = (
-        await db.query(`SELECT COUNT(*) as count FROM charts`)
+        await db.query(
+            `SELECT COUNT(*) AS count
+            FROM charts
+            WHERE
+                is_indexable IS TRUE
+                AND publishedAt IS NOT NULL
+                AND config -> "$.isPublished" IS TRUE`
+        )
     )[0].count as number
     return renderToHtmlPage(
         <FrontPage entries={entries} posts={posts} totalCharts={totalCharts} />
