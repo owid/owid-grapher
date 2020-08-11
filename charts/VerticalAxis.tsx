@@ -3,7 +3,7 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
-import { ScaleType, AxisScale } from "./AxisScale"
+import { ScaleType, AxisScale, Tickmark } from "./AxisScale"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
 import { ControlsOverlay } from "./Controls"
@@ -61,8 +61,53 @@ export class VerticalAxis {
         return this.props.scale
     }
 
+    @computed get baseTicks(): Tickmark[] {
+        return this.scale.getTickValues().filter(tick => !tick.gridLineOnly)
+    }
+
+    // calculates coordinates for ticks, sorted by priority
+    @computed get tickPlacements() {
+        const { scale } = this
+        return sortBy(this.baseTicks, tick => tick.priority).map(tick => {
+            const bounds = Bounds.forText(
+                scale.tickFormat(tick.value, {
+                    ...this.tickFormattingOptions,
+                    isFirstOrLastTick: !!tick.isFirstOrLastTick
+                }),
+                {
+                    fontSize: this.tickFontSize
+                }
+            )
+            return {
+                tick: tick.value,
+                bounds: bounds.extend({
+                    y: scale.place(tick.value),
+                    // x placement doesn't really matter here, so we're using
+                    // 1 for simplicity
+                    x: 1
+                }),
+                isHidden: false
+            }
+        })
+    }
+
     @computed get ticks(): number[] {
-        return this.scale.getTickValues()
+        const { tickPlacements } = this
+        for (let i = 0; i < tickPlacements.length; i++) {
+            for (let j = i + 1; j < tickPlacements.length; j++) {
+                const t1 = tickPlacements[i],
+                    t2 = tickPlacements[j]
+                if (t1 === t2 || t1.isHidden || t2.isHidden) continue
+                if (t1.bounds.intersects(t2.bounds)) {
+                    t2.isHidden = true
+                }
+            }
+        }
+
+        return sortBy(
+            tickPlacements.filter(t => !t.isHidden).map(t => t.tick),
+            t => t
+        )
     }
 
     @computed get tickFormattingOptions() {

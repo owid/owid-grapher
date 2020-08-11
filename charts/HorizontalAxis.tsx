@@ -1,8 +1,8 @@
 import * as React from "react"
-import { uniq } from "./Util"
+import { uniq, sortBy } from "./Util"
 import { computed } from "mobx"
 import { Bounds } from "./Bounds"
-import { ScaleType, AxisScale } from "./AxisScale"
+import { ScaleType, AxisScale, Tickmark } from "./AxisScale"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
 import { AxisTickMarks } from "./AxisTickMarks"
@@ -67,33 +67,52 @@ export class HorizontalAxis {
         return this.props.scale
     }
 
-    @computed get baseTicks(): number[] {
+    @computed get baseTicks(): Tickmark[] {
         const { domain } = this.scale
-        let ticks = this.scale.getTickValues()
+        let ticks = this.scale
+            .getTickValues()
+            .filter(tick => !tick.gridLineOnly)
+
         // Make sure the start and end values are present, if they're whole numbers
-        if (domain[0] % 1 === 0) ticks = [domain[0]].concat(ticks)
+        const startEndPrio = this.scale.scaleType === "log" ? 2 : 1
+        if (domain[0] % 1 === 0)
+            ticks = [
+                {
+                    value: domain[0],
+                    priority: startEndPrio,
+                    isFirstOrLastTick: true
+                },
+                ...ticks
+            ]
         if (domain[1] % 1 === 0 && this.scale.hideFractionalTicks)
-            ticks = ticks.concat([domain[1]])
+            ticks = [
+                ...ticks,
+                {
+                    value: domain[1],
+                    priority: startEndPrio,
+                    isFirstOrLastTick: true
+                }
+            ]
         return uniq(ticks)
     }
 
+    // calculates coordinates for ticks, sorted by priority
     @computed get tickPlacements() {
         const { scale, labelOffset } = this
-        return this.baseTicks.map((tick, index) => {
+        return sortBy(this.baseTicks, tick => tick.priority).map(tick => {
             const bounds = Bounds.forText(
-                scale.tickFormat(tick, {
+                scale.tickFormat(tick.value, {
                     ...this.tickFormattingOptions,
-                    isFirstOrLastTick:
-                        index === 0 || index === this.baseTicks.length - 1
+                    isFirstOrLastTick: !!tick.isFirstOrLastTick
                 }),
                 {
                     fontSize: this.tickFontSize
                 }
             )
             return {
-                tick: tick,
+                tick: tick.value,
                 bounds: bounds.extend({
-                    x: scale.place(tick) - bounds.width / 2,
+                    x: scale.place(tick.value) - bounds.width / 2,
                     y: bounds.bottom - labelOffset
                 }),
                 isHidden: false
@@ -104,19 +123,20 @@ export class HorizontalAxis {
     @computed get ticks(): number[] {
         const { tickPlacements } = this
         for (let i = 0; i < tickPlacements.length; i++) {
-            for (let j = 1; j < tickPlacements.length; j++) {
+            for (let j = i + 1; j < tickPlacements.length; j++) {
                 const t1 = tickPlacements[i],
                     t2 = tickPlacements[j]
                 if (t1 === t2 || t1.isHidden || t2.isHidden) continue
                 if (t1.bounds.intersects(t2.bounds.padWidth(-5))) {
-                    if (i === 0) t2.isHidden = true
-                    else if (j === tickPlacements.length - 1) t1.isHidden = true
-                    else t2.isHidden = true
+                    t2.isHidden = true
                 }
             }
         }
 
-        return tickPlacements.filter(t => !t.isHidden).map(t => t.tick)
+        return sortBy(
+            tickPlacements.filter(t => !t.isHidden).map(t => t.tick),
+            t => t
+        )
     }
 
     @computed get tickFormattingOptions() {

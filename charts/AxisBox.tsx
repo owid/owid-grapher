@@ -218,29 +218,38 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
                     orient === "left" ? "horizontalLines" : "verticalLines"
                 )}
             >
-                {scale.getTickValues().map((v, i) => {
+                {scale.getTickValues().map((t, i) => {
+                    const color = t.faint
+                        ? "#eee"
+                        : t.value === 0
+                        ? "#ccc"
+                        : "#d3d3d3"
                     if (orient === "left")
                         return (
                             <line
                                 key={i}
                                 x1={bounds.left.toFixed(2)}
-                                y1={scale.place(v)}
+                                y1={scale.place(t.value)}
                                 x2={bounds.right.toFixed(2)}
-                                y2={scale.place(v)}
-                                stroke={v === 0 ? "#ccc" : "#ddd"}
-                                strokeDasharray={v !== 0 ? "3,2" : undefined}
+                                y2={scale.place(t.value)}
+                                stroke={color}
+                                strokeDasharray={
+                                    t.value !== 0 ? "3,2" : undefined
+                                }
                             />
                         )
                     else
                         return (
                             <line
                                 key={i}
-                                x1={scale.place(v)}
+                                x1={scale.place(t.value)}
                                 y1={bounds.bottom.toFixed(2)}
-                                x2={scale.place(v)}
+                                x2={scale.place(t.value)}
                                 y2={bounds.top.toFixed(2)}
-                                stroke={v === 0 ? "#ccc" : "#ddd"}
-                                strokeDasharray={v !== 0 ? "3,2" : undefined}
+                                stroke={color}
+                                strokeDasharray={
+                                    t.value !== 0 ? "3,2" : undefined
+                                }
                             />
                         )
                 })}
