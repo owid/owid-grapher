@@ -31,6 +31,7 @@ app.use("/admin/api", api.router)
 app.use("/admin/test", testPages)
 
 app.use("/admin/build", express.static("dist/webpack"))
+app.use("/admin/storybook", express.static(".storybook/build"))
 app.use("/admin", adminViews)
 
 // Default route: single page admin app
