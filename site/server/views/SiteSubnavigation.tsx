@@ -76,33 +76,40 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
         },
         {
             label: "By country",
-            href: co2CountryProfilePath,
+            href: "/co2-and-other-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles",
             id: "by-country",
             highlight: true
         },
+	    { label: "Data explorer", href: "/co2-data-explorer", id: "co2-data-explorer" },
         { label: "CO₂ emissions", href: "/co2-emissions", id: "co2-emissions" },
-        { label: "By fuel", href: "/emissions-by-fuel", id: "by-fuel" },
+        { label: "CO₂ by fuel", href: "/emissions-by-fuel", id: "by-fuel" },
+        { label: "GHG emissions", href: "/greenhouse-gas-emissions", id: "ghg-emissions" },
+        { label: "By sector", href: "/emissions-by-sector", id: "by-sector" },
+        { label: "Emissions drivers", href: "/emissions-drivers", id: "emissions-drivers" },
+        { label: "Atmospheric concentrations", href: "/atmospheric-concentrations", id: "atm-concentrations" },
+     ],
+        
+   energy: [
         {
-            label: "GHG emissions",
-            href: "/greenhouse-gas-emissions",
-            id: "ghg-emissions"
+            label: "Energy",
+            href: "/energy",
+            id: "energy"
         },
         {
-            label: "By sector",
-            href: "/emissions-by-sector",
-            id: "by-sector"
+            label: "By country",
+            href: "/energy#energy-country-profiles",
+            id: "by-country",
+            highlight: true
         },
-        {
-            label: "Future emissions",
-            href: "/future-emissions",
-            id: "future-emissions"
-        },
-        {
-            label: "Atm concentrations",
-            href: "/atmospheric-concentrations",
-            id: "atm-concentrations"
-        }
-    ]
+	    { label: "Data explorer", href: "/energy-data-explorer", id: "energy-data-explorer" },
+        { label: "Energy access", href: "/energy-access", id: "energy-access" },
+        { label: "Production & Consumption", href: "/energy-production-consumption", id: "production-consumption" },
+        { label: "Energy mix", href: "/energy-mix", id: "/energy-mix" },
+	    { label: "Electricity mix", href: "/electricity-mix", id: "/electricity-mix" },
+	    { label: "Fossil fuels", href: "/fossil-fuels", id: "/fossil-fuels" },
+	    { label: "Renewables", href: "/renewable-energy", id: "/renewable-energy" },
+	    { label: "Nuclear", href: "/nuclear-energy", id: "/nuclear-energy" },
+	]
 }
 
 export class SiteSubnavigation extends React.Component<{
