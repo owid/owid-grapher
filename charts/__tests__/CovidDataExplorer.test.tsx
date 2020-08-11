@@ -36,14 +36,15 @@ class ExplorerDataTableTest {
     params: CovidQueryParams
     view: ReactWrapper
 
-    static defaultParams: string =
+    static defaultQueryString: string =
         "?tab=table&tableMetrics=cases~deaths~tests~tests_per_case~case_fatality_rate~positive_test_rate"
 
+    static get defaultParams() {
+        return new CovidQueryParams(ExplorerDataTableTest.defaultQueryString)
+    }
+
     constructor(params?: CovidQueryParams) {
-        this.params = defaultTo(
-            params,
-            new CovidQueryParams(ExplorerDataTableTest.defaultParams)
-        )
+        this.params = defaultTo(params, ExplorerDataTableTest.defaultParams)
 
         this.view = mount(
             <CovidDataExplorer
@@ -136,34 +137,30 @@ describe("When you try to create a multimetric Data Explorer", () => {
     })
 
     describe("It doesn't change when", () => {
-        let dataTableTester: ExplorerDataTableTest
-        beforeAll(() => {
-            dataTableTester = new ExplorerDataTableTest()
-        })
-
         it("explorer metrics change", () => {
             MetricOptions.forEach(metric => {
-                dataTableTester.params.setMetric(metric)
+                const params = ExplorerDataTableTest.defaultParams
+                params.setMetric(metric)
+                const dataTableTester = new ExplorerDataTableTest(params)
                 expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
             })
         })
 
-        it("'align outbreaks' is changed", () => {
-            dataTableTester.params.aligned = false
-            expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
-
-            dataTableTester.params.aligned = true
+        it("'align outbreaks' is enabled", () => {
+            const params = ExplorerDataTableTest.defaultParams
+            params.aligned = true
+            const dataTableTester = new ExplorerDataTableTest(params)
             expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
         })
     })
 
     describe("It does update when", () => {
         test("'per capita' is enabled", () => {
-            const params = new CovidQueryParams(
-                ExplorerDataTableTest.defaultParams
-            )
+            const params = ExplorerDataTableTest.defaultParams
             params.perCapita = true
             const dataTableTester = new ExplorerDataTableTest(params)
+
+            dataTableTester.view.simulate("click")
             expect(dataTableTester.bodyRow(1)).toEqual([
                 "United States",
                 "602.24 million",
