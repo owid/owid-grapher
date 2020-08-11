@@ -199,14 +199,6 @@ class ColorsSection extends React.Component<{
                     label="Minimum value"
                     auto={scale.autoMinBinValue}
                 />
-                {!scale.config.isManualBuckets && (
-                    <BindAutoFloat
-                        label="Step size"
-                        field="binStepSize"
-                        store={scale.config}
-                        auto={scale.binStepSizeDefault}
-                    />
-                )}
                 {scale.config.isManualBuckets && (
                     <ColorSchemeEditor scale={scale} />
                 )}
@@ -350,7 +342,7 @@ class NumericBinView extends React.Component<{
         const currentValue = colorSchemeValues[index]
 
         if (index === colorSchemeValues.length - 1)
-            colorSchemeValues.push(currentValue + scale.binStepSizeDefault)
+            colorSchemeValues.push(currentValue + scale.binStepSize)
         else {
             const newValue = (currentValue + colorSchemeValues[index + 1]) / 2
             colorSchemeValues.splice(index + 1, 0, newValue)

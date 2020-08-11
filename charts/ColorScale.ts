@@ -222,7 +222,7 @@ export class ColorScale {
             : this.numAutoBins
     }
 
-    @computed get binStepSizeDefault(): number {
+    @computed get binStepSize(): number {
         const { numAutoBins, minBinValue, valuesWithoutOutliers } = this
         if (!valuesWithoutOutliers.length) return 10
 
@@ -234,12 +234,6 @@ export class ColorScale {
             Math.log(stepSizeInitial) / Math.log(10)
         )
         return round(stepSizeInitial, -stepMagnitude)
-    }
-
-    @computed get binStepSize(): number {
-        return this.config.binStepSize !== undefined
-            ? this.config.binStepSize
-            : this.binStepSizeDefault
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)

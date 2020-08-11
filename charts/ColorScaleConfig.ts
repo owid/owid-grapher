@@ -34,7 +34,6 @@ export class ColorScaleConfigProps {
     } = {}
 
     @observable.ref legendDescription?: string = undefined
-    @observable.ref binStepSize?: number = undefined
 
     constructor(json?: Partial<ColorScaleConfigProps>) {
         if (json !== undefined) {
