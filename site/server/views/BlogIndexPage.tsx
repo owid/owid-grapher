@@ -37,7 +37,12 @@ export const BlogIndexPage = (props: {
                                 <li key={post.slug} className="post">
                                     <a href={`/${post.path}`}>
                                         {post.imageUrl && (
-                                            <img src={post.imageUrl} />
+                                            <div
+                                                className="cover-image"
+                                                style={{
+                                                    backgroundImage: `url(${post.imageUrl})`
+                                                }}
+                                            />
                                         )}
                                         <h3>{post.title}</h3>
                                         <div className="entry-meta">
