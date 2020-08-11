@@ -367,10 +367,10 @@ export class CovidExplorerTable {
                 perCapitaTransform
             )
         else {
-            if (perCapitaTransform) {
-                rowFn = perCapitaTransform(rowFn)
-            }
-            table.addNumericComputedColumn({ ...spec, fn: rowFn })
+            table.addNumericComputedColumn({
+                ...spec,
+                fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn
+            })
         }
         return spec
     }
