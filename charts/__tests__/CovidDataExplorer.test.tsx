@@ -160,7 +160,6 @@ describe("When you try to create a multimetric Data Explorer", () => {
             params.perCapita = true
             const dataTableTester = new ExplorerDataTableTest(params)
 
-            dataTableTester.view.simulate("click")
             expect(dataTableTester.bodyRow(1)).toEqual([
                 "United States",
                 "602.24 million",
