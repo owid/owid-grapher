@@ -407,7 +407,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             windowSize
         )
 
-        const some_fn: RowToValueMapper = (row, index) => {
+        const computeIntervalTotals: RowToValueMapper = (row, index) => {
             const val = averages[index!]
             if (!intervalChange) return val ? val * multiplier : val
             const previousValue = averages[index! - intervalChange]
@@ -419,7 +419,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         this._addComputedColumn(
             new NumericColumn(this, {
                 ...spec,
-                fn: (row, index) => transformation(some_fn(row, index), row)
+                fn: (row, index) =>
+                    transformation(computeIntervalTotals(row, index), row)
             })
         )
     }
