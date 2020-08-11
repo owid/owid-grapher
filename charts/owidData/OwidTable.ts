@@ -31,7 +31,7 @@ export declare type entityId = number
 export declare type owidVariableId = int
 export declare type columnSlug = string // let's be very restrictive on valid column names to start.
 
-interface Row {
+export interface Row {
     [columnName: string]: any
 }
 
@@ -397,7 +397,10 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         groupBy: columnSlug,
         multiplier = 1,
         intervalChange?: number,
-        transformation: (value: any, row: Row) => any = value => value
+        transformation: (fn: RowToValueMapper) => RowToValueMapper = fn => (
+            row,
+            index
+        ) => fn(row, index)
     ) {
         const averages = computeRollingAveragesForEachGroup(
             this.rows,
@@ -419,8 +422,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         this._addComputedColumn(
             new NumericColumn(this, {
                 ...spec,
-                fn: (row, index) =>
-                    transformation(computeIntervalTotals(row, index), row)
+                fn: transformation(computeIntervalTotals)
             })
         )
     }

@@ -33,7 +33,8 @@ import {
     ColumnSpec,
     entityName,
     columnSlug,
-    columnTypes
+    columnTypes,
+    Row
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import { covidAnnotations } from "./CovidAnnotations"
@@ -340,7 +341,8 @@ export class CovidExplorerTable {
 
         const perCapitaTransform =
             perCapita > 1
-                ? (value: any, row: any) => {
+                ? (fn: RowToValueMapper) => (row: Row, index?: number) => {
+                      const value = fn(row, index)
                       if (value === undefined) return undefined
                       const pop = row.population
                       if (!pop) {
@@ -364,7 +366,12 @@ export class CovidExplorerTable {
                 params.intervalChange,
                 perCapitaTransform
             )
-        else table.addNumericComputedColumn({ ...spec, fn: rowFn })
+        else {
+            if (perCapitaTransform) {
+                rowFn = perCapitaTransform(rowFn)
+            }
+            table.addNumericComputedColumn({ ...spec, fn: rowFn })
+        }
         return spec
     }
 
