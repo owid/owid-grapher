@@ -62,19 +62,21 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
 }
 
 export const addExplorerAdminRoutes = (app: Router) => {
-    // http://localhost:3030/admin/data-explorer-preview
-    app.get(`/data-explorer-preview`, async (req, res) => {
-        res.send(switcherExplorerForm())
+    // http://localhost:3030/admin/explorers/preview/some-slug
+    app.get(`/explorers/preview/:slug`, async (req, res) => {
+        const code = await getExplorerCodeBySlug(req.params.slug)
+        if (code === undefined) res.send(`File not found`)
+        res.send(await renderSwitcherDataExplorerPage(req.params.slug, code!))
     })
+}
 
-    app.post(`/data-explorer-preview`, async (req, res) => {
-        res.send(
-            await renderSwitcherDataExplorerPage(
-                "data-explorer-preview",
-                req.body.code
-            )
-        )
-    })
+const getExplorerCodeBySlug = async (
+    slug: string,
+    directory = `${GIT_CONTENT_DIR}/explorers/`
+) => {
+    const path = directory + "/" + slug + explorerFileSuffix
+    if (!fs.existsSync(path)) return undefined
+    return await fs.readFile(path, "utf8")
 }
 
 export const bakeAllPublishedExplorers = async (
@@ -127,15 +129,6 @@ const bakeExplorersToDir = async (
         )
     }
 }
-
-const switcherExplorerForm = () =>
-    renderToHtmlPage(
-        <form method="POST">
-            <textarea name="code" placeholder="Code" rows={30}></textarea>
-            <br />
-            <input type="submit" />
-        </form>
-    )
 
 async function renderSwitcherDataExplorerPage(slug: string, code: string) {
     const program = new DataExplorerProgram(slug, code)

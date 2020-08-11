@@ -56,21 +56,13 @@ class ExplorerRow extends React.Component<{
                 </td>
 
                 <td>
-                    <form
-                        target="explorers"
-                        method="POST"
-                        action="data-explorer-preview"
+                    <Link
+                        target="preview"
+                        to={`/explorers/preview/${explorer.slug}`}
+                        className="btn btn-secondary"
                     >
-                        <input
-                            type="hidden"
-                            name="code"
-                            placeholder="Code"
-                            value={explorer.toString()}
-                        />
-                        <button className="btn btn-secondary" type="submit">
-                            Preview
-                        </button>
-                    </form>
+                        Preview
+                    </Link>
                 </td>
 
                 <td>
