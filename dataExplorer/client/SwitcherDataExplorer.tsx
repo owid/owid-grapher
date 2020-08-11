@@ -12,25 +12,27 @@ import { DataExplorerQueryParams, DataExplorerShell } from "./DataExplorerShell"
 
 declare type chartId = number
 
-export interface SwitcherDataExplorerProps {
+export interface SwitcherBootstrapProps {
+    title: string
+    slug: string
+    switcherCode: string
+    chartConfigs: ChartConfigProps[]
+    bindToWindow: boolean
+}
+
+@observer
+export class SwitcherDataExplorer extends React.Component<{
     chartConfigs: Map<chartId, ChartConfigProps>
     switcher: SwitcherOptions
     explorerNamespace: string
     explorerTitle: string
     bindToWindow: boolean
-}
+}> {
+    static bootstrap(props: SwitcherBootstrapProps) {
+        const { chartConfigs, switcherCode, title, bindToWindow } = props
+        const containerId = "dataExplorerContainer"
+        const containerNode = document.getElementById(containerId)
 
-@observer
-export class SwitcherDataExplorer extends React.Component<
-    SwitcherDataExplorerProps
-> {
-    static bootstrap(
-        containerNode: HTMLElement,
-        chartConfigs: ChartConfigProps[],
-        switcherCode: string,
-        title: string,
-        bindToWindow: boolean
-    ) {
         const switcher = new SwitcherOptions(switcherCode, "")
 
         const chartConfigsMap: Map<number, ChartConfigProps> = new Map()

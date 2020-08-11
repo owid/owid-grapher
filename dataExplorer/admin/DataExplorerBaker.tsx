@@ -23,6 +23,7 @@ import {
 } from "charts/covidDataExplorer/CovidConstants"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
 import { ChartConfigProps } from "charts/ChartConfig"
+import { SwitcherBootstrapProps } from "dataExplorer/client/SwitcherDataExplorer"
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = `${GIT_CONTENT_DIR}/explorers/`,
@@ -97,6 +98,7 @@ export async function renderSwitcherDataExplorerPage(
     return renderToHtmlPage(
         <SwitcherDataExplorerPage
             title={program.title || ""}
+            bindToWindow={true}
             slug={slug}
             switcherCode={program.switcherCode || ""}
             chartConfigs={chartConfigs.map(row => JSON.parse(row.config))}
@@ -152,19 +154,10 @@ const DataExplorerPage = (props: DataExplorerPageSettings) => {
     )
 }
 
-interface SwitcherDataExplorerPageProps {
-    title: string
-    slug: string
-    switcherCode: string
-    chartConfigs: ChartConfigProps[]
-}
-
-const SwitcherDataExplorerPage = (props: SwitcherDataExplorerPageProps) => {
-    const script = `const switcherConfig = \`${props.switcherCode}\`;
-const chartConfigs = ${JSON.stringify(props.chartConfigs)};
-window.SwitcherDataExplorer.bootstrap(document.getElementById("dataExplorerContainer"), chartConfigs, switcherConfig, "${
-        props.title
-    }", true)`
+const SwitcherDataExplorerPage = (props: SwitcherBootstrapProps) => {
+    const script = `window.SwitcherDataExplorer.bootstrap(${JSON.stringify(
+        props
+    )})`
 
     return (
         <DataExplorerPage
