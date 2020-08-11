@@ -100,7 +100,8 @@ class ChartStoryView extends React.Component {
 }
 
 export default {
-    title: "ChartView"
+    title: "ChartView",
+    component: ChartView
 }
 
 export const Default = () => <ChartStoryView />

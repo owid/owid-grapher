@@ -1,18 +1,9 @@
-const path = require("path")
-const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+import path from "path"
+import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin"
+import MiniCssExtractPlugin from "mini-css-extract-plugin"
 
-module.exports = ({ config, mode }) => {
+module.exports = ({ config }: { config: any }) => {
     config.module.rules = config.module.rules.concat([
-        {
-            test: /\.(ts|tsx)$/,
-            loader: require.resolve("ts-loader"),
-            exclude: /serverSettings/,
-            options: {
-                transpileOnly: true,
-                configFile: path.join(__dirname, "../tsconfig.client.json")
-            }
-        },
         {
             test: /\.s?css$/,
             use: [
@@ -33,9 +24,9 @@ module.exports = ({ config, mode }) => {
             configFile: path.join(__dirname, "../tsconfig.client.json")
         })
     ]
-    config.resolve.extensions.push(".ts", ".tsx")
     config.plugins = config.plugins.concat([
-        new MiniCssExtractPlugin("css/[name].css")
+        new MiniCssExtractPlugin({ filename: "css/[name].css" })
     ])
+
     return config
 }

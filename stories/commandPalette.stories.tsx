@@ -7,7 +7,8 @@ import {
 } from "charts/covidDataExplorer/CommandPalette"
 
 export default {
-    title: "CommandPalette"
+    title: "CommandPalette",
+    component: CommandPalette
 }
 
 export const Default = () => {
