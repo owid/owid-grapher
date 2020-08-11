@@ -44,7 +44,7 @@ import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "admin/client/ChartEditor"
 import { enqueueDeploy } from "deploy/queue"
 import { isExplorable } from "utils/charts"
-import { getAllDataExplorers } from "site/server/DataExplorerBaker"
+import { getAllDataExplorers } from "dataExplorer/admin/DataExplorerBaker"
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner

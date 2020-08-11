@@ -30,8 +30,8 @@ import {
 import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { ExplorerCreatePage } from "admin/client/ExplorerCreatePage"
-import { ExplorersIndexPage } from "./ExplorersIndexPage"
+import { ExplorerCreatePage } from "dataExplorer/admin/ExplorerCreatePage"
+import { ExplorersIndexPage } from "dataExplorer/ExplorersIndexPage"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {

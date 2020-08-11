@@ -7,7 +7,7 @@ import {
 import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
 import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
 import uniq from "lodash/uniq"
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
+import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
 
 describe("parse row", () => {

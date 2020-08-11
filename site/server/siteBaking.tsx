@@ -41,7 +41,7 @@ import { Indicator } from "charts/Indicator"
 import {
     CovidDataExplorerPage,
     CovidDataExplorerPageProps
-} from "./views/DataExplorerPages"
+} from "../../dataExplorer/client/DataExplorerPages"
 import { getCountry, Country } from "utils/countries"
 import { memoize } from "charts/Util"
 import { CountryProfileSpec } from "site/client/CountryProfileConstants"

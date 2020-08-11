@@ -1,9 +1,8 @@
 import * as React from "react"
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
-import { SwitcherDataExplorer } from "charts/DataExplorers"
-import { co2ChartConfigs } from "./co2Explorer.test"
-import { SwitcherOptions } from "charts/SwitcherOptions"
+import { SwitcherDataExplorer } from "dataExplorer/client/DataExplorers"
+import { SwitcherOptions } from "dataExplorer/client/SwitcherOptions"
 
 const defaultConfig = `chartId	Gas	Accounting	Fuel	Count	Relative to world total
 488	CO2	Production-based	Total	Per country	FALSE
@@ -38,16 +37,15 @@ export default {
     title: "SwitcherDataExplorer"
 }
 
-export const CarbonDioxide = () => {
+export const SwitcherTest = () => {
     const configs = new Map()
-    co2ChartConfigs.forEach(config => configs.set(config.id, config))
     const switcher = new SwitcherOptions(defaultConfig, "")
     return (
         <SwitcherDataExplorer
             bindToWindow={false}
             chartConfigs={configs}
-            explorerNamespace="CO₂"
-            explorerTitle="CO₂ Data Explorer"
+            explorerNamespace="co"
+            explorerTitle="Test Explorer Switching"
             switcher={switcher}
         />
     )

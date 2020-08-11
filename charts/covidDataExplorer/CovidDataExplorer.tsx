@@ -40,8 +40,8 @@ import {
     ExplorerControlPanel,
     DropdownOption,
     ExplorerControlBar
-} from "../ExplorerControls"
-import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidChartUrl"
+} from "../../dataExplorer/client/ExplorerControls"
+import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
 import { CountryPicker } from "../CountryPicker"
 import {
     fetchAndParseData,

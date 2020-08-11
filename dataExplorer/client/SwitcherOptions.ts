@@ -1,6 +1,6 @@
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
-import { uniq, parseDelimited, isCellEmpty } from "./Util"
-import { ControlOption } from "./ExplorerControls"
+import { uniq, parseDelimited, isCellEmpty } from "charts/Util"
+import { ControlOption } from "dataExplorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 
 const CHART_ID_SYMBOL = "chartId"

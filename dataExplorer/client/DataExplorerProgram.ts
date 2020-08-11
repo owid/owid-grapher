@@ -1,4 +1,4 @@
-import { SwitcherOptions } from "charts/SwitcherOptions"
+import { SwitcherOptions } from "dataExplorer/client/SwitcherOptions"
 import { trimGrid } from "charts/Util"
 
 export const explorerFileSuffix = ".explorer.tsv"

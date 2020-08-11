@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { SwitcherOptions } from "charts/SwitcherOptions"
+import { SwitcherOptions } from "dataExplorer/client/SwitcherOptions"
 
 describe(SwitcherOptions, () => {
     const code = `chartId,country,indicator,interval,perCapita

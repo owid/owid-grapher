@@ -23,7 +23,7 @@ import { ENV } from "settings"
 import {
     switcherExplorerForm,
     renderSwitcherDataExplorerPage
-} from "site/server/DataExplorerBaker"
+} from "dataExplorer/admin/DataExplorerBaker"
 
 const adminViews = Router()
 

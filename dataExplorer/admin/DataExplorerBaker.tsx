@@ -2,10 +2,13 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import * as db from "db/db"
 import React from "react"
-import { SwitcherDataExplorerPage } from "./views/DataExplorerPages"
+import { SwitcherDataExplorerPage } from "dataExplorer/client/DataExplorerPages"
 import { renderToHtmlPage } from "utils/server/serverUtil"
 import { GIT_CONTENT_DIR, BAKED_SITE_DIR } from "serverSettings"
-import { explorerFileSuffix, DataExplorerProgram } from "./DataExplorerProgram"
+import {
+    explorerFileSuffix,
+    DataExplorerProgram
+} from "../client/DataExplorerProgram"
 
 export const bakeAllPublishedExplorers = async (
     inputFolder = `${GIT_CONTENT_DIR}/explorers/`,

@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { CovidDataExplorer } from "../covidDataExplorer/CovidDataExplorer"
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
+import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
 import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"

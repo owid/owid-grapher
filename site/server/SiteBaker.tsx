@@ -64,7 +64,7 @@ import {
     countryProfileSpecs,
     co2CountryProfileRootPath
 } from "site/client/CountryProfileConstants"
-import { bakeAllPublishedExplorers } from "./DataExplorerBaker"
+import { bakeAllPublishedExplorers } from "../../dataExplorer/admin/DataExplorerBaker"
 
 // Static site generator using Wordpress
 

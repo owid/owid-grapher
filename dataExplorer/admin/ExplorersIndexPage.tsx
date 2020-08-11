@@ -1,7 +1,10 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { Link } from "./Link"
-import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { Link } from "admin/client/Link"
+import {
+    AdminAppContext,
+    AdminAppContextType
+} from "admin/client/AdminAppContext"
 import {
     observable,
     computed,
@@ -11,11 +14,11 @@ import {
     IReactionDisposer
 } from "mobx"
 import * as lodash from "lodash"
-import { AdminLayout } from "./AdminLayout"
-import { FieldsRow } from "./Forms"
+import { AdminLayout } from "admin/client/AdminLayout"
+import { FieldsRow } from "admin/client/Forms"
 import { getAvailableSlugSync } from "charts/Util"
-import { DataExplorerProgram } from "site/server/DataExplorerProgram"
-import { deleteRemoteFile, writeRemoteFile } from "./OwidContent"
+import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
+import { deleteRemoteFile, writeRemoteFile } from "admin/client/OwidContent"
 import { BAKED_BASE_URL } from "settings"
 
 const contentRepo =

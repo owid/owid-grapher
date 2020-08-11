@@ -30,7 +30,7 @@ import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
 import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
 import { runFootnotes } from "site/client/Footnote"
-import { SwitcherDataExplorer } from "charts/DataExplorers"
+import { SwitcherDataExplorer } from "dataExplorer/client/DataExplorers"
 
 declare var window: any
 window.Grapher = Grapher

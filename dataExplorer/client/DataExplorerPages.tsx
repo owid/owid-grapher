@@ -1,10 +1,10 @@
 import * as React from "react"
 import * as settings from "settings"
-import { Head } from "./Head"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
+import { Head } from "site/server/views/Head"
+import { SiteHeader } from "site/server/views/SiteHeader"
+import { SiteFooter } from "site/server/views/SiteFooter"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
-import { EmbedDetector } from "./EmbedDetector"
+import { EmbedDetector } from "site/server/views/EmbedDetector"
 
 import {
     covidDashboardSlug,
@@ -12,7 +12,7 @@ import {
     covidPageTitle,
     covidPreloads
 } from "charts/covidDataExplorer/CovidConstants"
-import { SiteSubnavigation } from "./SiteSubnavigation"
+import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
 import { ChartConfigProps } from "charts/ChartConfig"
 
 interface DataExplorerPageSettings {

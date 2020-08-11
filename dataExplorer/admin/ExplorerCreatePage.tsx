@@ -1,18 +1,17 @@
 import { observer } from "mobx-react"
 import React from "react"
-import { AdminLayout } from "./AdminLayout"
-import { AdminAppContextType, AdminAppContext } from "./AdminAppContext"
-import { SwitcherDataExplorer } from "charts/DataExplorers"
+import { AdminLayout } from "admin/client/AdminLayout"
+import {
+    AdminAppContextType,
+    AdminAppContext
+} from "admin/client/AdminAppContext"
+import { SwitcherDataExplorer } from "dataExplorer/client/DataExplorers"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { jsTableToDelimited, trimGrid, JsTable } from "charts/Util"
-import Draggable from "react-draggable"
-import { faArrowsAlt } from "@fortawesome/free-solid-svg-icons/faArrowsAlt"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import classNames from "classnames"
-import { DataExplorerProgram } from "site/server/DataExplorerProgram"
-import { readRemoteFile, writeRemoteFile } from "./OwidContent"
+import { JsTable } from "charts/Util"
+import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
+import { readRemoteFile, writeRemoteFile } from "admin/client/OwidContent"
 import { Prompt } from "react-router-dom"
 
 @observer
