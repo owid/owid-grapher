@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
+import { DataExplorerProgram } from "../DataExplorerProgram"
 
 describe(DataExplorerProgram, () => {
     const program = new DataExplorerProgram(

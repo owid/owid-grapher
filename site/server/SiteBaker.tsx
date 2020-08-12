@@ -44,7 +44,7 @@ import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
-import { countries } from "utils/countries"
+import { countries, getCountryDetectionRedirects } from "utils/countries"
 import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
 import {
@@ -61,7 +61,7 @@ import {
 import {
     bakeAllPublishedExplorers,
     renderCovidDataExplorerPage
-} from "../../dataExplorer/admin/DataExplorerBaker"
+} from "dataExplorer/admin/DataExplorerBaker"
 
 // Static site generator using Wordpress
 
@@ -74,17 +74,6 @@ export class SiteBaker {
     grapherExports!: GrapherExports
     constructor(props: SiteBakerProps) {
         this.props = props
-    }
-
-    static getCountryDetectionRedirects() {
-        return countries
-            .filter(country => country.iso3166 && country.code)
-            .map(
-                country =>
-                    `/detect-country-redirect /detect-country.js?${
-                        country.code
-                    } 302! Country=${country.iso3166!.toLowerCase()}`
-            )
     }
 
     async bakeRedirects() {
@@ -127,7 +116,7 @@ export class SiteBaker {
             "/slides/* https://slides.ourworldindata.org/:splat 301"
         ]
 
-        SiteBaker.getCountryDetectionRedirects().forEach(redirect =>
+        getCountryDetectionRedirects().forEach(redirect =>
             redirects.push(redirect)
         )
 
