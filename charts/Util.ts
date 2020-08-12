@@ -255,6 +255,11 @@ export function precisionRound(num: number, precision: number) {
     return Math.round(num * factor) / factor
 }
 
+export function roundSigFig(num: number, sigfigs: number = 1) {
+    const magnitude = Math.floor(Math.log(num) / Math.log(10))
+    return round(num, -magnitude + sigfigs - 1)
+}
+
 export function formatValue(
     value: number,
     options: TickFormattingOptions

@@ -15,7 +15,8 @@ import {
     first,
     last,
     find,
-    identity
+    identity,
+    roundSigFig
 } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
@@ -144,8 +145,7 @@ export class ColorScale {
 
     @computed get autoMinBinValue(): number {
         const minValue = Math.min(0, this.valuesWithoutOutliers[0])
-        const magnitude = Math.floor(Math.log(minValue) / Math.log(10))
-        return Math.min(0, round(minValue, -magnitude))
+        return Math.min(0, roundSigFig(minValue, 1))
     }
 
     @computed get minBinValue(): number {
@@ -236,10 +236,7 @@ export class ColorScale {
             (valuesWithoutOutliers[valuesWithoutOutliers.length - 1] -
                 minBinValue) /
             numAutoBins
-        const stepMagnitude = Math.floor(
-            Math.log(stepSizeInitial) / Math.log(10)
-        )
-        return round(stepSizeInitial, -stepMagnitude)
+        return roundSigFig(stepSizeInitial, 1)
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)

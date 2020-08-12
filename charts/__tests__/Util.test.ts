@@ -17,7 +17,8 @@ import {
     previous,
     parseDelimited,
     toJsTable,
-    intersectionOfSets
+    intersectionOfSets,
+    roundSigFig
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -357,5 +358,15 @@ describe(mergeQueryStr, () => {
 
     it("handles undefined", () => {
         expect(mergeQueryStr(undefined, "")).toEqual("")
+    })
+})
+
+describe(roundSigFig, () => {
+    it("rounds to 1 sig fig by default", () => {
+        expect(roundSigFig(652)).toEqual(700)
+    })
+
+    it("correctly rounds to provided sig figs", () => {
+        expect(roundSigFig(652, 2)).toEqual(650)
     })
 })
