@@ -37,6 +37,10 @@ elif [ "$1" == "tufte" ]; then
  HOST="owid-staging"
  PREFIX="tufte"
 
+elif [ "$1" == "roser" ]; then
+ HOST="owid-staging"
+ PREFIX="roser"
+
 elif [ "$1" == "live" ]; then
   HOST="owid-live"
   PREFIX="live"
