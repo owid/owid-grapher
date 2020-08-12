@@ -23,11 +23,13 @@ const servers = [
     "live",
     "staging",
     "explorer",
+    "exemplars",
     "hans",
     "playfair",
     "jefferson",
     "nightingale",
-    "tufte"
+    "tufte",
+    "roser"
 ]
 
 const args = parseArgs(process.argv.slice(2))
