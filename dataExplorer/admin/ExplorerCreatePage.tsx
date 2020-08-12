@@ -140,6 +140,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     </div>
                     <div style={{ height: "500px", overflow: "scroll" }}>
                         <SwitcherDataExplorer
+                            queryString=""
                             chartConfigs={this.chartConfigs}
                             bindToWindow={false}
                             explorerNamespace="explorer"

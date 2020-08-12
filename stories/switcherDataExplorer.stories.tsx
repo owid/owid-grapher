@@ -42,6 +42,7 @@ export const SwitcherTest = () => {
     const switcher = new SwitcherOptions(defaultConfig, "")
     return (
         <SwitcherDataExplorer
+            queryString=""
             bindToWindow={false}
             chartConfigs={configs}
             explorerNamespace="co"
