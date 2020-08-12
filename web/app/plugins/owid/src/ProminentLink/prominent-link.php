@@ -21,20 +21,30 @@ function render($attributes, $content)
       . "</{$title_tag}>";
   }
 
-  $figure = null;
-  if (!empty($attributes['mediaUrl'])) {
-    $img = wp_get_attachment_image($attributes['mediaId'], 'medium_large');
-    $figure = "<figure>" . $img . "</figure>";
-    $classes .= ' with-image';
-  }
-
   $linkStart = $linkEnd = null;
+  $isGrapher = null;
   if (!empty($attributes['linkUrl'])) {
-    $target_blank = substr(parse_url($attributes['linkUrl'], PHP_URL_PATH), 0, 9) === '/grapher/'
-      ? ' target="_blank"'
-      : null;
+    $isGrapher = substr(parse_url($attributes['linkUrl'], PHP_URL_PATH), 0, 9) === '/grapher/';
+    $target_blank = $isGrapher ? ' target="_blank"' : null;
     $linkStart = '<a href="' . esc_url($attributes['linkUrl']) . '"' . $target_blank . '>';
     $linkEnd = '</a>';
+  }
+
+  $img = null;
+  if (!empty($attributes['mediaUrl'])) {
+    $img = wp_get_attachment_image($attributes['mediaId'], 'medium_large');
+  } else {
+    if ($isGrapher) {
+      $pathElements = explode("/", parse_url($attributes['linkUrl'], PHP_URL_PATH));
+      $chartSlug = end($pathElements);
+      $img = '<img src="/grapher/exports/' . $chartSlug . '.svg" />';
+    }
+  }
+
+  $figure = null;
+  if ($img) {
+    $figure = "<figure>" . $img . "</figure>";
+    $classes .= ' with-image';
   }
 
   $block = null;
