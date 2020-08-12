@@ -34,12 +34,12 @@ async function dataExport() {
 
     // Dump all tables including schema but exclude the rows of data_values
     await exec(
-        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} ${excludeTables
+        `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} ${excludeTables
             .map(tableName => `--ignore-table=${DB_NAME}.${tableName}`)
             .join(" ")} -r ${filePath}`
     )
     await exec(
-        `mysqldump --default-character-set=utf8mb4 -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} ${excludeTables.join(
+        `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} --no-data ${DB_NAME} ${excludeTables.join(
             " "
         )} >> ${filePath}`
     )
