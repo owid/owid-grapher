@@ -138,13 +138,25 @@ async function renderSwitcherDataExplorerPage(slug: string, code: string) {
         [program.requiredChartIds]
     )
 
+    const props: SwitcherBootstrapProps = {
+        title: program.title || "",
+        bindToWindow: true,
+        slug,
+        switcherCode: code || "",
+        chartConfigs: chartConfigs.map(row => JSON.parse(row.config))
+    }
+
+    const script = `window.SwitcherDataExplorer.bootstrap(${JSON.stringify(
+        props
+    )})`
+
     return renderToHtmlPage(
-        <SwitcherDataExplorerPage
-            title={program.title || ""}
-            bindToWindow={true}
-            slug={slug}
-            switcherCode={program.switcherCode || ""}
-            chartConfigs={chartConfigs.map(row => JSON.parse(row.config))}
+        <DataExplorerPage
+            title={props.title}
+            slug={props.slug}
+            imagePath=""
+            preloads={[]}
+            inlineJs={script}
         />
     )
 }
@@ -194,22 +206,6 @@ const DataExplorerPage = (props: DataExplorerPageSettings) => {
                 <script dangerouslySetInnerHTML={{ __html: props.inlineJs }} />
             </body>
         </html>
-    )
-}
-
-const SwitcherDataExplorerPage = (props: SwitcherBootstrapProps) => {
-    const script = `window.SwitcherDataExplorer.bootstrap(${JSON.stringify(
-        props
-    )})`
-
-    return (
-        <DataExplorerPage
-            title={props.title}
-            slug={props.slug}
-            imagePath=""
-            preloads={[]}
-            inlineJs={script}
-        />
     )
 }
 

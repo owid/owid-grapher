@@ -15,16 +15,17 @@ interface Group {
 
 export class SwitcherOptions {
     private parsed: any[]
-    @observable private _settings: any
+    @observable private _settings: any = {}
     constructor(delimited: string, queryString: string = "") {
         this.parsed = parseDelimited(delimited)
         this.parsed.forEach(row => {
             row.chartId = parseInt(row.chartId)
         })
-        this._settings = strToQueryParams(queryString)
+        const queryParams = strToQueryParams(decodeURIComponent(queryString))
         this.columnNames.forEach(name => {
-            if (this._settings[name] === undefined)
+            if (queryParams[name] === undefined)
                 this.setValue(name, this.firstAvailableOptionForGroup(name))
+            else this.setValue(name, queryParams[name])
         })
     }
 
@@ -32,7 +33,7 @@ export class SwitcherOptions {
         return { ...this._settings }
     }
 
-    @observable toParams() {
+    @computed get toParams() {
         return this.toObject()
     }
 

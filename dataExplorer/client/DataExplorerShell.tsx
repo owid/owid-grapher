@@ -1,5 +1,5 @@
 import { computed, action, observable } from "mobx"
-import { QueryParams } from "utils/client/url"
+import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "charts/ChartUrl"
 import { observer } from "mobx-react"
 import React from "react"
@@ -17,6 +17,17 @@ import { ChartView } from "charts/ChartView"
 export class DataExplorerQueryParams {
     hideControls: boolean = false
     selectedCountryCodes: Set<string> = new Set<string>()
+
+    constructor(queryString: string) {
+        const obj = strToQueryParams(queryString)
+        this.hideControls = obj.hideControls === "true"
+
+        if (obj.country) {
+            EntityUrlBuilder.queryParamToEntities(obj.country).forEach(code =>
+                this.selectedCountryCodes.add(code)
+            )
+        }
+    }
 
     @computed get toParams(): QueryParams {
         const params: any = {}

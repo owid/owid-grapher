@@ -24,6 +24,7 @@ export interface SwitcherBootstrapProps {
 export class SwitcherDataExplorer extends React.Component<{
     chartConfigs: Map<chartId, ChartConfigProps>
     switcher: SwitcherOptions
+    queryString: string
     explorerNamespace: string
     explorerTitle: string
     bindToWindow: boolean
@@ -32,14 +33,16 @@ export class SwitcherDataExplorer extends React.Component<{
         const { chartConfigs, switcherCode, title, bindToWindow } = props
         const containerId = "dataExplorerContainer"
         const containerNode = document.getElementById(containerId)
+        const queryString = window.location.search
 
-        const switcher = new SwitcherOptions(switcherCode, "")
+        const switcher = new SwitcherOptions(switcherCode, queryString)
 
         const chartConfigsMap: Map<number, ChartConfigProps> = new Map()
         chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
 
         return ReactDOM.render(
             <SwitcherDataExplorer
+                queryString={queryString}
                 chartConfigs={chartConfigsMap}
                 explorerNamespace="explorer"
                 explorerTitle={title}
@@ -54,7 +57,7 @@ export class SwitcherDataExplorer extends React.Component<{
 
     bindToWindow() {
         const url = new ExtendedChartUrl(this._chart!.url, [
-            this.props.switcher.toParams(),
+            this.props.switcher.toParams,
             this.userOptions.toParams
         ])
 
@@ -62,15 +65,15 @@ export class SwitcherDataExplorer extends React.Component<{
         else this.urlBinding = new UrlBinder()
 
         this.urlBinding.bindToWindow(url)
+        const win = window as any
+        win.switcherDataExplorer = this
     }
 
     componentWillMount() {
+        // todo: add disposer
         reaction(() => this.props.switcher.chartId, this.updateChart, {
             fireImmediately: true
         })
-
-        const win = window as any
-        win.switcherDataExplorer = this
     }
 
     @action.bound updateChart() {
@@ -153,7 +156,9 @@ export class SwitcherDataExplorer extends React.Component<{
         )
     }
 
-    @observable userOptions = new DataExplorerQueryParams()
+    @observable userOptions = new DataExplorerQueryParams(
+        this.props.queryString
+    )
 
     render() {
         return (

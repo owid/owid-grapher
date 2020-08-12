@@ -1,6 +1,5 @@
 import { computed, observable, action } from "mobx"
-import { ObservableUrl } from "../UrlBinder"
-import { ChartUrl, EntityUrlBuilder } from "../ChartUrl"
+import { EntityUrlBuilder } from "../ChartUrl"
 import {
     QueryParams,
     strToQueryParams,
