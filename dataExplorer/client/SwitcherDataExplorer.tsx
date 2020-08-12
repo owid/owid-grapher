@@ -1,8 +1,8 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, when, reaction } from "mobx"
+import { action, observable, when, reaction, autorun } from "mobx"
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
-import { uniq } from "charts/Util"
+import { uniq, partition } from "charts/Util"
 import { SwitcherOptions } from "./SwitcherOptions"
 import { ExplorerControlPanel } from "dataExplorer/client/ExplorerControls"
 import { ChartQueryParams, ExtendedChartUrl } from "charts/ChartUrl"
@@ -54,11 +54,17 @@ export class SwitcherDataExplorer extends React.Component<{
     }
 
     urlBinding?: UrlBinder
+    private lastId = 0
+
+    @observable private _chart?: ChartConfig = undefined
+    @observable availableEntities: string[] = []
+
+    explorerParams = new DataExplorerQueryParams(this.props.queryString)
 
     bindToWindow() {
         const url = new ExtendedChartUrl(this._chart!.url, [
             this.props.switcher.toParams,
-            this.userOptions.toParams
+            this.explorerParams.toParams
         ])
 
         if (this.urlBinding) this.urlBinding.unbindFromWindow()
@@ -71,16 +77,23 @@ export class SwitcherDataExplorer extends React.Component<{
 
     componentWillMount() {
         // todo: add disposer
-        reaction(() => this.props.switcher.chartId, this.updateChart, {
+        reaction(() => this.props.switcher.chartId, this.switchChart, {
             fireImmediately: true
         })
     }
 
-    @action.bound updateChart() {
+    componentDidMount() {
+        autorun(() => {
+            this.explorerParams.selectedCountryCodes.size
+            this.updateChartSelection()
+        })
+    }
+
+    @action.bound switchChart() {
         const newId: number = this.props.switcher.chartId
         if (newId === this.lastId) return
 
-        const params = this.changedParams
+        const params = this._chart?.url.params || {}
         const props =
             this.props.chartConfigs.get(newId) || new ChartConfigProps()
 
@@ -89,26 +102,48 @@ export class SwitcherDataExplorer extends React.Component<{
 
         if (this.props.bindToWindow) this.bindToWindow()
 
+        // disposer?
         when(
             () => this._chart!.isReady,
             () => {
-                this.availableEntities = uniq([
+                // Add any missing entities
+
+                const entities = uniq([
                     ...this.availableEntities,
                     ...this._chart!.table.availableEntities
-                ]).sort()
+                ])
 
-                this._chart!.props.selectedData = this.selectedData
+                const [selected, unselected] = partition(
+                    entities,
+                    (name: string) => this.isSelected(name)
+                )
+
+                selected.sort()
+                unselected.sort()
+
+                this.availableEntities = [...selected, ...unselected]
+
+                this.updateChartSelection()
             }
         )
 
         this.lastId = newId
     }
 
-    private get selectedData() {
+    private isSelected(entityName: string) {
+        const countryCodeMap = this._chart!.table.entityCodeToNameMap
+        return this.explorerParams.selectedCountryCodes.has(
+            countryCodeMap.get(entityName)!
+        )
+    }
+
+    @action.bound private updateChartSelection() {
         const table = this._chart!.table
         const countryCodeMap = table.entityCodeToNameMap
         const entityIdMap = table.entityNameToIdMap
-        return Array.from(this.userOptions.selectedCountryCodes)
+        const selectedData = Array.from(
+            this.explorerParams.selectedCountryCodes
+        )
             .map(code => countryCodeMap.get(code))
             .filter(i => i)
             .map(countryOption => {
@@ -119,16 +154,8 @@ export class SwitcherDataExplorer extends React.Component<{
                         : 0
                 }
             })
+        this._chart!.props.selectedData = selectedData
     }
-
-    get changedParams(): ChartQueryParams {
-        return this._chart?.url.params || {}
-    }
-
-    @observable private _chart?: ChartConfig = undefined
-    private lastId = 0
-
-    @observable availableEntities: string[] = []
 
     get panels() {
         return this.props.switcher.groups.map(group => (
@@ -156,10 +183,6 @@ export class SwitcherDataExplorer extends React.Component<{
         )
     }
 
-    @observable userOptions = new DataExplorerQueryParams(
-        this.props.queryString
-    )
-
     render() {
         return (
             <DataExplorerShell
@@ -168,7 +191,7 @@ export class SwitcherDataExplorer extends React.Component<{
                 explorerName={this.props.explorerNamespace}
                 availableEntities={this.availableEntities}
                 chart={this._chart!}
-                params={this.userOptions}
+                params={this.explorerParams}
                 isEmbed={false}
             />
         )

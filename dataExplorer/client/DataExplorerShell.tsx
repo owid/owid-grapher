@@ -16,7 +16,7 @@ import { ChartView } from "charts/ChartView"
 
 export class DataExplorerQueryParams {
     hideControls: boolean = false
-    selectedCountryCodes: Set<string> = new Set<string>()
+    @observable selectedCountryCodes: Set<string> = new Set<string>()
 
     constructor(queryString: string) {
         const obj = strToQueryParams(queryString)
@@ -140,15 +140,10 @@ export class DataExplorerShell extends React.Component<{
         } else {
             selectedCountryCodes.add(code)
         }
-
-        this.selectionChangeFromBuilder = true
     }
-
-    private selectionChangeFromBuilder = false
 
     @action.bound clearSelectionCommand() {
         this.props.params.selectedCountryCodes.clear()
-        this.selectionChangeFromBuilder = true
     }
 
     @computed get selectedEntityNames(): string[] {
