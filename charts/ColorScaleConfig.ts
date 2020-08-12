@@ -2,28 +2,71 @@ import { observable } from "mobx"
 
 import { Color } from "./Color"
 
+export enum ColorScaleBinningStrategy {
+    quantize = "quantize",
+    // quantile = "quantile",
+    // ckmeans = "ckmeans",
+    manual = "manual"
+}
+
+export const colorScaleBinningStrategyLabels: Record<
+    ColorScaleBinningStrategy,
+    string
+> = {
+    quantize: "Equally-spaced (quantize)",
+    // quantile: "Quantile",
+    // ckmeans: "Ckmeans",
+    manual: "Manual"
+}
+
 export class ColorScaleConfigProps {
-    // Key for a colorbrewer scheme, may then be further customized
-    @observable.ref baseColorScheme?: string
+    // Color scheme
+    // ============
 
-    // Minimum value shown on map legend
-    @observable.ref colorSchemeMinValue?: number
-    @observable colorSchemeValues: number[] = []
-    @observable colorSchemeLabels: (string | undefined)[] = []
-    @observable.ref isManualBuckets?: true = undefined
-    @observable.ref equalSizeBins?: true = undefined
+    /** Key for a colorbrewer scheme */
+    @observable baseColorScheme?: string
 
-    // Whether to reverse the color scheme on output
-    @observable.ref colorSchemeInvert?: true = undefined
-    @observable.ref customColorsActive?: true = undefined
+    /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
+    @observable colorSchemeInvert?: true = undefined
 
-    // e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
+    // Numeric bins
+    // ============
+
+    /** The strategy for generating the bin boundaries */
+    @observable binningStrategy: ColorScaleBinningStrategy =
+        ColorScaleBinningStrategy.quantize
+
+    // Iff the binningStrategy is `manual`, then overrides are specified below.
+    // Otherwise, the overrides are ignored.
+
+    /** The minimum bracket of the first bin */
+    @observable customNumericMinValue?: number
+    /** Custom maximum brackets for each numeric bin */
+    @observable customNumericValues: number[] = []
+    /** Custom labels for each numeric bin */
+    @observable customNumericLabels: (string | undefined)[] = []
+
+    /**
+     * Whether `customNumericColors` are used to override the color scheme.
+     * Does not apply to categorical color overrides.
+     */
+    @observable customNumericColorsActive?: true = undefined
+    /**
+     * Override some or all colors for the numerical color legend.
+     * `undefined` uses the color scheme color.
+     */
     @observable customNumericColors: (Color | undefined)[] = []
 
-    // e.g. { 'foo' => '#c00' }
+    /** Whether the visual scaling for the color legend is disabled. */
+    @observable equalSizeBins?: true = undefined
+
+    // Categorical bins
+    // ================
+
     @observable.ref customCategoryColors: {
         [key: string]: string | undefined
     } = {}
+
     @observable.ref customCategoryLabels: {
         [key: string]: string | undefined
     } = {}
@@ -33,7 +76,10 @@ export class ColorScaleConfigProps {
         [key: string]: true | undefined
     } = {}
 
-    @observable.ref legendDescription?: string = undefined
+    // Other
+    // =====
+
+    @observable legendDescription?: string = undefined
 
     constructor(json?: Partial<ColorScaleConfigProps>) {
         if (json !== undefined) {

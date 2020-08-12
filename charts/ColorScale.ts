@@ -2,7 +2,10 @@ import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 import { bind } from "decko"
 
-import { ColorScaleConfigProps } from "./ColorScaleConfig"
+import {
+    ColorScaleConfigProps,
+    ColorScaleBinningStrategy
+} from "./ColorScaleConfig"
 import {
     defaultTo,
     isEmpty,
@@ -43,17 +46,19 @@ export class ColorScale {
         return this.props.config
     }
 
-    @computed get colorSchemeValues(): number[] {
-        return defaultTo(this.config.colorSchemeValues, [])
+    @computed get customNumericValues(): number[] {
+        return defaultTo(this.config.customNumericValues, [])
     }
 
-    @computed get isCustomColors() {
-        return defaultTo(this.config.customColorsActive, false)
+    @computed get customNumericColorsActive() {
+        return defaultTo(this.config.customNumericColorsActive, false)
     }
 
     @computed get customNumericColors() {
         return defaultTo(
-            this.isCustomColors ? this.config.customNumericColors : [],
+            this.customNumericColorsActive
+                ? this.config.customNumericColors
+                : [],
             []
         )
     }
@@ -64,8 +69,8 @@ export class ColorScale {
         return defaultTo(this.config.customHiddenCategories, {})
     }
 
-    @computed get customBucketLabels() {
-        const labels = toJS(this.config.colorSchemeLabels) || []
+    @computed get customNumericLabels() {
+        const labels = toJS(this.config.customNumericLabels) || []
         while (labels.length < this.numBins) labels.push(undefined)
         return labels
     }
@@ -130,8 +135,7 @@ export class ColorScale {
     }
 
     @computed get colorScheme(): ColorScheme {
-        const colorScheme = ColorSchemes[this.baseColorScheme]
-        return colorScheme !== undefined ? colorScheme : this.defaultColorScheme
+        return ColorSchemes[this.baseColorScheme] ?? this.defaultColorScheme
     }
 
     @computed get singleColorScale(): boolean {
@@ -145,15 +149,13 @@ export class ColorScale {
     }
 
     @computed get minBinValue(): number {
-        return this.config.colorSchemeMinValue !== undefined
-            ? this.config.colorSchemeMinValue
-            : this.autoMinBinValue
+        return this.config.customNumericMinValue ?? this.autoMinBinValue
     }
 
     @computed get manualBinMaximums(): number[] {
         if (!this.sortedNumericValues.length || this.numBins <= 0) return []
 
-        const { numBins, colorSchemeValues } = this
+        const { numBins, customNumericValues: colorSchemeValues } = this
 
         let values = toArray(colorSchemeValues)
         while (values.length < numBins) values.push(0)
@@ -179,7 +181,7 @@ export class ColorScale {
     }
 
     @computed get bucketMaximums(): number[] {
-        if (this.config.isManualBuckets) return this.manualBinMaximums
+        if (this.isManualBuckets) return this.manualBinMaximums
         else return this.autoBinMaximums
     }
 
@@ -216,9 +218,13 @@ export class ColorScale {
         return 5
     }
 
+    @computed get isManualBuckets(): boolean {
+        return this.config.binningStrategy === ColorScaleBinningStrategy.manual
+    }
+
     @computed get numBins(): number {
-        return this.config.isManualBuckets
-            ? this.colorSchemeValues.length
+        return this.isManualBuckets
+            ? this.customNumericValues.length
             : this.numAutoBins
     }
 
@@ -259,7 +265,7 @@ export class ColorScale {
             hasNoDataBin,
             categoricalValues,
             customCategoryColors,
-            customBucketLabels,
+            customNumericLabels,
             minBinValue,
             minPossibleValue,
             maxPossibleValue,
@@ -285,7 +291,7 @@ export class ColorScale {
                     baseColor
                 )
                 const maxValue = +(bucketMaximums[i] as number)
-                const label = customBucketLabels[i]
+                const label = customNumericLabels[i]
                 legendData.push(
                     new NumericBin({
                         isFirst: i === 0,

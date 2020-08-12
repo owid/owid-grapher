@@ -244,7 +244,7 @@ export class MapData extends ChartTransform {
     @computed get formatTooltipValue(): (d: number | string) => string {
         const formatValueLong = this.dimension && this.dimension.formatValueLong
         const customLabels = this.map.tooltipUseCustomLabels
-            ? this.map.data.colorScale.customBucketLabels
+            ? this.map.data.colorScale.customNumericLabels
             : []
         return formatValueLong
             ? (d: number | string) => {
