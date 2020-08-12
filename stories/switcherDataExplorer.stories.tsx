@@ -4,7 +4,7 @@ import "charts/client/chart.scss"
 import { SwitcherDataExplorer } from "dataExplorer/client/SwitcherDataExplorer"
 import { SwitcherOptions } from "dataExplorer/client/SwitcherOptions"
 
-const defaultConfig = `chartId	Gas	Accounting	Fuel	Count	Relative to world total
+const switcherCode = `chartId	Gas	Accounting	Fuel	Count	Relative to world total
 488	CO2	Production-based	Total	Per country	FALSE
 3219	CO2	Production-based	Total	Per country	Share of global emissions
 486	CO2	Production-based	Total	Per capita	
@@ -39,7 +39,7 @@ export default {
 
 export const SwitcherTest = () => {
     const configs = new Map()
-    const switcher = new SwitcherOptions(defaultConfig, "")
+    const switcher = new SwitcherOptions(switcherCode, "")
     return (
         <SwitcherDataExplorer
             queryString=""

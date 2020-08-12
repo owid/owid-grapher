@@ -7,6 +7,12 @@ const nodeDelimiter = "\n"
 const cellDelimiter = "\t"
 const edgeDelimiter = "\t"
 
+enum Keywords {
+    switcher = "switcher",
+    isPublished = "isPublished",
+    title = "title"
+}
+
 export class DataExplorerProgram {
     constructor(slug: string, tsv: string) {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
@@ -27,9 +33,9 @@ export class DataExplorerProgram {
 
     slug: string
 
-    static defaultExplorerProgram = `title\tData Explorer
-isPublished\tfalse
-data
+    static defaultExplorerProgram = `${Keywords.title}\tData Explorer
+${Keywords.isPublished}\tfalse
+${Keywords.switcher}
 \tchartId\tDevice
 \t35\tInternet
 \t46\tMobile`
@@ -40,9 +46,9 @@ data
 
     private lines: string[]
 
-    private getLineValue(key: string) {
+    private getLineValue(keyword: string) {
         const line = this.lines.find(line =>
-            line.startsWith(key + this.cellDelimiter)
+            line.startsWith(keyword + this.cellDelimiter)
         )
         return line ? line.split(this.cellDelimiter)[1] : undefined
     }
@@ -141,26 +147,26 @@ data
     }
 
     get title(): string | undefined {
-        return this.getLineValue("title")
+        return this.getLineValue(Keywords.title)
     }
 
     set title(value: string | undefined) {
-        this.setLineValue("title", value)
+        this.setLineValue(Keywords.title, value)
     }
 
     get isPublished() {
-        return this.getLineValue("isPublished") === "true"
+        return this.getLineValue(Keywords.isPublished) === "true"
     }
 
     set isPublished(value: boolean) {
-        this.setLineValue("isPublished", value ? "true" : "false")
+        this.setLineValue(Keywords.isPublished, value ? "true" : "false")
     }
 
     get switcherCode() {
-        return this.getBlock("data")
+        return this.getBlock(Keywords.switcher)
     }
 
     set switcherCode(value: string | undefined) {
-        this.setBlock("data", value)
+        this.setBlock(Keywords.switcher, value)
     }
 }

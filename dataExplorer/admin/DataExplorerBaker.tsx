@@ -142,7 +142,7 @@ async function renderSwitcherDataExplorerPage(slug: string, code: string) {
         title: program.title || "",
         bindToWindow: true,
         slug,
-        switcherCode: code || "",
+        switcherCode: program.switcherCode || "",
         chartConfigs: chartConfigs.map(row => JSON.parse(row.config))
     }
 
