@@ -8,3 +8,7 @@ before_script:
 script:
     - yarn testcheck
 cache: yarn
+notifications:
+    email:
+        on_success: never
+        on_failure: always
