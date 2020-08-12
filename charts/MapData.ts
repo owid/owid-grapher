@@ -26,6 +26,7 @@ export interface MapDataValue {
     entity: string
     value: number | string
     year: number
+    isSelected?: boolean
 }
 
 export class MapData extends ChartTransform {
@@ -199,7 +200,7 @@ export class MapData extends ChartTransform {
 
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { map, targetYear } = this
+        const { map, targetYear, chart } = this
         const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
 
         if (targetYear === undefined || !valueByEntityAndYear) return {}
@@ -209,6 +210,8 @@ export class MapData extends ChartTransform {
 
         const result: { [key: string]: MapDataValue } = {}
 
+        const selectedEntityNames = new Set(chart.data.selectedEntityNames)
+
         entities.forEach(entity => {
             const valueByYear = valueByEntityAndYear.get(entity)
             if (!valueByYear) return
@@ -217,7 +220,12 @@ export class MapData extends ChartTransform {
             if (year === undefined) return
             const value = valueByYear.get(year)
             if (value === undefined) return
-            result[entity] = { entity, year, value }
+            result[entity] = {
+                entity,
+                year,
+                value,
+                isSelected: selectedEntityNames.has(entity)
+            }
         })
 
         return result

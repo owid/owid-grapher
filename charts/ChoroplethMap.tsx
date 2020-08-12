@@ -18,6 +18,7 @@ export interface ChoroplethDatum {
     value: number | string
     color: string
     highlightFillColor: string
+    isSelected?: boolean
 }
 
 export interface ChoroplethData {
@@ -26,6 +27,8 @@ export interface ChoroplethData {
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
+
+declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
 export interface MapEntity {
     id: string | number | undefined
@@ -43,8 +46,8 @@ interface ChoroplethMapProps {
     defaultFill: string
     focusBracket?: MapBracket
     focusEntity?: MapEntity
-    onClick: (d: GeoFeature) => void
-    onHover: (d: GeoFeature, ev: React.MouseEvent<SVGElement>) => void
+    onClick: (d: GeoFeature, ev: SVGMouseEvent) => void
+    onHover: (d: GeoFeature, ev: SVGMouseEvent) => void
     onHoverStop: () => void
 }
 
@@ -168,6 +171,10 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         else return false
     }
 
+    isSelected(id: string) {
+        return this.choroplethData[id].isSelected
+    }
+
     // Viewport for each projection, defined by center and width+height in fractional coordinates
     @computed get viewport() {
         const viewports = {
@@ -282,10 +289,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         }
     }
 
-    @action.bound onMouseEnter(
-        feature: RenderFeature,
-        ev: React.MouseEvent<SVGElement>
-    ) {
+    @action.bound onMouseEnter(feature: RenderFeature, ev: SVGMouseEvent) {
         this.hoverEnterFeature = feature
         this.props.onHover(feature.geo, ev)
     }
@@ -301,7 +305,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @action.bound onClick(ev: React.MouseEvent<SVGGElement>) {
         if (this.hoverFeature !== undefined)
-            this.props.onClick(this.hoverFeature.geo)
+            this.props.onClick(this.hoverFeature.geo, ev)
     }
 
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
@@ -320,6 +324,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         } = this
         const focusStrokeColor = "#111"
         const focusStrokeWidth = 1.5
+        const selectedStrokeWidth = 1
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
 
@@ -330,7 +335,6 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 clipPath={`url(#boundsClip-${uid})`}
                 onMouseMove={this.onMouseMove}
                 onMouseLeave={this.onMouseLeave}
-                onClick={this.onClick}
                 style={this.hoverFeature ? { cursor: "pointer" } : {}}
             >
                 <rect
@@ -396,8 +400,8 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                         cursor="pointer"
                                         fill={defaultFill}
                                         fillOpacity={fillOpacity}
-                                        onClick={() =>
-                                            this.props.onClick(d.geo)
+                                        onClick={(ev: SVGMouseEvent) =>
+                                            this.props.onClick(d.geo, ev)
                                         }
                                         onMouseEnter={ev =>
                                             this.onMouseEnter(d, ev)
@@ -412,10 +416,14 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     {sortBy(
                         dataFeatures.map(d => {
                             const isFocus = this.hasFocus(d.id)
+                            const isSelected = this.isSelected(d.id)
                             const outOfFocusBracket =
                                 !!this.focusBracket && !isFocus
                             const datum = choroplethData[d.id as string]
-                            const stroke = isFocus ? focusStrokeColor : "#333"
+                            const stroke =
+                                isFocus || isSelected
+                                    ? focusStrokeColor
+                                    : "#333"
                             const fill = datum ? datum.color : defaultFill
                             const fillOpacity = outOfFocusBracket
                                 ? blurFillOpacity
@@ -429,15 +437,20 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     key={d.id}
                                     d={d.path}
                                     strokeWidth={
-                                        (isFocus ? focusStrokeWidth : 0.3) /
-                                        viewportScale
+                                        (isFocus
+                                            ? focusStrokeWidth
+                                            : isSelected
+                                            ? selectedStrokeWidth
+                                            : 0.3) / viewportScale
                                     }
                                     stroke={stroke}
                                     strokeOpacity={strokeOpacity}
                                     cursor="pointer"
                                     fill={fill}
                                     fillOpacity={fillOpacity}
-                                    onClick={() => this.props.onClick(d.geo)}
+                                    onClick={(ev: SVGMouseEvent) =>
+                                        this.props.onClick(d.geo, ev)
+                                    }
                                     onMouseEnter={ev =>
                                         this.onMouseEnter(d, ev)
                                     }

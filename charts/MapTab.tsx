@@ -75,7 +75,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     // Determine if we can go to line chart by clicking on a given map entity
-    isEntityClickable(featureId: string | number | undefined) {
+    private isEntityClickable(featureId: string | number | undefined) {
         if (
             !this.context.chart.hasChartTab ||
             !this.context.chart.isLineChart ||
@@ -91,16 +91,16 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         return datakeys && datakeys.length > 0
     }
 
-    @action.bound onClick(d: GeoFeature) {
+    @action.bound onClick(d: GeoFeature, ev: React.MouseEvent<SVGElement>) {
         if (!this.isEntityClickable(d.id)) return
-
         const { chart } = this.context
-        const entity = this.props.mapToDataEntities[d.id as string]
-        const keys = chart.data.availableKeysByEntity.get(entity)
+        const entityName = this.props.mapToDataEntities[d.id as string]
 
-        if (keys && keys.length) {
+        if (!ev.shiftKey) {
             chart.tab = "chart"
-            chart.data.selectedKeys = keys
+            chart.data.selectOnlyThisEntity(entityName)
+        } else {
+            chart.data.toggleEntitySelectionStatus(entityName)
         }
     }
 

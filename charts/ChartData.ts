@@ -19,6 +19,7 @@ import { Color } from "./Color"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { OwidSource } from "./owidData/OwidSource"
 import { entityName, entityId, entityCode } from "./owidData/OwidTable"
+import { xor } from "lodash"
 
 export interface EntityDimensionInfo {
     entityName: entityName
@@ -237,6 +238,16 @@ export class ChartData {
             }
         })
         chart.props.selectedData = selection
+    }
+
+    selectOnlyThisEntity(entityName: string) {
+        const keys = this.availableKeysByEntity.get(entityName)
+        if (keys?.length) this.selectedKeys = keys
+    }
+
+    toggleEntitySelectionStatus(entityName: string) {
+        const keys = this.availableKeysByEntity.get(entityName)
+        if (keys?.length) this.selectedKeys = xor(keys, this.selectedKeys)
     }
 
     // todo: remove
