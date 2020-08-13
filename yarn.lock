@@ -9065,10 +9065,10 @@ expect@^24.8.0:
     jest-message-util "^24.8.0"
     jest-regex-util "^24.3.0"
 
-expr-eval@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/expr-eval/-/expr-eval-1.2.2.tgz#8b1a160b814e67da7652007e2693714895221ea0"
-  integrity sha1-ixoWC4FOZ9p2UgB+JpNxSJUiHqA=
+expr-eval@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/expr-eval/-/expr-eval-2.0.2.tgz#fa6f044a7b0c93fde830954eb9c5b0f7fbc7e201"
+  integrity sha512-4EMSHGOPSwAfBiibw3ndnP0AvjDWLsMvGOvWEZ2F96IGk0bIVdjQisOHxReSkE13mHcfbuCiXw+G4y0zv6N8Eg==
 
 express-async-errors@^3.1.1:
   version "3.1.1"

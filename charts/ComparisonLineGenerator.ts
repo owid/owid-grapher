@@ -1,4 +1,4 @@
-import { Parser } from "expr-eval"
+import { Parser, Expression } from "expr-eval"
 import { scaleLinear } from "d3-scale"
 
 export function generateComparisonLinePoints(
@@ -8,8 +8,9 @@ export function generateComparisonLinePoints(
     xScaleType: string,
     yScaleType: string
 ) {
+    const expr = parseEquation(lineFunction)
     const yFunc = (x: number) =>
-        evalEquation(lineFunction, { x: x, e: Math.E, pi: Math.PI }, x)
+        evalExpression(expr, { x: x, e: Math.E, pi: Math.PI }, x)
 
     // Construct control data by running the equation across sample points
     const numPoints = 100
@@ -30,17 +31,24 @@ export function generateComparisonLinePoints(
     return controlData
 }
 
-function evalEquation(
-    equation: string,
-    context: { [key: string]: any },
+function evalExpression(
+    expr: Expression | undefined,
+    context: Record<string, any>,
     defaultOnError: any
 ) {
+    if (expr === undefined) return defaultOnError
     try {
-        const parser = new Parser()
-        const expr = parser.parse(equation)
         return expr.evaluate(context)
     } catch (e) {
-        //console.error(e)
         return defaultOnError
+    }
+}
+
+function parseEquation(equation: string) {
+    try {
+        return Parser.parse(equation)
+    } catch (e) {
+        console.error(e)
+        return undefined
     }
 }
