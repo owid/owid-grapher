@@ -4,8 +4,8 @@ import { Color } from "./Color"
 
 export enum ColorScaleBinningStrategy {
     equalInterval = "equalInterval",
-    // quantile = "quantile",
-    // ckmeans = "ckmeans",
+    quantiles = "quantiles",
+    ckmeans = "ckmeans",
     manual = "manual"
 }
 
@@ -14,8 +14,8 @@ export const colorScaleBinningStrategyLabels: Record<
     string
 > = {
     equalInterval: "Equal-interval",
-    // quantile: "Quantiles",
-    // ckmeans: "Ckmeans",
+    quantiles: "Quantiles",
+    ckmeans: "Ckmeans",
     manual: "Manual"
 }
 

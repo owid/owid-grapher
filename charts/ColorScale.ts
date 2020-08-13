@@ -1,6 +1,8 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 import { bind } from "decko"
+import { quantile, range } from "d3-array"
+import { ckmeans } from "simple-statistics"
 
 import {
     ColorScaleConfigProps,
@@ -15,7 +17,9 @@ import {
     last,
     find,
     identity,
-    roundSigFig
+    roundSigFig,
+    excludeUndefined,
+    uniq
 } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
@@ -167,16 +171,39 @@ export class ColorScale {
     @computed get autoBinMaximums(): number[] {
         if (!this.sortedNumericValues.length || this.numAutoBins <= 0) return []
 
-        const { binStepSize, numAutoBins, minBinValue } = this
-
-        const bucketMaximums = []
-        let nextMaximum = minBinValue + binStepSize
-        for (let i = 0; i < numAutoBins; i++) {
-            bucketMaximums.push(nextMaximum)
-            nextMaximum += binStepSize
+        if (this.config.binningStrategy === ColorScaleBinningStrategy.ckmeans) {
+            const clusters = ckmeans(
+                this.sortedNumericBinningValues,
+                this.numAutoBins
+            )
+            // The output of this algorithm can create bins that start & end at the same value.
+            // This also means the first bin can both start and end at the same value – the minimum
+            // value. This is why we uniq() and why we remove any values <= minimum value.
+            return excludeUndefined(uniq(clusters.map(last))).filter(
+                v => v > this.autoMinBinValue
+            )
+        } else if (
+            this.config.binningStrategy === ColorScaleBinningStrategy.quantiles
+        ) {
+            return excludeUndefined(
+                range(1, this.numAutoBins + 1).map(v =>
+                    quantile(
+                        this.sortedNumericBinningValues,
+                        v / this.numAutoBins
+                    )
+                )
+            )
+        } else {
+            // Equal-interval strategy by default
+            const { binStepSize, numAutoBins, minBinValue } = this
+            const bucketMaximums = []
+            let nextMaximum = minBinValue + binStepSize
+            for (let i = 0; i < numAutoBins; i++) {
+                bucketMaximums.push(nextMaximum)
+                nextMaximum += binStepSize
+            }
+            return bucketMaximums
         }
-
-        return bucketMaximums
     }
 
     @computed get bucketMaximums(): number[] {
@@ -236,10 +263,7 @@ export class ColorScale {
         if (!sortedNumericValuesWithoutOutliers.length) return 10
 
         const stepSizeInitial =
-            (sortedNumericValuesWithoutOutliers[
-                sortedNumericValuesWithoutOutliers.length - 1
-            ] -
-                minBinValue) /
+            (last(sortedNumericValuesWithoutOutliers)! - minBinValue) /
             numAutoBins
         return roundSigFig(stepSizeInitial, 1)
     }
@@ -252,6 +276,13 @@ export class ColorScale {
         const sampleDeviation = deviation(sortedNumericValues) as number
         return sortedNumericValues.filter(
             d => Math.abs(d - sampleMean) <= sampleDeviation * 2
+        )
+    }
+
+    /** Sorted numeric values passed onto the binning algorithms */
+    @computed private get sortedNumericBinningValues(): number[] {
+        return this.sortedNumericValuesWithoutOutliers.filter(
+            v => v >= this.minBinValue
         )
     }
 
