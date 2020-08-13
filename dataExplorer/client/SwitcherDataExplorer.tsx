@@ -105,6 +105,8 @@ export class SwitcherDataExplorer extends React.Component<{
 
         this._chart = new ChartConfig(props)
         this._chart.url.populateFromQueryParams(params)
+        this._chart.hideEntityControls =
+            !this.explorerParams.hideControls && !this.isEmbed
 
         if (this.props.bindToWindow) this.bindToWindow()
 
@@ -196,6 +198,11 @@ export class SwitcherDataExplorer extends React.Component<{
         )
     }
 
+    //todo
+    get isEmbed() {
+        return false
+    }
+
     render() {
         return (
             <DataExplorerShell
@@ -205,7 +212,7 @@ export class SwitcherDataExplorer extends React.Component<{
                 availableEntities={this.availableEntities}
                 chart={this._chart!}
                 params={this.explorerParams}
-                isEmbed={false}
+                isEmbed={this.isEmbed}
             />
         )
     }
