@@ -264,6 +264,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @observable hoverEnterFeature?: RenderFeature
     @observable hoverNearbyFeature?: RenderFeature
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
+        if (ev.shiftKey) this.showSelectedStyle = true // Turn on highlight selection. To turn off, user can switch tabs.
         if (this.hoverEnterFeature) return
 
         const { projectionFeatures } = this
@@ -308,6 +309,9 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             this.props.onClick(this.hoverFeature.geo, ev)
     }
 
+    // If true selected countries will have an outline
+    @observable showSelectedStyle = false
+
     // SVG layering is based on order of appearance in the element tree (later elements rendered on top)
     // The ordering here is quite careful
     render() {
@@ -333,6 +337,10 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 ref={this.base}
                 className="ChoroplethMap"
                 clipPath={`url(#boundsClip-${uid})`}
+                onMouseDown={
+                    (ev: SVGMouseEvent) =>
+                        ev.preventDefault() /* Without this, title may get selected while shift clicking */
+                }
                 onMouseMove={this.onMouseMove}
                 onMouseLeave={this.onMouseLeave}
                 style={this.hoverFeature ? { cursor: "pointer" } : {}}
@@ -416,12 +424,13 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     {sortBy(
                         dataFeatures.map(d => {
                             const isFocus = this.hasFocus(d.id)
-                            const isSelected = this.isSelected(d.id)
+                            const showSelectedStyle =
+                                this.showSelectedStyle && this.isSelected(d.id)
                             const outOfFocusBracket =
                                 !!this.focusBracket && !isFocus
                             const datum = choroplethData[d.id as string]
                             const stroke =
-                                isFocus || isSelected
+                                isFocus || showSelectedStyle
                                     ? focusStrokeColor
                                     : "#333"
                             const fill = datum ? datum.color : defaultFill
@@ -439,7 +448,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     strokeWidth={
                                         (isFocus
                                             ? focusStrokeWidth
-                                            : isSelected
+                                            : showSelectedStyle
                                             ? selectedStrokeWidth
                                             : 0.3) / viewportScale
                                     }
