@@ -1,5 +1,11 @@
 import * as React from "react"
-import { action, IReactionDisposer, reaction, computed, runInAction } from "mobx"
+import {
+    action,
+    IReactionDisposer,
+    reaction,
+    computed,
+    runInAction
+} from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 
@@ -232,12 +238,22 @@ class ColorsSection extends React.Component<{
                         />
                     </div>
                 </FieldsRow>
-                <BindAutoFloat
-                    field="customNumericMinValue"
-                    store={scale.config}
-                    label="Minimum value"
-                    auto={scale.autoMinBinValue}
-                />
+                <FieldsRow>
+                    <BindAutoFloat
+                        field="customNumericMinValue"
+                        store={scale.config}
+                        label="Minimum value"
+                        auto={scale.autoMinBinValue}
+                    />
+                    {!scale.isManualBuckets && (
+                        <BindAutoFloat
+                            field="binningStrategyBinCount"
+                            store={scale.config}
+                            label="Number of bins"
+                            auto={scale.numAutoBins}
+                        />
+                    )}
+                </FieldsRow>
                 <ColorSchemeEditor scale={scale} />
             </Section>
         )

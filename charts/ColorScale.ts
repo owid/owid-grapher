@@ -240,8 +240,8 @@ export class ColorScale {
         return colors
     }
 
-    @computed private get numAutoBins(): number {
-        return 5
+    @computed get numAutoBins(): number {
+        return defaultTo(this.config.binningStrategyBinCount, 5)
     }
 
     @computed get isManualBuckets(): boolean {
