@@ -156,9 +156,9 @@ class NumericColorLegendView extends React.Component<{
 
         return (
             <g ref={this.base} className="numericColorLegend">
-                {numericLabels.map(label => (
+                {numericLabels.map((label, i) => (
                     <line
-                        key={label.text}
+                        key={i}
                         x1={props.x + label.bounds.x + label.bounds.width / 2}
                         y1={bottomY - rectHeight}
                         x2={props.x + label.bounds.x + label.bounds.width / 2}
@@ -188,9 +188,9 @@ class NumericColorLegendView extends React.Component<{
                     }),
                     r => r.props["strokeWidth"]
                 )}
-                {numericLabels.map(label => (
+                {numericLabels.map((label, i) => (
                     <text
-                        key={label.text}
+                        key={i}
                         x={props.x + label.bounds.x}
                         y={bottomY + label.bounds.y}
                         fontSize={label.fontSize}
