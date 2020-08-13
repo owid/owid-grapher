@@ -353,6 +353,7 @@ function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     runInAction(() => {
         if (scale.config.binningStrategy !== BinningStrategy.manual) {
             scale.config.customNumericValues = scale.autoBinMaximums
+            scale.config.customNumericLabels = []
             scale.config.binningStrategy = BinningStrategy.manual
         }
     })

@@ -67,10 +67,13 @@ export class ColorScale {
         return defaultTo(this.config.customHiddenCategories, {})
     }
 
-    @computed get customNumericLabels() {
-        const labels = toJS(this.config.customNumericLabels) || []
-        while (labels.length < this.numBins) labels.push(undefined)
-        return labels
+    @computed get customNumericLabels(): (string | undefined)[] {
+        if (this.isManualBuckets) {
+            const labels = toJS(this.config.customNumericLabels) || []
+            while (labels.length < this.numBins) labels.push(undefined)
+            return labels
+        }
+        return []
     }
 
     @computed get isColorSchemeInverted() {

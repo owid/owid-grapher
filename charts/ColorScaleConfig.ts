@@ -21,14 +21,11 @@ export class ColorScaleConfigProps {
     /** The *suggested* number of bins for the automatic binning algorithm */
     @observable binningStrategyBinCount?: number
 
-    // Iff the binningStrategy is `manual`, then overrides are specified below.
-    // Otherwise, the overrides are ignored.
-
     /** The minimum bracket of the first bin */
     @observable customNumericMinValue?: number
-    /** Custom maximum brackets for each numeric bin */
+    /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     @observable customNumericValues: number[] = []
-    /** Custom labels for each numeric bin */
+    /** Custom labels for each numeric bin. Only applied when strategy is `manual`. */
     @observable customNumericLabels: (string | undefined)[] = []
 
     /** Whether `customNumericColors` are used to override the color scheme. */
