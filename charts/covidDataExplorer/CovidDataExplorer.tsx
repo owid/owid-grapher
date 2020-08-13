@@ -72,15 +72,13 @@ import {
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
 import { entityCode } from "charts/owidData/OwidTable"
-import {
-    ColorScaleConfigProps,
-    ColorScaleBinningStrategy
-} from "charts/ColorScaleConfig"
+import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
+import { BinningStrategy } from "charts/BinningStrategies"
 
 const abSeed = Math.random()
 
@@ -1311,7 +1309,7 @@ export class CovidDataExplorer extends React.Component<{
             ptr: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]
                 ?.colorScale as any,
             continents: {
-                binningStrategy: ColorScaleBinningStrategy.manual,
+                binningStrategy: BinningStrategy.manual,
                 legendDescription: "Continent",
                 baseColorScheme: undefined,
                 customNumericValues: [],
@@ -1324,7 +1322,7 @@ export class CovidDataExplorer extends React.Component<{
                 customHiddenCategories: {}
             },
             none: {
-                binningStrategy: ColorScaleBinningStrategy.manual,
+                binningStrategy: BinningStrategy.manual,
                 legendDescription: "",
                 baseColorScheme: undefined,
                 customNumericValues: [],

@@ -33,9 +33,9 @@ import {
 } from "./Forms"
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
 import {
-    ColorScaleBinningStrategy,
-    colorScaleBinningStrategyLabels
-} from "charts/ColorScaleConfig"
+    BinningStrategy,
+    binningStrategyLabels
+} from "charts/BinningStrategies"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean
@@ -166,7 +166,7 @@ class ColorsSection extends React.Component<{
     @action.bound onBinningStrategy(
         binningStrategy: ValueType<{
             label: string
-            value: ColorScaleBinningStrategy
+            value: BinningStrategy
         }>
     ) {
         this.props.scale.config.binningStrategy = asArray(
@@ -185,10 +185,10 @@ class ColorsSection extends React.Component<{
         const { scale } = this.props
 
         const binningStrategyOptions = Object.entries(
-            colorScaleBinningStrategyLabels
+            binningStrategyLabels
         ).map(([value, label]) => ({
             label: label,
-            value: value as ColorScaleBinningStrategy
+            value: value as BinningStrategy
         }))
         const currentBinningStrategyOption = binningStrategyOptions.find(
             option => option.value === scale.config.binningStrategy
@@ -351,9 +351,9 @@ class BinLabelView extends React.Component<{
 
 function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     runInAction(() => {
-        if (scale.config.binningStrategy !== ColorScaleBinningStrategy.manual) {
+        if (scale.config.binningStrategy !== BinningStrategy.manual) {
             scale.config.customNumericValues = scale.autoBinMaximums
-            scale.config.binningStrategy = ColorScaleBinningStrategy.manual
+            scale.config.binningStrategy = BinningStrategy.manual
         }
     })
 }

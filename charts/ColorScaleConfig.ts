@@ -1,23 +1,7 @@
 import { observable } from "mobx"
 
 import { Color } from "./Color"
-
-export enum ColorScaleBinningStrategy {
-    equalInterval = "equalInterval",
-    quantiles = "quantiles",
-    ckmeans = "ckmeans",
-    manual = "manual"
-}
-
-export const colorScaleBinningStrategyLabels: Record<
-    ColorScaleBinningStrategy,
-    string
-> = {
-    equalInterval: "Equal-interval",
-    quantiles: "Quantiles",
-    ckmeans: "Ckmeans",
-    manual: "Manual"
-}
+import { BinningStrategy } from "./BinningStrategies"
 
 export class ColorScaleConfigProps {
     // Color scheme
@@ -33,8 +17,7 @@ export class ColorScaleConfigProps {
     // ============
 
     /** The strategy for generating the bin boundaries */
-    @observable binningStrategy: ColorScaleBinningStrategy =
-        ColorScaleBinningStrategy.ckmeans
+    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
     /** The *suggested* number of bins for the automatic binning algorithm */
     @observable binningStrategyBinCount?: number
 

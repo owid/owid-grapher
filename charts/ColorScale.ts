@@ -4,10 +4,7 @@ import { bind } from "decko"
 import { quantile, range } from "d3-array"
 import { ckmeans } from "simple-statistics"
 
-import {
-    ColorScaleConfigProps,
-    ColorScaleBinningStrategy
-} from "./ColorScaleConfig"
+import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import {
     defaultTo,
     isEmpty,
@@ -24,6 +21,7 @@ import {
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
+import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 
 const NO_DATA_LABEL = "No data"
 
@@ -169,37 +167,12 @@ export class ColorScale {
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
     @computed get autoBinMaximums(): number[] {
-        if (!this.sortedNumericValues.length || this.numAutoBins <= 0) return []
-
-        if (this.config.binningStrategy === ColorScaleBinningStrategy.ckmeans) {
-            const clusters = ckmeans(
-                this.sortedNumericBinningValues,
-                this.numAutoBins
-            )
-            // The output of this algorithm can create bins that start & end at the same value.
-            // This also means the first bin can both start and end at the same value – the minimum
-            // value. This is why we uniq() and why we remove any values <= minimum value.
-            return excludeUndefined(uniq(clusters.map(last))).filter(
-                v => v > this.autoMinBinValue
-            )
-        } else if (
-            this.config.binningStrategy === ColorScaleBinningStrategy.quantiles
-        ) {
-            return excludeUndefined(
-                range(1, this.numAutoBins + 1).map(v =>
-                    quantile(
-                        this.sortedNumericBinningValues,
-                        v / this.numAutoBins
-                    )
-                )
-            )
-        } else {
-            // Equal-interval strategy by default
-            const { binStepSize, numAutoBins, minBinValue } = this
-            return range(1, numAutoBins + 1).map(
-                n => minBinValue + n * binStepSize
-            )
-        }
+        return getBinMaximums({
+            binningStrategy: this.config.binningStrategy,
+            sortedValues: this.sortedNumericBinningValues,
+            binCount: this.numAutoBins,
+            minBinValue: this.minBinValue
+        })
     }
 
     @computed get bucketMaximums(): number[] {
@@ -241,27 +214,13 @@ export class ColorScale {
     }
 
     @computed get isManualBuckets(): boolean {
-        return this.config.binningStrategy === ColorScaleBinningStrategy.manual
+        return this.config.binningStrategy === BinningStrategy.manual
     }
 
     @computed get numBins(): number {
         return this.isManualBuckets
             ? this.customNumericValues.length
             : this.numAutoBins
-    }
-
-    @computed get binStepSize(): number {
-        const {
-            numAutoBins,
-            minBinValue,
-            sortedNumericValuesWithoutOutliers
-        } = this
-        if (!sortedNumericValuesWithoutOutliers.length) return 10
-
-        const stepSizeInitial =
-            (last(sortedNumericValuesWithoutOutliers)! - minBinValue) /
-            numAutoBins
-        return roundSigFig(stepSizeInitial, 1)
     }
 
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
