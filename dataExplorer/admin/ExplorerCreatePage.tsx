@@ -41,11 +41,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     @action.bound setProgram(code: string) {
-        this.dataExplorerProgram = new DataExplorerProgram(
-            this.dataExplorerProgram.slug,
-            code
-        )
-        this.fetchChartConfigs(this.dataExplorerProgram.requiredChartIds)
+        this.program = new DataExplorerProgram(this.program.slug, code)
+        this.fetchChartConfigs(this.program.requiredChartIds)
     }
 
     @action.bound async fetchChartConfigs(chartIds: number[]) {
@@ -70,11 +67,10 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         const newVersion = this.hotTableComponent.current?.hotInstance.getData() as JsTable
         if (newVersion) {
             const program = DataExplorerProgram.fromArrays(
-                this.dataExplorerProgram.slug,
+                this.program.slug,
                 newVersion
             )
-            if (this.dataExplorerProgram.toString() === program.toString())
-                return
+            if (this.program.toString() === program.toString()) return
             this.setProgram(program.toString())
         }
     }
@@ -83,33 +79,30 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         DataExplorerProgram.defaultExplorerProgram
 
     @observable
-    dataExplorerProgram: DataExplorerProgram = new DataExplorerProgram(
+    program: DataExplorerProgram = new DataExplorerProgram(
         this.props.slug,
         DataExplorerProgram.defaultExplorerProgram
     )
 
     @action.bound async saveExplorer() {
-        const slug = prompt(
-            "Slug for this explorer",
-            this.dataExplorerProgram.slug
-        )
+        const slug = prompt("Slug for this explorer", this.program.slug)
         if (!slug) return
         this.context.admin.loadingIndicatorSetting = "loading"
-        this.dataExplorerProgram.slug = slug
+        this.program.slug = slug
         await writeRemoteFile({
-            filepath: this.dataExplorerProgram.fullPath,
-            content: this.dataExplorerProgram.toString()
+            filepath: this.program.fullPath,
+            content: this.program.toString()
         })
         this.context.admin.loadingIndicatorSetting = "off"
-        this.sourceOnDisk = this.dataExplorerProgram.toString()
+        this.sourceOnDisk = this.program.toString()
     }
 
     @computed get isModified(): boolean {
-        return this.sourceOnDisk !== this.dataExplorerProgram.toString()
+        return this.sourceOnDisk !== this.program.toString()
     }
 
     render() {
-        const data = this.dataExplorerProgram.toArrays()
+        const data = this.program.toArrays()
         return (
             <AdminLayout title="Create Explorer">
                 <Prompt
@@ -142,7 +135,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         <SwitcherDataExplorer
                             chartConfigs={this.chartConfigs}
                             bindToWindow={false}
-                            program={this.dataExplorerProgram}
+                            program={this.program}
                         />
                     </div>
                     <div>

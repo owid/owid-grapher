@@ -29,21 +29,25 @@ enum Keywords {
     switcher = "switcher",
     isPublished = "isPublished",
     title = "title",
-    subtitle = "subtitle"
+    subtitle = "subtitle",
+    defaultView = "defaultView"
 }
 
 export class DataExplorerProgram {
     constructor(slug: string, tsv: string, queryString: string = "") {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
+        queryString = queryString ? queryString : this.defaultView || ""
         this.switcherRuntime = new SwitcherRuntime(
             this.switcherCode || "",
             queryString
         )
         this.explorerRuntime = new DataExplorerQueryParams(queryString)
+        this.queryString = queryString
     }
 
     slug: string
+    queryString: string
     switcherRuntime: SwitcherRuntime
     explorerRuntime: DataExplorerQueryParams
 
@@ -171,16 +175,12 @@ ${Keywords.switcher}
         return this.getLineValue(Keywords.title)
     }
 
-    set title(value: string | undefined) {
-        this.setLineValue(Keywords.title, value)
-    }
-
     get subtitle(): string | undefined {
         return this.getLineValue(Keywords.subtitle)
     }
 
-    set subtitle(value: string | undefined) {
-        this.setLineValue(Keywords.subtitle, value)
+    get defaultView(): string | undefined {
+        return this.getLineValue(Keywords.defaultView)
     }
 
     get isPublished() {
@@ -191,20 +191,8 @@ ${Keywords.switcher}
         this.setLineValue(Keywords.isPublished, value ? "true" : "false")
     }
 
-    get toParams() {
-        return Object.assign(
-            {},
-            this.switcherRuntime.toParams,
-            this.explorerRuntime.toParams
-        )
-    }
-
     get switcherCode() {
         return this.getBlock(Keywords.switcher)
-    }
-
-    set switcherCode(value: string | undefined) {
-        this.setBlock(Keywords.switcher, value)
     }
 }
 

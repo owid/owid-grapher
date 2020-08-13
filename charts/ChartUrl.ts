@@ -433,7 +433,7 @@ interface ParamObject {
 
 export class ExtendedChartUrl implements ObservableUrl {
     chartUrl: ChartUrl
-    private _params: ParamObject[]
+    @observable private _params: ParamObject[]
 
     constructor(chartUrl: ChartUrl, params: ParamObject[]) {
         this.chartUrl = chartUrl

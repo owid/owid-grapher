@@ -9,6 +9,7 @@ import ReactDOM from "react-dom"
 import { UrlBinder } from "charts/UrlBinder"
 import { DataExplorerShell } from "./DataExplorerShell"
 import { DataExplorerProgram } from "./DataExplorerProgram"
+import { strToQueryParams } from "utils/client/url"
 
 declare type chartId = number
 
@@ -58,12 +59,18 @@ export class SwitcherDataExplorer extends React.Component<{
     @observable private _chart?: ChartConfig = undefined
     @observable availableEntities: string[] = []
 
-    explorerRuntime = this.props.program.explorerRuntime
-    switcherRuntime = this.props.program.switcherRuntime
+    get explorerRuntime() {
+        return this.props.program.explorerRuntime
+    }
+
+    get switcherRuntime() {
+        return this.props.program.switcherRuntime
+    }
 
     bindToWindow() {
         const url = new ExtendedChartUrl(this._chart!.url, [
-            this.props.program.toParams
+            this.switcherRuntime.toParams,
+            this.explorerRuntime.toParams
         ])
 
         if (this.urlBinding) this.urlBinding.unbindFromWindow()
@@ -92,7 +99,9 @@ export class SwitcherDataExplorer extends React.Component<{
         const newId: number = this.switcherRuntime.chartId
         if (newId === this.lastId) return
 
-        const params = this._chart?.url.params || {}
+        const params = this._chart
+            ? this._chart.url.params
+            : strToQueryParams(this.props.program.queryString)
         const props =
             this.props.chartConfigs.get(newId) || new ChartConfigProps()
 
