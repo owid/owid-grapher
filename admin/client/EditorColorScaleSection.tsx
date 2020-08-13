@@ -1,11 +1,5 @@
 import * as React from "react"
-import {
-    action,
-    IReactionDisposer,
-    reaction,
-    computed,
-    runInAction
-} from "mobx"
+import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 
@@ -112,42 +106,6 @@ class ColorLegendSection extends React.Component<{
 class ColorsSection extends React.Component<{
     scale: ColorScale
 }> {
-    disposers: IReactionDisposer[] = []
-
-    componentDidMount() {
-        const { scale } = this.props
-        this.disposers.push(
-            // When the user disables automatic classification,
-            // populate with automatic buckets.
-
-            // TODO extract this into a function with a `wipe` param.
-            // Here the `wipe` param is false.
-            // When the user edits a section while in auto mode, `wipe` is true.
-            reaction(
-                () => scale.isManualBuckets,
-                () => {
-                    const { customNumericValues } = scale
-                    if (
-                        scale.isManualBuckets &&
-                        customNumericValues.length <= 1
-                    ) {
-                        const { autoBinMaximums } = scale
-                        for (let i = 0; i < autoBinMaximums.length; i++) {
-                            if (i >= customNumericValues.length) {
-                                customNumericValues.push(autoBinMaximums[i])
-                            }
-                        }
-                        scale.config.customNumericValues = customNumericValues
-                    }
-                }
-            )
-        )
-    }
-
-    componentWillUnmount() {
-        this.disposers.forEach(dispose => dispose())
-    }
-
     @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { scale } = this.props
 
@@ -182,10 +140,22 @@ class ColorsSection extends React.Component<{
     }
 
     @computed get binningStrategyOptions() {
-        return Object.entries(binningStrategyLabels).map(([value, label]) => ({
-            label: label,
-            value: value as BinningStrategy
-        }))
+        const options = Object.entries(binningStrategyLabels).map(
+            ([value, label]) => ({
+                label: label,
+                value: value as BinningStrategy
+            })
+        )
+        // Remove the manual binning strategy from the options if
+        // no custom bin values are specified in the config.
+        // Authors can still get into manual mode by selecting an
+        // automatic binning strategy and editing the bins.
+        if (!this.props.scale.config.customNumericValues.length) {
+            return options.filter(
+                ({ value }) => value !== BinningStrategy.manual
+            )
+        }
+        return options
     }
 
     @computed get currentBinningStrategyOption() {
