@@ -3,7 +3,7 @@ import { observable } from "mobx"
 import { Color } from "./Color"
 
 export enum ColorScaleBinningStrategy {
-    quantize = "quantize",
+    equalInterval = "equalInterval",
     // quantile = "quantile",
     // ckmeans = "ckmeans",
     manual = "manual"
@@ -13,7 +13,7 @@ export const colorScaleBinningStrategyLabels: Record<
     ColorScaleBinningStrategy,
     string
 > = {
-    quantize: "Equal-sized bins (quantize)",
+    equalInterval: "Equal-interval",
     // quantile: "Quantiles",
     // ckmeans: "Ckmeans",
     manual: "Manual"
@@ -34,7 +34,7 @@ export class ColorScaleConfigProps {
 
     /** The strategy for generating the bin boundaries */
     @observable binningStrategy: ColorScaleBinningStrategy =
-        ColorScaleBinningStrategy.quantize
+        ColorScaleBinningStrategy.equalInterval
 
     // Iff the binningStrategy is `manual`, then overrides are specified below.
     // Otherwise, the overrides are ignored.

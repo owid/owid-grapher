@@ -23,7 +23,7 @@ interface OldColorScaleConfig {
 }
 
 enum ColorScaleBinningStrategy {
-    quantize = "quantize",
+    equalInterval = "equalInterval",
     manual = "manual"
 }
 
@@ -72,7 +72,7 @@ function oldToNewColorScaleConfig(
 
         binningStrategy: oldConfig.isManualBuckets
             ? ColorScaleBinningStrategy.manual
-            : ColorScaleBinningStrategy.quantize,
+            : ColorScaleBinningStrategy.equalInterval,
         customNumericMinValue: oldConfig.colorSchemeMinValue,
         customNumericValues: oldConfig.colorSchemeValues,
         customNumericLabels: oldConfig.colorSchemeLabels,
