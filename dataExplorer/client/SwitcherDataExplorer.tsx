@@ -175,6 +175,7 @@ export class SwitcherDataExplorer extends React.Component<{
                 title={group.title}
                 explorerSlug={this.props.program.slug}
                 name={group.title}
+                dropdownOptions={group.dropdownOptions}
                 options={group.options}
                 isCheckbox={group.isCheckbox}
                 onChange={value => {

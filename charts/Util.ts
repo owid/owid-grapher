@@ -718,10 +718,11 @@ export function parseIntOrUndefined(s: string | undefined) {
     return isNaN(value) ? undefined : value
 }
 
-export const parseDelimited = (str: string) => {
-    const delimiter = str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
-    return dsvFormat(delimiter).parse(str)
-}
+export const parseDelimited = (str: string) =>
+    dsvFormat(detectDelimiter(str)).parse(str)
+
+export const detectDelimiter = (str: string) =>
+    str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
 
 export const toJsTable = (rows: any[]): JsTable | undefined =>
     rows.length

@@ -1,11 +1,14 @@
-import { trimGrid } from "charts/Util"
+import { trimGrid, detectDelimiter } from "charts/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
     QueryParams
 } from "utils/client/url"
 import { uniq, parseDelimited, isCellEmpty } from "charts/Util"
-import { ControlOption } from "dataExplorer/client/ExplorerControls"
+import {
+    ControlOption,
+    DropdownOption
+} from "dataExplorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 import { EntityUrlBuilder } from "charts/ChartUrl"
 
@@ -15,6 +18,7 @@ const FALSE_SYMBOL = "FALSE"
 interface Group {
     title: string
     options: ControlOption[]
+    dropdownOptions?: DropdownOption[]
     value: string
     isCheckbox: boolean
 }
@@ -196,12 +200,45 @@ ${Keywords.switcher}
     }
 }
 
+enum ControlType {
+    Radio = "Radio",
+    Checkbox = "Checkbox",
+    Dropdown = "Dropdown"
+}
+
+// todo: remove
+const extractColumnTypes = (str: string) => {
+    const header = str.split("\n")[0]
+    return header
+        .split(detectDelimiter(header))
+        .slice(1)
+        .map(
+            name => ControlType[name.split(" ").pop() as ControlType] || "Radio"
+        )
+}
+
+// todo: remove
+const removeColumnTypeInfo = (str: string) => {
+    const lines = str.split("\n")
+    const header = lines[0]
+    const delimiter = detectDelimiter(header)
+    const types = Object.values(ControlType).join("|")
+    const reg = new RegExp("(" + types + ")$")
+    lines[0] = header
+        .split(delimiter)
+        .map(cell => cell.replace(reg, ""))
+        .join(delimiter)
+    return lines.join("\n")
+}
+
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
 export class SwitcherRuntime {
     private parsed: any[]
     @observable private _settings: any = {}
     constructor(delimited: string, queryString: string = "") {
+        this.columnTypes = extractColumnTypes(delimited)
+        delimited = removeColumnTypeInfo(delimited)
         this.parsed = parseDelimited(delimited)
         this.parsed.forEach(row => {
             row.chartId = parseInt(row.chartId)
@@ -213,6 +250,8 @@ export class SwitcherRuntime {
             else this.setValue(name, queryParams[name])
         })
     }
+
+    columnTypes: ControlType[]
 
     toObject() {
         return { ...this._settings }
@@ -302,28 +341,28 @@ export class SwitcherRuntime {
         }
     }
 
-    isBooleanGroup(groupOptions: ControlOption[]) {
-        return (
-            groupOptions.length === 2 &&
-            groupOptions.some(opt => opt.label === FALSE_SYMBOL)
-        )
-    }
-
     @computed get groups(): Group[] {
-        return this.columnNames.map(title => {
+        return this.columnNames.map((title, index) => {
             const optionNames = this.groupOptions[title]
             let options = optionNames.map(optionName =>
                 this.toControlOption(title, optionName)
             )
+            let dropdownOptions = undefined
+            const type = this.columnTypes[index]
 
-            const isCheckbox = this.isBooleanGroup(options)
+            const isCheckbox = type === ControlType.Checkbox
             if (isCheckbox)
                 options = options.filter(opt => opt.label !== FALSE_SYMBOL)
+
+            if (type === "Dropdown") {
+                dropdownOptions = options
+            }
 
             return {
                 title,
                 value: this._settings[title] || options[0]?.value,
                 options,
+                dropdownOptions,
                 isCheckbox
             }
         })

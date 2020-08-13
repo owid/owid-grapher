@@ -19,7 +19,7 @@ describe(DataExplorerProgram, () => {
     })
 })
 
-describe(SwitcherRuntime, () => {
+describe("switcherCode", () => {
     const code = `chartId,country,indicator,interval,perCapita
 21,usa,GDP,annual,FALSE
 24,usa,GDP,annual,Per million

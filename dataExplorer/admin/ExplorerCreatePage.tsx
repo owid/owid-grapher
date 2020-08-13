@@ -141,6 +141,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     <div>
                         <HotTable
                             data={data}
+                            manualColumnResize={[150, 150]}
+                            wordWrap={false}
                             colHeaders={false}
                             contextMenu={true}
                             allowInsertRow={true}

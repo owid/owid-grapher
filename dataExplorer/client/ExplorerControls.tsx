@@ -5,11 +5,14 @@ import classNames from "classnames"
 import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
 
-export interface ControlOption {
+export interface DropdownOption {
     label: string
-    checked: boolean
-    value: string
     available: boolean
+    value: string
+}
+
+export interface ControlOption extends DropdownOption {
+    checked: boolean
 }
 
 export class ExplorerControlBar extends React.Component<{
@@ -46,12 +49,6 @@ export class ExplorerControlBar extends React.Component<{
             </div>
         )
     }
-}
-
-export interface DropdownOption {
-    label: string
-    available: boolean
-    value: string
 }
 
 @observer
