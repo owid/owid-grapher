@@ -256,7 +256,7 @@ export function precisionRound(num: number, precision: number) {
 }
 
 export function roundSigFig(num: number, sigfigs: number = 1) {
-    const magnitude = Math.floor(Math.log(num) / Math.log(10))
+    const magnitude = Math.floor(Math.log10(num))
     return round(num, -magnitude + sigfigs - 1)
 }
 
