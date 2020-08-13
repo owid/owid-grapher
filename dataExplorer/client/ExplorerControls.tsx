@@ -58,7 +58,7 @@ export interface DropdownOption {
 export class ExplorerControlPanel extends React.Component<{
     title: string
     name: string
-    explorerName: string
+    explorerSlug: string
     value?: string
     options: ControlOption[]
     dropdownOptions?: DropdownOption[]
@@ -73,7 +73,7 @@ export class ExplorerControlPanel extends React.Component<{
             name,
             comment,
             isCheckbox,
-            explorerName,
+            explorerSlug,
             value
         } = this.props
         const onChangeValue = isCheckbox
@@ -90,7 +90,7 @@ export class ExplorerControlPanel extends React.Component<{
                             ? "AvailableOption"
                             : "UnavailableOption"
                     ].join(" ")}
-                    data-track-note={`${explorerName}-click-${title.toLowerCase()}`}
+                    data-track-note={`${explorerSlug}-click-${title.toLowerCase()}`}
                 >
                     <input
                         onChange={() => this.props.onChange(onChangeValue)}

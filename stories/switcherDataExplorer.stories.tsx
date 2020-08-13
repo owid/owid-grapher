@@ -44,11 +44,9 @@ export const SwitcherTest = () => {
     const program = new DataExplorerProgram("some-slug", code)
     return (
         <SwitcherDataExplorer
-            queryString=""
             bindToWindow={false}
             chartConfigs={configs}
-            explorerNamespace="co"
-            dataExplorerProgram={program}
+            program={program}
         />
     )
 }

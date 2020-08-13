@@ -54,7 +54,7 @@ interface MetricState {
 
 @observer
 export class CountryPicker extends React.Component<{
-    explorerName: string
+    explorerSlug: string
     table: OwidTable
     optionColorMap: {
         [key: string]: string | undefined
@@ -70,7 +70,7 @@ export class CountryPicker extends React.Component<{
 }> {
     // Set default props
     static defaultProps = {
-        explorerName: "",
+        explorerSlug: "",
         table: new OwidTable([]),
         optionColorMap: {},
         toggleCountryCommand: () => {},
@@ -111,7 +111,7 @@ export class CountryPicker extends React.Component<{
         // Clear search input
         this.searchInput = ""
         Analytics.logCountrySelectorEvent(
-            this.props.explorerName,
+            this.props.explorerSlug,
             checked ? "select" : "deselect",
             name
         )
@@ -245,7 +245,7 @@ export class CountryPicker extends React.Component<{
                 this.selectCountryName(name)
                 this.clearSearchInput()
                 Analytics.logCountrySelectorEvent(
-                    this.props.explorerName,
+                    this.props.explorerSlug,
                     "enter",
                     name
                 )
@@ -385,7 +385,7 @@ export class CountryPicker extends React.Component<{
     @action updateMetric(value: string) {
         this.props.userState.countryPickerMetric = value
         Analytics.logCountrySelectorEvent(
-            this.props.explorerName,
+            this.props.explorerSlug,
             "sortBy",
             value
         )
@@ -420,7 +420,7 @@ export class CountryPicker extends React.Component<{
                             const sortOrder = toggleSort(this.sortOrder)
                             this.props.userState.countryPickerSort = sortOrder
                             Analytics.logCountrySelectorEvent(
-                                this.props.explorerName,
+                                this.props.explorerSlug,
                                 "sortOrder",
                                 sortOrder
                             )
@@ -461,7 +461,7 @@ export class CountryPicker extends React.Component<{
                         onFocus={this.onSearchFocus}
                         onBlur={this.onSearchBlur}
                         ref={this.searchInputRef}
-                        data-track-note={`${this.props.explorerName}-country-search-input`}
+                        data-track-note={`${this.props.explorerSlug}-country-search-input`}
                     />
                     <div className="search-icon">
                         <FontAwesomeIcon icon={faSearch} />
@@ -533,7 +533,7 @@ export class CountryPicker extends React.Component<{
                                 <div
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
-                                    data-track-note={`${this.props.explorerName}-clear-selection`}
+                                    data-track-note={`${this.props.explorerSlug}-clear-selection`}
                                     onClick={this.props.clearSelectionCommand}
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear

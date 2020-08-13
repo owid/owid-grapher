@@ -155,7 +155,7 @@ async function renderSwitcherDataExplorerPage(slug: string, code: string) {
 
     return renderToHtmlPage(
         <DataExplorerPage
-            title={props.title}
+            title={program.title || ""}
             slug={props.slug}
             imagePath=""
             preloads={[]}

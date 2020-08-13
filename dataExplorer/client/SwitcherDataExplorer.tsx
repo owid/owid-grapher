@@ -3,12 +3,11 @@ import { observer } from "mobx-react"
 import { action, observable, when, reaction, autorun } from "mobx"
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import { uniq, partition } from "charts/Util"
-import { SwitcherOptions } from "./SwitcherOptions"
 import { ExplorerControlPanel } from "dataExplorer/client/ExplorerControls"
 import { ExtendedChartUrl } from "charts/ChartUrl"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "charts/UrlBinder"
-import { DataExplorerQueryParams, DataExplorerShell } from "./DataExplorerShell"
+import { DataExplorerShell } from "./DataExplorerShell"
 import { DataExplorerProgram } from "./DataExplorerProgram"
 
 declare type chartId = number
@@ -23,9 +22,7 @@ export interface SwitcherBootstrapProps {
 @observer
 export class SwitcherDataExplorer extends React.Component<{
     chartConfigs: Map<chartId, ChartConfigProps>
-    dataExplorerProgram: DataExplorerProgram
-    queryString: string
-    explorerNamespace: string
+    program: DataExplorerProgram
     bindToWindow: boolean
 }> {
     static bootstrap(props: SwitcherBootstrapProps) {
@@ -35,19 +32,20 @@ export class SwitcherDataExplorer extends React.Component<{
             bindToWindow,
             slug
         } = props
-        const program = new DataExplorerProgram(slug, dataExplorerProgramCode)
         const containerId = "dataExplorerContainer"
         const containerNode = document.getElementById(containerId)
-        const queryString = window.location.search
+        const program = new DataExplorerProgram(
+            slug,
+            dataExplorerProgramCode,
+            window.location.search
+        )
         const chartConfigsMap: Map<number, ChartConfigProps> = new Map()
         chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
 
         return ReactDOM.render(
             <SwitcherDataExplorer
-                dataExplorerProgram={program}
-                queryString={queryString}
+                program={program}
                 chartConfigs={chartConfigsMap}
-                explorerNamespace="explorer"
                 bindToWindow={bindToWindow}
             />,
             containerNode
@@ -60,17 +58,12 @@ export class SwitcherDataExplorer extends React.Component<{
     @observable private _chart?: ChartConfig = undefined
     @observable availableEntities: string[] = []
 
-    explorerParams = new DataExplorerQueryParams(this.props.queryString)
-
-    switcher = new SwitcherOptions(
-        this.props.dataExplorerProgram.switcherCode || "",
-        this.props.queryString
-    )
+    explorerRuntime = this.props.program.explorerRuntime
+    switcherRuntime = this.props.program.switcherRuntime
 
     bindToWindow() {
         const url = new ExtendedChartUrl(this._chart!.url, [
-            this.switcher.toParams,
-            this.explorerParams.toParams
+            this.props.program.toParams
         ])
 
         if (this.urlBinding) this.urlBinding.unbindFromWindow()
@@ -83,20 +76,20 @@ export class SwitcherDataExplorer extends React.Component<{
 
     componentWillMount() {
         // todo: add disposer
-        reaction(() => this.switcher.chartId, this.switchChart, {
+        reaction(() => this.switcherRuntime.chartId, this.switchChart, {
             fireImmediately: true
         })
     }
 
     componentDidMount() {
         autorun(() => {
-            this.explorerParams.selectedCountryCodes.size
+            this.explorerRuntime.selectedCountryCodes.size
             this.updateChartSelection()
         })
     }
 
     @action.bound switchChart() {
-        const newId: number = this.switcher.chartId
+        const newId: number = this.switcherRuntime.chartId
         if (newId === this.lastId) return
 
         const params = this._chart?.url.params || {}
@@ -106,7 +99,7 @@ export class SwitcherDataExplorer extends React.Component<{
         this._chart = new ChartConfig(props)
         this._chart.url.populateFromQueryParams(params)
         this._chart.hideEntityControls =
-            !this.explorerParams.hideControls && !this.isEmbed
+            !this.explorerRuntime.hideControls && !this.isEmbed
 
         if (this.props.bindToWindow) this.bindToWindow()
 
@@ -140,7 +133,7 @@ export class SwitcherDataExplorer extends React.Component<{
 
     private isSelected(entityName: string) {
         const countryCodeMap = this._chart!.table.entityCodeToNameMap
-        return this.explorerParams.selectedCountryCodes.has(
+        return this.explorerRuntime.selectedCountryCodes.has(
             countryCodeMap.get(entityName)!
         )
     }
@@ -150,7 +143,7 @@ export class SwitcherDataExplorer extends React.Component<{
         const countryCodeMap = table.entityCodeToNameMap
         const entityIdMap = table.entityNameToIdMap
         const selectedData = Array.from(
-            this.explorerParams.selectedCountryCodes
+            this.explorerRuntime.selectedCountryCodes
         )
             .map(code => countryCodeMap.get(code))
             .filter(i => i)
@@ -162,20 +155,21 @@ export class SwitcherDataExplorer extends React.Component<{
                         : 0
                 }
             })
+
         this._chart!.props.selectedData = selectedData
     }
 
     get panels() {
-        return this.switcher.groups.map(group => (
+        return this.switcherRuntime.groups.map(group => (
             <ExplorerControlPanel
                 key={group.title}
                 title={group.title}
-                explorerName={this.props.explorerNamespace}
+                explorerSlug={this.props.program.slug}
                 name={group.title}
                 options={group.options}
                 isCheckbox={group.isCheckbox}
                 onChange={value => {
-                    this.switcher.setValue(group.title, value)
+                    this.switcherRuntime.setValue(group.title, value)
                 }}
             />
         ))
@@ -185,13 +179,11 @@ export class SwitcherDataExplorer extends React.Component<{
         return (
             <>
                 <div></div>
-                <div className="ExplorerTitle">
-                    {this.props.dataExplorerProgram.title}
-                </div>
+                <div className="ExplorerTitle">{this.props.program.title}</div>
                 <div
                     className="ExplorerSubtitle"
                     dangerouslySetInnerHTML={{
-                        __html: this.props.dataExplorerProgram.subtitle || ""
+                        __html: this.props.program.subtitle || ""
                     }}
                 ></div>
             </>
@@ -208,10 +200,10 @@ export class SwitcherDataExplorer extends React.Component<{
             <DataExplorerShell
                 headerElement={this.header}
                 controlPanels={this.panels}
-                explorerName={this.props.explorerNamespace}
+                explorerSlug={this.props.program.slug}
                 availableEntities={this.availableEntities}
                 chart={this._chart!}
-                params={this.explorerParams}
+                params={this.explorerRuntime}
                 isEmbed={this.isEmbed}
             />
         )

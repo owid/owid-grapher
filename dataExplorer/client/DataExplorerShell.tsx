@@ -1,6 +1,4 @@
 import { computed, action, observable } from "mobx"
-import { QueryParams, strToQueryParams } from "utils/client/url"
-import { EntityUrlBuilder } from "charts/ChartUrl"
 import { observer } from "mobx-react"
 import React from "react"
 import { ChartConfig } from "charts/ChartConfig"
@@ -13,36 +11,12 @@ import { ExplorerControlBar } from "./ExplorerControls"
 import { throttle } from "lodash"
 import classNames from "classnames"
 import { ChartView } from "charts/ChartView"
-
-export class DataExplorerQueryParams {
-    hideControls: boolean = false
-    @observable selectedCountryCodes: Set<string> = new Set<string>()
-
-    constructor(queryString: string) {
-        const obj = strToQueryParams(queryString)
-        this.hideControls = obj.hideControls === "true"
-
-        if (obj.country) {
-            EntityUrlBuilder.queryParamToEntities(obj.country).forEach(code =>
-                this.selectedCountryCodes.add(code)
-            )
-        }
-    }
-
-    @computed get toParams(): QueryParams {
-        const params: any = {}
-        params.hideControls = this.hideControls ? true : undefined
-        params.country = EntityUrlBuilder.entitiesToQueryParam(
-            Array.from(this.selectedCountryCodes)
-        )
-        return params as QueryParams
-    }
-}
+import { DataExplorerQueryParams } from "./DataExplorerProgram"
 
 // TODO: Migrate CovidExplorer to use this class as well
 @observer
 export class DataExplorerShell extends React.Component<{
-    explorerName: string
+    explorerSlug: string
     controlPanels: JSX.Element[]
     chart: ChartConfig
     availableEntities: string[]
@@ -113,7 +87,7 @@ export class DataExplorerShell extends React.Component<{
     get countryPicker() {
         return (
             <CountryPicker
-                explorerName={this.props.explorerName}
+                explorerSlug={this.props.explorerSlug}
                 table={this.props.chart.table}
                 isDropdownMenu={this.isMobile}
                 availableEntities={this.props.availableEntities}

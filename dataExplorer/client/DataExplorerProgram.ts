@@ -1,5 +1,23 @@
-import { SwitcherOptions } from "./SwitcherOptions"
 import { trimGrid } from "charts/Util"
+import {
+    queryParamsToStr,
+    strToQueryParams,
+    QueryParams
+} from "utils/client/url"
+import { uniq, parseDelimited, isCellEmpty } from "charts/Util"
+import { ControlOption } from "dataExplorer/client/ExplorerControls"
+import { action, observable, computed } from "mobx"
+import { EntityUrlBuilder } from "charts/ChartUrl"
+
+const CHART_ID_SYMBOL = "chartId"
+const FALSE_SYMBOL = "FALSE"
+
+interface Group {
+    title: string
+    options: ControlOption[]
+    value: string
+    isCheckbox: boolean
+}
 
 export const explorerFileSuffix = ".explorer.tsv"
 
@@ -15,10 +33,19 @@ enum Keywords {
 }
 
 export class DataExplorerProgram {
-    constructor(slug: string, tsv: string) {
+    constructor(slug: string, tsv: string, queryString: string = "") {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
+        this.switcherRuntime = new SwitcherRuntime(
+            this.switcherCode || "",
+            queryString
+        )
+        this.explorerRuntime = new DataExplorerQueryParams(queryString)
     }
+
+    slug: string
+    switcherRuntime: SwitcherRuntime
+    explorerRuntime: DataExplorerQueryParams
 
     get filename() {
         return this.slug + explorerFileSuffix
@@ -32,7 +59,10 @@ export class DataExplorerProgram {
         return DataExplorerProgram.fullPath(this.slug)
     }
 
-    slug: string
+    private nodeDelimiter = nodeDelimiter
+    private cellDelimiter = cellDelimiter
+    private edgeDelimiter = edgeDelimiter
+    private lines: string[]
 
     static defaultExplorerProgram = `${Keywords.title}\tData Explorer
 ${Keywords.isPublished}\tfalse
@@ -40,12 +70,6 @@ ${Keywords.switcher}
 \tchartId\tDevice
 \t35\tInternet
 \t46\tMobile`
-
-    private nodeDelimiter = nodeDelimiter
-    private cellDelimiter = cellDelimiter
-    private edgeDelimiter = edgeDelimiter
-
-    private lines: string[]
 
     private getLineValue(keyword: string) {
         const line = this.lines.find(line =>
@@ -78,7 +102,7 @@ ${Keywords.switcher}
     }
 
     get requiredChartIds() {
-        return SwitcherOptions.getRequiredChartIds(this.switcherCode || "")
+        return SwitcherRuntime.getRequiredChartIds(this.switcherCode || "")
     }
 
     static fromArrays(slug: string, table: any[][]) {
@@ -100,10 +124,6 @@ ${Keywords.switcher}
         return trimGrid(this.toArrays())
             .map(line => line.join(this.cellDelimiter))
             .join(this.nodeDelimiter)
-    }
-
-    get switcher() {
-        return new SwitcherOptions(this.switcherCode || "", "")
     }
 
     private getBlockEnds(key: string) {
@@ -171,11 +191,182 @@ ${Keywords.switcher}
         this.setLineValue(Keywords.isPublished, value ? "true" : "false")
     }
 
+    get toParams() {
+        return Object.assign(
+            {},
+            this.switcherRuntime.toParams,
+            this.explorerRuntime.toParams
+        )
+    }
+
     get switcherCode() {
         return this.getBlock(Keywords.switcher)
     }
 
     set switcherCode(value: string | undefined) {
         this.setBlock(Keywords.switcher, value)
+    }
+}
+
+// Takes the author's program and the user's current settings and returns an object for
+// allow the user to navigate amongst charts.
+export class SwitcherRuntime {
+    private parsed: any[]
+    @observable private _settings: any = {}
+    constructor(delimited: string, queryString: string = "") {
+        this.parsed = parseDelimited(delimited)
+        this.parsed.forEach(row => {
+            row.chartId = parseInt(row.chartId)
+        })
+        const queryParams = strToQueryParams(decodeURIComponent(queryString))
+        this.columnNames.forEach(name => {
+            if (queryParams[name] === undefined)
+                this.setValue(name, this.firstAvailableOptionForGroup(name))
+            else this.setValue(name, queryParams[name])
+        })
+    }
+
+    toObject() {
+        return { ...this._settings }
+    }
+
+    @computed get toParams() {
+        return this.toObject()
+    }
+
+    static getRequiredChartIds(code: string) {
+        return parseDelimited(code)
+            .map(row => parseInt(row.chartId!))
+            .filter(id => !isNaN(id))
+    }
+
+    toConstrainedOptions() {
+        const settings = this.toObject()
+        this.columnNames.forEach(group => {
+            if (!this.isOptionAvailable(group, settings[group]))
+                settings[group] = this.firstAvailableOptionForGroup(group)
+        })
+        return settings
+    }
+
+    @action.bound setValue(group: string, value: any) {
+        this._settings[group] = value
+    }
+
+    @computed get columnNames() {
+        if (!this.parsed[0]) return []
+        return Object.keys(this.parsed[0]).filter(
+            name => name !== CHART_ID_SYMBOL
+        )
+    }
+
+    @computed get groupOptions(): { [title: string]: string[] } {
+        const optionMap: any = {}
+        this.columnNames.forEach((title, index) => {
+            optionMap[title] = uniq(this.parsed.map(row => row[title])).filter(
+                cell => !isCellEmpty(cell)
+            ) as string[]
+        })
+        return optionMap
+    }
+
+    firstAvailableOptionForGroup(group: string) {
+        return this.groupOptions[group].find(option =>
+            this.isOptionAvailable(group, option)
+        )
+    }
+
+    isOptionAvailable(groupName: string, optionName: string) {
+        const query: any = {}
+        const columnNames = this.columnNames
+        columnNames.slice(0, columnNames.indexOf(groupName)).forEach(col => {
+            query[col] = this._settings[col]
+        })
+        query[groupName] = optionName
+        return this.rowsWith(query, groupName).length > 0
+    }
+
+    rowsWith(query: any, groupName?: string) {
+        return this.parsed.filter(row =>
+            Object.keys(query)
+                .filter(key => query[key] !== undefined)
+                .every(
+                    key =>
+                        row[key] === query[key] ||
+                        (groupName && groupName !== key
+                            ? isCellEmpty(row[key])
+                            : false)
+                )
+        )
+    }
+
+    @computed get chartId(): number {
+        const row = this.rowsWith(this.toConstrainedOptions())[0]
+        return row?.chartId
+    }
+
+    toControlOption(groupName: string, optionName: string): ControlOption {
+        return {
+            label: optionName,
+            checked: this._settings[groupName] === optionName,
+            value: optionName,
+            available: this.isOptionAvailable(groupName, optionName)
+        }
+    }
+
+    isBooleanGroup(groupOptions: ControlOption[]) {
+        return (
+            groupOptions.length === 2 &&
+            groupOptions.some(opt => opt.label === FALSE_SYMBOL)
+        )
+    }
+
+    @computed get groups(): Group[] {
+        return this.columnNames.map(title => {
+            const optionNames = this.groupOptions[title]
+            let options = optionNames.map(optionName =>
+                this.toControlOption(title, optionName)
+            )
+
+            const isCheckbox = this.isBooleanGroup(options)
+            if (isCheckbox)
+                options = options.filter(opt => opt.label !== FALSE_SYMBOL)
+
+            return {
+                title,
+                value: this._settings[title] || options[0]?.value,
+                options,
+                isCheckbox
+            }
+        })
+    }
+
+    toString() {
+        return queryParamsToStr(this._settings)
+    }
+}
+
+export class DataExplorerQueryParams {
+    hideControls: boolean = false
+    @observable selectedCountryCodes: Set<string> = new Set<string>()
+
+    constructor(queryString: string) {
+        const obj = strToQueryParams(queryString)
+        this.hideControls = obj.hideControls === "true"
+
+        if (obj.country) {
+            EntityUrlBuilder.queryParamToEntities(obj.country).forEach(code =>
+                this.selectedCountryCodes.add(code)
+            )
+        }
+    }
+
+    @computed get toParams(): QueryParams {
+        const params: any = {}
+        params.hideControls = this.hideControls ? true : undefined
+        params.country = EntityUrlBuilder.entitiesToQueryParam(
+            Array.from(this.selectedCountryCodes)
+        )
+        return params as QueryParams
     }
 }
