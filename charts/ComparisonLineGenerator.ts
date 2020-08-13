@@ -1,12 +1,13 @@
 import { Parser, Expression } from "expr-eval"
 import { scaleLinear, scaleLog } from "d3-scale"
+import { ScaleType } from "./ScaleType"
 
 export function generateComparisonLinePoints(
     lineFunction: string = "x",
     xScaleDomain: [number, number],
     yScaleDomain: [number, number],
-    xScaleType: string,
-    yScaleType: string
+    xScaleType: ScaleType,
+    yScaleType: ScaleType
 ) {
     const expr = parseEquation(lineFunction)?.simplify({
         e: Math.E,
