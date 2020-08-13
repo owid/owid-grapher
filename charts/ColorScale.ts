@@ -196,13 +196,9 @@ export class ColorScale {
         } else {
             // Equal-interval strategy by default
             const { binStepSize, numAutoBins, minBinValue } = this
-            const bucketMaximums = []
-            let nextMaximum = minBinValue + binStepSize
-            for (let i = 0; i < numAutoBins; i++) {
-                bucketMaximums.push(nextMaximum)
-                nextMaximum += binStepSize
-            }
-            return bucketMaximums
+            return range(1, numAutoBins + 1).map(
+                n => minBinValue + n * binStepSize
+            )
         }
     }
 
