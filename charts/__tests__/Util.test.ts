@@ -377,4 +377,8 @@ describe(roundSigFig, () => {
     it("rounds negative values to provided sig figs", () => {
         expect(roundSigFig(-652, 1)).toEqual(-700)
     })
+
+    it("leaves zero unchanged", () => {
+        expect(roundSigFig(0, 2)).toEqual(0)
+    })
 })
