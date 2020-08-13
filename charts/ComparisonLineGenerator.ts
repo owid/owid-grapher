@@ -1,5 +1,5 @@
 import { Parser, Expression } from "expr-eval"
-import { scaleLinear } from "d3-scale"
+import { scaleLinear, scaleLog } from "d3-scale"
 
 export function generateComparisonLinePoints(
     lineFunction: string = "x",
@@ -13,13 +13,14 @@ export function generateComparisonLinePoints(
         evalExpression(expr, { x: x, e: Math.E, pi: Math.PI }, x)
 
     // Construct control data by running the equation across sample points
-    const numPoints = 100
-    const scale = scaleLinear()
-        .domain([0, 100])
-        .range(xScaleDomain)
+    const numPoints = 500
+    const scaleFunction = xScaleType === "log" ? scaleLog : scaleLinear
+    const scale = scaleFunction()
+        .domain(xScaleDomain)
+        .range([0, numPoints])
     const controlData: Array<[number, number]> = []
     for (let i = 0; i < numPoints; i++) {
-        const x = scale(i)
+        const x = scale.invert(i)
         const y = yFunc(x)
 
         if (xScaleType === "log" && x <= 0) continue
