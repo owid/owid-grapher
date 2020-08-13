@@ -366,7 +366,15 @@ describe(roundSigFig, () => {
         expect(roundSigFig(652)).toEqual(700)
     })
 
-    it("correctly rounds to provided sig figs", () => {
+    it("rounds integer to provided sig figs", () => {
         expect(roundSigFig(652, 2)).toEqual(650)
+    })
+
+    it("rounds floating point to provided sig figs", () => {
+        expect(roundSigFig(0.00652, 1)).toEqual(0.007)
+    })
+
+    it("rounds negative values to provided sig figs", () => {
+        expect(roundSigFig(-652, 1)).toEqual(-700)
     })
 })
