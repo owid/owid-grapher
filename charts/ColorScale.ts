@@ -155,9 +155,9 @@ export class ColorScale {
     @computed get manualBinMaximums(): number[] {
         if (!this.sortedNumericValues.length || this.numBins <= 0) return []
 
-        const { numBins, customNumericValues: colorSchemeValues } = this
+        const { numBins, customNumericValues } = this
 
-        let values = toArray(colorSchemeValues)
+        let values = toArray(customNumericValues)
         while (values.length < numBins) values.push(0)
         while (values.length > numBins) values = values.slice(0, numBins)
         return values as number[]
