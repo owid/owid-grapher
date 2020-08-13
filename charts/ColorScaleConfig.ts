@@ -36,7 +36,7 @@ export class ColorScaleConfigProps {
     @observable binningStrategy: ColorScaleBinningStrategy =
         ColorScaleBinningStrategy.ckmeans
     /** The *suggested* number of bins for the automatic binning algorithm */
-    @observable binningStrategyBinCount: number | undefined = undefined
+    @observable binningStrategyBinCount?: number
 
     // Iff the binningStrategy is `manual`, then overrides are specified below.
     // Otherwise, the overrides are ignored.
