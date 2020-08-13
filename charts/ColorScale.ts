@@ -10,7 +10,6 @@ import {
     defaultTo,
     isEmpty,
     reverse,
-    round,
     toArray,
     first,
     last,
