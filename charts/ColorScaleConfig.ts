@@ -78,6 +78,7 @@ export class ColorScaleConfigProps {
     // Other
     // =====
 
+    /** A custom legend description. Only used in ScatterPlot legend titles for now. */
     @observable legendDescription?: string = undefined
 
     constructor(json?: Partial<ColorScaleConfigProps>) {
