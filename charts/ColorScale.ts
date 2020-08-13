@@ -236,7 +236,7 @@ export class ColorScale {
     /** Sorted numeric values passed onto the binning algorithms */
     @computed private get sortedNumericBinningValues(): number[] {
         return this.sortedNumericValuesWithoutOutliers.filter(
-            v => v >= this.minBinValue
+            v => v > this.minBinValue
         )
     }
 
