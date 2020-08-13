@@ -99,6 +99,16 @@ export class TestIndexPage extends React.Component {
                             <Link
                                 native
                                 target="_blank"
+                                to="/test/embeds?comparisonLines=true"
+                            >
+                                All charts with comparison lines
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
                                 to="/test/embedVariants"
                             >
                                 Embed Variants

@@ -160,6 +160,11 @@ testPages.get("/embeds", async (req, res) => {
         tab = "chart"
     }
 
+    if (req.query.comparisonLines) {
+        query = query.andWhere(`config->'$.comparisonLines[0].yEquals' != ''`)
+        tab = "chart"
+    }
+
     if (tab) {
         if (tab === "map") {
             query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
