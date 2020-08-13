@@ -181,18 +181,21 @@ class ColorsSection extends React.Component<{
             : scale.baseColorScheme
     }
 
-    render() {
-        const { scale } = this.props
-
-        const binningStrategyOptions = Object.entries(
-            binningStrategyLabels
-        ).map(([value, label]) => ({
+    @computed get binningStrategyOptions() {
+        return Object.entries(binningStrategyLabels).map(([value, label]) => ({
             label: label,
             value: value as BinningStrategy
         }))
-        const currentBinningStrategyOption = binningStrategyOptions.find(
-            option => option.value === scale.config.binningStrategy
+    }
+
+    @computed get currentBinningStrategyOption() {
+        return this.binningStrategyOptions.find(
+            option => option.value === this.props.scale.config.binningStrategy
         )
+    }
+
+    render() {
+        const { scale } = this.props
 
         return (
             <Section name="Color scale">
@@ -227,9 +230,9 @@ class ColorsSection extends React.Component<{
                     <div className="form-group">
                         <label>Binning strategy</label>
                         <Select
-                            options={binningStrategyOptions}
+                            options={this.binningStrategyOptions}
                             onChange={this.onBinningStrategy}
-                            value={currentBinningStrategyOption}
+                            value={this.currentBinningStrategyOption}
                             components={{
                                 IndicatorSeparator: null
                             }}
