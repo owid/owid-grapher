@@ -8,9 +8,11 @@ export function generateComparisonLinePoints(
     xScaleType: string,
     yScaleType: string
 ) {
-    const expr = parseEquation(lineFunction)
-    const yFunc = (x: number) =>
-        evalExpression(expr, { x: x, e: Math.E, pi: Math.PI }, x)
+    const expr = parseEquation(lineFunction)?.simplify({
+        e: Math.E,
+        pi: Math.PI
+    })
+    const yFunc = (x: number) => evalExpression(expr, { x }, undefined)
 
     // Construct control data by running the equation across sample points
     const numPoints = 500
@@ -23,6 +25,7 @@ export function generateComparisonLinePoints(
         const x = scale.invert(i)
         const y = yFunc(x)
 
+        if (y === undefined) continue
         if (xScaleType === "log" && x <= 0) continue
         if (yScaleType === "log" && y <= 0) continue
         if (y > yScaleDomain[1]) continue
@@ -32,14 +35,14 @@ export function generateComparisonLinePoints(
     return controlData
 }
 
-function evalExpression(
+function evalExpression<D>(
     expr: Expression | undefined,
-    context: Record<string, any>,
-    defaultOnError: any
+    context: Record<string, number>,
+    defaultOnError: D
 ) {
     if (expr === undefined) return defaultOnError
     try {
-        return expr.evaluate(context)
+        return expr.evaluate(context) as number
     } catch (e) {
         return defaultOnError
     }
