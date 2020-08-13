@@ -15,7 +15,7 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 
 import { ColorScale } from "charts/ColorScale"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "charts/ColorScaleBin"
-import { clone, noop } from "charts/Util"
+import { clone, noop, last } from "charts/Util"
 import { Color } from "charts/Color"
 import { asArray } from "utils/client/react-select"
 
@@ -408,7 +408,9 @@ class NumericBinView extends React.Component<{
         populateManualBinValuesIfAutomatic(scale)
 
         if (index === customNumericValues.length - 1)
-            customNumericValues.push(currentValue + scale.binStepSize)
+            customNumericValues.push(
+                last(scale.sortedNumericValues) ?? currentValue
+            )
         else {
             const newValue = (currentValue + customNumericValues[index + 1]) / 2
             customNumericValues.splice(index + 1, 0, newValue)
