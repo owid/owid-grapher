@@ -134,7 +134,7 @@ const bakeExplorersToDir = async (
 async function renderSwitcherDataExplorerPage(slug: string, code: string) {
     const program = new DataExplorerProgram(slug, code)
     const chartConfigs: any[] = await db.query(
-        `SELECT config FROM charts WHERE id IN (?)`,
+        `SELECT id, config FROM charts WHERE id IN (?)`,
         [program.requiredChartIds]
     )
 
@@ -143,7 +143,11 @@ async function renderSwitcherDataExplorerPage(slug: string, code: string) {
         bindToWindow: true,
         slug,
         switcherCode: program.switcherCode || "",
-        chartConfigs: chartConfigs.map(row => JSON.parse(row.config))
+        chartConfigs: chartConfigs.map(row => {
+            const config = JSON.parse(row.config)
+            config.id = row.id
+            return config
+        })
     }
 
     const script = `window.SwitcherDataExplorer.bootstrap(${JSON.stringify(
