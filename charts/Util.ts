@@ -61,12 +61,14 @@ import upperFirst from "lodash/upperFirst"
 import assign from "lodash/assign"
 import countBy from "lodash/countBy"
 import startCase from "lodash/startCase"
+import xor from "lodash/xor"
 
 export {
     isEqual,
     map,
     sortBy,
     orderBy,
+    xor,
     each,
     keys,
     entries,

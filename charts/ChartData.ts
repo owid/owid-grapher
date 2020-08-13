@@ -10,6 +10,7 @@ import {
     sortBy,
     without,
     uniq,
+    xor,
     lastOfNonEmptyArray
 } from "./Util"
 import { computed, action } from "mobx"
@@ -19,7 +20,6 @@ import { Color } from "./Color"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { OwidSource } from "./owidData/OwidSource"
 import { entityName, entityId, entityCode } from "./owidData/OwidTable"
-import { xor } from "lodash"
 
 export interface EntityDimensionInfo {
     entityName: entityName
