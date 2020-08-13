@@ -15,7 +15,7 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 
 import { ColorScale } from "charts/ColorScale"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "charts/ColorScaleBin"
-import { clone, noop, entries } from "charts/Util"
+import { clone, noop } from "charts/Util"
 import { Color } from "charts/Color"
 import { asArray } from "utils/client/react-select"
 
@@ -184,7 +184,7 @@ class ColorsSection extends React.Component<{
     render() {
         const { scale } = this.props
 
-        const binningStrategyOptions = entries(
+        const binningStrategyOptions = Object.entries(
             colorScaleBinningStrategyLabels
         ).map(([value, label]) => ({
             label: label,
