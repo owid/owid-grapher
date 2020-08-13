@@ -148,7 +148,7 @@ export class ColorScale {
 
     @computed get autoMinBinValue(): number {
         const minValue = Math.min(0, this.sortedNumericValuesWithoutOutliers[0])
-        return Math.min(0, roundSigFig(minValue, 1))
+        return isNaN(minValue) ? 0 : roundSigFig(minValue, 1)
     }
 
     @computed get minBinValue(): number {
