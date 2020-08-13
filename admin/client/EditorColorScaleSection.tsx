@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action, IReactionDisposer, reaction, computed } from "mobx"
+import { action, IReactionDisposer, reaction, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 
@@ -334,10 +334,12 @@ class BinLabelView extends React.Component<{
 }
 
 function populateManualBinValuesIfAutomatic(scale: ColorScale) {
-    if (scale.config.binningStrategy !== ColorScaleBinningStrategy.manual) {
-        scale.config.binningStrategy = ColorScaleBinningStrategy.manual
-        scale.config.customNumericValues = scale.autoBinMaximums
-    }
+    runInAction(() => {
+        if (scale.config.binningStrategy !== ColorScaleBinningStrategy.manual) {
+            scale.config.customNumericValues = scale.autoBinMaximums
+            scale.config.binningStrategy = ColorScaleBinningStrategy.manual
+        }
+    })
 }
 
 @observer
