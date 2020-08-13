@@ -249,7 +249,7 @@ class ColorsSection extends React.Component<{
                         <BindAutoFloat
                             field="binningStrategyBinCount"
                             store={scale.config}
-                            label="Number of bins"
+                            label="Target number of bins"
                             auto={scale.numAutoBins}
                         />
                     )}
