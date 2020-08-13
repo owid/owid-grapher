@@ -11,8 +11,7 @@ import { observable, computed, toJS } from "mobx"
 
 import { extend, rollingMap, min, isMobile, uniq } from "./Util"
 import { TickFormattingOptions } from "./TickFormattingOptions"
-
-export type ScaleType = "linear" | "log"
+import { ScaleType } from "./ScaleType"
 
 export interface Tickmark {
     value: number

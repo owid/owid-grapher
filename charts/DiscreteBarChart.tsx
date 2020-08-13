@@ -5,7 +5,7 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "./ChartConfig"
 import { Bounds } from "./Bounds"
-import { AxisScale, ScaleType } from "./AxisScale"
+import { AxisScale } from "./AxisScale"
 import { Color } from "./Color"
 import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { AxisGridLines } from "./AxisBox"
@@ -14,6 +14,7 @@ import { TickFormattingOptions } from "./TickFormattingOptions"
 import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "./Controls"
 import { EntityDimensionKey } from "./EntityDimensionKey"
+import { ScaleType } from "./ScaleType"
 
 export interface DiscreteBarDatum {
     entityDimensionKey: EntityDimensionKey

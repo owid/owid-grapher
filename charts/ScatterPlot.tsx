@@ -37,7 +37,7 @@ import {
 } from "./ScatterColorLegend"
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType } from "./AxisScale"
+import { ScaleType } from "./ScaleType"
 import { TimeBound } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 

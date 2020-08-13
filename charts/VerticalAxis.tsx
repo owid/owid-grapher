@@ -3,10 +3,11 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
-import { ScaleType, AxisScale, Tickmark } from "./AxisScale"
+import { AxisScale, Tickmark } from "./AxisScale"
 import { ScaleSelector } from "./ScaleSelector"
 import { TextWrap } from "./TextWrap"
 import { ControlsOverlay } from "./Controls"
+import { ScaleType } from "./ScaleType"
 
 interface VerticalAxisProps {
     scale: AxisScale

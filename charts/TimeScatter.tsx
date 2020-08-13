@@ -6,7 +6,8 @@ import { ChartConfig } from "./ChartConfig"
 import { NoData } from "./NoData"
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType, AxisScale } from "./AxisScale"
+import { AxisScale } from "./AxisScale"
+import { ScaleType } from "./ScaleType"
 
 import {
     sortBy,
