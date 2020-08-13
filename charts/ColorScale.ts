@@ -1,8 +1,6 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 import { bind } from "decko"
-import { quantile, range } from "d3-array"
-import { ckmeans } from "simple-statistics"
 
 import { ColorScaleConfigProps } from "./ColorScaleConfig"
 import {
@@ -14,9 +12,7 @@ import {
     last,
     find,
     identity,
-    roundSigFig,
-    excludeUndefined,
-    uniq
+    roundSigFig
 } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
