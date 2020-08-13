@@ -333,6 +333,13 @@ class BinLabelView extends React.Component<{
     }
 }
 
+function populateManualBinValuesIfAutomatic(scale: ColorScale) {
+    if (scale.config.binningStrategy !== ColorScaleBinningStrategy.manual) {
+        scale.config.binningStrategy = ColorScaleBinningStrategy.manual
+        scale.config.customNumericValues = scale.autoBinMaximums
+    }
+}
+
 @observer
 class NumericBinView extends React.Component<{
     scale: ColorScale
@@ -357,6 +364,7 @@ class NumericBinView extends React.Component<{
 
     @action.bound onMaximumValue(value: number | undefined) {
         const { scale, index } = this.props
+        populateManualBinValuesIfAutomatic(scale)
         if (value !== undefined) scale.config.customNumericValues[index] = value
     }
 
@@ -369,6 +377,7 @@ class NumericBinView extends React.Component<{
 
     @action.bound onRemove() {
         const { scale, index } = this.props
+        populateManualBinValuesIfAutomatic(scale)
         scale.config.customNumericValues.splice(index, 1)
         scale.config.customNumericColors.splice(index, 1)
     }
@@ -377,6 +386,8 @@ class NumericBinView extends React.Component<{
         const { scale, index } = this.props
         const { customNumericValues, customNumericColors } = scale.config
         const currentValue = customNumericValues[index]
+
+        populateManualBinValuesIfAutomatic(scale)
 
         if (index === customNumericValues.length - 1)
             customNumericValues.push(currentValue + scale.binStepSize)

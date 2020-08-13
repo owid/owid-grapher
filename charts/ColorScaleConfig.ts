@@ -13,8 +13,8 @@ export const colorScaleBinningStrategyLabels: Record<
     ColorScaleBinningStrategy,
     string
 > = {
-    quantize: "Equally-spaced (quantize)",
-    // quantile: "Quantile",
+    quantize: "Equal-sized bins (quantize)",
+    // quantile: "Quantiles",
     // ckmeans: "Ckmeans",
     manual: "Manual"
 }
@@ -46,10 +46,7 @@ export class ColorScaleConfigProps {
     /** Custom labels for each numeric bin */
     @observable customNumericLabels: (string | undefined)[] = []
 
-    /**
-     * Whether `customNumericColors` are used to override the color scheme.
-     * Does not apply to categorical color overrides.
-     */
+    /** Whether `customNumericColors` are used to override the color scheme. */
     @observable customNumericColorsActive?: true = undefined
     /**
      * Override some or all colors for the numerical color legend.
