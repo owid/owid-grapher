@@ -10,7 +10,8 @@ const edgeDelimiter = "\t"
 enum Keywords {
     switcher = "switcher",
     isPublished = "isPublished",
-    title = "title"
+    title = "title",
+    subtitle = "subtitle"
 }
 
 export class DataExplorerProgram {
@@ -152,6 +153,14 @@ ${Keywords.switcher}
 
     set title(value: string | undefined) {
         this.setLineValue(Keywords.title, value)
+    }
+
+    get subtitle(): string | undefined {
+        return this.getLineValue(Keywords.subtitle)
+    }
+
+    set subtitle(value: string | undefined) {
+        this.setLineValue(Keywords.subtitle, value)
     }
 
     get isPublished() {

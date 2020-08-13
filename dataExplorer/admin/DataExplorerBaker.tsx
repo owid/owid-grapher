@@ -139,10 +139,9 @@ async function renderSwitcherDataExplorerPage(slug: string, code: string) {
     )
 
     const props: SwitcherBootstrapProps = {
-        title: program.title || "",
         bindToWindow: true,
         slug,
-        switcherCode: program.switcherCode || "",
+        dataExplorerProgramCode: program.toString(),
         chartConfigs: chartConfigs.map(row => {
             const config = JSON.parse(row.config)
             config.id = row.id

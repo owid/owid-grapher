@@ -144,8 +144,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             chartConfigs={this.chartConfigs}
                             bindToWindow={false}
                             explorerNamespace="explorer"
-                            explorerTitle={this.dataExplorerProgram.title || ""}
-                            switcher={this.dataExplorerProgram.switcher}
+                            dataExplorerProgram={this.dataExplorerProgram}
                         />
                     </div>
                     <div>
