@@ -100,7 +100,7 @@ ${ProgramKeyword.switcher}
         else this.lines[index] = newLine
     }
 
-    private getBlock(key: string) {
+    private getBlock(key: ProgramKeyword) {
         const ends = this.getBlockEnds(key)
         if (!ends) return undefined
         return this.lines
@@ -134,7 +134,7 @@ ${ProgramKeyword.switcher}
             .join(this.nodeDelimiter)
     }
 
-    private getBlockEnds(key: string) {
+    private getBlockEnds(key: ProgramKeyword) {
         const keyLine = this.getLineIndex(key)
         if (keyLine === -1) return undefined
         const blockStart = keyLine + 1
@@ -145,7 +145,7 @@ ${ProgramKeyword.switcher}
         return { start: blockStart, end: blockStart + length, length }
     }
 
-    private setBlock(key: string, value: string | undefined) {
+    private setBlock(key: ProgramKeyword, value: string | undefined) {
         if (!value) return this.deleteBlock(key)
 
         const ends = this.getBlockEnds(key)
@@ -168,7 +168,7 @@ ${ProgramKeyword.switcher}
             .forEach(line => this.lines.push(this.edgeDelimiter + line))
     }
 
-    private deleteBlock(key: string) {
+    private deleteBlock(key: ProgramKeyword) {
         const ends = this.getBlockEnds(key)
         if (!ends) return
 
