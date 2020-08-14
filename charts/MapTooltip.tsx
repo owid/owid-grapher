@@ -77,7 +77,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
     @computed get renderSparkBars() {
         const { chart } = this
-        return chart.hasChartTab && chart.isLineChart
+        return chart.hasChartTab && (chart.isLineChart || chart.isScatter)
     }
 
     @computed get darkestColorInColorScheme() {
