@@ -78,7 +78,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     private isEntityClickable(featureId: string | number | undefined) {
         if (
             !this.context.chart.hasChartTab ||
-            !this.context.chart.isLineChart ||
+            !(this.context.chart.isLineChart || this.context.chart.isScatter) ||
             this.context.chartView.isMobile ||
             featureId === undefined
         )
