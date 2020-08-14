@@ -29,7 +29,7 @@ const nodeDelimiter = "\n"
 const cellDelimiter = "\t"
 const edgeDelimiter = "\t"
 
-enum Keywords {
+export enum ProgramKeyword {
     switcher = "switcher",
     isPublished = "isPublished",
     title = "title",
@@ -72,9 +72,9 @@ export class DataExplorerProgram {
     private edgeDelimiter = edgeDelimiter
     private lines: string[]
 
-    static defaultExplorerProgram = `${Keywords.title}\tData Explorer
-${Keywords.isPublished}\tfalse
-${Keywords.switcher}
+    static defaultExplorerProgram = `${ProgramKeyword.title}\tData Explorer
+${ProgramKeyword.isPublished}\tfalse
+${ProgramKeyword.switcher}
 \tchartId\tDevice
 \t35\tInternet
 \t46\tMobile`
@@ -86,13 +86,13 @@ ${Keywords.switcher}
         return line ? line.split(this.cellDelimiter)[1] : undefined
     }
 
-    private getLineIndex(key: string) {
+    getLineIndex(key: ProgramKeyword) {
         return this.lines.findIndex(
             line => line.startsWith(key + this.cellDelimiter) || line === key
         )
     }
 
-    private setLineValue(key: string, value: string | undefined) {
+    private setLineValue(key: ProgramKeyword, value: string | undefined) {
         const index = this.getLineIndex(key)
         const newLine = key + this.cellDelimiter + value
         if (index === -1 && value !== undefined) this.lines.push(newLine)
@@ -176,27 +176,27 @@ ${Keywords.switcher}
     }
 
     get title(): string | undefined {
-        return this.getLineValue(Keywords.title)
+        return this.getLineValue(ProgramKeyword.title)
     }
 
     get subtitle(): string | undefined {
-        return this.getLineValue(Keywords.subtitle)
+        return this.getLineValue(ProgramKeyword.subtitle)
     }
 
     get defaultView(): string | undefined {
-        return this.getLineValue(Keywords.defaultView)
+        return this.getLineValue(ProgramKeyword.defaultView)
     }
 
     get isPublished() {
-        return this.getLineValue(Keywords.isPublished) === "true"
+        return this.getLineValue(ProgramKeyword.isPublished) === "true"
     }
 
     set isPublished(value: boolean) {
-        this.setLineValue(Keywords.isPublished, value ? "true" : "false")
+        this.setLineValue(ProgramKeyword.isPublished, value ? "true" : "false")
     }
 
     get switcherCode() {
-        return this.getBlock(Keywords.switcher)
+        return this.getBlock(ProgramKeyword.switcher)
     }
 }
 
@@ -313,23 +313,37 @@ export class SwitcherRuntime {
         return this.rowsWith(query, groupName).length > 0
     }
 
+    rowIndexesWith(query: any, groupName?: string): number[] {
+        return this.parsed
+            .map((row, rowIndex) =>
+                Object.keys(query)
+                    .filter(key => query[key] !== undefined)
+                    .every(
+                        key =>
+                            row[key] === query[key] ||
+                            (groupName && groupName !== key
+                                ? isCellEmpty(row[key])
+                                : false)
+                    )
+                    ? rowIndex
+                    : null
+            )
+            .filter(index => index !== null) as number[]
+    }
+
     rowsWith(query: any, groupName?: string) {
-        return this.parsed.filter(row =>
-            Object.keys(query)
-                .filter(key => query[key] !== undefined)
-                .every(
-                    key =>
-                        row[key] === query[key] ||
-                        (groupName && groupName !== key
-                            ? isCellEmpty(row[key])
-                            : false)
-                )
+        return this.rowIndexesWith(query, groupName).map(
+            index => this.parsed[index]
         )
     }
 
     @computed get chartId(): number {
         const row = this.rowsWith(this.toConstrainedOptions())[0]
         return row?.chartId
+    }
+
+    @computed get selectedRowIndex(): number {
+        return this.rowIndexesWith(this.toConstrainedOptions())[0]
     }
 
     toControlOption(groupName: string, optionName: string): ControlOption {

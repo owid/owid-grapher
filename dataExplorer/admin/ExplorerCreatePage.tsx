@@ -10,9 +10,13 @@ import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { JsTable } from "charts/Util"
-import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
+import {
+    DataExplorerProgram,
+    ProgramKeyword
+} from "dataExplorer/client/DataExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
+import { Link } from "admin/client/Link"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
@@ -36,8 +40,9 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         const content = await readRemoteFile({
             filepath: DataExplorerProgram.fullPath(this.props.slug)
         })
-        this.sourceOnDisk = content
-        this.setProgram(content)
+        this.sourceOnDisk =
+            content || DataExplorerProgram.defaultExplorerProgram
+        this.setProgram(this.sourceOnDisk)
     }
 
     @action.bound setProgram(code: string) {
@@ -79,10 +84,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         DataExplorerProgram.defaultExplorerProgram
 
     @observable
-    program: DataExplorerProgram = new DataExplorerProgram(
-        this.props.slug,
-        DataExplorerProgram.defaultExplorerProgram
-    )
+    program: DataExplorerProgram = new DataExplorerProgram(this.props.slug, "")
 
     @action.bound async saveExplorer() {
         const slug = prompt("Slug for this explorer", this.program.slug)
@@ -103,12 +105,23 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     render() {
         const data = this.program.toArrays()
+
+        // Highlight the active view
+        const activeViewRowNumber =
+            this.program.getLineIndex(ProgramKeyword.switcher) +
+            this.program.switcherRuntime.selectedRowIndex +
+            3
+        const hotStyles = `.ht_master tr:nth-child(${activeViewRowNumber}) > td:nth-child(3) {
+            background-color: #bcf5bc;
+          }`
+
         return (
             <AdminLayout title="Create Explorer">
                 <Prompt
                     when={this.isModified}
                     message="Are you sure you want to leave? Unsaved changes will be lost."
                 />
+                <style dangerouslySetInnerHTML={{ __html: hotStyles }}></style>
                 <main style={{ padding: 0, position: "relative" }}>
                     <div
                         style={{
@@ -130,6 +143,15 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                                 Unmodified
                             </button>
                         )}
+                        <br />
+                        <br />
+                        <Link
+                            target="preview"
+                            to={`/explorers/preview/${this.program.slug}`}
+                            className="btn btn-secondary"
+                        >
+                            Preview
+                        </Link>
                     </div>
                     <div style={{ height: "500px", overflow: "scroll" }}>
                         <SwitcherDataExplorer
