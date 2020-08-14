@@ -33,7 +33,8 @@ import {
     ColumnSpec,
     entityName,
     columnSlug,
-    columnTypes
+    columnTypes,
+    Row
 } from "charts/owidData/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
 import { covidAnnotations } from "./CovidAnnotations"
@@ -338,22 +339,22 @@ export class CovidExplorerTable {
                 columnName === "positive_test_rate") &&
             smoothing === 7
 
-        // todo: have perCapita column derived from regular column.
-        if (perCapita > 1) {
-            const originalRowFn = rowFn
-            rowFn = row => {
-                const value = originalRowFn(row)
-                if (value === undefined) return undefined
-                const pop = row.population
-                if (!pop) {
-                    console.log(
-                        `Warning: Missing population for ${row.location}. Excluding from perCapita`
-                    )
-                    return undefined
-                }
-                return perCapita * (value / pop)
-            }
-        }
+        // Per-capita transform done after rolling average to preserve precision.
+        const perCapitaTransform =
+            perCapita > 1
+                ? (fn: RowToValueMapper) => (row: Row, index?: number) => {
+                      const value = fn(row, index)
+                      if (value === undefined) return undefined
+                      const pop = row.population
+                      if (!pop) {
+                          console.log(
+                              `Warning: Missing population for ${row.location}. Excluding from perCapita`
+                          )
+                          return undefined
+                      }
+                      return perCapita * (value / pop)
+                  }
+                : undefined
 
         if (smoothing && !alreadySmoothed)
             table.addRollingAverageColumn(
@@ -363,9 +364,15 @@ export class CovidExplorerTable {
                 "day",
                 "entityName",
                 params.rollingMultiplier,
-                params.intervalChange
+                params.intervalChange,
+                perCapitaTransform
             )
-        else table.addNumericComputedColumn({ ...spec, fn: rowFn })
+        else {
+            table.addNumericComputedColumn({
+                ...spec,
+                fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn
+            })
+        }
         return spec
     }
 
