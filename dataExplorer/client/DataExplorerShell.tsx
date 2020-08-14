@@ -8,10 +8,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { CountryPicker } from "charts/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
-import { throttle } from "lodash"
 import classNames from "classnames"
 import { ChartView } from "charts/ChartView"
 import { DataExplorerQueryParams } from "./DataExplorerProgram"
+import { throttle } from "charts/Util"
 
 // TODO: Migrate CovidExplorer to use this class as well
 @observer
