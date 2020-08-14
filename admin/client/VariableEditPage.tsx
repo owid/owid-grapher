@@ -163,11 +163,13 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                         label="Unit of measurement"
                                         field="unit"
                                         store={newVariable.display}
+                                        placeholder={newVariable.unit}
                                     />
                                     <BindString
                                         label="Short (axis) unit"
                                         field="shortUnit"
                                         store={newVariable.display}
+                                        placeholder={newVariable.shortUnit}
                                     />
                                 </FieldsRow>
                                 <FieldsRow>
