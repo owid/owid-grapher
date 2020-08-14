@@ -922,3 +922,9 @@ export function mergeQueryStr(...queryStrs: (string | undefined)[]) {
         assign({}, ...excludeUndefined(queryStrs).map(strToQueryParams))
     )
 }
+
+export function mapNullToUndefined<T>(
+    array: (T | undefined | null)[]
+): (T | undefined)[] {
+    return array.map(v => (v === null ? undefined : v))
+}

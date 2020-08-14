@@ -12,7 +12,8 @@ import {
     last,
     find,
     identity,
-    roundSigFig
+    roundSigFig,
+    mapNullToUndefined
 } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
@@ -52,10 +53,10 @@ export class ColorScale {
         return defaultTo(this.config.customNumericColorsActive, false)
     }
 
-    @computed get customNumericColors() {
+    @computed get customNumericColors(): (Color | undefined)[] {
         return defaultTo(
             this.customNumericColorsActive
-                ? this.config.customNumericColors
+                ? mapNullToUndefined(this.config.customNumericColors)
                 : [],
             []
         )
@@ -69,7 +70,8 @@ export class ColorScale {
 
     @computed get customNumericLabels(): (string | undefined)[] {
         if (this.isManualBuckets) {
-            const labels = toJS(this.config.customNumericLabels) || []
+            const labels =
+                mapNullToUndefined(toJS(this.config.customNumericLabels)) || []
             while (labels.length < this.numBins) labels.push(undefined)
             return labels
         }

@@ -25,16 +25,23 @@ export class ColorScaleConfigProps {
     @observable customNumericMinValue?: number
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     @observable customNumericValues: number[] = []
-    /** Custom labels for each numeric bin. Only applied when strategy is `manual`. */
-    @observable customNumericLabels: (string | undefined)[] = []
+    /**
+     * Custom labels for each numeric bin. Only applied when strategy is `manual`.
+     * `undefined` or `null` falls back to default label.
+     * We need to handle `null` because JSON serializes `undefined` values
+     * inside arrays into `null`.
+     */
+    @observable customNumericLabels: (string | undefined | null)[] = []
 
     /** Whether `customNumericColors` are used to override the color scheme. */
     @observable customNumericColorsActive?: true = undefined
     /**
      * Override some or all colors for the numerical color legend.
-     * `undefined` uses the color scheme color.
+     * `undefined` or `null` falls back the color scheme color.
+     * We need to handle `null` because JSON serializes `undefined` values
+     * inside arrays into `null`.
      */
-    @observable customNumericColors: (Color | undefined)[] = []
+    @observable customNumericColors: (Color | undefined | null)[] = []
 
     /** Whether the visual scaling for the color legend is disabled. */
     @observable equalSizeBins?: true = undefined
