@@ -135,11 +135,14 @@ export class ExplorerControlPanel extends React.Component<{
             <Select
                 className="intervalDropdown"
                 classNamePrefix="intervalDropdown"
+                isDisabled={options.length < 2}
                 menuPlacement="auto"
                 options={options}
-                value={options.find(
-                    option => option.value === this.props.value
-                )}
+                value={
+                    options.find(
+                        option => option.value === this.props.value
+                    ) || { label: "-", value: "-" }
+                }
                 onChange={(option: any) => this.customOnChange(option.value)}
                 components={{
                     IndicatorSeparator: null

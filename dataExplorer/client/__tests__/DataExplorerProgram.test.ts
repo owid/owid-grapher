@@ -82,6 +82,16 @@ describe("switcherCode", () => {
         expect(options.chartId).toEqual(56)
     })
 
+    it("returns groups with undefined values if invalid value is selected", () => {
+        const options = new SwitcherRuntime(code)
+        options.setValue("country", "usa")
+        options.setValue("indicator", "GDP")
+        options.setValue("interval", "annual")
+        expect(options.groups[2].value).toEqual("annual")
+        options.setValue("country", "spain")
+        expect(options.groups[2].value).toEqual(undefined)
+    })
+
     it("fails if no chartId column is provided", () => {
         try {
             new SwitcherRuntime(

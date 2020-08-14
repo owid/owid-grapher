@@ -342,6 +342,7 @@ export class SwitcherRuntime {
     }
 
     @computed get groups(): Group[] {
+        const constrainedOptions = this.toConstrainedOptions()
         return this.columnNames.map((title, index) => {
             const optionNames = this.groupOptions[title]
             let options = optionNames.map(optionName =>
@@ -360,7 +361,7 @@ export class SwitcherRuntime {
 
             return {
                 title,
-                value: this._settings[title] || options[0]?.value,
+                value: constrainedOptions[title],
                 options,
                 dropdownOptions,
                 isCheckbox

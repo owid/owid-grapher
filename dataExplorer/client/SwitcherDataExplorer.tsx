@@ -172,6 +172,7 @@ export class SwitcherDataExplorer extends React.Component<{
         return this.switcherRuntime.groups.map(group => (
             <ExplorerControlPanel
                 key={group.title}
+                value={group.value}
                 title={group.title}
                 explorerSlug={this.props.program.slug}
                 name={group.title}
