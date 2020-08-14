@@ -165,12 +165,10 @@ testPages.get("/embeds", async (req, res) => {
         tab = "chart"
     }
 
-    if (tab) {
-        if (tab === "map") {
-            query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
-        } else if (tab === "chart") {
-            query = query.andWhere(`config->"$.hasChartTab" IS TRUE`)
-        }
+    if (tab === "map") {
+        query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
+    } else if (tab === "chart") {
+        query = query.andWhere(`config->"$.hasChartTab" IS TRUE`)
     }
 
     if (req.query.namespace) {

@@ -104,6 +104,10 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             isEntityClickable
         } = this.props
 
+        const tooltipMessage = this.chart.isScatter
+            ? "Click to select"
+            : "Click for change over time"
+
         const { renderSparkBars, barColor } = this
         return (
             <Tooltip
@@ -181,7 +185,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 opacity: 0.6
                             }}
                         >
-                            Click for change over time
+                            {tooltipMessage}
                         </p>
                     </div>
                 )}
