@@ -41,7 +41,7 @@ export class ColorScale {
 
     // Config accessors
 
-    @computed get config() {
+    @computed get config(): ColorScaleConfigProps {
         return this.props.config
     }
 
@@ -49,7 +49,7 @@ export class ColorScale {
         return defaultTo(this.config.customNumericValues, [])
     }
 
-    @computed get customNumericColorsActive() {
+    @computed get customNumericColorsActive(): boolean {
         return defaultTo(this.config.customNumericColorsActive, false)
     }
 
@@ -78,7 +78,7 @@ export class ColorScale {
         return []
     }
 
-    @computed get isColorSchemeInverted() {
+    @computed get isColorSchemeInverted(): boolean {
         return defaultTo(this.config.colorSchemeInvert, false)
     }
 
@@ -189,11 +189,11 @@ export class ColorScale {
         }
     }
 
-    @computed get noDataColor() {
+    @computed get noDataColor(): Color {
         return this.customCategoryColors[NO_DATA_LABEL]
     }
 
-    @computed get baseColors() {
+    @computed get baseColors(): Color[] {
         const {
             categoricalValues,
             colorScheme,
