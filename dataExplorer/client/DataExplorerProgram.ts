@@ -376,7 +376,7 @@ export class SwitcherRuntime {
 
 export class DataExplorerQueryParams {
     hideControls: boolean = false
-    @observable selectedCountryCodes: Set<string> = new Set<string>()
+    @observable selectedCountryCodesOrNames: Set<string> = new Set<string>()
 
     constructor(queryString: string) {
         const obj = strToQueryParams(queryString)
@@ -384,7 +384,7 @@ export class DataExplorerQueryParams {
 
         if (obj.country) {
             EntityUrlBuilder.queryParamToEntities(obj.country).forEach(code =>
-                this.selectedCountryCodes.add(code)
+                this.selectedCountryCodesOrNames.add(code)
             )
         }
     }
@@ -393,7 +393,7 @@ export class DataExplorerQueryParams {
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
         params.country = EntityUrlBuilder.entitiesToQueryParam(
-            Array.from(this.selectedCountryCodes)
+            Array.from(this.selectedCountryCodesOrNames)
         )
         return params as QueryParams
     }

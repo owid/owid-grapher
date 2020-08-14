@@ -103,27 +103,30 @@ export class DataExplorerShell extends React.Component<{
         value?: boolean
     ) {
         const codeMap = this.props.chart.table.entityNameToCodeMap
-        const code = codeMap.get(countryName)!
-        const selectedCountryCodes = this.props.params.selectedCountryCodes
+        const code = codeMap.get(countryName)! || countryName
+        const selectedCountryCodesOrNames = this.props.params
+            .selectedCountryCodesOrNames
         if (value) {
-            selectedCountryCodes.add(code)
+            selectedCountryCodesOrNames.add(code)
         } else if (value === false) {
-            selectedCountryCodes.delete(code)
-        } else if (selectedCountryCodes.has(code)) {
-            selectedCountryCodes.delete(code)
+            selectedCountryCodesOrNames.delete(code)
+        } else if (selectedCountryCodesOrNames.has(code)) {
+            selectedCountryCodesOrNames.delete(code)
         } else {
-            selectedCountryCodes.add(code)
+            selectedCountryCodesOrNames.add(code)
         }
     }
 
     @action.bound clearSelectionCommand() {
-        this.props.params.selectedCountryCodes.clear()
+        this.props.params.selectedCountryCodesOrNames.clear()
     }
 
     @computed get selectedEntityNames(): string[] {
         const entityCodeMap = this.props.chart.table.entityCodeToNameMap
-        return Array.from(this.props.params.selectedCountryCodes.values())
-            .map(code => entityCodeMap.get(code))
+        return Array.from(
+            this.props.params.selectedCountryCodesOrNames.values()
+        )
+            .map(code => entityCodeMap.get(code) || code)
             .filter(i => i) as string[]
     }
 

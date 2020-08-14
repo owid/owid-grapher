@@ -90,7 +90,7 @@ export class SwitcherDataExplorer extends React.Component<{
 
     componentDidMount() {
         autorun(() => {
-            this.explorerRuntime.selectedCountryCodes.size
+            this.explorerRuntime.selectedCountryCodesOrNames.size
             this.updateChartSelection()
         })
     }
@@ -142,8 +142,11 @@ export class SwitcherDataExplorer extends React.Component<{
 
     private isSelected(entityName: string) {
         const countryCodeMap = this._chart!.table.entityCodeToNameMap
-        return this.explorerRuntime.selectedCountryCodes.has(
-            countryCodeMap.get(entityName)!
+        return (
+            this.explorerRuntime.selectedCountryCodesOrNames.has(
+                countryCodeMap.get(entityName)!
+            ) ||
+            this.explorerRuntime.selectedCountryCodesOrNames.has(entityName)
         )
     }
 
@@ -152,7 +155,7 @@ export class SwitcherDataExplorer extends React.Component<{
         const countryCodeMap = table.entityCodeToNameMap
         const entityIdMap = table.entityNameToIdMap
         const selectedData = Array.from(
-            this.explorerRuntime.selectedCountryCodes
+            this.explorerRuntime.selectedCountryCodesOrNames
         )
             .map(code => countryCodeMap.get(code))
             .filter(i => i)

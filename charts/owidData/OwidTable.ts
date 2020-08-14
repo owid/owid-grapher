@@ -617,7 +617,8 @@ export class OwidTable extends AbstractTable<OwidRow> {
     @computed get entityCodeToNameMap() {
         const map = new Map<entityCode, entityName>()
         this.rows.forEach(row => {
-            map.set(row.entityCode, row.entityName)
+            if (row.entityCode) map.set(row.entityCode, row.entityName)
+            else map.set(row.entityName, row.entityName)
         })
         return map
     }
