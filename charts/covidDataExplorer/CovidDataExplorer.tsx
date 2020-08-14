@@ -78,6 +78,7 @@ import { CommandPalette, Command } from "./CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
+import { BinningStrategy } from "charts/BinningStrategies"
 
 const abSeed = Math.random()
 
@@ -1308,10 +1309,11 @@ export class CovidDataExplorer extends React.Component<{
             ptr: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]
                 ?.colorScale as any,
             continents: {
+                binningStrategy: BinningStrategy.manual,
                 legendDescription: "Continent",
                 baseColorScheme: undefined,
-                colorSchemeValues: [],
-                colorSchemeLabels: [],
+                customNumericValues: [],
+                customNumericLabels: [],
                 customNumericColors: [],
                 customCategoryColors: continentColors,
                 customCategoryLabels: {
@@ -1320,10 +1322,11 @@ export class CovidDataExplorer extends React.Component<{
                 customHiddenCategories: {}
             },
             none: {
+                binningStrategy: BinningStrategy.manual,
                 legendDescription: "",
                 baseColorScheme: undefined,
-                colorSchemeValues: [],
-                colorSchemeLabels: [],
+                customNumericValues: [],
+                customNumericLabels: [],
                 customNumericColors: [],
                 customCategoryColors: continentColors,
                 customCategoryLabels: {

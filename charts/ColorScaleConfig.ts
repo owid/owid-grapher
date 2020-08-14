@@ -1,29 +1,58 @@
 import { observable } from "mobx"
 
 import { Color } from "./Color"
+import { BinningStrategy } from "./BinningStrategies"
 
 export class ColorScaleConfigProps {
-    // Key for a colorbrewer scheme, may then be further customized
-    @observable.ref baseColorScheme?: string
+    // Color scheme
+    // ============
 
-    // Minimum value shown on map legend
-    @observable.ref colorSchemeMinValue?: number
-    @observable colorSchemeValues: number[] = []
-    @observable colorSchemeLabels: (string | undefined)[] = []
-    @observable.ref isManualBuckets?: true = undefined
-    @observable.ref equalSizeBins?: true = undefined
+    /** Key for a colorbrewer scheme */
+    @observable baseColorScheme?: string
 
-    // Whether to reverse the color scheme on output
-    @observable.ref colorSchemeInvert?: true = undefined
-    @observable.ref customColorsActive?: true = undefined
+    /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
+    @observable colorSchemeInvert?: true = undefined
 
-    // e.g. ["#000", "#c00", "#0c0", "#00c", "#c0c"]
-    @observable customNumericColors: (Color | undefined)[] = []
+    // Numeric bins
+    // ============
 
-    // e.g. { 'foo' => '#c00' }
+    /** The strategy for generating the bin boundaries */
+    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
+    /** The *suggested* number of bins for the automatic binning algorithm */
+    @observable binningStrategyBinCount?: number
+
+    /** The minimum bracket of the first bin */
+    @observable customNumericMinValue?: number
+    /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
+    @observable customNumericValues: number[] = []
+    /**
+     * Custom labels for each numeric bin. Only applied when strategy is `manual`.
+     * `undefined` or `null` falls back to default label.
+     * We need to handle `null` because JSON serializes `undefined` values
+     * inside arrays into `null`.
+     */
+    @observable customNumericLabels: (string | undefined | null)[] = []
+
+    /** Whether `customNumericColors` are used to override the color scheme. */
+    @observable customNumericColorsActive?: true = undefined
+    /**
+     * Override some or all colors for the numerical color legend.
+     * `undefined` or `null` falls back the color scheme color.
+     * We need to handle `null` because JSON serializes `undefined` values
+     * inside arrays into `null`.
+     */
+    @observable customNumericColors: (Color | undefined | null)[] = []
+
+    /** Whether the visual scaling for the color legend is disabled. */
+    @observable equalSizeBins?: true = undefined
+
+    // Categorical bins
+    // ================
+
     @observable.ref customCategoryColors: {
         [key: string]: string | undefined
     } = {}
+
     @observable.ref customCategoryLabels: {
         [key: string]: string | undefined
     } = {}
@@ -33,8 +62,11 @@ export class ColorScaleConfigProps {
         [key: string]: true | undefined
     } = {}
 
-    @observable.ref legendDescription?: string = undefined
-    @observable.ref binStepSize?: number = undefined
+    // Other
+    // =====
+
+    /** A custom legend description. Only used in ScatterPlot legend titles for now. */
+    @observable legendDescription?: string = undefined
 
     constructor(json?: Partial<ColorScaleConfigProps>) {
         if (json !== undefined) {

@@ -7,16 +7,18 @@ import {
     defaultTo,
     isEmpty,
     reverse,
-    round,
     toArray,
     first,
     last,
     find,
-    identity
+    identity,
+    roundSigFig,
+    mapNullToUndefined
 } from "./Util"
 import { Color } from "./Color"
 import { ColorScheme, ColorSchemes } from "./ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
+import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 
 const NO_DATA_LABEL = "No data"
 
@@ -39,21 +41,23 @@ export class ColorScale {
 
     // Config accessors
 
-    @computed get config() {
+    @computed get config(): ColorScaleConfigProps {
         return this.props.config
     }
 
-    @computed get colorSchemeValues(): number[] {
-        return defaultTo(this.config.colorSchemeValues, [])
+    @computed get customNumericValues(): number[] {
+        return defaultTo(this.config.customNumericValues, [])
     }
 
-    @computed get isCustomColors() {
-        return defaultTo(this.config.customColorsActive, false)
+    @computed get customNumericColorsActive(): boolean {
+        return defaultTo(this.config.customNumericColorsActive, false)
     }
 
-    @computed get customNumericColors() {
+    @computed get customNumericColors(): (Color | undefined)[] {
         return defaultTo(
-            this.isCustomColors ? this.config.customNumericColors : [],
+            this.customNumericColorsActive
+                ? mapNullToUndefined(this.config.customNumericColors)
+                : [],
             []
         )
     }
@@ -64,13 +68,17 @@ export class ColorScale {
         return defaultTo(this.config.customHiddenCategories, {})
     }
 
-    @computed get customBucketLabels() {
-        const labels = toJS(this.config.colorSchemeLabels) || []
-        while (labels.length < this.numBins) labels.push(undefined)
-        return labels
+    @computed get customNumericLabels(): (string | undefined)[] {
+        if (this.isManualBuckets) {
+            const labels =
+                mapNullToUndefined(toJS(this.config.customNumericLabels)) || []
+            while (labels.length < this.numBins) labels.push(undefined)
+            return labels
+        }
+        return []
     }
 
-    @computed get isColorSchemeInverted() {
+    @computed get isColorSchemeInverted(): boolean {
         return defaultTo(this.config.colorSchemeInvert, false)
     }
 
@@ -130,8 +138,7 @@ export class ColorScale {
     }
 
     @computed get colorScheme(): ColorScheme {
-        const colorScheme = ColorSchemes[this.baseColorScheme]
-        return colorScheme !== undefined ? colorScheme : this.defaultColorScheme
+        return ColorSchemes[this.baseColorScheme] ?? this.defaultColorScheme
     }
 
     @computed get singleColorScale(): boolean {
@@ -139,23 +146,20 @@ export class ColorScale {
     }
 
     @computed get autoMinBinValue(): number {
-        const minValue = Math.min(0, this.valuesWithoutOutliers[0])
-        const magnitude = Math.floor(Math.log(minValue) / Math.log(10))
-        return Math.min(0, round(minValue, -magnitude))
+        const minValue = Math.min(0, this.sortedNumericValuesWithoutOutliers[0])
+        return isNaN(minValue) ? 0 : roundSigFig(minValue, 1)
     }
 
     @computed get minBinValue(): number {
-        return this.config.colorSchemeMinValue !== undefined
-            ? this.config.colorSchemeMinValue
-            : this.autoMinBinValue
+        return this.config.customNumericMinValue ?? this.autoMinBinValue
     }
 
     @computed get manualBinMaximums(): number[] {
         if (!this.sortedNumericValues.length || this.numBins <= 0) return []
 
-        const { numBins, colorSchemeValues } = this
+        const { numBins, customNumericValues } = this
 
-        let values = toArray(colorSchemeValues)
+        let values = toArray(customNumericValues)
         while (values.length < numBins) values.push(0)
         while (values.length > numBins) values = values.slice(0, numBins)
         return values as number[]
@@ -164,22 +168,16 @@ export class ColorScale {
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
     @computed get autoBinMaximums(): number[] {
-        if (!this.sortedNumericValues.length || this.numAutoBins <= 0) return []
-
-        const { binStepSize, numAutoBins, minBinValue } = this
-
-        const bucketMaximums = []
-        let nextMaximum = minBinValue + binStepSize
-        for (let i = 0; i < numAutoBins; i++) {
-            bucketMaximums.push(nextMaximum)
-            nextMaximum += binStepSize
-        }
-
-        return bucketMaximums
+        return getBinMaximums({
+            binningStrategy: this.config.binningStrategy,
+            sortedValues: this.sortedNumericBinningValues,
+            binCount: this.numAutoBins,
+            minBinValue: this.minBinValue
+        })
     }
 
     @computed get bucketMaximums(): number[] {
-        if (this.config.isManualBuckets) return this.manualBinMaximums
+        if (this.isManualBuckets) return this.manualBinMaximums
         else return this.autoBinMaximums
     }
 
@@ -191,11 +189,11 @@ export class ColorScale {
         }
     }
 
-    @computed get noDataColor() {
+    @computed get noDataColor(): Color {
         return this.customCategoryColors[NO_DATA_LABEL]
     }
 
-    @computed get baseColors() {
+    @computed get baseColors(): Color[] {
         const {
             categoricalValues,
             colorScheme,
@@ -212,44 +210,35 @@ export class ColorScale {
         return colors
     }
 
-    @computed private get numAutoBins(): number {
-        return 5
+    @computed get numAutoBins(): number {
+        return defaultTo(this.config.binningStrategyBinCount, 5)
+    }
+
+    @computed get isManualBuckets(): boolean {
+        return this.config.binningStrategy === BinningStrategy.manual
     }
 
     @computed get numBins(): number {
-        return this.config.isManualBuckets
-            ? this.colorSchemeValues.length
+        return this.isManualBuckets
+            ? this.customNumericValues.length
             : this.numAutoBins
     }
 
-    @computed get binStepSizeDefault(): number {
-        const { numAutoBins, minBinValue, valuesWithoutOutliers } = this
-        if (!valuesWithoutOutliers.length) return 10
-
-        const stepSizeInitial =
-            (valuesWithoutOutliers[valuesWithoutOutliers.length - 1] -
-                minBinValue) /
-            numAutoBins
-        const stepMagnitude = Math.floor(
-            Math.log(stepSizeInitial) / Math.log(10)
-        )
-        return round(stepSizeInitial, -stepMagnitude)
-    }
-
-    @computed get binStepSize(): number {
-        return this.config.binStepSize !== undefined
-            ? this.config.binStepSize
-            : this.binStepSizeDefault
-    }
-
     // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed private get valuesWithoutOutliers(): number[] {
+    @computed private get sortedNumericValuesWithoutOutliers(): number[] {
         const { sortedNumericValues } = this
         if (!sortedNumericValues.length) return []
         const sampleMean = mean(sortedNumericValues) as number
         const sampleDeviation = deviation(sortedNumericValues) as number
         return sortedNumericValues.filter(
             d => Math.abs(d - sampleMean) <= sampleDeviation * 2
+        )
+    }
+
+    /** Sorted numeric values passed onto the binning algorithms */
+    @computed private get sortedNumericBinningValues(): number[] {
+        return this.sortedNumericValuesWithoutOutliers.filter(
+            v => v > this.minBinValue
         )
     }
 
@@ -265,7 +254,7 @@ export class ColorScale {
             hasNoDataBin,
             categoricalValues,
             customCategoryColors,
-            customBucketLabels,
+            customNumericLabels,
             minBinValue,
             minPossibleValue,
             maxPossibleValue,
@@ -291,7 +280,7 @@ export class ColorScale {
                     baseColor
                 )
                 const maxValue = +(bucketMaximums[i] as number)
-                const label = customBucketLabels[i]
+                const label = customNumericLabels[i]
                 legendData.push(
                     new NumericBin({
                         isFirst: i === 0,

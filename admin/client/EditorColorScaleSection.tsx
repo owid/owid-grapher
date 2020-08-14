@@ -1,6 +1,7 @@
 import * as React from "react"
-import { action, IReactionDisposer, reaction, computed } from "mobx"
+import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
+import Select, { ValueType } from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
@@ -8,8 +9,9 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 
 import { ColorScale } from "charts/ColorScale"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "charts/ColorScaleBin"
-import { clone, noop } from "charts/Util"
+import { clone, noop, last } from "charts/Util"
 import { Color } from "charts/Color"
+import { asArray } from "utils/client/react-select"
 
 import {
     Section,
@@ -24,6 +26,10 @@ import {
     BindString
 } from "./Forms"
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
+import {
+    BinningStrategy,
+    binningStrategyLabels
+} from "charts/BinningStrategies"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean
@@ -79,7 +85,7 @@ class ColorLegendSection extends React.Component<{
                         />
                     </FieldsRow>
                 )}
-                {scale.config.isManualBuckets && (
+                {scale.isManualBuckets && (
                     <EditableList>
                         {scale.legendData.map((bin, index) => (
                             <BinLabelView
@@ -100,46 +106,14 @@ class ColorLegendSection extends React.Component<{
 class ColorsSection extends React.Component<{
     scale: ColorScale
 }> {
-    disposers: IReactionDisposer[] = []
-
-    componentDidMount() {
-        const { scale } = this.props
-        this.disposers.push(
-            // When the user disables automatic classification,
-            // populate with automatic buckets.
-            reaction(
-                () => scale.config.isManualBuckets,
-                () => {
-                    const { colorSchemeValues } = scale
-                    if (
-                        scale.config.isManualBuckets &&
-                        colorSchemeValues.length <= 1
-                    ) {
-                        const { autoBinMaximums } = scale
-                        for (let i = 0; i < autoBinMaximums.length; i++) {
-                            if (i >= colorSchemeValues.length) {
-                                colorSchemeValues.push(autoBinMaximums[i])
-                            }
-                        }
-                        scale.config.colorSchemeValues = colorSchemeValues
-                    }
-                }
-            )
-        )
-    }
-
-    componentWillUnmount() {
-        this.disposers.forEach(dispose => dispose())
-    }
-
     @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { scale } = this.props
 
         if (selected.value === "custom") {
-            scale.config.customColorsActive = true
+            scale.config.customNumericColorsActive = true
         } else {
             scale.config.baseColorScheme = selected.value
-            scale.config.customColorsActive = undefined
+            scale.config.customNumericColorsActive = undefined
         }
     }
 
@@ -147,13 +121,47 @@ class ColorsSection extends React.Component<{
         this.props.scale.config.colorSchemeInvert = invert || undefined
     }
 
-    @action.bound onAutomatic(isAutomatic: boolean) {
-        this.props.scale.config.isManualBuckets = isAutomatic ? undefined : true
+    @action.bound onBinningStrategy(
+        binningStrategy: ValueType<{
+            label: string
+            value: BinningStrategy
+        }>
+    ) {
+        this.props.scale.config.binningStrategy = asArray(
+            binningStrategy
+        )[0].value
     }
 
     @computed get currentColorScheme() {
         const { scale } = this.props
-        return scale.isCustomColors ? "custom" : scale.baseColorScheme
+        return scale.customNumericColorsActive
+            ? "custom"
+            : scale.baseColorScheme
+    }
+
+    @computed get binningStrategyOptions() {
+        const options = Object.entries(binningStrategyLabels).map(
+            ([value, label]) => ({
+                label: label,
+                value: value as BinningStrategy
+            })
+        )
+        // Remove the manual binning strategy from the options if
+        // no custom bin values are specified in the config.
+        // Authors can still get into manual mode by selecting an
+        // automatic binning strategy and editing the bins.
+        if (!this.props.scale.config.customNumericValues.length) {
+            return options.filter(
+                ({ value }) => value !== BinningStrategy.manual
+            )
+        }
+        return options
+    }
+
+    @computed get currentBinningStrategyOption() {
+        return this.binningStrategyOptions.find(
+            option => option.value === this.props.scale.config.binningStrategy
+        )
     }
 
     render() {
@@ -187,29 +195,39 @@ class ColorsSection extends React.Component<{
                         value={scale.config.colorSchemeInvert || false}
                         onValue={this.onInvert}
                     />
-                    <Toggle
-                        label="Automatic classification"
-                        value={!scale.config.isManualBuckets}
-                        onValue={this.onAutomatic}
-                    />
                 </FieldsRow>
-                <BindAutoFloat
-                    field="colorSchemeMinValue"
-                    store={scale.config}
-                    label="Minimum value"
-                    auto={scale.autoMinBinValue}
-                />
-                {!scale.config.isManualBuckets && (
+                <FieldsRow>
+                    <div className="form-group">
+                        <label>Binning strategy</label>
+                        <Select
+                            options={this.binningStrategyOptions}
+                            onChange={this.onBinningStrategy}
+                            value={this.currentBinningStrategyOption}
+                            components={{
+                                IndicatorSeparator: null
+                            }}
+                            menuPlacement="auto"
+                            isSearchable={false}
+                        />
+                    </div>
+                </FieldsRow>
+                <FieldsRow>
                     <BindAutoFloat
-                        label="Step size"
-                        field="binStepSize"
+                        field="customNumericMinValue"
                         store={scale.config}
-                        auto={scale.binStepSizeDefault}
+                        label="Minimum value"
+                        auto={scale.autoMinBinValue}
                     />
-                )}
-                {scale.config.isManualBuckets && (
-                    <ColorSchemeEditor scale={scale} />
-                )}
+                    {!scale.isManualBuckets && (
+                        <BindAutoFloat
+                            field="binningStrategyBinCount"
+                            store={scale.config}
+                            label="Target number of bins"
+                            auto={scale.numAutoBins}
+                        />
+                    )}
+                </FieldsRow>
+                <ColorSchemeEditor scale={scale} />
             </Section>
         )
     }
@@ -259,9 +277,9 @@ class BinLabelView extends React.Component<{
     @action.bound onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
             const { scale, index } = this.props
-            while (scale.config.colorSchemeLabels.length < scale.numBins)
-                scale.config.colorSchemeLabels.push(undefined)
-            scale.config.colorSchemeLabels[index] = value
+            while (scale.config.customNumericLabels.length < scale.numBins)
+                scale.config.customNumericLabels.push(undefined)
+            scale.config.customNumericLabels[index] = value
         } else {
             const { scale, bin } = this.props
             const customCategoryLabels = clone(
@@ -304,6 +322,16 @@ class BinLabelView extends React.Component<{
     }
 }
 
+function populateManualBinValuesIfAutomatic(scale: ColorScale) {
+    runInAction(() => {
+        if (scale.config.binningStrategy !== BinningStrategy.manual) {
+            scale.config.customNumericValues = scale.autoBinMaximums
+            scale.config.customNumericLabels = []
+            scale.config.binningStrategy = BinningStrategy.manual
+        }
+    })
+}
+
 @observer
 class NumericBinView extends React.Component<{
     scale: ColorScale
@@ -313,11 +341,11 @@ class NumericBinView extends React.Component<{
     @action.bound onColor(color: Color | undefined) {
         const { scale, index } = this.props
 
-        if (!scale.isCustomColors) {
+        if (!scale.customNumericColorsActive) {
             // Creating a new custom color scheme
             scale.config.customCategoryColors = {}
             scale.config.customNumericColors = []
-            scale.config.customColorsActive = true
+            scale.config.customNumericColorsActive = true
         }
 
         while (scale.config.customNumericColors.length < scale.numBins)
@@ -328,32 +356,38 @@ class NumericBinView extends React.Component<{
 
     @action.bound onMaximumValue(value: number | undefined) {
         const { scale, index } = this.props
-        if (value !== undefined) scale.config.colorSchemeValues[index] = value
+        populateManualBinValuesIfAutomatic(scale)
+        if (value !== undefined) scale.config.customNumericValues[index] = value
     }
 
     @action.bound onLabel(value: string) {
         const { scale, index } = this.props
-        while (scale.config.colorSchemeLabels.length < scale.numBins)
-            scale.config.colorSchemeLabels.push(undefined)
-        scale.config.colorSchemeLabels[index] = value
+        while (scale.config.customNumericLabels.length < scale.numBins)
+            scale.config.customNumericLabels.push(undefined)
+        scale.config.customNumericLabels[index] = value
     }
 
     @action.bound onRemove() {
         const { scale, index } = this.props
-        scale.config.colorSchemeValues.splice(index, 1)
+        populateManualBinValuesIfAutomatic(scale)
+        scale.config.customNumericValues.splice(index, 1)
         scale.config.customNumericColors.splice(index, 1)
     }
 
     @action.bound onAddAfter() {
         const { scale, index } = this.props
-        const { colorSchemeValues, customNumericColors } = scale.config
-        const currentValue = colorSchemeValues[index]
+        const { customNumericValues, customNumericColors } = scale.config
+        const currentValue = customNumericValues[index]
 
-        if (index === colorSchemeValues.length - 1)
-            colorSchemeValues.push(currentValue + scale.binStepSizeDefault)
+        populateManualBinValuesIfAutomatic(scale)
+
+        if (index === customNumericValues.length - 1)
+            customNumericValues.push(
+                last(scale.sortedNumericValues) ?? currentValue
+            )
         else {
-            const newValue = (currentValue + colorSchemeValues[index + 1]) / 2
-            colorSchemeValues.splice(index + 1, 0, newValue)
+            const newValue = (currentValue + customNumericValues[index + 1]) / 2
+            customNumericValues.splice(index + 1, 0, newValue)
             customNumericColors.splice(index + 1, 0, undefined)
         }
     }
@@ -384,7 +418,7 @@ class NumericBinView extends React.Component<{
                     />
                     {bin.props.isOpenRight && <span>and above</span>}
                 </div>
-                {scale.colorSchemeValues.length > 2 && (
+                {scale.customNumericValues.length > 2 && (
                     <div className="clickable" onClick={this.onRemove}>
                         <FontAwesomeIcon icon={faMinus} />
                     </div>
@@ -401,11 +435,11 @@ class CategoricalBinView extends React.Component<{
 }> {
     @action.bound onColor(color: Color | undefined) {
         const { scale, bin } = this.props
-        if (!scale.isCustomColors) {
+        if (!scale.customNumericColorsActive) {
             // Creating a new custom color scheme
             scale.config.customCategoryColors = {}
             scale.config.customNumericColors = []
-            scale.config.customColorsActive = true
+            scale.config.customNumericColorsActive = true
         }
 
         const customCategoryColors = clone(scale.config.customCategoryColors)

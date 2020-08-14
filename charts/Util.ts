@@ -255,6 +255,12 @@ export function precisionRound(num: number, precision: number) {
     return Math.round(num * factor) / factor
 }
 
+export function roundSigFig(num: number, sigfigs: number = 1) {
+    if (num === 0) return 0
+    const magnitude = Math.floor(Math.log10(Math.abs(num)))
+    return round(num, -magnitude + sigfigs - 1)
+}
+
 export function formatValue(
     value: number,
     options: TickFormattingOptions
@@ -915,4 +921,10 @@ export function mergeQueryStr(...queryStrs: (string | undefined)[]) {
     return queryParamsToStr(
         assign({}, ...excludeUndefined(queryStrs).map(strToQueryParams))
     )
+}
+
+export function mapNullToUndefined<T>(
+    array: (T | undefined | null)[]
+): (T | undefined)[] {
+    return array.map(v => (v === null ? undefined : v))
 }

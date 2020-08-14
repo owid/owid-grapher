@@ -89,7 +89,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
     @computed get barColor() {
         const { colorScale } = this.chart.map.data
-        return colorScale.singleColorScale && !colorScale.isCustomColors
+        return colorScale.singleColorScale &&
+            !colorScale.customNumericColorsActive
             ? this.darkestColorInColorScheme
             : undefined
     }
