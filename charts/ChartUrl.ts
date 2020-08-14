@@ -427,21 +427,25 @@ export class ChartUrl implements ObservableUrl {
     }
 }
 
-interface ParamObject {
-    toParams: QueryParams
+interface ObjectWithParams {
+    params: QueryParams
 }
 
 export class ExtendedChartUrl implements ObservableUrl {
     chartUrl: ChartUrl
-    @observable private _params: ParamObject[]
+    private _params: ObjectWithParams[]
 
-    constructor(chartUrl: ChartUrl, params: ParamObject[]) {
+    constructor(chartUrl: ChartUrl, params: ObjectWithParams[]) {
         this.chartUrl = chartUrl
         this._params = params
     }
 
     @computed get params(): QueryParams {
-        return Object.assign({}, this.chartUrl.params, ...this._params)
+        let obj = Object.assign({}, this.chartUrl.params)
+        this._params.forEach(p => {
+            obj = Object.assign(obj, p.params)
+        })
+        return obj
     }
 
     @computed get debounceMode(): boolean {

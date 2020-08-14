@@ -1110,7 +1110,7 @@ export class CovidDataExplorer extends React.Component<{
 
     bindToWindow() {
         new UrlBinder().bindToWindow(
-            new ExtendedChartUrl(this.chart.url, [this.props.params])
+            new ExtendedChartUrl(this.chart.url, [this.props as any])
         )
     }
 

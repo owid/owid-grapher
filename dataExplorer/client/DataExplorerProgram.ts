@@ -257,7 +257,7 @@ export class SwitcherRuntime {
         return { ...this._settings }
     }
 
-    @computed get toParams() {
+    @computed get params() {
         return this.toObject()
     }
 
@@ -375,7 +375,7 @@ export class SwitcherRuntime {
 }
 
 export class DataExplorerQueryParams {
-    hideControls: boolean = false
+    @observable hideControls: boolean = false
     @observable selectedCountryCodesOrNames: Set<string> = new Set<string>()
 
     constructor(queryString: string) {
@@ -389,9 +389,10 @@ export class DataExplorerQueryParams {
         }
     }
 
-    @computed get toParams(): QueryParams {
+    @computed get params(): QueryParams {
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
+        this.selectedCountryCodesOrNames.size // Need to do a "dot" operation to get MobX to detect the read
         params.country = EntityUrlBuilder.entitiesToQueryParam(
             Array.from(this.selectedCountryCodesOrNames)
         )

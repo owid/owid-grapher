@@ -69,8 +69,8 @@ export class SwitcherDataExplorer extends React.Component<{
 
     bindToWindow() {
         const url = new ExtendedChartUrl(this._chart!.url, [
-            this.switcherRuntime.toParams,
-            this.explorerRuntime.toParams
+            this.switcherRuntime,
+            this.explorerRuntime
         ])
 
         if (this.urlBinding) this.urlBinding.unbindFromWindow()
