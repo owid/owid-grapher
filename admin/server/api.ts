@@ -1682,7 +1682,6 @@ api.get("/sources/:sourceId.json", async (req: Request) => {
         WHERE s.id=?`,
         [sourceId]
     )
-    console.log(source.description)
     source.description = JSON.parse(source.description)
     source.variables = await db.query(
         `SELECT id, name, updatedAt FROM variables WHERE variables.sourceId=?`,
