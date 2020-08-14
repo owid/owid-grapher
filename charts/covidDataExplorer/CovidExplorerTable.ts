@@ -339,6 +339,7 @@ export class CovidExplorerTable {
                 columnName === "positive_test_rate") &&
             smoothing === 7
 
+        // Per-capita transform done after rolling average to preserve precision.
         const perCapitaTransform =
             perCapita > 1
                 ? (fn: RowToValueMapper) => (row: Row, index?: number) => {
