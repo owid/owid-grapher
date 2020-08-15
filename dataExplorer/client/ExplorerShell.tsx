@@ -10,12 +10,12 @@ import { CountryPicker } from "charts/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
 import { ChartView } from "charts/ChartView"
-import { DataExplorerQueryParams } from "./DataExplorerProgram"
+import { DataExplorerQueryParams } from "./ExplorerProgram"
 import { throttle } from "charts/Util"
 
 // TODO: Migrate CovidExplorer to use this class as well
 @observer
-export class DataExplorerShell extends React.Component<{
+export class ExplorerShell extends React.Component<{
     explorerSlug: string
     controlPanels: JSX.Element[]
     chart: ChartConfig

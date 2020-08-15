@@ -37,7 +37,7 @@ export enum ProgramKeyword {
     defaultView = "defaultView"
 }
 
-export class DataExplorerProgram {
+export class ExplorerProgram {
     constructor(slug: string, tsv: string, queryString: string = "") {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
@@ -64,7 +64,7 @@ export class DataExplorerProgram {
     }
 
     get fullPath() {
-        return DataExplorerProgram.fullPath(this.slug)
+        return ExplorerProgram.fullPath(this.slug)
     }
 
     private nodeDelimiter = nodeDelimiter
@@ -117,7 +117,7 @@ ${ProgramKeyword.switcher}
         const str = table
             .map(row => row.join(cellDelimiter))
             .join(nodeDelimiter)
-        return new DataExplorerProgram(slug, str)
+        return new ExplorerProgram(slug, str)
     }
 
     toArrays() {

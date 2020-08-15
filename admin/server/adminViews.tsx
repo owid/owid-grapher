@@ -20,7 +20,7 @@ import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
 import { renderPageById } from "site/server/siteBaking"
 import { ENV } from "settings"
-import { addExplorerAdminRoutes } from "dataExplorer/admin/DataExplorerBaker"
+import { addExplorerAdminRoutes } from "dataExplorer/admin/ExplorerBaker"
 
 const adminViews = Router()
 

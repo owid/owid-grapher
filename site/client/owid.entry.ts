@@ -30,13 +30,13 @@ import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
 import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
 import { runFootnotes } from "site/client/Footnote"
-import { SwitcherDataExplorer } from "dataExplorer/client/SwitcherDataExplorer"
+import { SwitcherExplorer } from "dataExplorer/client/SwitcherExplorer"
 
 declare var window: any
 window.Grapher = Grapher
 window.ChartView = ChartView
 window.CovidDataExplorer = CovidDataExplorer
-window.SwitcherDataExplorer = SwitcherDataExplorer
+window.SwitcherDataExplorer = SwitcherExplorer
 window.ExploreView = ExploreView
 window.App = window.App || {}
 window.runChartsIndexPage = runChartsIndexPage

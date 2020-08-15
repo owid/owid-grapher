@@ -1,8 +1,8 @@
 import * as React from "react"
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
-import { SwitcherDataExplorer } from "dataExplorer/client/SwitcherDataExplorer"
-import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
+import { SwitcherExplorer } from "dataExplorer/client/SwitcherExplorer"
+import { ExplorerProgram } from "dataExplorer/client/ExplorerProgram"
 
 const code = `title	Test Explorer Switching
 switcher
@@ -41,9 +41,9 @@ export default {
 
 export const SwitcherTest = () => {
     const configs = new Map()
-    const program = new DataExplorerProgram("some-slug", code)
+    const program = new ExplorerProgram("some-slug", code)
     return (
-        <SwitcherDataExplorer
+        <SwitcherExplorer
             bindToWindow={false}
             chartConfigs={configs}
             program={program}

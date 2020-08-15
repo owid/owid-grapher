@@ -5,15 +5,15 @@ import {
     AdminAppContextType,
     AdminAppContext
 } from "admin/client/AdminAppContext"
-import { SwitcherDataExplorer } from "dataExplorer/client/SwitcherDataExplorer"
+import { SwitcherExplorer } from "dataExplorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { JsTable } from "charts/Util"
 import {
-    DataExplorerProgram,
+    ExplorerProgram,
     ProgramKeyword
-} from "dataExplorer/client/DataExplorerProgram"
+} from "dataExplorer/client/ExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
 import { Link } from "admin/client/Link"
@@ -28,7 +28,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         this.context.admin.loadingIndicatorSetting = "off"
         this.fetchDataExplorerProgramOnLoad()
         const win = window as any
-        win.DataExplorerProgram = DataExplorerProgram
+        win.DataExplorerProgram = ExplorerProgram
     }
 
     @action
@@ -38,15 +38,14 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     @action.bound async fetchDataExplorerProgramOnLoad() {
         const content = await readRemoteFile({
-            filepath: DataExplorerProgram.fullPath(this.props.slug)
+            filepath: ExplorerProgram.fullPath(this.props.slug)
         })
-        this.sourceOnDisk =
-            content || DataExplorerProgram.defaultExplorerProgram
+        this.sourceOnDisk = content || ExplorerProgram.defaultExplorerProgram
         this.setProgram(this.sourceOnDisk)
     }
 
     @action.bound setProgram(code: string) {
-        this.program = new DataExplorerProgram(this.program.slug, code)
+        this.program = new ExplorerProgram(this.program.slug, code)
         this.fetchChartConfigs(this.program.requiredChartIds)
     }
 
@@ -71,7 +70,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     @action.bound updateConfig() {
         const newVersion = this.hotTableComponent.current?.hotInstance.getData() as JsTable
         if (newVersion) {
-            const program = DataExplorerProgram.fromArrays(
+            const program = ExplorerProgram.fromArrays(
                 this.program.slug,
                 newVersion
             )
@@ -80,11 +79,10 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         }
     }
 
-    @observable sourceOnDisk: string =
-        DataExplorerProgram.defaultExplorerProgram
+    @observable sourceOnDisk: string = ExplorerProgram.defaultExplorerProgram
 
     @observable
-    program: DataExplorerProgram = new DataExplorerProgram(this.props.slug, "")
+    program: ExplorerProgram = new ExplorerProgram(this.props.slug, "")
 
     @action.bound async saveExplorer() {
         const slug = prompt("Slug for this explorer", this.program.slug)
@@ -154,7 +152,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                         </Link>
                     </div>
                     <div style={{ height: "500px", overflow: "scroll" }}>
-                        <SwitcherDataExplorer
+                        <SwitcherExplorer
                             chartConfigs={this.chartConfigs}
                             bindToWindow={false}
                             program={this.program}

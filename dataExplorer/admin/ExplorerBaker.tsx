@@ -4,10 +4,7 @@ import * as db from "db/db"
 import React from "react"
 import { renderToHtmlPage } from "utils/server/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
-import {
-    explorerFileSuffix,
-    DataExplorerProgram
-} from "../client/DataExplorerProgram"
+import { explorerFileSuffix, ExplorerProgram } from "../client/ExplorerProgram"
 import * as settings from "settings"
 import { Head } from "site/server/views/Head"
 import { SiteHeader } from "site/server/views/SiteHeader"
@@ -23,7 +20,7 @@ import {
     covidPreloads
 } from "charts/covidDataExplorer/CovidConstants"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
-import { SwitcherBootstrapProps } from "dataExplorer/client/SwitcherDataExplorer"
+import { SwitcherBootstrapProps } from "dataExplorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "admin/server/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
 import { Router } from "express"
@@ -97,11 +94,11 @@ const getAllDataExplorers = async (directory = storageFolder) => {
     const explorerFiles = files.filter(filename =>
         filename.endsWith(explorerFileSuffix)
     )
-    const explorers: DataExplorerProgram[] = []
+    const explorers: ExplorerProgram[] = []
     for (const filename of explorerFiles) {
         const content = await fs.readFile(directory + "/" + filename, "utf8")
         explorers.push(
-            new DataExplorerProgram(
+            new ExplorerProgram(
                 filename.replace(explorerFileSuffix, ""),
                 content
             )
@@ -118,7 +115,7 @@ const write = async (outPath: string, content: string) => {
 
 const bakeExplorersToDir = async (
     directory: string,
-    explorers: DataExplorerProgram[] = []
+    explorers: ExplorerProgram[] = []
 ) => {
     for (const explorer of explorers) {
         await write(
@@ -132,7 +129,7 @@ const bakeExplorersToDir = async (
 }
 
 async function renderSwitcherDataExplorerPage(slug: string, code: string) {
-    const program = new DataExplorerProgram(slug, code)
+    const program = new ExplorerProgram(slug, code)
     const chartConfigs: any[] = await db.query(
         `SELECT id, config FROM charts WHERE id IN (?)`,
         [program.requiredChartIds]

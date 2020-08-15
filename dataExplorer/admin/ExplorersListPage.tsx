@@ -17,7 +17,7 @@ import * as lodash from "lodash"
 import { AdminLayout } from "admin/client/AdminLayout"
 import { FieldsRow } from "admin/client/Forms"
 import { getAvailableSlugSync } from "charts/Util"
-import { DataExplorerProgram } from "dataExplorer/client/DataExplorerProgram"
+import { ExplorerProgram } from "dataExplorer/client/ExplorerProgram"
 import { deleteRemoteFile, writeRemoteFile } from "gitCms/client"
 import { BAKED_BASE_URL } from "settings"
 import { GIT_CMS_REPO } from "gitCms/constants"
@@ -26,7 +26,7 @@ const contentRepo = GIT_CMS_REPO + "/commits/master/explorers/"
 
 @observer
 class ExplorerRow extends React.Component<{
-    explorer: DataExplorerProgram
+    explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
     searchHighlight?: (text: string) => any
 }> {
@@ -110,7 +110,7 @@ class ExplorerRow extends React.Component<{
 
 @observer
 export class ExplorerList extends React.Component<{
-    explorers: DataExplorerProgram[]
+    explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
 }> {
@@ -152,13 +152,13 @@ export class ExplorersIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable explorers: DataExplorerProgram[] = []
+    @observable explorers: ExplorerProgram[] = []
     @observable maxVisibleRows = 50
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
 
-    @computed get explorersToShow(): DataExplorerProgram[] {
+    @computed get explorersToShow(): ExplorerProgram[] {
         return this.explorers
     }
 
@@ -217,7 +217,7 @@ export class ExplorersIndexPage extends React.Component {
         runInAction(() => {
             if (searchInput === this.searchInput) {
                 this.explorers = json.explorers.map(
-                    (exp: any) => new DataExplorerProgram(exp.slug, exp.program)
+                    (exp: any) => new ExplorerProgram(exp.slug, exp.program)
                 )
                 const win = window as any
                 win.explorers = this.explorers

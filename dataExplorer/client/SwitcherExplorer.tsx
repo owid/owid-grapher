@@ -7,8 +7,8 @@ import { ExplorerControlPanel } from "dataExplorer/client/ExplorerControls"
 import { ExtendedChartUrl } from "charts/ChartUrl"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "charts/UrlBinder"
-import { DataExplorerShell } from "./DataExplorerShell"
-import { DataExplorerProgram } from "./DataExplorerProgram"
+import { ExplorerShell } from "./ExplorerShell"
+import { ExplorerProgram } from "./ExplorerProgram"
 import { strToQueryParams } from "utils/client/url"
 
 declare type chartId = number
@@ -21,9 +21,9 @@ export interface SwitcherBootstrapProps {
 }
 
 @observer
-export class SwitcherDataExplorer extends React.Component<{
+export class SwitcherExplorer extends React.Component<{
     chartConfigs: Map<chartId, ChartConfigProps>
-    program: DataExplorerProgram
+    program: ExplorerProgram
     bindToWindow: boolean
 }> {
     static bootstrap(props: SwitcherBootstrapProps) {
@@ -35,7 +35,7 @@ export class SwitcherDataExplorer extends React.Component<{
         } = props
         const containerId = "dataExplorerContainer"
         const containerNode = document.getElementById(containerId)
-        const program = new DataExplorerProgram(
+        const program = new ExplorerProgram(
             slug,
             dataExplorerProgramCode,
             window.location.search
@@ -44,7 +44,7 @@ export class SwitcherDataExplorer extends React.Component<{
         chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
 
         return ReactDOM.render(
-            <SwitcherDataExplorer
+            <SwitcherExplorer
                 program={program}
                 chartConfigs={chartConfigsMap}
                 bindToWindow={bindToWindow}
@@ -211,7 +211,7 @@ export class SwitcherDataExplorer extends React.Component<{
 
     render() {
         return (
-            <DataExplorerShell
+            <ExplorerShell
                 headerElement={this.header}
                 controlPanels={this.panels}
                 explorerSlug={this.props.program.slug}

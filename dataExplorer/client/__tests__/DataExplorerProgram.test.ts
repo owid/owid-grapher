@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
-import { DataExplorerProgram, SwitcherRuntime } from "../DataExplorerProgram"
+import { ExplorerProgram, SwitcherRuntime } from "../ExplorerProgram"
 
-describe(DataExplorerProgram, () => {
-    const program = new DataExplorerProgram(
+describe(ExplorerProgram, () => {
+    const program = new ExplorerProgram(
         "test",
-        DataExplorerProgram.defaultExplorerProgram
+        ExplorerProgram.defaultExplorerProgram
     )
     it("gets the required chart ids", () => {
         expect(program.requiredChartIds).toEqual([35, 46])

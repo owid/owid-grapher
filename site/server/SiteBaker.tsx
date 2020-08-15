@@ -61,7 +61,7 @@ import {
 import {
     bakeAllPublishedExplorers,
     renderCovidDataExplorerPage
-} from "dataExplorer/admin/DataExplorerBaker"
+} from "dataExplorer/admin/ExplorerBaker"
 
 // Static site generator using Wordpress
 
