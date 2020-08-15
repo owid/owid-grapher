@@ -5,8 +5,9 @@ import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 
 const code = `title	Test Explorer Switching
+subtitle	Some subtitle
 switcher
-	chartId	Gas	Accounting	Fuel	Count	Relative to world total
+	chartId	Gas	Accounting	Fuel Dropdown	Count Dropdown	Relative to world total Checkbox
 	488	CO2	Production-based	Total	Per country	FALSE
 	3219	CO2	Production-based	Total	Per country	Share of global emissions
 	486	CO2	Production-based	Total	Per capita	

@@ -387,7 +387,7 @@ export class SwitcherRuntime {
 
 export class ExplorerQueryParams {
     @observable hideControls: boolean = false
-    @observable selectedCountryCodesOrNames: Set<string> = new Set<string>()
+    @observable selectedEntityNames: Set<string> = new Set<string>()
 
     constructor(queryString: string) {
         const obj = strToQueryParams(queryString)
@@ -395,7 +395,7 @@ export class ExplorerQueryParams {
 
         if (obj.country) {
             EntityUrlBuilder.queryParamToEntities(obj.country).forEach(code =>
-                this.selectedCountryCodesOrNames.add(code)
+                this.selectedEntityNames.add(code)
             )
         }
     }
@@ -403,9 +403,9 @@ export class ExplorerQueryParams {
     @computed get params(): QueryParams {
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
-        this.selectedCountryCodesOrNames.size // Need to do a "dot" operation to get MobX to detect the read
+        this.selectedEntityNames.size // Need to do a "dot" operation to get MobX to detect the read
         params.country = EntityUrlBuilder.entitiesToQueryParam(
-            Array.from(this.selectedCountryCodesOrNames)
+            Array.from(this.selectedEntityNames)
         )
         return params as QueryParams
     }

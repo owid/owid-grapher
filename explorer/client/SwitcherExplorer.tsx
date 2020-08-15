@@ -85,7 +85,7 @@ export class SwitcherExplorer extends React.Component<{
 
     componentDidMount() {
         autorun(() => {
-            this.explorerRuntime.selectedCountryCodesOrNames.size
+            this.explorerRuntime.selectedEntityNames.size // "Dot in" to create Mobx link.
             this.updateChartSelection()
         })
     }
@@ -112,21 +112,10 @@ export class SwitcherExplorer extends React.Component<{
             () => this._chart!.isReady,
             () => {
                 // Add any missing entities
-
-                const entities = uniq([
+                this.availableEntities = uniq([
                     ...this.availableEntities,
                     ...this._chart!.table.availableEntities
-                ])
-
-                const [selected, unselected] = partition(
-                    entities,
-                    (name: string) => this.isSelected(name)
-                )
-
-                selected.sort()
-                unselected.sort()
-
-                this.availableEntities = [...selected, ...unselected]
+                ]).sort()
 
                 this.updateChartSelection()
             }
@@ -136,23 +125,15 @@ export class SwitcherExplorer extends React.Component<{
     }
 
     private isSelected(entityName: string) {
-        const countryCodeMap = this._chart!.table.entityCodeToNameMap
-        return (
-            this.explorerRuntime.selectedCountryCodesOrNames.has(
-                countryCodeMap.get(entityName)!
-            ) ||
-            this.explorerRuntime.selectedCountryCodesOrNames.has(entityName)
-        )
+        return this.explorerRuntime.selectedEntityNames.has(entityName)
     }
 
     @action.bound private updateChartSelection() {
         const table = this._chart!.table
-        const countryCodeMap = table.entityCodeToNameMap
         const entityIdMap = table.entityNameToIdMap
         const selectedData = Array.from(
-            this.explorerRuntime.selectedCountryCodesOrNames
+            this.explorerRuntime.selectedEntityNames
         )
-            .map(code => countryCodeMap.get(code))
             .filter(i => i)
             .map(countryOption => {
                 return {

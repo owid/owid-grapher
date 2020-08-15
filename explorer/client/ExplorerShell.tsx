@@ -93,41 +93,33 @@ export class ExplorerShell extends React.Component<{
                 availableEntities={this.props.availableEntities}
                 selectedEntities={this.selectedEntityNames}
                 clearSelectionCommand={this.clearSelectionCommand}
-                toggleCountryCommand={this.toggleSelectedCountryCommand}
+                toggleCountryCommand={this.toggleSelectedEntityCommand}
             ></CountryPicker>
         )
     }
 
-    @action.bound toggleSelectedCountryCommand(
-        countryName: string,
+    @action.bound toggleSelectedEntityCommand(
+        entityName: string,
         value?: boolean
     ) {
-        const codeMap = this.props.chart.table.entityNameToCodeMap
-        const code = codeMap.get(countryName)! || countryName
-        const selectedCountryCodesOrNames = this.props.params
-            .selectedCountryCodesOrNames
+        const selectedEntities = this.props.params.selectedEntityNames
         if (value) {
-            selectedCountryCodesOrNames.add(code)
+            selectedEntities.add(entityName)
         } else if (value === false) {
-            selectedCountryCodesOrNames.delete(code)
-        } else if (selectedCountryCodesOrNames.has(code)) {
-            selectedCountryCodesOrNames.delete(code)
+            selectedEntities.delete(entityName)
+        } else if (selectedEntities.has(entityName)) {
+            selectedEntities.delete(entityName)
         } else {
-            selectedCountryCodesOrNames.add(code)
+            selectedEntities.add(entityName)
         }
     }
 
     @action.bound clearSelectionCommand() {
-        this.props.params.selectedCountryCodesOrNames.clear()
+        this.props.params.selectedEntityNames.clear()
     }
 
     @computed get selectedEntityNames(): string[] {
-        const entityCodeMap = this.props.chart.table.entityCodeToNameMap
-        return Array.from(
-            this.props.params.selectedCountryCodesOrNames.values()
-        )
-            .map(code => entityCodeMap.get(code) || code)
-            .filter(i => i) as string[]
+        return Array.from(this.props.params.selectedEntityNames.values())
     }
 
     get controlBar() {
