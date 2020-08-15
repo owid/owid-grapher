@@ -36,7 +36,7 @@ export class ExplorerControlBar extends React.Component<{
         const showMobileControls = isMobile && showControls
         return (
             <div
-                className={`DataExplorerControlBar${
+                className={`ExplorerControlBar${
                     showMobileControls
                         ? ` show-controls-popup`
                         : isMobile
@@ -166,7 +166,7 @@ export class ExplorerControlPanel extends React.Component<{
     render() {
         const { title, hideTitle, name } = this.props
         return (
-            <div key={name} className={classNames("DataExplorerControl", name)}>
+            <div key={name} className={classNames("ExplorerControl", name)}>
                 <div
                     className={
                         "ControlHeader" +

@@ -26,9 +26,9 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     @action
     componentDidMount() {
         this.context.admin.loadingIndicatorSetting = "off"
-        this.fetchDataExplorerProgramOnLoad()
+        this.fetchExplorerProgramOnLoad()
         const win = window as any
-        win.DataExplorerProgram = ExplorerProgram
+        win.ExplorerProgram = ExplorerProgram
     }
 
     @action
@@ -36,7 +36,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         this.context.admin.loadingIndicatorSetting = "default"
     }
 
-    @action.bound async fetchDataExplorerProgramOnLoad() {
+    @action.bound async fetchExplorerProgramOnLoad() {
         const content = await readRemoteFile({
             filepath: ExplorerProgram.fullPath(this.props.slug)
         })

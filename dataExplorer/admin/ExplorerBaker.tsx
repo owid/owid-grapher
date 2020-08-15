@@ -32,7 +32,7 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     // http://localhost:3030/admin/api/explorers.json
     // Download all explorers for the admin index page
     app.get("/explorers.json", async () => {
-        const explorers = await getAllDataExplorers()
+        const explorers = await getAllExplorers()
         return {
             explorers: explorers.map(explorer => {
                 return {
@@ -66,7 +66,7 @@ export const addExplorerAdminRoutes = (app: Router) => {
     app.get(`/explorers/preview/:slug`, async (req, res) => {
         const code = await getExplorerCodeBySlug(req.params.slug)
         if (code === undefined) res.send(`File not found`)
-        res.send(await renderSwitcherDataExplorerPage(req.params.slug, code!))
+        res.send(await renderSwitcherExplorerPage(req.params.slug, code!))
     })
 }
 
@@ -83,12 +83,12 @@ export const bakeAllPublishedExplorers = async (
     inputFolder = storageFolder,
     outputFolder = `${BAKED_SITE_DIR}/explorers/`
 ) => {
-    const dataExplorers = await getAllDataExplorers(inputFolder)
+    const dataExplorers = await getAllExplorers(inputFolder)
     const published = dataExplorers.filter(exp => exp.isPublished)
     await bakeExplorersToDir(outputFolder, published)
 }
 
-const getAllDataExplorers = async (directory = storageFolder) => {
+const getAllExplorers = async (directory = storageFolder) => {
     if (!fs.existsSync(directory)) return []
     const files = await fs.readdir(directory)
     const explorerFiles = files.filter(filename =>
@@ -120,15 +120,12 @@ const bakeExplorersToDir = async (
     for (const explorer of explorers) {
         await write(
             `${directory}/${explorer.slug}.html`,
-            await renderSwitcherDataExplorerPage(
-                explorer.slug,
-                explorer.toString()
-            )
+            await renderSwitcherExplorerPage(explorer.slug, explorer.toString())
         )
     }
 }
 
-async function renderSwitcherDataExplorerPage(slug: string, code: string) {
+async function renderSwitcherExplorerPage(slug: string, code: string) {
     const program = new ExplorerProgram(slug, code)
     const chartConfigs: any[] = await db.query(
         `SELECT id, config FROM charts WHERE id IN (?)`,
@@ -146,12 +143,10 @@ async function renderSwitcherDataExplorerPage(slug: string, code: string) {
         })
     }
 
-    const script = `window.SwitcherDataExplorer.bootstrap(${JSON.stringify(
-        props
-    )})`
+    const script = `window.SwitcherExplorer.bootstrap(${JSON.stringify(props)})`
 
     return renderToHtmlPage(
-        <DataExplorerPage
+        <ExplorerPage
             title={program.title || ""}
             slug={props.slug}
             imagePath=""
@@ -164,10 +159,10 @@ async function renderSwitcherDataExplorerPage(slug: string, code: string) {
 export async function renderCovidDataExplorerPage(
     props?: CovidDataExplorerPageProps
 ) {
-    return renderToHtmlPage(<CovidDataExplorerPage {...props} />)
+    return renderToHtmlPage(<CovidExplorerPage {...props} />)
 }
 
-interface DataExplorerPageSettings {
+interface ExplorerPageSettings {
     title: string
     slug: string
     imagePath: string
@@ -177,7 +172,7 @@ interface DataExplorerPageSettings {
     subNav?: JSX.Element
 }
 
-const DataExplorerPage = (props: DataExplorerPageSettings) => {
+const ExplorerPage = (props: ExplorerPageSettings) => {
     return (
         <html>
             <Head
@@ -199,7 +194,7 @@ const DataExplorerPage = (props: DataExplorerPageSettings) => {
             <body className="ChartPage">
                 <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
                 {props.subNav}
-                <main id="dataExplorerContainer">
+                <main id="explorerContainer">
                     <LoadingIndicator color="#333" />
                 </main>
                 <SiteFooter />
@@ -213,13 +208,13 @@ interface CovidDataExplorerPageProps {
     explorerQueryStr?: string
 }
 
-const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
+const CovidExplorerPage = (props: CovidDataExplorerPageProps) => {
     // This script allows us to replace existing Grapher pages with Explorer pages.
     // Part of the reason for doing the redirect client-side is that Netlify doesn't support
     // redirecting while preserving all query parameters.
     const script = `
     var props = {
-        containerNode: document.getElementById("dataExplorerContainer"),
+        containerNode: document.getElementById("explorerContainer"),
         queryStr: window.location.search,
         isExplorerPage: true,
         isEmbed: window != window.top,
@@ -238,7 +233,7 @@ const CovidDataExplorerPage = (props: CovidDataExplorerPageProps) => {
     )
 
     return (
-        <DataExplorerPage
+        <ExplorerPage
             subNav={subNav}
             title={covidPageTitle}
             slug={covidDashboardSlug}

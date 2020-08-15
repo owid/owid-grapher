@@ -46,14 +46,14 @@ export class ExplorerProgram {
             this.switcherCode || "",
             queryString
         )
-        this.explorerRuntime = new DataExplorerQueryParams(queryString)
+        this.explorerRuntime = new ExplorerQueryParams(queryString)
         this.queryString = queryString
     }
 
     slug: string
     queryString: string
     switcherRuntime: SwitcherRuntime
-    explorerRuntime: DataExplorerQueryParams
+    explorerRuntime: ExplorerQueryParams
 
     get filename() {
         return this.slug + explorerFileSuffix
@@ -388,7 +388,7 @@ export class SwitcherRuntime {
     }
 }
 
-export class DataExplorerQueryParams {
+export class ExplorerQueryParams {
     @observable hideControls: boolean = false
     @observable selectedCountryCodesOrNames: Set<string> = new Set<string>()
 

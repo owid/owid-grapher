@@ -1,6 +1,6 @@
 $chart-border-radius: 2px;
 
-.DataExplorerControlBar {
+.ExplorerControlBar {
     $option-color: #7a899e;
     $selected-option-color: #243d60;
 
@@ -11,7 +11,7 @@ $chart-border-radius: 2px;
     box-shadow: $light-shadow;
     padding: 0 14px;
 
-    .DataExplorerControl {
+    .ExplorerControl {
         display: flex;
         flex-direction: column;
         font-size: 13px;
@@ -67,7 +67,7 @@ $chart-border-radius: 2px;
 }
 
 .mobile-explorer {
-    .DataExplorerControlBar {
+    .ExplorerControlBar {
         .mobile-button {
             margin: 12px 0;
             display: block;
@@ -104,7 +104,7 @@ $chart-border-radius: 2px;
         }
     }
 
-    .DataExplorerControl {
+    .ExplorerControl {
         max-width: unset;
 
         padding-top: 0;

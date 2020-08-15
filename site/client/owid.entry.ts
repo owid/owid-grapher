@@ -36,7 +36,7 @@ declare var window: any
 window.Grapher = Grapher
 window.ChartView = ChartView
 window.CovidDataExplorer = CovidDataExplorer
-window.SwitcherDataExplorer = SwitcherExplorer
+window.SwitcherExplorer = SwitcherExplorer
 window.ExploreView = ExploreView
 window.App = window.App || {}
 window.runChartsIndexPage = runChartsIndexPage

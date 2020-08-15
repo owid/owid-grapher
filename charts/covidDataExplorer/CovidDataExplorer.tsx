@@ -413,7 +413,7 @@ export class CovidDataExplorer extends React.Component<{
 
     get header() {
         return (
-            <div className="DataExplorerHeaderBox">
+            <div className="ExplorerHeaderBox">
                 <div>Coronavirus Pandemic</div>
                 <div className="ExplorerTitle">Data Explorer</div>
                 <div className="ExplorerSubtitle" title={this.howLongAgo}>

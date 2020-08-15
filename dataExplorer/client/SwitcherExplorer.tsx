@@ -33,7 +33,7 @@ export class SwitcherExplorer extends React.Component<{
             bindToWindow,
             slug
         } = props
-        const containerId = "dataExplorerContainer"
+        const containerId = "explorerContainer"
         const containerNode = document.getElementById(containerId)
         const program = new ExplorerProgram(
             slug,
@@ -78,7 +78,7 @@ export class SwitcherExplorer extends React.Component<{
 
         this.urlBinding.bindToWindow(url)
         const win = window as any
-        win.switcherDataExplorer = this
+        win.switcherExplorer = this
     }
 
     componentWillMount() {

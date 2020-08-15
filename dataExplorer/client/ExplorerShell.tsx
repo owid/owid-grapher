@@ -10,7 +10,7 @@ import { CountryPicker } from "charts/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
 import { ChartView } from "charts/ChartView"
-import { DataExplorerQueryParams } from "./ExplorerProgram"
+import { ExplorerQueryParams } from "./ExplorerProgram"
 import { throttle } from "charts/Util"
 
 // TODO: Migrate CovidExplorer to use this class as well
@@ -21,7 +21,7 @@ export class ExplorerShell extends React.Component<{
     chart: ChartConfig
     availableEntities: string[]
     headerElement: JSX.Element
-    params: DataExplorerQueryParams
+    params: ExplorerQueryParams
     isEmbed: boolean
 }> {
     get keyboardShortcuts(): Command[] {
@@ -176,7 +176,7 @@ export class ExplorerShell extends React.Component<{
                     })}
                 >
                     {this.showExplorerControls && (
-                        <div className="DataExplorerHeaderBox">
+                        <div className="ExplorerHeaderBox">
                             {this.props.headerElement}
                         </div>
                     )}

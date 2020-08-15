@@ -4,14 +4,14 @@ $chart-border-radius: 2px;
 $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 2px 2px;
 
-#dataExplorerContainer {
+#explorerContainer {
     min-height: $placeholder-height;
     width: 100%;
     position: relative;
     padding: 8px;
 }
 
-html.iframe #dataExplorerContainer {
+html.iframe #explorerContainer {
     height: 100vh;
     min-height: auto !important;
     max-height: none;
@@ -19,7 +19,7 @@ html.iframe #dataExplorerContainer {
     padding: 3px;
 }
 
-.DataExplorerHeaderBox {
+.ExplorerHeaderBox {
     padding: 8px;
     min-width: 200px;
     background: white;
