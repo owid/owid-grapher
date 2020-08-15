@@ -109,8 +109,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             this.program.getLineIndex(ProgramKeyword.switcher) +
             this.program.switcherRuntime.selectedRowIndex +
             3
-        const hotStyles = `.ht_master tr:nth-child(${activeViewRowNumber}) {
-            outline: 3px dashed blue;
+        const hotStyles = `.ht_master tr:nth-child(${activeViewRowNumber}) > td:nth-child(3) {
+            outline: 3px dashed rgba(0,0,255,.5);
           }`
 
         return (
