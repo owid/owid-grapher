@@ -5,7 +5,7 @@ import {
     AdminAppContextType,
     AdminAppContext
 } from "admin/client/AdminAppContext"
-import { SwitcherExplorer } from "dataExplorer/client/SwitcherExplorer"
+import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
@@ -13,7 +13,7 @@ import { JsTable } from "charts/Util"
 import {
     ExplorerProgram,
     ProgramKeyword
-} from "dataExplorer/client/ExplorerProgram"
+} from "explorer/client/ExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
 import { Link } from "admin/client/Link"

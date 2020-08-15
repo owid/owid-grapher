@@ -1,8 +1,8 @@
 import * as React from "react"
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
-import { SwitcherExplorer } from "dataExplorer/client/SwitcherExplorer"
-import { ExplorerProgram } from "dataExplorer/client/ExplorerProgram"
+import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
+import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 
 const code = `title	Test Explorer Switching
 switcher

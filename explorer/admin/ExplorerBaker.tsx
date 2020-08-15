@@ -20,7 +20,7 @@ import {
     covidPreloads
 } from "charts/covidDataExplorer/CovidConstants"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
-import { SwitcherBootstrapProps } from "dataExplorer/client/SwitcherExplorer"
+import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "admin/server/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
 import { Router } from "express"
@@ -83,8 +83,8 @@ export const bakeAllPublishedExplorers = async (
     inputFolder = storageFolder,
     outputFolder = `${BAKED_SITE_DIR}/explorers/`
 ) => {
-    const dataExplorers = await getAllExplorers(inputFolder)
-    const published = dataExplorers.filter(exp => exp.isPublished)
+    const explorers = await getAllExplorers(inputFolder)
+    const published = explorers.filter(exp => exp.isPublished)
     await bakeExplorersToDir(outputFolder, published)
 }
 
@@ -135,7 +135,7 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
     const props: SwitcherBootstrapProps = {
         bindToWindow: true,
         slug,
-        dataExplorerProgramCode: program.toString(),
+        explorerProgramCode: program.toString(),
         chartConfigs: chartConfigs.map(row => {
             const config = JSON.parse(row.config)
             config.id = row.id

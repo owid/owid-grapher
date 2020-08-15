@@ -5,10 +5,7 @@ import {
     QueryParams
 } from "utils/client/url"
 import { uniq, parseDelimited, isCellEmpty } from "charts/Util"
-import {
-    ControlOption,
-    DropdownOption
-} from "dataExplorer/client/ExplorerControls"
+import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 import { EntityUrlBuilder } from "charts/ChartUrl"
 

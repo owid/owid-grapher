@@ -43,7 +43,7 @@ import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "./bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
-import { renderCovidDataExplorerPage } from "dataExplorer/admin/ExplorerBaker"
+import { renderCovidDataExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const devServer = express()
 devServer.use(express.urlencoded({ extended: true }))

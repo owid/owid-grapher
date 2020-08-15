@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { action, observable, when, reaction, autorun } from "mobx"
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import { uniq, partition } from "charts/Util"
-import { ExplorerControlPanel } from "dataExplorer/client/ExplorerControls"
+import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import { ExtendedChartUrl } from "charts/ChartUrl"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "charts/UrlBinder"
@@ -14,7 +14,7 @@ import { strToQueryParams } from "utils/client/url"
 declare type chartId = number
 
 export interface SwitcherBootstrapProps {
-    dataExplorerProgramCode: string
+    explorerProgramCode: string
     slug: string
     chartConfigs: ChartConfigProps[]
     bindToWindow: boolean
@@ -27,17 +27,12 @@ export class SwitcherExplorer extends React.Component<{
     bindToWindow: boolean
 }> {
     static bootstrap(props: SwitcherBootstrapProps) {
-        const {
-            chartConfigs,
-            dataExplorerProgramCode,
-            bindToWindow,
-            slug
-        } = props
+        const { chartConfigs, explorerProgramCode, bindToWindow, slug } = props
         const containerId = "explorerContainer"
         const containerNode = document.getElementById(containerId)
         const program = new ExplorerProgram(
             slug,
-            dataExplorerProgramCode,
+            explorerProgramCode,
             window.location.search
         )
         const chartConfigsMap: Map<number, ChartConfigProps> = new Map()

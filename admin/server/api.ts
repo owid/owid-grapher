@@ -36,7 +36,7 @@ import { PostReference, ChartRedirect } from "admin/client/ChartEditor"
 import { enqueueDeploy } from "deploy/queue"
 import { isExplorable } from "utils/charts"
 import { FunctionalRouter } from "./FunctionalRouter"
-import { addExplorerApiRoutes } from "dataExplorer/admin/ExplorerBaker"
+import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/server"
 
 const api = new FunctionalRouter()
