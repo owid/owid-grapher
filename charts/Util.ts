@@ -147,10 +147,13 @@ import { dsvFormat } from "d3-dsv"
 export type SVGElement = any
 export type VNode = any
 
+// A grid is a 2D matrix/array of arrays.
+export type Grid = any[][]
+
+// A JsTable is a type of Grid where the first row is an array of column names.
 declare type HeaderRow = string[]
 declare type ValueRow = any[]
 export type JsTable = [HeaderRow, ...ValueRow]
-export type Grid = any[][]
 
 interface TouchListLike {
     [index: number]: {
@@ -737,7 +740,6 @@ const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
 export const isCellEmpty = (cell: any) =>
     cell === null || cell === undefined || cell === ""
 
-// Drop empty rows and columns
 export const trimEmptyRows = (grid: Grid): Grid => {
     let trimAt = undefined
     for (let index = grid.length - 1; index >= 0; index--) {
@@ -756,19 +758,8 @@ const trimArray = (arr: any[]) => {
 }
 
 export const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
-
-export const trimGrid = (grid: Grid): Grid => {
-    return trimEmptyColumns(trimEmptyRows(grid))
-}
-
-export const dropDiscontinuousRows = (jsTable: JsTable): JsTable => {
-    const firstDiscontinousRow = jsTable.findIndex(
-        row => row[0] === null || row[0] === undefined || row[0] === ""
-    )
-    return firstDiscontinousRow
-        ? (jsTable.slice(0, firstDiscontinousRow) as JsTable)
-        : jsTable
-}
+export const trimGrid = (grid: Grid): Grid =>
+    trimEmptyColumns(trimEmptyRows(grid))
 
 export const jsTableToDelimited = (table: JsTable, delimiter = "\t") => {
     return table
@@ -992,16 +983,18 @@ export function mapNullToUndefined<T>(
 }
 
 export const getAvailableSlugSync = (
-    baseSlug: string,
-    slugs: string[] | Set<string>
+    desiredSlugName: string,
+    existingSlugs: string[] | Set<string>
 ) => {
-    slugs = Array.isArray(slugs) ? new Set(slugs) : slugs
-    const originalSlug = baseSlug
+    existingSlugs = Array.isArray(existingSlugs)
+        ? new Set(existingSlugs)
+        : existingSlugs
+    const originalSlug = desiredSlugName
     let num = 2
     let suffix = ""
     let slug = `${originalSlug}${suffix}`
 
-    while (slugs.has(slug)) {
+    while (existingSlugs.has(slug)) {
         slug = `${originalSlug}${suffix}`
         suffix = "-" + num
         num++

@@ -40,7 +40,7 @@ import {
     ExplorerControlPanel,
     DropdownOption,
     ExplorerControlBar
-} from "../../explorer/client/ExplorerControls"
+} from "explorer/client/ExplorerControls"
 import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
 import { CountryPicker } from "../CountryPicker"
 import {

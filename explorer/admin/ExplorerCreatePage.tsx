@@ -9,7 +9,7 @@ import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
-import { JsTable } from "charts/Util"
+import { Grid } from "charts/Util"
 import {
     ExplorerProgram,
     ProgramKeyword
@@ -68,7 +68,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     hotTableComponent = React.createRef<HotTable>()
 
     @action.bound updateConfig() {
-        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as JsTable
+        const newVersion = this.hotTableComponent.current?.hotInstance.getData() as Grid
         if (newVersion) {
             const program = ExplorerProgram.fromArrays(
                 this.program.slug,
