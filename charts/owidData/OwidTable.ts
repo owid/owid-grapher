@@ -282,7 +282,7 @@ class CategoricalColumn extends AbstractColumn {}
 class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
-class NumericColumn extends AbstractColumn {}
+export class NumericColumn extends AbstractColumn {}
 class IntegerColumn extends NumericColumn {}
 class CurrencyColumn extends NumericColumn {
     formatValue(value: number) {

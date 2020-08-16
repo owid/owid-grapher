@@ -138,7 +138,7 @@ export class CovidQueryParams {
         }
 
         if (params.pickerMetric)
-            // todo: valididate
+            // todo: validate
             this.countryPickerMetric = params.pickerMetric as any
 
         if (params.pickerSort) {

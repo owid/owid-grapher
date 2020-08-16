@@ -27,7 +27,7 @@ import { Analytics } from "site/client/Analytics"
 import { SortIcon } from "charts/SortIcon"
 import { toggleSort, SortOrder } from "charts/SortOrder"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
-import { AbstractColumn, OwidTable } from "./owidData/OwidTable"
+import { AbstractColumn, OwidTable, NumericColumn } from "./owidData/OwidTable"
 
 enum FocusDirection {
     first = "first",
@@ -392,12 +392,16 @@ export class CountryPicker extends React.Component<{
         }
     }
 
-    @action updateMetric(value: string) {
-        this.props.userState.countryPickerMetric = value
+    @action updateMetric(columnSlug: string) {
+        this.props.userState.countryPickerMetric = columnSlug
+        this.props.userState.countryPickerSort =
+            this.activePickerMetricColumn instanceof NumericColumn
+                ? SortOrder.desc
+                : SortOrder.asc
         Analytics.logCountrySelectorEvent(
             this.props.explorerSlug,
             "sortBy",
-            value
+            columnSlug
         )
     }
 
