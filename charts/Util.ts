@@ -271,6 +271,7 @@ export function roundSigFig(num: number, sigfigs: number = 1) {
     return round(num, -magnitude + sigfigs - 1)
 }
 
+// todo: Should this be numberSuffixes instead of Prefixes?
 export function formatValue(
     value: number,
     options: TickFormattingOptions

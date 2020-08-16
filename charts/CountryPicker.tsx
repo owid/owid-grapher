@@ -592,6 +592,7 @@ class PickerOption extends React.Component<CountryOptionProps> {
             highlight
         } = this.props
         const { name, plotValue, formattedValue } = optionWithMetricValue
+        let metricValue = formattedValue === name ? "" : formattedValue // If the user has "country name" selected, don't show the name twice.
 
         return (
             <Flipped flipId={name} translate opacity>
@@ -622,7 +623,7 @@ class PickerOption extends React.Component<CountryOptionProps> {
                         <div className="labels-container">
                             <div className="name">{highlight(name)}</div>
                             {plotValue !== undefined && (
-                                <div className="metric">{formattedValue}</div>
+                                <div className="metric">{metricValue}</div>
                             )}
                         </div>
                         {barScale && isNumber(plotValue) ? (

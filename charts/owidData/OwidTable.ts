@@ -102,6 +102,10 @@ export declare type columnTypes =
     | "Temporal"
     | "Currency"
     | "Percentage"
+    | "Population"
+    | "PopulationDensity"
+    | "Age"
+    | "Ratio"
 
 export interface ColumnSpec {
     slug: columnSlug
@@ -279,6 +283,7 @@ class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
 class NumericColumn extends AbstractColumn {}
+class IntegerColumn extends NumericColumn {}
 class CurrencyColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""
@@ -301,6 +306,48 @@ class PercentageColumn extends NumericColumn {
         })
     }
 }
+class PopulationColumn extends IntegerColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: true,
+            shortNumberPrefixes: true
+        })
+    }
+}
+class PopulationDensityColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: false
+        })
+    }
+}
+class AgeColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 1,
+            noTrailingZeroes: false,
+            numberPrefixes: false
+        })
+    }
+}
+class RatioColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 1,
+            noTrailingZeroes: false,
+            numberPrefixes: false
+        })
+    }
+}
+
 const columnTypeMap: { [key in columnTypes]: any } = {
     String: StringColumn,
     Temporal: TemporalColumn,
@@ -308,7 +355,11 @@ const columnTypeMap: { [key in columnTypes]: any } = {
     Numeric: NumericColumn,
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,
-    Percentage: PercentageColumn
+    Percentage: PercentageColumn,
+    Population: PopulationColumn,
+    PopulationDensity: PopulationDensityColumn,
+    Age: AgeColumn,
+    Ratio: RatioColumn
 }
 // Todo: Add DayColumn, YearColumn, EntityColumn, etc?
 

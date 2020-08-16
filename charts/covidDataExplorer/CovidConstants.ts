@@ -223,12 +223,13 @@ export const metricPickerColumnSpecs: Partial<Record<
     ColumnSpec
 >> = {
     location: { slug: "location", name: "Country name" },
-    population: { slug: "population", name: "Population" },
+    population: { slug: "population", name: "Population", type: "Population" },
     population_density: {
         slug: "population_density",
-        name: "Population density (people per km²)"
+        name: "Population density (people per km²)",
+        type: "PopulationDensity"
     },
-    median_age: { slug: "median_age", name: "Median age" },
+    median_age: { slug: "median_age", name: "Median age", type: "Age" },
     aged_65_older: {
         slug: "aged_65_older",
         name: "Share aged 65+",
@@ -251,7 +252,8 @@ export const metricPickerColumnSpecs: Partial<Record<
     },
     hospital_beds_per_thousand: {
         slug: "hospital_beds_per_thousand",
-        name: "Hospital beds (per 1000)"
+        name: "Hospital beds (per 1000)",
+        type: "Ratio"
     }
     // tests_per_case: { slug: "tests_per_case", name: "Tests per case" }
 }
