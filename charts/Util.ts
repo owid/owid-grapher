@@ -757,6 +757,9 @@ const trimArray = (arr: any[]) => {
     return arr.slice(0, index + 1)
 }
 
+export const anyToString = (value: any) =>
+    value?.toString ? value.toString() : ""
+
 export const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
 export const trimGrid = (grid: Grid): Grid =>
     trimEmptyColumns(trimEmptyRows(grid))

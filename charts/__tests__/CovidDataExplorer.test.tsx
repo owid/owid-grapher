@@ -5,7 +5,7 @@ import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
 import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import { MetricOptions } from "charts/covidDataExplorer/CovidTypes"
+import { MetricOptions } from "charts/covidDataExplorer/CovidConstants"
 import { defaultTo } from "charts/Util"
 
 const dummyMeta = {

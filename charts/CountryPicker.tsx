@@ -36,9 +36,10 @@ enum FocusDirection {
     down = "down"
 }
 
-interface CountryOptionWithValue {
+interface CountryOptionWithMetricValue {
     name: string
     plotValue: number | string | undefined
+    formattedValue: any
 }
 
 /** Modulo that wraps negative numbers too */
@@ -66,7 +67,7 @@ export class CountryPicker extends React.Component<{
     userState: MetricState
     isDropdownMenu?: boolean
     countriesMustHaveColumns: string[]
-    pickerColumns: Set<string>
+    pickerColumnSlugs: Set<string>
 }> {
     // Set default props
     static defaultProps = {
@@ -80,7 +81,7 @@ export class CountryPicker extends React.Component<{
         availableEntities: [],
         selectedEntities: [],
         countriesMustHaveColumns: [],
-        pickerColumns: new Set()
+        pickerColumnSlugs: new Set()
     }
 
     @observable private searchInput?: string
@@ -128,23 +129,25 @@ export class CountryPicker extends React.Component<{
         return this.props.userState.countryPickerSort
     }
 
-    @computed get availableColumns() {
+    @computed get availablePickerColumns() {
         return this.props.table.columnsAsArray.filter(col =>
-            this.props.pickerColumns.has(col.slug)
+            this.props.pickerColumnSlugs.has(col.slug)
         )
     }
 
     @computed get metricOptions() {
-        return this.availableColumns.map(col => {
+        return this.availablePickerColumns.map(col => {
             return {
-                label: col.spec.name,
+                label: col.spec.name, // todo: name
                 value: col.slug
             }
         })
     }
 
-    @computed get activeColumn(): AbstractColumn {
-        return this.availableColumns.find(col => col.slug === this.metric)!
+    @computed get activePickerMetricColumn(): AbstractColumn {
+        return this.availablePickerColumns.find(
+            col => col.slug === this.metric
+        )!
     }
 
     @computed get availableCountriesForCurrentView() {
@@ -155,22 +158,29 @@ export class CountryPicker extends React.Component<{
         )
     }
 
-    @computed private get optionsWithMetricValue(): CountryOptionWithValue[] {
-        return this.props.availableEntities.map(name => ({
-            name,
-            plotValue: this.activeColumn?.getLatestValueForEntity(name)
-        }))
+    @computed
+    private get optionsWithMetricValue(): CountryOptionWithMetricValue[] {
+        const col = this.activePickerMetricColumn
+        return this.props.availableEntities.map(name => {
+            const plotValue = col?.getLatestValueForEntity(name)
+            const formattedValue = col?.formatValue(plotValue)
+            return {
+                name,
+                plotValue,
+                formattedValue
+            }
+        })
     }
 
-    @bind private isSelected(option: CountryOptionWithValue) {
+    @bind private isSelected(option: CountryOptionWithMetricValue) {
         return this.props.selectedEntities.includes(option.name)
     }
 
-    @computed private get fuzzy(): FuzzySearch<CountryOptionWithValue> {
+    @computed private get fuzzy(): FuzzySearch<CountryOptionWithMetricValue> {
         return new FuzzySearch(this.optionsWithMetricValue, "name")
     }
 
-    @computed private get searchResults(): CountryOptionWithValue[] {
+    @computed private get searchResults(): CountryOptionWithMetricValue[] {
         if (this.searchInput) {
             return this.fuzzy.search(this.searchInput)
         }
@@ -394,7 +404,7 @@ export class CountryPicker extends React.Component<{
     get pickerMenu() {
         return (
             !this.isDropdownMenu &&
-            this.props.pickerColumns.size > 0 && (
+            this.props.pickerColumnSlugs.size > 0 && (
                 <div className="MetricSettings">
                     <span className="mainLabel">Sort by</span>
                     <Select
@@ -506,7 +516,7 @@ export class CountryPicker extends React.Component<{
                                             hasDataForActiveMetric={availableCountries.has(
                                                 option.name
                                             )}
-                                            option={option}
+                                            optionWithMetricValue={option}
                                             highlight={this.highlightLabel}
                                             barScale={this.barScale}
                                             color={
@@ -549,7 +559,7 @@ export class CountryPicker extends React.Component<{
 }
 
 interface CountryOptionProps {
-    option: CountryOptionWithValue
+    optionWithMetricValue: CountryOptionWithMetricValue
     highlight: (label: string) => JSX.Element | string
     onChange: (name: string, checked: boolean) => void
     onHover?: () => void
@@ -565,21 +575,26 @@ class PickerOption extends React.Component<CountryOptionProps> {
     @bind onClick(event: React.MouseEvent<HTMLLabelElement, MouseEvent>) {
         event.stopPropagation()
         event.preventDefault()
-        this.props.onChange(this.props.option.name, !this.props.isSelected)
+        this.props.onChange(
+            this.props.optionWithMetricValue.name,
+            !this.props.isSelected
+        )
     }
 
     render() {
         const {
             barScale,
-            option,
+            optionWithMetricValue,
             innerRef,
             isSelected,
             isFocused,
             hasDataForActiveMetric,
             highlight
         } = this.props
+        const { name, plotValue, formattedValue } = optionWithMetricValue
+
         return (
-            <Flipped flipId={option.name} translate opacity>
+            <Flipped flipId={name} translate opacity>
                 <label
                     className={classnames(
                         "CountryOption",
@@ -598,25 +613,24 @@ class PickerOption extends React.Component<CountryOptionProps> {
                         <input
                             type="checkbox"
                             checked={isSelected}
-                            value={option.name}
+                            value={name}
                             tabIndex={-1}
                             readOnly
                         />
                     </div>
                     <div className="info-container">
                         <div className="labels-container">
-                            <div className="name">{highlight(option.name)}</div>
-                            {option.plotValue !== undefined && (
-                                <div className="metric">{option.plotValue}</div>
+                            <div className="name">{highlight(name)}</div>
+                            {plotValue !== undefined && (
+                                <div className="metric">{formattedValue}</div>
                             )}
                         </div>
-                        {barScale && isNumber(option.plotValue) ? (
+                        {barScale && isNumber(plotValue) ? (
                             <div className="plot">
                                 <div
                                     className="bar"
                                     style={{
-                                        width: `${barScale(option.plotValue) *
-                                            100}%`
+                                        width: `${barScale(plotValue) * 100}%`
                                     }}
                                 />
                             </div>

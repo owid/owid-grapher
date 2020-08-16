@@ -30,12 +30,6 @@ import {
     flatten
 } from "charts/Util"
 import {
-    CovidGrapherRow,
-    IntervalOption,
-    MetricKind,
-    CovidCountryPickerMetric
-} from "./CovidTypes"
-import {
     ControlOption,
     ExplorerControlPanel,
     DropdownOption,
@@ -55,11 +49,16 @@ import {
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
+    CovidGrapherRow,
+    IntervalOption,
+    MetricKind,
     covidDashboardSlug,
     coronaDefaultView,
     covidDataPath,
     sourceCharts,
-    metricLabels
+    metricLabels,
+    metricPickerColumnSpecs,
+    covidCsvColumnSlug
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes, continentColors } from "charts/ColorSchemes"
@@ -176,7 +175,6 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     private get metricPicker() {
-        const params = this.props.params
         const options: ControlOption[] = [
             {
                 available: true,
@@ -435,7 +433,7 @@ export class CovidDataExplorer extends React.Component<{
             <CountryPicker
                 explorerSlug="Covid"
                 table={this.chart.table}
-                pickerColumns={new Set(Object.keys(CovidCountryPickerMetric))}
+                pickerColumnSlugs={new Set(Object.keys(metricPickerColumnSpecs))}
                 isDropdownMenu={this.isMobile}
                 optionColorMap={this.countryNameToColorMap}
                 selectedEntities={this.selectedEntityNames}
@@ -456,7 +454,7 @@ export class CovidDataExplorer extends React.Component<{
         ) as string[]
     }
 
-    @action.bound changePickerMetric(metric: CovidCountryPickerMetric) {
+    @action.bound changePickerMetric(metric: covidCsvColumnSlug) {
         this.props.params.countryPickerMetric = metric
     }
 

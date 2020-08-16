@@ -7,18 +7,16 @@ import {
 } from "utils/client/url"
 import { SortOrder } from "charts/SortOrder"
 import { oneOf, uniq, intersection } from "../Util"
+import { ChartTypeType } from "charts/ChartType"
 import {
-    PerCapita,
-    AlignedOption,
+    trajectoryColumnSpecs,
+    covidCsvColumnSlug,
     SmoothingOption,
     colorScaleOption,
     MetricKind,
     IntervalOption,
-    intervalOptions,
-    CovidCountryPickerMetric
-} from "./CovidTypes"
-import { ChartTypeType } from "charts/ChartType"
-import { trajectoryColumnSpecs } from "./CovidConstants"
+    intervalOptions
+} from "./CovidConstants"
 import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
@@ -49,8 +47,8 @@ export class CovidQueryParams {
     @observable sizeColumn?: string
     @observable chartType?: ChartTypeType
 
-    @observable perCapita: PerCapita = false
-    @observable aligned: AlignedOption = false
+    @observable perCapita: boolean = false
+    @observable aligned: boolean = false
     @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
     @observable colorScale?: colorScaleOption = undefined
@@ -59,8 +57,7 @@ export class CovidQueryParams {
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
-    @observable countryPickerMetric: CovidCountryPickerMetric =
-        CovidCountryPickerMetric.location
+    @observable countryPickerMetric: covidCsvColumnSlug = "location"
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
     @observable interval: IntervalOption = "daily"
@@ -140,14 +137,10 @@ export class CovidQueryParams {
             ).forEach(code => this.selectedCountryCodes.add(code))
         }
 
-        if (params.pickerMetric) {
-            const metric = oneOf<CovidCountryPickerMetric | undefined>(
-                params.pickerMetric,
-                Object.values(CovidCountryPickerMetric),
-                undefined
-            )
-            if (metric) this.countryPickerMetric = metric
-        }
+        if (params.pickerMetric)
+            // todo: valididate
+            this.countryPickerMetric = params.pickerMetric as any
+
         if (params.pickerSort) {
             const sort = oneOf<SortOrder | undefined>(
                 params.pickerSort,

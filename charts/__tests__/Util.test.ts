@@ -23,7 +23,8 @@ import {
     jsTableToDelimited,
     trimGrid,
     trimEmptyRows,
-    JsTable
+    JsTable,
+    anyToString
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -352,6 +353,42 @@ describe("jsTables", () => {
         expect(jsTableToDelimited(trimGrid(table!) as JsTable, " "))
             .toEqual(`gdp pop code
 123 345 usa`)
+    })
+})
+
+describe("anyToString", () => {
+    const values = [
+        false,
+        0,
+        1,
+        "0",
+        "1",
+        null,
+        undefined,
+        "false",
+        "true",
+        NaN,
+        Infinity,
+        {},
+        0.1
+    ]
+    const expected = [
+        "false",
+        "0",
+        "1",
+        "0",
+        "1",
+        "",
+        "",
+        "false",
+        "true",
+        "NaN",
+        "Infinity",
+        "[object Object]",
+        "0.1"
+    ]
+    it("handles edge cases in format value", () => {
+        expect(values.map(anyToString)).toEqual(expected)
     })
 })
 

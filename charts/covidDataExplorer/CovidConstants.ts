@@ -1,4 +1,4 @@
-import { MetricKind } from "./CovidTypes"
+import { ColumnSpec } from "charts/owidData/OwidTable"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"
@@ -21,6 +21,46 @@ export const covidPreloads = [
 ]
 
 export const testRateExcludeList = new Set(["Peru", "Ecuador", "Brazil"])
+
+export declare type SmoothingOption = 0 | 3 | 7 | 14
+
+export declare type IntervalOption =
+    | "daily"
+    | "weekly"
+    | "total"
+    | "smoothed"
+    | "biweekly"
+    | "weeklyChange"
+    | "biweeklyChange"
+
+export const intervalOptions: IntervalOption[] = [
+    "daily",
+    "weekly",
+    "total",
+    "smoothed",
+    "biweekly",
+    "weeklyChange",
+    "biweeklyChange"
+]
+
+export declare type colorScaleOption = "continents" | "ptr" | "none"
+
+export declare type MetricKind =
+    | "deaths"
+    | "cases"
+    | "tests"
+    | "case_fatality_rate"
+    | "tests_per_case"
+    | "positive_test_rate"
+
+export const MetricOptions: MetricKind[] = [
+    "deaths",
+    "cases",
+    "tests",
+    "case_fatality_rate",
+    "tests_per_case",
+    "positive_test_rate"
+]
 
 export const sourceCharts = {
     epi: 4258,
@@ -129,4 +169,89 @@ Czech Republic,2020-07-05,,methodology change
 Kyrgyzstan,2020-07-18,methodology change,methodology change
 Chile,2020-07-18,,methodology change
 Peru,2020-07-24,,earlier deaths added
-European Union,,Some EU countries changed methodology. See country-by-country series.,Some EU countries changed methodology. See country-by-country series.`
+European Union,,Some EU countries changed methodology. See country-by-country series.,Some EU countries changed methodology. See country-by-country series.
+United Kingdom,2020-08-14,,methodology change`
+
+// https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
+export interface ParsedCovidCsvRow {
+    iso_code: string
+    location: string
+    continent: string
+    date: string
+    total_cases: number
+    new_cases: number
+    total_deaths: number
+    new_deaths: number
+    total_cases_per_million: number
+    new_cases_per_million: number
+    total_deaths_per_million: number
+    new_deaths_per_million: number
+    total_tests: number
+    new_tests: number
+    new_tests_smoothed: number
+    total_tests_per_thousand: number
+    new_tests_per_thousand: number
+    new_tests_smoothed_per_thousand: number
+    tests_units: string
+    stringency_index: number
+    population: number
+    population_density: number
+    median_age: number
+    aged_65_older: number
+    aged_70_older: number
+    gdp_per_capita: number
+    extreme_poverty: number
+    cvd_death_rate: number
+    diabetes_prevalence: number
+    female_smokers: number
+    male_smokers: number
+    handwashing_facilities: number
+    hospital_beds_per_thousand: number
+}
+
+export interface CovidGrapherRow extends ParsedCovidCsvRow {
+    group_members?: string
+    entityName: string
+    entityCode: string
+    entityId: number
+    day: number
+}
+
+export declare type covidCsvColumnSlug = keyof ParsedCovidCsvRow
+export const metricPickerColumnSpecs: Partial<Record<
+    covidCsvColumnSlug,
+    ColumnSpec
+>> = {
+    location: { slug: "location", name: "Country name" },
+    population: { slug: "population", name: "Population" },
+    population_density: {
+        slug: "population_density",
+        name: "Population density (people per km²)"
+    },
+    median_age: { slug: "median_age", name: "Median age" },
+    aged_65_older: {
+        slug: "aged_65_older",
+        name: "Share aged 65+",
+        type: "Percentage"
+    },
+    aged_70_older: {
+        slug: "aged_70_older",
+        name: "Share aged 70+",
+        type: "Percentage"
+    },
+    gdp_per_capita: {
+        slug: "gdp_per_capita",
+        name: "GDP per capita (int.-$)",
+        type: "Currency"
+    },
+    extreme_poverty: {
+        slug: "extreme_poverty",
+        name: "Population in extreme poverty",
+        type: "Percentage"
+    },
+    hospital_beds_per_thousand: {
+        slug: "hospital_beds_per_thousand",
+        name: "Hospital beds (per 1000)"
+    }
+    // tests_per_case: { slug: "tests_per_case", name: "Tests per case" }
+}

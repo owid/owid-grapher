@@ -17,7 +17,9 @@ import {
     isString,
     cloneDeep,
     parseDelimited,
-    intersectionOfSets
+    intersectionOfSets,
+    formatValue,
+    anyToString
 } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -98,6 +100,8 @@ export declare type columnTypes =
     | "Categorical"
     | "Boolean"
     | "Temporal"
+    | "Currency"
+    | "Percentage"
 
 export interface ColumnSpec {
     slug: columnSlug
@@ -164,6 +168,10 @@ export abstract class AbstractColumn {
         return this.spec.annotationsColumnSlug
             ? this.table.columnsBySlug.get(this.spec.annotationsColumnSlug)
             : undefined
+    }
+
+    formatValue(value: any): string {
+        return anyToString(value)
     }
 
     // todo: remove/generalize?
@@ -271,12 +279,36 @@ class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
 class NumericColumn extends AbstractColumn {}
+class CurrencyColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: false,
+            unit: "$"
+        })
+    }
+}
+class PercentageColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: false,
+            unit: "%"
+        })
+    }
+}
 const columnTypeMap: { [key in columnTypes]: any } = {
     String: StringColumn,
     Temporal: TemporalColumn,
     Categorical: CategoricalColumn,
     Numeric: NumericColumn,
-    Boolean: BooleanColumn
+    Boolean: BooleanColumn,
+    Currency: CurrencyColumn,
+    Percentage: PercentageColumn
 }
 // Todo: Add DayColumn, YearColumn, EntityColumn, etc?
 
