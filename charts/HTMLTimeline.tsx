@@ -417,6 +417,8 @@ export class Timeline extends React.Component<TimelineProps> {
         this.context.chart.isPlaying = !this.isPlaying
     }
 
+    private readonly HANDLE_RADIUS_PERCENTAGE_OF_SLIDER = 1.311
+
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
 
@@ -450,7 +452,8 @@ export class Timeline extends React.Component<TimelineProps> {
                     <div
                         className="handle startMarker"
                         style={{
-                            left: `${startYearProgress * 100 - 1.311}%`
+                            left: `${startYearProgress * 100 -
+                                this.HANDLE_RADIUS_PERCENTAGE_OF_SLIDER}%`
                         }}
                     />
                     <div
@@ -462,7 +465,10 @@ export class Timeline extends React.Component<TimelineProps> {
                     />
                     <div
                         className="handle endMarker"
-                        style={{ left: `${endYearProgress * 100 - 1.311}%` }}
+                        style={{
+                            left: `${endYearProgress * 100 -
+                                this.HANDLE_RADIUS_PERCENTAGE_OF_SLIDER}%`
+                        }}
                     />
                 </div>
                 <div className="date">
