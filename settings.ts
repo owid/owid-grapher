@@ -13,16 +13,11 @@ export const ADMIN_SERVER_HOST: string =
 export const ADMIN_SERVER_PORT: number = process.env.ADMIN_SERVER_PORT
     ? parseInt(process.env.ADMIN_SERVER_PORT)
     : 3030
-export const BAKED_DEV_SERVER_HOST: string =
-    process.env.BAKED_DEV_SERVER_HOST || "localhost"
-export const BAKED_DEV_SERVER_PORT: number = process.env.BAKED_DEV_SERVER_PORT
-    ? parseInt(process.env.BAKED_DEV_SERVER_PORT)
-    : 3099
 export const WEBPACK_DEV_URL: string =
     process.env.WEBPACK_DEV_URL || "http://localhost:8090"
 export const BAKED_BASE_URL: string =
     process.env.BAKED_BASE_URL ||
-    `http://${BAKED_DEV_SERVER_HOST}:${BAKED_DEV_SERVER_PORT}`
+    `http://${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
 export const BAKED_GRAPHER_URL: string =
     process.env.BAKED_GRAPHER_URL || `${BAKED_BASE_URL}/grapher`
 export const ADMIN_BASE_URL: string =

@@ -1,10 +1,10 @@
 import * as React from "react"
 import * as _ from "lodash"
 
-import { webpack } from "./webpack"
+import { getWebpackLinkForAsset } from "../utils/webpack"
 import * as settings from "settings"
 
-export function AdminSPA(props: { username: string; isSuperuser: boolean }) {
+export function IndexPage(props: { username: string; isSuperuser: boolean }) {
     const script = `
         window.App = {}
         App.isEditor = true
@@ -26,20 +26,20 @@ export function AdminSPA(props: { username: string; isSuperuser: boolean }) {
                     rel="stylesheet"
                 />
                 <link
-                    href={webpack("commons.css")}
+                    href={getWebpackLinkForAsset("commons.css")}
                     rel="stylesheet"
                     type="text/css"
                 />
                 <link
-                    href={webpack("admin.css")}
+                    href={getWebpackLinkForAsset("admin.css")}
                     rel="stylesheet"
                     type="text/css"
                 />
             </head>
             <body>
                 <div id="app"></div>
-                <script src={webpack("commons.js")}></script>
-                <script src={webpack("admin.js")}></script>
+                <script src={getWebpackLinkForAsset("commons.js")}></script>
+                <script src={getWebpackLinkForAsset("admin.js")}></script>
                 <script
                     type="text/javascript"
                     dangerouslySetInnerHTML={{ __html: script }}

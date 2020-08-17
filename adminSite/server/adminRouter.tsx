@@ -11,9 +11,9 @@ import {
     renderToHtmlPage,
     JsonError
 } from "utils/server/serverUtil"
-import { tryLogin } from "./authentication"
-import { LoginPage } from "./LoginPage"
-import { RegisterPage } from "./RegisterPage"
+import { tryLogin } from "./utils/authentication"
+import { LoginPage } from "./pages/LoginPage"
+import { RegisterPage } from "./pages/RegisterPage"
 import { Dataset } from "db/model/Dataset"
 
 import { User } from "db/model/User"
@@ -21,15 +21,15 @@ import { UserInvitation } from "db/model/UserInvitation"
 import { renderPageById } from "site/server/siteBaking"
 import { ENV } from "settings"
 
-const adminViews = Router()
+const adminRouter = Router()
 
 // None of these should be google indexed
-adminViews.use(async (req, res, next) => {
+adminRouter.use(async (req, res, next) => {
     res.set("X-Robots-Tag", "noindex")
     return next()
 })
 
-adminViews.get("/", async (req, res) => {
+adminRouter.get("/", async (req, res) => {
     // The second mode of Wordpress preview redirects
     // e.g. http://localhost:3030/admin/?p=22505&preview_id=22505&preview_nonce=93a5fc7eee&_thumbnail_id=22508&preview=true
     if (req.query.preview_id) {
@@ -39,10 +39,10 @@ adminViews.get("/", async (req, res) => {
     }
 })
 
-adminViews.get("/login", async (req, res) => {
+adminRouter.get("/login", async (req, res) => {
     res.send(renderToHtmlPage(<LoginPage next={req.query.next} />))
 })
-adminViews.post("/login", async (req, res) => {
+adminRouter.post("/login", async (req, res) => {
     try {
         const session = await tryLogin(req.body.username, req.body.password)
         res.cookie("sessionid", session.id, {
@@ -60,7 +60,7 @@ adminViews.post("/login", async (req, res) => {
     }
 })
 
-adminViews.get("/logout", async (req, res) => {
+adminRouter.get("/logout", async (req, res) => {
     if (res.locals.user)
         await db.query(`DELETE FROM sessions WHERE session_key = ?`, [
             res.locals.session.id
@@ -69,7 +69,7 @@ adminViews.get("/logout", async (req, res) => {
     res.redirect("/admin")
 })
 
-adminViews.get("/register", async (req, res) => {
+adminRouter.get("/register", async (req, res) => {
     if (res.locals.user) {
         res.redirect("/admin")
         return
@@ -104,7 +104,7 @@ adminViews.get("/register", async (req, res) => {
     }
 })
 
-adminViews.post("/register", async (req, res) => {
+adminRouter.post("/register", async (req, res) => {
     try {
         // Delete all expired invites before continuing
         await UserInvitation.createQueryBuilder()
@@ -147,7 +147,7 @@ adminViews.post("/register", async (req, res) => {
     }
 })
 
-adminViews.get("/datasets/:datasetId.csv", async (req, res) => {
+adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const datasetName = (
@@ -158,7 +158,7 @@ adminViews.get("/datasets/:datasetId.csv", async (req, res) => {
     return Dataset.writeCSV(datasetId, res)
 })
 
-adminViews.get("/datasets/:datasetId/downloadZip", async (req, res) => {
+adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
 
     res.attachment("additional-material.zip")
@@ -170,10 +170,10 @@ adminViews.get("/datasets/:datasetId/downloadZip", async (req, res) => {
     res.send(file.file)
 })
 
-adminViews.get("/posts/preview/:postId", async (req, res) => {
+adminRouter.get("/posts/preview/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
     res.send(await renderPageById(postId, true))
 })
 
-export { adminViews }
+export { adminRouter }
