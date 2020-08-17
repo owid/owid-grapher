@@ -14,7 +14,12 @@ export const covidChartAndVariableMetaFilename =
     "covidChartAndVariableMeta.json"
 export const covidChartAndVariableMetaPath = `/${covidChartAndVariableMetaFilename}`
 
-export const testRateExcludeList = new Set(["Peru", "Ecuador", "Brazil"])
+export const testRateExcludeList = new Set([
+    "Peru",
+    "Ecuador",
+    "Brazil",
+    "Costa Rica"
+])
 
 export const sourceCharts = {
     epi: 4258,
