@@ -16,7 +16,7 @@ import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
 
 const IS_LIVE = ADMIN_BASE_URL === "https://owid.cloud"
 
-const testPages = Router()
+const testPageRouter = Router()
 
 interface ChartItem {
     id: number
@@ -127,7 +127,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
     )
 }
 
-testPages.get("/embeds", async (req, res) => {
+testPageRouter.get("/embeds", async (req, res) => {
     const numPerPage = 20,
         page = req.query.page ? expectInt(req.query.page) : 1
     let query = Chart.createQueryBuilder("charts")
@@ -239,7 +239,7 @@ testPages.get("/embeds", async (req, res) => {
     )
 })
 
-testPages.get("/embeds/:id", async (req, res) => {
+testPageRouter.get("/embeds/:id", async (req, res) => {
     const id = req.params.id
     const chart = await Chart.createQueryBuilder()
         .where("id = :id", { id: id })
@@ -396,34 +396,34 @@ function EmbedVariantsTestPage(props: EmbedTestPageProps) {
     )
 }
 
-testPages.get("/previews", async (req, res) => {
+testPageRouter.get("/previews", async (req, res) => {
     const rows = await db.query(`SELECT config FROM charts LIMIT 200`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
 
     res.send(renderToHtmlPage(<PreviewTestPage charts={charts} />))
 })
 
-testPages.get("/embedVariants", async (req, res) => {
+testPageRouter.get("/embedVariants", async (req, res) => {
     const rows = await db.query(`SELECT config FROM charts WHERE id=64`)
     const charts = rows.map((row: any) => JSON.parse(row.config))
 
     res.send(renderToHtmlPage(<EmbedVariantsTestPage charts={charts} />))
 })
 
-testPages.get("/compareSvgs", async (req, res) => {
+testPageRouter.get("/compareSvgs", async (req, res) => {
     res.send(renderToHtmlPage(svgCompareFormPage))
 })
 
-testPages.post("/compareSvgs", async (req, res) => {
+testPageRouter.post("/compareSvgs", async (req, res) => {
     const { prodResults, localResults } = req.body
     const page = await getComparePage(prodResults, localResults)
     res.send(renderToHtmlPage(page))
 })
 
-testPages.get("/:slug.svg", async (req, res) => {
+testPageRouter.get("/:slug.svg", async (req, res) => {
     const chart = await OldChart.getBySlug(req.params.slug)
     const vardata = await chart.getVariableData()
     res.send(await chartToSVG(chart.config, vardata))
 })
 
-export { testPages }
+export { testPageRouter }

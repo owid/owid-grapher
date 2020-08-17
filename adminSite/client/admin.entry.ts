@@ -1,5 +1,5 @@
 import "charts/client/charts.entry"
-import "admin/client/admin.scss"
+import "adminSite/client/admin.scss"
 
 declare var window: any
 window.Admin = require("./Admin").Admin

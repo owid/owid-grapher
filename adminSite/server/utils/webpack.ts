@@ -4,7 +4,7 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import urljoin from "url-join"
 
-export function webpack(assetName: string) {
+export function getWebpackLinkForAsset(assetName: string) {
     if (ENV === "production") {
         const manifestPath = path.join(WEBPACK_OUTPUT_PATH, "manifest.json")
         const manifest = JSON.parse(

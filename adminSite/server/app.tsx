@@ -1,17 +1,26 @@
+// This import has side-effects to do with React import binding, keep it up here
+import { ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, ENV } from "settings"
+
+import * as db from "db/db"
+import * as wpdb from "db/wpdb"
+import { log } from "utils/server/log"
+
 import express from "express"
 require("express-async-errors")
 import cookieParser from "cookie-parser"
 const expressErrorSlack = require("express-error-slack")
 import "reflect-metadata"
-import { AdminSPA } from "./AdminSPA"
-import { authMiddleware } from "./authentication"
-import { api, publicApi } from "./api"
-import { testPages } from "./testPages"
-import { adminViews } from "./adminViews"
+import { IndexPage } from "./pages/IndexPage"
+import { authMiddleware } from "./utils/authentication"
+import { apiRouter } from "./apiRouter"
+import { testPageRouter } from "./testPageRouter"
+import { adminRouter } from "./adminRouter"
 import { renderToHtmlPage } from "utils/server/serverUtil"
 import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
 
 import * as React from "react"
+import { publicApiRouter } from "./publicApiRouter"
+import { bakedSiteRouter } from "./bakedSiteRouter"
 
 const app = express()
 
@@ -25,20 +34,20 @@ app.use(authMiddleware)
 
 //app.use(express.urlencoded())
 
-app.use("/api", publicApi.router)
+app.use("/api", publicApiRouter.router)
 
-app.use("/admin/api", api.router)
-app.use("/admin/test", testPages)
+app.use("/admin/api", apiRouter.router)
+app.use("/admin/test", testPageRouter)
 
 app.use("/admin/build", express.static("dist/webpack"))
 app.use("/admin/storybook", express.static(".storybook/build"))
-app.use("/admin", adminViews)
+app.use("/admin", adminRouter)
 
 // Default route: single page admin app
 app.get("/admin/*", (req, res) => {
     res.send(
         renderToHtmlPage(
-            <AdminSPA
+            <IndexPage
                 username={res.locals.user.fullName}
                 isSuperuser={res.locals.user.isSuperuser}
             />
@@ -51,6 +60,9 @@ app.get("/admin/*", (req, res) => {
 if (SLACK_ERRORS_WEBHOOK_URL) {
     app.use(expressErrorSlack({ webhookUri: SLACK_ERRORS_WEBHOOK_URL }))
 }
+
+const IS_DEV = ENV === "development"
+if (IS_DEV) app.use("/", bakedSiteRouter)
 
 // Give full error messages, including in production
 app.use(async (err: any, req: any, res: express.Response, next: any) => {
@@ -69,4 +81,31 @@ app.use(async (err: any, req: any, res: express.Response, next: any) => {
     }
 })
 
-export { app }
+async function main() {
+    try {
+        await db.connect()
+
+        // The Grapher should be able to work without Wordpress being set up.
+        try {
+            await wpdb.connect()
+        } catch (error) {
+            console.error(error)
+            console.log(
+                "Could not connect to Wordpress database. Continuing without Wordpress..."
+            )
+        }
+
+        const server = app.listen(ADMIN_SERVER_PORT, ADMIN_SERVER_HOST, () => {
+            console.log(
+                `owid-admin server started on ${ADMIN_SERVER_HOST}:${ADMIN_SERVER_PORT}`
+            )
+        })
+        // Increase server timeout for long-running uploads
+        server.timeout = 5 * 60 * 1000
+    } catch (e) {
+        log.error(e)
+        process.exit(1)
+    }
+}
+
+if (!module.parent) main()
