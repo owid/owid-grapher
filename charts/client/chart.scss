@@ -861,7 +861,7 @@ $zindex-IndicatorDropdown: 50;
             }
         }
 
-        $handle-width: 0.5em;
+        $handle-diameter: 1.3em;
         .slider {
             height: 0.4em;
             flex-grow: 1;
@@ -870,22 +870,29 @@ $zindex-IndicatorDropdown: 50;
             position: relative;
             display: flex;
             align-items: center;
-            margin-right: 2 * $handle-width;
+            margin-left: 1%;
+            margin-right: 2 * $handle-diameter;
         }
 
         .handle {
-            height: 1em;
-            border-radius: 0.2em;
-            width: $handle-width;
+            height: $handle-diameter;
+            width: $handle-diameter;
+            border-radius: 100%;
             background: $controls-color;
             position: absolute;
             cursor: col-resize;
+
+            background: #ffffff;
+            border: 1.5px solid $controls-color;
+            box-sizing: border-box;
+            box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.15);
+            z-index: 1;
         }
 
         .interval {
             position: absolute;
             height: 0.6em;
-            margin-left: $handle-width;
+            margin-left: $handle-diameter;
             background: $controls-color;
             cursor: grab;
             &:active {

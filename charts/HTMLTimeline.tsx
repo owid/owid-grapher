@@ -124,7 +124,7 @@ export class Timeline extends React.Component<TimelineProps> {
     getYearUI(bound: TimeBound): Time {
         if (isUnboundedLeft(bound)) return this.minYear
         if (isUnboundedRight(bound)) return this.maxYear
-        return bound
+        return Math.round(bound)
     }
 
     getClosest(bound: TimeBound, defaultValue: TimeBound): TimeBound {
@@ -449,18 +449,20 @@ export class Timeline extends React.Component<TimelineProps> {
                 <div className="slider">
                     <div
                         className="handle startMarker"
-                        style={{ left: `${startYearProgress * 100}%` }}
+                        style={{
+                            left: `${startYearProgress * 100 - 1.311}%`
+                        }}
                     />
                     <div
                         className="interval"
                         style={{
-                            left: `${startYearProgress * 100}%`,
+                            left: `${startYearProgress * 100 - 1.8}%`,
                             right: `${100 - endYearProgress * 100}%`
                         }}
                     />
                     <div
                         className="handle endMarker"
-                        style={{ left: `${endYearProgress * 100}%` }}
+                        style={{ left: `${endYearProgress * 100 - 1.311}%` }}
                     />
                 </div>
                 <div className="date">
