@@ -433,7 +433,9 @@ export class CovidDataExplorer extends React.Component<{
             <CountryPicker
                 explorerSlug="Covid"
                 table={this.chart.table}
-                pickerColumnSlugs={new Set(Object.keys(metricPickerColumnSpecs))}
+                pickerColumnSlugs={
+                    new Set(Object.keys(metricPickerColumnSpecs))
+                }
                 isDropdownMenu={this.isMobile}
                 optionColorMap={this.countryNameToColorMap}
                 selectedEntities={this.selectedEntityNames}
