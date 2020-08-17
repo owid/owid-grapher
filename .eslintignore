@@ -1,2 +1,2 @@
-migrations/**
+db/migrations/**
 db/migration/**
