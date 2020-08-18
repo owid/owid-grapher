@@ -881,7 +881,6 @@ $zindex-IndicatorDropdown: 50;
             border-radius: 100%;
             background: $controls-color;
             position: absolute;
-            cursor: col-resize;
 
             background: #ffffff;
             border: 1.5px solid $controls-color;
@@ -894,6 +893,10 @@ $zindex-IndicatorDropdown: 50;
             position: absolute;
             height: 6px;
             background: $controls-color;
+        }
+
+        .handle,
+        .interval {
             cursor: grab;
             &:active {
                 cursor: grabbing;
