@@ -1,6 +1,12 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { first, last, findClosestYear, getRelativeMouse } from "./Util"
+import {
+    first,
+    last,
+    findClosestYear,
+    getRelativeMouse,
+    isMobile
+} from "./Util"
 import { Bounds } from "./Bounds"
 import { Analytics } from "site/client/Analytics"
 import {
@@ -419,6 +425,17 @@ export class Timeline extends React.Component<TimelineProps> {
         return (8 / this.sliderBounds.width) * 100
     }
 
+    private timelineDate(date: number) {
+        return (
+            <div className="date">
+                {this.context.chart.formatYearFunction(
+                    date,
+                    isMobile() ? { format: "MMM D, 'YY" } : {}
+                )}
+            </div>
+        )
+    }
+
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
 
@@ -445,9 +462,7 @@ export class Timeline extends React.Component<TimelineProps> {
                         )}
                     </div>
                 )}
-                <div className="date">
-                    {this.context.chart.formatYearFunction(minYear)}
-                </div>
+                {this.timelineDate(minYear)}
                 <div className="slider">
                     <div
                         className="handle startMarker"
@@ -471,9 +486,7 @@ export class Timeline extends React.Component<TimelineProps> {
                         }}
                     />
                 </div>
-                <div className="date">
-                    {this.context.chart.formatYearFunction(maxYear)}
-                </div>
+                {this.timelineDate(maxYear)}
             </div>
         )
     }
