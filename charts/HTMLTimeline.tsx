@@ -130,7 +130,7 @@ export class Timeline extends React.Component<TimelineProps> {
     getYearUI(bound: TimeBound): Time {
         if (isUnboundedLeft(bound)) return this.minYear
         if (isUnboundedRight(bound)) return this.maxYear
-        return Math.round(bound)
+        return bound
     }
 
     getClosest(bound: TimeBound, defaultValue: TimeBound): TimeBound {
@@ -389,10 +389,12 @@ export class Timeline extends React.Component<TimelineProps> {
                         // As start/end values can flip while dragging one handle past another, we
                         // have logic to flip start/end on the fly. But when they get reassigned, to
                         // avoid the unintentional flip, it needs to be done atomically.
-                        ;[this.startYearRaw, this.endYearRaw] = [
-                            this.startYearClosest,
-                            this.endYearClosest
-                        ]
+                        if (this.startYearRaw > this.endYearRaw) {
+                            ;[this.startYearRaw, this.endYearRaw] = [
+                                this.startYearClosest,
+                                this.endYearClosest
+                            ]
+                        }
                     })
                 }
             })
