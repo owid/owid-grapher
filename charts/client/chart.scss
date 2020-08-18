@@ -893,7 +893,6 @@ $zindex-IndicatorDropdown: 50;
         .interval {
             position: absolute;
             height: 6px;
-            // margin-left: $handle-diameter / 2;
             background: $controls-color;
             cursor: grab;
             &:active {

@@ -210,7 +210,7 @@ export class Timeline extends React.Component<TimelineProps> {
             : new Bounds(0, 0, 100, 100)
     }
 
-    @observable private slider?: Element | null
+    private slider?: Element | null
 
     getInputYearFromMouse(evt: MouseEvent) {
         const { minYear, maxYear } = this
