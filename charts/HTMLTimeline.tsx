@@ -5,7 +5,8 @@ import {
     last,
     findClosestYear,
     getRelativeMouse,
-    isMobile
+    isMobile,
+    debounce
 } from "./Util"
 import { Bounds } from "./Bounds"
 import { Analytics } from "site/client/Analytics"
@@ -355,13 +356,15 @@ export class Timeline extends React.Component<TimelineProps> {
             this.updateChartTimeDomain()
         })
 
+        this.slider = this.base.current!.querySelector(".slider")
+        this.findRadiusAsPercentageOfSlider()
+
         document.documentElement.addEventListener("mouseup", this.onMouseUp)
         document.documentElement.addEventListener("mouseleave", this.onMouseUp)
         document.documentElement.addEventListener("mousemove", this.onMouseMove)
         document.documentElement.addEventListener("touchend", this.onMouseUp)
         document.documentElement.addEventListener("touchmove", this.onMouseMove)
-
-        this.slider = this.base.current!.querySelector(".slider")
+        window.addEventListener("resize", this.findRadiusAsPercentageOfSlider)
 
         this.disposers = [
             autorun(() => {
@@ -416,6 +419,10 @@ export class Timeline extends React.Component<TimelineProps> {
             "touchmove",
             this.onMouseMove
         )
+        window.removeEventListener(
+            "resize",
+            this.findRadiusAsPercentageOfSlider
+        )
         this.disposers.forEach(dispose => dispose())
     }
 
@@ -423,9 +430,11 @@ export class Timeline extends React.Component<TimelineProps> {
         this.context.chart.isPlaying = !this.isPlaying
     }
 
-    private get HANDLE_RADIUS_PERCENTAGE_OF_SLIDER() {
-        return (8 / this.sliderBounds.width) * 100
-    }
+    @observable private HANDLE_RADIUS_PERCENTAGE_OF_SLIDER: number = 0
+    @action findRadiusAsPercentageOfSlider = debounce(() => {
+        this.HANDLE_RADIUS_PERCENTAGE_OF_SLIDER =
+            (8 / this.sliderBounds.width) * 100
+    }, 100)
 
     private timelineDate(date: number) {
         return (
