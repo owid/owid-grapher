@@ -851,6 +851,7 @@ $zindex-IndicatorDropdown: 50;
 
         .date {
             font-size: 0.9rem;
+            margin-right: 0;
         }
 
         .play,
@@ -861,17 +862,17 @@ $zindex-IndicatorDropdown: 50;
             }
         }
 
-        $handle-diameter: 1.3em;
+        $handle-diameter: 16px;
         .slider {
-            height: 0.4em;
+            height: 4px;
             flex-grow: 1;
-            background: #eee;
+            background: #adb6c0;
             border-radius: 5px;
             position: relative;
             display: flex;
             align-items: center;
-            margin-left: 1%;
-            margin-right: 2 * $handle-diameter;
+            margin-left: $handle-diameter;
+            margin-right: $handle-diameter;
         }
 
         .handle {
@@ -891,8 +892,8 @@ $zindex-IndicatorDropdown: 50;
 
         .interval {
             position: absolute;
-            height: 0.6em;
-            margin-left: $handle-diameter;
+            height: 6px;
+            // margin-left: $handle-diameter / 2;
             background: $controls-color;
             cursor: grab;
             &:active {

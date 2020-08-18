@@ -199,22 +199,18 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     get sliderBounds() {
-        const slider = this.base.current!.querySelector(".slider")
-        return slider
-            ? Bounds.fromRect(slider.getBoundingClientRect())
+        return this.slider
+            ? Bounds.fromRect(this.slider.getBoundingClientRect())
             : new Bounds(0, 0, 100, 100)
     }
 
+    @observable private slider?: Element | null
+
     getInputYearFromMouse(evt: MouseEvent) {
-        const slider = this.base.current!.querySelector(
-            ".slider"
-        ) as HTMLDivElement
-        const sliderBounds = slider.getBoundingClientRect()
-
         const { minYear, maxYear } = this
-        const mouseX = getRelativeMouse(slider, evt).x
+        const mouseX = getRelativeMouse(this.slider, evt).x
 
-        const fracWidth = mouseX / sliderBounds.width
+        const fracWidth = mouseX / this.sliderBounds.width
         const inputYear = minYear + fracWidth * (maxYear - minYear)
 
         return inputYear
@@ -359,6 +355,8 @@ export class Timeline extends React.Component<TimelineProps> {
         document.documentElement.addEventListener("touchend", this.onMouseUp)
         document.documentElement.addEventListener("touchmove", this.onMouseMove)
 
+        this.slider = this.base.current!.querySelector(".slider")
+
         this.disposers = [
             autorun(() => {
                 const { isPlaying } = this
@@ -417,7 +415,9 @@ export class Timeline extends React.Component<TimelineProps> {
         this.context.chart.isPlaying = !this.isPlaying
     }
 
-    private readonly HANDLE_RADIUS_PERCENTAGE_OF_SLIDER = 1.311
+    private get HANDLE_RADIUS_PERCENTAGE_OF_SLIDER() {
+        return (8 / this.sliderBounds.width) * 100
+    }
 
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
@@ -459,7 +459,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     <div
                         className="interval"
                         style={{
-                            left: `${startYearProgress * 100 - 1.8}%`,
+                            left: `${startYearProgress * 100}%`,
                             right: `${100 - endYearProgress * 100}%`
                         }}
                     />
