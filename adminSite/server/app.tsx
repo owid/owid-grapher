@@ -20,7 +20,7 @@ import { SLACK_ERRORS_WEBHOOK_URL } from "serverSettings"
 
 import * as React from "react"
 import { publicApiRouter } from "./publicApiRouter"
-import { bakedSiteRouter } from "./bakedSiteRouter"
+import { mockSiteRouter } from "./mockSiteRouter"
 
 const app = express()
 
@@ -62,7 +62,7 @@ if (SLACK_ERRORS_WEBHOOK_URL) {
 }
 
 const IS_DEV = ENV === "development"
-if (IS_DEV) app.use("/", bakedSiteRouter)
+if (IS_DEV) app.use("/", mockSiteRouter)
 
 // Give full error messages, including in production
 app.use(async (err: any, req: any, res: express.Response, next: any) => {
