@@ -15,10 +15,10 @@ import { ChartType } from "./ChartType"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { RootStore } from "./Store"
-import * as urlBinding from "charts/UrlBinding"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "./DataTable"
 import { Analytics } from "site/client/Analytics"
+import { UrlBinder } from "charts/UrlBinder"
 
 export interface ChartTypeButton {
     type: ExplorerChartType
@@ -146,7 +146,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     bindToWindow() {
-        urlBinding.bindUrlToWindow(this.model.url)
+        new UrlBinder().bindToWindow(this.model.url)
 
         // We ignore the disposer here, because this reaction lasts for the
         // lifetime of the window. -@jasoncrawford 2019-12-16

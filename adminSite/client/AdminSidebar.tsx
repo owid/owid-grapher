@@ -11,6 +11,7 @@ import { faTag } from "@fortawesome/free-solid-svg-icons/faTag"
 import { faUser } from "@fortawesome/free-solid-svg-icons/faUser"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
+import { faCoffee } from "@fortawesome/free-solid-svg-icons/faCoffee"
 import { faNewspaper } from "@fortawesome/free-solid-svg-icons/faNewspaper"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
 
@@ -26,6 +27,11 @@ export const AdminSidebar = () => (
             <li>
                 <Link to="/posts">
                     <FontAwesomeIcon icon={faFile} /> Posts
+                </Link>
+            </li>
+            <li>
+                <Link to="/explorers">
+                    <FontAwesomeIcon icon={faCoffee} /> Explorers
                 </Link>
             </li>
             <li className="header">DATA</li>

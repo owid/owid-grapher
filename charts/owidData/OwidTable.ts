@@ -17,7 +17,9 @@ import {
     isString,
     cloneDeep,
     parseDelimited,
-    intersectionOfSets
+    intersectionOfSets,
+    formatValue,
+    anyToString
 } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -98,6 +100,12 @@ export declare type columnTypes =
     | "Categorical"
     | "Boolean"
     | "Temporal"
+    | "Currency"
+    | "Percentage"
+    | "Population"
+    | "PopulationDensity"
+    | "Age"
+    | "Ratio"
 
 export interface ColumnSpec {
     slug: columnSlug
@@ -164,6 +172,10 @@ export abstract class AbstractColumn {
         return this.spec.annotationsColumnSlug
             ? this.table.columnsBySlug.get(this.spec.annotationsColumnSlug)
             : undefined
+    }
+
+    formatValue(value: any): string {
+        return anyToString(value)
     }
 
     // todo: remove/generalize?
@@ -270,13 +282,84 @@ class CategoricalColumn extends AbstractColumn {}
 class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
-class NumericColumn extends AbstractColumn {}
+export class NumericColumn extends AbstractColumn {}
+class IntegerColumn extends NumericColumn {}
+class CurrencyColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: false,
+            unit: "$"
+        })
+    }
+}
+class PercentageColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: false,
+            unit: "%"
+        })
+    }
+}
+class PopulationColumn extends IntegerColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: true,
+            shortNumberPrefixes: true
+        })
+    }
+}
+class PopulationDensityColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: false
+        })
+    }
+}
+class AgeColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 1,
+            noTrailingZeroes: false,
+            numberPrefixes: false
+        })
+    }
+}
+class RatioColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 1,
+            noTrailingZeroes: false,
+            numberPrefixes: false
+        })
+    }
+}
+
 const columnTypeMap: { [key in columnTypes]: any } = {
     String: StringColumn,
     Temporal: TemporalColumn,
     Categorical: CategoricalColumn,
     Numeric: NumericColumn,
-    Boolean: BooleanColumn
+    Boolean: BooleanColumn,
+    Currency: CurrencyColumn,
+    Percentage: PercentageColumn,
+    Population: PopulationColumn,
+    PopulationDensity: PopulationDensityColumn,
+    Age: AgeColumn,
+    Ratio: RatioColumn
 }
 // Todo: Add DayColumn, YearColumn, EntityColumn, etc?
 
@@ -617,7 +700,8 @@ export class OwidTable extends AbstractTable<OwidRow> {
     @computed get entityCodeToNameMap() {
         const map = new Map<entityCode, entityName>()
         this.rows.forEach(row => {
-            map.set(row.entityCode, row.entityName)
+            if (row.entityCode) map.set(row.entityCode, row.entityName)
+            else map.set(row.entityName, row.entityName)
         })
         return map
     }
@@ -736,7 +820,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         if (columnSlugs.length === 1)
             return this.columnsBySlug.get(columnSlugs[0])!.entityNamesUniq
 
-        return intersectionOfSets(
+        return intersectionOfSets<string>(
             columnSlugs.map(
                 slug => this.columnsBySlug.get(slug)?.entityNamesUniq!
             )

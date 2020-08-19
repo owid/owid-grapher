@@ -18,7 +18,7 @@ import {
     QueryParams
 } from "utils/client/url"
 import { MapProjection } from "./MapProjection"
-import { ObservableUrl } from "./UrlBinding"
+import { ObservableUrl } from "./UrlBinder"
 import {
     formatTimeBound,
     isUnbounded,
@@ -418,5 +418,31 @@ export class ChartUrl implements ObservableUrl {
 
              chart.activeLegendKeys = keys
          }*/
+    }
+}
+
+interface ObjectWithParams {
+    params: QueryParams
+}
+
+export class ExtendedChartUrl implements ObservableUrl {
+    chartUrl: ChartUrl
+    private _params: ObjectWithParams[]
+
+    constructor(chartUrl: ChartUrl, params: ObjectWithParams[]) {
+        this.chartUrl = chartUrl
+        this._params = params
+    }
+
+    @computed get params(): QueryParams {
+        let obj = Object.assign({}, this.chartUrl.params)
+        this._params.forEach(p => {
+            obj = Object.assign(obj, p.params)
+        })
+        return obj
+    }
+
+    @computed get debounceMode(): boolean {
+        return this.chartUrl.debounceMode
     }
 }

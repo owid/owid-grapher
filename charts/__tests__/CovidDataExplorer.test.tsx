@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { CovidDataExplorer } from "../covidDataExplorer/CovidDataExplorer"
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
+import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
 import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import { MetricOptions } from "charts/covidDataExplorer/CovidTypes"
+import { MetricOptions } from "charts/covidDataExplorer/CovidConstants"
 import { defaultTo } from "charts/Util"
 
 const dummyMeta = {
@@ -25,7 +25,7 @@ describe(CovidDataExplorer, () => {
             />
         )
 
-        const headerText = element.find(".CovidHeaderBox").text()
+        const headerText = element.find(".ExplorerHeaderBox").text()
 
         // Need to split it off because the lines are in separate elements
         expect(headerText).toContain("Coronavirus Pandemic")

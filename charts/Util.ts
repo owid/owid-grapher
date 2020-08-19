@@ -147,6 +147,14 @@ import { dsvFormat } from "d3-dsv"
 export type SVGElement = any
 export type VNode = any
 
+// A grid is a 2D matrix/array of arrays.
+export type Grid = any[][]
+
+// A JsTable is a type of Grid where the first row is an array of column names.
+declare type HeaderRow = string[]
+declare type ValueRow = any[]
+export type JsTable = [HeaderRow, ...ValueRow]
+
 interface TouchListLike {
     [index: number]: {
         clientX: number
@@ -263,6 +271,7 @@ export function roundSigFig(num: number, sigfigs: number = 1) {
     return round(num, -magnitude + sigfigs - 1)
 }
 
+// todo: Should this be numberSuffixes instead of Prefixes?
 export function formatValue(
     value: number,
     options: TickFormattingOptions
@@ -713,15 +722,60 @@ export function parseIntOrUndefined(s: string | undefined) {
     return isNaN(value) ? undefined : value
 }
 
-export const parseDelimited = (str: string) => {
-    const delimiter = str.includes("\t") ? "\t" : ","
-    return dsvFormat(delimiter).parse(str)
+export const parseDelimited = (str: string) =>
+    dsvFormat(detectDelimiter(str)).parse(str)
+
+export const detectDelimiter = (str: string) =>
+    str.includes("\t") ? "\t" : str.includes(",") ? "," : " "
+
+export const toJsTable = (rows: any[]): JsTable | undefined =>
+    rows.length
+        ? [
+              Object.keys(rows[0]) as HeaderRow,
+              ...rows.map(row => Object.values(row) as ValueRow)
+          ]
+        : undefined
+
+const isRowEmpty = (row: any[]) => row.every(isCellEmpty)
+
+export const isCellEmpty = (cell: any) =>
+    cell === null || cell === undefined || cell === ""
+
+export const trimEmptyRows = (grid: Grid): Grid => {
+    let trimAt = undefined
+    for (let index = grid.length - 1; index >= 0; index--) {
+        if (!isRowEmpty(grid[index])) break
+        trimAt = index
+    }
+    return trimAt === undefined ? grid : grid.slice(0, trimAt)
 }
 
-export const toJsTable = (rows: any[]) =>
-    rows.length
-        ? [Object.keys(rows[0]), ...rows.map(row => Object.values(row))]
-        : []
+const trimArray = (arr: any[]) => {
+    let index: number
+    for (index = arr.length - 1; index >= 0; index--) {
+        if (!isCellEmpty(arr[index])) break
+    }
+    return arr.slice(0, index + 1)
+}
+
+export const anyToString = (value: any) =>
+    value?.toString ? value.toString() : ""
+
+export const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
+export const trimGrid = (grid: Grid): Grid =>
+    trimEmptyColumns(trimEmptyRows(grid))
+
+export const jsTableToDelimited = (table: JsTable, delimiter = "\t") => {
+    return table
+        .map((row: any) =>
+            row
+                .map((cell: any) =>
+                    cell === null || cell === undefined ? "" : cell
+                )
+                .join(delimiter)
+        )
+        .join("\n")
+}
 
 export function parseFloatOrUndefined(s: string | undefined) {
     if (s === undefined) return undefined
@@ -877,6 +931,7 @@ export function oneOf<T>(value: any, options: T[], defaultOption: T): T {
 export function intersectionOfSets<T>(sets: Set<T>[]) {
     if (!sets.length) return new Set<T>()
     const intersection = new Set<T>(sets[0])
+
     sets.slice(1).forEach(set => {
         for (const elem of intersection) {
             if (!set.has(elem)) {
@@ -929,4 +984,25 @@ export function mapNullToUndefined<T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] {
     return array.map(v => (v === null ? undefined : v))
+}
+
+export const getAvailableSlugSync = (
+    desiredSlugName: string,
+    existingSlugs: string[] | Set<string>
+) => {
+    existingSlugs = Array.isArray(existingSlugs)
+        ? new Set(existingSlugs)
+        : existingSlugs
+    const originalSlug = desiredSlugName
+    let num = 2
+    let suffix = ""
+    let slug = `${originalSlug}${suffix}`
+
+    while (existingSlugs.has(slug)) {
+        slug = `${originalSlug}${suffix}`
+        suffix = "-" + num
+        num++
+    }
+
+    return slug
 }

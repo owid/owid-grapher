@@ -1,6 +1,6 @@
 import { computed } from "mobx"
 
-import { ObservableUrl } from "charts/UrlBinding"
+import { ObservableUrl } from "charts/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import {
     GlobalEntitySelection,

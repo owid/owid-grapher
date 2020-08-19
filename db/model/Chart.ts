@@ -182,3 +182,19 @@ export class OldChart {
         return getVariableData(variableIds)
     }
 }
+
+export async function getChartById(
+    chartId: number
+): Promise<ChartConfigProps | undefined> {
+    const chart = (
+        await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId])
+    )[0]
+
+    if (chart) {
+        const config = JSON.parse(chart.config)
+        config.id = chart.id
+        return config
+    } else {
+        return undefined
+    }
+}

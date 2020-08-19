@@ -1,9 +1,9 @@
-import { MetricKind } from "./CovidTypes"
+import { ColumnSpec } from "charts/owidData/OwidTable"
 
+export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"
 export const coronaOpenGraphImagePath = "coronavirus-data-explorer.png"
 export const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
-export const covidDataExplorerContainerId = "covidDataExplorerContainer"
 export const coronaDefaultView =
     "yScale=log&zoomToSelection=true&casesMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=USA~GBR~CAN~BRA~AUS~IND~DEU~MEX~ZAF~COL~KOR~NOR~NGA&pickerMetric=location&pickerSort=asc"
 export const covidDataPath =
@@ -20,6 +20,52 @@ export const testRateExcludeList = new Set([
     "Brazil",
     "Costa Rica"
 ])
+
+export const covidPreloads = [
+    covidDataPath,
+    covidChartAndVariableMetaPath,
+    covidLastUpdatedPath
+]
+
+export declare type SmoothingOption = 0 | 3 | 7 | 14
+
+export declare type IntervalOption =
+    | "daily"
+    | "weekly"
+    | "total"
+    | "smoothed"
+    | "biweekly"
+    | "weeklyChange"
+    | "biweeklyChange"
+
+export const intervalOptions: IntervalOption[] = [
+    "daily",
+    "weekly",
+    "total",
+    "smoothed",
+    "biweekly",
+    "weeklyChange",
+    "biweeklyChange"
+]
+
+export declare type colorScaleOption = "continents" | "ptr" | "none"
+
+export declare type MetricKind =
+    | "deaths"
+    | "cases"
+    | "tests"
+    | "case_fatality_rate"
+    | "tests_per_case"
+    | "positive_test_rate"
+
+export const MetricOptions: MetricKind[] = [
+    "deaths",
+    "cases",
+    "tests",
+    "case_fatality_rate",
+    "tests_per_case",
+    "positive_test_rate"
+]
 
 export const sourceCharts = {
     epi: 4258,
@@ -108,4 +154,111 @@ export const metricLabels: { [key in MetricKind]: string } = {
     case_fatality_rate: "Case fatality rate",
     tests_per_case: "Tests per confirmed case",
     positive_test_rate: "Share of positive tests"
+}
+
+// todo: auto import from covid repo.
+export const covidAnnotations = `location,date,cases_annotations,deaths_annotations
+Spain,2020-04-19,methodology change,
+Spain,2020-04-25,methodology change,methodology change
+Ecuador,2020-05-08,methodology change,
+United Kingdom,2020-05-20,methodology change,
+France,2020-06-02,methodology change,
+India,2020-06-17,,earlier deaths added
+Chile,2020-06-18,earlier cases added,
+Iran,,July BBC report suggests official numbers may be falsified,July BBC report suggests official numbers may be falsified
+Italy,2020-06-25,,methodology change
+United States,2020-06-26,,probable/earlier deaths added
+United States,2020-07-01,,probable/earlier deaths added
+United Kingdom,2020-07-03,methodology change,
+Czech Republic,2020-07-05,,methodology change
+Kyrgyzstan,2020-07-18,methodology change,methodology change
+Chile,2020-07-18,,methodology change
+Peru,2020-07-24,,earlier deaths added
+European Union,,Some EU countries changed methodology. See country-by-country series.,Some EU countries changed methodology. See country-by-country series.
+United Kingdom,2020-08-14,,methodology change`
+
+// https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
+export interface ParsedCovidCsvRow {
+    iso_code: string
+    location: string
+    continent: string
+    date: string
+    total_cases: number
+    new_cases: number
+    total_deaths: number
+    new_deaths: number
+    total_cases_per_million: number
+    new_cases_per_million: number
+    total_deaths_per_million: number
+    new_deaths_per_million: number
+    total_tests: number
+    new_tests: number
+    new_tests_smoothed: number
+    total_tests_per_thousand: number
+    new_tests_per_thousand: number
+    new_tests_smoothed_per_thousand: number
+    tests_units: string
+    stringency_index: number
+    population: number
+    population_density: number
+    median_age: number
+    aged_65_older: number
+    aged_70_older: number
+    gdp_per_capita: number
+    extreme_poverty: number
+    cvd_death_rate: number
+    diabetes_prevalence: number
+    female_smokers: number
+    male_smokers: number
+    handwashing_facilities: number
+    hospital_beds_per_thousand: number
+}
+
+export interface CovidGrapherRow extends ParsedCovidCsvRow {
+    group_members?: string
+    entityName: string
+    entityCode: string
+    entityId: number
+    day: number
+}
+
+export declare type covidCsvColumnSlug = keyof ParsedCovidCsvRow
+export const metricPickerColumnSpecs: Partial<Record<
+    covidCsvColumnSlug,
+    ColumnSpec
+>> = {
+    location: { slug: "location", name: "Country name" },
+    population: { slug: "population", name: "Population", type: "Population" },
+    population_density: {
+        slug: "population_density",
+        name: "Population density (people per km²)",
+        type: "PopulationDensity"
+    },
+    median_age: { slug: "median_age", name: "Median age", type: "Age" },
+    aged_65_older: {
+        slug: "aged_65_older",
+        name: "Share aged 65+",
+        type: "Percentage"
+    },
+    aged_70_older: {
+        slug: "aged_70_older",
+        name: "Share aged 70+",
+        type: "Percentage"
+    },
+    gdp_per_capita: {
+        slug: "gdp_per_capita",
+        name: "GDP per capita (int.-$)",
+        type: "Currency"
+    },
+    extreme_poverty: {
+        slug: "extreme_poverty",
+        name: "Population in extreme poverty",
+        type: "Percentage"
+    },
+    hospital_beds_per_thousand: {
+        slug: "hospital_beds_per_thousand",
+        name: "Hospital beds (per 1000)",
+        type: "Ratio"
+    }
+    // tests_per_case: { slug: "tests_per_case", name: "Tests per case" }
 }

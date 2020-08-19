@@ -1,8 +1,11 @@
 import * as path from "path"
 import * as fs from "fs-extra"
-import { quote } from "shell-quote"
-import * as util from "util"
-import { JsonError, filenamify, exec } from "utils/server/serverUtil"
+import {
+    JsonError,
+    filenamify,
+    exec,
+    execFormatted
+} from "utils/server/serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
 import { GIT_DATASETS_DIR, TMP_DIR } from "serverSettings"
@@ -15,12 +18,6 @@ async function datasetToReadme(dataset: Dataset): Promise<string> {
         source.description &&
         source.description.additionalInfo) ||
         ""}`
-}
-
-async function execFormatted(cmd: string, args: string[]) {
-    const formatCmd = util.format(cmd, ...args.map(s => quote([s])))
-    console.log(formatCmd)
-    await exec(formatCmd)
 }
 
 export async function removeDatasetFromGitRepo(

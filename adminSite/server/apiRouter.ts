@@ -1,7 +1,5 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
-import * as express from "express"
-import { Router } from "express"
 import * as _ from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
@@ -16,7 +14,7 @@ import {
     absoluteUrl
 } from "utils/server/serverUtil"
 import { sendMail } from "adminSite/server/utils/mail"
-import { OldChart, Chart } from "db/model/Chart"
+import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
 import { getVariableData, writeVariableCSV } from "db/model/Variable"
@@ -40,51 +38,9 @@ import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSite/client/ChartEditor"
 import { enqueueDeploy } from "deploy/queue"
 import { isExplorable } from "utils/charts"
-
-// Little wrapper to automatically send returned objects as JSON, makes
-// the API code a bit cleaner
-class FunctionalRouter {
-    router: Router
-    constructor() {
-        this.router = Router()
-        // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html
-        this.router.use(express.json({ limit: "50mb" }))
-    }
-
-    wrap(callback: (req: Request, res: Response) => Promise<any>) {
-        return async (req: Request, res: Response) => {
-            res.send(await callback(req, res))
-        }
-    }
-
-    get(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.get(targetPath, this.wrap(callback))
-    }
-
-    post(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.post(targetPath, this.wrap(callback))
-    }
-
-    put(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.put(targetPath, this.wrap(callback))
-    }
-
-    delete(
-        targetPath: string,
-        callback: (req: Request, res: Response) => Promise<any>
-    ) {
-        this.router.delete(targetPath, this.wrap(callback))
-    }
-}
+import { FunctionalRouter } from "./utils/FunctionalRouter"
+import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
+import { addGitCmsApiRoutes } from "gitCms/server"
 
 const apiRouter = new FunctionalRouter()
 
@@ -102,22 +58,6 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
         authorEmail: user.email,
         message: commitMessage
     })
-}
-
-async function getChartById(
-    chartId: number
-): Promise<ChartConfigProps | undefined> {
-    const chart = (
-        await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId])
-    )[0]
-
-    if (chart) {
-        const config = JSON.parse(chart.config)
-        config.id = chart.id
-        return config
-    } else {
-        return undefined
-    }
 }
 
 async function getLogsByChartId(chartId: number): Promise<ChartRevision[]> {
@@ -1723,6 +1663,9 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
     return { source: source }
 })
 
+addExplorerApiRoutes(apiRouter)
+addGitCmsApiRoutes(apiRouter)
+
 // Legacy code, preventing modification, just in case
 //
 // api.put('/sources/:sourceId', async (req: Request) => {
@@ -1732,4 +1675,4 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
 //     return { success: true }
 // })
 
-export { apiRouter, FunctionalRouter }
+export { apiRouter }

@@ -1512,3 +1512,13 @@ export const countries: Country[] = allCountriesSortedByCode.filter(
 export const getCountry = (slug: string): Country | undefined => {
     return countries.find(c => c.slug === slug)
 }
+
+export const getCountryDetectionRedirects = () =>
+    countries
+        .filter(country => country.iso3166 && country.code)
+        .map(
+            country =>
+                `/detect-country-redirect /detect-country.js?${
+                    country.code
+                } 302! Country=${country.iso3166!.toLowerCase()}`
+        )

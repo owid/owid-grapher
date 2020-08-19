@@ -30,6 +30,8 @@ import {
 import { LoadingBlocker, Modal } from "./Forms"
 import { AdminAppContext } from "./AdminAppContext"
 import { Base64 } from "js-base64"
+import { ExplorerCreatePage } from "explorer/admin/ExplorerCreatePage"
+import { ExplorersIndexPage } from "explorer/admin/ExplorersListPage"
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
@@ -77,7 +79,7 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
 class AdminLoader extends React.Component<{ admin: Admin }> {
     render() {
         const { admin } = this.props
-        return admin.isLoading ? <LoadingBlocker /> : null
+        return admin.showLoadingIndicator ? <LoadingBlocker /> : null
     }
 }
 
@@ -126,6 +128,20 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 exact
                                 path="/charts"
                                 component={ChartIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/explorers/:slug"
+                                render={({ match }) => (
+                                    <ExplorerCreatePage
+                                        slug={match.params.slug}
+                                    />
+                                )}
+                            />
+                            <Route
+                                exact
+                                path="/explorers"
+                                component={ExplorersIndexPage}
                             />
                             <Route
                                 exact

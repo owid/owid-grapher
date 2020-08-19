@@ -1,25 +1,22 @@
 import { computed, observable, action } from "mobx"
-import { ObservableUrl } from "../UrlBinding"
-import { ChartUrl, EntityUrlBuilder } from "../ChartUrl"
+import { EntityUrlBuilder } from "../ChartUrl"
 import {
     QueryParams,
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
 import { SortOrder } from "charts/SortOrder"
-import { omit, oneOf, uniq, intersection } from "../Util"
+import { oneOf, uniq, intersection } from "../Util"
+import { ChartTypeType } from "charts/ChartType"
 import {
-    PerCapita,
-    AlignedOption,
+    trajectoryColumnSpecs,
+    covidCsvColumnSlug,
     SmoothingOption,
     colorScaleOption,
     MetricKind,
     IntervalOption,
     intervalOptions
-} from "./CovidTypes"
-import { CountryPickerMetric } from "./CovidCountryPickerMetric"
-import { ChartTypeType } from "charts/ChartType"
-import { trajectoryColumnSpecs } from "./CovidConstants"
+} from "./CovidConstants"
 import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
@@ -50,8 +47,8 @@ export class CovidQueryParams {
     @observable sizeColumn?: string
     @observable chartType?: ChartTypeType
 
-    @observable perCapita: PerCapita = false
-    @observable aligned: AlignedOption = false
+    @observable perCapita: boolean = false
+    @observable aligned: boolean = false
     @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
     @observable colorScale?: colorScaleOption = undefined
@@ -60,8 +57,7 @@ export class CovidQueryParams {
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
-    @observable countryPickerMetric: CountryPickerMetric =
-        CountryPickerMetric.location
+    @observable countryPickerMetric: covidCsvColumnSlug = "location"
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
     @observable interval: IntervalOption = "daily"
@@ -141,14 +137,10 @@ export class CovidQueryParams {
             ).forEach(code => this.selectedCountryCodes.add(code))
         }
 
-        if (params.pickerMetric) {
-            const metric = oneOf<CountryPickerMetric | undefined>(
-                params.pickerMetric,
-                Object.values(CountryPickerMetric),
-                undefined
-            )
-            if (metric) this.countryPickerMetric = metric
-        }
+        if (params.pickerMetric)
+            // todo: validate
+            this.countryPickerMetric = params.pickerMetric as any
+
         if (params.pickerSort) {
             const sort = oneOf<SortOrder | undefined>(
                 params.pickerSort,
@@ -435,27 +427,6 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         return (
             this.cfrMetric || this.testsPerCaseMetric || this.positiveTestRate
         )
-    }
-}
-
-export class CovidUrl implements ObservableUrl {
-    chartUrl: ChartUrl
-    covidQueryParams: CovidQueryParams
-
-    constructor(chartUrl: ChartUrl, covidQueryParams: CovidQueryParams) {
-        this.chartUrl = chartUrl
-        this.covidQueryParams = covidQueryParams
-    }
-
-    @computed get params(): QueryParams {
-        // Omit `country` from chart params, it will be managed by the explorer.
-        const chartParams = omit(this.chartUrl.params, "country")
-        const covidParams = this.covidQueryParams.toParams
-        return { ...chartParams, ...covidParams }
-    }
-
-    @computed get debounceMode(): boolean {
-        return this.chartUrl.debounceMode
     }
 }
 

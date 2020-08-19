@@ -18,7 +18,6 @@ import {
     renderBlogByPageNum,
     renderExplorableIndicatorsJson,
     renderCovidPage,
-    renderCovidDataExplorerPage,
     countryProfileCountryPage
 } from "site/server/siteBaking"
 import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
@@ -42,8 +41,12 @@ import { covidCountryProfileRootPath } from "../../site/server/covid/CovidConsta
 import { bakeCovidChartAndVariableMeta } from "../../site/server/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "../../site/server/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
+import { renderCovidDataExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const mockSiteRouter = Router()
+
+mockSiteRouter.use(express.urlencoded({ extended: true }))
+mockSiteRouter.use(express.json())
 
 mockSiteRouter.get("/sitemap.xml", async (req, res) => {
     res.send(await makeSitemap())
