@@ -174,7 +174,7 @@ export class ChartDimensionWithOwidVariable {
     }
 
     @computed get sortedNumericValues(): number[] {
-        return sortBy(this.values.filter(isNumber))
+        return sortBy(this.values.filter(isNumber).filter(v => !isNaN(v)))
     }
 
     get yearsUniq() {

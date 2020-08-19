@@ -144,8 +144,8 @@ export class MapData extends ChartTransform {
 
     @computed get sortedNumericValues(): number[] {
         return sortBy(
-            this.mappableData.values.filter(v => isNumber(v))
-        ) as number[]
+            this.mappableData.values.filter(isNumber).filter(v => !isNaN(v))
+        )
     }
 
     @computed get formatValueShort() {
