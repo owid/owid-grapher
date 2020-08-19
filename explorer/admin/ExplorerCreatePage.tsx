@@ -7,7 +7,7 @@ import {
 } from "admin/client/AdminAppContext"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
-import { action, observable, computed, autorun } from "mobx"
+import { action, observable, computed } from "mobx"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { Grid } from "charts/Util"
 import {
@@ -44,9 +44,10 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         this.setProgram(this.sourceOnDisk)
     }
 
-    @action.bound setProgram(code: string) {
+    @action.bound async setProgram(code: string) {
         this.program = new ExplorerProgram(this.program.slug, code)
-        this.fetchChartConfigs(this.program.requiredChartIds)
+        await this.fetchChartConfigs(this.program.requiredChartIds)
+        this.validateConfig()
     }
 
     @action.bound async fetchChartConfigs(chartIds: number[]) {
@@ -58,9 +59,24 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             )}`
         )
         const configs = await response.json()
-        configs.forEach((config: any) =>
-            this.chartConfigs.set(config.id, config)
-        )
+
+        configs
+            .filter((config: any) => config !== null)
+            .forEach((config: any) => {
+                this.chartConfigs.set(config.id, config)
+            })
+    }
+
+    @observable invalidConfigsIndex: Set<number> = new Set()
+
+    @action.bound validateConfig() {
+        const chartIds = this.program.requiredChartIds
+        this.invalidConfigsIndex.clear()
+        chartIds.forEach((chartId: number, idx: number) => {
+            if (!this.chartConfigs.has(chartId)) {
+                this.invalidConfigsIndex.add(idx)
+            }
+        })
     }
 
     @observable chartConfigs: Map<number, ChartConfigProps> = new Map()
@@ -103,6 +119,11 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     render() {
         const data = this.program.toArrays()
+
+        const chartIdsStartingRowIndex =
+            this.program.getLineIndex(ProgramKeyword.switcher) + 2
+
+        const chartIdsColIndex = 1
 
         // Highlight the active view
         const activeViewRowNumber =
@@ -158,6 +179,11 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             program={this.program}
                         />
                     </div>
+                    {!!this.invalidConfigsIndex.size && (
+                        <div style={{ color: "red" }}>
+                            Error: missing chart configuration
+                        </div>
+                    )}
                     <div>
                         <HotTable
                             data={data}
@@ -175,6 +201,18 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             rowHeaders={true}
                             afterChange={() => this.updateConfig()}
                             licenseKey={"non-commercial-and-evaluation"}
+                            cells={(row, col) => {
+                                const cellProperties = {} as any
+                                if (
+                                    col === chartIdsColIndex &&
+                                    this.invalidConfigsIndex.has(
+                                        row - chartIdsStartingRowIndex
+                                    )
+                                ) {
+                                    cellProperties.valid = false
+                                }
+                                return cellProperties
+                            }}
                         />
                     </div>
                 </main>
