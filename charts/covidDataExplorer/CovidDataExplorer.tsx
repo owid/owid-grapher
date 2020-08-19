@@ -823,7 +823,7 @@ export class CovidDataExplorer extends React.Component<{
 
         chartProps.id = this.sourceChartId
         chartProps.selectedData = this.selectedData
-        this.chart.url.externallyProvidedParams = this.props.params.toParams
+        this.chart.url.externallyProvidedParams = this.props.params.toQueryParams
     }
 
     private _updateColorScale() {
@@ -1110,7 +1110,7 @@ export class CovidDataExplorer extends React.Component<{
 
     bindToWindow() {
         new UrlBinder().bindToWindow(
-            new ExtendedChartUrl(this.chart.url, [this.props as any])
+            new ExtendedChartUrl(this.chart.url, [this.props.params])
         )
     }
 

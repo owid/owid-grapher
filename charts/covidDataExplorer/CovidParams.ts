@@ -192,7 +192,7 @@ export class CovidQueryParams {
         return titles[this.interval]
     }
 
-    @computed get toParams(): QueryParams {
+    @computed get toQueryParams(): QueryParams {
         const params: any = {}
         params.xColumn = this.xColumn ? this.xColumn : undefined
         params.yColumn = this.yColumn ? this.yColumn : undefined
@@ -311,7 +311,7 @@ export class CovidQueryParams {
     }
 
     toString() {
-        return queryParamsToStr(this.toParams)
+        return queryParamsToStr(this.toQueryParams)
     }
 
     get isWeekly() {

@@ -254,7 +254,7 @@ export class SwitcherRuntime {
         return { ...this._settings }
     }
 
-    @computed get params() {
+    @computed get toQueryParams(): QueryParams {
         return this.toObject()
     }
 
@@ -400,7 +400,7 @@ export class ExplorerQueryParams {
         }
     }
 
-    @computed get params(): QueryParams {
+    @computed get toQueryParams(): QueryParams {
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
         this.selectedEntityNames.size // Need to do a "dot" operation to get MobX to detect the read
