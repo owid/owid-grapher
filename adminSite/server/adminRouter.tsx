@@ -20,6 +20,7 @@ import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
 import { renderPageById } from "site/server/siteBaking"
 import { ENV } from "settings"
+import { addExplorerAdminRoutes } from "explorer/admin/ExplorerBaker"
 
 const adminRouter = Router()
 
@@ -175,5 +176,7 @@ adminRouter.get("/posts/preview/:postId", async (req, res) => {
 
     res.send(await renderPageById(postId, true))
 })
+
+addExplorerAdminRoutes(adminRouter)
 
 export { adminRouter }

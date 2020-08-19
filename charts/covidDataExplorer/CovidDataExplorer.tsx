@@ -17,7 +17,6 @@ import {
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import { ChartDimension, DimensionSpec } from "../ChartDimension"
-import * as urlBinding from "charts/UrlBinding"
 import {
     difference,
     pick,
@@ -31,22 +30,13 @@ import {
     flatten
 } from "charts/Util"
 import {
-    CountryOption,
-    CovidGrapherRow,
-    MetricKind,
-    IntervalOption
-} from "./CovidTypes"
-import {
     ControlOption,
-    ExplorerControl,
-    DropdownOption
-} from "./CovidExplorerControl"
-import { CountryPicker } from "./CovidCountryPicker"
-import {
-    CovidQueryParams,
-    CovidUrl,
-    CovidConstrainedQueryParams
-} from "./CovidChartUrl"
+    ExplorerControlPanel,
+    DropdownOption,
+    ExplorerControlBar
+} from "explorer/client/ExplorerControls"
+import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
+import { CountryPicker } from "../CountryPicker"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
@@ -59,11 +49,16 @@ import {
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
+    CovidGrapherRow,
+    IntervalOption,
+    MetricKind,
     covidDashboardSlug,
     coronaDefaultView,
     covidDataPath,
     sourceCharts,
-    metricLabels
+    metricLabels,
+    metricPickerColumnSpecs,
+    covidCsvColumnSlug
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorScheme, ColorSchemes, continentColors } from "charts/ColorSchemes"
@@ -71,16 +66,15 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
-import { entityCode } from "charts/owidData/OwidTable"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
-import { CommandPalette, Command } from "./CommandPalette"
+import { CommandPalette, Command } from "../CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { BinningStrategy } from "charts/BinningStrategies"
-
-const abSeed = Math.random()
+import { UrlBinder } from "charts/UrlBinder"
+import { ExtendedChartUrl } from "charts/ChartUrl"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -88,6 +82,7 @@ interface BootstrapProps {
     queryStr?: string
     globalEntitySelection?: GlobalEntitySelection
     isExplorerPage?: boolean
+    bindToWindow?: boolean
 }
 
 @observer
@@ -104,6 +99,7 @@ export class CovidDataExplorer extends React.Component<{
     isExplorerPage?: boolean
     globalEntitySelection?: GlobalEntitySelection
     enableKeyboardShortcuts?: boolean
+    bindToWindow?: boolean
 }> {
     static async bootstrap(props: BootstrapProps) {
         const [typedData, updated, covidMeta] = await Promise.all([
@@ -127,6 +123,7 @@ export class CovidDataExplorer extends React.Component<{
                 isExplorerPage={props.isExplorerPage}
                 globalEntitySelection={props.globalEntitySelection}
                 enableKeyboardShortcuts={true}
+                bindToWindow={props.bindToWindow}
             />,
             props.containerNode
         )
@@ -169,43 +166,34 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @action.bound selectAllCommand() {
-        this.countryOptions.forEach(option =>
-            this.props.params.selectedCountryCodes.add(option.code)
+        const codeMap = this.chart.table.entityNameToCodeMap
+        this.chart.table.availableEntities.forEach(option =>
+            this.props.params.selectedCountryCodes.add(codeMap.get(option)!)
         )
         this.selectionChangeFromBuilder = true
         this.renderControlsThenUpdateChart()
     }
 
     private get metricPicker() {
-        const params = this.props.params
         const options: ControlOption[] = [
             {
                 available: true,
                 label: metricLabels.cases,
                 checked: this.constrainedParams.casesMetric,
-                onChange: () => {
-                    params.setMetric("cases")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "cases"
             },
             {
                 available: true,
                 label: metricLabels.deaths,
                 checked: this.constrainedParams.deathsMetric,
-                onChange: () => {
-                    params.setMetric("deaths")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "deaths"
             },
 
             {
                 available: true,
                 label: metricLabels.case_fatality_rate,
                 checked: this.constrainedParams.cfrMetric,
-                onChange: () => {
-                    params.setMetric("case_fatality_rate")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "case_fatality_rate"
             }
         ]
 
@@ -214,47 +202,47 @@ export class CovidDataExplorer extends React.Component<{
                 available: true,
                 label: metricLabels.tests,
                 checked: this.constrainedParams.testsMetric,
-                onChange: () => {
-                    params.setMetric("tests")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "tests"
             },
             {
                 available: true,
                 label: metricLabels.tests_per_case,
                 checked: this.constrainedParams.testsPerCaseMetric,
-                onChange: () => {
-                    params.setMetric("tests_per_case")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "tests_per_case"
             },
             {
                 available: true,
                 label: metricLabels.positive_test_rate,
                 checked: this.constrainedParams.positiveTestRate,
-                onChange: () => {
-                    params.setMetric("positive_test_rate")
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "positive_test_rate"
             }
         ]
         return (
             <>
-                <ExplorerControl
+                <ExplorerControlPanel
                     title="Metric"
+                    explorerSlug="covid"
                     name={this.getScopedName("metric")}
                     options={options}
+                    onChange={this.changeMetric}
                     isCheckbox={false}
-                ></ExplorerControl>
-                <ExplorerControl
+                />
+                <ExplorerControlPanel
                     title="Metric"
+                    explorerSlug="covid"
                     hideTitle={true}
                     name={this.getScopedName("metric")}
+                    onChange={this.changeMetric}
                     options={optionsColumn2}
                     isCheckbox={false}
-                ></ExplorerControl>
+                />
             </>
         )
+    }
+
+    @action.bound changeMetric(value: string) {
+        this.props.params.setMetric(value as MetricKind)
+        this.renderControlsThenUpdateChart()
     }
 
     private get frequencyPicker() {
@@ -298,7 +286,7 @@ export class CovidDataExplorer extends React.Component<{
             }
         ]
         return (
-            <ExplorerControl
+            <ExplorerControlPanel
                 title="Interval"
                 name={this.getScopedName("interval")}
                 dropdownOptions={options}
@@ -308,7 +296,8 @@ export class CovidDataExplorer extends React.Component<{
                     writeableParams.setTimeline(value as IntervalOption)
                     this.renderControlsThenUpdateChart()
                 }}
-            ></ExplorerControl>
+                explorerSlug="covid"
+            />
         )
     }
 
@@ -323,19 +312,21 @@ export class CovidDataExplorer extends React.Component<{
                 available: available.perCapita,
                 label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
                 checked: this.constrainedParams.perCapita,
-                onChange: value => {
-                    this.props.params.perCapita = value
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "true"
             }
         ]
         return (
-            <ExplorerControl
+            <ExplorerControlPanel
                 title="Count"
                 name={this.getScopedName("count")}
                 isCheckbox={true}
                 options={options}
-            ></ExplorerControl>
+                explorerSlug="covid"
+                onChange={value => {
+                    this.props.params.perCapita = value === "true"
+                    this.renderControlsThenUpdateChart()
+                }}
+            />
         )
     }
 
@@ -346,20 +337,22 @@ export class CovidDataExplorer extends React.Component<{
                 available: available.aligned,
                 label: "Align outbreaks",
                 checked: this.constrainedParams.aligned,
-                onChange: value => {
-                    this.props.params.aligned = value
-                    this.renderControlsThenUpdateChart()
-                }
+                value: "true"
             }
         ]
         return (
-            <ExplorerControl
+            <ExplorerControlPanel
                 title="Timeline"
                 name={this.getScopedName("timeline")}
                 isCheckbox={true}
                 options={options}
+                onChange={value => {
+                    this.props.params.aligned = value === "true"
+                    this.renderControlsThenUpdateChart()
+                }}
                 comment={this.constrainedParams.trajectoryColumnOption.name}
-            ></ExplorerControl>
+                explorerSlug="covid"
+            />
         )
     }
 
@@ -375,8 +368,12 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    @action.bound toggleSelectedCountryCommand(code: string, value?: boolean) {
-        this.toggleSelectedCountry(code, value)
+    @action.bound toggleSelectedCountryCommand(
+        countryName: string,
+        value?: boolean
+    ) {
+        const codeMap = this.chart.table.entityNameToCodeMap
+        this.toggleSelectedCountry(codeMap.get(countryName)!, value)
         this.selectionChangeFromBuilder = true
         this.renderControlsThenUpdateChart()
     }
@@ -384,12 +381,6 @@ export class CovidDataExplorer extends React.Component<{
     @computed get howLongAgo() {
         return moment.utc(this.props.updated).fromNow()
     }
-
-    @action.bound mobileToggleCustomizePopup() {
-        this.showControlsPopup = !this.showControlsPopup
-    }
-
-    @observable showControlsPopup = false
 
     @action.bound onResize() {
         this.isMobile = this._isMobile()
@@ -420,10 +411,10 @@ export class CovidDataExplorer extends React.Component<{
 
     get header() {
         return (
-            <div className="CovidHeaderBox">
+            <div className="ExplorerHeaderBox">
                 <div>Coronavirus Pandemic</div>
-                <div className="CovidTitle">Data Explorer</div>
-                <div className="CovidLastUpdated" title={this.howLongAgo}>
+                <div className="ExplorerTitle">Data Explorer</div>
+                <div className="ExplorerSubtitle" title={this.howLongAgo}>
                     Download the complete <em>Our World in Data</em>{" "}
                     <a
                         href="https://github.com/owid/covid-19-data/tree/master/public/data"
@@ -440,55 +431,68 @@ export class CovidDataExplorer extends React.Component<{
     get countryPicker() {
         return (
             <CountryPicker
-                covidDataExplorer={this}
-                toggleCountryCommand={this.toggleSelectedCountryCommand}
+                explorerSlug="Covid"
+                table={this.chart.table}
+                pickerColumnSlugs={
+                    new Set(Object.keys(metricPickerColumnSpecs))
+                }
                 isDropdownMenu={this.isMobile}
+                optionColorMap={this.countryNameToColorMap}
+                selectedEntities={this.selectedEntityNames}
+                availableEntities={
+                    this.covidExplorerTable.table.availableEntities
+                }
+                userState={this.props.params}
+                countriesMustHaveColumns={this.activeColumnSlugs}
+                clearSelectionCommand={this.clearSelectionCommand}
+                toggleCountryCommand={this.toggleSelectedCountryCommand}
             ></CountryPicker>
         )
     }
 
-    get controlBar() {
-        const mobileDoneButton = this.isMobile ? (
-            <a
-                className="btn btn-primary mobile-button"
-                onClick={this.mobileToggleCustomizePopup}
-            >
-                Done
-            </a>
-        ) : (
-            undefined
-        )
+    @computed get activeColumnSlugs(): string[] {
+        return [this.xColumn?.slug, this.yColumn?.slug].filter(
+            i => i
+        ) as string[]
+    }
 
-        const showMobileControls = this.isMobile && this.showControlsPopup
+    @action.bound changePickerMetric(metric: covidCsvColumnSlug) {
+        this.props.params.countryPickerMetric = metric
+    }
+
+    get controlBar() {
         return (
-            <div
-                className={`CovidDataExplorerControlBar${
-                    showMobileControls
-                        ? ` show-controls-popup`
-                        : this.isMobile
-                        ? ` hide-controls-popup`
-                        : ""
-                }`}
+            <ExplorerControlBar
+                isMobile={this.isMobile}
+                showControls={this.showMobileControlsPopup}
+                closeControls={this.closeControls}
             >
                 {this.metricPicker}
                 {this.frequencyPicker}
                 {this.perCapitaPicker}
                 {this.alignedPicker}
-                {mobileDoneButton}
-            </div>
+            </ExplorerControlBar>
         )
     }
 
+    @action.bound closeControls() {
+        this.showMobileControlsPopup = false
+    }
+
+    @action.bound toggleMobileControls() {
+        this.showMobileControlsPopup = !this.showMobileControlsPopup
+    }
+
+    @observable showMobileControlsPopup = false
+
     get customizeChartMobileButton() {
-        // A/B Test.
-        const buttonLabel = abSeed > 0.5 ? `Customize chart` : `Change metric`
         return this.isMobile ? (
             <a
                 className="btn btn-primary mobile-button"
-                onClick={this.mobileToggleCustomizePopup}
+                onClick={this.toggleMobileControls}
                 data-track-note="covid-customize-chart"
             >
-                <FontAwesomeIcon icon={faChartLine} /> {buttonLabel}
+                <FontAwesomeIcon icon={faChartLine} /> Customize chart
             </a>
         ) : (
             undefined
@@ -556,18 +560,11 @@ export class CovidDataExplorer extends React.Component<{
         return !this.props.params.hideControls || !this.props.isEmbed
     }
 
-    @computed get countryOptions(): CountryOption[] {
-        return CovidExplorerTable.makeCountryOptions(this.props.data)
-    }
-
-    @computed get selectedCountryOptions(): CountryOption[] {
-        return this.countryOptions.filter(option =>
-            this.props.params.selectedCountryCodes.has(option.code)
+    @computed get selectedCountryOptions(): string[] {
+        const codeMap = this.chart.table.entityNameToCodeMap
+        return this.chart.table.availableEntities.filter(option =>
+            this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
         )
-    }
-
-    @computed private get availableEntities() {
-        return this.countryOptions.map(country => country.name)
     }
 
     @computed private get perCapitaDivisor() {
@@ -656,72 +653,56 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     @computed private get selectedData() {
-        const countryCodeMap = this.countryCodeToCountryOptionMap
+        const countryCodeMap = this.chart.table.entityCodeToNameMap
+        const entityIdMap = this.chart.table.entityNameToIdMap
         return Array.from(this.props.params.selectedCountryCodes)
             .map(code => countryCodeMap.get(code))
             .filter(i => i)
             .map(countryOption => {
                 return {
                     index: 0,
-                    entityId: countryOption ? countryOption.entityId : 0,
-                    color: this.countryCodeToColorMap[countryOption!.code]
+                    entityId: countryOption
+                        ? entityIdMap.get(countryOption)!
+                        : 0,
+                    color: this.countryNameToColorMap[countryOption!]
                 }
             })
     }
 
-    @computed private get countryCodeToCountryOptionMap() {
-        const countryCodeMap = new Map<entityCode, CountryOption>()
-        this.countryOptions.forEach(country => {
-            countryCodeMap.set(country.code, country)
-        })
-        return countryCodeMap
-    }
-
-    @computed get availableCountriesForMetric() {
-        if (this.xColumn && this.yColumn)
-            return new Set(
-                [...this.xColumn.entityNamesUniq].filter(entityName =>
-                    this.yColumn.entityNamesUniq.has(entityName)
-                )
-            )
-        else if (this.yColumn) return this.yColumn.entityNamesUniq
-        return new Set()
-    }
-
-    private _countryCodeToColorMapCache: {
+    private _countryNameToColorMapCache: {
         [key: string]: string | undefined
     } = {}
 
-    @computed get countryCodeToColorMap(): {
+    @computed get countryNameToColorMap(): {
         [key: string]: string | undefined
     } {
-        const codes = this.selectedCountryOptions.map(country => country.code)
-        // If there isn't a color for every country code, we need to update the color map
-        if (!codes.every(code => code in this._countryCodeToColorMapCache)) {
-            // Omit any unselected country codes from color map
-            const newColorMap = pick(this._countryCodeToColorMapCache, codes)
-            // Check for code *key* existence, not value.
+        const names = this.selectedCountryOptions.map(country => country)
+        // If there isn't a color for every country name, we need to update the color map
+        if (!names.every(name => name in this._countryNameToColorMapCache)) {
+            // Omit any unselected country names from color map
+            const newColorMap = pick(this._countryNameToColorMapCache, names)
+            // Check for name *key* existence, not value.
             // `undefined` value means we want the color to be automatic, determined by the chart.
-            const codesWithoutColor = codes.filter(
-                code => !(code in newColorMap)
+            const namesWithoutColor = names.filter(
+                name => !(name in newColorMap)
             )
-            // For codes that don't have a color, assign one.
-            codesWithoutColor.forEach(code => {
+            // For names that don't have a color, assign one.
+            namesWithoutColor.forEach(name => {
                 const scheme = ColorSchemes["owid-distinct"] as ColorScheme
                 const availableColors = lastOfNonEmptyArray(scheme.colorSets)
                 const usedColors = Object.values(newColorMap).filter(
                     color => color !== undefined
                 ) as string[]
-                newColorMap[code] = getLeastUsedColor(
+                newColorMap[name] = getLeastUsedColor(
                     availableColors,
                     usedColors
                 )
             })
             // Update the country color map cache
-            this._countryCodeToColorMapCache = newColorMap
+            this._countryNameToColorMapCache = newColorMap
         }
 
-        return this._countryCodeToColorMapCache
+        return this._countryNameToColorMapCache
     }
 
     private selectionChangeFromBuilder = false
@@ -746,11 +727,15 @@ export class CovidDataExplorer extends React.Component<{
         return this._covidExplorerTable
     }
 
-    private getSelectedEntityNames() {
+    componentWillMount() {
+        this.covidExplorerTable // init table.
+    }
+
+    @computed get selectedEntityNames(): string[] {
+        const entityCodeMap = this.chart.table.entityCodeToNameMap
         return Array.from(this.props.params.selectedCountryCodes.values())
-            .map(code => this.countryCodeToCountryOptionMap.get(code))
-            .filter(i => i)
-            .map(option => option!.name)
+            .map(code => entityCodeMap.get(code))
+            .filter(i => i) as string[]
     }
 
     @computed get canDoLogScale() {
@@ -818,9 +803,7 @@ export class CovidDataExplorer extends React.Component<{
             this._addDataTableOnlyDimensionsToChart()
         }
 
-        covidExplorerTable.table.setSelectedEntities(
-            this.getSelectedEntityNames()
-        )
+        covidExplorerTable.table.setSelectedEntities(this.selectedEntityNames)
 
         if (
             (params.casesMetric || params.deathsMetric) &&
@@ -875,6 +858,7 @@ export class CovidDataExplorer extends React.Component<{
     }
 
     componentDidMount() {
+        if (this.props.bindToWindow) this.bindToWindow()
         // Show 'Add country' & 'Select countries' controls if the explorer controls are hidden.
         this.chart.hideEntityControls = this.showExplorerControls
         this.chart.externalCsvLink = covidDataPath
@@ -1124,11 +1108,10 @@ export class CovidDataExplorer extends React.Component<{
         }
     }
 
-    // Binds chart properties to global window title and URL. This should only
-    // ever be invoked from top-level JavaScript.
     bindToWindow() {
-        const url = new CovidUrl(this.chart.url, this.props.params)
-        urlBinding.bindUrlToWindow(url)
+        new UrlBinder().bindToWindow(
+            new ExtendedChartUrl(this.chart.url, [this.props as any])
+        )
     }
 
     disposers: (IReactionDisposer | Lambda)[] = []
@@ -1398,7 +1381,7 @@ export class CovidDataExplorer extends React.Component<{
             isPublished: true,
             map: this.defaultMapConfig as any,
             data: {
-                availableEntities: this.availableEntities
+                availableEntities: []
             }
         },
         {

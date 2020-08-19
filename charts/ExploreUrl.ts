@@ -1,6 +1,6 @@
 import { computed, action } from "mobx"
 
-import { ObservableUrl } from "./UrlBinding"
+import { ObservableUrl } from "./UrlBinder"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { ChartUrl, ChartQueryParams } from "./ChartUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"

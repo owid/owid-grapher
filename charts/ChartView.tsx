@@ -26,7 +26,7 @@ import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
-import * as urlBinding from "charts/UrlBinding"
+import { UrlBinder } from "charts/UrlBinder"
 import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
 
 declare const window: any
@@ -429,7 +429,7 @@ export class ChartView extends React.Component<ChartViewProps> {
     bindToWindow() {
         window.chartView = this
         window.chart = this.chart
-        urlBinding.bindUrlToWindow(this.chart.url)
+        new UrlBinder().bindToWindow(this.chart.url)
         autorun(() => (document.title = this.chart.currentTitle))
     }
 

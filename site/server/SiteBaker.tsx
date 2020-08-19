@@ -26,7 +26,6 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderExplorableIndicatorsJson,
-    renderCovidDataExplorerPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache
 } from "./siteBaking"
@@ -45,7 +44,7 @@ import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { chartPageFromConfig } from "./chartBaking"
-import { countries } from "utils/countries"
+import { countries, getCountryDetectionRedirects } from "utils/countries"
 import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
 import {
@@ -59,6 +58,10 @@ import {
     countryProfileSpecs,
     co2CountryProfileRootPath
 } from "site/client/CountryProfileConstants"
+import {
+    bakeAllPublishedExplorers,
+    renderCovidDataExplorerPage
+} from "explorer/admin/ExplorerBaker"
 
 // Static site generator using Wordpress
 
@@ -71,17 +74,6 @@ export class SiteBaker {
     grapherExports!: GrapherExports
     constructor(props: SiteBakerProps) {
         this.props = props
-    }
-
-    static getCountryDetectionRedirects() {
-        return countries
-            .filter(country => country.iso3166 && country.code)
-            .map(
-                country =>
-                    `/detect-country-redirect /detect-country.js?${
-                        country.code
-                    } 302! Country=${country.iso3166!.toLowerCase()}`
-            )
     }
 
     async bakeRedirects() {
@@ -124,7 +116,7 @@ export class SiteBaker {
             "/slides/* https://slides.ourworldindata.org/:splat 301"
         ]
 
-        SiteBaker.getCountryDetectionRedirects().forEach(redirect =>
+        getCountryDetectionRedirects().forEach(redirect =>
             redirects.push(redirect)
         )
 
@@ -328,6 +320,7 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/sitemap.xml`,
             await makeSitemap()
         )
+
         if (settings.EXPLORER) {
             await this.stageWrite(
                 `${BAKED_SITE_DIR}/explore.html`,
@@ -348,6 +341,8 @@ export class SiteBaker {
             `${BAKED_SITE_DIR}/${covidChartAndVariableMetaFilename}`,
             await bakeCovidChartAndVariableMeta()
         )
+
+        await bakeAllPublishedExplorers()
     }
 
     // Pages that are expected by google scholar for indexing

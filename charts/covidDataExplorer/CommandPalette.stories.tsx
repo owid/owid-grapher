@@ -1,10 +1,7 @@
 import * as React from "react"
 import "site/client/owid.scss"
 import "charts/client/chart.scss"
-import {
-    CommandPalette,
-    Command
-} from "charts/covidDataExplorer/CommandPalette"
+import { CommandPalette, Command } from "charts/CommandPalette"
 
 export default {
     title: "CommandPalette",

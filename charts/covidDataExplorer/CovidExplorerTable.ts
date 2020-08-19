@@ -15,15 +15,6 @@ import {
     fetchJSON
 } from "charts/Util"
 import moment from "moment"
-import {
-    ParsedCovidCsvRow,
-    MetricKind,
-    CountryOption,
-    CovidGrapherRow,
-    SmoothingOption,
-    IntervalOption,
-    intervalOptions
-} from "./CovidTypes"
 import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"
 import {
@@ -34,16 +25,24 @@ import {
     entityName,
     columnSlug,
     columnTypes,
-    Row
+    Row,
+    generateEntityId
 } from "charts/owidData/OwidTable"
-import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidChartUrl"
-import { covidAnnotations } from "./CovidAnnotations"
+import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
+    ParsedCovidCsvRow,
+    CovidGrapherRow,
     covidDataPath,
     covidLastUpdatedPath,
     covidChartAndVariableMetaPath,
+    covidAnnotations,
+    MetricKind,
+    SmoothingOption,
+    IntervalOption,
+    intervalOptions,
     sourceVariables,
-    testRateExcludeList
+    testRateExcludeList,
+    metricPickerColumnSpecs
 } from "./CovidConstants"
 
 type MetricKey = {
@@ -90,34 +89,34 @@ export class CovidExplorerTable {
         owidVariableSpecs = {},
         isStandalonePage = false
     ) {
-        this.initColumnSpecs(owidVariableSpecs)
+        this.initColumnSpecTemplates(owidVariableSpecs)
         this.table = table
         if (!isStandalonePage) this.table.cloneAndSetRows(data)
         else this.table.setRowsWithoutCloning(data)
-        this.table.addSpecs(this.getBaseSpecs(data[0] || {}))
-        this.table.columnsBySlug.forEach(col => {
-            // Ensure all columns have a OwidVarId for now. Todo: rely on just column slug in Grapher.
-            if (!col.spec.owidVariableId)
-                col.spec = CovidExplorerTable.makeSpec(col.spec)
-        })
+
+        // This simply looks at the first row of the Covid CSV, and generates a spec for each column found.
+        // I assume that the first row contains a key/value pair for every column
+        const firstRow = data[0] || {}
+        const specs = Object.keys(firstRow).map(slug =>
+            CovidExplorerTable.makeSpec(slug)
+        )
+        this.table.addSpecs(specs)
         this.table.addCategoricalColumnSpec(this.columnSpecs.continents)
         this.addAnnotationColumns()
     }
 
-    private getBaseSpecs(row: CovidGrapherRow) {
-        return Object.keys(row).map(slug => {
-            return {
-                slug,
-                type: stringColumnSlugs.has(slug)
-                    ? "String"
-                    : ("Numeric" as columnTypes)
-            }
-        })
-    }
-
     private static colOwidVarIdGuid = 90210
-    private static makeSpec(spec: ColumnSpec): ColumnSpec {
-        return {
+    private static makeSpec(slug: string): ColumnSpec {
+        let spec = {
+            slug,
+            type: stringColumnSlugs.has(slug)
+                ? "String"
+                : ("Numeric" as columnTypes)
+        }
+        const metricSpec = (metricPickerColumnSpecs as any)[spec.slug]
+        if (metricSpec) spec = Object.assign({}, spec, metricSpec)
+
+        const basicSpec = {
             owidVariableId: CovidExplorerTable.colOwidVarIdGuid++,
             unit: "",
             description: "",
@@ -135,9 +134,13 @@ export class CovidExplorerTable {
             },
             ...spec
         }
+
+        return basicSpec
     }
 
-    private initColumnSpecs(owidVariableSpecs: any) {
+    // Ideally we would just have 1 set of column specs. Currently however we have some hard coded here, some coming from the Grapher backend, and some
+    // generated on the fly. These "template specs" are used to generate specs on the fly. Todo: cleanup.
+    private initColumnSpecTemplates(owidVariableSpecs: any) {
         this.columnSpecs = {
             positive_test_rate: {
                 ...owidVariableSpecs[sourceVariables.positive_test_rate],
@@ -525,6 +528,12 @@ export class CovidExplorerTable {
         if (params.cfrMetric) this.initCfrColumn(params)
         if (params.positiveTestRate) this.initTestRateColumn(params)
 
+        // Init tests per case for the country picker
+        const tpc = new CovidQueryParams("")
+        tpc.interval = "smoothed"
+        tpc.testsPerCaseMetric = true
+        this.initTestsPerCaseColumn(tpc.toConstrainedParams())
+
         if (params.aligned) {
             // If we are an aligned chart showing tests, we need to make a start of
             // pandemic column from deaths rate
@@ -609,13 +618,6 @@ export class CovidExplorerTable {
         )
     }
 
-    private static globalEntityIds = new Map()
-    private static getEntityGuid(entityName: string) {
-        if (!this.globalEntityIds.has(entityName))
-            this.globalEntityIds.set(entityName, this.globalEntityIds.size)
-        return this.globalEntityIds.get(entityName)
-    }
-
     private static calculateRowsForGroup = (
         group: ParsedCovidCsvRow[],
         groupName: string
@@ -638,7 +640,7 @@ export class CovidExplorerTable {
                     new_cases: 0,
                     entityName: groupName,
                     entityCode: groupName.replace(" ", ""),
-                    entityId: CovidExplorerTable.getEntityGuid(groupName),
+                    entityId: generateEntityId(groupName),
                     new_deaths: 0,
                     population: 0
                 } as CovidGrapherRow)
@@ -712,27 +714,11 @@ export class CovidExplorerTable {
         newRow.entityName = row.location
         newRow.entityCode = row.iso_code
         newRow.day = dateToYear(row.date)
-        newRow.entityId = CovidExplorerTable.getEntityGuid(row.location)
+        newRow.entityId = generateEntityId(row.location)
 
         if (newRow.location === "World") newRow.group_members = "All"
 
         return row as CovidGrapherRow
-    }
-
-    static makeCountryOptions(data: ParsedCovidCsvRow[]): CountryOption[] {
-        const rowsByCountry = groupBy(data, "iso_code")
-        return map(rowsByCountry, rows => {
-            const { location, iso_code, population, continent } = rows[0]
-            return {
-                name: location,
-                slug: location,
-                code: iso_code,
-                population,
-                continent,
-                entityId: CovidExplorerTable.getEntityGuid(location),
-                rows
-            }
-        })
     }
 }
 
@@ -755,6 +741,7 @@ export const fetchLastUpdatedTime = memoize(() =>
     retryPromise(() => fetchText(covidLastUpdatedPath))
 )
 
+// Fetchs the baked JSON file containing chart and variables meta data for maps and source tabs.
 export const fetchCovidChartAndVariableMeta = memoize(() =>
     retryPromise(() => fetchJSON(covidChartAndVariableMetaPath))
 )

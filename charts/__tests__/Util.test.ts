@@ -18,7 +18,13 @@ import {
     parseDelimited,
     toJsTable,
     intersectionOfSets,
-    roundSigFig
+    roundSigFig,
+    getAvailableSlugSync,
+    jsTableToDelimited,
+    trimGrid,
+    trimEmptyRows,
+    JsTable,
+    anyToString
 } from "../Util"
 import { strToQueryParams } from "utils/client/url"
 
@@ -322,7 +328,7 @@ describe(intersectionOfSets, () => {
     })
 })
 
-describe(toJsTable, () => {
+describe("jsTables", () => {
     it("turns an arraw of objects into arrays", () => {
         const str = `gdp,pop
 1,2`
@@ -331,7 +337,87 @@ describe(toJsTable, () => {
             ["1", "2"]
         ])
 
-        expect(toJsTable(parseDelimited(""))).toEqual([])
+        expect(toJsTable(parseDelimited(""))).toEqual(undefined)
+
+        expect(
+            jsTableToDelimited(toJsTable(parseDelimited(str))!, ",")
+        ).toEqual(str)
+    })
+
+    it("handles extra blank cells", () => {
+        const table = toJsTable(
+            parseDelimited(`gdp pop code    
+123 345 usa    
+`)
+        )
+        expect(jsTableToDelimited(trimGrid(table!) as JsTable, " "))
+            .toEqual(`gdp pop code
+123 345 usa`)
+    })
+})
+
+describe("anyToString", () => {
+    const values = [
+        false,
+        0,
+        1,
+        "0",
+        "1",
+        null,
+        undefined,
+        "false",
+        "true",
+        NaN,
+        Infinity,
+        {},
+        0.1
+    ]
+    const expected = [
+        "false",
+        "0",
+        "1",
+        "0",
+        "1",
+        "",
+        "",
+        "false",
+        "true",
+        "NaN",
+        "Infinity",
+        "[object Object]",
+        "0.1"
+    ]
+    it("handles edge cases in format value", () => {
+        expect(values.map(anyToString)).toEqual(expected)
+    })
+})
+
+describe(trimEmptyRows, () => {
+    it("trims rows", () => {
+        const testCases: { input: JsTable; length: number }[] = [
+            {
+                input: [["pop"], [123], [null], [""], [undefined]],
+                length: 2
+            },
+            {
+                input: [[]],
+                length: 0
+            },
+            {
+                input: [
+                    ["pop", "gdp"],
+                    [123, 345],
+                    [undefined, 456]
+                ],
+                length: 3
+            }
+        ]
+
+        testCases.forEach(testCase => {
+            expect(trimEmptyRows(testCase.input).length).toEqual(
+                testCase.length
+            )
+        })
     })
 })
 
@@ -380,5 +466,14 @@ describe(roundSigFig, () => {
 
     it("leaves zero unchanged", () => {
         expect(roundSigFig(0, 2)).toEqual(0)
+    })
+})
+
+describe(getAvailableSlugSync, () => {
+    it("can generate a unique slug", () => {
+        expect(getAvailableSlugSync("untitled", ["untitled"])).toEqual(
+            "untitled-2"
+        )
+        expect(getAvailableSlugSync("new", ["untitled"])).toEqual("new")
     })
 })

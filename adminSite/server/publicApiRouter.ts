@@ -1,4 +1,4 @@
-import { FunctionalRouter } from "./apiRouter"
+import { FunctionalRouter } from "./utils/FunctionalRouter"
 import { Request, Response } from "./utils/authentication"
 import { writeVariableCSV } from "db/model/Variable"
 import { expectInt } from "utils/server/serverUtil"

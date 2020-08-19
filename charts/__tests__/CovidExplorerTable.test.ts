@@ -7,7 +7,7 @@ import {
 import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
 import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
 import uniq from "lodash/uniq"
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidChartUrl"
+import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
 
 describe("parse row", () => {
@@ -18,9 +18,11 @@ describe("parse row", () => {
 
 describe("makeCountryOptions", () => {
     it("correctly computes options", () => {
-        const options = CovidExplorerTable.makeCountryOptions(covidSampleRows)
-        const world = options[2]
-        expect(world.name).toEqual("World")
+        const dataTable = new CovidExplorerTable(
+            new OwidTable([]),
+            covidSampleRows
+        )
+        expect(dataTable.table.availableEntities[2]).toEqual("World")
     })
 })
 

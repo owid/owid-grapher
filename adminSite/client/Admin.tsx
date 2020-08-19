@@ -42,9 +42,14 @@ export class Admin {
 
     @observable currentRequests: Promise<Response>[] = []
 
-    @computed get isLoading() {
-        return this.currentRequests.length > 0
+    @computed get showLoadingIndicator() {
+        return this.loadingIndicatorSetting === "default"
+            ? this.currentRequests.length > 0
+            : this.loadingIndicatorSetting === "loading"
     }
+
+    @observable loadingIndicatorSetting: "loading" | "off" | "default" =
+        "default"
 
     start(containerNode: HTMLElement) {
         ReactDOM.render(<AdminApp admin={this} />, containerNode)

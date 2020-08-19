@@ -156,8 +156,13 @@ iceland,ice,1,123,3
 usa,us,2,23,
 france,fr,3,23,4`
     const table = OwidTable.fromDelimited(csv)
+
     it("gets entities only with values for that column", () => {
         expect(table.columnsBySlug.get("pop")?.entityNamesUniq.size).toEqual(2)
+    })
+
+    it("filters rows correctly", () => {
+        expect(table.entitiesWith(["gdp"]).size).toEqual(3)
     })
 
     it("filters rows correctly", () => {

@@ -51,15 +51,23 @@ export class Analytics {
         this.logToGA("GlobalEntityControl", action, note)
     }
 
-    static logCovidCountrySelector(
+    static logCountrySelectorEvent(
+        countryPickerName: string,
         action: "enter" | "select" | "deselect" | "sortBy" | "sortOrder",
         note?: string
     ) {
-        this.logToAmplitude("COVID_DATA_EXPLORER_COUNTRY_SELECTOR", {
+        this.logToAmplitude(
+            `${countryPickerName.toUpperCase()}_DATA_EXPLORER_COUNTRY_SELECTOR`,
+            {
+                action,
+                note
+            }
+        )
+        this.logToGA(
+            `${countryPickerName}DataExplorerCountrySelector`,
             action,
             note
-        })
-        this.logToGA("CovidDataExplorerCountrySelector", action, note)
+        )
     }
 
     static logCovidCountryProfileSearch(country: string) {
