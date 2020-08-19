@@ -245,10 +245,10 @@ export class CategoricalColorLegend {
 
     @computed get markLines(): MarkLine[] {
         const props = this.props,
-            rectSize = 10 * props.scale,
+            rectSize = 12 * props.scale,
             rectPadding = 5,
             markPadding = 5,
-            fontSize = 0.6 * props.scale * this.props.fontSize
+            fontSize = 0.7 * props.scale * this.props.fontSize
 
         const lines: MarkLine[] = []
         let marks: CategoricalMark[] = [],
@@ -273,7 +273,7 @@ export class CategoricalColorLegend {
                 text: d.text,
                 bounds: labelBounds.extend({
                     x: markX + rectSize + rectPadding,
-                    y: markY + 1.5
+                    y: markY + 1
                 }),
                 fontSize: fontSize
             }
