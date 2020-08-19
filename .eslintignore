@@ -1,2 +1,2 @@
-db/migrations/**
+db/knexMigrations/**
 db/migration/**
