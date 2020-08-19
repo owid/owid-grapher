@@ -149,15 +149,20 @@ export class LineChart extends React.Component<{
                 style={{ padding: "0.3em" }}
                 offsetX={5}
             >
-                <table style={{ fontSize: "0.9em", lineHeight: "1.4em" }}>
+                <table
+                    style={{
+                        fontSize: "0.9em",
+                        lineHeight: "1.4em",
+                        whiteSpace: "normal"
+                    }}
+                >
                     <tbody>
                         <tr>
-                            <td>
+                            <td colSpan={3}>
                                 <strong>
                                     {this.chart.formatYearFunction(hoverX)}
                                 </strong>
                             </td>
-                            <td></td>
                         </tr>
                         {sortedData.map(series => {
                             const value = series.values.find(
@@ -200,12 +205,7 @@ export class LineChart extends React.Component<{
                                     key={series.entityDimensionKey}
                                     style={{ color: textColor }}
                                 >
-                                    <td
-                                        style={{
-                                            paddingRight: "0.8em",
-                                            fontSize: "0.9em"
-                                        }}
-                                    >
+                                    <td>
                                         <div
                                             style={{
                                                 width: "10px",
@@ -215,7 +215,14 @@ export class LineChart extends React.Component<{
                                                 display: "inline-block",
                                                 marginRight: "2px"
                                             }}
-                                        />{" "}
+                                        />
+                                    </td>
+                                    <td
+                                        style={{
+                                            paddingRight: "0.8em",
+                                            fontSize: "0.9em"
+                                        }}
+                                    >
                                         {chart.data.getLabelForKey(
                                             series.entityDimensionKey
                                         )}
@@ -223,7 +230,8 @@ export class LineChart extends React.Component<{
                                             <span
                                                 className="tooltipAnnotation"
                                                 style={{
-                                                    color: annotationColor
+                                                    color: annotationColor,
+                                                    fontSize: "90%"
                                                 }}
                                             >
                                                 {" "}
@@ -231,7 +239,12 @@ export class LineChart extends React.Component<{
                                             </span>
                                         )}
                                     </td>
-                                    <td style={{ textAlign: "right" }}>
+                                    <td
+                                        style={{
+                                            textAlign: "right",
+                                            whiteSpace: "nowrap"
+                                        }}
+                                    >
                                         {!value
                                             ? "No data"
                                             : transform.yAxis.tickFormat(
