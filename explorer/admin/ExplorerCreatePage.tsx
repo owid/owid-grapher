@@ -1,10 +1,10 @@
 import { observer } from "mobx-react"
 import React from "react"
-import { AdminLayout } from "admin/client/AdminLayout"
+import { AdminLayout } from "adminSite/client/AdminLayout"
 import {
     AdminAppContextType,
     AdminAppContext
-} from "admin/client/AdminAppContext"
+} from "adminSite/client/AdminAppContext"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
@@ -16,7 +16,7 @@ import {
 } from "explorer/client/ExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
-import { Link } from "admin/client/Link"
+import { Link } from "adminSite/client/Link"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {

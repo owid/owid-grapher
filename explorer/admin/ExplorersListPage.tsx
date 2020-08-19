@@ -1,10 +1,10 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { Link } from "admin/client/Link"
+import { Link } from "adminSite/client/Link"
 import {
     AdminAppContext,
     AdminAppContextType
-} from "admin/client/AdminAppContext"
+} from "adminSite/client/AdminAppContext"
 import {
     observable,
     computed,
@@ -14,8 +14,8 @@ import {
     IReactionDisposer
 } from "mobx"
 import * as lodash from "lodash"
-import { AdminLayout } from "admin/client/AdminLayout"
-import { FieldsRow } from "admin/client/Forms"
+import { AdminLayout } from "adminSite/client/AdminLayout"
+import { FieldsRow } from "adminSite/client/Forms"
 import { getAvailableSlugSync } from "charts/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { deleteRemoteFile, writeRemoteFile } from "gitCms/client"
