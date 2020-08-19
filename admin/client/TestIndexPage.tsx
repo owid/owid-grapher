@@ -109,6 +109,16 @@ export class TestIndexPage extends React.Component {
                             <Link
                                 native
                                 target="_blank"
+                                to="/test/embeds?categoricalLegend=true"
+                            >
+                                All charts with categorical legends
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
                                 to="/test/embedVariants"
                             >
                                 Embed Variants
