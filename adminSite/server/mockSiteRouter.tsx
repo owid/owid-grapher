@@ -43,25 +43,25 @@ import { bakeCovidChartAndVariableMeta } from "../../site/server/bakeCovidChartA
 import { chartExplorerRedirectsBySlug } from "../../site/server/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
 
-const bakedSiteRouter = Router()
+const mockSiteRouter = Router()
 
-bakedSiteRouter.get("/sitemap.xml", async (req, res) => {
+mockSiteRouter.get("/sitemap.xml", async (req, res) => {
     res.send(await makeSitemap())
 })
 
-bakedSiteRouter.get("/atom.xml", async (req, res) => {
+mockSiteRouter.get("/atom.xml", async (req, res) => {
     res.send(await makeAtomFeed())
 })
 
-bakedSiteRouter.get("/entries-by-year", async (req, res) => {
+mockSiteRouter.get("/entries-by-year", async (req, res) => {
     res.send(await entriesByYearPage())
 })
 
-bakedSiteRouter.get(`/entries-by-year/:year`, async (req, res) => {
+mockSiteRouter.get(`/entries-by-year/:year`, async (req, res) => {
     res.send(await entriesByYearPage(parseInt(req.params.year)))
 })
 
-bakedSiteRouter.get(
+mockSiteRouter.get(
     "/grapher/data/variables/:variableIds.json",
     async (req, res) => {
         res.set("Access-Control-Allow-Origin", "*")
@@ -75,11 +75,11 @@ bakedSiteRouter.get(
     }
 )
 
-bakedSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
+mockSiteRouter.get("/grapher/embedCharts.js", async (req, res) => {
     res.send(embedSnippet())
 })
 
-bakedSiteRouter.get("/grapher/latest", async (req, res) => {
+mockSiteRouter.get("/grapher/latest", async (req, res) => {
     const latestRows = await db.query(
         `SELECT config->>"$.slug" AS slug FROM charts where starred=1`
     )
@@ -90,7 +90,7 @@ bakedSiteRouter.get("/grapher/latest", async (req, res) => {
     }
 })
 
-bakedSiteRouter.get("/grapher/:slug", async (req, res) => {
+mockSiteRouter.get("/grapher/:slug", async (req, res) => {
     // XXX add dev-prod parity for this
     res.set("Access-Control-Allow-Origin", "*")
     if (req.params.slug in chartExplorerRedirectsBySlug) {
@@ -103,27 +103,27 @@ bakedSiteRouter.get("/grapher/:slug", async (req, res) => {
     }
 })
 
-bakedSiteRouter.get("/", async (req, res) => {
+mockSiteRouter.get("/", async (req, res) => {
     res.send(await renderFrontPage())
 })
 
-bakedSiteRouter.get("/donate", async (req, res) => {
+mockSiteRouter.get("/donate", async (req, res) => {
     res.send(await renderDonatePage())
 })
 
-bakedSiteRouter.get("/charts", async (req, res) => {
+mockSiteRouter.get("/charts", async (req, res) => {
     res.send(await renderChartsPage())
 })
 
-bakedSiteRouter.get("/explore", async (req, res) => {
+mockSiteRouter.get("/explore", async (req, res) => {
     res.send(await renderExplorePage())
 })
 
-bakedSiteRouter.get(`/${covidDashboardSlug}`, async (req, res) => {
+mockSiteRouter.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidDataExplorerPage())
 })
 
-bakedSiteRouter.get(
+mockSiteRouter.get(
     `/${covidCountryProfileRootPath}/:countrySlug`,
     async (req, res) => {
         res.send(
@@ -137,37 +137,34 @@ bakedSiteRouter.get(
 
 const co2Profile = countryProfileSpecs.get("co2")!
 
-bakedSiteRouter.get(
-    `/${co2Profile.rootPath}/:countrySlug`,
-    async (req, res) => {
-        res.send(
-            await countryProfileCountryPage(co2Profile, req.params.countrySlug)
-        )
-    }
-)
+mockSiteRouter.get(`/${co2Profile.rootPath}/:countrySlug`, async (req, res) => {
+    res.send(
+        await countryProfileCountryPage(co2Profile, req.params.countrySlug)
+    )
+})
 
-bakedSiteRouter.get(covidChartAndVariableMetaPath, async (req, res) => {
+mockSiteRouter.get(covidChartAndVariableMetaPath, async (req, res) => {
     res.send(await bakeCovidChartAndVariableMeta())
 })
 
 // Route only available on the dev server
-bakedSiteRouter.get("/covid", async (req, res) => {
+mockSiteRouter.get("/covid", async (req, res) => {
     res.send(await renderCovidPage())
 })
 
-bakedSiteRouter.get("/explore/indicators.json", async (req, res) => {
+mockSiteRouter.get("/explore/indicators.json", async (req, res) => {
     res.type("json").send(await renderExplorableIndicatorsJson())
 })
 
-bakedSiteRouter.get("/search", async (req, res) => {
+mockSiteRouter.get("/search", async (req, res) => {
     res.send(await renderSearchPage())
 })
 
-bakedSiteRouter.get("/blog", async (req, res) => {
+mockSiteRouter.get("/blog", async (req, res) => {
     res.send(await renderBlogByPageNum(1))
 })
 
-bakedSiteRouter.get("/blog/page/:pageno", async (req, res) => {
+mockSiteRouter.get("/blog/page/:pageno", async (req, res) => {
     const pagenum = parseInt(req.params.pageno, 10)
     if (!isNaN(pagenum)) {
         res.send(await renderBlogByPageNum(isNaN(pagenum) ? 1 : pagenum))
@@ -176,11 +173,11 @@ bakedSiteRouter.get("/blog/page/:pageno", async (req, res) => {
     }
 })
 
-bakedSiteRouter.get("/headerMenu.json", async (req, res) => {
+mockSiteRouter.get("/headerMenu.json", async (req, res) => {
     res.send(await renderMenuJson())
 })
 
-bakedSiteRouter.use(
+mockSiteRouter.use(
     // Not all /app/uploads paths are going through formatting
     // and being rewritten as /uploads. E.g. blog index images paths
     // on front page.
@@ -190,39 +187,39 @@ bakedSiteRouter.use(
     })
 )
 
-bakedSiteRouter.use(
+mockSiteRouter.use(
     "/exports",
     express.static(path.join(BAKED_SITE_DIR, "exports"))
 )
 
-bakedSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
+mockSiteRouter.use("/grapher/exports/:slug.svg", async (req, res) => {
     const chart = await OldChart.getBySlug(req.params.slug)
     const vardata = await chart.getVariableData()
     res.setHeader("Content-Type", "image/svg+xml")
     res.send(await chartToSVG(chart.config, vardata))
 })
 
-bakedSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
+mockSiteRouter.use("/", express.static(path.join(BASE_DIR, "public")))
 
-bakedSiteRouter.get("/indicator/:variableId/:country", async (req, res) => {
+mockSiteRouter.get("/indicator/:variableId/:country", async (req, res) => {
     const variableId = expectInt(req.params.variableId)
 
     res.send(await pagePerVariable(variableId, req.params.country))
 })
 
-bakedSiteRouter.get("/countries", async (req, res) => {
+mockSiteRouter.get("/countries", async (req, res) => {
     res.send(await countriesIndexPage())
 })
 
-bakedSiteRouter.get("/country/:countrySlug", async (req, res) => {
+mockSiteRouter.get("/country/:countrySlug", async (req, res) => {
     res.send(await countryProfilePage(req.params.countrySlug))
 })
 
-bakedSiteRouter.get("/feedback", async (req, res) => {
+mockSiteRouter.get("/feedback", async (req, res) => {
     res.send(await feedbackPage())
 })
 
-bakedSiteRouter.get("/*", async (req, res) => {
+mockSiteRouter.get("/*", async (req, res) => {
     const slug = req.path.replace(/^\//, "").replace("/", "__")
     try {
         res.send(await renderPageBySlug(slug))
@@ -232,4 +229,4 @@ bakedSiteRouter.get("/*", async (req, res) => {
     }
 })
 
-export { bakedSiteRouter }
+export { mockSiteRouter }
