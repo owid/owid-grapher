@@ -18,7 +18,7 @@ import { faPaintBrush } from "@fortawesome/free-solid-svg-icons/faPaintBrush"
 import { faUnlink } from "@fortawesome/free-solid-svg-icons/faUnlink"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-export class FieldsRow extends React.Component<{}> {
+export class FieldsRow extends React.Component {
     render() {
         const { props } = this
         return <div className="FieldsRow">{props.children}</div>
@@ -857,7 +857,7 @@ export class Modal extends React.Component<{
 }
 
 @observer
-export class LoadingBlocker extends React.Component<{}> {
+export class LoadingBlocker extends React.Component {
     render() {
         return (
             <div className="LoadingBlocker">

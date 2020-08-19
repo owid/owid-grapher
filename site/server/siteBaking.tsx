@@ -151,7 +151,7 @@ export async function renderMenuJson() {
     return JSON.stringify({ categories: categories })
 }
 
-async function renderPage(postApi: object) {
+async function renderPage(postApi: any) {
     const post = await wpdb.getFullPost(postApi)
     const pageType = await wpdb.getPageType(post)
 
