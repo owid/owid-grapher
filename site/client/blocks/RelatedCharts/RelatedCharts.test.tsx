@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { mount } from "enzyme"
-import { RelatedCharts } from "../RelatedCharts"
+import { RelatedCharts } from "./RelatedCharts"
 
 const charts = [
     {

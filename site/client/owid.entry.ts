@@ -28,7 +28,7 @@ import { runLightbox } from "./Lightbox"
 import { runSiteTools } from "./SiteTools"
 import { runCovid } from "./covid/index"
 import { runGlobalEntityControl } from "./global-entity/GlobalEntityControl"
-import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
+import { CovidDataExplorer } from "explorer/client/covidDataExplorer/CovidDataExplorer"
 import { runFootnotes } from "site/client/Footnote"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 

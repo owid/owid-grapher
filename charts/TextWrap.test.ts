@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
-import { TextWrap } from "../TextWrap"
-import { Bounds } from "../Bounds"
+import { TextWrap } from "./TextWrap"
+import { Bounds } from "./Bounds"
 
 const FONT_SIZE = 14
 

@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
+import { CovidQueryParams } from "explorer/client/covidDataExplorer/CovidParams"
 
 describe(CovidQueryParams, () => {
     it("parses params correctly", () => {

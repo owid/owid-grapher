@@ -25,7 +25,7 @@ import {
     trimEmptyRows,
     JsTable,
     anyToString
-} from "../Util"
+} from "./Util"
 import { strToQueryParams } from "utils/client/url"
 
 describe(findClosestYear, () => {

@@ -50,7 +50,7 @@ import { log } from "utils/server/log"
 import {
     covidDashboardSlug,
     covidChartAndVariableMetaFilename
-} from "charts/covidDataExplorer/CovidConstants"
+} from "explorer/client/covidDataExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirects } from "./bakeCovidExplorerRedirects"

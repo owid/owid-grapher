@@ -1,5 +1,5 @@
-import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
-import { covidDashboardSlug } from "charts/covidDataExplorer/CovidConstants"
+import { CovidDataExplorer } from "explorer/client/covidDataExplorer/CovidDataExplorer"
+import { covidDashboardSlug } from "explorer/client/covidDataExplorer/CovidConstants"
 import { excludeUndefined } from "charts/Util"
 
 import { Figure, LoadProps } from "./Figure"

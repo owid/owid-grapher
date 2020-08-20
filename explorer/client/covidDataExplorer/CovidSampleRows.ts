@@ -1,4 +1,4 @@
-import { CovidExplorerTable } from "charts/covidDataExplorer/CovidExplorerTable"
+import { CovidExplorerTable } from "explorer/client/covidDataExplorer/CovidExplorerTable"
 import { csvParse } from "d3-dsv"
 
 const sampleCsv = `population,iso_code,location,continent,date,total_cases,new_cases,total_deaths,new_deaths,total_cases_per_million,new_cases_per_million,total_deaths_per_million,new_deaths_per_million,total_tests,new_tests,total_tests_per_thousand,new_tests_per_thousand,tests_units
@@ -15,4 +15,6 @@ const sampleCsv = `population,iso_code,location,continent,date,total_cases,new_c
 3000,,World,,2020-05-05,3544168,76666,250977,3978,454.684,9.836,32.198,0.51,,,,,
 3000,,World,,2020-05-06,3623803,79635,256880,5903,464.9,10.216,32.955,0.757,,,,,`
 
-export const covidSampleRows = (csvParse(sampleCsv) as any).map(CovidExplorerTable.parseCovidRow)
+export const covidSampleRows = (csvParse(sampleCsv) as any).map(
+    CovidExplorerTable.parseCovidRow
+)

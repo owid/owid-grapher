@@ -4,10 +4,10 @@ import {
     getLeastUsedColor,
     CovidExplorerTable
 } from "../covidDataExplorer/CovidExplorerTable"
-import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
+import { covidSampleRows } from "./CovidSampleRows"
 import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
 import uniq from "lodash/uniq"
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
+import { CovidQueryParams } from "explorer/client/covidDataExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
 
 describe("parse row", () => {
