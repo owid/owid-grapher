@@ -316,7 +316,7 @@
     .cover-image {
         width: 100%;
         height: 0;
-        padding-bottom: 70%;
+        padding-bottom: 52.5%;
         background-repeat: no-repeat;
         background-position: center center;
         background-size: cover;
@@ -402,7 +402,7 @@
 
 .homepage-posts--explainers {
     ul {
-        @include posts-list;
+        @include posts-list(8);
     }
 
     .thumbnail {

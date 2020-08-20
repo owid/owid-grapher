@@ -125,7 +125,7 @@ body.blog h2 {
 }
 
 body.blog ul.posts {
-    @include posts-list;
+    @include posts-list(20);
 }
 
 body.blog li.post h3 {
@@ -149,15 +149,20 @@ body.blog li.post a:hover h3 {
     color: #d10a11;
 }
 
-body.blog li.post a:hover img {
-    border: 1px solid #999;
+body.blog li.post a .cover-image {
+    width: 100%;
+    height: 0;
+    padding-bottom: 52.5%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    background-color: rgba(white, 0.05);
+
+    border: 1px solid #e0e0e0;
 }
 
-body.blog li.post img {
-    border: 1px solid #e0e0e0;
-    width: 100%;
-    height: 215px;
-    object-fit: cover;
+body.blog li.post a:hover .cover-image {
+    border: 1px solid #999;
 }
 
 @include md-up {

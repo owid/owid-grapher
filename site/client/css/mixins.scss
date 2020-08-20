@@ -178,7 +178,7 @@
     }
 }
 
-@mixin posts-list {
+@mixin posts-list($posts-num) {
     margin-bottom: $vertical-spacing * 2;
     list-style-type: none;
 
@@ -191,7 +191,7 @@
         display: grid;
         grid-gap: 1.5rem 1.25rem;
         grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: repeat(10, auto);
+        grid-template-rows: repeat(ceil($posts-num / 2), auto);
 
         li {
             margin-bottom: 0;
@@ -201,7 +201,7 @@
     @include md-up {
         /* autoprefixer grid: autoplace */
         grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(5, auto);
+        grid-template-rows: repeat(ceil($posts-num / 4), auto);
     }
 }
 
