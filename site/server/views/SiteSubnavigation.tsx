@@ -83,7 +83,7 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
         },
         {
             label: "Data explorer",
-            href: "/co2-data-explorer",
+            href: "/explorers/co2",
             id: "co2-data-explorer"
         },
         { label: "CO₂ emissions", href: "/co2-emissions", id: "co2-emissions" },
@@ -119,7 +119,7 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
         },
         {
             label: "Data explorer",
-            href: "/energy-data-explorer",
+            href: "/explorers/energy",
             id: "energy-data-explorer"
         },
         { label: "Energy access", href: "/energy-access", id: "energy-access" },
