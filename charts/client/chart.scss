@@ -851,6 +851,7 @@ $zindex-IndicatorDropdown: 50;
 
         .date {
             font-size: 0.9rem;
+            margin-right: 0;
         }
 
         .play,
@@ -861,32 +862,42 @@ $zindex-IndicatorDropdown: 50;
             }
         }
 
-        $handle-width: 0.5em;
+        $handle-diameter: 16px;
         .slider {
-            height: 0.4em;
+            height: 4px;
             flex-grow: 1;
-            background: #eee;
+            background: #adb6c0;
             border-radius: 5px;
             position: relative;
             display: flex;
             align-items: center;
-            margin-right: 2 * $handle-width;
+            margin-left: $handle-diameter;
+            margin-right: $handle-diameter;
         }
 
         .handle {
-            height: 1em;
-            border-radius: 0.2em;
-            width: $handle-width;
+            height: $handle-diameter;
+            width: $handle-diameter;
+            border-radius: 100%;
             background: $controls-color;
             position: absolute;
+
+            background: #ffffff;
+            border: 1.5px solid $controls-color;
+            box-sizing: border-box;
+            box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
+            z-index: 1;
+
             cursor: col-resize;
+
+            margin-left: -$handle-diameter / 2;
         }
 
         .interval {
             position: absolute;
-            height: 0.6em;
-            margin-left: $handle-width;
+            height: 6px;
             background: $controls-color;
+
             cursor: grab;
             &:active {
                 cursor: grabbing;

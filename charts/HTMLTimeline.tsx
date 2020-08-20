@@ -1,6 +1,12 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { first, last, findClosestYear, getRelativeMouse } from "./Util"
+import {
+    first,
+    last,
+    findClosestYear,
+    getRelativeMouse,
+    isMobile
+} from "./Util"
 import { Bounds } from "./Bounds"
 import { Analytics } from "site/client/Analytics"
 import {
@@ -199,22 +205,18 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     get sliderBounds() {
-        const slider = this.base.current!.querySelector(".slider")
-        return slider
-            ? Bounds.fromRect(slider.getBoundingClientRect())
+        return this.slider
+            ? Bounds.fromRect(this.slider.getBoundingClientRect())
             : new Bounds(0, 0, 100, 100)
     }
 
+    private slider?: Element | null
+
     getInputYearFromMouse(evt: MouseEvent) {
-        const slider = this.base.current!.querySelector(
-            ".slider"
-        ) as HTMLDivElement
-        const sliderBounds = slider.getBoundingClientRect()
-
         const { minYear, maxYear } = this
-        const mouseX = getRelativeMouse(slider, evt).x
+        const mouseX = getRelativeMouse(this.slider, evt).x
 
-        const fracWidth = mouseX / sliderBounds.width
+        const fracWidth = mouseX / this.sliderBounds.width
         const inputYear = minYear + fracWidth * (maxYear - minYear)
 
         return inputYear
@@ -277,9 +279,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @action.bound onMouseDown(e: any) {
-        // Don't do mousemove if we clicked the play or pause button
         const targetEl = select(e.target)
-        if (targetEl.classed("toggle")) return
 
         const { startYearUI, endYearUI } = this
         const { singleYearMode } = this.props
@@ -353,6 +353,8 @@ export class Timeline extends React.Component<TimelineProps> {
             this.updateChartTimeDomain()
         })
 
+        this.slider = this.base.current!.querySelector(".slider")
+
         document.documentElement.addEventListener("mouseup", this.onMouseUp)
         document.documentElement.addEventListener("mouseleave", this.onMouseUp)
         document.documentElement.addEventListener("mousemove", this.onMouseMove)
@@ -385,10 +387,12 @@ export class Timeline extends React.Component<TimelineProps> {
                         // As start/end values can flip while dragging one handle past another, we
                         // have logic to flip start/end on the fly. But when they get reassigned, to
                         // avoid the unintentional flip, it needs to be done atomically.
-                        ;[this.startYearRaw, this.endYearRaw] = [
-                            this.startYearClosest,
-                            this.endYearClosest
-                        ]
+                        if (this.startYearRaw > this.endYearRaw) {
+                            ;[this.startYearRaw, this.endYearRaw] = [
+                                this.startYearClosest,
+                                this.endYearClosest
+                            ]
+                        }
                     })
                 }
             })
@@ -417,6 +421,26 @@ export class Timeline extends React.Component<TimelineProps> {
         this.context.chart.isPlaying = !this.isPlaying
     }
 
+    @action onClickDate(dateType: "start" | "end", date: number) {
+        if (dateType === "start") this.onStartYearChange(date)
+        else this.onEndYearChange(date)
+        this.updateChartTimeDomain()
+    }
+
+    private timelineDate(dateType: "start" | "end", date: number) {
+        return (
+            <div
+                className="date clickable"
+                onClick={() => this.onClickDate(dateType, date)}
+            >
+                {this.context.chart.formatYearFunction(
+                    date,
+                    isMobile() ? { format: "MMM D, 'YY" } : {}
+                )}
+            </div>
+        )
+    }
+
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
 
@@ -424,12 +448,7 @@ export class Timeline extends React.Component<TimelineProps> {
         const endYearProgress = (endYearUI - minYear) / (maxYear - minYear)
 
         return (
-            <div
-                ref={this.base}
-                className={"clickable TimelineControl"}
-                onTouchStart={this.onMouseDown}
-                onMouseDown={this.onMouseDown}
-            >
+            <div ref={this.base} className={"TimelineControl"}>
                 {!this.props.disablePlay && (
                     <div
                         onMouseDown={e => e.stopPropagation()}
@@ -443,13 +462,17 @@ export class Timeline extends React.Component<TimelineProps> {
                         )}
                     </div>
                 )}
-                <div className="date">
-                    {this.context.chart.formatYearFunction(minYear)}
-                </div>
-                <div className="slider">
+                {this.timelineDate("start", minYear)}
+                <div
+                    className="slider"
+                    onTouchStart={this.onMouseDown}
+                    onMouseDown={this.onMouseDown}
+                >
                     <div
                         className="handle startMarker"
-                        style={{ left: `${startYearProgress * 100}%` }}
+                        style={{
+                            left: `${startYearProgress * 100}%`
+                        }}
                     />
                     <div
                         className="interval"
@@ -460,12 +483,12 @@ export class Timeline extends React.Component<TimelineProps> {
                     />
                     <div
                         className="handle endMarker"
-                        style={{ left: `${endYearProgress * 100}%` }}
+                        style={{
+                            left: `${endYearProgress * 100}%`
+                        }}
                     />
                 </div>
-                <div className="date">
-                    {this.context.chart.formatYearFunction(maxYear)}
-                </div>
+                {this.timelineDate("end", maxYear)}
             </div>
         )
     }

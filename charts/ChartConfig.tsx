@@ -423,10 +423,11 @@ export class ChartConfig {
         this.setBaseFontSize = val
     }
 
-    @computed get formatYearFunction() {
-        return this.table.hasDayColumn
-            ? (day: number) => formatDay(day)
-            : formatYear
+    @computed get formatYearFunction(): (
+        year: number,
+        options?: { format?: string }
+    ) => string {
+        return this.table.hasDayColumn ? formatDay : formatYear
     }
 
     @computed get formatYearTickFunction() {
