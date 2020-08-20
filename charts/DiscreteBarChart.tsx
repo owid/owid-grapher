@@ -229,12 +229,25 @@ export class DiscreteBarChart extends React.Component<{
         })
     }
 
+    @computed get barWidths() {
+        return this.barPlacements.map(b => b.width)
+    }
+
+    private d3Bars() {
+        return select(this.base.current).selectAll("g.bar > rect")
+    }
+
     componentDidMount() {
-        const widths = this.barPlacements.map(b => b.width)
-        const bars = select(this.base.current).selectAll("g.bar > rect")
-        bars.attr("width", 0)
+        this.d3Bars()
+            .attr("width", 0)
             .transition()
-            .attr("width", (_, i) => widths[i])
+            .attr("width", (_, i) => this.barWidths[i])
+    }
+
+    componentDidUpdate() {
+        this.d3Bars()
+            .transition()
+            .attr("width", (_, i) => this.barWidths[i])
     }
 
     @computed get barValueFormat() {
