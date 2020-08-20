@@ -2,7 +2,7 @@ import * as express from "express"
 import * as crypto from "crypto"
 import * as randomstring from "randomstring"
 import { User } from "db/model/User"
-import { BCryptHasher } from "../../../utils/hashers"
+import { BCryptHasher } from "utils/hashers"
 
 import * as db from "db/db"
 import { SECRET_KEY, SESSION_COOKIE_AGE } from "serverSettings"
