@@ -6,8 +6,8 @@ $grid-gap: 10px;
 $chart-box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
     rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-html.iframe .CovidDataExplorer,
-.CovidDataExplorer.is-embed {
+html.iframe .CovidExplorer,
+.CovidExplorer.is-embed {
     height: 100%;
     min-height: auto !important;
     max-height: none;
@@ -16,13 +16,13 @@ html.iframe .CovidDataExplorer,
     padding: 0;
 }
 
-html.iframe .CovidDataExplorerFigure,
-.is-embed .CovidDataExplorerFigure {
+html.iframe .CovidExplorerFigure,
+.is-embed .CovidExplorerFigure {
     min-height: auto !important;
     max-height: none;
 }
 
-.CovidDataExplorer {
+.CovidExplorer {
     margin: 0 auto;
     padding-top: $grid-gap;
     width: 100%;
@@ -39,7 +39,7 @@ html.iframe .CovidDataExplorerFigure,
     &.HideControls {
         display: block;
 
-        .CovidDataExplorerFigure {
+        .CovidExplorerFigure {
             height: 100%;
         }
     }
@@ -53,7 +53,7 @@ html.iframe .CovidDataExplorerFigure,
         border-radius: 0.25rem;
     }
 
-    .CovidDataExplorerFigure {
+    .CovidExplorerFigure {
         display: flex;
         align-items: center;
         justify-content: center;

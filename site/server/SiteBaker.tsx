@@ -50,17 +50,17 @@ import { log } from "utils/server/log"
 import {
     covidDashboardSlug,
     covidChartAndVariableMetaFilename
-} from "explorer/client/covidDataExplorer/CovidConstants"
+} from "explorer/covidExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "./covid/CovidConstants"
-import { bakeCovidChartAndVariableMeta } from "./bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirects } from "./bakeCovidExplorerRedirects"
+import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
+import { chartExplorerRedirects } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import {
     countryProfileSpecs,
     co2CountryProfileRootPath
 } from "site/client/CountryProfileConstants"
 import {
     bakeAllPublishedExplorers,
-    renderCovidDataExplorerPage
+    renderCovidExplorerPage
 } from "explorer/admin/ExplorerBaker"
 
 // Static site generator using Wordpress
@@ -334,7 +334,7 @@ export class SiteBaker {
         if (settings.COVID_DASHBOARD) {
             await this.stageWrite(
                 `${BAKED_SITE_DIR}/${covidDashboardSlug}.html`,
-                await renderCovidDataExplorerPage()
+                await renderCovidExplorerPage()
             )
         }
         await this.stageWrite(
@@ -537,7 +537,7 @@ export class SiteBaker {
     async bakeExplorerRedirects() {
         for (const chartExplorerRedirect of chartExplorerRedirects) {
             const { slugs, explorerQueryStr } = chartExplorerRedirect
-            const html = await renderCovidDataExplorerPage({ explorerQueryStr })
+            const html = await renderCovidExplorerPage({ explorerQueryStr })
             await Promise.all(
                 slugs.map(slug =>
                     this.stageWrite(

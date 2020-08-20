@@ -86,7 +86,7 @@ interface BootstrapProps {
 }
 
 @observer
-export class CovidDataExplorer extends React.Component<{
+export class CovidExplorer extends React.Component<{
     data: CovidGrapherRow[]
     params: CovidQueryParams
     covidChartAndVariableMeta: {
@@ -113,7 +113,7 @@ export class CovidDataExplorer extends React.Component<{
                 : coronaDefaultView
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
-            <CovidDataExplorer
+            <CovidExplorer
                 data={typedData}
                 updated={updated}
                 params={startingParams}
@@ -149,7 +149,7 @@ export class CovidDataExplorer extends React.Component<{
             document.title,
             `${BAKED_BASE_URL}/${covidDashboardSlug}${queryStr}`
         )
-        return CovidDataExplorer.bootstrap({
+        return CovidExplorer.bootstrap({
             ...props,
             queryStr
         })
@@ -508,7 +508,7 @@ export class CovidDataExplorer extends React.Component<{
                 />
                 <div
                     className={classnames({
-                        CovidDataExplorer: true,
+                        CovidExplorer: true,
                         "mobile-explorer": this.isMobile,
                         HideControls: !this.showExplorerControls,
                         "is-embed": this.props.isEmbed
@@ -520,7 +520,7 @@ export class CovidDataExplorer extends React.Component<{
                     {this.showExplorerControls &&
                         this.customizeChartMobileButton}
                     <div
-                        className="CovidDataExplorerFigure"
+                        className="CovidExplorerFigure"
                         ref={this.chartContainerRef}
                     >
                         {this.chartBounds && (

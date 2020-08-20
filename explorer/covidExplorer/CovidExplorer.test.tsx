@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
-import { CovidDataExplorer } from "../covidDataExplorer/CovidDataExplorer"
-import { CovidQueryParams } from "explorer/client/covidDataExplorer/CovidParams"
+import { CovidExplorer } from "./CovidExplorer"
+import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { covidSampleRows } from "./CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import { MetricOptions } from "explorer/client/covidDataExplorer/CovidConstants"
+import { MetricOptions } from "explorer/covidExplorer/CovidConstants"
 import { defaultTo } from "charts/Util"
 
 const dummyMeta = {
@@ -13,11 +13,11 @@ const dummyMeta = {
     variables: {}
 }
 
-describe(CovidDataExplorer, () => {
+describe(CovidExplorer, () => {
     it("renders the Covid Data Explorer", () => {
         const startingParams = new CovidQueryParams("")
         const element = shallow(
-            <CovidDataExplorer
+            <CovidExplorer
                 data={covidSampleRows}
                 params={startingParams}
                 covidChartAndVariableMeta={dummyMeta}
@@ -47,7 +47,7 @@ class ExplorerDataTableTest {
         this.params = defaultTo(params, ExplorerDataTableTest.defaultParams)
 
         this.view = mount(
-            <CovidDataExplorer
+            <CovidExplorer
                 data={covidSampleRows}
                 params={this.params}
                 queryStr="?tab=table&time=2020-05-06"

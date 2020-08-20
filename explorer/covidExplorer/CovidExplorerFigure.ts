@@ -1,8 +1,8 @@
-import { CovidDataExplorer } from "explorer/client/covidDataExplorer/CovidDataExplorer"
-import { covidDashboardSlug } from "explorer/client/covidDataExplorer/CovidConstants"
+import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
+import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
 import { excludeUndefined } from "charts/Util"
 
-import { Figure, LoadProps } from "./Figure"
+import { Figure, LoadProps } from "site/client/figures/Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 
 interface CovidExplorerFigureProps {
@@ -37,7 +37,7 @@ export class CovidExplorerFigure implements Figure {
     async load(loadProps: LoadProps) {
         if (!this._isLoaded) {
             this._isLoaded = true
-            CovidDataExplorer.bootstrap({
+            CovidExplorer.bootstrap({
                 containerNode: this.container,
                 isEmbed: true,
                 queryStr: this.props.queryStr,

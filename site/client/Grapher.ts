@@ -7,7 +7,7 @@ import {
 } from "./global-entity/GlobalEntitySelection"
 import { Figure } from "./figures/Figure"
 import { ChartFigure } from "./figures/ChartFigure"
-import { CovidExplorerFigure } from "./figures/CovidExplorerFigure"
+import { CovidExplorerFigure } from "explorer/covidExplorer/CovidExplorerFigure"
 
 // Determine whether this device is powerful enough to handle
 // loading a bunch of inline interactive charts

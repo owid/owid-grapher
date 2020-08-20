@@ -161,7 +161,7 @@ export class ExplorerShell extends React.Component<{
                 />
                 <div
                     className={classNames({
-                        CovidDataExplorer: true,
+                        CovidExplorer: true,
                         "mobile-explorer": this.isMobile,
                         HideControls: !this.showExplorerControls,
                         "is-embed": this.props.isEmbed
@@ -177,7 +177,7 @@ export class ExplorerShell extends React.Component<{
                     {this.showExplorerControls &&
                         this.customizeChartMobileButton}
                     <div
-                        className="CovidDataExplorerFigure"
+                        className="CovidExplorerFigure"
                         ref={this.chartContainerRef}
                     >
                         {this.chartBounds && (

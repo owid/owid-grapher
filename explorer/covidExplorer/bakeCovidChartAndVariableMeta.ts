@@ -7,7 +7,7 @@ import {
     covidChartAndVariableMetaFilename,
     sourceCharts,
     sourceVariables
-} from "explorer/client/covidDataExplorer/CovidConstants"
+} from "explorer/covidExplorer/CovidConstants"
 import { uniq } from "lodash"
 
 const variableIds = Object.values(sourceVariables)

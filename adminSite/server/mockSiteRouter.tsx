@@ -36,12 +36,12 @@ import { chartToSVG } from "site/server/svgPngExport"
 import {
     covidDashboardSlug,
     covidChartAndVariableMetaPath
-} from "explorer/client/covidDataExplorer/CovidConstants"
+} from "explorer/covidExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "site/server/covid/CovidConstants"
-import { bakeCovidChartAndVariableMeta } from "site/server/bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirectsBySlug } from "site/server/bakeCovidExplorerRedirects"
+import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
+import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
-import { renderCovidDataExplorerPage } from "explorer/admin/ExplorerBaker"
+import { renderCovidExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const mockSiteRouter = Router()
 
@@ -100,7 +100,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
         const { explorerQueryStr } = chartExplorerRedirectsBySlug[
             req.params.slug
         ]
-        res.send(await renderCovidDataExplorerPage({ explorerQueryStr }))
+        res.send(await renderCovidExplorerPage({ explorerQueryStr }))
     } else {
         res.send(await chartPageFromSlug(req.params.slug))
     }
@@ -123,7 +123,7 @@ mockSiteRouter.get("/explore", async (req, res) => {
 })
 
 mockSiteRouter.get(`/${covidDashboardSlug}`, async (req, res) => {
-    res.send(await renderCovidDataExplorerPage())
+    res.send(await renderCovidExplorerPage())
 })
 
 mockSiteRouter.get(

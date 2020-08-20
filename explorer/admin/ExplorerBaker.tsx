@@ -18,7 +18,7 @@ import {
     coronaOpenGraphImagePath,
     covidPageTitle,
     covidPreloads
-} from "explorer/client/covidDataExplorer/CovidConstants"
+} from "explorer/covidExplorer/CovidConstants"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
 import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
@@ -156,9 +156,7 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
     )
 }
 
-export async function renderCovidDataExplorerPage(
-    props?: CovidDataExplorerPageProps
-) {
+export async function renderCovidExplorerPage(props?: CovidExplorerPageProps) {
     return renderToHtmlPage(<CovidExplorerPage {...props} />)
 }
 
@@ -204,11 +202,11 @@ const ExplorerPage = (props: ExplorerPageSettings) => {
     )
 }
 
-interface CovidDataExplorerPageProps {
+interface CovidExplorerPageProps {
     explorerQueryStr?: string
 }
 
-const CovidExplorerPage = (props: CovidDataExplorerPageProps) => {
+const CovidExplorerPage = (props: CovidExplorerPageProps) => {
     // This script allows us to replace existing Grapher pages with Explorer pages.
     // Part of the reason for doing the redirect client-side is that Netlify doesn't support
     // redirecting while preserving all query parameters.
@@ -220,7 +218,7 @@ const CovidExplorerPage = (props: CovidDataExplorerPageProps) => {
         isEmbed: window != window.top,
         bindToWindow: true
     };
-    window.CovidDataExplorer.replaceStateAndBootstrap(
+    window.CovidExplorer.replaceStateAndBootstrap(
         "${props.explorerQueryStr ?? ""}",
         props
     )

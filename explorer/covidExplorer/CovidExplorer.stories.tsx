@@ -1,11 +1,11 @@
 import * as React from "react"
-import { CovidDataExplorer } from "explorer/client/covidDataExplorer/CovidDataExplorer"
-import { covidSampleRows } from "explorer/client/covidDataExplorer/CovidSampleRows"
-import { CovidQueryParams } from "explorer/client/covidDataExplorer/CovidParams"
+import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
+import { covidSampleRows } from "explorer/covidExplorer/CovidSampleRows"
+import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 
 export default {
-    title: "CovidDataExplorer",
-    component: CovidDataExplorer
+    title: "CovidExplorer",
+    component: CovidExplorer
 }
 
 const EMPTY_DUMMY_META = {
@@ -15,7 +15,7 @@ const EMPTY_DUMMY_META = {
 
 export const SingleExplorerWithKeyboardShortcuts = () => {
     return (
-        <CovidDataExplorer
+        <CovidExplorer
             data={covidSampleRows}
             params={new CovidQueryParams("")}
             covidChartAndVariableMeta={EMPTY_DUMMY_META}
@@ -28,13 +28,13 @@ export const SingleExplorerWithKeyboardShortcuts = () => {
 export const MultipleExplorers = () => {
     return (
         <>
-            <CovidDataExplorer
+            <CovidExplorer
                 data={covidSampleRows}
                 params={new CovidQueryParams("")}
                 covidChartAndVariableMeta={EMPTY_DUMMY_META}
                 updated="2020-05-09T18:59:31"
             />
-            <CovidDataExplorer
+            <CovidExplorer
                 data={covidSampleRows}
                 params={new CovidQueryParams("")}
                 covidChartAndVariableMeta={EMPTY_DUMMY_META}
@@ -49,7 +49,7 @@ export const MultiMetricExplorer = () => {
         "?tab=table&tableMetrics=cases~deaths~tests~tests_per_case~case_fatality_rate~positive_test_rate"
     )
     return (
-        <CovidDataExplorer
+        <CovidExplorer
             data={covidSampleRows}
             params={startingParams}
             queryStr="?tab=table&time=2020-05-06"
