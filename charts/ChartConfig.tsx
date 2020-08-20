@@ -427,9 +427,7 @@ export class ChartConfig {
         year: number,
         options?: { format?: string }
     ) => string {
-        return this.table.hasDayColumn
-            ? formatDay
-            : formatYear
+        return this.table.hasDayColumn ? formatDay : formatYear
     }
 
     @computed get formatYearTickFunction() {
