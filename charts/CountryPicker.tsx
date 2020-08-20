@@ -18,6 +18,7 @@ import {
     last,
     max,
     isNumber,
+    sortBy,
     sortByUndefinedLast,
     first
 } from "charts/Util"
@@ -136,12 +137,15 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed get metricOptions() {
-        return this.availablePickerColumns.map(col => {
-            return {
-                label: col.spec.name, // todo: name
-                value: col.slug
-            }
-        })
+        return sortBy(
+            this.availablePickerColumns.map(col => {
+                return {
+                    label: col.spec.name, // todo: name
+                    value: col.slug
+                }
+            }),
+            "label"
+        )
     }
 
     @computed get activePickerMetricColumn(): AbstractColumn {

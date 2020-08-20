@@ -102,6 +102,8 @@ export declare type columnTypes =
     | "Temporal"
     | "Currency"
     | "Percentage"
+    | "DecimalPercentage"
+    | "Integer"
     | "Population"
     | "PopulationDensity"
     | "Age"
@@ -283,7 +285,17 @@ class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
 export class NumericColumn extends AbstractColumn {}
-class IntegerColumn extends NumericColumn {}
+class IntegerColumn extends NumericColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatValue(value, {
+            numDecimalPlaces: 0,
+            noTrailingZeroes: false,
+            numberPrefixes: true,
+            shortNumberPrefixes: true
+        })
+    }
+}
 class CurrencyColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""
@@ -295,6 +307,7 @@ class CurrencyColumn extends NumericColumn {
         })
     }
 }
+// Expects 50% to be 50
 class PercentageColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""
@@ -306,17 +319,19 @@ class PercentageColumn extends NumericColumn {
         })
     }
 }
-class PopulationColumn extends IntegerColumn {
+// Expectes 50% to be .5
+class DecimalPercentageColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""
-        return formatValue(value, {
+        return formatValue(value * 100, {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
-            numberPrefixes: true,
-            shortNumberPrefixes: true
+            numberPrefixes: false,
+            unit: "%"
         })
     }
 }
+class PopulationColumn extends IntegerColumn {}
 class PopulationDensityColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""
@@ -343,7 +358,7 @@ class RatioColumn extends NumericColumn {
         return formatValue(value, {
             numDecimalPlaces: 1,
             noTrailingZeroes: false,
-            numberPrefixes: false
+            numberPrefixes: true
         })
     }
 }
@@ -356,6 +371,8 @@ const columnTypeMap: { [key in columnTypes]: any } = {
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,
     Percentage: PercentageColumn,
+    Integer: IntegerColumn,
+    DecimalPercentage: DecimalPercentageColumn,
     Population: PopulationColumn,
     PopulationDensity: PopulationDensityColumn,
     Age: AgeColumn,

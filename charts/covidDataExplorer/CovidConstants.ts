@@ -197,6 +197,8 @@ export interface ParsedCovidCsvRow {
     total_tests_per_thousand: number
     new_tests_per_thousand: number
     new_tests_smoothed_per_thousand: number
+    new_cases_smoothed: number
+    new_deaths_smoothed: number
     tests_units: string
     stringency_index: number
     population: number
@@ -205,6 +207,9 @@ export interface ParsedCovidCsvRow {
     aged_65_older: number
     aged_70_older: number
     gdp_per_capita: number
+    life_expectancy: number
+    positive_rate: number
+    tests_per_case: number
     extreme_poverty: number
     cvd_death_rate: number
     diabetes_prevalence: number
@@ -225,7 +230,7 @@ export interface CovidGrapherRow extends ParsedCovidCsvRow {
 export declare type covidCsvColumnSlug = keyof ParsedCovidCsvRow
 export const metricPickerColumnSpecs: Partial<Record<
     covidCsvColumnSlug,
-    ColumnSpec
+    Partial<ColumnSpec>
 >> = {
     location: { slug: "location", name: "Country name" },
     population: { slug: "population", name: "Population", type: "Population" },
@@ -259,6 +264,23 @@ export const metricPickerColumnSpecs: Partial<Record<
         slug: "hospital_beds_per_thousand",
         name: "Hospital beds (per 1000)",
         type: "Ratio"
-    }
-    // tests_per_case: { slug: "tests_per_case", name: "Tests per case" }
+    },
+    stringency_index: {
+        slug: "stringency_index",
+        name: "Stringency Index",
+        type: "Numeric"
+    },
+    life_expectancy: { name: "Life expectancy", type: "Age" },
+    total_deaths: { name: "Total deaths", type: "Integer" },
+    new_cases: { name: "New cases", type: "Integer" },
+    new_deaths: { name: "New deaths", type: "Integer" },
+    total_cases: { name: "Total cases", type: "Integer" },
+    total_tests: { name: "Total tests", type: "Integer" },
+    total_tests_per_thousand: { name: "Total tests (per 1K)", type: "Ratio" },
+    positive_rate: { name: "Positive test rate", type: "DecimalPercentage" },
+    tests_per_case: { name: "Tests per case", type: "Ratio" },
+    total_deaths_per_million: { name: "Total deaths (per 1M)", type: "Ratio" },
+    total_cases_per_million: { name: "Total cases (per 1M)", type: "Ratio" },
+    new_deaths_per_million: { name: "New deaths (per 1M)", type: "Ratio" },
+    new_cases_per_million: { name: "New cases (per 1M)", type: "Ratio" }
 }
