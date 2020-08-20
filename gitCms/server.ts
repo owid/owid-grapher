@@ -1,6 +1,6 @@
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { Request, Response } from "adminSite/server/utils/authentication"
-import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL } from "settings"
+import { GIT_DEFAULT_USERNAME, GIT_DEFAULT_EMAIL, ENV } from "settings"
 import * as fs from "fs-extra"
 import { execFormatted } from "utils/server/serverUtil"
 import {
@@ -12,12 +12,14 @@ import {
     ReadRequest,
     DeleteRequest
 } from "./constants"
+const IS_PROD = ENV === "production"
 
 async function saveFileToGitContentDirectory(
     filename: string,
     content: string,
     commitName: string,
-    commitEmail: string
+    commitEmail: string,
+    shouldPush = IS_PROD
 ) {
     const path = GIT_CMS_DIR + "/" + filename
     await fs.writeFile(path, content, "utf8")
@@ -25,11 +27,12 @@ async function saveFileToGitContentDirectory(
     const commitMsg = fs.existsSync(path)
         ? `Adding ${filename}`
         : `Updating ${filename}`
+    const pushCommand = shouldPush ? `&& git push` : ""
 
     await execFormatted(
         `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
             GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" && git push`,
+            GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
         [GIT_CMS_DIR, commitMsg]
     )
     return ""
@@ -38,14 +41,16 @@ async function saveFileToGitContentDirectory(
 async function deleteFileFromGitContentDirectory(
     filename: string,
     commitName: string,
-    commitEmail: string
+    commitEmail: string,
+    shouldPush = IS_PROD
 ) {
     const path = GIT_CMS_DIR + "/" + filename
+    const pushCommand = shouldPush ? `&& git push` : ""
     await fs.unlink(path)
     await execFormatted(
         `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
             GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" && git push`,
+            GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
         [GIT_CMS_DIR, `Deleted ${filename}`]
     )
     return ""
