@@ -60,7 +60,8 @@ france,3,fra,,400`)
 }
 
 export default {
-    title: "CountryPicker"
+    title: "CountryPicker",
+    component: CountryPicker
 }
 
 export const Empty = () => (

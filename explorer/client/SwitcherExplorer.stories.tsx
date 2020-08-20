@@ -37,7 +37,8 @@ switcher
 	4244	Nitrous oxide			Per capita	`
 
 export default {
-    title: "SwitcherExplorer"
+    title: "SwitcherExplorer",
+    component: SwitcherExplorer
 }
 
 export const SwitcherTest = () => {
