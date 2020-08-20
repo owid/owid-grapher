@@ -149,7 +149,7 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
         <ExplorerPage
             title={program.title || ""}
             slug={props.slug}
-            imagePath=""
+            imagePath={program.thumbnail || ""}
             preloads={[]}
             inlineJs={script}
         />

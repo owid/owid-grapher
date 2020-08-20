@@ -30,6 +30,7 @@ export enum ProgramKeyword {
     switcher = "switcher",
     isPublished = "isPublished",
     title = "title",
+    thumbnail = "thumbnail",
     subtitle = "subtitle",
     defaultView = "defaultView"
 }
@@ -174,6 +175,10 @@ ${ProgramKeyword.switcher}
 
     get title(): string | undefined {
         return this.getLineValue(ProgramKeyword.title)
+    }
+
+    get thumbnail(): string | undefined {
+        return this.getLineValue(ProgramKeyword.thumbnail)
     }
 
     get subtitle(): string | undefined {
