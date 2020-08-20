@@ -889,6 +889,8 @@ $zindex-IndicatorDropdown: 50;
             z-index: 1;
 
             cursor: col-resize;
+
+            margin-left: -$handle-diameter / 2;
         }
 
         .interval {
