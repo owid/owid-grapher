@@ -34,7 +34,9 @@ import {
     isUnboundedLeft,
     isUnboundedRight,
     getBoundFromTimeRange
-} from "charts/utils/TimeBounds"
+} from "./TimeBounds"
+import Tippy from "@tippyjs/react"
+import classNames from "classnames"
 
 const DEFAULT_MIN_YEAR = 1900
 const DEFAULT_MAX_YEAR = 2000
@@ -66,7 +68,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     disposers!: IReactionDisposer[]
 
-    @observable dragTarget?: string
+    @observable dragTarget?: "start" | "end" | "both"
 
     @computed get isDragging(): boolean {
         return !!this.dragTarget
@@ -98,13 +100,17 @@ export class Timeline extends React.Component<TimelineProps> {
         return this.context.chart.isPlaying
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps: TimelineProps) {
         const { isPlaying, isDragging } = this
-        if (!isPlaying && !isDragging) {
+        const { startYear, endYear } = this.props
+        if (
+            !isPlaying &&
+            !isDragging &&
+            (prevProps.startYear != startYear || prevProps.endYear != endYear)
+        ) {
             runInAction(() => {
                 this.startYearRaw = this.props.startYear
                 this.endYearRaw = this.props.endYear
-                this.updateChartTimeDomain()
             })
         }
     }
@@ -335,8 +341,6 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onMouseUp() {
         this.dragTarget = undefined
-
-        this.updateChartTimeDomain()
     }
 
     @action updateChartTimeDomain() {
@@ -446,6 +450,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
+        const { chart } = this.context
 
         const startYearProgress = (startYearUI - minYear) / (maxYear - minYear)
         const endYearProgress = (endYearUI - minYear) / (maxYear - minYear)
@@ -471,11 +476,15 @@ export class Timeline extends React.Component<TimelineProps> {
                     onTouchStart={this.onMouseDown}
                     onMouseDown={this.onMouseDown}
                 >
-                    <div
-                        className="handle startMarker"
-                        style={{
-                            left: `${startYearProgress * 100}%`
-                        }}
+                    <TimelineHandle
+                        type="startMarker"
+                        offsetPercent={startYearProgress}
+                        tooltipContent={chart.minYear.toString()}
+                        tooltipVisible={
+                            this.dragTarget === "start" ||
+                            this.dragTarget === "both" ||
+                            this.isPlaying
+                        }
                     />
                     <div
                         className="interval"
@@ -484,15 +493,41 @@ export class Timeline extends React.Component<TimelineProps> {
                             right: `${100 - endYearProgress * 100}%`
                         }}
                     />
-                    <div
-                        className="handle endMarker"
-                        style={{
-                            left: `${endYearProgress * 100}%`
-                        }}
+                    <TimelineHandle
+                        type="endMarker"
+                        offsetPercent={endYearProgress}
+                        tooltipContent={chart.maxYear.toString()}
+                        tooltipVisible={
+                            this.dragTarget === "end" ||
+                            this.dragTarget === "both"
+                        }
                     />
                 </div>
                 {this.timelineDate("end", maxYear)}
             </div>
         )
     }
+}
+
+export const TimelineHandle = ({
+    type,
+    offsetPercent,
+    tooltipContent,
+    tooltipVisible
+}: {
+    type: "startMarker" | "endMarker"
+    offsetPercent: number
+    tooltipContent: string
+    tooltipVisible?: boolean
+}) => {
+    return (
+        <Tippy content={tooltipContent} visible={tooltipVisible}>
+            <div
+                className={classNames("handle", type)}
+                style={{
+                    left: `${offsetPercent * 100}%`
+                }}
+            ></div>
+        </Tippy>
+    )
 }
