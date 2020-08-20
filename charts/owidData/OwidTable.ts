@@ -839,7 +839,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
         return intersectionOfSets<string>(
             columnSlugs.map(
-                slug => this.columnsBySlug.get(slug)?.entityNamesUniq!
+                slug => this.columnsBySlug.get(slug)!.entityNamesUniq
             )
         )
     }

@@ -69,7 +69,7 @@ hi,1,,2001`
             ?.annotationsColumn
         expect(annotationsColumn?.spec.slug).toBe("notes")
 
-        const entityNameMap = annotationsColumn?.entityNameMap!
+        const entityNameMap = annotationsColumn!.entityNameMap
 
         expect(entityNameMap.size).toEqual(2)
         expect(entityNameMap.get("hi")).toContain("in millions")

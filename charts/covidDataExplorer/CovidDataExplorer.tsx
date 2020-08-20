@@ -1269,7 +1269,7 @@ export class CovidDataExplorer extends React.Component<{
     @computed private get sizeDimension(): DimensionSpec {
         return {
             property: "size",
-            variableId: this.sizeColumn?.spec.owidVariableId!
+            variableId: this.sizeColumn!.spec.owidVariableId!
         }
     }
 
