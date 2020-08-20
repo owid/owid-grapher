@@ -1,5 +1,5 @@
 import * as React from "react"
-import { RelatedChart } from "../../client/blocks/RelatedCharts/RelatedCharts"
+import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 export const ChartListItemVariant = ({ chart }: { chart: RelatedChart }) => {
     return (

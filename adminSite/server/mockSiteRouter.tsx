@@ -29,17 +29,17 @@ import { embedSnippet } from "site/server/embedCharts"
 import {
     countryProfilePage,
     countriesIndexPage
-} from "../../site/server/countryProfiles"
-import { makeSitemap } from "../../site/server/sitemap"
+} from "site/server/countryProfiles"
+import { makeSitemap } from "site/server/sitemap"
 import { OldChart } from "db/model/Chart"
-import { chartToSVG } from "../../site/server/svgPngExport"
+import { chartToSVG } from "site/server/svgPngExport"
 import {
     covidDashboardSlug,
     covidChartAndVariableMetaPath
 } from "explorer/client/covidDataExplorer/CovidConstants"
-import { covidCountryProfileRootPath } from "../../site/server/covid/CovidConstants"
-import { bakeCovidChartAndVariableMeta } from "../../site/server/bakeCovidChartAndVariableMeta"
-import { chartExplorerRedirectsBySlug } from "../../site/server/bakeCovidExplorerRedirects"
+import { covidCountryProfileRootPath } from "site/server/covid/CovidConstants"
+import { bakeCovidChartAndVariableMeta } from "site/server/bakeCovidChartAndVariableMeta"
+import { chartExplorerRedirectsBySlug } from "site/server/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"
 import { renderCovidDataExplorerPage } from "explorer/admin/ExplorerBaker"
 
