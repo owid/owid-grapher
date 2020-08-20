@@ -280,9 +280,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @action.bound onMouseDown(e: any) {
-        // Don't do mousemove if we clicked the play or pause button
         const targetEl = select(e.target)
-        if (targetEl.classed("toggle")) return
 
         const { startYearUI, endYearUI } = this
         const { singleYearMode } = this.props
@@ -436,9 +434,18 @@ export class Timeline extends React.Component<TimelineProps> {
             (8 / this.sliderBounds.width) * 100
     }, 100)
 
-    private timelineDate(date: number) {
+    @action onClickDate(dateType: "start" | "end", date: number) {
+        if (dateType === "start") this.onStartYearChange(date)
+        else this.onEndYearChange(date)
+        this.updateChartTimeDomain()
+    }
+
+    private timelineDate(dateType: "start" | "end", date: number) {
         return (
-            <div className="date">
+            <div
+                className="date clickable"
+                onClick={() => this.onClickDate(dateType, date)}
+            >
                 {this.context.chart.formatYearFunction(
                     date,
                     isMobile() ? { format: "MMM D, 'YY" } : {}
@@ -454,12 +461,7 @@ export class Timeline extends React.Component<TimelineProps> {
         const endYearProgress = (endYearUI - minYear) / (maxYear - minYear)
 
         return (
-            <div
-                ref={this.base}
-                className={"clickable TimelineControl"}
-                onTouchStart={this.onMouseDown}
-                onMouseDown={this.onMouseDown}
-            >
+            <div ref={this.base} className={"TimelineControl"}>
                 {!this.props.disablePlay && (
                     <div
                         onMouseDown={e => e.stopPropagation()}
@@ -473,8 +475,12 @@ export class Timeline extends React.Component<TimelineProps> {
                         )}
                     </div>
                 )}
-                {this.timelineDate(minYear)}
-                <div className="slider">
+                {this.timelineDate("start", minYear)}
+                <div
+                    className="slider"
+                    onTouchStart={this.onMouseDown}
+                    onMouseDown={this.onMouseDown}
+                >
                     <div
                         className="handle startMarker"
                         style={{
@@ -497,7 +503,7 @@ export class Timeline extends React.Component<TimelineProps> {
                         }}
                     />
                 </div>
-                {this.timelineDate(maxYear)}
+                {this.timelineDate("end", maxYear)}
             </div>
         )
     }
