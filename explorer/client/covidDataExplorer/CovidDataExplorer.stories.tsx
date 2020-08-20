@@ -1,7 +1,7 @@
 import * as React from "react"
-import { CovidDataExplorer } from "charts/covidDataExplorer/CovidDataExplorer"
-import { covidSampleRows } from "test/fixtures/CovidSampleRows"
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
+import { CovidDataExplorer } from "explorer/client/covidDataExplorer/CovidDataExplorer"
+import { covidSampleRows } from "explorer/client/covidDataExplorer/CovidSampleRows"
+import { CovidQueryParams } from "explorer/client/covidDataExplorer/CovidParams"
 
 export default {
     title: "CovidDataExplorer",

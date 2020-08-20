@@ -4,7 +4,7 @@ import { ChartConfigProps } from "charts/ChartConfig"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/TimeBounds"
 import { createConfig, setupChart } from "test/utils"
 
-import { ChartUrl, ChartQueryParams, EntityUrlBuilder } from "../ChartUrl"
+import { ChartUrl, ChartQueryParams, EntityUrlBuilder } from "./ChartUrl"
 import { MapConfigProps } from "charts/MapConfig"
 
 function fromQueryParams(

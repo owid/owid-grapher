@@ -5,7 +5,7 @@ import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 
 import { setupChart } from "test/utils"
 
-import { DataTable, ClosestYearNotice } from "../DataTable"
+import { DataTable, ClosestYearNotice } from "./DataTable"
 import { ChartConfig } from "charts/ChartConfig"
 
 describe(DataTable, () => {

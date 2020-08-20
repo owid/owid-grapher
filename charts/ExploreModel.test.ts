@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
-import { ExploreModel } from "../ExploreModel"
-import { ChartType } from "../ChartType"
+import { ExploreModel } from "./ExploreModel"
+import { ChartType } from "./ChartType"
 import { RootStore } from "charts/Store"
 
 const store = new RootStore()

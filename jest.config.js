@@ -3,8 +3,8 @@
 process.env.EXPLORER = true
 
 // For now:
-// - server tests go in the test/ dir and are run in the node environment
-// - client tests go in __tests__ files anywhere else, and are run in the jsdom environment
+// - server tests end in .node.test.tsx? and are run in the node environment
+// - client tests end in .test.tsx? and are run in the jsdom environment
 //
 // This may not be ideal long-term, but we need a simple pattern-matching way to distinguish
 // between client and server tests. -@jasoncrawford 2019-12-03
@@ -28,14 +28,15 @@ module.exports = {
             ...common,
             displayName: "server",
             testEnvironment: "node",
-            testMatch: ["<rootDir>/test/**/?(*.)+(spec|test).[jt]s?(x)"]
+            testMatch: ["**/*.node.test.(tsx|ts)"]
         },
         {
             ...common,
             displayName: "client",
             testEnvironment: "jsdom",
             setupFilesAfterEnv: ["<rootDir>/test/enzymeSetup.ts"],
-            testMatch: ["**/__tests__/**/*.[jt]s?(x)"]
+            testPathIgnorePatterns: [".node.test."],
+            testMatch: ["**/*.test.(tsx|ts)"]
         }
     ]
 }

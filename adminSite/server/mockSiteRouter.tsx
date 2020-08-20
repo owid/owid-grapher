@@ -36,7 +36,7 @@ import { chartToSVG } from "../../site/server/svgPngExport"
 import {
     covidDashboardSlug,
     covidChartAndVariableMetaPath
-} from "charts/covidDataExplorer/CovidConstants"
+} from "explorer/client/covidDataExplorer/CovidConstants"
 import { covidCountryProfileRootPath } from "../../site/server/covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "../../site/server/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "../../site/server/bakeCovidExplorerRedirects"

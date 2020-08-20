@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { ExplorerProgram, SwitcherRuntime } from "../ExplorerProgram"
+import { ExplorerProgram, SwitcherRuntime } from "./ExplorerProgram"
 
 describe(ExplorerProgram, () => {
     const program = new ExplorerProgram(

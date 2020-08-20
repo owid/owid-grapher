@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { CovidDataExplorer } from "../covidDataExplorer/CovidDataExplorer"
-import { CovidQueryParams } from "charts/covidDataExplorer/CovidParams"
-import { covidSampleRows } from "../../test/fixtures/CovidSampleRows"
+import { CovidQueryParams } from "explorer/client/covidDataExplorer/CovidParams"
+import { covidSampleRows } from "./CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import { MetricOptions } from "charts/covidDataExplorer/CovidConstants"
+import { MetricOptions } from "explorer/client/covidDataExplorer/CovidConstants"
 import { defaultTo } from "charts/Util"
 
 const dummyMeta = {

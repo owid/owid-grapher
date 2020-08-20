@@ -18,7 +18,7 @@ import {
     coronaOpenGraphImagePath,
     covidPageTitle,
     covidPreloads
-} from "charts/covidDataExplorer/CovidConstants"
+} from "explorer/client/covidDataExplorer/CovidConstants"
 import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
 import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"

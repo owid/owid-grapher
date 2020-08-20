@@ -11,7 +11,8 @@ datasetsExport
 tmp
 .tscache
 /test
-__tests__
+*.test.ts
+*.test.tsx
 dist
 .queue
 .pending

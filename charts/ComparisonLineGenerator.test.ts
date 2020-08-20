@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { generateComparisonLinePoints } from "../ComparisonLineGenerator"
+import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 
 describe(generateComparisonLinePoints, () => {
     describe("For y = x", () => {

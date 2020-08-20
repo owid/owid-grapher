@@ -3,16 +3,16 @@
 import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
 
-import { ChartPage } from "../ChartPage"
-import { SiteHeader } from "../SiteHeader"
-import { SiteFooter } from "../SiteFooter"
+import { ChartPage } from "./ChartPage"
+import { SiteHeader } from "./SiteHeader"
+import { SiteFooter } from "./SiteFooter"
 import { extend } from "charts/Util"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 import * as fixtures from "test/fixtures"
-import { ChartListItemVariant } from "../ChartListItemVariant"
+import { ChartListItemVariant } from "./ChartListItemVariant"
 
 describe(ChartPage, () => {
     let chart: ChartConfigProps
