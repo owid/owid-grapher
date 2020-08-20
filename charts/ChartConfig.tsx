@@ -428,7 +428,7 @@ export class ChartConfig {
         options?: { format?: string }
     ) => string {
         return this.table.hasDayColumn
-            ? (year: number, options?) => formatDay(year, options)
+            ? formatDay
             : formatYear
     }
 
