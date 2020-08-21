@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { FieldsRow, Modal, TextField } from "./Forms"
@@ -98,8 +98,8 @@ export class TagsIndexPage extends React.Component {
     @observable isAddingTag: boolean = false
     @observable addTagParentId?: number
 
-    @computed get categoriesById(): _.Dictionary<TagListItem> {
-        return _.keyBy(this.tags, t => t.id)
+    @computed get categoriesById(): lodash.Dictionary<TagListItem> {
+        return lodash.keyBy(this.tags, t => t.id)
     }
 
     @computed get parentCategories(): {

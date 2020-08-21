@@ -5,7 +5,7 @@
  */
 
 import * as React from "react"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { bind } from "decko"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
@@ -937,13 +937,13 @@ export class EditableTags extends React.Component<{
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable tags: Tag[] = _.clone(this.props.tags)
+    @observable tags: Tag[] = lodash.clone(this.props.tags)
 
     @action.bound onAddTag(tag: Tag) {
         this.tags.push(tag)
-        this.tags = _.uniqBy(this.tags, t => t.id).filter(
-            t => t.name !== "Uncategorized"
-        )
+        this.tags = lodash
+            .uniqBy(this.tags, t => t.id)
+            .filter(t => t.name !== "Uncategorized")
 
         this.ensureUncategorized()
     }

@@ -4,7 +4,7 @@ import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
 
 import * as React from "react"
 import urljoin from "url-join"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
@@ -53,7 +53,7 @@ export const ChartPage = (props: {
         }
     `
 
-    const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+    const variableIds = lodash.uniq(chart.dimensions.map(d => d.variableId))
 
     return (
         <html>

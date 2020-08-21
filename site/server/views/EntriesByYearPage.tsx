@@ -1,6 +1,6 @@
 import React from "react"
 import moment from "moment"
-import _ from "lodash"
+import * as lodash from "lodash"
 
 import { Post } from "db/model/Post"
 import { Head } from "./Head"
@@ -12,7 +12,7 @@ import { TableOfContents } from "site/client/TableOfContents"
 type Entry = Pick<Post.Row, "title" | "slug" | "published_at">
 
 export const EntriesByYearPage = (props: { entries: Entry[] }) => {
-    const entriesByYear = _.groupBy(props.entries, e =>
+    const entriesByYear = lodash.groupBy(props.entries, e =>
         moment(e.published_at as Date).year()
     )
 
@@ -103,7 +103,7 @@ export const EntriesForYearPage = (props: {
     entries: Entry[]
     year: number
 }) => {
-    const entriesByYear = _.groupBy(props.entries, e =>
+    const entriesByYear = lodash.groupBy(props.entries, e =>
         moment(e.published_at as Date).year()
     )
 

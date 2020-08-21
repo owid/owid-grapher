@@ -6,7 +6,7 @@ import {
     ManyToOne,
     OneToMany
 } from "typeorm"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import * as db from "db/db"
 import { ChartConfigProps } from "charts/ChartConfig"
 import { getVariableData } from "./Variable"
@@ -109,7 +109,7 @@ export class Chart extends BaseEntity {
             chart.tags = []
         }
 
-        const chartsById = _.keyBy(charts, c => c.id)
+        const chartsById = lodash.keyBy(charts, c => c.id)
 
         for (const ct of chartTags) {
             const chart = chartsById[ct.chartId]
@@ -176,7 +176,7 @@ export class OldChart {
     }
 
     async getVariableData(): Promise<any> {
-        const variableIds = _.uniq(
+        const variableIds = lodash.uniq(
             this.config.dimensions.map(d => d.variableId)
         )
         return getVariableData(variableIds)

@@ -1,7 +1,7 @@
 import * as db from "db/db"
 import { Chart } from "db/model/Chart"
 import { ChartConfig } from "charts/ChartConfig"
-import _ from "lodash"
+import * as lodash from "lodash"
 import { getVariableData } from "db/model/Variable"
 
 async function main() {
@@ -11,7 +11,7 @@ async function main() {
     for (const c of chartRows) {
         const chart = new ChartConfig(c.config)
         chart.isExporting = true
-        const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+        const variableIds = lodash.uniq(chart.dimensions.map(d => d.variableId))
         const vardata = await getVariableData(variableIds)
         chart.receiveData(vardata)
 

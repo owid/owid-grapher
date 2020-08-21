@@ -4,7 +4,7 @@ import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { ChartListItemVariant } from "./ChartListItemVariant"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { TableOfContents } from "site/client/TableOfContents"
 import { slugify } from "charts/Util"
 
@@ -25,8 +25,8 @@ export interface TagWithCharts {
 export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
     const { chartItems } = props
 
-    const allTags = _.sortBy(
-        _.uniqBy(_.flatten(chartItems.map(c => c.tags)), t => t.id),
+    const allTags = lodash.sortBy(
+        lodash.uniqBy(lodash.flatten(chartItems.map(c => c.tags)), t => t.id),
         t => t.name
     ) as TagWithCharts[]
 
@@ -40,7 +40,7 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
 
     // Sort the charts in each tag
     for (const tag of allTags) {
-        tag.charts = _.sortBy(tag.charts, c => c.title.trim())
+        tag.charts = lodash.sortBy(tag.charts, c => c.title.trim())
     }
 
     const pageTitle = "Charts"

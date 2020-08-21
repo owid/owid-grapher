@@ -7,7 +7,7 @@ import {
     autorun,
     IReactionDisposer
 } from "mobx"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
@@ -47,7 +47,7 @@ class VariableEditable {
 
     constructor(json: any) {
         for (const key in this) {
-            if (key === "display") _.extend(this.display, json.display)
+            if (key === "display") lodash.extend(this.display, json.display)
             else this[key] = json[key]
         }
     }
@@ -296,7 +296,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 {
                     property: "y",
                     variableId: this.props.variable.id,
-                    display: _.clone(this.newVariable.display)
+                    display: lodash.clone(this.newVariable.display)
                 }
             ]
         }

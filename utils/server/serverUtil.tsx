@@ -1,5 +1,5 @@
 import * as ReactDOMServer from "react-dom/server"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { quote } from "shell-quote"
 import urljoin from "url-join"
 import * as settings from "settings"
@@ -69,7 +69,7 @@ export function renderToHtmlPage(element: any): string {
 
 // Determine if input is suitable for use as a url slug
 export function isValidSlug(slug: any) {
-    return _.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
+    return lodash.isString(slug) && slug.length > 1 && slug.match(/^[\w-]+$/)
 }
 
 export function shellEscape(s: string) {
@@ -77,8 +77,8 @@ export function shellEscape(s: string) {
 }
 
 export function csvEscape(value: any): string {
-    const valueStr = _.toString(value)
-    if (_.includes(valueStr, ",")) return `"${value.replace(/\"/g, '""')}"`
+    const valueStr = lodash.toString(value)
+    if (lodash.includes(valueStr, ",")) return `"${value.replace(/\"/g, '""')}"`
     else return value
 }
 
@@ -96,7 +96,7 @@ export function slugify(s: string) {
         .toLowerCase()
         .replace(/\s*\*.+\*/, "")
         .replace(/[^\w- ]+/g, "")
-    return _.trim(s).replace(/ +/g, "-")
+    return lodash.trim(s).replace(/ +/g, "-")
 }
 
 export const splitOnLastWord = (s: string) => {

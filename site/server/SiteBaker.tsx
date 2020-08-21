@@ -2,7 +2,7 @@ import * as fs from "fs-extra"
 import * as path from "path"
 import * as glob from "glob"
 import { without } from "lodash"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import * as cheerio from "cheerio"
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
@@ -180,7 +180,7 @@ export class SiteBaker {
                     .map(el => el.attribs["src"].trim())
             )
         }
-        grapherUrls = _.uniq(grapherUrls)
+        grapherUrls = lodash.uniq(grapherUrls)
 
         await bakeGrapherUrls(grapherUrls)
 
@@ -445,7 +445,7 @@ export class SiteBaker {
         // Always bake the html for every chart; it's cheap to do so
         await this.bakeChartPage(chart)
 
-        const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+        const variableIds = lodash.uniq(chart.dimensions.map(d => d.variableId))
         if (!variableIds.length) return
 
         // Make sure we bake the variables successfully before outputing the chart html

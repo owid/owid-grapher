@@ -3,7 +3,7 @@ import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
 import React from "react"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
 import { ChartConfigProps } from "charts/ChartConfig"
-import _ from "lodash"
+import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
     CountryProfilePage
@@ -68,8 +68,8 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
         code: string
     }[]
 
-    const entitiesByCode = _.keyBy(entities, e => e.code)
-    const entitiesById = _.keyBy(entities, e => e.id)
+    const entitiesByCode = lodash.keyBy(entities, e => e.code)
+    const entitiesById = lodash.keyBy(entities, e => e.id)
     const entityIds = countries.map(c => entitiesByCode[c.code].id)
 
     if (!variableIds) {
@@ -91,7 +91,10 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
         value: string
         year: number
     }[]
-    dataValues = _.uniqBy(dataValues, dv => `${dv.variableId}-${dv.entityId}`)
+    dataValues = lodash.uniqBy(
+        dataValues,
+        dv => `${dv.variableId}-${dv.entityId}`
+    )
     const rows = dataValues.map(dv => ({
         variable_id: dv.variableId,
         country_code: entitiesById[dv.entityId].code,
@@ -129,7 +132,7 @@ async function countryIndicatorLatestData(countryCode: string) {
                 value: string
             }[]
 
-            return _.groupBy(dataValues, dv => dv.code)
+            return lodash.groupBy(dataValues, dv => dv.code)
         }
     )
 
@@ -172,10 +175,10 @@ export async function countryProfilePage(countrySlug: string) {
 
     const charts = await countryIndicatorCharts()
     const variables = await countryIndicatorVariables()
-    const variablesById = _.keyBy(variables, v => v.id)
+    const variablesById = lodash.keyBy(variables, v => v.id)
     const dataValues = await countryIndicatorLatestData(country.code)
 
-    const valuesByVariableId = _.groupBy(dataValues, v => v.variableId)
+    const valuesByVariableId = lodash.groupBy(dataValues, v => v.variableId)
 
     let indicators: CountryProfileIndicator[] = []
     for (const c of charts) {
@@ -219,7 +222,7 @@ export async function countryProfilePage(countrySlug: string) {
         }
     }
 
-    indicators = _.sortBy(indicators, i => i.name.trim())
+    indicators = lodash.sortBy(indicators, i => i.name.trim())
 
     return renderToHtmlPage(
         <CountryProfilePage indicators={indicators} country={country} />

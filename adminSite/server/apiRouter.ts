@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-unused-vars: [ "warn", { argsIgnorePattern: "^(res|req)$" } ] */
 
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { getConnection } from "typeorm"
 import * as bodyParser from "body-parser"
 
@@ -120,7 +120,7 @@ async function getReferencesByChartId(
                             .join(" OR ")}
                     )
             `,
-                slugs.map(_.escapeRegExp)
+                slugs.map(lodash.escapeRegExp)
             )
         } catch (error) {
             console.error(error)
@@ -166,9 +166,9 @@ async function expectChartById(chartId: any): Promise<ChartConfigProps> {
 }
 
 function omitSaveToVariable(config: ChartConfigProps): ChartConfigProps {
-    const newConfig = _.clone(config)
+    const newConfig = lodash.clone(config)
     newConfig.dimensions = newConfig.dimensions.map(dim => {
-        return _.omit(dim, ["saveToVariable"])
+        return lodash.omit(dim, ["saveToVariable"])
     })
     return newConfig
 }
@@ -391,7 +391,7 @@ apiRouter.get(
         )) as { name: string; description: string }[]
 
         return {
-            namespaces: _.sortBy(rows, row => row.description)
+            namespaces: lodash.sortBy(rows, row => row.description)
         }
     }
 )
@@ -863,10 +863,10 @@ apiRouter.get("/datasets.json", async req => {
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `)
-    const tagsByDatasetId = _.groupBy(tags, t => t.datasetId)
+    const tagsByDatasetId = lodash.groupBy(tags, t => t.datasetId)
     for (const dataset of datasets) {
         dataset.tags = (tagsByDatasetId[dataset.id] || []).map(t =>
-            _.omit(t, "datasetId")
+            lodash.omit(t, "datasetId")
         )
     }
     /*LEFT JOIN variables AS v ON v.datasetId=d.id
@@ -1000,7 +1000,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
             )
 
         const source = newDataset.source
-        const description = _.omit(source, ["name", "id"])
+        const description = lodash.omit(source, ["name", "id"])
         await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [
             source.name,
             JSON.stringify(description),
@@ -1188,10 +1188,13 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
             `,
                 [tag.datasets.map((d: any) => d.id)]
             )
-            const tagsByDatasetId = _.groupBy(datasetTags, t => t.datasetId)
+            const tagsByDatasetId = lodash.groupBy(
+                datasetTags,
+                t => t.datasetId
+            )
             for (const dataset of tag.datasets) {
                 dataset.tags = tagsByDatasetId[dataset.id].map(t =>
-                    _.omit(t, "datasetId")
+                    lodash.omit(t, "datasetId")
                 )
             }
         }
@@ -1544,7 +1547,7 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
         }
 
         // Insert any new entities into the db
-        const entitiesUniq = _.uniq(entities)
+        const entitiesUniq = lodash.uniq(entities)
         const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
         await t.execute(
             `INSERT IGNORE entities (name, validated, createdAt, updatedAt, displayName) VALUES ?`,
@@ -1557,7 +1560,9 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
             [entitiesUniq]
         )
         const entityIdLookup: { [key: string]: number } = {}
-        console.log(_.difference(_.keys(entityIdLookup), entitiesUniq))
+        console.log(
+            lodash.difference(lodash.keys(entityIdLookup), entitiesUniq)
+        )
         for (const row of entityRows) {
             entityIdLookup[row.name] = row.id
         }

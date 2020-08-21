@@ -3,7 +3,7 @@ import * as db from "db/db"
 import { Post } from "db/model/Post"
 import { decodeHTML } from "entities"
 import { Tag } from "db/model/Tag"
-import _ from "lodash"
+import * as lodash from "lodash"
 
 async function main() {
     try {
@@ -50,7 +50,7 @@ async function main() {
             // if (matchingTags.map(t => t.name).includes(post.post_title)) {
             //     tagIds.push(1640)
             // }
-            await Post.setTags(post.ID, _.uniq(tagIds))
+            await Post.setTags(post.ID, lodash.uniq(tagIds))
         }
     } finally {
         await wpdb.end()
