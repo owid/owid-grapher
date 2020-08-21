@@ -370,7 +370,7 @@ export async function renderCountryProfile(
     const landing = await wpdb.getCountryProfileLandingPost(profileSpec)
 
     const overrides: PageOverrides = {
-        pageTitle: `${country.name}: ${profileSpec.pageTitle}`,
+        pageTitle: `${country.name}: ${profileSpec.pageTitle} Country Profile`,
         citationTitle: landing.title,
         citationSlug: landing.slug,
         citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
