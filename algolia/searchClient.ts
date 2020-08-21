@@ -1,7 +1,5 @@
 import algoliasearch, { SearchClient } from "algoliasearch/lite"
-
 import { countries, Country } from "utils/countries"
-
 import { ALGOLIA_ID, ALGOLIA_SEARCH_KEY } from "settings"
 
 let algolia: SearchClient | undefined
