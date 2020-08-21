@@ -293,7 +293,7 @@ export class Timeline extends React.Component<TimelineProps> {
         this.updateTooltipVisibility()
     }
 
-    updateTooltipVisibility() {
+    @action updateTooltipVisibility() {
         if (this.startYearRaw > this.endYearRaw) {
             this.startTooltipVisible = true
             this.endTooltipVisible = true
