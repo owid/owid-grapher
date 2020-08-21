@@ -484,7 +484,9 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
 export async function getLatestPostRevision(id: number): Promise<any> {
     const type = await getPostType(id)
     const response = await apiQuery(
-        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}/revisions`,
+        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
+            type
+        )}/${id}/revisions?per_page=1`,
         {
             isAuthenticated: true
         }
