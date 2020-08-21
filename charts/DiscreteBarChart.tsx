@@ -1,5 +1,5 @@
 import * as React from "react"
-import { select } from "d3-selection"
+import { select, Selection, BaseType } from "d3-selection"
 import { sortBy, min, max, first } from "./Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -237,17 +237,22 @@ export class DiscreteBarChart extends React.Component<{
         return select(this.base.current).selectAll("g.bar > rect")
     }
 
-    componentDidMount() {
+    private animateBarWidth() {
         this.d3Bars()
-            .attr("width", 0)
             .transition()
             .attr("width", (_, i) => this.barWidths[i])
     }
 
+    componentDidMount() {
+        this.d3Bars().attr("width", 0)
+        this.animateBarWidth()
+    }
+
     componentDidUpdate() {
-        this.d3Bars()
-            .transition()
-            .attr("width", (_, i) => this.barWidths[i])
+        // Animating the bar width after a render ensures there's no race condition, where the
+        // initial animation (in componentDidMount) did override the now-changed bar width in
+        // some cases. Updating the animation with the updated bar widths fixes that.
+        this.animateBarWidth()
     }
 
     @computed get barValueFormat() {
