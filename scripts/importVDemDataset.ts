@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import * as fs from "fs-extra"
 
 import { parseCSV, CSVStreamParser } from "utils/csv"
@@ -33,7 +33,7 @@ async function importCodebook() {
     }))
 
     // Need to handle these fussy subset codes separately
-    const variablesByCode = _.keyBy(
+    const variablesByCode = lodash.keyBy(
         vdemVariables.filter(v => v.shortDefinition),
         v => v.indicatorCode
     )

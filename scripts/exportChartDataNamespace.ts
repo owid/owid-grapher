@@ -2,7 +2,7 @@
 
 import * as path from "path"
 import * as db from "db/db"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { DB_NAME, DB_USER, DB_PASS, DB_HOST, DB_PORT } from "serverSettings"
 
 import { exec } from "utils/server/serverUtil"
@@ -58,7 +58,7 @@ async function dataExport() {
     process.env.MYSQL_PWD = DB_PASS
 
     let count = 0
-    for (const chunk of _.chunk(variableIds, 100)) {
+    for (const chunk of lodash.chunk(variableIds, 100)) {
         await exec(
             `mysqldump --default-character-set=utf8mb4 --no-create-info -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} data_values --where="variableId IN (${chunk.join(
                 ","

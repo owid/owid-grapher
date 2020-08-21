@@ -1,4 +1,4 @@
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { Writable } from "stream"
 
 import * as db from "db/db"
@@ -67,7 +67,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
             retrievedData: sourceDescription.retrievedData || "",
             additionalInfo: sourceDescription.additionalInfo || ""
         }
-        data.variables[row.id] = _.extend(
+        data.variables[row.id] = lodash.extend(
             {
                 years: [],
                 entities: [],
@@ -139,12 +139,15 @@ export async function writeVariableCSV(
     )
 
     let variables = await variableQuery
-    const variablesById = _.keyBy(variables, "id")
+    const variablesById = lodash.keyBy(variables, "id")
 
     // Throw an error if not all variables exist
     if (variables.length !== variableIds.length) {
         const fetchedVariableIds = variables.map(v => v.id)
-        const missingVariables = _.difference(variableIds, fetchedVariableIds)
+        const missingVariables = lodash.difference(
+            variableIds,
+            fetchedVariableIds
+        )
         throw Error(`Variable IDs do not exist: ${missingVariables.join(", ")}`)
     }
 

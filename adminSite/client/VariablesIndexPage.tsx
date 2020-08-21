@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer
 } from "mobx"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 
 import { AdminLayout } from "./AdminLayout"
 import { SearchField, FieldsRow } from "./Forms"
@@ -107,7 +107,7 @@ export class VariablesIndexPage extends React.Component {
     componentDidMount() {
         this.dispose = reaction(
             () => this.searchInput || this.maxVisibleRows,
-            _.debounce(() => this.getData(), 200)
+            lodash.debounce(() => this.getData(), 200)
         )
         this.getData()
     }

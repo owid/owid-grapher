@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 
 import * as settings from "settings"
 import { Head } from "./Head"
@@ -14,7 +14,7 @@ export const BlogIndexPage = (props: {
     numPages: number
 }) => {
     const { posts, pageNum, numPages } = props
-    const pageNums = _.range(1, numPages + 1)
+    const pageNums = lodash.range(1, numPages + 1)
     const pageTitle = "Latest publications"
 
     return (

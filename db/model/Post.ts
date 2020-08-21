@@ -1,6 +1,6 @@
 import * as db from "db/db"
 import * as wpdb from "db/wpdb"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { Tag } from "./Tag"
 import { QueryBuilder } from "knex"
 import { decodeHTML } from "entities"
@@ -76,11 +76,11 @@ export async function syncPostsToGrapher() {
         "SELECT * FROM wp_posts WHERE (post_type='page' OR post_type='post') AND post_status != 'trash'"
     )
 
-    const doesExistInWordpress = _.keyBy(rows, "ID")
+    const doesExistInWordpress = lodash.keyBy(rows, "ID")
     const existsInGrapher = await Post.select("id").from(
         db.knex().from(Post.table)
     )
-    const doesExistInGrapher = _.keyBy(existsInGrapher, "id")
+    const doesExistInGrapher = lodash.keyBy(existsInGrapher, "id")
 
     const toDelete = existsInGrapher
         .filter(p => !doesExistInWordpress[p.id])
@@ -147,7 +147,7 @@ export async function syncPostTagsToGrapher() {
         if (matchingTags.map(t => t.name).includes(post.post_title)) {
             tagIds.push(1640)
         }
-        await Post.setTags(post.ID, _.uniq(tagIds))
+        await Post.setTags(post.ID, lodash.uniq(tagIds))
     }
 }
 

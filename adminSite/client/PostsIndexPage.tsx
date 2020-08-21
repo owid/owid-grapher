@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { observable, computed, action, runInAction } from "mobx"
 import { format } from "timeago.js"
 import fuzzysort from "fuzzysort"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 
 import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
 import { AdminLayout } from "./AdminLayout"
@@ -116,7 +116,7 @@ export class PostsIndexPage extends React.Component {
                 limit: 50,
                 key: "term"
             })
-            return _.uniq(results.map((result: any) => result.obj.post))
+            return lodash.uniq(results.map((result: any) => result.obj.post))
         } else {
             return this.posts.slice(0, maxVisibleRows)
         }

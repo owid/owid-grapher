@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 
 import { getWebpackLinkForAsset } from "../utils/webpack"
 import * as settings from "settings"
@@ -11,7 +11,7 @@ export function IndexPage(props: { username: string; isSuperuser: boolean }) {
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        _.pick(settings, ["ENV", "GITHUB_USERNAME", "EXPLORER"])
+        lodash.pick(settings, ["ENV", "GITHUB_USERNAME", "EXPLORER"])
     )}})
         admin.start(document.querySelector("#app"))
 `

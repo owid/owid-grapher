@@ -1,4 +1,4 @@
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import parseUrl from "url-parse"
 import * as db from "db/db"
 import { getVariableData } from "db/model/Variable"
@@ -61,7 +61,7 @@ export async function bakeChartToImage(
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
 
-    const variableIds = _.uniq(chart.dimensions.map(d => d.variableId))
+    const variableIds = lodash.uniq(chart.dimensions.map(d => d.variableId))
     const vardata = await getVariableData(variableIds)
     chart.receiveData(vardata)
 
@@ -82,7 +82,7 @@ export async function bakeChartsToImages(
 
     for (const urlStr of chartUrls) {
         const url = parseUrl(urlStr)
-        const slug = _.last(url.pathname.split("/")) as string
+        const slug = lodash.last(url.pathname.split("/")) as string
         const jsonConfig = chartsBySlug.get(slug)
         if (jsonConfig) {
             bakeChartToImage(

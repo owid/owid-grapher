@@ -1,7 +1,7 @@
 import { SectionHeading } from "./../client/SectionHeading/SectionHeading"
 import * as cheerio from "cheerio"
 import urlSlug from "url-slug"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import { HTTPS_ONLY } from "serverSettings"
@@ -389,7 +389,7 @@ export async function formatWordpressPost(
 
         // Add alt attribute
         if (!el.attribs["alt"]) {
-            el.attribs["alt"] = _.capitalize(
+            el.attribs["alt"] = lodash.capitalize(
                 originalFilename.replace(/[-_]/g, " ")
             )
         }
@@ -765,7 +765,7 @@ export function formatAuthors(authors: string[], requireMax?: boolean): string {
 
     let authorsText = authors.slice(0, -1).join(", ")
     if (authorsText.length === 0) authorsText = authors[0]
-    else authorsText += ` and ${_.last(authors)}`
+    else authorsText += ` and ${lodash.last(authors)}`
 
     return authorsText
 }

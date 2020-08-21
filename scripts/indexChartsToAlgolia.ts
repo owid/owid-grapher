@@ -1,5 +1,5 @@
 import algoliasearch from "algoliasearch"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 
 import * as db from "db/db"
 import { ALGOLIA_ID } from "settings"
@@ -26,7 +26,7 @@ async function indexChartsToAlgolia() {
         c.tags = []
     }
 
-    const chartsById = _.keyBy(allCharts, c => c.id)
+    const chartsById = lodash.keyBy(allCharts, c => c.id)
 
     const chartsToIndex = []
     for (const ct of chartTags) {

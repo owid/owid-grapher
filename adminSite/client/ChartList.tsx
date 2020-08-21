@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { action, runInAction, observable } from "mobx"
 import { format } from "timeago.js"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 
 import { Link } from "./Link"
 import { Tag } from "./TagBadge"
@@ -74,7 +74,7 @@ class ChartRow extends React.Component<{
     render() {
         const { chart, searchHighlight, availableTags } = this.props
 
-        const highlight = searchHighlight || _.identity
+        const highlight = searchHighlight || lodash.identity
 
         return (
             <tr>

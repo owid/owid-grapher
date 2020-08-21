@@ -10,7 +10,7 @@ import { Head } from "site/server/views/Head"
 import * as db from "db/db"
 import { ADMIN_BASE_URL, BAKED_GRAPHER_URL, BAKED_BASE_URL } from "settings"
 import * as querystring from "querystring"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import * as url from "url"
 import { getComparePage, svgCompareFormPage } from "svgTester/SVGTester"
 
@@ -217,13 +217,17 @@ testPageRouter.get("/embeds", async (req, res) => {
         page > 1
             ? (url.parse(req.originalUrl).pathname as string) +
               "?" +
-              querystring.stringify(_.extend({}, req.query, { page: page - 1 }))
+              querystring.stringify(
+                  lodash.extend({}, req.query, { page: page - 1 })
+              )
             : undefined
     const nextPageUrl =
         page < numPages
             ? (url.parse(req.originalUrl).pathname as string) +
               "?" +
-              querystring.stringify(_.extend({}, req.query, { page: page + 1 }))
+              querystring.stringify(
+                  lodash.extend({}, req.query, { page: page + 1 })
+              )
             : undefined
 
     res.send(

@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { groupBy, each, isString, sortBy, defaultTo } from "charts/Util"
 import {
     computed,
@@ -73,8 +73,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         }
     }
 
-    @computed get datasetsByName(): _.Dictionary<Dataset> {
-        return _.keyBy(this.datasets, d => d.name)
+    @computed get datasetsByName(): lodash.Dictionary<Dataset> {
+        return lodash.keyBy(this.datasets, d => d.name)
     }
 
     @computed get availableVariables(): Variable[] {

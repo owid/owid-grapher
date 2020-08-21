@@ -12,7 +12,7 @@ import { DonatePage } from "./views/DonatePage"
 import SubscribePage from "./views/SubscribePage"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import {
     formatPost,
     extractFormattingOptions,
@@ -71,7 +71,7 @@ export async function renderChartsPage() {
         c.tags = []
     }
 
-    const chartsById = _.keyBy(chartItems, c => c.id)
+    const chartsById = lodash.keyBy(chartItems, c => c.id)
 
     for (const ct of chartTags) {
         const c = chartsById[ct.chartId]

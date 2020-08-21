@@ -2,7 +2,7 @@ import * as React from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 import { format } from "timeago.js"
-import * as _ from "lodash"
+import * as lodash from "lodash"
 import { bind } from "decko"
 
 import { Link } from "./Link"
@@ -51,7 +51,7 @@ class DatasetRow extends React.Component<{
     render() {
         const { dataset, searchHighlight, availableTags } = this.props
 
-        const highlight = searchHighlight || _.identity
+        const highlight = searchHighlight || lodash.identity
 
         return (
             <tr>
