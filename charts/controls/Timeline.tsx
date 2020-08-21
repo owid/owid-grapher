@@ -289,6 +289,25 @@ export class Timeline extends React.Component<TimelineProps> {
 
             this.onRangeYearChange([startYear, endYear])
         }
+
+        this.updateTooltipVisibility()
+    }
+
+    updateTooltipVisibility() {
+        if (this.startYearRaw > this.endYearRaw) {
+            this.startTooltipVisible = true
+            this.endTooltipVisible = true
+        } else {
+            if (this.dragTarget === "start" || this.dragTarget === "both") {
+                this.hideStartTooltip.cancel()
+                this.startTooltipVisible = true
+            }
+
+            if (this.dragTarget === "end" || this.dragTarget === "both") {
+                this.hideEndTooltip.cancel()
+                this.endTooltipVisible = true
+            }
+        }
     }
 
     @action.bound onMouseDown(e: any) {
@@ -322,16 +341,6 @@ export class Timeline extends React.Component<TimelineProps> {
                 this.startYearUI - inputYear,
                 this.endYearUI - inputYear
             ]
-        }
-
-        if (this.dragTarget === "start" || this.dragTarget === "both") {
-            this.hideStartTooltip.cancel()
-            this.startTooltipVisible = true
-        }
-
-        if (this.dragTarget === "end" || this.dragTarget === "both") {
-            this.hideEndTooltip.cancel()
-            this.endTooltipVisible = true
         }
 
         this.onDrag(inputYear)
