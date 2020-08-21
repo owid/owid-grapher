@@ -25,8 +25,8 @@ async function saveFileToGitContentDirectory(
     await fs.writeFile(path, content, "utf8")
 
     const commitMsg = fs.existsSync(path)
-        ? `Adding ${filename}`
-        : `Updating ${filename}`
+        ? `Updating ${filename}`
+        : `Adding ${filename}`
     const pushCommand = shouldPush ? `&& git push` : ""
 
     await execFormatted(
