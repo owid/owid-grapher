@@ -122,7 +122,7 @@ fi
   yarn install --production --frozen-lockfile
   yarn build
   yarn migrate
-  yarn tsn scripts/configureAlgolia.ts
+  yarn tsn algolia/configureAlgolia.ts
 
   # Create deploy queue file writable by any user
   touch .queue
