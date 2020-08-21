@@ -1,7 +1,6 @@
 import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChevronLeft } from "@fortawesome/free-solid-svg-icons/faChevronLeft"
-import { co2CountryProfilePath } from "site/client/CountryProfileConstants"
 
 interface SubnavItem {
     label: string
@@ -10,7 +9,10 @@ interface SubnavItem {
     highlight?: boolean
 }
 
-const subnavs: { [subnavId: string]: SubnavItem[] } = {
+const SubNavIds = ["about", "coronavirus", "co2", "energy"] as const
+export type SubNavId = typeof SubNavIds[number]
+
+const subnavs: { [key in SubNavId]: SubnavItem[] } = {
     about: [
         // `label` is shown in the UI, `id` is specified as a formatting option
         // on a page (the top html comment in WordPress)
@@ -145,7 +147,7 @@ const subnavs: { [subnavId: string]: SubnavItem[] } = {
 }
 
 export class SiteSubnavigation extends React.Component<{
-    subnavId: string
+    subnavId: SubNavId
     subnavCurrentId?: string
 }> {
     render() {

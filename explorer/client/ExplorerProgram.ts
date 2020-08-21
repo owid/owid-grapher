@@ -8,6 +8,7 @@ import { uniq, parseDelimited, isCellEmpty } from "charts/Util"
 import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 import { EntityUrlBuilder } from "charts/ChartUrl"
+import { SubNavId } from "site/server/views/SiteSubnavigation"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"
@@ -30,6 +31,8 @@ export enum ProgramKeyword {
     switcher = "switcher",
     isPublished = "isPublished",
     title = "title",
+    subNavId = "subNavId",
+    subNavCurrentId = "subNavCurrentId",
     thumbnail = "thumbnail",
     subtitle = "subtitle",
     defaultView = "defaultView"
@@ -175,6 +178,14 @@ ${ProgramKeyword.switcher}
 
     get title(): string | undefined {
         return this.getLineValue(ProgramKeyword.title)
+    }
+
+    get subNavId(): SubNavId | undefined {
+        return this.getLineValue(ProgramKeyword.subNavId) as SubNavId
+    }
+
+    get subNavCurrentId(): string | undefined {
+        return this.getLineValue(ProgramKeyword.subNavCurrentId)
     }
 
     get thumbnail(): string | undefined {

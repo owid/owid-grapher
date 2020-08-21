@@ -19,7 +19,10 @@ import {
     covidPageTitle,
     covidPreloads
 } from "explorer/covidExplorer/CovidConstants"
-import { SiteSubnavigation } from "site/server/views/SiteSubnavigation"
+import {
+    SiteSubnavigation,
+    SubNavId
+} from "site/server/views/SiteSubnavigation"
 import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
@@ -150,6 +153,8 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
             title={program.title || ""}
             slug={props.slug}
             imagePath={program.thumbnail || ""}
+            subnavId={program.subNavId}
+            subnavCurrentId={program.subNavCurrentId}
             preloads={[]}
             inlineJs={script}
         />
@@ -167,10 +172,21 @@ interface ExplorerPageSettings {
     preloads: string[]
     inlineJs: string
     hideAlertBanner?: boolean
-    subNav?: JSX.Element
+    subnavId?: SubNavId
+    subnavCurrentId?: string
 }
 
 const ExplorerPage = (props: ExplorerPageSettings) => {
+    const { subnavId, subnavCurrentId } = props
+    const subNav = subnavId ? (
+        <SiteSubnavigation
+            subnavId={subnavId}
+            subnavCurrentId={subnavCurrentId}
+        />
+    ) : (
+        undefined
+    )
+
     return (
         <html>
             <Head
@@ -191,7 +207,7 @@ const ExplorerPage = (props: ExplorerPageSettings) => {
             </Head>
             <body className="ChartPage">
                 <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
-                {props.subNav}
+                {subNav}
                 <main id="explorerContainer">
                     <LoadingIndicator color="#333" />
                 </main>
@@ -223,16 +239,11 @@ const CovidExplorerPage = (props: CovidExplorerPageProps) => {
         props
     )
 `
-    const subNav = (
-        <SiteSubnavigation
-            subnavId="coronavirus"
-            subnavCurrentId="data-explorer"
-        />
-    )
 
     return (
         <ExplorerPage
-            subNav={subNav}
+            subnavId="coronavirus"
+            subnavCurrentId="data-explorer"
             title={covidPageTitle}
             slug={covidDashboardSlug}
             imagePath={coronaOpenGraphImagePath}

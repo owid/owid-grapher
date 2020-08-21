@@ -17,6 +17,7 @@ import {
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
 import { Link } from "adminSite/client/Link"
+import Handsontable from "handsontable"
 
 @observer
 export class ExplorerCreatePage extends React.Component<{ slug: string }> {
@@ -113,6 +114,35 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             outline: 3px dashed rgba(0,0,255,.5);
           }`
 
+        const cells = function(row: number, column: number) {
+            const cellProperties: Partial<Handsontable.CellProperties> = {}
+
+            if (column === 0) {
+                cellProperties.type = "autocomplete"
+                cellProperties.source = Object.values(ProgramKeyword)
+            }
+
+            return cellProperties
+        }
+
+        const hotSettings: Handsontable.GridSettings = {
+            data,
+            manualColumnResize: [150, 200],
+            wordWrap: false,
+            colHeaders: false,
+            contextMenu: true,
+            allowInsertRow: true,
+            allowInsertColumn: true,
+            autoColumnSize: true,
+            width: "100%",
+            stretchH: "all",
+            minCols: 8,
+            minRows: 20,
+            rowHeaders: true,
+            cells,
+            afterChange: () => this.updateConfig()
+        }
+
         return (
             <AdminLayout title="Create Explorer">
                 <Prompt
@@ -160,20 +190,8 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     </div>
                     <div>
                         <HotTable
-                            data={data}
-                            manualColumnResize={[150, 150]}
-                            wordWrap={false}
-                            colHeaders={false}
-                            contextMenu={true}
-                            allowInsertRow={true}
-                            allowInsertColumn={true}
-                            width="100%"
-                            stretchH="all"
-                            minCols={8}
-                            minRows={20}
+                            settings={hotSettings}
                             ref={this.hotTableComponent as any}
-                            rowHeaders={true}
-                            afterChange={() => this.updateConfig()}
                             licenseKey={"non-commercial-and-evaluation"}
                         />
                     </div>
