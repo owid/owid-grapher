@@ -13,7 +13,6 @@ $zindex-ControlsFooterMenu: 3;
 $zindex-embedMenu: 12;
 $zindex-Tooltip: 20;
 $zindex-EntitySelector: 30;
-$zindex-IndicatorDropdown: 50;
 
 .chart,
 .chart p,
@@ -1052,52 +1051,6 @@ $zindex-IndicatorDropdown: 50;
         padding: 8px 10px;
         color: #fff;
     }
-}
-
-/* Copied from .ChartPage styles above for now */
-// MB: .ChartPage styles moved to site/ tree
-.ExplorePage main #explore {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    margin: 0;
-    width: 100%;
-    min-height: calc(100vh - 140px);
-}
-
-.ExplorePage .chart-type-buttons {
-    display: flex;
-    justify-content: flex-end;
-    margin: 20px auto;
-}
-
-.ExplorePage .chart-type-button {
-    height: 54px;
-    width: 64px;
-    margin-left: 10px;
-    font-size: 14px;
-    font-variant: all-small-caps;
-    vertical-align: bottom;
-    color: #555;
-    background-color: white;
-    border: 1px solid #ccc;
-    outline: none;
-}
-
-.ExplorePage .chart-type-button.selected {
-    color: #333;
-    border: 1px solid #3f9eff;
-}
-
-.ExplorePage .indicator-dropdown {
-    position: relative;
-    z-index: $zindex-IndicatorDropdown;
-    margin: 20px auto;
-}
-
-.ExplorePage .data-table {
-    margin-top: 60px;
 }
 
 .data-table {

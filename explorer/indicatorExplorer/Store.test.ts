@@ -2,7 +2,7 @@
 
 import { observe } from "mobx"
 
-import { RootStore, IndicatorStore } from "charts/Store"
+import { RootStore, IndicatorStore } from "explorer/indicatorExplorer/Store"
 import * as fixtures from "test/fixtures"
 import * as apiMock from "test/apiMock"
 

@@ -1,6 +1,6 @@
 import { Indicator } from "./Indicator"
 import { observable, runInAction } from "mobx"
-import { fetchJSON, difference, values } from "./Util"
+import { fetchJSON, difference, values } from "charts/Util"
 import { BAKED_BASE_URL } from "settings"
 
 export class StoreEntry<EntityType> {

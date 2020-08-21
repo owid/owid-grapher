@@ -4,8 +4,8 @@ import * as React from "react"
 import { shallow } from "enzyme"
 
 import { ExplorePage } from "./ExplorePage"
-import { SiteHeader } from "./SiteHeader"
-import { SiteFooter } from "./SiteFooter"
+import { SiteHeader } from "site/server/views/SiteHeader"
+import { SiteFooter } from "site/server/views/SiteFooter"
 
 describe(ExplorePage, () => {
     it("renders a site header", () => {

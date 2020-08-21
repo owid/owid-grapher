@@ -1,7 +1,7 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
-import { ChartType, ChartTypeType } from "./ChartType"
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { ChartType, ChartTypeType } from "charts/ChartType"
+import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
 import { Indicator } from "./Indicator"
