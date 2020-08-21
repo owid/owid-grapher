@@ -5,8 +5,7 @@ import * as wpdb from "db/wpdb"
 import { ALGOLIA_ID } from "settings"
 import { ALGOLIA_SECRET_KEY } from "serverSettings"
 import { formatPost, FormattedPost } from "site/server/formatting"
-import { chunkParagraphs } from "utils/search"
-import { htmlToPlaintext } from "utils/htmlToString"
+import { chunkParagraphs, htmlToPlaintext } from "utils/search"
 import { countries } from "utils/countries"
 
 interface Tag {
