@@ -428,8 +428,8 @@ export class Timeline extends React.Component<TimelineProps> {
                         // avoid the unintentional flip, it needs to be done atomically.
                         if (this.startYearRaw > this.endYearRaw) {
                             ;[this.startYearRaw, this.endYearRaw] = [
-                                this.startYearClosest,
-                                this.endYearClosest
+                                this.startYear,
+                                this.endYear
                             ]
                         }
                     })
