@@ -508,6 +508,32 @@ export async function getRelatedCharts(
     `)
 }
 
+export async function getBlock(id: number): Promise<string | undefined> {
+    const WP_GRAPHQL_ENDPOINT = `${WORDPRESS_URL}/wp/graphql`
+    const query = `
+    query getBlock($id: ID!) {
+        post(id: $id, idType: DATABASE_ID) {
+          content
+        }
+      }
+    `
+
+    const response = await fetch(WP_GRAPHQL_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+        },
+        body: JSON.stringify({
+            query,
+            variables: { id }
+        })
+    })
+    const json = await response.json()
+
+    return json.data.post.content ?? undefined
+}
+
 export interface FullPost {
     id: number
     type: "post" | "page"

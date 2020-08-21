@@ -28,6 +28,7 @@ import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
 import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/constants"
+import { getBlock } from "db/wpdb"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
@@ -148,6 +149,10 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
 
     const script = `window.SwitcherExplorer.bootstrap(${JSON.stringify(props)})`
 
+    const wpContent = program.wpBlockId
+        ? await getBlock(program.wpBlockId)
+        : undefined
+
     return renderToHtmlPage(
         <ExplorerPage
             title={program.title || ""}
@@ -157,6 +162,7 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
             subnavCurrentId={program.subNavCurrentId}
             preloads={[]}
             inlineJs={script}
+            wpContent={wpContent}
         />
     )
 }
@@ -174,10 +180,11 @@ interface ExplorerPageSettings {
     hideAlertBanner?: boolean
     subnavId?: SubNavId
     subnavCurrentId?: string
+    wpContent?: string
 }
 
 const ExplorerPage = (props: ExplorerPageSettings) => {
-    const { subnavId, subnavCurrentId } = props
+    const { subnavId, subnavCurrentId, wpContent } = props
     const subNav = subnavId ? (
         <SiteSubnavigation
             subnavId={subnavId}
@@ -209,6 +216,9 @@ const ExplorerPage = (props: ExplorerPageSettings) => {
                 <main id="explorerContainer">
                     <LoadingIndicator color="#333" />
                 </main>
+                {wpContent && (
+                    <div dangerouslySetInnerHTML={{ __html: wpContent }}></div>
+                )}
                 <SiteFooter />
                 <script dangerouslySetInnerHTML={{ __html: props.inlineJs }} />
             </body>
