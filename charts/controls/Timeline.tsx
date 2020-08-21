@@ -42,7 +42,7 @@ import classNames from "classnames"
 const DEFAULT_MIN_YEAR = 1900
 const DEFAULT_MAX_YEAR = 2000
 
-const TOOLTIP_FADE_TIME_MS = 2000
+const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 interface TimelineProps {
     years: number[]
@@ -370,10 +370,10 @@ export class Timeline extends React.Component<TimelineProps> {
 
     hideStartTooltip = debounce(() => {
         this.startTooltipVisible = false
-    }, TOOLTIP_FADE_TIME_MS)
+    }, HANDLE_TOOLTIP_FADE_TIME_MS)
     hideEndTooltip = debounce(() => {
         this.endTooltipVisible = false
-    }, TOOLTIP_FADE_TIME_MS)
+    }, HANDLE_TOOLTIP_FADE_TIME_MS)
 
     @action updateChartTimeDomain() {
         if (this.props.onTargetChange) {
