@@ -18,9 +18,9 @@ Another alternative is to use someone else's package. Most commerical web data s
 
 ## Design Notes
 
-- Consolidating our transform code and switching from a variable model to a table model is a work-in-progress so currently there is still a fair amount of legacy code yet to be ported over.
-- This library should treat Node and the Browser both as first class targets. Even though our primary usage will be in the browser, ensuring a great Node experience will ensure a fast headless testing experience. We may also use this in a headless environment for running the same transform code on bigger datasets.
-- Because our clients are reactive, we are using Mobx in this library. No reason that needs to be a hard dependency here if we remove that.
-- At some point we may want to look into integrating with Apache Arrow JS (https://github.com/apache/arrow/tree/master/js).
-- Similarly for speed we may want to look into integrating/learning from CrossFilter (https://github.com/crossfilter/crossfilter).
-- Currently tables are mutated, but we likely want to switch to an immutable functional pattern for transforms.
+-   Consolidating our transform code and switching from a variable model to a table model is a work-in-progress so currently there is still a fair amount of legacy code yet to be ported over.
+-   This library should treat Node and the Browser both as first class targets. Even though our primary usage will be in the browser, ensuring a great Node experience will ensure a fast headless testing experience. We may also use this in a headless environment for running the same transform code on bigger datasets.
+-   Because our clients are reactive, we are using Mobx in this library. No reason that needs to be a hard dependency here if we remove that.
+-   At some point we may want to look into integrating with Apache Arrow JS (https://github.com/apache/arrow/tree/master/js).
+-   Similarly for speed we may want to look into integrating/learning from CrossFilter (https://github.com/crossfilter/crossfilter).
+-   Currently tables are mutated, but we likely want to switch to an immutable functional pattern for transforms.
