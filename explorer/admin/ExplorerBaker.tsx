@@ -29,6 +29,7 @@ import { getChartById } from "db/model/Chart"
 import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/constants"
 import { getBlock } from "db/wpdb"
+import { formatReusableBlock } from "site/server/formatting"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
@@ -217,7 +218,11 @@ const ExplorerPage = (props: ExplorerPageSettings) => {
                     <LoadingIndicator color="#333" />
                 </main>
                 {wpContent && (
-                    <div dangerouslySetInnerHTML={{ __html: wpContent }}></div>
+                    <div
+                        dangerouslySetInnerHTML={{
+                            __html: formatReusableBlock(wpContent)
+                        }}
+                    ></div>
                 )}
                 <SiteFooter />
                 <script dangerouslySetInnerHTML={{ __html: props.inlineJs }} />
