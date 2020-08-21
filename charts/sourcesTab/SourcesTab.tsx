@@ -1,4 +1,4 @@
-import { extend, min, max, linkify } from "../utils/Util"
+import { min, max, linkify } from "../utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -143,7 +143,7 @@ export class SourcesTab extends React.Component<{
         return (
             <div
                 className="sourcesTab"
-                style={extend(bounds.toCSS(), { position: "absolute" })}
+                style={{ ...bounds.toCSS(), position: "absolute" }}
             >
                 <div>
                     <h2>Sources</h2>

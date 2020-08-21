@@ -664,8 +664,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return backgroundGroups.map(slope => (
             <Slope
                 key={slope.entityDimensionKey}
-                isLayerMode={isLayerMode}
                 {...slope}
+                isLayerMode={isLayerMode}
             />
         ))
     }
@@ -676,8 +676,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return foregroundGroups.map(slope => (
             <Slope
                 key={slope.entityDimensionKey}
-                isLayerMode={isLayerMode}
                 {...slope}
+                isLayerMode={isLayerMode}
             />
         ))
     }

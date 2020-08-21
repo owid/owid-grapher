@@ -1,4 +1,4 @@
-import { extend, isMobile } from "charts/utils/Util"
+import { isMobile } from "charts/utils/Util"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -289,9 +289,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 className={classNames("DownloadTab", {
                     mobile: isMobile()
                 })}
-                style={extend(this.props.bounds.toCSS(), {
-                    position: "absolute"
-                })}
+                style={{ ...this.props.bounds.toCSS(), position: "absolute" }}
             >
                 {this.isReady ? (
                     this.renderReady()
