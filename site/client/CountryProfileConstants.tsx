@@ -39,7 +39,7 @@ export const countryProfileSpecs: Map<
             project: "co2",
             pageTitle: "CO2",
             genericProfileSlug: "co2-country-profile",
-            landingPageSlug: "co2-and-greenhouse-gas-emissions-landing-page",
+            landingPageSlug: "co2-and-other-greenhouse-gas-emissions",
             selector: ".wp-block-co2-search-country",
             rootPath: co2CountryProfileRootPath
         }
