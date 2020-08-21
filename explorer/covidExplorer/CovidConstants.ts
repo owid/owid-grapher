@@ -5,7 +5,7 @@ export const covidDashboardSlug = "coronavirus-data-explorer"
 export const coronaOpenGraphImagePath = "coronavirus-data-explorer.png"
 export const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
 export const coronaDefaultView =
-    "yScale=log&zoomToSelection=true&casesMetric=true&dailyFreq=true&aligned=true&smoothing=7&country=USA~GBR~CAN~BRA~AUS~IND~DEU~MEX~ZAF~COL~KOR~NOR~NGA&pickerMetric=location&pickerSort=asc"
+    "?zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP~PER&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc"
 export const covidDataPath =
     "https://covid.ourworldindata.org/data/owid-covid-data.csv"
 export const covidLastUpdatedPath =
