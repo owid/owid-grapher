@@ -18,8 +18,8 @@ import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "./Color"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
-import { OwidSource } from "./owidData/OwidSource"
-import { entityName, entityId, entityCode } from "./owidData/OwidTable"
+import { OwidSource } from "../owidTable/OwidSource"
+import { entityName, entityId, entityCode } from "../owidTable/OwidTable"
 
 export interface EntityDimensionInfo {
     entityName: entityName

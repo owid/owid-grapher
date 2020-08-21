@@ -7,8 +7,8 @@ import { Time } from "./TimeBounds"
 import {
     OwidVariableDisplaySettings,
     OwidVariableTableDisplaySettings
-} from "./owidData/OwidVariable"
-import { owidVariableId } from "./owidData/OwidTable"
+} from "../owidTable/OwidVariable"
+import { owidVariableId } from "../owidTable/OwidTable"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color" | "table"
 

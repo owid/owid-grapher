@@ -1,4 +1,4 @@
-import { ColumnSpec } from "charts/owidData/OwidTable"
+import { ColumnSpec } from "owidTable/OwidTable"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"

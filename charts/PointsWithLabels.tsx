@@ -36,7 +36,7 @@ import { getElementWithHalo } from "./Halos"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { ColorScale } from "./ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
-import { entityName } from "./owidData/OwidTable"
+import { entityName } from "../owidTable/OwidTable"
 
 export interface ScatterSeries {
     color: string

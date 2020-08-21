@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
-import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
-import { readVariable, readVariableSet } from "test/fixtures"
+import { OwidTable, BasicTable } from "owidTable/OwidTable"
+import { readVariable } from "test/fixtures"
 
 describe(OwidTable, () => {
     // Scenarios

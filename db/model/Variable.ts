@@ -3,7 +3,7 @@ import { Writable } from "stream"
 
 import * as db from "db/db"
 import { csvRow } from "utils/server/serverUtil"
-import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
+import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
 
 export namespace Variable {
     export interface Row {

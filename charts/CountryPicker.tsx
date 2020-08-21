@@ -28,7 +28,11 @@ import { Analytics } from "site/client/Analytics"
 import { SortIcon } from "charts/SortIcon"
 import { toggleSort, SortOrder } from "charts/SortOrder"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
-import { AbstractColumn, OwidTable, NumericColumn } from "./owidData/OwidTable"
+import {
+    AbstractColumn,
+    OwidTable,
+    NumericColumn
+} from "../owidTable/OwidTable"
 
 enum FocusDirection {
     first = "first",

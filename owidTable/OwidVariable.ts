@@ -1,6 +1,5 @@
 // todo: remove file
 
-import { extend } from "../Util"
 import { observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 
@@ -42,7 +41,7 @@ export class OwidVariable {
     constructor(json: any) {
         for (const key in json) {
             if (key === "display") {
-                extend(this.display, json.display)
+                Object.assign(this.display, json.display)
             } else {
                 ;(this as any)[key] = json[key]
             }

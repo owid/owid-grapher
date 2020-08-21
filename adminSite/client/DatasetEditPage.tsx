@@ -14,8 +14,8 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
-import { OwidSource } from "charts/owidData/OwidSource"
+import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
+import { OwidSource } from "owidTable/OwidSource"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"

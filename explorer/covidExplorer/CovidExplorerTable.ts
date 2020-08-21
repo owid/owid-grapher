@@ -27,7 +27,7 @@ import {
     columnTypes,
     Row,
     generateEntityId
-} from "charts/owidData/OwidTable"
+} from "owidTable/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
     ParsedCovidCsvRow,

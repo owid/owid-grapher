@@ -1,12 +1,12 @@
 import * as React from "react"
-import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
+import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
 import ReactDOM from "react-dom"
 import { clone } from "charts/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
 import { ChartConfig } from "charts/ChartConfig"
 import { ChartFigureView } from "./ChartFigureView"
 import { observer } from "mobx-react"
-import { owidVariableId } from "charts/owidData/OwidTable"
+import { owidVariableId } from "owidTable/OwidTable"
 
 interface Variable {
     id: owidVariableId

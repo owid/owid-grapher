@@ -15,7 +15,7 @@ import {
     Section
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { owidVariableId } from "charts/owidData/OwidTable"
+import { owidVariableId } from "owidTable/OwidTable"
 
 @observer
 class VariableSection extends React.Component<{ mapConfig: MapConfig }> {

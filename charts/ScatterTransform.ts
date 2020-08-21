@@ -32,7 +32,7 @@ import { ChartTransform } from "./ChartTransform"
 import { Time } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { ColorScale } from "./ColorScale"
-import { entityName, year } from "./owidData/OwidTable"
+import { entityName, year } from "owidTable/OwidTable"
 import { ScaleType } from "./ScaleType"
 
 // Responsible for translating chart configuration into the form

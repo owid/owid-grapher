@@ -17,7 +17,7 @@ import {
     AbstractColumn,
     owidVariableId,
     entityName
-} from "./owidData/OwidTable"
+} from "../owidTable/OwidTable"
 import { Time } from "./TimeBounds"
 
 export class ChartDimensionWithOwidVariable {

@@ -2,7 +2,7 @@
 
 import { getLeastUsedColor, CovidExplorerTable } from "./CovidExplorerTable"
 import { covidSampleRows } from "./CovidSampleRows"
-import { OwidTable, BasicTable } from "charts/owidData/OwidTable"
+import { OwidTable, BasicTable } from "owidTable/OwidTable"
 import uniq from "lodash/uniq"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"

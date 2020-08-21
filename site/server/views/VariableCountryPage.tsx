@@ -3,7 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { OwidVariableDisplaySettings } from "charts/owidData/OwidVariable"
+import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
 
 export interface VariableCountryPageProps {
     country: {

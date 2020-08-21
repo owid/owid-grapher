@@ -28,7 +28,7 @@ import { NoData } from "./NoData"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
 import { EntityDimensionKey } from "./EntityDimensionKey"
-import { entityName } from "./owidData/OwidTable"
+import { entityName } from "owidTable/OwidTable"
 
 export interface LineChartValue {
     x: number
