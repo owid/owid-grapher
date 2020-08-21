@@ -512,7 +512,7 @@ export class Timeline extends React.Component<TimelineProps> {
                 )}
                 {this.timelineDate("start", minYear)}
                 <div
-                    className="slider"
+                    className="slider clickable"
                     onTouchStart={this.onMouseDown}
                     onMouseDown={this.onMouseDown}
                 >
@@ -554,13 +554,15 @@ export const TimelineHandle = ({
     tooltipVisible: boolean
 }) => {
     return (
-        <Tippy content={tooltipContent} visible={tooltipVisible}>
-            <div
-                className={classNames("handle", type)}
-                style={{
-                    left: `${offsetPercent * 100}%`
-                }}
-            ></div>
-        </Tippy>
+        <div
+            className={classNames("handle", type)}
+            style={{
+                left: `${offsetPercent * 100}%`
+            }}
+        >
+            <Tippy content={tooltipContent} visible={tooltipVisible}>
+                <div className="icon" />
+            </Tippy>
+        </div>
     )
 }
