@@ -5,9 +5,10 @@ import {
     last,
     findClosestYear,
     getRelativeMouse,
-    isMobile
-} from "charts/utils/Util"
-import { Bounds } from "charts/utils/Bounds"
+    isMobile,
+    debounce
+} from "./Util"
+import { Bounds } from "./Bounds"
 import { Analytics } from "site/client/Analytics"
 import {
     observable,
@@ -186,6 +187,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
                 if (endYearUI >= maxYear) {
                     this.context.chart.isPlaying = false
+                    this.startTooltipVisible = false
                 } else {
                     const nextYear = years[years.indexOf(endYearUI) + 1]
                     const yearsToNext = nextYear - endYearUI
@@ -320,6 +322,16 @@ export class Timeline extends React.Component<TimelineProps> {
             ]
         }
 
+        if (this.dragTarget === "start" || this.dragTarget === "both") {
+            this.hideStartTooltip.cancel()
+            this.startTooltipVisible = true
+        }
+
+        if (this.dragTarget === "end" || this.dragTarget === "both") {
+            this.hideEndTooltip.cancel()
+            this.endTooltipVisible = true
+        }
+
         this.onDrag(inputYear)
 
         e.preventDefault()
@@ -341,7 +353,16 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onMouseUp() {
         this.dragTarget = undefined
+        if (this.startTooltipVisible) this.hideStartTooltip()
+        if (this.endTooltipVisible) this.hideEndTooltip()
     }
+
+    hideStartTooltip = debounce(() => {
+        this.startTooltipVisible = false
+    }, 2000)
+    hideEndTooltip = debounce(() => {
+        this.endTooltipVisible = false
+    }, 2000)
 
     @action updateChartTimeDomain() {
         if (this.props.onTargetChange) {
@@ -426,6 +447,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onTogglePlay() {
         this.context.chart.isPlaying = !this.isPlaying
+        if (this.isPlaying) this.startTooltipVisible = true
     }
 
     @action onClickDate(dateType: "start" | "end", date: number) {
@@ -434,19 +456,26 @@ export class Timeline extends React.Component<TimelineProps> {
         this.updateChartTimeDomain()
     }
 
+    formatYear(date: number) {
+        return this.context.chart.formatYearFunction(
+            date,
+            isMobile() ? { format: "MMM D, 'YY" } : {}
+        )
+    }
+
     private timelineDate(dateType: "start" | "end", date: number) {
         return (
             <div
                 className="date clickable"
                 onClick={() => this.onClickDate(dateType, date)}
             >
-                {this.context.chart.formatYearFunction(
-                    date,
-                    isMobile() ? { format: "MMM D, 'YY" } : {}
-                )}
+                {this.formatYear(date)}
             </div>
         )
     }
+
+    @observable startTooltipVisible: boolean = false
+    @observable endTooltipVisible: boolean = false
 
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
@@ -479,12 +508,8 @@ export class Timeline extends React.Component<TimelineProps> {
                     <TimelineHandle
                         type="startMarker"
                         offsetPercent={startYearProgress}
-                        tooltipContent={chart.minYear.toString()}
-                        tooltipVisible={
-                            this.dragTarget === "start" ||
-                            this.dragTarget === "both" ||
-                            this.isPlaying
-                        }
+                        tooltipContent={this.formatYear(chart.minYear)}
+                        tooltipVisible={this.startTooltipVisible}
                     />
                     <div
                         className="interval"
@@ -496,11 +521,8 @@ export class Timeline extends React.Component<TimelineProps> {
                     <TimelineHandle
                         type="endMarker"
                         offsetPercent={endYearProgress}
-                        tooltipContent={chart.maxYear.toString()}
-                        tooltipVisible={
-                            this.dragTarget === "end" ||
-                            this.dragTarget === "both"
-                        }
+                        tooltipContent={this.formatYear(chart.maxYear)}
+                        tooltipVisible={this.endTooltipVisible}
                     />
                 </div>
                 {this.timelineDate("end", maxYear)}
@@ -518,7 +540,7 @@ export const TimelineHandle = ({
     type: "startMarker" | "endMarker"
     offsetPercent: number
     tooltipContent: string
-    tooltipVisible?: boolean
+    tooltipVisible: boolean
 }) => {
     return (
         <Tippy content={tooltipContent} visible={tooltipVisible}>
