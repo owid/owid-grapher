@@ -48,7 +48,7 @@ adminRouter.post("/login", async (req, res) => {
         const session = await tryLogin(req.body.username, req.body.password)
         res.cookie("sessionid", session.id, {
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: "lax",
             secure: ENV === "production"
         })
         res.redirect(req.query.next || "/admin")
