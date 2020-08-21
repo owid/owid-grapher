@@ -297,15 +297,19 @@ export class Timeline extends React.Component<TimelineProps> {
         if (this.startYearRaw > this.endYearRaw) {
             this.startTooltipVisible = true
             this.endTooltipVisible = true
+            this.lastUpdatedTooltip =
+                this.dragTarget === "start" ? "endMarker" : "startMarker"
         } else {
             if (this.dragTarget === "start" || this.dragTarget === "both") {
                 this.hideStartTooltip.cancel()
                 this.startTooltipVisible = true
+                this.lastUpdatedTooltip = "startMarker"
             }
 
             if (this.dragTarget === "end" || this.dragTarget === "both") {
                 this.hideEndTooltip.cancel()
                 this.endTooltipVisible = true
+                this.lastUpdatedTooltip = "endMarker"
             }
         }
     }
@@ -487,6 +491,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @observable startTooltipVisible: boolean = false
     @observable endTooltipVisible: boolean = false
+    @observable lastUpdatedTooltip?: "startMarker" | "endMarker"
 
     render() {
         const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
@@ -521,6 +526,9 @@ export class Timeline extends React.Component<TimelineProps> {
                         offsetPercent={startYearProgress}
                         tooltipContent={this.formatYear(chart.minYear)}
                         tooltipVisible={this.startTooltipVisible}
+                        zIndex={
+                            this.lastUpdatedTooltip === "startMarker" ? 2 : 1
+                        }
                     />
                     <div
                         className="interval"
@@ -534,6 +542,7 @@ export class Timeline extends React.Component<TimelineProps> {
                         offsetPercent={endYearProgress}
                         tooltipContent={this.formatYear(chart.maxYear)}
                         tooltipVisible={this.endTooltipVisible}
+                        zIndex={this.lastUpdatedTooltip === "endMarker" ? 2 : 1}
                     />
                 </div>
                 {this.timelineDate("end", maxYear)}
@@ -546,12 +555,14 @@ export const TimelineHandle = ({
     type,
     offsetPercent,
     tooltipContent,
-    tooltipVisible
+    tooltipVisible,
+    zIndex
 }: {
     type: "startMarker" | "endMarker"
     offsetPercent: number
     tooltipContent: string
     tooltipVisible: boolean
+    zIndex: number
 }) => {
     return (
         <div
@@ -560,7 +571,11 @@ export const TimelineHandle = ({
                 left: `${offsetPercent * 100}%`
             }}
         >
-            <Tippy content={tooltipContent} visible={tooltipVisible}>
+            <Tippy
+                content={tooltipContent}
+                visible={tooltipVisible}
+                zIndex={zIndex}
+            >
                 <div className="icon" />
             </Tippy>
         </div>
