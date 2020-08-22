@@ -25,7 +25,7 @@ import {
     identity
 } from "./Util"
 import { computed } from "mobx"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartDimension } from "./ChartDimension"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
 import { ChartTransform } from "./ChartTransform"
@@ -91,17 +91,13 @@ export class ScatterTransform extends ChartTransform {
 
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
-    @computed private get yDimension():
-        | ChartDimensionWithOwidVariable
-        | undefined {
+    @computed private get yDimension(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(d => d.property === "y")
     }
-    @computed private get xDimension():
-        | ChartDimensionWithOwidVariable
-        | undefined {
+    @computed private get xDimension(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(d => d.property === "x")
     }
-    @computed get colorDimension(): ChartDimensionWithOwidVariable | undefined {
+    @computed get colorDimension(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(d => d.property === "color")
     }
 
@@ -112,8 +108,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     set xOverrideYear(value: number | undefined) {
-        ;(this
-            .xDimension as ChartDimensionWithOwidVariable).props.targetYear = value
+        ;(this.xDimension as ChartDimension).spec.targetYear = value
     }
 
     // In relative mode, the timeline scatterplot calculates changes relative
@@ -272,7 +267,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     private _useTolerance(
-        dimension: ChartDimensionWithOwidVariable,
+        dimension: ChartDimension,
         dataByEntityAndYear: Map<entityName, Map<year, ScatterValue>>,
         initialDataByEntity: Map<
             entityName,

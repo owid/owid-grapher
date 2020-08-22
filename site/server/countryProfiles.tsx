@@ -8,7 +8,7 @@ import {
     CountryProfileIndicator,
     CountryProfilePage
 } from "./views/CountryProfilePage"
-import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
+import { ChartDimension } from "charts/ChartDimension"
 import { Variable } from "db/model/Variable"
 import { SiteBaker } from "./SiteBaker"
 import { countries, getCountry } from "utils/countries"
@@ -196,7 +196,7 @@ export async function countryProfilePage(countrySlug: string) {
                 display: variable.display
             })
             const column = new OwidTable([], spec)
-            const dim = new ChartDimensionWithOwidVariable(
+            const dim = new ChartDimension(
                 0,
                 c.dimensions[0],
                 column.columnsBySlug.get(variable.name)!

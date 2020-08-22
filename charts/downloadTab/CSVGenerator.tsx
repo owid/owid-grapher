@@ -1,7 +1,7 @@
 import { computed, action } from "mobx"
 import { ChartConfig } from "charts/ChartConfig"
 import { uniq, flatten, csvEscape, first, valuesAtYears } from "charts/Util"
-import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
+import { ChartDimension } from "charts/ChartDimension"
 
 interface CSVGeneratorProps {
     chart: ChartConfig
@@ -98,7 +98,7 @@ export class CSVGenerator {
     }
 
     private valueForDimensionEntityYear(
-        dim: ChartDimensionWithOwidVariable,
+        dim: ChartDimension,
         entity: string,
         year: number
     ) {
@@ -106,7 +106,7 @@ export class CSVGenerator {
     }
 
     private yearAndValueForSingleYearDimension(
-        dim: ChartDimensionWithOwidVariable,
+        dim: ChartDimension,
         entity: string
     ): [string, string | number] | null {
         let year = undefined
@@ -219,7 +219,7 @@ export class CSVGenerator {
      * e.g. in a scatter plot with day-based variables and year-based variables,
      * show only one value for the year-based variables
      */
-    private isSingleValueDimension(dim: ChartDimensionWithOwidVariable) {
+    private isSingleValueDimension(dim: ChartDimension) {
         return this.dayColumn && !dim.column.isDailyMeasurement
     }
 }

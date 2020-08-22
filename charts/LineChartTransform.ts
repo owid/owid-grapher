@@ -18,7 +18,7 @@ import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 import { ChartTransform } from "./ChartTransform"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartDimension } from "./ChartDimension"
 import { Time } from "./TimeBounds"
 
 // Responsible for translating chart configuration into the form
@@ -162,9 +162,7 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
-    @computed get yDimensionFirst():
-        | ChartDimensionWithOwidVariable
-        | undefined {
+    @computed get yDimensionFirst(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(d => d.property === "y")
     }
 

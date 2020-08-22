@@ -2,7 +2,7 @@ import { computed, autorun, runInAction } from "mobx"
 
 import { ChartConfig } from "charts/ChartConfig"
 import { ChoroplethData } from "charts/map/ChoroplethMap"
-import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
+import { ChartDimension } from "charts/ChartDimension"
 import { MapTopology } from "./MapTopology"
 
 import {
@@ -79,7 +79,7 @@ export class MapData extends ChartTransform {
         )
     }
 
-    @computed get dimension(): ChartDimensionWithOwidVariable | undefined {
+    @computed get dimension(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(
             d => d.variableId === this.map.variableId
         )

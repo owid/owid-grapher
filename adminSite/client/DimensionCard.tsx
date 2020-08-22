@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
+import { ChartDimension } from "charts/ChartDimension"
 import { ChartEditor } from "./ChartEditor"
 import {
     Toggle,
@@ -18,7 +18,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 @observer
 export class DimensionCard extends React.Component<{
-    dimension: ChartDimensionWithOwidVariable
+    dimension: ChartDimension
     editor: ChartEditor
     onEdit?: () => void
     onRemove?: () => void
@@ -38,15 +38,15 @@ export class DimensionCard extends React.Component<{
     }
 
     @action.bound onIsProjection(value: boolean) {
-        this.props.dimension.props.display.isProjection = value
+        this.props.dimension.spec.display.isProjection = value
     }
 
     @action.bound onSaveToVariable(value: boolean) {
-        this.props.dimension.props.saveToVariable = value || undefined
+        this.props.dimension.spec.saveToVariable = value || undefined
     }
 
     private get tableDisplaySettings() {
-        const { tableDisplay } = this.props.dimension.props.display
+        const { tableDisplay } = this.props.dimension.spec.display
         if (!tableDisplay) return
         return (
             <React.Fragment>
@@ -123,33 +123,33 @@ export class DimensionCard extends React.Component<{
                         <BindAutoString
                             label="Display name"
                             field="name"
-                            store={dimension.props.display}
+                            store={dimension.spec.display}
                             auto={dimension.displayName}
                         />
                         <BindAutoString
                             label="Unit of measurement"
                             field="unit"
-                            store={dimension.props.display}
+                            store={dimension.spec.display}
                             auto={dimension.unit}
                             helpText={`Original database unit: ${dimension.column.unit}`}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
-                            store={dimension.props.display}
+                            store={dimension.spec.display}
                             auto={dimension.shortUnit}
                         />
                         <BindAutoFloat
                             label="Number of decimal places"
                             field="numDecimalPlaces"
-                            store={dimension.props.display}
+                            store={dimension.spec.display}
                             auto={dimension.numDecimalPlaces}
                             helpText={`A negative number here will round integers`}
                         />
                         <BindAutoFloat
                             label="Unit conversion factor"
                             field="conversionFactor"
-                            store={dimension.props.display}
+                            store={dimension.spec.display}
                             auto={dimension.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
                         />
@@ -159,7 +159,7 @@ export class DimensionCard extends React.Component<{
                             chart.isLineChart) && (
                             <BindAutoFloat
                                 field="tolerance"
-                                store={dimension.props.display}
+                                store={dimension.spec.display}
                                 auto={dimension.tolerance}
                             />
                         )}
@@ -173,7 +173,7 @@ export class DimensionCard extends React.Component<{
                         <hr className="ui divider" />
                         <Toggle
                             label="Use these settings as defaults for future charts"
-                            value={!!dimension.props.saveToVariable}
+                            value={!!dimension.spec.saveToVariable}
                             onValue={this.onSaveToVariable}
                         />
                     </div>
