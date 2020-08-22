@@ -33,7 +33,7 @@ import {
     find
 } from "./Util"
 import { ComparisonLineConfig } from "./ComparisonLine"
-import { AxisConfig, AxisConfigProps } from "./AxisConfig"
+import { AxisConfig, AxisConfigProps } from "./AxisSpec"
 import { ChartType, ChartTypeName, ChartTabOption } from "./ChartConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { ChartData, SourceWithDimension } from "./ChartData"

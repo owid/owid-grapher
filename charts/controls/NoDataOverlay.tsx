@@ -2,14 +2,14 @@ import * as React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds } from "./Bounds"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { ControlsOverlay } from "./controls/Controls"
-import { ChartConfig } from "./ChartConfig"
+import { Bounds } from "charts/Bounds"
+import { ChartViewContext, ChartViewContextType } from "charts/ChartViewContext"
+import { ControlsOverlay } from "charts/controls/Controls"
+import { ChartConfig } from "charts/ChartConfig"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
-import { ChartView } from "./ChartView"
+import { ChartView } from "charts/ChartView"
 
 @observer
 class Message extends React.Component<{
@@ -56,7 +56,7 @@ class Message extends React.Component<{
 }
 
 @observer
-export class NoData extends React.Component<{
+export class NoDataOverlay extends React.Component<{
     bounds: Bounds
     message?: string
 }> {

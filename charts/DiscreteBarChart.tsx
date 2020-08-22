@@ -9,7 +9,7 @@ import { AxisScale } from "./AxisScale"
 import { Color } from "charts/ChartConstants"
 import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { AxisGridLines } from "./AxisBox"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "./controls/Controls"
@@ -291,7 +291,12 @@ export class DiscreteBarChart extends React.Component<{
 
     render() {
         if (this.failMessage)
-            return <NoData bounds={this.bounds} message={this.failMessage} />
+            return (
+                <NoDataOverlay
+                    bounds={this.bounds}
+                    message={this.failMessage}
+                />
+            )
 
         const {
             currentData,

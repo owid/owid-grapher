@@ -34,7 +34,7 @@ import { ScaleType } from "./ChartConstants"
 import { Bounds } from "./Bounds"
 import { Text } from "./Text"
 import { TextWrap } from "./TextWrap"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import { ScaleSelector } from "./controls/ScaleSelector"
 import { EntityDimensionKey } from "charts/ChartConstants"
 import { ControlsOverlay } from "charts/controls/Controls"
@@ -699,7 +699,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             onMouseMove
         } = this
 
-        if (isEmpty(slopeData)) return <NoData bounds={bounds} />
+        if (isEmpty(slopeData)) return <NoDataOverlay bounds={bounds} />
 
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()

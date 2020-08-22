@@ -23,7 +23,7 @@ import {
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import {
     PointsWithLabels,
     ScatterSeries,
@@ -325,7 +325,7 @@ export class ScatterPlot extends React.Component<{
     render() {
         if (this.transform.failMessage)
             return (
-                <NoData
+                <NoDataOverlay
                     bounds={this.bounds}
                     message={this.transform.failMessage}
                 />

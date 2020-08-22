@@ -24,7 +24,7 @@ import {
 } from "./HeightedLegend"
 import { ComparisonLine } from "./ComparisonLine"
 import { Tooltip } from "./Tooltip"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
 import { EntityDimensionKey } from "charts/ChartConstants"
@@ -335,7 +335,7 @@ export class LineChart extends React.Component<{
     render() {
         if (this.transform.failMessage)
             return (
-                <NoData
+                <NoDataOverlay
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />

@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
@@ -199,7 +199,7 @@ export class SlopeChart extends React.Component<{
     render() {
         if (this.transform.failMessage)
             return (
-                <NoData
+                <NoDataOverlay
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />
