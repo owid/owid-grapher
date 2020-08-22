@@ -2,7 +2,7 @@ import fuzzysort from "fuzzysort"
 import { keyBy } from "charts/Util"
 import { observable, computed, action, autorun } from "mobx"
 import { Analytics } from "./Analytics"
-import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
+import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
 interface ChartItem {
     title: string
     li: HTMLLIElement

@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 
-import { FuzzySearch } from "charts/FuzzySearch"
+import { FuzzySearch } from "charts/controls/FuzzySearch"
 import {
     partition,
     scrollIntoViewIfNeeded,

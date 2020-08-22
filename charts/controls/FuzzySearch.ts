@@ -1,4 +1,4 @@
-import { keyBy } from "./Util"
+import { keyBy } from "charts/Util"
 import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {

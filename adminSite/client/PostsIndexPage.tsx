@@ -5,7 +5,7 @@ import { format } from "timeago.js"
 import fuzzysort from "fuzzysort"
 import * as lodash from "lodash"
 
-import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
+import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
 import { AdminLayout } from "./AdminLayout"
 import { SearchField, FieldsRow, EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
