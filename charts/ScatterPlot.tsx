@@ -37,9 +37,9 @@ import {
 } from "./ScatterColorLegend"
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 import { TimeBound } from "./TimeBounds"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 
 @observer
 export class ScatterPlot extends React.Component<{

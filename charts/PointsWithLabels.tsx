@@ -30,13 +30,13 @@ import { Bounds } from "./Bounds"
 import { NoData } from "./NoData"
 import { AxisScale } from "./AxisScale"
 import { Vector2 } from "./Vector2"
-import { Triangle } from "./Marks"
+import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
-import { entityName } from "../owidTable/OwidTable"
+import { entityName } from "owidTable/OwidTable"
 
 export interface ScatterSeries {
     color: string

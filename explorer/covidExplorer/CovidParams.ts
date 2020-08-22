@@ -5,9 +5,9 @@ import {
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
-import { SortOrder } from "charts/controls/SortOrder"
+import { SortOrder } from "charts/ChartConstants"
 import { oneOf, uniq, intersection } from "charts/Util"
-import { ChartTypeType } from "charts/ChartType"
+import { ChartTypeName } from "charts/ChartConstants"
 import {
     trajectoryColumnSpecs,
     covidCsvColumnSlug,
@@ -45,7 +45,7 @@ export class CovidQueryParams {
     @observable yColumn?: string
     @observable xColumn?: string
     @observable sizeColumn?: string
-    @observable chartType?: ChartTypeType
+    @observable chartType?: ChartTypeName
 
     @observable perCapita: boolean = false
     @observable aligned: boolean = false
@@ -154,7 +154,7 @@ export class CovidQueryParams {
         this.xColumn = params.xColumn
         this.sizeColumn = params.sizeColumn
         this.colorScale = params.colorScale as colorScaleOption
-        this.chartType = params.chartType as ChartTypeType
+        this.chartType = params.chartType as ChartTypeName
     }
 
     constructor(queryString: string) {
@@ -226,7 +226,7 @@ export class CovidQueryParams {
     }
 
     // If someone selects "Align with..." we switch to a scatterplot chart type.
-    @computed get type(): ChartTypeType {
+    @computed get type(): ChartTypeName {
         return this.chartType
             ? this.chartType
             : this.aligned

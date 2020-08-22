@@ -13,7 +13,7 @@ import {
     flatten,
     findIndex
 } from "./Util"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"

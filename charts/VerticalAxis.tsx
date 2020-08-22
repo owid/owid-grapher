@@ -7,7 +7,7 @@ import { AxisScale, Tickmark } from "./AxisScale"
 import { ScaleSelector } from "./controls/ScaleSelector"
 import { TextWrap } from "./TextWrap"
 import { ControlsOverlay } from "./controls/Controls"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 
 interface VerticalAxisProps {
     scale: AxisScale

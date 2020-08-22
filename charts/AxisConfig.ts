@@ -1,6 +1,6 @@
 import { observable, computed } from "mobx"
 import { AxisSpec } from "./AxisSpec"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 import { defaultTo } from "./Util"
 
 // Represents the actual entered configuration state in the editor

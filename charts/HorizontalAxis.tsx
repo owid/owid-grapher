@@ -7,7 +7,7 @@ import { ScaleSelector } from "./controls/ScaleSelector"
 import { TextWrap } from "./TextWrap"
 import { AxisTickMarks } from "./AxisTickMarks"
 import { ControlsOverlay } from "./controls/Controls"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 
 interface HorizontalAxisProps {
     scale: AxisScale

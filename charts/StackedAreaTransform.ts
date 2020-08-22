@@ -14,7 +14,7 @@ import {
     defaultTo,
     flatten
 } from "./Util"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
 import { AxisSpec } from "./AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"

@@ -16,7 +16,7 @@ import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { AxisSpec } from "./AxisSpec"
 import { ChartTransform } from "./ChartTransform"
 import { ChartDimension } from "./ChartDimension"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { Time } from "./TimeBounds"
 import { ColorScale } from "charts/color/ColorScale"
 

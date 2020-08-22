@@ -11,7 +11,7 @@ import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
 import { Bounds } from "charts/Bounds"
 import { ChartView } from "charts/ChartView"
-import { ChartType } from "charts/ChartType"
+import { ChartType } from "charts/ChartConstants"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { RootStore } from "explorer/indicatorExplorer/Store"

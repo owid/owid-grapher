@@ -15,11 +15,11 @@ import {
 } from "./Util"
 import { computed, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
-import { EntityDimensionKey } from "./EntityDimensionKey"
-import { Color } from "charts/color/Color"
+import { EntityDimensionKey } from "charts/ChartConstants"
+import { Color } from "charts/ChartConstants"
 import { ChartDimension } from "./ChartDimension"
-import { OwidSource } from "../owidTable/OwidSource"
-import { entityName, entityId, entityCode } from "../owidTable/OwidTable"
+import { OwidSource } from "owidTable/OwidSource"
+import { entityName, entityId, entityCode } from "owidTable/OwidTable"
 
 export interface EntityDimensionInfo {
     entityName: entityName

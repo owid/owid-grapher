@@ -10,7 +10,7 @@ import { computed, when, runInAction, observable, action } from "mobx"
 import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
 
 import { includes, defaultTo, formatDay, diffDateISOStringInDays } from "./Util"
-import { ChartTabOption } from "./ChartTabOption"
+import { ChartTabOption } from "./ChartConstants"
 import { ChartConfig } from "./ChartConfig"
 import {
     queryParamsToStr,
