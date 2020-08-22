@@ -5,7 +5,7 @@ import {
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
-import { SortOrder } from "charts/SortOrder"
+import { SortOrder } from "charts/controls/SortOrder"
 import { oneOf, uniq, intersection } from "charts/Util"
 import { ChartTypeType } from "charts/ChartType"
 import {

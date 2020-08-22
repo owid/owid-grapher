@@ -12,7 +12,7 @@ import { DiscreteBarChart } from "./DiscreteBarChart"
 import { StackedBarChart } from "./StackedBarChart"
 import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { TimeScatter } from "./TimeScatter"
-import { LoadingChart } from "./LoadingChart"
+import { LoadingOverlay } from "charts/controls/LoadingOverlay"
 
 @observer
 export class ChartTab extends React.Component<{
@@ -40,7 +40,7 @@ export class ChartTab extends React.Component<{
         const bounds = this.layout.innerBounds
 
         if (!chart.isReady) {
-            return <LoadingChart bounds={bounds} />
+            return <LoadingOverlay bounds={bounds} />
         } else if (chart.isSlopeChart) {
             return <SlopeChart bounds={bounds.padTop(20)} chart={chart} />
         } else if (chart.isScatter) {

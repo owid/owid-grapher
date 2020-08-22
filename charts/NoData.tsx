@@ -12,7 +12,7 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { ChartView } from "./ChartView"
 
 @observer
-export class Message extends React.Component<{
+class Message extends React.Component<{
     chart: ChartConfig
     chartView: ChartView
     bounds: Bounds

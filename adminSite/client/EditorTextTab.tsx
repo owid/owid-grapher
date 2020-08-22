@@ -12,7 +12,7 @@ import {
     TextField,
     Button
 } from "./Forms"
-import { LogoOption } from "charts/Logos"
+import { LogoOption } from "charts/controls/Logos"
 import slugify from "slugify"
 import { RelatedQuestionsConfig } from "charts/ChartConfig"
 import { getErrorMessageRelatedQuestionUrl } from "charts/Util"

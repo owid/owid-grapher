@@ -58,7 +58,7 @@ import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
 import { TooltipProps } from "./Tooltip"
-import { LogoOption } from "./Logos"
+import { LogoOption } from "./controls/Logos"
 import { canBeExplorable } from "utils/charts"
 import { BAKED_GRAPHER_URL, ENV } from "settings"
 import {
