@@ -223,7 +223,7 @@ export class Timeline extends React.Component<TimelineProps> {
             : new Bounds(0, 0, 100, 100)
     }
 
-    private slider?: Element | null
+    private slider?: Element | HTMLElement | null
 
     getInputYearFromMouse(evt: MouseEvent) {
         const { minYear, maxYear } = this
@@ -460,6 +460,9 @@ export class Timeline extends React.Component<TimelineProps> {
             "touchmove",
             this.onMouseMove
         )
+        this.slider?.removeEventListener("touchstart", this.onMouseDown, {
+            passive: false
+        } as EventListenerOptions)
         this.disposers.forEach(dispose => dispose())
     }
 
