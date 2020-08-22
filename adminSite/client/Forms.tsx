@@ -881,7 +881,7 @@ import { TagBadge, Tag } from "./TagBadge"
 // NOTE (Mispy): Using my own fork of this which is modified to autoselect the first option.
 // Better UX for case when you aren't adding new tags, only selecting from list.
 import ReactTags from "react-tag-autocomplete"
-import { Tippy } from "charts/Tippy"
+import { Tippy } from "charts/shell/Tippy"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 @observer

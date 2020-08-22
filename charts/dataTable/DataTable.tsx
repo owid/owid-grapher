@@ -10,7 +10,7 @@ import { ChartConfig } from "charts/ChartConfig"
 import { SortOrder } from "charts/ChartConstants"
 import { capitalize, some, orderBy, upperFirst } from "charts/Util"
 import { SortIcon } from "charts/controls/SortIcon"
-import { Tippy } from "charts/Tippy"
+import { Tippy } from "charts/shell/Tippy"
 import {
     DataTableRow,
     TargetYearMode,

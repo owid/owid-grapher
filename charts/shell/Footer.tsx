@@ -3,10 +3,10 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 
-import { TextWrap } from "./TextWrap"
-import { ChartConfig } from "./ChartConfig"
-import { Bounds } from "./Bounds"
-import { getRelativeMouse } from "./Util"
+import { TextWrap } from "charts/TextWrap"
+import { ChartConfig } from "charts/ChartConfig"
+import { Bounds } from "charts/Bounds"
+import { getRelativeMouse } from "charts/Util"
 import { Tooltip } from "./Tooltip"
 
 interface SourcesFooterProps {

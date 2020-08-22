@@ -27,7 +27,7 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
-import { NoDataOverlay } from "./controls/NoDataOverlay"
+import { NoDataOverlay } from "./shell/NoDataOverlay"
 import { AxisScale } from "./AxisScale"
 import { Vector2 } from "./Vector2"
 import { Triangle } from "./Triangle"

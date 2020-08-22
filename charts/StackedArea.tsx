@@ -20,8 +20,8 @@ import {
     HeightedLegendItem,
     HeightedLegendComponent
 } from "./HeightedLegend"
-import { NoDataOverlay } from "./controls/NoDataOverlay"
-import { Tooltip } from "./Tooltip"
+import { NoDataOverlay } from "charts/shell/NoDataOverlay"
+import { Tooltip } from "charts/shell/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"

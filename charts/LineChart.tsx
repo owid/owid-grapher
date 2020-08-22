@@ -23,8 +23,8 @@ import {
     HeightedLegendComponent
 } from "./HeightedLegend"
 import { ComparisonLine } from "./ComparisonLine"
-import { Tooltip } from "./Tooltip"
-import { NoDataOverlay } from "./controls/NoDataOverlay"
+import { Tooltip } from "charts/shell/Tooltip"
+import { NoDataOverlay } from "./shell/NoDataOverlay"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
 import { EntityDimensionKey } from "charts/ChartConstants"

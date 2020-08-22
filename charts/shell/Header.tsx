@@ -1,9 +1,9 @@
 import * as React from "react"
-import { TextWrap } from "./TextWrap"
+import { TextWrap } from "../TextWrap"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "./ChartConfig"
-import { Logo } from "charts/controls/Logos"
+import { ChartConfig } from "../ChartConfig"
+import { Logo } from "charts/shell/Logos"
 
 interface HeaderProps {
     maxWidth: number

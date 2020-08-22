@@ -1,4 +1,4 @@
-import { Tippy } from "charts/Tippy"
+import { Tippy } from "charts/shell/Tippy"
 import { parseIntOrUndefined } from "charts/Util"
 import React from "react"
 import ReactDOM from "react-dom"
