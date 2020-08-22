@@ -1,10 +1,10 @@
 import * as React from "react"
-import { sum, includes, max, defaultTo } from "./Util"
+import { sum, includes, max, defaultTo } from "../Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { TextWrap } from "./TextWrap"
+import { TextWrap } from "../TextWrap"
 
-export interface ScatterColorLegendProps {
+interface ScatterColorLegendProps {
     maxWidth: number
     fontSize: number
     colorables: {
@@ -15,7 +15,7 @@ export interface ScatterColorLegendProps {
     title?: string
 }
 
-export interface LabelMark {
+interface LabelMark {
     label: TextWrap
     color: string
     width: number
@@ -95,7 +95,7 @@ export class VerticalColorLegend {
     }
 }
 
-export interface ScatterColorLegendViewProps {
+interface ScatterColorLegendViewProps {
     x: number
     y: number
     legend: VerticalColorLegend

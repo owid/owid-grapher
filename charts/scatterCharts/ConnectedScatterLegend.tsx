@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
-import { Triangle } from "./Triangle"
-import { TextWrap } from "./TextWrap"
+import { Triangle } from "../Triangle"
+import { TextWrap } from "../TextWrap"
 
 interface ConnectedScatterLegendProps {
     maxWidth: number

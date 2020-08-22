@@ -25,7 +25,7 @@ import { formatDate, formatInt } from "./CovidUtils"
 import { nouns } from "./CovidConstants"
 import { CovidDoublingTooltip } from "./CovidDoublingTooltip"
 import { CovidTimeSeriesValue } from "./CovidTimeSeriesValue"
-import { SparkBars, SparkBarsProps } from "charts/SparkBars"
+import { SparkBars, SparkBarsProps } from "charts/sparkBars/SparkBars"
 
 export enum CovidTableColumnKey {
     location = "location",

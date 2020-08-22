@@ -6,7 +6,7 @@ import { bind } from "decko"
 
 import { max, keyBy } from "charts/Util"
 
-export enum BarState {
+enum BarState {
     highlighted = "highlighted",
     current = "current",
     normal = "normal",
