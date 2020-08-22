@@ -403,6 +403,9 @@ export class Timeline extends React.Component<TimelineProps> {
         document.documentElement.addEventListener("mousemove", this.onMouseMove)
         document.documentElement.addEventListener("touchend", this.onMouseUp)
         document.documentElement.addEventListener("touchmove", this.onMouseMove)
+        this.slider?.addEventListener("touchstart", this.onMouseDown, {
+            passive: false
+        })
 
         this.disposers = [
             autorun(() => {
@@ -518,7 +521,6 @@ export class Timeline extends React.Component<TimelineProps> {
                 {this.timelineDate("start", minYear)}
                 <div
                     className="slider clickable"
-                    onTouchStart={this.onMouseDown}
                     onMouseDown={this.onMouseDown}
                 >
                     <TimelineHandle
