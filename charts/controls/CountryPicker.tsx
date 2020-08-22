@@ -32,7 +32,7 @@ import {
     AbstractColumn,
     OwidTable,
     NumericColumn
-} from "../owidTable/OwidTable"
+} from "../../owidTable/OwidTable"
 
 enum FocusDirection {
     first = "first",

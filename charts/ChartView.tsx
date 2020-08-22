@@ -7,7 +7,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 import { ChartConfig, ChartConfigProps } from "./ChartConfig"
-import { Controls, ControlsFooterView, ControlsOverlay } from "./Controls"
+import {
+    Controls,
+    ControlsFooterView,
+    ControlsOverlay
+} from "./controls/Controls"
 import { ChartTab } from "./ChartTab"
 import { TableTab } from "./TableTab"
 import { MapTab } from "./MapTab"
@@ -21,7 +25,7 @@ import {
     getCountryCodeFromNetlifyRedirect
 } from "./Util"
 import { Bounds } from "./Bounds"
-import { EntitySelectorModal } from "./EntitySelectorModal"
+import { EntitySelectorModal } from "./controls/EntitySelectorModal"
 import { ChartViewContext } from "./ChartViewContext"
 import { TooltipView } from "./Tooltip"
 import { FullStory } from "site/client/FullStory"

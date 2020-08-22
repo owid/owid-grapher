@@ -12,7 +12,7 @@ import { AxisGridLines } from "./AxisBox"
 import { NoData } from "./NoData"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
-import { ControlsOverlay, AddEntityButton } from "./Controls"
+import { ControlsOverlay, AddEntityButton } from "./controls/Controls"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { ScaleType } from "./ScaleType"
 

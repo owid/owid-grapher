@@ -1,7 +1,7 @@
 import * as React from "react"
 import "site/client/owid.scss"
 import "charts/chart.scss"
-import { CommandPalette, Command } from "charts/CommandPalette"
+import { CommandPalette, Command } from "charts/controls/CommandPalette"
 
 export default {
     title: "CommandPalette",

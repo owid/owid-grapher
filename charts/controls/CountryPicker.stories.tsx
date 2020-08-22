@@ -1,7 +1,7 @@
 import * as React from "react"
 import "site/client/owid.scss"
 import "charts/chart.scss"
-import { CountryPicker } from "charts/CountryPicker"
+import { CountryPicker } from "charts/controls/CountryPicker"
 import { OwidTable } from "owidTable/OwidTable"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"

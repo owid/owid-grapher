@@ -4,9 +4,9 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { AxisScale, Tickmark } from "./AxisScale"
-import { ScaleSelector } from "./ScaleSelector"
+import { ScaleSelector } from "./controls/ScaleSelector"
 import { TextWrap } from "./TextWrap"
-import { ControlsOverlay } from "./Controls"
+import { ControlsOverlay } from "./controls/Controls"
 import { ScaleType } from "./ScaleType"
 
 interface VerticalAxisProps {

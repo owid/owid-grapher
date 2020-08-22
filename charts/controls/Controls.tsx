@@ -9,12 +9,12 @@ import {
     ChartConfig,
     ChartConfigProps,
     HighlightToggleConfig
-} from "./ChartConfig"
+} from "../ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
-import { ChartView } from "./ChartView"
-import { Timeline } from "./HTMLTimeline"
-import { extend, keys, entries, first, max, formatValue } from "./Util"
-import { worldRegions, labelsByRegion } from "./WorldRegions"
+import { ChartView } from "../ChartView"
+import { Timeline } from "../HTMLTimeline"
+import { extend, keys, entries, first, max, formatValue } from "../Util"
+import { worldRegions, labelsByRegion } from "../WorldRegions"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -31,10 +31,10 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { TimeBound } from "./TimeBounds"
-import { Bounds } from "./Bounds"
-import { MapProjection } from "./MapProjection"
+import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
+import { TimeBound } from "../TimeBounds"
+import { Bounds } from "../Bounds"
+import { MapProjection } from "../MapProjection"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 
 @observer

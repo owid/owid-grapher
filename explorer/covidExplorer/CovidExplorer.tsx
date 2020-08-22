@@ -36,7 +36,7 @@ import {
     ExplorerControlBar
 } from "explorer/client/ExplorerControls"
 import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
-import { CountryPicker } from "charts/CountryPicker"
+import { CountryPicker } from "charts/controls/CountryPicker"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
@@ -68,7 +68,7 @@ import {
 } from "site/client/global-entity/GlobalEntitySelection"
 import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
-import { CommandPalette, Command } from "charts/CommandPalette"
+import { CommandPalette, Command } from "charts/controls/CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
