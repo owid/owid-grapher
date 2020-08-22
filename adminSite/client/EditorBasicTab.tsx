@@ -5,8 +5,7 @@ import { observer } from "mobx-react"
 import { includes, sample, sampleSize } from "charts/Util"
 import { DimensionSlot } from "charts/ChartConfig"
 import { ChartTypeDefs, ChartTypeType } from "charts/ChartType"
-import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
-import { ChartDimension } from "charts/ChartDimension"
+import { ChartDimension, ChartDimensionSpec } from "charts/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
@@ -37,7 +36,7 @@ class DimensionSlotView extends React.Component<{
         this.updateDefaults()
     }
 
-    @action.bound onRemoveDimension(dim: ChartDimensionWithOwidVariable) {
+    @action.bound onRemoveDimension(dim: ChartDimension) {
         this.props.slot.dimensions = this.props.slot.dimensions.filter(
             d => d.variableId !== dim.variableId
         )
@@ -174,7 +173,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !chart.props.dimensions.find(d => d.property === "color")
         ) {
             chart.props.dimensions = chart.props.dimensions.concat(
-                new ChartDimension({ variableId: 123, property: "color" })
+                new ChartDimensionSpec({ variableId: 123, property: "color" })
             )
         }
 
@@ -183,7 +182,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !chart.props.dimensions.find(d => d.property === "color")
         ) {
             chart.props.dimensions = chart.props.dimensions.concat(
-                new ChartDimension({ variableId: 72, property: "size" })
+                new ChartDimensionSpec({ variableId: 72, property: "size" })
             )
         }
     }

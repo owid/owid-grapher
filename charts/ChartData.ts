@@ -17,14 +17,14 @@ import { computed, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Color } from "charts/color/Color"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartDimension } from "./ChartDimension"
 import { OwidSource } from "../owidTable/OwidSource"
 import { entityName, entityId, entityCode } from "../owidTable/OwidTable"
 
 export interface EntityDimensionInfo {
     entityName: entityName
     entityId: entityId
-    dimension: ChartDimensionWithOwidVariable
+    dimension: ChartDimension
     index: number
     entityDimensionKey: EntityDimensionKey
     fullLabel: string
@@ -34,7 +34,7 @@ export interface EntityDimensionInfo {
 
 export interface SourceWithDimension {
     source: OwidSource
-    dimension: ChartDimensionWithOwidVariable
+    dimension: ChartDimension
 }
 
 // remove

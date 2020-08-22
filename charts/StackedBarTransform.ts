@@ -15,7 +15,7 @@ import {
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { AxisSpec } from "./AxisSpec"
 import { ChartTransform } from "./ChartTransform"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartDimension } from "./ChartDimension"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Time } from "./TimeBounds"
 import { ColorScale } from "charts/color/ColorScale"
@@ -39,12 +39,10 @@ export class StackedBarTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimension():
-        | ChartDimensionWithOwidVariable
-        | undefined {
+    @computed get primaryDimension(): ChartDimension | undefined {
         return find(this.chart.filledDimensions, d => d.property === "y")
     }
-    @computed get colorDimension(): ChartDimensionWithOwidVariable | undefined {
+    @computed get colorDimension(): ChartDimension | undefined {
         return find(this.chart.filledDimensions, d => d.property === "color")
     }
 

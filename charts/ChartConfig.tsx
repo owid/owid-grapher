@@ -39,7 +39,12 @@ import { ChartTabOption } from "./ChartTabOption"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { ChartData, SourceWithDimension } from "./ChartData"
 import { OwidTable } from "owidTable/OwidTable"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import {
+    ChartDimension,
+    dimensionProperty,
+    ChartDimensionSpec,
+    ChartDimensionInterface
+} from "./ChartDimension"
 import { MapConfig, MapConfigProps } from "./map/MapConfig"
 import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
 import { StackedBarTransform } from "./StackedBarTransform"
@@ -52,11 +57,6 @@ import { Color } from "charts/color/Color"
 import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
-import {
-    ChartDimension,
-    dimensionProperty,
-    DimensionSpec
-} from "./ChartDimension"
 import { TooltipProps } from "./Tooltip"
 import { LogoOption } from "./Logos"
 import { canBeExplorable } from "utils/charts"
@@ -151,12 +151,12 @@ export class DimensionSlot {
         return this.allowMultiple
     }
 
-    @computed get dimensions(): ChartDimension[] {
+    @computed get dimensions(): ChartDimensionSpec[] {
         return this.chart.dimensions.filter(d => d.property === this.property)
     }
 
-    set dimensions(dims: ChartDimension[]) {
-        let newDimensions: ChartDimension[] = []
+    set dimensions(dims: ChartDimensionSpec[]) {
+        let newDimensions: ChartDimensionSpec[] = []
         this.chart.dimensionSlots.forEach(slot => {
             if (slot.property === this.property)
                 newDimensions = newDimensions.concat(dims)
@@ -165,14 +165,14 @@ export class DimensionSlot {
         this.chart.props.dimensions = newDimensions
     }
 
-    @computed get dimensionsWithData(): ChartDimensionWithOwidVariable[] {
+    @computed get dimensionsWithData(): ChartDimension[] {
         return this.chart.filledDimensions.filter(
             d => d.property === this.property
         )
     }
 
     createDimension(variableId: number) {
-        return new ChartDimension({ property: this.property, variableId })
+        return new ChartDimensionSpec({ property: this.property, variableId })
     }
 }
 
@@ -223,7 +223,7 @@ export class ChartConfigProps {
     @observable.ref timelineMinTime?: Time = undefined
     @observable.ref timelineMaxTime?: Time = undefined
 
-    @observable.ref dimensions: ChartDimension[] = []
+    @observable.ref dimensions: ChartDimensionSpec[] = []
     @observable.ref addCountryMode?:
         | "add-country"
         | "change-country"
@@ -751,7 +751,7 @@ export class ChartConfig {
         else return [yAxis]
     }
 
-    @computed get validDimensions(): ChartDimension[] {
+    @computed get validDimensions(): ChartDimensionSpec[] {
         const { dimensions } = this.props
         const validProperties = map(this.dimensionSlots, "property")
         let validDimensions = filter(dimensions, dim =>
@@ -762,7 +762,7 @@ export class ChartConfig {
             if (!slot.allowMultiple)
                 validDimensions = uniqWith(
                     validDimensions,
-                    (a: ChartDimension, b: ChartDimension) =>
+                    (a: ChartDimensionSpec, b: ChartDimensionSpec) =>
                         a.property === slot.property &&
                         a.property === b.property
                 )
@@ -771,17 +771,17 @@ export class ChartConfig {
         return validDimensions
     }
 
-    @observable dataTableOnlyDimensions: ChartDimensionWithOwidVariable[] = []
+    @observable dataTableOnlyDimensions: ChartDimension[] = []
 
     @computed get multiMetricTableMode(): boolean {
         return this.dataTableOnlyDimensions.length > 0
     }
 
-    @computed.struct get filledDimensions(): ChartDimensionWithOwidVariable[] {
+    @computed.struct get filledDimensions(): ChartDimension[] {
         if (!this.isReady) return []
 
         return map(this.dimensions, (dim, i) => {
-            return new ChartDimensionWithOwidVariable(
+            return new ChartDimension(
                 i,
                 dim,
                 this.table.columnsByOwidVarId.get(dim.variableId)!
@@ -844,7 +844,8 @@ export class ChartConfig {
         extend(this.props.yAxis, json["yAxis"])
 
         this.props.dimensions = (json.dimensions || []).map(
-            (dimSpec: DimensionSpec) => new ChartDimension(dimSpec)
+            (dimSpec: ChartDimensionInterface) =>
+                new ChartDimensionSpec(dimSpec)
         )
     }
 

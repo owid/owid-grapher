@@ -2,7 +2,7 @@ import { computed } from "mobx"
 import { some, isEmpty, sortBy, orderBy, values, flatten, uniq } from "./Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "./ChartTransform"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartDimension } from "./ChartDimension"
 import { ColorSchemes } from "charts/color/ColorSchemes"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { Time } from "./TimeBounds"
@@ -22,7 +22,7 @@ export class DiscreteBarTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimensions(): ChartDimensionWithOwidVariable[] {
+    @computed get primaryDimensions(): ChartDimension[] {
         return this.chart.filledDimensions.filter(d => d.property === "y")
     }
 

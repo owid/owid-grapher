@@ -1,6 +1,6 @@
 import { computed } from "mobx"
 import { some, find, isEmpty, flatten, identity, last } from "./Util"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartDimension } from "./ChartDimension"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "./ChartTransform"
 import { Time } from "./TimeBounds"
@@ -57,19 +57,15 @@ export class SlopeChartTransform extends ChartTransform {
         return [this.startYear, this.endYear]
     }
 
-    @computed.struct get sizeDim(): ChartDimensionWithOwidVariable | undefined {
+    @computed.struct get sizeDim(): ChartDimension | undefined {
         return find(this.chart.filledDimensions, d => d.property === "size")
     }
 
-    @computed.struct get colorDimension():
-        | ChartDimensionWithOwidVariable
-        | undefined {
+    @computed.struct get colorDimension(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(d => d.property === "color")
     }
 
-    @computed.struct get yDimension():
-        | ChartDimensionWithOwidVariable
-        | undefined {
+    @computed.struct get yDimension(): ChartDimension | undefined {
         return find(this.chart.filledDimensions, d => d.property === "y")
     }
 

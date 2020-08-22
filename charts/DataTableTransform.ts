@@ -12,7 +12,7 @@ import {
     union
 } from "./Util"
 import { ChartConfig } from "./ChartConfig"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartDimension } from "./ChartDimension"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { getTimeWithinTimeRange, Time, isUnboundedLeft } from "./TimeBounds"
 import { ChartTransform } from "./ChartTransform"
@@ -29,7 +29,7 @@ type TargetYears = [number] | [number, number]
 // Dimensions
 
 export interface Dimension {
-    dimension: ChartDimensionWithOwidVariable
+    dimension: ChartDimension
     columns: DimensionColumn[]
     valueByEntity: Map<string, DimensionValue>
 }
@@ -233,7 +233,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     formatValue(
-        dimension: ChartDimensionWithOwidVariable,
+        dimension: ChartDimension,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
     ): string | undefined {
@@ -284,7 +284,7 @@ export class DataTableTransform extends ChartTransform {
             // One column for absolute difference, another for % difference.
             const deltaColumns: DimensionColumn[] = []
             if (isRange) {
-                const { tableDisplay } = dim.props.display
+                const { tableDisplay } = dim.spec.display
                 if (!tableDisplay?.hideAbsoluteChange)
                     deltaColumns.push({ key: RangeValueKey.delta })
                 if (!tableDisplay?.hideRelativeChange)

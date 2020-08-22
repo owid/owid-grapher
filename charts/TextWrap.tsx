@@ -1,8 +1,9 @@
 import { isEmpty, reduce, max, stripHTML, defaultTo, linkify } from "./Util"
 import { computed } from "mobx"
-import { FontSize } from "./FontSize"
 import { Bounds } from "./Bounds"
 import * as React from "react"
+
+declare type FontSize = number
 
 export interface TextWrapProps {
     text: string
