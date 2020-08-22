@@ -56,8 +56,8 @@ import { Color } from "charts/ChartConstants"
 import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
-import { TooltipProps } from "./Tooltip"
-import { LogoOption } from "./controls/Logos"
+import { TooltipProps } from "charts/shell/Tooltip"
+import { LogoOption } from "charts/shell/Logos"
 import { canBeExplorable } from "utils/charts"
 import { BAKED_GRAPHER_URL, ENV } from "settings"
 import {
@@ -79,7 +79,7 @@ import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
-import { populationMap } from "./PopulationMap"
+import { populationMap } from "../owidTable/PopulationMap"
 
 declare const App: any
 declare const window: any

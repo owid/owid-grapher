@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
 import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
-import { NoDataOverlay } from "./controls/NoDataOverlay"
+import { NoDataOverlay } from "./shell/NoDataOverlay"
 import {
     VerticalColorLegend,
     ScatterColorLegendView

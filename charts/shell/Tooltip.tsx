@@ -1,9 +1,9 @@
-import { extend, defaultTo } from "./Util"
+import { extend, defaultTo } from "charts/Util"
 import * as React from "react"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { ChartViewContext, ChartViewContextType } from "charts/ChartViewContext"
 import { observable, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "./Bounds"
+import { Bounds } from "charts/Bounds"
 
 export interface TooltipProps {
     x: number
