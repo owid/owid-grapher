@@ -1,7 +1,7 @@
 import { computed, autorun, runInAction } from "mobx"
 
 import { ChartConfig } from "charts/ChartConfig"
-import { ChoroplethData } from "charts/map/ChoroplethMap"
+import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
 import { ChartDimension } from "charts/ChartDimension"
 import { MapTopology } from "./MapTopology"
 

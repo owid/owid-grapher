@@ -9,8 +9,8 @@ import {
     GeoFeature,
     MapBracket,
     MapEntity
-} from "charts/map/ChoroplethMap"
-import { MapColorLegend } from "charts/map/MapColorLegend"
+} from "charts/mapCharts/ChoroplethMap"
+import { MapColorLegend } from "charts/mapCharts/MapColorLegend"
 import { MapColorLegendView } from "./MapColorLegendView"
 import { getRelativeMouse } from "charts/Util"
 import { ChartConfig } from "charts/ChartConfig"
@@ -21,7 +21,7 @@ import { easeCubic } from "d3-ease"
 import { ChartViewContext, ChartViewContextType } from "charts/ChartViewContext"
 import { ChartLayout, ChartLayoutView } from "charts/ChartLayout"
 import { ChartView } from "charts/ChartView"
-import { LoadingOverlay } from "charts/shell/LoadingOverlay"
+import { LoadingOverlay } from "charts/common/LoadingOverlay"
 import { ControlsOverlay } from "charts/controls/Controls"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"

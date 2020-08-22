@@ -23,7 +23,7 @@ import {
 import { observer } from "mobx-react"
 import { Bounds } from "../Bounds"
 import { ChartConfig } from "../ChartConfig"
-import { NoDataOverlay } from "../shell/NoDataOverlay"
+import { NoDataOverlay } from "../common/NoDataOverlay"
 import {
     PointsWithLabels,
     ScatterSeries,

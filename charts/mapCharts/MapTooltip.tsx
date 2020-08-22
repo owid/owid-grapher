@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
-import { Tooltip } from "charts/shell/Tooltip"
+import { Tooltip } from "charts/common/Tooltip"
 import { takeWhile, last, first } from "../Util"
 import {
     SparkBars,

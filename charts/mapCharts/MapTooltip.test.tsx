@@ -5,7 +5,7 @@ import { mount } from "enzyme"
 import React from "react"
 import { ChartView } from "charts/ChartView"
 import { Bounds } from "charts/Bounds"
-import { MapTooltip } from "charts/map/MapTooltip"
+import { MapTooltip } from "charts/mapCharts/MapTooltip"
 
 const bounds = new Bounds(0, 0, 800, 600)
 

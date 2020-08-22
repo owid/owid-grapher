@@ -44,7 +44,7 @@ import {
     ChartDimensionSpec,
     ChartDimensionInterface
 } from "./ChartDimension"
-import { MapConfig, MapConfigProps } from "./map/MapConfig"
+import { MapConfig, MapConfigProps } from "./mapCharts/MapConfig"
 import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "charts/barCharts/DiscreteBarTransform"
@@ -56,8 +56,8 @@ import { Color } from "charts/ChartConstants"
 import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
-import { TooltipProps } from "charts/shell/Tooltip"
-import { LogoOption } from "charts/shell/Logos"
+import { TooltipProps } from "charts/common/Tooltip"
+import { LogoOption } from "charts/common/Logos"
 import { canBeExplorable } from "utils/charts"
 import { BAKED_GRAPHER_URL, ENV } from "settings"
 import {

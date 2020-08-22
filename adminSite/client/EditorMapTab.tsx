@@ -3,8 +3,8 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { isEmpty } from "charts/Util"
-import { MapConfig } from "charts/map/MapConfig"
-import { MapProjection } from "charts/map/MapProjection"
+import { MapConfig } from "charts/mapCharts/MapConfig"
+import { MapProjection } from "charts/mapCharts/MapProjection"
 
 import { ChartEditor } from "./ChartEditor"
 import {

@@ -11,7 +11,7 @@ import { CovidTableColumnKey } from "./CovidTableColumns"
 import { CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
-import { Tippy } from "charts/shell/Tippy"
+import { Tippy } from "charts/common/Tippy"
 import { SortOrder } from "charts/ChartConstants"
 import { oneOf } from "charts/Util"
 
