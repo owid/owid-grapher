@@ -1,9 +1,9 @@
 import * as React from "react"
-import { Bounds } from "./Bounds"
-import { ControlsOverlay } from "./controls/Controls"
+import { Bounds } from "charts/Bounds"
+import { ControlsOverlay } from "charts/controls/Controls"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 
-export class LoadingChart extends React.Component<{ bounds: Bounds }> {
+export class LoadingOverlay extends React.Component<{ bounds: Bounds }> {
     render() {
         // The charts are rendered within an SVG element while the initial chart loading animation
         // that we use for our charts is coded in HTML with CSS animations.

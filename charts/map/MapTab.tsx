@@ -21,7 +21,7 @@ import { easeCubic } from "d3-ease"
 import { ChartViewContext, ChartViewContextType } from "charts/ChartViewContext"
 import { ChartLayout, ChartLayoutView } from "charts/ChartLayout"
 import { ChartView } from "charts/ChartView"
-import { LoadingChart } from "charts/LoadingChart"
+import { LoadingOverlay } from "charts/controls/LoadingOverlay"
 import { ControlsOverlay } from "charts/controls/Controls"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"
@@ -291,7 +291,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         formatYear={map.data.formatYear}
                     />
                 ) : (
-                    <LoadingChart bounds={layout.innerBounds} />
+                    <LoadingOverlay bounds={layout.innerBounds} />
                 )}
             </ChartLayoutView>
         )

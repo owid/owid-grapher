@@ -25,8 +25,8 @@ import {
 import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
 import { Analytics } from "site/client/Analytics"
 
-import { SortIcon } from "charts/SortIcon"
-import { toggleSort, SortOrder } from "charts/SortOrder"
+import { SortIcon } from "charts/controls/SortIcon"
+import { toggleSort, SortOrder } from "charts/controls/SortOrder"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import {
     AbstractColumn,
