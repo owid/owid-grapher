@@ -1,9 +1,9 @@
-import { extend } from "./Util"
-import { Bounds } from "./Bounds"
+import { extend } from "charts/Util"
+import { Bounds } from "charts/Bounds"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "./ChartConfig"
+import { ChartConfig } from "charts/ChartConfig"
 import { DataTable } from "./DataTable"
 
 // Client-side data export from chart

@@ -13,7 +13,7 @@ import {
     ControlsOverlay
 } from "./controls/Controls"
 import { ChartTab } from "./ChartTab"
-import { TableTab } from "./TableTab"
+import { TableTab } from "./dataTable/TableTab"
 import { MapTab } from "charts/map/MapTab"
 import { SourcesTab } from "./SourcesTab"
 import { DownloadTab } from "charts/downloadTab/DownloadTab"
