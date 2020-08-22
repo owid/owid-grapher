@@ -11,7 +11,7 @@ import { AxisBox, AxisGridLines } from "./AxisBox"
 import { AxisTickMarks } from "./AxisTickMarks"
 import { AxisScale } from "./AxisScale"
 import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import { Text } from "./Text"
 import {
     VerticalColorLegend,
@@ -408,7 +408,12 @@ export class StackedBarChart extends React.Component<{
 
     render() {
         if (this.failMessage)
-            return <NoData bounds={this.bounds} message={this.failMessage} />
+            return (
+                <NoDataOverlay
+                    bounds={this.bounds}
+                    message={this.failMessage}
+                />
+            )
 
         const {
             axisBox,

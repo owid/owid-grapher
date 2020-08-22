@@ -27,7 +27,7 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import { AxisScale } from "./AxisScale"
 import { Vector2 } from "./Vector2"
 import { Triangle } from "./Triangle"
@@ -895,7 +895,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const { bounds, renderData, renderUid, labelFontFamily } = this
         const clipBounds = bounds.pad(-10)
 
-        if (isEmpty(renderData)) return <NoData bounds={bounds} />
+        if (isEmpty(renderData)) return <NoDataOverlay bounds={bounds} />
 
         return (
             <g

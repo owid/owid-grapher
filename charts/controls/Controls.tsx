@@ -11,7 +11,7 @@ import {
 } from "../ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "../ChartView"
-import { Timeline } from "../HTMLTimeline"
+import { Timeline } from "./Timeline"
 import { extend, keys, entries, max, formatValue } from "../Util"
 import { ADMIN_BASE_URL, ENV } from "settings"
 

@@ -20,7 +20,7 @@ import {
     HeightedLegendItem,
     HeightedLegendComponent
 } from "./HeightedLegend"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import { Tooltip } from "./Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
@@ -464,7 +464,7 @@ export class StackedArea extends React.Component<{
     render() {
         if (this.transform.failMessage)
             return (
-                <NoData
+                <NoDataOverlay
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />

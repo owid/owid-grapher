@@ -3,7 +3,7 @@ import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "./Bounds"
 import { ChartConfig } from "./ChartConfig"
-import { NoData } from "./NoData"
+import { NoDataOverlay } from "./controls/NoDataOverlay"
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { AxisScale } from "./AxisScale"
@@ -531,7 +531,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(this.props.data) || isEmpty(this.series.points))
-            return <NoData bounds={bounds} />
+            return <NoDataOverlay bounds={bounds} />
 
         return (
             <g
@@ -635,7 +635,7 @@ export class TimeScatter extends React.Component<{
     render() {
         if (this.transform.failMessage)
             return (
-                <NoData
+                <NoDataOverlay
                     bounds={this.bounds}
                     message={this.transform.failMessage}
                 />
