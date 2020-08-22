@@ -3,7 +3,7 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as topojson from "topojson-client"
 
-import { identity, sortBy, guid, getRelativeMouse } from "../utils/Util"
+import { identity, sortBy, guid, getRelativeMouse, minBy } from "../utils/Util"
 import { Bounds } from "charts/utils/Bounds"
 import { MapProjections } from "./MapProjections"
 import { MapProjection } from "./MapProjection"
@@ -277,9 +277,9 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             return { feature: d, distance: Vector2.distance(d.center, mouse) }
         })
 
-        const feature = sortBy(featuresWithDistance, d => d.distance)[0]
+        const feature = minBy(featuresWithDistance, d => d.distance)
 
-        if (feature.distance < 20) {
+        if (feature && feature.distance < 20) {
             if (feature.feature !== this.hoverNearbyFeature) {
                 this.hoverNearbyFeature = feature.feature
                 this.props.onHover(feature.feature.geo, ev)

@@ -17,7 +17,8 @@ import {
     isEmpty,
     guid,
     getRelativeMouse,
-    makeSafeForCSS
+    makeSafeForCSS,
+    minBy
 } from "../utils/Util"
 import { Vector2 } from "charts/utils/Vector2"
 import { select } from "d3-selection"
@@ -383,9 +384,9 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const { mousePos } = this
         if (!mousePos) return undefined
 
-        const closestPoint = sortBy(this.values, v => {
-            return Vector2.distanceSq(v.position, mousePos)
-        })[0]
+        const closestPoint = minBy(this.values, v =>
+            Vector2.distanceSq(v.position, mousePos)
+        )
 
         if (
             closestPoint &&

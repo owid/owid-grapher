@@ -18,7 +18,8 @@ import {
     guid,
     getRelativeMouse,
     makeSafeForCSS,
-    pointsToPath
+    pointsToPath,
+    minBy
 } from "../utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -153,10 +154,10 @@ class Lines extends React.Component<LinesProps> {
 
         let hoverX
         if (axisBox.innerBounds.contains(mouse)) {
-            const closestValue = sortBy(this.allValues, d =>
+            const closestValue = minBy(this.allValues, d =>
                 Math.abs(xScale.place(d.x) - mouse.x)
-            )[0]
-            hoverX = closestValue.x
+            )
+            hoverX = closestValue?.x
         }
 
         this.props.onHover(hoverX)

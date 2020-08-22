@@ -1,4 +1,4 @@
-import { sortBy } from "../utils/Util"
+import { sortBy, maxBy } from "../utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -43,10 +43,10 @@ export class VerticalAxis {
 
     @computed get width() {
         const { props, labelOffset } = this
-        const longestTick = sortBy(
+        const longestTick = maxBy(
             props.scale.getFormattedTicks(),
-            tick => -tick.length
-        )[0]
+            tick => tick.length
+        )
         return (
             Bounds.forText(longestTick, { fontSize: this.tickFontSize }).width +
             labelOffset +

@@ -22,7 +22,9 @@ import {
     guid,
     getRelativeMouse,
     makeSafeForCSS,
-    intersection
+    intersection,
+    minBy,
+    maxBy
 } from "../utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -434,12 +436,12 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     .normals()
                     .map(x => x.times(5))
                 const potentialSpots = normals.map(n => v.position.add(n))
-                pos = sortBy(potentialSpots, p => {
-                    return -(
+                pos = maxBy(potentialSpots, p => {
+                    return (
                         Vector2.distance(p, prevPos) +
                         Vector2.distance(p, nextPos)
                     )
-                })[0]
+                }) as Vector2
             } else {
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
@@ -663,7 +665,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         this.mouseFrame = requestAnimationFrame(() => {
             const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
-            const closestSeries = sortBy(this.renderData, series => {
+            const closestSeries = minBy(this.renderData, series => {
                 /*if (some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
                     return -Infinity*/
 
@@ -684,7 +686,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         )
                     )
                 }
-            })[0]
+            })
 
             /*if (closestSeries)
                 this.hoverKey = closestSeries.key

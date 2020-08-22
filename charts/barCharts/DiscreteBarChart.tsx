@@ -1,6 +1,6 @@
 import * as React from "react"
-import { select, Selection, BaseType } from "d3-selection"
-import { sortBy, min, max, first } from "../utils/Util"
+import { select } from "d3-selection"
+import { min, max, maxBy } from "../utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/core/ChartConfig"
@@ -85,7 +85,7 @@ export class DiscreteBarChart extends React.Component<{
         if (this.hasFloatingAddButton)
             labels.push(` + ${this.context.chartView.controls.addButtonLabel}`)
 
-        const longestLabel = first(sortBy(labels, d => -d.length))
+        const longestLabel = maxBy(labels, d => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
 
@@ -103,10 +103,7 @@ export class DiscreteBarChart extends React.Component<{
             const positiveLabels = this.displayData
                 .filter(d => d.value >= 0)
                 .map(d => this.barValueFormat(d))
-            const longestPositiveLabel = sortBy(
-                positiveLabels,
-                l => -l.length
-            )[0]
+            const longestPositiveLabel = maxBy(positiveLabels, l => l.length)
             return Bounds.forText(longestPositiveLabel, this.valueLabelStyle)
                 .width
         } else {
@@ -122,10 +119,7 @@ export class DiscreteBarChart extends React.Component<{
             const negativeLabels = this.displayData
                 .filter(d => d.value < 0)
                 .map(d => this.barValueFormat(d))
-            const longestNegativeLabel = sortBy(
-                negativeLabels,
-                l => -l.length
-            )[0]
+            const longestNegativeLabel = maxBy(negativeLabels, l => l.length)
             return (
                 Bounds.forText(longestNegativeLabel, this.valueLabelStyle)
                     .width + labelToTextPadding
