@@ -14,7 +14,7 @@ import {
 } from "./controls/Controls"
 import { ChartTab } from "./ChartTab"
 import { TableTab } from "./dataTable/TableTab"
-import { MapTab } from "charts/map/MapTab"
+import { MapTab } from "charts/mapCharts/MapTab"
 import { SourcesTab } from "./SourcesTab"
 import { DownloadTab } from "charts/downloadTab/DownloadTab"
 import {
@@ -27,7 +27,7 @@ import {
 import { Bounds } from "./Bounds"
 import { EntitySelectorModal } from "./controls/EntitySelectorModal"
 import { ChartViewContext } from "./ChartViewContext"
-import { TooltipView } from "charts/shell/Tooltip"
+import { TooltipView } from "charts/common/Tooltip"
 import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
 import { UrlBinder } from "charts/UrlBinder"

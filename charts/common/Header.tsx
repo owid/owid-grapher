@@ -3,7 +3,7 @@ import { TextWrap } from "../TextWrap"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "../ChartConfig"
-import { Logo } from "charts/shell/Logos"
+import { Logo } from "charts/common/Logos"
 
 interface HeaderProps {
     maxWidth: number

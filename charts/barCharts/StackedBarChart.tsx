@@ -11,13 +11,13 @@ import { AxisBox, AxisGridLines } from "../AxisBox"
 import { AxisTickMarks } from "../AxisTickMarks"
 import { AxisScale } from "../AxisScale"
 import { VerticalAxis, VerticalAxisView } from "../VerticalAxis"
-import { NoDataOverlay } from "../shell/NoDataOverlay"
+import { NoDataOverlay } from "../common/NoDataOverlay"
 import { Text } from "../Text"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "../scatterCharts/ScatterColorLegend"
-import { Tooltip } from "charts/shell/Tooltip"
+import { Tooltip } from "charts/common/Tooltip"
 import { EntityDimensionKey } from "charts/ChartConstants"
 
 export interface StackedBarValue {
