@@ -14,7 +14,7 @@ import {
 } from "./controls/Controls"
 import { ChartTab } from "./ChartTab"
 import { TableTab } from "./TableTab"
-import { MapTab } from "./MapTab"
+import { MapTab } from "charts/map/MapTab"
 import { SourcesTab } from "./SourcesTab"
 import { DownloadTab } from "./DownloadTab"
 import {

@@ -34,7 +34,7 @@ import { Triangle } from "./Marks"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
 import { EntityDimensionKey } from "./EntityDimensionKey"
-import { ColorScale } from "./ColorScale"
+import { ColorScale } from "charts/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { entityName } from "../owidTable/OwidTable"
 

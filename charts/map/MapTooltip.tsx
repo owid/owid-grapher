@@ -2,11 +2,11 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
-import { Tooltip } from "./Tooltip"
-import { takeWhile, last, first } from "./Util"
-import { SparkBars, SparkBarsDatum, SparkBarsProps } from "./SparkBars"
+import { Tooltip } from "../Tooltip"
+import { takeWhile, last, first } from "../Util"
+import { SparkBars, SparkBarsDatum, SparkBarsProps } from "../SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
 
 interface MapTooltipProps {
     inputYear?: number

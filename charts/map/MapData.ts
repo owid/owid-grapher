@@ -1,8 +1,8 @@
 import { computed, autorun, runInAction } from "mobx"
 
-import { ChartConfig } from "./ChartConfig"
-import { ChoroplethData } from "./ChoroplethMap"
-import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
+import { ChartConfig } from "charts/ChartConfig"
+import { ChoroplethData } from "charts/map/ChoroplethMap"
+import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
 import { MapTopology } from "./MapTopology"
 
 import {
@@ -16,11 +16,11 @@ import {
     entityNameForMap,
     formatYear,
     uniq
-} from "./Util"
-import { Time, getClosestTime } from "./TimeBounds"
-import { ChartTransform } from "./ChartTransform"
-import { ColorScaleBin } from "./ColorScaleBin"
-import { ColorScale } from "./ColorScale"
+} from "charts/Util"
+import { Time, getClosestTime } from "charts/TimeBounds"
+import { ChartTransform } from "charts/ChartTransform"
+import { ColorScaleBin } from "charts/color/ColorScaleBin"
+import { ColorScale } from "charts/color/ColorScale"
 
 export interface MapDataValue {
     entity: string

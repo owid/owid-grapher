@@ -61,18 +61,22 @@ import {
     covidCsvColumnSlug
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { ColorScheme, ColorSchemes, continentColors } from "charts/ColorSchemes"
+import {
+    ColorScheme,
+    ColorSchemes,
+    continentColors
+} from "charts/color/ColorSchemes"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/client/global-entity/GlobalEntitySelection"
-import { ColorScaleConfigProps } from "charts/ColorScaleConfig"
+import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "charts/controls/CommandPalette"
 import { TimeBoundValue } from "charts/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import { ChartDimensionWithOwidVariable } from "charts/ChartDimensionWithOwidVariable"
-import { BinningStrategy } from "charts/BinningStrategies"
+import { BinningStrategy } from "charts/color/BinningStrategies"
 import { UrlBinder } from "charts/UrlBinder"
 import { ExtendedChartUrl } from "charts/ChartUrl"
 

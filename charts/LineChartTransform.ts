@@ -16,7 +16,7 @@ import {
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "./AxisSpec"
-import { ColorSchemes, ColorScheme } from "./ColorSchemes"
+import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 import { ChartTransform } from "./ChartTransform"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { Time } from "./TimeBounds"

@@ -17,7 +17,7 @@ import {
     strToQueryParams,
     QueryParams
 } from "utils/client/url"
-import { MapProjection } from "./MapProjection"
+import { MapProjection } from "charts/map/MapProjection"
 import { ObservableUrl } from "./UrlBinder"
 import {
     formatTimeBound,

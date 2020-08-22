@@ -1,9 +1,23 @@
 import { computed } from "mobx"
 
-import { min, max, map, each, last, flatten, some, find, sum } from "./Util"
-import { Bounds } from "./Bounds"
-import { TextWrap } from "./TextWrap"
-import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
+import {
+    min,
+    max,
+    map,
+    each,
+    last,
+    flatten,
+    some,
+    find,
+    sum
+} from "charts/Util"
+import { Bounds } from "charts/Bounds"
+import { TextWrap } from "charts/TextWrap"
+import {
+    ColorScaleBin,
+    NumericBin,
+    CategoricalBin
+} from "charts/color/ColorScaleBin"
 
 interface PositionedBin {
     x: number
@@ -20,7 +34,7 @@ interface NumericLabel {
     hidden: boolean
 }
 
-export interface NumericColorLegendProps {
+interface NumericColorLegendProps {
     width: number
     fontSize: number
     legendData: ColorScaleBin[]
@@ -28,7 +42,7 @@ export interface NumericColorLegendProps {
     equalSizeBins?: true
 }
 
-export class NumericColorLegend {
+export class MapNumericColorLegend {
     props: NumericColorLegendProps
     constructor(props: NumericColorLegendProps) {
         this.props = props
@@ -229,7 +243,7 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-export interface CategoricalColorLegendProps {
+interface CategoricalColorLegendProps {
     maxWidth: number
     scale: number
     legendData: CategoricalBin[]
@@ -237,7 +251,7 @@ export interface CategoricalColorLegendProps {
     fontSize: number
 }
 
-export class CategoricalColorLegend {
+export class MapCategoricalColorLegend {
     props: CategoricalColorLegendProps
     constructor(props: CategoricalColorLegendProps) {
         this.props = props
@@ -322,7 +336,7 @@ export class CategoricalColorLegend {
     }
 }
 
-export interface ColorLegendProps {
+interface MapColorLegendProps {
     fontSize: number
     legendData: ColorScaleBin[]
     title: string
@@ -332,9 +346,9 @@ export interface ColorLegendProps {
     equalSizeBins?: true
 }
 
-export class ColorLegend {
-    props: ColorLegendProps
-    constructor(props: ColorLegendProps) {
+export class MapColorLegend {
+    props: MapColorLegendProps
+    constructor(props: MapColorLegendProps) {
         this.props = props
     }
 
@@ -398,10 +412,10 @@ export class ColorLegend {
         else return undefined
     }
 
-    @computed get categoryLegend(): CategoricalColorLegend | undefined {
+    @computed get categoryLegend(): MapCategoricalColorLegend | undefined {
         const that = this
         return this.hasCategorical
-            ? new CategoricalColorLegend({
+            ? new MapCategoricalColorLegend({
                   get legendData() {
                       return that.categoricalLegendData
                   },
@@ -422,10 +436,10 @@ export class ColorLegend {
         return this.categoryLegend ? this.categoryLegend.height + 5 : 0
     }
 
-    @computed get numericLegend(): NumericColorLegend | undefined {
+    @computed get numericLegend(): MapNumericColorLegend | undefined {
         const that = this
         return this.hasNumeric
-            ? new NumericColorLegend({
+            ? new MapNumericColorLegend({
                   get legendData() {
                       return that.numericLegendData
                   },

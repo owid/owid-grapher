@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Bounds } from "./Bounds"
+import { Bounds } from "charts/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -9,22 +9,23 @@ import {
     GeoFeature,
     MapBracket,
     MapEntity
-} from "./ChoroplethMap"
-import { ColorLegend } from "./ColorLegend"
-import { ColorLegendView } from "./ColorLegendView"
-import { getRelativeMouse } from "./Util"
-import { ChartConfig } from "./ChartConfig"
+} from "charts/map/ChoroplethMap"
+import { MapColorLegend } from "charts/map/MapColorLegend"
+import { MapColorLegendView } from "./MapColorLegendView"
+import { getRelativeMouse } from "charts/Util"
+import { ChartConfig } from "charts/ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapProjection } from "./MapProjection"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { ChartLayout, ChartLayoutView } from "./ChartLayout"
-import { ChartView } from "./ChartView"
-import { LoadingChart } from "./LoadingChart"
-import { ControlsOverlay, ProjectionChooser } from "./controls/Controls"
+import { ChartViewContext, ChartViewContextType } from "charts/ChartViewContext"
+import { ChartLayout, ChartLayoutView } from "charts/ChartLayout"
+import { ChartView } from "charts/ChartView"
+import { LoadingChart } from "charts/LoadingChart"
+import { ControlsOverlay } from "charts/controls/Controls"
 import { MapTooltip } from "./MapTooltip"
-import { ColorScale } from "./ColorScale"
+import { ProjectionChooser } from "./ProjectionChooser"
+import { ColorScale } from "charts/color/ColorScale"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -129,9 +130,9 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.context.chart.map.props.projection = value
     }
 
-    @computed get mapLegend(): ColorLegend {
+    @computed get mapLegend(): MapColorLegend {
         const that = this
-        return new ColorLegend({
+        return new MapColorLegend({
             get bounds() {
                 return that.props.bounds.padBottom(15)
             },
@@ -221,7 +222,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     focusBracket={focusBracket}
                     focusEntity={focusEntity}
                 />
-                <ColorLegendView
+                <MapColorLegendView
                     legend={mapLegend}
                     onMouseOver={this.onLegendMouseOver}
                     onMouseLeave={this.onLegendMouseLeave}

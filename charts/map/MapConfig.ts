@@ -1,12 +1,12 @@
 import { observable, computed } from "mobx"
 
 import { MapProjection } from "./MapProjection"
-import { ChartConfig } from "./ChartConfig"
+import { ChartConfig } from "../ChartConfig"
 import { MapData } from "./MapData"
-import { defaultTo } from "./Util"
-import { TimeBound, TimeBoundValue } from "./TimeBounds"
-import { ColorScaleConfigProps } from "./ColorScaleConfig"
-import { owidVariableId } from "../owidTable/OwidTable"
+import { defaultTo } from "../Util"
+import { TimeBound, TimeBoundValue } from "../TimeBounds"
+import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
+import { owidVariableId } from "owidTable/OwidTable"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.

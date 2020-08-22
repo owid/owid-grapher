@@ -3,7 +3,7 @@ import { action } from "mobx"
 import { SketchPicker } from "react-color"
 
 import { lastOfNonEmptyArray } from "charts/Util"
-import { ColorSchemes, ColorScheme } from "charts/ColorSchemes"
+import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 
 export interface ColorpickerProps {
     color?: string
