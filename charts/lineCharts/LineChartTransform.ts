@@ -12,14 +12,14 @@ import {
     formatValue,
     flatten,
     findIndex
-} from "./Util"
+} from "charts/Util"
 import { EntityDimensionKey } from "charts/ChartConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
-import { AxisSpec } from "./AxisSpec"
+import { AxisSpec } from "charts/AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
-import { ChartTransform } from "./ChartTransform"
-import { ChartDimension } from "./ChartDimension"
-import { Time } from "./TimeBounds"
+import { ChartTransform } from "charts/ChartTransform"
+import { ChartDimension } from "charts/ChartDimension"
+import { Time } from "charts/TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a line chart

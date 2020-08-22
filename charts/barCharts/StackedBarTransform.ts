@@ -11,13 +11,13 @@ import {
     defaultTo,
     uniq,
     flatten
-} from "./Util"
+} from "charts/Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
-import { AxisSpec } from "./AxisSpec"
-import { ChartTransform } from "./ChartTransform"
-import { ChartDimension } from "./ChartDimension"
+import { AxisSpec } from "charts/AxisSpec"
+import { ChartTransform } from "charts/ChartTransform"
+import { ChartDimension } from "charts/ChartDimension"
 import { EntityDimensionKey } from "charts/ChartConstants"
-import { Time } from "./TimeBounds"
+import { Time } from "charts/TimeBounds"
 import { ColorScale } from "charts/color/ColorScale"
 
 // Responsible for translating chart configuration into the form
