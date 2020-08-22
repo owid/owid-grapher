@@ -18,7 +18,7 @@ import { ChartTransform } from "./ChartTransform"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { Time } from "./TimeBounds"
-import { ColorScale } from "./ColorScale"
+import { ColorScale } from "charts/color/ColorScale"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart

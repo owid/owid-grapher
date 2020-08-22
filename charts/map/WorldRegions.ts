@@ -1,4 +1,4 @@
-import { uniq, values, entityNameForMap } from "./Util"
+import { uniq, values, entityNameForMap } from "../Util"
 import { MapProjection } from "./MapProjection"
 
 // The projections we currently offer are all world regions.

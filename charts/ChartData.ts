@@ -16,7 +16,7 @@ import {
 import { computed, action } from "mobx"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "./EntityDimensionKey"
-import { Color } from "./Color"
+import { Color } from "charts/color/Color"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
 import { OwidSource } from "../owidTable/OwidSource"
 import { entityName, entityId, entityCode } from "../owidTable/OwidTable"

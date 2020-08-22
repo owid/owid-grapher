@@ -1,7 +1,7 @@
 import { ckmeans } from "simple-statistics"
 import { range, quantile } from "d3-array"
 
-import { excludeUndefined, uniq, last, roundSigFig, first } from "./Util"
+import { excludeUndefined, uniq, last, roundSigFig, first } from "charts/Util"
 
 export enum BinningStrategy {
     equalInterval = "equalInterval",

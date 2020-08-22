@@ -3,14 +3,14 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as topojson from "topojson-client"
 
-import { identity, sortBy, guid, getRelativeMouse } from "./Util"
-import { Bounds } from "./Bounds"
+import { identity, sortBy, guid, getRelativeMouse } from "../Util"
+import { Bounds } from "../Bounds"
 import { MapProjections } from "./MapProjections"
 import { MapProjection } from "./MapProjection"
 import { MapTopology } from "./MapTopology"
-import { Vector2 } from "./Vector2"
+import { Vector2 } from "../Vector2"
 import { worldRegionByMapEntity } from "./WorldRegions"
-import { ColorScaleBin } from "./ColorScaleBin"
+import { ColorScaleBin } from "charts/color/ColorScaleBin"
 
 export interface ChoroplethDatum {
     entity: string

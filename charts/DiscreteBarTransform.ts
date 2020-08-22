@@ -3,7 +3,7 @@ import { some, isEmpty, sortBy, orderBy, values, flatten, uniq } from "./Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "./ChartTransform"
 import { ChartDimensionWithOwidVariable } from "./ChartDimensionWithOwidVariable"
-import { ColorSchemes } from "./ColorSchemes"
+import { ColorSchemes } from "charts/color/ColorSchemes"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { Time } from "./TimeBounds"
 

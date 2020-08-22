@@ -5,7 +5,7 @@ import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "./ChartTransform"
 import { Time } from "./TimeBounds"
 import { EntityDimensionKey } from "./EntityDimensionKey"
-import { ColorScale } from "./ColorScale"
+import { ColorScale } from "charts/color/ColorScale"
 
 // Responsible for translating chart configuration into the form
 // of a line chart

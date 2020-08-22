@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { getBinMaximums, BinningStrategy } from "charts/BinningStrategies"
+import { getBinMaximums, BinningStrategy } from "./BinningStrategies"
 
 describe("BinningStrategies", () => {
     describe(getBinMaximums, () => {

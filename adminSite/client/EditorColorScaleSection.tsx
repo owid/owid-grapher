@@ -7,10 +7,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 
-import { ColorScale } from "charts/ColorScale"
-import { ColorScaleBin, NumericBin, CategoricalBin } from "charts/ColorScaleBin"
+import { ColorScale } from "charts/color/ColorScale"
+import {
+    ColorScaleBin,
+    NumericBin,
+    CategoricalBin
+} from "charts/color/ColorScaleBin"
 import { clone, noop, last } from "charts/Util"
-import { Color } from "charts/Color"
+import { Color } from "charts/color/Color"
 import { asArray } from "utils/client/react-select"
 
 import {
@@ -29,7 +33,7 @@ import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
 import {
     BinningStrategy,
     binningStrategyLabels
-} from "charts/BinningStrategies"
+} from "charts/color/BinningStrategies"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean

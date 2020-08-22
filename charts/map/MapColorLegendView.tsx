@@ -2,25 +2,27 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds } from "./Bounds"
-import { getRelativeMouse, sortBy } from "./Util"
-import { ColorScaleBin, CategoricalBin } from "./ColorScaleBin"
+import { Bounds } from "charts/Bounds"
+import { getRelativeMouse, sortBy } from "charts/Util"
+import { ColorScaleBin, CategoricalBin } from "charts/color/ColorScaleBin"
 import {
-    ColorLegend,
-    NumericColorLegend,
-    CategoricalColorLegend
-} from "./ColorLegend"
+    MapColorLegend,
+    MapNumericColorLegend,
+    MapCategoricalColorLegend
+} from "./MapColorLegend"
 
 const FOCUS_BORDER_COLOR = "#111"
 
-export interface ColorLegendViewProps {
-    legend: ColorLegend
+export interface MapColorLegendViewProps {
+    legend: MapColorLegend
     onMouseOver: (d: ColorScaleBin) => void
     onMouseLeave: () => void
 }
 
 @observer
-export class ColorLegendView extends React.Component<ColorLegendViewProps> {
+export class MapColorLegendView extends React.Component<
+    MapColorLegendViewProps
+> {
     render() {
         const { legend, onMouseOver, onMouseLeave } = this.props
         const {
@@ -72,7 +74,7 @@ export class ColorLegendView extends React.Component<ColorLegendViewProps> {
 
 @observer
 class NumericColorLegendView extends React.Component<{
-    legend: NumericColorLegend
+    legend: MapNumericColorLegend
     x: number
     y: number
     onMouseOver: (d: ColorScaleBin) => void
@@ -90,7 +92,7 @@ class NumericColorLegendView extends React.Component<{
         )
     }
 
-    @computed get legend(): NumericColorLegend {
+    @computed get legend(): MapNumericColorLegend {
         return this.props.legend
     }
 
@@ -205,7 +207,7 @@ class NumericColorLegendView extends React.Component<{
 }
 
 interface CategoricalColorLegendViewProps {
-    legend: CategoricalColorLegend
+    legend: MapCategoricalColorLegend
     x: number
     y: number
     onMouseOver: (d: CategoricalBin) => void

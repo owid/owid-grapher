@@ -14,9 +14,9 @@ import {
     identity,
     roundSigFig,
     mapNullToUndefined
-} from "./Util"
+} from "charts/Util"
 import { Color } from "./Color"
-import { ColorScheme, ColorSchemes } from "./ColorSchemes"
+import { ColorScheme, ColorSchemes } from "charts/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 

@@ -2,7 +2,6 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
-import Select, { ValueType } from "react-select"
 import copy from "copy-to-clipboard"
 
 import {
@@ -13,8 +12,7 @@ import {
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "../ChartView"
 import { Timeline } from "../HTMLTimeline"
-import { extend, keys, entries, first, max, formatValue } from "../Util"
-import { worldRegions, labelsByRegion } from "../WorldRegions"
+import { extend, keys, entries, max, formatValue } from "../Util"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -33,9 +31,6 @@ import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
 import { TimeBound } from "../TimeBounds"
-import { Bounds } from "../Bounds"
-import { MapProjection } from "../MapProjection"
-import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -735,58 +730,6 @@ export class AddEntityButton extends React.Component<{
                 </span>
                 <span className="label">{label}</span>
             </button>
-        )
-    }
-}
-
-interface ProjectionChooserEntry {
-    label: string
-    value: MapProjection
-}
-
-@observer
-export class ProjectionChooser extends React.Component<{
-    bounds: Bounds
-    value: string
-    onChange: (value: MapProjection) => void
-}> {
-    @action.bound onChange(selected: ValueType<ProjectionChooserEntry>) {
-        const selectedValue = first(asArray(selected))?.value
-        if (selectedValue) this.props.onChange(selectedValue)
-    }
-
-    @computed get options() {
-        return worldRegions.map(region => {
-            return {
-                value: region,
-                label: labelsByRegion[region]
-            }
-        })
-    }
-
-    render() {
-        const { bounds, value } = this.props
-
-        const style: React.CSSProperties = {
-            position: "absolute",
-            fontSize: "0.75rem",
-            ...bounds.toCSS()
-        }
-
-        return (
-            <div style={style}>
-                <Select
-                    options={this.options}
-                    onChange={this.onChange}
-                    value={this.options.find(opt => opt.value === value)}
-                    menuPlacement="bottom"
-                    components={{
-                        IndicatorSeparator: null
-                    }}
-                    styles={getStylesForTargetHeight(22)}
-                    isSearchable={false}
-                />
-            </div>
         )
     }
 }

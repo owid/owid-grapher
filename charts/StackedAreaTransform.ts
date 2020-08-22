@@ -17,7 +17,7 @@ import {
 import { EntityDimensionKey } from "./EntityDimensionKey"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
 import { AxisSpec } from "./AxisSpec"
-import { ColorSchemes, ColorScheme } from "./ColorSchemes"
+import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 import { ChartTransform } from "./ChartTransform"
 import { Time } from "./TimeBounds"
 

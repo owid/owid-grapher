@@ -13,7 +13,7 @@ import { StackedArea } from "charts/StackedArea"
 import { StackedBarChart } from "charts/StackedBarChart"
 import { DiscreteBarChart } from "charts/DiscreteBarChart"
 import { SlopeChart } from "charts/SlopeChart"
-import { ChoroplethMap } from "charts/ChoroplethMap"
+import { ChoroplethMap } from "charts/map/ChoroplethMap"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel } from "explorer/indicatorExplorer/ExploreModel"
 
