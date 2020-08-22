@@ -134,10 +134,7 @@ export class HorizontalAxis {
             }
         }
 
-        return sortBy(
-            tickPlacements.filter(t => !t.isHidden).map(t => t.tick),
-            t => t
-        )
+        return sortBy(tickPlacements.filter(t => !t.isHidden).map(t => t.tick))
     }
 
     @computed get tickFormattingOptions() {
