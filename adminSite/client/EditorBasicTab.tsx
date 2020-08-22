@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 
 import { includes, sample, sampleSize } from "charts/Util"
 import { DimensionSlot } from "charts/ChartConfig"
-import { ChartTypeDefs, ChartTypeType } from "charts/ChartType"
+import { ChartTypeDefs, ChartTypeName } from "charts/ChartConstants"
 import { ChartDimension, ChartDimensionSpec } from "charts/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
@@ -165,7 +165,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onChartType(value: string) {
         const { chart } = this.props.editor
-        chart.props.type = value as ChartTypeType
+        chart.props.type = value as ChartTypeName
 
         // Give scatterplots and slope charts a default color and size dimension if they don't have one
         if (

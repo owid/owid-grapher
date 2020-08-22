@@ -1,12 +1,12 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
-import { ChartType, ChartTypeType } from "charts/ChartType"
+import { ChartType, ChartTypeName } from "charts/ChartConstants"
 import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
 import { Indicator } from "./Indicator"
 
-export type ExplorerChartType = ChartTypeType | "WorldMap"
+export type ExplorerChartType = ChartTypeName | "WorldMap"
 
 function chartConfigFromIndicator(
     indicator: Indicator
@@ -95,10 +95,10 @@ export class ExploreModel {
     // Translates between the chart type chosen in the Explore UI, and the type we want to set on
     // the ChartConfigProps. It's a pass-through unless map is chosen, in which case we tell the
     // chart (arbitrarily) to be a line chart, and set the tab to map.
-    @computed get configChartType(): ChartTypeType {
+    @computed get configChartType(): ChartTypeName {
         return this.isMap
             ? ChartType.LineChart
-            : (this.chartType as ChartTypeType)
+            : (this.chartType as ChartTypeName)
     }
 
     @computed get indicatorEntry(): StoreEntry<Indicator> | null {

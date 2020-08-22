@@ -14,7 +14,7 @@ import {
     CategoricalBin
 } from "charts/color/ColorScaleBin"
 import { clone, noop, last } from "charts/Util"
-import { Color } from "charts/color/Color"
+import { Color } from "charts/ChartConstants"
 import { asArray } from "utils/client/react-select"
 
 import {

@@ -16,7 +16,7 @@ import { AxisScale } from "./AxisScale"
 import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
 import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
 import { AxisSpec } from "./AxisSpec"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 import { extend } from "./Util"
 import classNames from "classnames"
 

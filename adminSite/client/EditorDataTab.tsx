@@ -3,7 +3,7 @@ import { clone, map } from "charts/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/ChartConfig"
-import { EntityDimensionKey } from "charts/EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import {
     EditableList,
     EditableListItem,

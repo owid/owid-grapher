@@ -26,13 +26,16 @@ import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
 import { Analytics } from "site/client/Analytics"
 
 import { SortIcon } from "charts/controls/SortIcon"
-import { toggleSort, SortOrder } from "charts/controls/SortOrder"
+import { SortOrder } from "charts/ChartConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import {
     AbstractColumn,
     OwidTable,
     NumericColumn
 } from "../../owidTable/OwidTable"
+
+const toggleSort = (order: SortOrder): SortOrder =>
+    order === SortOrder.desc ? SortOrder.asc : SortOrder.desc
 
 enum FocusDirection {
     first = "first",

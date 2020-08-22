@@ -1,8 +1,8 @@
 import { ChartConfigProps } from "charts/ChartConfig"
-import { ChartTypeType } from "charts/ChartType"
+import { ChartTypeName } from "charts/ChartConstants"
 import { EXPLORER } from "settings"
 
-export const EXPLORABLE_CHART_TYPES: ChartTypeType[] = [
+export const EXPLORABLE_CHART_TYPES: ChartTypeName[] = [
     "LineChart",
     "DiscreteBar"
 ]

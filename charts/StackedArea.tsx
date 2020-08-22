@@ -26,7 +26,7 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { EntityDimensionKey } from "./EntityDimensionKey" // todo: remove
+import { EntityDimensionKey } from "charts/ChartConstants" // todo: remove
 
 export interface StackedAreaValue {
     x: number

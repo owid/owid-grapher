@@ -9,7 +9,7 @@ import {
 } from "./TimeBounds"
 import { defaultTo, first, last, sortedUniq, sortBy, some } from "./Util"
 import { ChartConfig } from "./ChartConfig"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 
 export interface IChartTransform {

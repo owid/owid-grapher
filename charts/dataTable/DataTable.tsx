@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
 import { ChartConfig } from "charts/ChartConfig"
-import { SortOrder } from "charts/controls/SortOrder"
+import { SortOrder } from "charts/ChartConstants"
 import { capitalize, some, orderBy, upperFirst } from "charts/Util"
 import { SortIcon } from "charts/controls/SortIcon"
 import { Tippy } from "charts/Tippy"

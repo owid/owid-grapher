@@ -8,7 +8,7 @@ import { EntityDimensionInfo } from "../ChartData"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EntityDimensionKey } from "../EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 
 @observer
 class EntitySelectorMulti extends React.Component<{

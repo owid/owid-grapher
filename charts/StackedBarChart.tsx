@@ -18,7 +18,7 @@ import {
     ScatterColorLegendView
 } from "./ScatterColorLegend"
 import { Tooltip } from "./Tooltip"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 
 export interface StackedBarValue {
     x: number

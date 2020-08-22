@@ -4,7 +4,7 @@ import { ChartDimension } from "./ChartDimension"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "./ChartTransform"
 import { Time } from "./TimeBounds"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 
 // Responsible for translating chart configuration into the form

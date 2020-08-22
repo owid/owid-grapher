@@ -7,7 +7,7 @@ import { NoData } from "./NoData"
 import { AxisBox, AxisBoxView } from "./AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { AxisScale } from "./AxisScale"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 
 import {
     sortBy,
@@ -21,7 +21,7 @@ import { Vector2 } from "./Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "./Tooltip"
 import { TimeBound } from "./TimeBounds"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 
 interface ScatterSeries {
     color: string

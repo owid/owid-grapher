@@ -27,7 +27,7 @@ import { Tooltip } from "./Tooltip"
 import { NoData } from "./NoData"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { extent } from "d3-array"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { entityName } from "owidTable/OwidTable"
 
 export interface LineChartValue {

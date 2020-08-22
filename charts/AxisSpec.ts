@@ -5,7 +5,7 @@
  * that is ready to go into rendering-- no unfilled nulls.
  */
 
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 import { TickFormattingOptions } from "./TickFormattingOptions"
 
 export interface AxisSpec {

@@ -30,10 +30,10 @@ import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { AxisSpec } from "./AxisSpec"
 import { ChartTransform } from "./ChartTransform"
 import { Time } from "./TimeBounds"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { entityName, year } from "owidTable/OwidTable"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot

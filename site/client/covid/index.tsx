@@ -12,7 +12,7 @@ import { CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "charts/Tippy"
-import { SortOrder } from "charts/controls/SortOrder"
+import { SortOrder } from "charts/ChartConstants"
 import { oneOf } from "charts/Util"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"

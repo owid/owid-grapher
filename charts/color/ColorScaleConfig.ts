@@ -1,6 +1,6 @@
 import { observable } from "mobx"
 
-import { Color } from "./Color"
+import { Color } from "charts/ChartConstants"
 import { BinningStrategy } from "./BinningStrategies"
 
 export class ColorScaleConfigProps {

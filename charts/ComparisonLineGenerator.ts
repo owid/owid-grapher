@@ -1,6 +1,6 @@
 import { Parser, Expression } from "expr-eval"
 import { scaleLinear, scaleLog } from "d3-scale"
-import { ScaleType } from "./ScaleType"
+import { ScaleType } from "./ChartConstants"
 
 export function generateComparisonLinePoints(
     lineFunction: string = "x",

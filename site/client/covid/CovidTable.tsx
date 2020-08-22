@@ -22,7 +22,7 @@ import {
     fromPairs,
     uniq
 } from "charts/Util"
-import { SortOrder } from "charts/controls/SortOrder"
+import { SortOrder } from "charts/ChartConstants"
 
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 

@@ -34,8 +34,7 @@ import {
 } from "./Util"
 import { ComparisonLineConfig } from "./ComparisonLine"
 import { AxisConfig, AxisConfigProps } from "./AxisConfig"
-import { ChartType, ChartTypeType } from "./ChartType"
-import { ChartTabOption } from "./ChartTabOption"
+import { ChartType, ChartTypeName, ChartTabOption } from "./ChartConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { ChartData, SourceWithDimension } from "./ChartData"
 import { OwidTable } from "owidTable/OwidTable"
@@ -53,7 +52,7 @@ import { StackedAreaTransform } from "./StackedAreaTransform"
 import { LineChartTransform } from "./LineChartTransform"
 import { ScatterTransform } from "./ScatterTransform"
 import { SlopeChartTransform } from "./SlopeChartTransform"
-import { Color } from "charts/color/Color"
+import { Color } from "charts/ChartConstants"
 import { ChartView } from "./ChartView"
 import { Bounds } from "./Bounds"
 import { IChartTransform } from "./ChartTransform"
@@ -78,7 +77,7 @@ import {
 import { TickFormattingOptions } from "./TickFormattingOptions"
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { countries } from "utils/countries"
-import { DataTableTransform } from "./DataTableTransform"
+import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "./PopulationMap"
 
@@ -190,7 +189,7 @@ export class ChartConfigProps {
         }
     }
 
-    @observable.ref type: ChartTypeType = "LineChart"
+    @observable.ref type: ChartTypeName = "LineChart"
     @observable.ref isExplorable: boolean = false
 
     @observable.ref id?: number = undefined

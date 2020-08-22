@@ -18,7 +18,7 @@ import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisScale } from "./AxisScale"
 import { Vector2 } from "./Vector2"
 import { Bounds } from "./Bounds"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 import { AxisBox } from "./AxisBox"
 
 export interface LinesProps {

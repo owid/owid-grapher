@@ -24,7 +24,7 @@ import { AxisScale } from "./AxisScale"
 import { Bounds } from "./Bounds"
 import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "./controls/Controls"
-import { EntityDimensionKey } from "./EntityDimensionKey"
+import { EntityDimensionKey } from "charts/ChartConstants"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
