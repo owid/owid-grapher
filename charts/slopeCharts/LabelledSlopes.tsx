@@ -26,16 +26,16 @@ import {
     SVGElement,
     getRelativeMouse,
     domainExtent
-} from "./Util"
+} from "../Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { ScaleType } from "./ChartConstants"
-import { Bounds } from "./Bounds"
-import { Text } from "./Text"
-import { TextWrap } from "./TextWrap"
-import { NoDataOverlay } from "./shell/NoDataOverlay"
-import { ScaleSelector } from "./controls/ScaleSelector"
+import { ScaleType } from "charts/ChartConstants"
+import { Bounds } from "charts/Bounds"
+import { Text } from "charts/Text"
+import { TextWrap } from "charts/TextWrap"
+import { NoDataOverlay } from "charts/shell/NoDataOverlay"
+import { ScaleSelector } from "charts/controls/ScaleSelector"
 import { EntityDimensionKey } from "charts/ChartConstants"
 import { ControlsOverlay } from "charts/controls/Controls"
 

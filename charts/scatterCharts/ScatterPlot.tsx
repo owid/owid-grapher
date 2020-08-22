@@ -19,26 +19,26 @@ import {
     last,
     excludeUndefined,
     flatten
-} from "./Util"
+} from "../Util"
 import { observer } from "mobx-react"
-import { Bounds } from "./Bounds"
-import { ChartConfig } from "./ChartConfig"
-import { NoDataOverlay } from "./shell/NoDataOverlay"
+import { Bounds } from "../Bounds"
+import { ChartConfig } from "../ChartConfig"
+import { NoDataOverlay } from "../shell/NoDataOverlay"
 import {
     PointsWithLabels,
     ScatterSeries,
     ScatterValue
 } from "./PointsWithLabels"
-import { TextWrap } from "./TextWrap"
+import { TextWrap } from "../TextWrap"
 import { ConnectedScatterLegend } from "./ConnectedScatterLegend"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "./ScatterColorLegend"
-import { AxisBox, AxisBoxView } from "./AxisBox"
-import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType } from "./ChartConstants"
-import { TimeBound } from "./TimeBounds"
+import { AxisBox, AxisBoxView } from "../AxisBox"
+import { ComparisonLine } from "../ComparisonLine"
+import { ScaleType } from "../ChartConstants"
+import { TimeBound } from "../TimeBounds"
 import { EntityDimensionKey } from "charts/ChartConstants"
 
 @observer

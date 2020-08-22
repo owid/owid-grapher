@@ -23,19 +23,19 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     intersection
-} from "./Util"
+} from "../Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "./Bounds"
-import { NoDataOverlay } from "./shell/NoDataOverlay"
-import { AxisScale } from "./AxisScale"
-import { Vector2 } from "./Vector2"
-import { Triangle } from "./Triangle"
+import { Bounds } from "../Bounds"
+import { NoDataOverlay } from "../shell/NoDataOverlay"
+import { AxisScale } from "../AxisScale"
+import { Vector2 } from "../Vector2"
+import { Triangle } from "../Triangle"
 import { select } from "d3-selection"
-import { getElementWithHalo } from "./Halos"
+import { getElementWithHalo } from "../Halos"
 import { EntityDimensionKey } from "charts/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
-import { MultiColorPolyline } from "./MultiColorPolyline"
+import { MultiColorPolyline } from "../MultiColorPolyline"
 import { entityName } from "owidTable/OwidTable"
 
 export interface ScatterSeries {

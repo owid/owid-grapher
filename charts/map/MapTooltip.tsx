@@ -4,7 +4,11 @@ import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
 import { Tooltip } from "charts/shell/Tooltip"
 import { takeWhile, last, first } from "../Util"
-import { SparkBars, SparkBarsDatum, SparkBarsProps } from "../SparkBars"
+import {
+    SparkBars,
+    SparkBarsDatum,
+    SparkBarsProps
+} from "../sparkBars/SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
 import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
 

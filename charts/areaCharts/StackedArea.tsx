@@ -8,24 +8,24 @@ import {
     pointsToPath,
     getRelativeMouse,
     makeSafeForCSS
-} from "./Util"
+} from "../Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "./ChartConfig"
-import { Bounds } from "./Bounds"
-import { AxisBox } from "./AxisBox"
-import { StandardAxisBoxView } from "./StandardAxisBoxView"
+import { ChartConfig } from "../ChartConfig"
+import { Bounds } from "../Bounds"
+import { AxisBox } from "../AxisBox"
+import { StandardAxisBoxView } from "../StandardAxisBoxView"
 import {
     HeightedLegend,
     HeightedLegendItem,
     HeightedLegendComponent
-} from "./HeightedLegend"
+} from "../HeightedLegend"
 import { NoDataOverlay } from "charts/shell/NoDataOverlay"
 import { Tooltip } from "charts/shell/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
 import { EntityDimensionKey } from "charts/ChartConstants" // todo: remove
 
 export interface StackedAreaValue {

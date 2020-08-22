@@ -19,27 +19,27 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     pointsToPath
-} from "./Util"
+} from "../Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import { ChartConfig } from "./ChartConfig"
-import { Bounds } from "./Bounds"
-import { AxisBox } from "./AxisBox"
-import { AxisScale } from "./AxisScale"
-import { StandardAxisBoxView } from "./StandardAxisBoxView"
-import { Vector2 } from "./Vector2"
+import { ChartConfig } from "../ChartConfig"
+import { Bounds } from "../Bounds"
+import { AxisBox } from "../AxisBox"
+import { AxisScale } from "../AxisScale"
+import { StandardAxisBoxView } from "../StandardAxisBoxView"
+import { Vector2 } from "../Vector2"
 import {
     HeightedLegend,
     HeightedLegendItem,
     HeightedLegendComponent
-} from "./HeightedLegend"
-import { ComparisonLine } from "./ComparisonLine"
+} from "../HeightedLegend"
+import { ComparisonLine } from "../ComparisonLine"
 import { Tooltip } from "charts/shell/Tooltip"
-import { NoDataOverlay } from "./shell/NoDataOverlay"
-import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
+import { NoDataOverlay } from "../shell/NoDataOverlay"
+import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
 import { extent } from "d3-array"
 import { EntityDimensionKey } from "charts/ChartConstants"
 import { entityName } from "owidTable/OwidTable"

@@ -1,11 +1,19 @@
 import { computed } from "mobx"
-import { some, isEmpty, sortBy, orderBy, values, flatten, uniq } from "./Util"
+import {
+    some,
+    isEmpty,
+    sortBy,
+    orderBy,
+    values,
+    flatten,
+    uniq
+} from "charts/Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
-import { ChartTransform } from "./ChartTransform"
-import { ChartDimension } from "./ChartDimension"
+import { ChartTransform } from "charts/ChartTransform"
+import { ChartDimension } from "charts/ChartDimension"
 import { ColorSchemes } from "charts/color/ColorSchemes"
-import { TickFormattingOptions } from "./TickFormattingOptions"
-import { Time } from "./TimeBounds"
+import { TickFormattingOptions } from "charts/TickFormattingOptions"
+import { Time } from "charts/TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
