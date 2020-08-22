@@ -313,7 +313,7 @@ export class ChartData {
 
     // todo: remove
     @computed.struct get availableKeys(): EntityDimensionKey[] {
-        return sortBy([...Array.from(this.entityDimensionMap.keys())])
+        return sortBy(Array.from(this.entityDimensionMap.keys()))
     }
 
     // todo: remove
