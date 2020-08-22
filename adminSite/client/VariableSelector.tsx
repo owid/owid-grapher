@@ -14,7 +14,7 @@ import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { DimensionSlot } from "charts/ChartConfig"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
-import { highlight as fuzzyHighlight } from "charts/FuzzySearch"
+import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
 import { owidVariableId } from "owidTable/OwidTable"
 
 interface VariableSelectorProps {
