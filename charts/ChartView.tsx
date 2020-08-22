@@ -16,7 +16,7 @@ import { ChartTab } from "./ChartTab"
 import { TableTab } from "./TableTab"
 import { MapTab } from "charts/map/MapTab"
 import { SourcesTab } from "./SourcesTab"
-import { DownloadTab } from "./DownloadTab"
+import { DownloadTab } from "charts/downloadTab/DownloadTab"
 import {
     VNode,
     throttle,
