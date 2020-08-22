@@ -35,9 +35,9 @@ import { Bounds } from "./Bounds"
 import { Text } from "./Text"
 import { TextWrap } from "./TextWrap"
 import { NoData } from "./NoData"
-import { ScaleSelector } from "./ScaleSelector"
+import { ScaleSelector } from "./controls/ScaleSelector"
 import { EntityDimensionKey } from "charts/EntityDimensionKey"
-import { ControlsOverlay } from "./Controls"
+import { ControlsOverlay } from "./controls/Controls"
 
 export interface SlopeChartValue {
     x: number

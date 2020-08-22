@@ -5,7 +5,7 @@ import { Header, HeaderHTML } from "./Header"
 import { SourcesFooter, SourcesFooterHTML } from "./SourcesFooter"
 import { Bounds } from "./Bounds"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { ControlsOverlayView } from "./Controls"
+import { ControlsOverlayView } from "./controls/Controls"
 import { ChartView } from "./ChartView"
 
 export interface ChartLayoutProps {

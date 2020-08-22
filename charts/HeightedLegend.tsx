@@ -23,7 +23,7 @@ import { TextWrap } from "./TextWrap"
 import { AxisScale } from "./AxisScale"
 import { Bounds } from "./Bounds"
 import { ChartViewContextType, ChartViewContext } from "./ChartViewContext"
-import { ControlsOverlay, AddEntityButton } from "./Controls"
+import { ControlsOverlay, AddEntityButton } from "./controls/Controls"
 import { EntityDimensionKey } from "./EntityDimensionKey"
 
 // Minimum vertical space between two legend items

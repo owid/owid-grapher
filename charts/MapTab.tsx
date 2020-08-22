@@ -22,7 +22,7 @@ import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
 import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { ChartView } from "./ChartView"
 import { LoadingChart } from "./LoadingChart"
-import { ControlsOverlay, ProjectionChooser } from "./Controls"
+import { ControlsOverlay, ProjectionChooser } from "./controls/Controls"
 import { MapTooltip } from "./MapTooltip"
 import { ColorScale } from "./ColorScale"
 

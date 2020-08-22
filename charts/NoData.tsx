@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 
 import { Bounds } from "./Bounds"
 import { ChartViewContext, ChartViewContextType } from "./ChartViewContext"
-import { ControlsOverlay } from "./Controls"
+import { ControlsOverlay } from "./controls/Controls"
 import { ChartConfig } from "./ChartConfig"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
