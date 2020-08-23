@@ -7,14 +7,7 @@ import {
     isUnboundedRight,
     getClosestTime
 } from "charts/utils/TimeBounds"
-import {
-    defaultTo,
-    first,
-    last,
-    sortedUniq,
-    sortBy,
-    some
-} from "charts/utils/Util"
+import { defaultTo, first, last, some, sortBy, uniq } from "charts/utils/Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
@@ -70,7 +63,7 @@ export abstract class ChartTransform implements IChartTransform {
             if (max !== undefined && year > max) return false
             return true
         })
-        return sortedUniq(sortBy(filteredYears))
+        return sortBy(uniq(filteredYears))
     }
 
     @computed get minTimelineYear(): Time {
