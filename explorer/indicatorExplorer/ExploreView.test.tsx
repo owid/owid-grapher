@@ -17,11 +17,10 @@ import { ChoroplethMap } from "charts/mapCharts/ChoroplethMap"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel } from "explorer/indicatorExplorer/ExploreModel"
 
-import * as apiMock from "test/apiMock"
-import * as fixtures from "test/fixtures"
+import * as apiMock from "explorer/indicatorExplorer/apiMock"
 
 const bounds = new Bounds(0, 0, 800, 600)
-const indicator = fixtures.readIndicators().indicators[0]
+const indicator = apiMock.readIndicators().indicators[0]
 
 function getStore() {
     return new RootStore()

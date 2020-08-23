@@ -1,33 +1,25 @@
 import * as fs from "fs"
 
-import { Indicator } from "explorer/indicatorExplorer/Indicator"
 import { ChartConfigProps } from "charts/core/ChartConfig"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
-export function readBuffer(fixture: string) {
-    return fs.readFileSync(__dirname + `/${fixture}.json`)
-}
-
-function readObj(fixture: string) {
-    return JSON.parse(readBuffer(fixture).toString())
-}
+const readObj = (fixture: string) =>
+    JSON.parse(fs.readFileSync(__dirname + `/${fixture}.mock.json`, "utf8"))
 
 export function readVariable(id: string | number): OwidVariablesAndEntityKey {
     return readObj(`variable-${id}`)
 }
 
-export function readVariableSet(ids: string[] | number[]): OwidVariablesAndEntityKey {
+export function readVariableSet(
+    ids: string[] | number[]
+): OwidVariablesAndEntityKey {
     return readObj(`variableset-${ids.join("-")}`)
 }
 
 export function readChart(id: string | number): ChartConfigProps {
     return readObj(`chart-${id}`)
-}
-
-export function readIndicators(): { indicators: Indicator[] } {
-    return readObj("indicators")
 }
 
 export function readPost(id: number): Post.Row {

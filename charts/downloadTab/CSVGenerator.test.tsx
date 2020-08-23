@@ -1,5 +1,5 @@
 #! /usr/bin/env yarn jest
-import { setupChart } from "test/utils"
+import { setupChart } from "charts/test/utils"
 import { CSVGenerator } from "./CSVGenerator"
 
 function setupCSVGenerator(chartID: number, varIDs: number[]) {

@@ -23,7 +23,7 @@
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
-        "cypress:open": "yarn cypress open --project ./test/e2e",
+        "cypress:open": "yarn cypress open --project .",
         "testcheck": "yarn prettify:check && yarn typecheck && yarn test",
         "deploy": "./deploy/deploy.sh",
         "serve": "yarn tsn adminSite/server/app.tsx",

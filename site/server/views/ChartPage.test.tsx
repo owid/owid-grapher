@@ -11,7 +11,7 @@ import { ChartConfigProps } from "charts/core/ChartConfig"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
-import * as fixtures from "test/fixtures"
+import * as fixtures from "charts/test/fixtures"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 
 describe(ChartPage, () => {
