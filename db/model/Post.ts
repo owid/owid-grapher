@@ -106,18 +106,12 @@ export async function syncPostsToGrapher() {
 
     await db.knex().transaction(async t => {
         if (toDelete.length) {
-            await t
-                .whereIn("id", toDelete)
-                .delete()
-                .from(Post.table)
+            await t.whereIn("id", toDelete).delete().from(Post.table)
         }
 
         for (const row of toInsert) {
             if (doesExistInGrapher[row.id])
-                await t
-                    .update(row)
-                    .where("id", "=", row.id)
-                    .into(Post.table)
+                await t.update(row).where("id", "=", row.id).into(Post.table)
             else await t.insert(row).into(Post.table)
         }
     })
@@ -186,10 +180,7 @@ export async function syncPostToGrapher(
     await db.knex().transaction(async t => {
         if (!postRow && existsInGrapher) {
             // Delete from grapher
-            await t
-                .table(Post.table)
-                .where({ id: postId })
-                .delete()
+            await t.table(Post.table).where({ id: postId }).delete()
         } else if (postRow && !existsInGrapher) {
             await t.table(Post.table).insert(postRow)
         } else if (postRow && existsInGrapher) {
