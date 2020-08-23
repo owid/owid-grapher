@@ -1007,3 +1007,22 @@ export const getAvailableSlugSync = (
 
     return slug
 }
+
+/**
+ * Use with caution - please note that this sort function only sorts on numeric data, and that sorts
+ * **in-place** and **not stable**.
+ * If you need a more general sort function that is stable and leaves the original array untouched,
+ * please use lodash's `sortBy` instead. This function is faster, though.
+ */
+export function sortNumeric<T>(
+    arr: T[],
+    sortByFn: (el: T) => number = identity,
+    sortOrder: SortOrder = SortOrder.asc
+): T[] {
+    const compareFn =
+        sortOrder === SortOrder.asc
+            ? (a: T, b: T) => sortByFn(a) - sortByFn(b)
+            : (a: T, b: T) => sortByFn(b) - sortByFn(a)
+
+    return arr.sort(compareFn)
+}

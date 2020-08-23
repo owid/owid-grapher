@@ -13,7 +13,6 @@ import { scaleLinear } from "d3-scale"
 import {
     some,
     last,
-    sortBy,
     flatten,
     min,
     find,
@@ -24,7 +23,8 @@ import {
     makeSafeForCSS,
     intersection,
     minBy,
-    maxBy
+    maxBy,
+    sortNumeric
 } from "../utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -35,7 +35,7 @@ import { Vector2 } from "charts/utils/Vector2"
 import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey, SortOrder } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { entityName } from "owidTable/OwidTable"
@@ -305,7 +305,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     // Pre-transform data for rendering
     @computed get initialRenderData(): ScatterRenderSeries[] {
         const { data, xScale, yScale, sizeScale, fontScale, colorScale } = this
-        return sortBy(
+        return sortNumeric(
             data.map(d => {
                 const values = d.values.map(v => {
                     const area = sizeScale(v.size || 4)
@@ -338,7 +338,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     offsetVector: Vector2.zero
                 }
             }),
-            d => -d.size
+            d => d.size,
+            SortOrder.desc
         )
     }
 
@@ -570,7 +571,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         // Must do before collision detection since it'll change the positions
         this.moveLabelsInsideChartBounds(labels, this.bounds)
 
-        const labelsByPriority = sortBy(labels, l => -this.labelPriority(l))
+        const labelsByPriority = sortNumeric(
+            labels,
+            l => this.labelPriority(l),
+            SortOrder.desc
+        )
         if (this.focusKeys.length > 0)
             this.hideUnselectedLabels(labelsByPriority)
 

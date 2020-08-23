@@ -6,13 +6,15 @@ import {
     orderBy,
     values,
     flatten,
-    uniq
+    uniq,
+    sortNumeric,
+    sortedUniq
 } from "charts/utils/Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { ColorSchemes } from "charts/color/ColorSchemes"
-import { TickFormattingOptions } from "charts/core/ChartConstants"
+import { SortOrder, TickFormattingOptions } from "charts/core/ChartConstants"
 import { Time } from "charts/utils/TimeBounds"
 
 // Responsible for translating chart configuration into the form
@@ -216,11 +218,11 @@ export class DiscreteBarTransform extends ChartTransform {
             ? this._filterArrayForLogScale(allData)
             : allData
 
-        const data = sortBy(filteredData, d => d.value)
+        const data = sortNumeric(filteredData, d => d.value)
         const colorScheme = chart.baseColorScheme
             ? ColorSchemes[chart.baseColorScheme]
             : undefined
-        const uniqValues = uniq(data.map(d => d.value))
+        const uniqValues = sortedUniq(data.map(d => d.value))
         const colors = colorScheme?.getColors(uniqValues.length) || []
         if (chart.props.invertColorScheme) colors.reverse()
 
@@ -234,6 +236,6 @@ export class DiscreteBarTransform extends ChartTransform {
                 d.color
         })
 
-        return sortBy(data, d => -d.value)
+        return sortNumeric(data, d => d.value, SortOrder.desc)
     }
 }

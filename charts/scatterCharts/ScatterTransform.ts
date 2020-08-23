@@ -7,7 +7,6 @@ import {
     isNumber,
     has,
     groupBy,
-    sortBy,
     map,
     includes,
     sortedFindClosestIndex,
@@ -23,7 +22,8 @@ import {
     formatValue,
     domainExtent,
     identity,
-    minBy
+    minBy,
+    sortNumeric
 } from "charts/utils/Util"
 import { computed } from "mobx"
 import { ChartDimension } from "charts/core/ChartDimension"
@@ -611,7 +611,7 @@ export class ScatterTransform extends ChartTransform {
         }
 
         // Sort values by year again in case groupBy() above reordered the values
-        values = sortBy(values, v => v.year)
+        values = sortNumeric(values, v => v.year)
 
         // Don't allow values <= 0 for log scales
         if (yScaleType === "log") values = values.filter(v => v.y > 0)

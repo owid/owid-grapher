@@ -7,10 +7,10 @@ import {
     formatDay,
     formatYear,
     last,
-    sortBy,
     isNumber,
     extend,
-    sortedUniq
+    sortedUniq,
+    sortNumeric
 } from "charts/utils/Util"
 import { TickFormattingOptions } from "charts/core/ChartConstants"
 import { AbstractColumn, owidVariableId, entityName } from "owidTable/OwidTable"
@@ -220,7 +220,7 @@ export class ChartDimension {
     }
 
     @computed get sortedNumericValues(): number[] {
-        return sortBy(this.values.filter(isNumber).filter(v => !isNaN(v)))
+        return sortNumeric(this.values.filter(isNumber).filter(v => !isNaN(v)))
     }
 
     get yearsUniq() {
