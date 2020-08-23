@@ -24,6 +24,7 @@
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
+        "test-leaks": "yarn test --detectLeaks",
         "cypress:open": "yarn cypress open --project .",
         "testcheck": "yarn prettify:check && yarn typecheck && yarn test",
         "deploy": "./deploy/deploy.sh",
@@ -223,6 +224,7 @@
         "storybook": "^6.0.13",
         "ts-jest": "^26.2.0",
         "ts-node-dev": "^1.0.0-pre.40",
+        "weak-napi": "^2.0.2",
         "xhr-mock": "^2.5.1"
     },
     "prettier": {
