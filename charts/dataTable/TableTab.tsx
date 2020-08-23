@@ -1,4 +1,3 @@
-import { extend } from "charts/utils/Util"
 import { Bounds } from "charts/utils/Bounds"
 import * as React from "react"
 import { computed } from "mobx"
@@ -22,7 +21,7 @@ export class TableTab extends React.Component<{
         return (
             <div
                 className="tableTab"
-                style={extend(bounds.toCSS(), { position: "absolute" })}
+                style={{ ...bounds.toCSS(), position: "absolute" }}
             >
                 <div
                     style={{

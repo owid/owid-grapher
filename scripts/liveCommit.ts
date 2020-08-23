@@ -150,16 +150,22 @@ if (args._[0]) {
                 commitInformation => commitInformation.serverName
             ),
             commitInformation => {
-                delete commitInformation.serverName
+                const {
+                    commitSha,
+                    commitDate,
+                    commitAuthor,
+                    commitMessage
+                } = commitInformation
+
                 return {
-                    ...commitInformation,
+                    commitSha,
+                    commitDate,
+                    commitAuthor,
                     commitMessage:
-                        // truncate to 60 characters
-                        commitInformation.commitMessage &&
-                        commitInformation.commitMessage.length > 60
-                            ? commitInformation.commitMessage?.substr(0, 60) +
-                              "…"
-                            : commitInformation?.commitMessage
+                        // truncate to 50 characters
+                        commitMessage && commitMessage.length > 50
+                            ? commitMessage?.substr(0, 50) + "…"
+                            : commitMessage
                 }
             }
         )
