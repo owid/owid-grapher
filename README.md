@@ -74,7 +74,7 @@ Daily exports from the live OWID database are published here and can be used for
 This script will create a database, then download and import all OWID charts and their data (might take a while!):
 
 ```bash
-./scripts/downloadAndCreateDatabase.sh
+./db/downloadAndCreateDatabase.sh
 ```
 
 Since the full `data_values` table (including everything we haven't visualized yet) is really big (>10GB uncompressed), we don't currently have an export for it. If you'd like a copy please [contact us](mailto:tech@ourworldindata.org).
