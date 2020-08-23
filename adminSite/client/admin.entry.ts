@@ -1,3 +1,4 @@
+import "charts/core/charts.entry"
 import "adminSite/client/admin.scss"
 import "handsontable/dist/handsontable.full.css"
 
