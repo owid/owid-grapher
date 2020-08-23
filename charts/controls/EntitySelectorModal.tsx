@@ -2,13 +2,13 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 
-import { uniqBy, isTouchDevice, sortBy } from "../Util"
-import { ChartConfig } from "../ChartConfig"
-import { EntityDimensionInfo } from "../ChartData"
+import { uniqBy, isTouchDevice, sortBy } from "../utils/Util"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { EntityDimensionInfo } from "charts/core/ChartData"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EntityDimensionKey } from "charts/ChartConstants"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 
 @observer
 class EntitySelectorMulti extends React.Component<{

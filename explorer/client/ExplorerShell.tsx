@@ -1,17 +1,17 @@
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { Command, CommandPalette } from "charts/controls/CommandPalette"
-import { Bounds } from "charts/Bounds"
+import { Bounds } from "charts/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { CountryPicker } from "charts/controls/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
-import { ChartView } from "charts/ChartView"
+import { ChartView } from "charts/core/ChartView"
 import { ExplorerQueryParams } from "./ExplorerProgram"
-import { throttle } from "charts/Util"
+import { throttle } from "charts/utils/Util"
 
 // TODO: Migrate CovidExplorer to use this class as well
 @observer

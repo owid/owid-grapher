@@ -1,10 +1,10 @@
 import { computed } from "mobx"
-import { some, find, isEmpty, flatten, identity, last } from "charts/Util"
-import { ChartDimension } from "charts/ChartDimension"
+import { some, find, isEmpty, flatten, identity, last } from "charts/utils/Util"
+import { ChartDimension } from "charts/core/ChartDimension"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
-import { ChartTransform } from "charts/ChartTransform"
-import { Time } from "charts/TimeBounds"
-import { EntityDimensionKey } from "charts/ChartConstants"
+import { ChartTransform } from "charts/core/ChartTransform"
+import { Time } from "charts/utils/TimeBounds"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 
 // Responsible for translating chart configuration into the form

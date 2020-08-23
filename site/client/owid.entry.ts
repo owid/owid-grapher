@@ -1,5 +1,5 @@
 import "site/client/owid.scss"
-import "charts/chart.scss"
+import "charts/core/chart.scss"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
@@ -16,7 +16,7 @@ import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "./DonateForm"
 import { getParent } from "./utils"
 import { Grapher } from "site/client/Grapher"
-import { ChartView } from "charts/ChartView"
+import { ChartView } from "charts/core/ChartView"
 import { ExploreView } from "explorer/indicatorExplorer/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"

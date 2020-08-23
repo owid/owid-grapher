@@ -8,25 +8,28 @@ import {
     pointsToPath,
     getRelativeMouse,
     makeSafeForCSS
-} from "../Util"
+} from "../utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "../ChartConfig"
-import { Bounds } from "../Bounds"
-import { AxisBox } from "../AxisBox"
-import { StandardAxisBoxView } from "../StandardAxisBoxView"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { Bounds } from "charts/utils/Bounds"
+import { AxisBox } from "charts/axis/AxisBox"
+import { StandardAxisBoxView } from "charts/axis/StandardAxisBoxView"
 import {
     HeightedLegend,
     HeightedLegendItem,
     HeightedLegendComponent
-} from "../HeightedLegend"
-import { NoDataOverlay } from "charts/common/NoDataOverlay"
-import { Tooltip } from "charts/common/Tooltip"
+} from "../lineCharts/HeightedLegend"
+import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { Tooltip } from "charts/core/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
-import { EntityDimensionKey } from "charts/ChartConstants" // todo: remove
+import {
+    ChartViewContext,
+    ChartViewContextType
+} from "charts/core/ChartViewContext"
+import { EntityDimensionKey } from "charts/core/ChartConstants" // todo: remove
 
 export interface StackedAreaValue {
     x: number

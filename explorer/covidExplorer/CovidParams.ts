@@ -1,13 +1,13 @@
 import { computed, observable, action } from "mobx"
-import { EntityUrlBuilder } from "charts/ChartUrl"
+import { EntityUrlBuilder } from "charts/core/ChartUrl"
 import {
     QueryParams,
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
-import { SortOrder } from "charts/ChartConstants"
-import { oneOf, uniq, intersection } from "charts/Util"
-import { ChartTypeName } from "charts/ChartConstants"
+import { SortOrder } from "charts/core/ChartConstants"
+import { oneOf, uniq, intersection } from "charts/utils/Util"
+import { ChartTypeName } from "charts/core/ChartConstants"
 import {
     trajectoryColumnSpecs,
     covidCsvColumnSlug,

@@ -19,27 +19,27 @@ import {
     last,
     excludeUndefined,
     flatten
-} from "../Util"
+} from "../utils/Util"
 import { observer } from "mobx-react"
-import { Bounds } from "../Bounds"
-import { ChartConfig } from "../ChartConfig"
-import { NoDataOverlay } from "../common/NoDataOverlay"
+import { Bounds } from "charts/utils/Bounds"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { NoDataOverlay } from "../core/NoDataOverlay"
 import {
     PointsWithLabels,
     ScatterSeries,
     ScatterValue
 } from "./PointsWithLabels"
-import { TextWrap } from "../TextWrap"
+import { TextWrap } from "charts/text/TextWrap"
 import { ConnectedScatterLegend } from "./ConnectedScatterLegend"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "./ScatterColorLegend"
-import { AxisBox, AxisBoxView } from "../AxisBox"
-import { ComparisonLine } from "../ComparisonLine"
-import { ScaleType } from "../ChartConstants"
-import { TimeBound } from "../TimeBounds"
-import { EntityDimensionKey } from "charts/ChartConstants"
+import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
+import { ComparisonLine } from "./ComparisonLine"
+import { ScaleType } from "charts/core/ChartConstants"
+import { TimeBound } from "charts/utils/TimeBounds"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 
 @observer
 export class ScatterPlot extends React.Component<{

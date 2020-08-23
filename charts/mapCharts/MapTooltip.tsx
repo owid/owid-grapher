@@ -2,15 +2,18 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
-import { Tooltip } from "charts/common/Tooltip"
-import { takeWhile, last, first } from "../Util"
+import { Tooltip } from "charts/core/Tooltip"
+import { takeWhile, last, first } from "../utils/Util"
 import {
     SparkBars,
     SparkBarsDatum,
     SparkBarsProps
 } from "../sparkBars/SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
-import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
+import {
+    ChartViewContext,
+    ChartViewContextType
+} from "charts/core/ChartViewContext"
 
 interface MapTooltipProps {
     inputYear?: number

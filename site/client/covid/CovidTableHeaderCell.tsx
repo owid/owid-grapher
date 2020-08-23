@@ -2,7 +2,7 @@ import * as React from "react"
 import { bind } from "decko"
 import classnames from "classnames"
 
-import { SortOrder } from "charts/ChartConstants"
+import { SortOrder } from "charts/core/ChartConstants"
 import { CovidSortKey } from "./CovidTypes"
 import { CovidTableSortIcon } from "./CovidTableSortIcon"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"

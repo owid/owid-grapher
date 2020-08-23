@@ -1,4 +1,4 @@
-import { flatten } from "charts/Util"
+import { flatten } from "charts/utils/Util"
 import chunk from "chunk-text"
 import { fromString } from "html-to-text"
 

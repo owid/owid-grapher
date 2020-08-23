@@ -7,7 +7,7 @@ declare var global: any
 global.window = { location: { search: "" } }
 global.App = { isEditor: false }
 
-import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfig, ChartConfigProps } from "charts/core/ChartConfig"
 
 const svgoConfig: svgo.Options = {
     floatPrecision: 2,

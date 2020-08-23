@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartDimension } from "charts/ChartDimension"
+import { ChartDimension } from "charts/core/ChartDimension"
 import { ChartEditor } from "./ChartEditor"
 import {
     Toggle,

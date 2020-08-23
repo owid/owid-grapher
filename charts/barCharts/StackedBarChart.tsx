@@ -4,21 +4,21 @@ import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import { includes, guid, uniq, makeSafeForCSS } from "../Util"
-import { ChartConfig } from "../ChartConfig"
-import { Bounds } from "../Bounds"
-import { AxisBox, AxisGridLines } from "../AxisBox"
-import { AxisTickMarks } from "../AxisTickMarks"
-import { AxisScale } from "../AxisScale"
-import { VerticalAxis, VerticalAxisView } from "../VerticalAxis"
-import { NoDataOverlay } from "../common/NoDataOverlay"
-import { Text } from "../Text"
+import { includes, guid, uniq, makeSafeForCSS } from "../utils/Util"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { Bounds } from "charts/utils/Bounds"
+import { AxisBox, AxisGridLines } from "charts/axis/AxisBox"
+import { AxisTickMarks } from "charts/axis/AxisTickMarks"
+import { AxisScale } from "charts/axis/AxisScale"
+import { VerticalAxis, VerticalAxisView } from "charts/axis/VerticalAxis"
+import { NoDataOverlay } from "../core/NoDataOverlay"
+import { Text } from "../text/Text"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "../scatterCharts/ScatterColorLegend"
-import { Tooltip } from "charts/common/Tooltip"
-import { EntityDimensionKey } from "charts/ChartConstants"
+import { Tooltip } from "charts/core/Tooltip"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 
 export interface StackedBarValue {
     x: number

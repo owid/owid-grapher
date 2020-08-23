@@ -1,6 +1,6 @@
 import { bind } from "decko"
 
-import { throttle, isMobile } from "charts/Util"
+import { throttle, isMobile } from "charts/utils/Util"
 import {
     GlobalEntitySelection,
     pageContainsGlobalEntityControl

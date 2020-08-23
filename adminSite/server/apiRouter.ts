@@ -18,7 +18,7 @@ import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
 import { getVariableData, writeVariableCSV } from "db/model/Variable"
-import { ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfigProps } from "charts/core/ChartConfig"
 import {
     CountryNameFormat,
     CountryDefByKey

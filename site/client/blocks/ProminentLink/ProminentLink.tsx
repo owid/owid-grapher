@@ -9,8 +9,8 @@ import {
     splitURLintoPathAndQueryString,
     QueryParams
 } from "utils/client/url"
-import { EntityUrlBuilder } from "charts/ChartUrl"
-import { union, isEmpty, getAttributesOfHTMLElement } from "charts/Util"
+import { EntityUrlBuilder } from "charts/core/ChartUrl"
+import { union, isEmpty, getAttributesOfHTMLElement } from "charts/utils/Util"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 

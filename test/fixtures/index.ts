@@ -1,7 +1,7 @@
 import * as fs from "fs"
 
 import { Indicator } from "explorer/indicatorExplorer/Indicator"
-import { ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfigProps } from "charts/core/ChartConfig"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"

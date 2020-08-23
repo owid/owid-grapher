@@ -1,6 +1,6 @@
 import * as React from "react"
 import "site/client/owid.scss"
-import "charts/chart.scss"
+import "charts/core/chart.scss"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 

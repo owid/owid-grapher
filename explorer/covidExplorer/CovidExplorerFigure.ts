@@ -1,6 +1,6 @@
 import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
 import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
-import { excludeUndefined } from "charts/Util"
+import { excludeUndefined } from "charts/utils/Util"
 
 import { Figure, LoadProps } from "site/client/figures/Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"

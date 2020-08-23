@@ -2,8 +2,8 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds } from "charts/Bounds"
-import { getRelativeMouse, sortBy } from "charts/Util"
+import { Bounds } from "charts/utils/Bounds"
+import { getRelativeMouse, sortBy } from "charts/utils/Util"
 import { ColorScaleBin, CategoricalBin } from "charts/color/ColorScaleBin"
 import {
     MapColorLegend,

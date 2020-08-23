@@ -20,7 +20,7 @@ import {
     intersectionOfSets,
     formatValue,
     anyToString
-} from "charts/Util"
+} from "charts/utils/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"

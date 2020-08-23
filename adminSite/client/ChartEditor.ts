@@ -6,7 +6,7 @@
  */
 
 import { observable, computed, runInAction, when } from "mobx"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "settings"

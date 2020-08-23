@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import { groupBy, each, isString, sortBy, defaultTo } from "charts/Util"
+import { groupBy, each, isString, sortBy, defaultTo } from "charts/utils/Util"
 import {
     computed,
     action,
@@ -11,7 +11,7 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
-import { DimensionSlot } from "charts/ChartConfig"
+import { DimensionSlot } from "charts/core/ChartConfig"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
 import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"

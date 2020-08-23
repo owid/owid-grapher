@@ -12,10 +12,10 @@ import {
     TextField,
     Button
 } from "./Forms"
-import { LogoOption } from "charts/common/Logos"
+import { LogoOption } from "charts/core/Logos"
 import slugify from "slugify"
-import { RelatedQuestionsConfig } from "charts/ChartConfig"
-import { getErrorMessageRelatedQuestionUrl } from "charts/Util"
+import { RelatedQuestionsConfig } from "charts/core/ChartConfig"
+import { getErrorMessageRelatedQuestionUrl } from "charts/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"

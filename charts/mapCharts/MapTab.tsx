@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Bounds } from "charts/Bounds"
+import { Bounds } from "charts/utils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -12,16 +12,19 @@ import {
 } from "charts/mapCharts/ChoroplethMap"
 import { MapColorLegend } from "charts/mapCharts/MapColorLegend"
 import { MapColorLegendView } from "./MapColorLegendView"
-import { getRelativeMouse } from "charts/Util"
-import { ChartConfig } from "charts/ChartConfig"
+import { getRelativeMouse } from "charts/utils/Util"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { MapConfig } from "./MapConfig"
 import { MapProjection } from "./MapProjection"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
-import { ChartViewContext, ChartViewContextType } from "charts/ChartViewContext"
-import { ChartLayout, ChartLayoutView } from "charts/ChartLayout"
-import { ChartView } from "charts/ChartView"
-import { LoadingOverlay } from "charts/common/LoadingOverlay"
+import {
+    ChartViewContext,
+    ChartViewContextType
+} from "charts/core/ChartViewContext"
+import { ChartLayout, ChartLayoutView } from "charts/core/ChartLayout"
+import { ChartView } from "charts/core/ChartView"
+import { LoadingOverlay } from "charts/core/LoadingOverlay"
 import { ControlsOverlay } from "charts/controls/Controls"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"

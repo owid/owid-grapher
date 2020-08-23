@@ -11,10 +11,10 @@ import {
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 
-import { ChartView } from "charts/ChartView"
-import { Bounds } from "charts/Bounds"
-import { includes, capitalize } from "charts/Util"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartView } from "charts/core/ChartView"
+import { Bounds } from "charts/utils/Bounds"
+import { includes, capitalize } from "charts/utils/Util"
+import { ChartConfig } from "charts/core/ChartConfig"
 
 import {
     ChartEditor,

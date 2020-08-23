@@ -1,8 +1,8 @@
 import { computed, autorun, runInAction } from "mobx"
 
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
-import { ChartDimension } from "charts/ChartDimension"
+import { ChartDimension } from "charts/core/ChartDimension"
 import { MapTopology } from "./MapTopology"
 
 import {
@@ -16,9 +16,9 @@ import {
     entityNameForMap,
     formatYear,
     uniq
-} from "charts/Util"
-import { Time, getClosestTime } from "charts/TimeBounds"
-import { ChartTransform } from "charts/ChartTransform"
+} from "charts/utils/Util"
+import { Time, getClosestTime } from "charts/utils/TimeBounds"
+import { ChartTransform } from "charts/core/ChartTransform"
 import { ColorScaleBin } from "charts/color/ColorScaleBin"
 import { ColorScale } from "charts/color/ColorScale"
 

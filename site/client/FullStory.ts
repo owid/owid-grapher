@@ -1,4 +1,4 @@
-import { mapKeys } from "charts/Util"
+import { mapKeys } from "charts/utils/Util"
 
 declare var window: any
 

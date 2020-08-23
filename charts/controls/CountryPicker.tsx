@@ -21,12 +21,12 @@ import {
     sortBy,
     sortByUndefinedLast,
     first
-} from "charts/Util"
-import { VerticalScrollContainer } from "charts/VerticalScrollContainer"
+} from "charts/utils/Util"
+import { VerticalScrollContainer } from "charts/controls/VerticalScrollContainer"
 import { Analytics } from "site/client/Analytics"
 
 import { SortIcon } from "charts/controls/SortIcon"
-import { SortOrder } from "charts/ChartConstants"
+import { SortOrder } from "charts/core/ChartConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import {
     AbstractColumn,

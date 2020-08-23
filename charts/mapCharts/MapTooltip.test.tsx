@@ -3,8 +3,8 @@
 import { setupChart } from "test/utils"
 import { mount } from "enzyme"
 import React from "react"
-import { ChartView } from "charts/ChartView"
-import { Bounds } from "charts/Bounds"
+import { ChartView } from "charts/core/ChartView"
+import { Bounds } from "charts/utils/Bounds"
 import { MapTooltip } from "charts/mapCharts/MapTooltip"
 
 const bounds = new Bounds(0, 0, 800, 600)

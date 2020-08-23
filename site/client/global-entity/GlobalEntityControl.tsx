@@ -21,7 +21,7 @@ import {
     noop,
     getCountryCodeFromNetlifyRedirect,
     sortBy
-} from "charts/Util"
+} from "charts/utils/Util"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity,

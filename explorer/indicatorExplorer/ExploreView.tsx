@@ -9,16 +9,16 @@ import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
 import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
-import { Bounds } from "charts/Bounds"
-import { ChartView } from "charts/ChartView"
-import { ChartType } from "charts/ChartConstants"
+import { Bounds } from "charts/utils/Bounds"
+import { ChartView } from "charts/core/ChartView"
+import { ChartType } from "charts/core/ChartConstants"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "charts/dataTable/DataTable"
 import { Analytics } from "site/client/Analytics"
-import { UrlBinder } from "charts/UrlBinder"
+import { UrlBinder } from "charts/utils/UrlBinder"
 
 export interface ChartTypeButton {
     type: ExplorerChartType

@@ -8,7 +8,7 @@ import {
     autorun,
     IReactionDisposer
 } from "mobx"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { ChartFigureView } from "./ChartFigureView"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 

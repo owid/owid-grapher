@@ -1,13 +1,13 @@
 import * as React from "react"
-import { extend, debounce } from "charts/Util"
+import { extend, debounce } from "charts/utils/Util"
 import { observable, computed, action, toJS } from "mobx"
 import { observer } from "mobx-react"
 import {
     ChartConfig,
     HighlightToggleConfig,
     ScatterPointLabelStrategy
-} from "charts/ChartConfig"
-import { ComparisonLineConfig } from "charts/ComparisonLine"
+} from "charts/core/ChartConfig"
+import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import { Toggle, NumberField, SelectField, TextField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

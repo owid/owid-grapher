@@ -1,6 +1,6 @@
 import * as db from "db/db"
 import { Chart } from "db/model/Chart"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig } from "charts/core/ChartConfig"
 import * as lodash from "lodash"
 import { getVariableData } from "db/model/Variable"
 

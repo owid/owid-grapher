@@ -8,11 +8,11 @@ import {
     ChartConfig,
     ChartConfigProps,
     HighlightToggleConfig
-} from "../ChartConfig"
+} from "charts/core/ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
-import { ChartView } from "../ChartView"
+import { ChartView } from "charts/core/ChartView"
 import { Timeline } from "./Timeline"
-import { extend, keys, entries, max, formatValue } from "../Util"
+import { extend, keys, entries, max, formatValue } from "../utils/Util"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -29,8 +29,11 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
-import { TimeBound } from "../TimeBounds"
+import {
+    ChartViewContext,
+    ChartViewContextType
+} from "charts/core/ChartViewContext"
+import { TimeBound } from "../utils/TimeBounds"
 
 @observer
 class EmbedMenu extends React.Component<{

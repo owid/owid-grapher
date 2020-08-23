@@ -13,13 +13,13 @@ import {
     formatValue,
     defaultTo,
     flatten
-} from "charts/Util"
-import { EntityDimensionKey } from "charts/ChartConstants"
+} from "charts/utils/Util"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
-import { AxisSpec } from "charts/AxisSpec"
+import { AxisSpec } from "charts/axis/AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
-import { ChartTransform } from "charts/ChartTransform"
-import { Time } from "charts/TimeBounds"
+import { ChartTransform } from "charts/core/ChartTransform"
+import { Time } from "charts/utils/TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart

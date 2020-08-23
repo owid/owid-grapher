@@ -11,9 +11,9 @@ import { CovidTableColumnKey } from "./CovidTableColumns"
 import { CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
-import { Tippy } from "charts/common/Tippy"
-import { SortOrder } from "charts/ChartConstants"
-import { oneOf } from "charts/Util"
+import { Tippy } from "charts/core/Tippy"
+import { SortOrder } from "charts/core/ChartConstants"
+import { oneOf } from "charts/utils/Util"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"
 
