@@ -19,7 +19,7 @@ import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { JsonError } from "utils/server/serverUtil"
-import { covidCountryProfileSlug } from "site/server/covid/CovidConstants"
+import { covidCountryProfileSlug } from "site/server/CovidConstants"
 import { CountryProfileSpec } from "site/client/CountryProfileConstants"
 
 class WPDB {

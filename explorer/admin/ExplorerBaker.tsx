@@ -6,11 +6,11 @@ import { renderToHtmlPage } from "utils/server/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
 import { explorerFileSuffix, ExplorerProgram } from "../client/ExplorerProgram"
 import * as settings from "settings"
-import { Head } from "site/server/views/Head"
-import { SiteHeader } from "site/server/views/SiteHeader"
-import { SiteFooter } from "site/server/views/SiteFooter"
+import { Head } from "site/views/Head"
+import { SiteHeader } from "site/views/SiteHeader"
+import { SiteFooter } from "site/views/SiteFooter"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
-import { EmbedDetector } from "site/server/views/EmbedDetector"
+import { EmbedDetector } from "site/views/EmbedDetector"
 import { Request, Response } from "adminSite/server/utils/authentication"
 
 import {
@@ -19,10 +19,7 @@ import {
     covidPageTitle,
     covidPreloads
 } from "explorer/covidExplorer/CovidConstants"
-import {
-    SiteSubnavigation,
-    SubNavId
-} from "site/server/views/SiteSubnavigation"
+import { SiteSubnavigation, SubNavId } from "site/views/SiteSubnavigation"
 import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getChartById } from "db/model/Chart"

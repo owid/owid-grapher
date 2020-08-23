@@ -8,7 +8,7 @@ import { uniq, parseDelimited, isCellEmpty } from "charts/utils/Util"
 import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 import { EntityUrlBuilder } from "charts/core/ChartUrl"
-import { SubNavId } from "site/server/views/SiteSubnavigation"
+import { SubNavId } from "site/views/SiteSubnavigation"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"

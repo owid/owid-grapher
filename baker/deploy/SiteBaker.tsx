@@ -8,7 +8,7 @@ import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import * as settings from "settings"
 import { formatPost, extractFormattingOptions } from "./formatting"
-import { LongFormPage } from "./views/LongFormPage"
+import { LongFormPage } from "../views/LongFormPage"
 import { BASE_DIR, BAKED_SITE_DIR, WORDPRESS_DIR } from "serverSettings"
 const { BLOG_POSTS_PER_PAGE, OPTIMIZE_SVG_EXPORTS } = settings
 import {
@@ -51,7 +51,7 @@ import {
     covidDashboardSlug,
     covidChartAndVariableMetaFilename
 } from "explorer/covidExplorer/CovidConstants"
-import { covidCountryProfileRootPath } from "./covid/CovidConstants"
+import { covidCountryProfileRootPath } from "./CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirects } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import {

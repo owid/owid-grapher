@@ -2,7 +2,7 @@ import {
     covidCountryProfileSlug,
     covidLandingSlug,
     covidCountryProfileRootPath
-} from "site/server/covid/CovidConstants"
+} from "site/server/CovidConstants"
 
 export type CountryProfileProject = "coronavirus" | "co2"
 

@@ -37,7 +37,7 @@ import {
     covidDashboardSlug,
     covidChartAndVariableMetaPath
 } from "explorer/covidExplorer/CovidConstants"
-import { covidCountryProfileRootPath } from "site/server/covid/CovidConstants"
+import { covidCountryProfileRootPath } from "site/server/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/client/CountryProfileConstants"

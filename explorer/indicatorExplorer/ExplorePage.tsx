@@ -1,8 +1,8 @@
 import * as React from "react"
 import * as settings from "settings"
-import { Head } from "site/server/views/Head"
-import { SiteHeader } from "site/server/views/SiteHeader"
-import { SiteFooter } from "site/server/views/SiteFooter"
+import { Head } from "site/views/Head"
+import { SiteHeader } from "site/views/SiteHeader"
+import { SiteFooter } from "site/views/SiteFooter"
 
 // This page was modeled on ChartPage.
 //

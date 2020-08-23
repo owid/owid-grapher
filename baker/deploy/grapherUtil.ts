@@ -7,7 +7,7 @@ import md5 from "md5"
 import { BAKED_BASE_URL, OPTIMIZE_SVG_EXPORTS } from "settings"
 import { BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
-import { bakeChartsToImages } from "site/server/bakeChartsToImages"
+import { bakeChartsToImages } from "baker/deploy/bakeChartsToImages"
 import { log } from "utils/server/log"
 
 // Given a grapher url with query string, create a key to match export filenames

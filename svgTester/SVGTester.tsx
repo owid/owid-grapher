@@ -6,7 +6,7 @@ import React from "react"
 import {
     bakeChartToImage,
     getChartsBySlug
-} from "site/server/bakeChartsToImages"
+} from "baker/deploy/bakeChartsToImages"
 
 const header = `bakeOrder,timeToBake,slug,md5`
 const sampleRow = `1,123,world-pop,ee5a6312...`
