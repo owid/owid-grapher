@@ -17,8 +17,8 @@
         "knex": "yarn tsn node_modules/.bin/knex --knexfile knexfile.ts",
         "migrate": "yarn knex migrate:latest && yarn typeorm migration:run",
         "lint": "eslint .",
-        "prettify": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss}\"",
-        "prettify:check": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss}\"",
+        "prettify": "yarn pretty-quick --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss}\"",
+        "prettify:check": "yarn pretty-quick --check --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss}\"",
         "typecheck": "tsc --noEmit",
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",
@@ -154,7 +154,7 @@
         "optimize-css-assets-webpack-plugin": "^5.0.3",
         "postcss": "^7.0.27",
         "postcss-loader": "^3.0.0",
-        "prettier": "^1.19.1",
+        "prettier": "^2.0.5",
         "prop-types": "^15.7.2",
         "randomstring": "^1.1.5",
         "react": "^16.8.6",
@@ -215,6 +215,7 @@
         "jest": "^24.8.0",
         "npm-run-all": "^4.1.5",
         "opener": "^1.5.1",
+        "pretty-quick": "^3.0.0",
         "source-map-support": "^0.5.12",
         "storybook": "^6.0.13",
         "ts-jest": "^24.0.2",
@@ -222,7 +223,9 @@
         "xhr-mock": "^2.5.1"
     },
     "prettier": {
-        "semi": false
+        "semi": false,
+        "trailingComma": "none",
+        "arrowParens": "avoid"
     },
     "browserslist": [
         ">0.5%",
