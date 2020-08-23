@@ -12,10 +12,10 @@ import {
     each,
     keyBy,
     isNumber,
-    sortBy,
     entityNameForMap,
     formatYear,
-    uniq
+    uniq,
+    sortNumeric
 } from "charts/utils/Util"
 import { Time, getClosestTime } from "charts/utils/TimeBounds"
 import { ChartTransform } from "charts/core/ChartTransform"
@@ -143,7 +143,7 @@ export class MapData extends ChartTransform {
     }
 
     @computed get sortedNumericValues(): number[] {
-        return sortBy(
+        return sortNumeric(
             this.mappableData.values.filter(isNumber).filter(v => !isNaN(v))
         )
     }

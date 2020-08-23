@@ -9,10 +9,11 @@ import {
     extend,
     find,
     identity,
-    sortedUniq,
     formatValue,
     defaultTo,
-    flatten
+    flatten,
+    sortNumeric,
+    uniq
 } from "charts/utils/Util"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
@@ -93,7 +94,7 @@ export class StackedAreaTransform extends ChartTransform {
         groupedData.forEach(series =>
             allYears.push(...series.values.map(d => d.x))
         )
-        allYears = sortedUniq(sortBy(allYears))
+        allYears = sortNumeric(uniq(allYears))
 
         groupedData.forEach(series => {
             let i = 0

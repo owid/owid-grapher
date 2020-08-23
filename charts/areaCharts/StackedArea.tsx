@@ -1,13 +1,13 @@
 import * as React from "react"
 import {
-    sortBy,
     reverse,
     clone,
     last,
     guid,
     pointsToPath,
     getRelativeMouse,
-    makeSafeForCSS
+    makeSafeForCSS,
+    minBy
 } from "../utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -70,11 +70,15 @@ export class Areas extends React.Component<AreasProps> {
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
         if (axisBox.innerBounds.contains(mouse)) {
-            const closestPoint = sortBy(data[0].values, d =>
+            const closestPoint = minBy(data[0].values, d =>
                 Math.abs(axisBox.xScale.place(d.x) - mouse.x)
-            )[0]
-            const index = data[0].values.indexOf(closestPoint)
-            this.hoverIndex = index
+            )
+            if (closestPoint) {
+                const index = data[0].values.indexOf(closestPoint)
+                this.hoverIndex = index
+            } else {
+                this.hoverIndex = undefined
+            }
         } else {
             this.hoverIndex = undefined
         }

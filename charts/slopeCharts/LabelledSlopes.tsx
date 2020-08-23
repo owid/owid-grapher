@@ -14,7 +14,6 @@ import { extent } from "d3-array"
 import { select } from "d3-selection"
 import {
     every,
-    first,
     sortBy,
     extend,
     max,
@@ -25,7 +24,9 @@ import {
     flatten,
     SVGElement,
     getRelativeMouse,
-    domainExtent
+    domainExtent,
+    minBy,
+    maxBy
 } from "../utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -71,9 +72,10 @@ class SlopeChartAxis extends React.Component<AxisProps> {
         }
     ) {
         const { scale } = props
-        const longestTick = first(
-            sortBy(scale.ticks(6).map(props.tickFormat), tick => -tick.length)
-        ) as string
+        const longestTick = maxBy(
+            scale.ticks(6).map(props.tickFormat),
+            tick => tick.length
+        )
         const axisWidth = Bounds.forText(longestTick).width
         return new Bounds(
             containerBounds.x,
@@ -627,9 +629,9 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                     distToSlope.set(s, dist)
                 }
 
-                const closestSlope = sortBy(this.slopeData, s =>
+                const closestSlope = minBy(this.slopeData, s =>
                     distToSlope.get(s)
-                )[0]
+                )
 
                 if (
                     closestSlope &&

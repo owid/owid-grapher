@@ -13,7 +13,6 @@ import { scaleLinear } from "d3-scale"
 import {
     some,
     last,
-    sortBy,
     flatten,
     min,
     find,
@@ -22,7 +21,10 @@ import {
     guid,
     getRelativeMouse,
     makeSafeForCSS,
-    intersection
+    intersection,
+    minBy,
+    maxBy,
+    sortNumeric
 } from "../utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -33,7 +35,7 @@ import { Vector2 } from "charts/utils/Vector2"
 import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey, SortOrder } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { entityName } from "owidTable/OwidTable"
@@ -303,7 +305,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     // Pre-transform data for rendering
     @computed get initialRenderData(): ScatterRenderSeries[] {
         const { data, xScale, yScale, sizeScale, fontScale, colorScale } = this
-        return sortBy(
+        return sortNumeric(
             data.map(d => {
                 const values = d.values.map(v => {
                     const area = sizeScale(v.size || 4)
@@ -336,7 +338,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     offsetVector: Vector2.zero
                 }
             }),
-            d => -d.size
+            d => d.size,
+            SortOrder.desc
         )
     }
 
@@ -434,12 +437,12 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     .normals()
                     .map(x => x.times(5))
                 const potentialSpots = normals.map(n => v.position.add(n))
-                pos = sortBy(potentialSpots, p => {
-                    return -(
+                pos = maxBy(potentialSpots, p => {
+                    return (
                         Vector2.distance(p, prevPos) +
                         Vector2.distance(p, nextPos)
                     )
-                })[0]
+                }) as Vector2
             } else {
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
@@ -568,7 +571,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         // Must do before collision detection since it'll change the positions
         this.moveLabelsInsideChartBounds(labels, this.bounds)
 
-        const labelsByPriority = sortBy(labels, l => -this.labelPriority(l))
+        const labelsByPriority = sortNumeric(
+            labels,
+            l => this.labelPriority(l),
+            SortOrder.desc
+        )
         if (this.focusKeys.length > 0)
             this.hideUnselectedLabels(labelsByPriority)
 
@@ -663,7 +670,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         this.mouseFrame = requestAnimationFrame(() => {
             const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
-            const closestSeries = sortBy(this.renderData, series => {
+            const closestSeries = minBy(this.renderData, series => {
                 /*if (some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
                     return -Infinity*/
 
@@ -684,7 +691,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         )
                     )
                 }
-            })[0]
+            })
 
             /*if (closestSeries)
                 this.hoverKey = closestSeries.key

@@ -24,9 +24,11 @@ import {
     trimGrid,
     trimEmptyRows,
     JsTable,
-    anyToString
+    anyToString,
+    sortNumeric
 } from "charts/utils/Util"
 import { strToQueryParams } from "utils/client/url"
+import { SortOrder } from "charts/core/ChartConstants"
 
 describe(findClosestYear, () => {
     describe("without tolerance", () => {
@@ -475,5 +477,32 @@ describe(getAvailableSlugSync, () => {
             "untitled-2"
         )
         expect(getAvailableSlugSync("new", ["untitled"])).toEqual("new")
+    })
+})
+
+describe(sortNumeric, () => {
+    it("sorts numeric values", () => {
+        expect(sortNumeric([3, 4, 2, 1, 3, 8])).toEqual([1, 2, 3, 3, 4, 8])
+    })
+
+    it("sorts numeric values in ascending value", () => {
+        expect(
+            sortNumeric([3, 4, 2, 1, 3, 8], undefined, SortOrder.asc)
+        ).toEqual([1, 2, 3, 3, 4, 8])
+    })
+
+    it("sorts numeric values in descending order", () => {
+        expect(
+            sortNumeric([3, 4, 2, 1, 3, 8], undefined, SortOrder.desc)
+        ).toEqual([8, 4, 3, 3, 2, 1])
+    })
+
+    it("sorts objects using a sortBy function", () => {
+        expect(
+            sortNumeric(
+                [{ a: 3 }, { a: 4 }, { a: 2 }, { a: 1 }, { a: 3 }, { a: 8 }],
+                o => o.a
+            )
+        ).toEqual([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 3 }, { a: 4 }, { a: 8 }])
     })
 })

@@ -11,9 +11,9 @@ import {
     defaultTo,
     first,
     last,
-    sortedUniq,
-    sortBy,
-    some
+    some,
+    sortNumeric,
+    uniq
 } from "charts/utils/Util"
 import { ChartConfig } from "./ChartConfig"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
@@ -70,7 +70,7 @@ export abstract class ChartTransform implements IChartTransform {
             if (max !== undefined && year > max) return false
             return true
         })
-        return sortedUniq(sortBy(filteredYears))
+        return sortNumeric(uniq(filteredYears))
     }
 
     @computed get minTimelineYear(): Time {
