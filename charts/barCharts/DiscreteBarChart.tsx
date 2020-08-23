@@ -377,8 +377,9 @@ export class DiscreteBarChart extends React.Component<{
                             <rect
                                 x={0}
                                 y={0}
-                                transform={`translate(${barX}, ${-barHeight /
-                                    2})`}
+                                transform={`translate(${barX}, ${
+                                    -barHeight / 2
+                                })`}
                                 width={barWidth}
                                 height={barHeight}
                                 fill={d.color}
@@ -388,10 +389,12 @@ export class DiscreteBarChart extends React.Component<{
                             <text
                                 x={0}
                                 y={0}
-                                transform={`translate(${xScale.place(d.value) +
+                                transform={`translate(${
+                                    xScale.place(d.value) +
                                     (isNegative
                                         ? -labelToBarPadding
-                                        : labelToBarPadding)}, 0)`}
+                                        : labelToBarPadding)
+                                }, 0)`}
                                 fill="#666"
                                 dominantBaseline="middle"
                                 textAnchor={isNegative ? "end" : "start"}

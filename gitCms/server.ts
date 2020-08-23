@@ -30,9 +30,9 @@ async function saveFileToGitContentDirectory(
     const pushCommand = shouldPush ? `&& git push` : ""
 
     await execFormatted(
-        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
-            GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
+        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${
+            commitName || GIT_DEFAULT_USERNAME
+        } <${commitEmail || GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
         [GIT_CMS_DIR, commitMsg]
     )
     return ""
@@ -48,9 +48,9 @@ async function deleteFileFromGitContentDirectory(
     const pushCommand = shouldPush ? `&& git push` : ""
     await fs.unlink(path)
     await execFormatted(
-        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${commitName ||
-            GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
+        `cd %s && git add ${filename} && git commit -m %s --quiet --author="${
+            commitName || GIT_DEFAULT_USERNAME
+        } <${commitEmail || GIT_DEFAULT_EMAIL}>" ${pushCommand}`,
         [GIT_CMS_DIR, `Deleted ${filename}`]
     )
     return ""

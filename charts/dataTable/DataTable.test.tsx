@@ -109,10 +109,7 @@ describe(DataTable, () => {
         })
 
         it("renders no value when data is not available for years within the tolerance", () => {
-            const cell = view
-                .find("tbody .dimension")
-                .at(1)
-                .first()
+            const cell = view.find("tbody .dimension").at(1).first()
             expect(cell.text()).toBe("")
         })
 

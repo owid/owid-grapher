@@ -1325,12 +1325,7 @@ apiRouter.get("/posts.json", async req => {
         "type",
         "status",
         "updated_at"
-    ).from(
-        db
-            .knex()
-            .from(Post.table)
-            .orderBy("updated_at", "desc")
-    )
+    ).from(db.knex().from(Post.table).orderBy("updated_at", "desc"))
 
     const tagsByPostId = await Post.tagsByPostId()
 

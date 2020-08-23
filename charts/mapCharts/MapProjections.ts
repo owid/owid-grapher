@@ -10,10 +10,7 @@ export const MapProjections = {
     World: geoPath().projection(geoRobinson() as GeoProjection),
 
     Africa: geoPath().projection(
-        geoConicConformal()
-            .rotate([-25, 0])
-            .center([0, 0])
-            .parallels([30, -20])
+        geoConicConformal().rotate([-25, 0]).center([0, 0]).parallels([30, -20])
     ),
 
     NorthAmerica: geoPath().projection(

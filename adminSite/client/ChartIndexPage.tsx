@@ -34,10 +34,9 @@ export class ChartIndexPage extends React.Component {
             searchIndex.push({
                 chart: chart,
                 term: fuzzysort.prepare(
-                    `${chart.title} ${chart.variantName ||
-                        ""} ${chart.internalNotes || ""} ${chart.publishedBy} ${
-                        chart.lastEditedBy
-                    }`
+                    `${chart.title} ${chart.variantName || ""} ${
+                        chart.internalNotes || ""
+                    } ${chart.publishedBy} ${chart.lastEditedBy}`
                 )
             })
         }

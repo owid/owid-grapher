@@ -169,9 +169,7 @@ class EntitySelectorMulti extends React.Component<{
                                     </span>{" "}
                                     Unselect all
                                 </button>
-                            ) : (
-                                undefined
-                            )}
+                            ) : undefined}
                         </div>
                     </div>
                 </div>

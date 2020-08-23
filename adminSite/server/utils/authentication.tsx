@@ -44,10 +44,7 @@ export async function authMiddleware(
                 "base64"
             ).toString("utf8")
             const sessionJson = JSON.parse(
-                sessionData
-                    .split(":")
-                    .slice(1)
-                    .join(":")
+                sessionData.split(":").slice(1).join(":")
             )
 
             user = await User.findOne({ id: sessionJson._auth_user_id })

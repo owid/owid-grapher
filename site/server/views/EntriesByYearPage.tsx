@@ -16,9 +16,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
         moment(e.published_at as Date).year()
     )
 
-    const years = Object.keys(entriesByYear)
-        .sort()
-        .reverse()
+    const years = Object.keys(entriesByYear).sort().reverse()
 
     const pageTitle = "Entries by Year"
     const tocEntries = years.map(year => {

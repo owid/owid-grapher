@@ -235,10 +235,7 @@ export function formatDay(
     // Use moments' UTC mode https://momentjs.com/docs/#/parsing/utc/
     // This will force moment to format in UTC time instead of local time,
     // making dates consistent no matter what timezone the user is in.
-    return moment
-        .utc(EPOCH_DATE)
-        .add(dayAsYear, "days")
-        .format(format)
+    return moment.utc(EPOCH_DATE).add(dayAsYear, "days").format(format)
 }
 
 export function formatYear(year: number): string {
@@ -516,7 +513,7 @@ export function sign(n: number) {
 export async function fetchText(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()
-        req.addEventListener("load", function() {
+        req.addEventListener("load", function () {
             resolve(this.responseText)
         })
         req.addEventListener("readystatechange", () => {
@@ -550,7 +547,7 @@ export async function getCountryCodeFromNetlifyRedirect(): Promise<
 export async function fetchJSON(url: string): Promise<any> {
     return new Promise((resolve, reject) => {
         const req = new XMLHttpRequest()
-        req.addEventListener("load", function() {
+        req.addEventListener("load", function () {
             resolve(JSON.parse(this.responseText))
         })
         req.addEventListener("readystatechange", () => {

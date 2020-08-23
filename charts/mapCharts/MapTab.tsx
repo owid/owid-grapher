@@ -169,17 +169,17 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     componentDidMount() {
         select(this.base.current)
             .selectAll("path")
-            .attr("data-fill", function() {
+            .attr("data-fill", function () {
                 return (this as SVGPathElement).getAttribute("fill")
             })
             .attr("fill", this.props.colorScale.noDataColor)
             .transition()
             .duration(500)
             .ease(easeCubic)
-            .attr("fill", function() {
+            .attr("fill", function () {
                 return (this as SVGPathElement).getAttribute("data-fill")
             })
-            .attr("data-fill", function() {
+            .attr("data-fill", function () {
                 return (this as SVGPathElement).getAttribute("fill")
             })
     }

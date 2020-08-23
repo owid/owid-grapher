@@ -66,9 +66,7 @@ export class AxisScale {
     @computed private get d3_scale():
         | ScaleLinear<number, number>
         | ScaleLogarithmic<number, number> {
-        return this.d3_scaleConstructor()
-            .domain(this.domain)
-            .range(this.range)
+        return this.d3_scaleConstructor().domain(this.domain).range(this.range)
     }
 
     @computed get rangeSize() {

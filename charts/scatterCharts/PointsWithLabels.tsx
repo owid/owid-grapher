@@ -289,9 +289,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed private get fontScale(): (d: number) => number {
-        return scaleLinear()
-            .range([10, 13])
-            .domain(this.sizeScale.domain())
+        return scaleLinear().range([10, 13]).domain(this.sizeScale.domain())
     }
 
     @computed private get labelFontFamily(): string {
@@ -881,7 +879,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         this.animSelection = select(this.base.current).selectAll("circle")
 
         this.animSelection
-            .each(function() {
+            .each(function () {
                 const circle = this as SVGCircleElement
                 radiuses.push(circle.getAttribute("r") as string)
                 circle.setAttribute("r", "0")

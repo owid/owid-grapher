@@ -18,9 +18,7 @@ export function generateComparisonLinePoints(
     // Construct control data by running the equation across sample points
     const numPoints = 500
     const scaleFunction = xScaleType === "log" ? scaleLog : scaleLinear
-    const scale = scaleFunction()
-        .domain(xScaleDomain)
-        .range([0, numPoints])
+    const scale = scaleFunction().domain(xScaleDomain).range([0, numPoints])
     const controlData: Array<[number, number]> = []
     for (let i = 0; i < numPoints; i++) {
         const x = scale.invert(i)

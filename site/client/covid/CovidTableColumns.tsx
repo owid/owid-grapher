@@ -190,9 +190,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                                     value={formatInt(accessor(d))}
                                     date={d.date}
                                 />
-                            ) : (
-                                undefined
-                            )
+                            ) : undefined
                         }
                     />
                 </div>
@@ -235,9 +233,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                                     })}
                                     date={d && d.date}
                                 />
-                            ) : (
-                                undefined
-                            )
+                            ) : undefined
                         }
                     />
                 </div>
@@ -366,9 +362,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                             Up to date for 10&nbsp;AM (CET) on{" "}
                             {formatDate(props.lastUpdated)}.
                         </>
-                    ) : (
-                        undefined
-                    )}
+                    ) : undefined}
                 </span>
             </HeaderCell>
         ),
@@ -393,9 +387,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                             Up to date for 10&nbsp;AM (CET) on{" "}
                             {formatDate(props.lastUpdated)}.
                         </>
-                    ) : (
-                        undefined
-                    )}
+                    ) : undefined}
                 </span>
             </HeaderCell>
         ),
@@ -420,9 +412,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                             Up to date for 10&nbsp;AM (CET) on{" "}
                             {formatDate(props.lastUpdated)}.
                         </>
-                    ) : (
-                        undefined
-                    )}
+                    ) : undefined}
                 </span>
             </HeaderCell>
         ),
@@ -447,9 +437,7 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                             Up to date for 10&nbsp;AM (CET) on{" "}
                             {formatDate(props.lastUpdated)}.
                         </>
-                    ) : (
-                        undefined
-                    )}
+                    ) : undefined}
                 </span>
             </HeaderCell>
         ),
@@ -491,9 +479,12 @@ export const columns: Record<CovidTableColumnKey, CovidTableColumnSpec> = {
                             style={{
                                 backgroundColor:
                                     props.countryColors[props.datum.location],
-                                width: `${props.totalTestsBarScale(
-                                    props.datum.latestWithTests.tests.totalTests
-                                ) * 100}%`
+                                width: `${
+                                    props.totalTestsBarScale(
+                                        props.datum.latestWithTests.tests
+                                            .totalTests
+                                    ) * 100
+                                }%`
                             }}
                         />
                     )}

@@ -29,13 +29,9 @@ const Help = ({
 export default Help
 
 export const render = ($: CheerioStatic) => {
-    $("block[type='help']").each(function(this: CheerioElement) {
+    $("block[type='help']").each(function (this: CheerioElement) {
         const $block = $(this)
-        const title =
-            $block
-                .find("h4")
-                .remove()
-                .text() || null
+        const title = $block.find("h4").remove().text() || null
         const content = $block.find("content").html() // the title has been removed so the rest of the block is content.
         // Side note: "content" refers here to the <content> tag output by the block on the PHP side, not
         // the ".content" class.

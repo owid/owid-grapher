@@ -79,9 +79,7 @@ export class ExplorerShell extends React.Component<{
             >
                 <FontAwesomeIcon icon={faChartLine} /> Customize chart
             </a>
-        ) : (
-            undefined
-        )
+        ) : undefined
     }
 
     get countryPicker() {

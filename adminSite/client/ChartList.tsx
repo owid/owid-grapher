@@ -103,9 +103,7 @@ class ChartRow extends React.Component<{
                         <span style={{ color: "#aaa" }}>
                             ({highlight(chart.variantName)})
                         </span>
-                    ) : (
-                        undefined
-                    )}
+                    ) : undefined}
                     {chart.internalNotes && (
                         <div className="internalNotes">
                             {highlight(chart.internalNotes)}

@@ -158,16 +158,12 @@ export class FeedbackForm extends React.Component<{ onClose?: () => void }> {
                     </div>
                     {this.error ? (
                         <div style={{ color: "red" }}>{this.error}</div>
-                    ) : (
-                        undefined
-                    )}
+                    ) : undefined}
                     {this.done ? (
                         <div style={{ color: "green" }}>
                             Thanks for your feedback!
                         </div>
-                    ) : (
-                        undefined
-                    )}
+                    ) : undefined}
                 </div>
                 <div className="footer">
                     <button type="submit" disabled={loading}>

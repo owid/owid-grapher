@@ -133,10 +133,9 @@ export const getComparePage = async (liveRows: string, devRows: string) => {
 
     const summaryMessage = `${changed.length} (${Math.round(
         (100 * changed.length) / notMissing.length
-    )}%) out of ${notMissing.length} are different. ${notMissing.length -
-        changed.length} unchanged. ${
-        missing.length
-    } files on live missing locally.`
+    )}%) out of ${notMissing.length} are different. ${
+        notMissing.length - changed.length
+    } unchanged. ${missing.length} files on live missing locally.`
 
     const missingDivs = missing.map(el => <div>${el.missing}</div>)
 
