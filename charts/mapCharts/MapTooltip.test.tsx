@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { setupChart } from "test/utils"
+import { setupChart } from "charts/test/utils"
 import { mount } from "enzyme"
 import React from "react"
 import { ChartView } from "charts/core/ChartView"

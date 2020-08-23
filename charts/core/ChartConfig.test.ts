@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { createConfig } from "test/utils"
+import { createConfig } from "charts/test/utils"
 
 describe("ChartConfig", () => {
     it("allows single-dimensional explorer charts", () => {

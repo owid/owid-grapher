@@ -18,7 +18,7 @@ const common = {
         "^serverSettings$": "<rootDir>/serverSettings",
         // Jest cannot handle importing CSS
         // https://stackoverflow.com/questions/39418555/syntaxerror-with-jest-and-react-and-importing-css-files
-        "\\.(css|less|sass|scss)$": "<rootDir>/test/styleMock.ts"
+        "\\.(css|less|sass|scss)$": "<rootDir>/utils/styleMock.ts"
     }
 }
 
@@ -34,7 +34,7 @@ module.exports = {
             ...common,
             displayName: "client",
             testEnvironment: "jsdom",
-            setupFilesAfterEnv: ["<rootDir>/test/enzymeSetup.ts"],
+            setupFilesAfterEnv: ["<rootDir>/.enzymeSetup.ts"],
             testPathIgnorePatterns: [".node.test."],
             testMatch: ["**/*.test.(tsx|ts)"]
         }

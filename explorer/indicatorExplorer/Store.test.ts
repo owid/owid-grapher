@@ -3,10 +3,9 @@
 import { observe } from "mobx"
 
 import { RootStore, IndicatorStore } from "explorer/indicatorExplorer/Store"
-import * as fixtures from "test/fixtures"
-import * as apiMock from "test/apiMock"
+import * as apiMock from "explorer/indicatorExplorer/apiMock"
 
-const indicator = fixtures.readIndicators().indicators[0]
+const indicator = apiMock.readIndicators().indicators[0]
 
 function createIndicatorStore() {
     return new IndicatorStore()

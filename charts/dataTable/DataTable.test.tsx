@@ -3,7 +3,7 @@
 import * as React from "react"
 import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 
-import { setupChart } from "test/utils"
+import { setupChart } from "charts/test/utils"
 
 import { DataTable, ClosestYearNotice } from "./DataTable"
 import { ChartConfig } from "charts/core/ChartConfig"
