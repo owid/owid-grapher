@@ -78,8 +78,9 @@ export class Logo {
     }
 
     renderHTML() {
-        const props: React.HTMLAttributes<HTMLDivElement &
-            HTMLAnchorElement> = {
+        const props: React.HTMLAttributes<
+            HTMLDivElement & HTMLAnchorElement
+        > = {
             className: "logo",
             dangerouslySetInnerHTML: { __html: this.spec.svg },
             style: { height: `${this.spec.targetHeight}px` }

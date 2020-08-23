@@ -189,12 +189,9 @@ describe(ExploreView, () => {
                 <ExploreView bounds={bounds} model={getDefaultModel()} />
             )
             await updateViewWhenReady(view)
-            expect(
-                view
-                    .find(".indicator-dropdown")
-                    .first()
-                    .text()
-            ).toContain(indicator.title)
+            expect(view.find(".indicator-dropdown").first().text()).toContain(
+                indicator.title
+            )
         })
     })
 })

@@ -42,8 +42,6 @@ export const CovidTimeSeriesValue = ({
                     {formattedDate ?? formatDate(date)}
                 </span>
             </>
-        ) : (
-            undefined
-        )}
+        ) : undefined}
     </div>
 )

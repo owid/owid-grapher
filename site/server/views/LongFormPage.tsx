@@ -231,8 +231,10 @@ export const LongFormPage = (props: {
                                                                 ) => (
                                                                     <li
                                                                         key={i}
-                                                                        id={`note-${i +
-                                                                            1}`}
+                                                                        id={`note-${
+                                                                            i +
+                                                                            1
+                                                                        }`}
                                                                     >
                                                                         <p
                                                                             dangerouslySetInnerHTML={{
@@ -244,9 +246,7 @@ export const LongFormPage = (props: {
                                                             )}
                                                         </ol>
                                                     </React.Fragment>
-                                                ) : (
-                                                    undefined
-                                                )}
+                                                ) : undefined}
                                                 {(isPost ||
                                                     isEntry ||
                                                     isSubEntry) && (
@@ -358,8 +358,9 @@ export const LongFormPage = (props: {
                             <li id="wp-admin-bar-edit">
                                 <a
                                     className="ab-item"
-                                    href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${post.postId ||
-                                        post.id}&action=edit`}
+                                    href={`${WORDPRESS_URL}/wp/wp-admin/post.php?post=${
+                                        post.postId || post.id
+                                    }&action=edit`}
                                 >
                                     Edit Page
                                 </a>

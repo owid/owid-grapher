@@ -29,9 +29,7 @@ export class ExplorerControlBar extends React.Component<{
             >
                 Done
             </a>
-        ) : (
-            undefined
-        )
+        ) : undefined
 
         const showMobileControls = isMobile && showControls
         return (

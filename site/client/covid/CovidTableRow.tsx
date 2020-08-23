@@ -121,9 +121,7 @@ export class CovidTableRow extends React.Component<CovidTableRowProps> {
                     <tr className={this.props.className}>
                         {this.props.extraRow(this.cellProps)}
                     </tr>
-                ) : (
-                    undefined
-                )}
+                ) : undefined}
             </React.Fragment>
         )
     }

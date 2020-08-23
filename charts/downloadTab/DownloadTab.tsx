@@ -37,7 +37,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         if (!HTMLCanvasElement.prototype.toBlob) {
             // https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill
             Object.defineProperty(HTMLCanvasElement.prototype, "toBlob", {
-                value: function(
+                value: function (
                     callback: (blob: Blob) => void,
                     type: string,
                     quality: any

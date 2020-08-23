@@ -14,10 +14,10 @@ import * as db from "db/db"
 
 async function datasetToReadme(dataset: Dataset): Promise<string> {
     const source = await Source.findOne({ datasetId: dataset.id })
-    return `# ${dataset.name}\n\n${(source &&
-        source.description &&
-        source.description.additionalInfo) ||
-        ""}`
+    return `# ${dataset.name}\n\n${
+        (source && source.description && source.description.additionalInfo) ||
+        ""
+    }`
 }
 
 export async function removeDatasetFromGitRepo(
@@ -38,9 +38,9 @@ export async function removeDatasetFromGitRepo(
     }
 
     await execFormatted(
-        `cd %s && rm -rf %s && git add -A %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${commitName ||
-            GIT_DEFAULT_USERNAME} <${commitEmail ||
-            GIT_DEFAULT_EMAIL}>" && git push))`,
+        `cd %s && rm -rf %s && git add -A %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${
+            commitName || GIT_DEFAULT_USERNAME
+        } <${commitEmail || GIT_DEFAULT_EMAIL}>" && git push))`,
         [
             repoDir,
             `${repoDir}/datasets/${datasetName}`,
@@ -143,8 +143,9 @@ export async function syncDatasetToGitRepo(
         ? `Adding ${dataset.filename}`
         : `Updating ${dataset.filename}`
     await execFormatted(
-        `cd %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${commitName ||
-            GIT_DEFAULT_USERNAME} <${commitEmail || GIT_DEFAULT_EMAIL}>"${
+        `cd %s && (git diff-index --quiet HEAD || (git commit -m %s --quiet --author="${
+            commitName || GIT_DEFAULT_USERNAME
+        } <${commitEmail || GIT_DEFAULT_EMAIL}>"${
             commitOnly ? "" : " && git push))"
         }`,
         [repoDir, commitMsg]

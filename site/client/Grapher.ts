@@ -155,9 +155,7 @@ export class Grapher {
      * any changes.
      */
     public static embedAll() {
-        this.getInstance()
-            .embedder.addFiguresFromDOM()
-            .watchScroll()
+        this.getInstance().embedder.addFiguresFromDOM().watchScroll()
     }
 }
 

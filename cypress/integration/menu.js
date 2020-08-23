@@ -1,9 +1,9 @@
-describe("Navigation", function() {
+describe("Navigation", function () {
     beforeEach(() => {
         cy.visit("http://localhost:3099/forests")
     })
 
-    it("Tests mobile navigation", function() {
+    it("Tests mobile navigation", function () {
         cy.viewport("iphone-6")
         cy.get('[data-track-note="mobile-hamburger-button"]').click()
         cy.get(".mobile-topics-dropdown")
@@ -22,7 +22,7 @@ describe("Navigation", function() {
             .click()
         cy.url().should("include", "/cancer")
     })
-    it("Tests desktop navigation", function() {
+    it("Tests desktop navigation", function () {
         cy.contains("Articles by topic").trigger("mouseover")
         cy.get(".topics-dropdown")
             .as("topicsDropdown")

@@ -136,9 +136,7 @@ export class CovidExplorer extends React.Component<{
         )
     }
 
-    private uniqId = Math.random()
-        .toString(36)
-        .substr(2, 8)
+    private uniqId = Math.random().toString(36).substr(2, 8)
 
     // Since there can be multiple explorers embedded on a page, we need to use distinct names when
     // creating radio button groups, etc.
@@ -501,9 +499,7 @@ export class CovidExplorer extends React.Component<{
             >
                 <FontAwesomeIcon icon={faChartLine} /> Customize chart
             </a>
-        ) : (
-            undefined
-        )
+        ) : undefined
     }
 
     render() {

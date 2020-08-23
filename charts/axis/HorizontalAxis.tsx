@@ -169,9 +169,7 @@ export class HorizontalAxisView extends React.Component<{
                 tickMarkXPositions={ticks.map(tick => scale.place(tick))}
                 color="#ccc"
             />
-        ) : (
-            undefined
-        )
+        ) : undefined
 
         return (
             <g className="HorizontalAxis">

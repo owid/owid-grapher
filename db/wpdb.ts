@@ -148,12 +148,7 @@ export async function getAuthorship(): Promise<Map<number, string[]>> {
             authors = []
             authorship.set(row.object_id, authors)
         }
-        authors.push(
-            row.description
-                .split(" ")
-                .slice(0, 2)
-                .join(" ")
-        )
+        authors.push(row.description.split(" ").slice(0, 2).join(" "))
     }
 
     cachedAuthorship = authorship

@@ -72,10 +72,7 @@ function extractLatex(html: string): [string, string[]] {
     const latexBlocks: string[] = []
     html = html.replace(/\[latex\]([\s\S]*?)\[\/latex\]/gm, (_, latex) => {
         latexBlocks.push(
-            latex
-                .replace("\\[", "")
-                .replace("\\]", "")
-                .replace(/\$\$/g, "")
+            latex.replace("\\[", "").replace("\\]", "").replace(/\$\$/g, "")
         )
         return "[latex]"
     })
@@ -496,11 +493,9 @@ export async function formatWordpressPost(
 
     // Wrap content demarcated by headings into section blocks
     // and automatically divide content into columns
-    const sectionStarts = [
-        $("body")
-            .children()
-            .get(0)
-    ].concat($("body > h2").toArray())
+    const sectionStarts = [$("body").children().get(0)].concat(
+        $("body > h2").toArray()
+    )
     for (const start of sectionStarts) {
         const $start = $(start)
         const $section = $("<section>")
@@ -623,11 +618,7 @@ export async function formatWordpressPost(
         html: getHtmlContentWithStyles($),
         footnotes: footnotes,
         references: references,
-        excerpt:
-            post.excerpt ||
-            $("p")
-                .first()
-                .text(),
+        excerpt: post.excerpt || $("p").first().text(),
         imageUrl: post.imageUrl,
         tocHeadings: tocHeadings,
         relatedCharts: post.relatedCharts

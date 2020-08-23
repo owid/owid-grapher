@@ -19,6 +19,7 @@
         "lint": "eslint .",
         "prettify": "yarn pretty-quick --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss}\"",
         "prettify:check": "yarn pretty-quick --check --pattern \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss}\"",
+        "prettify-all": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss}\"",
         "typecheck": "tsc --noEmit",
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",

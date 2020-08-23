@@ -137,7 +137,7 @@ export class Analytics {
         }
         if (window.ga) {
             // https://developers.google.com/analytics/devguides/collection/analyticsjs/ga-object-methods-reference
-            window.ga(function() {
+            window.ga(function () {
                 const tracker = window.ga.getAll()[0]
                 // @types/google.analytics seems to suggest this usage is invalid but we know Google
                 // Analytics logs these events correctly.

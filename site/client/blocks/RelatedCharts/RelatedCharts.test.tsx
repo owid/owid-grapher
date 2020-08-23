@@ -20,19 +20,9 @@ it("renders active chart links and loads respective chart on click", () => {
 
     expect(wrapper.find("li")).toHaveLength(2)
 
-    expect(
-        wrapper
-            .find("li")
-            .first()
-            .hasClass("active")
-    ).toEqual(true)
+    expect(wrapper.find("li").first().hasClass("active")).toEqual(true)
 
-    expect(
-        wrapper
-            .find("li")
-            .first()
-            .text()
-    ).toBe("Chart 1")
+    expect(wrapper.find("li").first().text()).toBe("Chart 1")
 
     wrapper.find("a").forEach((link, idx) => {
         link.simulate("click")
@@ -46,10 +36,5 @@ it("renders active chart links and loads respective chart on click", () => {
         expect(wrapper.find("figure").key()).toEqual(charts[idx].slug)
     })
 
-    expect(
-        wrapper
-            .find("li")
-            .last()
-            .hasClass("active")
-    ).toEqual(true)
+    expect(wrapper.find("li").last().hasClass("active")).toEqual(true)
 })

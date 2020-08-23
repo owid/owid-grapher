@@ -51,18 +51,14 @@ class ChartResult extends React.Component<{
                 <a href={`${BAKED_GRAPHER_URL}/${slug}`}>{title}</a>
                 {hit.variantName ? (
                     <span className="variantName"> {hit.variantName}</span>
-                ) : (
-                    undefined
-                )}
+                ) : undefined}
                 {hit._snippetResult ? (
                     <p
                         dangerouslySetInnerHTML={{
                             __html: hit._snippetResult.subtitle.value
                         }}
                     />
-                ) : (
-                    undefined
-                )}
+                ) : undefined}
             </li>
         )
     }
@@ -98,9 +94,7 @@ class ArticleResult extends React.Component<{ hit: ArticleHit }> {
                 <a href={`/${hit.slug}`}>{hit.title}</a>{" "}
                 {showType ? (
                     <span className="variantName">{capitalize(hit.type)}</span>
-                ) : (
-                    undefined
-                )}
+                ) : undefined}
                 <p
                     dangerouslySetInnerHTML={{
                         __html: hit._snippetResult.content.value
@@ -178,9 +172,7 @@ export class SearchResults extends React.Component<{
                         <h2>Pages</h2>
                         {!results.pages.length ? (
                             <p>No matching pages.</p>
-                        ) : (
-                            undefined
-                        )}
+                        ) : undefined}
                         <ul>
                             {results.pages.map(hit =>
                                 hit.type === "country" ? (
@@ -201,9 +193,7 @@ export class SearchResults extends React.Component<{
                         <h2>Charts</h2>
                         {!results.charts.length ? (
                             <p>No matching charts.</p>
-                        ) : (
-                            undefined
-                        )}
+                        ) : undefined}
                         {this.bestChartSlug && (
                             <EmbedChart
                                 src={`${BAKED_GRAPHER_URL}/${this.bestChartSlug}`}

@@ -459,7 +459,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         this.animSelection = select(this.base.current).selectAll("circle")
 
         this.animSelection
-            .each(function() {
+            .each(function () {
                 const circle = this as SVGCircleElement
                 radiuses.push(circle.getAttribute("r") as string)
                 circle.setAttribute("r", "0")
@@ -475,9 +475,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get linesRender() {
-        return this.hideLines ? (
-            undefined
-        ) : (
+        return this.hideLines ? undefined : (
             <polyline
                 strokeLinecap="round"
                 stroke={this.series.color}

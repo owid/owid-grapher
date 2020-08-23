@@ -120,7 +120,7 @@ const AdditionalInformation = ({
 export default AdditionalInformation
 
 export const render = ($: CheerioStatic) => {
-    $("block[type='additional-information']").each(function(
+    $("block[type='additional-information']").each(function (
         this: CheerioElement
     ) {
         const $block = $(this)
@@ -128,10 +128,7 @@ export const render = ($: CheerioStatic) => {
             ? VARIATION_MERGE_LEFT
             : VARIATION_FULL_WIDTH
         const title =
-            $block
-                .find("h3")
-                .remove()
-                .text() || "Additional information"
+            $block.find("h3").remove().text() || "Additional information"
         const image =
             variation === VARIATION_MERGE_LEFT
                 ? $block

@@ -29,10 +29,7 @@ export class Dataset extends BaseEntity {
     @Column() dataEditedByUserId!: number
     @Column({ default: false }) isPrivate!: boolean
 
-    @ManyToOne(
-        () => User,
-        user => user.createdDatasets
-    )
+    @ManyToOne(() => User, user => user.createdDatasets)
     createdByUser!: User
 
     // Export dataset variables to CSV (not including metadata)

@@ -114,7 +114,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             outline: 3px dashed rgba(0,0,255,.5);
           }`
 
-        const cells = function(row: number, column: number) {
+        const cells = function (row: number, column: number) {
             const cellProperties: Partial<Handsontable.CellProperties> = {}
 
             if (column === 0) {
