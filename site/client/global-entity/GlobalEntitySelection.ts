@@ -1,10 +1,10 @@
 import { observable, reaction, IReactionDisposer } from "mobx"
 
 import { Country, countries } from "utils/countries"
-import { ChartConfig } from "charts/ChartConfig"
-import { excludeUndefined } from "charts/Util"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { excludeUndefined } from "charts/utils/Util"
 import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
-import { UrlBinder } from "charts/UrlBinder"
+import { UrlBinder } from "charts/utils/UrlBinder"
 
 export enum GlobalEntitySelectionModes {
     none = "none",

@@ -34,12 +34,12 @@ import {
     EntriesForYearPage
 } from "./views/EntriesByYearPage"
 import { VariableCountryPage } from "./views/VariableCountryPage"
-import { ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfigProps } from "charts/core/ChartConfig"
 import { FeedbackPage } from "./views/FeedbackPage"
 import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "explorer/indicatorExplorer/Indicator"
 import { getCountry, Country } from "utils/countries"
-import { memoize } from "charts/Util"
+import { memoize } from "charts/utils/Util"
 import { CountryProfileSpec } from "site/client/CountryProfileConstants"
 
 // Wrap ReactDOMServer to stick the doctype on

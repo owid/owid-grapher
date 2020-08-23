@@ -2,12 +2,12 @@ import * as React from "react"
 
 import { JsonError } from "utils/server/serverUtil"
 import { Chart } from "db/model/Chart"
-import { ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfigProps } from "charts/core/ChartConfig"
 import { ChartPage } from "site/server/views/ChartPage"
 import { renderToHtmlPage } from "site/server/siteBaking"
 import { getVariableData } from "db/model/Variable"
 import { Post } from "db/model/Post"
-import { urlToSlug } from "charts/Util"
+import { urlToSlug } from "charts/utils/Util"
 import { getRelatedCharts } from "db/wpdb"
 
 export async function chartDataJson(variableIds: number[]) {

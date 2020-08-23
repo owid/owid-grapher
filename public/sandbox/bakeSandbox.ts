@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+// todo: remove?
+
 import * as fs from "fs-extra"
 
 const bakeSandbox = async (outputPath: string) => {
@@ -8,14 +10,17 @@ const bakeSandbox = async (outputPath: string) => {
         `Baking sandbox to "${outputPath}". Be sure to run 'yarn build' first to build needed bundles.`
     )
 
-    const assets = `http://localhost:8090/css/commons.css
-http://localhost:8090/css/owid.css
-http://localhost:8090/js/owid.js
-http://localhost:8090/js/commons.js`.split("\n")
+    const webPackHost = `http://localhost:8090`
+
+    const assets = `/css/commons.css
+/css/owid.css
+/js/owid.js
+/js/commons.js`.split("\n")
 
     await fs.mkdirp(outputPath)
     let indexPage = fs.readFileSync(__dirname + "/index.html", "utf8")
     assets.forEach(url => {
+        url = webPackHost + url
         const parts = url.split("/")
         const filename = parts[parts.length - 1]
         const extension = filename.split(".").pop()

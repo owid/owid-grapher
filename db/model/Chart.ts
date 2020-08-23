@@ -8,7 +8,7 @@ import {
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "db/db"
-import { ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfigProps } from "charts/core/ChartConfig"
 import { getVariableData } from "./Variable"
 import { User } from "./User"
 import { ChartRevision } from "./ChartRevision"

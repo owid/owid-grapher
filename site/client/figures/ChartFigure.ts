@@ -1,5 +1,5 @@
-import { ChartView } from "charts/ChartView"
-import { excludeUndefined, fetchText } from "charts/Util"
+import { ChartView } from "charts/core/ChartView"
+import { excludeUndefined, fetchText } from "charts/utils/Util"
 
 import { Figure, LoadProps } from "./Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"

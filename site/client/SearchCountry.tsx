@@ -4,7 +4,7 @@ import Select, { ValueType } from "react-select"
 import { countries } from "utils/countries"
 import { asArray } from "utils/client/react-select"
 import { Analytics } from "./Analytics"
-import { sortBy } from "charts/Util"
+import { sortBy } from "charts/utils/Util"
 import { countryProfileSpecs } from "./CountryProfileConstants"
 
 interface CountrySelectOption {

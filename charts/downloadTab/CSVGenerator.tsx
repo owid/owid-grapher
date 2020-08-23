@@ -1,7 +1,13 @@
 import { computed, action } from "mobx"
-import { ChartConfig } from "charts/ChartConfig"
-import { uniq, flatten, csvEscape, first, valuesAtYears } from "charts/Util"
-import { ChartDimension } from "charts/ChartDimension"
+import { ChartConfig } from "charts/core/ChartConfig"
+import {
+    uniq,
+    flatten,
+    csvEscape,
+    first,
+    valuesAtYears
+} from "charts/utils/Util"
+import { ChartDimension } from "charts/core/ChartDimension"
 
 interface CSVGeneratorProps {
     chart: ChartConfig

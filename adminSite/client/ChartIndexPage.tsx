@@ -5,7 +5,7 @@ import fuzzysort from "fuzzysort"
 
 import { TextField } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
-import { uniq } from "charts/Util"
+import { uniq } from "charts/utils/Util"
 import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"

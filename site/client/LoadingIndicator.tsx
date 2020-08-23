@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Bounds } from "charts/Bounds"
+import { Bounds } from "charts/utils/Bounds"
 
 export const LoadingIndicator = (props: {
     backgroundColor?: string

@@ -1,4 +1,4 @@
-import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfig, ChartConfigProps } from "charts/core/ChartConfig"
 
 import * as fixtures from "./fixtures"
 import { first } from "lodash"

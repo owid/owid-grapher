@@ -10,9 +10,9 @@ import {
     some,
     find,
     sum
-} from "charts/Util"
-import { Bounds } from "charts/Bounds"
-import { TextWrap } from "charts/TextWrap"
+} from "charts/utils/Util"
+import { Bounds } from "charts/utils/Bounds"
+import { TextWrap } from "charts/text/TextWrap"
 import {
     ColorScaleBin,
     NumericBin,

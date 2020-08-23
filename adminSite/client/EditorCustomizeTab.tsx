@@ -2,8 +2,8 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
-import { ChartConfig } from "charts/ChartConfig"
-import { ComparisonLineConfig } from "charts/ComparisonLine"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import {
     NumberField,
     Toggle,
@@ -14,7 +14,7 @@ import {
     TextField,
     Button
 } from "./Forms"
-import { debounce } from "charts/Util"
+import { debounce } from "charts/utils/Util"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

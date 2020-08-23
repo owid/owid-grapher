@@ -6,7 +6,7 @@ import { SiteFooter } from "./SiteFooter"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import * as lodash from "lodash"
 import { TableOfContents } from "site/client/TableOfContents"
-import { slugify } from "charts/Util"
+import { slugify } from "charts/utils/Util"
 
 export interface ChartIndexItem {
     id: number

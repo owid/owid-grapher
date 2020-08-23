@@ -1,12 +1,12 @@
 import { computed } from "mobx"
 
-import { ObservableUrl } from "charts/UrlBinder"
+import { ObservableUrl } from "charts/utils/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "./GlobalEntitySelection"
-import { EntityUrlBuilder } from "charts/ChartUrl"
+import { EntityUrlBuilder } from "charts/core/ChartUrl"
 
 type GlobalEntitySelectionQueryParams = {
     country?: string

@@ -1,7 +1,7 @@
 // WIP
 
 import * as React from "react"
-import { keys, isEmpty, difference, clone, uniq } from "charts/Util"
+import { keys, isEmpty, difference, clone, uniq } from "charts/utils/Util"
 import {
     observable,
     computed,

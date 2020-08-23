@@ -6,8 +6,8 @@ import {
     findClosestYear,
     getRelativeMouse,
     isMobile
-} from "charts/Util"
-import { Bounds } from "charts/Bounds"
+} from "charts/utils/Util"
+import { Bounds } from "charts/utils/Bounds"
 import { Analytics } from "site/client/Analytics"
 import {
     observable,
@@ -18,7 +18,10 @@ import {
     IReactionDisposer
 } from "mobx"
 import { observer } from "mobx-react"
-import { ChartViewContext, ChartViewContextType } from "charts/ChartViewContext"
+import {
+    ChartViewContext,
+    ChartViewContextType
+} from "charts/core/ChartViewContext"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
 import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -31,7 +34,7 @@ import {
     isUnboundedLeft,
     isUnboundedRight,
     getBoundFromTimeRange
-} from "charts/TimeBounds"
+} from "charts/utils/TimeBounds"
 
 const DEFAULT_MIN_YEAR = 1900
 const DEFAULT_MAX_YEAR = 2000

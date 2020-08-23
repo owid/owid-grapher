@@ -1,4 +1,4 @@
-import { SortOrder } from "charts/ChartConstants"
+import { SortOrder } from "charts/core/ChartConstants"
 import { NounKey, NounGenerator } from "./CovidTypes"
 import { createNoun } from "./CovidUtils"
 

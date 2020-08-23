@@ -23,17 +23,17 @@ import {
     formatValue,
     domainExtent,
     identity
-} from "../Util"
+} from "charts/utils/Util"
 import { computed } from "mobx"
-import { ChartDimension } from "../ChartDimension"
+import { ChartDimension } from "charts/core/ChartDimension"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
-import { AxisSpec } from "../AxisSpec"
-import { ChartTransform } from "../ChartTransform"
-import { Time } from "../TimeBounds"
-import { EntityDimensionKey } from "charts/ChartConstants"
+import { AxisSpec } from "charts/axis/AxisSpec"
+import { ChartTransform } from "charts/core/ChartTransform"
+import { Time } from "charts/utils/TimeBounds"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { entityName, year } from "owidTable/OwidTable"
-import { ScaleType } from "../ChartConstants"
+import { ScaleType } from "charts/core/ChartConstants"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot

@@ -1,11 +1,11 @@
 import * as React from "react"
-import { intersection, without, uniq } from "../Util"
+import { intersection, without, uniq } from "../utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "../Bounds"
-import { ChartConfig } from "../ChartConfig"
+import { Bounds } from "charts/utils/Bounds"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
-import { NoDataOverlay } from "../common/NoDataOverlay"
+import { NoDataOverlay } from "../core/NoDataOverlay"
 import {
     VerticalColorLegend,
     ScatterColorLegendView

@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { isEmpty } from "charts/Util"
+import { isEmpty } from "charts/utils/Util"
 import { MapConfig } from "charts/mapCharts/MapConfig"
 import { MapProjection } from "charts/mapCharts/MapProjection"
 

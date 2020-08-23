@@ -6,7 +6,7 @@ import {
     retryPromise,
     memoize,
     parseIntOrUndefined
-} from "charts/Util"
+} from "charts/utils/Util"
 
 import { CovidSeries } from "./CovidTypes"
 import { ECDC_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"

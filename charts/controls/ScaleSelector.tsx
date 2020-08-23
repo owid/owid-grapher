@@ -11,8 +11,11 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ScaleType } from "../ChartConstants"
-import { ChartViewContext, ChartViewContextType } from "../ChartViewContext"
+import { ScaleType } from "charts/core/ChartConstants"
+import {
+    ChartViewContext,
+    ChartViewContextType
+} from "charts/core/ChartViewContext"
 
 interface ScaleSelectorProps {
     x: number

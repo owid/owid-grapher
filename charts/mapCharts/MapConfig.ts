@@ -1,10 +1,10 @@
 import { observable, computed } from "mobx"
 
 import { MapProjection } from "./MapProjection"
-import { ChartConfig } from "../ChartConfig"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { MapData } from "./MapData"
-import { defaultTo } from "../Util"
-import { TimeBound, TimeBoundValue } from "../TimeBounds"
+import { defaultTo } from "../utils/Util"
+import { TimeBound, TimeBoundValue } from "../utils/TimeBounds"
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { owidVariableId } from "owidTable/OwidTable"
 

@@ -1,9 +1,9 @@
 import React from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
-import { ChartView } from "charts/ChartView"
-import { Bounds } from "charts/Bounds"
-import { ChartConfig, ChartConfigProps } from "charts/ChartConfig"
+import { ChartView } from "charts/core/ChartView"
+import { Bounds } from "charts/utils/Bounds"
+import { ChartConfig, ChartConfigProps } from "charts/core/ChartConfig"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
@@ -27,7 +27,7 @@ import {
     previous,
     startCase,
     flatten
-} from "charts/Util"
+} from "charts/utils/Util"
 import {
     ControlOption,
     ExplorerControlPanel,
@@ -72,16 +72,16 @@ import {
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "charts/controls/CommandPalette"
-import { TimeBoundValue } from "charts/TimeBounds"
+import { TimeBoundValue } from "charts/utils/TimeBounds"
 import { Analytics } from "site/client/Analytics"
 import {
     ChartDimensionSpec,
     ChartDimension,
     ChartDimensionInterface
-} from "charts/ChartDimension"
+} from "charts/core/ChartDimension"
 import { BinningStrategy } from "charts/color/BinningStrategies"
-import { UrlBinder } from "charts/UrlBinder"
-import { ExtendedChartUrl } from "charts/ChartUrl"
+import { UrlBinder } from "charts/utils/UrlBinder"
+import { ExtendedChartUrl } from "charts/core/ChartUrl"
 
 interface BootstrapProps {
     containerNode: HTMLElement

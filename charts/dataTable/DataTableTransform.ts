@@ -10,16 +10,16 @@ import {
     sortBy,
     countBy,
     union
-} from "charts/Util"
-import { ChartConfig } from "charts/ChartConfig"
-import { ChartDimension } from "charts/ChartDimension"
-import { TickFormattingOptions } from "charts/TickFormattingOptions"
+} from "charts/utils/Util"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartDimension } from "charts/core/ChartDimension"
+import { TickFormattingOptions } from "charts/core/ChartConstants"
 import {
     getTimeWithinTimeRange,
     Time,
     isUnboundedLeft
-} from "charts/TimeBounds"
-import { ChartTransform } from "charts/ChartTransform"
+} from "charts/utils/TimeBounds"
+import { ChartTransform } from "charts/core/ChartTransform"
 
 // Target year modes
 

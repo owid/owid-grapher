@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { ChartConfigProps } from "charts/ChartConfig"
+import { ChartConfigProps } from "charts/core/ChartConfig"
 import * as lodash from "lodash"
 
 function omitSaveToVariable(config: ChartConfigProps): ChartConfigProps {

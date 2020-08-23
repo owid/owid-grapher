@@ -1,20 +1,23 @@
 import * as React from "react"
 import { select, Selection, BaseType } from "d3-selection"
-import { sortBy, min, max, first } from "../Util"
+import { sortBy, min, max, first } from "../utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "../ChartConfig"
-import { Bounds } from "../Bounds"
-import { AxisScale } from "../AxisScale"
-import { Color } from "charts/ChartConstants"
-import { HorizontalAxis, HorizontalAxisView } from "../HorizontalAxis"
-import { AxisGridLines } from "../AxisBox"
-import { NoDataOverlay } from "../common/NoDataOverlay"
-import { TickFormattingOptions } from "../TickFormattingOptions"
-import { ChartViewContextType, ChartViewContext } from "../ChartViewContext"
+import { ChartConfig } from "charts/core/ChartConfig"
+import { Bounds } from "charts/utils/Bounds"
+import { AxisScale } from "charts/axis/AxisScale"
+import { Color } from "charts/core/ChartConstants"
+import { HorizontalAxis, HorizontalAxisView } from "charts/axis/HorizontalAxis"
+import { AxisGridLines } from "charts/axis/AxisBox"
+import { NoDataOverlay } from "../core/NoDataOverlay"
+import { TickFormattingOptions } from "charts/core/ChartConstants"
+import {
+    ChartViewContextType,
+    ChartViewContext
+} from "charts/core/ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "../controls/Controls"
-import { EntityDimensionKey } from "charts/ChartConstants"
-import { ScaleType } from "../ChartConstants"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { ScaleType } from "charts/core/ChartConstants"
 
 export interface DiscreteBarDatum {
     entityDimensionKey: EntityDimensionKey

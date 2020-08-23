@@ -13,7 +13,7 @@ import {
     memoize,
     fetchText,
     fetchJSON
-} from "charts/Util"
+} from "charts/utils/Util"
 import moment from "moment"
 import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"

@@ -1,5 +1,5 @@
-import { ChartConfigProps } from "charts/ChartConfig"
-import { ChartTypeName } from "charts/ChartConstants"
+import { ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartTypeName } from "charts/core/ChartConstants"
 import { EXPLORER } from "settings"
 
 export const EXPLORABLE_CHART_TYPES: ChartTypeName[] = [

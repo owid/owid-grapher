@@ -8,7 +8,7 @@ import Select, {
 import classNames from "classnames"
 import { observer } from "mobx-react"
 import { computed, action } from "mobx"
-import { groupBy, first } from "charts/Util"
+import { groupBy, first } from "charts/utils/Util"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 
 // Transformation matrices taken from https://github.com/hail2u/color-blindness-emulation/blob/master/filters.svg?short_path=5708e81

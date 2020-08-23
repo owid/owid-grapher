@@ -1,4 +1,4 @@
-import { Color } from "charts/ChartConstants"
+import { Color } from "charts/core/ChartConstants"
 
 export interface NumericBinProps {
     isFirst: boolean

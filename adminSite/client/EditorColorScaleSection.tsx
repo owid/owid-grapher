@@ -13,8 +13,8 @@ import {
     NumericBin,
     CategoricalBin
 } from "charts/color/ColorScaleBin"
-import { clone, noop, last } from "charts/Util"
-import { Color } from "charts/ChartConstants"
+import { clone, noop, last } from "charts/utils/Util"
+import { Color } from "charts/core/ChartConstants"
 import { asArray } from "utils/client/react-select"
 
 import {

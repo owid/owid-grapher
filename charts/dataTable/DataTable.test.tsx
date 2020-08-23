@@ -6,7 +6,7 @@ import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 import { setupChart } from "test/utils"
 
 import { DataTable, ClosestYearNotice } from "./DataTable"
-import { ChartConfig } from "charts/ChartConfig"
+import { ChartConfig } from "charts/core/ChartConfig"
 
 describe(DataTable, () => {
     describe("when you render a table", () => {
