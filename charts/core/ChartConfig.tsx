@@ -37,7 +37,9 @@ import { AxisConfig, AxisConfigProps } from "charts/axis/AxisSpec"
 import {
     ChartType,
     ChartTypeName,
-    ChartTabOption
+    ChartTabOption,
+    Color,
+    TickFormattingOptions
 } from "charts/core/ChartConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { ChartData, SourceWithDimension } from "./ChartData"
@@ -56,7 +58,6 @@ import { StackedAreaTransform } from "charts/areaCharts/StackedAreaTransform"
 import { LineChartTransform } from "charts/lineCharts/LineChartTransform"
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
 import { SlopeChartTransform } from "charts/slopeCharts/SlopeChartTransform"
-import { Color } from "charts/core/ChartConstants"
 import { ChartView } from "./ChartView"
 import { Bounds } from "charts/utils/Bounds"
 import { IChartTransform } from "./ChartTransform"
@@ -78,7 +79,6 @@ import {
     GlobalEntitySelection,
     subscribeChartToGlobalEntitySelection
 } from "site/client/global-entity/GlobalEntitySelection"
-import { TickFormattingOptions } from "charts/core/ChartConstants"
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"

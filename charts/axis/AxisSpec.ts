@@ -5,8 +5,7 @@
  * that is ready to go into rendering-- no unfilled nulls.
  */
 
-import { ScaleType } from "charts/core/ChartConstants"
-import { TickFormattingOptions } from "charts/core/ChartConstants"
+import { ScaleType, TickFormattingOptions } from "charts/core/ChartConstants"
 import { observable, computed } from "mobx"
 import { defaultTo } from "charts/utils/Util"
 

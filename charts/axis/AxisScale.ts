@@ -10,8 +10,7 @@ import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed, toJS } from "mobx"
 
 import { extend, rollingMap, min, isMobile, uniq } from "charts/utils/Util"
-import { TickFormattingOptions } from "charts/core/ChartConstants"
-import { ScaleType } from "charts/core/ChartConstants"
+import { TickFormattingOptions, ScaleType } from "charts/core/ChartConstants"
 
 export interface Tickmark {
     value: number

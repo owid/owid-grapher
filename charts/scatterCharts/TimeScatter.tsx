@@ -9,7 +9,7 @@ import { NoDataOverlay } from "../core/NoDataOverlay"
 import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { AxisScale } from "charts/axis/AxisScale"
-import { ScaleType } from "charts/core/ChartConstants"
+import { ScaleType, EntityDimensionKey } from "charts/core/ChartConstants"
 
 import {
     sortBy,
@@ -24,7 +24,6 @@ import { Vector2 } from "charts/utils/Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "charts/core/Tooltip"
 import { TimeBound } from "../utils/TimeBounds"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
 
 interface ScatterSeries {
     color: string

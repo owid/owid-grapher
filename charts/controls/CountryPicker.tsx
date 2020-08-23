@@ -607,7 +607,7 @@ class PickerOption extends React.Component<CountryOptionProps> {
             highlight
         } = this.props
         const { name, plotValue, formattedValue } = optionWithMetricValue
-        let metricValue = formattedValue === name ? "" : formattedValue // If the user has "country name" selected, don't show the name twice.
+        const metricValue = formattedValue === name ? "" : formattedValue // If the user has "country name" selected, don't show the name twice.
 
         return (
             <Flipped flipId={name} translate opacity>
