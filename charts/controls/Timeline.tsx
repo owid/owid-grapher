@@ -370,6 +370,14 @@ export class Timeline extends React.Component<TimelineProps> {
         this.dragTarget = undefined
         if (this.startTooltipVisible) this.hideStartTooltip()
         if (this.endTooltipVisible) this.hideEndTooltip()
+
+        // if handles within 1 year of each other, snap to closest year.
+        if (this.endYear - this.startYear < 1) {
+            ;[this.startYearRaw, this.endYearRaw] = [
+                this.startYearClosest,
+                this.endYearClosest
+            ]
+        }
     }
 
     hideStartTooltip = debounce(() => {
