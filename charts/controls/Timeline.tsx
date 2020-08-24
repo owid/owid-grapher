@@ -7,8 +7,8 @@ import {
     getRelativeMouse,
     isMobile,
     debounce
-} from "./Util"
-import { Bounds } from "./Bounds"
+} from "charts/utils/Util"
+import { Bounds } from "charts/utils/Bounds"
 import { Analytics } from "site/client/Analytics"
 import {
     observable,
@@ -35,7 +35,7 @@ import {
     isUnboundedLeft,
     isUnboundedRight,
     getBoundFromTimeRange
-} from "./TimeBounds"
+} from "charts/utils/TimeBounds"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
 
