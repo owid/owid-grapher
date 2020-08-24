@@ -531,7 +531,7 @@ export async function getBlockContent(id: number): Promise<string | undefined> {
     })
     const json = await response.json()
 
-    return json.data.post.content ?? undefined
+    return json.data.post?.content ?? undefined
 }
 
 export interface FullPost {
