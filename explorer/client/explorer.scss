@@ -41,3 +41,13 @@ html.iframe #explorerContainer {
         font-size: 13px;
     }
 }
+
+.explorerContentContainer {
+    max-width: $max-width-covid-data-explorer;
+    margin: 0 auto;
+    & > div {
+        @include wrapper-x-spacing;
+        margin-left: 0;
+        max-width: $content-max-width;
+    }
+}
