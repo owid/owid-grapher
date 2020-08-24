@@ -371,6 +371,18 @@ export class Timeline extends React.Component<TimelineProps> {
         if (this.startTooltipVisible) this.hideStartTooltip()
         if (this.endTooltipVisible) this.hideEndTooltip()
 
+        // In case start handle has been dragged past end handle, make sure
+        //  startYearRaw is still smallest value
+        if (!this.isPlaying) {
+            // NOTE: This needs to be an atomic assignment.
+            if (this.startYearRaw > this.endYearRaw) {
+                ;[this.startYearRaw, this.endYearRaw] = [
+                    this.startYear,
+                    this.endYear
+                ]
+            }
+        }
+
         // if handles within 1 year of each other, snap to closest year.
         if (this.endYear - this.startYear < 1) {
             ;[this.startYearRaw, this.endYearRaw] = [
@@ -430,24 +442,6 @@ export class Timeline extends React.Component<TimelineProps> {
                 } else {
                     this.context.chart.url.debounceMode = false
                     if (onStopDrag) onStopDrag()
-                }
-            }),
-            autorun(() => {
-                // If we're not playing or dragging, lock the input to the closest year (no interpolation)
-                const { isPlaying, isDragging } = this
-                if (!isPlaying && !isDragging) {
-                    runInAction(() => {
-                        // NOTE: This needs to be an atomic assignment.
-                        // As start/end values can flip while dragging one handle past another, we
-                        // have logic to flip start/end on the fly. But when they get reassigned, to
-                        // avoid the unintentional flip, it needs to be done atomically.
-                        if (this.startYearRaw > this.endYearRaw) {
-                            ;[this.startYearRaw, this.endYearRaw] = [
-                                this.startYear,
-                                this.endYear
-                            ]
-                        }
-                    })
                 }
             })
         ]
