@@ -290,7 +290,7 @@ export class Timeline extends React.Component<TimelineProps> {
             this.onRangeYearChange([startYear, endYear])
         }
 
-        this.updateTooltipVisibility()
+        if (isMobile()) this.updateTooltipVisibility()
     }
 
     @action updateTooltipVisibility() {
@@ -368,8 +368,14 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onMouseUp() {
         this.dragTarget = undefined
-        if (this.startTooltipVisible) this.hideStartTooltip()
-        if (this.endTooltipVisible) this.hideEndTooltip()
+
+        if (isMobile()) {
+            if (this.startTooltipVisible) this.hideStartTooltip()
+            if (this.endTooltipVisible) this.hideEndTooltip()
+        } else if (!this.mouseHoveringOverTimeline) {
+            this.startTooltipVisible = false
+            this.endTooltipVisible = false
+        }
 
         // In case start handle has been dragged past end handle, make sure
         //  startYearRaw is still smallest value
@@ -390,6 +396,25 @@ export class Timeline extends React.Component<TimelineProps> {
                 this.endYearClosest
             ]
         }
+    }
+
+    private mouseHoveringOverTimeline: boolean = false
+    @action.bound onMouseOver() {
+        this.mouseHoveringOverTimeline = true
+
+        this.hideStartTooltip.cancel()
+        this.startTooltipVisible = true
+
+        this.hideEndTooltip.cancel()
+        this.endTooltipVisible = true
+    }
+
+    @action.bound onMouseLeave() {
+        if (!this.isPlaying && !this.isDragging) {
+            this.startTooltipVisible = false
+            this.endTooltipVisible = false
+        }
+        this.mouseHoveringOverTimeline = false
     }
 
     hideStartTooltip = debounce(() => {
@@ -509,7 +534,12 @@ export class Timeline extends React.Component<TimelineProps> {
         const endYearProgress = (endYearUI - minYear) / (maxYear - minYear)
 
         return (
-            <div ref={this.base} className={"TimelineControl"}>
+            <div
+                ref={this.base}
+                className={"TimelineControl"}
+                onMouseOver={this.onMouseOver}
+                onMouseLeave={this.onMouseLeave}
+            >
                 {!this.props.disablePlay && (
                     <div
                         onMouseDown={e => e.stopPropagation()}
