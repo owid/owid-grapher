@@ -528,7 +528,7 @@ export class Timeline extends React.Component<TimelineProps> {
                 >
                     <TimelineHandle
                         type="startMarker"
-                        offsetPercent={startYearProgress}
+                        offsetPercent={startYearProgress * 100}
                         tooltipContent={this.formatYear(chart.minYear)}
                         tooltipVisible={this.startTooltipVisible}
                         tooltipZIndex={
@@ -544,7 +544,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     />
                     <TimelineHandle
                         type="endMarker"
-                        offsetPercent={endYearProgress}
+                        offsetPercent={endYearProgress * 100}
                         tooltipContent={this.formatYear(chart.maxYear)}
                         tooltipVisible={this.endTooltipVisible}
                         tooltipZIndex={
@@ -575,7 +575,7 @@ export const TimelineHandle = ({
         <div
             className={classNames("handle", type)}
             style={{
-                left: `${offsetPercent * 100}%`
+                left: `${offsetPercent}%`
             }}
         >
             <Tippy
