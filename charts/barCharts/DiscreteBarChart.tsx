@@ -6,18 +6,20 @@ import { observer } from "mobx-react"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
 import { AxisScale } from "charts/axis/AxisScale"
-import { Color } from "charts/core/ChartConstants"
+import {
+    Color,
+    TickFormattingOptions,
+    EntityDimensionKey,
+    ScaleType
+} from "charts/core/ChartConstants"
 import { HorizontalAxis, HorizontalAxisView } from "charts/axis/HorizontalAxis"
 import { AxisGridLines } from "charts/axis/AxisBox"
 import { NoDataOverlay } from "../core/NoDataOverlay"
-import { TickFormattingOptions } from "charts/core/ChartConstants"
 import {
     ChartViewContextType,
     ChartViewContext
 } from "charts/core/ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "../controls/Controls"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
-import { ScaleType } from "charts/core/ChartConstants"
 
 export interface DiscreteBarDatum {
     entityDimensionKey: EntityDimensionKey

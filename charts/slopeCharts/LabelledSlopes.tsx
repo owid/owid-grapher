@@ -31,13 +31,12 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { ScaleType } from "charts/core/ChartConstants"
+import { ScaleType, EntityDimensionKey } from "charts/core/ChartConstants"
 import { Bounds } from "charts/utils/Bounds"
 import { Text } from "charts/text/Text"
 import { TextWrap } from "charts/text/TextWrap"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { ScaleSelector } from "charts/controls/ScaleSelector"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { ControlsOverlay } from "charts/controls/Controls"
 
 export interface SlopeChartValue {

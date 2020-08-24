@@ -5,9 +5,8 @@ import {
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
-import { SortOrder } from "charts/core/ChartConstants"
+import { SortOrder, ChartTypeName } from "charts/core/ChartConstants"
 import { oneOf, uniq, intersection } from "charts/utils/Util"
-import { ChartTypeName } from "charts/core/ChartConstants"
 import {
     trajectoryColumnSpecs,
     covidCsvColumnSlug,
