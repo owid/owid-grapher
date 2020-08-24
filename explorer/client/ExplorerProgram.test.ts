@@ -123,4 +123,24 @@ france,Life expectancy`,
         const options = new SwitcherRuntime(``, "")
         expect(options.groups.length).toEqual(0)
     })
+
+    it("marks a radio as checked if its the only option", () => {
+        const options = new SwitcherRuntime(
+            `chartId,Gas,Accounting
+488,CO₂,Production-based
+4331,CO₂,Consumption-based
+4147,GHGs,Production-based`,
+            ""
+        )
+        options.setValue("Gas", "CO₂")
+        options.setValue("Accounting", "Consumption-based")
+        options.setValue("Gas", "GHGs")
+        expect(options.chartId).toEqual(4147)
+        expect(options.toConstrainedOptions()["Accounting"]).toEqual(
+            "Production-based"
+        )
+        expect(options.groups[1].value).toEqual("Production-based")
+        expect(options.groups[1].options[0].value).toEqual("Production-based")
+        expect(options.groups[1].options[0].checked).toEqual(true)
+    })
 })

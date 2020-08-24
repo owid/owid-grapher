@@ -364,10 +364,14 @@ export class SwitcherRuntime {
         return this.rowIndexesWith(this.toConstrainedOptions())[0]
     }
 
-    toControlOption(groupName: string, optionName: string): ControlOption {
+    private toControlOption(
+        groupName: string,
+        optionName: string,
+        value: string
+    ): ControlOption {
         return {
             label: optionName,
-            checked: this._settings[groupName] === optionName,
+            checked: value === optionName,
             value: optionName,
             available: this.isOptionAvailable(groupName, optionName)
         }
@@ -378,7 +382,11 @@ export class SwitcherRuntime {
         return this.columnNames.map((title, index) => {
             const optionNames = this.groupOptions[title]
             let options = optionNames.map(optionName =>
-                this.toControlOption(title, optionName)
+                this.toControlOption(
+                    title,
+                    optionName,
+                    constrainedOptions[title]
+                )
             )
             let dropdownOptions = undefined
             const type = this.columnTypes[index]
