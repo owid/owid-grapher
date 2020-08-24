@@ -5,12 +5,6 @@ import React from "react"
 import { renderToHtmlPage } from "utils/server/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
 import { explorerFileSuffix, ExplorerProgram } from "../client/ExplorerProgram"
-import * as settings from "settings"
-import { Head } from "site/server/views/Head"
-import { SiteHeader } from "site/server/views/SiteHeader"
-import { SiteFooter } from "site/server/views/SiteFooter"
-import { LoadingIndicator } from "site/client/LoadingIndicator"
-import { EmbedDetector } from "site/server/views/EmbedDetector"
 import { Request, Response } from "adminSite/server/utils/authentication"
 
 import {
@@ -19,17 +13,14 @@ import {
     covidPageTitle,
     covidPreloads
 } from "explorer/covidExplorer/CovidConstants"
-import {
-    SiteSubnavigation,
-    SubNavId
-} from "site/server/views/SiteSubnavigation"
+
 import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
 import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/constants"
-import { getBlock } from "db/wpdb"
-import { formatReusableBlock } from "site/server/formatting"
+import { getBlockContent } from "db/wpdb"
+import { ExplorerPage } from "./ExplorerPage"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
@@ -151,7 +142,7 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
     const script = `window.SwitcherExplorer.bootstrap(${JSON.stringify(props)})`
 
     const wpContent = program.wpBlockId
-        ? await getBlock(program.wpBlockId)
+        ? await getBlockContent(program.wpBlockId)
         : undefined
 
     return renderToHtmlPage(
@@ -170,65 +161,6 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
 
 export async function renderCovidExplorerPage(props?: CovidExplorerPageProps) {
     return renderToHtmlPage(<CovidExplorerPage {...props} />)
-}
-
-interface ExplorerPageSettings {
-    title: string
-    slug: string
-    imagePath: string
-    preloads: string[]
-    inlineJs: string
-    hideAlertBanner?: boolean
-    subnavId?: SubNavId
-    subnavCurrentId?: string
-    wpContent?: string
-}
-
-const ExplorerPage = (props: ExplorerPageSettings) => {
-    const { subnavId, subnavCurrentId, wpContent } = props
-    const subNav = subnavId ? (
-        <SiteSubnavigation
-            subnavId={subnavId}
-            subnavCurrentId={subnavCurrentId}
-        />
-    ) : undefined
-
-    return (
-        <html>
-            <Head
-                canonicalUrl={`${settings.BAKED_BASE_URL}/${props.slug}`}
-                pageTitle={props.title}
-                imageUrl={`${settings.BAKED_BASE_URL}/${props.imagePath}`}
-            >
-                <EmbedDetector />
-                {props.preloads.map((url: string, index: number) => (
-                    <link
-                        key={`preload${index}`}
-                        rel="preload"
-                        href={url}
-                        as="fetch"
-                        crossOrigin="anonymous"
-                    />
-                ))}
-            </Head>
-            <body className="ChartPage">
-                <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
-                {subNav}
-                <main id="explorerContainer">
-                    <LoadingIndicator color="#333" />
-                </main>
-                {wpContent && (
-                    <div
-                        dangerouslySetInnerHTML={{
-                            __html: formatReusableBlock(wpContent)
-                        }}
-                    ></div>
-                )}
-                <SiteFooter />
-                <script dangerouslySetInnerHTML={{ __html: props.inlineJs }} />
-            </body>
-        </html>
-    )
 }
 
 interface CovidExplorerPageProps {
