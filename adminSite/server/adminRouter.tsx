@@ -1,5 +1,6 @@
 // Misc non-SPA views
-import { Router } from "express"
+import { Request, Response, Router } from "express"
+import rateLimit from "express-rate-limit"
 import filenamify from "filenamify"
 import * as React from "react"
 import { getConnection } from "typeorm"
@@ -22,6 +23,17 @@ import { renderPageById } from "site/server/siteBaking"
 import { ENV } from "settings"
 import { addExplorerAdminRoutes } from "explorer/admin/ExplorerBaker"
 
+// Used for rate-limiting important endpoints (login, register) to prevent brute force attacks
+const limiterMiddleware = (
+    onFailRender: (req: Request, res: Response) => React.ReactElement
+) =>
+    rateLimit({
+        windowMs: 60_000, // 1 minute
+        max: 10, // max. 10 requests per minute
+        handler: (req, res) =>
+            res.status(429).send(renderToHtmlPage(onFailRender(req, res)))
+    })
+
 const adminRouter = Router()
 
 // None of these should be google indexed
@@ -43,23 +55,35 @@ adminRouter.get("/", async (req, res) => {
 adminRouter.get("/login", async (req, res) => {
     res.send(renderToHtmlPage(<LoginPage next={req.query.next} />))
 })
-adminRouter.post("/login", async (req, res) => {
-    try {
-        const session = await tryLogin(req.body.username, req.body.password)
-        res.cookie("sessionid", session.id, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: ENV === "production"
-        })
-        res.redirect(req.query.next || "/admin")
-    } catch (err) {
-        res.status(400).send(
-            renderToHtmlPage(
-                <LoginPage next={req.query.next} errorMessage={err.message} />
+adminRouter.post(
+    "/login",
+    limiterMiddleware(req => (
+        <LoginPage
+            errorMessage="Too many attempts, please try again in a minute."
+            next={req.query.next}
+        />
+    )),
+    async (req, res) => {
+        try {
+            const session = await tryLogin(req.body.username, req.body.password)
+            res.cookie("sessionid", session.id, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: ENV === "production"
+            })
+            res.redirect(req.query.next || "/admin")
+        } catch (err) {
+            res.status(400).send(
+                renderToHtmlPage(
+                    <LoginPage
+                        next={req.query.next}
+                        errorMessage={err.message}
+                    />
+                )
             )
-        )
+        }
     }
-})
+)
 
 adminRouter.get("/logout", async (req, res) => {
     if (res.locals.user)
@@ -70,83 +94,101 @@ adminRouter.get("/logout", async (req, res) => {
     res.redirect("/admin")
 })
 
-adminRouter.get("/register", async (req, res) => {
-    if (res.locals.user) {
-        res.redirect("/admin")
-        return
-    }
-
-    let errorMessage: string | undefined
-    let invite: UserInvitation | undefined
-    try {
-        // Delete all expired invites before continuing
-        await UserInvitation.createQueryBuilder()
-            .where("validTill < NOW()")
-            .delete()
-            .execute()
-
-        invite = await UserInvitation.findOne({ code: req.query.code })
-        if (!invite) {
-            throw new JsonError("Invite code invalid or expired")
+adminRouter.get(
+    "/register",
+    limiterMiddleware(req => (
+        <RegisterPage
+            errorMessage="Too many attempts, please try again in a minute."
+            body={req.query}
+        />
+    )),
+    async (req, res) => {
+        if (res.locals.user) {
+            res.redirect("/admin")
+            return
         }
-    } catch (err) {
-        errorMessage = err.message
-        res.status(tryInt(err.code, 500))
-    } finally {
-        res.send(
-            renderToHtmlPage(
-                <RegisterPage
-                    inviteEmail={invite && invite.email}
-                    errorMessage={errorMessage}
-                    body={req.query}
-                />
+
+        let errorMessage: string | undefined
+        let invite: UserInvitation | undefined
+        try {
+            // Delete all expired invites before continuing
+            await UserInvitation.createQueryBuilder()
+                .where("validTill < NOW()")
+                .delete()
+                .execute()
+
+            invite = await UserInvitation.findOne({ code: req.query.code })
+            if (!invite) {
+                throw new JsonError("Invite code invalid or expired")
+            }
+        } catch (err) {
+            errorMessage = err.message
+            res.status(tryInt(err.code, 500))
+        } finally {
+            res.send(
+                renderToHtmlPage(
+                    <RegisterPage
+                        inviteEmail={invite && invite.email}
+                        errorMessage={errorMessage}
+                        body={req.query}
+                    />
+                )
             )
-        )
+        }
     }
-})
+)
 
-adminRouter.post("/register", async (req, res) => {
-    try {
-        // Delete all expired invites before continuing
-        await UserInvitation.createQueryBuilder()
-            .where("validTill < NOW()")
-            .delete()
-            .execute()
+adminRouter.post(
+    "/register",
+    limiterMiddleware(req => (
+        <RegisterPage
+            errorMessage="Too many attempts, please try again in a minute."
+            body={req.query}
+        />
+    )),
+    async (req, res) => {
+        try {
+            // Delete all expired invites before continuing
+            await UserInvitation.createQueryBuilder()
+                .where("validTill < NOW()")
+                .delete()
+                .execute()
 
-        const invite = await UserInvitation.findOne({ code: req.body.code })
-        if (!invite) {
-            throw new JsonError("Invite code invalid or expired", 403)
-        }
+            const invite = await UserInvitation.findOne({ code: req.body.code })
+            if (!invite) {
+                throw new JsonError("Invite code invalid or expired", 403)
+            }
 
-        if (req.body.password !== req.body.confirmPassword) {
-            throw new JsonError("Passwords don't match!", 400)
-        }
+            if (req.body.password !== req.body.confirmPassword) {
+                throw new JsonError("Passwords don't match!", 400)
+            }
 
-        await getConnection().transaction(async manager => {
-            const user = new User()
-            user.email = req.body.email
-            user.fullName = req.body.fullName
-            user.createdAt = new Date()
-            user.updatedAt = new Date()
-            user.lastLogin = new Date()
-            await user.setPassword(req.body.password)
-            await manager.getRepository(User).save(user)
+            await getConnection().transaction(async manager => {
+                const user = new User()
+                user.email = req.body.email
+                user.fullName = req.body.fullName
+                user.createdAt = new Date()
+                user.updatedAt = new Date()
+                user.lastLogin = new Date()
+                await user.setPassword(req.body.password)
+                await manager.getRepository(User).save(user)
 
-            // Remove the invite now that it has been used successfully
-            await manager.remove(invite)
-        })
+                // Remove the invite now that it has been used successfully
+                await manager.remove(invite)
+            })
 
-        await tryLogin(req.body.email, req.body.password)
-        res.redirect("/admin")
-    } catch (err) {
-        res.status(tryInt(err.code, 500))
-        res.send(
-            renderToHtmlPage(
-                <RegisterPage errorMessage={err.message} body={req.body} />
+            await tryLogin(req.body.email, req.body.password)
+            res.redirect("/admin")
+        } catch (err) {
+            res.status(tryInt(err.code, 500))
+            res.send(
+                renderToHtmlPage(
+                    <RegisterPage errorMessage={err.message} body={req.body} />
+                )
             )
-        )
+        }
     }
-})
+)
 
 adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     const datasetId = expectInt(req.params.datasetId)
