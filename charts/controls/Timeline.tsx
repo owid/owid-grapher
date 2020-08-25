@@ -168,11 +168,15 @@ export class Timeline extends React.Component<TimelineProps> {
 
     animRequest?: number
 
+    private readonly PLAY_ANIMATION_SECONDS = 45
     @action.bound onStartPlaying() {
         Analytics.logChartTimelinePlay(this.context.chart.props.slug)
 
         let lastTime: number | undefined
-        const ticksPerSec = 5
+        const ticksPerSec = Math.max(
+            this.years.length / this.PLAY_ANIMATION_SECONDS,
+            2
+        )
 
         const playFrame = action((time: number) => {
             const { isPlaying, endYearUI, years, minYear, maxYear } = this
