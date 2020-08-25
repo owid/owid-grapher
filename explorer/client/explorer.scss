@@ -1,5 +1,8 @@
 $placeholder-height: 800px;
 $chart-border-radius: 2px;
+$explorer-grid-gap: 10px;
+$explorer-min-width-first-col: 200px;
+$explorer-padding: 0.5rem;
 
 $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 2px 2px;
@@ -8,7 +11,7 @@ $light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
     min-height: $placeholder-height;
     width: 100%;
     position: relative;
-    padding: 8px;
+    padding: $explorer-padding;
 }
 
 html.iframe #explorerContainer {
@@ -21,7 +24,7 @@ html.iframe #explorerContainer {
 
 .ExplorerHeaderBox {
     padding: 8px;
-    min-width: 200px;
+    min-width: $explorer-min-width-first-col;
     background: white;
     border-radius: $chart-border-radius;
     box-shadow: $light-shadow;
@@ -43,11 +46,21 @@ html.iframe #explorerContainer {
 }
 
 .explorerContentContainer {
-    max-width: $max-width-covid-data-explorer;
-    margin: 0 auto;
-    & > div {
+    // liberale approximation of ExplorerShell._isMobile()
+    @media (max-width: 849px) {
         @include wrapper-x-spacing;
-        margin-left: 0;
-        max-width: $content-max-width;
+    }
+
+    @media (min-width: 850px) {
+        max-width: $max-width-covid-data-explorer;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 4fr;
+        column-gap: $explorer-grid-gap;
+        padding: $explorer-padding;
+
+        .sidebar {
+            min-width: $explorer-min-width-first-col;
+        }
     }
 }
