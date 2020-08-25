@@ -2,7 +2,7 @@
 
 USER="$(id -un)" # $USER empty in vscode terminal
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
-RSYNC_TESTS="rsync -havz --no-perms --progress --delete --include=/test --include=*.test.ts --include=*.test.tsx --exclude-from=$DIR/.rsync-ignore"
+RSYNC_TESTS="rsync -havz --no-perms --progress --delete --include=/.git --include=/test --include=*.test.ts --include=*.test.tsx --exclude-from=$DIR/.rsync-ignore"
 RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=$DIR/.rsync-ignore"
 
 if [ "$1" == "staging" ]; then
