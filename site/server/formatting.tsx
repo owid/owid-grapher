@@ -682,6 +682,18 @@ function parseFormattingOptions(text: string): FormattingOptions {
     return options
 }
 
+export function formatLinks(html: string): string {
+    // Standardize urls
+    return html
+        .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
+        .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
+        .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
+}
+
+export function formatReusableBlock(html: string): string {
+    return formatLinks(html)
+}
+
 export async function formatPost(
     post: FullPost,
     formattingOptions: FormattingOptions,
@@ -689,11 +701,7 @@ export async function formatPost(
 ): Promise<FormattedPost> {
     let html = post.content
 
-    // Standardize urls
-    html = html
-        .replace(new RegExp(WORDPRESS_URL, "g"), BAKED_BASE_URL)
-        .replace(new RegExp("https?://owid.cloud", "g"), BAKED_BASE_URL)
-        .replace(new RegExp("https?://ourworldindata.org", "g"), BAKED_BASE_URL)
+    html = formatLinks(html)
 
     // No formatting applied, plain source HTML returned
     if (formattingOptions.raw) {

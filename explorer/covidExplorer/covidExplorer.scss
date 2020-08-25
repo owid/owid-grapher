@@ -1,7 +1,5 @@
 $controls-color: #3f9eff;
 
-$grid-gap: 10px;
-
 // Match chart styles
 $chart-box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
     rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
@@ -24,7 +22,7 @@ html.iframe .CovidExplorerFigure,
 
 .CovidExplorer {
     margin: 0 auto;
-    padding-top: $grid-gap;
+    padding-top: $explorer-grid-gap;
     width: 100%;
     max-width: $max-width-covid-data-explorer;
     height: 90vh;
@@ -33,8 +31,8 @@ html.iframe .CovidExplorerFigure,
     display: grid;
     grid-template-columns: 1fr 4fr;
     grid-template-rows: 1fr 9fr;
-    grid-row-gap: $grid-gap;
-    grid-column-gap: $grid-gap;
+    grid-row-gap: $explorer-grid-gap;
+    grid-column-gap: $explorer-grid-gap;
 
     &.HideControls {
         display: block;

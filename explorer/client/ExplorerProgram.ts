@@ -40,7 +40,8 @@ export enum ProgramKeyword {
     subNavCurrentId = "subNavCurrentId",
     thumbnail = "thumbnail",
     subtitle = "subtitle",
-    defaultView = "defaultView"
+    defaultView = "defaultView",
+    wpBlockId = "wpBlockId"
 }
 
 export class ExplorerProgram {
@@ -207,6 +208,11 @@ ${ProgramKeyword.switcher}
 
     get isPublished() {
         return this.getLineValue(ProgramKeyword.isPublished) === "true"
+    }
+
+    get wpBlockId(): number | undefined {
+        const blockIdString = this.getLineValue(ProgramKeyword.wpBlockId)
+        return blockIdString ? parseInt(blockIdString, 10) : undefined
     }
 
     set isPublished(value: boolean) {
