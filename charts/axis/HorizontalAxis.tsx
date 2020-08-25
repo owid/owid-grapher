@@ -75,7 +75,7 @@ export class HorizontalAxis {
             .filter(tick => !tick.gridLineOnly)
 
         // Make sure the start and end values are present, if they're whole numbers
-        const startEndPrio = this.scale.scaleType === "log" ? 2 : 1
+        const startEndPrio = this.scale.scaleType === ScaleType.log ? 2 : 1
         if (domain[0] % 1 === 0)
             ticks = [
                 {

@@ -82,6 +82,7 @@ import {
 import { BinningStrategy } from "charts/color/BinningStrategies"
 import { UrlBinder } from "charts/utils/UrlBinder"
 import { ExtendedChartUrl } from "charts/core/ChartUrl"
+import { ScaleType } from "charts/core/ChartConstants"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -782,13 +783,13 @@ export class CovidExplorer extends React.Component<{
         chartProps.yAxis.label = this.yAxisLabel
 
         if (!this.canDoLogScale) {
-            this.switchBackToLog = chartProps.yAxis.scaleType === "log"
-            chartProps.yAxis.scaleType = "linear"
+            this.switchBackToLog = chartProps.yAxis.scaleType === ScaleType.log
+            chartProps.yAxis.scaleType = ScaleType.linear
             chartProps.yAxis.canChangeScaleType = undefined
         } else {
             chartProps.yAxis.canChangeScaleType = true
             if (this.switchBackToLog) {
-                chartProps.yAxis.scaleType = "log"
+                chartProps.yAxis.scaleType = ScaleType.log
                 this.switchBackToLog = false
             }
         }
@@ -894,8 +895,8 @@ export class CovidExplorer extends React.Component<{
     @action.bound playDefaultViewCommand() {
         const props = this.chart.props
         props.tab = "chart"
-        props.xAxis.scaleType = "linear"
-        props.yAxis.scaleType = "log"
+        props.xAxis.scaleType = ScaleType.linear
+        props.yAxis.scaleType = ScaleType.log
         this.chart.timeDomain = [
             TimeBoundValue.unboundedLeft,
             TimeBoundValue.unboundedRight
@@ -995,7 +996,7 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound toggleYScaleTypeCommand() {
         this.chart.props.yAxis.scaleType = next(
-            ["linear", "log"],
+            [ScaleType.linear, ScaleType.log],
             this.chart.props.yAxis.scaleType
         )
     }
@@ -1361,12 +1362,12 @@ export class CovidExplorer extends React.Component<{
             note: this.note,
             hideTitleAnnotation: true,
             xAxis: {
-                scaleType: "linear"
+                scaleType: ScaleType.linear
             },
             yAxis: {
                 min: 0,
                 removePointsOutsideDomain: true,
-                scaleType: "linear",
+                scaleType: ScaleType.linear,
                 canChangeScaleType: true,
                 label: this.yAxisLabel
             },

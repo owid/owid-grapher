@@ -23,7 +23,7 @@ export interface AxisSpec {
 export class AxisConfigProps {
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
-    @observable.ref scaleType: ScaleType = "linear"
+    @observable.ref scaleType: ScaleType = ScaleType.linear
     @observable.ref canChangeScaleType?: true = undefined
     @observable label?: string = undefined
     @observable.ref removePointsOutsideDomain?: true = undefined
@@ -40,7 +40,7 @@ export class AxisConfig {
     // A log scale domain cannot have values <= 0, so we
     // double check here
     @computed get min(): number | undefined {
-        if (this.scaleType === "log" && (this.props.min || 0) <= 0) {
+        if (this.scaleType === ScaleType.log && (this.props.min || 0) <= 0) {
             return undefined
         } else {
             return this.props.min
@@ -48,7 +48,7 @@ export class AxisConfig {
     }
 
     @computed get max(): number | undefined {
-        if (this.scaleType === "log" && (this.props.max || 0) <= 0)
+        if (this.scaleType === ScaleType.log && (this.props.max || 0) <= 0)
             return undefined
         else return this.props.max
     }
@@ -73,7 +73,7 @@ export class AxisConfig {
 
     @computed get scaleTypeOptions(): ScaleType[] {
         if (this.canChangeScaleType) {
-            return ["linear", "log"]
+            return [ScaleType.linear, ScaleType.log]
         } else {
             return [this.scaleType]
         }

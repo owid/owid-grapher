@@ -17,16 +17,18 @@ export function generateComparisonLinePoints(
 
     // Construct control data by running the equation across sample points
     const numPoints = 500
-    const scaleFunction = xScaleType === "log" ? scaleLog : scaleLinear
+
+    const scaleFunction = xScaleType === ScaleType.log ? scaleLog : scaleLinear
     const scale = scaleFunction().domain(xScaleDomain).range([0, numPoints])
+
     const controlData: Array<[number, number]> = []
     for (let i = 0; i < numPoints; i++) {
         const x = scale.invert(i)
         const y = yFunc(x)
 
         if (y === undefined) continue
-        if (xScaleType === "log" && x <= 0) continue
-        if (yScaleType === "log" && y <= 0) continue
+        if (xScaleType === ScaleType.log && x <= 0) continue
+        if (yScaleType === ScaleType.log && y <= 0) continue
         if (y > yScaleDomain[1]) continue
         controlData.push([x, y])
     }

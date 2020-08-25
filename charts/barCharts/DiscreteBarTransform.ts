@@ -14,7 +14,11 @@ import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { ColorSchemes } from "charts/color/ColorSchemes"
-import { SortOrder, TickFormattingOptions } from "charts/core/ChartConstants"
+import {
+    SortOrder,
+    TickFormattingOptions,
+    ScaleType
+} from "charts/core/ChartConstants"
 import { Time } from "charts/utils/TimeBounds"
 
 // Responsible for translating chart configuration into the form
@@ -177,7 +181,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get isLogScale() {
-        return this.chart.yAxis.scaleType === "log"
+        return this.chart.yAxis.scaleType === ScaleType.log
     }
 
     @computed get allData(): DiscreteBarDatum[] {

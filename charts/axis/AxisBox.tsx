@@ -54,7 +54,7 @@ export class AxisBox {
         // If we have a log axis and are animating from linear to log do not set domain min to 0
         const progress = this.animProgress
             ? this.animProgress
-            : this.props.yAxis.scaleType === "log"
+            : this.props.yAxis.scaleType === ScaleType.log
             ? 0.01
             : 0
 
@@ -73,7 +73,7 @@ export class AxisBox {
         // If we have a log axis and are animating from linear to log do not set domain min to 0
         const progress = this.animProgress
             ? this.animProgress
-            : this.props.xAxis.scaleType === "log"
+            : this.props.xAxis.scaleType === ScaleType.log
             ? 0.01
             : 0
 

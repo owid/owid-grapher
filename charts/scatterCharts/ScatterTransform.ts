@@ -464,11 +464,13 @@ export class ScatterTransform extends ChartTransform {
         const sizeValues: number[] = []
         this.allPoints.forEach(g => g.size && sizeValues.push(g.size))
         if (sizeValues.length === 0) return [1, 100]
-        else return domainExtent(sizeValues, "linear")
+        else return domainExtent(sizeValues, ScaleType.linear)
     }
 
     @computed private get yScaleType() {
-        return this.isRelativeMode ? "linear" : this.chart.yAxis.scaleType
+        return this.isRelativeMode
+            ? ScaleType.linear
+            : this.chart.yAxis.scaleType
     }
 
     @computed private get yAxisLabelBase(): string | undefined {
@@ -490,7 +492,7 @@ export class ScatterTransform extends ChartTransform {
         const label = chart.yAxis.label ?? yAxisLabelBase
         if (isRelativeMode) {
             props.domain = yDomainDefault
-            props.scaleTypeOptions = ["linear"]
+            props.scaleTypeOptions = [ScaleType.linear]
             if (label && label.length > 1) {
                 props.label =
                     "Average annual change in " +
@@ -510,8 +512,10 @@ export class ScatterTransform extends ChartTransform {
         ) as AxisSpec
     }
 
-    @computed private get xScaleType(): "linear" | "log" {
-        return this.isRelativeMode ? "linear" : this.chart.xAxis.scaleType
+    @computed private get xScaleType(): ScaleType {
+        return this.isRelativeMode
+            ? ScaleType.linear
+            : this.chart.xAxis.scaleType
     }
 
     @computed private get xAxisLabelBase(): string | undefined {
@@ -535,7 +539,7 @@ export class ScatterTransform extends ChartTransform {
         props.scaleType = xScaleType
         if (isRelativeMode) {
             props.domain = xDomainDefault
-            props.scaleTypeOptions = ["linear"]
+            props.scaleTypeOptions = [ScaleType.linear]
             const label = chart.xAxis.label || xAxisLabelBase
             if (label && label.length > 1) {
                 props.label =
@@ -617,8 +621,8 @@ export class ScatterTransform extends ChartTransform {
         values = sortNumeric(values, v => v.year)
 
         // Don't allow values <= 0 for log scales
-        if (yScaleType === "log") values = values.filter(v => v.y > 0)
-        if (xScaleType === "log") values = values.filter(v => v.x > 0)
+        if (yScaleType === ScaleType.log) values = values.filter(v => v.y > 0)
+        if (xScaleType === ScaleType.log) values = values.filter(v => v.x > 0)
 
         // Don't allow values *equal* to zero for CAGR mode
         if (isRelativeMode) values = values.filter(v => v.y !== 0 && v.x !== 0)

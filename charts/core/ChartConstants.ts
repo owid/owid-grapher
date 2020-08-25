@@ -23,11 +23,14 @@ export class ChartType {
 // todo: remove
 export type EntityDimensionKey = string
 
-export type ScaleType = "linear" | "log"
-
 export type ChartTabOption = "chart" | "map" | "sources" | "download" | "table"
 
 export type Color = string
+
+export enum ScaleType {
+    linear = "linear",
+    log = "log"
+}
 
 export enum SortOrder {
     asc = "asc",

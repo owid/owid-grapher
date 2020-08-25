@@ -13,7 +13,7 @@ import {
     flatten,
     findIndex
 } from "charts/utils/Util"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey, ScaleType } from "charts/core/ChartConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { AxisSpec } from "charts/axis/AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
@@ -68,7 +68,7 @@ export class LineChartTransform extends ChartTransform {
                 // Not a selected key, don't add any data for it
                 if (!selectedKeysByKey[entityDimensionKey]) continue
                 // Can't have values <= 0 on log scale
-                if (value <= 0 && yAxis.scaleType === "log") continue
+                if (value <= 0 && yAxis.scaleType === ScaleType.log) continue
 
                 if (!series) {
                     series = {
@@ -155,8 +155,8 @@ export class LineChartTransform extends ChartTransform {
             label: this.chart.xAxis.label || "",
             tickFormat: this.chart.formatYearTickFunction,
             domain: xDomain,
-            scaleType: "linear",
-            scaleTypeOptions: ["linear"],
+            scaleType: ScaleType.linear,
+            scaleTypeOptions: [ScaleType.linear],
             hideFractionalTicks: true,
             hideGridlines: true
         }
@@ -189,7 +189,9 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get yScaleType() {
-        return this.isRelativeMode ? "linear" : this.chart.yAxis.scaleType
+        return this.isRelativeMode
+            ? ScaleType.linear
+            : this.chart.yAxis.scaleType
     }
 
     @computed get yTickFormat() {
@@ -216,7 +218,7 @@ export class LineChartTransform extends ChartTransform {
             domain: yDomain,
             scaleType: yScaleType,
             scaleTypeOptions: isRelativeMode
-                ? ["linear"]
+                ? [ScaleType.linear]
                 : chart.yAxis.scaleTypeOptions,
             hideFractionalTicks: this.yAxisHideFractionalTicks
         }
