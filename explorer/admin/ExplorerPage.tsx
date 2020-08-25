@@ -30,9 +30,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
             subnavId={subnavId}
             subnavCurrentId={subnavCurrentId}
         />
-    ) : (
-        undefined
-    )
+    ) : undefined
 
     return (
         <html>
