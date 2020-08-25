@@ -224,6 +224,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     private slider?: Element | HTMLElement | null
+    private playButton?: Element | HTMLElement | null
 
     getInputYearFromMouse(evt: MouseEvent) {
         const { minYear, maxYear } = this
@@ -346,22 +347,24 @@ export class Timeline extends React.Component<TimelineProps> {
         e.preventDefault()
     }
 
-    queuedAnimationFrame?: number
-
+    queuedDrag?: boolean
     @action.bound onMouseMove(ev: MouseEvent | TouchEvent) {
-        const { dragTarget, queuedAnimationFrame } = this
+        const { dragTarget } = this
         if (!dragTarget) return
-        if (queuedAnimationFrame) cancelAnimationFrame(queuedAnimationFrame)
-
-        this.queuedAnimationFrame = requestAnimationFrame(() => {
+        if (this.queuedDrag) return
+        else {
+            this.queuedDrag = true
             this.onDrag(this.getInputYearFromMouse(ev as any))
-        })
+        }
 
         this.updateChartTimeDomain()
+        this.queuedDrag = false
     }
 
     @action.bound onMouseUp() {
         this.dragTarget = undefined
+
+        if (this.isPlaying) return
 
         if (isMobile()) {
             if (this.startTooltipVisible) this.hideStartTooltip()
@@ -373,14 +376,12 @@ export class Timeline extends React.Component<TimelineProps> {
 
         // In case start handle has been dragged past end handle, make sure
         //  startYearRaw is still smallest value
-        if (!this.isPlaying) {
-            // NOTE: This needs to be an atomic assignment.
-            if (this.startYearRaw > this.endYearRaw) {
-                ;[this.startYearRaw, this.endYearRaw] = [
-                    this.startYear,
-                    this.endYear
-                ]
-            }
+        // NOTE: This needs to be an atomic assignment.
+        if (this.startYearRaw > this.endYearRaw) {
+            ;[this.startYearRaw, this.endYearRaw] = [
+                this.startYear,
+                this.endYear
+            ]
         }
 
         // if handles within 1 year of each other, snap to closest year.
@@ -430,6 +431,12 @@ export class Timeline extends React.Component<TimelineProps> {
         }
     }
 
+    @action.bound onPlayTouchEnd(e: Event) {
+        e.preventDefault()
+        e.stopPropagation()
+        this.onTogglePlay()
+    }
+
     // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
         runInAction(() => {
@@ -439,6 +446,7 @@ export class Timeline extends React.Component<TimelineProps> {
         })
 
         this.slider = this.base.current!.querySelector(".slider")
+        this.playButton = this.base.current!.querySelector(".play")
 
         document.documentElement.addEventListener("mouseup", this.onMouseUp)
         document.documentElement.addEventListener("mouseleave", this.onMouseUp)
@@ -446,6 +454,9 @@ export class Timeline extends React.Component<TimelineProps> {
         document.documentElement.addEventListener("touchend", this.onMouseUp)
         document.documentElement.addEventListener("touchmove", this.onMouseMove)
         this.slider?.addEventListener("touchstart", this.onMouseDown, {
+            passive: false
+        })
+        this.playButton?.addEventListener("touchend", this.onPlayTouchEnd, {
             passive: false
         })
 
@@ -487,12 +498,18 @@ export class Timeline extends React.Component<TimelineProps> {
         this.slider?.removeEventListener("touchstart", this.onMouseDown, {
             passive: false
         } as EventListenerOptions)
+        this.playButton?.removeEventListener("touchend", this.onPlayTouchEnd, {
+            passive: false
+        } as EventListenerOptions)
         this.disposers.forEach(dispose => dispose())
     }
 
     @action.bound onTogglePlay() {
         this.context.chart.isPlaying = !this.isPlaying
-        if (this.isPlaying) this.startTooltipVisible = true
+        if (this.isPlaying) {
+            this.startTooltipVisible = true
+            this.hideStartTooltip.cancel()
+        }
     }
 
     @action onClickDate(dateType: "start" | "end", date: number) {
