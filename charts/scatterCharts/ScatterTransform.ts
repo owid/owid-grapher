@@ -389,10 +389,14 @@ export class ScatterTransform extends ChartTransform {
         const values = this.allPoints.filter(
             point => point.x !== 0 && point.y !== 0
         )
+
         for (let i = 0; i < values.length; i++) {
             const indexValue = values[i]
             for (let j = i; j < values.length; j++) {
                 const targetValue = values[j]
+
+                if (targetValue.entityName !== indexValue.entityName) continue
+
                 const change = cagr(indexValue, targetValue, property)
                 if (change < minChange) minChange = change
                 if (change > maxChange) maxChange = change
@@ -748,17 +752,14 @@ function cagr(
     if (targetValue.year - indexValue.year === 0) return 0
     else {
         const frac = targetValue[property] / indexValue[property]
-        if (frac < 0)
-            return (
-                -(
-                    Math.pow(-frac, 1 / (targetValue.year - indexValue.year)) -
-                    1
-                ) * 100
-            )
-        else
-            return (
-                (Math.pow(frac, 1 / (targetValue.year - indexValue.year)) - 1) *
-                100
-            )
+        return (
+            Math.sign(frac) *
+            (Math.pow(
+                Math.abs(frac),
+                1 / (targetValue.year - indexValue.year)
+            ) -
+                1) *
+            100
+        )
     }
 }
