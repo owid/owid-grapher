@@ -26,17 +26,17 @@ module.exports = {
     projects: [
         {
             ...common,
-            displayName: "server",
+            displayName: "node",
             testEnvironment: "node",
-            testMatch: ["**/*.node.test.(tsx|ts)"]
+            testPathIgnorePatterns: [".jsdom.test."],
+            testMatch: ["**/*.test.(tsx|ts)"]
         },
         {
             ...common,
-            displayName: "client",
+            displayName: "jsdom",
             testEnvironment: "jsdom",
             setupFilesAfterEnv: ["<rootDir>/.enzymeSetup.ts"],
-            testPathIgnorePatterns: [".node.test."],
-            testMatch: ["**/*.test.(tsx|ts)"]
+            testMatch: ["**/*.jsdom.test.(tsx|ts)"]
         }
     ]
 }

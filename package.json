@@ -23,6 +23,7 @@
         "typecheck": "tsc --noEmit",
         "build": "rm -rf dist && ENV=production webpack -p --progress",
         "test": "jest",
+        "test-watch": "jest --watchAll",
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
         "test-leaks": "yarn test --detectLeaks",
         "cypress:open": "yarn cypress open --project .",
