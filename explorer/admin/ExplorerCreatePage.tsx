@@ -38,10 +38,11 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     @action.bound async fetchExplorerProgramOnLoad() {
-        const content = await readRemoteFile({
+        const response = await readRemoteFile({
             filepath: ExplorerProgram.fullPath(this.props.slug)
         })
-        this.sourceOnDisk = content || ExplorerProgram.defaultExplorerProgram
+        this.sourceOnDisk =
+            response.content || ExplorerProgram.defaultExplorerProgram
         this.setProgram(this.sourceOnDisk)
     }
 

@@ -88,7 +88,15 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
                     errorMessage: `Invalid filepath: ${filepath}`,
                     content: ""
                 }
-            const content = await fs.readFile(GIT_CMS_DIR + filepath, "utf8")
+            const path = GIT_CMS_DIR + filepath
+            const exists = fs.existsSync(path)
+            if (!exists)
+                return {
+                    success: false,
+                    errorMessage: `File '${filepath}' not found`,
+                    content: ""
+                }
+            const content = await fs.readFile(path, "utf8")
             return { success: true, content }
         }
     )
