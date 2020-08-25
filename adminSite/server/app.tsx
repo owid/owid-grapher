@@ -24,6 +24,11 @@ import { mockSiteRouter } from "./mockSiteRouter"
 
 const app = express()
 
+// since the server is running behind a reverse proxy (nginx), we need to "trust"
+// the X-Forwarded-For header in order to get the real request IP
+// https://expressjs.com/en/guide/behind-proxies.html
+app.set("trust proxy", true)
+
 // Parse cookies https://github.com/expressjs/cookie-parser
 app.use(cookieParser())
 
