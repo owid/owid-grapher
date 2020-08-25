@@ -15,7 +15,7 @@ import {
     formatDay,
     diffDateISOStringInDays
 } from "charts/utils/Util"
-import { ChartTabOption } from "charts/core/ChartConstants"
+import { ChartTabOption, ScaleType } from "charts/core/ChartConstants"
 import { ChartConfig } from "./ChartConfig"
 import {
     queryParamsToStr,
@@ -348,14 +348,14 @@ export class ChartUrl implements ObservableUrl {
         // Axis scale mode
         const xScaleType = params.xScale
         if (xScaleType) {
-            if (xScaleType === "linear" || xScaleType === "log")
+            if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
                 chart.xAxis.scaleType = xScaleType
             else console.error("Unexpected xScale: " + xScaleType)
         }
 
         const yScaleType = params.yScale
         if (yScaleType) {
-            if (yScaleType === "linear" || yScaleType === "log")
+            if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
                 chart.yAxis.scaleType = yScaleType
             else console.error("Unexpected xScale: " + yScaleType)
         }

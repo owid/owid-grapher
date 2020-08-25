@@ -88,7 +88,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
         scale: ScaleLinear<number, number> | ScaleLogarithmic<number, number>,
         scaleType: ScaleType
     ) {
-        if (scaleType === "log") {
+        if (scaleType === ScaleType.log) {
             let minPower10 = Math.ceil(
                 Math.log(scale.domain()[0]) / Math.log(10)
             )
@@ -346,7 +346,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get xDomainDefault(): [number, number] {
         return domainExtent(
             this.allValues.map(v => v.x),
-            "linear"
+            ScaleType.linear
         )
     }
 
@@ -381,7 +381,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get yScaleConstructor(): any {
-        return this.props.yScaleType === "log" ? scaleLog : scaleLinear
+        return this.props.yScaleType === ScaleType.log ? scaleLog : scaleLinear
     }
 
     @computed get yScale():

@@ -33,8 +33,8 @@ export class AxisScale {
     @observable hideGridlines: boolean
 
     constructor({
-        scaleType = "linear",
-        scaleTypeOptions = ["linear"],
+        scaleType = ScaleType.linear,
+        scaleTypeOptions = [ScaleType.linear],
         tickFormat = d => d.toString(),
         domain = [0, 0],
         range = [0, 0],
@@ -59,7 +59,7 @@ export class AxisScale {
     }
 
     @computed private get d3_scaleConstructor(): any {
-        return this.scaleType === "log" ? scaleLog : scaleLinear
+        return this.scaleType === ScaleType.log ? scaleLog : scaleLinear
     }
 
     @computed private get d3_scale():
@@ -90,7 +90,7 @@ export class AxisScale {
         const { scaleType, d3_scale, maxLogLines } = this
 
         let ticks: Tickmark[]
-        if (scaleType === "log") {
+        if (scaleType === ScaleType.log) {
             // This is a wild heuristic that decides how many tick lines and grid lines we want to
             // show for log charts.
             //
@@ -211,7 +211,7 @@ export class AxisScale {
                 "Can't place value on scale without a defined output range"
             )
             return value
-        } else if (this.scaleType === "log" && value <= 0) {
+        } else if (this.scaleType === ScaleType.log && value <= 0) {
             console.error("Can't have values <= 0 on a log scale")
             return value
         }

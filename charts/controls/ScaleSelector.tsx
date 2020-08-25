@@ -84,7 +84,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
                     data-track-note="chart-toggle-scale"
                     className={
                         "leftToggle " +
-                        (scaleType === "linear" ? "activeToggle" : "")
+                        (scaleType === ScaleType.linear ? "activeToggle" : "")
                     }
                 >
                     Linear
@@ -93,7 +93,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
                     data-track-note="chart-toggle-scale"
                     className={
                         "rightToggle " +
-                        (scaleType === "log" ? "activeToggle" : "")
+                        (scaleType === ScaleType.log ? "activeToggle" : "")
                     }
                 >
                     Log

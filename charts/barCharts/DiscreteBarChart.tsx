@@ -151,7 +151,7 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get isLogScale() {
-        return this.chart.yAxis.scaleType === "log"
+        return this.chart.yAxis.scaleType === ScaleType.log
     }
 
     @computed get xRange() {

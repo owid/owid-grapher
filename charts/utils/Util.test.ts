@@ -28,7 +28,7 @@ import {
     sortNumeric
 } from "charts/utils/Util"
 import { strToQueryParams } from "utils/client/url"
-import { SortOrder } from "charts/core/ChartConstants"
+import { SortOrder, ScaleType } from "charts/core/ChartConstants"
 
 describe(findClosestYear, () => {
     describe("without tolerance", () => {
@@ -440,7 +440,7 @@ describe(mergeQueryStr, () => {
                 "country=GBR~ESP"
             )
         )
-        expect(params.yScale).toEqual("log")
+        expect(params.yScale).toEqual(ScaleType.log)
         expect(params.country).toEqual("GBR~ESP")
     })
 

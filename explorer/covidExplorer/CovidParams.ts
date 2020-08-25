@@ -5,7 +5,7 @@ import {
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
-import { SortOrder, ChartTypeName } from "charts/core/ChartConstants"
+import { SortOrder, ChartTypeName, ScaleType } from "charts/core/ChartConstants"
 import { oneOf, uniq, intersection } from "charts/utils/Util"
 import {
     trajectoryColumnSpecs,
@@ -74,7 +74,7 @@ export class CovidQueryParams {
         ]
         const perCapita = [true, false]
         const aligned = [true, false]
-        const yScale = ["log", "linear"] // todo
+        const yScale = [ScaleType.log, ScaleType.linear] // todo
         const tab = ["map", "chart"] // todo
         const combos: any = []
         metrics.forEach(metric => {

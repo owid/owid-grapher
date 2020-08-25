@@ -136,7 +136,11 @@ import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
 
 import { Vector2 } from "./Vector2"
-import { TickFormattingOptions, SortOrder } from "charts/core/ChartConstants"
+import {
+    TickFormattingOptions,
+    SortOrder,
+    ScaleType
+} from "charts/core/ChartConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { EPOCH_DATE } from "settings"
 import { RelatedQuestionsConfig } from "charts/core/ChartConfig"
@@ -391,11 +395,11 @@ export function previous<T>(set: T[], current: T) {
 // Calculate the extents of a set of numbers, with safeguards for log scales
 export function domainExtent(
     numValues: number[],
-    scaleType: "linear" | "log",
+    scaleType: ScaleType,
     maxValueMultiplierForPadding = 1
 ): [number, number] {
     const filterValues =
-        scaleType === "log" ? numValues.filter(v => v > 0) : numValues
+        scaleType === ScaleType.log ? numValues.filter(v => v > 0) : numValues
     const [minValue, maxValue] = extent(filterValues)
 
     if (
@@ -408,12 +412,12 @@ export function domainExtent(
             return [minValue, maxValue * maxValueMultiplierForPadding]
         } else {
             // Only one value, make up a reasonable default
-            return scaleType === "log"
+            return scaleType === ScaleType.log
                 ? [minValue / 10, minValue * 10]
                 : [minValue - 1, maxValue + 1]
         }
     } else {
-        return scaleType === "log" ? [1, 100] : [-1, 1]
+        return scaleType === ScaleType.log ? [1, 100] : [-1, 1]
     }
 }
 

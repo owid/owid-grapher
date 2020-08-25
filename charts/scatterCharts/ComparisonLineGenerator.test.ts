@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
+import { ScaleType } from "charts/core/ChartConstants"
 
 describe(generateComparisonLinePoints, () => {
     describe("For y = x", () => {
@@ -9,8 +10,8 @@ describe(generateComparisonLinePoints, () => {
                 "x",
                 [0, 10],
                 [0, 10],
-                "linear",
-                "linear"
+                ScaleType.linear,
+                ScaleType.linear
             )
             expect(points.length).toEqual(500)
         })
@@ -20,8 +21,8 @@ describe(generateComparisonLinePoints, () => {
                 "x",
                 [0, 10],
                 [0, 5],
-                "linear",
-                "linear"
+                ScaleType.linear,
+                ScaleType.linear
             )
             expect(points.length).toEqual(251)
         })
@@ -33,8 +34,8 @@ describe(generateComparisonLinePoints, () => {
                 "50*x",
                 [0, 10],
                 [0, 10],
-                "linear",
-                "linear"
+                ScaleType.linear,
+                ScaleType.linear
             )
             expect(points.length).toEqual(11)
         })
@@ -44,8 +45,8 @@ describe(generateComparisonLinePoints, () => {
                 "50*x",
                 [1e-6, 1e6],
                 [0, 10],
-                "log",
-                "linear"
+                ScaleType.log,
+                ScaleType.linear
             )
             expect(points.length).toEqual(221)
         })
