@@ -15,9 +15,9 @@ import { Bounds } from "charts/utils/Bounds"
 import { AxisScale } from "./AxisScale"
 import { VerticalAxis, VerticalAxisView } from "./VerticalAxis"
 import { HorizontalAxis, HorizontalAxisView } from "./HorizontalAxis"
-import { AxisSpec } from "./AxisSpec"
+import { AxisSpec, AxisConfigProps } from "./AxisSpec"
 import { ScaleType } from "charts/core/ChartConstants"
-import { extend } from "../utils/Util"
+import { extend } from "charts/utils/Util"
 import classNames from "classnames"
 
 interface AxisBoxProps {
@@ -258,10 +258,10 @@ export class AxisGridLines extends React.Component<AxisGridLinesProps> {
     }
 }
 
-export interface AxisBoxViewProps {
+interface AxisBoxViewProps {
     axisBox: AxisBox
-    onYScaleChange: (scaleType: ScaleType) => void
-    onXScaleChange: (scaleType: ScaleType) => void
+    xAxisConfig: AxisConfigProps
+    yAxisConfig: AxisConfigProps
     highlightValue?: { x: number; y: number }
     showTickMarks: boolean
 }
@@ -272,13 +272,16 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
         requestAnimationFrame(this.props.axisBox.setupAnimation)
     }
 
+    @action.bound onXScaleChange(scaleType: ScaleType) {
+        this.props.xAxisConfig.scaleType = scaleType
+    }
+
+    @action.bound onYScaleChange(scaleType: ScaleType) {
+        this.props.yAxisConfig.scaleType = scaleType
+    }
+
     render() {
-        const {
-            axisBox,
-            onYScaleChange,
-            onXScaleChange,
-            showTickMarks
-        } = this.props
+        const { axisBox, showTickMarks } = this.props
         const { bounds, xScale, yScale, xAxis, yAxis, innerBounds } = axisBox
 
         return (
@@ -287,13 +290,13 @@ export class AxisBoxView extends React.Component<AxisBoxViewProps> {
                     bounds={bounds}
                     axisPosition={innerBounds.bottom}
                     axis={xAxis}
-                    onScaleTypeChange={onXScaleChange}
+                    onScaleTypeChange={this.onXScaleChange}
                     showTickMarks={showTickMarks}
                 />
                 <VerticalAxisView
                     bounds={bounds}
                     axis={yAxis}
-                    onScaleTypeChange={onYScaleChange}
+                    onScaleTypeChange={this.onYScaleChange}
                 />
                 {!yScale.hideGridlines && (
                     <AxisGridLines

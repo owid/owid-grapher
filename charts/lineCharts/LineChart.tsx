@@ -28,9 +28,8 @@ import { easeLinear } from "d3-ease"
 
 import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
-import { AxisBox } from "charts/axis/AxisBox"
+import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import { AxisScale } from "charts/axis/AxisScale"
-import { StandardAxisBoxView } from "charts/axis/StandardAxisBoxView"
 import { Vector2 } from "charts/utils/Vector2"
 import {
     HeightedLegend,
@@ -604,7 +603,12 @@ export class LineChart extends React.Component<{
                         ></rect>
                     </clipPath>
                 </defs>
-                <StandardAxisBoxView axisBox={axisBox} chart={chart} />
+                <AxisBoxView
+                    axisBox={axisBox}
+                    showTickMarks={true}
+                    xAxisConfig={chart.xAxis.props}
+                    yAxisConfig={chart.yAxis.props}
+                />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {chart.comparisonLines &&
                         chart.comparisonLines.map((line, i) => (

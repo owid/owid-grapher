@@ -19,11 +19,11 @@ import {
     last,
     excludeUndefined,
     flatten
-} from "../utils/Util"
+} from "charts/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { ChartConfig } from "charts/core/ChartConfig"
-import { NoDataOverlay } from "../core/NoDataOverlay"
+import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import {
     PointsWithLabels,
     ScatterSeries,
@@ -37,7 +37,7 @@ import {
 } from "./ScatterColorLegend"
 import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
-import { ScaleType, EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { TimeBound } from "charts/utils/TimeBounds"
 
 @observer
@@ -267,14 +267,6 @@ export class ScatterPlot extends React.Component<{
         })
     }
 
-    @action.bound onYScaleChange(scaleType: ScaleType) {
-        this.chart.yAxis.scaleType = scaleType
-    }
-
-    @action.bound onXScaleChange(scaleType: ScaleType) {
-        this.chart.xAxis.scaleType = scaleType
-    }
-
     @computed get comparisonLines() {
         return this.chart.comparisonLines
     }
@@ -343,7 +335,8 @@ export class ScatterPlot extends React.Component<{
             sidebarWidth,
             tooltipSeries,
             comparisonLines,
-            hideLines
+            hideLines,
+            chart
         } = this
         const { currentData, sizeDomain, colorScale } = transform
 
@@ -351,8 +344,8 @@ export class ScatterPlot extends React.Component<{
             <g className="ScatterPlot">
                 <AxisBoxView
                     axisBox={axisBox}
-                    onXScaleChange={this.onXScaleChange}
-                    onYScaleChange={this.onYScaleChange}
+                    xAxisConfig={chart.xAxis.props}
+                    yAxisConfig={chart.yAxis.props}
                     showTickMarks={false}
                 />
                 {comparisonLines &&

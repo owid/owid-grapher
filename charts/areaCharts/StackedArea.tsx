@@ -13,8 +13,7 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
-import { AxisBox } from "charts/axis/AxisBox"
-import { StandardAxisBoxView } from "charts/axis/StandardAxisBoxView"
+import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import {
     HeightedLegend,
     HeightedLegendItem,
@@ -490,7 +489,12 @@ export class StackedArea extends React.Component<{
                         ></rect>
                     </clipPath>
                 </defs>
-                <StandardAxisBoxView axisBox={axisBox} chart={chart} />
+                <AxisBoxView
+                    axisBox={axisBox}
+                    showTickMarks={true}
+                    xAxisConfig={chart.xAxis.props}
+                    yAxisConfig={chart.yAxis.props}
+                />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {legend && (
                         <HeightedLegendComponent

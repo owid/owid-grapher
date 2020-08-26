@@ -616,14 +616,6 @@ export class TimeScatter extends React.Component<{
         })
     }
 
-    @action.bound onYScaleChange(scaleType: ScaleType) {
-        this.chart.yAxis.scaleType = scaleType
-    }
-
-    @action.bound onXScaleChange(scaleType: ScaleType) {
-        this.chart.xAxis.scaleType = scaleType
-    }
-
     @computed get comparisonLines() {
         return this.chart.comparisonLines
     }
@@ -641,15 +633,15 @@ export class TimeScatter extends React.Component<{
                 />
             )
 
-        const { transform, axisBox, comparisonLines } = this
+        const { transform, axisBox, comparisonLines, chart } = this
         const { currentData, sizeDomain } = transform
 
         return (
             <g>
                 <AxisBoxView
                     axisBox={axisBox}
-                    onXScaleChange={this.onXScaleChange}
-                    onYScaleChange={this.onYScaleChange}
+                    xAxisConfig={chart.xAxis.props}
+                    yAxisConfig={chart.yAxis.props}
                     showTickMarks={false}
                 />
                 {comparisonLines &&
