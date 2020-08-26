@@ -15,7 +15,7 @@ import { MapColorLegendView } from "./MapColorLegendView"
 import { getRelativeMouse } from "charts/utils/Util"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { MapConfig } from "./MapConfig"
-import { MapProjection } from "./MapProjection"
+import { MapProjection } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import {

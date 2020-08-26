@@ -1,6 +1,6 @@
 import { observable, computed } from "mobx"
 
-import { MapProjection } from "./MapProjection"
+import { MapProjection } from "./MapProjections"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { MapData } from "./MapData"
 import { defaultTo } from "../utils/Util"

@@ -5,7 +5,7 @@ import Select, { ValueType } from "react-select"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { first } from "../utils/Util"
 import { Bounds } from "charts/utils/Bounds"
-import { MapProjection } from "./MapProjection"
+import { MapProjection } from "./MapProjections"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 
 interface ProjectionChooserEntry {

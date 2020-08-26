@@ -6,6 +6,15 @@ import {
 } from "d3-geo"
 import { geoRobinson, geoPatterson } from "d3-geo-projection"
 
+export type MapProjection =
+    | "World"
+    | "Africa"
+    | "NorthAmerica"
+    | "SouthAmerica"
+    | "Asia"
+    | "Europe"
+    | "Oceania"
+
 export const MapProjections = {
     World: geoPath().projection(geoRobinson() as GeoProjection),
 
