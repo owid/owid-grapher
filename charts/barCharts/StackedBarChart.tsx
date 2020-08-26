@@ -276,6 +276,7 @@ export class StackedBarChart extends React.Component<{
 
         return (
             <Tooltip
+                tooltipOwner={this.props.chart}
                 x={xPos + barWidth}
                 y={yPos}
                 style={{ textAlign: "center" }}

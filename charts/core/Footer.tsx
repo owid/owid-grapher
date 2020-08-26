@@ -287,6 +287,7 @@ export class SourcesFooterHTML extends React.Component<{
                 {!footer.isCompact && license}
                 {tooltipTarget && (
                     <Tooltip
+                        tooltipOwner={this.props.chart}
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}
                         style={{

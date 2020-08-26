@@ -1,13 +1,5 @@
-/* LineChart.tsx
- * ================
- *
- * A standard line chart.
- *
- */
-
 import * as React from "react"
 import {
-    last,
     map,
     flatten,
     some,
@@ -20,28 +12,27 @@ import {
     makeSafeForCSS,
     pointsToPath,
     minBy
-} from "../utils/Util"
+} from "charts/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
 import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import { AxisScale } from "charts/axis/AxisScale"
 import { Vector2 } from "charts/utils/Vector2"
 import { LineLabelsHelper, LineLabel, LineLabelsComponent } from "./LineLabels"
-import { ComparisonLine } from "../scatterCharts/ComparisonLine"
-import { Tooltip } from "charts/core/Tooltip"
-import { NoDataOverlay } from "../core/NoDataOverlay"
 import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
+    ComparisonLine,
+    ComparisonLineConfig
+} from "charts/scatterCharts/ComparisonLine"
+import { Tooltip, TooltipProps } from "charts/core/Tooltip"
+import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { extent } from "d3-array"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
-import { entityName } from "owidTable/OwidTable"
+import { LineChartTransform } from "./LineChartTransform"
+import { AxisConfigProps } from "charts/axis/AxisSpec"
 
 export interface LineChartValue {
     x: number
@@ -225,30 +216,28 @@ class Lines extends React.Component<LinesProps> {
         ))
     }
 
-    container?: SVGElement
+    private container?: SVGElement
     componentDidMount() {
         const base = this.base.current as SVGGElement
-        this.container = base.closest("svg") as SVGElement
-
-        this.container.addEventListener("mousemove", this.onCursorMove)
-        this.container.addEventListener("mouseleave", this.onCursorLeave)
-        this.container.addEventListener("touchstart", this.onCursorMove)
-        this.container.addEventListener("touchmove", this.onCursorMove)
-        this.container.addEventListener("touchend", this.onCursorLeave)
-        this.container.addEventListener("touchcancel", this.onCursorLeave)
+        const container = base.closest("svg") as SVGElement
+        container.addEventListener("mousemove", this.onCursorMove)
+        container.addEventListener("mouseleave", this.onCursorLeave)
+        container.addEventListener("touchstart", this.onCursorMove)
+        container.addEventListener("touchmove", this.onCursorMove)
+        container.addEventListener("touchend", this.onCursorLeave)
+        container.addEventListener("touchcancel", this.onCursorLeave)
+        this.container = container
     }
 
     componentWillUnmount() {
-        if (this.container) {
-            this.container.removeEventListener("mousemove", this.onCursorMove)
-            this.container.removeEventListener("mouseleave", this.onCursorLeave)
-            this.container.removeEventListener("touchstart", this.onCursorMove)
-            this.container.removeEventListener("touchmove", this.onCursorMove)
-            this.container.removeEventListener("touchend", this.onCursorLeave)
-            this.container.removeEventListener(
-                "touchcancel",
-                this.onCursorLeave
-            )
+        const { container } = this
+        if (container) {
+            container.removeEventListener("mousemove", this.onCursorMove)
+            container.removeEventListener("mouseleave", this.onCursorLeave)
+            container.removeEventListener("touchstart", this.onCursorMove)
+            container.removeEventListener("touchmove", this.onCursorMove)
+            container.removeEventListener("touchend", this.onCursorLeave)
+            container.removeEventListener("touchcancel", this.onCursorLeave)
         }
     }
 
@@ -280,66 +269,49 @@ class Lines extends React.Component<LinesProps> {
     }
 }
 
+interface LineChartOptions {
+    lineChart: LineChartTransform
+    hideLegend: true | undefined
+    baseFontSize: number
+    showAddEntityControls: boolean
+    comparisonLines: ComparisonLineConfig[]
+    xAxisProps: AxisConfigProps
+    yAxisProps: AxisConfigProps
+    formatYearFunction?: Function // todo: remove
+    isSelectingData: boolean
+    canAddData: boolean
+    entityType: string
+    areMarksClickable: boolean
+    tooltip?: TooltipProps
+}
+
 @observer
 export class LineChart extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    options: LineChartOptions
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
+    // Set default props
+    static defaultProps = {
+        bounds: new Bounds(0, 0, 640, 480)
+    }
 
     @observable hoverX?: number
     @action.bound onHover(hoverX: number | undefined) {
         this.hoverX = hoverX
     }
 
-    @computed get chart() {
-        return this.props.chart
+    @computed private get options() {
+        return this.props.options
     }
+
     @computed get bounds() {
         return this.props.bounds
     }
+
     @computed get transform() {
-        return this.props.chart.lineChart
-    }
-
-    @computed get annotationsMap() {
-        return this.props.chart.primaryDimensions[0].column.annotationsColumn
-            ?.entityNameMap
-    }
-
-    getAnnotationsForSeries(entityName: entityName) {
-        const annotationsMap = this.annotationsMap
-        const annos = annotationsMap?.get(entityName)
-        return annos ? Array.from(annos.values()).join(" & ") : undefined
-    }
-
-    // Order of the legend items on a line chart should visually correspond
-    // to the order of the lines as the approach the legend
-    @computed private get legendItems(): LineLabel[] {
-        // If there are any projections, ignore non-projection legends
-        // Bit of a hack
-        let toShow = this.transform.groupedData
-        if (toShow.some(g => !!g.isProjection))
-            toShow = this.transform.groupedData.filter(g => g.isProjection)
-
-        return toShow.map(series => {
-            const lastValue = (last(series.values) as LineChartValue).y
-            return {
-                color: series.color,
-                entityDimensionKey: series.entityDimensionKey,
-                // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: this.chart.hideLegend
-                    ? ""
-                    : `${this.chart.data.getLabelForKey(
-                          series.entityDimensionKey
-                      )}`, //this.chart.hideLegend ? valueStr : `${valueStr} ${this.chart.data.formatKey(d.key)}`,
-                annotation: this.getAnnotationsForSeries(series.entityName),
-                yValue: lastValue
-            }
-        })
+        return this.options.lineChart
     }
 
     @computed get legend(): LineLabelsHelper | undefined {
@@ -349,10 +321,10 @@ export class LineChart extends React.Component<{
                 return that.bounds.width / 3
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.options.baseFontSize
             },
             get items() {
-                return that.legendItems
+                return that.transform.legendItems
             }
         })
     }
@@ -365,7 +337,7 @@ export class LineChart extends React.Component<{
     }
 
     @computed get tooltip(): JSX.Element | undefined {
-        const { transform, hoverX, axisBox, chart } = this
+        const { transform, hoverX, axisBox } = this
 
         if (hoverX === undefined) return undefined
 
@@ -374,8 +346,13 @@ export class LineChart extends React.Component<{
             return value !== undefined ? -value.y : Infinity
         })
 
+        // todo: remove.
+        const formatYearFunction =
+            this.options.formatYearFunction || ((val: any) => val)
+
         return (
             <Tooltip
+                tooltipOwner={this.options}
                 x={axisBox.xScale.place(hoverX)}
                 y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize / 2}
                 style={{ padding: "0.3em" }}
@@ -391,9 +368,7 @@ export class LineChart extends React.Component<{
                     <tbody>
                         <tr>
                             <td colSpan={3}>
-                                <strong>
-                                    {this.chart.formatYearFunction(hoverX)}
-                                </strong>
+                                <strong>{formatYearFunction(hoverX)}</strong>
                             </td>
                         </tr>
                         {sortedData.map(series => {
@@ -401,7 +376,7 @@ export class LineChart extends React.Component<{
                                 v => v.x === hoverX
                             )
 
-                            const annotation = this.getAnnotationsForSeries(
+                            const annotation = this.transform.getAnnotationsForSeries(
                                 series.entityName
                             )
 
@@ -455,7 +430,7 @@ export class LineChart extends React.Component<{
                                             fontSize: "0.9em"
                                         }}
                                     >
-                                        {chart.data.getLabelForKey(
+                                        {this.transform.getLabelForKey(
                                             series.entityDimensionKey
                                         )}
                                         {annotation && (
@@ -502,7 +477,7 @@ export class LineChart extends React.Component<{
                 )
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.options.baseFontSize
             },
             get yAxis() {
                 return that.transform.yAxis
@@ -515,8 +490,8 @@ export class LineChart extends React.Component<{
 
     @observable hoverKey?: string
     @action.bound onLegendClick(key: EntityDimensionKey) {
-        if (this.chart.showAddEntityControls) {
-            this.context.chartView.isSelectingData = true
+        if (this.options.showAddEntityControls) {
+            this.options.isSelectingData = true
         }
     }
 
@@ -574,7 +549,7 @@ export class LineChart extends React.Component<{
             )
 
         const {
-            chart,
+            options,
             transform,
             bounds,
             legend,
@@ -585,6 +560,8 @@ export class LineChart extends React.Component<{
         } = this
         const { xScale, yScale } = axisBox
         const { groupedData } = transform
+
+        const comparisonLines = options.comparisonLines || []
 
         return (
             <g ref={this.base} className="LineChart">
@@ -602,18 +579,17 @@ export class LineChart extends React.Component<{
                 <AxisBoxView
                     axisBox={axisBox}
                     showTickMarks={true}
-                    xAxisConfig={chart.xAxis.props}
-                    yAxisConfig={chart.yAxis.props}
+                    xAxisConfig={options.xAxisProps}
+                    yAxisConfig={options.yAxisProps}
                 />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
-                    {chart.comparisonLines &&
-                        chart.comparisonLines.map((line, i) => (
-                            <ComparisonLine
-                                key={i}
-                                axisBox={axisBox}
-                                comparisonLine={line}
-                            />
-                        ))}
+                    {comparisonLines.map((line, i) => (
+                        <ComparisonLine
+                            key={i}
+                            axisBox={axisBox}
+                            comparisonLine={line}
+                        />
+                    ))}
                     {legend && (
                         <LineLabelsComponent
                             x={bounds.right - legend.width}
@@ -621,7 +597,7 @@ export class LineChart extends React.Component<{
                             focusKeys={this.focusKeys}
                             yScale={axisBox.yScale}
                             onClick={this.onLegendClick}
-                            areMarksClickable={this.chart.showAddEntityControls}
+                            options={options}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
                         />

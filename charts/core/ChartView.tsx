@@ -245,7 +245,6 @@ export class ChartView extends React.Component<ChartViewProps> {
     @observable.shallow overlays: { [id: string]: ControlsOverlay } = {}
 
     @observable.ref popups: VNode[] = []
-    @observable.ref isSelectingData: boolean = false
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
@@ -329,16 +328,22 @@ export class ChartView extends React.Component<ChartViewProps> {
         return (
             <React.Fragment>
                 {this.hasBeenVisible && this.renderSVG()}
-                <ControlsFooterView controls={this.controls} />
+                <ControlsFooterView chart={chart} controls={this.controls} />
                 {this.renderOverlayTab(tabBounds)}
                 {this.popups}
-                <TooltipView />
-                {this.isSelectingData && (
+                <TooltipView
+                    width={this.renderWidth}
+                    height={this.renderHeight}
+                    tooltipOwner={this.chart}
+                />
+                {chart.isSelectingData && (
                     <EntitySelectorModal
                         key="entitySelector"
                         chart={chart}
                         isMobile={this.isMobile}
-                        onDismiss={action(() => (this.isSelectingData = false))}
+                        onDismiss={action(
+                            () => (chart.isSelectingData = false)
+                        )}
                     />
                 )}
             </React.Fragment>

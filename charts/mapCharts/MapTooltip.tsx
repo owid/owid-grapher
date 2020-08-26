@@ -122,6 +122,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const { renderSparkBars, barColor } = this
         return (
             <Tooltip
+                tooltipOwner={this.chart}
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}

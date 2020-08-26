@@ -18,10 +18,6 @@ import { observer } from "mobx-react"
 import { TextWrap } from "charts/text/TextWrap"
 import { AxisScale } from "charts/axis/AxisScale"
 import { Bounds } from "charts/utils/Bounds"
-import {
-    ChartViewContextType,
-    ChartViewContext
-} from "charts/core/ChartViewContext"
 import { ControlsOverlay, AddEntityButton } from "charts/controls/Controls"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 
@@ -142,17 +138,6 @@ export class LineLabelsHelper {
     }
 }
 
-interface LineLabelsComponentProps {
-    x: number
-    legend: LineLabelsHelper
-    yScale: AxisScale
-    focusKeys: EntityDimensionKey[]
-    areMarksClickable: boolean
-    onMouseOver?: (key: EntityDimensionKey) => void
-    onClick?: (key: EntityDimensionKey) => void
-    onMouseLeave?: () => void
-}
-
 @observer
 class PlacedMarkComponent extends React.Component<{
     mark: PlacedLabel
@@ -226,13 +211,29 @@ class PlacedMarkComponent extends React.Component<{
     }
 }
 
+interface ObservableObject {
+    areMarksClickable: boolean
+    canAddData: boolean
+    isSelectingData: boolean
+    showAddEntityControls: boolean
+    entityType: string
+}
+
+interface LineLabelsComponentProps {
+    x: number
+    legend: LineLabelsHelper
+    yScale: AxisScale
+    focusKeys: EntityDimensionKey[]
+    onMouseOver?: (key: EntityDimensionKey) => void
+    onClick?: (key: EntityDimensionKey) => void
+    onMouseLeave?: () => void
+    options: ObservableObject
+}
+
 @observer
 export class LineLabelsComponent extends React.Component<
     LineLabelsComponentProps
 > {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
     @computed get onMouseOver(): any {
         return defaultTo(this.props.onMouseOver, noop)
     }
@@ -378,7 +379,7 @@ export class LineLabelsComponent extends React.Component<
         const nonOverlappingMinHeight =
             sumBy(this.initialMarks, mark => mark.bounds.height) +
             this.initialMarks.length * LEGEND_ITEM_MIN_SPACING
-        const availableHeight = this.context.chart.canAddData
+        const availableHeight = this.options.canAddData
             ? this.props.yScale.rangeSize - ADD_BUTTON_HEIGHT
             : this.props.yScale.rangeSize
 
@@ -465,11 +466,16 @@ export class LineLabelsComponent extends React.Component<
     }
 
     @action.bound onAddClick() {
-        this.context.chartView.isSelectingData = true
+        // Do this for mobx
+        this.options.isSelectingData = true
+    }
+
+    @computed get options() {
+        return this.props.options
     }
 
     get addEntityButton() {
-        if (!this.context.chart.showAddEntityControls) return undefined
+        if (!this.options.showAddEntityControls) return undefined
 
         const verticalAlign = "bottom"
 
@@ -498,7 +504,7 @@ export class LineLabelsComponent extends React.Component<
                     align="left"
                     verticalAlign={verticalAlign}
                     height={ADD_BUTTON_HEIGHT}
-                    label={`Add ${this.context.chart.entityType}`}
+                    label={`Add ${this.options.entityType}`}
                     onClick={this.onAddClick}
                 />
             </ControlsOverlay>
@@ -510,7 +516,9 @@ export class LineLabelsComponent extends React.Component<
             <g
                 className="LineLabels"
                 style={{
-                    cursor: this.props.areMarksClickable ? "pointer" : "default"
+                    cursor: this.options.areMarksClickable
+                        ? "pointer"
+                        : "default"
                 }}
             >
                 {this.renderBackground()}

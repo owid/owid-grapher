@@ -11,7 +11,8 @@ import {
     defaultTo,
     formatValue,
     flatten,
-    findIndex
+    findIndex,
+    last
 } from "charts/utils/Util"
 import { EntityDimensionKey, ScaleType } from "charts/core/ChartConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
@@ -20,6 +21,8 @@ import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { Time } from "charts/utils/TimeBounds"
+import { LineLabel } from "./LineLabels"
+import { entityName } from "owidTable/OwidTable"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -147,6 +150,45 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get xDomain(): [number, number] {
         return [this.startYear, this.endYear]
+    }
+
+    @computed get annotationsMap() {
+        return this.chart.primaryDimensions[0].column.annotationsColumn
+            ?.entityNameMap
+    }
+
+    getAnnotationsForSeries(entityName: entityName) {
+        const annotationsMap = this.annotationsMap
+        const annos = annotationsMap?.get(entityName)
+        return annos ? Array.from(annos.values()).join(" & ") : undefined
+    }
+
+    getLabelForKey(key: string) {
+        return this.chart.data.getLabelForKey(key)
+    }
+
+    // Order of the legend items on a line chart should visually correspond
+    // to the order of the lines as the approach the legend
+    @computed get legendItems(): LineLabel[] {
+        // If there are any projections, ignore non-projection legends
+        // Bit of a hack
+        let toShow = this.groupedData
+        if (toShow.some(g => !!g.isProjection))
+            toShow = this.groupedData.filter(g => g.isProjection)
+
+        return toShow.map(series => {
+            const lastValue = (last(series.values) as LineChartValue).y
+            return {
+                color: series.color,
+                entityDimensionKey: series.entityDimensionKey,
+                // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
+                label: this.chart.hideLegend
+                    ? ""
+                    : `${this.getLabelForKey(series.entityDimensionKey)}`,
+                annotation: this.getAnnotationsForSeries(series.entityName),
+                yValue: lastValue
+            }
+        })
     }
 
     @computed get xAxis(): AxisSpec {
