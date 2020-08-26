@@ -48,6 +48,16 @@ export const intervalOptions: IntervalOption[] = [
     "biweeklyChange"
 ]
 
+export const intervalLabels: Map<IntervalOption, string> = new Map([
+    ["daily", "New per day"],
+    ["weekly", "Weekly"],
+    ["total", "Cumulative"],
+    ["smoothed", "7-day rolling average"],
+    ["biweekly", "Biweekly"],
+    ["weeklyChange", "Weekly change"],
+    ["biweeklyChange", "Biweekly Change"]
+])
+
 export declare type colorScaleOption = "continents" | "ptr" | "none"
 
 export declare type MetricKind =
@@ -155,6 +165,17 @@ export const metricLabels: { [key in MetricKind]: string } = {
     tests_per_case: "Tests per confirmed case",
     positive_test_rate: "Share of positive tests"
 }
+
+export const intervalsAvailable: Map<MetricKind, Set<IntervalOption>> = new Map(
+    [
+        ["cases", new Set(intervalOptions)],
+        ["deaths", new Set(intervalOptions)],
+        ["tests", new Set(["total", "smoothed", "daily"])],
+        ["case_fatality_rate", new Set(["total"])],
+        ["tests_per_case", new Set(["total", "smoothed"])],
+        ["positive_test_rate", new Set(["total", "smoothed"])]
+    ]
+)
 
 // todo: auto import from covid repo.
 export const covidAnnotations = `location,date,cases_annotations,deaths_annotations
