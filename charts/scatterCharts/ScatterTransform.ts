@@ -392,7 +392,7 @@ export class ScatterTransform extends ChartTransform {
 
         for (let i = 0; i < values.length; i++) {
             const indexValue = values[i]
-            for (let j = i; j < values.length; j++) {
+            for (let j = i + 1; j < values.length; j++) {
                 const targetValue = values[j]
 
                 if (targetValue.entityName !== indexValue.entityName) continue
@@ -748,6 +748,9 @@ export class ScatterTransform extends ChartTransform {
     }
 }
 
+// Compound annual growth rate
+// cagr = ((new_value - old_value) ** (1 / Δt)) - 1
+// see https://en.wikipedia.org/wiki/Compound_annual_growth_rate
 function cagr(
     indexValue: ScatterValue,
     targetValue: ScatterValue,
