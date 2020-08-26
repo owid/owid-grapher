@@ -15,10 +15,10 @@ import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
 import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import {
-    HeightedLegend,
-    HeightedLegendItem,
-    HeightedLegendComponent
-} from "../lineCharts/HeightedLegend"
+    LineLabelsHelper,
+    LineLabel,
+    LineLabelsComponent
+} from "../lineCharts/LineLabels"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { Tooltip } from "charts/core/Tooltip"
 import { select } from "d3-selection"
@@ -253,7 +253,7 @@ export class StackedArea extends React.Component<{
         })
     }
 
-    @computed get legendItems(): HeightedLegendItem[] {
+    @computed get legendItems(): LineLabel[] {
         const { transform, midpoints } = this
         const items = transform.stackedData
             .map((d, i) => ({
@@ -266,11 +266,11 @@ export class StackedArea extends React.Component<{
         return items
     }
 
-    @computed private get legend(): HeightedLegend | undefined {
+    @computed private get legend(): LineLabelsHelper | undefined {
         if (this.chart.hideLegend) return undefined
 
         const that = this
-        return new HeightedLegend({
+        return new LineLabelsHelper({
             get maxWidth() {
                 return Math.min(150, that.bounds.width / 3)
             },
@@ -497,7 +497,7 @@ export class StackedArea extends React.Component<{
                 />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {legend && (
-                        <HeightedLegendComponent
+                        <LineLabelsComponent
                             legend={legend}
                             x={bounds.right - legend.width}
                             yScale={axisBox.yScale}

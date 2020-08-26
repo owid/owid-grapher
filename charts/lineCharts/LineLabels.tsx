@@ -1,8 +1,4 @@
-/* HeightedLegend.tsx
- * ================
- *
- */
-
+// This implements the line labels that appear to the right of the lines/polygons in LineCharts/StackedAreas.
 import * as React from "react"
 import {
     some,
@@ -16,7 +12,7 @@ import {
     flatten,
     sign,
     defaultTo
-} from "../utils/Util"
+} from "charts/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "charts/text/TextWrap"
@@ -26,7 +22,7 @@ import {
     ChartViewContextType,
     ChartViewContext
 } from "charts/core/ChartViewContext"
-import { ControlsOverlay, AddEntityButton } from "../controls/Controls"
+import { ControlsOverlay, AddEntityButton } from "charts/controls/Controls"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 
 // Minimum vertical space between two legend items
@@ -36,7 +32,7 @@ const MARKER_MARGIN = 4
 // Need a constant button height which we can use in positioning calculations
 const ADD_BUTTON_HEIGHT = 30
 
-export interface HeightedLegendItem {
+export interface LineLabel {
     entityDimensionKey: EntityDimensionKey
     label: string
     color: string
@@ -45,16 +41,16 @@ export interface HeightedLegendItem {
     yRange?: [number, number]
 }
 
-interface HeightedLegendMark {
-    item: HeightedLegendItem
+interface SizedLabel {
+    item: LineLabel
     textWrap: TextWrap
     annotationTextWrap?: TextWrap
     width: number
     height: number
 }
 
-interface PlacedMark {
-    mark: HeightedLegendMark
+interface PlacedLabel {
+    mark: SizedLabel
     origBounds: Bounds
     bounds: Bounds
     isOverlap: boolean
@@ -63,7 +59,7 @@ interface PlacedMark {
     totalLevels: number
 }
 
-function groupBounds(group: PlacedMark[]): Bounds {
+function groupBounds(group: PlacedLabel[]): Bounds {
     const first = group[0]
     const last = group[group.length - 1]
     const height = last.bounds.bottom - first.bounds.top
@@ -71,7 +67,7 @@ function groupBounds(group: PlacedMark[]): Bounds {
     return new Bounds(first.bounds.x, first.bounds.y, width, height)
 }
 
-function stackGroupVertically(group: PlacedMark[], y: number) {
+function stackGroupVertically(group: PlacedLabel[], y: number) {
     let currentY = y
     group.forEach(mark => {
         mark.bounds = mark.bounds.extend({ y: currentY })
@@ -81,14 +77,15 @@ function stackGroupVertically(group: PlacedMark[], y: number) {
     return group
 }
 
-interface HeightedLegendProps {
-    items: HeightedLegendItem[]
+interface LineLabelsHelperProps {
+    items: LineLabel[]
     maxWidth?: number
     fontSize: number
 }
 
-export class HeightedLegend {
-    props: HeightedLegendProps
+// Todo: can we remove?
+export class LineLabelsHelper {
+    props: LineLabelsHelperProps
 
     @computed private get fontSize(): number {
         return 0.75 * this.props.fontSize
@@ -100,7 +97,7 @@ export class HeightedLegend {
         return defaultTo(this.props.maxWidth, Infinity)
     }
 
-    @computed.struct get marks(): HeightedLegendMark[] {
+    @computed.struct get marks(): SizedLabel[] {
         const { fontSize, leftPadding, maxWidth } = this
         const maxTextWidth = maxWidth - leftPadding
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
@@ -140,14 +137,14 @@ export class HeightedLegend {
         else return defaultTo(max(this.marks.map(d => d.width)), 0)
     }
 
-    constructor(props: HeightedLegendProps) {
+    constructor(props: LineLabelsHelperProps) {
         this.props = props
     }
 }
 
-interface HeightedLegendComponentProps {
+interface LineLabelsComponentProps {
     x: number
-    legend: HeightedLegend
+    legend: LineLabelsHelper
     yScale: AxisScale
     focusKeys: EntityDimensionKey[]
     areMarksClickable: boolean
@@ -158,8 +155,8 @@ interface HeightedLegendComponentProps {
 
 @observer
 class PlacedMarkComponent extends React.Component<{
-    mark: PlacedMark
-    legend: HeightedLegend
+    mark: PlacedLabel
+    legend: LineLabelsHelper
     isFocus?: boolean
     needsLines?: boolean
     onMouseOver: () => void
@@ -230,8 +227,8 @@ class PlacedMarkComponent extends React.Component<{
 }
 
 @observer
-export class HeightedLegendComponent extends React.Component<
-    HeightedLegendComponentProps
+export class LineLabelsComponent extends React.Component<
+    LineLabelsComponentProps
 > {
     static contextType = ChartViewContext
     context!: ChartViewContextType
@@ -253,7 +250,7 @@ export class HeightedLegendComponent extends React.Component<
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
-    @computed private get initialMarks(): PlacedMark[] {
+    @computed private get initialMarks(): PlacedLabel[] {
         const { legend, x, yScale } = this.props
 
         return sortBy(
@@ -295,7 +292,7 @@ export class HeightedLegendComponent extends React.Component<
     @computed get standardPlacement() {
         const { yScale } = this.props
 
-        const groups: PlacedMark[][] = cloneDeep(
+        const groups: PlacedLabel[][] = cloneDeep(
             this.initialMarks
         ).map(mark => [mark])
 
@@ -511,7 +508,7 @@ export class HeightedLegendComponent extends React.Component<
     render() {
         return (
             <g
-                className="HeightedLegend"
+                className="LineLabels"
                 style={{
                     cursor: this.props.areMarksClickable ? "pointer" : "default"
                 }}

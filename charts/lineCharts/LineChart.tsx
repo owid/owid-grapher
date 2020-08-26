@@ -31,11 +31,7 @@ import { Bounds } from "charts/utils/Bounds"
 import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import { AxisScale } from "charts/axis/AxisScale"
 import { Vector2 } from "charts/utils/Vector2"
-import {
-    HeightedLegend,
-    HeightedLegendItem,
-    HeightedLegendComponent
-} from "./HeightedLegend"
+import { LineLabelsHelper, LineLabel, LineLabelsComponent } from "./LineLabels"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { Tooltip } from "charts/core/Tooltip"
 import { NoDataOverlay } from "../core/NoDataOverlay"
@@ -322,7 +318,7 @@ export class LineChart extends React.Component<{
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed private get legendItems(): HeightedLegendItem[] {
+    @computed private get legendItems(): LineLabel[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let toShow = this.transform.groupedData
@@ -346,9 +342,9 @@ export class LineChart extends React.Component<{
         })
     }
 
-    @computed get legend(): HeightedLegend | undefined {
+    @computed get legend(): LineLabelsHelper | undefined {
         const that = this
-        return new HeightedLegend({
+        return new LineLabelsHelper({
             get maxWidth() {
                 return that.bounds.width / 3
             },
@@ -619,7 +615,7 @@ export class LineChart extends React.Component<{
                             />
                         ))}
                     {legend && (
-                        <HeightedLegendComponent
+                        <LineLabelsComponent
                             x={bounds.right - legend.width}
                             legend={legend}
                             focusKeys={this.focusKeys}
