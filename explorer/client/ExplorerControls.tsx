@@ -123,11 +123,7 @@ export class ExplorerControlPanel extends React.Component<{
                 }
             })
 
-        const styles = getStylesForTargetHeight(16, {
-            singleValue: {
-                color: "#7a899e" /* Match the unselected text */
-            }
-        })
+        const styles = getStylesForTargetHeight(16)
 
         return (
             <Select
