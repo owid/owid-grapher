@@ -1,6 +1,7 @@
 enum CountryProfileProject {
     coronavirus = "coronavirus",
-    co2 = "co2"
+    co2 = "co2",
+    energy = "energy"
 }
 
 export const countryProfileDefaultCountryPlaceholder =
@@ -27,6 +28,11 @@ const countryProfileProjectConfigurations: CountryProfileProjectConfiguration[] 
         project: CountryProfileProject.co2,
         pageTitle: "CO2",
         landingPageSlug: "co2-and-other-greenhouse-gas-emissions"
+    },
+    {
+        project: CountryProfileProject.energy,
+        pageTitle: "Energy",
+        landingPageSlug: "energy"
     }
 ]
 
