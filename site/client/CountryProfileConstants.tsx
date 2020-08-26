@@ -1,47 +1,41 @@
-import {
-    covidCountryProfileSlug,
-    covidLandingSlug,
-    covidCountryProfileRootPath
-} from "site/server/covid/CovidConstants"
+enum CountryProfileProject {
+    coronavirus = "coronavirus",
+    co2 = "co2"
+}
 
-export type CountryProfileProject = "coronavirus" | "co2"
+export const countryProfileDefaultCountryPlaceholder =
+    "{DEFAULT_COUNTRY_ENTITY_SELECT}"
 
-export interface CountryProfileSpec {
+interface CountryProfileProjectConfiguration {
     project: CountryProfileProject
     pageTitle: string
-    genericProfileSlug: string
     landingPageSlug: string
-    selector: string
+}
+
+export interface CountryProfileSpec extends CountryProfileProjectConfiguration {
+    genericProfileSlug: string
     rootPath: string
 }
 
-export const co2CountryProfileRootPath = "co2/country"
-export const co2CountryProfilePath = "/co2-country-profile"
+const countryProfileProjectConfigurations: CountryProfileProjectConfiguration[] = [
+    {
+        project: CountryProfileProject.coronavirus,
+        pageTitle: "Coronavirus Pandemic",
+        landingPageSlug: "coronavirus"
+    },
+    {
+        project: CountryProfileProject.co2,
+        pageTitle: "CO2",
+        landingPageSlug: "co2-and-other-greenhouse-gas-emissions"
+    }
+]
 
-export const countryProfileSpecs: Map<
-    CountryProfileProject,
-    CountryProfileSpec
-> = new Map([
-    [
-        "coronavirus",
-        {
-            project: "coronavirus",
-            pageTitle: "Coronavirus Pandemic",
-            genericProfileSlug: covidCountryProfileSlug,
-            landingPageSlug: covidLandingSlug,
-            selector: ".wp-block-covid-search-country",
-            rootPath: covidCountryProfileRootPath
+export const countryProfileSpecs: CountryProfileSpec[] = countryProfileProjectConfigurations.map(
+    config => {
+        return {
+            ...config,
+            rootPath: `${config.project}/country`,
+            genericProfileSlug: `${config.project}-country-profile`
         }
-    ],
-    [
-        "co2",
-        {
-            project: "co2",
-            pageTitle: "CO2",
-            genericProfileSlug: "co2-country-profile",
-            landingPageSlug: "co2-and-other-greenhouse-gas-emissions",
-            selector: ".wp-block-co2-search-country",
-            rootPath: co2CountryProfileRootPath
-        }
-    ]
-])
+    }
+)

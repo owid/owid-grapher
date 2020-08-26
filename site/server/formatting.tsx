@@ -19,12 +19,12 @@ import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "site/client/global-entity/GlobalEntityControl"
 import { Footnote } from "site/client/Footnote"
 import { Country } from "utils/countries"
-import { covidDefaultCountryPlaceholder } from "./covid/CovidConstants"
 import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
 import { replaceChartIframesWithExplorerIframes } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { SubNavId } from "./views/SiteSubnavigation"
+import { countryProfileDefaultCountryPlaceholder } from "site/client/CountryProfileConstants"
 
 // A modifed FontAwesome icon
 const INTERACTIVE_ICON_SVG = `<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="hand-pointer" class="svg-inline--fa fa-hand-pointer fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 617">
@@ -742,7 +742,7 @@ export function formatCountryProfile(
 ): FormattedPost {
     // Localize country selector
     const htmlWithLocalizedCountrySelector = post.html.replace(
-        covidDefaultCountryPlaceholder,
+        countryProfileDefaultCountryPlaceholder,
         country.code
     )
 

@@ -33,16 +33,24 @@ const SearchCountry = (props: { countryProfileRootPath: string }) => {
 }
 
 export function runSearchCountry() {
-    countryProfileSpecs.forEach(profileSpec => {
-        const elements = Array.from(
-            document.querySelectorAll(profileSpec.selector)
-        )
-        elements.forEach(element => {
-            ReactDOM.render(
-                <SearchCountry countryProfileRootPath={profileSpec.rootPath} />,
-                element
+    const searchElements = document.querySelectorAll(
+        ".wp-block-search-country-profile"
+    )
+    searchElements.forEach(element => {
+        const project = element.getAttribute("data-project")
+        if (project) {
+            const profileSpec = countryProfileSpecs.find(
+                spec => spec.project === project
             )
-        })
+            if (profileSpec) {
+                ReactDOM.render(
+                    <SearchCountry
+                        countryProfileRootPath={profileSpec.rootPath}
+                    />,
+                    element
+                )
+            }
+        }
     })
 }
 
