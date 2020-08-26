@@ -57,7 +57,9 @@ import {
     sourceCharts,
     metricLabels,
     metricPickerColumnSpecs,
-    covidCsvColumnSlug
+    covidCsvColumnSlug,
+    intervalLabels,
+    intervalsAvailable
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -257,37 +259,37 @@ export class CovidExplorer extends React.Component<{
         const options: DropdownOption[] = [
             {
                 available: true,
-                label: "Cumulative",
+                label: intervalLabels.get("total")!,
                 value: "total"
             },
             {
                 available: available.smoothed,
-                label: "7-day rolling average",
+                label: intervalLabels.get("smoothed")!,
                 value: "smoothed"
             },
             {
                 available: available.daily,
-                label: "New per day",
+                label: intervalLabels.get("daily")!,
                 value: "daily"
             },
             {
                 available: available.weekly,
-                label: "Weekly",
+                label: intervalLabels.get("weekly")!,
                 value: "weekly"
             },
             {
                 available: available.weekly,
-                label: "Weekly change",
+                label: intervalLabels.get("weeklyChange")!,
                 value: "weeklyChange"
             },
             {
                 available: available.weekly,
-                label: "Biweekly",
+                label: intervalLabels.get("biweekly")!,
                 value: "biweekly"
             },
             {
                 available: available.weekly,
-                label: "Biweekly Change",
+                label: intervalLabels.get("biweeklyChange")!,
                 value: "biweeklyChange"
             }
         ]
@@ -1156,10 +1158,12 @@ export class CovidExplorer extends React.Component<{
                 ? perCapitaDivisorByMetric(metric)
                 : 1,
             interval,
-            0
+            interval === "smoothed" ? 7 : 0
         )
 
         const column = this.chart.table.columnsBySlug.get(colSlug)
+
+        if (!column) throw Error(`${colSlug} does not exist!`)
         return {
             property: "table",
             variableId: column?.spec.owidVariableId,
@@ -1168,7 +1172,7 @@ export class CovidExplorer extends React.Component<{
                 name:
                     metricLabels[metric] +
                     (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
-                unit: interval === "daily" ? "daily new" : "cumulative",
+                unit: intervalLabels.get(interval),
                 tableDisplay: column?.display.tableDisplay
             }
         } as ChartDimensionInterface
@@ -1182,10 +1186,17 @@ export class CovidExplorer extends React.Component<{
                     this._buildDataTableOnlyDimensionSpec(metric, "total")
                 ]
 
-                if (isCountMetric(metric)) {
-                    // add daily column
+                if (
+                    isCountMetric(metric) &&
+                    params.interval !== "total" &&
+                    intervalsAvailable.get(metric)?.has(params.interval)
+                ) {
+                    // add intervals column
                     specs.push(
-                        this._buildDataTableOnlyDimensionSpec(metric, "daily")
+                        this._buildDataTableOnlyDimensionSpec(
+                            metric,
+                            params.interval
+                        )
                     )
                 }
 
@@ -1203,12 +1214,19 @@ export class CovidExplorer extends React.Component<{
         params.tableMetrics?.forEach(metric => {
             dataTableParams.setMetric(metric)
             dataTableParams.interval = "total"
+            dataTableParams.smoothing = 0
             dataTableParams.perCapita = false
-            if (isCountMetric(metric)) {
+            if (
+                isCountMetric(metric) &&
+                params.interval != "total" &&
+                intervalsAvailable.get(metric)?.has(params.interval)
+            ) {
                 dataTableParams.perCapita = params.perCapita
                 covidExplorerTable.initRequestedColumns(dataTableParams)
-                // generate daily columns too
-                dataTableParams.interval = "daily"
+                // generate interval columns too
+                dataTableParams.interval = params.interval
+                dataTableParams.smoothing =
+                    dataTableParams.interval === "smoothed" ? 7 : 0
             }
 
             covidExplorerTable.initRequestedColumns(dataTableParams)
