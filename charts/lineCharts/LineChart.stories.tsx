@@ -37,7 +37,6 @@ Germany,2003,120,1`) as any
     chartConfig.table.cloneAndAddRowsAndDetectColumns(rows)
     chartConfig.table.columnsBySlug.get("gdp")!.spec.owidVariableId = 99
     chartConfig.hideEntityControls = true
-    console.log(chartConfig)
 
     return (
         <svg width={640} height={480}>
