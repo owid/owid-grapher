@@ -259,7 +259,7 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @action.bound onAddClick() {
-        this.context.chartView.isSelectingData = true
+        this.chart.isSelectingData = true
     }
 
     get addEntityButton() {
@@ -281,7 +281,7 @@ export class DiscreteBarChart extends React.Component<{
                     align="right"
                     verticalAlign="middle"
                     height={this.barHeight}
-                    label={`Add ${this.context.chart.entityType}`}
+                    label={`Add ${this.chart.entityType}`}
                     onClick={this.onAddClick}
                 />
             </ControlsOverlay>

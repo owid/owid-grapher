@@ -750,11 +750,14 @@ export class ControlsOverlay extends React.Component<{
     context!: ChartViewContextType
 
     componentDidMount() {
-        this.context.chartView.overlays[this.props.id] = this
+        // todo: remove context
+        if (this.context?.chartView)
+            this.context.chartView.overlays[this.props.id] = this
     }
 
     @action.bound deleteOverlay() {
-        delete this.context.chartView.overlays[this.props.id]
+        // todo: remove context
+        delete this.context?.chartView?.overlays[this.props.id]
     }
 
     componentWillUnmount() {
@@ -769,11 +772,12 @@ export class ControlsOverlay extends React.Component<{
 @observer
 export class ControlsOverlayView extends React.Component<{
     chartView: ChartView
+    chart: ChartConfig
     controls: Controls
     children: JSX.Element
 }> {
     @action.bound onDataSelect() {
-        this.props.controls.props.chartView.isSelectingData = true
+        this.props.chart.isSelectingData = true
     }
 
     render() {
@@ -818,6 +822,7 @@ export class ControlsOverlayView extends React.Component<{
 @observer
 export class ControlsFooterView extends React.Component<{
     controls: Controls
+    chart: ChartConfig
 }> {
     @action.bound onShareMenu() {
         this.props.controls.isShareMenuActive = !this.props.controls
@@ -830,7 +835,7 @@ export class ControlsFooterView extends React.Component<{
     }
 
     @action.bound onDataSelect() {
-        this.props.controls.props.chartView.isSelectingData = true
+        this.props.chart.isSelectingData = true
     }
 
     private _getTabsElement() {

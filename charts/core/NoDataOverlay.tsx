@@ -1,7 +1,6 @@
 import * as React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-
 import { Bounds } from "charts/utils/Bounds"
 import {
     ChartViewContext,
@@ -12,17 +11,15 @@ import { ChartConfig } from "charts/core/ChartConfig"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
-import { ChartView } from "charts/core/ChartView"
 
 @observer
 class Message extends React.Component<{
     chart: ChartConfig
-    chartView: ChartView
     bounds: Bounds
     message?: string
 }> {
     @action.bound onDataSelect() {
-        this.props.chartView.isSelectingData = true
+        this.props.chart.isSelectingData = true
     }
 
     render() {
@@ -68,15 +65,10 @@ export class NoDataOverlay extends React.Component<{
 
     render() {
         const { bounds, message } = this.props
-        const { chart, chartView } = this.context
+        const { chart } = this.context
         return (
             <ControlsOverlay id="no-data">
-                <Message
-                    chart={chart}
-                    chartView={chartView}
-                    bounds={bounds}
-                    message={message}
-                />
+                <Message chart={chart} bounds={bounds} message={message} />
             </ControlsOverlay>
         )
     }

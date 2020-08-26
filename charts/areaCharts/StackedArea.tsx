@@ -24,10 +24,6 @@ import { Tooltip } from "charts/core/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
 import { EntityDimensionKey } from "charts/core/ChartConstants" // todo: remove
 
 export interface StackedAreaValue {
@@ -226,9 +222,6 @@ export class StackedArea extends React.Component<{
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
     @computed get chart(): ChartConfig {
         return this.props.chart
     }
@@ -302,7 +295,7 @@ export class StackedArea extends React.Component<{
     @observable hoverKey?: string
     @action.bound onLegendClick(key: EntityDimensionKey) {
         if (this.chart.showAddEntityControls) {
-            this.context.chartView.isSelectingData = true
+            this.chart.isSelectingData = true
         }
     }
 
@@ -351,6 +344,7 @@ export class StackedArea extends React.Component<{
 
         return (
             <Tooltip
+                tooltipOwner={this.props.chart}
                 x={axisBox.xScale.place(refValue.x)}
                 y={axisBox.yScale.rangeMin + axisBox.yScale.rangeSize / 2}
                 style={{ padding: "0.3em" }}
@@ -501,11 +495,11 @@ export class StackedArea extends React.Component<{
                             legend={legend}
                             x={bounds.right - legend.width}
                             yScale={axisBox.yScale}
+                            options={chart}
                             focusKeys={this.focusKeys}
                             onClick={this.onLegendClick}
                             onMouseOver={this.onLegendMouseOver}
                             onMouseLeave={this.onLegendMouseLeave}
-                            areMarksClickable={this.chart.showAddEntityControls}
                         />
                     )}
                     <Areas

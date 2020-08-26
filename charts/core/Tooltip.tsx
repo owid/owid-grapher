@@ -1,35 +1,22 @@
 import { extend, defaultTo } from "charts/utils/Util"
 import * as React from "react"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
-import { observable, computed, runInAction } from "mobx"
+import { observable, computed, runInAction, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 
-export interface TooltipProps {
-    x: number
-    y: number
-    offsetX?: number
-    offsetY?: number
-    offsetYDirection?: "upward" | "downward"
-    style?: React.CSSProperties
-    children?: React.ReactNode
-}
-
 @observer
-export class TooltipView extends React.Component {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
+export class TooltipView extends React.Component<{
+    tooltipOwner: TooltipOwner
+    width: number
+    height: number
+}> {
     @computed get rendered() {
         const { bounds } = this
-        const { chartView, chart } = this.context
+        const tooltipOwner = this.props.tooltipOwner
 
-        if (!chart.tooltip) return null
+        if (!tooltipOwner.tooltip) return null
 
-        const tooltip = chart.tooltip
+        const tooltip = tooltipOwner.tooltip
 
         const offsetX = defaultTo(tooltip.offsetX, 0)
         let offsetY = defaultTo(tooltip.offsetY, 0)
@@ -42,9 +29,9 @@ export class TooltipView extends React.Component {
 
         // Ensure tooltip remains inside chart
         if (bounds) {
-            if (x + bounds.width > chartView.renderWidth)
+            if (x + bounds.width > this.props.width)
                 x -= bounds.width + 2 * offsetX
-            if (y + bounds.height > chartView.renderHeight)
+            if (y + bounds.height > this.props.height)
                 y -= bounds.height + 2 * offsetY
             if (x < 0) x = 0
             if (y < 0) y = 0
@@ -92,21 +79,34 @@ export class TooltipView extends React.Component {
     }
 }
 
+// We can't pass the property directly because we need it to be observable.
+interface TooltipOwner {
+    tooltip?: TooltipProps
+}
+
+export interface TooltipProps {
+    x: number
+    y: number
+    offsetX?: number
+    offsetY?: number
+    offsetYDirection?: "upward" | "downward"
+    style?: React.CSSProperties
+    children?: React.ReactNode
+    tooltipOwner: TooltipOwner
+}
+
 @observer
 export class Tooltip extends React.Component<TooltipProps> {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
     componentDidMount() {
         this.componentDidUpdate()
     }
 
     componentDidUpdate() {
-        runInAction(() => (this.context.chart.tooltip = this.props))
+        runInAction(() => (this.props.tooltipOwner.tooltip = this.props))
     }
 
     componentWillUnmount() {
-        runInAction(() => (this.context.chart.tooltip = undefined))
+        runInAction(() => (this.props.tooltipOwner.tooltip = undefined))
     }
 
     render() {

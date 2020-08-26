@@ -130,11 +130,13 @@ export class ChartLayoutView extends React.Component<{
 
     renderWithHTMLText() {
         const { layout } = this.props
+        const chart = layout.props.chart
 
         return (
             <React.Fragment>
-                <HeaderHTML chart={layout.props.chart} header={layout.header} />
+                <HeaderHTML chart={chart} header={layout.header} />
                 <ControlsOverlayView
+                    chart={chart}
                     chartView={this.context.chartView}
                     controls={this.context.chartView.controls}
                 >

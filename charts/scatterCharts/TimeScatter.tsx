@@ -5,7 +5,7 @@ import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { ChartConfig } from "charts/core/ChartConfig"
-import { NoDataOverlay } from "../core/NoDataOverlay"
+import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
 import { ComparisonLine } from "./ComparisonLine"
 import { AxisScale } from "charts/axis/AxisScale"
@@ -19,11 +19,11 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     minBy
-} from "../utils/Util"
+} from "charts/utils/Util"
 import { Vector2 } from "charts/utils/Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "charts/core/Tooltip"
-import { TimeBound } from "../utils/TimeBounds"
+import { TimeBound } from "charts/utils/TimeBounds"
 
 interface ScatterSeries {
     color: string
@@ -138,6 +138,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         return (
             <Tooltip
+                tooltipOwner={this.props.chart}
                 x={hoverPoint.position.x + 5}
                 y={hoverPoint.position.y + 5}
                 style={{ textAlign: "center" }}

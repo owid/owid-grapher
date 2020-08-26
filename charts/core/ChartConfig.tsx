@@ -323,6 +323,7 @@ export class ChartConfig {
     @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
     @observable isPlaying: boolean = false
+    @observable.ref isSelectingData: boolean = false
 
     @action.bound toggleMinPopulationFilter() {
         this.props.minPopulationFilter = this.props.minPopulationFilter
@@ -496,6 +497,10 @@ export class ChartConfig {
 
     @computed get showAddEntityControls() {
         return !this.hideEntityControls && this.canAddData
+    }
+
+    @computed get areMarksClickable() {
+        return this.showAddEntityControls
     }
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
@@ -739,6 +744,14 @@ export class ChartConfig {
 
     @computed get yAxis() {
         return new AxisConfig(this.props.yAxis)
+    }
+
+    @computed get xAxisProps() {
+        return this.xAxis.props
+    }
+
+    @computed get yAxisProps() {
+        return this.yAxis.props
     }
 
     // Get the dimension slots appropriate for this type of chart
