@@ -22,7 +22,7 @@ import { JsonError } from "utils/server/serverUtil"
 import {
     CountryProfileSpec,
     countryProfileSpecs
-} from "site/client/CountryProfileConstants"
+} from "site/server/countryProfileProjects"
 
 class WPDB {
     conn?: DatabaseConnection

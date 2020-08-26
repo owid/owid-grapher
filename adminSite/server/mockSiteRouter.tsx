@@ -39,7 +39,7 @@ import {
 } from "explorer/covidExplorer/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
-import { countryProfileSpecs } from "site/client/CountryProfileConstants"
+import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import { renderCovidExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const mockSiteRouter = Router()
