@@ -195,12 +195,19 @@ export class SiteBaker {
                     spec,
                     country,
                     this.grapherExports
+                ).catch(() =>
+                    console.error(
+                        `${country.name} country profile not baked for project "${spec.project}". Check that both pages "${spec.landingPageSlug}" and "${spec.genericProfileSlug}" exist and are published.`
+                    )
                 )
-                const outPath = path.join(
-                    BAKED_SITE_DIR,
-                    `${spec.rootPath}/${country.slug}.html`
-                )
-                await this.stageWrite(outPath, html)
+
+                if (html) {
+                    const outPath = path.join(
+                        BAKED_SITE_DIR,
+                        `${spec.rootPath}/${country.slug}.html`
+                    )
+                    await this.stageWrite(outPath, html)
+                }
             }
         })
     }
