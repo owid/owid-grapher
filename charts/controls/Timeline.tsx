@@ -390,7 +390,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
         // if handles within 1 year of each other, snap to closest year.
         if (
-            this.startYearClosestUI === this.endYearClosestUI &&
+            this.endYearClosestUI - this.startYearClosestUI <= 1 &&
             this.startYear !== this.endYear
         ) {
             ;[this.startYearRaw, this.endYearRaw] = [
