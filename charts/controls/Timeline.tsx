@@ -540,13 +540,28 @@ export class Timeline extends React.Component<TimelineProps> {
         )
     }
 
+    @computed private get startTooltipYear() {
+        return this.getYearUI(this.startYearClosest)
+    }
+
+    @computed private get endTooltipYear() {
+        return this.getYearUI(this.endYearClosest)
+    }
+
     @observable startTooltipVisible: boolean = false
     @observable endTooltipVisible: boolean = false
     @observable lastUpdatedTooltip?: "startMarker" | "endMarker"
 
     render() {
-        const { minYear, maxYear, isPlaying, startYearUI, endYearUI } = this
-        const { chart } = this.context
+        const {
+            minYear,
+            maxYear,
+            isPlaying,
+            startYearUI,
+            endYearUI,
+            startTooltipYear,
+            endTooltipYear
+        } = this
 
         const startYearProgress = (startYearUI - minYear) / (maxYear - minYear)
         const endYearProgress = (endYearUI - minYear) / (maxYear - minYear)
@@ -579,7 +594,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     <TimelineHandle
                         type="startMarker"
                         offsetPercent={startYearProgress * 100}
-                        tooltipContent={this.formatYear(chart.minYear)}
+                        tooltipContent={this.formatYear(startTooltipYear)}
                         tooltipVisible={this.startTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "startMarker" ? 2 : 1
@@ -595,7 +610,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     <TimelineHandle
                         type="endMarker"
                         offsetPercent={endYearProgress * 100}
-                        tooltipContent={this.formatYear(chart.maxYear)}
+                        tooltipContent={this.formatYear(endTooltipYear)}
                         tooltipVisible={this.endTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "endMarker" ? 2 : 1
