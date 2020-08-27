@@ -1,6 +1,8 @@
 name: Continuous Integration
 on: [push]
 
+# Runs `yarn testcheck` on the code, which checks for TypeScript errors and runs Jest tests.
+
 jobs:
     testcheck:
         runs-on: ubuntu-latest

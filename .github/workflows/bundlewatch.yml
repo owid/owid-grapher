@@ -1,6 +1,8 @@
 name: Bundlewatch
 on: [push]
 
+# Runs `bundlewatch` on the code to see if our Webpack build assets exceed a given file size.
+
 jobs:
     bundlewatch:
         runs-on: ubuntu-latest
