@@ -43,7 +43,7 @@ export class StackedAreaTransform extends ChartTransform {
 
     // Get the data for each stacked area series, cleaned to ensure every series
     // "lines up" i.e. has a data point for every year
-    @computed get groupedData(): StackedAreaSeries[] {
+    @computed private get groupedData(): StackedAreaSeries[] {
         const { chart } = this
         const { selectedKeys, selectedKeysByKey } = chart.data
         const filledDimensions = chart.filledDimensions
@@ -155,7 +155,7 @@ export class StackedAreaTransform extends ChartTransform {
         })
 
         // In relative mode, transform data to be a percentage of the total for that year
-        if (this.isRelative) {
+        if (this.isRelativeMode) {
             if (groupedData.length === 0) return []
 
             for (let i = 0; i < groupedData[0].values.length; i++) {
@@ -177,20 +177,11 @@ export class StackedAreaTransform extends ChartTransform {
         return this.groupedData[0].values.map(v => v.x)
     }
 
-    @computed get canToggleRelative(): boolean {
+    @computed get canToggleRelativeMode(): boolean {
         return !this.chart.props.hideRelativeToggle
     }
 
-    // Stacked area may display in either absolute or relative mode
-    @computed get isRelative(): boolean {
-        return this.chart.props.stackMode === "relative"
-    }
-
-    set isRelative(value: boolean) {
-        this.chart.props.stackMode = value ? "relative" : "absolute"
-    }
-
-    @computed get colorScheme() {
+    @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
         const colorScheme =
             ColorSchemes[this.chart.props.baseColorScheme as string]
@@ -199,7 +190,7 @@ export class StackedAreaTransform extends ChartTransform {
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
-    @computed get xDomainDefault(): [number, number] {
+    @computed private get xDomainDefault(): [number, number] {
         return [this.startYear, this.endYear]
     }
 
@@ -239,11 +230,11 @@ export class StackedAreaTransform extends ChartTransform {
         return stackedData
     }
 
-    @computed get allStackedValues(): StackedAreaValue[] {
+    @computed private get allStackedValues(): StackedAreaValue[] {
         return flatten(this.stackedData.map(series => series.values))
     }
 
-    @computed get yDomainDefault(): [number, number] {
+    @computed private get yDomainDefault(): [number, number] {
         const yValues = this.allStackedValues.map(d => d.y)
         return [0, defaultTo(max(yValues), 100)]
     }
@@ -257,21 +248,21 @@ export class StackedAreaTransform extends ChartTransform {
         }) as AxisSpec
     }
 
-    @computed get yDimensionFirst() {
+    @computed private get yDimensionFirst() {
         return find(this.chart.filledDimensions, d => d.property === "y")
     }
 
     @computed get yAxis(): AxisSpec {
-        const { chart, yDomainDefault, isRelative, yDimensionFirst } = this
+        const { chart, yDomainDefault, isRelativeMode, yDimensionFirst } = this
         const tickFormat = yDimensionFirst
             ? yDimensionFirst.formatValueShort
             : identity
 
         return extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), {
-            domain: isRelative
+            domain: isRelativeMode
                 ? [0, 100]
                 : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
-            tickFormat: isRelative
+            tickFormat: isRelativeMode
                 ? (v: number) => formatValue(v, { unit: "%" })
                 : tickFormat
         }) as AxisSpec

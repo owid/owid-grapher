@@ -111,13 +111,7 @@ export class ScatterTransform extends ChartTransform {
         ;(this.xDimension as ChartDimension).spec.targetYear = value
     }
 
-    // In relative mode, the timeline scatterplot calculates changes relative
-    // to the lower bound year rather than creating an arrow chart
-    @computed get isRelativeMode(): boolean {
-        return this.chart.props.stackMode === "relative"
-    }
-
-    @computed get canToggleRelative(): boolean {
+    @computed get canToggleRelativeMode(): boolean {
         return (
             this.hasTimeline &&
             !this.chart.props.hideRelativeToggle &&

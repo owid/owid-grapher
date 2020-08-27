@@ -266,11 +266,7 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
-    @computed get isRelativeMode(): boolean {
-        return this.chart.props.stackMode === "relative"
-    }
-
-    @computed get canToggleRelative(): boolean {
+    @computed get canToggleRelativeMode(): boolean {
         return !this.chart.props.hideRelativeToggle && !this.isSingleYear
     }
 
