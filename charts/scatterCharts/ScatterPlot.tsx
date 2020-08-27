@@ -56,7 +56,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed get transform() {
-        return this.chart.scatter
+        return this.chart.scatterTransform
     }
 
     @computed.struct get bounds(): Bounds {

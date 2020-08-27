@@ -119,7 +119,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get transform() {
-        return this.props.chart.scatter
+        return this.props.chart.scatterTransform
     }
 
     @computed get tooltip() {
@@ -582,7 +582,7 @@ export class TimeScatter extends React.Component<{
     }
 
     @computed get transform() {
-        return this.chart.scatter
+        return this.chart.scatterTransform
     }
 
     @computed.struct get bounds(): Bounds {

@@ -270,7 +270,7 @@ class Lines extends React.Component<LinesProps> {
 }
 
 interface LineChartOptions {
-    lineChart: LineChartTransform
+    lineChartTransform: LineChartTransform
     hideLegend: true | undefined
     baseFontSize: number
     showAddEntityControls: boolean
@@ -311,7 +311,7 @@ export class LineChart extends React.Component<{
     }
 
     @computed get transform() {
-        return this.options.lineChart
+        return this.options.lineChartTransform
     }
 
     @computed get legend(): LineLabelsHelper | undefined {

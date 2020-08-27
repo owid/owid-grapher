@@ -884,7 +884,7 @@ export class ChartConfig {
         if (
             !this.props.hideTitleAnnotation &&
             this.isLineChart &&
-            this.lineChart.isRelativeMode
+            this.lineChartTransform.isRelativeMode
         ) {
             text =
                 "Change in " +
@@ -902,8 +902,8 @@ export class ChartConfig {
         if (
             !this.props.hideTitleAnnotation ||
             (this.isLineChart &&
-                this.lineChart.isSingleYear &&
-                this.lineChart.hasTimeline) ||
+                this.lineChartTransform.isSingleYear &&
+                this.lineChartTransform.hasTimeline) ||
             (this.primaryTab === "map" && this.mapTransform.hasTimeline)
         ) {
             const { minYear, maxYear } = this
@@ -923,12 +923,12 @@ export class ChartConfig {
         //    return undefined
         if (this.tab === "table") return this.dataTableTransform.endYear
         else if (this.primaryTab === "map") return this.mapTransform.targetYear
-        else if (this.isScatter && !this.scatter.failMessage)
-            return this.scatter.endYear
-        else if (this.isDiscreteBar && !this.discreteBar.failMessage)
-            return this.discreteBar.targetYear
-        else if (this.isSlopeChart) return this.slopeChart.endYear
-        else return this.lineChart.endYear
+        else if (this.isScatter && !this.scatterTransform.failMessage)
+            return this.scatterTransform.endYear
+        else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
+            return this.discreteBarTransform.targetYear
+        else if (this.isSlopeChart) return this.slopeChartTransform.endYear
+        else return this.lineChartTransform.endYear
     }
 
     @computed get isSingleEntity(): boolean {
@@ -948,12 +948,12 @@ export class ChartConfig {
         //    return undefined
         if (this.tab === "table") return this.dataTableTransform.startYear
         else if (this.primaryTab === "map") return this.mapTransform.targetYear
-        else if (this.isScatter && !this.scatter.failMessage)
-            return this.scatter.startYear
-        else if (this.isDiscreteBar && !this.discreteBar.failMessage)
-            return this.discreteBar.targetYear
-        else if (this.isSlopeChart) return this.slopeChart.startYear
-        else return this.lineChart.startYear
+        else if (this.isScatter && !this.scatterTransform.failMessage)
+            return this.scatterTransform.startYear
+        else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
+            return this.discreteBarTransform.targetYear
+        else if (this.isSlopeChart) return this.slopeChartTransform.startYear
+        else return this.lineChartTransform.startYear
     }
 
     @computed get sourcesLine(): string {
@@ -1094,22 +1094,22 @@ export class ChartConfig {
         return this.props.type === ChartType.StackedBar
     }
 
-    @computed get lineChart() {
+    @computed get lineChartTransform() {
         return new LineChartTransform(this)
     }
-    @computed get scatter() {
+    @computed get scatterTransform() {
         return new ScatterTransform(this)
     }
-    @computed get stackedArea() {
+    @computed get stackedAreaTransform() {
         return new StackedAreaTransform(this)
     }
-    @computed get slopeChart() {
+    @computed get slopeChartTransform() {
         return new SlopeChartTransform(this)
     }
-    @computed get discreteBar() {
+    @computed get discreteBarTransform() {
         return new DiscreteBarTransform(this)
     }
-    @computed get stackedBar() {
+    @computed get stackedBarTransform() {
         return new StackedBarTransform(this)
     }
     @computed get mapTransform() {
@@ -1120,12 +1120,12 @@ export class ChartConfig {
     }
 
     @computed get activeTransform(): IChartTransform {
-        if (this.isLineChart) return this.lineChart
-        else if (this.isScatter || this.isTimeScatter) return this.scatter
-        else if (this.isStackedArea) return this.stackedArea
-        else if (this.isSlopeChart) return this.slopeChart
-        else if (this.isDiscreteBar) return this.discreteBar
-        else if (this.isStackedBar) return this.stackedBar
+        if (this.isLineChart) return this.lineChartTransform
+        else if (this.isScatter || this.isTimeScatter) return this.scatterTransform
+        else if (this.isStackedArea) return this.stackedAreaTransform
+        else if (this.isSlopeChart) return this.slopeChartTransform
+        else if (this.isDiscreteBar) return this.discreteBarTransform
+        else if (this.isStackedBar) return this.stackedBarTransform
         else throw new Error("No transform found")
     }
 

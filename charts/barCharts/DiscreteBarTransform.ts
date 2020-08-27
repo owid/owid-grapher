@@ -125,7 +125,7 @@ export class DiscreteBarTransform extends ChartTransform {
         if (this.chart.isLineChart) {
             // If derived from line chart, use line chart colors
             for (const key in dataByEntityDimensionKey) {
-                const lineSeries = this.chart.lineChart.predomainData.find(
+                const lineSeries = this.chart.lineChartTransform.predomainData.find(
                     series => series.entityDimensionKey === key
                 )
                 if (lineSeries)

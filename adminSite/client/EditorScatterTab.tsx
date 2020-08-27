@@ -38,7 +38,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
-        this.props.chart.scatter.xOverrideYear = value
+        this.props.chart.scatterTransform.xOverrideYear = value
     }
 
     @action.bound onToggleHighlightToggle(value: boolean) {
@@ -52,7 +52,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
     }
 
     @computed get excludedEntityChoices(): string[] {
-        return this.props.chart.scatter.getEntityNamesToShow()
+        return this.props.chart.scatterTransform.getEntityNamesToShow()
     }
 
     @action.bound onExcludeEntity(entity: string) {
@@ -113,7 +113,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                     />
                     <NumberField
                         label="Override X axis target year"
-                        value={chart.scatter.xOverrideYear}
+                        value={chart.scatterTransform.xOverrideYear}
                         onValue={debounce(this.onXOverrideYear, 300)}
                         allowNegative
                     />
@@ -142,21 +142,23 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                         onValue={v => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}
                     />
-                    {chart.scatter.excludedEntityNames && (
+                    {chart.scatterTransform.excludedEntityNames && (
                         <ul className="excludedEntities">
-                            {chart.scatter.excludedEntityNames.map(entity => (
-                                <li key={entity}>
-                                    <div
-                                        className="clickable"
-                                        onClick={() =>
-                                            this.onUnexcludeEntity(entity)
-                                        }
-                                    >
-                                        <FontAwesomeIcon icon={faMinus} />
-                                    </div>
-                                    {entity}
-                                </li>
-                            ))}
+                            {chart.scatterTransform.excludedEntityNames.map(
+                                entity => (
+                                    <li key={entity}>
+                                        <div
+                                            className="clickable"
+                                            onClick={() =>
+                                                this.onUnexcludeEntity(entity)
+                                            }
+                                        >
+                                            <FontAwesomeIcon icon={faMinus} />
+                                        </div>
+                                        {entity}
+                                    </li>
+                                )
+                            )}
                         </ul>
                     )}
                 </Section>

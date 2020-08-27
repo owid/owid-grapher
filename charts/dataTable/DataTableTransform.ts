@@ -195,7 +195,7 @@ export class DataTableTransform extends ChartTransform {
             if (this.chart.multiMetricTableMode) return TargetYearMode.point
             if (
                 (this.chart.isLineChart &&
-                    !this.chart.lineChart.isSingleYear) ||
+                    !this.chart.lineChartTransform.isSingleYear) ||
                 this.chart.isStackedArea ||
                 this.chart.isStackedBar
             ) {
@@ -203,7 +203,7 @@ export class DataTableTransform extends ChartTransform {
             }
             if (
                 this.chart.isScatter &&
-                !this.chart.scatter.compareEndPointsOnly
+                !this.chart.scatterTransform.compareEndPointsOnly
             ) {
                 return TargetYearMode.range
             }

@@ -337,8 +337,8 @@ class HighlightToggle extends React.Component<{
 @observer
 class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     @action.bound onToggle() {
-        const { stackedArea } = this.props.chart
-        stackedArea.isRelative = !stackedArea.isRelative
+        const { stackedAreaTransform } = this.props.chart
+        stackedAreaTransform.isRelative = !stackedAreaTransform.isRelative
     }
 
     render() {
@@ -353,7 +353,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={chart.stackedArea.isRelative}
+                    checked={chart.stackedAreaTransform.isRelative}
                     onChange={this.onToggle}
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
@@ -484,7 +484,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isScatter) {
-            const years = chart.scatter.timelineYears
+            const years = chart.scatterTransform.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
@@ -497,7 +497,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isLineChart) {
-            const years = chart.lineChart.timelineYears
+            const years = chart.lineChartTransform.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
@@ -511,7 +511,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isSlopeChart) {
-            const years = chart.slopeChart.timelineYears
+            const years = chart.slopeChartTransform.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
@@ -525,7 +525,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else {
-            const years = chart.lineChart.timelineYears
+            const years = chart.lineChartTransform.timelineYears
             if (years.length === 0) return null
             return (
                 <Timeline
@@ -587,9 +587,9 @@ export class Controls {
             return chart.mapTransform.hasTimeline
         } else if (chart.tab === "chart") {
             if (chart.isScatter || chart.isTimeScatter)
-                return chart.scatter.hasTimeline
-            if (chart.isLineChart) return chart.lineChart.hasTimeline
-            if (chart.isSlopeChart) return chart.slopeChart.hasTimeline
+                return chart.scatterTransform.hasTimeline
+            if (chart.isLineChart) return chart.lineChartTransform.hasTimeline
+            if (chart.isSlopeChart) return chart.slopeChartTransform.hasTimeline
         }
         return false
     }
@@ -601,8 +601,10 @@ export class Controls {
             ((chart.canAddData && !this.hasFloatingAddButton) ||
                 chart.isScatter ||
                 chart.canChangeEntity ||
-                (chart.isStackedArea && chart.stackedArea.canToggleRelative) ||
-                (chart.isLineChart && chart.lineChart.canToggleRelative))
+                (chart.isStackedArea &&
+                    chart.stackedAreaTransform.canToggleRelative) ||
+                (chart.isLineChart &&
+                    chart.lineChartTransform.canToggleRelative))
         )
     }
 
@@ -969,12 +971,12 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {chart.tab === "chart" &&
                     chart.isStackedArea &&
-                    chart.stackedArea.canToggleRelative && (
+                    chart.stackedAreaTransform.canToggleRelative && (
                         <AbsRelToggle chart={chart} />
                     )}
                 {chart.tab === "chart" &&
                     chart.isScatter &&
-                    chart.scatter.canToggleRelative && (
+                    chart.scatterTransform.canToggleRelative && (
                         <AbsRelToggle chart={chart} />
                     )}
                 {chart.tab === "chart" &&
@@ -990,7 +992,7 @@ export class ControlsFooterView extends React.Component<{
 
                 {chart.tab === "chart" &&
                     chart.isLineChart &&
-                    chart.lineChart.canToggleRelative && (
+                    chart.lineChartTransform.canToggleRelative && (
                         <AbsRelToggle chart={chart} />
                     )}
             </div>

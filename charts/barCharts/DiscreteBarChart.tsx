@@ -51,15 +51,15 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get failMessage() {
-        return this.chart.discreteBar.failMessage
+        return this.chart.discreteBarTransform.failMessage
     }
 
     @computed get currentData() {
-        return this.chart.discreteBar.currentData
+        return this.chart.discreteBarTransform.currentData
     }
 
     @computed get allData() {
-        return this.chart.discreteBar.allData
+        return this.chart.discreteBarTransform.allData
     }
 
     @computed get displayData() {
@@ -168,7 +168,7 @@ export class DiscreteBarChart extends React.Component<{
         return new AxisScale(xAxis).extend({
             domain: this.xDomainDefault,
             range: this.xRange,
-            tickFormat: this.chart.discreteBar.tickFormat
+            tickFormat: this.chart.discreteBarTransform.tickFormat
         })
     }
 
@@ -255,7 +255,7 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get barValueFormat() {
-        return this.chart.discreteBar.barValueFormat
+        return this.chart.discreteBarTransform.barValueFormat
     }
 
     @action.bound onAddClick() {

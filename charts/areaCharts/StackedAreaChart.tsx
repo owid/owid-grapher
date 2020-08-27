@@ -229,7 +229,7 @@ export class StackedAreaChart extends React.Component<{
         return this.props.bounds
     }
     @computed get transform() {
-        return this.props.chart.stackedArea
+        return this.props.chart.stackedAreaTransform
     }
 
     @computed get midpoints(): number[] {

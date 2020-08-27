@@ -121,11 +121,11 @@ export class StackedBarChart extends React.Component<{
         return this.props.bounds
     }
     @computed get transform() {
-        return this.props.chart.stackedBar
+        return this.props.chart.stackedBarTransform
     }
 
     @computed get failMessage() {
-        return this.chart.stackedBar.failMessage
+        return this.chart.stackedBarTransform.failMessage
     }
 
     @computed get tickFontSize() {
@@ -133,7 +133,7 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get barValueFormat() {
-        return this.chart.stackedBar.barValueFormat
+        return this.chart.stackedBarTransform.barValueFormat
     }
 
     @computed get barWidth() {

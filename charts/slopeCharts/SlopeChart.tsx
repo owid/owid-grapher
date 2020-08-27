@@ -26,7 +26,7 @@ export class SlopeChart extends React.Component<{
     }
 
     @computed get transform() {
-        return this.props.chart.slopeChart
+        return this.props.chart.slopeChartTransform
     }
 
     @computed.struct get bounds(): Bounds {

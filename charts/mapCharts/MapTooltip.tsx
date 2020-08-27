@@ -87,7 +87,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return (
             chart.hasChartTab &&
             (chart.isLineChart ||
-                (chart.isScatter && chart.scatter.hasTimeline))
+                (chart.isScatter && chart.scatterTransform.hasTimeline))
         )
     }
 
