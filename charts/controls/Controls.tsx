@@ -338,7 +338,7 @@ class HighlightToggle extends React.Component<{
 class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
     @action.bound onToggle() {
         const { stackedAreaTransform } = this.props.chart
-        stackedAreaTransform.isRelative = !stackedAreaTransform.isRelative
+        stackedAreaTransform.isRelativeMode = !stackedAreaTransform.isRelativeMode
     }
 
     render() {
@@ -353,7 +353,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={chart.stackedAreaTransform.isRelative}
+                    checked={chart.stackedAreaTransform.isRelativeMode}
                     onChange={this.onToggle}
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
@@ -602,9 +602,9 @@ export class Controls {
                 chart.isScatter ||
                 chart.canChangeEntity ||
                 (chart.isStackedArea &&
-                    chart.stackedAreaTransform.canToggleRelative) ||
+                    chart.stackedAreaTransform.canToggleRelativeMode) ||
                 (chart.isLineChart &&
-                    chart.lineChartTransform.canToggleRelative))
+                    chart.lineChartTransform.canToggleRelativeMode))
         )
     }
 
@@ -971,12 +971,12 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {chart.tab === "chart" &&
                     chart.isStackedArea &&
-                    chart.stackedAreaTransform.canToggleRelative && (
+                    chart.stackedAreaTransform.canToggleRelativeMode && (
                         <AbsRelToggle chart={chart} />
                     )}
                 {chart.tab === "chart" &&
                     chart.isScatter &&
-                    chart.scatterTransform.canToggleRelative && (
+                    chart.scatterTransform.canToggleRelativeMode && (
                         <AbsRelToggle chart={chart} />
                     )}
                 {chart.tab === "chart" &&
@@ -992,7 +992,7 @@ export class ControlsFooterView extends React.Component<{
 
                 {chart.tab === "chart" &&
                     chart.isLineChart &&
-                    chart.lineChartTransform.canToggleRelative && (
+                    chart.lineChartTransform.canToggleRelativeMode && (
                         <AbsRelToggle chart={chart} />
                     )}
             </div>

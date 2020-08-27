@@ -129,4 +129,14 @@ export abstract class ChartTransform implements IChartTransform {
     @computed get targetYear(): Time {
         return this.endYear
     }
+
+    // NB: The timeline scatterplot in relative mode calculates changes relative
+    // to the lower bound year rather than creating an arrow chart
+    @computed get isRelativeMode(): boolean {
+        return this.chart.props.stackMode === "relative"
+    }
+
+    set isRelativeMode(value: boolean) {
+        this.chart.props.stackMode = value ? "relative" : "absolute"
+    }
 }
