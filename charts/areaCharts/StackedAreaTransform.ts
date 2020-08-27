@@ -16,7 +16,7 @@ import {
     uniq
 } from "charts/utils/Util"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
-import { StackedAreaSeries, StackedAreaValue } from "./StackedArea"
+import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
 import { AxisSpec } from "charts/axis/AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 import { ChartTransform } from "charts/core/ChartTransform"

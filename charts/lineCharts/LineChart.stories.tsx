@@ -4,7 +4,6 @@ import "charts/core/chart.scss"
 import { LineChart } from "charts/lineCharts/LineChart"
 import { ChartConfig, ChartConfigProps } from "charts/core/ChartConfig"
 import { parseDelimited } from "charts/utils/Util"
-import { OwidTable } from "owidTable/OwidTable"
 
 export default {
     title: "LineChart",

@@ -7,7 +7,7 @@ import { ChartConfig } from "./ChartConfig"
 import { ChartView } from "./ChartView"
 import { ScatterPlot } from "charts/scatterCharts/ScatterPlot"
 import { LineChart } from "charts/lineCharts/LineChart"
-import { StackedArea } from "charts/areaCharts/StackedArea"
+import { StackedAreaChart } from "charts/areaCharts/StackedAreaChart"
 import { DiscreteBarChart } from "charts/barCharts/DiscreteBarChart"
 import { StackedBarChart } from "charts/barCharts/StackedBarChart"
 import { ChartLayout, ChartLayoutView } from "./ChartLayout"
@@ -74,7 +74,7 @@ export class ChartTab extends React.Component<{
             )
         } else if (chart.isStackedArea) {
             return (
-                <StackedArea
+                <StackedAreaChart
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />

@@ -9,7 +9,7 @@ import { Bounds } from "charts/utils/Bounds"
 import { ChartView } from "charts/core/ChartView"
 import { ChartType } from "charts/core/ChartConstants"
 import { LineChart } from "charts/lineCharts/LineChart"
-import { StackedArea } from "charts/areaCharts/StackedArea"
+import { StackedAreaChart } from "charts/areaCharts/StackedAreaChart"
 import { StackedBarChart } from "charts/barCharts/StackedBarChart"
 import { DiscreteBarChart } from "charts/barCharts/DiscreteBarChart"
 import { SlopeChart } from "charts/slopeCharts/SlopeChart"
@@ -119,7 +119,7 @@ describe(ExploreView, () => {
         })
 
         const chartTypes = [
-            { key: ChartType.StackedArea, expectedView: StackedArea },
+            { key: ChartType.StackedArea, expectedView: StackedAreaChart },
             { key: ChartType.StackedBar, expectedView: StackedBarChart },
             { key: ChartType.DiscreteBar, expectedView: DiscreteBarChart },
             { key: ChartType.SlopeChart, expectedView: SlopeChart },

@@ -216,7 +216,7 @@ export class Areas extends React.Component<AreasProps> {
 }
 
 @observer
-export class StackedArea extends React.Component<{
+export class StackedAreaChart extends React.Component<{
     bounds: Bounds
     chart: ChartConfig
 }> {
