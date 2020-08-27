@@ -1,8 +1,8 @@
-name: Bundlewatch
+name: Continuous Integration
 on: [push]
 
 jobs:
-    bundlewatch:
+    testcheck:
         runs-on: ubuntu-latest
 
         steps:
@@ -43,7 +43,5 @@ jobs:
             - name: Install dependencies
               run: yarn --frozen-lockfile
 
-            - name: Run bundlewatch
-              run: yarn bundlewatch
-              env:
-                  BUNDLEWATCH_GITHUB_TOKEN: "${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}"
+            - name: Run tests & checks
+              run: yarn testcheck

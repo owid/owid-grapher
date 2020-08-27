@@ -1,13 +1,15 @@
-name: Bundlewatch
-on: [push]
+name: Prettify
+on: pull_request
 
 jobs:
-    bundlewatch:
+    prettify:
         runs-on: ubuntu-latest
 
         steps:
             - name: Clone repository
               uses: actions/checkout@v2
+              with:
+                  ref: ${{ github.head_ref }}
 
             # Use Node version specified in .nvmrc
             # https://github.com/actions/setup-node/issues/32#issuecomment-525791142
@@ -43,7 +45,9 @@ jobs:
             - name: Install dependencies
               run: yarn --frozen-lockfile
 
-            - name: Run bundlewatch
-              run: yarn bundlewatch
-              env:
-                  BUNDLEWATCH_GITHUB_TOKEN: "${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}"
+            - name: Run prettier
+              run: yarn prettify-all
+
+            - uses: stefanzweifel/git-auto-commit-action@v4
+              with:
+                  commit_message: "🤖 style: prettify code"
