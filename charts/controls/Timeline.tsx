@@ -540,11 +540,11 @@ export class Timeline extends React.Component<TimelineProps> {
         )
     }
 
-    @computed private get startTooltipYear() {
+    @computed private get startYearClosestUI() {
         return this.getYearUI(this.startYearClosest)
     }
 
-    @computed private get endTooltipYear() {
+    @computed private get endYearClosestUI() {
         return this.getYearUI(this.endYearClosest)
     }
 
@@ -559,8 +559,8 @@ export class Timeline extends React.Component<TimelineProps> {
             isPlaying,
             startYearUI,
             endYearUI,
-            startTooltipYear,
-            endTooltipYear
+            startYearClosestUI,
+            endYearClosestUI
         } = this
 
         const startYearProgress = (startYearUI - minYear) / (maxYear - minYear)
@@ -594,7 +594,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     <TimelineHandle
                         type="startMarker"
                         offsetPercent={startYearProgress * 100}
-                        tooltipContent={this.formatYear(startTooltipYear)}
+                        tooltipContent={this.formatYear(startYearClosestUI)}
                         tooltipVisible={this.startTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "startMarker" ? 2 : 1
@@ -610,7 +610,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     <TimelineHandle
                         type="endMarker"
                         offsetPercent={endYearProgress * 100}
-                        tooltipContent={this.formatYear(endTooltipYear)}
+                        tooltipContent={this.formatYear(endYearClosestUI)}
                         tooltipVisible={this.endTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "endMarker" ? 2 : 1
