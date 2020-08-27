@@ -15,7 +15,11 @@ import {
     formatDay,
     diffDateISOStringInDays
 } from "charts/utils/Util"
-import { ChartTabOption, ScaleType } from "charts/core/ChartConstants"
+import {
+    ChartTabOption,
+    ScaleType,
+    StackMode
+} from "charts/core/ChartConstants"
 import { ChartConfig } from "./ChartConfig"
 import {
     queryParamsToStr,
@@ -329,7 +333,7 @@ export class ChartUrl implements ObservableUrl {
 
         // Stack mode for bar and stacked area charts
         chart.props.stackMode = defaultTo(
-            params.stackMode,
+            params.stackMode as StackMode,
             chart.props.stackMode
         )
 
