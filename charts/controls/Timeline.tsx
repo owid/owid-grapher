@@ -295,6 +295,7 @@ export class Timeline extends React.Component<TimelineProps> {
             this.onRangeYearChange([startYear, endYear])
         }
 
+        this.updateChartTimeDomain()
         this.showTooltips()
     }
 
@@ -361,7 +362,6 @@ export class Timeline extends React.Component<TimelineProps> {
             this.onDrag(this.getInputYearFromMouse(ev as any))
         }
 
-        this.updateChartTimeDomain()
         this.queuedDrag = false
     }
 
