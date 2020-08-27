@@ -165,6 +165,11 @@ testPageRouter.get("/embeds", async (req, res) => {
         tab = "chart"
     }
 
+    if (req.query.stackMode) {
+        query = query.andWhere(`config->'$.stackMode' = 'relative'`)
+        tab = "chart"
+    }
+
     if (req.query.categoricalLegend) {
         // This is more of a heuristic, since this query can potentially include charts that don't
         // have a visible categorial legend, and can leave out some that have one.

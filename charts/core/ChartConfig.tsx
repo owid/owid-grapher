@@ -39,7 +39,8 @@ import {
     ChartTypeName,
     ChartTabOption,
     Color,
-    TickFormattingOptions
+    TickFormattingOptions,
+    StackMode
 } from "charts/core/ChartConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { ChartData, SourceWithDimension } from "./ChartData"
@@ -234,7 +235,7 @@ export class ChartConfigProps {
 
     @observable comparisonLines?: ComparisonLineConfig[] = undefined
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
-    @observable.ref stackMode: string = "absolute"
+    @observable.ref stackMode: StackMode = "absolute"
     @observable.ref hideLegend?: true = undefined
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined

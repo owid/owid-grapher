@@ -20,6 +20,8 @@ export class ChartType {
     static StackedBar: ChartTypeName = "StackedBar"
 }
 
+export type StackMode = "absolute" | "relative"
+
 // todo: remove
 export type EntityDimensionKey = string
 

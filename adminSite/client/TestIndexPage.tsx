@@ -119,6 +119,16 @@ export class TestIndexPage extends React.Component {
                             <Link
                                 native
                                 target="_blank"
+                                to="/test/embeds?stackMode=true"
+                            >
+                                All charts with relative stack mode
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
                                 to="/test/embedVariants"
                             >
                                 Embed Variants
