@@ -19,8 +19,10 @@ import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { JsonError } from "utils/server/serverUtil"
-import { covidCountryProfileSlug } from "site/server/covid/CovidConstants"
-import { CountryProfileSpec } from "site/client/CountryProfileConstants"
+import {
+    CountryProfileSpec,
+    countryProfileSpecs
+} from "site/server/countryProfileProjects"
 
 class WPDB {
     conn?: DatabaseConnection
@@ -435,7 +437,10 @@ export async function getPosts(
     }
 
     // Published pages excluded from public views
-    const excludedSlugs = [BLOG_SLUG, covidCountryProfileSlug]
+    const excludedSlugs = [
+        BLOG_SLUG,
+        ...countryProfileSpecs.map(spec => spec.genericProfileSlug)
+    ]
     posts = posts.filter(post => !excludedSlugs.includes(post.slug))
 
     return limit ? posts.slice(0, limit) : posts

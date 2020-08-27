@@ -40,7 +40,7 @@ import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
 import { Indicator } from "explorer/indicatorExplorer/Indicator"
 import { getCountry, Country } from "utils/countries"
 import { memoize } from "charts/utils/Util"
-import { CountryProfileSpec } from "site/client/CountryProfileConstants"
+import { CountryProfileSpec } from "site/server/countryProfileProjects"
 
 // Wrap ReactDOMServer to stick the doctype on
 export function renderToHtmlPage(element: any) {

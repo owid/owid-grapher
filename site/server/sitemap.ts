@@ -5,7 +5,7 @@ import moment from "moment"
 import * as db from "db/db"
 import { countries } from "utils/countries"
 import urljoin from "url-join"
-import { countryProfileSpecs } from "site/client/CountryProfileConstants"
+import { countryProfileSpecs } from "site/server/countryProfileProjects"
 
 interface SitemapUrl {
     loc: string
@@ -44,7 +44,7 @@ export async function makeSitemap() {
 
     urls = urls
         .concat(
-            ...Array.from(countryProfileSpecs.values()).map(spec => {
+            ...countryProfileSpecs.map(spec => {
                 return countries.map(c => ({
                     loc: urljoin(BAKED_BASE_URL, spec.rootPath, c.slug)
                 }))

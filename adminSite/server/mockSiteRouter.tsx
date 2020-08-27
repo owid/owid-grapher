@@ -37,10 +37,9 @@ import {
     covidDashboardSlug,
     covidChartAndVariableMetaPath
 } from "explorer/covidExplorer/CovidConstants"
-import { covidCountryProfileRootPath } from "site/server/covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
-import { countryProfileSpecs } from "site/client/CountryProfileConstants"
+import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import { renderCovidExplorerPage } from "explorer/admin/ExplorerBaker"
 
 const mockSiteRouter = Router()
@@ -126,24 +125,10 @@ mockSiteRouter.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidExplorerPage())
 })
 
-mockSiteRouter.get(
-    `/${covidCountryProfileRootPath}/:countrySlug`,
-    async (req, res) => {
-        res.send(
-            await countryProfileCountryPage(
-                countryProfileSpecs.get("coronavirus")!,
-                req.params.countrySlug
-            )
-        )
-    }
-)
-
-const co2Profile = countryProfileSpecs.get("co2")!
-
-mockSiteRouter.get(`/${co2Profile.rootPath}/:countrySlug`, async (req, res) => {
-    res.send(
-        await countryProfileCountryPage(co2Profile, req.params.countrySlug)
-    )
+countryProfileSpecs.forEach(spec => {
+    mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) => {
+        res.send(await countryProfileCountryPage(spec, req.params.countrySlug))
+    })
 })
 
 mockSiteRouter.get(covidChartAndVariableMetaPath, async (req, res) => {

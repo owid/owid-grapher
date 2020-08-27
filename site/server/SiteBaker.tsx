@@ -51,13 +51,9 @@ import {
     covidDashboardSlug,
     covidChartAndVariableMetaFilename
 } from "explorer/covidExplorer/CovidConstants"
-import { covidCountryProfileRootPath } from "./covid/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirects } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
-import {
-    countryProfileSpecs,
-    co2CountryProfileRootPath
-} from "site/client/CountryProfileConstants"
+import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
     renderCovidExplorerPage
@@ -199,12 +195,19 @@ export class SiteBaker {
                     spec,
                     country,
                     this.grapherExports
+                ).catch(() =>
+                    console.error(
+                        `${country.name} country profile not baked for project "${spec.project}". Check that both pages "${spec.landingPageSlug}" and "${spec.genericProfileSlug}" exist and are published.`
+                    )
                 )
-                const outPath = path.join(
-                    BAKED_SITE_DIR,
-                    `${spec.rootPath}/${country.slug}.html`
-                )
-                await this.stageWrite(outPath, html)
+
+                if (html) {
+                    const outPath = path.join(
+                        BAKED_SITE_DIR,
+                        `${spec.rootPath}/${country.slug}.html`
+                    )
+                    await this.stageWrite(outPath, html)
+                }
             }
         })
     }
@@ -231,22 +234,11 @@ export class SiteBaker {
         await this.stageWrite(outPath, html)
     }
 
-    // Bake all Wordpress posts, both blog posts and entry pages
-    async bakePosts() {
-        const postsApi = await wpdb.getPosts()
-
-        const postSlugs = []
-        for (const postApi of postsApi) {
-            const post = await wpdb.getFullPost(postApi)
-
-            postSlugs.push(post.slug)
-            await this.bakePost(post)
-        }
-
-        // Maxes out resources (TODO: RCA)
-        // await Promise.all(bakingPosts.map(post => this.bakePost(post)))
-
-        // Delete any previously rendered posts that aren't in the database
+    // Returns the slugs of posts which exist on the filesystem but are not in the DB anymore.
+    // This happens when posts have been saved in previous bakes but have been since then deleted, unpublished or renamed.
+    // Among all existing slugs on the filesystem, some are not coming from WP. They are baked independently and should not
+    // be deleted if WP does not list them (e.g. grapher/*).
+    private getPostSlugsToRemove(postSlugsFromDb: string[]) {
         const existingSlugs = glob
             .sync(`${BAKED_SITE_DIR}/**/*.html`)
             .map(path =>
@@ -263,8 +255,9 @@ export class SiteBaker {
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
                     !path.startsWith(covidDashboardSlug) &&
-                    !path.startsWith(covidCountryProfileRootPath) &&
-                    !path.startsWith(co2CountryProfileRootPath) &&
+                    !countryProfileSpecs.some(spec =>
+                        path.startsWith(spec.rootPath)
+                    ) &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
@@ -274,8 +267,27 @@ export class SiteBaker {
                     path !== "404" &&
                     path !== "google8272294305985984"
             )
-        const toRemove = without(existingSlugs, ...postSlugs)
-        for (const slug of toRemove) {
+
+        return without(existingSlugs, ...postSlugsFromDb)
+    }
+
+    // Bake all Wordpress posts, both blog posts and entry pages
+    async bakePosts() {
+        const postsApi = await wpdb.getPosts()
+
+        const postSlugs = []
+        for (const postApi of postsApi) {
+            const post = await wpdb.getFullPost(postApi)
+
+            postSlugs.push(post.slug)
+            await this.bakePost(post)
+        }
+
+        // Maxes out resources (TODO: RCA)
+        // await Promise.all(bakingPosts.map(post => this.bakePost(post)))
+
+        // Delete any previously rendered posts that aren't in the database
+        for (const slug of this.getPostSlugsToRemove(postSlugs)) {
             const outPath = `${BAKED_SITE_DIR}/${slug}.html`
             await fs.unlink(outPath)
             this.stage(outPath, `DELETING ${outPath}`)
