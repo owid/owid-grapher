@@ -53,7 +53,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const tooltipDatum = this.props.tooltipDatum
         if (!tooltipDatum) return sparkBarValues
 
-        this.context.chart.map.data.dimension?.valueByEntityAndYear
+        this.context.chart.mapTransform.dimension?.valueByEntityAndYear
             .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
@@ -92,14 +92,14 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed get darkestColorInColorScheme() {
-        const { colorScale } = this.chart.map.data
+        const { colorScale } = this.chart.mapTransform
         return colorScale.isColorSchemeInverted
             ? first(colorScale.baseColors)
             : last(colorScale.baseColors)
     }
 
     @computed get barColor() {
-        const { colorScale } = this.chart.map.data
+        const { colorScale } = this.chart.mapTransform
         return colorScale.singleColorScale &&
             !colorScale.customNumericColorsActive
             ? this.darkestColorInColorScheme
@@ -168,7 +168,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 >
                                     <CovidTimeSeriesValue
                                         className="current"
-                                        value={this.context.chart.map.data.formatTooltipValue(
+                                        value={this.context.chart.mapTransform.formatTooltipValue(
                                             tooltipDatum.value
                                         )}
                                         formattedDate={this.props.formatYear(

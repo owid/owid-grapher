@@ -421,7 +421,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     }: {
         targetStartYear: TimeBound
     }) {
-        this.props.chart.map.targetYear = targetStartYear
+        this.props.chart.mapTransform.targetYear = targetStartYear
     }
 
     @action.bound onChartTargetChange({
@@ -469,8 +469,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.props.tab === "map") {
-            const { map } = chart
-            const years = map.data.timelineYears
+            const { mapTransform } = chart
+            const years = mapTransform.timelineYears
             if (years.length === 0) {
                 return null
             }
@@ -478,8 +478,8 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 <Timeline
                     years={years}
                     onTargetChange={this.onMapTargetChange}
-                    startYear={map.targetYear}
-                    endYear={map.targetYear}
+                    startYear={mapTransform.targetYearProp}
+                    endYear={mapTransform.targetYearProp}
                     singleYearMode={true}
                 />
             )
@@ -584,7 +584,7 @@ export class Controls {
         const { chart } = this.props
         if (chart.tab === "table") return !chart.props.hideTimeline
         if (chart.tab === "map") {
-            return chart.map.data.hasTimeline
+            return chart.mapTransform.hasTimeline
         } else if (chart.tab === "chart") {
             if (chart.isScatter || chart.isTimeScatter)
                 return chart.scatter.hasTimeline

@@ -218,7 +218,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get targetYears(): TargetYears {
-        const mapTarget = this.chart.map.targetYear
+        const mapTarget = this.chart.mapTransform.targetYearProp
         const [startYear, endYear] = this.chart.timeDomain
         const timeRange: [Time, Time] = [this.chart.minYear, this.chart.maxYear]
         if (this.chart.tab === "map") {

@@ -1,10 +1,14 @@
-import { computed, autorun, runInAction } from "mobx"
-
+import { observable, computed } from "mobx"
+import { MapProjection } from "./MapProjections"
 import { ChartConfig } from "charts/core/ChartConfig"
+import { defaultTo } from "../utils/Util"
+import { TimeBound, TimeBoundValue } from "../utils/TimeBounds"
+import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
+import { owidVariableId } from "owidTable/OwidTable"
+import { autorun, runInAction } from "mobx"
 import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { MapTopology } from "./MapTopology"
-
 import {
     isString,
     findClosestYear,
@@ -22,18 +26,80 @@ import { ChartTransform } from "charts/core/ChartTransform"
 import { ColorScaleBin } from "charts/color/ColorScaleBin"
 import { ColorScale } from "charts/color/ColorScale"
 
-export interface MapDataValue {
+// MapConfig holds the data and underlying logic needed by MapTab.
+// It wraps the map property on ChartConfig.
+export class MapConfigProps {
+    @observable.ref variableId?: owidVariableId
+    @observable.ref targetYear?: number
+    @observable.ref timeTolerance?: number
+    @observable.ref hideTimeline?: true
+    @observable.ref projection: MapProjection = "World"
+
+    @observable colorScale: ColorScaleConfigProps
+    // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
+    @observable.ref tooltipUseCustomLabels?: true = undefined
+
+    constructor(json?: Partial<MapConfigProps & ColorScaleConfigProps>) {
+        // TODO: migrate database config & only pass legend props
+        this.colorScale = new ColorScaleConfigProps(json?.colorScale)
+
+        if (json !== undefined) {
+            for (const key in this) {
+                // `colorScale` is passed separately
+                if (key in json && key !== "legend") {
+                    this[key] = (json as any)[key]
+                }
+            }
+        }
+    }
+}
+
+interface MapDataValue {
     entity: string
     value: number | string
     year: number
     isSelected?: boolean
 }
 
-export class MapData extends ChartTransform {
+export class MapTransform extends ChartTransform {
     constructor(chart: ChartConfig) {
         super(chart)
 
         if (!chart.isNode) this.ensureValidConfig()
+    }
+
+    get props() {
+        return this.chart.props.map
+    }
+
+    @computed get variableId() {
+        return this.props.variableId
+    }
+
+    @computed get tolerance() {
+        return defaultTo(this.props.timeTolerance, 0)
+    }
+
+    @computed get projection() {
+        return defaultTo(this.props.projection, "World")
+    }
+
+    // Overrides the default ChartTransform#targetYear method because the map stores the target year
+    // separately in the config.
+    @computed get targetYear(): TimeBound {
+        return getClosestTime(this.timelineYears, this.targetYearProp, 2000)
+    }
+
+    @computed get targetYearProp(): TimeBound {
+        return this.props.targetYear ?? TimeBoundValue.unboundedRight
+    }
+
+    set targetYear(value: TimeBound) {
+        this.props.targetYear = value
+    }
+
+    @computed get tooltipUseCustomLabels() {
+        return this.props.tooltipUseCustomLabels ?? false
     }
 
     @computed get isValidConfig() {
@@ -46,11 +112,11 @@ export class MapData extends ChartTransform {
         // Validate the map variable id selection to something on the chart
         autorun(() => {
             const hasVariable =
-                chart.map.variableId &&
-                chart.table.columnsByOwidVarId.get(chart.map.variableId)
+                this.variableId &&
+                chart.table.columnsByOwidVarId.get(this.variableId)
             if (!hasVariable && chart.primaryVariableId)
                 runInAction(
-                    () => (chart.map.props.variableId = chart.primaryVariableId)
+                    () => (this.props.variableId = chart.primaryVariableId)
                 )
         })
     }
@@ -62,26 +128,21 @@ export class MapData extends ChartTransform {
         return (
             this.timelineYears.length > 1 &&
             !this.chart.props.hideTimeline &&
-            !this.map.props.hideTimeline
+            !this.props.hideTimeline
         )
-    }
-
-    @computed get map() {
-        return this.chart.map
     }
 
     // Make sure map has an assigned variable and the data is ready
     @computed get isReady(): boolean {
-        const { map } = this
         return (
-            map.variableId !== undefined &&
-            !!this.chart.table.columnsByOwidVarId.get(map.variableId)
+            this.variableId !== undefined &&
+            !!this.chart.table.columnsByOwidVarId.get(this.variableId)
         )
     }
 
     @computed get dimension(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(
-            d => d.variableId === this.map.variableId
+            d => d.variableId === this.variableId
         )
     }
 
@@ -164,17 +225,11 @@ export class MapData extends ChartTransform {
         )
     }
 
-    // Overrides the default ChartTransform#targetYear method because the map stores the target year
-    // separately in the config.
-    @computed get targetYear(): Time {
-        return getClosestTime(this.timelineYears, this.map.targetYear, 2000)
-    }
-
     @computed get colorScale(): ColorScale {
         const that = this
         return new ColorScale({
             get config() {
-                return that.map.props.colorScale
+                return that.props.colorScale
             },
             get sortedNumericValues() {
                 return that.sortedNumericValues
@@ -195,17 +250,17 @@ export class MapData extends ChartTransform {
     }
 
     @computed get legendData(): ColorScaleBin[] {
-        return this.map.data.colorScale.legendData
+        return this.colorScale.legendData
     }
 
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { map, targetYear, chart } = this
+        const { targetYear, chart } = this
         const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
 
         if (targetYear === undefined || !valueByEntityAndYear) return {}
 
-        const { tolerance } = map
+        const { tolerance } = this
         const entities = Object.keys(this.knownMapEntities)
 
         const result: { [key: string]: MapDataValue } = {}
@@ -251,8 +306,8 @@ export class MapData extends ChartTransform {
 
     @computed get formatTooltipValue(): (d: number | string) => string {
         const formatValueLong = this.dimension && this.dimension.formatValueLong
-        const customLabels = this.map.tooltipUseCustomLabels
-            ? this.map.data.colorScale.customNumericLabels
+        const customLabels = this.tooltipUseCustomLabels
+            ? this.colorScale.customNumericLabels
             : []
         return formatValueLong
             ? (d: number | string) => {

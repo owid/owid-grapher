@@ -50,7 +50,7 @@ import {
     ChartDimensionSpec,
     ChartDimensionInterface
 } from "./ChartDimension"
-import { MapConfig, MapConfigProps } from "charts/mapCharts/MapConfig"
+import { MapTransform, MapConfigProps } from "charts/mapCharts/MapTransform"
 import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "charts/barCharts/DiscreteBarTransform"
@@ -904,7 +904,7 @@ export class ChartConfig {
             (this.isLineChart &&
                 this.lineChart.isSingleYear &&
                 this.lineChart.hasTimeline) ||
-            (this.primaryTab === "map" && this.map.data.hasTimeline)
+            (this.primaryTab === "map" && this.mapTransform.hasTimeline)
         ) {
             const { minYear, maxYear } = this
             const timeFrom = this.formatYearFunction(minYear)
@@ -922,7 +922,7 @@ export class ChartConfig {
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
         if (this.tab === "table") return this.dataTableTransform.endYear
-        else if (this.primaryTab === "map") return this.map.data.targetYear
+        else if (this.primaryTab === "map") return this.mapTransform.targetYear
         else if (this.isScatter && !this.scatter.failMessage)
             return this.scatter.endYear
         else if (this.isDiscreteBar && !this.discreteBar.failMessage)
@@ -947,7 +947,7 @@ export class ChartConfig {
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
         if (this.tab === "table") return this.dataTableTransform.startYear
-        else if (this.primaryTab === "map") return this.map.data.targetYear
+        else if (this.primaryTab === "map") return this.mapTransform.targetYear
         else if (this.isScatter && !this.scatter.failMessage)
             return this.scatter.startYear
         else if (this.isDiscreteBar && !this.discreteBar.failMessage)
@@ -1112,8 +1112,8 @@ export class ChartConfig {
     @computed get stackedBar() {
         return new StackedBarTransform(this)
     }
-    @computed get map() {
-        return new MapConfig(this)
+    @computed get mapTransform() {
+        return new MapTransform(this)
     }
     @computed get dataTableTransform() {
         return new DataTableTransform(this)

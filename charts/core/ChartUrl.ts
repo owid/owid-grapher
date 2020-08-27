@@ -207,12 +207,12 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChartProps } = this
 
         if (
-            chart.map &&
+            chart.mapTransform &&
             origChartProps.map &&
-            chart.map.targetYear !== origChartProps.map.targetYear
+            chart.mapTransform.targetYearProp !== origChartProps.map.targetYear
         ) {
             return formatTimeURIComponent(
-                chart.map.targetYear,
+                chart.mapTransform.targetYearProp,
                 !!chart.table.hasDayColumn
             )
         } else {

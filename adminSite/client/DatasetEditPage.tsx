@@ -108,7 +108,7 @@ class VariableEditRow extends React.Component<{
 
     @action.bound chartIsReady(chart: ChartConfig) {
         // XXX refactor this with EditorBasicTab
-        if (lodash.isEmpty(chart.map.data.choroplethData)) {
+        if (lodash.isEmpty(chart.mapTransform.choroplethData)) {
             chart.props.tab = "chart"
             chart.props.hasMapTab = false
             if (chart.isScatter || chart.isSlopeChart) {

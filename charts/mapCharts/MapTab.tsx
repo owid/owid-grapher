@@ -14,7 +14,7 @@ import { MapColorLegend } from "charts/mapCharts/MapColorLegend"
 import { MapColorLegendView } from "./MapColorLegendView"
 import { getRelativeMouse } from "charts/utils/Util"
 import { ChartConfig } from "charts/core/ChartConfig"
-import { MapConfig } from "./MapConfig"
+import { MapTransform } from "./MapTransform"
 import { MapProjection } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -122,7 +122,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }: {
         targetStartYear: number
     }) {
-        this.context.chart.map.targetYear = targetStartYear
+        this.context.chart.mapTransform.targetYear = targetStartYear
     }
 
     @action.bound onLegendMouseLeave() {
@@ -130,7 +130,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @action.bound onProjectionChange(value: MapProjection) {
-        this.context.chart.map.props.projection = value
+        this.context.chart.mapTransform.props.projection = value
     }
 
     @computed get mapLegend(): MapColorLegend {
@@ -256,8 +256,8 @@ interface MapTabProps {
 
 @observer
 export class MapTab extends React.Component<MapTabProps> {
-    @computed get map(): MapConfig {
-        return this.props.chart.map as MapConfig
+    @computed get map(): MapTransform {
+        return this.props.chart.mapTransform as MapTransform
     }
 
     @computed get layout() {
@@ -284,14 +284,14 @@ export class MapTab extends React.Component<MapTabProps> {
                 {this.props.chart.isReady ? (
                     <MapWithLegend
                         bounds={layout.innerBounds}
-                        choroplethData={map.data.choroplethData}
-                        years={map.data.timelineYears}
-                        inputYear={map.data.targetYear}
-                        colorScale={map.data.colorScale}
+                        choroplethData={map.choroplethData}
+                        years={map.timelineYears}
+                        inputYear={map.targetYearProp}
+                        colorScale={map.colorScale}
                         projection={map.projection}
-                        defaultFill={map.data.colorScale.noDataColor}
-                        mapToDataEntities={map.data.mapToDataEntities}
-                        formatYear={map.data.formatYear}
+                        defaultFill={map.colorScale.noDataColor}
+                        mapToDataEntities={map.mapToDataEntities}
+                        formatYear={map.formatYear}
                     />
                 ) : (
                     <LoadingOverlay bounds={layout.innerBounds} />

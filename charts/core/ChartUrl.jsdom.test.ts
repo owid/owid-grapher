@@ -5,7 +5,7 @@ import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
 import { createConfig, setupChart } from "charts/test/utils"
 
 import { ChartUrl, ChartQueryParams, EntityUrlBuilder } from "./ChartUrl"
-import { MapConfigProps } from "charts/mapCharts/MapConfig"
+import { MapConfigProps } from "charts/mapCharts/MapTransform"
 
 function fromQueryParams(
     params: ChartQueryParams,
@@ -311,7 +311,9 @@ describe(ChartUrl, () => {
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
                     const chart = fromQueryParams({ year: test.query })
-                    expect(chart.map.targetYear).toEqual(test.param)
+                    expect(chart.mapTransform.targetYearProp).toEqual(
+                        test.param
+                    )
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
@@ -326,7 +328,7 @@ describe(ChartUrl, () => {
                     { year: "" },
                     { map: new MapConfigProps({ targetYear: 2015 }) }
                 )
-                expect(chart.map.targetYear).toEqual(2015)
+                expect(chart.mapTransform.targetYearProp).toEqual(2015)
             })
         })
 
@@ -366,7 +368,9 @@ describe(ChartUrl, () => {
                 it(`parse ${test.name}`, () => {
                     const chart = setupChart(4066, [142708])
                     chart.url.populateFromQueryParams({ year: test.query })
-                    expect(chart.map.targetYear).toEqual(test.param)
+                    expect(chart.mapTransform.targetYearProp).toEqual(
+                        test.param
+                    )
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
