@@ -196,11 +196,8 @@ async function saveChart(
             return rows.length > 0
         }
 
-        // When a chart is published, or when the slug of a published chart changes, check for conflicts
-        if (
-            newConfig.isPublished &&
-            (!existingConfig || newConfig.slug !== existingConfig.slug)
-        ) {
+        // When a chart is published, check for conflicts
+        if (newConfig.isPublished) {
             if (!isValidSlug(newConfig.slug)) {
                 throw new JsonError(`Invalid chart slug ${newConfig.slug}`)
             } else if (await isSlugUsedInRedirect()) {
@@ -211,7 +208,11 @@ async function saveChart(
                 throw new JsonError(
                     `This chart slug is in use by another published chart: ${newConfig.slug}`
                 )
-            } else if (existingConfig && existingConfig.isPublished) {
+            } else if (
+                existingConfig &&
+                existingConfig.isPublished &&
+                existingConfig.slug !== newConfig.slug
+            ) {
                 // Changing slug of an existing chart, delete any old redirect and create new one
                 await t.execute(
                     `DELETE FROM chart_slug_redirects WHERE chart_id = ? AND slug = ?`,
