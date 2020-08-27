@@ -113,24 +113,15 @@ export class Admin {
             text = await response.text()
 
             json = JSON.parse(text)
-            if (json.error) {
-                if (onFailure === "show")
-                    this.setErrorMessage({
-                        title: `Failed to ${method} ${targetPath} (${response.status})`,
-                        content: json.error.message,
-                        isFatal: response.status !== 404
-                    })
-
-                throw json.error
-            }
+            if (json.error) throw json.error
         } catch (err) {
             if (onFailure === "show")
                 this.setErrorMessage({
                     title:
                         `Failed to ${method} ${targetPath}` +
                         (response ? ` (${response.status})` : ""),
-                    content: text || err,
-                    isFatal: true
+                    content: err?.message || text || err,
+                    isFatal: response?.status !== 404
                 })
             throw err
         } finally {
