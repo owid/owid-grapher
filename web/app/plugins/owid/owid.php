@@ -270,6 +270,7 @@ add_action(
 		register_rest_route('owid/v1', '/type', array(
 			'methods' => 'GET',
 			'callback' => __NAMESPACE__ . '\getPostType',
+			'permission_callback' => '__return_true'
 		));
 		register_rest_field(
 			['post', 'page'],
