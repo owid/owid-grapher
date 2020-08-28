@@ -267,22 +267,6 @@ export class ChartUrl implements ObservableUrl {
         }
     }
 
-    /**
-     * Set e.g. &shown=Africa when the user selects Africa on a stacked area chartView or other
-     * toggle-based legend chartView.
-     */
-    /*updateLegendKeys() {
-        var activeLegendKeys = chartView.model.get("activeLegendKeys");
-        if (activeLegendKeys === null)
-            setQueryVariable("shown", null);
-        else {
-            var keys = map(activeLegendKeys, function(key) {
-                return encodeURIComponent(key);
-            });
-            setQueryVariable("shown", keys.join("+"));
-        }
-    }*/
-
     setTimeFromTimeQueryParam(time: string) {
         const { chart } = this
 
@@ -417,16 +401,6 @@ export class ChartUrl implements ObservableUrl {
                 })
             }
         )
-
-        // Set shown legend keys for chartViews with toggleable series
-        /*var shown = params.shown;
-         if (isString(shown)) {
-             var keys = map(shown.split("+"), function(key) {
-                 return decodeURIComponent(key);
-             });
-
-             chart.activeLegendKeys = keys
-         }*/
     }
 }
 
