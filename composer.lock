@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6e2a6c29c0aa0f18f503acc10a223758",
+    "content-hash": "fc59a4fbee680689dd05dd17871d4b52",
     "packages": [
         {
             "name": "composer/installers",
@@ -978,42 +978,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/my-default-post-content/"
-        },
-        {
-            "name": "wpackagist-plugin/public-post-preview",
-            "version": "2.9.0",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/public-post-preview/",
-                "reference": "tags/2.9.0"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/public-post-preview.2.9.0.zip"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/public-post-preview/"
-        },
-        {
-            "name": "wpackagist-plugin/public-post-preview-configurator",
-            "version": "1.0.3",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/public-post-preview-configurator/",
-                "reference": "trunk"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/public-post-preview-configurator.zip?timestamp=1486759675"
-            },
-            "require": {
-                "composer/installers": "~1.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/public-post-preview-configurator/"
         },
         {
             "name": "wpackagist-plugin/redirection",
