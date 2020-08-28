@@ -113,7 +113,7 @@ function parseTimeURIComponent(
 }
 
 export class ChartUrl implements ObservableUrl {
-    chart: ChartConfig
+    private chart: ChartConfig
     chartQueryStr: string = "?"
     mapQueryStr: string = "?"
     debounceMode: boolean = false
