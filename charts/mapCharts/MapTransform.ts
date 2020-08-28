@@ -1,12 +1,6 @@
-import { computed } from "mobx"
+import { computed , autorun, runInAction } from "mobx"
 import { ChartConfig } from "charts/core/ChartConfig"
-import { defaultTo } from "../utils/Util"
-import { TimeBound, TimeBoundValue } from "../utils/TimeBounds"
-import { autorun, runInAction } from "mobx"
-import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
-import { ChartDimension } from "charts/core/ChartDimension"
-import { MapTopology } from "./MapTopology"
-import {
+import { defaultTo ,
     isString,
     findClosestYear,
     extend,
@@ -17,8 +11,14 @@ import {
     formatYear,
     uniq,
     sortNumeric
-} from "charts/utils/Util"
-import { Time, getClosestTime } from "charts/utils/TimeBounds"
+} from "../utils/Util"
+import { TimeBound, TimeBoundValue , Time, getClosestTime } from "../utils/TimeBounds"
+
+import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
+import { ChartDimension } from "charts/core/ChartDimension"
+import { MapTopology } from "./MapTopology"
+
+
 import { ChartTransform } from "charts/core/ChartTransform"
 import { ColorScaleBin } from "charts/color/ColorScaleBin"
 import { ColorScale } from "charts/color/ColorScale"
