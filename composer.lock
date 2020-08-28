@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4044533742a0bcd9ff4474700e6b04ae",
+    "content-hash": "6e2a6c29c0aa0f18f503acc10a223758",
     "packages": [
         {
             "name": "composer/installers",
@@ -891,15 +891,15 @@
         },
         {
             "name": "wpackagist-plugin/broken-link-checker",
-            "version": "1.11.13",
+            "version": "1.11.14",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/broken-link-checker/",
-                "reference": "tags/1.11.13"
+                "reference": "tags/1.11.14"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.13.zip"
+                "url": "https://downloads.wordpress.org/plugin/broken-link-checker.1.11.14.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -927,15 +927,15 @@
         },
         {
             "name": "wpackagist-plugin/enable-media-replace",
-            "version": "3.3.12",
+            "version": "3.4.2",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/enable-media-replace/",
-                "reference": "tags/3.3.12"
+                "reference": "tags/3.4.2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/enable-media-replace.3.3.12.zip"
+                "url": "https://downloads.wordpress.org/plugin/enable-media-replace.3.4.2.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -1071,15 +1071,15 @@
         },
         {
             "name": "wpackagist-plugin/simple-history",
-            "version": "2.34.0",
+            "version": "2.35.1",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/simple-history/",
-                "reference": "tags/2.34.0"
+                "reference": "tags/2.35.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/simple-history.2.34.0.zip"
+                "url": "https://downloads.wordpress.org/plugin/simple-history.2.35.1.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
@@ -1089,15 +1089,15 @@
         },
         {
             "name": "wpackagist-plugin/tablepress",
-            "version": "1.11",
+            "version": "1.12",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/tablepress/",
-                "reference": "tags/1.11"
+                "reference": "tags/1.12"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/tablepress.1.11.zip"
+                "url": "https://downloads.wordpress.org/plugin/tablepress.1.12.zip"
             },
             "require": {
                 "composer/installers": "~1.0"
