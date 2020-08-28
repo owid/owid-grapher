@@ -45,7 +45,7 @@ export class StackedAreaTransform extends ChartTransform {
     // "lines up" i.e. has a data point for every year
     @computed private get groupedData(): StackedAreaSeries[] {
         const { chart } = this
-        const { selectedKeys, selectedKeysByKey } = chart.data
+        const { selectedKeys, selectedKeysByKey } = chart
         const filledDimensions = chart.filledDimensions
 
         let groupedData: StackedAreaSeries[] = []
@@ -58,7 +58,7 @@ export class StackedAreaTransform extends ChartTransform {
                 const year = dimension.years[i]
                 const value = +dimension.values[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                const entityDimensionKey = chart.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -150,7 +150,7 @@ export class StackedAreaTransform extends ChartTransform {
         const colorScale = scaleOrdinal(baseColors)
         groupedData.forEach(series => {
             series.color =
-                chart.data.keyColors[series.entityDimensionKey] ||
+                chart.keyColors[series.entityDimensionKey] ||
                 colorScale(series.entityDimensionKey)
         })
 

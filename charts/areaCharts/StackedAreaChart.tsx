@@ -252,7 +252,7 @@ export class StackedAreaChart extends React.Component<{
             .map((d, i) => ({
                 color: d.color,
                 entityDimensionKey: d.entityDimensionKey,
-                label: this.chart.data.getLabelForKey(d.entityDimensionKey),
+                label: this.chart.getLabelForKey(d.entityDimensionKey),
                 yValue: midpoints[i]
             }))
             .reverse()
@@ -384,7 +384,7 @@ export class StackedAreaChart extends React.Component<{
                                                 backgroundColor: blockColor
                                             }}
                                         />{" "}
-                                        {chart.data.getLabelForKey(
+                                        {chart.getLabelForKey(
                                             series.entityDimensionKey
                                         )}
                                     </td>

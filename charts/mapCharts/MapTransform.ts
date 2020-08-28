@@ -234,7 +234,7 @@ export class MapTransform extends ChartTransform {
 
         const result: { [key: string]: MapDataValue } = {}
 
-        const selectedEntityNames = new Set(chart.data.selectedEntityNames)
+        const selectedEntityNames = new Set(chart.selectedEntityNames)
 
         entities.forEach(entity => {
             const valueByYear = valueByEntityAndYear.get(entity)

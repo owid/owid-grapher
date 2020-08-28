@@ -76,7 +76,7 @@ export class DiscreteBarTransform extends ChartTransform {
     @computed get currentData(): DiscreteBarDatum[] {
         const { chart, targetYear } = this
         const { filledDimensions } = chart
-        const { selectedKeysByKey } = chart.data
+        const { selectedKeysByKey } = chart
         const dataByEntityDimensionKey: {
             [entityDimensionKey: string]: DiscreteBarDatum
         } = {}
@@ -87,7 +87,7 @@ export class DiscreteBarTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                const entityDimensionKey = chart.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -113,7 +113,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     entityDimensionKey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.data.getLabelForKey(entityDimensionKey),
+                    label: chart.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
@@ -147,7 +147,7 @@ export class DiscreteBarTransform extends ChartTransform {
 
             data.forEach(d => {
                 d.color =
-                    chart.data.keyColors[d.entityDimensionKey] ||
+                    chart.keyColors[d.entityDimensionKey] ||
                     colorByValue.get(d.value) ||
                     d.color
             })
@@ -190,7 +190,7 @@ export class DiscreteBarTransform extends ChartTransform {
         }
 
         const { chart } = this
-        const { selectedKeysByKey } = chart.data
+        const { selectedKeysByKey } = chart
         const filledDimensions = chart.filledDimensions
         const allData: DiscreteBarDatum[] = []
 
@@ -198,7 +198,7 @@ export class DiscreteBarTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                const entityDimensionKey = chart.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -209,7 +209,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     entityDimensionKey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.data.getLabelForKey(entityDimensionKey),
+                    label: chart.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
@@ -235,7 +235,7 @@ export class DiscreteBarTransform extends ChartTransform {
 
         data.forEach(d => {
             d.color =
-                chart.data.keyColors[d.entityDimensionKey] ||
+                chart.keyColors[d.entityDimensionKey] ||
                 colorByValue.get(d.value) ||
                 d.color
         })
