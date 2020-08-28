@@ -5,7 +5,7 @@ import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
 import { createConfig, setupChart } from "charts/test/utils"
 
 import { ChartUrl, ChartQueryParams, EntityUrlBuilder } from "./ChartUrl"
-import { MapConfigProps } from "charts/mapCharts/MapTransform"
+import { MapConfig } from "charts/mapCharts/MapConfig"
 
 function fromQueryParams(
     params: ChartQueryParams,
@@ -20,7 +20,7 @@ function toQueryParams(props?: Partial<ChartConfigProps>) {
     const chart = createConfig({
         minTime: -5000,
         maxTime: 5000,
-        map: new MapConfigProps({ targetYear: 5000 })
+        map: new MapConfig({ targetYear: 5000 })
     })
     chart.update(props)
     return chart.url.params
@@ -317,7 +317,7 @@ describe(ChartUrl, () => {
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
-                        map: new MapConfigProps({ targetYear: test.param })
+                        map: new MapConfig({ targetYear: test.param })
                     })
                     expect(params.year).toEqual(test.query)
                 })
@@ -326,7 +326,7 @@ describe(ChartUrl, () => {
             it("empty string doesn't change time", () => {
                 const chart = fromQueryParams(
                     { year: "" },
-                    { map: new MapConfigProps({ targetYear: 2015 }) }
+                    { map: new MapConfig({ targetYear: 2015 }) }
                 )
                 expect(chart.mapTransform.targetYearProp).toEqual(2015)
             })
@@ -376,7 +376,7 @@ describe(ChartUrl, () => {
                     it(`encode ${test.name}`, () => {
                         const chart = setupChart(4066, [142708])
                         chart.update({
-                            map: new MapConfigProps({ targetYear: test.param })
+                            map: new MapConfig({ targetYear: test.param })
                         })
                         const params = chart.url.params
                         expect(params.year).toEqual(test.query)

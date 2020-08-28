@@ -1,10 +1,7 @@
-import { observable, computed } from "mobx"
-import { MapProjection } from "./MapProjections"
+import { computed } from "mobx"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { defaultTo } from "../utils/Util"
 import { TimeBound, TimeBoundValue } from "../utils/TimeBounds"
-import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
-import { owidVariableId } from "owidTable/OwidTable"
 import { autorun, runInAction } from "mobx"
 import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
 import { ChartDimension } from "charts/core/ChartDimension"
@@ -25,34 +22,6 @@ import { Time, getClosestTime } from "charts/utils/TimeBounds"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { ColorScaleBin } from "charts/color/ColorScaleBin"
 import { ColorScale } from "charts/color/ColorScale"
-
-// MapConfig holds the data and underlying logic needed by MapTab.
-// It wraps the map property on ChartConfig.
-export class MapConfigProps {
-    @observable.ref variableId?: owidVariableId
-    @observable.ref targetYear?: number
-    @observable.ref timeTolerance?: number
-    @observable.ref hideTimeline?: true
-    @observable.ref projection: MapProjection = "World"
-
-    @observable colorScale: ColorScaleConfigProps
-    // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable.ref tooltipUseCustomLabels?: true = undefined
-
-    constructor(json?: Partial<MapConfigProps & ColorScaleConfigProps>) {
-        // TODO: migrate database config & only pass legend props
-        this.colorScale = new ColorScaleConfigProps(json?.colorScale)
-
-        if (json !== undefined) {
-            for (const key in this) {
-                // `colorScale` is passed separately
-                if (key in json && key !== "legend") {
-                    this[key] = (json as any)[key]
-                }
-            }
-        }
-    }
-}
 
 interface MapDataValue {
     entity: string
