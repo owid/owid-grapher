@@ -5,7 +5,7 @@ import * as topojson from "topojson-client"
 
 import { identity, sortBy, guid, getRelativeMouse, minBy } from "../utils/Util"
 import { Bounds } from "charts/utils/Bounds"
-import { MapProjections , MapProjection } from "./MapProjections"
+import { MapProjections, MapProjection } from "./MapProjections"
 
 import { MapTopology } from "./MapTopology"
 import { Vector2 } from "charts/utils/Vector2"

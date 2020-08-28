@@ -46,10 +46,16 @@ import {
     ChartTabOption,
     Color,
     TickFormattingOptions,
-    StackMode
-, EntityDimensionKey } from "charts/core/ChartConstants"
+    StackMode,
+    EntityDimensionKey
+} from "charts/core/ChartConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
-import { OwidTable , entityName, entityId, entityCode } from "owidTable/OwidTable"
+import {
+    OwidTable,
+    entityName,
+    entityId,
+    entityCode
+} from "owidTable/OwidTable"
 import {
     ChartDimension,
     dimensionProperty,
@@ -92,8 +98,6 @@ import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
 import { OwidSource } from "owidTable/OwidSource"
-
-
 
 export interface SourceWithDimension {
     source: OwidSource
