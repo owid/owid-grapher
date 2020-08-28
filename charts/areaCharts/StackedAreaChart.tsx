@@ -52,7 +52,7 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 const BLUR_COLOR = "#ddd"
 
 @observer
-export class Areas extends React.Component<AreasProps> {
+class Areas extends React.Component<AreasProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @observable hoverIndex?: number

@@ -2,8 +2,7 @@ import * as React from "react"
 import { Link as ReactLink } from "react-router-dom"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 
-export interface LinkProps
-    extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
     to: string
     replace?: boolean
     native?: boolean

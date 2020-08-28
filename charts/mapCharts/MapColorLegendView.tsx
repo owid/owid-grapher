@@ -13,7 +13,7 @@ import {
 
 const FOCUS_BORDER_COLOR = "#111"
 
-export interface MapColorLegendViewProps {
+interface MapColorLegendViewProps {
     legend: MapColorLegend
     onMouseOver: (d: ColorScaleBin) => void
     onMouseLeave: () => void

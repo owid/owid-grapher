@@ -2,11 +2,9 @@ import * as React from "react"
 import { action, computed, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
-
 import { ColorScale } from "charts/color/ColorScale"
 import {
     ColorScaleBin,
@@ -16,7 +14,6 @@ import {
 import { clone, noop, last } from "charts/utils/Util"
 import { Color } from "charts/core/ChartConstants"
 import { asArray } from "utils/client/react-select"
-
 import {
     Section,
     Toggle,
@@ -238,7 +235,7 @@ class ColorsSection extends React.Component<{
 }
 
 @observer
-export class ColorSchemeEditor extends React.Component<{
+class ColorSchemeEditor extends React.Component<{
     scale: ColorScale
 }> {
     render() {

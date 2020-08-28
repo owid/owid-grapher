@@ -3,7 +3,7 @@ import { ColumnSpec } from "owidTable/OwidTable"
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"
 export const coronaOpenGraphImagePath = "coronavirus-data-explorer.png"
-export const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
+const coronaWordpressElementAttribute = "data-coronavirus-data-explorer"
 export const coronaDefaultView =
     "?zoomToSelection=true&time=2020-03-01..latest&country=MEX~IND~USA~ITA~BRA~GBR~FRA~ESP~PER&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc"
 export const covidDataPath =

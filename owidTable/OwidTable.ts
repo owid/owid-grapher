@@ -25,7 +25,7 @@ import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"
 
-export declare type int = number
+declare type int = number
 export declare type year = int
 export declare type entityName = string
 export declare type entityCode = string

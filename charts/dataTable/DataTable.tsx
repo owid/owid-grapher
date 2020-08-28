@@ -25,19 +25,19 @@ import {
     Value
 } from "./DataTableTransform"
 
-export interface DataTableProps {
+interface DataTableProps {
     chart: ChartConfig
 }
 
-export interface DataTableState {
+interface DataTableState {
     sort: DataTableSortState
 }
 
 const ENTITY_DIM_INDEX = -1
 
-export type DimensionIndex = number
+type DimensionIndex = number
 
-export interface DataTableSortState {
+interface DataTableSortState {
     dimIndex: DimensionIndex
     columnKey: ColumnKey | undefined
     order: SortOrder

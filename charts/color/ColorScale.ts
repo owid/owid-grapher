@@ -22,7 +22,7 @@ import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 
 const NO_DATA_LABEL = "No data"
 
-export interface ColorScaleProps {
+interface ColorScaleProps {
     config: ColorScaleConfigProps
     sortedNumericValues: number[]
     categoricalValues: string[]

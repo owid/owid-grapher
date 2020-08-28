@@ -11,7 +11,7 @@ import {
 import { ControlsOverlayView } from "charts/controls/Controls"
 import { ChartView } from "charts/core/ChartView"
 
-export interface ChartLayoutProps {
+interface ChartLayoutProps {
     chart: ChartConfig
     chartView: ChartView
     bounds: Bounds

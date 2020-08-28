@@ -3,7 +3,7 @@ import { MapProjection } from "./MapProjections"
 
 // The projections we currently offer are all world regions.
 // In the future this may change.
-export type WorldRegion = MapProjection
+type WorldRegion = MapProjection
 
 const worldRegionByEntity: Record<string, WorldRegion> = {
     Abkhazia: "Asia",

@@ -14,7 +14,7 @@ export class StoreEntry<EntityType> {
     }
 }
 
-export interface StoreEntries<EntityType> {
+interface StoreEntries<EntityType> {
     [id: number]: StoreEntry<EntityType>
 }
 

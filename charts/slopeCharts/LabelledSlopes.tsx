@@ -282,7 +282,7 @@ class Slope extends React.Component<SlopeProps> {
     }
 }
 
-export interface LabelledSlopesProps {
+interface LabelledSlopesProps {
     bounds: Bounds
     data: SlopeChartSeries[]
     yDomain: [number | undefined, number | undefined]

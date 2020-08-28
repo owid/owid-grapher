@@ -16,7 +16,7 @@ export interface Response extends express.Response {
     locals: { user: CurrentUser; session: Session }
 }
 
-export interface Session {
+interface Session {
     id: string
     expiryDate: Date
 }
