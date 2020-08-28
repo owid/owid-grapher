@@ -51,7 +51,8 @@ import {
     ChartDimensionSpec,
     ChartDimensionInterface
 } from "./ChartDimension"
-import { MapTransform, MapConfigProps } from "charts/mapCharts/MapTransform"
+import { MapConfig } from "charts/mapCharts/MapConfig"
+import { MapTransform } from "charts/mapCharts/MapTransform"
 import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "charts/barCharts/DiscreteBarTransform"
@@ -277,7 +278,7 @@ export class ChartConfigProps {
     @observable.ref matchingEntitiesOnly?: true = undefined
     @observable excludedEntities?: number[] = undefined
 
-    @observable map: MapConfigProps = new MapConfigProps()
+    @observable map: MapConfig = new MapConfig()
 
     data?: { availableEntities: string[] } = undefined
 }
@@ -612,7 +613,7 @@ export class ChartConfig {
             }),
             autorun(() => {
                 if (this.props.hasMapTab && !this.props.map) {
-                    runInAction(() => (this.props.map = new MapConfigProps()))
+                    runInAction(() => (this.props.map = new MapConfig()))
                 }
             }),
             autorun(() => {
@@ -851,7 +852,7 @@ export class ChartConfig {
         this.props.maxTime = maxTimeFromJSON(json.maxTime)
 
         if (json.map) {
-            this.props.map = new MapConfigProps({
+            this.props.map = new MapConfig({
                 ...json.map,
                 targetYear: maxTimeFromJSON(json.map.targetYear)
             })
