@@ -90,7 +90,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
         const { chart } = this.context
         const entity = this.props.mapToDataEntities[featureId]
-        const datakeys = chart.data.availableKeysByEntity.get(entity)
+        const datakeys = chart.availableKeysByEntity.get(entity)
 
         return datakeys && datakeys.length > 0
     }
@@ -102,9 +102,9 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
         if (!ev.shiftKey) {
             chart.tab = "chart"
-            chart.data.selectOnlyThisEntity(entityName)
+            chart.selectOnlyThisEntity(entityName)
         } else {
-            chart.data.toggleEntitySelectionStatus(entityName)
+            chart.toggleEntitySelectionStatus(entityName)
         }
     }
 

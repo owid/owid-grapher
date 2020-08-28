@@ -112,31 +112,31 @@ class VariableEditRow extends React.Component<{
             chart.props.tab = "chart"
             chart.props.hasMapTab = false
             if (chart.isScatter || chart.isSlopeChart) {
-                chart.data.selectedKeys = []
+                chart.selectedKeys = []
             } else if (chart.primaryDimensions.length > 1) {
                 const entity = lodash.includes(
-                    chart.data.availableEntityNames,
+                    chart.availableEntityNames,
                     "World"
                 )
                     ? "World"
-                    : lodash.sample(chart.data.availableEntityNames)
-                chart.data.selectedKeys = chart.data.availableKeys.filter(
-                    key => chart.data.lookupKey(key).entityName === entity
+                    : lodash.sample(chart.availableEntityNames)
+                chart.selectedKeys = chart.availableKeys.filter(
+                    key => chart.lookupKey(key).entityName === entity
                 )
                 chart.props.addCountryMode = "change-country"
             } else {
                 chart.props.addCountryMode = "add-country"
                 if (chart.filledDimensions[0].yearsUniq.length === 1) {
                     chart.props.type = ChartType.DiscreteBar
-                    chart.data.selectedKeys =
-                        chart.data.availableKeys.length > 15
-                            ? lodash.sampleSize(chart.data.availableKeys, 8)
-                            : chart.data.availableKeys
+                    chart.selectedKeys =
+                        chart.availableKeys.length > 15
+                            ? lodash.sampleSize(chart.availableKeys, 8)
+                            : chart.availableKeys
                 } else {
-                    chart.data.selectedKeys =
-                        chart.data.availableKeys.length > 10
-                            ? lodash.sampleSize(chart.data.availableKeys, 3)
-                            : chart.data.availableKeys
+                    chart.selectedKeys =
+                        chart.availableKeys.length > 10
+                            ? lodash.sampleSize(chart.availableKeys, 3)
+                            : chart.availableKeys
                 }
             }
         }

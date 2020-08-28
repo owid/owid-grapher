@@ -260,7 +260,7 @@ export class ChartUrl implements ObservableUrl {
                 JSON.stringify(origChartProps.selectedData)
         ) {
             return EntityUrlBuilder.entitiesToQueryParam(
-                chart.data.selectedEntityCodes
+                chart.selectedEntityCodes
             )
         } else {
             return undefined
@@ -389,7 +389,7 @@ export class ChartUrl implements ObservableUrl {
                     const entityCodes = EntityUrlBuilder.queryParamToEntities(
                         country
                     )
-                    const matchedEntities = this.chart.data.setSelectedEntitiesByCode(
+                    const matchedEntities = this.chart.setSelectedEntitiesByCode(
                         entityCodes
                     )
                     const notFoundEntities = Array.from(

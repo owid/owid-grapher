@@ -29,21 +29,21 @@ class EntityDimensionKeyItem extends React.Component<
     @observable.ref isChoosingColor: boolean = false
 
     @computed get color() {
-        return this.props.chart.data.keyColors[this.props.entityDimensionKey]
+        return this.props.chart.keyColors[this.props.entityDimensionKey]
     }
 
     @action.bound onColor(color: string | undefined) {
-        this.props.chart.data.setKeyColor(this.props.entityDimensionKey, color)
+        this.props.chart.setKeyColor(this.props.entityDimensionKey, color)
     }
 
     @action.bound onRemove() {
-        this.props.chart.data.deselect(this.props.entityDimensionKey)
+        this.props.chart.deselect(this.props.entityDimensionKey)
     }
 
     render() {
         const { props, color } = this
         const { chart, entityDimensionKey, ...rest } = props
-        const meta = chart.data.entityDimensionMap.get(entityDimensionKey)
+        const meta = chart.entityDimensionMap.get(entityDimensionKey)
 
         return (
             <EditableListItem
@@ -71,7 +71,7 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
     @observable.ref dragKey?: EntityDimensionKey
 
     @action.bound onAddKey(key: EntityDimensionKey) {
-        this.props.chart.data.selectEntityDimensionKey(key)
+        this.props.chart.selectEntityDimensionKey(key)
     }
 
     @action.bound onStartDrag(key: EntityDimensionKey) {
@@ -88,20 +88,20 @@ class KeysSection extends React.Component<{ chart: ChartConfig }> {
     @action.bound onMouseEnter(targetKey: EntityDimensionKey) {
         if (!this.dragKey || targetKey === this.dragKey) return
 
-        const selectedKeys = clone(this.props.chart.data.selectedKeys)
+        const selectedKeys = clone(this.props.chart.selectedKeys)
         const dragIndex = selectedKeys.indexOf(this.dragKey)
         const targetIndex = selectedKeys.indexOf(targetKey)
         selectedKeys.splice(dragIndex, 1)
         selectedKeys.splice(targetIndex, 0, this.dragKey)
-        this.props.chart.data.selectedKeys = selectedKeys
+        this.props.chart.selectedKeys = selectedKeys
     }
 
     render() {
         const { chart } = this.props
-        const { selectedKeys, remainingKeys } = chart.data
+        const { selectedKeys, remainingKeys } = chart
 
         const keyLabels = remainingKeys.map(
-            key => chart.data.lookupKey(key).fullLabel
+            key => chart.lookupKey(key).fullLabel
         )
 
         return (

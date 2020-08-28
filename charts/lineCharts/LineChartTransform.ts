@@ -50,7 +50,7 @@ export class LineChartTransform extends ChartTransform {
     @computed get initialData(): LineChartSeries[] {
         const { chart } = this
         const { yAxis } = chart
-        const { selectedKeys, selectedKeysByKey } = chart.data
+        const { selectedKeys, selectedKeysByKey } = chart
         const filledDimensions = chart.filledDimensions
 
         let chartData: LineChartSeries[] = []
@@ -62,7 +62,7 @@ export class LineChartTransform extends ChartTransform {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                const entityDimensionKey = chart.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -101,7 +101,7 @@ export class LineChartTransform extends ChartTransform {
         if (this.chart.props.invertColorScheme) colors.reverse()
         chartData.forEach((series, i) => {
             series.color =
-                chart.data.keyColors[series.entityDimensionKey] || colors[i]
+                chart.keyColors[series.entityDimensionKey] || colors[i]
         })
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
@@ -164,7 +164,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     getLabelForKey(key: string) {
-        return this.chart.data.getLabelForKey(key)
+        return this.chart.getLabelForKey(key)
     }
 
     // Order of the legend items on a line chart should visually correspond

@@ -3,8 +3,7 @@ import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 
 import { uniqBy, isTouchDevice, sortBy } from "../utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
-import { EntityDimensionInfo } from "charts/core/ChartData"
+import { ChartConfig, EntityDimensionInfo } from "charts/core/ChartConfig"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -22,7 +21,7 @@ class EntitySelectorMulti extends React.Component<{
 
     @computed get availableEntities(): EntityDimensionInfo[] {
         return this.props.chart.activeTransform.selectableEntityDimensionKeys.map(
-            key => this.props.chart.data.lookupKey(key)
+            key => this.props.chart.lookupKey(key)
         )
     }
 
@@ -43,7 +42,7 @@ class EntitySelectorMulti extends React.Component<{
     }
 
     isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
-        return !!this.props.chart.data.selectedKeysByKey[entityDimensionKey]
+        return !!this.props.chart.selectedKeysByKey[entityDimensionKey]
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -69,15 +68,13 @@ class EntitySelectorMulti extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.props.chart.data.toggleKey(
-                this.searchResults[0].entityDimensionKey
-            )
+            this.props.chart.toggleKey(this.searchResults[0].entityDimensionKey)
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onClear() {
-        this.props.chart.data.selectedKeys = []
+        this.props.chart.selectedKeys = []
     }
 
     render() {
@@ -124,7 +121,7 @@ class EntitySelectorMulti extends React.Component<{
                                                         d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
-                                                        chart.data.toggleKey(
+                                                        chart.toggleKey(
                                                             d.entityDimensionKey
                                                         )
                                                     }
@@ -148,7 +145,7 @@ class EntitySelectorMulti extends React.Component<{
                                                         d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
-                                                        chart.data.toggleKey(
+                                                        chart.toggleKey(
                                                             d.entityDimensionKey
                                                         )
                                                     }
@@ -191,7 +188,7 @@ class EntitySelectorSingle extends React.Component<{
 
     @computed private get availableEntities() {
         const availableItems: { id: number; label: string }[] = []
-        this.props.chart.data.entityDimensionMap.forEach(meta => {
+        this.props.chart.entityDimensionMap.forEach(meta => {
             availableItems.push({
                 id: meta.entityId,
                 label: meta.entityName
@@ -240,7 +237,7 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityId: number) {
-        this.props.chart.data.setSingleSelectedEntity(entityId)
+        this.props.chart.setSingleSelectedEntity(entityId)
         this.props.onDismiss()
     }
 

@@ -70,7 +70,7 @@ export class SlopeChart extends React.Component<{
             return
         }
 
-        this.chart.data.toggleKey(hoverKey)
+        this.chart.toggleKey(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -92,17 +92,11 @@ export class SlopeChart extends React.Component<{
             .filter(g => g.color === hoverColor)
             .map(g => g.entityDimensionKey)
         const allKeysActive =
-            intersection(keysToToggle, chart.data.selectedKeys).length ===
+            intersection(keysToToggle, chart.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            chart.data.selectedKeys = without(
-                chart.data.selectedKeys,
-                ...keysToToggle
-            )
-        else
-            chart.data.selectedKeys = uniq(
-                chart.data.selectedKeys.concat(keysToToggle)
-            )
+            chart.selectedKeys = without(chart.selectedKeys, ...keysToToggle)
+        else chart.selectedKeys = uniq(chart.selectedKeys.concat(keysToToggle))
     }
 
     // Colors on the legend for which every matching group is focused
@@ -113,14 +107,14 @@ export class SlopeChart extends React.Component<{
                 .filter(g => g.color === color)
                 .map(g => g.entityDimensionKey)
             return (
-                intersection(matchingKeys, chart.data.selectedKeys).length ===
+                intersection(matchingKeys, chart.selectedKeys).length ===
                 matchingKeys.length
             )
         })
     }
 
     @computed get focusKeys(): string[] {
-        return this.chart.data.selectedKeys
+        return this.chart.selectedKeys
     }
 
     // All currently hovered group keys, combining the legend and the main UI

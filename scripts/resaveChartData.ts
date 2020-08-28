@@ -20,7 +20,7 @@ async function main() {
             availableEntities:
                 chart.props.addCountryMode === "disabled"
                     ? []
-                    : chart.data.availableEntityNames
+                    : chart.availableEntityNames
         }
         console.log(c.id)
         await db

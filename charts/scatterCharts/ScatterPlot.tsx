@@ -74,8 +74,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @action.bound onSelectEntity(key: EntityDimensionKey) {
-        if (this.chart.addCountryMode !== "disabled")
-            this.chart.data.toggleKey(key)
+        if (this.chart.addCountryMode !== "disabled") this.chart.toggleKey(key)
     }
 
     // Only want to show colors on legend that are actually on the chart right now
@@ -134,17 +133,11 @@ export class ScatterPlot extends React.Component<{
             .filter(g => g.color === hoverColor)
             .map(g => g.entityDimensionKey)
         const allKeysActive =
-            intersection(keysToToggle, chart.data.selectedKeys).length ===
+            intersection(keysToToggle, chart.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            chart.data.selectedKeys = without(
-                chart.data.selectedKeys,
-                ...keysToToggle
-            )
-        else
-            chart.data.selectedKeys = uniq(
-                chart.data.selectedKeys.concat(keysToToggle)
-            )
+            chart.selectedKeys = without(chart.selectedKeys, ...keysToToggle)
+        else chart.selectedKeys = uniq(chart.selectedKeys.concat(keysToToggle))
     }
 
     // Colors on the legend for which every matching group is focused
@@ -155,7 +148,7 @@ export class ScatterPlot extends React.Component<{
                 .filter(g => g.color === color)
                 .map(g => g.entityDimensionKey)
             return (
-                intersection(matchingKeys, chart.data.selectedKeys).length ===
+                intersection(matchingKeys, chart.selectedKeys).length ===
                 matchingKeys.length
             )
         })
@@ -180,7 +173,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed get focusKeys(): string[] {
-        return this.chart.data.selectedKeys
+        return this.chart.selectedKeys
     }
 
     @computed get arrowLegend(): ConnectedScatterLegend | undefined {

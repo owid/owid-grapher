@@ -306,7 +306,7 @@ class HighlightToggle extends React.Component<{
             const params = extend(getWindowQueryParams(), this.highlightParams)
             this.chart.url.populateFromQueryParams(params)
         } else {
-            this.chart.data.selectedKeys = []
+            this.chart.selectedKeys = []
         }
     }
 
@@ -981,9 +981,7 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {chart.tab === "chart" &&
                     chart.isScatter &&
-                    chart.data.hasSelection && (
-                        <ZoomToggle chart={chart.props} />
-                    )}
+                    chart.hasSelection && <ZoomToggle chart={chart.props} />}
 
                 {(chart.tab === "table" || chart.isScatter) &&
                     chart.hasCountriesSmallerThanFilterOption && (

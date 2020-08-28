@@ -54,7 +54,7 @@ export abstract class ChartTransform implements IChartTransform {
     abstract get availableYears(): Time[]
 
     @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
-        return this.chart.data.availableKeys
+        return this.chart.availableKeys
     }
 
     /**

@@ -1062,7 +1062,7 @@ export class CovidExplorer extends React.Component<{
     // todo: remove
     private observeChartEntitySelection() {
         this.disposers.push(
-            observe(this.chart.data, "selectedEntityCodes", change => {
+            observe(this.chart, "selectedEntityCodes", change => {
                 // Ignore the change if it was triggered by the chart builder,
                 // but do not ignore subsequent changes.
                 if (this.selectionChangeFromBuilder) {

@@ -124,7 +124,7 @@ export class StackedBarTransform extends ChartTransform {
 
     @computed get groupedData(): StackedBarSeries[] {
         const { chart, timelineYears } = this
-        const { selectedKeys, selectedKeysByKey } = chart.data
+        const { selectedKeys, selectedKeysByKey } = chart
         const filledDimensions = chart.filledDimensions
 
         let groupedData: StackedBarSeries[] = []
@@ -136,7 +136,7 @@ export class StackedBarTransform extends ChartTransform {
                 const year = dimension.years[i]
                 const entityName = dimension.entityNames[i]
                 const value = +dimension.values[i]
-                const entityDimensionKey = chart.data.makeEntityDimensionKey(
+                const entityDimensionKey = chart.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -154,7 +154,7 @@ export class StackedBarTransform extends ChartTransform {
                 if (!series) {
                     series = {
                         entityDimensionKey: entityDimensionKey,
-                        label: chart.data.getLabelForKey(entityDimensionKey),
+                        label: chart.getLabelForKey(entityDimensionKey),
                         values: [],
                         color: "#fff" // Temp
                     }
@@ -232,7 +232,7 @@ export class StackedBarTransform extends ChartTransform {
             },
             get formatCategoricalValue() {
                 return (key: EntityDimensionKey) =>
-                    that.chart.data.getLabelForKey(key)
+                    that.chart.getLabelForKey(key)
             }
         })
     }

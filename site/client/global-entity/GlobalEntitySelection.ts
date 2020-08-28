@@ -64,11 +64,11 @@ export function subscribeChartToGlobalEntitySelection(
             // This implements "override" mode only!
             if (mode === GlobalEntitySelectionModes.override) {
                 if (selectedEntities.length > 0) {
-                    chart.data.setSelectedEntitiesByCode(
+                    chart.setSelectedEntitiesByCode(
                         selectedEntities.map(entity => entity.code)
                     )
                 } else {
-                    chart.data.resetSelectedEntities()
+                    chart.resetSelectedEntities()
                 }
             }
         },

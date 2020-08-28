@@ -149,7 +149,7 @@ export class ScatterTransform extends ChartTransform {
         filterBackgroundEntities = this.hideBackgroundEntities
     ): entityName[] {
         let entityNames = filterBackgroundEntities
-            ? this.chart.data.selectedEntityNames
+            ? this.chart.selectedEntityNames
             : this.possibleEntityNames
 
         if (this.chart.props.matchingEntitiesOnly && this.colorDimension)
@@ -446,7 +446,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get pointsForAxisDomains() {
-        if (!this.chart.data.hasSelection || !this.chart.props.zoomToSelection)
+        if (!this.chart.hasSelection || !this.chart.props.zoomToSelection)
             return this.currentValues
 
         return this.selectedPoints.length
@@ -638,20 +638,20 @@ export class ScatterTransform extends ChartTransform {
             compareEndPointsOnly,
             xOverrideYear
         } = this
-        const { keyColors } = chart.data
+        const { keyColors } = chart
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndYear().forEach((dataByYear, entityName) => {
             // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
-            const entityDimensionKey = chart.data.makeEntityDimensionKey(
+            const entityDimensionKey = chart.makeEntityDimensionKey(
                 entityName,
                 0
             )
 
             const group = {
                 entityDimensionKey,
-                label: chart.data.getLabelForKey(entityDimensionKey),
+                label: chart.getLabelForKey(entityDimensionKey),
                 color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
                 values: []

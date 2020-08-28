@@ -51,24 +51,23 @@ class DimensionSlotView extends React.Component<{
             () => chart.props.type && chart.primaryDimensions,
             () => {
                 if (chart.isScatter || chart.isSlopeChart) {
-                    chart.data.selectedKeys = []
+                    chart.selectedKeys = []
                 } else if (chart.primaryDimensions.length > 1) {
                     const entityName = includes(
-                        chart.data.availableEntityNames,
+                        chart.availableEntityNames,
                         "World"
                     )
                         ? "World"
-                        : sample(chart.data.availableEntityNames)
-                    chart.data.selectedKeys = chart.data.availableKeys.filter(
-                        key =>
-                            chart.data.lookupKey(key).entityName === entityName
+                        : sample(chart.availableEntityNames)
+                    chart.selectedKeys = chart.availableKeys.filter(
+                        key => chart.lookupKey(key).entityName === entityName
                     )
                     chart.props.addCountryMode = "change-country"
                 } else {
-                    chart.data.selectedKeys =
-                        chart.data.availableKeys.length > 10
-                            ? sampleSize(chart.data.availableKeys, 3)
-                            : chart.data.availableKeys
+                    chart.selectedKeys =
+                        chart.availableKeys.length > 10
+                            ? sampleSize(chart.availableKeys, 3)
+                            : chart.availableKeys
                     chart.props.addCountryMode = "add-country"
                 }
             }
