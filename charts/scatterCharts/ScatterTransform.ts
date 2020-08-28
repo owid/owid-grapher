@@ -57,7 +57,10 @@ export class ScatterTransform extends ChartTransform {
                 )
             },
             get hasNoDataBin() {
-                return that.allPoints.some(point => point.color === undefined)
+                return !!(
+                    that.colorDimension &&
+                    that.allPoints.some(point => point.color === undefined)
+                )
             },
             get defaultNoDataColor() {
                 return "#959595"
