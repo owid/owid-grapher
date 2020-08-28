@@ -74,7 +74,10 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get currentData(): DiscreteBarDatum[] {
-        const { chart, targetYear } = this
+        const { chart } = this
+        const targetYear = chart.isLineChart
+            ? chart.lineChartTransform.targetYear
+            : this.targetYear
         const { filledDimensions } = chart
         const { selectedKeysByKey } = chart
         const dataByEntityDimensionKey: {
