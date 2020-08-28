@@ -5,7 +5,7 @@ import { SketchPicker } from "react-color"
 import { lastOfNonEmptyArray } from "charts/utils/Util"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 
-export interface ColorpickerProps {
+interface ColorpickerProps {
     color?: string
     onColor: (color: string | undefined) => void
 }

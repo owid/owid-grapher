@@ -623,7 +623,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 }
 
-export const TimelineHandle = ({
+const TimelineHandle = ({
     type,
     offsetPercent,
     tooltipContent,

@@ -12,7 +12,7 @@ import * as React from "react"
 
 declare type FontSize = number
 
-export interface TextWrapProps {
+interface TextWrapProps {
     text: string
     maxWidth: number
     lineHeight?: number

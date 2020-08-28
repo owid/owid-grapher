@@ -6,7 +6,7 @@ import { computed, action } from "mobx"
 import { format } from "timeago.js"
 
 @observer
-export class LogRenderer extends React.Component<{
+class LogRenderer extends React.Component<{
     log: Log
     applyConfig: (config: any) => void
 }> {

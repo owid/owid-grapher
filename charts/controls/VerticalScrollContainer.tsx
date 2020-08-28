@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import classnames from "classnames"
 
-export type VerticalScrollContainerProps = React.DetailedHTMLProps<
+type VerticalScrollContainerProps = React.DetailedHTMLProps<
     React.HTMLAttributes<HTMLDivElement>,
     HTMLDivElement
 > & {

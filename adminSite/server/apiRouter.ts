@@ -607,15 +607,6 @@ apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
     return { success: true }
 })
 
-export interface UserIndexMeta {
-    id: number
-    name: string
-    fullName: string
-    createdAt: Date
-    updatedAt: Date
-    isActive: boolean
-}
-
 apiRouter.get("/users.json", async (req: Request, res: Response) => {
     return {
         users: await User.find({
@@ -743,7 +734,7 @@ apiRouter.get("/variables.json", async req => {
     return { variables: rows, numTotalRows: numTotalRows }
 })
 
-export interface VariableSingleMeta {
+interface VariableSingleMeta {
     id: number
     name: string
     unit: string

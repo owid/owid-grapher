@@ -13,13 +13,13 @@ function identity(x: any) {
     return x
 }
 
-export interface IDeployQueueItem {
+interface IDeployQueueItem {
     authorName?: string
     authorEmail?: string
     message?: string
 }
 
-export async function readQueueContent(): Promise<string> {
+async function readQueueContent(): Promise<string> {
     const queueContent = await fs.readFile(DEPLOY_QUEUE_FILE_PATH, "utf8")
     // If any deploys didn't exit cleanly, DEPLOY_PENDING_FILE_PATH would exist.
     // Prepend that message to the current deploy.
@@ -38,7 +38,7 @@ export async function enqueueDeploy(item: IDeployQueueItem) {
     await fs.appendFile(DEPLOY_QUEUE_FILE_PATH, JSON.stringify(item) + "\n")
 }
 
-export async function eraseQueueContent() {
+async function eraseQueueContent() {
     await fs.truncate(DEPLOY_QUEUE_FILE_PATH, 0)
 }
 
@@ -46,7 +46,7 @@ export async function queueIsEmpty(): Promise<boolean> {
     return !(await readQueueContent())
 }
 
-export async function pullQueueContent(): Promise<string> {
+async function pullQueueContent(): Promise<string> {
     // Read line-delimited JSON
     const queueContent = await readQueueContent()
 
@@ -57,7 +57,7 @@ export async function pullQueueContent(): Promise<string> {
     return queueContent
 }
 
-export function parseQueueContent(content: string): IDeployQueueItem[] {
+function parseQueueContent(content: string): IDeployQueueItem[] {
     // Parse all lines in file as JSON
     return content
         .split("\n")
@@ -71,7 +71,7 @@ export function parseQueueContent(content: string): IDeployQueueItem[] {
         .filter(identity)
 }
 
-export function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
+function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
     const date: string = new Date().toISOString()
 
     const message: string = queueItems

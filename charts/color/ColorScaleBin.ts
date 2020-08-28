@@ -1,6 +1,6 @@
 import { Color } from "charts/core/ChartConstants"
 
-export interface NumericBinProps {
+interface NumericBinProps {
     isFirst: boolean
     isOpenLeft: boolean
     isOpenRight: boolean
@@ -69,7 +69,7 @@ export class NumericBin {
     }
 }
 
-export interface CategoricalBinProps {
+interface CategoricalBinProps {
     index: number
     value: string
     color: Color

@@ -5,15 +5,7 @@ import { BindString, Toggle } from "./Forms"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-
-interface UserIndexMeta {
-    id: number
-    name: string
-    fullName: string
-    createdAt: Date
-    updatedAt: Date
-    isActive: boolean
-}
+import { UserIndexMeta } from "./UserMeta"
 
 @observer
 export class UserEditPage extends React.Component<{ userId: number }> {

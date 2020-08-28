@@ -6,14 +6,9 @@ import { Modal, Timeago } from "./Forms"
 import { Link } from "./Link"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
+import { UserIndexMeta } from "./UserMeta"
 
-interface UserIndexMeta {
-    id: number
-    name: string
-    fullName: string
-    createdAt: Date
-    updatedAt: Date
-    isActive: boolean
+interface UserIndexMetaWithLastSeen extends UserIndexMeta {
     lastSeen: Date
 }
 
@@ -95,10 +90,10 @@ export class UsersIndexPage extends React.Component {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable users: UserIndexMeta[] = []
+    @observable users: UserIndexMetaWithLastSeen[] = []
     @observable isInviteModal: boolean = false
 
-    @action.bound async onDelete(user: UserIndexMeta) {
+    @action.bound async onDelete(user: UserIndexMetaWithLastSeen) {
         if (
             !window.confirm(
                 `Delete the user ${user.fullName}? This action cannot be undone!`
@@ -202,7 +197,7 @@ export class UsersIndexPage extends React.Component {
         const { admin } = this.context
 
         const json = (await admin.getJSON("/api/users.json")) as {
-            users: UserIndexMeta[]
+            users: UserIndexMetaWithLastSeen[]
         }
 
         runInAction(() => {

@@ -13,7 +13,7 @@ import { StoreEntry } from "./Store"
 import { asArray } from "utils/client/react-select"
 import { first } from "charts/utils/Util"
 
-export interface IndicatorDropdownProps {
+interface IndicatorDropdownProps {
     placeholder: string
     indicatorEntry: StoreEntry<Indicator> | null
     onChangeId: (id: number) => void

@@ -109,7 +109,7 @@ class ExplorerRow extends React.Component<{
 }
 
 @observer
-export class ExplorerList extends React.Component<{
+class ExplorerList extends React.Component<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage

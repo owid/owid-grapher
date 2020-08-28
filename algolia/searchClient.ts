@@ -9,7 +9,7 @@ function getClient() {
     return algolia
 }
 
-export type PageHit = ArticleHit | CountryHit
+type PageHit = ArticleHit | CountryHit
 
 export interface CountryHit {
     objectID: string

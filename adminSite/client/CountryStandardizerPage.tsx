@@ -184,8 +184,7 @@ class CSV {
     }
 }
 
-export interface CountryEntry
-    extends React.HTMLAttributes<HTMLTableRowElement> {
+interface CountryEntry extends React.HTMLAttributes<HTMLTableRowElement> {
     originalName: string
     standardizedName?: string
     approximatedMatches: string[]
@@ -194,7 +193,7 @@ export interface CountryEntry
 }
 
 @observer
-export class CountryEntryRowRenderer extends React.Component<{
+class CountryEntryRowRenderer extends React.Component<{
     entry: CountryEntry
     allCountries: string[]
     onUpdate: (value: string, inputCountry: string, isCustom: boolean) => void

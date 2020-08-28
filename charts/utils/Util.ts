@@ -102,7 +102,6 @@ export {
     clone,
     reduce,
     noop,
-    round,
     toArray,
     throttle,
     has,
@@ -163,23 +162,6 @@ interface TouchListLike {
         clientX: number
         clientY: number
     }
-}
-
-export function getAbsoluteMouse(
-    event:
-        | { clientX: number; clientY: number }
-        | { targetTouches: TouchListLike }
-): Vector2 {
-    let clientX, clientY
-    if ((event as any).clientX != null) {
-        clientX = (event as any).clientX
-        clientY = (event as any).clientY
-    } else {
-        clientX = (event as any).targetTouches[0].clientX
-        clientY = (event as any).targetTouches[0].clientY
-    }
-
-    return new Vector2(clientX, clientY)
 }
 
 export function getRelativeMouse(
@@ -248,21 +230,6 @@ export function formatYear(year: number): string {
     }
 
     return year < 0 ? `${format(",.0f")(Math.abs(year))} BCE` : year.toString()
-}
-
-// Bind a "mobx component"
-// Still working out exactly how this pattern goes
-// export function component<T extends { [key: string]: any }>(current: T | undefined, klass: { new(): T }, props: Partial<T>): T {
-//     const instance = current || new klass()
-//     each(keys(props), (key: string) => {
-//         instance[key] = props[key]
-//     })
-//     return instance
-// }
-
-export function precisionRound(num: number, precision: number) {
-    const factor = Math.pow(10, precision)
-    return Math.round(num * factor) / factor
 }
 
 export function roundSigFig(num: number, sigfigs: number = 1) {
@@ -446,10 +413,6 @@ export function pointsToPath(points: Array<[number, number]>) {
         else path += `L${points[i][0]} ${points[i][1]}`
     }
     return path
-}
-
-export function keysOf<T, K extends keyof T>(obj: T): K[] {
-    return Object.keys(obj) as K[]
 }
 
 // Based on https://stackoverflow.com/a/30245398/1983739
@@ -762,7 +725,7 @@ const trimArray = (arr: any[]) => {
 export const anyToString = (value: any) =>
     value?.toString ? value.toString() : ""
 
-export const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
+const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)
 export const trimGrid = (grid: Grid): Grid =>
     trimEmptyColumns(trimEmptyRows(grid))
 
@@ -858,11 +821,11 @@ export function insertMissingValuePlaceholders(
 // Scroll Helpers
 // Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
 
-export function isDocumentElement(el: HTMLElement) {
+function isDocumentElement(el: HTMLElement) {
     return [document.documentElement, document.body].indexOf(el) > -1
 }
 
-export function scrollTo(el: HTMLElement, top: number): void {
+function scrollTo(el: HTMLElement, top: number): void {
     // with a scroll distance, we perform scroll on the element
     if (isDocumentElement(el)) {
         window.scrollTo(0, top)

@@ -15,7 +15,7 @@ export interface ColorSchemeOption {
     value: string
 }
 
-export interface ColorSchemeDropdownProps {
+interface ColorSchemeDropdownProps {
     additionalOptions: ColorSchemeOption[]
     value?: string
     gradientColorCount: number

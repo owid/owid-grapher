@@ -20,7 +20,7 @@ import { DataTable } from "charts/dataTable/DataTable"
 import { Analytics } from "site/client/Analytics"
 import { UrlBinder } from "charts/utils/UrlBinder"
 
-export interface ChartTypeButton {
+interface ChartTypeButton {
     type: ExplorerChartType
     label: string
     icon: IconDefinition

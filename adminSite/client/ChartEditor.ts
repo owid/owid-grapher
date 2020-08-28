@@ -11,9 +11,9 @@ import { EditorFeatures } from "./EditorFeatures"
 import { Admin } from "./Admin"
 import { BAKED_GRAPHER_URL } from "settings"
 
-export type EditorTab = string
+type EditorTab = string
 
-export interface Variable {
+interface Variable {
     id: number
     name: string
 }
@@ -66,7 +66,7 @@ export class EditorDatabase {
     }
 }
 
-export interface ChartEditorProps {
+interface ChartEditorProps {
     admin: Admin
     chart: ChartConfig
     database: EditorDatabase

@@ -23,7 +23,7 @@ export interface VisionDeficiency {
     transformationMatrix: string
 }
 
-export const visionDeficiencies: VisionDeficiency[] = [
+const visionDeficiencies: VisionDeficiency[] = [
     // Color blindnesses first
     {
         id: "protanopia",

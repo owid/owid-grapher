@@ -25,7 +25,7 @@ export class FieldsRow extends React.Component {
     }
 }
 
-export interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
+interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
     label?: string
     value: string | undefined
     onValue: (value: string) => void
@@ -106,7 +106,7 @@ export class TextField extends React.Component<TextFieldProps> {
     }
 }
 
-export class TextAreaField extends React.Component<TextFieldProps> {
+class TextAreaField extends React.Component<TextFieldProps> {
     @bind onChange(ev: React.FormEvent<HTMLTextAreaElement>) {
         const value = ev.currentTarget.value
         this.props.onValue(value)
@@ -150,7 +150,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
 export class SearchField extends TextField {}
 
-export interface NumberFieldProps {
+interface NumberFieldProps {
     label?: string
     value: number | undefined
     allowDecimal?: boolean
@@ -208,7 +208,7 @@ export class NumberField extends React.Component<
     }
 }
 
-export interface SelectFieldProps {
+interface SelectFieldProps {
     label?: string
     value: string | undefined
     onValue: (value: string) => void
@@ -272,7 +272,7 @@ export interface SelectGroup {
     options: Option[]
 }
 
-export interface SelectGroupsFieldProps {
+interface SelectGroupsFieldProps {
     label?: string
     value: string | undefined
     onValue: (value: string) => void
@@ -320,12 +320,12 @@ export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
     }
 }
 
-export interface RadioGroupOption {
+interface RadioGroupOption {
     label?: string
     value: string
 }
 
-export interface RadioGroupProps {
+interface RadioGroupProps {
     options: RadioGroupOption[]
     value?: string
     onChange: (value: string) => void
@@ -357,7 +357,7 @@ export class RadioGroup extends React.Component<RadioGroupProps> {
     }
 }
 
-export interface NumericSelectFieldProps {
+interface NumericSelectFieldProps {
     label?: string
     value: number | undefined
     onValue: (value: number) => void
@@ -385,7 +385,7 @@ export class NumericSelectField extends React.Component<
     }
 }
 
-export interface ToggleProps {
+interface ToggleProps {
     label: string | JSX.Element
     value: boolean
     onValue: (value: boolean) => void
@@ -418,7 +418,7 @@ export class Toggle extends React.Component<ToggleProps> {
     }
 }
 
-export interface ButtonProps {
+interface ButtonProps {
     onClick: () => void
     label?: string
 }
@@ -517,7 +517,7 @@ export class Section extends React.Component<{ name: string }> {
     }
 }
 
-export interface AutoTextFieldProps {
+interface AutoTextFieldProps {
     label?: string
     value: string | undefined
     placeholder?: string
@@ -692,7 +692,7 @@ export class BindAutoString<
     }
 }
 
-export interface AutoFloatFieldProps {
+interface AutoFloatFieldProps {
     label?: string
     value: number
     isAuto: boolean
@@ -701,7 +701,7 @@ export interface AutoFloatFieldProps {
     onToggleAuto: (value: boolean) => void
 }
 
-export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
+class AutoFloatField extends React.Component<AutoFloatFieldProps> {
     render() {
         const { props } = this
 
@@ -718,14 +718,14 @@ export class AutoFloatField extends React.Component<AutoFloatFieldProps> {
     }
 }
 
-export interface FloatFieldProps {
+interface FloatFieldProps {
     label?: string
     value: number | undefined
     helpText?: string
     onValue: (value: number | undefined) => void
 }
 
-export class FloatField extends React.Component<FloatFieldProps> {
+class FloatField extends React.Component<FloatFieldProps> {
     render() {
         const { props } = this
 

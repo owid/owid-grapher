@@ -32,13 +32,13 @@ type TargetYears = [number] | [number, number]
 
 // Dimensions
 
-export interface Dimension {
+interface Dimension {
     dimension: ChartDimension
     columns: DimensionColumn[]
     valueByEntity: Map<string, DimensionValue>
 }
 
-export interface DimensionColumn {
+interface DimensionColumn {
     key: SingleValueKey | RangeValueKey
     targetYear?: number
     targetYearMode?: TargetYearMode
@@ -61,7 +61,7 @@ export enum RangeValueKey {
     deltaRatio = "deltaRatio"
 }
 
-export type RangeValue = Record<RangeValueKey, Value | undefined>
+type RangeValue = Record<RangeValueKey, Value | undefined>
 
 export function isRangeValue(value: DimensionValue): value is RangeValue {
     return "start" in value
@@ -73,7 +73,7 @@ export enum SingleValueKey {
     single = "single"
 }
 
-export type SingleValue = Record<SingleValueKey, Value | undefined>
+type SingleValue = Record<SingleValueKey, Value | undefined>
 
 export function isSingleValue(value: DimensionValue): value is SingleValue {
     return "single" in value
@@ -87,7 +87,7 @@ export type ColumnKey = SingleValueKey | RangeValueKey
 
 // Data table types
 
-export interface Sortable {
+interface Sortable {
     sortable: boolean
 }
 
