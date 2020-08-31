@@ -7,14 +7,14 @@ import {
     ChartViewContextType
 } from "charts/core/ChartViewContext"
 import { ControlsOverlay } from "charts/controls/Controls"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 
 @observer
 class Message extends React.Component<{
-    chart: ChartRuntime
+    chart: ChartConfig
     bounds: Bounds
     message?: string
 }> {

@@ -14,7 +14,7 @@ import {
 } from "../utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
 import { AxisBoxComponent } from "charts/axis/AxisViews"
 import { AxisBox } from "charts/axis/Axis"
@@ -234,11 +234,11 @@ class Areas extends React.Component<AreasProps> {
 @observer
 export class StackedAreaChart extends React.Component<{
     bounds: Bounds
-    chart: ChartRuntime
+    chart: ChartConfig
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get chart(): ChartRuntime {
+    @computed get chart(): ChartConfig {
         return this.props.chart
     }
     @computed get bounds(): Bounds {

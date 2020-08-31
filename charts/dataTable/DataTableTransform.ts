@@ -11,7 +11,7 @@ import {
     countBy,
     union
 } from "charts/utils/Util"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { TickFormattingOptions } from "charts/core/ChartConstants"
 import {
@@ -113,9 +113,9 @@ function getHeaderUnit(unit: string) {
 }
 
 export class DataTableTransform extends ChartTransform {
-    chart: ChartRuntime
+    chart: ChartConfig
 
-    constructor(chart: ChartRuntime) {
+    constructor(chart: ChartConfig) {
         super(chart)
         this.chart = chart
     }

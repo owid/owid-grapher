@@ -3,7 +3,7 @@ import "site/client/owid.scss"
 import "charts/core/chart.scss"
 import { LineChart } from "charts/lineCharts/LineChart"
 import { ChartScript } from "charts/core/ChartScript"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { parseDelimited } from "charts/utils/Util"
 
 export default {
@@ -23,7 +23,7 @@ export const Default = () => {
         dimensions: [{ variableId: 99, property: "y" }]
     } as Partial<ChartScript>
 
-    const chartConfig = new ChartRuntime(props as any)
+    const chartConfig = new ChartConfig(props as any)
     const rows = parseDelimited(`entityName,year,gdp,entityId
 France,2000,100,0
 Germany,2000,200,1

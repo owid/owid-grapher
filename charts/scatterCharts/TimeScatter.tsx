@@ -4,7 +4,7 @@ import * as React from "react"
 import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { AxisBox, HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
 import { AxisBoxComponent } from "charts/axis/AxisViews"
@@ -57,7 +57,7 @@ interface PointsWithLabelsProps {
     yAxis: VerticalAxis
     sizeDomain: [number, number]
     hideLines: boolean
-    chart: ChartRuntime
+    chart: ChartConfig
 }
 
 interface ScatterRenderPoint {
@@ -579,10 +579,10 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 @observer
 export class TimeScatter extends React.Component<{
     bounds: Bounds
-    config: ChartRuntime
+    config: ChartConfig
     isStatic: boolean
 }> {
-    @computed get chart(): ChartRuntime {
+    @computed get chart(): ChartConfig {
         return this.props.config
     }
 

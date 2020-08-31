@@ -22,7 +22,7 @@ import {
 } from "charts/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import {
     PointsWithLabels,
@@ -44,7 +44,7 @@ import { TimeBound } from "charts/utils/TimeBounds"
 @observer
 export class ScatterPlot extends React.Component<{
     bounds: Bounds
-    config: ChartRuntime
+    config: ChartConfig
     isStatic: boolean
 }> {
     // currently hovered individual series key
@@ -52,7 +52,7 @@ export class ScatterPlot extends React.Component<{
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get chart(): ChartRuntime {
+    @computed get chart(): ChartConfig {
         return this.props.config
     }
 

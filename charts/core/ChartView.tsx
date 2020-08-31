@@ -6,7 +6,7 @@ import "d3-transition"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
-import { ChartRuntime } from "./ChartRuntime"
+import { ChartConfig } from "./ChartConfig"
 import {
     Controls,
     ControlsFooterView,
@@ -32,7 +32,7 @@ declare const window: any
 
 interface ChartViewProps {
     bounds: Bounds
-    chart: ChartRuntime
+    chart: ChartConfig
     isExport?: boolean
     isEditor?: boolean
     isEmbed?: boolean
@@ -66,7 +66,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         globalEntitySelection?: GlobalEntitySelection
     }) {
         let chartView
-        const chart = new ChartRuntime(jsonConfig, {
+        const chart = new ChartConfig(jsonConfig, {
             isEmbed: isEmbed,
             queryStr: queryStr,
             globalEntitySelection: globalEntitySelection

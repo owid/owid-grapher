@@ -13,7 +13,7 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { ChartFigureView } from "site/client/ChartFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -71,7 +71,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref chart?: ChartRuntime
+    @observable.ref chart?: ChartConfig
 
     @computed get isModified(): boolean {
         return (
@@ -304,7 +304,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.chart = new ChartRuntime(this.chartConfig as any)
+        this.chart = new ChartConfig(this.chartConfig as any)
 
         this.dispose = autorun(() => {
             if (this.chart && this.chartConfig) {
