@@ -252,13 +252,12 @@ export class LineLabelsComponent extends React.Component<
 
     // Naive initial placement of each mark at the target height, before collision detection
     @computed private get initialMarks(): PlacedLabel[] {
-        const { legend, x, yAxis: yScale } = this.props
+        const { legend, x, yAxis } = this.props
 
         return sortBy(
             legend.marks.map(mark => {
                 // place vertically centered at Y value
-                const initialY =
-                    yScale.place(mark.item.yValue) - mark.height / 2
+                const initialY = yAxis.place(mark.item.yValue) - mark.height / 2
                 const origBounds = new Bounds(
                     x,
                     initialY,
@@ -268,8 +267,8 @@ export class LineLabelsComponent extends React.Component<
 
                 // ensure label doesn't go beyond the top or bottom of the chart
                 const y = Math.min(
-                    Math.max(initialY, yScale.rangeMin),
-                    yScale.rangeMax - mark.height
+                    Math.max(initialY, yAxis.rangeMin),
+                    yAxis.rangeMax - mark.height
                 )
                 const bounds = new Bounds(x, y, mark.width, mark.height)
 
@@ -286,12 +285,12 @@ export class LineLabelsComponent extends React.Component<
 
                 // Ensure list is sorted by the visual position in ascending order
             }),
-            mark => yScale.place(mark.mark.item.yValue)
+            mark => yAxis.place(mark.mark.item.yValue)
         )
     }
 
     @computed get standardPlacement() {
-        const { yAxis: yScale } = this.props
+        const { yAxis } = this.props
 
         const groups: PlacedLabel[][] = cloneDeep(
             this.initialMarks
@@ -320,9 +319,9 @@ export class LineLabelsComponent extends React.Component<
                         overlapHeight *
                             (bottomGroup.length /
                                 (topGroup.length + bottomGroup.length))
-                    const overflowTop = Math.max(yScale.rangeMin - targetY, 0)
+                    const overflowTop = Math.max(yAxis.rangeMin - targetY, 0)
                     const overflowBottom = Math.max(
-                        targetY + newHeight - yScale.rangeMax,
+                        targetY + newHeight - yAxis.rangeMax,
                         0
                     )
                     const newY = targetY + overflowTop - overflowBottom

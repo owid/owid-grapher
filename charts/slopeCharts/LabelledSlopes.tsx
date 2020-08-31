@@ -381,7 +381,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return this.yScaleType === ScaleType.log ? scaleLog : scaleLinear
     }
 
-    @computed get yScale():
+    @computed private get yScale():
         | ScaleLinear<number, number>
         | ScaleLogarithmic<number, number> {
         return this.yScaleConstructor()
@@ -389,7 +389,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             .range(this.props.bounds.padBottom(50).yRange())
     }
 
-    @computed get xScale(): ScaleLinear<number, number> {
+    @computed private get xScale(): ScaleLinear<number, number> {
         const { bounds, isPortrait, xDomain, yScale } = this
         const padding = isPortrait
             ? 0
