@@ -164,7 +164,7 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed get xAxis() {
         const axis = this.chart.yAxisOptions.toVerticalAxis()
-        axis.updateDomain(this.xDomainDefault)
+        axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.tickFormat = this.chart.discreteBarTransform.tickFormat
         axis.range = this.xRange

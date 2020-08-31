@@ -76,7 +76,7 @@ export class StackedBarTransform extends ChartTransform {
     @computed get xAxis() {
         const { chart, xDomainDefault } = this
         const axis = chart.xAxisOptions.toHorizontalAxis()
-        axis.updateDomain(xDomainDefault)
+        axis.updateDomainPreservingUserSettings(xDomainDefault)
         if (this.chart.formatYearFunction)
             axis.tickFormat = this.chart.formatYearFunction as any
         axis.hideGridlines = true
@@ -104,7 +104,7 @@ export class StackedBarTransform extends ChartTransform {
     @computed get yAxis() {
         const { chart, yDomainDefault, yTickFormat } = this
         const axis = chart.yAxisOptions.toVerticalAxis()
-        axis.updateDomain(yDomainDefault)
+        axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
         axis.tickFormat = yTickFormat
         return axis

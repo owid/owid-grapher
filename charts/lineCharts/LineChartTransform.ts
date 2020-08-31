@@ -143,10 +143,6 @@ export class LineChartTransform extends ChartTransform {
         return flatten(this.groupedData.map(series => series.values))
     }
 
-    @computed get xDomain(): [number, number] {
-        return [this.startYear, this.endYear]
-    }
-
     @computed get annotationsMap() {
         return this.chart.primaryDimensions[0].column.annotationsColumn
             ?.entityNameMap
@@ -187,9 +183,8 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get xAxis() {
-        const { xDomain } = this
         const axis = this.chart.xAxisOptions.toHorizontalAxis()
-        axis.updateDomain(xDomain)
+        axis.updateDomainPreservingUserSettings([this.startYear, this.endYear])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
         axis.tickFormat = this.chart.formatYearTickFunction
@@ -244,7 +239,7 @@ export class LineChartTransform extends ChartTransform {
     @computed get yAxis() {
         const { chart, yDomain, yTickFormat, isRelativeMode } = this
         const axis = chart.yAxisOptions.toVerticalAxis()
-        axis.updateDomain(yDomain)
+        axis.updateDomainPreservingUserSettings(yDomain)
         if (isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.allValues.every(val => val.y % 1 === 0) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
