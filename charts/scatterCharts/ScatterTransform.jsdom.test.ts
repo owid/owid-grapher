@@ -2,7 +2,7 @@
 
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
 import { ChartConfig } from "charts/core/ChartConfig"
-import { basicScatter } from "./ScatterPlot.stories"
+import { basicScatter } from "./ScatterPlot.tests"
 
 describe(ScatterTransform, () => {
     it("can create a new transform", () => {
