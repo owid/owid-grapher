@@ -10,11 +10,4 @@ describe(ScatterTransform, () => {
         const scatterT = new ScatterTransform(chart)
         expect(scatterT.failMessage).toEqual("Missing Y axis variable")
     })
-
-    it("can handle relative mode", () => {
-        const chartRuntime = basicScatter()
-        expect(chartRuntime.scatterTransform.failMessage).toEqual(
-            "Missing Y axis variable"
-        )
-    })
 })
