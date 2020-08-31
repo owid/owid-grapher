@@ -30,7 +30,7 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { NoDataOverlay } from "../core/NoDataOverlay"
-import { HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
+import { DualAxis } from "charts/axis/Axis"
 import { Vector2 } from "charts/utils/Vector2"
 import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
@@ -67,9 +67,7 @@ interface PointsWithLabelsProps {
     data: ScatterSeries[]
     hoverKeys: string[]
     focusKeys: string[]
-    bounds: Bounds
-    xAxis: HorizontalAxis
-    yAxis: VerticalAxis
+    dualAxis: DualAxis
     colorScale?: ColorScale
     sizeDomain: [number, number]
     onMouseOver: (series: ScatterSeries) => void
@@ -258,7 +256,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds
+        return this.props.dualAxis.innerBounds
     }
 
     // When focusing multiple entities, we hide some information to declutter
@@ -295,9 +293,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     // Pre-transform data for rendering
     @computed private get initialRenderData(): ScatterRenderSeries[] {
         const { data, sizeScale, fontScale, colorScale, bounds } = this
-        const xAxis = this.props.xAxis.clone()
+        const xAxis = this.props.dualAxis.xAxis.clone()
         xAxis.range = bounds.xRange()
-        const yAxis = this.props.yAxis.clone()
+        const yAxis = this.props.dualAxis.yAxis.clone()
         yAxis.range = this.bounds.yRange()
 
         return sortNumeric(

@@ -23,7 +23,9 @@ import {
     identity,
     minBy,
     sortNumeric,
-    lowerCaseFirstLetterUnlessAbbreviation
+    lowerCaseFirstLetterUnlessAbbreviation,
+    cagr,
+    relativeMinAndMax
 } from "charts/utils/Util"
 import { computed } from "mobx"
 import { ChartDimension } from "charts/core/ChartDimension"
@@ -369,47 +371,34 @@ export class ScatterTransform extends ChartTransform {
         return flatten(this.currentData.map(g => g.values))
     }
 
-    private relativeMinAndMax(property: "x" | "y"): [number, number] {
-        let minChange = 0
-        let maxChange = 0
-
-        const values = this.allPoints.filter(
-            point => point.x !== 0 && point.y !== 0
-        )
-
-        for (let i = 0; i < values.length; i++) {
-            const indexValue = values[i]
-            for (let j = i + 1; j < values.length; j++) {
-                const targetValue = values[j]
-
-                if (targetValue.entityName !== indexValue.entityName) continue
-
-                const change = cagr(indexValue, targetValue, property)
-                if (change < minChange) minChange = change
-                if (change > maxChange) maxChange = change
-            }
-        }
-        return [minChange, maxChange]
-    }
-
     // domains across the entire timeline
-    @computed private get xDomainDefault(): [number, number] {
+    private domainDefault(property: "x" | "y"): [number, number] {
+        const scaleType = property === "x" ? this.xScaleType : this.yScaleType
         if (!this.chart.useTimelineDomains) {
             return domainExtent(
-                this.pointsForAxisDomains.map(d => d.x),
-                this.xScaleType,
+                this.pointsForAxisDomains.map(d => d[property]),
+                scaleType,
                 this.chart.props.zoomToSelection && this.selectedPoints.length
                     ? 1.1
                     : 1
             )
         }
 
-        if (this.isRelativeMode) return this.relativeMinAndMax("x")
+        if (this.isRelativeMode)
+            return relativeMinAndMax(this.allPoints, property)
 
         return domainExtent(
-            this.allPoints.map(v => v.x),
-            this.xScaleType
+            this.allPoints.map(v => v[property]),
+            scaleType
         )
+    }
+
+    @computed private get xDomainDefault() {
+        return this.domainDefault("x")
+    }
+
+    @computed private get yDomainDefault() {
+        return this.domainDefault("y")
     }
 
     @computed private get selectedPoints() {
@@ -449,47 +438,30 @@ export class ScatterTransform extends ChartTransform {
         )
     }
 
-    @computed private get yDomainDefault(): [number, number] {
-        if (!this.chart.useTimelineDomains) {
-            return domainExtent(
-                this.pointsForAxisDomains.map(d => d.y),
-                this.yScaleType,
-                this.chart.props.zoomToSelection && this.selectedPoints.length
-                    ? 1.1
-                    : 1
-            )
-        }
-
-        if (this.isRelativeMode) return this.relativeMinAndMax("y")
-
-        return domainExtent(
-            this.allPoints.map(v => v.y),
-            this.yScaleType
-        )
-    }
-
     @computed get yAxis() {
         const { chart, yDomainDefault, yDimension, isRelativeMode } = this
 
-        const view = chart.yAxisOptions
+        const axis = chart.yAxisOptions
             .toVerticalAxis()
             .updateDomain(yDomainDefault)
-        view.tickFormat =
-            (yDimension && yDimension.formatValueShort) || view.tickFormat
+        axis.tickFormat =
+            (yDimension && yDimension.formatValueShort) || axis.tickFormat
 
         const label = this.yAxisLabel
 
+        axis.scaleType = this.yScaleType
+
         if (isRelativeMode) {
-            view.scaleTypeOptions = [ScaleType.linear]
+            axis.scaleTypeOptions = [ScaleType.linear]
             if (label && label.length > 1) {
-                view.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
                     label
                 )}`
             }
-            view.tickFormat = (v: number) => formatValue(v, { unit: "%" })
-        } else view.label = label
+            axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+        } else axis.label = label
 
-        return view
+        return axis
     }
 
     @computed private get xScaleType(): ScaleType {
@@ -515,25 +487,27 @@ export class ScatterTransform extends ChartTransform {
 
         const { xAxisOptions } = this.chart
 
-        const view = xAxisOptions
+        const axis = xAxisOptions
             .toHorizontalAxis()
             .updateDomain(xDomainDefault)
+
+        axis.scaleType = this.xScaleType
         if (isRelativeMode) {
-            view.scaleTypeOptions = [ScaleType.linear]
+            axis.scaleTypeOptions = [ScaleType.linear]
             const label = xAxisOptions.label || xAxisLabelBase
             if (label && label.length > 1) {
-                view.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
                     label
                 )}`
             }
-            view.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
-            view.label = xAxisOptions.label || xAxisLabelBase || view.label
-            view.tickFormat =
-                (xDimension && xDimension.formatValueShort) || view.tickFormat
+            axis.label = xAxisOptions.label || xAxisLabelBase || axis.label
+            axis.tickFormat =
+                (xDimension && xDimension.formatValueShort) || axis.tickFormat
         }
 
-        return view
+        return axis
     }
 
     @computed get yFormatTooltip(): (d: number) => string {
@@ -701,19 +675,19 @@ export class ScatterTransform extends ChartTransform {
         if (isRelativeMode) {
             currentData.forEach(series => {
                 if (series.values.length === 0) return
-                const indexValue = firstOfNonEmptyArray(series.values)
-                const targetValue = lastOfNonEmptyArray(series.values)
+                const startValue = firstOfNonEmptyArray(series.values)
+                const endValue = lastOfNonEmptyArray(series.values)
                 series.values = [
                     {
-                        x: cagr(indexValue, targetValue, "x"),
-                        y: cagr(indexValue, targetValue, "y"),
-                        size: targetValue.size,
-                        year: targetValue.year,
-                        color: targetValue.color,
+                        x: cagr(startValue, endValue, "x"),
+                        y: cagr(startValue, endValue, "y"),
+                        size: endValue.size,
+                        year: endValue.year,
+                        color: endValue.color,
                         time: {
-                            y: targetValue.time.y,
-                            x: targetValue.time.x,
-                            span: [indexValue.time.y, targetValue.time.y]
+                            y: endValue.time.y,
+                            x: endValue.time.x,
+                            span: [startValue.time.y, endValue.time.y]
                         }
                     }
                 ]
@@ -721,28 +695,5 @@ export class ScatterTransform extends ChartTransform {
         }
 
         return currentData
-    }
-}
-
-// Compound annual growth rate
-// cagr = ((new_value - old_value) ** (1 / Δt)) - 1
-// see https://en.wikipedia.org/wiki/Compound_annual_growth_rate
-function cagr(
-    indexValue: ScatterValue,
-    targetValue: ScatterValue,
-    property: "x" | "y"
-) {
-    if (targetValue.year - indexValue.year === 0) return 0
-    else {
-        const frac = targetValue[property] / indexValue[property]
-        return (
-            Math.sign(frac) *
-            (Math.pow(
-                Math.abs(frac),
-                1 / (targetValue.year - indexValue.year)
-            ) -
-                1) *
-            100
-        )
     }
 }

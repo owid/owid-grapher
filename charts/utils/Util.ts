@@ -388,6 +388,49 @@ export function domainExtent(
     }
 }
 
+// Compound annual growth rate
+// cagr = ((new_value - old_value) ** (1 / Δt)) - 1
+// see https://en.wikipedia.org/wiki/Compound_annual_growth_rate
+interface Point {
+    year: number
+    entityName?: string
+    x?: number
+    y?: number
+}
+// Todo: add unit tests
+export function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
+    const elapsed = endValue.year - startValue.year
+    if (!elapsed) return 0
+
+    const frac = endValue[property]! / startValue[property]!
+    return Math.sign(frac) * (Math.pow(Math.abs(frac), 1 / elapsed) - 1) * 100
+}
+
+// Todo: add unit tests
+export const relativeMinAndMax = (
+    points: Point[],
+    property: "x" | "y"
+): [number, number] => {
+    let minChange = 0
+    let maxChange = 0
+
+    const values = points.filter(point => point.x !== 0 && point.y !== 0)
+
+    for (let i = 0; i < values.length; i++) {
+        const indexValue = values[i]
+        for (let j = i + 1; j < values.length; j++) {
+            const targetValue = values[j]
+
+            if (targetValue.entityName !== indexValue.entityName) continue
+
+            const change = cagr(indexValue, targetValue, property)
+            if (change < minChange) minChange = change
+            if (change > maxChange) maxChange = change
+        }
+    }
+    return [minChange, maxChange]
+}
+
 // Take an arbitrary string and turn it into a nice url slug
 export const slugify = (str: string) => slugifySameCase(str.toLowerCase())
 export const slugifySameCase = (str: string) =>
