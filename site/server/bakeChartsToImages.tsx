@@ -11,7 +11,7 @@ global.window = { location: { search: "" } }
 global.App = { isEditor: false }
 
 import { ChartScript } from "charts/core/ChartScript"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 
 export async function getChartsAndRedirectsBySlug() {
     const { chartsBySlug, chartsById } = await getChartsBySlug()
@@ -52,7 +52,7 @@ export async function bakeChartToImage(
 ) {
     // the type definition for url.query is wrong (bc we have query string parsing disabled),
     // so we have to explicitly cast it
-    const chart = new ChartRuntime(jsonConfig, { queryStr })
+    const chart = new ChartConfig(jsonConfig, { queryStr })
     chart.isExporting = true
     const { width, height } = chart.idealBounds
     const outPath = `${outDir}/${slug}${queryStr ? "-" + md5(queryStr) : ""}_v${

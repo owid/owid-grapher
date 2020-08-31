@@ -3,7 +3,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { SlopeChart } from "charts/slopeCharts/SlopeChart"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartRuntime } from "./ChartRuntime"
+import { ChartConfig } from "./ChartConfig"
 import { ChartView } from "./ChartView"
 import { ScatterPlot } from "charts/scatterCharts/ScatterPlot"
 import { LineChart } from "charts/lineCharts/LineChart"
@@ -16,7 +16,7 @@ import { LoadingOverlay } from "charts/core/LoadingOverlay"
 
 @observer
 export class ChartTab extends React.Component<{
-    chart: ChartRuntime
+    chart: ChartConfig
     chartView: ChartView
     bounds: Bounds
 }> {

@@ -1,4 +1,4 @@
-import { ChartRuntime } from "./ChartRuntime"
+import { ChartConfig } from "./ChartConfig"
 import {
     dimensionProperty,
     ChartDimensionSpec,
@@ -7,9 +7,9 @@ import {
 import { computed } from "mobx"
 
 export class DimensionSlot {
-    chart: ChartRuntime
+    chart: ChartConfig
     property: dimensionProperty
-    constructor(chart: ChartRuntime, property: dimensionProperty) {
+    constructor(chart: ChartConfig, property: dimensionProperty) {
         this.chart = chart
         this.property = property
     }

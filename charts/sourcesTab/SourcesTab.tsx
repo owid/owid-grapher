@@ -4,7 +4,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { SourceWithDimension } from "charts/core/ChartDimension"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import * as Cookies from "js-cookie"
 import { ADMIN_BASE_URL } from "settings"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
@@ -17,7 +17,7 @@ function formatText(s: string) {
 @observer
 export class SourcesTab extends React.Component<{
     bounds: Bounds
-    chart: ChartRuntime
+    chart: ChartConfig
 }> {
     @computed private get bounds() {
         return this.props.bounds

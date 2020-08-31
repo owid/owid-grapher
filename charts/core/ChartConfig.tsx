@@ -110,7 +110,7 @@ const isJsdom: boolean =
 
 // TODO: this really represents more than just the configuration state and should be split
 // into multiple components. It's sort of the top-level chart state.
-export class ChartRuntime {
+export class ChartConfig {
     /** Stores the current chart state. Can be modified to change the chart. */
     script: ChartScript = new ChartScript()
 

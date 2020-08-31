@@ -1,5 +1,5 @@
 import { computed, autorun, runInAction } from "mobx"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import {
     defaultTo,
     isString,
@@ -36,7 +36,7 @@ interface MapDataValue {
 }
 
 export class MapTransform extends ChartTransform {
-    constructor(chart: ChartRuntime) {
+    constructor(chart: ChartConfig) {
         super(chart)
 
         if (!chart.isNode) this.ensureValidConfig()

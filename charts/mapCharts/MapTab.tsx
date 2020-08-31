@@ -13,7 +13,7 @@ import {
 import { MapColorLegend } from "charts/mapCharts/MapColorLegend"
 import { MapColorLegendView } from "./MapColorLegendView"
 import { getRelativeMouse } from "charts/utils/Util"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { MapTransform } from "./MapTransform"
 import { MapProjection } from "./MapProjections"
 import { select } from "d3-selection"
@@ -41,7 +41,7 @@ interface MapWithLegendProps {
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
-    chart: ChartRuntime
+    chart: ChartConfig
     chartView: ChartView
 }
 
@@ -249,7 +249,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 }
 
 interface MapTabProps {
-    chart: ChartRuntime
+    chart: ChartConfig
     chartView: ChartView
     bounds: Bounds
 }

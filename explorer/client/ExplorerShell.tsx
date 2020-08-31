@@ -1,7 +1,7 @@
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { Command, CommandPalette } from "charts/controls/CommandPalette"
 import { Bounds } from "charts/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -18,7 +18,7 @@ import { throttle } from "charts/utils/Util"
 export class ExplorerShell extends React.Component<{
     explorerSlug: string
     controlPanels: JSX.Element[]
-    chart: ChartRuntime
+    chart: ChartConfig
     availableEntities: string[]
     headerElement: JSX.Element
     params: ExplorerQueryParams

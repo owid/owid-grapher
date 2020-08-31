@@ -2,7 +2,7 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import {
     NumberField,
@@ -22,7 +22,7 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
-class ColorSchemeSelector extends React.Component<{ chart: ChartRuntime }> {
+class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that

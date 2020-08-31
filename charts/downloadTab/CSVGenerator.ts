@@ -1,5 +1,5 @@
 import { computed, action } from "mobx"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import {
     uniq,
     flatten,
@@ -10,7 +10,7 @@ import {
 import { ChartDimension } from "charts/core/ChartDimension"
 
 interface CSVGeneratorProps {
-    chart: ChartRuntime
+    chart: ChartConfig
 }
 
 interface TimeUnitDependentParams {

@@ -8,7 +8,7 @@ import {
     autorun,
     IReactionDisposer
 } from "mobx"
-import { ChartRuntime } from "charts/core/ChartRuntime"
+import { ChartConfig } from "charts/core/ChartConfig"
 import { ChartFigureView } from "./ChartFigureView"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 
@@ -20,7 +20,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
     @computed get queryStr(): string | undefined {
         return splitURLintoPathAndQueryString(this.props.src).queryString
     }
-    @observable chart?: ChartRuntime
+    @observable chart?: ChartConfig
 
     async loadConfig() {
         const { configUrl } = this
@@ -33,7 +33,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
         const html = await resp.text()
         const config = readConfigFromHTML(html)
         runInAction(() => {
-            this.chart = new ChartRuntime(config, {
+            this.chart = new ChartConfig(config, {
                 isEmbed: true,
                 queryStr: this.queryStr
             })
