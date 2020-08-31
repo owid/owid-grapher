@@ -617,50 +617,37 @@ export class DualAxis {
         else this.frameStart = undefined
     }
 
-    // todo: Refactor
-    @computed private get yAxis() {
-        const axis = this.props.yAxis.clone()
-        axis.domain = this.currentYDomain
-        return axis
-    }
-
-    // todo: Refactor
-    @computed private get xAxis() {
+    @computed get xAxis() {
         const axis = this.props.xAxis.clone()
         axis.domain = this.currentXDomain
-        return axis
-    }
-
-    // todo: Refactor
-    @computed get xAxisWithRange() {
-        const axis = this.xAxis.clone()
         axis.range = this.innerBounds.xRange()
         return axis
     }
 
-    // todo: Refactor
-    @computed get yAxisWithRange() {
-        const axis = this.yAxis.clone()
+    @computed get yAxis() {
+        const axis = this.props.yAxis.clone()
+        axis.domain = this.currentYDomain
         axis.range = this.innerBounds.yRange()
         return axis
     }
 
-    // todo: Refactor
-    // We calculate an initial width/height for the axes in isolation
+    // We calculate an initial height from the range of the input bounds
     @computed private get xAxisHeight() {
-        const axis = this.xAxis.clone()
+        const axis = this.props.xAxis.clone()
+        axis.domain = this.currentXDomain
         axis.range = [0, this.props.bounds.width]
         return axis.height
     }
 
-    // todo: Refactor
+    // We calculate an initial width from the range of the input bounds
     @computed private get yAxisWidth() {
-        const axis = this.yAxis.clone()
+        const axis = this.props.yAxis.clone()
+        axis.domain = this.currentYDomain
         axis.range = [0, this.props.bounds.height]
         return axis.width
     }
 
-    // Now we can determine the "true" inner bounds of the axis box
+    // Now we can determine the "true" inner bounds of the dual axis
     @computed get innerBounds(): Bounds {
         return this.props.bounds
             .padBottom(this.xAxisHeight)

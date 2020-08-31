@@ -21,23 +21,23 @@ export class ComparisonLine extends React.Component<{
 }> {
     @computed private get controlData(): [number, number][] {
         const { comparisonLine, dualAxis } = this.props
-        const { xAxisWithRange, yAxisWithRange } = dualAxis
+        const { xAxis, yAxis } = dualAxis
         return generateComparisonLinePoints(
             comparisonLine.yEquals,
-            xAxisWithRange.domain,
-            yAxisWithRange.domain,
-            xAxisWithRange.scaleType,
-            yAxisWithRange.scaleType
+            xAxis.domain,
+            yAxis.domain,
+            xAxis.scaleType,
+            yAxis.scaleType
         )
     }
 
     @computed private get linePath(): string | null {
         const { controlData } = this
-        const { xAxisWithRange, yAxisWithRange } = this.props.dualAxis
+        const { xAxis, yAxis } = this.props.dualAxis
         const line = d3_line()
             .curve(curveLinear)
-            .x(d => xAxisWithRange.place(d[0]))
-            .y(d => yAxisWithRange.place(d[1]))
+            .x(d => xAxis.place(d[0]))
+            .y(d => yAxis.place(d[1]))
         return line(controlData)
     }
 
@@ -48,21 +48,11 @@ export class ComparisonLine extends React.Component<{
         if (!label) return
 
         const { controlData } = this
-        const {
-            xAxisWithRange,
-            yAxisWithRange,
-            innerBounds
-        } = this.props.dualAxis
+        const { xAxis, yAxis, innerBounds } = this.props.dualAxis
 
         // Find the points of the line that are actually placeable on the chart
         const linePoints = controlData
-            .map(
-                d =>
-                    new Vector2(
-                        xAxisWithRange.place(d[0]),
-                        yAxisWithRange.place(d[1])
-                    )
-            )
+            .map(d => new Vector2(xAxis.place(d[0]), yAxis.place(d[1])))
             .filter(p => innerBounds.contains(p))
         if (!linePoints.length) return
 
