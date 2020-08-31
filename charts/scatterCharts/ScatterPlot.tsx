@@ -282,7 +282,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed get hideLines(): boolean {
-        return !!this.chart.script.hideConnectedScatterLines
+        return !!this.chart.props.hideConnectedScatterLines
     }
 
     @computed private get scatterPointLabelFormatFunction() {
@@ -296,7 +296,7 @@ export class ScatterPlot extends React.Component<{
         }
 
         return scatterPointLabelFormatFunctions[
-            this.chart.script.scatterPointLabelStrategy || "year"
+            this.chart.props.scatterPointLabelStrategy || "year"
         ]
     }
     render() {

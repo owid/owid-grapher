@@ -23,25 +23,25 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onSlug(slug: string) {
-        this.props.editor.chart.script.slug = slugify(slug).toLowerCase()
+        this.props.editor.chart.props.slug = slugify(slug).toLowerCase()
     }
 
     @action.bound onChangeLogo(value: string) {
         if (value === "none") {
-            this.props.editor.chart.script.hideLogo = true
+            this.props.editor.chart.props.hideLogo = true
         } else {
-            this.props.editor.chart.script.hideLogo = undefined
-            this.props.editor.chart.script.logo =
+            this.props.editor.chart.props.hideLogo = undefined
+            this.props.editor.chart.props.logo =
                 (value as LogoOption) || undefined
         }
     }
 
     @action.bound onAddRelatedQuestion() {
         const { chart } = this.props.editor
-        if (!chart.script.relatedQuestions) {
-            chart.script.relatedQuestions = []
+        if (!chart.props.relatedQuestions) {
+            chart.props.relatedQuestions = []
         }
-        chart.script.relatedQuestions.push({
+        chart.props.relatedQuestions.push({
             text: "",
             url: ""
         })
@@ -50,33 +50,33 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onRemoveRelatedQuestion(idx: number) {
         const { chart } = this.props.editor
 
-        if (chart.script.relatedQuestions) {
-            chart.script.relatedQuestions.splice(idx, 1)
-            if (chart.script.relatedQuestions.length === 0) {
-                chart.script.relatedQuestions = undefined
+        if (chart.props.relatedQuestions) {
+            chart.props.relatedQuestions.splice(idx, 1)
+            if (chart.props.relatedQuestions.length === 0) {
+                chart.props.relatedQuestions = undefined
             }
         }
     }
 
     render() {
         const { chart, references } = this.props.editor
-        const { relatedQuestions } = chart.script
+        const { relatedQuestions } = chart.props
 
         return (
             <div>
                 <Section name="Header">
                     <BindAutoString
                         field="title"
-                        store={chart.script}
+                        store={chart.props}
                         auto={chart.title}
                         softCharacterLimit={100}
                     />
                     <Toggle
                         label="Hide automatic time/entity"
-                        value={!!chart.script.hideTitleAnnotation}
+                        value={!!chart.props.hideTitleAnnotation}
                         onValue={action(
                             (value: boolean) =>
-                                (chart.script.hideTitleAnnotation =
+                                (chart.props.hideTitleAnnotation =
                                     value || undefined)
                         )}
                     />
@@ -84,10 +84,10 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         label="/grapher"
                         value={chart.slug}
                         onValue={this.onSlug}
-                        isAuto={chart.script.slug === undefined}
+                        isAuto={chart.props.slug === undefined}
                         onToggleAuto={() =>
-                            (chart.script.slug =
-                                chart.script.slug === undefined
+                            (chart.props.slug =
+                                chart.props.slug === undefined
                                     ? chart.slug
                                     : undefined)
                         }
@@ -95,7 +95,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                     <BindString
                         field="subtitle"
-                        store={chart.script}
+                        store={chart.props}
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
@@ -109,9 +109,9 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             { label: "No logo", value: "none" }
                         ]}
                         value={
-                            chart.script.hideLogo
+                            chart.props.hideLogo
                                 ? "none"
-                                : chart.script.logo || "owid"
+                                : chart.props.logo || "owid"
                         }
                         onChange={this.onChangeLogo}
                     />
@@ -120,7 +120,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindAutoString
                         label="Source"
                         field="sourceDesc"
-                        store={chart.script}
+                        store={chart.props}
                         auto={chart.sourcesLine}
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
@@ -128,7 +128,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindString
                         label="Origin url"
                         field="originUrl"
-                        store={chart.script}
+                        store={chart.props}
                         placeholder={chart.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
@@ -145,7 +145,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindString
                         label="Footer note"
                         field="note"
-                        store={chart.script}
+                        store={chart.props}
                         helpText="Any important clarification needed to avoid miscommunication"
                         softCharacterLimit={140}
                     />
@@ -201,14 +201,14 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindString
                         label="Internal author notes"
                         field="internalNotes"
-                        store={chart.script}
+                        store={chart.props}
                         placeholder="e.g. WIP, needs review, etc"
                         textarea
                     />
                     <BindString
                         label="Variant name"
                         field="variantName"
-                        store={chart.script}
+                        store={chart.props}
                         placeholder="e.g. IHME data"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />

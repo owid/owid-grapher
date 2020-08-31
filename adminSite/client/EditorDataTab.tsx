@@ -146,8 +146,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 value="add-country"
                                 checked={chart.addCountryMode === "add-country"}
                                 onChange={() =>
-                                    (chart.script.addCountryMode =
-                                        "add-country")
+                                    (chart.props.addCountryMode = "add-country")
                                 }
                             />
                             User can add and remove data
@@ -164,7 +163,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                     chart.addCountryMode === "change-country"
                                 }
                                 onChange={() =>
-                                    (chart.script.addCountryMode =
+                                    (chart.props.addCountryMode =
                                         "change-country")
                                 }
                             />
@@ -180,7 +179,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 value="disabled"
                                 checked={chart.addCountryMode === "disabled"}
                                 onChange={() =>
-                                    (chart.script.addCountryMode = "disabled")
+                                    (chart.props.addCountryMode = "disabled")
                                 }
                             />
                             User cannot change/add data

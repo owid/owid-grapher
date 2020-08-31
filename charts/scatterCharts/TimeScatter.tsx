@@ -619,7 +619,7 @@ export class TimeScatter extends React.Component<{
     }
 
     @computed get hideLines(): boolean {
-        return !!this.chart.script.hideConnectedScatterLines
+        return !!this.chart.props.hideConnectedScatterLines
     }
 
     render() {

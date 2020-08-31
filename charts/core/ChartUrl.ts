@@ -137,9 +137,7 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChartProps } = this
 
         params.tab =
-            chart.script.tab === origChartProps.tab
-                ? undefined
-                : chart.script.tab
+            chart.props.tab === origChartProps.tab ? undefined : chart.props.tab
         //params.overlay = chart.props.overlay === origChartProps.overlay ? undefined : chart.props.overlay
         params.xScale =
             chart.xAxisOptions.scaleType === origChartProps.xAxis.scaleType
@@ -150,25 +148,25 @@ export class ChartUrl implements ObservableUrl {
                 ? undefined
                 : chart.yAxisOptions.scaleType
         params.stackMode =
-            chart.script.stackMode === origChartProps.stackMode
+            chart.props.stackMode === origChartProps.stackMode
                 ? undefined
-                : chart.script.stackMode
+                : chart.props.stackMode
         params.zoomToSelection =
-            chart.script.zoomToSelection === origChartProps.zoomToSelection
+            chart.props.zoomToSelection === origChartProps.zoomToSelection
                 ? undefined
-                : chart.script.zoomToSelection
+                : chart.props.zoomToSelection
                 ? "true"
                 : undefined
         params.minPopulationFilter =
-            chart.script.minPopulationFilter ===
+            chart.props.minPopulationFilter ===
             origChartProps.minPopulationFilter
                 ? undefined
-                : chart.script.minPopulationFilter?.toString()
+                : chart.props.minPopulationFilter?.toString()
         params.endpointsOnly =
-            chart.script.compareEndPointsOnly ===
+            chart.props.compareEndPointsOnly ===
             origChartProps.compareEndPointsOnly
                 ? undefined
-                : chart.script.compareEndPointsOnly
+                : chart.props.compareEndPointsOnly
                 ? "1"
                 : "0"
         params.year = this.yearParam
@@ -230,8 +228,8 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChartProps } = this
 
         if (
-            chart.script.minTime !== origChartProps.minTime ||
-            chart.script.maxTime !== origChartProps.maxTime
+            chart.props.minTime !== origChartProps.minTime ||
+            chart.props.maxTime !== origChartProps.maxTime
         ) {
             const [minTime, maxTime] = chart.timeDomain
             if (minTime === maxTime)
@@ -258,7 +256,7 @@ export class ChartUrl implements ObservableUrl {
         const { chart, origChartProps } = this
         if (
             chart.isReady &&
-            JSON.stringify(chart.script.selectedData) !==
+            JSON.stringify(chart.props.selectedData) !==
                 JSON.stringify(origChartProps.selectedData)
         ) {
             return EntityUrlBuilder.entitiesToQueryParam(
@@ -307,32 +305,32 @@ export class ChartUrl implements ObservableUrl {
         if (tab) {
             if (!includes(chart.availableTabs, tab))
                 console.error("Unexpected tab: " + tab)
-            else chart.script.tab = tab as ChartTabOption
+            else chart.props.tab = tab as ChartTabOption
         }
 
         const overlay = params.overlay
         if (overlay) {
             if (!includes(chart.availableTabs, overlay))
                 console.error("Unexpected overlay: " + overlay)
-            else chart.script.overlay = overlay as ChartTabOption
+            else chart.props.overlay = overlay as ChartTabOption
         }
 
         // Stack mode for bar and stacked area charts
-        chart.script.stackMode = defaultTo(
+        chart.props.stackMode = defaultTo(
             params.stackMode as StackMode,
-            chart.script.stackMode
+            chart.props.stackMode
         )
 
-        chart.script.zoomToSelection = defaultTo(
+        chart.props.zoomToSelection = defaultTo(
             params.zoomToSelection === "true" ? true : undefined,
-            chart.script.zoomToSelection
+            chart.props.zoomToSelection
         )
 
-        chart.script.minPopulationFilter = defaultTo(
+        chart.props.minPopulationFilter = defaultTo(
             params.minPopulationFilter
                 ? parseInt(params.minPopulationFilter)
                 : undefined,
-            chart.script.minPopulationFilter
+            chart.props.minPopulationFilter
         )
 
         // Axis scale mode
@@ -355,7 +353,7 @@ export class ChartUrl implements ObservableUrl {
 
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined) {
-            chart.script.compareEndPointsOnly =
+            chart.props.compareEndPointsOnly =
                 endpointsOnly === "1" ? true : undefined
         }
 
@@ -379,7 +377,7 @@ export class ChartUrl implements ObservableUrl {
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
         if (
-            chart.script.useV2 ||
+            chart.props.useV2 ||
             !country ||
             chart.addCountryMode === "disabled"
         )
