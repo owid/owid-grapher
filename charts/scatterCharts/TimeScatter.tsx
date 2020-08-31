@@ -580,7 +580,6 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 export class TimeScatter extends React.Component<{
     bounds: Bounds
     config: ChartConfig
-    isStatic: boolean
 }> {
     @computed get chart(): ChartConfig {
         return this.props.config

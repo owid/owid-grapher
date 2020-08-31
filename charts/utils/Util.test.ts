@@ -25,7 +25,8 @@ import {
     trimEmptyRows,
     JsTable,
     anyToString,
-    sortNumeric
+    sortNumeric,
+    lowerCaseFirstLetterUnlessAbbreviation
 } from "charts/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder, ScaleType } from "charts/core/ChartConstants"
@@ -477,6 +478,15 @@ describe(getAvailableSlugSync, () => {
             "untitled-2"
         )
         expect(getAvailableSlugSync("new", ["untitled"])).toEqual("new")
+    })
+})
+
+describe(lowerCaseFirstLetterUnlessAbbreviation, () => {
+    it("works", () => {
+        expect(lowerCaseFirstLetterUnlessAbbreviation("GDP")).toEqual("GDP")
+        expect(lowerCaseFirstLetterUnlessAbbreviation("Change in")).toEqual(
+            "change in"
+        )
     })
 })
 

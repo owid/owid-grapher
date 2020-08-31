@@ -45,8 +45,12 @@ import { TimeBound } from "charts/utils/TimeBounds"
 export class ScatterPlot extends React.Component<{
     bounds: Bounds
     config: ChartConfig
-    isStatic: boolean
 }> {
+    // Set default props
+    static defaultProps = {
+        bounds: new Bounds(0, 0, 640, 480)
+    }
+
     // currently hovered individual series key
     @observable hoverKey?: EntityDimensionKey
     // currently hovered legend color
@@ -142,7 +146,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     // Colors on the legend for which every matching group is focused
-    @computed get focusColors(): string[] {
+    @computed private get focusColors(): string[] {
         const { colorsInUse, transform, chart } = this
         return colorsInUse.filter(color => {
             const matchingKeys = transform.currentData
@@ -156,7 +160,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     // All currently hovered group keys, combining the legend and the main UI
-    @computed get hoverKeys(): string[] {
+    @computed private get hoverKeys(): string[] {
         const { hoverColor, hoverKey, transform } = this
 
         const hoverKeys =
@@ -173,11 +177,11 @@ export class ScatterPlot extends React.Component<{
         return hoverKeys
     }
 
-    @computed get focusKeys(): string[] {
+    @computed private get focusKeys(): string[] {
         return this.chart.selectedKeys
     }
 
-    @computed get arrowLegend(): ConnectedScatterLegend | undefined {
+    @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
         const { transform } = this
         const { startYear, endYear } = transform
 

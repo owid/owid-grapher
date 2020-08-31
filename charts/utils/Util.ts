@@ -950,6 +950,11 @@ export function mapNullToUndefined<T>(
     return array.map(v => (v === null ? undefined : v))
 }
 
+export const lowerCaseFirstLetterUnlessAbbreviation = (str: string) =>
+    str.charAt(1).match(/[A-Z]/)
+        ? str
+        : str.charAt(0).toLowerCase() + str.slice(1)
+
 export const getAvailableSlugSync = (
     desiredSlugName: string,
     existingSlugs: string[] | Set<string>
