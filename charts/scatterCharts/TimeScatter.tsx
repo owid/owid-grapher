@@ -653,8 +653,8 @@ export class TimeScatter extends React.Component<{
                     hideLines={this.hideLines}
                     data={currentData}
                     bounds={dualAxis.innerBounds}
-                    xAxis={dualAxis.xAxisWithRange}
-                    yAxis={dualAxis.yAxisWithRange}
+                    xAxis={dualAxis.xAxis}
+                    yAxis={dualAxis.yAxis}
                     sizeDomain={sizeDomain}
                     focusKeys={[]}
                     hoverKeys={[]}

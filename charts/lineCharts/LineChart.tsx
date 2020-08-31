@@ -350,11 +350,8 @@ export class LineChart extends React.Component<{
         return (
             <Tooltip
                 tooltipContainer={this.options}
-                x={dualAxis.xAxisWithRange.place(hoverX)}
-                y={
-                    dualAxis.yAxisWithRange.rangeMin +
-                    dualAxis.yAxisWithRange.rangeSize / 2
-                }
+                x={dualAxis.xAxis.place(hoverX)}
+                y={dualAxis.yAxis.rangeMin + dualAxis.yAxis.rangeSize / 2}
                 style={{ padding: "0.3em" }}
                 offsetX={5}
             >
@@ -548,7 +545,7 @@ export class LineChart extends React.Component<{
             renderUid,
             hoverX
         } = this
-        const { xAxisWithRange, yAxisWithRange } = dualAxis
+        const { xAxis, yAxis } = dualAxis
         const { groupedData } = transform
 
         const comparisonLines = options.comparisonLines || []
@@ -584,7 +581,7 @@ export class LineChart extends React.Component<{
                             x={bounds.right - legend.width}
                             legend={legend}
                             focusKeys={this.focusKeys}
-                            yAxis={dualAxis.yAxisWithRange}
+                            yAxis={dualAxis.yAxis}
                             onClick={this.onLegendClick}
                             options={options}
                             onMouseOver={this.onLegendMouseOver}
@@ -593,8 +590,8 @@ export class LineChart extends React.Component<{
                     )}
                     <Lines
                         dualAxis={dualAxis}
-                        xAxis={dualAxis.xAxisWithRange}
-                        yAxis={dualAxis.yAxisWithRange}
+                        xAxis={dualAxis.xAxis}
+                        yAxis={dualAxis.yAxis}
                         data={groupedData}
                         onHover={this.onHover}
                         focusKeys={this.focusKeys}
@@ -611,18 +608,18 @@ export class LineChart extends React.Component<{
                                 return (
                                     <circle
                                         key={series.entityDimensionKey}
-                                        cx={xAxisWithRange.place(value.x)}
-                                        cy={yAxisWithRange.place(value.y)}
+                                        cx={xAxis.place(value.x)}
+                                        cy={yAxis.place(value.y)}
                                         r={4}
                                         fill={series.color}
                                     />
                                 )
                         })}
                         <line
-                            x1={xAxisWithRange.place(hoverX)}
-                            y1={yAxisWithRange.range[0]}
-                            x2={xAxisWithRange.place(hoverX)}
-                            y2={yAxisWithRange.range[1]}
+                            x1={xAxis.place(hoverX)}
+                            y1={yAxis.range[0]}
+                            x2={xAxis.place(hoverX)}
+                            y2={yAxis.range[1]}
                             stroke="rgba(180,180,180,.4)"
                         />
                     </g>

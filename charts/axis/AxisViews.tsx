@@ -95,7 +95,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 
     render() {
         const { dualAxis, showTickMarks } = this.props
-        const { bounds, xAxisWithRange, yAxisWithRange, innerBounds } = dualAxis
+        const { bounds, xAxis, yAxis, innerBounds } = dualAxis
 
         const maxX = undefined // {chartView.tabBounds.width} todo
 
@@ -105,24 +105,24 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                     maxX={maxX}
                     bounds={bounds}
                     axisPosition={innerBounds.bottom}
-                    axis={xAxisWithRange}
+                    axis={xAxis}
                     showTickMarks={showTickMarks}
                     isInteractive={this.props.isInteractive}
                 />
                 <VerticalAxisComponent
                     bounds={bounds}
-                    verticalAxis={yAxisWithRange}
+                    verticalAxis={yAxis}
                     isInteractive={this.props.isInteractive}
                 />
-                {!yAxisWithRange.hideGridlines && (
+                {!yAxis.hideGridlines && (
                     <VerticalAxisGridLines
-                        verticalAxis={yAxisWithRange}
+                        verticalAxis={yAxis}
                         bounds={innerBounds}
                     />
                 )}
-                {!xAxisWithRange.hideGridlines && (
+                {!xAxis.hideGridlines && (
                     <HorizontalAxisGridLines
-                        horizontalAxis={xAxisWithRange}
+                        horizontalAxis={xAxis}
                         bounds={innerBounds}
                     />
                 )}

@@ -167,7 +167,7 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed private get yAxis() {
-        return this.dualAxis.yAxisWithRange
+        return this.dualAxis.yAxis
     }
 
     @computed get renderUid() {
@@ -314,10 +314,10 @@ export class StackedBarChart extends React.Component<{
     @computed private get tickPlacements() {
         const { mapXValueToOffset, barWidth, dualAxis } = this
         const { xValues } = this.transform
-        const { xAxisWithRange } = dualAxis
+        const { xAxis } = dualAxis
 
         return xValues.map(x => {
-            const text = xAxisWithRange.tickFormat(x)
+            const text = xAxis.tickFormat(x)
             const xPos = mapXValueToOffset.get(x) as number
 
             const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
