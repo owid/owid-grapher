@@ -46,18 +46,18 @@ export interface AxisOptionsInterface {
     removePointsOutsideDomain?: true
 }
 
-interface AxisContainerOptions {
-    baseFontSize: number
+export interface AxisContainerOptions {
+    fontSize: number
 }
 
 export class AxisOptions implements AxisOptionsInterface {
     // todo: test/refactor
     constructor(
         props?: AxisOptionsInterface,
-        containerOptions?: AxisContainerOptions
+        containerOptions: AxisContainerOptions = { fontSize: 16 }
     ) {
         this.update(props)
-        this.fontSize = containerOptions?.baseFontSize || 16
+        this.containerOptions = containerOptions
     }
 
     // todo: test/refactor
@@ -71,7 +71,11 @@ export class AxisOptions implements AxisOptionsInterface {
     @observable.ref canChangeScaleType?: true = undefined
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: true = undefined
-    @observable fontSize: number
+    @observable private containerOptions: AxisContainerOptions
+
+    @computed get fontSize() {
+        return this.containerOptions.fontSize
+    }
 
     // A log scale domain cannot have values <= 0, so we
     // double check here
