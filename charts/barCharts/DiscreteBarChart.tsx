@@ -163,14 +163,13 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get xAxis() {
-        const view = this.chart.yAxisOptions
-            .toVerticalAxis()
-            .updateDomain(this.xDomainDefault)
+        const axis = this.chart.yAxisOptions.toVerticalAxis()
+        axis.updateDomain(this.xDomainDefault)
 
-        view.tickFormat = this.chart.discreteBarTransform.tickFormat
-        view.range = this.xRange
-        view.label = ""
-        return view
+        axis.tickFormat = this.chart.discreteBarTransform.tickFormat
+        axis.range = this.xRange
+        axis.label = ""
+        return axis
     }
 
     @computed private get innerBounds() {

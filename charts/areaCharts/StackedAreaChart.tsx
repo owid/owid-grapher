@@ -293,13 +293,12 @@ export class StackedAreaChart extends React.Component<{
     @computed private get xAxis() {
         const { xDomainDefault } = this.transform
         const chart = this.chart
-        const view = chart.xAxisOptions
-            .toHorizontalAxis()
-            .updateDomain(xDomainDefault)
-        view.tickFormat = chart.formatYearFunction as any
-        view.hideFractionalTicks = true
-        view.hideGridlines = true
-        return view
+        const axis = chart.xAxisOptions.toHorizontalAxis()
+        axis.updateDomain(xDomainDefault)
+        axis.tickFormat = chart.formatYearFunction as any
+        axis.hideFractionalTicks = true
+        axis.hideGridlines = true
+        return axis
     }
 
     @computed private get yDomainDefault(): [number, number] {
@@ -311,15 +310,16 @@ export class StackedAreaChart extends React.Component<{
         const { isRelativeMode, yDimensionFirst } = this.transform
         const { chart, yDomainDefault } = this
 
-        const view = chart.yAxisOptions.toVerticalAxis().updateDomain(
+        const axis = chart.yAxisOptions.toVerticalAxis()
+        axis.updateDomain(
             isRelativeMode ? [0, 100] : [yDomainDefault[0], yDomainDefault[1]] // Stacked area chart must have its own y domain)
         )
-        view.tickFormat = isRelativeMode
+        axis.tickFormat = isRelativeMode
             ? (v: number) => formatValue(v, { unit: "%" })
             : yDimensionFirst
             ? yDimensionFirst.formatValueShort
             : identity
-        return view
+        return axis
     }
 
     @observable hoverIndex?: number

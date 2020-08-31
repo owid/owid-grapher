@@ -188,15 +188,14 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get xAxis() {
         const { xDomain } = this
-        const view = this.chart.xAxisOptions
-            .toHorizontalAxis()
-            .updateDomain(xDomain)
-        view.scaleType = ScaleType.linear
-        view.scaleTypeOptions = [ScaleType.linear]
-        view.tickFormat = this.chart.formatYearTickFunction
-        view.hideFractionalTicks = true
-        view.hideGridlines = true
-        return view
+        const axis = this.chart.xAxisOptions.toHorizontalAxis()
+        axis.updateDomain(xDomain)
+        axis.scaleType = ScaleType.linear
+        axis.scaleTypeOptions = [ScaleType.linear]
+        axis.tickFormat = this.chart.formatYearTickFunction
+        axis.hideFractionalTicks = true
+        axis.hideGridlines = true
+        return axis
     }
 
     @computed private get yDimensionFirst(): ChartDimension | undefined {
@@ -244,12 +243,13 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get yAxis() {
         const { chart, yDomain, yTickFormat, isRelativeMode } = this
-        const view = chart.yAxisOptions.toVerticalAxis().updateDomain(yDomain)
-        if (isRelativeMode) view.scaleTypeOptions = [ScaleType.linear]
-        view.hideFractionalTicks = this.allValues.every(val => val.y % 1 === 0) // all y axis points are integral, don't show fractional ticks in that case
-        view.label = ""
-        view.tickFormat = yTickFormat
-        return view
+        const axis = chart.yAxisOptions.toVerticalAxis()
+        axis.updateDomain(yDomain)
+        if (isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
+        axis.hideFractionalTicks = this.allValues.every(val => val.y % 1 === 0) // all y axis points are integral, don't show fractional ticks in that case
+        axis.label = ""
+        axis.tickFormat = yTickFormat
+        return axis
     }
 
     @computed get canToggleRelativeMode(): boolean {
