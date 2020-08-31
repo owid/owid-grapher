@@ -7,7 +7,6 @@ on:
 
 # Runs `prettier` on a pull request so everything is nice and pretty!
 # If something's wrong, a new commit fixing the issues will automatically be pushed to the PR branch.
-# Only runs for PRs though!
 
 jobs:
     prettify:
