@@ -38,7 +38,7 @@ import {
     lastOfNonEmptyArray,
     find
 } from "charts/utils/Util"
-import { AxisOptions } from "charts/axis/Axis"
+import { AxisOptions, AxisContainerOptions } from "charts/axis/Axis"
 import {
     ChartType,
     ChartTabOption,
@@ -375,6 +375,17 @@ export class ChartConfig {
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
 
+        // Todo: there is probably a cleaner way to pass fontSize in.
+        const that = this
+        const axisContainer: AxisContainerOptions = {
+            get fontSize() {
+                return that.baseFontSize
+            }
+        }
+
+        this.yAxisOptions = new AxisOptions(undefined, axisContainer)
+        this.xAxisOptions = new AxisOptions(undefined, axisContainer)
+
         // This attribute is used to decide various client-vs.-server behavior. However, when
         // testing, we want the chart to behave as if it's in the client, even though it's
         // technically being run in a Node environment. To solve this, we override isNode to false
@@ -564,8 +575,8 @@ export class ChartConfig {
         this.props.maxTime = value[1]
     }
 
-    @observable xAxisOptions = new AxisOptions(undefined, this)
-    @observable yAxisOptions = new AxisOptions(undefined, this)
+    @observable xAxisOptions: AxisOptions
+    @observable yAxisOptions: AxisOptions
 
     // Get the dimension slots appropriate for this type of chart
     @computed get dimensionSlots(): DimensionSlot[] {
