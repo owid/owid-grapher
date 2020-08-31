@@ -22,7 +22,8 @@ import {
     domainExtent,
     identity,
     minBy,
-    sortNumeric
+    sortNumeric,
+    lowerCaseFirstLetterUnlessAbbreviation
 } from "charts/utils/Util"
 import { computed } from "mobx"
 import { ChartDimension } from "charts/core/ChartDimension"
@@ -86,7 +87,10 @@ export class ScatterTransform extends ChartTransform {
             return "No entities with data for both X and Y"
         else if (isEmpty(this.possibleDataYears))
             return "No years with data for both X and Y"
-        else if (isEmpty(this.currentData)) return "No matching data"
+        else if (isEmpty(this.currentData))
+            return "No matching data" + this.chart.isReady
+                ? ""
+                : ". Chart is not ready"
         else return undefined
     }
 
@@ -478,11 +482,9 @@ export class ScatterTransform extends ChartTransform {
         if (isRelativeMode) {
             view.scaleTypeOptions = [ScaleType.linear]
             if (label && label.length > 1) {
-                view.label =
-                    "Average annual change in " +
-                    (label.charAt(1).match(/[A-Z]/)
-                        ? label
-                        : label.charAt(0).toLowerCase() + label.slice(1))
+                view.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                    label
+                )}`
             }
             view.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else view.label = label
@@ -500,7 +502,7 @@ export class ScatterTransform extends ChartTransform {
         const xDimName = this.xDimension && this.xDimension.displayName
         if (this.xOverrideYear !== undefined)
             return `${xDimName} in ${this.xOverrideYear}`
-        else return xDimName
+        return xDimName
     }
 
     @computed get xAxis() {
@@ -520,11 +522,9 @@ export class ScatterTransform extends ChartTransform {
             view.scaleTypeOptions = [ScaleType.linear]
             const label = xAxisOptions.label || xAxisLabelBase
             if (label && label.length > 1) {
-                view.label =
-                    "Average annual change in " +
-                    (label.charAt(1).match(/[A-Z]/)
-                        ? label
-                        : label.charAt(0).toLowerCase() + label.slice(1))
+                view.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
+                    label
+                )}`
             }
             view.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {

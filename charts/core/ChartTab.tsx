@@ -48,7 +48,6 @@ export class ChartTab extends React.Component<{
                 <ScatterPlot
                     bounds={bounds.padTop(20).padBottom(15)}
                     config={chart}
-                    isStatic={chartView.isExport}
                 />
             )
         } else if (chart.isTimeScatter) {
@@ -56,7 +55,6 @@ export class ChartTab extends React.Component<{
                 <TimeScatter
                     bounds={bounds.padTop(20).padBottom(15)}
                     config={chart}
-                    isStatic={chartView.isExport}
                 />
             )
         } else if (chart.isLineChart) {
