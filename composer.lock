@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fc59a4fbee680689dd05dd17871d4b52",
+    "content-hash": "4c8eacabab5d72bd59eae7089e7dea2c",
     "packages": [
         {
             "name": "composer/installers",
@@ -779,16 +779,16 @@
         },
         {
             "name": "wp-graphql/wp-graphql",
-            "version": "v0.9.1",
+            "version": "v0.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wp-graphql/wp-graphql.git",
-                "reference": "da19d1a5504b6068d0209231afa58746a13793e4"
+                "reference": "beef5702881da588123ffb8dfd7b282a0e9067c3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/da19d1a5504b6068d0209231afa58746a13793e4",
-                "reference": "da19d1a5504b6068d0209231afa58746a13793e4",
+                "url": "https://api.github.com/repos/wp-graphql/wp-graphql/zipball/beef5702881da588123ffb8dfd7b282a0e9067c3",
+                "reference": "beef5702881da588123ffb8dfd7b282a0e9067c3",
                 "shasum": ""
             },
             "require": {
@@ -797,8 +797,16 @@
                 "webonyx/graphql-php": "0.13.8"
             },
             "require-dev": {
+                "codeception/module-asserts": "^1.0",
+                "codeception/module-cli": "^1.0",
+                "codeception/module-db": "^1.0",
+                "codeception/module-filesystem": "^1.0",
+                "codeception/module-phpbrowser": "^1.0",
+                "codeception/module-rest": "^1.2",
+                "codeception/module-webdriver": "^1.0",
+                "codeception/util-universalframework": "^1.0",
                 "dealerdirect/phpcodesniffer-composer-installer": "0.5.0",
-                "lucatume/wp-browser": "2.2.0",
+                "lucatume/wp-browser": "^2.4",
                 "phpcompatibility/phpcompatibility-wp": "2.1.0",
                 "phpstan/phpstan": "^0.12.25",
                 "squizlabs/php_codesniffer": "3.5.4",
@@ -848,10 +856,10 @@
             ],
             "description": "GraphQL API for WordPress",
             "support": {
-                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.9.1",
+                "source": "https://github.com/wp-graphql/wp-graphql/tree/v0.12.1",
                 "issues": "https://github.com/wp-graphql/wp-graphql/issues"
             },
-            "time": "2020-05-21T20:10:08+00:00"
+            "time": "2020-08-11T13:18:59+00:00"
         },
         {
             "name": "wpackagist-plugin/add-category-to-pages",
@@ -1077,12 +1085,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "89bed6788d61977969b89d912b5844e8beee09f0"
+                "reference": "dbda10aea96678b6742e8f0109c1c7ac003a0f69"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/89bed6788d61977969b89d912b5844e8beee09f0",
-                "reference": "89bed6788d61977969b89d912b5844e8beee09f0",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/dbda10aea96678b6742e8f0109c1c7ac003a0f69",
+                "reference": "dbda10aea96678b6742e8f0109c1c7ac003a0f69",
                 "shasum": ""
             },
             "conflict": {
@@ -1098,6 +1106,7 @@
                 "bagisto/bagisto": "<0.1.5",
                 "barrelstrength/sprout-base-email": "<1.2.7",
                 "barrelstrength/sprout-forms": "<3.9",
+                "baserproject/basercms": ">=4,<=4.3.6",
                 "bolt/bolt": "<3.7.1",
                 "brightlocal/phpwhois": "<=4.2.5",
                 "buddypress/buddypress": "<5.1.2",
@@ -1365,7 +1374,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-08-19T19:01:52+00:00"
+            "time": "2020-08-28T21:02:31+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",
