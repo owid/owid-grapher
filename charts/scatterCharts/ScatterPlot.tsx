@@ -250,11 +250,13 @@ export class ScatterPlot extends React.Component<{
     // todo: Refactor
     @computed private get dualAxis() {
         const { xAxis, yAxis } = this.transform
-        return new DualAxis({
+        const axis = new DualAxis({
             bounds: this.bounds.padRight(this.sidebarWidth + 20),
             xAxis,
             yAxis
         })
+
+        return axis
     }
 
     @computed get comparisonLines() {
@@ -348,9 +350,7 @@ export class ScatterPlot extends React.Component<{
                 <PointsWithLabels
                     hideLines={hideLines}
                     data={currentData}
-                    bounds={dualAxis.innerBounds}
-                    xAxis={dualAxis.xAxis}
-                    yAxis={dualAxis.yAxis}
+                    dualAxis={dualAxis}
                     colorScale={
                         this.transform.colorDimension ? colorScale : undefined
                     }

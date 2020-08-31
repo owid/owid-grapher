@@ -123,10 +123,11 @@ abstract class AbstractAxis {
     @observable private _label?: string
     @observable private _scaleTypeOptions?: ScaleType[]
 
-    updateDomain(defaultDomain: [number, number]) {
+    // todo: add unit tests/explain logic
+    updateDomain(domain: [number, number]) {
         this.domain = [
-            Math.min(this.domain[0], defaultDomain[0]),
-            Math.max(this.domain[1], defaultDomain[1])
+            Math.min(this.domain[0], domain[0]),
+            Math.max(this.domain[1], domain[1])
         ]
         return this
     }
