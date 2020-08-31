@@ -43,7 +43,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get initialData(): LineChartSeries[] {
         const { chart } = this
-        const { yAxisOptions: yAxisRuntime } = chart
+        const { yAxisOptions } = chart
         const { selectedKeys, selectedKeysByKey } = chart
         const filledDimensions = chart.filledDimensions
 
@@ -65,7 +65,7 @@ export class LineChartTransform extends ChartTransform {
                 // Not a selected key, don't add any data for it
                 if (!selectedKeysByKey[entityDimensionKey]) continue
                 // Can't have values <= 0 on log scale
-                if (value <= 0 && yAxisRuntime.scaleType === ScaleType.log)
+                if (value <= 0 && yAxisOptions.scaleType === ScaleType.log)
                     continue
 
                 if (!series) {

@@ -329,21 +329,21 @@ export class ScatterTransform extends ChartTransform {
         const chart = this.chart
         dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
-                const yAxisRuntime = chart.yAxisOptions
-                const xAxisRuntime = chart.xAxisOptions
+                const yAxisOptions = chart.yAxisOptions
+                const xAxisOptions = chart.xAxisOptions
                 // Exclude any points with data for only one axis
                 if (!has(point, "x") || !has(point, "y"))
                     dataByYear.delete(year)
                 // Exclude points that go beyond min/max of X axis
                 else if (
-                    xAxisRuntime.removePointsOutsideDomain &&
-                    xAxisRuntime.isOutsideDomain(point.x)
+                    xAxisOptions.removePointsOutsideDomain &&
+                    xAxisOptions.isOutsideDomain(point.x)
                 )
                     dataByYear.delete(year)
                 // Exclude points that go beyond min/max of Y axis
                 else if (
-                    yAxisRuntime.removePointsOutsideDomain &&
-                    yAxisRuntime.isOutsideDomain(point.y)
+                    yAxisOptions.removePointsOutsideDomain &&
+                    yAxisOptions.isOutsideDomain(point.y)
                 )
                     dataByYear.delete(year)
             })

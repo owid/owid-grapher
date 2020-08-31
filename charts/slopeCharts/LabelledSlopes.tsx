@@ -682,16 +682,16 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get controls() {
-        const { yAxisOptions: yAxisRuntime } = this.props
+        const { yAxisOptions } = this.props
         const showScaleSelector =
-            this.props.isInteractive && yAxisRuntime.scaleTypeOptions.length > 1
+            this.props.isInteractive && yAxisOptions.scaleTypeOptions.length > 1
         if (!showScaleSelector) return undefined
         return (
             <ControlsOverlay id="slope-scale-selector" paddingTop={20}>
                 <ScaleSelector
                     x={this.bounds.x}
                     y={this.bounds.y - 35}
-                    scaleTypeConfig={yAxisRuntime}
+                    scaleTypeConfig={yAxisOptions}
                 />
             </ControlsOverlay>
         )
