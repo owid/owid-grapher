@@ -12,7 +12,7 @@ import {
     AxisTickMarks,
     VerticalAxisGridLines
 } from "charts/axis/AxisViews"
-import { VerticalAxis, AxisBox } from "charts/axis/Axis"
+import { VerticalAxis, DualAxis } from "charts/axis/Axis"
 import { NoDataOverlay } from "../core/NoDataOverlay"
 import { Text } from "../text/Text"
 import {
@@ -139,14 +139,14 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get barWidth() {
-        const { transform, axisBox } = this
+        const { transform, dualAxis } = this
 
-        return (0.8 * axisBox.innerBounds.width) / transform.xValues.length
+        return (0.8 * dualAxis.innerBounds.width) / transform.xValues.length
     }
 
     @computed get barSpacing() {
         return (
-            this.axisBox.innerBounds.width / this.transform.xValues.length -
+            this.dualAxis.innerBounds.width / this.transform.xValues.length -
             this.barWidth
         )
     }
@@ -156,10 +156,10 @@ export class StackedBarChart extends React.Component<{
     }
 
     // todo: Refactor
-    @computed private get axisBox() {
+    @computed private get dualAxis() {
         const { bounds, transform, sidebarWidth } = this
         const { xAxis, yAxis } = transform
-        return new AxisBox({
+        return new DualAxis({
             bounds: bounds.padRight(sidebarWidth + 20),
             xAxis,
             yAxis
@@ -167,7 +167,7 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed private get yAxis() {
-        return this.axisBox.yAxisWithRange
+        return this.dualAxis.yAxisWithRange
     }
 
     @computed get renderUid() {
@@ -298,10 +298,10 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get mapXValueToOffset() {
-        const { axisBox, transform, barWidth, barSpacing } = this
+        const { dualAxis, transform, barWidth, barSpacing } = this
 
         const xValueToOffset = new Map<number, number>()
-        let xOffset = axisBox.innerBounds.left + barSpacing
+        let xOffset = dualAxis.innerBounds.left + barSpacing
 
         for (let i = 0; i < transform.xValues.length; i++) {
             xValueToOffset.set(transform.xValues[i], xOffset)
@@ -312,9 +312,9 @@ export class StackedBarChart extends React.Component<{
 
     // Place ticks centered beneath the bars, before doing overlap detection
     @computed private get tickPlacements() {
-        const { mapXValueToOffset, barWidth, axisBox } = this
+        const { mapXValueToOffset, barWidth, dualAxis } = this
         const { xValues } = this.transform
-        const { xAxisWithRange } = axisBox
+        const { xAxisWithRange } = dualAxis
 
         return xValues.map(x => {
             const text = xAxisWithRange.tickFormat(x)
@@ -325,7 +325,7 @@ export class StackedBarChart extends React.Component<{
                 text: text,
                 bounds: bounds.extend({
                     x: xPos + barWidth / 2 - bounds.width / 2,
-                    y: axisBox.innerBounds.bottom + 5
+                    y: dualAxis.innerBounds.bottom + 5
                 }),
                 isHidden: false
             }
@@ -339,14 +339,6 @@ export class StackedBarChart extends React.Component<{
             for (let j = 1; j < tickPlacements.length; j++) {
                 const t1 = tickPlacements[i],
                     t2 = tickPlacements[j]
-
-                /*if (t1.bounds.left < axisBox.innerBounds.left) {
-                    t1.isHidden = true
-                }
-
-                if (t2.bounds.right > axisBox.innerBounds.right) {
-                    t2.isHidden = true
-                }*/
 
                 if (t1 === t2 || t1.isHidden || t2.isHidden) continue
 
@@ -404,7 +396,7 @@ export class StackedBarChart extends React.Component<{
             )
 
         const {
-            axisBox,
+            dualAxis,
             renderUid,
             bounds,
             yAxis,
@@ -417,7 +409,7 @@ export class StackedBarChart extends React.Component<{
             ticks
         } = this
         const { stackedData } = this.transform
-        const { innerBounds } = axisBox
+        const { innerBounds } = dualAxis
 
         const textColor = "#666"
 
@@ -444,7 +436,7 @@ export class StackedBarChart extends React.Component<{
                 />
                 <VerticalAxisComponent
                     bounds={bounds}
-                    axis={yAxis}
+                    verticalAxis={yAxis}
                     isInteractive={this.chart.isInteractive}
                 />
                 <VerticalAxisGridLines

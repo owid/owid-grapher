@@ -1,18 +1,8 @@
-/* AxisBox.tsx
- * ================
- *
- * Standard axis box layout model. Precompute before rendering and pass it around.
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-02-11
- */
-
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { VerticalAxis, HorizontalAxis, AxisBox } from "./Axis"
+import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import { ScaleType } from "charts/core/ChartConstants"
 import classNames from "classnames"
 import { ControlsOverlay } from "charts/controls/Controls"
@@ -90,27 +80,27 @@ export class HorizontalAxisGridLines extends React.Component<{
     }
 }
 
-interface AxisBoxViewProps {
-    axisBox: AxisBox
+interface DualAxisViewProps {
+    dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks: boolean
     isInteractive: boolean
 }
 
 @observer
-export class AxisBoxComponent extends React.Component<AxisBoxViewProps> {
+export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     componentDidMount() {
-        requestAnimationFrame(this.props.axisBox.setupAnimation)
+        requestAnimationFrame(this.props.dualAxis.setupAnimation)
     }
 
     render() {
-        const { axisBox, showTickMarks } = this.props
-        const { bounds, xAxisWithRange, yAxisWithRange, innerBounds } = axisBox
+        const { dualAxis, showTickMarks } = this.props
+        const { bounds, xAxisWithRange, yAxisWithRange, innerBounds } = dualAxis
 
         const maxX = undefined // {chartView.tabBounds.width} todo
 
         return (
-            <g className="AxisBoxView">
+            <g className="DualAxisView">
                 <HorizontalAxisComponent
                     maxX={maxX}
                     bounds={bounds}
@@ -121,7 +111,7 @@ export class AxisBoxComponent extends React.Component<AxisBoxViewProps> {
                 />
                 <VerticalAxisComponent
                     bounds={bounds}
-                    axis={yAxisWithRange}
+                    verticalAxis={yAxisWithRange}
                     isInteractive={this.props.isInteractive}
                 />
                 {!yAxisWithRange.hideGridlines && (
@@ -144,49 +134,49 @@ export class AxisBoxComponent extends React.Component<AxisBoxViewProps> {
 @observer
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
-    axis: VerticalAxis
+    verticalAxis: VerticalAxis
     isInteractive: boolean
 }> {
     @computed get controls() {
-        const { bounds, axis } = this.props
+        const { bounds, verticalAxis } = this.props
         const showControls =
-            this.props.isInteractive && axis.scaleTypeOptions.length > 1
+            this.props.isInteractive && verticalAxis.scaleTypeOptions.length > 1
         if (!showControls) return undefined
         return (
             <ControlsOverlay id="vertical-scale-selector" paddingTop={18}>
                 <ScaleSelector
                     x={bounds.left}
                     y={bounds.top - 34}
-                    scaleTypeConfig={axis}
+                    scaleTypeConfig={verticalAxis}
                 />
             </ControlsOverlay>
         )
     }
 
     render() {
-        const { bounds, axis } = this.props
-        const { ticks, labelTextWrap: label } = axis
+        const { bounds, verticalAxis } = this.props
+        const { ticks, labelTextWrap } = verticalAxis
         const textColor = "#666"
 
         return (
-            <g className="VerticalAxisBox">
-                {label &&
-                    label.render(
-                        -bounds.centerY - label.width / 2,
+            <g className="VerticalAxis">
+                {labelTextWrap &&
+                    labelTextWrap.render(
+                        -bounds.centerY - labelTextWrap.width / 2,
                         bounds.left,
                         { transform: "rotate(-90)" }
                     )}
                 {ticks.map((tick, i) => (
                     <text
                         key={i}
-                        x={(bounds.left + axis.width - 5).toFixed(2)}
-                        y={axis.place(tick)}
+                        x={(bounds.left + verticalAxis.width - 5).toFixed(2)}
+                        y={verticalAxis.place(tick)}
                         fill={textColor}
                         dominantBaseline="middle"
                         textAnchor="end"
-                        fontSize={axis.tickFontSize}
+                        fontSize={verticalAxis.tickFontSize}
                     >
-                        {axis.formatTick(tick)}
+                        {verticalAxis.formatTick(tick)}
                     </text>
                 ))}
                 {this.controls}

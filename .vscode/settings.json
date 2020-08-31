@@ -9,6 +9,7 @@
         "bakedSite": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.preferences.useAliasesForRenames": false,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
