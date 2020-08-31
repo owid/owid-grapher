@@ -21,26 +21,23 @@ export class ComparisonLine extends React.Component<{
 }> {
     @computed private get controlData(): [number, number][] {
         const { comparisonLine, axisBox } = this.props
-        const { xAxisWithRange: xScale, yAxisWithRange: yScale } = axisBox
+        const { xAxisWithRange, yAxisWithRange } = axisBox
         return generateComparisonLinePoints(
             comparisonLine.yEquals,
-            xScale.domain,
-            yScale.domain,
-            xScale.scaleType,
-            yScale.scaleType
+            xAxisWithRange.domain,
+            yAxisWithRange.domain,
+            xAxisWithRange.scaleType,
+            yAxisWithRange.scaleType
         )
     }
 
     @computed private get linePath(): string | null {
         const { controlData } = this
-        const {
-            xAxisWithRange: xScale,
-            yAxisWithRange: yScale
-        } = this.props.axisBox
+        const { xAxisWithRange, yAxisWithRange } = this.props.axisBox
         const line = d3_line()
             .curve(curveLinear)
-            .x(d => xScale.place(d[0]))
-            .y(d => yScale.place(d[1]))
+            .x(d => xAxisWithRange.place(d[0]))
+            .y(d => yAxisWithRange.place(d[1]))
         return line(controlData)
     }
 
@@ -52,14 +49,20 @@ export class ComparisonLine extends React.Component<{
 
         const { controlData } = this
         const {
-            xAxisWithRange: xScale,
-            yAxisWithRange: yScale,
+            xAxisWithRange,
+            yAxisWithRange,
             innerBounds
         } = this.props.axisBox
 
         // Find the points of the line that are actually placeable on the chart
         const linePoints = controlData
-            .map(d => new Vector2(xScale.place(d[0]), yScale.place(d[1])))
+            .map(
+                d =>
+                    new Vector2(
+                        xAxisWithRange.place(d[0]),
+                        yAxisWithRange.place(d[1])
+                    )
+            )
             .filter(p => innerBounds.contains(p))
         if (!linePoints.length) return
 

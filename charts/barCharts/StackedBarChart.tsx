@@ -55,15 +55,15 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     @observable mouseOver: boolean = false
 
     @computed get yPos() {
-        const { bar, yAxis: yScale } = this.props
-        return yScale.place(bar.yOffset + bar.y)
+        const { bar, yAxis } = this.props
+        return yAxis.place(bar.yOffset + bar.y)
     }
 
     @computed get barHeight() {
-        const { bar, yAxis: yScale } = this.props
+        const { bar, yAxis } = this.props
         const { yPos } = this
 
-        return yScale.place(bar.yOffset) - yPos
+        return yAxis.place(bar.yOffset) - yPos
     }
 
     @computed get trueOpacity() {

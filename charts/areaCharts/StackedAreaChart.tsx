@@ -101,15 +101,19 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get areas(): JSX.Element[] {
         const { axisBox, data } = this.props
-        const { xAxisWithRange: xScale, yAxisWithRange: yScale } = axisBox
-        const xBottomLeft = [xScale.range[0], yScale.range[0]]
-        const xBottomRight = [xScale.range[1], yScale.range[0]]
+        const { xAxisWithRange, yAxisWithRange } = axisBox
+        const xBottomLeft = [xAxisWithRange.range[0], yAxisWithRange.range[0]]
+        const xBottomRight = [xAxisWithRange.range[1], yAxisWithRange.range[0]]
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         let prevPoints = [xBottomLeft, xBottomRight]
         return data.map(series => {
             const mainPoints = series.values.map(
-                v => [xScale.place(v.x), yScale.place(v.y)] as [number, number]
+                v =>
+                    [xAxisWithRange.place(v.x), yAxisWithRange.place(v.y)] as [
+                        number,
+                        number
+                    ]
             )
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
             prevPoints = mainPoints
@@ -132,12 +136,16 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get borders(): JSX.Element[] {
         const { axisBox, data } = this.props
-        const { xAxisWithRange: xScale, yAxisWithRange: yScale } = axisBox
+        const { xAxisWithRange, yAxisWithRange } = axisBox
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         return data.map(series => {
             const points = series.values.map(
-                v => [xScale.place(v.x), yScale.place(v.y)] as [number, number]
+                v =>
+                    [xAxisWithRange.place(v.x), yAxisWithRange.place(v.y)] as [
+                        number,
+                        number
+                    ]
             )
 
             return (
@@ -164,7 +172,7 @@ class Areas extends React.Component<AreasProps> {
 
     render() {
         const { axisBox, data } = this.props
-        const { xAxisWithRange: xScale, yAxisWithRange: yScale } = axisBox
+        const { xAxisWithRange, yAxisWithRange } = axisBox
         const { hoverIndex } = this
 
         return (
@@ -179,10 +187,10 @@ class Areas extends React.Component<AreasProps> {
                 onTouchCancel={this.onCursorLeave}
             >
                 <rect
-                    x={xScale.range[0]}
-                    y={yScale.range[1]}
-                    width={xScale.range[1] - xScale.range[0]}
-                    height={yScale.range[0] - yScale.range[1]}
+                    x={xAxisWithRange.range[0]}
+                    y={yAxisWithRange.range[1]}
+                    width={xAxisWithRange.range[1] - xAxisWithRange.range[0]}
+                    height={yAxisWithRange.range[0] - yAxisWithRange.range[1]}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
@@ -194,10 +202,10 @@ class Areas extends React.Component<AreasProps> {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
                                     key={series.entityDimensionKey}
-                                    cx={xScale.place(
+                                    cx={xAxisWithRange.place(
                                         series.values[hoverIndex].x
                                     )}
-                                    cy={yScale.place(
+                                    cy={yAxisWithRange.place(
                                         series.values[hoverIndex].y
                                     )}
                                     r={2}
@@ -206,10 +214,14 @@ class Areas extends React.Component<AreasProps> {
                             )
                         })}
                         <line
-                            x1={xScale.place(data[0].values[hoverIndex].x)}
-                            y1={yScale.range[0]}
-                            x2={xScale.place(data[0].values[hoverIndex].x)}
-                            y2={yScale.range[1]}
+                            x1={xAxisWithRange.place(
+                                data[0].values[hoverIndex].x
+                            )}
+                            y1={yAxisWithRange.range[0]}
+                            x2={xAxisWithRange.place(
+                                data[0].values[hoverIndex].x
+                            )}
+                            y2={yAxisWithRange.range[1]}
                             stroke="rgba(180,180,180,.4)"
                         />
                     </g>
