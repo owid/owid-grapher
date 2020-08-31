@@ -397,10 +397,6 @@ export class ScatterTransform extends ChartTransform {
         return this.domainDefault("x")
     }
 
-    @computed private get yDomainDefault() {
-        return this.domainDefault("y")
-    }
-
     @computed private get selectedPoints() {
         const entitiesFor = new Set(this.getEntityNamesToShow(true))
         return this.allPoints.filter(
@@ -438,11 +434,14 @@ export class ScatterTransform extends ChartTransform {
         )
     }
 
+    @computed private get yDomainDefault() {
+        return this.domainDefault("y")
+    }
+
     @computed get yAxis() {
         const { chart, yDomainDefault, yDimension, isRelativeMode } = this
 
         const axis = chart.yAxisOptions.toVerticalAxis()
-        axis.updateDomain(yDomainDefault)
         axis.tickFormat =
             (yDimension && yDimension.formatValueShort) || axis.tickFormat
 
@@ -452,13 +451,17 @@ export class ScatterTransform extends ChartTransform {
 
         if (isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
+            axis.domain = yDomainDefault // Overwrite user's min/max
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
                     label
                 )}`
             }
             axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
-        } else axis.label = label
+        } else {
+            axis.updateDomainPreservingUserSettings(yDomainDefault)
+            axis.label = label
+        }
 
         return axis
     }
@@ -487,11 +490,11 @@ export class ScatterTransform extends ChartTransform {
         const { xAxisOptions } = this.chart
 
         const axis = xAxisOptions.toHorizontalAxis()
-        axis.updateDomain(xDomainDefault)
 
         axis.scaleType = this.xScaleType
         if (isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
+            axis.domain = xDomainDefault // Overwrite user's min/max
             const label = xAxisOptions.label || xAxisLabelBase
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
@@ -500,6 +503,7 @@ export class ScatterTransform extends ChartTransform {
             }
             axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
+            axis.updateDomainPreservingUserSettings(xDomainDefault)
             axis.label = xAxisOptions.label || xAxisLabelBase || axis.label
             axis.tickFormat =
                 (xDimension && xDimension.formatValueShort) || axis.tickFormat
