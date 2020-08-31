@@ -295,10 +295,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     // Pre-transform data for rendering
     @computed private get initialRenderData(): ScatterRenderSeries[] {
         const { data, sizeScale, fontScale, colorScale, bounds } = this
-        const xView = this.props.xAxis.clone()
-        xView.range = bounds.xRange()
-        const yView = this.props.yAxis.clone()
-        yView.range = this.bounds.yRange()
+        const xAxis = this.props.xAxis.clone()
+        xAxis.range = bounds.xRange()
+        const yAxis = this.props.yAxis.clone()
+        yAxis.range = this.bounds.yRange()
 
         return sortNumeric(
             data.map(d => {
@@ -310,8 +310,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             : undefined
                     return {
                         position: new Vector2(
-                            Math.floor(xView.place(v.x)),
-                            Math.floor(yView.place(v.y))
+                            Math.floor(xAxis.place(v.x)),
+                            Math.floor(yAxis.place(v.y))
                         ),
                         color: scaleColor ?? d.color,
                         size: Math.sqrt(area / Math.PI),

@@ -323,7 +323,7 @@ abstract class AbstractAxis {
             )
             return value
         } else if (this.scaleType === ScaleType.log && value <= 0) {
-            console.error("Can't have values <= 0 on a log scale")
+            console.error(`Can't have ${value} which is <= 0 on a log scale`)
             return value
         }
         return parseFloat(this.d3_scale(value).toFixed(1))
@@ -524,18 +524,18 @@ export class VerticalAxis extends AbstractAxis {
     }
 }
 
-interface AxisBoxProps {
+interface DualAxisProps {
     bounds: Bounds
     xAxis: HorizontalAxis
     yAxis: VerticalAxis
 }
 
-// AxisBox has the important task of coordinating two axes so that they work together!
+// DualAxis has the important task of coordinating two axes so that they work together!
 // There is a *two-way dependency* between the bounding size of each axis.
 // e.g. if the y axis becomes wider because a label is present, the x axis then has less
 // space to work with, and vice versa
-export class AxisBox {
-    private props: AxisBoxProps
+export class DualAxis {
+    private props: DualAxisProps
 
     @observable private targetYDomain: [number, number] = [1, 100]
     @observable private targetXDomain: [number, number] = [1, 100]
@@ -544,7 +544,7 @@ export class AxisBox {
     @observable private animProgress?: number
     private frameStart?: number
 
-    constructor(props: AxisBoxProps) {
+    constructor(props: DualAxisProps) {
         this.props = props
     }
 
@@ -619,45 +619,45 @@ export class AxisBox {
 
     // todo: Refactor
     @computed private get yAxis() {
-        const view = this.props.yAxis.clone()
-        view.domain = this.currentYDomain
-        return view
+        const axis = this.props.yAxis.clone()
+        axis.domain = this.currentYDomain
+        return axis
     }
 
     // todo: Refactor
     @computed private get xAxis() {
-        const view = this.props.xAxis.clone()
-        view.domain = this.currentXDomain
-        return view
+        const axis = this.props.xAxis.clone()
+        axis.domain = this.currentXDomain
+        return axis
     }
 
     // todo: Refactor
     @computed get xAxisWithRange() {
-        const view = this.xAxis.clone()
-        view.range = this.innerBounds.xRange()
-        return view
+        const axis = this.xAxis.clone()
+        axis.range = this.innerBounds.xRange()
+        return axis
     }
 
     // todo: Refactor
     @computed get yAxisWithRange() {
-        const view = this.yAxis.clone()
-        view.range = this.innerBounds.yRange()
-        return view
+        const axis = this.yAxis.clone()
+        axis.range = this.innerBounds.yRange()
+        return axis
     }
 
     // todo: Refactor
     // We calculate an initial width/height for the axes in isolation
     @computed private get xAxisHeight() {
-        const view = this.xAxis.clone()
-        view.range = [0, this.props.bounds.width]
-        return view.height
+        const axis = this.xAxis.clone()
+        axis.range = [0, this.props.bounds.width]
+        return axis.height
     }
 
     // todo: Refactor
     @computed private get yAxisWidth() {
-        const view = this.yAxis.clone()
-        view.range = [0, this.props.bounds.height]
-        return view.width
+        const axis = this.yAxis.clone()
+        axis.range = [0, this.props.bounds.height]
+        return axis.width
     }
 
     // Now we can determine the "true" inner bounds of the axis box

@@ -19,8 +19,8 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
 import { Bounds } from "charts/utils/Bounds"
-import { AxisBoxComponent } from "charts/axis/AxisViews"
-import { AxisBox, HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
+import { DualAxisComponent } from "charts/axis/AxisViews"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
 import { Vector2 } from "charts/utils/Vector2"
 import { LineLabelsHelper, LineLabelsComponent } from "./LineLabels"
 import {
@@ -52,7 +52,7 @@ export interface LineChartSeries {
 const BLUR_COLOR = "#eee"
 
 interface LinesProps {
-    axisBox: AxisBox
+    dualAxis: DualAxis
     xAxis: HorizontalAxis
     yAxis: VerticalAxis
     data: LineChartSeries[]
@@ -133,12 +133,12 @@ class Lines extends React.Component<LinesProps> {
     }
 
     @action.bound onCursorMove(ev: MouseEvent | TouchEvent) {
-        const { axisBox, xAxis } = this.props
+        const { dualAxis, xAxis } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev)
 
         let hoverX
-        if (axisBox.innerBounds.contains(mouse)) {
+        if (dualAxis.innerBounds.contains(mouse)) {
             const closestValue = minBy(this.allValues, d =>
                 Math.abs(xAxis.place(d.x) - mouse.x)
             )
@@ -334,7 +334,7 @@ export class LineChart extends React.Component<{
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        const { transform, hoverX, axisBox } = this
+        const { transform, hoverX, dualAxis } = this
 
         if (hoverX === undefined) return undefined
 
@@ -350,10 +350,10 @@ export class LineChart extends React.Component<{
         return (
             <Tooltip
                 tooltipContainer={this.options}
-                x={axisBox.xAxisWithRange.place(hoverX)}
+                x={dualAxis.xAxisWithRange.place(hoverX)}
                 y={
-                    axisBox.yAxisWithRange.rangeMin +
-                    axisBox.yAxisWithRange.rangeSize / 2
+                    dualAxis.yAxisWithRange.rangeMin +
+                    dualAxis.yAxisWithRange.rangeSize / 2
                 }
                 style={{ padding: "0.3em" }}
                 offsetX={5}
@@ -469,9 +469,9 @@ export class LineChart extends React.Component<{
     }
 
     // todo: Refactor
-    @computed private get axisBox() {
+    @computed private get dualAxis() {
         const { xAxis, yAxis } = this.transform
-        return new AxisBox({
+        return new DualAxis({
             bounds: this.bounds.padRight(this.legend ? this.legend.width : 20),
             yAxis,
             xAxis
@@ -544,11 +544,11 @@ export class LineChart extends React.Component<{
             bounds,
             legend,
             tooltip,
-            axisBox,
+            dualAxis,
             renderUid,
             hoverX
         } = this
-        const { xAxisWithRange, yAxisWithRange } = axisBox
+        const { xAxisWithRange, yAxisWithRange } = dualAxis
         const { groupedData } = transform
 
         const comparisonLines = options.comparisonLines || []
@@ -559,23 +559,23 @@ export class LineChart extends React.Component<{
                     <clipPath id={`boundsClip-${renderUid}`}>
                         {/* The tiny bit of extra space here is to ensure circles centered on the very edge are still fully visible */}
                         <rect
-                            x={axisBox.innerBounds.x - 10}
+                            x={dualAxis.innerBounds.x - 10}
                             y={0}
                             width={bounds.width + 10}
                             height={bounds.height * 2}
                         ></rect>
                     </clipPath>
                 </defs>
-                <AxisBoxComponent
+                <DualAxisComponent
                     isInteractive={this.transform.chart.isInteractive}
-                    axisBox={axisBox}
+                    dualAxis={dualAxis}
                     showTickMarks={true}
                 />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {comparisonLines.map((line, i) => (
                         <ComparisonLine
                             key={i}
-                            axisBox={axisBox}
+                            dualAxis={dualAxis}
                             comparisonLine={line}
                         />
                     ))}
@@ -584,7 +584,7 @@ export class LineChart extends React.Component<{
                             x={bounds.right - legend.width}
                             legend={legend}
                             focusKeys={this.focusKeys}
-                            yAxis={axisBox.yAxisWithRange}
+                            yAxis={dualAxis.yAxisWithRange}
                             onClick={this.onLegendClick}
                             options={options}
                             onMouseOver={this.onLegendMouseOver}
@@ -592,9 +592,9 @@ export class LineChart extends React.Component<{
                         />
                     )}
                     <Lines
-                        axisBox={axisBox}
-                        xAxis={axisBox.xAxisWithRange}
-                        yAxis={axisBox.yAxisWithRange}
+                        dualAxis={dualAxis}
+                        xAxis={dualAxis.xAxisWithRange}
+                        yAxis={dualAxis.yAxisWithRange}
                         data={groupedData}
                         onHover={this.onHover}
                         focusKeys={this.focusKeys}

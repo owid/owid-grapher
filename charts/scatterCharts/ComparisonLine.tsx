@@ -3,7 +3,7 @@ import { guid } from "../utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { AxisBox } from "charts/axis/Axis"
+import { DualAxis } from "charts/axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Bounds } from "charts/utils/Bounds"
 import { Vector2 } from "charts/utils/Vector2"
@@ -16,12 +16,12 @@ export interface ComparisonLineConfig {
 
 @observer
 export class ComparisonLine extends React.Component<{
-    axisBox: AxisBox
+    dualAxis: DualAxis
     comparisonLine: ComparisonLineConfig
 }> {
     @computed private get controlData(): [number, number][] {
-        const { comparisonLine, axisBox } = this.props
-        const { xAxisWithRange, yAxisWithRange } = axisBox
+        const { comparisonLine, dualAxis } = this.props
+        const { xAxisWithRange, yAxisWithRange } = dualAxis
         return generateComparisonLinePoints(
             comparisonLine.yEquals,
             xAxisWithRange.domain,
@@ -33,7 +33,7 @@ export class ComparisonLine extends React.Component<{
 
     @computed private get linePath(): string | null {
         const { controlData } = this
-        const { xAxisWithRange, yAxisWithRange } = this.props.axisBox
+        const { xAxisWithRange, yAxisWithRange } = this.props.dualAxis
         const line = d3_line()
             .curve(curveLinear)
             .x(d => xAxisWithRange.place(d[0]))
@@ -52,7 +52,7 @@ export class ComparisonLine extends React.Component<{
             xAxisWithRange,
             yAxisWithRange,
             innerBounds
-        } = this.props.axisBox
+        } = this.props.dualAxis
 
         // Find the points of the line that are actually placeable on the chart
         const linePoints = controlData
@@ -86,7 +86,7 @@ export class ComparisonLine extends React.Component<{
     }
 
     render() {
-        const { innerBounds } = this.props.axisBox
+        const { innerBounds } = this.props.dualAxis
         const { linePath, renderUid, placedLabel } = this
 
         return (

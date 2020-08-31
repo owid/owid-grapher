@@ -16,8 +16,8 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
-import { AxisBoxComponent } from "charts/axis/AxisViews"
-import { AxisBox } from "charts/axis/Axis"
+import { DualAxisComponent } from "charts/axis/AxisViews"
+import { DualAxis } from "charts/axis/Axis"
 import {
     LineLabelsHelper,
     LineLabel,
@@ -47,7 +47,7 @@ export interface StackedAreaSeries {
 }
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
-    axisBox: AxisBox
+    dualAxis: DualAxis
     data: StackedAreaSeries[]
     focusKeys: EntityDimensionKey[] // todo: remove
     onHover: (hoverIndex: number | undefined) => void
@@ -64,13 +64,13 @@ class Areas extends React.Component<AreasProps> {
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ) {
-        const { axisBox, data } = this.props
+        const { dualAxis, data } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
-        if (axisBox.innerBounds.contains(mouse)) {
+        if (dualAxis.innerBounds.contains(mouse)) {
             const closestPoint = minBy(data[0].values, d =>
-                Math.abs(axisBox.xAxisWithRange.place(d.x) - mouse.x)
+                Math.abs(dualAxis.xAxisWithRange.place(d.x) - mouse.x)
             )
             if (closestPoint) {
                 const index = data[0].values.indexOf(closestPoint)
@@ -100,8 +100,8 @@ class Areas extends React.Component<AreasProps> {
     }
 
     @computed private get areas(): JSX.Element[] {
-        const { axisBox, data } = this.props
-        const { xAxisWithRange, yAxisWithRange } = axisBox
+        const { dualAxis, data } = this.props
+        const { xAxisWithRange, yAxisWithRange } = dualAxis
         const xBottomLeft = [xAxisWithRange.range[0], yAxisWithRange.range[0]]
         const xBottomRight = [xAxisWithRange.range[1], yAxisWithRange.range[0]]
 
@@ -135,8 +135,8 @@ class Areas extends React.Component<AreasProps> {
     }
 
     @computed private get borders(): JSX.Element[] {
-        const { axisBox, data } = this.props
-        const { xAxisWithRange, yAxisWithRange } = axisBox
+        const { dualAxis, data } = this.props
+        const { xAxisWithRange, yAxisWithRange } = dualAxis
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         return data.map(series => {
@@ -171,8 +171,8 @@ class Areas extends React.Component<AreasProps> {
     }
 
     render() {
-        const { axisBox, data } = this.props
-        const { xAxisWithRange, yAxisWithRange } = axisBox
+        const { dualAxis, data } = this.props
+        const { xAxisWithRange, yAxisWithRange } = dualAxis
         const { hoverIndex } = this
 
         return (
@@ -293,9 +293,9 @@ export class StackedAreaChart extends React.Component<{
     }
 
     // todo: Refactor
-    @computed private get axisBox() {
+    @computed private get dualAxis() {
         const { bounds, legend, xAxis, yAxis } = this
-        return new AxisBox({
+        return new DualAxis({
             bounds: bounds.padRight(legend ? legend.width : 20),
             xAxis,
             yAxis
@@ -372,7 +372,7 @@ export class StackedAreaChart extends React.Component<{
     @computed private get tooltip(): JSX.Element | undefined {
         if (this.hoverIndex === undefined) return undefined
 
-        const { transform, hoverIndex, axisBox, chart } = this
+        const { transform, hoverIndex, dualAxis, chart } = this
 
         // Grab the first value to get the year from
         const refValue = transform.stackedData[0].values[hoverIndex]
@@ -392,10 +392,10 @@ export class StackedAreaChart extends React.Component<{
         return (
             <Tooltip
                 tooltipContainer={this.props.chart}
-                x={axisBox.xAxisWithRange.place(refValue.x)}
+                x={dualAxis.xAxisWithRange.place(refValue.x)}
                 y={
-                    axisBox.yAxisWithRange.rangeMin +
-                    axisBox.yAxisWithRange.rangeSize / 2
+                    dualAxis.yAxisWithRange.rangeMin +
+                    dualAxis.yAxisWithRange.rangeSize / 2
                 }
                 style={{ padding: "0.3em" }}
                 offsetX={5}
@@ -518,22 +518,22 @@ export class StackedAreaChart extends React.Component<{
                 />
             )
 
-        const { chart, bounds, axisBox, legend, transform, renderUid } = this
+        const { chart, bounds, dualAxis, legend, transform, renderUid } = this
         return (
             <g ref={this.base} className="StackedArea">
                 <defs>
                     <clipPath id={`boundsClip-${renderUid}`}>
                         <rect
-                            x={axisBox.innerBounds.x}
+                            x={dualAxis.innerBounds.x}
                             y={0}
                             width={bounds.width}
                             height={bounds.height * 2}
                         ></rect>
                     </clipPath>
                 </defs>
-                <AxisBoxComponent
+                <DualAxisComponent
                     isInteractive={chart.isInteractive}
-                    axisBox={axisBox}
+                    dualAxis={dualAxis}
                     showTickMarks={true}
                 />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
@@ -541,7 +541,7 @@ export class StackedAreaChart extends React.Component<{
                         <LineLabelsComponent
                             legend={legend}
                             x={bounds.right - legend.width}
-                            yAxis={axisBox.yAxisWithRange}
+                            yAxis={dualAxis.yAxisWithRange}
                             options={chart}
                             focusKeys={this.focusKeys}
                             onClick={this.onLegendClick}
@@ -550,7 +550,7 @@ export class StackedAreaChart extends React.Component<{
                         />
                     )}
                     <Areas
-                        axisBox={axisBox}
+                        dualAxis={dualAxis}
                         data={transform.stackedData}
                         focusKeys={this.focusKeys}
                         onHover={this.onHover}

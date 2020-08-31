@@ -35,8 +35,8 @@ import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "./ScatterColorLegend"
-import { AxisBoxComponent } from "charts/axis/AxisViews"
-import { AxisBox } from "charts/axis/Axis"
+import { DualAxisComponent } from "charts/axis/AxisViews"
+import { DualAxis } from "charts/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { TimeBound } from "charts/utils/TimeBounds"
@@ -248,9 +248,9 @@ export class ScatterPlot extends React.Component<{
     }
 
     // todo: Refactor
-    @computed private get axisBox() {
+    @computed private get dualAxis() {
         const { xAxis, yAxis } = this.transform
-        return new AxisBox({
+        return new DualAxis({
             bounds: this.bounds.padRight(this.sidebarWidth + 20),
             xAxis,
             yAxis
@@ -315,7 +315,7 @@ export class ScatterPlot extends React.Component<{
         const {
             transform,
             bounds,
-            axisBox,
+            dualAxis,
             legend,
             focusKeys,
             hoverKeys,
@@ -332,25 +332,25 @@ export class ScatterPlot extends React.Component<{
 
         return (
             <g className="ScatterPlot">
-                <AxisBoxComponent
+                <DualAxisComponent
                     isInteractive={chart.isInteractive}
-                    axisBox={axisBox}
+                    dualAxis={dualAxis}
                     showTickMarks={false}
                 />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
                         <ComparisonLine
                             key={i}
-                            axisBox={axisBox}
+                            dualAxis={dualAxis}
                             comparisonLine={line}
                         />
                     ))}
                 <PointsWithLabels
                     hideLines={hideLines}
                     data={currentData}
-                    bounds={axisBox.innerBounds}
-                    xAxis={axisBox.xAxisWithRange}
-                    yAxis={axisBox.yAxisWithRange}
+                    bounds={dualAxis.innerBounds}
+                    xAxis={dualAxis.xAxisWithRange}
+                    yAxis={dualAxis.yAxisWithRange}
                     colorScale={
                         this.transform.colorDimension ? colorScale : undefined
                     }

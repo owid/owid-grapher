@@ -6,8 +6,8 @@ import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
-import { AxisBox, HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
-import { AxisBoxComponent } from "charts/axis/AxisViews"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
+import { DualAxisComponent } from "charts/axis/AxisViews"
 import { ComparisonLine } from "./ComparisonLine"
 
 import { EntityDimensionKey } from "charts/core/ChartConstants"
@@ -604,9 +604,9 @@ export class TimeScatter extends React.Component<{
     }
 
     // todo: Refactor
-    @computed private get axisBox() {
+    @computed private get dualAxis() {
         const { xAxis, yAxis } = this.transform
-        return new AxisBox({
+        return new DualAxis({
             bounds: this.bounds,
             xAxis,
             yAxis
@@ -630,21 +630,21 @@ export class TimeScatter extends React.Component<{
                 />
             )
 
-        const { transform, axisBox, comparisonLines, chart } = this
+        const { transform, dualAxis, comparisonLines, chart } = this
         const { currentData, sizeDomain } = transform
 
         return (
             <g>
-                <AxisBoxComponent
+                <DualAxisComponent
                     isInteractive={chart.isInteractive}
-                    axisBox={axisBox}
+                    dualAxis={dualAxis}
                     showTickMarks={false}
                 />
                 {comparisonLines &&
                     comparisonLines.map((line, i) => (
                         <ComparisonLine
                             key={i}
-                            axisBox={axisBox}
+                            dualAxis={dualAxis}
                             comparisonLine={line}
                         />
                     ))}
@@ -652,9 +652,9 @@ export class TimeScatter extends React.Component<{
                     chart={this.chart}
                     hideLines={this.hideLines}
                     data={currentData}
-                    bounds={axisBox.innerBounds}
-                    xAxis={axisBox.xAxisWithRange}
-                    yAxis={axisBox.yAxisWithRange}
+                    bounds={dualAxis.innerBounds}
+                    xAxis={dualAxis.xAxisWithRange}
+                    yAxis={dualAxis.yAxisWithRange}
                     sizeDomain={sizeDomain}
                     focusKeys={[]}
                     hoverKeys={[]}
