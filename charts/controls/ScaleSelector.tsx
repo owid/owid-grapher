@@ -12,24 +12,23 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType } from "charts/core/ChartConstants"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
 
-interface ScaleSelectorProps {
+export interface ScaleTypeConfig {
+    scaleType: ScaleType // This is assumed to be observable.
+    scaleTypeOptions: ScaleType[] // This is assumed to be observable.
+    updateChartScaleType?: (scaleType: ScaleType) => void
+}
+
+interface ScaleSelectorOptions {
     x: number
     y: number
-    scaleType: ScaleType
-    scaleTypeOptions: ScaleType[]
-    onChange: (scaleType: ScaleType) => void
+    maxX?: number
+    scaleTypeConfig: ScaleTypeConfig
+    onScaleTypeChange?: (scaleType: ScaleType) => void
 }
 
 @observer
-export class ScaleSelector extends React.Component<ScaleSelectorProps> {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
+export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
     @computed get x(): number {
         return this.props.x
     }
@@ -37,12 +36,16 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
         return this.props.y
     }
 
+    @computed get maxX(): number {
+        return this.props.maxX || 0
+    }
+
     @computed get scaleTypeOptions(): ScaleType[] {
-        return this.props.scaleTypeOptions
+        return this.props.scaleTypeConfig.scaleTypeOptions
     }
 
     @computed get scaleType(): ScaleType {
-        return this.props.scaleType
+        return this.props.scaleTypeConfig.scaleType
     }
 
     @action.bound onClick() {
@@ -52,14 +55,19 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
         if (nextScaleTypeIndex >= scaleTypeOptions.length)
             nextScaleTypeIndex = 0
 
-        this.props.onChange(scaleTypeOptions[nextScaleTypeIndex])
+        const newValue = scaleTypeOptions[nextScaleTypeIndex]
+
+        if (this.props.onScaleTypeChange) this.props.onScaleTypeChange(newValue)
+        else if (this.props.scaleTypeConfig.updateChartScaleType)
+            this.props.scaleTypeConfig.updateChartScaleType(newValue)
+        else this.props.scaleTypeConfig.scaleType = newValue
     }
 
     private componentWidth = 95
 
     private getLeftShiftIfNeeded(xPosition: number) {
-        const maxWidth = this.context.chartView.tabBounds.width
-        const overflow = maxWidth - (xPosition + this.componentWidth)
+        if (!this.maxX) return 0
+        const overflow = this.maxX - (xPosition + this.componentWidth)
         let shiftLeft = 0
         if (overflow < 0) shiftLeft = Math.abs(overflow)
         return shiftLeft
@@ -67,8 +75,6 @@ export class ScaleSelector extends React.Component<ScaleSelectorProps> {
 
     render() {
         const { x, y, onClick, scaleType } = this
-
-        if (this.context.isStatic) return null
 
         const style = {
             left: x - this.getLeftShiftIfNeeded(x),

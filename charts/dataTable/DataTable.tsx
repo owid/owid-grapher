@@ -6,7 +6,7 @@ import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { SortOrder } from "charts/core/ChartConstants"
 import { capitalize, some, orderBy, upperFirst } from "charts/utils/Util"
 import { SortIcon } from "charts/controls/SortIcon"
@@ -26,7 +26,7 @@ import {
 } from "./DataTableTransform"
 
 interface DataTableProps {
-    chart: ChartConfig
+    chart: ChartRuntime
 }
 
 interface DataTableState {

@@ -2,14 +2,14 @@ import { Bounds } from "charts/utils/Bounds"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { DataTable } from "./DataTable"
 
 // Client-side data export from chart
 @observer
 export class TableTab extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: ChartRuntime
 }> {
     @computed get bounds() {
         return this.props.bounds

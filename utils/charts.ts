@@ -1,4 +1,4 @@
-import { ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
 import { ChartTypeName } from "charts/core/ChartConstants"
 import { EXPLORER } from "settings"
 
@@ -85,7 +85,7 @@ export const FORCE_EXPLORABLE_CHART_IDS: number[] = [
 
 // A centralized predicate to test whether a chart can be explorable.
 // Used for validation on both server & client.
-export function canBeExplorable(config: ChartConfigProps) {
+export function canBeExplorable(config: ChartScript) {
     return (
         // Only allow explorable charts if the "EXPLORER" flag in .env is true
         EXPLORER &&
@@ -96,7 +96,7 @@ export function canBeExplorable(config: ChartConfigProps) {
     )
 }
 
-export function isExplorable(config: ChartConfigProps): boolean {
+export function isExplorable(config: ChartScript): boolean {
     return (
         (config.isExplorable ||
             (config.id !== undefined &&

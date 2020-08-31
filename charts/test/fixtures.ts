@@ -1,6 +1,6 @@
 import * as fs from "fs"
 
-import { ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
@@ -18,7 +18,7 @@ export function readVariableSet(
     return readObj(`variableset-${ids.join("-")}`)
 }
 
-export function readChart(id: string | number): ChartConfigProps {
+export function readChart(id: string | number): ChartScript {
     return readObj(`chart-${id}`)
 }
 

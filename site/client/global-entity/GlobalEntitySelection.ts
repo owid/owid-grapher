@@ -1,7 +1,7 @@
 import { observable, reaction, IReactionDisposer } from "mobx"
 
 import { Country, countries } from "utils/countries"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { excludeUndefined } from "charts/utils/Util"
 import { GlobalEntitySelectionUrl } from "./GlobalEntitySelectionUrl"
 import { UrlBinder } from "charts/utils/UrlBinder"
@@ -46,7 +46,7 @@ export class GlobalEntitySelection {
 }
 
 export function subscribeChartToGlobalEntitySelection(
-    chart: ChartConfig,
+    chart: ChartRuntime,
     globalSelection: GlobalEntitySelection
 ): IReactionDisposer {
     return reaction(

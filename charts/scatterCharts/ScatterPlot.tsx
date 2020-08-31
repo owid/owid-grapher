@@ -22,7 +22,7 @@ import {
 } from "charts/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import {
     PointsWithLabels,
@@ -35,7 +35,8 @@ import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "./ScatterColorLegend"
-import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
+import { AxisBoxComponent } from "charts/axis/AxisViews"
+import { AxisBox } from "charts/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { TimeBound } from "charts/utils/TimeBounds"
@@ -43,7 +44,7 @@ import { TimeBound } from "charts/utils/TimeBounds"
 @observer
 export class ScatterPlot extends React.Component<{
     bounds: Bounds
-    config: ChartConfig
+    config: ChartRuntime
     isStatic: boolean
 }> {
     // currently hovered individual series key
@@ -51,7 +52,7 @@ export class ScatterPlot extends React.Component<{
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get chart(): ChartConfig {
+    @computed get chart(): ChartRuntime {
         return this.props.config
     }
 
@@ -242,21 +243,13 @@ export class ScatterPlot extends React.Component<{
         )
     }
 
-    @computed get axisBox() {
-        const that = this
+    // todo: Refactor
+    @computed private get axisBox() {
+        const { xAxis, yAxis } = this.transform
         return new AxisBox({
-            get bounds() {
-                return that.bounds.padRight(that.sidebarWidth + 20)
-            },
-            get fontSize() {
-                return that.chart.baseFontSize
-            },
-            get xAxis() {
-                return that.transform.xAxis
-            },
-            get yAxis() {
-                return that.transform.yAxis
-            }
+            bounds: this.bounds.padRight(this.sidebarWidth + 20),
+            xAxis,
+            yAxis
         })
     }
 
@@ -289,7 +282,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed get hideLines(): boolean {
-        return !!this.chart.props.hideConnectedScatterLines
+        return !!this.chart.script.hideConnectedScatterLines
     }
 
     @computed private get scatterPointLabelFormatFunction() {
@@ -303,7 +296,7 @@ export class ScatterPlot extends React.Component<{
         }
 
         return scatterPointLabelFormatFunctions[
-            this.chart.props.scatterPointLabelStrategy || "year"
+            this.chart.script.scatterPointLabelStrategy || "year"
         ]
     }
     render() {
@@ -335,10 +328,9 @@ export class ScatterPlot extends React.Component<{
 
         return (
             <g className="ScatterPlot">
-                <AxisBoxView
+                <AxisBoxComponent
+                    isInteractive={chart.isInteractive}
                     axisBox={axisBox}
-                    xAxisConfig={chart.xAxis.props}
-                    yAxisConfig={chart.yAxis.props}
                     showTickMarks={false}
                 />
                 {comparisonLines &&
@@ -353,8 +345,8 @@ export class ScatterPlot extends React.Component<{
                     hideLines={hideLines}
                     data={currentData}
                     bounds={axisBox.innerBounds}
-                    xScale={axisBox.xScale}
-                    yScale={axisBox.yScale}
+                    xAxis={axisBox.xAxisWithRange}
+                    yAxis={axisBox.yAxisWithRange}
                     colorScale={
                         this.transform.colorDimension ? colorScale : undefined
                     }

@@ -3,7 +3,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { SlopeChart } from "charts/slopeCharts/SlopeChart"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "./ChartConfig"
+import { ChartRuntime } from "./ChartRuntime"
 import { ChartView } from "./ChartView"
 import { ScatterPlot } from "charts/scatterCharts/ScatterPlot"
 import { LineChart } from "charts/lineCharts/LineChart"
@@ -16,7 +16,7 @@ import { LoadingOverlay } from "charts/core/LoadingOverlay"
 
 @observer
 export class ChartTab extends React.Component<{
-    chart: ChartConfig
+    chart: ChartRuntime
     chartView: ChartView
     bounds: Bounds
 }> {
@@ -63,6 +63,7 @@ export class ChartTab extends React.Component<{
             // Switch to bar chart if a single year is selected
             return chart.lineChartTransform.isSingleYear ? (
                 <DiscreteBarChart
+                    chartView={chartView}
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />
@@ -82,6 +83,7 @@ export class ChartTab extends React.Component<{
         } else if (chart.isDiscreteBar) {
             return (
                 <DiscreteBarChart
+                    chartView={chartView}
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />

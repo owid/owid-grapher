@@ -3,7 +3,7 @@ import { intersection, without, uniq } from "../utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
 import { NoDataOverlay } from "../core/NoDataOverlay"
 import {
@@ -14,14 +14,14 @@ import {
 @observer
 export class SlopeChart extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: ChartRuntime
 }> {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get chart(): ChartConfig {
+    @computed get chart(): ChartRuntime {
         return this.props.chart
     }
 
@@ -101,8 +101,8 @@ export class SlopeChart extends React.Component<{
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
-        const { colorsInUse: legendColors, transform, chart } = this
-        return legendColors.filter(color => {
+        const { colorsInUse, transform, chart } = this
+        return colorsInUse.filter(color => {
             const matchingKeys = transform.data
                 .filter(g => g.color === color)
                 .map(g => g.entityDimensionKey)
@@ -200,7 +200,7 @@ export class SlopeChart extends React.Component<{
             )
 
         const { bounds, chart } = this.props
-        const { yAxis } = chart
+        const { yAxisOptions: yAxisRuntime } = chart
         const { data } = this.transform
         const {
             legend,
@@ -217,13 +217,9 @@ export class SlopeChart extends React.Component<{
             <g>
                 <LabelledSlopes
                     bounds={innerBounds}
-                    yDomain={yAxis.domain}
+                    isInteractive={chart.isInteractive}
                     yTickFormat={this.transform.yTickFormat}
-                    yScaleType={yAxis.scaleType}
-                    yScaleTypeOptions={yAxis.scaleTypeOptions}
-                    onScaleTypeChange={scaleType => {
-                        chart.yAxis.scaleType = scaleType
-                    }}
+                    yAxisOptions={yAxisRuntime}
                     data={data}
                     fontSize={chart.baseFontSize}
                     focusKeys={focusKeys}

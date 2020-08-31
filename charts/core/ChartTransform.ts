@@ -1,6 +1,4 @@
 import { computed } from "mobx"
-
-import { AxisSpec } from "charts/axis/AxisSpec"
 import {
     Time,
     isUnboundedLeft,
@@ -15,14 +13,12 @@ import {
     sortNumeric,
     uniq
 } from "charts/utils/Util"
-import { ChartConfig } from "./ChartConfig"
+import { ChartRuntime } from "./ChartRuntime"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 
 export interface IChartTransform {
     isValidConfig: boolean
-    yAxis?: AxisSpec
-    xAxis?: AxisSpec
     selectableEntityDimensionKeys: EntityDimensionKey[]
     minTimelineYear: Time
     maxTimelineYear: Time
@@ -34,14 +30,17 @@ export interface IChartTransform {
 }
 
 export abstract class ChartTransform implements IChartTransform {
-    chart: ChartConfig
-    constructor(chart: ChartConfig) {
+    chart: ChartRuntime
+    constructor(chart: ChartRuntime) {
         this.chart = chart
     }
 
-    abstract get isValidConfig(): boolean
+    // The most common check is just "does this have a yDimension"? So make it a default, and methods and override.
+    @computed get isValidConfig(): boolean {
+        return this.hasYDimension
+    }
 
-    @computed get hasYDimension() {
+    @computed protected get hasYDimension() {
         return some(this.chart.dimensions, d => d.property === "y")
     }
 
@@ -63,8 +62,8 @@ export abstract class ChartTransform implements IChartTransform {
      * Might be **empty** if the data hasn't been loaded yet.
      */
     @computed get timelineYears(): Time[] {
-        const min = this.chart.props.timelineMinTime
-        const max = this.chart.props.timelineMaxTime
+        const min = this.chart.script.timelineMinTime
+        const max = this.chart.script.timelineMaxTime
         const filteredYears = this.availableYears.filter(year => {
             if (min !== undefined && year < min) return false
             if (max !== undefined && year > max) return false
@@ -112,7 +111,7 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     @computed get hasTimeline(): boolean {
-        return this.timelineYears.length > 1 && !this.chart.props.hideTimeline
+        return this.timelineYears.length > 1 && !this.chart.script.hideTimeline
     }
 
     /**
@@ -133,10 +132,10 @@ export abstract class ChartTransform implements IChartTransform {
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
-        return this.chart.props.stackMode === "relative"
+        return this.chart.script.stackMode === "relative"
     }
 
     set isRelativeMode(value: boolean) {
-        this.chart.props.stackMode = value ? "relative" : "absolute"
+        this.chart.script.stackMode = value ? "relative" : "absolute"
     }
 }

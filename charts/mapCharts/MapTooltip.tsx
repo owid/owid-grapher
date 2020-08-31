@@ -3,17 +3,14 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
 import { Tooltip } from "charts/core/Tooltip"
-import { takeWhile, last, first } from "../utils/Util"
+import { takeWhile, last, first, isMobile } from "../utils/Util"
 import {
     SparkBars,
     SparkBarsDatum,
     SparkBarsProps
 } from "../sparkBars/SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 
 interface MapTooltipProps {
     inputYear?: number
@@ -22,21 +19,19 @@ interface MapTooltipProps {
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
+    chart: ChartRuntime
 }
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
     @computed get chart() {
-        return this.context.chart
+        return this.props.chart
     }
 
     sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.year
 
     @computed get sparkBarsToDisplay() {
-        return this.context.chartView.isMobile ? 13 : 20
+        return isMobile() ? 13 : 20
     }
 
     @computed get sparkBarsProps(): SparkBarsProps<SparkBarsDatum> {
@@ -53,7 +48,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const tooltipDatum = this.props.tooltipDatum
         if (!tooltipDatum) return sparkBarValues
 
-        this.context.chart.mapTransform.dimension?.valueByEntityAndYear
+        this.chart.mapTransform.dimension?.valueByEntityAndYear
             .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
@@ -122,7 +117,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const { renderSparkBars, barColor } = this
         return (
             <Tooltip
-                tooltipOwner={this.chart}
+                tooltipContainer={this.chart}
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}
@@ -168,7 +163,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 >
                                     <CovidTimeSeriesValue
                                         className="current"
-                                        value={this.context.chart.mapTransform.formatTooltipValue(
+                                        value={this.chart.mapTransform.formatTooltipValue(
                                             tooltipDatum.value
                                         )}
                                         formattedDate={this.props.formatYear(

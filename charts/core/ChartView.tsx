@@ -6,7 +6,7 @@ import "d3-transition"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
-import { ChartConfig, ChartConfigProps } from "./ChartConfig"
+import { ChartRuntime } from "./ChartRuntime"
 import {
     Controls,
     ControlsFooterView,
@@ -17,13 +17,7 @@ import { TableTab } from "charts/dataTable/TableTab"
 import { MapTab } from "charts/mapCharts/MapTab"
 import { SourcesTab } from "charts/sourcesTab/SourcesTab"
 import { DownloadTab } from "charts/downloadTab/DownloadTab"
-import {
-    VNode,
-    throttle,
-    isMobile,
-    isTouchDevice,
-    getCountryCodeFromNetlifyRedirect
-} from "charts/utils/Util"
+import { VNode, throttle, isMobile, isTouchDevice } from "charts/utils/Util"
 import { Bounds } from "charts/utils/Bounds"
 import { EntitySelectorModal } from "charts/controls/EntitySelectorModal"
 import { ChartViewContext } from "charts/core/ChartViewContext"
@@ -32,12 +26,13 @@ import { FullStory } from "site/client/FullStory"
 import { Analytics } from "site/client/Analytics"
 import { UrlBinder } from "charts/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
+import { ChartScript } from "./ChartScript"
 
 declare const window: any
 
 interface ChartViewProps {
     bounds: Bounds
-    chart: ChartConfig
+    chart: ChartRuntime
     isExport?: boolean
     isEditor?: boolean
     isEmbed?: boolean
@@ -63,7 +58,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         queryStr,
         globalEntitySelection
     }: {
-        jsonConfig: ChartConfigProps
+        jsonConfig: ChartScript
         containerNode: HTMLElement
         isEditor?: boolean
         isEmbed?: true
@@ -71,7 +66,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         globalEntitySelection?: GlobalEntitySelection
     }) {
         let chartView
-        const chart = new ChartConfig(jsonConfig, {
+        const chart = new ChartRuntime(jsonConfig, {
             isEmbed: isEmbed,
             queryStr: queryStr,
             globalEntitySelection: globalEntitySelection
@@ -95,32 +90,27 @@ export class ChartView extends React.Component<ChartViewProps> {
         window.addEventListener("resize", throttle(render))
 
         FullStory.event("Loaded chart v2", {
-            chart_type_str: chart.props.type,
-            chart_id_int: chart.props.id,
-            slug_str: chart.props.slug,
-            originUrl_str: chart.props.originUrl,
-            addCountryMode_str: chart.props.addCountryMode,
-            stackMode_str: chart.props.stackMode,
-            hideLegend_bool: chart.props.hideLegend,
-            hideRelativeToggle_bool: chart.props.hideRelativeToggle,
-            hideTimeline_bool: chart.props.hideTimeline,
+            chart_type_str: chart.script.type,
+            chart_id_int: chart.script.id,
+            slug_str: chart.script.slug,
+            originUrl_str: chart.script.originUrl,
+            addCountryMode_str: chart.script.addCountryMode,
+            stackMode_str: chart.script.stackMode,
+            hideLegend_bool: chart.script.hideLegend,
+            hideRelativeToggle_bool: chart.script.hideRelativeToggle,
+            hideTimeline_bool: chart.script.hideTimeline,
             hideConnectedScatterLines_bool:
-                chart.props.hideConnectedScatterLines,
-            compareEndPointsOnly_bool: chart.props.compareEndPointsOnly,
+                chart.script.hideConnectedScatterLines,
+            compareEndPointsOnly_bool: chart.script.compareEndPointsOnly,
             entityType_str: chart.entityType,
             isEmbed_bool: chart.isEmbed,
             hasChartTab_bool: chart.hasChartTab,
             hasMapTab_bool: chart.hasMapTab,
             tab_str: chart.tab,
-            totalSelectedEntities_int: chart.props.selectedData.length
+            totalSelectedEntities_int: chart.script.selectedData.length
         })
 
         return chartView
-    }
-
-    static async detectCountry() {
-        const countryIs = await getCountryCodeFromNetlifyRedirect()
-        console.log(countryIs)
     }
 
     @computed get chart() {
@@ -334,7 +324,7 @@ export class ChartView extends React.Component<ChartViewProps> {
                 <TooltipView
                     width={this.renderWidth}
                     height={this.renderHeight}
-                    tooltipOwner={this.chart}
+                    tooltipContainer={this.chart}
                 />
                 {chart.isSelectingData && (
                     <EntitySelectorModal

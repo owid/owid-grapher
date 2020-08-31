@@ -1,26 +1,24 @@
 #! /usr/bin/env yarn jest
 
-import { ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
 import { createConfig, setupChart } from "charts/test/utils"
-
 import { ChartUrl, ChartQueryParams } from "./ChartUrl"
-import { MapConfig } from "charts/mapCharts/MapConfig"
 
 function fromQueryParams(
     params: ChartQueryParams,
-    props?: Partial<ChartConfigProps>
+    props?: Partial<ChartScript>
 ) {
     const chart = createConfig(props)
     chart.url.populateFromQueryParams(params)
     return chart
 }
 
-function toQueryParams(props?: Partial<ChartConfigProps>) {
+function toQueryParams(props?: Partial<ChartScript>) {
     const chart = createConfig({
         minTime: -5000,
         maxTime: 5000,
-        map: new MapConfig({ targetYear: 5000 })
+        map: { targetYear: 5000 }
     })
     chart.update(props)
     return chart.url.params
@@ -317,7 +315,7 @@ describe(ChartUrl, () => {
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
-                        map: new MapConfig({ targetYear: test.param })
+                        map: { targetYear: test.param }
                     })
                     expect(params.year).toEqual(test.query)
                 })
@@ -326,7 +324,7 @@ describe(ChartUrl, () => {
             it("empty string doesn't change time", () => {
                 const chart = fromQueryParams(
                     { year: "" },
-                    { map: new MapConfig({ targetYear: 2015 }) }
+                    { map: { targetYear: 2015 } }
                 )
                 expect(chart.mapTransform.targetYearProp).toEqual(2015)
             })
@@ -376,7 +374,7 @@ describe(ChartUrl, () => {
                     it(`encode ${test.name}`, () => {
                         const chart = setupChart(4066, [142708])
                         chart.update({
-                            map: new MapConfig({ targetYear: test.param })
+                            map: { targetYear: test.param }
                         })
                         const params = chart.url.params
                         expect(params.year).toEqual(test.query)

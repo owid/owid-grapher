@@ -1,5 +1,5 @@
 import { computed, autorun, runInAction } from "mobx"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import {
     defaultTo,
     isString,
@@ -36,14 +36,14 @@ interface MapDataValue {
 }
 
 export class MapTransform extends ChartTransform {
-    constructor(chart: ChartConfig) {
+    constructor(chart: ChartRuntime) {
         super(chart)
 
         if (!chart.isNode) this.ensureValidConfig()
     }
 
     get props() {
-        return this.chart.props.map
+        return this.chart.map
     }
 
     @computed get variableId() {
@@ -64,12 +64,12 @@ export class MapTransform extends ChartTransform {
         return getClosestTime(this.timelineYears, this.targetYearProp, 2000)
     }
 
-    @computed get targetYearProp(): TimeBound {
-        return this.props.targetYear ?? TimeBoundValue.unboundedRight
-    }
-
     set targetYear(value: TimeBound) {
         this.props.targetYear = value
+    }
+
+    @computed get targetYearProp(): TimeBound {
+        return this.props.targetYear ?? TimeBoundValue.unboundedRight
     }
 
     @computed get tooltipUseCustomLabels() {
@@ -101,7 +101,7 @@ export class MapTransform extends ChartTransform {
         // into a case where the timeline needs to be shown
         return (
             this.timelineYears.length > 1 &&
-            !this.chart.props.hideTimeline &&
+            !this.chart.script.hideTimeline &&
             !this.props.hideTimeline
         )
     }

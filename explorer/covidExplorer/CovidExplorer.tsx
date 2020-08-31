@@ -3,7 +3,8 @@ import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { ChartView } from "charts/core/ChartView"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig, ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
@@ -769,7 +770,7 @@ export class CovidExplorer extends React.Component<{
         if (params.colorStrategy === "ptr")
             this.shortTermPositivityRateVarId = this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()
 
-        const chartProps = this.chart.props
+        const chartProps = this.chart.script
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
         chartProps.note = this.note
@@ -831,8 +832,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     private _updateColorScale() {
-        const chartProps = this.chart.props
-        chartProps.colorScale = this.colorScales[
+        this.chart.colorScale = this.colorScales[
             this.constrainedParams.colorStrategy
         ]
     }
@@ -841,24 +841,21 @@ export class CovidExplorer extends React.Component<{
         return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
     }
 
-    @computed get sourceChart(): ChartConfigProps | undefined {
+    @computed get sourceChart(): ChartScript | undefined {
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
     private _updateMap() {
-        const chartProps = this.chart.props
-        const region = chartProps.map.projection
+        const map = this.chart.map
+        const region = map.projection
 
-        Object.assign(
-            chartProps.map,
-            this.sourceChart?.map || this.defaultMapConfig
-        )
+        Object.assign(map, this.sourceChart?.map || this.defaultMapConfig)
 
-        chartProps.map.targetYear = undefined
-        chartProps.map.variableId = this.yColumn.spec.owidVariableId
+        map.targetYear = undefined
+        map.variableId = this.yColumn.spec.owidVariableId
 
         // Preserve region
-        if (region) chartProps.map.projection = region
+        if (region) map.projection = region
     }
 
     componentDidMount() {
@@ -893,10 +890,11 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound playDefaultViewCommand() {
-        const props = this.chart.props
+        // todo: Should  just be "coronaDefaultView"
+        const props = this.chart.script
         props.tab = "chart"
-        props.xAxis.scaleType = ScaleType.linear
-        props.yAxis.scaleType = ScaleType.log
+        this.chart.xAxisOptions.scaleType = ScaleType.linear
+        this.chart.yAxisOptions.scaleType = ScaleType.log
         this.chart.timeDomain = [
             TimeBoundValue.unboundedLeft,
             TimeBoundValue.unboundedRight
@@ -906,9 +904,9 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleTabCommand() {
-        this.chart.props.tab = next(
+        this.chart.script.tab = next(
             ["chart", "map", "table"],
-            this.chart.props.tab
+            this.chart.script.tab
         )
     }
 
@@ -995,9 +993,9 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleYScaleTypeCommand() {
-        this.chart.props.yAxis.scaleType = next(
+        this.chart.script.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
-            this.chart.props.yAxis.scaleType
+            this.chart.script.yAxis.scaleType
         )
     }
 
@@ -1018,8 +1016,8 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleFilterAllCommand() {
-        this.chart.props.minPopulationFilter =
-            this.chart.props.minPopulationFilter === 2e9 ? undefined : 2e9
+        this.chart.script.minPopulationFilter =
+            this.chart.script.minPopulationFilter === 2e9 ? undefined : 2e9
         this.renderControlsThenUpdateChart()
     }
 
@@ -1350,7 +1348,7 @@ export class CovidExplorer extends React.Component<{
             : ""
     }
 
-    @observable.ref chart: ChartConfig = new ChartConfig(
+    @observable.ref chart: ChartRuntime = new ChartRuntime(
         {
             slug: covidDashboardSlug,
             type: this.constrainedParams.type,

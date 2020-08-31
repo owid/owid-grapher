@@ -210,13 +210,13 @@ ${ProgramKeyword.switcher}
         return this.getLineValue(ProgramKeyword.isPublished) === "true"
     }
 
+    set isPublished(value: boolean) {
+        this.setLineValue(ProgramKeyword.isPublished, value ? "true" : "false")
+    }
+
     get wpBlockId(): number | undefined {
         const blockIdString = this.getLineValue(ProgramKeyword.wpBlockId)
         return blockIdString ? parseInt(blockIdString, 10) : undefined
-    }
-
-    set isPublished(value: boolean) {
-        this.setLineValue(ProgramKeyword.isPublished, value ? "true" : "false")
     }
 
     get switcherCode() {

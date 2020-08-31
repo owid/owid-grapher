@@ -1,18 +1,14 @@
-import { ChartConfig } from "./ChartConfig"
+import { ChartRuntime } from "./ChartRuntime"
 import React from "react"
 import { computed } from "mobx"
 import { Header, HeaderHTML } from "charts/core/Header"
 import { SourcesFooter, SourcesFooterHTML } from "charts/core/Footer"
 import { Bounds } from "charts/utils/Bounds"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
 import { ControlsOverlayView } from "charts/controls/Controls"
 import { ChartView } from "charts/core/ChartView"
 
 interface ChartLayoutProps {
-    chart: ChartConfig
+    chart: ChartRuntime
     chartView: ChartView
     bounds: Bounds
 }
@@ -92,9 +88,6 @@ export class ChartLayoutView extends React.Component<{
     layout: ChartLayout
     children: any
 }> {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
     @computed get svgStyle() {
         return {
             fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -130,15 +123,15 @@ export class ChartLayoutView extends React.Component<{
 
     renderWithHTMLText() {
         const { layout } = this.props
-        const chart = layout.props.chart
+        const { chart, chartView } = layout.props
 
         return (
             <React.Fragment>
                 <HeaderHTML chart={chart} header={layout.header} />
                 <ControlsOverlayView
                     chart={chart}
-                    chartView={this.context.chartView}
-                    controls={this.context.chartView.controls}
+                    chartView={chartView}
+                    controls={chartView.controls}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

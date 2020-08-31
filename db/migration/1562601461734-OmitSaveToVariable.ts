@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
 import * as lodash from "lodash"
 
-function omitSaveToVariable(config: ChartConfigProps): ChartConfigProps {
+function omitSaveToVariable(config: ChartScript): ChartScript {
     const newConfig = lodash.clone(config)
     newConfig.dimensions = newConfig.dimensions.map(dim => {
         return lodash.omit(dim, ["saveToVariable"])

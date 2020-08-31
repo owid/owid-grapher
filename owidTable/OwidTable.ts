@@ -26,10 +26,10 @@ import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "settings"
 
 declare type int = number
-export declare type year = int
-export declare type entityName = string
-export declare type entityCode = string
-export declare type entityId = number
+export declare type Year = int
+export declare type EntityName = string
+export declare type EntityCode = string
+export declare type EntityId = number
 export declare type owidVariableId = int
 export declare type columnSlug = string // let's be very restrictive on valid column names to start.
 
@@ -86,10 +86,10 @@ enum OwidRequiredColumns {
 
 // This is a row with the additional columns specific to our OWID data model
 interface OwidRow extends Row {
-    entityName: entityName
-    entityCode: entityCode
-    entityId: entityId
-    year?: year
+    entityName: EntityName
+    entityCode: EntityCode
+    entityId: EntityId
+    year?: Year
     day?: int
     date?: string
 }
@@ -267,7 +267,7 @@ export abstract class AbstractColumn {
     }
 
     @computed get latestValuesMap() {
-        const map = new Map<entityName, any>()
+        const map = new Map<EntityName, any>()
         this.rows.forEach(row => map.set(row.entityName, row[this.slug]))
         return map
     }
@@ -706,7 +706,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     // todo: can we remove at some point?
     @computed get entityIdToNameMap() {
-        const map = new Map<entityId, entityName>()
+        const map = new Map<EntityId, EntityName>()
         this.rows.forEach(row => {
             map.set(row.entityId, row.entityName)
         })
@@ -715,7 +715,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     // todo: can we remove at some point?
     @computed get entityCodeToNameMap() {
-        const map = new Map<entityCode, entityName>()
+        const map = new Map<EntityCode, EntityName>()
         this.rows.forEach(row => {
             if (row.entityCode) map.set(row.entityCode, row.entityName)
             else map.set(row.entityName, row.entityName)
@@ -725,7 +725,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     // todo: can we remove at some point?
     @computed get entityNameToIdMap() {
-        const map = new Map<entityName, number>()
+        const map = new Map<EntityName, number>()
         this.rows.forEach(row => {
             map.set(row.entityName, row.entityId)
         })
@@ -734,7 +734,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     // todo: can we remove at some point?
     @computed get entityNameToCodeMap() {
-        const map = new Map<entityName, entityCode>()
+        const map = new Map<EntityName, EntityCode>()
         this.rows.forEach(row => {
             map.set(row.entityName, row.entityCode)
         })
@@ -742,7 +742,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     @computed get entityIndex() {
-        const map = new Map<entityName, OwidRow[]>()
+        const map = new Map<EntityName, OwidRow[]>()
         this.rows.forEach(row => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
             map.get(row.entityName)!.push(row)
@@ -771,7 +771,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     @computed get rowsByEntityName() {
-        const map = new Map<entityName, OwidRow[]>()
+        const map = new Map<EntityName, OwidRow[]>()
         this.rows.forEach(row => {
             const name = row.entityName
             if (!map.has(name)) map.set(name, [])
@@ -781,7 +781,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     // Clears and sets selected entities
-    @action.bound setSelectedEntities(entityNames: entityName[]) {
+    @action.bound setSelectedEntities(entityNames: EntityName[]) {
         this.initDefaultEntitySelectionColumn()
         const set = new Set(entityNames)
         this.rows.forEach(row => {
@@ -801,7 +801,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             )
     }
 
-    @action.bound selectEntity(entityName: entityName) {
+    @action.bound selectEntity(entityName: EntityName) {
         this.initDefaultEntitySelectionColumn()
 
         this.rowsByEntityName
@@ -810,7 +810,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return this
     }
 
-    @action.bound deselectEntity(entityName: entityName) {
+    @action.bound deselectEntity(entityName: EntityName) {
         this.rowsByEntityName
             .get(entityName)
             ?.forEach(row => delete row[this.defaultEntitySelectionSlug])
