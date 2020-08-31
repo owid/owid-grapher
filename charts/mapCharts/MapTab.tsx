@@ -13,15 +13,11 @@ import {
 import { MapColorLegend } from "charts/mapCharts/MapColorLegend"
 import { MapColorLegendView } from "./MapColorLegendView"
 import { getRelativeMouse } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { MapTransform } from "./MapTransform"
 import { MapProjection } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
 import { ChartLayout, ChartLayoutView } from "charts/core/ChartLayout"
 import { ChartView } from "charts/core/ChartView"
 import { LoadingOverlay } from "charts/core/LoadingOverlay"
@@ -45,6 +41,8 @@ interface MapWithLegendProps {
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
+    chart: ChartRuntime
+    chartView: ChartView
 }
 
 @observer
@@ -55,22 +53,23 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
 
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
     base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
         const datum =
             d.id === undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
-        const mouse = getRelativeMouse(this.context.chartView.base.current, ev)
+        const mouse = getRelativeMouse(this.props.chartView.base.current, ev)
         if (d.id !== undefined)
             this.tooltipTarget = {
                 x: mouse.x,
                 y: mouse.y,
                 featureId: d.id as string
             }
+    }
+
+    @computed get chart() {
+        return this.props.chart
     }
 
     @action.bound onMapMouseLeave() {
@@ -80,15 +79,15 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
     // Determine if we can go to line chart by clicking on a given map entity
     private isEntityClickable(featureId: string | number | undefined) {
+        const chart = this.chart
         if (
-            !this.context.chart.hasChartTab ||
-            !(this.context.chart.isLineChart || this.context.chart.isScatter) ||
-            this.context.chartView.isMobile ||
+            !chart.hasChartTab ||
+            !(chart.isLineChart || chart.isScatter) ||
+            this.props.chartView.isMobile ||
             featureId === undefined
         )
             return false
 
-        const { chart } = this.context
         const entity = this.props.mapToDataEntities[featureId]
         const datakeys = chart.availableKeysByEntity.get(entity)
 
@@ -97,7 +96,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
     @action.bound onClick(d: GeoFeature, ev: React.MouseEvent<SVGElement>) {
         if (!this.isEntityClickable(d.id)) return
-        const { chart } = this.context
+        const chart = this.chart
         const entityName = this.props.mapToDataEntities[d.id as string]
 
         if (!ev.shiftKey) {
@@ -122,7 +121,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }: {
         targetStartYear: number
     }) {
-        this.context.chart.mapTransform.targetYear = targetStartYear
+        this.chart.mapTransform.targetYear = targetStartYear
     }
 
     @action.bound onLegendMouseLeave() {
@@ -130,7 +129,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @action.bound onProjectionChange(value: MapProjection) {
-        this.context.chart.mapTransform.props.projection = value
+        this.chart.mapTransform.props.projection = value
     }
 
     @computed get mapLegend(): MapColorLegend {
@@ -155,7 +154,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 return that.focusEntity?.datum?.value
             },
             get fontSize() {
-                return that.context.chart.baseFontSize
+                return that.chart.baseFontSize
             }
         })
     }
@@ -241,6 +240,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     <MapTooltip
                         {...tooltipProps}
                         tooltipTarget={tooltipTarget}
+                        chart={this.chart}
                     />
                 )}
             </g>
@@ -249,7 +249,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 }
 
 interface MapTabProps {
-    chart: ChartConfig
+    chart: ChartRuntime
     chartView: ChartView
     bounds: Bounds
 }
@@ -283,6 +283,8 @@ export class MapTab extends React.Component<MapTabProps> {
             <ChartLayoutView layout={this.layout}>
                 {this.props.chart.isReady ? (
                     <MapWithLegend
+                        chart={this.props.chart}
+                        chartView={this.props.chartView}
                         bounds={layout.innerBounds}
                         choroplethData={map.choroplethData}
                         years={map.timelineYears}

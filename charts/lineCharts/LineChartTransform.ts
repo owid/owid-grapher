@@ -8,7 +8,6 @@ import {
     identity,
     cloneDeep,
     clone,
-    defaultTo,
     formatValue,
     flatten,
     findIndex,
@@ -16,21 +15,16 @@ import {
 } from "charts/utils/Util"
 import { EntityDimensionKey, ScaleType } from "charts/core/ChartConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
-import { AxisSpec } from "charts/axis/AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { Time } from "charts/utils/TimeBounds"
 import { LineLabel } from "./LineLabels"
-import { entityName } from "owidTable/OwidTable"
+import { EntityName } from "owidTable/OwidTable"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
 export class LineChartTransform extends ChartTransform {
-    @computed get isValidConfig(): boolean {
-        return this.hasYDimension
-    }
-
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
@@ -41,7 +35,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get colorScheme(): ColorScheme {
         const colorScheme =
-            ColorSchemes[this.chart.props.baseColorScheme as string]
+            ColorSchemes[this.chart.script.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["owid-distinct"] as ColorScheme)
@@ -49,7 +43,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get initialData(): LineChartSeries[] {
         const { chart } = this
-        const { yAxis } = chart
+        const { yAxisOptions: yAxisRuntime } = chart
         const { selectedKeys, selectedKeysByKey } = chart
         const filledDimensions = chart.filledDimensions
 
@@ -71,7 +65,8 @@ export class LineChartTransform extends ChartTransform {
                 // Not a selected key, don't add any data for it
                 if (!selectedKeysByKey[entityDimensionKey]) continue
                 // Can't have values <= 0 on log scale
-                if (value <= 0 && yAxis.scaleType === ScaleType.log) continue
+                if (value <= 0 && yAxisRuntime.scaleType === ScaleType.log)
+                    continue
 
                 if (!series) {
                     series = {
@@ -98,7 +93,7 @@ export class LineChartTransform extends ChartTransform {
         )
 
         const colors = this.colorScheme.getColors(chartData.length)
-        if (this.chart.props.invertColorScheme) colors.reverse()
+        if (this.chart.script.invertColorScheme) colors.reverse()
         chartData.forEach((series, i) => {
             series.color =
                 chart.keyColors[series.entityDimensionKey] || colors[i]
@@ -157,7 +152,7 @@ export class LineChartTransform extends ChartTransform {
             ?.entityNameMap
     }
 
-    getAnnotationsForSeries(entityName: entityName) {
+    getAnnotationsForSeries(entityName: EntityName) {
         const annotationsMap = this.annotationsMap
         const annos = annotationsMap?.get(entityName)
         return annos ? Array.from(annos.values()).join(" & ") : undefined
@@ -191,49 +186,44 @@ export class LineChartTransform extends ChartTransform {
         })
     }
 
-    @computed get xAxis(): AxisSpec {
+    @computed get xAxis() {
         const { xDomain } = this
-        return {
-            label: this.chart.xAxis.label || "",
-            tickFormat: this.chart.formatYearTickFunction,
-            domain: xDomain,
-            scaleType: ScaleType.linear,
-            scaleTypeOptions: [ScaleType.linear],
-            hideFractionalTicks: true,
-            hideGridlines: true
-        }
+        const view = this.chart.xAxisOptions
+            .toHorizontalAxis()
+            .updateDomain(xDomain)
+        view.scaleType = ScaleType.linear
+        view.scaleTypeOptions = [ScaleType.linear]
+        view.tickFormat = this.chart.formatYearTickFunction
+        view.hideFractionalTicks = true
+        view.hideGridlines = true
+        return view
     }
 
-    @computed get yDimensionFirst(): ChartDimension | undefined {
+    @computed private get yDimensionFirst(): ChartDimension | undefined {
         return this.chart.filledDimensions.find(d => d.property === "y")
     }
 
-    @computed get yDomainDefault(): [number, number] {
+    @computed private get yDomainDefault(): [number, number] {
         const yValues = (this.chart.useTimelineDomains
             ? this.allValues
             : this.filteredValues
         ).map(v => v.y)
-        return [defaultTo(min(yValues), 0), defaultTo(max(yValues), 100)]
+        return [min(yValues) ?? 0, max(yValues) ?? 100]
     }
 
     @computed get yDomain(): [number, number] {
         const { chart, yDomainDefault } = this
+        const domain = chart.yAxisOptions.domain
         return [
-            Math.min(
-                defaultTo(chart.yAxis.domain[0], Infinity),
-                yDomainDefault[0]
-            ),
-            Math.max(
-                defaultTo(chart.yAxis.domain[1], -Infinity),
-                yDomainDefault[1]
-            )
+            Math.min(domain[0], yDomainDefault[0]),
+            Math.max(domain[1], yDomainDefault[1])
         ]
     }
 
     @computed get yScaleType() {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.yAxis.scaleType
+            : this.chart.yAxisOptions.scaleType
     }
 
     @computed get yTickFormat() {
@@ -252,22 +242,18 @@ export class LineChartTransform extends ChartTransform {
         return this.allValues.every(val => val.y % 1 === 0)
     }
 
-    @computed get yAxis(): AxisSpec {
-        const { chart, yDomain, yScaleType, yTickFormat, isRelativeMode } = this
-        return {
-            label: "",
-            tickFormat: yTickFormat,
-            domain: yDomain,
-            scaleType: yScaleType,
-            scaleTypeOptions: isRelativeMode
-                ? [ScaleType.linear]
-                : chart.yAxis.scaleTypeOptions,
-            hideFractionalTicks: this.yAxisHideFractionalTicks
-        }
+    @computed get yAxis() {
+        const { chart, yDomain, yTickFormat, isRelativeMode } = this
+        const view = chart.yAxisOptions.toVerticalAxis().updateDomain(yDomain)
+        if (isRelativeMode) view.scaleTypeOptions = [ScaleType.linear]
+        view.hideFractionalTicks = this.allValues.every(val => val.y % 1 === 0) // all y axis points are integral, don't show fractional ticks in that case
+        view.label = ""
+        view.tickFormat = yTickFormat
+        return view
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.chart.props.hideRelativeToggle && !this.isSingleYear
+        return !this.chart.script.hideRelativeToggle && !this.isSingleYear
     }
 
     // Filter the data so it fits within the domains

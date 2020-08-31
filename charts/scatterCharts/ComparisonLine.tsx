@@ -3,7 +3,7 @@ import { guid } from "../utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { AxisBox } from "charts/axis/AxisBox"
+import { AxisBox } from "charts/axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Bounds } from "charts/utils/Bounds"
 import { Vector2 } from "charts/utils/Vector2"
@@ -21,7 +21,7 @@ export class ComparisonLine extends React.Component<{
 }> {
     @computed private get controlData(): [number, number][] {
         const { comparisonLine, axisBox } = this.props
-        const { xScale, yScale } = axisBox
+        const { xAxisWithRange: xScale, yAxisWithRange: yScale } = axisBox
         return generateComparisonLinePoints(
             comparisonLine.yEquals,
             xScale.domain,
@@ -33,7 +33,10 @@ export class ComparisonLine extends React.Component<{
 
     @computed private get linePath(): string | null {
         const { controlData } = this
-        const { xScale, yScale } = this.props.axisBox
+        const {
+            xAxisWithRange: xScale,
+            yAxisWithRange: yScale
+        } = this.props.axisBox
         const line = d3_line()
             .curve(curveLinear)
             .x(d => xScale.place(d[0]))
@@ -48,7 +51,11 @@ export class ComparisonLine extends React.Component<{
         if (!label) return
 
         const { controlData } = this
-        const { xScale, yScale, innerBounds } = this.props.axisBox
+        const {
+            xAxisWithRange: xScale,
+            yAxisWithRange: yScale,
+            innerBounds
+        } = this.props.axisBox
 
         // Find the points of the line that are actually placeable on the chart
         const linePoints = controlData

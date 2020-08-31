@@ -1,25 +1,25 @@
-import { extend, defaultTo } from "charts/utils/Util"
+import { extend } from "charts/utils/Util"
 import * as React from "react"
-import { observable, computed, runInAction, action } from "mobx"
+import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 
 @observer
 export class TooltipView extends React.Component<{
-    tooltipOwner: TooltipOwner
+    tooltipContainer: TooltipContainer
     width: number
     height: number
 }> {
-    @computed get rendered() {
+    @computed private get rendered() {
         const { bounds } = this
-        const tooltipOwner = this.props.tooltipOwner
+        const tooltipContainer = this.props.tooltipContainer
 
-        if (!tooltipOwner.tooltip) return null
+        if (!tooltipContainer.tooltip) return null
 
-        const tooltip = tooltipOwner.tooltip
+        const tooltip = tooltipContainer.tooltip
 
-        const offsetX = defaultTo(tooltip.offsetX, 0)
-        let offsetY = defaultTo(tooltip.offsetY, 0)
+        const offsetX = tooltip.offsetX ?? 0
+        let offsetY = tooltip.offsetY ?? 0
         if (tooltip.offsetYDirection === "upward") {
             offsetY = -offsetY - (bounds?.height ?? 0)
         }
@@ -61,17 +61,20 @@ export class TooltipView extends React.Component<{
         )
     }
 
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    private base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable.struct bounds?: Bounds
-    componentDidMount() {
-        this.componentDidUpdate()
+    @observable.struct private bounds?: Bounds
+    @action.bound private updateBounds() {
+        if (this.base.current)
+            this.bounds = Bounds.fromElement(this.base.current)
     }
+
+    componentDidMount() {
+        this.updateBounds()
+    }
+
     componentDidUpdate() {
-        runInAction(() => {
-            if (this.base.current)
-                this.bounds = Bounds.fromElement(this.base.current)
-        })
+        this.updateBounds()
     }
 
     render() {
@@ -80,7 +83,7 @@ export class TooltipView extends React.Component<{
 }
 
 // We can't pass the property directly because we need it to be observable.
-interface TooltipOwner {
+interface TooltipContainer {
     tooltip?: TooltipProps
 }
 
@@ -92,21 +95,29 @@ export interface TooltipProps {
     offsetYDirection?: "upward" | "downward"
     style?: React.CSSProperties
     children?: React.ReactNode
-    tooltipOwner: TooltipOwner
+    tooltipContainer: TooltipContainer
 }
 
 @observer
 export class Tooltip extends React.Component<TooltipProps> {
     componentDidMount() {
-        this.componentDidUpdate()
+        this.connectTooltipToContainer()
+    }
+
+    @action.bound private connectTooltipToContainer() {
+        this.props.tooltipContainer.tooltip = this.props
+    }
+
+    @action.bound private removeToolTipFromContainer() {
+        this.props.tooltipContainer.tooltip = undefined
     }
 
     componentDidUpdate() {
-        runInAction(() => (this.props.tooltipOwner.tooltip = this.props))
+        this.connectTooltipToContainer()
     }
 
     componentWillUnmount() {
-        runInAction(() => (this.props.tooltipOwner.tooltip = undefined))
+        this.removeToolTipFromContainer()
     }
 
     render() {

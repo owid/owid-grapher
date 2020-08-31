@@ -19,10 +19,6 @@ import {
     IReactionDisposer
 } from "mobx"
 import { observer } from "mobx-react"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
 import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -38,6 +34,7 @@ import {
 } from "charts/utils/TimeBounds"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 
 const DEFAULT_MIN_YEAR = 1900
 const DEFAULT_MAX_YEAR = 2000
@@ -45,6 +42,7 @@ const DEFAULT_MAX_YEAR = 2000
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 interface TimelineProps {
+    chart: ChartRuntime
     years: number[]
     startYear: TimeBound
     endYear: TimeBound
@@ -65,9 +63,6 @@ interface TimelineProps {
 @observer
 export class Timeline extends React.Component<TimelineProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
-
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
 
     disposers!: IReactionDisposer[]
 
@@ -99,8 +94,12 @@ export class Timeline extends React.Component<TimelineProps> {
         }
     }
 
+    @computed get chart() {
+        return this.props.chart
+    }
+
     @computed get isPlaying() {
-        return this.context.chart.isPlaying
+        return this.chart.isPlaying
     }
 
     componentDidUpdate(prevProps: TimelineProps) {
@@ -170,7 +169,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     private readonly PLAY_ANIMATION_SECONDS = 45
     @action.bound onStartPlaying() {
-        Analytics.logChartTimelinePlay(this.context.chart.props.slug)
+        Analytics.logChartTimelinePlay(this.chart.script.slug)
 
         let lastTime: number | undefined
         const ticksPerSec = Math.max(
@@ -192,7 +191,7 @@ export class Timeline extends React.Component<TimelineProps> {
                 const elapsed = time - lastTime
 
                 if (endYearUI >= maxYear) {
-                    this.context.chart.isPlaying = false
+                    this.chart.isPlaying = false
                     this.startTooltipVisible = false
                 } else {
                     const nextYear = years[years.indexOf(endYearUI) + 1]
@@ -263,7 +262,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
-        if (!this.isPlaying) this.context.chart.userHasSetTimeline = true
+        if (!this.isPlaying) this.chart.userHasSetTimeline = true
 
         const clampedYear = this.getClampedYear(inputYear)
 
@@ -474,10 +473,10 @@ export class Timeline extends React.Component<TimelineProps> {
                 const { isPlaying, isDragging } = this
                 const { onStartDrag, onStopDrag } = this.props
                 if (isPlaying || isDragging) {
-                    this.context.chart.url.debounceMode = true
+                    this.chart.url.debounceMode = true
                     if (onStartDrag) onStartDrag()
                 } else {
-                    this.context.chart.url.debounceMode = false
+                    this.chart.url.debounceMode = false
                     if (onStopDrag) onStopDrag()
                 }
             })
@@ -509,7 +508,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @action.bound onTogglePlay() {
-        this.context.chart.isPlaying = !this.isPlaying
+        this.chart.isPlaying = !this.isPlaying
         if (this.isPlaying) {
             this.startTooltipVisible = true
             this.hideStartTooltip.cancel()
@@ -523,7 +522,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     formatYear(date: number) {
-        return this.context.chart.formatYearFunction(
+        return this.chart.formatYearFunction(
             date,
             isMobile() ? { format: "MMM D, 'YY" } : {}
         )

@@ -4,7 +4,8 @@ import { observer } from "mobx-react"
 
 import { Bounds } from "charts/utils/Bounds"
 import { ChartView } from "charts/core/ChartView"
-import { ChartConfig, ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 
 const chartViewData = {
     variables: {
@@ -76,11 +77,11 @@ class ChartStoryView extends React.Component {
     }
 
     render() {
-        const chart = new ChartConfig(
+        const chart = new ChartRuntime(
             {
                 hasMapTab: true,
                 dimensions: [{ property: "y", variableId: 66287, display: {} }]
-            } as ChartConfigProps,
+            } as ChartScript,
             {}
         )
         chart.receiveData(chartViewData as any)

@@ -12,22 +12,47 @@ import {
     sortedUniq,
     sortNumeric
 } from "charts/utils/Util"
-import { TickFormattingOptions } from "charts/core/ChartConstants"
-import { AbstractColumn, owidVariableId, entityName } from "owidTable/OwidTable"
+import {
+    TickFormattingOptions,
+    EntityDimensionKey
+} from "charts/core/ChartConstants"
+import {
+    AbstractColumn,
+    owidVariableId,
+    EntityName,
+    EntityId
+} from "owidTable/OwidTable"
 import { Time } from "charts/utils/TimeBounds"
 
 import {
     OwidVariableDisplaySettings,
     OwidVariableTableDisplaySettings
 } from "owidTable/OwidVariable"
+import { OwidSource } from "owidTable/OwidSource"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color" | "table"
+
+export interface SourceWithDimension {
+    source: OwidSource
+    dimension: ChartDimension
+}
 
 export interface ChartDimensionInterface {
     property: dimensionProperty
     variableId: owidVariableId
     targetYear?: Time
     display?: OwidVariableDisplaySettings
+}
+
+export interface EntityDimensionInfo {
+    entityName: EntityName
+    entityId: EntityId
+    dimension: ChartDimension
+    index: number
+    entityDimensionKey: EntityDimensionKey
+    fullLabel: string
+    label: string
+    shortCode: string
 }
 
 // A chart "dimension" represents a binding between a chart
@@ -231,7 +256,7 @@ export class ChartDimension {
         return this.column.years
     }
 
-    get entityNamesUniq(): entityName[] {
+    get entityNamesUniq(): EntityName[] {
         return Array.from(this.column.entityNamesUniq)
     }
 

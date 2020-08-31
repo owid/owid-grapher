@@ -11,7 +11,7 @@ import {
     countBy,
     union
 } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { TickFormattingOptions } from "charts/core/ChartConstants"
 import {
@@ -113,9 +113,9 @@ function getHeaderUnit(unit: string) {
 }
 
 export class DataTableTransform extends ChartTransform {
-    chart: ChartConfig
+    chart: ChartRuntime
 
-    constructor(chart: ChartConfig) {
+    constructor(chart: ChartRuntime) {
         super(chart)
         this.chart = chart
     }
@@ -212,7 +212,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get initialTimelineStartYearSpecified(): boolean {
-        const initialMinTime = this.chart.initialProps.minTime
+        const initialMinTime = this.chart.initialScript.minTime
         if (initialMinTime) return !isUnboundedLeft(initialMinTime)
         return false
     }

@@ -2,22 +2,17 @@ import { computed } from "mobx"
 import { scaleOrdinal } from "d3-scale"
 import {
     some,
-    max,
     sortBy,
     cloneDeep,
     sum,
-    extend,
     find,
     identity,
-    formatValue,
-    defaultTo,
     flatten,
     sortNumeric,
     uniq
 } from "charts/utils/Util"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
-import { AxisSpec } from "charts/axis/AxisSpec"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { Time } from "charts/utils/TimeBounds"
@@ -25,10 +20,6 @@ import { Time } from "charts/utils/TimeBounds"
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
 export class StackedAreaTransform extends ChartTransform {
-    @computed get isValidConfig(): boolean {
-        return this.hasYDimension
-    }
-
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
@@ -146,7 +137,7 @@ export class StackedAreaTransform extends ChartTransform {
 
         // Assign colors
         const baseColors = this.colorScheme.getColors(groupedData.length)
-        if (chart.props.invertColorScheme) baseColors.reverse()
+        if (chart.script.invertColorScheme) baseColors.reverse()
         const colorScale = scaleOrdinal(baseColors)
         groupedData.forEach(series => {
             series.color =
@@ -178,19 +169,19 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.chart.props.hideRelativeToggle
+        return !this.chart.script.hideRelativeToggle
     }
 
     @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
         const colorScheme =
-            ColorSchemes[this.chart.props.baseColorScheme as string]
+            ColorSchemes[this.chart.script.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
-    @computed private get xDomainDefault(): [number, number] {
+    @computed get xDomainDefault(): [number, number] {
         return [this.startYear, this.endYear]
     }
 
@@ -230,41 +221,18 @@ export class StackedAreaTransform extends ChartTransform {
         return stackedData
     }
 
-    @computed private get allStackedValues(): StackedAreaValue[] {
+    @computed get allStackedValues(): StackedAreaValue[] {
         return flatten(this.stackedData.map(series => series.values))
     }
 
-    @computed private get yDomainDefault(): [number, number] {
-        const yValues = this.allStackedValues.map(d => d.y)
-        return [0, defaultTo(max(yValues), 100)]
-    }
-
-    @computed get xAxis(): AxisSpec {
-        const { chart, xDomainDefault } = this
-        return extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), {
-            tickFormat: this.chart.formatYearFunction,
-            hideFractionalTicks: true,
-            hideGridlines: true
-        }) as AxisSpec
-    }
-
-    @computed private get yDimensionFirst() {
+    @computed get yDimensionFirst() {
         return find(this.chart.filledDimensions, d => d.property === "y")
     }
 
-    @computed get yAxis(): AxisSpec {
-        const { chart, yDomainDefault, isRelativeMode, yDimensionFirst } = this
-        const tickFormat = yDimensionFirst
-            ? yDimensionFirst.formatValueShort
+    formatYTick(v: number) {
+        const tickFormat = this.yDimensionFirst
+            ? this.yDimensionFirst.formatValueShort
             : identity
-
-        return extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), {
-            domain: isRelativeMode
-                ? [0, 100]
-                : [yDomainDefault[0], yDomainDefault[1]], // Stacked area chart must have its own y domain
-            tickFormat: isRelativeMode
-                ? (v: number) => formatValue(v, { unit: "%" })
-                : tickFormat
-        }) as AxisSpec
+        return tickFormat(v, { noTrailingZeroes: false })
     }
 }

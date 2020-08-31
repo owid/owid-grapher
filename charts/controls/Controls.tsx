@@ -4,11 +4,8 @@ import { observer } from "mobx-react"
 import * as Cookies from "js-cookie"
 import copy from "copy-to-clipboard"
 
-import {
-    ChartConfig,
-    ChartConfigProps,
-    HighlightToggleConfig
-} from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "charts/core/ChartView"
 import { Timeline } from "./Timeline"
@@ -34,6 +31,7 @@ import {
     ChartViewContextType
 } from "charts/core/ChartViewContext"
 import { TimeBound } from "../utils/TimeBounds"
+import { HighlightToggleConfig } from "charts/core/ChartConstants"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -79,7 +77,7 @@ class EmbedMenu extends React.Component<{
 }
 
 interface ShareMenuProps {
-    chart: ChartConfig
+    chart: ChartRuntime
     chartView: any
     onDismiss: () => void
 }
@@ -105,12 +103,12 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get isDisabled(): boolean {
-        return !this.props.chart.props.slug
+        return !this.props.chart.script.slug
     }
 
     @computed get editUrl(): string | undefined {
         return Cookies.get("isAdmin") || ENV === "development"
-            ? `${ADMIN_BASE_URL}/admin/charts/${this.props.chart.props.id}/edit`
+            ? `${ADMIN_BASE_URL}/admin/charts/${this.props.chart.script.id}/edit`
             : undefined
     }
 
@@ -256,7 +254,7 @@ class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
 @observer
 class SettingsMenu extends React.Component<{
-    chart: ChartConfig
+    chart: ChartRuntime
     onDismiss: () => void
 }> {
     @action.bound onClickOutside() {
@@ -287,7 +285,7 @@ class SettingsMenu extends React.Component<{
 
 @observer
 class HighlightToggle extends React.Component<{
-    chart: ChartConfig
+    chart: ChartRuntime
     highlightToggle: HighlightToggleConfig
 }> {
     @computed get chart() {
@@ -335,10 +333,9 @@ class HighlightToggle extends React.Component<{
 }
 
 @observer
-class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
+class AbsRelToggle extends React.Component<{ chart: ChartRuntime }> {
     @action.bound onToggle() {
-        const { stackedAreaTransform } = this.props.chart
-        stackedAreaTransform.isRelativeMode = !stackedAreaTransform.isRelativeMode
+        this.props.chart.toggleRelativeMode()
     }
 
     render() {
@@ -353,7 +350,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={chart.stackedAreaTransform.isRelativeMode}
+                    checked={chart.isRelativeMode}
                     onChange={this.onToggle}
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
@@ -365,7 +362,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
 
 @observer
 class ZoomToggle extends React.Component<{
-    chart: ChartConfigProps
+    chart: ChartScript
 }> {
     @action.bound onToggle() {
         this.props.chart.zoomToSelection = this.props.chart.zoomToSelection
@@ -391,7 +388,7 @@ class ZoomToggle extends React.Component<{
 
 @observer
 class FilterSmallCountriesToggle extends React.Component<{
-    chart: ChartConfig
+    chart: ChartRuntime
 }> {
     render() {
         const label = `Hide countries < ${formatValue(
@@ -402,7 +399,7 @@ class FilterSmallCountriesToggle extends React.Component<{
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={!!this.props.chart.props.minPopulationFilter}
+                    checked={!!this.props.chart.script.minPopulationFilter}
                     onChange={() =>
                         this.props.chart.toggleMinPopulationFilter()
                     }
@@ -415,7 +412,7 @@ class FilterSmallCountriesToggle extends React.Component<{
 }
 
 @observer
-class TimelineControl extends React.Component<{ chart: ChartConfig }> {
+class TimelineControl extends React.Component<{ chart: ChartRuntime }> {
     @action.bound onMapTargetChange({
         targetStartYear
     }: {
@@ -443,8 +440,9 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
     }
 
     render() {
+        // Todo: cleanup this method
         const { chart } = this.props
-        if (chart.props.tab === "table") {
+        if (chart.script.tab === "table") {
             const { dataTableTransform } = chart
             const years = dataTableTransform.timelineYears
             if (years.length === 0) {
@@ -459,6 +457,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
 
             return (
                 <Timeline
+                    chart={chart}
                     years={years}
                     onTargetChange={this.onChartTargetChange}
                     startYear={startYear}
@@ -468,7 +467,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     singleYearMode={chart.multiMetricTableMode}
                 />
             )
-        } else if (chart.props.tab === "map") {
+        } else if (chart.script.tab === "map") {
             const { mapTransform } = chart
             const years = mapTransform.timelineYears
             if (years.length === 0) {
@@ -476,6 +475,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             }
             return (
                 <Timeline
+                    chart={chart}
                     years={years}
                     onTargetChange={this.onMapTargetChange}
                     startYear={mapTransform.targetYearProp}
@@ -488,6 +488,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             if (years.length === 0) return null
             return (
                 <Timeline
+                    chart={chart}
                     years={years}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
@@ -501,6 +502,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             if (years.length === 0) return null
             return (
                 <Timeline
+                    chart={chart}
                     years={years}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
@@ -515,6 +517,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             if (years.length === 0) return null
             return (
                 <Timeline
+                    chart={chart}
                     years={years}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
@@ -529,6 +532,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
             if (years.length === 0) return null
             return (
                 <Timeline
+                    chart={chart}
                     years={years}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
@@ -542,9 +546,9 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
 }
 
 export class Controls {
-    props: { chart: ChartConfig; chartView: ChartView; width: number }
+    props: { chart: ChartRuntime; chartView: ChartView; width: number }
     constructor(props: {
-        chart: ChartConfig
+        chart: ChartRuntime
         chartView: ChartView
         width: number
     }) {
@@ -582,7 +586,7 @@ export class Controls {
 
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
-        if (chart.tab === "table") return !chart.props.hideTimeline
+        if (chart.tab === "table") return !chart.script.hideTimeline
         if (chart.tab === "map") {
             return chart.mapTransform.hasTimeline
         } else if (chart.tab === "chart") {
@@ -601,8 +605,7 @@ export class Controls {
             ((chart.canAddData && !this.hasFloatingAddButton) ||
                 chart.isScatter ||
                 chart.canChangeEntity ||
-                (chart.isStackedArea &&
-                    chart.stackedAreaTransform.canToggleRelativeMode) ||
+                (chart.isStackedArea && chart.canToggleRelativeMode) ||
                 (chart.isLineChart &&
                     chart.lineChartTransform.canToggleRelativeMode))
         )
@@ -627,7 +630,7 @@ export class Controls {
     }
 
     @computed get hasRelatedQuestion(): boolean {
-        const { relatedQuestions } = this.props.chart.props
+        const { relatedQuestions } = this.props.chart.script
         return (
             !!relatedQuestions &&
             !!relatedQuestions.length &&
@@ -667,9 +670,6 @@ export class AddEntityButton extends React.Component<{
     label: string
     onClick: () => void
 }> {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
     static defaultProps = {
         align: "left",
         verticalAlign: "bottom",
@@ -774,7 +774,7 @@ export class ControlsOverlay extends React.Component<{
 @observer
 export class ControlsOverlayView extends React.Component<{
     chartView: ChartView
-    chart: ChartConfig
+    chart: ChartRuntime
     controls: Controls
     children: JSX.Element
 }> {
@@ -824,7 +824,7 @@ export class ControlsOverlayView extends React.Component<{
 @observer
 export class ControlsFooterView extends React.Component<{
     controls: Controls
-    chart: ChartConfig
+    chart: ChartRuntime
 }> {
     @action.bound onShareMenu() {
         this.props.controls.isShareMenuActive = !this.props.controls
@@ -971,7 +971,7 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {chart.tab === "chart" &&
                     chart.isStackedArea &&
-                    chart.stackedAreaTransform.canToggleRelativeMode && (
+                    chart.canToggleRelativeMode && (
                         <AbsRelToggle chart={chart} />
                     )}
                 {chart.tab === "chart" &&
@@ -981,7 +981,7 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {chart.tab === "chart" &&
                     chart.isScatter &&
-                    chart.hasSelection && <ZoomToggle chart={chart.props} />}
+                    chart.hasSelection && <ZoomToggle chart={chart.script} />}
 
                 {(chart.tab === "table" || chart.isScatter) &&
                     chart.hasCountriesSmallerThanFilterOption && (
@@ -1008,7 +1008,7 @@ export class ControlsFooterView extends React.Component<{
             hasRelatedQuestion
         } = props.controls
         const { chart, chartView } = props.controls.props
-        const { relatedQuestions } = chart.props
+        const { relatedQuestions } = chart.script
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">

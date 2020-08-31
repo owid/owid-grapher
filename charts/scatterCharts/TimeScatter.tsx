@@ -4,12 +4,13 @@ import * as React from "react"
 import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
-import { AxisBox, AxisBoxView } from "charts/axis/AxisBox"
+import { AxisBox, HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
+import { AxisBoxComponent } from "charts/axis/AxisViews"
 import { ComparisonLine } from "./ComparisonLine"
-import { AxisScale } from "charts/axis/AxisScale"
-import { ScaleType, EntityDimensionKey } from "charts/core/ChartConstants"
+
+import { EntityDimensionKey } from "charts/core/ChartConstants"
 
 import {
     sortBy,
@@ -52,11 +53,11 @@ interface PointsWithLabelsProps {
     hoverKeys: string[]
     focusKeys: string[]
     bounds: Bounds
-    xScale: AxisScale
-    yScale: AxisScale
+    xAxis: HorizontalAxis
+    yAxis: VerticalAxis
     sizeDomain: [number, number]
     hideLines: boolean
-    chart: ChartConfig
+    chart: ChartRuntime
 }
 
 interface ScatterRenderPoint {
@@ -102,14 +103,6 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return this.props.bounds
     }
 
-    @computed get xScale(): AxisScale {
-        return this.props.xScale.extend({ range: this.bounds.xRange() })
-    }
-
-    @computed get yScale(): AxisScale {
-        return this.props.yScale.extend({ range: this.bounds.yRange() })
-    }
-
     @computed get labelFontFamily(): string {
         return "Arial Narrow, Arial, sans-serif"
     }
@@ -138,7 +131,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         return (
             <Tooltip
-                tooltipOwner={this.props.chart}
+                tooltipContainer={this.props.chart}
                 x={hoverPoint.position.x + 5}
                 y={hoverPoint.position.y + 5}
                 style={{ textAlign: "center" }}
@@ -181,16 +174,28 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         )
     }
 
-    @computed get series(): ScatterRenderSeries {
-        const { xScale, yScale } = this
-        const d = cloneDeep(this.props.data[0])
+    @computed private get xAxis() {
+        const view = this.props.xAxis.clone()
+        view.range = this.bounds.xRange()
+        return view
+    }
 
-        const points = d.values.map(v => {
+    @computed private get yAxis() {
+        const view = this.props.yAxis.clone()
+        view.range = this.bounds.yRange()
+        return view
+    }
+
+    @computed private get series(): ScatterRenderSeries {
+        const { xAxis, yAxis } = this
+        const data = cloneDeep(this.props.data[0])
+
+        const points = data.values.map(v => {
             const area = 1
             return {
                 position: new Vector2(
-                    Math.floor(xScale.place(v.x)),
-                    Math.floor(yScale.place(v.y))
+                    Math.floor(xAxis.place(v.x)),
+                    Math.floor(yAxis.place(v.y))
                 ),
                 size: Math.sqrt(area / Math.PI),
                 time: v.time,
@@ -200,11 +205,11 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
 
         return {
-            entityDimensionKey: d.entityDimensionKey,
-            displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
-            color: d.color,
+            entityDimensionKey: data.entityDimensionKey,
+            displayKey: "key-" + makeSafeForCSS(data.entityDimensionKey),
+            color: data.color,
             points: points,
-            text: d.label,
+            text: data.label,
             offsetVector: Vector2.zero
         }
     }
@@ -574,10 +579,10 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 @observer
 export class TimeScatter extends React.Component<{
     bounds: Bounds
-    config: ChartConfig
+    config: ChartRuntime
     isStatic: boolean
 }> {
-    @computed get chart(): ChartConfig {
+    @computed get chart(): ChartRuntime {
         return this.props.config
     }
 
@@ -599,21 +604,13 @@ export class TimeScatter extends React.Component<{
         this.chart.timeDomain = [targetStartYear, targetEndYear]
     }
 
-    @computed get axisBox() {
-        const that = this
+    // todo: Refactor
+    @computed private get axisBox() {
+        const { xAxis, yAxis } = this.transform
         return new AxisBox({
-            get bounds() {
-                return that.bounds
-            },
-            get fontSize() {
-                return that.chart.baseFontSize
-            },
-            get xAxis() {
-                return that.transform.xAxis
-            },
-            get yAxis() {
-                return that.transform.yAxis
-            }
+            bounds: this.bounds,
+            xAxis,
+            yAxis
         })
     }
 
@@ -622,7 +619,7 @@ export class TimeScatter extends React.Component<{
     }
 
     @computed get hideLines(): boolean {
-        return !!this.chart.props.hideConnectedScatterLines
+        return !!this.chart.script.hideConnectedScatterLines
     }
 
     render() {
@@ -639,10 +636,9 @@ export class TimeScatter extends React.Component<{
 
         return (
             <g>
-                <AxisBoxView
+                <AxisBoxComponent
+                    isInteractive={chart.isInteractive}
                     axisBox={axisBox}
-                    xAxisConfig={chart.xAxis.props}
-                    yAxisConfig={chart.yAxis.props}
                     showTickMarks={false}
                 />
                 {comparisonLines &&
@@ -658,8 +654,8 @@ export class TimeScatter extends React.Component<{
                     hideLines={this.hideLines}
                     data={currentData}
                     bounds={axisBox.innerBounds}
-                    xScale={axisBox.xScale}
-                    yScale={axisBox.yScale}
+                    xAxis={axisBox.xAxisWithRange}
+                    yAxis={axisBox.yAxisWithRange}
                     sizeDomain={sizeDomain}
                     focusKeys={[]}
                     hoverKeys={[]}

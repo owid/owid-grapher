@@ -3,7 +3,7 @@ import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
 import ReactDOM from "react-dom"
 import { clone } from "charts/utils/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { ChartFigureView } from "./ChartFigureView"
 import { observer } from "mobx-react"
 import { owidVariableId } from "owidTable/OwidTable"
@@ -33,7 +33,7 @@ class ClientVariableCountryPage extends React.Component<{
     variable: Variable
     country: Country
 }> {
-    @observable.ref chart?: ChartConfig
+    @observable.ref chart?: ChartRuntime
 
     @computed get chartConfig() {
         const { variable, country } = this.props
@@ -60,7 +60,9 @@ class ClientVariableCountryPage extends React.Component<{
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.chart = new ChartConfig(this.chartConfig as any, { isEmbed: true })
+        this.chart = new ChartRuntime(this.chartConfig as any, {
+            isEmbed: true
+        })
     }
 
     render() {

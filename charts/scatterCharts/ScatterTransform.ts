@@ -28,12 +28,11 @@ import {
 import { computed } from "mobx"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
-import { AxisSpec } from "charts/axis/AxisSpec"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { Time } from "charts/utils/TimeBounds"
 import { EntityDimensionKey, ScaleType } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
-import { entityName, year } from "owidTable/OwidTable"
+import { EntityName, Year } from "owidTable/OwidTable"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -42,7 +41,7 @@ export class ScatterTransform extends ChartTransform {
         const that = this
         return new ColorScale({
             get config() {
-                return that.chart.props.colorScale
+                return that.chart.colorScale
             },
             get defaultBaseColorScheme() {
                 return "continents"
@@ -117,7 +116,7 @@ export class ScatterTransform extends ChartTransform {
     @computed get canToggleRelativeMode(): boolean {
         return (
             this.hasTimeline &&
-            !this.chart.props.hideRelativeToggle &&
+            !this.chart.script.hideRelativeToggle &&
             this.xOverrideYear === undefined
         )
     }
@@ -127,7 +126,7 @@ export class ScatterTransform extends ChartTransform {
     @computed private get hideBackgroundEntities(): boolean {
         return this.chart.addCountryMode === "disabled"
     }
-    @computed private get possibleEntityNames(): entityName[] {
+    @computed private get possibleEntityNames(): EntityName[] {
         const yEntities = this.yDimension ? this.yDimension.entityNamesUniq : []
         const xEntities = this.xDimension ? this.xDimension.entityNamesUniq : []
         return intersection(yEntities, xEntities)
@@ -139,8 +138,8 @@ export class ScatterTransform extends ChartTransform {
     }
 
     // todo: move to table
-    @computed get excludedEntityNames(): entityName[] {
-        const entityIds = this.chart.props.excludedEntities || []
+    @computed get excludedEntityNames(): EntityName[] {
+        const entityIds = this.chart.script.excludedEntities || []
         const entityNameMap = this.chart.table.entityIdToNameMap
         return entityIds
             .map(entityId => entityNameMap.get(entityId)!)
@@ -150,12 +149,12 @@ export class ScatterTransform extends ChartTransform {
     // todo: remove. do this at table filter level
     getEntityNamesToShow(
         filterBackgroundEntities = this.hideBackgroundEntities
-    ): entityName[] {
+    ): EntityName[] {
         let entityNames = filterBackgroundEntities
             ? this.chart.selectedEntityNames
             : this.possibleEntityNames
 
-        if (this.chart.props.matchingEntitiesOnly && this.colorDimension)
+        if (this.chart.script.matchingEntitiesOnly && this.colorDimension)
             entityNames = intersection(
                 entityNames,
                 this.colorDimension.entityNamesUniq
@@ -198,11 +197,11 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get compareEndPointsOnly(): boolean {
-        return !!this.chart.props.compareEndPointsOnly
+        return !!this.chart.script.compareEndPointsOnly
     }
 
     set compareEndPointsOnly(value: boolean) {
-        this.chart.props.compareEndPointsOnly = value || undefined
+        this.chart.script.compareEndPointsOnly = value || undefined
     }
 
     // todo: move this sort of thing to OwidTable
@@ -211,21 +210,21 @@ export class ScatterTransform extends ChartTransform {
     // If there's no timeline, this uses the same structure but only computes for a single year
     private getDataByEntityAndYear(
         entitiesToShow = this.getEntityNamesToShow()
-    ): Map<entityName, Map<year, ScatterValue>> {
+    ): Map<EntityName, Map<Year, ScatterValue>> {
         const { chart } = this
         const { filledDimensions } = chart
         const validEntityLookup = keyBy(entitiesToShow)
 
         const dataByEntityAndYear = new Map<
-            entityName,
-            Map<year, ScatterValue>
+            EntityName,
+            Map<Year, ScatterValue>
         >()
 
         for (const dimension of filledDimensions) {
             // First, we organize the data by entity
             const initialDataByEntity = new Map<
-                entityName,
-                { years: year[]; values: (string | number)[] }
+                EntityName,
+                { years: Year[]; values: (string | number)[] }
             >()
             const rows = dimension.column.rows
             dimension.values.forEach((value, index) => {
@@ -265,10 +264,10 @@ export class ScatterTransform extends ChartTransform {
 
     private _useTolerance(
         dimension: ChartDimension,
-        dataByEntityAndYear: Map<entityName, Map<year, ScatterValue>>,
+        dataByEntityAndYear: Map<EntityName, Map<Year, ScatterValue>>,
         initialDataByEntity: Map<
-            entityName,
-            { years: year[]; values: (string | number)[] }
+            EntityName,
+            { years: Year[]; values: (string | number)[] }
         >
     ) {
         const { yearsToCalculate, xOverrideYear } = this
@@ -281,7 +280,7 @@ export class ScatterTransform extends ChartTransform {
         initialDataByEntity.forEach((byEntity, entityName) => {
             let dataByYear = dataByEntityAndYear.get(entityName)
             if (dataByYear === undefined) {
-                dataByYear = new Map<year, ScatterValue>()
+                dataByYear = new Map<Year, ScatterValue>()
                 dataByEntityAndYear.set(entityName, dataByYear)
             }
 
@@ -320,7 +319,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     private _removeUnwantedPoints(
-        dataByEntityAndYear: Map<entityName, Map<year, ScatterValue>>
+        dataByEntityAndYear: Map<EntityName, Map<Year, ScatterValue>>
     ) {
         // The exclusion of points happens as a last step in order to avoid artefacts due to
         // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
@@ -330,32 +329,23 @@ export class ScatterTransform extends ChartTransform {
         const chart = this.chart
         dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
+                const yAxisRuntime = chart.yAxisOptions
+                const xAxisRuntime = chart.xAxisOptions
                 // Exclude any points with data for only one axis
-                if (!has(point, "x") || !has(point, "y")) {
+                if (!has(point, "x") || !has(point, "y"))
                     dataByYear.delete(year)
-                }
                 // Exclude points that go beyond min/max of X axis
                 else if (
-                    (chart.xAxis.removePointsOutsideDomain &&
-                        chart.xAxis.min !== undefined &&
-                        point.x < chart.xAxis.min) ||
-                    (chart.xAxis.removePointsOutsideDomain &&
-                        chart.xAxis.max !== undefined &&
-                        point.x > chart.xAxis.max)
-                ) {
+                    xAxisRuntime.removePointsOutsideDomain &&
+                    xAxisRuntime.isOutsideDomain(point.x)
+                )
                     dataByYear.delete(year)
-                }
                 // Exclude points that go beyond min/max of Y axis
                 else if (
-                    (chart.yAxis.removePointsOutsideDomain &&
-                        chart.yAxis.min !== undefined &&
-                        point.y < chart.yAxis.min) ||
-                    (chart.yAxis.removePointsOutsideDomain &&
-                        chart.yAxis.max !== undefined &&
-                        point.y > chart.yAxis.max)
-                ) {
+                    yAxisRuntime.removePointsOutsideDomain &&
+                    yAxisRuntime.isOutsideDomain(point.y)
+                )
                     dataByYear.delete(year)
-                }
             })
         })
     }
@@ -408,7 +398,7 @@ export class ScatterTransform extends ChartTransform {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.x),
                 this.xScaleType,
-                this.chart.props.zoomToSelection && this.selectedPoints.length
+                this.chart.script.zoomToSelection && this.selectedPoints.length
                     ? 1.1
                     : 1
             )
@@ -427,7 +417,7 @@ export class ScatterTransform extends ChartTransform {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d.y),
                 this.yScaleType,
-                this.chart.props.zoomToSelection && this.selectedPoints.length
+                this.chart.script.zoomToSelection && this.selectedPoints.length
                     ? 1.1
                     : 1
             )
@@ -449,7 +439,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get pointsForAxisDomains() {
-        if (!this.chart.hasSelection || !this.chart.props.zoomToSelection)
+        if (!this.chart.hasSelection || !this.chart.script.zoomToSelection)
             return this.currentValues
 
         return this.selectedPoints.length
@@ -467,52 +457,45 @@ export class ScatterTransform extends ChartTransform {
     @computed private get yScaleType() {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.yAxis.scaleType
+            : this.chart.yAxisOptions.scaleType
     }
 
-    @computed private get yAxisLabelBase(): string | undefined {
-        return this.yDimension && this.yDimension.displayName
+    @computed private get yAxisLabel(): string {
+        if (this.chart.script.yAxis.label && this.chart.yAxisOptions.label)
+            return this.chart.yAxisOptions.label
+        return (this.yDimension && this.yDimension.displayName) || ""
     }
 
-    @computed get yAxis(): AxisSpec {
-        const {
-            chart,
-            yDomainDefault,
-            yDimension,
-            isRelativeMode,
-            yScaleType,
-            yAxisLabelBase
-        } = this
+    @computed get yAxis() {
+        const { chart, yDomainDefault, yDimension, isRelativeMode } = this
 
-        const props: Partial<AxisSpec> = {}
-        props.scaleType = yScaleType
-        const label = chart.yAxis.label ?? yAxisLabelBase
+        const view = chart.yAxisOptions
+            .toVerticalAxis()
+            .updateDomain(yDomainDefault)
+        view.tickFormat =
+            (yDimension && yDimension.formatValueShort) || view.tickFormat
+
+        const label = this.yAxisLabel
+
         if (isRelativeMode) {
-            props.domain = yDomainDefault
-            props.scaleTypeOptions = [ScaleType.linear]
+            view.scaleTypeOptions = [ScaleType.linear]
             if (label && label.length > 1) {
-                props.label =
+                view.label =
                     "Average annual change in " +
                     (label.charAt(1).match(/[A-Z]/)
                         ? label
                         : label.charAt(0).toLowerCase() + label.slice(1))
             }
-            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
-        } else {
-            props.label = label
-            props.tickFormat = yDimension && yDimension.formatValueShort
-        }
+            view.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+        } else view.label = label
 
-        return extend(
-            chart.yAxis.toSpec({ defaultDomain: yDomainDefault }),
-            props
-        ) as AxisSpec
+        return view
     }
 
     @computed private get xScaleType(): ScaleType {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.xAxis.scaleType
+            : this.chart.xAxisOptions.scaleType
     }
 
     @computed private get xAxisLabelBase(): string | undefined {
@@ -522,39 +505,37 @@ export class ScatterTransform extends ChartTransform {
         else return xDimName
     }
 
-    @computed get xAxis(): AxisSpec {
+    @computed get xAxis() {
         const {
             chart,
             xDomainDefault,
             xDimension,
             isRelativeMode,
-            xScaleType,
             xAxisLabelBase
         } = this
 
-        const props: Partial<AxisSpec> = {}
-        props.scaleType = xScaleType
+        const view = chart.xAxisOptions
+            .toHorizontalAxis()
+            .updateDomain(xDomainDefault)
         if (isRelativeMode) {
-            props.domain = xDomainDefault
-            props.scaleTypeOptions = [ScaleType.linear]
-            const label = chart.xAxis.label || xAxisLabelBase
+            view.scaleTypeOptions = [ScaleType.linear]
+            const label = chart.xAxisOptions.label || xAxisLabelBase
             if (label && label.length > 1) {
-                props.label =
+                view.label =
                     "Average annual change in " +
                     (label.charAt(1).match(/[A-Z]/)
                         ? label
                         : label.charAt(0).toLowerCase() + label.slice(1))
             }
-            props.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            view.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
-            props.label = chart.xAxis.label || xAxisLabelBase
-            props.tickFormat = xDimension && xDimension.formatValueShort
+            view.label =
+                chart.xAxisOptions.label || xAxisLabelBase || view.label
+            view.tickFormat =
+                (xDimension && xDimension.formatValueShort) || view.tickFormat
         }
 
-        return extend(
-            chart.xAxis.toSpec({ defaultDomain: xDomainDefault }),
-            props
-        ) as AxisSpec
+        return view
     }
 
     @computed get yFormatTooltip(): (d: number) => string {
@@ -580,12 +561,12 @@ export class ScatterTransform extends ChartTransform {
     // todo: add unit tests
     private _filterValues(
         values: ScatterValue[],
-        startYear: year,
-        endYear: year,
+        startYear: Year,
+        endYear: Year,
         yScaleType: ScaleType,
         xScaleType: ScaleType,
         isRelativeMode: boolean,
-        xOverrideYear?: year
+        xOverrideYear?: Year
     ) {
         // Only allow tolerance data to occur once in any given chart (no duplicate data points)
         // Prioritize the start and end years first, then the "true" year
@@ -703,7 +684,7 @@ export class ScatterTransform extends ChartTransform {
             if (series.values.length === 0) return false
 
             // Hide lines which don't cover the full span
-            if (this.chart.props.hideLinesOutsideTolerance)
+            if (this.chart.script.hideLinesOutsideTolerance)
                 return (
                     firstOfNonEmptyArray(series.values).year === startYear &&
                     lastOfNonEmptyArray(series.values).year === endYear

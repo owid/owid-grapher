@@ -5,12 +5,14 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
 import { includes, guid, uniq, makeSafeForCSS } from "../utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { Bounds } from "charts/utils/Bounds"
-import { AxisBox, AxisGridLines } from "charts/axis/AxisBox"
-import { AxisTickMarks } from "charts/axis/AxisTickMarks"
-import { AxisScale } from "charts/axis/AxisScale"
-import { VerticalAxis, VerticalAxisView } from "charts/axis/VerticalAxis"
+import {
+    VerticalAxisComponent,
+    AxisTickMarks,
+    VerticalAxisGridLines
+} from "charts/axis/AxisViews"
+import { VerticalAxis, AxisBox } from "charts/axis/Axis"
 import { NoDataOverlay } from "../core/NoDataOverlay"
 import { Text } from "../text/Text"
 import {
@@ -39,7 +41,7 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedBarValue
     color: string
     opacity: number
-    yScale: AxisScale
+    yAxis: VerticalAxis
     xOffset: number
     barWidth: number
     onBarMouseOver: (bar: StackedBarValue) => void
@@ -53,12 +55,12 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     @observable mouseOver: boolean = false
 
     @computed get yPos() {
-        const { bar, yScale } = this.props
+        const { bar, yAxis: yScale } = this.props
         return yScale.place(bar.yOffset + bar.y)
     }
 
     @computed get barHeight() {
-        const { bar, yScale } = this.props
+        const { bar, yAxis: yScale } = this.props
         const { yPos } = this
 
         return yScale.place(bar.yOffset) - yPos
@@ -104,7 +106,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 @observer
 export class StackedBarChart extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: ChartRuntime
 }> {
     base!: SVGGElement
     readonly minBarSpacing = 4
@@ -153,34 +155,19 @@ export class StackedBarChart extends React.Component<{
         return 0.75 * this.props.chart.baseFontSize
     }
 
-    @computed get axisBox(): AxisBox {
-        const { bounds, transform, chart, sidebarWidth } = this
-        const { xAxisSpec, yAxisSpec } = transform
+    // todo: Refactor
+    @computed private get axisBox() {
+        const { bounds, transform, sidebarWidth } = this
+        const { xAxis, yAxis } = transform
         return new AxisBox({
             bounds: bounds.padRight(sidebarWidth + 20),
-            fontSize: chart.baseFontSize,
-            xAxis: xAxisSpec,
-            yAxis: yAxisSpec
+            xAxis,
+            yAxis
         })
     }
 
-    @computed get yScale() {
-        return this.axisBox.yScale
-    }
-
-    @computed get yAxis() {
-        const that = this
-        return new VerticalAxis({
-            get scale() {
-                return that.yScale
-            },
-            get fontSize() {
-                return that.chart.baseFontSize
-            },
-            get labelText() {
-                return that.transform.yAxisSpec.label
-            }
-        })
+    @computed private get yAxis() {
+        return this.axisBox.yAxisWithRange
     }
 
     @computed get renderUid() {
@@ -265,18 +252,18 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get tooltip() {
-        const { hoverBar, yScale, mapXValueToOffset, barWidth } = this
+        const { hoverBar, yAxis, mapXValueToOffset, barWidth } = this
         if (hoverBar === undefined) return
 
         const xPos = mapXValueToOffset.get(hoverBar.x)
         if (xPos === undefined) return
 
-        const yPos = yScale.place(hoverBar.yOffset + hoverBar.y)
+        const yPos = yAxis.place(hoverBar.yOffset + hoverBar.y)
         const { yFormatTooltip } = this.transform
 
         return (
             <Tooltip
-                tooltipOwner={this.props.chart}
+                tooltipContainer={this.props.chart}
                 x={xPos + barWidth}
                 y={yPos}
                 style={{ textAlign: "center" }}
@@ -324,13 +311,13 @@ export class StackedBarChart extends React.Component<{
     }
 
     // Place ticks centered beneath the bars, before doing overlap detection
-    @computed get tickPlacements() {
+    @computed private get tickPlacements() {
         const { mapXValueToOffset, barWidth, axisBox } = this
         const { xValues } = this.transform
-        const { xScale } = axisBox
+        const { xAxisWithRange } = axisBox
 
         return xValues.map(x => {
-            const text = xScale.tickFormat(x)
+            const text = xAxisWithRange.tickFormat(x)
             const xPos = mapXValueToOffset.get(x) as number
 
             const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
@@ -420,12 +407,11 @@ export class StackedBarChart extends React.Component<{
             axisBox,
             renderUid,
             bounds,
-            yScale,
+            yAxis,
             legend,
             sidebarWidth,
             activeColors,
             tooltip,
-            yAxis,
             barWidth,
             mapXValueToOffset,
             ticks
@@ -456,10 +442,13 @@ export class StackedBarChart extends React.Component<{
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
-                <VerticalAxisView bounds={bounds} axis={yAxis} />
-                <AxisGridLines
-                    orient="left"
-                    scale={yScale}
+                <VerticalAxisComponent
+                    bounds={bounds}
+                    axis={yAxis}
+                    isInteractive={this.chart.isInteractive}
+                />
+                <VerticalAxisGridLines
+                    verticalAxis={yAxis}
                     bounds={innerBounds}
                 />
 
@@ -518,7 +507,7 @@ export class StackedBarChart extends React.Component<{
                                             color={series.color}
                                             xOffset={xPos}
                                             opacity={barOpacity}
-                                            yScale={yScale}
+                                            yAxis={yAxis}
                                             onBarMouseOver={this.onBarMouseOver}
                                             onBarMouseLeave={
                                                 this.onBarMouseLeave

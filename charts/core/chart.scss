@@ -332,45 +332,6 @@ $zindex-EntitySelector: 30;
         }
     }
 
-    /* Axis Scale Selectors
-    --------------------------------------------- */
-
-    .toggleSwitch {
-        text-transform: uppercase;
-        cursor: pointer;
-        position: absolute;
-        font-weight: bold;
-        white-space: nowrap;
-
-        span {
-            text-align: center;
-            font-size: 10px;
-            line-height: 18px;
-            display: inline-block;
-            height: 20px;
-            padding: 0 8px;
-            border-width: 1px;
-            border-style: solid;
-            background-color: #f2f2f2;
-            border-color: #d6dadf;
-            color: #4d6a8b;
-        }
-
-        .rightToggle {
-            border-radius: 0 10px 10px 0;
-        }
-
-        .leftToggle {
-            border-radius: 10px 0 0 10px;
-        }
-
-        .activeToggle {
-            border-color: #0073e6;
-            color: #0073e6;
-            background: white;
-        }
-    }
-
     /* Data Tab
     --------------------------------------------- */
 

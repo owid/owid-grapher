@@ -138,11 +138,11 @@ import { Vector2 } from "./Vector2"
 import {
     TickFormattingOptions,
     SortOrder,
+    RelatedQuestionsConfig,
     ScaleType
 } from "charts/core/ChartConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { EPOCH_DATE } from "settings"
-import { RelatedQuestionsConfig } from "charts/core/ChartConfig"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
 

@@ -2,12 +2,12 @@ import * as React from "react"
 import { TextWrap } from "charts/text/TextWrap"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { Logo } from "charts/core/Logos"
 
 interface HeaderProps {
     maxWidth: number
-    chart: ChartConfig
+    chart: ChartRuntime
 }
 
 export class Header {
@@ -26,11 +26,11 @@ export class Header {
     }
 
     @computed get logo(): Logo | undefined {
-        if (this.props.chart.props.hideLogo) {
+        if (this.props.chart.script.hideLogo) {
             return undefined
         } else {
             return new Logo({
-                logo: this.props.chart.props.logo,
+                logo: this.props.chart.script.logo,
                 isLink: !this.props.chart.isNativeEmbed,
                 fontSize: this.props.chart.baseFontSize
             })
@@ -158,7 +158,7 @@ class HeaderView extends React.Component<{
 
 @observer
 export class HeaderHTML extends React.Component<{
-    chart: ChartConfig
+    chart: ChartRuntime
     header: Header
 }> {
     render() {

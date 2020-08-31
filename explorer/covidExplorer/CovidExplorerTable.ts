@@ -1,7 +1,6 @@
 import {
     dateDiffInDays,
     flatten,
-    map,
     groupBy,
     parseFloatOrUndefined,
     difference,
@@ -22,7 +21,7 @@ import {
     ComputedColumnSpec,
     RowToValueMapper,
     ColumnSpec,
-    entityName,
+    EntityName,
     columnSlug,
     columnTypes,
     Row,
@@ -50,7 +49,7 @@ type MetricKey = {
 }
 
 interface AnnotationsRow {
-    location: entityName
+    location: EntityName
     date: string
     cases_annotations: string
     deaths_annotations: string

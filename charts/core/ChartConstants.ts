@@ -1,5 +1,4 @@
-// TODO make this a string enum in TypeScript 2.4
-import { keyBy } from "charts/utils/Util"
+import { keyBy } from "charts/utils/Util" // todo: remove
 
 export type ChartTypeName =
     | "LineChart"
@@ -33,6 +32,21 @@ export enum ScaleType {
     linear = "linear",
     log = "log"
 }
+
+export interface HighlightToggleConfig {
+    description: string
+    paramStr: string
+}
+
+export interface RelatedQuestionsConfig {
+    text: string
+    url: string
+}
+
+// When a user hovers over a connected series line in a ScatterPlot we show
+// a label for each point. By default that value will be from the "year" column
+// but by changing this option the column used for the x or y axis could be used instead.
+export declare type ScatterPointLabelStrategy = "year" | "x" | "y"
 
 export enum SortOrder {
     asc = "asc",
@@ -81,4 +95,5 @@ export const ChartTypeDefs = [
     }
 ]
 
+// TODO make this a string enum in TypeScript 2.4
 export const ChartTypeDefsByKey = keyBy(ChartTypeDefs, e => e.key)

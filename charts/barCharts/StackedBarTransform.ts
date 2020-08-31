@@ -2,7 +2,6 @@ import { computed } from "mobx"
 import {
     includes,
     identity,
-    extend,
     some,
     cloneDeep,
     find,
@@ -13,7 +12,6 @@ import {
     flatten
 } from "charts/utils/Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
-import { AxisSpec } from "charts/axis/AxisSpec"
 import { ChartTransform } from "charts/core/ChartTransform"
 import { ChartDimension } from "charts/core/ChartDimension"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
@@ -23,10 +21,6 @@ import { ColorScale } from "charts/color/ColorScale"
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
 export class StackedBarTransform extends ChartTransform {
-    @computed get isValidConfig(): boolean {
-        return this.hasYDimension
-    }
-
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.chart
         if (!some(filledDimensions, d => d.property === "y"))
@@ -79,13 +73,16 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     // TODO: Make XAxis generic
-    @computed get xAxisSpec(): AxisSpec {
+    @computed get xAxis() {
         const { chart, xDomainDefault } = this
-        return extend(chart.xAxis.toSpec({ defaultDomain: xDomainDefault }), {
-            tickFormat: this.chart.formatYearFunction,
-            hideFractionalTicks: true,
-            hideGridlines: true
-        }) as AxisSpec
+        const view = chart.xAxisOptions
+            .toHorizontalAxis()
+            .updateDomain(xDomainDefault)
+        if (this.chart.formatYearFunction)
+            view.tickFormat = this.chart.formatYearFunction as any
+        view.hideGridlines = true
+        view.hideFractionalTicks = true
+        return view
     }
 
     @computed get yDomainDefault(): [number, number] {
@@ -105,13 +102,14 @@ export class StackedBarTransform extends ChartTransform {
         return yDimensionFirst ? yDimensionFirst.formatValueShort : identity
     }
 
-    @computed get yAxisSpec(): AxisSpec {
+    @computed get yAxis() {
         const { chart, yDomainDefault, yTickFormat } = this
-
-        return extend(chart.yAxis.toSpec({ defaultDomain: yDomainDefault }), {
-            domain: [yDomainDefault[0], yDomainDefault[1]], // Stacked chart must have its own y domain
-            tickFormat: yTickFormat
-        }) as AxisSpec
+        const yAxis = chart.yAxisOptions
+            .toVerticalAxis()
+            .updateDomain(yDomainDefault)
+        yAxis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
+        yAxis.tickFormat = yTickFormat
+        return yAxis
     }
 
     @computed get allStackedValues(): StackedBarValue[] {
@@ -211,7 +209,7 @@ export class StackedBarTransform extends ChartTransform {
         const that = this
         return new ColorScale({
             get config() {
-                return that.chart.props.colorScale
+                return that.chart.colorScale
             },
             get defaultBaseColorScheme() {
                 return "stackedAreaDefault"

@@ -11,11 +11,11 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
-import { DimensionSlot } from "charts/core/ChartConfig"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
 import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
 import { owidVariableId } from "owidTable/OwidTable"
+import { DimensionSlot } from "charts/core/DimensionSlot"
 
 interface VariableSelectorProps {
     editor: ChartEditor

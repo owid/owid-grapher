@@ -18,7 +18,7 @@ import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
 import { getVariableData, writeVariableCSV } from "db/model/Variable"
-import { ChartConfigProps } from "charts/core/ChartConfig"
+import { ChartScript } from "charts/core/ChartScript"
 import {
     CountryNameFormat,
     CountryDefByKey
@@ -155,7 +155,7 @@ async function getRedirectsByChartId(
     return redirects
 }
 
-async function expectChartById(chartId: any): Promise<ChartConfigProps> {
+async function expectChartById(chartId: any): Promise<ChartScript> {
     const chart = await getChartById(expectInt(chartId))
 
     if (chart) {
@@ -165,7 +165,7 @@ async function expectChartById(chartId: any): Promise<ChartConfigProps> {
     }
 }
 
-function omitSaveToVariable(config: ChartConfigProps): ChartConfigProps {
+function omitSaveToVariable(config: ChartScript): ChartScript {
     const newConfig = lodash.clone(config)
     newConfig.dimensions = newConfig.dimensions.map(dim => {
         return lodash.omit(dim, ["saveToVariable"])
@@ -175,8 +175,8 @@ function omitSaveToVariable(config: ChartConfigProps): ChartConfigProps {
 
 async function saveChart(
     user: CurrentUser,
-    newConfig: ChartConfigProps,
-    existingConfig?: ChartConfigProps
+    newConfig: ChartScript,
+    existingConfig?: ChartScript
 ) {
     return db.transaction(async t => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible

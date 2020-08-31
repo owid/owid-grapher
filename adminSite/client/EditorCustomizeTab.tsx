@@ -2,7 +2,7 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor } from "./ChartEditor"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import {
     NumberField,
@@ -22,19 +22,19 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
-class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
+class ColorSchemeSelector extends React.Component<{ chart: ChartRuntime }> {
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
         // we are not using the multi-option select we can force the type to be
         // a single value.
 
-        this.props.chart.props.baseColorScheme =
+        this.props.chart.script.baseColorScheme =
             selected.value === "default" ? undefined : selected.value
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
-        this.props.chart.props.invertColorScheme = value || undefined
+        this.props.chart.script.invertColorScheme = value || undefined
     }
 
     render() {
@@ -49,7 +49,7 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
                             value={chart.baseColorScheme || "default"}
                             onChange={this.onChange}
                             invertedColorScheme={
-                                !!chart.props.invertColorScheme
+                                !!chart.script.invertColorScheme
                             }
                             additionalOptions={[
                                 {
@@ -65,7 +65,7 @@ class ColorSchemeSelector extends React.Component<{ chart: ChartConfig }> {
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={!!chart.props.invertColorScheme}
+                        value={!!chart.script.invertColorScheme}
                         onValue={this.onInvertColorScheme}
                     />
                 </FieldsRow>
@@ -83,41 +83,41 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     }
 
     @computed get minTime() {
-        return this.chart.props.minTime
+        return this.chart.script.minTime
     }
     @computed get maxTime() {
-        return this.chart.props.maxTime
+        return this.chart.script.maxTime
     }
 
     @computed get timelineMinTime() {
-        return this.chart.props.timelineMinTime
+        return this.chart.script.timelineMinTime
     }
     @computed get timelineMaxTime() {
-        return this.chart.props.timelineMaxTime
+        return this.chart.script.timelineMaxTime
     }
 
     @action.bound onMinTime(value: number | undefined) {
-        this.chart.props.minTime = value
+        this.chart.script.minTime = value
     }
 
     @action.bound onMaxTime(value: number | undefined) {
-        this.chart.props.maxTime = value
+        this.chart.script.maxTime = value
     }
 
     @action.bound onTimelineMinTime(value: number | undefined) {
-        this.chart.props.timelineMinTime = value
+        this.chart.script.timelineMinTime = value
     }
 
     @action.bound onTimelineMaxTime(value: number | undefined) {
-        this.chart.props.timelineMaxTime = value
+        this.chart.script.timelineMaxTime = value
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.chart.props.hideTimeline = value || undefined
+        this.chart.script.hideTimeline = value || undefined
     }
 
     @action.bound onToggleShowYearLabels(value: boolean) {
-        this.chart.props.showYearLabels = value || undefined
+        this.chart.script.showYearLabels = value || undefined
     }
 
     render() {
@@ -130,7 +130,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                     {features.timeDomain && (
                         <NumberField
                             label="Selection start"
-                            value={chart.props.minTime}
+                            value={chart.script.minTime}
                             onValue={debounce(this.onMinTime)}
                             allowNegative
                         />
@@ -141,7 +141,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                                 ? "Selection end"
                                 : "Selected year"
                         }
-                        value={chart.props.maxTime}
+                        value={chart.script.maxTime}
                         onValue={debounce(this.onMaxTime)}
                         allowNegative
                     />
@@ -165,13 +165,13 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                 <FieldsRow>
                     <Toggle
                         label="Hide timeline"
-                        value={!!chart.props.hideTimeline}
+                        value={!!chart.script.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     {features.showYearLabels && (
                         <Toggle
                             label="Always show year labels"
-                            value={!!chart.props.showYearLabels}
+                            value={!!chart.script.showYearLabels}
                             onValue={this.onToggleShowYearLabels}
                         />
                     )}
@@ -188,19 +188,19 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
     @action.bound onAddComparisonLine() {
         const { chart } = this.props.editor
 
-        if (chart.props.comparisonLines === undefined)
-            chart.props.comparisonLines = []
+        if (chart.script.comparisonLines === undefined)
+            chart.script.comparisonLines = []
 
-        chart.props.comparisonLines.push({})
+        chart.script.comparisonLines.push({})
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { chart } = this.props.editor
 
-        chart.props.comparisonLines!.splice(index, 1)
+        chart.script.comparisonLines!.splice(index, 1)
 
-        if (chart.props.comparisonLines!.length === 0)
-            chart.props.comparisonLines = undefined
+        if (chart.script.comparisonLines!.length === 0)
+            chart.script.comparisonLines = undefined
     }
 
     render() {
@@ -251,15 +251,10 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 export class EditorCustomizeTab extends React.Component<{
     editor: ChartEditor
 }> {
-    @computed get xAxis() {
-        return this.props.editor.chart.xAxis.props
-    }
-    @computed get yAxis() {
-        return this.props.editor.chart.yAxis.props
-    }
-
     render() {
-        const { xAxis, yAxis } = this
+        const xAxisRuntime = this.props.editor.chart.xAxisOptions
+        const yAxisRuntime = this.props.editor.chart.yAxisOptions
+
         const { features } = this.props.editor
         const { chart } = this.props.editor
 
@@ -272,15 +267,19 @@ export class EditorCustomizeTab extends React.Component<{
                                 <FieldsRow>
                                     <NumberField
                                         label={`Min`}
-                                        value={yAxis.min}
-                                        onValue={value => (yAxis.min = value)}
+                                        value={yAxisRuntime.min}
+                                        onValue={value =>
+                                            (yAxisRuntime.min = value)
+                                        }
                                         allowDecimal
                                         allowNegative
                                     />
                                     <NumberField
                                         label={`Max`}
-                                        value={yAxis.max}
-                                        onValue={value => (yAxis.max = value)}
+                                        value={yAxisRuntime.max}
+                                        onValue={value =>
+                                            (yAxisRuntime.max = value)
+                                        }
                                         allowDecimal
                                         allowNegative
                                     />
@@ -290,11 +289,11 @@ export class EditorCustomizeTab extends React.Component<{
                                         <Toggle
                                             label={`Remove points outside domain`}
                                             value={
-                                                yAxis.removePointsOutsideDomain ||
+                                                yAxisRuntime.removePointsOutsideDomain ||
                                                 false
                                             }
                                             onValue={value =>
-                                                (yAxis.removePointsOutsideDomain =
+                                                (yAxisRuntime.removePointsOutsideDomain =
                                                     value || undefined)
                                             }
                                         />
@@ -304,10 +303,11 @@ export class EditorCustomizeTab extends React.Component<{
                                     <Toggle
                                         label={`Enable log/linear selector`}
                                         value={
-                                            yAxis.canChangeScaleType || false
+                                            yAxisRuntime.canChangeScaleType ||
+                                            false
                                         }
                                         onValue={value =>
-                                            (yAxis.canChangeScaleType =
+                                            (yAxisRuntime.canChangeScaleType =
                                                 value || undefined)
                                         }
                                     />
@@ -318,7 +318,7 @@ export class EditorCustomizeTab extends React.Component<{
                             <BindString
                                 label="Label"
                                 field="label"
-                                store={yAxis}
+                                store={yAxisRuntime}
                             />
                         )}
                     </Section>
@@ -330,15 +330,19 @@ export class EditorCustomizeTab extends React.Component<{
                                 <FieldsRow>
                                     <NumberField
                                         label={`Min`}
-                                        value={xAxis.min}
-                                        onValue={value => (xAxis.min = value)}
+                                        value={xAxisRuntime.min}
+                                        onValue={value =>
+                                            (xAxisRuntime.min = value)
+                                        }
                                         allowDecimal
                                         allowNegative
                                     />
                                     <NumberField
                                         label={`Max`}
-                                        value={xAxis.max}
-                                        onValue={value => (xAxis.max = value)}
+                                        value={xAxisRuntime.max}
+                                        onValue={value =>
+                                            (xAxisRuntime.max = value)
+                                        }
                                         allowDecimal
                                         allowNegative
                                     />
@@ -348,11 +352,11 @@ export class EditorCustomizeTab extends React.Component<{
                                         <Toggle
                                             label={`Remove points outside domain`}
                                             value={
-                                                xAxis.removePointsOutsideDomain ||
+                                                xAxisRuntime.removePointsOutsideDomain ||
                                                 false
                                             }
                                             onValue={value =>
-                                                (xAxis.removePointsOutsideDomain =
+                                                (xAxisRuntime.removePointsOutsideDomain =
                                                     value || undefined)
                                             }
                                         />
@@ -362,10 +366,11 @@ export class EditorCustomizeTab extends React.Component<{
                                     <Toggle
                                         label={`Enable log/linear selector`}
                                         value={
-                                            xAxis.canChangeScaleType || false
+                                            xAxisRuntime.canChangeScaleType ||
+                                            false
                                         }
                                         onValue={value =>
-                                            (xAxis.canChangeScaleType =
+                                            (xAxisRuntime.canChangeScaleType =
                                                 value || undefined)
                                         }
                                     />
@@ -376,7 +381,7 @@ export class EditorCustomizeTab extends React.Component<{
                             <BindString
                                 label="Label"
                                 field="label"
-                                store={xAxis}
+                                store={xAxisRuntime}
                             />
                         )}
                     </Section>
@@ -385,9 +390,9 @@ export class EditorCustomizeTab extends React.Component<{
                 <Section name="Color scheme">
                     <ColorSchemeSelector chart={chart} />
                 </Section>
-                {chart.activeTransform.colorScale && (
+                {chart.activeColorScale && (
                     <EditorColorScaleSection
-                        scale={chart.activeTransform.colorScale}
+                        scale={chart.activeColorScale}
                         features={{
                             visualScaling: false,
                             legendDescription:
@@ -405,7 +410,7 @@ export class EditorCustomizeTab extends React.Component<{
                                     label={`Hide legend`}
                                     value={!!chart.hideLegend}
                                     onValue={value =>
-                                        (chart.props.hideLegend =
+                                        (chart.script.hideLegend =
                                             value || undefined)
                                     }
                                 />
@@ -415,7 +420,7 @@ export class EditorCustomizeTab extends React.Component<{
                             <BindAutoString
                                 label="Entity name"
                                 field="entityType"
-                                store={chart.props}
+                                store={chart.script}
                                 auto="country"
                             />
                         )}
@@ -426,9 +431,9 @@ export class EditorCustomizeTab extends React.Component<{
                         <FieldsRow>
                             <Toggle
                                 label={`Hide relative toggle`}
-                                value={!!chart.props.hideRelativeToggle}
+                                value={!!chart.script.hideRelativeToggle}
                                 onValue={value =>
-                                    (chart.props.hideRelativeToggle =
+                                    (chart.script.hideRelativeToggle =
                                         value || false)
                                 }
                             />

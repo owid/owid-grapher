@@ -30,7 +30,7 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { NoDataOverlay } from "../core/NoDataOverlay"
-import { AxisScale } from "charts/axis/AxisScale"
+import { HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
 import { Vector2 } from "charts/utils/Vector2"
 import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
@@ -38,7 +38,7 @@ import { getElementWithHalo } from "./Halos"
 import { EntityDimensionKey, SortOrder } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
-import { entityName } from "owidTable/OwidTable"
+import { EntityName } from "owidTable/OwidTable"
 
 export interface ScatterSeries {
     color: string
@@ -53,7 +53,7 @@ export interface ScatterValue {
     x: number
     y: number
     size: number
-    entityName?: entityName
+    entityName?: EntityName
     color?: number | string
     year: number
     time: {
@@ -68,8 +68,8 @@ interface PointsWithLabelsProps {
     hoverKeys: string[]
     focusKeys: string[]
     bounds: Bounds
-    xScale: AxisScale
-    yScale: AxisScale
+    xAxis: HorizontalAxis
+    yAxis: VerticalAxis
     colorScale?: ColorScale
     sizeDomain: [number, number]
     onMouseOver: (series: ScatterSeries) => void
@@ -261,14 +261,6 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return this.props.bounds
     }
 
-    @computed private get xScale(): AxisScale {
-        return this.props.xScale.extend({ range: this.bounds.xRange() })
-    }
-
-    @computed private get yScale(): AxisScale {
-        return this.props.yScale.extend({ range: this.bounds.yRange() })
-    }
-
     // When focusing multiple entities, we hide some information to declutter
     @computed private get isSubtleForeground(): boolean {
         return (
@@ -301,8 +293,13 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     // Pre-transform data for rendering
-    @computed get initialRenderData(): ScatterRenderSeries[] {
-        const { data, xScale, yScale, sizeScale, fontScale, colorScale } = this
+    @computed private get initialRenderData(): ScatterRenderSeries[] {
+        const { data, sizeScale, fontScale, colorScale, bounds } = this
+        const xView = this.props.xAxis.clone()
+        xView.range = bounds.xRange()
+        const yView = this.props.yAxis.clone()
+        yView.range = this.bounds.yRange()
+
         return sortNumeric(
             data.map(d => {
                 const values = d.values.map(v => {
@@ -313,8 +310,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             : undefined
                     return {
                         position: new Vector2(
-                            Math.floor(xScale.place(v.x)),
-                            Math.floor(yScale.place(v.y))
+                            Math.floor(xView.place(v.x)),
+                            Math.floor(yView.place(v.y))
                         ),
                         color: scaleColor ?? d.color,
                         size: Math.sqrt(area / Math.PI),

@@ -3,7 +3,7 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartRuntime } from "charts/core/ChartRuntime"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
@@ -12,7 +12,7 @@ import { CSVGenerator } from "./CSVGenerator"
 
 interface DownloadTabProps {
     bounds: Bounds
-    chart: ChartConfig
+    chart: ChartRuntime
 }
 
 declare var Blob: any
