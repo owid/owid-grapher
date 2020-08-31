@@ -18,7 +18,7 @@ async function main() {
         // todo: remove?
         c.config.data = {
             availableEntities:
-                chart.script.addCountryMode === "disabled"
+                chart.props.addCountryMode === "disabled"
                     ? []
                     : chart.availableEntityNames
         }

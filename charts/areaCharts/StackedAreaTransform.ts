@@ -137,7 +137,7 @@ export class StackedAreaTransform extends ChartTransform {
 
         // Assign colors
         const baseColors = this.colorScheme.getColors(groupedData.length)
-        if (chart.script.invertColorScheme) baseColors.reverse()
+        if (chart.props.invertColorScheme) baseColors.reverse()
         const colorScale = scaleOrdinal(baseColors)
         groupedData.forEach(series => {
             series.color =
@@ -169,13 +169,13 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.chart.script.hideRelativeToggle
+        return !this.chart.props.hideRelativeToggle
     }
 
     @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
         const colorScheme =
-            ColorSchemes[this.chart.script.baseColorScheme as string]
+            ColorSchemes[this.chart.props.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)

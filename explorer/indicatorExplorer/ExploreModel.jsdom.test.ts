@@ -36,7 +36,7 @@ describe(ExploreModel, () => {
         })
 
         it("updates the chart type to area", () => {
-            expect(model.chart.script.type).toBe(ChartType.StackedArea)
+            expect(model.chart.props.type).toBe(ChartType.StackedArea)
         })
 
         it("has a chart tab", () => {
@@ -59,7 +59,7 @@ describe(ExploreModel, () => {
         })
 
         it("updates the chart type to line", () => {
-            expect(model.chart.script.type).toBe(ChartType.LineChart)
+            expect(model.chart.props.type).toBe(ChartType.LineChart)
         })
 
         it("has a map tab", () => {

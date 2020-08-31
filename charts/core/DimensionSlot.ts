@@ -52,7 +52,7 @@ export class DimensionSlot {
                 newDimensions = newDimensions.concat(dims)
             else newDimensions = newDimensions.concat(slot.dimensions)
         })
-        this.chart.script.dimensions = newDimensions
+        this.chart.props.dimensions = newDimensions
     }
 
     @computed get dimensionsWithData(): ChartDimension[] {
