@@ -36,7 +36,7 @@ import { Bounds } from "charts/utils/Bounds"
 import { Text } from "charts/text/Text"
 import { TextWrap } from "charts/text/TextWrap"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
-import { ScaleSelector, ScaleTypeConfig } from "charts/controls/ScaleSelector"
+import { ScaleSelector } from "charts/controls/ScaleSelector"
 import { ControlsOverlay } from "charts/controls/Controls"
 import { AxisOptions } from "charts/axis/Axis"
 

@@ -1,11 +1,3 @@
-/* AxisScale.ts
- * ================
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-02-11
- */
-
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed, toJS, action, reaction } from "mobx"
 

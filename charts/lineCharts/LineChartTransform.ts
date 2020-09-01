@@ -231,11 +231,6 @@ export class LineChartTransform extends ChartTransform {
         }
     }
 
-    @computed get yAxisHideFractionalTicks(): boolean {
-        // all y axis points are integral, don't show fractional ticks in that case
-        return this.allValues.every(val => val.y % 1 === 0)
-    }
-
     @computed get yAxis() {
         const { chart, yDomain, yTickFormat, isRelativeMode } = this
         const axis = chart.yAxisOptions.toVerticalAxis()
