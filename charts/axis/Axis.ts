@@ -534,97 +534,18 @@ interface DualAxisProps {
 // space to work with, and vice versa
 export class DualAxis {
     private props: DualAxisProps
-
-    @observable private targetYDomain: [number, number] = [1, 100]
-    @observable private targetXDomain: [number, number] = [1, 100]
-    @observable private prevYDomain: [number, number] = [1, 100]
-    @observable private prevXDomain: [number, number] = [1, 100]
-    @observable private animProgress?: number
-    private frameStart?: number
-
     constructor(props: DualAxisProps) {
         this.props = props
     }
 
-    @computed.struct private get currentYDomain(): [number, number] {
-        if (this.animProgress === undefined) return this.props.yAxis.domain
-
-        const [prevMinY, prevMaxY] = this.prevYDomain
-        const [targetMinY, targetMaxY] = this.targetYDomain
-
-        // If we have a log axis and are animating from linear to log do not set domain min to 0
-        const progress = this.animProgress
-            ? this.animProgress
-            : this.props.yAxis.scaleType === ScaleType.log
-            ? 0.01
-            : 0
-
-        return [
-            prevMinY + (targetMinY - prevMinY) * progress,
-            prevMaxY + (targetMaxY - prevMaxY) * this.animProgress
-        ]
-    }
-
-    @computed.struct private get currentXDomain(): [number, number] {
-        if (this.animProgress === undefined) return this.props.xAxis.domain
-
-        const [prevMinX, prevMaxX] = this.prevXDomain
-        const [targetMinX, targetMaxX] = this.targetXDomain
-
-        // If we have a log axis and are animating from linear to log do not set domain min to 0
-        const progress = this.animProgress
-            ? this.animProgress
-            : this.props.xAxis.scaleType === ScaleType.log
-            ? 0.01
-            : 0
-
-        return [
-            prevMinX + (targetMinX - prevMinX) * progress,
-            prevMaxX + (targetMaxX - prevMaxX) * this.animProgress
-        ]
-    }
-
-    @action.bound setupAnimation() {
-        this.targetYDomain = this.props.yAxis.domain
-        this.targetXDomain = this.props.xAxis.domain
-        this.animProgress = 1
-
-        reaction(
-            () => [this.props.yAxis.domain, this.props.xAxis.domain],
-            () => {
-                this.prevXDomain = this.currentXDomain
-                this.prevYDomain = this.currentYDomain
-                this.targetYDomain = this.props.yAxis.domain
-                this.targetXDomain = this.props.xAxis.domain
-                this.animProgress = 0
-                requestAnimationFrame(this.frame)
-            }
-        )
-    }
-
-    @action.bound private frame(timestamp: number) {
-        if (this.animProgress === undefined) return
-
-        if (!this.frameStart) this.frameStart = timestamp
-        this.animProgress = Math.min(
-            1,
-            this.animProgress + (timestamp - this.frameStart) / 300
-        )
-
-        if (this.animProgress < 1) requestAnimationFrame(this.frame)
-        else this.frameStart = undefined
-    }
-
     @computed get xAxis() {
         const axis = this.props.xAxis.clone()
-        axis.domain = this.currentXDomain
         axis.range = this.innerBounds.xRange()
         return axis
     }
 
     @computed get yAxis() {
         const axis = this.props.yAxis.clone()
-        axis.domain = this.currentYDomain
         axis.range = this.innerBounds.yRange()
         return axis
     }
@@ -632,7 +553,6 @@ export class DualAxis {
     // We calculate an initial height from the range of the input bounds
     @computed private get xAxisHeight() {
         const axis = this.props.xAxis.clone()
-        axis.domain = this.currentXDomain
         axis.range = [0, this.props.bounds.width]
         return axis.height
     }
@@ -640,7 +560,6 @@ export class DualAxis {
     // We calculate an initial width from the range of the input bounds
     @computed private get yAxisWidth() {
         const axis = this.props.yAxis.clone()
-        axis.domain = this.currentYDomain
         axis.range = [0, this.props.bounds.height]
         return axis.width
     }
