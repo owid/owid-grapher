@@ -268,6 +268,8 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     formatYTick(v: number) {
+        if (this.isRelativeMode) return formatValue(v, { unit: "%" })
+
         const tickFormat = this.yDimensionFirst
             ? this.yDimensionFirst.formatValueShort
             : identity
