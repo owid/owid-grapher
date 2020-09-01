@@ -60,7 +60,8 @@ import {
     metricPickerColumnSpecs,
     covidCsvColumnSlug,
     intervalLabels,
-    intervalsAvailableByMetric
+    intervalsAvailableByMetric,
+    smoothingByInterval
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -1156,7 +1157,7 @@ export class CovidExplorer extends React.Component<{
                 ? perCapitaDivisorByMetric(metric)
                 : 1,
             interval,
-            interval === "smoothed" ? 7 : 0
+            smoothingByInterval.get(interval)
         )
 
         const column = this.chart.table.columnsBySlug.get(colSlug)
@@ -1171,6 +1172,10 @@ export class CovidExplorer extends React.Component<{
                     metricLabels[metric] +
                     (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
                 unit: intervalLabels.get(interval),
+                shortUnit:
+                    (interval === "weeklyChange" ||
+                        interval === "biweeklyChange") &&
+                    "%",
                 tableDisplay: column?.display.tableDisplay
             }
         } as ChartDimensionInterface
@@ -1222,8 +1227,9 @@ export class CovidExplorer extends React.Component<{
                     intervalsAvailableByMetric.get(metric)?.has(params.interval)
                 ) {
                     dataTableParams.interval = params.interval
-                    dataTableParams.smoothing =
-                        dataTableParams.interval === "smoothed" ? 7 : 0
+                    dataTableParams.smoothing = smoothingByInterval.get(
+                        params.interval
+                    )!
                 }
             }
 
