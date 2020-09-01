@@ -43,47 +43,47 @@ export class DiscreteBarChart extends React.Component<{
     @computed get chart() {
         return this.props.chart
     }
-    @computed.struct get bounds() {
+    @computed.struct private get bounds() {
         return this.props.bounds.padRight(10)
     }
 
-    @computed get failMessage() {
+    @computed private get failMessage() {
         return this.chart.discreteBarTransform.failMessage
     }
 
-    @computed get currentData() {
+    @computed private get currentData() {
         return this.chart.discreteBarTransform.currentData
     }
 
-    @computed get allData() {
+    @computed private get allData() {
         return this.chart.discreteBarTransform.allData
     }
 
-    @computed get displayData() {
+    @computed private get displayData() {
         // Uses allData when the timeline handles are being dragged, and currentData otherwise
         return this.chart.useTimelineDomains ? this.allData : this.currentData
     }
 
-    @computed get legendLabelStyle() {
+    @computed private get legendLabelStyle() {
         return {
             fontSize: 0.75 * this.props.chart.baseFontSize,
             fontWeight: 700
         }
     }
 
-    @computed get valueLabelStyle() {
+    @computed private get valueLabelStyle() {
         return {
             fontSize: 0.75 * this.props.chart.baseFontSize,
             fontWeight: 400
         }
     }
 
-    @computed get chartView() {
+    @computed private get chartView() {
         return this.props.chartView
     }
 
     // Account for the width of the legend
-    @computed get legendWidth() {
+    @computed private get legendWidth() {
         const labels = this.currentData.map(d => d.label)
         if (this.hasFloatingAddButton)
             labels.push(` + ${this.chartView.controls.addButtonLabel}`)
@@ -92,16 +92,16 @@ export class DiscreteBarChart extends React.Component<{
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
 
-    @computed get hasPositive() {
+    @computed private get hasPositive() {
         return this.displayData.some(d => d.value >= 0)
     }
 
-    @computed get hasNegative() {
+    @computed private get hasNegative() {
         return this.displayData.some(d => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
-    @computed get rightEndLabelWidth(): number {
+    @computed private get rightEndLabelWidth(): number {
         if (this.hasPositive) {
             const positiveLabels = this.displayData
                 .filter(d => d.value >= 0)
@@ -117,7 +117,7 @@ export class DiscreteBarChart extends React.Component<{
     // The amount of space we need to allocate for bar end labels on the left
     // These are only present if there are negative values
     // We pad this a little so it doesn't run directly up against the bar labels themselves
-    @computed get leftEndLabelWidth(): number {
+    @computed private get leftEndLabelWidth(): number {
         if (this.hasNegative) {
             const negativeLabels = this.displayData
                 .filter(d => d.value < 0)
@@ -132,7 +132,7 @@ export class DiscreteBarChart extends React.Component<{
         }
     }
 
-    @computed get x0(): number {
+    @computed private get x0(): number {
         if (this.isLogScale) {
             const minValue = min(this.allData.map(d => d.value))
             return minValue !== undefined ? Math.min(1, minValue) : 1
@@ -141,7 +141,7 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     // Now we can work out the main x axis scale
-    @computed get xDomainDefault(): [number, number] {
+    @computed private get xDomainDefault(): [number, number] {
         const allValues = this.displayData.map(d => d.value)
 
         const minStart = this.x0
@@ -151,19 +151,20 @@ export class DiscreteBarChart extends React.Component<{
         ]
     }
 
-    @computed get isLogScale() {
+    @computed private get isLogScale() {
         return this.chart.yAxisOptions.scaleType === ScaleType.log
     }
 
-    @computed get xRange(): [number, number] {
+    @computed private get xRange(): [number, number] {
         return [
             this.bounds.left + this.legendWidth + this.leftEndLabelWidth,
             this.bounds.right - this.rightEndLabelWidth
         ]
     }
 
-    @computed get xAxis() {
-        const axis = this.chart.yAxisOptions.toVerticalAxis()
+    @computed private get xAxis() {
+        // NB: We use the user's YAxis options here to make the XAxis
+        const axis = this.chart.yAxisOptions.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.tickFormat = this.chart.discreteBarTransform.tickFormat

@@ -150,13 +150,13 @@ abstract class AbstractAxis {
         return this._scaleType ?? this.options.scaleType
     }
 
+    set scaleType(value: ScaleType) {
+        this._scaleType = value
+    }
+
     // Call this to update the user's setting
     @action.bound updateChartScaleType(value: ScaleType) {
         this.options.scaleType = value
-    }
-
-    set scaleType(value: ScaleType) {
-        this._scaleType = value
     }
 
     @computed get label() {
