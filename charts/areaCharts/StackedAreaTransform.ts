@@ -9,7 +9,9 @@ import {
     identity,
     flatten,
     sortNumeric,
-    uniq
+    uniq,
+    max,
+    formatValue
 } from "charts/utils/Util"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
@@ -161,6 +163,42 @@ export class StackedAreaTransform extends ChartTransform {
         }
 
         return groupedData
+    }
+
+    @computed get xAxis() {
+        const { xDomainDefault } = this
+        const chart = this.chart
+        const axis = chart.xAxisOptions.toHorizontalAxis()
+        axis.updateDomainPreservingUserSettings(xDomainDefault)
+        axis.tickFormat = chart.formatYearFunction as any
+        axis.hideFractionalTicks = true
+        axis.hideGridlines = true
+        return axis
+    }
+
+    @computed private get yDomainDefault(): [number, number] {
+        const yValues = this.allStackedValues.map(d => d.y)
+        return [0, max(yValues) ?? 100]
+    }
+
+    @computed get yAxis() {
+        const { isRelativeMode, yDimensionFirst } = this
+        const { chart, yDomainDefault } = this
+
+        const axis = chart.yAxisOptions.toVerticalAxis()
+        if (isRelativeMode) axis.domain = [0, 100]
+        else
+            axis.updateDomainPreservingUserSettings([
+                yDomainDefault[0],
+                yDomainDefault[1]
+            ]) // Stacked area chart must have its own y domain)
+
+        axis.tickFormat = isRelativeMode
+            ? (v: number) => formatValue(v, { unit: "%" })
+            : yDimensionFirst
+            ? yDimensionFirst.formatValueShort
+            : identity
+        return axis
     }
 
     @computed get availableYears(): Time[] {
