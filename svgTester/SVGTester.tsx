@@ -8,8 +8,8 @@ import {
     getChartsBySlug
 } from "site/server/bakeChartsToImages"
 
-const header = `bakeOrder,timeToBake,slug,md5`
-const sampleRow = `1,123,world-pop,ee5a6312...`
+const header = `bakeOrder,timeToBake,slug,chartType,md5`
+const sampleRow = `1,123,world-pop,LineChart,ee5a6312...`
 interface BakedSvgInfo {
     bakeOrder: number
     timeToBake: number
@@ -48,9 +48,11 @@ export async function bakeAndSaveResultsFile(
     outDir: string = __dirname + "/bakedSvgs"
 ) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
+    // Todo: only bake published charts
     const { chartsBySlug } = await getChartsBySlug()
     const resultsPath = outDir + "/results.csv"
     fs.writeFileSync(resultsPath, header + "\n")
+    // eslint-disable-next-line no-console
     console.log(header)
     let bakeOrder = 1
     for (const [slug, config] of chartsBySlug) {
@@ -69,13 +71,16 @@ export async function bakeAndSaveResultsFile(
             bakeOrder,
             timeToBake: Date.now() - startTime,
             slug,
+            chartType: config.type,
             md5: md5(svg!)
         }
-        const line = `${bakeOrder},${row.timeToBake},${row.slug},${row.md5}`
+        const line = `${bakeOrder},${row.timeToBake},${row.slug},${row.chartType},${row.md5}`
+        // eslint-disable-next-line no-console
         console.log(line)
         fs.appendFileSync(resultsPath, line + "\n")
         bakeOrder++
     }
+    // Todo: DB end
 }
 
 const compareSets = (liveSvgs: BakedSvgInfo[], localSvgs: BakedSvgInfo[]) => {
