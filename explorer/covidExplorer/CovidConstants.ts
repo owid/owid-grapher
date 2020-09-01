@@ -284,3 +284,5 @@ export const metricPickerColumnSpecs: Partial<Record<
     new_deaths_per_million: { name: "New deaths (per 1M)", type: "Ratio" },
     new_cases_per_million: { name: "New cases (per 1M)", type: "Ratio" }
 }
+// The ID of the Wordpress reusable block to show below the COVID explorer
+export const covidWpBlockId = 36313

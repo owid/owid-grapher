@@ -11,7 +11,8 @@ import {
     covidDashboardSlug,
     coronaOpenGraphImagePath,
     covidPageTitle,
-    covidPreloads
+    covidPreloads,
+    covidWpBlockId
 } from "explorer/covidExplorer/CovidConstants"
 
 import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
@@ -160,11 +161,15 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
 }
 
 export async function renderCovidExplorerPage(props?: CovidExplorerPageProps) {
-    return renderToHtmlPage(<CovidExplorerPage {...props} />)
+    const wpContent = await getBlockContent(covidWpBlockId)
+    return renderToHtmlPage(
+        <CovidExplorerPage {...props} wpContent={wpContent} />
+    )
 }
 
 interface CovidExplorerPageProps {
     explorerQueryStr?: string
+    wpContent?: string
 }
 
 const CovidExplorerPage = (props: CovidExplorerPageProps) => {
@@ -195,6 +200,7 @@ const CovidExplorerPage = (props: CovidExplorerPageProps) => {
             preloads={covidPreloads}
             inlineJs={script}
             hideAlertBanner={true}
+            wpContent={props.wpContent}
         />
     )
 }
