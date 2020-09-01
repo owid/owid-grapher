@@ -90,9 +90,10 @@ export class ScatterTransform extends ChartTransform {
         else if (isEmpty(this.possibleDataYears))
             return "No years with data for both X and Y"
         else if (isEmpty(this.currentData))
-            return "No matching data" + this.chart.isReady
-                ? ""
-                : ". Chart is not ready"
+            return (
+                "No matching data" +
+                (this.chart.isReady ? "" : ". Chart is not ready")
+            )
         else return undefined
     }
 
@@ -337,16 +338,10 @@ export class ScatterTransform extends ChartTransform {
                 if (!has(point, "x") || !has(point, "y"))
                     dataByYear.delete(year)
                 // Exclude points that go beyond min/max of X axis
-                else if (
-                    xAxisOptions.removePointsOutsideDomain &&
-                    xAxisOptions.isOutsideDomain(point.x)
-                )
+                else if (xAxisOptions.shouldRemovePoint(point.x))
                     dataByYear.delete(year)
                 // Exclude points that go beyond min/max of Y axis
-                else if (
-                    yAxisOptions.removePointsOutsideDomain &&
-                    yAxisOptions.isOutsideDomain(point.y)
-                )
+                else if (yAxisOptions.shouldRemovePoint(point.y))
                     dataByYear.delete(year)
             })
         })
