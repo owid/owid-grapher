@@ -88,10 +88,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
     it("renders correct table headers", () => {
         expect(dataTableTester.headers).toEqual([
             "Confirmed cases",
-            "Confirmed cases",
             "Confirmed deaths",
-            "Confirmed deaths",
-            "Tests",
             "Tests",
             "Tests per confirmed case",
             "Case fatality rate",
@@ -102,11 +99,8 @@ describe("When you try to create a multimetric Data Explorer", () => {
     const SECOND_ROW = [
         "United States",
         "1.20 million",
-        "23,841",
         "71,078",
-        "2,144",
         "May 5 7.54 million",
-        "May 5 258,954",
         "May 5 6",
         "5.9",
         "May 5 0.2"
@@ -128,8 +122,6 @@ describe("When you try to create a multimetric Data Explorer", () => {
         test("table headers show only the metrics you select", () => {
             expect(dataTableTester.headers).toEqual([
                 "Confirmed cases",
-                "Confirmed cases",
-                "Confirmed deaths",
                 "Confirmed deaths",
                 "Tests per confirmed case"
             ])
@@ -163,11 +155,8 @@ describe("When you try to create a multimetric Data Explorer", () => {
             expect(dataTableTester.bodyRow(1)).toEqual([
                 "United States",
                 "602.24 million",
-                "11.92 million",
                 "35.54 million",
-                "1.07 million",
                 "May 5 3.77 million",
-                "May 5 129,477.00",
                 "May 5 6",
                 "5.9",
                 "May 5 0.2"
