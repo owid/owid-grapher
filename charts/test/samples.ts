@@ -25,7 +25,13 @@ France,2002,220,0,154
 Germany,2002,320,1,167
 France,2003,120,0,200
 Germany,2003,120,1,256`) as any
-    rows.forEach((row: any) => (row.entityId = parseInt(row.entityId)))
+    rows.forEach((row: any) => {
+        // Todo: parsing numerics should be automatic
+        row.entityId = parseInt(row.entityId)
+        row.gdp = parseInt(row.gdp)
+        row.year = parseInt(row.year)
+        row.population = parseInt(row.population)
+    })
     chartConfig.table.cloneAndAddRowsAndDetectColumns(rows)
     chartConfig.table.columnsBySlug.get("gdp")!.spec.owidVariableId = 99
     chartConfig.table.columnsBySlug.get("population")!.spec.owidVariableId = 100
