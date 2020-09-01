@@ -58,6 +58,19 @@ export const intervalLabels: Map<IntervalOption, string> = new Map([
     ["biweeklyChange", "Biweekly Change"]
 ])
 
+export const smoothingByInterval: Map<
+    IntervalOption,
+    SmoothingOption
+> = new Map([
+    ["daily", 0],
+    ["weekly", 7],
+    ["total", 0],
+    ["smoothed", 7],
+    ["biweekly", 14],
+    ["weeklyChange", 7],
+    ["biweeklyChange", 14]
+])
+
 export declare type colorScaleOption = "continents" | "ptr" | "none"
 
 export declare type MetricKind =
