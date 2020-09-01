@@ -1,5 +1,5 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed, toJS, action, reaction } from "mobx"
+import { observable, computed, toJS, action } from "mobx"
 
 import {
     extend,

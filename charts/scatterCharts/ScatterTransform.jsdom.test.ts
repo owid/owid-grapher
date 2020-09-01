@@ -1,13 +1,15 @@
 #! /usr/bin/env yarn jest
 
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
-import { ChartConfig } from "charts/core/ChartConfig"
 import { basicScatter } from "./ScatterPlot.tests"
 
 describe(ScatterTransform, () => {
     it("can create a new transform", () => {
-        const chart = new ChartConfig()
+        const chart = basicScatter()
         const scatterT = new ScatterTransform(chart)
-        expect(scatterT.failMessage).toEqual("Missing Y axis variable")
+        expect(scatterT.isValidConfig).toEqual(true)
+        expect(scatterT.getEntityNamesToShow()).toEqual(["France", "Germany"])
+        expect(scatterT.allPoints.length).toBeGreaterThan(6)
+        expect(scatterT.availableYears).toContain(2003)
     })
 })
