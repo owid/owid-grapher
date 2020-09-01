@@ -59,7 +59,7 @@ import {
     metricPickerColumnSpecs,
     covidCsvColumnSlug,
     intervalLabels,
-    intervalsAvailable
+    intervalsAvailableByMetric
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -1189,7 +1189,7 @@ export class CovidExplorer extends React.Component<{
                 if (
                     isCountMetric(metric) &&
                     params.interval !== "total" &&
-                    intervalsAvailable.get(metric)?.has(params.interval)
+                    intervalsAvailableByMetric.get(metric)?.has(params.interval)
                 ) {
                     // add intervals column
                     specs.push(
@@ -1219,7 +1219,7 @@ export class CovidExplorer extends React.Component<{
             if (
                 isCountMetric(metric) &&
                 params.interval != "total" &&
-                intervalsAvailable.get(metric)?.has(params.interval)
+                intervalsAvailableByMetric.get(metric)?.has(params.interval)
             ) {
                 dataTableParams.perCapita = params.perCapita
                 covidExplorerTable.initRequestedColumns(dataTableParams)
