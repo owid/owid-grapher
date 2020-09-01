@@ -146,7 +146,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
         })
     })
 
-    describe("It does update when", () => {
+    describe("It changes when", () => {
         test("'per capita' is enabled", () => {
             const params = ExplorerDataTableTest.defaultParams
             params.perCapita = true
@@ -161,6 +161,45 @@ describe("When you try to create a multimetric Data Explorer", () => {
                 "5.9",
                 "May 5 0.2"
             ])
+        })
+
+        describe("interval is changed", () => {
+            test("interval is set to daily", () => {
+                const params = ExplorerDataTableTest.defaultParams
+                params.interval = "daily"
+                const dataTableTester = new ExplorerDataTableTest(params)
+
+                expect(dataTableTester.bodyRow(1)).toEqual([
+                    "United States",
+                    "1.20 million",
+                    "23,841",
+                    "71,078",
+                    "2,144",
+                    "May 5 7.54 million",
+                    "May 5 258,954",
+                    "May 5 6",
+                    "5.9",
+                    "May 5 0.2"
+                ])
+            })
+
+            test("interval is set to weekly change", () => {
+                const params = ExplorerDataTableTest.defaultParams
+                params.interval = "weekly"
+                const dataTableTester = new ExplorerDataTableTest(params)
+
+                expect(dataTableTester.bodyRow(1)).toEqual([
+                    "United States",
+                    "1.20 million",
+                    "162,519.0",
+                    "71,078",
+                    "11,886.0",
+                    "May 5 7.54 million",
+                    "May 5 6",
+                    "5.9",
+                    "May 5 0.2"
+                ])
+            })
         })
     })
 })
