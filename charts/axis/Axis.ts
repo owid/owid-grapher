@@ -77,8 +77,12 @@ export class AxisOptions implements AxisOptionsInterface {
         return this.min ?? Infinity
     }
 
-    isOutsideDomain(value: number) {
-        return value < this.constrainedMin || value > this.constrainedMax
+    // If the author has specified a min/max AND to remove points outside the domain, this should return true
+    shouldRemovePoint(value: number) {
+        if (!this.removePointsOutsideDomain) return false
+        if (this.min !== undefined && value < this.min) return true
+        if (this.max !== undefined && value > this.max) return true
+        return false
     }
 
     @computed private get constrainedMax() {
