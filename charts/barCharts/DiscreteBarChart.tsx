@@ -162,7 +162,7 @@ export class DiscreteBarChart extends React.Component<{
         ]
     }
 
-    @computed private get xAxis() {
+    @computed private get axis() {
         // NB: We use the user's YAxis options here to make the XAxis
         const axis = this.chart.yAxisOptions.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
@@ -176,7 +176,7 @@ export class DiscreteBarChart extends React.Component<{
     @computed private get innerBounds() {
         return this.bounds
             .padLeft(this.legendWidth + this.leftEndLabelWidth)
-            .padBottom(this.xAxis.height)
+            .padBottom(this.axis.height)
             .padRight(this.rightEndLabelWidth)
     }
 
@@ -203,15 +203,13 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed private get barPlacements() {
-        const { currentData, xAxis } = this
+        const { currentData, axis } = this
         return currentData.map(d => {
             const isNegative = d.value < 0
-            const barX = isNegative
-                ? xAxis.place(d.value)
-                : xAxis.place(this.x0)
+            const barX = isNegative ? axis.place(d.value) : axis.place(this.x0)
             const barWidth = isNegative
-                ? xAxis.place(this.x0) - barX
-                : xAxis.place(d.value) - barX
+                ? axis.place(this.x0) - barX
+                : axis.place(d.value) - barX
 
             return { x: barX, width: barWidth }
         })
@@ -289,7 +287,7 @@ export class DiscreteBarChart extends React.Component<{
         const {
             currentData,
             bounds,
-            xAxis,
+            axis,
             innerBounds,
             barHeight,
             barSpacing,
@@ -297,13 +295,6 @@ export class DiscreteBarChart extends React.Component<{
         } = this
 
         let yOffset = innerBounds.top + barHeight / 2
-
-        const onScaleTypeChange = (scaleType: ScaleType) => {
-            this.chart.yAxisOptions.scaleType = scaleType
-        }
-
-        // todo: add explanation
-        const xAxisAsVerticalAxis = (xAxis as any) as HorizontalAxis
 
         return (
             <g ref={this.base} className="DiscreteBarChart">
@@ -319,26 +310,21 @@ export class DiscreteBarChart extends React.Component<{
                     maxX={this.chartView.tabBounds.width}
                     bounds={bounds}
                     isInteractive={this.chart.isInteractive}
-                    axis={xAxisAsVerticalAxis}
-                    onScaleTypeChange={
-                        this.chart.yAxisOptions.canChangeScaleType
-                            ? onScaleTypeChange
-                            : undefined
-                    }
+                    axis={axis}
                     axisPosition={innerBounds.bottom}
                 />
                 <HorizontalAxisGridLines
-                    horizontalAxis={xAxisAsVerticalAxis}
+                    horizontalAxis={axis}
                     bounds={innerBounds}
                 />
                 {currentData.map(d => {
                     const isNegative = d.value < 0
                     const barX = isNegative
-                        ? xAxis.place(d.value)
-                        : xAxis.place(this.x0)
+                        ? axis.place(d.value)
+                        : axis.place(this.x0)
                     const barWidth = isNegative
-                        ? xAxis.place(this.x0) - barX
-                        : xAxis.place(d.value) - barX
+                        ? axis.place(this.x0) - barX
+                        : axis.place(d.value) - barX
                     const valueLabel = barValueFormat(d)
                     const labelX = isNegative
                         ? barX -
@@ -384,7 +370,7 @@ export class DiscreteBarChart extends React.Component<{
                                 x={0}
                                 y={0}
                                 transform={`translate(${
-                                    xAxis.place(d.value) +
+                                    axis.place(d.value) +
                                     (isNegative
                                         ? -labelToBarPadding
                                         : labelToBarPadding)

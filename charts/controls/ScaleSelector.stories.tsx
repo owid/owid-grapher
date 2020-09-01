@@ -3,7 +3,7 @@ import "charts/controls/scaleSelector.scss"
 
 import { ScaleSelector } from "charts/controls/ScaleSelector"
 import { ScaleType } from "charts/core/ChartConstants"
-import { observable } from "mobx"
+import { observable, action } from "mobx"
 
 export default {
     title: "ScaleSelector",
@@ -13,6 +13,9 @@ export default {
 class ScaleConfig {
     @observable scaleType = ScaleType.log
     @observable scaleTypeOptions = [ScaleType.log, ScaleType.linear]
+    @action.bound updateChartScaleType(value: ScaleType) {
+        this.scaleType = value
+    }
 }
 
 export const Default = () => {
