@@ -504,7 +504,8 @@ export class ScatterTransform extends ChartTransform {
             axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
             axis.updateDomainPreservingUserSettings(xDomainDefault)
-            axis.label = xAxisOptions.label || xAxisLabelBase || axis.label
+            const label = xAxisOptions.label || xAxisLabelBase
+            if (label) axis.label = label
             axis.tickFormat =
                 (xDimension && xDimension.formatValueShort) || axis.tickFormat
         }
