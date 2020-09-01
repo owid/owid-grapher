@@ -7,10 +7,7 @@ import {
     pointsToPath,
     getRelativeMouse,
     makeSafeForCSS,
-    minBy,
-    max,
-    identity,
-    formatValue
+    minBy
 } from "../utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -280,48 +277,6 @@ export class StackedAreaChart extends React.Component<{
         })
     }
 
-    // todo: Refactor
-    @computed private get dualAxis() {
-        const { bounds, legend, xAxis, yAxis } = this
-        return new DualAxis({
-            bounds: bounds.padRight(legend ? legend.width : 20),
-            xAxis,
-            yAxis
-        })
-    }
-
-    @computed private get xAxis() {
-        const { xDomainDefault } = this.transform
-        const chart = this.chart
-        const axis = chart.xAxisOptions.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(xDomainDefault)
-        axis.tickFormat = chart.formatYearFunction as any
-        axis.hideFractionalTicks = true
-        axis.hideGridlines = true
-        return axis
-    }
-
-    @computed private get yDomainDefault(): [number, number] {
-        const yValues = this.transform.allStackedValues.map(d => d.y)
-        return [0, max(yValues) ?? 100]
-    }
-
-    @computed private get yAxis() {
-        const { isRelativeMode, yDimensionFirst } = this.transform
-        const { chart, yDomainDefault } = this
-
-        const axis = chart.yAxisOptions.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings(
-            isRelativeMode ? [0, 100] : [yDomainDefault[0], yDomainDefault[1]] // Stacked area chart must have its own y domain)
-        )
-        axis.tickFormat = isRelativeMode
-            ? (v: number) => formatValue(v, { unit: "%" })
-            : yDimensionFirst
-            ? yDimensionFirst.formatValueShort
-            : identity
-        return axis
-    }
-
     @observable hoverIndex?: number
     @action.bound onHover(hoverIndex: number | undefined) {
         this.hoverIndex = hoverIndex
@@ -332,6 +287,16 @@ export class StackedAreaChart extends React.Component<{
         if (this.chart.showAddEntityControls) {
             this.chart.isSelectingData = true
         }
+    }
+
+    @computed private get dualAxis() {
+        const { bounds, legend } = this
+        const { xAxis, yAxis } = this.transform
+        return new DualAxis({
+            bounds: bounds.padRight(legend ? legend.width : 20),
+            xAxis,
+            yAxis
+        })
     }
 
     @action.bound onLegendMouseOver(key: EntityDimensionKey) {
