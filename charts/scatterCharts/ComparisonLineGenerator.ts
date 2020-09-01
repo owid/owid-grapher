@@ -26,7 +26,7 @@ export function generateComparisonLinePoints(
         const x = scale.invert(i)
         const y = yFunc(x)
 
-        if (y === undefined) continue
+        if (y === undefined || Number.isNaN(x) || Number.isNaN(y)) continue
         if (xScaleType === ScaleType.log && x <= 0) continue
         if (yScaleType === ScaleType.log && y <= 0) continue
         if (y > yScaleDomain[1]) continue
