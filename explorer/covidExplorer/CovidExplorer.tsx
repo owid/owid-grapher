@@ -1216,17 +1216,17 @@ export class CovidExplorer extends React.Component<{
             dataTableParams.interval = "total"
             dataTableParams.smoothing = 0
             dataTableParams.perCapita = false
-            if (
-                isCountMetric(metric) &&
-                params.interval != "total" &&
-                intervalsAvailableByMetric.get(metric)?.has(params.interval)
-            ) {
+            if (isCountMetric(metric)) {
                 dataTableParams.perCapita = params.perCapita
                 covidExplorerTable.initRequestedColumns(dataTableParams)
-                // generate interval columns too
-                dataTableParams.interval = params.interval
-                dataTableParams.smoothing =
-                    dataTableParams.interval === "smoothed" ? 7 : 0
+                if (
+                    params.interval != "total" &&
+                    intervalsAvailableByMetric.get(metric)?.has(params.interval)
+                ) {
+                    dataTableParams.interval = params.interval
+                    dataTableParams.smoothing =
+                        dataTableParams.interval === "smoothed" ? 7 : 0
+                }
             }
 
             covidExplorerTable.initRequestedColumns(dataTableParams)
