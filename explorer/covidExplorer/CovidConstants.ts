@@ -166,16 +166,17 @@ export const metricLabels: { [key in MetricKind]: string } = {
     positive_test_rate: "Share of positive tests"
 }
 
-export const intervalsAvailable: Map<MetricKind, Set<IntervalOption>> = new Map(
-    [
-        ["cases", new Set(intervalOptions)],
-        ["deaths", new Set(intervalOptions)],
-        ["tests", new Set(["total", "smoothed", "daily"])],
-        ["case_fatality_rate", new Set(["total"])],
-        ["tests_per_case", new Set(["total", "smoothed"])],
-        ["positive_test_rate", new Set(["total", "smoothed"])]
-    ]
-)
+export const intervalsAvailableByMetric: Map<
+    MetricKind,
+    Set<IntervalOption>
+> = new Map([
+    ["cases", new Set(intervalOptions)],
+    ["deaths", new Set(intervalOptions)],
+    ["tests", new Set(["total", "smoothed", "daily"])],
+    ["case_fatality_rate", new Set(["total"])],
+    ["tests_per_case", new Set(["total", "smoothed"])],
+    ["positive_test_rate", new Set(["total", "smoothed"])]
+])
 
 // todo: auto import from covid repo.
 export const covidAnnotations = `location,date,cases_annotations,deaths_annotations
