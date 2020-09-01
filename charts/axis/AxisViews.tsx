@@ -89,10 +89,6 @@ interface DualAxisViewProps {
 
 @observer
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
-    componentDidMount() {
-        requestAnimationFrame(this.props.dualAxis.setupAnimation)
-    }
-
     render() {
         const { dualAxis, showTickMarks } = this.props
         const { bounds, xAxis, yAxis, innerBounds } = dualAxis
