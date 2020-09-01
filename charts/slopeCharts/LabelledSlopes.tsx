@@ -691,7 +691,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 <ScaleSelector
                     x={this.bounds.x}
                     y={this.bounds.y - 35}
-                    scaleTypeConfig={yAxisOptions}
+                    scaleTypeConfig={yAxisOptions.toVerticalAxis()}
                 />
             </ControlsOverlay>
         )
