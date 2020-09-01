@@ -192,10 +192,9 @@ export class HorizontalAxisComponent extends React.Component<{
     maxX?: number
     showTickMarks?: boolean
     isInteractive: boolean
-    onScaleTypeChange?: (scaleType: ScaleType) => void // We need this because on DiscreteBar scaleType change behaves differently
 }> {
     @computed get controls() {
-        const { bounds, axis, onScaleTypeChange, maxX } = this.props
+        const { bounds, axis, maxX } = this.props
         const showControls =
             this.props.isInteractive && axis.scaleTypeOptions.length > 1
         if (!showControls) return undefined
@@ -207,7 +206,6 @@ export class HorizontalAxisComponent extends React.Component<{
                     x={bounds.right}
                     y={bounds.bottom}
                     scaleTypeConfig={axis}
-                    onScaleTypeChange={onScaleTypeChange}
                 />
             </ControlsOverlay>
         )
