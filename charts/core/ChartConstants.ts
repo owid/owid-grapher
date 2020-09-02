@@ -33,6 +33,12 @@ export enum ScaleType {
     log = "log"
 }
 
+export interface ScaleTypeConfig {
+    scaleType: ScaleType
+    scaleTypeOptions: ScaleType[]
+    updateChartScaleType: (scaleType: ScaleType) => void
+}
+
 export interface HighlightToggleConfig {
     description: string
     paramStr: string

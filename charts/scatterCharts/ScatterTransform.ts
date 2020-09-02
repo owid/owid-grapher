@@ -418,7 +418,7 @@ export class ScatterTransform extends ChartTransform {
     @computed private get yScaleType() {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.yAxisOptions.scaleType
+            : this.chart.yAxisOptions.scaleType || ScaleType.linear
     }
 
     @computed private get yAxisLabel(): string {
@@ -464,7 +464,7 @@ export class ScatterTransform extends ChartTransform {
     @computed private get xScaleType(): ScaleType {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.xAxisOptions.scaleType
+            : this.chart.xAxisOptions.scaleType || ScaleType.linear
     }
 
     @computed private get xAxisLabelBase(): string | undefined {

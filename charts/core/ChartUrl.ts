@@ -126,7 +126,7 @@ export class ChartUrl implements ObservableUrl {
         }
     }
 
-    @computed get origChartProps() {
+    @computed private get origChartProps() {
         return this.chart.origScript
     }
 
