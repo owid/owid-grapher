@@ -348,6 +348,17 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
     constructor(queryString: string) {
         super(queryString)
 
+        // Ensure there is always a metric
+        const hasMetric = [
+            this.cfrMetric,
+            this.casesMetric,
+            this.deathsMetric,
+            this.testsMetric,
+            this.testsPerCaseMetric,
+            this.positiveTestRate
+        ].some(i => i)
+        if (!hasMetric) this.casesMetric = true
+
         const available = this.available
 
         if (this.perCapita && !available.perCapita) this.perCapita = false
@@ -376,17 +387,6 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
 
         if (this.isWeekly) this.smoothing = 7
         if (this.isBiweekly) this.smoothing = 14
-
-        // Ensure there is always a metric
-        const hasMetric = [
-            this.cfrMetric,
-            this.casesMetric,
-            this.deathsMetric,
-            this.testsMetric,
-            this.testsPerCaseMetric,
-            this.positiveTestRate
-        ].some(i => i)
-        if (!hasMetric) this.casesMetric = true
     }
 
     get rollingMultiplier() {
