@@ -16,9 +16,9 @@ import {
     HorizontalAxisGridLines
 } from "charts/axis/AxisViews"
 import { NoDataOverlay } from "../core/NoDataOverlay"
-import { ControlsOverlay, AddEntityButton } from "../controls/Controls"
+import { ControlsOverlay } from "charts/controls/ControlsOverlay"
+import { AddEntityButton } from "../controls/Controls"
 import { ChartView } from "charts/core/ChartView"
-import { HorizontalAxis } from "charts/axis/Axis"
 
 export interface DiscreteBarDatum {
     entityDimensionKey: EntityDimensionKey

@@ -3,9 +3,8 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
-import { ScaleType } from "charts/core/ChartConstants"
 import classNames from "classnames"
-import { ControlsOverlay } from "charts/controls/Controls"
+import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { ScaleSelector } from "charts/controls/ScaleSelector"
 
 @observer

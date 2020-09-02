@@ -7,11 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 import { ChartConfig } from "./ChartConfig"
-import {
-    Controls,
-    ControlsFooterView,
-    ControlsOverlay
-} from "charts/controls/Controls"
+import { Controls, ControlsFooterView } from "charts/controls/Controls"
+import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { ChartTab } from "./ChartTab"
 import { TableTab } from "charts/dataTable/TableTab"
 import { MapTab } from "charts/mapCharts/MapTab"

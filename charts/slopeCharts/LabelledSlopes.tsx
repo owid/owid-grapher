@@ -37,7 +37,7 @@ import { Text } from "charts/text/Text"
 import { TextWrap } from "charts/text/TextWrap"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { ScaleSelector } from "charts/controls/ScaleSelector"
-import { ControlsOverlay } from "charts/controls/Controls"
+import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { AxisOptions } from "charts/axis/Axis"
 import { ChartConfig } from "charts/core/ChartConfig"
 

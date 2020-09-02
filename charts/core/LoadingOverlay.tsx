@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Bounds } from "charts/utils/Bounds"
-import { ControlsOverlay } from "charts/controls/Controls"
+import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { LoadingIndicator } from "site/client/LoadingIndicator"
 
 export class LoadingOverlay extends React.Component<{ bounds: Bounds }> {
