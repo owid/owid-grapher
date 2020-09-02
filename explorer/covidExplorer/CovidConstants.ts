@@ -48,28 +48,20 @@ export const intervalOptions: IntervalOption[] = [
     "biweeklyChange"
 ]
 
-export const intervalLabels: Map<IntervalOption, string> = new Map([
-    ["daily", "New per day"],
-    ["weekly", "Weekly"],
-    ["total", "Cumulative"],
-    ["smoothed", "7-day rolling average"],
-    ["biweekly", "Biweekly"],
-    ["weeklyChange", "Weekly change"],
-    ["biweeklyChange", "Biweekly Change"]
-])
+export interface IntervalSpec {
+    label: string
+    smoothing: SmoothingOption
+}
 
-export const smoothingByInterval: Map<
-    IntervalOption,
-    SmoothingOption
-> = new Map([
-    ["daily", 0],
-    ["weekly", 7],
-    ["total", 0],
-    ["smoothed", 7],
-    ["biweekly", 14],
-    ["weeklyChange", 7],
-    ["biweeklyChange", 14]
-])
+export const intervalSpecs: { [key in IntervalOption]: IntervalSpec } = {
+    daily: { label: "New per day", smoothing: 0 },
+    weekly: { label: "Weekly", smoothing: 7 },
+    total: { label: "Cumulative", smoothing: 0 },
+    smoothed: { label: "7-day rolling average", smoothing: 7 },
+    biweekly: { label: "Biweekly", smoothing: 14 },
+    weeklyChange: { label: "Weekly change", smoothing: 7 },
+    biweeklyChange: { label: "Biweekly Change", smoothing: 14 }
+}
 
 export declare type colorScaleOption = "continents" | "ptr" | "none"
 
