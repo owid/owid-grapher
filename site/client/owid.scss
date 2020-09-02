@@ -790,10 +790,12 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 }
 
 .with-sidebar .section-heading {
-    position: relative;
-    width: calc(100vw - #{$sidebar-closed-drawer-width});
-    left: $sidebar-closed-drawer-width;
-    margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
+    @include md-up {
+        position: relative;
+        width: calc(100vw - #{$sidebar-closed-drawer-width});
+        left: $sidebar-closed-drawer-width;
+        margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
+    }
 
     @include xxlg-up {
         width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
