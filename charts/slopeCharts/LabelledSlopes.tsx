@@ -346,13 +346,13 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed private get yScaleType() {
-        return this.props.yAxisOptions.scaleType
+        return this.props.yAxisOptions.scaleType || ScaleType.linear
     }
 
     @computed private get yDomainDefault(): [number, number] {
         return domainExtent(
             this.allValues.map(v => v.y),
-            this.yScaleType
+            this.yScaleType || ScaleType.linear
         )
     }
 
@@ -684,7 +684,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get controls() {
         const { yAxisOptions } = this.props
         const showScaleSelector =
-            this.props.isInteractive && yAxisOptions.scaleTypeOptions.length > 1
+            this.props.isInteractive && yAxisOptions.canChangeScaleType
         if (!showScaleSelector) return undefined
         return (
             <ControlsOverlay id="slope-scale-selector" paddingTop={20}>

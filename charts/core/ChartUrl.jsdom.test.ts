@@ -4,6 +4,7 @@ import { ChartScript } from "charts/core/ChartScript"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
 import { createConfig, setupChart } from "charts/test/utils"
 import { ChartUrl, ChartQueryParams } from "./ChartUrl"
+import { ChartConfig } from "./ChartConfig"
 
 function fromQueryParams(
     params: ChartQueryParams,
@@ -25,6 +26,12 @@ function toQueryParams(props?: Partial<ChartScript>) {
 }
 
 describe(ChartUrl, () => {
+    describe("scaleType", () => {
+        const chart = new ChartConfig()
+        const url = chart.url
+        expect(url.params.xScale).toEqual(undefined)
+    })
+
     describe("time parameter", () => {
         describe("with years", () => {
             const tests: {

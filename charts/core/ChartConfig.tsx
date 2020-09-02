@@ -126,9 +126,9 @@ export class ChartConfig {
         if (typeof App !== "undefined" && App.isEditor) {
             // In the editor, the current chart state is always the "original" state
             return toJS(this.props)
-        } else {
-            return this.origScriptRaw
         }
+
+        return this.origScriptRaw
     }
 
     private initialScriptRaw: Readonly<ChartScript>
@@ -682,6 +682,10 @@ export class ChartConfig {
 
         this.xAxisOptions.update(json["xAxis"])
         this.yAxisOptions.update(json["yAxis"])
+
+        // Todo: cleanup. This is here because of the toJS stuff
+        this.props.xAxis = this.xAxisOptions
+        this.props.yAxis = this.yAxisOptions
 
         extend(this.colorScale, json["colorScale"])
 

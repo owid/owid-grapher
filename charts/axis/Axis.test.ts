@@ -5,7 +5,7 @@ import { ScaleType } from "charts/core/ChartConstants"
 
 describe("basics", () => {
     it("can create an axis, clone and modify the clone without affecting the original", () => {
-        const axis = new AxisOptions()
+        const axis = new AxisOptions({ scaleType: ScaleType.linear })
         expect(axis.scaleType).toEqual(ScaleType.linear)
 
         const clone = axis.toVerticalAxis()
@@ -14,7 +14,7 @@ describe("basics", () => {
         expect(clone.scaleType).toEqual(ScaleType.log)
     })
 
-    it("can create an axis, clone and modify the clone without affecting the original", () => {
+    it("can expand the domain beyond the user's settings and not shrink it", () => {
         const axis = new AxisOptions({
             min: 0,
             max: 100,

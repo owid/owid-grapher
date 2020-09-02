@@ -10,7 +10,11 @@ import {
     sortBy,
     maxBy
 } from "charts/utils/Util"
-import { TickFormattingOptions, ScaleType } from "charts/core/ChartConstants"
+import {
+    TickFormattingOptions,
+    ScaleType,
+    ScaleTypeConfig
+} from "charts/core/ChartConstants"
 import { Bounds } from "charts/utils/Bounds"
 import { TextWrap } from "charts/text/TextWrap"
 
@@ -29,7 +33,7 @@ declare type TickFormatFunction = (
 
 // Represents the actual entered configuration state in the editor
 export interface AxisOptionsInterface {
-    scaleType: ScaleType
+    scaleType?: ScaleType
     label?: string
 
     min?: number
@@ -59,7 +63,7 @@ export class AxisOptions implements AxisOptionsInterface {
 
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
-    @observable.ref scaleType: ScaleType = ScaleType.linear
+    @observable.ref scaleType?: ScaleType = undefined
     @observable.ref canChangeScaleType?: true = undefined
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: true = undefined
@@ -95,12 +99,6 @@ export class AxisOptions implements AxisOptionsInterface {
         return [this.constrainedMin, this.constrainedMax]
     }
 
-    @computed get scaleTypeOptions(): ScaleType[] {
-        return this.canChangeScaleType
-            ? [ScaleType.linear, ScaleType.log]
-            : [this.scaleType]
-    }
-
     // Convert axis configuration to a finalized axis spec by supplying
     // any needed information calculated from the data
     toHorizontalAxis() {
@@ -112,7 +110,7 @@ export class AxisOptions implements AxisOptionsInterface {
     }
 }
 
-abstract class AbstractAxis {
+abstract class AbstractAxis implements ScaleTypeConfig {
     protected options: AxisOptions
     @observable.ref domain: [number, number]
     @observable tickFormat: TickFormatFunction = d => `${d}`
@@ -143,14 +141,14 @@ abstract class AbstractAxis {
     }
 
     @computed get scaleType() {
-        return this._scaleType ?? this.options.scaleType
+        return this._scaleType ?? (this.options.scaleType || ScaleType.linear)
     }
 
     set scaleType(value: ScaleType) {
         this._scaleType = value
     }
 
-    // Call this to update the user's setting
+    // Call this to update the user's setting and change the URL
     @action.bound updateChartScaleType(value: ScaleType) {
         this.options.scaleType = value
     }
@@ -166,7 +164,9 @@ abstract class AbstractAxis {
     @computed get scaleTypeOptions(): ScaleType[] {
         return this._scaleTypeOptions
             ? this._scaleTypeOptions
-            : this.options.scaleTypeOptions
+            : this.options.canChangeScaleType
+            ? [ScaleType.linear, ScaleType.log]
+            : [this.scaleType]
     }
 
     set scaleTypeOptions(value: ScaleType[]) {
