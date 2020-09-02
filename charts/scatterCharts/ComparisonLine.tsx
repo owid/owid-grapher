@@ -19,6 +19,8 @@ export class ComparisonLine extends React.Component<{
     dualAxis: DualAxis
     comparisonLine: ComparisonLineConfig
 }> {
+    private renderUid = guid()
+
     @computed private get controlData(): [number, number][] {
         const { comparisonLine, dualAxis } = this.props
         const { xAxis, yAxis } = dualAxis
@@ -68,11 +70,6 @@ export class ComparisonLine extends React.Component<{
             angle: angle,
             text: label
         }
-    }
-
-    private renderUid!: number
-    componentWillMount() {
-        this.renderUid = guid()
     }
 
     render() {
