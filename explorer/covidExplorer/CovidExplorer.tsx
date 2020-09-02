@@ -1225,7 +1225,7 @@ export class CovidExplorer extends React.Component<{
                 dataTableParams.perCapita = params.perCapita
                 covidExplorerTable.initRequestedColumns(dataTableParams)
                 if (
-                    params.interval != "total" &&
+                    params.interval !== "total" &&
                     intervalsAvailableByMetric.get(metric)?.has(params.interval)
                 ) {
                     dataTableParams.interval = params.interval
