@@ -537,7 +537,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(this.props.data) || isEmpty(this.series.points))
-            return <NoDataOverlay bounds={bounds} />
+            return <NoDataOverlay options={this.props.chart} bounds={bounds} />
 
         return (
             <g
@@ -625,6 +625,7 @@ export class TimeScatter extends React.Component<{
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
+                    options={this.chart}
                     bounds={this.bounds}
                     message={this.transform.failMessage}
                 />

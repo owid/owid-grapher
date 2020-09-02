@@ -11,17 +11,18 @@ export default {
 
 export const Default = () => {
     return (
-        <svg width={640} height={480}>
+        <div className="chart" style={{ width: 640, height: 480 }}>
             <NoDataOverlay
                 bounds={new Bounds(0, 0, 640, 480)}
-                message="I wish I had some data"
+                message="You have no data, but this is only a test"
                 options={{
                     canChangeEntity: true,
                     canAddData: true,
                     isSelectingData: false,
-                    entityType: "Pizza Types"
+                    entityType: "Country",
+                    standalone: true
                 }}
             />
-        </svg>
+        </div>
     )
 }

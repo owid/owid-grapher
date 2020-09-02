@@ -39,6 +39,7 @@ import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { ScaleSelector } from "charts/controls/ScaleSelector"
 import { ControlsOverlay } from "charts/controls/Controls"
 import { AxisOptions } from "charts/axis/Axis"
+import { ChartConfig } from "charts/core/ChartConfig"
 
 export interface SlopeChartValue {
     x: number
@@ -284,6 +285,7 @@ class Slope extends React.Component<SlopeProps> {
 }
 
 interface LabelledSlopesProps {
+    chart: ChartConfig
     bounds: Bounds
     data: SlopeChartSeries[]
     isInteractive: boolean
@@ -709,7 +711,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             onMouseMove
         } = this
 
-        if (isEmpty(slopeData)) return <NoDataOverlay bounds={bounds} />
+        if (isEmpty(slopeData))
+            return <NoDataOverlay options={this.props.chart} bounds={bounds} />
 
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()
