@@ -39,6 +39,7 @@ import { EntityDimensionKey, SortOrder } from "charts/core/ChartConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { EntityName } from "owidTable/OwidTable"
+import { ChartConfig } from "charts/core/ChartConfig"
 
 export interface ScatterSeries {
     color: string
@@ -75,6 +76,7 @@ interface PointsWithLabelsProps {
     onClick: () => void
     hideLines: boolean
     formatLabel: (v: ScatterValue) => string
+    chart: ChartConfig
 }
 
 interface ScatterRenderValue {
@@ -895,7 +897,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const { bounds, renderData, renderUid, labelFontFamily } = this
         const clipBounds = bounds.pad(-10)
 
-        if (isEmpty(renderData)) return <NoDataOverlay bounds={bounds} />
+        if (isEmpty(renderData))
+            return <NoDataOverlay options={this.props.chart} bounds={bounds} />
 
         return (
             <g

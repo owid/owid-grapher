@@ -278,6 +278,7 @@ interface LineChartOptions {
     isSelectingData: boolean
     canAddData: boolean
     entityType: string
+    canChangeEntity: boolean
     areMarksClickable: boolean
     tooltip?: TooltipProps
 }
@@ -530,6 +531,7 @@ export class LineChart extends React.Component<{
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
+                    options={this.options}
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />

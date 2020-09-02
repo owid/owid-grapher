@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { ControlsOverlay } from "charts/controls/Controls"
@@ -12,6 +12,7 @@ interface NoDataOverlayOptions {
     canAddData: boolean
     isSelectingData: boolean
     entityType: string
+    standalone?: boolean // Until we remove ControlsOverlay have this option to render it for testing
 }
 
 @observer
@@ -20,47 +21,47 @@ export class NoDataOverlay extends React.Component<{
     message?: string
     options: NoDataOverlayOptions
 }> {
-    @action.bound onDataSelect() {
+    @action.bound private onDataSelect() {
         this.props.options.isSelectingData = true
     }
 
-    render() {
+    @computed private get message() {
         const { bounds, message, options } = this.props
         return (
-            <ControlsOverlay id="no-data">
-                <div
-                    className="NoData"
-                    style={{
-                        position: "absolute",
-                        top: bounds.top,
-                        left: bounds.left,
-                        width: bounds.width,
-                        height: bounds.height
-                    }}
-                >
-                    <p className="message">{message || "No available data"}</p>
-                    <div className="actions">
-                        {options.canAddData && (
-                            <button
-                                className="action"
-                                onClick={this.onDataSelect}
-                            >
-                                <FontAwesomeIcon icon={faPlus} /> Add{" "}
-                                {options.entityType}
-                            </button>
-                        )}
-                        {options.canChangeEntity && (
-                            <button
-                                className="action"
-                                onClick={this.onDataSelect}
-                            >
-                                <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                                {options.entityType}
-                            </button>
-                        )}
-                    </div>
+            <div
+                className="NoData"
+                style={{
+                    position: "absolute",
+                    top: bounds.top,
+                    left: bounds.left,
+                    width: bounds.width,
+                    height: bounds.height
+                }}
+            >
+                <p className="message">{message || "No available data"}</p>
+                <div className="actions">
+                    {options.canAddData && (
+                        <button className="action" onClick={this.onDataSelect}>
+                            <FontAwesomeIcon icon={faPlus} /> Add{" "}
+                            {options.entityType}
+                        </button>
+                    )}
+                    {options.canChangeEntity && (
+                        <button className="action" onClick={this.onDataSelect}>
+                            <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                            {options.entityType}
+                        </button>
+                    )}
                 </div>
-            </ControlsOverlay>
+            </div>
+        )
+    }
+
+    render() {
+        return this.props.options.standalone ? (
+            this.message
+        ) : (
+            <ControlsOverlay id="no-data">{this.message}</ControlsOverlay>
         )
     }
 }

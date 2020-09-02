@@ -309,6 +309,7 @@ export class ScatterPlot extends React.Component<{
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
+                    options={this.chart}
                     bounds={this.bounds}
                     message={this.transform.failMessage}
                 />
@@ -348,6 +349,7 @@ export class ScatterPlot extends React.Component<{
                         />
                     ))}
                 <PointsWithLabels
+                    chart={chart}
                     hideLines={hideLines}
                     data={currentData}
                     dualAxis={dualAxis}

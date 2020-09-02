@@ -279,6 +279,7 @@ export class DiscreteBarChart extends React.Component<{
         if (this.failMessage)
             return (
                 <NoDataOverlay
+                    options={this.chart}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />

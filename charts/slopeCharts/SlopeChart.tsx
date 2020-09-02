@@ -194,6 +194,7 @@ export class SlopeChart extends React.Component<{
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
+                    options={this.chart}
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />
@@ -216,6 +217,7 @@ export class SlopeChart extends React.Component<{
         return (
             <g>
                 <LabelledSlopes
+                    chart={chart}
                     bounds={innerBounds}
                     isInteractive={chart.isInteractive}
                     yTickFormat={this.transform.yTickFormat}
