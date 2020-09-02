@@ -31,6 +31,12 @@ const legacyTimeToInterval = (
     return undefined
 }
 
+/**
+ * CovidQueryParams is what the user entered and CovidConstrainedParams is a valid
+ * state derived from that. Code that reads params should always read from
+ * constrainedParams and code that writes should always write to the params.
+ */
+
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
     // for back compat.
