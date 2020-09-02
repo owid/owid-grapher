@@ -26,10 +26,6 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import {
-    ChartViewContext,
-    ChartViewContextType
-} from "charts/core/ChartViewContext"
 import { TimeBound } from "../utils/TimeBounds"
 import { HighlightToggleConfig } from "charts/core/ChartConstants"
 
@@ -736,38 +732,6 @@ export class AddEntityButton extends React.Component<{
                 <span className="label">{label}</span>
             </button>
         )
-    }
-}
-
-@observer
-export class ControlsOverlay extends React.Component<{
-    id: string
-    children: JSX.Element
-    paddingTop?: number
-    paddingRight?: number
-    paddingBottom?: number
-    paddingLeft?: number
-}> {
-    static contextType = ChartViewContext
-    context!: ChartViewContextType
-
-    componentDidMount() {
-        // todo: remove context
-        if (this.context?.chartView)
-            this.context.chartView.overlays[this.props.id] = this
-    }
-
-    @action.bound deleteOverlay() {
-        // todo: remove context
-        delete this.context?.chartView?.overlays[this.props.id]
-    }
-
-    componentWillUnmount() {
-        this.deleteOverlay()
-    }
-
-    render() {
-        return null
     }
 }
 

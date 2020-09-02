@@ -18,7 +18,8 @@ import { observer } from "mobx-react"
 import { TextWrap } from "charts/text/TextWrap"
 import { VerticalAxis } from "charts/axis/Axis"
 import { Bounds } from "charts/utils/Bounds"
-import { ControlsOverlay, AddEntityButton } from "charts/controls/Controls"
+import { AddEntityButton } from "charts/controls/Controls"
+import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 
 // Minimum vertical space between two legend items
