@@ -36,6 +36,18 @@ describe(ChartUrl, () => {
         ).toEqual(undefined)
     })
 
+    describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {
+        const chart = new ChartConfig(
+            {
+                xAxis: { scaleType: ScaleType.linear, canChangeScaleType: true }
+            } as ChartScript,
+            { queryStr: "scaleType=linear" }
+        )
+        expect(chart.url.params.xScale).toEqual(undefined)
+        chart.url.dropUnchangedParams = false
+        expect(chart.url.params.xScale).toEqual(ScaleType.linear)
+    })
+
     describe("time parameter", () => {
         describe("with years", () => {
             const tests: {

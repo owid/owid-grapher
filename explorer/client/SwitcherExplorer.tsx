@@ -49,21 +49,21 @@ export class SwitcherExplorer extends React.Component<{
         )
     }
 
-    urlBinding?: UrlBinder
+    private urlBinding?: UrlBinder
     private lastId = 0
 
     @observable private _chart?: ChartConfig = undefined
     @observable availableEntities: string[] = []
 
-    get explorerRuntime() {
+    private get explorerRuntime() {
         return this.props.program.explorerRuntime
     }
 
-    get switcherRuntime() {
+    private get switcherRuntime() {
         return this.props.program.switcherRuntime
     }
 
-    bindToWindow() {
+    private bindToWindow() {
         const url = new ExtendedChartUrl(this._chart!.url, [
             this.switcherRuntime,
             this.explorerRuntime
@@ -91,21 +91,23 @@ export class SwitcherExplorer extends React.Component<{
         })
     }
 
-    @action.bound switchChart() {
+    @action.bound private switchChart() {
         const newId: number = this.switcherRuntime.chartId
         if (newId === this.lastId) return
 
-        const params = this._chart
+        const currentParams = this._chart
             ? this._chart.url.params
             : strToQueryParams(this.props.program.queryString)
+
         const props = this.props.chartConfigs.get(newId) || new ChartScript()
 
         this._chart = new ChartConfig(props)
-        this._chart.url.populateFromQueryParams(params)
+        this._chart.url.dropUnchangedParams = false
         this._chart.hideEntityControls =
             !this.explorerRuntime.hideControls && !this.isEmbed
-
         if (this.props.bindToWindow) this.bindToWindow()
+
+        this._chart.url.populateFromQueryParams(currentParams)
 
         // disposer?
         when(
@@ -122,10 +124,6 @@ export class SwitcherExplorer extends React.Component<{
         )
 
         this.lastId = newId
-    }
-
-    private isSelected(entityName: string) {
-        return this.explorerRuntime.selectedEntityNames.has(entityName)
     }
 
     @action.bound private updateChartSelection() {
@@ -147,7 +145,7 @@ export class SwitcherExplorer extends React.Component<{
         this._chart!.props.selectedData = selectedData
     }
 
-    get panels() {
+    private get panels() {
         return this.switcherRuntime.groups.map(group => (
             <ExplorerControlPanel
                 key={group.title}
@@ -165,7 +163,7 @@ export class SwitcherExplorer extends React.Component<{
         ))
     }
 
-    get header() {
+    private get header() {
         return (
             <>
                 <div></div>
@@ -181,7 +179,7 @@ export class SwitcherExplorer extends React.Component<{
     }
 
     //todo
-    get isEmbed() {
+    private get isEmbed() {
         return false
     }
 
