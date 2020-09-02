@@ -21,10 +21,12 @@
 
     &.with-sidebar {
         @include xlg-down {
-            .offset-header,
-            .offset-content,
-            .offset-subnavigation {
-                padding-left: $sidebar-closed-drawer-width;
+            @include md-up {
+                .offset-header,
+                .offset-content,
+                .offset-subnavigation {
+                    padding-left: $sidebar-closed-drawer-width;
+                }
             }
         }
         @include xxlg-up {
