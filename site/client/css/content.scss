@@ -107,8 +107,7 @@
 
 @include sm-only {
     .article-content figure[data-grapher-src] {
-        width: 100vw;
-        margin-left: -$padding-x-sm;
+        @include full-width;
     }
 }
 

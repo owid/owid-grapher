@@ -178,6 +178,11 @@
     }
 }
 
+@mixin full-width {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+}
+
 @mixin posts-list($posts-num) {
     margin-bottom: $vertical-spacing * 2;
     list-style-type: none;
