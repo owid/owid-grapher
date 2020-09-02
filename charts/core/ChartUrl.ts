@@ -130,55 +130,72 @@ export class ChartUrl implements ObservableUrl {
         return this.chart.origScript
     }
 
-    // Autocomputed url params to reflect difference between current chart state
-    // and original config state
-    @computed.struct get params(): ChartQueryParams {
+    @computed.struct private get allParams() {
         const params: ChartQueryParams = {}
-        const { chart, origChartProps } = this
+        const { chart } = this
+        const props = chart.props
 
-        params.tab =
-            chart.props.tab === origChartProps.tab ? undefined : chart.props.tab
-        //params.overlay = chart.props.overlay === origChartProps.overlay ? undefined : chart.props.overlay
-        params.xScale =
-            chart.xAxisOptions.scaleType === origChartProps.xAxis.scaleType
-                ? undefined
-                : chart.xAxisOptions.scaleType
-        params.yScale =
-            chart.yAxisOptions.scaleType === origChartProps.yAxis.scaleType
-                ? undefined
-                : chart.yAxisOptions.scaleType
-        params.stackMode =
-            chart.props.stackMode === origChartProps.stackMode
-                ? undefined
-                : chart.props.stackMode
-        params.zoomToSelection =
-            chart.props.zoomToSelection === origChartProps.zoomToSelection
-                ? undefined
-                : chart.props.zoomToSelection
-                ? "true"
-                : undefined
-        params.minPopulationFilter =
-            chart.props.minPopulationFilter ===
-            origChartProps.minPopulationFilter
-                ? undefined
-                : chart.props.minPopulationFilter?.toString()
-        params.endpointsOnly =
-            chart.props.compareEndPointsOnly ===
-            origChartProps.compareEndPointsOnly
-                ? undefined
-                : chart.props.compareEndPointsOnly
-                ? "1"
-                : "0"
+        params.tab = props.tab
+        params.xScale = chart.xAxisOptions.scaleType
+        params.yScale = chart.yAxisOptions.scaleType
+        params.stackMode = props.stackMode
+        params.zoomToSelection = props.zoomToSelection ? "true" : undefined
+        params.minPopulationFilter = props.minPopulationFilter?.toString()
+        params.endpointsOnly = props.compareEndPointsOnly ? "1" : "0"
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
+        params.region = chart.map?.projection
+
+        return params
+    }
+
+    // If the user changes a param so that it matches the author's original param, we drop it.
+    // However, in the case of explorers, the user might switch charts, and so we never want to drop
+    // params. This flag turns off dropping of params.
+    @observable dropUnchangedParams = true
+
+    @computed get params() {
+        return this.dropUnchangedParams ? this.changedParams : this.allParams
+    }
+
+    // Autocomputed url params to reflect difference between current chart state
+    // and original config state
+    @computed.struct private get changedParams() {
+        const params = this.allParams
+        const { chart, origChartProps } = this
+
+        if (params.tab === origChartProps.tab) params.tab = undefined
+
+        if (params.xScale === origChartProps.xAxis.scaleType)
+            params.xScale = undefined
+
+        if (params.yScale === origChartProps.yAxis.scaleType)
+            params.yScale = undefined
+
+        if (params.stackMode === origChartProps.stackMode)
+            params.stackMode = undefined
+
+        if (chart.props.zoomToSelection === origChartProps.zoomToSelection)
+            params.zoomToSelection = undefined
 
         if (
-            chart.map &&
-            origChartProps.map &&
-            chart.map.projection !== origChartProps.map.projection
+            chart.props.minPopulationFilter ===
+            origChartProps.minPopulationFilter
         )
-            params.region = chart.map.projection
+            params.minPopulationFilter = undefined
+
+        if (
+            chart.props.compareEndPointsOnly ===
+            origChartProps.compareEndPointsOnly
+        )
+            params.endpointsOnly = undefined
+
+        if (
+            origChartProps.map &&
+            params.region === origChartProps.map.projection
+        )
+            params.region = undefined
 
         return params
     }
