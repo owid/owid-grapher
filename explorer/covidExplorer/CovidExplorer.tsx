@@ -58,9 +58,8 @@ import {
     metricLabels,
     metricPickerColumnSpecs,
     covidCsvColumnSlug,
-    intervalLabels,
-    intervalsAvailableByMetric,
-    smoothingByInterval
+    intervalSpecs,
+    intervalsAvailableByMetric
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -260,37 +259,37 @@ export class CovidExplorer extends React.Component<{
         const options: DropdownOption[] = [
             {
                 available: true,
-                label: intervalLabels.get("total")!,
+                label: intervalSpecs.total.label,
                 value: "total"
             },
             {
                 available: available.smoothed,
-                label: intervalLabels.get("smoothed")!,
+                label: intervalSpecs.smoothed.label,
                 value: "smoothed"
             },
             {
                 available: available.daily,
-                label: intervalLabels.get("daily")!,
+                label: intervalSpecs.daily.label,
                 value: "daily"
             },
             {
                 available: available.weekly,
-                label: intervalLabels.get("weekly")!,
+                label: intervalSpecs.weekly.label,
                 value: "weekly"
             },
             {
                 available: available.weekly,
-                label: intervalLabels.get("weeklyChange")!,
+                label: intervalSpecs.weeklyChange.label,
                 value: "weeklyChange"
             },
             {
                 available: available.weekly,
-                label: intervalLabels.get("biweekly")!,
+                label: intervalSpecs.biweekly.label,
                 value: "biweekly"
             },
             {
                 available: available.weekly,
-                label: intervalLabels.get("biweeklyChange")!,
+                label: intervalSpecs.biweeklyChange.label,
                 value: "biweeklyChange"
             }
         ]
@@ -1159,7 +1158,7 @@ export class CovidExplorer extends React.Component<{
                 ? perCapitaDivisorByMetric(metric)
                 : 1,
             interval,
-            smoothingByInterval.get(interval)
+            intervalSpecs[interval].smoothing
         )
 
         const column = this.chart.table.columnsBySlug.get(colSlug)
@@ -1173,7 +1172,7 @@ export class CovidExplorer extends React.Component<{
                 name:
                     metricLabels[metric] +
                     (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
-                unit: intervalLabels.get(interval),
+                unit: intervalSpecs[interval].label,
                 shortUnit:
                     (interval === "weeklyChange" ||
                         interval === "biweeklyChange") &&
@@ -1229,9 +1228,8 @@ export class CovidExplorer extends React.Component<{
                     intervalsAvailableByMetric.get(metric)?.has(params.interval)
                 ) {
                     dataTableParams.interval = params.interval
-                    dataTableParams.smoothing = smoothingByInterval.get(
-                        params.interval
-                    )!
+                    dataTableParams.smoothing =
+                        intervalSpecs[params.interval].smoothing
                 }
             }
 
