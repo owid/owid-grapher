@@ -46,8 +46,11 @@
     }
 
     &[data-variation="full-width"] {
-        background-color: $primary-color-100;
+        @include sm-only {
+            @include full-width;
+        }
         padding: 0 $padding-x-sm;
+        background-color: $primary-color-100;
         @include md-up {
             margin-left: -#{$padding-x-md};
             margin-right: -#{$padding-x-md};
