@@ -1,3 +1,10 @@
+// Discussion from: https://github.com/owid/owid-grapher/pull/564
+// Technically, postCategoriesToGrapher.ts is still being used (although it has to be run manually as far as I know)
+// and performs a one-way sync of post categories from WP -> grapher. This is part of the dichotomy of WP categories / grapher tags,
+// which I'll address at some point. Without this script, the tags coming from WP and shown in the posts screen in the grapher admin
+// will slowly diverge. This is not such a big issue as posts are uncategorized and entries do not change that often. That being said,
+// I think we should still keep it around while this architecture is being used.
+
 import * as wpdb from "db/wpdb"
 import * as db from "db/db"
 import { Post } from "db/model/Post"

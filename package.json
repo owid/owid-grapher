@@ -32,13 +32,14 @@
         "testcheck": "./deploy/testcheck.sh",
         "deploy": "./deploy/deploy.sh",
         "serve": "yarn tsn adminSite/server/app.tsx",
-        "bake": "yarn tsn scripts/bakeSite.ts",
+        "bake": "yarn tsn deploy/bakeSite.ts",
+        "post-update": "yarn tsn db/postUpdateHook.ts",
         "deploy-queue": "yarn tsn deploy/watch.ts",
         "storybook": "start-storybook -p 6006",
         "build-storybook": "build-storybook -o .storybook/build",
         "bundlewatch": "ENV=production webpack -p && bundlewatch --config .bundlewatch.config.json",
         "bundlewatch-json": "ENV=production webpack -p --json > dist/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json",
-        "live-commit": "yarn tsn scripts/liveCommit.ts"
+        "live-commit": "yarn tsn deploy/liveCommit.ts"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.19",

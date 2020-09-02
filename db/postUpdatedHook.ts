@@ -1,3 +1,5 @@
+// This is used by owid-wordpress
+
 import { syncPostToGrapher } from "db/model/Post"
 import parseArgs from "minimist"
 import { BAKE_ON_CHANGE } from "serverSettings"
