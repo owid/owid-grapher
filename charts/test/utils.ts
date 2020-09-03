@@ -1,3 +1,5 @@
+// Todo: remove file.
+
 import { ChartScript } from "charts/core/ChartScript"
 import { ChartConfig } from "charts/core/ChartConfig"
 
