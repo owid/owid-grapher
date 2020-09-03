@@ -168,7 +168,12 @@ interface TouchListLike {
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
 // See https://observablehq.com/@d3/d3v6-migration-guide#minus
-const d3Format = formatLocale({ minus: "-" } as any).format
+const d3Format = formatLocale({
+    thousands: ",",
+    grouping: [3],
+    minus: "-",
+    currency: ["$", ""]
+} as any).format
 
 export function getRelativeMouse(
     node: SVGElement,
