@@ -128,7 +128,7 @@ export {
 }
 
 import moment from "moment"
-import { format } from "d3-format"
+import { formatLocale } from "d3-format"
 import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
@@ -163,6 +163,12 @@ interface TouchListLike {
         clientY: number
     }
 }
+
+// d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
+// nicer but can cause issues when copy-pasting values into a spreadsheet or script.
+// For that reason we change that back to a plain old hyphen.
+// See https://observablehq.com/@d3/d3v6-migration-guide#minus
+const d3Format = formatLocale({ minus: "-" } as any).format
 
 export function getRelativeMouse(
     node: SVGElement,
@@ -229,7 +235,9 @@ export function formatYear(year: number): string {
         return ""
     }
 
-    return year < 0 ? `${format(",.0f")(Math.abs(year))} BCE` : year.toString()
+    return year < 0
+        ? `${d3Format(",.0f")(Math.abs(year))} BCE`
+        : year.toString()
 }
 
 export function roundSigFig(num: number, sigfigs: number = 1) {
@@ -294,7 +302,7 @@ export function formatValue(
             if (value < 0) output = `>-${targetDigits}`
             else output = `<${targetDigits}`
         } else {
-            output = format(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
+            output = d3Format(`${showPlus ? "+" : ""},.${numDecimalPlaces}f`)(
                 value
             )
         }
