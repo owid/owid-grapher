@@ -122,14 +122,12 @@ function SelectedItems<T>(props: {
     )
 }
 
-export interface GlobalEntityControlProps {
+interface GlobalEntityControlProps {
     globalEntitySelection: GlobalEntitySelection
 }
 
 @observer
-export class GlobalEntityControl extends React.Component<
-    GlobalEntityControlProps
-> {
+class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
