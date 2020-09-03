@@ -1,6 +1,6 @@
-@daily pm2 restart live-deploy-queue
-@daily cd /home/owid/live && yarn tsn db/exportChartData.ts && gzip -f /tmp/owid_chartdata.sql && s3cmd put -P /tmp/owid_chartdata.sql.gz s3://owid
-@daily cd /home/owid/live && yarn tsn db/exportMetadata.ts && gzip -f /tmp/owid_metadata.sql && s3cmd put -P /tmp/owid_metadata.sql.gz s3://owid
-0 19 * * 5 cd /home/owid/live && yarn tsn algolia/indexToAlgolia.ts
-0 19 * * 5 cd /home/owid/live && yarn tsn algolia/indexChartsToAlgolia.ts
+@daily chronic sh -c 'pm2 restart live-deploy-queue' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+@daily chronic sh -c 'cd /home/owid/live && yarn tsn db/exportChartData.ts && gzip -f /tmp/owid_chartdata.sql && s3cmd put -P /tmp/owid_chartdata.sql.gz s3://owid' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+@daily chronic sh -c 'cd /home/owid/live && yarn tsn db/exportMetadata.ts && gzip -f /tmp/owid_metadata.sql && s3cmd put -P /tmp/owid_metadata.sql.gz s3://owid' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+0 19 * * 5 chronic sh -c 'cd /home/owid/live && yarn tsn algolia/indexToAlgolia.ts' | /usr/local/bin/slacktee -a danger -c errors -u crontab
+0 19 * * 5 chronic sh -c 'cd /home/owid/live && yarn tsn algolia/indexChartsToAlgolia.ts' | /usr/local/bin/slacktee -a danger -c errors -u crontab
 */30 * * * * chronic sh -c 'cd /home/owid/covid-19-data/scripts && ./scripts/autoupdate.sh' 2>&1 | /usr/local/bin/slacktee --attachment danger --channel corona-data-updates
