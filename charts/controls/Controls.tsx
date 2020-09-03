@@ -9,7 +9,15 @@ import { ChartConfig } from "charts/core/ChartConfig"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "charts/core/ChartView"
 import { Timeline } from "./Timeline"
-import { extend, keys, entries, max, formatValue } from "charts/utils/Util"
+import {
+    extend,
+    keys,
+    entries,
+    max,
+    formatValue,
+    findClosestYear,
+    first
+} from "charts/utils/Util"
 import { ADMIN_BASE_URL, ENV } from "settings"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -26,7 +34,11 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons/faTwitter"
 import { faFacebook } from "@fortawesome/free-brands-svg-icons/faFacebook"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { TimeBound } from "charts/utils/TimeBounds"
+import {
+    TimeBound,
+    getClosestTime,
+    getTimeWithinTimeRange
+} from "charts/utils/TimeBounds"
 import { HighlightToggleConfig } from "charts/core/ChartConstants"
 
 @observer
@@ -480,12 +492,13 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isScatter) {
-            const years = chart.scatterTransform.timelineYears
-            if (years.length === 0) return null
+            const { startYear, endYear, timelineYears } = chart.scatterTransform
+            if (timelineYears.length === 0) return null
+            chart.timeDomain = [startYear, endYear]
             return (
                 <Timeline
                     chart={chart}
-                    years={years}
+                    years={timelineYears}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
                     endYear={chart.timeDomain[1]}
@@ -494,12 +507,17 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isLineChart) {
-            const years = chart.lineChartTransform.timelineYears
-            if (years.length === 0) return null
+            const {
+                startYear,
+                endYear,
+                timelineYears
+            } = chart.lineChartTransform
+            if (timelineYears.length === 0) return null
+            chart.timeDomain = [startYear, endYear]
             return (
                 <Timeline
                     chart={chart}
-                    years={years}
+                    years={timelineYears}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
                     endYear={chart.timeDomain[1]}
@@ -509,12 +527,17 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isSlopeChart) {
-            const years = chart.slopeChartTransform.timelineYears
-            if (years.length === 0) return null
+            const {
+                startYear,
+                endYear,
+                timelineYears
+            } = chart.slopeChartTransform
+            if (timelineYears.length === 0) return null
+            chart.timeDomain = [startYear, endYear]
             return (
                 <Timeline
                     chart={chart}
-                    years={years}
+                    years={timelineYears}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
                     endYear={chart.timeDomain[1]}
@@ -524,12 +547,17 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else {
-            const years = chart.lineChartTransform.timelineYears
-            if (years.length === 0) return null
+            const {
+                startYear,
+                endYear,
+                timelineYears
+            } = chart.lineChartTransform
+            if (timelineYears.length === 0) return null
+            chart.timeDomain = [startYear, endYear]
             return (
                 <Timeline
                     chart={chart}
-                    years={years}
+                    years={timelineYears}
                     onTargetChange={this.onChartTargetChange}
                     startYear={chart.timeDomain[0]}
                     endYear={chart.timeDomain[1]}
