@@ -1,3 +1,7 @@
+// This belongs somewhere else – all other importers are in a separate repo.
+// But, all other importers are in Python, and this one uses the local TS dependencies – I think I would keep it if it doesn't cause any problems.
+// When we perform the yearly updates these importer scripts are useful as starting points, even if they don't run correctly.
+
 import * as XLSX from "xlsx"
 import * as lodash from "lodash"
 import * as fs from "fs-extra"
