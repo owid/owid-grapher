@@ -47,14 +47,14 @@ export class ChartTab extends React.Component<{
             return (
                 <ScatterPlot
                     bounds={bounds.padTop(20).padBottom(15)}
-                    config={chart}
+                    chart={chart}
                 />
             )
         } else if (chart.isTimeScatter) {
             return (
                 <TimeScatter
                     bounds={bounds.padTop(20).padBottom(15)}
-                    config={chart}
+                    chart={chart}
                 />
             )
         } else if (chart.isLineChart) {
@@ -68,7 +68,7 @@ export class ChartTab extends React.Component<{
             ) : (
                 <LineChart
                     bounds={bounds.padTop(20).padBottom(15)}
-                    options={chart}
+                    chart={chart}
                 />
             )
         } else if (chart.isStackedArea) {

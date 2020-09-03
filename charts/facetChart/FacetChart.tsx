@@ -3,19 +3,22 @@ import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { computed } from "mobx"
-import { LineChart } from "charts/lineCharts/LineChart"
+import { ChartTypeMap, ChartTypeName } from "charts/core/ChartTypes"
 
 @observer
 export class FacetChart extends React.Component<{
     bounds: Bounds
     number: number
+    chartTypeName: ChartTypeName
     chart: ChartConfig
 }> {
     @computed get smallCharts() {
-        const { chart, bounds } = this.props
+        const { chart, bounds, chartTypeName } = this.props
         const charts = bounds.split(this.props.number || 1)
+        const ChartType = ChartTypeMap[chartTypeName] as any
+
         return charts.map((bounds: Bounds, index: number) => (
-            <LineChart key={index} bounds={bounds} options={chart} />
+            <ChartType key={index} bounds={bounds} chart={chart} />
         ))
     }
 

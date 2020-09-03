@@ -579,10 +579,10 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 @observer
 export class TimeScatter extends React.Component<{
     bounds: Bounds
-    config: ChartConfig
+    chart: ChartConfig
 }> {
     @computed get chart(): ChartConfig {
-        return this.props.config
+        return this.props.chart
     }
 
     @computed get transform() {

@@ -21,6 +21,7 @@ export const Default = (args: any) => {
         <svg width={640} height={480}>
             <FacetChart
                 number={args.number || 4}
+                chartTypeName={args.chartTypeName || "LineChart"}
                 chart={chart}
                 bounds={bounds}
             />
