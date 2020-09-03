@@ -105,6 +105,12 @@
     height: 575px;
 }
 
+@include sm-only {
+    .article-content figure[data-grapher-src] {
+        @include full-width;
+    }
+}
+
 figure[data-explorer-src] {
     position: relative;
 }

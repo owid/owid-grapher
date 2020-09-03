@@ -720,15 +720,15 @@ div.owid-presentations li:nth-of-type(1) a:hover {
                 $padding-x-md;
         }
     }
-    width: 100vw;
+    @include full-width;
     padding-top: 2.5rem;
     padding-bottom: 2.5rem;
+    margin-bottom: 2rem;
     @include md-up {
         padding-top: 4 * $vertical-spacing;
         padding-bottom: 4 * $vertical-spacing;
+        margin-bottom: 5rem;
     }
-    margin-left: calc(50% - 50vw);
-    margin-bottom: 5rem;
     background-color: $primary-color-200;
 
     @include xxlg-up {
@@ -790,10 +790,12 @@ div.owid-presentations li:nth-of-type(1) a:hover {
 }
 
 .with-sidebar .section-heading {
-    position: relative;
-    width: calc(100vw - #{$sidebar-closed-drawer-width});
-    left: $sidebar-closed-drawer-width;
-    margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
+    @include md-up {
+        position: relative;
+        width: calc(100vw - #{$sidebar-closed-drawer-width});
+        left: $sidebar-closed-drawer-width;
+        margin-left: calc(50% - 50vw - #{$sidebar-closed-drawer-width / 2});
+    }
 
     @include xxlg-up {
         width: calc(100vw - #{$sidebar-content-width + 2 * $padding-x-md});
