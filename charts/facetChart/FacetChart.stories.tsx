@@ -9,8 +9,8 @@ export default {
     title: "FacetChart",
     component: FacetChart,
     argTypes: {
-        number: { control: 'range' }
-      }
+        number: { control: "range" }
+    }
 }
 
 export const Default = (args: any) => {
@@ -19,7 +19,11 @@ export const Default = (args: any) => {
 
     return (
         <svg width={640} height={480}>
-            <FacetChart number={args.number || 4} chart={chart} bounds={bounds} />
+            <FacetChart
+                number={args.number || 4}
+                chart={chart}
+                bounds={bounds}
+            />
         </svg>
     )
 }

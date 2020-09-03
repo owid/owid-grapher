@@ -365,7 +365,15 @@ export class Bounds {
         const rows = Math.ceil(pieces / columns)
         const width = Math.floor(this.width / columns)
         const height = Math.floor(this.height / rows)
-        return range(0, pieces).map((index: number) => new Bounds((index % columns) * width, Math.floor(index / columns) * height, width, height))
+        return range(0, pieces).map(
+            (index: number) =>
+                new Bounds(
+                    (index % columns) * width,
+                    Math.floor(index / columns) * height,
+                    width,
+                    height
+                )
+        )
     }
 
     yRange(): [number, number] {

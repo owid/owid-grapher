@@ -17,7 +17,7 @@ describe("split", () => {
         const second = quads[1]
         const third = quads[2]
         const fourth = quads[3]
-        
+
         expect(second.x).toEqual(50)
         expect(third.y).toEqual(50)
         expect(third.x).toEqual(0)
