@@ -1,4 +1,4 @@
-import { extend } from "charts/utils/Util"
+import { extend, range } from "charts/utils/Util"
 import { Vector2 } from "charts/utils/Vector2"
 import pixelWidth from "string-pixel-width"
 
@@ -351,6 +351,21 @@ export class Bounds {
 
     xRange(): [number, number] {
         return [this.left, this.right]
+    }
+
+    // Split a bounds rectangle into smaller rectangles
+    split(pieces: number): Bounds[] {
+        // Play with the Facet storybook for a visual demo of how this works.
+        // I form the smallest possible square and then fill that up. This always goes left to right, top down.
+        // So when we don't have a round number we first add a column, then a row, etc, until we reach the next square.
+        // In the future we may want to position these bounds in custom ways, but this only does basic splitting for now.
+        // NB: The off-by-one-pixel scenarios have NOT yet been unit tested. Two karms points for the person who adds those tests and makes
+        // any required adjustments.
+        const columns = Math.ceil(Math.sqrt(pieces))
+        const rows = Math.ceil(pieces / columns)
+        const width = Math.floor(this.width / columns)
+        const height = Math.floor(this.height / rows)
+        return range(0, pieces).map((index: number) => new Bounds((index % columns) * width, Math.floor(index / columns) * height, width, height))
     }
 
     yRange(): [number, number] {
