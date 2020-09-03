@@ -203,7 +203,7 @@ function build_static($post_ID, $post_after, $post_before)
 		putenv('DB_PORT');
 		$cmd = "cd "
 			. ABSPATH
-			. "codelink && yarn tsn scripts/postUpdatedHook.ts "
+			. "codelink && yarn post-update "
 			. escapeshellarg($current_user->user_email)
 			. " " . escapeshellarg($current_user->display_name)
 			. " " . escapeshellarg($post_after->ID)
