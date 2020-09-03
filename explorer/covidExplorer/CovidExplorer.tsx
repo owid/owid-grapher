@@ -76,7 +76,7 @@ import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "charts/controls/CommandPalette"
 import { TimeBoundValue } from "charts/utils/TimeBounds"
-import { Analytics } from "site/client/Analytics"
+import { Analytics } from "charts/core/Analytics"
 import {
     ChartDimensionSpec,
     ChartDimension,

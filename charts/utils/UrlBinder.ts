@@ -7,7 +7,7 @@ import {
     QueryParams
 } from "utils/client/url"
 
-import { debounce } from "../utils/Util"
+import { debounce } from "charts/utils/Util"
 
 export interface ObservableUrl {
     params: QueryParams

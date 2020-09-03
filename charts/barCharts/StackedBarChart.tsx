@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import { includes, guid, uniq, makeSafeForCSS } from "../utils/Util"
+import { includes, guid, uniq, makeSafeForCSS } from "charts/utils/Util"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { Bounds } from "charts/utils/Bounds"
 import {
@@ -13,12 +13,12 @@ import {
     VerticalAxisGridLines
 } from "charts/axis/AxisViews"
 import { VerticalAxis, DualAxis } from "charts/axis/Axis"
-import { NoDataOverlay } from "../core/NoDataOverlay"
-import { Text } from "../text/Text"
+import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { Text } from "charts/text/Text"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
-} from "../scatterCharts/ScatterColorLegend"
+} from "charts/scatterCharts/ScatterColorLegend"
 import { Tooltip } from "charts/core/Tooltip"
 import { EntityDimensionKey } from "charts/core/ChartConstants"
 

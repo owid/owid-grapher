@@ -1,5 +1,5 @@
 import * as React from "react"
-import { sum, includes, max, defaultTo } from "../utils/Util"
+import { sum, includes, max, defaultTo } from "charts/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "charts/text/TextWrap"

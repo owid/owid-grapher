@@ -7,7 +7,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import SmoothScroll from "smooth-scroll"
 
-import { Analytics } from "./Analytics"
+import { Analytics } from "charts/core/Analytics"
 import { runChartsIndexPage } from "./runChartsIndexPage"
 import { runHeaderMenus } from "./SiteHeaderMenus"
 import { runSearchPage } from "./SearchPageMain"

@@ -3,7 +3,7 @@ import { useState } from "react"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Analytics } from "./Analytics"
+import { Analytics } from "charts/core/Analytics"
 
 export enum NewsletterSubscriptionContext {
     Homepage = "homepage",

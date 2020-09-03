@@ -25,11 +25,11 @@ import {
     minBy,
     maxBy,
     sortNumeric
-} from "../utils/Util"
+} from "charts/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { NoDataOverlay } from "../core/NoDataOverlay"
+import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { DualAxis } from "charts/axis/Axis"
 import { Vector2 } from "charts/utils/Vector2"
 import { Triangle } from "./Triangle"

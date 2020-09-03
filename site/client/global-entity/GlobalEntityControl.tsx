@@ -28,7 +28,7 @@ import {
     GlobalEntitySelectionModes
 } from "./GlobalEntitySelection"
 import { asArray } from "utils/client/react-select"
-import { Analytics } from "../Analytics"
+import { Analytics } from "charts/core/Analytics"
 
 const allEntities = sortBy(countries, c => c.name)
     // Add 'World'

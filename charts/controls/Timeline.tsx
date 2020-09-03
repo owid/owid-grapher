@@ -9,7 +9,7 @@ import {
     debounce
 } from "charts/utils/Util"
 import { Bounds } from "charts/utils/Bounds"
-import { Analytics } from "site/client/Analytics"
+import { Analytics } from "charts/core/Analytics"
 import {
     observable,
     computed,

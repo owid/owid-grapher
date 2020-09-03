@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Bounds } from "charts/utils/Bounds"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
-import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { LoadingIndicator } from "charts/loadingIndicator/LoadingIndicator"
 
 export class LoadingOverlay extends React.Component<{ bounds: Bounds }> {
     render() {

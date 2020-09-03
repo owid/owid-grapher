@@ -1,6 +1,6 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { min, max, maxBy } from "../utils/Util"
+import { min, max, maxBy } from "charts/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/core/ChartConfig"
@@ -15,9 +15,9 @@ import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines
 } from "charts/axis/AxisViews"
-import { NoDataOverlay } from "../core/NoDataOverlay"
+import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
-import { AddEntityButton } from "../controls/Controls"
+import { AddEntityButton } from "charts/controls/Controls"
 import { ChartView } from "charts/core/ChartView"
 
 export interface DiscreteBarDatum {

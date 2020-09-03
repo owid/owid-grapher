@@ -20,7 +20,7 @@ import { bakeGlobalEntityControl } from "site/client/global-entity/GlobalEntityC
 import { Footnote } from "site/client/Footnote"
 import { Country } from "utils/countries"
 import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
-import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { LoadingIndicator } from "charts/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "site/client/blocks/ProminentLink/ProminentLink"
 import { replaceChartIframesWithExplorerIframes } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { SubNavId } from "./views/SiteSubnavigation"

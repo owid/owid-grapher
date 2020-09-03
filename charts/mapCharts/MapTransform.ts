@@ -12,13 +12,13 @@ import {
     formatYear,
     uniq,
     sortNumeric
-} from "../utils/Util"
+} from "charts/utils/Util"
 import {
     TimeBound,
     TimeBoundValue,
     Time,
     getClosestTime
-} from "../utils/TimeBounds"
+} from "charts/utils/TimeBounds"
 
 import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
 import { ChartDimension } from "charts/core/ChartDimension"

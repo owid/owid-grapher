@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Bounds } from "charts/utils/Bounds"
-import { omit } from "../utils/Util"
+import { omit } from "charts/utils/Util"
 
 // The default SVG text behavior is to put the text on *top* of the specified y coordinate
 // Nothing else we do works like that though, so this wraps it to use the same spatial behavior
