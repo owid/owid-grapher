@@ -456,16 +456,6 @@ export async function getPostType(search: number | string): Promise<string> {
     return type
 }
 
-export async function getPost(id: number): Promise<any> {
-    const type = await getPostType(id)
-    const response = await apiQuery(
-        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(type)}/${id}`
-    )
-    const post = await response.json()
-
-    return post
-}
-
 export async function getPostBySlug(slug: string): Promise<any[]> {
     const type = await getPostType(slug)
     const response = await apiQuery(
@@ -481,19 +471,39 @@ export async function getPostBySlug(slug: string): Promise<any[]> {
     return postApiArray[0]
 }
 
+// the /revisions endpoint does not send back all the metadata required for
+// the proper rendering of the post (e.g. authors), hence the double request.
 export async function getLatestPostRevision(id: number): Promise<any> {
     const type = await getPostType(id)
-    const response = await apiQuery(
-        `${WP_API_ENDPOINT}/${getEndpointSlugFromType(
-            type
-        )}/${id}/revisions?per_page=1`,
+    const endpointSlug = getEndpointSlugFromType(type)
+
+    let response = await apiQuery(`${WP_API_ENDPOINT}/${endpointSlug}/${id}`, {
+        isAuthenticated: true
+    })
+    const postApi = await response.json()
+
+    response = await apiQuery(
+        `${WP_API_ENDPOINT}/${endpointSlug}/${id}/revisions?per_page=1`,
         {
             isAuthenticated: true
         }
     )
-    const revisions = await response.json()
+    const revision = (await response.json())[0]
 
-    return revisions[0]
+    return {
+        ...revision,
+        authors_name: postApi.authors_name,
+        type: postApi.type,
+        path: postApi.path,
+        // revision.date holds the modified date and not the published date
+        // (visible in the admin sidebar), so it is not being used. The
+        // published date will only be correctly displayed when previewing
+        // unpublished posts. When previewing published posts, the current
+        // published date will be displayed, regardless of what is shown in the
+        // admin.
+        date: postApi.date,
+        postId: id
+    }
 }
 
 export async function getRelatedCharts(
