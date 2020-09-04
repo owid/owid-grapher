@@ -39,7 +39,10 @@ import {
     getClosestTime,
     getTimeWithinTimeRange
 } from "charts/utils/TimeBounds"
-import { HighlightToggleConfig } from "charts/core/ChartConstants"
+import {
+    HighlightToggleConfig,
+    ChartTabOption
+} from "charts/core/ChartConstants"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -419,8 +422,13 @@ class FilterSmallCountriesToggle extends React.Component<{
     }
 }
 
+interface TimelineControlProps {
+    chart: ChartConfig
+    activeTab: ChartTabOption
+}
+
 @observer
-class TimelineControl extends React.Component<{ chart: ChartConfig }> {
+class TimelineControl extends React.Component<TimelineControlProps> {
     @action.bound onMapTargetChange({
         targetStartYear
     }: {
@@ -468,10 +476,19 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
         else return chart.activeTransform.endYear!
     }
 
+    componentDidUpdate(prevProps: TimelineControlProps) {
+        if (prevProps.activeTab !== this.props.activeTab)
+            this.onChartTargetChange({
+                targetStartYear: this.startYear,
+                targetEndYear: this.endYear
+            })
+    }
+
     render() {
         // Todo: cleanup this method
-        const { chart } = this.props
-        if (chart.props.tab === "table") {
+        const { chart, activeTab } = this.props
+
+        if (activeTab === "table") {
             const { dataTableTransform } = chart
             const years = dataTableTransform.timelineYears
             if (years.length === 0) {
@@ -490,7 +507,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                     singleYearMode={chart.multiMetricTableMode}
                 />
             )
-        } else if (chart.props.tab === "map") {
+        } else if (activeTab === "map") {
             const { mapTransform } = chart
             const years = mapTransform.timelineYears
             if (years.length === 0) {
@@ -507,7 +524,7 @@ class TimelineControl extends React.Component<{ chart: ChartConfig }> {
                 />
             )
         } else if (chart.isScatter) {
-            const { startYear, endYear, timelineYears } = chart.scatterTransform
+            const { timelineYears } = chart.scatterTransform
             if (timelineYears.length === 0) return null
             return (
                 <Timeline
@@ -1018,7 +1035,7 @@ export class ControlsFooterView extends React.Component<{
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">
-                <TimelineControl chart={this.props.controls.props.chart} />
+                <TimelineControl chart={chart} activeTab={chart.tab} />
             </div>
         )
 

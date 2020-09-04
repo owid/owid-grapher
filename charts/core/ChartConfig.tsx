@@ -965,7 +965,7 @@ export class ChartConfig {
         return this.activeTransform.colorScale
     }
 
-    @computed private get activeTransform(): IChartTransform {
+    @computed get activeTransform(): IChartTransform {
         if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
             return this.scatterTransform
