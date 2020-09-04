@@ -489,7 +489,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
 
     @computed get timelineProps(): TimelineProps {
         const { activeTab, chart } = this.props
-        const commonProps: TimelineProps = {
+        return {
             chart: chart,
             years:
                 activeTab === "map"
@@ -501,33 +501,35 @@ class TimelineControl extends React.Component<TimelineControlProps> {
             onStartDrag: this.onTimelineStart,
             onStopDrag: this.onTimelineStop
         }
-
-        let transformSpecificProps: Partial<TimelineProps> = {}
-        if (activeTab === "map")
-            transformSpecificProps = {
-                onTargetChange: this.onMapTargetChange,
-                singleYearMode: true,
-                onStartDrag: undefined,
-                onStopDrag: undefined
-            }
-        else if (activeTab === "table")
-            transformSpecificProps = {
-                singleYearMode: chart.multiMetricTableMode
-            }
-        else if (chart.isLineChart)
-            transformSpecificProps = { singleYearPlay: true }
-        else if (chart.isSlopeChart)
-            transformSpecificProps = { disablePlay: true }
-
-        return {
-            ...commonProps,
-            ...transformSpecificProps
-        }
     }
 
     render() {
         if (this.timelineProps.years.length === 0) return null
-        return <Timeline {...this.timelineProps} />
+
+        const { activeTab, chart } = this.props
+
+        if (activeTab === "map")
+            return (
+                <Timeline
+                    {...this.timelineProps}
+                    onTargetChange={this.onMapTargetChange}
+                    singleYearMode={true}
+                    onStartDrag={undefined}
+                    onStopDrag={undefined}
+                />
+            )
+        else if (activeTab === "table")
+            return (
+                <Timeline
+                    {...this.timelineProps}
+                    singleYearMode={chart.multiMetricTableMode}
+                />
+            )
+        else if (chart.isLineChart)
+            return <Timeline {...this.timelineProps} singleYearPlay={true} />
+        else if (chart.isSlopeChart)
+            return <Timeline {...this.timelineProps} disablePlay={true} />
+        else return <Timeline {...this.timelineProps} />
     }
 }
 
