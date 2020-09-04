@@ -41,7 +41,7 @@ const DEFAULT_MAX_YEAR = 2000
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
-interface TimelineProps {
+export interface TimelineProps {
     chart: ChartConfig
     years: number[]
     startYear: TimeBound
