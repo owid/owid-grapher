@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
-import { basicScatter } from "./ScatterPlot.tests"
+import { basicScatter } from "charts/test/samples"
 
 describe(ScatterTransform, () => {
     it("can create a new transform", () => {

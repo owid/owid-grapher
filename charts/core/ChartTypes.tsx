@@ -11,10 +11,9 @@ export const ChartTypeMap = {
     LineChart,
     StackedAreaChart,
     StackedBarChart,
-    DiscreteBarChart
-    // todo: these dont current work:
-    // ScatterPlot,
-    //TimeScatter
+    DiscreteBarChart,
+    ScatterPlot,
+    TimeScatter
 }
 
 export type ChartTypeName = keyof typeof ChartTypeMap

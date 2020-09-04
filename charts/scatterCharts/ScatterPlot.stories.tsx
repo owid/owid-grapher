@@ -2,7 +2,7 @@ import * as React from "react"
 import "site/client/owid.scss"
 import "charts/core/chart.scss"
 import { ScatterPlot } from "./ScatterPlot"
-import { basicScatter } from "./ScatterPlot.tests"
+import { basicScatter } from "charts/test/samples"
 
 export default {
     title: "ScatterPlot",
