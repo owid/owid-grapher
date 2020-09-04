@@ -34,10 +34,7 @@ import {
     EntriesForYearPage
 } from "./views/EntriesByYearPage"
 import { VariableCountryPage } from "./views/VariableCountryPage"
-import { ChartScript } from "charts/core/ChartScript"
 import { FeedbackPage } from "./views/FeedbackPage"
-import { isExplorable, FORCE_EXPLORABLE_CHART_IDS } from "utils/charts"
-import { Indicator } from "explorer/indicatorExplorer/Indicator"
 import { getCountry, Country } from "utils/countries"
 import { memoize } from "charts/utils/Util"
 import { CountryProfileSpec } from "site/server/countryProfileProjects"
@@ -88,38 +85,6 @@ export async function renderExplorePage() {
 // Only used in the dev server
 export async function renderCovidPage() {
     return renderToHtmlPage(<CovidPage />)
-}
-
-export async function renderExplorableIndicatorsJson() {
-    const query: { id: number; config: any }[] = await db.query(
-        `
-        SELECT id, config
-        FROM charts
-        WHERE charts.isExplorable
-        ${FORCE_EXPLORABLE_CHART_IDS.length ? `OR charts.id IN (?)` : ""}
-        `,
-        [FORCE_EXPLORABLE_CHART_IDS]
-    )
-
-    const explorableCharts = query
-        .map(chart => ({
-            id: chart.id,
-            config: JSON.parse(chart.config) as ChartScript
-        }))
-        // Ensure config is consistent with the current "explorable" requirements
-        .filter(chart => isExplorable(chart.config))
-
-    const result: Indicator[] = explorableCharts.map(chart => ({
-        id: chart.id,
-        title: chart.config.title,
-        subtitle: chart.config.subtitle,
-        sourceDesc: chart.config.sourceDesc,
-        note: chart.config.note,
-        dimensions: chart.config.dimensions,
-        map: chart.config.map
-    }))
-
-    return JSON.stringify({ indicators: result })
 }
 
 export async function renderPageBySlug(slug: string) {
