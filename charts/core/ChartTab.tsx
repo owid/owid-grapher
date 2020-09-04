@@ -36,7 +36,7 @@ export class ChartTab extends React.Component<{
     }
 
     renderChart() {
-        const { chart, chartView } = this.props
+        const { chart } = this.props
         const bounds = this.layout.innerBounds
 
         if (!chart.isReady) {
@@ -61,7 +61,6 @@ export class ChartTab extends React.Component<{
             // Switch to bar chart if a single year is selected
             return chart.lineChartTransform.isSingleYear ? (
                 <DiscreteBarChart
-                    chartView={chartView}
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />
@@ -81,7 +80,6 @@ export class ChartTab extends React.Component<{
         } else if (chart.isDiscreteBar) {
             return (
                 <DiscreteBarChart
-                    chartView={chartView}
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />

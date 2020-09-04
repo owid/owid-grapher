@@ -18,7 +18,6 @@ import {
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { AddEntityButton } from "charts/controls/Controls"
-import { ChartView } from "charts/core/ChartView"
 
 export interface DiscreteBarDatum {
     entityDimensionKey: EntityDimensionKey
@@ -36,7 +35,6 @@ const labelToBarPadding = 5
 export class DiscreteBarChart extends React.Component<{
     bounds: Bounds
     chart: ChartConfig
-    chartView: ChartView
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -78,15 +76,11 @@ export class DiscreteBarChart extends React.Component<{
         }
     }
 
-    @computed private get chartView() {
-        return this.props.chartView
-    }
-
     // Account for the width of the legend
     @computed private get legendWidth() {
         const labels = this.currentData.map(d => d.label)
         if (this.hasFloatingAddButton)
-            labels.push(` + ${this.chartView.controls.addButtonLabel}`)
+            labels.push(` + ${this.chart.addButtonLabel}`)
 
         const longestLabel = maxBy(labels, d => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
@@ -182,8 +176,7 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed private get hasFloatingAddButton() {
         return (
-            this.chartView.controls.hasFloatingAddButton &&
-            this.chart.showAddEntityControls
+            this.chart.hasFloatingAddButton && this.chart.showAddEntityControls
         )
     }
 
@@ -297,6 +290,8 @@ export class DiscreteBarChart extends React.Component<{
 
         let yOffset = innerBounds.top + barHeight / 2
 
+        const maxX = bounds.width + 40 // This is only used to shift the ScaleSelector left if it exceeds the container. Hard coded for now but could be improved
+
         return (
             <g ref={this.base} className="DiscreteBarChart">
                 <rect
@@ -308,7 +303,7 @@ export class DiscreteBarChart extends React.Component<{
                     fill="rgba(255,255,255,0)"
                 />
                 <HorizontalAxisComponent
-                    maxX={this.chartView.tabBounds.width}
+                    maxX={maxX}
                     bounds={bounds}
                     isInteractive={this.chart.isInteractive}
                     axis={axis}

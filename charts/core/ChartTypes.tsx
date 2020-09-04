@@ -10,9 +10,9 @@ export const ChartTypeMap = {
     SlopeChart,
     LineChart,
     StackedAreaChart,
-    StackedBarChart
+    StackedBarChart,
+    DiscreteBarChart
     // todo: these dont current work:
-    //DiscreteBarChart,
     // ScatterPlot,
     //TimeScatter
 }
