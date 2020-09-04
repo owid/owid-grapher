@@ -966,7 +966,8 @@ export class ChartConfig {
     }
 
     @computed get activeTransform(): IChartTransform {
-        if (this.isLineChart) return this.lineChartTransform
+        if (this.tab === "table") return this.dataTableTransform
+        else if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
             return this.scatterTransform
         else if (this.isStackedArea) return this.stackedAreaTransform
