@@ -128,21 +128,8 @@ export async function renderPageBySlug(slug: string) {
     return renderPage(postApi)
 }
 
-export async function renderPageById(
-    id: number,
-    isPreview?: boolean
-): Promise<string> {
-    let postApi = await wpdb.getPost(id)
-    if (isPreview) {
-        const revision = await wpdb.getLatestPostRevision(id)
-        postApi = {
-            ...revision,
-            authors_name: postApi.authors_name,
-            type: postApi.type,
-            path: postApi.path,
-            postId: id
-        }
-    }
+export async function renderPreview(postId: number): Promise<string> {
+    const postApi = await wpdb.getLatestPostRevision(postId)
     return renderPage(postApi)
 }
 

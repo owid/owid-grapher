@@ -19,7 +19,7 @@ import { Dataset } from "db/model/Dataset"
 
 import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
-import { renderPageById } from "site/server/siteBaking"
+import { renderPreview } from "site/server/siteBaking"
 import { ENV } from "settings"
 import { addExplorerAdminRoutes } from "explorer/admin/ExplorerBaker"
 
@@ -216,7 +216,7 @@ adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
 adminRouter.get("/posts/preview/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
-    res.send(await renderPageById(postId, true))
+    res.send(await renderPreview(postId, true))
 })
 
 addExplorerAdminRoutes(adminRouter)
