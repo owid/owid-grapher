@@ -1,4 +1,4 @@
-import { Analytics } from "./Analytics"
+import { Analytics } from "charts/core/Analytics"
 
 export function runNotFoundPage() {
     const query = window.location.pathname.split("/")

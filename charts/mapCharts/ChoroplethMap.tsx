@@ -3,7 +3,13 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import * as topojson from "topojson-client"
 
-import { identity, sortBy, guid, getRelativeMouse, minBy } from "../utils/Util"
+import {
+    identity,
+    sortBy,
+    guid,
+    getRelativeMouse,
+    minBy
+} from "charts/utils/Util"
 import { Bounds } from "charts/utils/Bounds"
 import { MapProjections, MapProjection } from "./MapProjections"
 

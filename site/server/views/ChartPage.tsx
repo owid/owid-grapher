@@ -12,7 +12,7 @@ import { Head } from "./Head"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { ChartListItemVariant } from "./ChartListItemVariant"
-import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { LoadingIndicator } from "charts/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
 
 export const ChartPage = (props: {

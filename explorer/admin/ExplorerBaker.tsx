@@ -4,7 +4,10 @@ import * as db from "db/db"
 import React from "react"
 import { renderToHtmlPage } from "utils/server/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
-import { explorerFileSuffix, ExplorerProgram } from "../client/ExplorerProgram"
+import {
+    explorerFileSuffix,
+    ExplorerProgram
+} from "explorer/client/ExplorerProgram"
 import { Request, Response } from "adminSite/server/utils/authentication"
 
 import {

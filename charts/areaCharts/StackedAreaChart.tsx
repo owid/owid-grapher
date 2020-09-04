@@ -8,7 +8,7 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     minBy
-} from "../utils/Util"
+} from "charts/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartConfig } from "charts/core/ChartConfig"
@@ -19,7 +19,7 @@ import {
     LineLabelsHelper,
     LineLabel,
     LineLabelsComponent
-} from "../lineCharts/LineLabels"
+} from "charts/lineCharts/LineLabels"
 import { NoDataOverlay } from "charts/core/NoDataOverlay"
 import { Tooltip } from "charts/core/Tooltip"
 import { select } from "d3-selection"

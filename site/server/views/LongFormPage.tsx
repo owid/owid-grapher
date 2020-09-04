@@ -10,7 +10,7 @@ import {
     FormattedPost,
     FormattingOptions,
     TocHeading
-} from "../formatting"
+} from "site/server/formatting"
 import { SiteSubnavigation } from "./SiteSubnavigation"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"

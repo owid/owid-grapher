@@ -3,12 +3,12 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
 import { Tooltip } from "charts/core/Tooltip"
-import { takeWhile, last, first, isMobile } from "../utils/Util"
+import { takeWhile, last, first, isMobile } from "charts/utils/Util"
 import {
     SparkBars,
     SparkBarsDatum,
     SparkBarsProps
-} from "../sparkBars/SparkBars"
+} from "charts/sparkBars/SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
 import { ChartConfig } from "charts/core/ChartConfig"
 

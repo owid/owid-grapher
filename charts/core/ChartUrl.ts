@@ -35,7 +35,7 @@ import {
     TimeBound,
     parseTimeBound
 } from "charts/utils/TimeBounds"
-import { Analytics } from "site/client/Analytics"
+import { Analytics } from "charts/core/Analytics"
 
 export interface ChartQueryParams extends QueryParams {
     tab?: string

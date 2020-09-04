@@ -27,7 +27,7 @@ import {
     domainExtent,
     minBy,
     maxBy
-} from "../utils/Util"
+} from "charts/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 

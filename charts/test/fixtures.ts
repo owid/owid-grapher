@@ -1,3 +1,5 @@
+// Todo: remove file.
+
 import * as fs from "fs"
 
 import { ChartScript } from "charts/core/ChartScript"

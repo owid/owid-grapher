@@ -36,25 +36,27 @@
 @import "css/pages/homepage.scss";
 @import "css/pages/donate.scss";
 @import "css/pages/faq.scss";
-@import "css/pages/commandPalette.scss";
-@import "explorer/client/explorer.scss";
-@import "explorer/client/explorerControls.scss";
-@import "explorer/covidExplorer/covidExplorer.scss";
-@import "explorer/indicatorExplorer/indicatorExplorer.scss";
-@import "css/pages/countryPicker.scss";
 @import "css/pages/covid.scss";
 @import "css/pages/chart.scss";
-@import "charts/controls/scaleSelector.scss";
 
-@import "css/components/global-entity-select.scss";
+@import "explorer/client/ExplorerShell.scss";
+@import "explorer/client/ExplorerControls.scss";
+@import "explorer/covidExplorer/CovidExplorer.scss";
+@import "explorer/indicatorExplorer/IndicatorExplorer.scss";
+
+@import "charts/controls/CountryPicker.scss";
+@import "charts/controls/CommandPalette.scss";
+@import "charts/controls/ScaleSelector.scss";
+@import "charts/dataTable/DataTable.scss";
+@import "charts/mapCharts/MapTooltip.scss";
+@import "charts/sparkBars/SparkBars.scss";
+@import "charts/loadingIndicator/LoadingIndicator.scss";
+
+@import "site/globalEntityControl/GlobalEntityControl.scss";
 @import "css/components/cookie-notice.scss";
 @import "css/components/site-tools.scss";
 @import "css/components/newsletter-subscription.scss";
 @import "css/components/lightbox.scss";
-@import "css/components/loading-indicator.scss";
-@import "css/components/sparkbars.scss";
-@import "css/components/map-tooltip.scss";
-@import "css/components/datatable.scss";
 @import "site/client/blocks/AdditionalInformation/additional-information.scss";
 @import "site/client/blocks/ProminentLink/prominent-link.scss";
 @import "site/client/blocks/RelatedCharts/related-charts.scss";

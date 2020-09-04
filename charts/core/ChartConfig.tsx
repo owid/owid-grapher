@@ -86,7 +86,7 @@ import {
 import {
     GlobalEntitySelection,
     subscribeChartToGlobalEntitySelection
-} from "site/client/global-entity/GlobalEntitySelection"
+} from "site/globalEntityControl/GlobalEntitySelection"
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"

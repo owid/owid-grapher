@@ -1,4 +1,4 @@
-import { min, max, linkify } from "../utils/Util"
+import { min, max, linkify } from "charts/utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"

@@ -8,7 +8,7 @@ import { faCompress } from "@fortawesome/free-solid-svg-icons/faCompress"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import { LoadingIndicator } from "site/client/LoadingIndicator"
+import { LoadingIndicator } from "charts/loadingIndicator/LoadingIndicator"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink/ProminentLink"
 
 const Lightbox = ({

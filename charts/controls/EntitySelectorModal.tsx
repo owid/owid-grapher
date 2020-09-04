@@ -2,7 +2,7 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 
-import { uniqBy, isTouchDevice, sortBy } from "../utils/Util"
+import { uniqBy, isTouchDevice, sortBy } from "charts/utils/Util"
 import { ChartConfig } from "charts/core/ChartConfig"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"

@@ -23,16 +23,12 @@ import {
     first
 } from "charts/utils/Util"
 import { VerticalScrollContainer } from "charts/controls/VerticalScrollContainer"
-import { Analytics } from "site/client/Analytics"
+import { Analytics } from "charts/core/Analytics"
 
 import { SortIcon } from "charts/controls/SortIcon"
 import { SortOrder } from "charts/core/ChartConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
-import {
-    AbstractColumn,
-    OwidTable,
-    NumericColumn
-} from "../../owidTable/OwidTable"
+import { AbstractColumn, OwidTable, NumericColumn } from "owidTable/OwidTable"
 
 const toggleSort = (order: SortOrder): SortOrder =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc

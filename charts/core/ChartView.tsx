@@ -19,10 +19,10 @@ import { Bounds } from "charts/utils/Bounds"
 import { EntitySelectorModal } from "charts/controls/EntitySelectorModal"
 import { ChartViewContext } from "charts/core/ChartViewContext"
 import { TooltipView } from "charts/core/Tooltip"
-import { FullStory } from "site/client/FullStory"
-import { Analytics } from "site/client/Analytics"
+import { FullStory } from "charts/core/FullStory"
+import { Analytics } from "charts/core/Analytics"
 import { UrlBinder } from "charts/utils/UrlBinder"
-import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
+import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 import { ChartScript } from "./ChartScript"
 
 declare const window: any

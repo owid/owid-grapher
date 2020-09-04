@@ -1,4 +1,6 @@
 #! /usr/bin/env yarn jest
+
+// Todo: remove snapshot testing
 import { setupChart } from "charts/test/utils"
 import { CSVGenerator } from "./CSVGenerator"
 

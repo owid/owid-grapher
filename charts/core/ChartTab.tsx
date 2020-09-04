@@ -12,7 +12,7 @@ import { DiscreteBarChart } from "charts/barCharts/DiscreteBarChart"
 import { StackedBarChart } from "charts/barCharts/StackedBarChart"
 import { ChartLayout, ChartLayoutView } from "./ChartLayout"
 import { TimeScatter } from "charts/scatterCharts/TimeScatter"
-import { LoadingOverlay } from "charts/core/LoadingOverlay"
+import { LoadingOverlay } from "charts/loadingIndicator/LoadingOverlay"
 
 @observer
 export class ChartTab extends React.Component<{

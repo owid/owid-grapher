@@ -17,7 +17,7 @@ import { IndicatorDropdown } from "./IndicatorDropdown"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "charts/dataTable/DataTable"
-import { Analytics } from "site/client/Analytics"
+import { Analytics } from "charts/core/Analytics"
 import { UrlBinder } from "charts/utils/UrlBinder"
 
 interface ChartTypeButton {

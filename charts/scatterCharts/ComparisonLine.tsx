@@ -1,5 +1,5 @@
 import { line as d3_line, curveLinear } from "d3-shape"
-import { guid } from "../utils/Util"
+import { guid } from "charts/utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"

@@ -28,7 +28,7 @@ import {
     GlobalEntitySelectionModes
 } from "./GlobalEntitySelection"
 import { asArray } from "utils/client/react-select"
-import { Analytics } from "../Analytics"
+import { Analytics } from "charts/core/Analytics"
 
 const allEntities = sortBy(countries, c => c.name)
     // Add 'World'
@@ -122,14 +122,12 @@ function SelectedItems<T>(props: {
     )
 }
 
-export interface GlobalEntityControlProps {
+interface GlobalEntityControlProps {
     globalEntitySelection: GlobalEntitySelection
 }
 
 @observer
-export class GlobalEntityControl extends React.Component<
-    GlobalEntityControlProps
-> {
+class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 
