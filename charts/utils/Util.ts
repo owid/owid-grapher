@@ -169,6 +169,7 @@ interface TouchListLike {
 // For that reason we change that back to a plain old hyphen.
 // See https://observablehq.com/@d3/d3v6-migration-guide#minus
 const d3Format = formatLocale({
+    decimal: ".",
     thousands: ",",
     grouping: [3],
     minus: "-",
