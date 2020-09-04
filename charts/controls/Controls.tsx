@@ -477,7 +477,10 @@ class TimelineControl extends React.Component<TimelineControlProps> {
     }
 
     componentDidUpdate(prevProps: TimelineControlProps) {
-        if (prevProps.activeTab !== this.props.activeTab)
+        if (
+            prevProps.activeTab !== this.props.activeTab &&
+            this.props.activeTab != "map"
+        )
             this.onChartTargetChange({
                 targetStartYear: this.startYear,
                 targetEndYear: this.endYear
