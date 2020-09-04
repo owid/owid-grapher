@@ -443,7 +443,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
         this.props.chart.useTimelineDomains = false
     }
 
-    @computed get startYear() {
+    @computed private get startYear() {
         const { activeTab, chart } = this.props
         if (activeTab === "table")
             return (
@@ -454,7 +454,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
         else return chart.activeTransform.startYear!
     }
 
-    @computed get endYear() {
+    @computed private get endYear() {
         const { activeTab, chart } = this.props
         if (activeTab === "table")
             return chart.multiMetricTableMode
