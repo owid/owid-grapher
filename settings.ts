@@ -67,8 +67,6 @@ export const PUBLIC_TAG_PARENT_IDS: number[] = [
     1510
 ]
 
-export const EPOCH_DATE = "2020-01-21"
-
 // Feature flag for explorable charts
 export const EXPLORER: boolean = process.env.EXPLORER
     ? parseBool(process.env.EXPLORER)

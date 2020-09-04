@@ -141,10 +141,10 @@ import {
     TickFormattingOptions,
     SortOrder,
     RelatedQuestionsConfig,
-    ScaleType
+    ScaleType,
+    EPOCH_DATE
 } from "charts/core/ChartConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
-import { EPOCH_DATE } from "settings"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
 

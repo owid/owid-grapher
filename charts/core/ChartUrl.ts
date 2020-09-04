@@ -7,7 +7,12 @@
  */
 import { computed, when, runInAction, observable, action } from "mobx"
 
-import { BAKED_GRAPHER_URL, EPOCH_DATE } from "settings"
+import {
+    EPOCH_DATE,
+    ChartTabOption,
+    ScaleType,
+    StackMode
+} from "charts/core/ChartConstants"
 
 import {
     includes,
@@ -15,12 +20,10 @@ import {
     formatDay,
     diffDateISOStringInDays
 } from "charts/utils/Util"
-import {
-    ChartTabOption,
-    ScaleType,
-    StackMode
-} from "charts/core/ChartConstants"
+
+// todo: we should probably factor out this circular dependency
 import { ChartConfig } from "./ChartConfig"
+
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -209,11 +212,12 @@ export class ChartUrl implements ObservableUrl {
         return queryParamsToStr(queryParams)
     }
 
+    @observable urlRoot = "/grapher"
+
     @computed get baseUrl(): string | undefined {
         if (this.externalBaseUrl) return this.externalBaseUrl
-        if (this.chart.isPublished)
-            return `${BAKED_GRAPHER_URL}/${this.chart.slug}`
-        else return undefined
+        if (this.chart.isPublished) return `${this.urlRoot}/${this.chart.slug}`
+        return undefined
     }
 
     @observable externalBaseUrl: string = ""

@@ -36,6 +36,11 @@ describe(ChartUrl, () => {
         ).toEqual(undefined)
     })
 
+    describe("base url", () => {
+        const url = new ChartUrl({ isPublished: true, slug: "foo" } as any)
+        expect(url.baseUrl).toEqual("/grapher/foo")
+    })
+
     describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {
         const chart = new ChartConfig(
             {

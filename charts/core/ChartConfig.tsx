@@ -416,6 +416,7 @@ export class ChartConfig {
         )
 
         this.url = new ChartUrl(this, options.queryStr)
+        this.url.urlRoot = BAKED_GRAPHER_URL
 
         // The chart props after consuming the URL parameters, but before any user interaction
         this.initialScriptRaw = toJS(this.props)

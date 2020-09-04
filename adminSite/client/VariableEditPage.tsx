@@ -18,7 +18,7 @@ import { ChartFigureView } from "site/client/ChartFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { EPOCH_DATE } from "settings"
+import { EPOCH_DATE } from "charts/core/ChartConstants"
 
 interface VariablePageData {
     id: number
