@@ -1,5 +1,5 @@
 import * as React from "react"
-import "charts/controls/scaleSelector.scss"
+import "charts/controls/ScaleSelector.scss"
 
 import { ScaleSelector } from "charts/controls/ScaleSelector"
 import { ScaleType } from "charts/core/ChartConstants"

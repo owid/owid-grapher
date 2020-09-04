@@ -4,7 +4,7 @@ import { throttle, isMobile } from "charts/utils/Util"
 import {
     GlobalEntitySelection,
     pageContainsGlobalEntityControl
-} from "./global-entity/GlobalEntitySelection"
+} from "site/globalEntityControl/GlobalEntitySelection"
 import { Figure } from "./figures/Figure"
 import { ChartFigure } from "./figures/ChartFigure"
 import { CovidExplorerFigure } from "explorer/covidExplorer/CovidExplorerFigure"

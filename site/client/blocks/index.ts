@@ -4,8 +4,8 @@ import {
 } from "./AdditionalInformation/AdditionalInformation"
 import { render as renderHelp } from "./Help/Help"
 import { renderProminentLink } from "./ProminentLink/ProminentLink"
-import { shouldProgressiveEmbed } from "../Grapher"
-import { runSearchCountry } from "../SearchCountry"
+import { shouldProgressiveEmbed } from "site/client/Grapher"
+import { runSearchCountry } from "site/client/SearchCountry"
 
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)

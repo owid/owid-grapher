@@ -22,7 +22,7 @@ import { TooltipView } from "charts/core/Tooltip"
 import { FullStory } from "charts/core/FullStory"
 import { Analytics } from "charts/core/Analytics"
 import { UrlBinder } from "charts/utils/UrlBinder"
-import { GlobalEntitySelection } from "site/client/global-entity/GlobalEntitySelection"
+import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 import { ChartScript } from "./ChartScript"
 
 declare const window: any

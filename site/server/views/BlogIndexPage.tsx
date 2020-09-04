@@ -5,7 +5,7 @@ import * as settings from "settings"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { formatAuthors, formatDate } from "../formatting"
+import { formatAuthors, formatDate } from "site/server/formatting"
 import { FullPost } from "db/wpdb"
 
 export const BlogIndexPage = (props: {

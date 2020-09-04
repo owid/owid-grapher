@@ -1,4 +1,4 @@
-import { GlobalEntitySelection } from "../global-entity/GlobalEntitySelection"
+import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 
 export interface Figure {
     readonly isLoaded: boolean

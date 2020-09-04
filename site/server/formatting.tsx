@@ -16,7 +16,7 @@ import {
     RelatedChart
 } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
-import { bakeGlobalEntityControl } from "site/client/global-entity/GlobalEntityControl"
+import { bakeGlobalEntityControl } from "site/globalEntityControl/GlobalEntityControl"
 import { Footnote } from "site/client/Footnote"
 import { Country } from "utils/countries"
 import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"

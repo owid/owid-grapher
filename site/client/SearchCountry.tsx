@@ -5,7 +5,7 @@ import { countries } from "utils/countries"
 import { asArray } from "utils/client/react-select"
 import { Analytics } from "charts/core/Analytics"
 import { sortBy } from "charts/utils/Util"
-import { countryProfileSpecs } from "../server/countryProfileProjects"
+import { countryProfileSpecs } from "site/server/countryProfileProjects"
 
 interface CountrySelectOption {
     label: string
