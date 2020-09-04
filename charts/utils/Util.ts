@@ -62,6 +62,7 @@ import assign from "lodash/assign"
 import countBy from "lodash/countBy"
 import startCase from "lodash/startCase"
 import xor from "lodash/xor"
+import range from "lodash/range"
 
 export {
     isEqual,
@@ -73,6 +74,7 @@ export {
     keys,
     entries,
     isNumber,
+    range,
     filter,
     extend,
     isEmpty,

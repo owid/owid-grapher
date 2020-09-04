@@ -36,7 +36,7 @@ export class ChartTab extends React.Component<{
     }
 
     renderChart() {
-        const { chart, chartView } = this.props
+        const { chart } = this.props
         const bounds = this.layout.innerBounds
 
         if (!chart.isReady) {
@@ -47,28 +47,27 @@ export class ChartTab extends React.Component<{
             return (
                 <ScatterPlot
                     bounds={bounds.padTop(20).padBottom(15)}
-                    config={chart}
+                    chart={chart}
                 />
             )
         } else if (chart.isTimeScatter) {
             return (
                 <TimeScatter
                     bounds={bounds.padTop(20).padBottom(15)}
-                    config={chart}
+                    chart={chart}
                 />
             )
         } else if (chart.isLineChart) {
             // Switch to bar chart if a single year is selected
             return chart.lineChartTransform.isSingleYear ? (
                 <DiscreteBarChart
-                    chartView={chartView}
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />
             ) : (
                 <LineChart
                     bounds={bounds.padTop(20).padBottom(15)}
-                    options={chart}
+                    chart={chart}
                 />
             )
         } else if (chart.isStackedArea) {
@@ -81,7 +80,6 @@ export class ChartTab extends React.Component<{
         } else if (chart.isDiscreteBar) {
             return (
                 <DiscreteBarChart
-                    chartView={chartView}
                     bounds={bounds.padTop(20).padBottom(15)}
                     chart={chart}
                 />

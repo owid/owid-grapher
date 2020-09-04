@@ -768,6 +768,19 @@ export class ChartConfig {
         )
     }
 
+    @computed get addButtonLabel() {
+        return `Add ${this.isSingleEntity ? "data" : this.entityType}`
+    }
+
+    @computed get hasFloatingAddButton(): boolean {
+        return (
+            this.primaryTab === "chart" &&
+            !this.isExporting &&
+            this.canAddData &&
+            (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
+        )
+    }
+
     @computed get isSingleVariable(): boolean {
         return this.primaryDimensions.length === 1
     }

@@ -551,15 +551,6 @@ export class Controls {
         }
     }
 
-    @computed get addDataTerm() {
-        const { chart } = this.props
-        return chart.isSingleEntity ? "data" : chart.entityType
-    }
-
-    @computed get addButtonLabel() {
-        return `Add ${this.addDataTerm}`
-    }
-
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
         if (chart.tab === "table") return !chart.props.hideTimeline
@@ -578,7 +569,7 @@ export class Controls {
         const { chart } = this.props
         return (
             (chart.tab === "chart" || chart.tab === "table") &&
-            ((chart.canAddData && !this.hasFloatingAddButton) ||
+            ((chart.canAddData && !chart.hasFloatingAddButton) ||
                 chart.isScatter ||
                 chart.canChangeEntity ||
                 (chart.isStackedArea && chart.canToggleRelativeMode) ||
@@ -593,16 +584,6 @@ export class Controls {
 
     @computed get hasSpace(): boolean {
         return this.props.width > 700
-    }
-
-    @computed get hasFloatingAddButton(): boolean {
-        const { chart } = this.props
-        return (
-            chart.primaryTab === "chart" &&
-            !chart.isExporting &&
-            chart.canAddData &&
-            (chart.isLineChart || chart.isStackedArea || chart.isDiscreteBar)
-        )
     }
 
     @computed get hasRelatedQuestion(): boolean {
@@ -865,13 +846,12 @@ export class ControlsFooterView extends React.Component<{
 
     private _getInlineControlsElement() {
         const { props } = this
-        const { hasFloatingAddButton } = props.controls
         const { chart } = props.controls.props
         return (
             <div className="extraControls">
                 {chart.tab === "chart" &&
                     chart.canAddData &&
-                    !hasFloatingAddButton &&
+                    !chart.hasFloatingAddButton &&
                     !chart.hideEntityControls && (
                         <button
                             type="button"
@@ -886,7 +866,7 @@ export class ControlsFooterView extends React.Component<{
                             ) : (
                                 <span>
                                     <FontAwesomeIcon icon={faPlus} />{" "}
-                                    {this.props.controls.addButtonLabel}
+                                    {chart.addButtonLabel}
                                 </span>
                             )}
                         </button>

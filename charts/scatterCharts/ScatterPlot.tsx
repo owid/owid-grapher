@@ -44,7 +44,7 @@ import { TimeBound } from "charts/utils/TimeBounds"
 @observer
 export class ScatterPlot extends React.Component<{
     bounds: Bounds
-    config: ChartConfig
+    chart: ChartConfig
 }> {
     // Set default props
     static defaultProps = {
@@ -57,7 +57,7 @@ export class ScatterPlot extends React.Component<{
     @observable hoverColor?: string
 
     @computed get chart(): ChartConfig {
-        return this.props.config
+        return this.props.chart
     }
 
     @computed get transform() {

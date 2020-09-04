@@ -1,4 +1,4 @@
-import { extend } from "charts/utils/Util"
+import { extend, range } from "charts/utils/Util"
 import { Vector2 } from "charts/utils/Vector2"
 import pixelWidth from "string-pixel-width"
 
@@ -115,40 +115,6 @@ export class Bounds {
         this.textBoundsCache[key] = bounds
         return bounds
     }
-
-    /*static debugSVG(boundsArray: Bounds[], containerNode?: HTMLElement) {
-        var container: any = containerNode ? select(containerNode) : select('svg');
-
-        container.selectAll('rect.boundsDebug').remove()
-
-        container.selectAll('rect.boundsDebug')
-            .data(boundsArray).enter()
-            .append('rect')
-                .attr('x', (b: Bounds) => b.left)
-                .attr('y', (b: Bounds) => b.top)
-                .attr('width', (b: Bounds) => b.width)
-                .attr('height', (b: Bounds) => b.height)
-                .attr('class', 'boundsDebug')
-                .style('fill', 'rgba(0,0,0,0)')
-                .style('stroke', 'red');
-    }
-
-    static debugHTML(boundsArray: Bounds[], containerNode?: HTMLElement) {
-        var container: any = containerNode ? select(containerNode) : select('#chart');
-
-        container.selectAll('div.boundsDebug').remove()
-
-        container.selectAll('div.boundsDebug')
-            .data(boundsArray).enter()
-            .append('div')
-				.style('position', 'absolute')
-                .style('left', (b: Bounds) => b.left + 'px')
-                .style('top', (b: Bounds) => b.top + 'px')
-                .style('width', (b: Bounds) => b.width + 'px')
-                .style('height', (b: Bounds) => b.height + 'px')
-                .attr('class', 'boundsDebug')
-                .style('border', '1px solid red');
-    }*/
 
     readonly x: number
     readonly y: number
@@ -351,6 +317,33 @@ export class Bounds {
 
     xRange(): [number, number] {
         return [this.left, this.right]
+    }
+
+    split(pieces: number, padding = 0): Bounds[] {
+        // Splits a rectangle into smaller rectangles.
+        // The Facet Storybook has a visual demo of how this works.
+        // I form the smallest possible square and then fill that up. This always goes left to right, top down.
+        // So when we don't have a round number we first add a column, then a row, etc, until we reach the next square.
+        // In the future we may want to position these bounds in custom ways, but this only does basic splitting for now.
+        // NB: The off-by-one-pixel scenarios have NOT yet been unit tested. Karma points for the person who adds those tests and makes
+        // any required adjustments.
+        const columns = Math.ceil(Math.sqrt(pieces))
+        const rows = Math.ceil(pieces / columns)
+        const columnPadding = padding
+        const rowPadding = padding
+        const contentWidth = this.width - columnPadding * (columns - 1)
+        const contentHeight = this.height - rowPadding * (rows - 1)
+        const boxWidth = Math.floor(contentWidth / columns)
+        const boxHeight = Math.floor(contentHeight / rows)
+        return range(0, pieces).map(
+            (index: number) =>
+                new Bounds(
+                    (index % columns) * (boxWidth + columnPadding),
+                    Math.floor(index / columns) * (boxHeight + rowPadding),
+                    boxWidth,
+                    boxHeight
+                )
+        )
     }
 
     yRange(): [number, number] {
