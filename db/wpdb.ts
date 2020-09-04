@@ -495,6 +495,13 @@ export async function getLatestPostRevision(id: number): Promise<any> {
         authors_name: postApi.authors_name,
         type: postApi.type,
         path: postApi.path,
+        // revision.date holds the modified date and not the published date
+        // (visible in the admin sidebar), so it is not being used. The
+        // published date will only be correctly displayed when previewing
+        // unpublished posts. When previewing published posts, the current
+        // published date will be displayed, regardless of what is shown in the
+        // admin.
+        date: postApi.date,
         postId: id
     }
 }
