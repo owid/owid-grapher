@@ -484,119 +484,47 @@ class TimelineControl extends React.Component<TimelineControlProps> {
             })
     }
 
-    render() {
-        // Todo: cleanup this method
-        const { chart, activeTab } = this.props
-
-        if (activeTab === "table") {
-            const { dataTableTransform } = chart
-            const years = dataTableTransform.timelineYears
-            if (years.length === 0) {
-                return null
-            }
-
-            return (
-                <Timeline
-                    chart={chart}
-                    years={years}
-                    onTargetChange={this.onChartTargetChange}
-                    startYear={this.startYear}
-                    endYear={this.endYear}
-                    onStartDrag={this.onTimelineStart}
-                    onStopDrag={this.onTimelineStop}
-                    singleYearMode={chart.multiMetricTableMode}
-                />
-            )
-        } else if (activeTab === "map") {
-            const { mapTransform } = chart
-            const years = mapTransform.timelineYears
-            if (years.length === 0) {
-                return null
-            }
-            return (
-                <Timeline
-                    chart={chart}
-                    years={years}
-                    onTargetChange={this.onMapTargetChange}
-                    startYear={this.startYear}
-                    endYear={this.endYear}
-                    singleYearMode={true}
-                />
-            )
-        } else if (chart.isScatter) {
-            const { timelineYears } = chart.scatterTransform
-            if (timelineYears.length === 0) return null
-            return (
-                <Timeline
-                    chart={chart}
-                    years={timelineYears}
-                    onTargetChange={this.onChartTargetChange}
-                    startYear={this.startYear}
-                    endYear={this.endYear}
-                    onStartDrag={this.onTimelineStart}
-                    onStopDrag={this.onTimelineStop}
-                />
-            )
-        } else if (chart.isLineChart) {
-            const {
-                startYear,
-                endYear,
-                timelineYears
-            } = chart.lineChartTransform
-            if (timelineYears.length === 0) return null
-            chart.timeDomain = [startYear, endYear]
-            return (
-                <Timeline
-                    chart={chart}
-                    years={timelineYears}
-                    onTargetChange={this.onChartTargetChange}
-                    startYear={this.startYear}
-                    endYear={this.endYear}
-                    onStartDrag={this.onTimelineStart}
-                    onStopDrag={this.onTimelineStop}
-                    singleYearPlay={true}
-                />
-            )
-        } else if (chart.isSlopeChart) {
-            const {
-                startYear,
-                endYear,
-                timelineYears
-            } = chart.slopeChartTransform
-            if (timelineYears.length === 0) return null
-            chart.timeDomain = [startYear, endYear]
-            return (
-                <Timeline
-                    chart={chart}
-                    years={timelineYears}
-                    onTargetChange={this.onChartTargetChange}
-                    startYear={this.startYear}
-                    endYear={this.endYear}
-                    onStartDrag={this.onTimelineStart}
-                    onStopDrag={this.onTimelineStop}
-                    disablePlay={true}
-                />
-            )
-        } else {
-            const {
-                startYear,
-                endYear,
-                timelineYears
-            } = chart.lineChartTransform
-            if (timelineYears.length === 0) return null
-            chart.timeDomain = [startYear, endYear]
-            return (
-                <Timeline
-                    chart={chart}
-                    years={timelineYears}
-                    onTargetChange={this.onChartTargetChange}
-                    startYear={this.startYear}
-                    endYear={this.endYear}
-                    onStartDrag={this.onTimelineStart}
-                    onStopDrag={this.onTimelineStop}
-                />
-            )
+    @computed get timelineProps(): TimelineProps {
+        const { activeTab, chart } = this.props
+        const commonProps: TimelineProps = {
+            chart: chart,
+            years:
+                activeTab === "map"
+                    ? chart.mapTransform.timelineYears
+                    : chart.activeTransform.timelineYears,
+            startYear: this.startYear,
+            endYear: this.endYear,
+            onTargetChange: this.onChartTargetChange,
+            onStartDrag: this.onTimelineStart,
+            onStopDrag: this.onTimelineStop
         }
+
+        let transformSpecificProps: Partial<TimelineProps> = {}
+        if (activeTab === "map")
+            transformSpecificProps = {
+                onTargetChange: this.onMapTargetChange,
+                singleYearMode: true,
+                onStartDrag: undefined,
+                onStopDrag: undefined
+            }
+        else if (activeTab === "table")
+            transformSpecificProps = {
+                singleYearMode: chart.multiMetricTableMode
+            }
+        else if (chart.isLineChart)
+            transformSpecificProps = { singleYearPlay: true }
+        else if (chart.isSlopeChart)
+            transformSpecificProps = { disablePlay: true }
+
+        return {
+            ...commonProps,
+            ...transformSpecificProps
+        }
+    }
+
+    render() {
+        if (this.timelineProps.years.length === 0) return null
+        return <Timeline {...this.timelineProps} />
     }
 }
 
