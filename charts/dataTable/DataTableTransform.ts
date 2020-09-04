@@ -219,10 +219,16 @@ export class DataTableTransform extends ChartTransform {
     @computed get targetYears(): TargetYears {
         // legacy support for Exemplars Explorer project
         if (this.chart.tab === "map")
-            return [getTimeWithinTimeRange([this.chart.minYear, this.chart.maxYear], this.chart.mapTransform.targetYearProp)]
+            return [
+                getTimeWithinTimeRange(
+                    [this.chart.minYear, this.chart.maxYear],
+                    this.chart.mapTransform.targetYearProp
+                )
+            ]
 
-        return this.startYear === this.endYear ? 
-            [this.startYear] : [this.startYear, this.endYear]
+        return this.startYear === this.endYear
+            ? [this.startYear]
+            : [this.startYear, this.endYear]
     }
 
     formatValue(
