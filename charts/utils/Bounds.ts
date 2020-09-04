@@ -319,7 +319,7 @@ export class Bounds {
         return [this.left, this.right]
     }
 
-    split(pieces: number): Bounds[] {
+    split(pieces: number, padding = 0): Bounds[] {
         // Splits a rectangle into smaller rectangles.
         // The Facet Storybook has a visual demo of how this works.
         // I form the smallest possible square and then fill that up. This always goes left to right, top down.
@@ -329,13 +329,17 @@ export class Bounds {
         // any required adjustments.
         const columns = Math.ceil(Math.sqrt(pieces))
         const rows = Math.ceil(pieces / columns)
-        const boxWidth = Math.floor(this.width / columns)
-        const boxHeight = Math.floor(this.height / rows)
+        const columnPadding = padding
+        const rowPadding = padding
+        const contentWidth = this.width - columnPadding * (columns - 1)
+        const contentHeight = this.height - rowPadding * (rows - 1)
+        const boxWidth = Math.floor(contentWidth / columns)
+        const boxHeight = Math.floor(contentHeight / rows)
         return range(0, pieces).map(
             (index: number) =>
                 new Bounds(
-                    (index % columns) * boxWidth,
-                    Math.floor(index / columns) * boxHeight,
+                    (index % columns) * (boxWidth + columnPadding),
+                    Math.floor(index / columns) * (boxHeight + rowPadding),
                     boxWidth,
                     boxHeight
                 )

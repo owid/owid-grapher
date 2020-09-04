@@ -5,16 +5,23 @@ import { ChartConfig } from "charts/core/ChartConfig"
 import { computed } from "mobx"
 import { ChartTypeMap, ChartTypeName } from "charts/core/ChartTypes"
 
-@observer
-export class FacetChart extends React.Component<{
-    bounds: Bounds
+interface FacetChartProps {
+    width: number
+    height: number
     number: number
+    padding: number
     chartTypeName: ChartTypeName
     chart: ChartConfig
-}> {
+}
+
+@observer
+export class FacetChart extends React.Component<FacetChartProps> {
     @computed get smallCharts() {
-        const { chart, bounds, chartTypeName } = this.props
-        const charts = bounds.split(this.props.number || 1)
+        const { chart, chartTypeName } = this.props
+        const charts = this.bounds.split(
+            this.props.number || 1,
+            this.props.padding
+        )
         const ChartType = ChartTypeMap[chartTypeName] as any
 
         return charts.map((bounds: Bounds, index: number) => (
@@ -22,7 +29,17 @@ export class FacetChart extends React.Component<{
         ))
     }
 
+    @computed get bounds() {
+        const { width, height } = this.props
+        return new Bounds(0, 0, width, height)
+    }
+
     render() {
-        return this.smallCharts
+        const { width, height } = this.props
+        return (
+            <svg width={width} height={height}>
+                {this.smallCharts}
+            </svg>
+        )
     }
 }

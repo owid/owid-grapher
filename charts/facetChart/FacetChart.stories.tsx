@@ -3,32 +3,41 @@ import "site/client/owid.scss"
 import "charts/core/chart.scss"
 import { FacetChart } from "./FacetChart"
 import { basicGdpChart, basicScatter } from "charts/test/samples"
-import { Bounds } from "charts/utils/Bounds"
 import { ChartTypeName } from "charts/core/ChartTypes"
 
 export default {
     title: "FacetChart",
     component: FacetChart,
     argTypes: {
-        number: { control: "range" }
+        chartTypeName: { control: "select", defaultValue: "LineChart" },
+        number: { control: "range", defaultValue: 4 },
+        padding: { control: "range", defaultValue: 1 },
+        width: {
+            control: { type: "range", min: 50, max: 2000 },
+            defaultValue: 640
+        },
+        height: {
+            control: { type: "range", min: 50, max: 2000 },
+            defaultValue: 480
+        },
+        chart: { control: null }
     }
 }
 
 export const Default = (args: any) => {
-    const chartType: ChartTypeName = args.chartTypeName || "LineChart"
+    const chartType: ChartTypeName = args.chartTypeName
     const chart = chartType.includes("Scatter")
         ? basicScatter()
         : basicGdpChart()
-    const bounds = new Bounds(0, 0, 640, 480)
 
     return (
-        <svg width={640} height={480}>
-            <FacetChart
-                number={args.number || 4}
-                chartTypeName={chartType}
-                chart={chart}
-                bounds={bounds}
-            />
-        </svg>
+        <FacetChart
+            number={args.number}
+            chartTypeName={chartType}
+            chart={chart}
+            width={args.width}
+            height={args.height}
+            padding={args.padding}
+        />
     )
 }
