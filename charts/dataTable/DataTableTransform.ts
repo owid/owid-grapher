@@ -16,7 +16,6 @@ import { ChartDimension } from "charts/core/ChartDimension"
 import { TickFormattingOptions } from "charts/core/ChartConstants"
 import {
     getTimeWithinTimeRange,
-    Time,
     isUnboundedLeft
 } from "charts/utils/TimeBounds"
 import { ChartTransform } from "charts/core/ChartTransform"
@@ -218,22 +217,12 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get targetYears(): TargetYears {
-        const mapTarget = this.chart.mapTransform.targetYearProp
-        const [startYear, endYear] = this.chart.timeDomain
-        const timeRange: [Time, Time] = [this.chart.minYear, this.chart.maxYear]
-        if (this.chart.tab === "map") {
-            return [getTimeWithinTimeRange(timeRange, mapTarget)]
-        } else if (startYear === endYear) {
-            return [getTimeWithinTimeRange(timeRange, startYear)]
-        } else {
-            return [
-                getTimeWithinTimeRange(timeRange, startYear),
-                getTimeWithinTimeRange(timeRange, endYear)
-            ]
-        }
-        // return this.startYear == this.endYear
-        //     ? [this.startYear]
-        //     : [this.startYear, this.endYear]
+        // legacy support for Exemplars Explorer project
+        if (this.chart.tab === "map")
+            return [getTimeWithinTimeRange([this.chart.minYear, this.chart.maxYear], this.chart.mapTransform.targetYearProp)]
+
+        return this.startYear === this.endYear ? 
+            [this.startYear] : [this.startYear, this.endYear]
     }
 
     formatValue(
