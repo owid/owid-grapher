@@ -73,7 +73,6 @@ import { ChartView } from "./ChartView"
 import { Bounds } from "charts/utils/Bounds"
 import { IChartTransform } from "./ChartTransform"
 import { TooltipProps } from "charts/core/Tooltip"
-import { canBeExplorable } from "utils/charts"
 import { BAKED_GRAPHER_URL, ENV } from "settings"
 import {
     minTimeFromJSON,
@@ -94,6 +93,7 @@ import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
 import { ChartScript } from "./ChartScript"
 import { DimensionSlot } from "./DimensionSlot"
+import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 
 declare const App: any
 declare const window: any
@@ -882,6 +882,12 @@ export class ChartConfig {
             json.slug = this.slug
             json.isAutoSlug = true
         }
+
+        if (json.xAxis && json.xAxis.containerOptions)
+            delete json.xAxis.containerOptions
+
+        if (json.yAxis && json.yAxis.containerOptions)
+            delete json.yAxis.containerOptions
 
         // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
         // in the Grapher Admin with an overlay tab open

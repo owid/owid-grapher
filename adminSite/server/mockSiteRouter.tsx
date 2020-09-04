@@ -16,7 +16,6 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderBlogByPageNum,
-    renderExplorableIndicatorsJson,
     renderCovidPage,
     countryProfileCountryPage
 } from "site/server/siteBaking"
@@ -41,6 +40,7 @@ import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidC
 import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import { renderCovidExplorerPage } from "explorer/admin/ExplorerBaker"
+import { renderExplorableIndicatorsJson } from "explorer/indicatorExplorer/IndicatorBaking"
 
 const mockSiteRouter = Router()
 

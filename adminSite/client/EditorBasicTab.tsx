@@ -10,8 +10,8 @@ import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
-import { canBeExplorable } from "utils/charts"
 import { DimensionSlot } from "charts/core/DimensionSlot"
+import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 
 @observer
 class DimensionSlotView extends React.Component<{

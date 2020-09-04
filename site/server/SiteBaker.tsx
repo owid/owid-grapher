@@ -25,7 +25,6 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderExplorableIndicatorsJson,
     renderCountryProfile,
     flushCache as siteBakingFlushCache
 } from "./siteBaking"
@@ -58,6 +57,7 @@ import {
     bakeAllPublishedExplorers,
     renderCovidExplorerPage
 } from "explorer/admin/ExplorerBaker"
+import { renderExplorableIndicatorsJson } from "explorer/indicatorExplorer/IndicatorBaking"
 
 // Static site generator using Wordpress
 
