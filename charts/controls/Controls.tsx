@@ -451,7 +451,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
                 chart.timeDomain[0]
             )
         if (activeTab === "map") return chart.mapTransform.targetYearProp
-        else return chart.activeTransform.startYear!
+        return chart.activeTransform.startYear!
     }
 
     @computed private get endYear() {
@@ -461,13 +461,13 @@ class TimelineControl extends React.Component<TimelineControlProps> {
                 ? chart.dataTableTransform.startYear
                 : chart.timeDomain[1]
         if (activeTab === "map") return chart.mapTransform.targetYearProp
-        else return chart.activeTransform.endYear!
+        return chart.activeTransform.endYear!
     }
 
     componentDidUpdate(prevProps: TimelineControlProps) {
         if (
             prevProps.activeTab !== this.props.activeTab &&
-            this.props.activeTab != "map"
+            this.props.activeTab !== "map"
         )
             this.onChartTargetChange({
                 targetStartYear: this.startYear,
@@ -478,7 +478,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
     @computed get timelineProps(): TimelineProps {
         const { activeTab, chart } = this.props
         return {
-            chart: chart,
+            chart,
             years:
                 activeTab === "map"
                     ? chart.mapTransform.timelineYears
@@ -517,7 +517,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
             return <Timeline {...this.timelineProps} singleYearPlay={true} />
         else if (chart.isSlopeChart)
             return <Timeline {...this.timelineProps} disablePlay={true} />
-        else return <Timeline {...this.timelineProps} />
+        return <Timeline {...this.timelineProps} />
     }
 }
 
