@@ -216,7 +216,7 @@ adminRouter.get("/datasets/:datasetId/downloadZip", async (req, res) => {
 adminRouter.get("/posts/preview/:postId", async (req, res) => {
     const postId = expectInt(req.params.postId)
 
-    res.send(await renderPreview(postId, true))
+    res.send(await renderPreview(postId))
 })
 
 addExplorerAdminRoutes(adminRouter)
