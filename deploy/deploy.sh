@@ -5,46 +5,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 RSYNC_TESTS="rsync -havz --no-perms --progress --delete --include=/test --include=*.test.ts --include=*.test.tsx --exclude-from=$DIR/.rsync-ignore"
 RSYNC="rsync -havz --no-perms --progress --delete --delete-excluded --exclude-from=$DIR/.rsync-ignore"
 
-if [ "$1" == "staging" ]; then
+ROOT="/home/owid"
+NAME="$1"
+
+if [[ "$NAME" =~ ^(staging|hans|playfair|jefferson|nightingale|explorer|exemplars|tufte|roser)$ ]]; then
   HOST="owid@165.22.127.239"
-  ROOT="/home/owid"
-  NAME="staging"
-elif [ "$1" == "hans" ]; then
-  HOST="owid@165.22.127.239"
-  ROOT="/home/owid"
-  NAME="hans"
-elif [ "$1" == "playfair" ]; then
-  HOST="owid@165.22.127.239"
-  ROOT="/home/owid"
-  NAME="playfair"
-elif [ "$1" == "jefferson" ]; then
- HOST="owid@165.22.127.239"
- ROOT="/home/owid"
- NAME="jefferson"
-elif [ "$1" == "nightingale" ]; then
- HOST="owid@165.22.127.239"
- ROOT="/home/owid"
- NAME="nightingale"
-elif [ "$1" == "explorer" ]; then
-  HOST="owid@165.22.127.239"
-  ROOT="/home/owid"
-  NAME="explorer"
-elif [ "$1" == "exemplars" ]; then
-  HOST="owid@165.22.127.239"
-  ROOT="/home/owid"
-  NAME="exemplars"
-elif [ "$1" == "tufte" ]; then
-  HOST="owid@165.22.127.239"
-  ROOT="/home/owid"
-  NAME="tufte"
-elif [ "$1" == "roser" ]; then
-  HOST="owid@165.22.127.239"
-  ROOT="/home/owid"
-  NAME="roser"
-elif [ "$1" == "live" ]; then
+elif [ "$NAME" == "live" ]; then
   HOST="owid@209.97.185.49"
-  ROOT="/home/owid"
-  NAME="live"
 
   if [ "$(git rev-parse --abbrev-ref HEAD)" != "master" ]; then
     echo "Please run from the master branch."
@@ -63,7 +30,7 @@ else
   exit 1
 fi
 
-if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]
+if [[ $REPLY =~ ^[Yy]$ ]] || [ "$NAME" != "live" ]
 then
   OLD_REPO_BACKUP="$ROOT/tmp/$NAME-old"
   SYNC_TARGET="$ROOT/tmp/$NAME-$USER"
