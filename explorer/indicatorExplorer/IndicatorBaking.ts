@@ -1,4 +1,4 @@
-import { FORCE_EXPLORABLE_CHART_IDS, canBeExplorable } from "./IndicatorUtils"
+import { FORCE_EXPLORABLE_CHART_IDS, isExplorable } from "./IndicatorUtils"
 import { ChartScript } from "charts/core/ChartScript"
 import { Indicator } from "./Indicator"
 import * as db from "db/db"
@@ -33,13 +33,4 @@ export async function renderExplorableIndicatorsJson() {
     }))
 
     return JSON.stringify({ indicators: result })
-}
-
-export function isExplorable(config: ChartScript): boolean {
-    return (
-        (config.isExplorable ||
-            (config.id !== undefined &&
-                FORCE_EXPLORABLE_CHART_IDS.includes(config.id))) &&
-        canBeExplorable(config)
-    )
 }

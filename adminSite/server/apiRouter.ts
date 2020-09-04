@@ -17,7 +17,7 @@ import { sendMail } from "adminSite/server/utils/mail"
 import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
-import { getVariableData, writeVariableCSV } from "db/model/Variable"
+import { getVariableData } from "db/model/Variable"
 import { ChartScript } from "charts/core/ChartScript"
 import {
     CountryNameFormat,
@@ -37,10 +37,10 @@ import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSite/client/ChartEditor"
 import { enqueueDeploy } from "deploy/queue"
-import { isExplorable } from "utils/charts"
 import { FunctionalRouter } from "./utils/FunctionalRouter"
 import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/server"
+import { isExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 
 const apiRouter = new FunctionalRouter()
 

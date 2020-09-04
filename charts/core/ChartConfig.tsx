@@ -883,6 +883,12 @@ export class ChartConfig {
             json.isAutoSlug = true
         }
 
+        if (json.xAxis && json.xAxis.containerOptions)
+            delete json.xAxis.containerOptions
+
+        if (json.yAxis && json.yAxis.containerOptions)
+            delete json.yAxis.containerOptions
+
         // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
         // in the Grapher Admin with an overlay tab open
         json.overlay = undefined
