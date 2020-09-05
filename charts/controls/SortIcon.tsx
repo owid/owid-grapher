@@ -9,7 +9,7 @@ import { faSortAmountDown } from "@fortawesome/free-solid-svg-icons/faSortAmount
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { defaultTo } from "charts/utils/Util"
-import { SortOrder } from "charts/core/ChartConstants"
+import { SortOrder } from "charts/core/GrapherConstants"
 
 export function SortIcon(props: {
     type?: "text" | "numeric"

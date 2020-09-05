@@ -3,7 +3,7 @@ import React from "react"
 import {
     ChartViewContext,
     ChartViewContextType
-} from "charts/core/ChartViewContext"
+} from "charts/chart/ChartViewContext"
 import { action } from "mobx"
 
 @observer

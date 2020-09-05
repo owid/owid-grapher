@@ -4,13 +4,13 @@ import * as React from "react"
 import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { Grapher } from "charts/core/Grapher"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "charts/axis/Axis"
 import { DualAxisComponent } from "charts/axis/AxisViews"
 import { ComparisonLine } from "./ComparisonLine"
 
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 
 import {
     sortBy,
@@ -23,7 +23,7 @@ import {
 } from "charts/utils/Util"
 import { Vector2 } from "charts/utils/Vector2"
 import { select } from "d3-selection"
-import { Tooltip } from "charts/core/Tooltip"
+import { Tooltip } from "charts/chart/Tooltip"
 import { TimeBound } from "charts/utils/TimeBounds"
 
 interface ScatterSeries {
@@ -57,7 +57,7 @@ interface PointsWithLabelsProps {
     yAxis: VerticalAxis
     sizeDomain: [number, number]
     hideLines: boolean
-    chart: ChartConfig
+    chart: Grapher
 }
 
 interface ScatterRenderPoint {
@@ -579,9 +579,9 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 @observer
 export class TimeScatter extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
 }> {
-    @computed get chart(): ChartConfig {
+    @computed get chart(): Grapher {
         return this.props.chart
     }
 
@@ -618,7 +618,7 @@ export class TimeScatter extends React.Component<{
     }
 
     @computed get hideLines(): boolean {
-        return !!this.chart.props.hideConnectedScatterLines
+        return !!this.chart.script.hideConnectedScatterLines
     }
 
     render() {

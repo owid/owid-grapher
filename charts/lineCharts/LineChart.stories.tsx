@@ -2,7 +2,7 @@ import * as React from "react"
 import "site/client/owid.scss"
 import "charts/core/chart.scss"
 import { LineChart } from "charts/lineCharts/LineChart"
-import { basicGdpChart } from "charts/test/samples"
+import { basicGdpGrapher } from "charts/test/samples"
 
 export default {
     title: "LineChart",
@@ -10,7 +10,7 @@ export default {
 }
 
 export const Default = () => {
-    const chartConfig = basicGdpChart()
+    const chartConfig = basicGdpGrapher()
     chartConfig.hideEntityControls = true
 
     return (

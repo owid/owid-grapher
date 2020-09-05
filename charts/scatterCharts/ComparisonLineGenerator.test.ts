@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
-import { ScaleType } from "charts/core/ChartConstants"
+import { ScaleType } from "charts/core/GrapherConstants"
 
 describe(generateComparisonLinePoints, () => {
     describe("For y = x", () => {

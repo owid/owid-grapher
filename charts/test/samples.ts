@@ -1,9 +1,9 @@
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { parseDelimited } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 // Todo: improve ChartScript to ditch "v2", selectedData, and owidVariableId.
-export function basicGdpChart() {
+export function basicGdpGrapher() {
     const props = {
         selectedData: [
             { index: 0, entityId: 0 },
@@ -13,9 +13,9 @@ export function basicGdpChart() {
         useV2: true,
         yAxis: {},
         dimensions: [{ variableId: 99, property: "y" }]
-    } as Partial<ChartScript>
+    } as Partial<GrapherScript>
 
-    const chartConfig = new ChartConfig(props as any)
+    const grapher = new Grapher(props as any)
     const rows = parseDelimited(`entityName,year,gdp,entityId,population
 France,2000,100,0,123
 Germany,2000,200,1,125
@@ -32,20 +32,20 @@ Germany,2003,120,1,256`) as any
         row.year = parseInt(row.year)
         row.population = parseInt(row.population)
     })
-    chartConfig.table.cloneAndAddRowsAndDetectColumns(rows)
-    chartConfig.table.columnsBySlug.get("gdp")!.spec.owidVariableId = 99
-    chartConfig.table.columnsBySlug.get("population")!.spec.owidVariableId = 100
-    return chartConfig
+    grapher.table.cloneAndAddRowsAndDetectColumns(rows)
+    grapher.table.columnsBySlug.get("gdp")!.spec.owidVariableId = 99
+    grapher.table.columnsBySlug.get("population")!.spec.owidVariableId = 100
+    return grapher
 }
 
-export const basicScatter = () => {
-    const chartRuntime = basicGdpChart()
-    const script = chartRuntime.props
+export const basicScatterGrapher = () => {
+    const grapher = basicGdpGrapher()
+    const script = grapher.script
     script.type = "ScatterPlot"
-    chartRuntime.yAxisOptions.min = 0
-    chartRuntime.yAxisOptions.max = 500
-    chartRuntime.xAxisOptions.min = 0
-    chartRuntime.xAxisOptions.max = 500
+    grapher.yAxisOptions.min = 0
+    grapher.yAxisOptions.max = 500
+    grapher.xAxisOptions.min = 0
+    grapher.xAxisOptions.max = 500
     script.dimensions.push({ variableId: 100, property: "x", display: {} })
-    return chartRuntime
+    return grapher
 }

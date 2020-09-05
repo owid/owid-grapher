@@ -8,7 +8,7 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle"
 
-import { Tippy } from "charts/core/Tippy"
+import { Tippy } from "charts/chart/Tippy"
 
 import {
     CovidTableHeaderCell as HeaderCell,

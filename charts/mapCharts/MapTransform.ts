@@ -1,5 +1,5 @@
 import { computed, autorun, runInAction } from "mobx"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import {
     defaultTo,
     isString,
@@ -21,10 +21,10 @@ import {
 } from "charts/utils/TimeBounds"
 
 import { ChoroplethData } from "charts/mapCharts/ChoroplethMap"
-import { ChartDimension } from "charts/core/ChartDimension"
+import { ChartDimension } from "charts/chart/ChartDimension"
 import { MapTopology } from "./MapTopology"
 
-import { ChartTransform } from "charts/core/ChartTransform"
+import { ChartTransform } from "charts/chart/ChartTransform"
 import { ColorScaleBin } from "charts/color/ColorScaleBin"
 import { ColorScale } from "charts/color/ColorScale"
 
@@ -36,7 +36,7 @@ interface MapDataValue {
 }
 
 export class MapTransform extends ChartTransform {
-    constructor(chart: ChartConfig) {
+    constructor(chart: Grapher) {
         super(chart)
 
         if (!chart.isNode) this.ensureValidConfig()
@@ -101,7 +101,7 @@ export class MapTransform extends ChartTransform {
         // into a case where the timeline needs to be shown
         return (
             this.timelineYears.length > 1 &&
-            !this.chart.props.hideTimeline &&
+            !this.chart.script.hideTimeline &&
             !this.props.hideTimeline
         )
     }

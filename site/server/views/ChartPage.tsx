@@ -5,7 +5,7 @@ import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
 import * as React from "react"
 import urljoin from "url-join"
 import * as lodash from "lodash"
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Head } from "./Head"
@@ -16,7 +16,7 @@ import { LoadingIndicator } from "charts/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
 
 export const ChartPage = (props: {
-    chart: ChartScript
+    chart: GrapherScript
     post?: Post.Row
     relatedCharts?: RelatedChart[]
 }) => {

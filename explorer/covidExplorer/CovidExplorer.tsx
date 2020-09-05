@@ -1,10 +1,10 @@
 import React from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartScript } from "charts/core/ChartScript"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { Grapher } from "charts/core/Grapher"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
@@ -80,11 +80,11 @@ import {
     ChartDimensionSpec,
     ChartDimension,
     ChartDimensionInterface
-} from "charts/core/ChartDimension"
+} from "charts/chart/ChartDimension"
 import { BinningStrategy } from "charts/color/BinningStrategies"
 import { UrlBinder } from "charts/utils/UrlBinder"
-import { ExtendedChartUrl } from "charts/core/ChartUrl"
-import { ScaleType } from "charts/core/ChartConstants"
+import { ExtendedGrapherUrl } from "charts/core/GrapherUrl"
+import { ScaleType } from "charts/core/GrapherConstants"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -771,7 +771,7 @@ export class CovidExplorer extends React.Component<{
         if (params.colorStrategy === "ptr")
             this.shortTermPositivityRateVarId = this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()
 
-        const chartProps = this.chart.props
+        const chartProps = this.chart.script
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
         chartProps.note = this.note
@@ -842,7 +842,7 @@ export class CovidExplorer extends React.Component<{
         return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
     }
 
-    @computed get sourceChart(): ChartScript | undefined {
+    @computed get sourceChart(): GrapherScript | undefined {
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
@@ -892,7 +892,7 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound playDefaultViewCommand() {
         // todo: Should  just be "coronaDefaultView"
-        const props = this.chart.props
+        const props = this.chart.script
         props.tab = "chart"
         this.chart.xAxisOptions.scaleType = ScaleType.linear
         this.chart.yAxisOptions.scaleType = ScaleType.log
@@ -905,9 +905,9 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleTabCommand() {
-        this.chart.props.tab = next(
+        this.chart.script.tab = next(
             ["chart", "map", "table"],
-            this.chart.props.tab
+            this.chart.script.tab
         )
     }
 
@@ -994,9 +994,9 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleYScaleTypeCommand() {
-        this.chart.props.yAxis.scaleType = next(
+        this.chart.script.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
-            this.chart.props.yAxis.scaleType
+            this.chart.script.yAxis.scaleType
         )
     }
 
@@ -1017,8 +1017,8 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleFilterAllCommand() {
-        this.chart.props.minPopulationFilter =
-            this.chart.props.minPopulationFilter === 2e9 ? undefined : 2e9
+        this.chart.script.minPopulationFilter =
+            this.chart.script.minPopulationFilter === 2e9 ? undefined : 2e9
         this.renderControlsThenUpdateChart()
     }
 
@@ -1113,7 +1113,7 @@ export class CovidExplorer extends React.Component<{
 
     bindToWindow() {
         new UrlBinder().bindToWindow(
-            new ExtendedChartUrl(this.chart.url, [this.props.params])
+            new ExtendedGrapherUrl(this.chart.url, [this.props.params])
         )
     }
 
@@ -1369,7 +1369,7 @@ export class CovidExplorer extends React.Component<{
             : ""
     }
 
-    @observable.ref chart: ChartConfig = new ChartConfig(
+    @observable.ref chart: Grapher = new Grapher(
         {
             slug: covidDashboardSlug,
             type: this.constrainedParams.type,

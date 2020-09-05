@@ -6,11 +6,11 @@ import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
-import { ChartConfig } from "charts/core/ChartConfig"
-import { SortOrder } from "charts/core/ChartConstants"
+import { Grapher } from "charts/core/Grapher"
+import { SortOrder } from "charts/core/GrapherConstants"
 import { capitalize, some, orderBy, upperFirst } from "charts/utils/Util"
 import { SortIcon } from "charts/controls/SortIcon"
-import { Tippy } from "charts/core/Tippy"
+import { Tippy } from "charts/chart/Tippy"
 import {
     DataTableRow,
     TargetYearMode,
@@ -26,7 +26,7 @@ import {
 } from "./DataTableTransform"
 
 interface DataTableProps {
-    chart: ChartConfig
+    chart: Grapher
 }
 
 interface DataTableState {

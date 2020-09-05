@@ -1,7 +1,7 @@
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { Command, CommandPalette } from "charts/controls/CommandPalette"
 import { Bounds } from "charts/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -9,7 +9,7 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { CountryPicker } from "charts/controls/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { ExplorerQueryParams } from "./ExplorerProgram"
 import { throttle } from "charts/utils/Util"
 
@@ -18,7 +18,7 @@ import { throttle } from "charts/utils/Util"
 export class ExplorerShell extends React.Component<{
     explorerSlug: string
     controlPanels: JSX.Element[]
-    chart: ChartConfig
+    chart: Grapher
     availableEntities: string[]
     headerElement: JSX.Element
     params: ExplorerQueryParams

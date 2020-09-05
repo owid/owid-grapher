@@ -15,7 +15,7 @@ import {
     roundSigFig,
     mapNullToUndefined
 } from "charts/utils/Util"
-import { Color } from "charts/core/ChartConstants"
+import { Color } from "charts/core/GrapherConstants"
 import { ColorScheme, ColorSchemes } from "charts/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"

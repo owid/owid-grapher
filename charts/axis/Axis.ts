@@ -14,7 +14,7 @@ import {
     TickFormattingOptions,
     ScaleType,
     ScaleTypeConfig
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 import { Bounds } from "charts/utils/Bounds"
 import { TextWrap } from "charts/text/TextWrap"
 

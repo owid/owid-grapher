@@ -27,7 +27,12 @@ export const EPOCH_DATE = "2020-01-21"
 // todo: remove
 export type EntityDimensionKey = string
 
-export type ChartTabOption = "chart" | "map" | "sources" | "download" | "table"
+export type GrapherTabOption =
+    | "chart"
+    | "map"
+    | "sources"
+    | "download"
+    | "table"
 
 export type Color = string
 

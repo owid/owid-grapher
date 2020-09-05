@@ -1,15 +1,17 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
-import { ChartType, ChartTypeName } from "charts/core/ChartConstants"
-import { ChartScript } from "charts/core/ChartScript"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartType, ChartTypeName } from "charts/core/GrapherConstants"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { Grapher } from "charts/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
 import { Indicator } from "./Indicator"
 
 export type ExplorerChartType = ChartTypeName | "WorldMap"
 
-function chartConfigFromIndicator(indicator: Indicator): Partial<ChartScript> {
+function chartConfigFromIndicator(
+    indicator: Indicator
+): Partial<GrapherScript> {
     return {
         ...indicator,
         // TODO need to derive selected data from ExploreModel, since selections
@@ -34,7 +36,7 @@ export class ExploreModel {
 
     @observable indicatorId?: number = undefined
 
-    chart: ChartConfig
+    chart: Grapher
     url: ExploreUrl
     store: RootStore
     disposers: IReactionDisposer[] = []
@@ -49,15 +51,15 @@ export class ExploreModel {
     }
 
     @action.bound updateChartFromExplorer() {
-        this.chart.props.type = this.configChartType
-        this.chart.props.hasMapTab = this.isMap
-        this.chart.props.hasChartTab = !this.isMap
+        this.chart.script.type = this.configChartType
+        this.chart.script.hasMapTab = this.isMap
+        this.chart.script.hasChartTab = !this.isMap
         this.chart.tab = this.isMap ? "map" : "chart"
     }
 
     constructor(store: RootStore) {
         this.store = store
-        this.chart = new ChartConfig()
+        this.chart = new Grapher()
         this.url = new ExploreUrl(this, this.chart.url)
 
         // We need these updates in an autorun because the chart config objects aren't really meant

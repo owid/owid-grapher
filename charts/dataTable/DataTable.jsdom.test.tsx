@@ -6,7 +6,7 @@ import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 import { setupChart } from "charts/test/utils"
 
 import { DataTable, ClosestYearNotice } from "./DataTable"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 describe(DataTable, () => {
     describe("when you render a table", () => {
@@ -124,7 +124,7 @@ describe(DataTable, () => {
     })
 
     describe("when you try to hide countries", () => {
-        let chart: ChartConfig
+        let chart: Grapher
         let view: ShallowWrapper
         beforeAll(() => {
             chart = setupChart(677, [104402])

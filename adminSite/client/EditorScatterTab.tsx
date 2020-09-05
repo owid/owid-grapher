@@ -2,7 +2,7 @@ import * as React from "react"
 import { extend, debounce } from "charts/utils/Util"
 import { observable, computed, action, toJS } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import { Toggle, NumberField, SelectField, TextField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
@@ -10,10 +10,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ScatterPointLabelStrategy,
     HighlightToggleConfig
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 
 @observer
-export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
+export class EditorScatterTab extends React.Component<{ chart: Grapher }> {
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
     @observable highlightToggle: HighlightToggleConfig = {
         description: "",
@@ -24,17 +24,17 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
         return !!this.props.chart.highlightToggle
     }
 
-    constructor(props: { chart: ChartConfig }) {
+    constructor(props: { chart: Grapher }) {
         super(props)
         extend(this.highlightToggle, props.chart.highlightToggle)
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.props.chart.props.hideTimeline = value || undefined
+        this.props.chart.script.hideTimeline = value || undefined
     }
 
     @action.bound onToggleHideLinesOutsideTolerance(value: boolean) {
-        this.props.chart.props.hideLinesOutsideTolerance = value || undefined
+        this.props.chart.script.hideLinesOutsideTolerance = value || undefined
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
@@ -42,13 +42,14 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
     }
 
     @action.bound onToggleHighlightToggle(value: boolean) {
-        if (value) this.props.chart.props.highlightToggle = this.highlightToggle
-        else this.props.chart.props.highlightToggle = undefined
+        if (value)
+            this.props.chart.script.highlightToggle = this.highlightToggle
+        else this.props.chart.script.highlightToggle = undefined
     }
 
     save() {
         if (this.hasHighlightToggle)
-            this.props.chart.props.highlightToggle = toJS(this.highlightToggle)
+            this.props.chart.script.highlightToggle = toJS(this.highlightToggle)
     }
 
     @computed get excludedEntityChoices(): string[] {
@@ -57,32 +58,32 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
 
     @action.bound onExcludeEntity(entity: string) {
         const { chart } = this.props
-        if (chart.props.excludedEntities === undefined) {
-            chart.props.excludedEntities = []
+        if (chart.script.excludedEntities === undefined) {
+            chart.script.excludedEntities = []
         }
 
         const entityId = chart.table.entityNameToIdMap.get(entity)!
-        if (chart.props.excludedEntities.indexOf(entityId) === -1)
-            chart.props.excludedEntities.push(entityId)
+        if (chart.script.excludedEntities.indexOf(entityId) === -1)
+            chart.script.excludedEntities.push(entityId)
     }
 
     @action.bound onUnexcludeEntity(entity: string) {
         const { chart } = this.props
-        if (!chart.props.excludedEntities) return
+        if (!chart.script.excludedEntities) return
 
         const entityId = chart.table.entityNameToIdMap.get(entity)
-        chart.props.excludedEntities = chart.props.excludedEntities.filter(
+        chart.script.excludedEntities = chart.script.excludedEntities.filter(
             e => e !== entityId
         )
     }
 
     @action.bound onToggleConnection(value: boolean) {
         const { chart } = this.props
-        chart.props.hideConnectedScatterLines = value
+        chart.script.hideConnectedScatterLines = value
     }
 
     @action.bound onChangeScatterPointLabelStrategy(value: string) {
-        this.props.chart.props.scatterPointLabelStrategy = value as ScatterPointLabelStrategy
+        this.props.chart.script.scatterPointLabelStrategy = value as ScatterPointLabelStrategy
     }
 
     render() {
@@ -98,17 +99,17 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                 <Section name="Timeline">
                     <Toggle
                         label="Hide timeline"
-                        value={!!chart.props.hideTimeline}
+                        value={!!chart.script.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     <Toggle
                         label="Hide entities without data for full time span (within tolerance)"
-                        value={!!chart.props.hideLinesOutsideTolerance}
+                        value={!!chart.script.hideLinesOutsideTolerance}
                         onValue={this.onToggleHideLinesOutsideTolerance}
                     />
                     <Toggle
                         label="Hide connected scatter lines"
-                        value={!!chart.props.hideConnectedScatterLines}
+                        value={!!chart.script.hideConnectedScatterLines}
                         onValue={this.onToggleConnection}
                     />
                     <NumberField
@@ -120,7 +121,7 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                 </Section>
                 <Section name="Point Labels">
                     <SelectField
-                        value={chart.props.scatterPointLabelStrategy}
+                        value={chart.script.scatterPointLabelStrategy}
                         onValue={this.onChangeScatterPointLabelStrategy}
                         options={["year", "y", "x"]}
                     />
@@ -128,10 +129,10 @@ export class EditorScatterTab extends React.Component<{ chart: ChartConfig }> {
                 <Section name="Filtering">
                     <Toggle
                         label="Exclude entities that do not belong in any color group"
-                        value={!!chart.props.matchingEntitiesOnly}
+                        value={!!chart.script.matchingEntitiesOnly}
                         onValue={action(
                             (value: boolean) =>
-                                (chart.props.matchingEntitiesOnly =
+                                (chart.script.matchingEntitiesOnly =
                                     value || undefined)
                         )}
                     />

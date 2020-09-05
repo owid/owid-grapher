@@ -5,7 +5,7 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
 import { includes, guid, uniq, makeSafeForCSS } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { Bounds } from "charts/utils/Bounds"
 import {
     VerticalAxisComponent,
@@ -13,14 +13,14 @@ import {
     VerticalAxisGridLines
 } from "charts/axis/AxisViews"
 import { VerticalAxis, DualAxis } from "charts/axis/Axis"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import { Text } from "charts/text/Text"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
 } from "charts/scatterCharts/ScatterColorLegend"
-import { Tooltip } from "charts/core/Tooltip"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { Tooltip } from "charts/chart/Tooltip"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 
 export interface StackedBarValue {
     x: number
@@ -106,7 +106,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 @observer
 export class StackedBarChart extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
 }> {
     base!: SVGGElement
     readonly minBarSpacing = 4

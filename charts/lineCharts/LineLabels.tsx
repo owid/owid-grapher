@@ -20,7 +20,7 @@ import { VerticalAxis } from "charts/axis/Axis"
 import { Bounds } from "charts/utils/Bounds"
 import { AddEntityButton } from "charts/controls/Controls"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2

@@ -3,16 +3,16 @@ import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
 
 import { uniqBy, isTouchDevice, sortBy } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
-import { EntityDimensionInfo } from "charts/core/ChartDimension"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
+import { EntityDimensionInfo } from "charts/chart/ChartDimension"
 
 @observer
 class EntitySelectorMulti extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -176,7 +176,7 @@ class EntitySelectorMulti extends React.Component<{
 
 @observer
 class EntitySelectorSingle extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
     isMobile: boolean
     onDismiss: () => void
 }> {
@@ -289,7 +289,7 @@ class EntitySelectorSingle extends React.Component<{
 
 @observer
 export class EntitySelectorModal extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
     isMobile: boolean
     onDismiss: () => void
 }> {

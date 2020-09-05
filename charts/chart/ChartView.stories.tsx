@@ -3,9 +3,9 @@ import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { Bounds } from "charts/utils/Bounds"
-import { ChartView } from "charts/core/ChartView"
-import { ChartScript } from "charts/core/ChartScript"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartView } from "charts/chart/ChartView"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { Grapher } from "charts/core/Grapher"
 
 const chartViewData = {
     variables: {
@@ -77,11 +77,11 @@ class ChartStoryView extends React.Component {
     }
 
     render() {
-        const chart = new ChartConfig(
+        const chart = new Grapher(
             {
                 hasMapTab: true,
                 dimensions: [{ property: "y", variableId: 66287, display: {} }]
-            } as ChartScript,
+            } as GrapherScript,
             {}
         )
         chart.receiveData(chartViewData as any)

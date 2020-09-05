@@ -2,8 +2,8 @@ import * as React from "react"
 import "site/client/owid.scss"
 import "charts/core/chart.scss"
 import { FacetChart } from "./FacetChart"
-import { basicGdpChart, basicScatter } from "charts/test/samples"
-import { ChartTypeName } from "charts/core/ChartTypes"
+import { basicGdpGrapher, basicScatterGrapher } from "charts/test/samples"
+import { ChartTypeName } from "charts/chart/ChartTypes"
 
 export default {
     title: "FacetChart",
@@ -26,15 +26,15 @@ export default {
 
 export const Default = (args: any) => {
     const chartType: ChartTypeName = args.chartTypeName
-    const chart = chartType.includes("Scatter")
-        ? basicScatter()
-        : basicGdpChart()
+    const grapher = chartType.includes("Scatter")
+        ? basicScatterGrapher()
+        : basicGdpGrapher()
 
     return (
         <FacetChart
             number={args.number}
             chartTypeName={chartType}
-            chart={chart}
+            grapher={grapher}
             width={args.width}
             height={args.height}
             padding={args.padding}

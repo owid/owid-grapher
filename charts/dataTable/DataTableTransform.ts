@@ -11,14 +11,14 @@ import {
     countBy,
     union
 } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
-import { ChartDimension } from "charts/core/ChartDimension"
-import { TickFormattingOptions } from "charts/core/ChartConstants"
+import { Grapher } from "charts/core/Grapher"
+import { ChartDimension } from "charts/chart/ChartDimension"
+import { TickFormattingOptions } from "charts/core/GrapherConstants"
 import {
     getTimeWithinTimeRange,
     isUnboundedLeft
 } from "charts/utils/TimeBounds"
-import { ChartTransform } from "charts/core/ChartTransform"
+import { ChartTransform } from "charts/chart/ChartTransform"
 
 // Target year modes
 
@@ -112,9 +112,9 @@ function getHeaderUnit(unit: string) {
 }
 
 export class DataTableTransform extends ChartTransform {
-    chart: ChartConfig
+    chart: Grapher
 
-    constructor(chart: ChartConfig) {
+    constructor(chart: Grapher) {
         super(chart)
         this.chart = chart
     }

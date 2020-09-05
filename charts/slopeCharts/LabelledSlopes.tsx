@@ -31,15 +31,15 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { ScaleType, EntityDimensionKey } from "charts/core/ChartConstants"
+import { ScaleType, EntityDimensionKey } from "charts/core/GrapherConstants"
 import { Bounds } from "charts/utils/Bounds"
 import { Text } from "charts/text/Text"
 import { TextWrap } from "charts/text/TextWrap"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import { ScaleSelector } from "charts/controls/ScaleSelector"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { AxisOptions } from "charts/axis/Axis"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 export interface SlopeChartValue {
     x: number
@@ -285,7 +285,7 @@ class Slope extends React.Component<SlopeProps> {
 }
 
 interface LabelledSlopesProps {
-    chart: ChartConfig
+    chart: Grapher
     bounds: Bounds
     data: SlopeChartSeries[]
     isInteractive: boolean

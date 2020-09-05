@@ -1,11 +1,11 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, when, reaction, autorun } from "mobx"
-import { ChartScript } from "charts/core/ChartScript"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { Grapher } from "charts/core/Grapher"
 import { uniq } from "charts/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
-import { ExtendedChartUrl } from "charts/core/ChartUrl"
+import { ExtendedGrapherUrl } from "charts/core/GrapherUrl"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "charts/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
@@ -17,13 +17,13 @@ declare type chartId = number
 export interface SwitcherBootstrapProps {
     explorerProgramCode: string
     slug: string
-    chartConfigs: ChartScript[]
+    chartConfigs: GrapherScript[]
     bindToWindow: boolean
 }
 
 @observer
 export class SwitcherExplorer extends React.Component<{
-    chartConfigs: Map<chartId, ChartScript>
+    chartConfigs: Map<chartId, GrapherScript>
     program: ExplorerProgram
     bindToWindow: boolean
 }> {
@@ -36,7 +36,7 @@ export class SwitcherExplorer extends React.Component<{
             explorerProgramCode,
             window.location.search
         )
-        const chartConfigsMap: Map<number, ChartScript> = new Map()
+        const chartConfigsMap: Map<number, GrapherScript> = new Map()
         chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
 
         return ReactDOM.render(
@@ -52,7 +52,7 @@ export class SwitcherExplorer extends React.Component<{
     private urlBinding?: UrlBinder
     private lastId = 0
 
-    @observable private _chart?: ChartConfig = undefined
+    @observable private _chart?: Grapher = undefined
     @observable availableEntities: string[] = []
 
     private get explorerRuntime() {
@@ -64,7 +64,7 @@ export class SwitcherExplorer extends React.Component<{
     }
 
     private bindToWindow() {
-        const url = new ExtendedChartUrl(this._chart!.url, [
+        const url = new ExtendedGrapherUrl(this._chart!.url, [
             this.switcherRuntime,
             this.explorerRuntime
         ])
@@ -99,9 +99,9 @@ export class SwitcherExplorer extends React.Component<{
             ? this._chart.url.params
             : strToQueryParams(this.props.program.queryString)
 
-        const props = this.props.chartConfigs.get(newId) || new ChartScript()
+        const props = this.props.chartConfigs.get(newId) || new GrapherScript()
 
-        this._chart = new ChartConfig(props)
+        this._chart = new Grapher(props)
         this._chart.url.dropUnchangedParams = false
         this._chart.hideEntityControls =
             !this.explorerRuntime.hideControls && !this.isEmbed
@@ -142,7 +142,7 @@ export class SwitcherExplorer extends React.Component<{
                 }
             })
 
-        this._chart!.props.selectedData = selectedData
+        this._chart!.script.selectedData = selectedData
     }
 
     private get panels() {

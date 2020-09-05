@@ -27,10 +27,10 @@ import {
     ComparisonLine,
     ComparisonLineConfig
 } from "charts/scatterCharts/ComparisonLine"
-import { Tooltip, TooltipProps } from "charts/core/Tooltip"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { Tooltip, TooltipProps } from "charts/chart/Tooltip"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import { extent } from "d3-array"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 import { LineChartTransform } from "./LineChartTransform"
 
 export interface LineChartValue {

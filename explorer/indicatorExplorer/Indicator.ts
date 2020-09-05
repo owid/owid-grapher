@@ -1,8 +1,8 @@
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 
 // This is a made-up entity to make the explorer variable dropdown possible.
 // It is currently derived from single-dimensional chart entities.
 export type Indicator = Pick<
-    ChartScript,
+    GrapherScript,
     "id" | "title" | "subtitle" | "sourceDesc" | "note" | "dimensions" | "map"
 > & { id: number } // ensure `id` is not optional

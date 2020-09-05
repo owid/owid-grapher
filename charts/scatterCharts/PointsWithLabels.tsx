@@ -29,17 +29,17 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import { DualAxis } from "charts/axis/Axis"
 import { Vector2 } from "charts/utils/Vector2"
 import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
-import { EntityDimensionKey, SortOrder } from "charts/core/ChartConstants"
+import { EntityDimensionKey, SortOrder } from "charts/core/GrapherConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { EntityName } from "owidTable/OwidTable"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 export interface ScatterSeries {
     color: string
@@ -76,7 +76,7 @@ interface PointsWithLabelsProps {
     onClick: () => void
     hideLines: boolean
     formatLabel: (v: ScatterValue) => string
-    chart: ChartConfig
+    chart: Grapher
 }
 
 interface ScatterRenderValue {

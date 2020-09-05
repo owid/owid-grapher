@@ -40,11 +40,11 @@ import {
 import { AxisOptions, AxisContainerOptions } from "charts/axis/Axis"
 import {
     ChartType,
-    ChartTabOption,
+    GrapherTabOption,
     Color,
     TickFormattingOptions,
     EntityDimensionKey
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
     OwidTable,
@@ -58,20 +58,20 @@ import {
     ChartDimensionSpec,
     ChartDimensionInterface,
     SourceWithDimension
-} from "./ChartDimension"
+} from "charts/chart/ChartDimension"
 import { MapConfig } from "charts/mapCharts/MapConfig"
 import { MapTransform } from "charts/mapCharts/MapTransform"
-import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
+import { GrapherUrl, EntityUrlBuilder } from "./GrapherUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "charts/barCharts/DiscreteBarTransform"
 import { StackedAreaTransform } from "charts/areaCharts/StackedAreaTransform"
 import { LineChartTransform } from "charts/lineCharts/LineChartTransform"
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
 import { SlopeChartTransform } from "charts/slopeCharts/SlopeChartTransform"
-import { ChartView } from "./ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
-import { IChartTransform } from "./ChartTransform"
-import { TooltipProps } from "charts/core/Tooltip"
+import { IChartTransform } from "charts/chart/ChartTransform"
+import { TooltipProps } from "charts/chart/Tooltip"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
@@ -83,15 +83,15 @@ import {
 } from "charts/utils/TimeBounds"
 import {
     GlobalEntitySelection,
-    subscribeChartToGlobalEntitySelection
+    subscribeGrapherToGlobalEntitySelection
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
-import { ChartScript } from "./ChartScript"
-import { DimensionSlot } from "./DimensionSlot"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { DimensionSlot } from "charts/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
 
@@ -103,15 +103,13 @@ const isNode: boolean =
 const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
-// TODO: this really represents more than just the configuration state and should be split
-// into multiple components. It's sort of the top-level chart state.
-export class ChartConfig {
-    /** Stores the current chart state. Can be modified to change the chart. */
-    props = new ChartScript()
+export class Grapher {
+    /** Stores the current state. Can be modified to change the grapher. */
+    script = new GrapherScript()
 
     @observable map: MapConfig = new MapConfig()
 
-    private origScriptRaw: Readonly<ChartScript>
+    private origScriptRaw: Readonly<GrapherScript>
 
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
@@ -121,23 +119,23 @@ export class ChartConfig {
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     /**
-     * The original chart props as they are stored in the database. Useful for deriving the URL
+     * The original props as they are stored in the database. Useful for deriving the URL
      * parameters that need to be applied to reach the current state.
      */
-    @computed get origScript(): Readonly<ChartScript> {
-        // In the editor, the current chart state is always the "original" state
-        return this.isEditor ? toJS(this.props) : this.origScriptRaw
+    @computed get origScript(): Readonly<GrapherScript> {
+        // In the editor, the current state is always the "original" state
+        return this.isEditor ? toJS(this.script) : this.origScriptRaw
     }
 
-    private initialScriptRaw: Readonly<ChartScript>
+    private initialScriptRaw: Readonly<GrapherScript>
 
     /**
-     * The chart props after consuming the initial URL parameters but before any user-triggered
+     * The props after consuming the initial URL parameters but before any user-triggered
      * changes. Helpful for "resetting" embeds to their initial state.
      */
-    @computed get initialScript(): Readonly<ChartScript> {
-        // In the editor, the current chart state is always the "initial" state
-        return this.isEditor ? toJS(this.props) : this.initialScriptRaw
+    @computed get initialScript(): Readonly<GrapherScript> {
+        // In the editor, the current state is always the "initial" state
+        return this.isEditor ? toJS(this.script) : this.initialScriptRaw
     }
 
     @observable.ref isEmbed: boolean
@@ -153,7 +151,7 @@ export class ChartConfig {
     }
 
     @action.bound toggleMinPopulationFilter() {
-        this.props.minPopulationFilter = this.props.minPopulationFilter
+        this.script.minPopulationFilter = this.script.minPopulationFilter
             ? undefined
             : this.populationFilterOption
     }
@@ -161,8 +159,8 @@ export class ChartConfig {
     private populationFilterToggleOption: number = 1e6
     // Make the default filter toggle option reflect what is initially loaded.
     @computed get populationFilterOption() {
-        if (this.props.minPopulationFilter)
-            this.populationFilterToggleOption = this.props.minPopulationFilter
+        if (this.script.minPopulationFilter)
+            this.populationFilterToggleOption = this.script.minPopulationFilter
         return this.populationFilterToggleOption
     }
 
@@ -181,16 +179,16 @@ export class ChartConfig {
     @observable userHasSetTimeline: boolean = false
 
     @action.bound async downloadData() {
-        if (this.props.useV2) return
+        if (this.script.useV2) return
 
-        if (this.props.externalDataUrl) {
-            const json = await fetchJSON(this.props.externalDataUrl)
+        if (this.script.externalDataUrl) {
+            const json = await fetchJSON(this.script.externalDataUrl)
             this.receiveData(json)
             return
         }
 
-        if (this.props.owidDataset) {
-            this.receiveData(this.props.owidDataset)
+        if (this.script.owidDataset) {
+            this.receiveData(this.script.owidDataset)
             return
         }
 
@@ -277,7 +275,7 @@ export class ChartConfig {
         )
     }
 
-    // Chart is ready to go iff we have retrieved data for every variable associated with the chart
+    // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
         return this.loadingVarIds.length === 0
     }
@@ -293,7 +291,7 @@ export class ChartConfig {
             .filter(id => !this.table.columnsByOwidVarId.has(id))
     }
 
-    url: ChartUrl
+    url: GrapherUrl
 
     @computed get isIframe(): boolean {
         return window.self !== window.top
@@ -333,13 +331,13 @@ export class ChartConfig {
 
     @computed get hasOWIDLogo(): boolean {
         return (
-            !this.props.hideLogo &&
-            (this.props.logo === undefined || this.props.logo === "owid")
+            !this.script.hideLogo &&
+            (this.script.logo === undefined || this.script.logo === "owid")
         )
     }
 
     @computed get hasFatalErrors(): boolean {
-        const { relatedQuestions } = this.props
+        const { relatedQuestions } = this.script
         return (
             relatedQuestions?.some(
                 question => !!getErrorMessageRelatedQuestionUrl(question)
@@ -354,7 +352,7 @@ export class ChartConfig {
     }
 
     constructor(
-        props?: ChartScript,
+        props?: GrapherScript,
         options: {
             isEmbed?: boolean
             isMediaCard?: boolean
@@ -387,8 +385,8 @@ export class ChartConfig {
 
         this.update(props || { yAxis: { min: 0 } })
 
-        // The original chart props, as stored in the database
-        this.origScriptRaw = toJS(this.props)
+        // The original props, as stored in the database
+        this.origScriptRaw = toJS(this.script)
 
         this.disposers.push(
             reaction(() => this.variableIds, this.downloadData, {
@@ -398,22 +396,22 @@ export class ChartConfig {
 
         this.disposers.push(
             reaction(
-                () => this.props.minPopulationFilter,
+                () => this.script.minPopulationFilter,
                 () => {
                     this.updatePopulationFilter()
                 }
             )
         )
 
-        this.url = new ChartUrl(this, options.queryStr)
+        this.url = new GrapherUrl(this, options.queryStr)
         this.url.urlRoot = this.bakedGrapherURL
 
-        // The chart props after consuming the URL parameters, but before any user interaction
-        this.initialScriptRaw = toJS(this.props)
+        // The props after consuming the URL parameters, but before any user interaction
+        this.initialScriptRaw = toJS(this.script)
 
         if (options.globalEntitySelection) {
             this.disposers.push(
-                subscribeChartToGlobalEntitySelection(
+                subscribeGrapherToGlobalEntitySelection(
                     this,
                     options.globalEntitySelection
                 )
@@ -425,7 +423,7 @@ export class ChartConfig {
 
     updatePopulationFilter() {
         const slug = "pop_filter"
-        const minPop = this.props.minPopulationFilter
+        const minPop = this.script.minPopulationFilter
         if (!minPop) this.table.deleteColumnBySlug(slug)
         else
             this.table.addFilterColumn(slug, (row, index, table) => {
@@ -438,18 +436,18 @@ export class ChartConfig {
     @action.bound ensureValidConfig() {
         const disposers = [
             autorun(() => {
-                if (!this.availableTabs.includes(this.props.tab)) {
-                    runInAction(() => (this.props.tab = this.availableTabs[0]))
+                if (!this.availableTabs.includes(this.script.tab)) {
+                    runInAction(() => (this.script.tab = this.availableTabs[0]))
                 }
             }),
             autorun(() => {
-                if (!isEqual(this.props.dimensions, this.validDimensions)) {
-                    this.props.dimensions = this.validDimensions
+                if (!isEqual(this.script.dimensions, this.validDimensions)) {
+                    this.script.dimensions = this.validDimensions
                 }
             }),
             autorun(() => {
-                if (this.props.isExplorable && !canBeExplorable(this.props)) {
-                    this.props.isExplorable = false
+                if (this.script.isExplorable && !canBeExplorable(this.script)) {
+                    this.script.isExplorable = false
                 }
             })
         ]
@@ -457,16 +455,16 @@ export class ChartConfig {
     }
 
     @computed get subtitle() {
-        return defaultTo(this.props.subtitle, "")
+        return defaultTo(this.script.subtitle, "")
     }
     @computed get note() {
-        return defaultTo(this.props.note, "")
+        return defaultTo(this.script.note, "")
     }
     @computed get internalNotes() {
-        return defaultTo(this.props.internalNotes, "")
+        return defaultTo(this.script.internalNotes, "")
     }
     @computed get originUrl() {
-        return defaultTo(this.props.originUrl, "")
+        return defaultTo(this.script.originUrl, "")
     }
 
     // todo: do we need this?
@@ -477,42 +475,42 @@ export class ChartConfig {
     }
 
     @computed get isPublished() {
-        return defaultTo(this.props.isPublished, false)
+        return defaultTo(this.script.isPublished, false)
     }
     @computed get primaryTab() {
-        return this.props.tab
+        return this.script.tab
     }
     @computed get overlayTab() {
-        return this.props.overlay
+        return this.script.overlay
     }
     @computed get addCountryMode() {
-        return this.props.addCountryMode || "add-country"
+        return this.script.addCountryMode || "add-country"
     }
     @computed get highlightToggle() {
-        return this.props.highlightToggle
+        return this.script.highlightToggle
     }
     @computed get hasChartTab() {
-        return this.props.hasChartTab
+        return this.script.hasChartTab
     }
     @computed get hasMapTab() {
-        return this.props.hasMapTab
+        return this.script.hasMapTab
     }
     @computed get hideLegend() {
-        return this.props.hideLegend
+        return this.script.hideLegend
     }
     @computed get baseColorScheme() {
-        return this.props.baseColorScheme
+        return this.script.baseColorScheme
     }
     @computed get comparisonLines() {
-        return this.props.comparisonLines || []
+        return this.script.comparisonLines || []
     }
 
     @computed get entityType() {
-        return defaultTo(this.props.entityType, "country")
+        return defaultTo(this.script.entityType, "country")
     }
 
     @computed get entityTypePlural() {
-        return defaultTo(this.props.entityTypePlural, "countries")
+        return defaultTo(this.script.entityTypePlural, "countries")
     }
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
@@ -527,43 +525,43 @@ export class ChartConfig {
             ]
 
         /** Revert the state of minPopulationFilter */
-        this.props.minPopulationFilter = this.chartMinPopulationFilter
+        this.script.minPopulationFilter = this.chartMinPopulationFilter
     }
 
     @computed get tab() {
-        return this.props.overlay ? this.props.overlay : this.props.tab
+        return this.script.overlay ? this.script.overlay : this.script.tab
     }
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     set tab(value) {
-        if (this.props.tab === "chart")
-            this.chartMinPopulationFilter = this.props.minPopulationFilter
-        if (this.props.tab === "table" && value !== "table")
+        if (this.script.tab === "chart")
+            this.chartMinPopulationFilter = this.script.minPopulationFilter
+        if (this.script.tab === "table" && value !== "table")
             this.revertDataTableSpecificState()
 
         if (value === "chart" || value === "map" || value === "table") {
-            this.props.tab = value
-            this.props.overlay = undefined
+            this.script.tab = value
+            this.script.overlay = undefined
         } else {
             // table tab cannot be downloaded, so revert to default tab
-            if (value === "download" && this.props.tab === "table") {
-                this.props.tab = this.origScript.tab
+            if (value === "download" && this.script.tab === "table") {
+                this.script.tab = this.origScript.tab
             }
-            this.props.overlay = value
+            this.script.overlay = value
         }
     }
 
     @computed get timeDomain(): TimeBounds {
         return [
             // Handle `undefined` values in minTime/maxTime
-            minTimeFromJSON(this.props.minTime),
-            maxTimeFromJSON(this.props.maxTime)
+            minTimeFromJSON(this.script.minTime),
+            maxTimeFromJSON(this.script.maxTime)
         ]
     }
 
     set timeDomain(value: TimeBounds) {
-        this.props.minTime = value[0]
-        this.props.maxTime = value[1]
+        this.script.minTime = value[0]
+        this.script.maxTime = value[1]
     }
 
     @observable xAxisOptions: AxisOptions
@@ -583,7 +581,7 @@ export class ChartConfig {
     }
 
     @computed get validDimensions(): ChartDimensionSpec[] {
-        const { dimensions } = this.props
+        const { dimensions } = this.script
         const validProperties = map(this.dimensionSlots, "property")
         let validDimensions = filter(dimensions, dim =>
             includes(validProperties, dim.property)
@@ -625,7 +623,7 @@ export class ChartConfig {
     }
 
     @computed get dimensions() {
-        return this.props.dimensions
+        return this.script.dimensions
     }
 
     @computed private get defaultSlug(): string {
@@ -633,36 +631,36 @@ export class ChartConfig {
     }
 
     @computed get slug(): string {
-        return defaultTo(this.props.slug, this.defaultSlug)
+        return defaultTo(this.script.slug, this.defaultSlug)
     }
 
-    @computed get availableTabs(): ChartTabOption[] {
+    @computed get availableTabs(): GrapherTabOption[] {
         return filter([
-            this.props.hasChartTab && "chart",
-            this.props.hasMapTab && "map",
+            this.script.hasChartTab && "chart",
+            this.script.hasMapTab && "map",
             "table",
             "sources",
             "download"
-        ]) as ChartTabOption[]
+        ]) as GrapherTabOption[]
     }
 
     @action.bound update(json: any) {
-        for (const key in this.props) {
+        for (const key in this.script) {
             if (key in json && key !== "xAxis" && key !== "yAxis") {
-                ;(this.props as any)[key] = json[key]
+                ;(this.script as any)[key] = json[key]
             }
         }
 
-        if (json.isAutoTitle) this.props.title = undefined
+        if (json.isAutoTitle) this.script.title = undefined
 
         // Auto slug is only preserved for drafts in the editor
         // Once published, slug should stick around (we don't want to create too many redirects)
         if (json.isAutoSlug && this.isEditor && !json.isPublished)
-            this.props.slug = undefined
+            this.script.slug = undefined
 
         // JSON doesn't support Infinity, so we use strings instead.
-        this.props.minTime = minTimeFromJSON(json.minTime)
-        this.props.maxTime = maxTimeFromJSON(json.maxTime)
+        this.script.minTime = minTimeFromJSON(json.minTime)
+        this.script.maxTime = maxTimeFromJSON(json.maxTime)
 
         if (json.map) {
             this.map = new MapConfig({
@@ -675,12 +673,12 @@ export class ChartConfig {
         this.yAxisOptions.update(json["yAxis"])
 
         // Todo: cleanup. This is here because of the toJS stuff
-        this.props.xAxis = this.xAxisOptions
-        this.props.yAxis = this.yAxisOptions
+        this.script.xAxis = this.xAxisOptions
+        this.script.yAxis = this.yAxisOptions
 
         extend(this.colorScale, json["colorScale"])
 
-        this.props.dimensions = (json.dimensions || []).map(
+        this.script.dimensions = (json.dimensions || []).map(
             (dimSpec: ChartDimensionInterface) =>
                 new ChartDimensionSpec(dimSpec)
         )
@@ -693,7 +691,7 @@ export class ChartConfig {
             this.primaryTab === "chart" &&
             this.addCountryMode !== "add-country" &&
             this.selectedEntityNames.length === 1 &&
-            (!this.props.hideTitleAnnotation || this.canChangeEntity)
+            (!this.script.hideTitleAnnotation || this.canChangeEntity)
         ) {
             const { selectedEntityNames: selectedEntities } = this
             const entityStr = selectedEntities.join(", ")
@@ -703,7 +701,7 @@ export class ChartConfig {
         }
 
         if (
-            !this.props.hideTitleAnnotation &&
+            !this.script.hideTitleAnnotation &&
             this.isLineChart &&
             this.lineChartTransform.isRelativeMode
         ) {
@@ -721,7 +719,7 @@ export class ChartConfig {
         }*/
 
         if (
-            !this.props.hideTitleAnnotation ||
+            !this.script.hideTitleAnnotation ||
             (this.isLineChart &&
                 this.lineChartTransform.isSingleYear &&
                 this.lineChartTransform.hasTimeline) ||
@@ -791,8 +789,8 @@ export class ChartConfig {
     }
 
     @computed get sourcesLine(): string {
-        return this.props.sourceDesc !== undefined
-            ? this.props.sourceDesc
+        return this.script.sourceDesc !== undefined
+            ? this.script.sourceDesc
             : this.defaultSourcesLine
     }
 
@@ -868,21 +866,21 @@ export class ChartConfig {
     }
 
     @computed get title(): string {
-        return this.props.title !== undefined
-            ? this.props.title
+        return this.script.title !== undefined
+            ? this.script.title
             : this.defaultTitle
     }
 
     @computed.struct get json(): Readonly<any> {
-        const json: any = toJS(this.props)
+        const json: any = toJS(this.script)
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!this.props.title) {
+        if (!this.script.title) {
             json.title = this.title
             json.isAutoTitle = true
         }
-        if (!this.props.slug) {
+        if (!this.script.slug) {
             json.slug = this.slug
             json.isAutoSlug = true
         }
@@ -902,8 +900,8 @@ export class ChartConfig {
         }
 
         // JSON doesn't support Infinity, so we use strings instead.
-        json.minTime = minTimeToJSON(this.props.minTime)
-        json.maxTime = maxTimeToJSON(this.props.maxTime)
+        json.minTime = minTimeToJSON(this.script.minTime)
+        json.maxTime = maxTimeToJSON(this.script.maxTime)
 
         if (this.map) {
             json.map.targetYear = maxTimeToJSON(this.map.targetYear)
@@ -913,25 +911,25 @@ export class ChartConfig {
     }
 
     @computed get isLineChart() {
-        return this.props.type === ChartType.LineChart
+        return this.script.type === ChartType.LineChart
     }
     @computed get isScatter() {
-        return this.props.type === ChartType.ScatterPlot
+        return this.script.type === ChartType.ScatterPlot
     }
     @computed get isTimeScatter() {
-        return this.props.type === ChartType.TimeScatter
+        return this.script.type === ChartType.TimeScatter
     }
     @computed get isStackedArea() {
-        return this.props.type === ChartType.StackedArea
+        return this.script.type === ChartType.StackedArea
     }
     @computed get isSlopeChart() {
-        return this.props.type === ChartType.SlopeChart
+        return this.script.type === ChartType.SlopeChart
     }
     @computed get isDiscreteBar() {
-        return this.props.type === ChartType.DiscreteBar
+        return this.script.type === ChartType.DiscreteBar
     }
     @computed get isStackedBar() {
-        return this.props.type === ChartType.StackedBar
+        return this.script.type === ChartType.StackedBar
     }
 
     @computed get lineChartTransform() {
@@ -1002,11 +1000,11 @@ export class ChartConfig {
     }
 
     @computed get cacheTag(): string {
-        return this.props.version.toString()
+        return this.script.version.toString()
     }
 
     @computed get isExplorable(): boolean {
-        return this.props.isExplorable
+        return this.script.isExplorable
     }
 
     // todo: remove
@@ -1020,7 +1018,7 @@ export class ChartConfig {
 
     // todo: remove
     @computed get hasSelection() {
-        return this.props.selectedData.length > 0
+        return this.script.selectedData.length > 0
     }
 
     // todo: remove
@@ -1028,10 +1026,9 @@ export class ChartConfig {
         entityDimensionKey: EntityDimensionKey
         color?: Color
     }> {
-        const chart = this
-        const primaryDimensions = chart.primaryDimensions
-        const entityIdToNameMap = chart.table.entityIdToNameMap
-        let validSelections = chart.props.selectedData.filter(sel => {
+        const primaryDimensions = this.primaryDimensions
+        const entityIdToNameMap = this.table.entityIdToNameMap
+        let validSelections = this.script.selectedData.filter(sel => {
             // Must be a dimension that's on the chart
             const dimension = primaryDimensions[sel.index]
             if (!dimension) return false
@@ -1043,9 +1040,9 @@ export class ChartConfig {
 
             // "change entity" charts can only have one entity selected
             if (
-                chart.addCountryMode === "change-country" &&
+                this.addCountryMode === "change-country" &&
                 sel.entityId !==
-                    lastOfNonEmptyArray(chart.props.selectedData).entityId
+                    lastOfNonEmptyArray(this.script.selectedData).entityId
             )
                 return false
 
@@ -1089,13 +1086,13 @@ export class ChartConfig {
     // todo: remove
     setKeyColor(key: EntityDimensionKey, color: Color | undefined) {
         const meta = this.lookupKey(key)
-        const selectedData = cloneDeep(this.props.selectedData)
+        const selectedData = cloneDeep(this.script.selectedData)
         selectedData.forEach(d => {
             if (d.entityId === meta.entityId && d.index === meta.index) {
                 d.color = color
             }
         })
-        this.props.selectedData = selectedData
+        this.script.selectedData = selectedData
     }
 
     // todo: remove
@@ -1119,9 +1116,9 @@ export class ChartConfig {
 
     // todo: remove
     @action.bound setSingleSelectedEntity(entityId: EntityId) {
-        const selectedData = cloneDeep(this.props.selectedData)
+        const selectedData = cloneDeep(this.script.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
-        this.props.selectedData = selectedData
+        this.script.selectedData = selectedData
     }
 
     // todo: remove
@@ -1163,7 +1160,7 @@ export class ChartConfig {
 
     // todo: remove
     @action.bound resetSelectedEntities() {
-        this.props.selectedData = this.initialScript.selectedData
+        this.script.selectedData = this.initialScript.selectedData
     }
 
     // todo: remove
@@ -1186,8 +1183,7 @@ export class ChartConfig {
     // remove
     // Map keys back to their components for storage
     set selectedKeys(keys: EntityDimensionKey[]) {
-        const chart = this
-        if (!chart.isReady) return
+        if (!this.isReady) return
 
         const selection = map(keys, key => {
             const { entityName: entity, index } = this.lookupKey(key)
@@ -1197,7 +1193,7 @@ export class ChartConfig {
                 color: this.keyColors[key]
             }
         })
-        chart.props.selectedData = selection
+        this.script.selectedData = selection
     }
 
     selectOnlyThisEntity(entityName: string) {
@@ -1224,17 +1220,16 @@ export class ChartConfig {
         EntityDimensionInfo
     > {
         if (!this.isReady) return new Map()
-        const chart = this
-        const { isSingleEntity, isSingleVariable } = chart
-        const primaryDimensions = chart.primaryDimensions
+        const { isSingleEntity, isSingleVariable } = this
+        const primaryDimensions = this.primaryDimensions
 
         const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
         primaryDimensions.forEach((dimension, dimensionIndex) => {
             dimension.entityNamesUniq.forEach(entityName => {
-                const entityCode = chart.table.entityNameToCodeMap.get(
+                const entityCode = this.table.entityNameToCodeMap.get(
                     entityName
                 )
-                const entityId = chart.table.entityNameToIdMap.get(entityName)!
+                const entityId = this.table.entityNameToIdMap.get(entityName)!
                 const entityDimensionKey = this.makeEntityDimensionKey(
                     entityName,
                     dimensionIndex
@@ -1261,7 +1256,7 @@ export class ChartConfig {
                     label,
                     shortCode:
                         primaryDimensions.length > 1 &&
-                        chart.addCountryMode !== "change-country"
+                        this.addCountryMode !== "change-country"
                             ? `${entityCode || entityName}-${dimension.index}`
                             : entityCode || entityName
                 })
@@ -1274,15 +1269,15 @@ export class ChartConfig {
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
-        return this.props.stackMode === "relative"
+        return this.script.stackMode === "relative"
     }
 
     @action.bound toggleRelativeMode() {
-        this.props.stackMode = !this.isRelativeMode ? "relative" : "absolute"
+        this.script.stackMode = !this.isRelativeMode ? "relative" : "absolute"
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.props.hideRelativeToggle
+        return !this.script.hideRelativeToggle
     }
 
     // todo: remove

@@ -1,5 +1,5 @@
 import { FORCE_EXPLORABLE_CHART_IDS, isExplorable } from "./IndicatorUtils"
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { Indicator } from "./Indicator"
 import * as db from "db/db"
 
@@ -17,7 +17,7 @@ export async function renderExplorableIndicatorsJson() {
     const explorableCharts = query
         .map(chart => ({
             id: chart.id,
-            config: JSON.parse(chart.config) as ChartScript
+            config: JSON.parse(chart.config) as GrapherScript
         }))
         // Ensure config is consistent with the current "explorable" requirements
         .filter(chart => isExplorable(chart.config))

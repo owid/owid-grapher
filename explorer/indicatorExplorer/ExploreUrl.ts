@@ -2,20 +2,20 @@ import { computed, action } from "mobx"
 
 import { ObservableUrl } from "charts/utils/UrlBinder"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
-import { ChartUrl, ChartQueryParams } from "charts/core/ChartUrl"
+import { GrapherUrl, GrapherQueryParams } from "charts/core/GrapherUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { omit, extend } from "charts/utils/Util"
 
-type ExploreQueryParams = Omit<ChartQueryParams, "tab"> & {
+type ExploreQueryParams = Omit<GrapherQueryParams, "tab"> & {
     type?: string
     indicator?: string
 }
 
 export class ExploreUrl implements ObservableUrl {
     model: ExploreModel
-    chartUrl: ChartUrl
+    chartUrl: GrapherUrl
 
-    constructor(model: ExploreModel, chartUrl: ChartUrl) {
+    constructor(model: ExploreModel, chartUrl: GrapherUrl) {
         this.model = model
         this.chartUrl = chartUrl
     }

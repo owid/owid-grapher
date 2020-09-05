@@ -4,13 +4,13 @@ import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 
 import { TextWrap } from "charts/text/TextWrap"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { Bounds } from "charts/utils/Bounds"
 import { getRelativeMouse } from "charts/utils/Util"
 import { Tooltip } from "./Tooltip"
 
 interface SourcesFooterProps {
-    chart: ChartConfig
+    chart: Grapher
     maxWidth: number
 }
 
@@ -207,7 +207,7 @@ class SourcesFooterView extends React.Component<{
 
 @observer
 export class SourcesFooterHTML extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
     footer: SourcesFooter
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()

@@ -9,7 +9,7 @@ mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
 import { GrapherPageUtils } from "site/client/GrapherPageUtils"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
 window.ChartView = ChartView

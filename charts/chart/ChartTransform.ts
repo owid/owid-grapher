@@ -13,8 +13,8 @@ import {
     sortNumeric,
     uniq
 } from "charts/utils/Util"
-import { ChartConfig } from "./ChartConfig"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { Grapher } from "charts/core/Grapher"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 import { ColorScale } from "charts/color/ColorScale"
 
 export interface IChartTransform {
@@ -30,8 +30,8 @@ export interface IChartTransform {
 }
 
 export abstract class ChartTransform implements IChartTransform {
-    chart: ChartConfig
-    constructor(chart: ChartConfig) {
+    chart: Grapher
+    constructor(chart: Grapher) {
         this.chart = chart
     }
 
@@ -62,8 +62,8 @@ export abstract class ChartTransform implements IChartTransform {
      * Might be **empty** if the data hasn't been loaded yet.
      */
     @computed get timelineYears(): Time[] {
-        const min = this.chart.props.timelineMinTime
-        const max = this.chart.props.timelineMaxTime
+        const min = this.chart.script.timelineMinTime
+        const max = this.chart.script.timelineMaxTime
         const filteredYears = this.availableYears.filter(year => {
             if (min !== undefined && year < min) return false
             if (max !== undefined && year > max) return false
@@ -111,7 +111,7 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     @computed get hasTimeline(): boolean {
-        return this.timelineYears.length > 1 && !this.chart.props.hideTimeline
+        return this.timelineYears.length > 1 && !this.chart.script.hideTimeline
     }
 
     /**
@@ -132,10 +132,10 @@ export abstract class ChartTransform implements IChartTransform {
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
-        return this.chart.props.stackMode === "relative"
+        return this.chart.script.stackMode === "relative"
     }
 
     set isRelativeMode(value: boolean) {
-        this.chart.props.stackMode = value ? "relative" : "absolute"
+        this.chart.script.stackMode = value ? "relative" : "absolute"
     }
 }

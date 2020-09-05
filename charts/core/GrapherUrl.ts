@@ -9,10 +9,10 @@ import { computed, when, runInAction, observable, action } from "mobx"
 
 import {
     EPOCH_DATE,
-    ChartTabOption,
+    GrapherTabOption,
     ScaleType,
     StackMode
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 
 import {
     includes,
@@ -22,7 +22,7 @@ import {
 } from "charts/utils/Util"
 
 // todo: we should probably factor out this circular dependency
-import { ChartConfig } from "./ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 import {
     queryParamsToStr,
@@ -39,7 +39,7 @@ import {
     parseTimeBound
 } from "charts/utils/TimeBounds"
 
-export interface ChartQueryParams extends QueryParams {
+export interface GrapherQueryParams extends QueryParams {
     tab?: string
     overlay?: string
     stackMode?: string
@@ -114,32 +114,32 @@ function parseTimeURIComponent(
     return parseTimeBound(param, defaultValue)
 }
 
-export class ChartUrl implements ObservableUrl {
-    private chart: ChartConfig
-    chartQueryStr: string = "?"
+export class GrapherUrl implements ObservableUrl {
+    private grapher: Grapher
+    grapherQueryStr: string = "?"
     mapQueryStr: string = "?"
     debounceMode: boolean = false
 
-    constructor(chart: ChartConfig, queryStr?: string) {
-        this.chart = chart
+    constructor(grapher: Grapher, queryStr?: string) {
+        this.grapher = grapher
 
         if (queryStr !== undefined) {
             this.populateFromQueryParams(strToQueryParams(queryStr))
         }
     }
 
-    @computed private get origChartProps() {
-        return this.chart.origScript
+    @computed private get origGrapherProps() {
+        return this.grapher.origScript
     }
 
     @computed.struct private get allParams() {
-        const params: ChartQueryParams = {}
-        const { chart } = this
-        const props = chart.props
+        const params: GrapherQueryParams = {}
+        const { grapher } = this
+        const props = grapher.script
 
         params.tab = props.tab
-        params.xScale = chart.xAxisOptions.scaleType
-        params.yScale = chart.yAxisOptions.scaleType
+        params.xScale = grapher.xAxisOptions.scaleType
+        params.yScale = grapher.yAxisOptions.scaleType
         params.stackMode = props.stackMode
         params.zoomToSelection = props.zoomToSelection ? "true" : undefined
         params.minPopulationFilter = props.minPopulationFilter?.toString()
@@ -147,13 +147,13 @@ export class ChartUrl implements ObservableUrl {
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
-        params.region = chart.map?.projection
+        params.region = grapher.map?.projection
 
         return params
     }
 
     // If the user changes a param so that it matches the author's original param, we drop it.
-    // However, in the case of explorers, the user might switch charts, and so we never want to drop
+    // However, in the case of explorers, the user might switch graphers, and so we never want to drop
     // params. This flag turns off dropping of params.
     @observable dropUnchangedParams = true
 
@@ -161,41 +161,41 @@ export class ChartUrl implements ObservableUrl {
         return this.dropUnchangedParams ? this.changedParams : this.allParams
     }
 
-    // Autocomputed url params to reflect difference between current chart state
+    // Autocomputed url params to reflect difference between current grapher state
     // and original config state
     @computed.struct private get changedParams() {
         const params = this.allParams
-        const { chart, origChartProps } = this
+        const { grapher, origGrapherProps } = this
 
-        if (params.tab === origChartProps.tab) params.tab = undefined
+        if (params.tab === origGrapherProps.tab) params.tab = undefined
 
-        if (params.xScale === origChartProps.xAxis.scaleType)
+        if (params.xScale === origGrapherProps.xAxis.scaleType)
             params.xScale = undefined
 
-        if (params.yScale === origChartProps.yAxis.scaleType)
+        if (params.yScale === origGrapherProps.yAxis.scaleType)
             params.yScale = undefined
 
-        if (params.stackMode === origChartProps.stackMode)
+        if (params.stackMode === origGrapherProps.stackMode)
             params.stackMode = undefined
 
-        if (chart.props.zoomToSelection === origChartProps.zoomToSelection)
+        if (grapher.script.zoomToSelection === origGrapherProps.zoomToSelection)
             params.zoomToSelection = undefined
 
         if (
-            chart.props.minPopulationFilter ===
-            origChartProps.minPopulationFilter
+            grapher.script.minPopulationFilter ===
+            origGrapherProps.minPopulationFilter
         )
             params.minPopulationFilter = undefined
 
         if (
-            chart.props.compareEndPointsOnly ===
-            origChartProps.compareEndPointsOnly
+            grapher.script.compareEndPointsOnly ===
+            origGrapherProps.compareEndPointsOnly
         )
             params.endpointsOnly = undefined
 
         if (
-            origChartProps.map &&
-            params.region === origChartProps.map.projection
+            origGrapherProps.map &&
+            params.region === origGrapherProps.map.projection
         )
             params.region = undefined
 
@@ -215,29 +215,31 @@ export class ChartUrl implements ObservableUrl {
 
     @computed get baseUrl(): string | undefined {
         if (this.externalBaseUrl) return this.externalBaseUrl
-        if (this.chart.isPublished) return `${this.urlRoot}/${this.chart.slug}`
+        if (this.grapher.isPublished)
+            return `${this.urlRoot}/${this.grapher.slug}`
         return undefined
     }
 
     @observable externalBaseUrl: string = ""
     @observable.shallow externallyProvidedParams?: QueryParams
 
-    // Get the full url representing the canonical location of this chart state
+    // Get the full url representing the canonical location of this grapher state
     @computed get canonicalUrl(): string | undefined {
         return this.baseUrl ? this.baseUrl + this.queryStr : undefined
     }
 
     @computed get yearParam(): string | undefined {
-        const { chart, origChartProps } = this
+        const { grapher, origGrapherProps } = this
 
         if (
-            chart.mapTransform &&
-            origChartProps.map &&
-            chart.mapTransform.targetYearProp !== origChartProps.map.targetYear
+            grapher.mapTransform &&
+            origGrapherProps.map &&
+            grapher.mapTransform.targetYearProp !==
+                origGrapherProps.map.targetYear
         ) {
             return formatTimeURIComponent(
-                chart.mapTransform.targetYearProp,
-                !!chart.table.hasDayColumn
+                grapher.mapTransform.targetYearProp,
+                !!grapher.table.hasDayColumn
             )
         } else {
             return undefined
@@ -245,26 +247,26 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed get timeParam(): string | undefined {
-        const { chart, origChartProps } = this
+        const { grapher, origGrapherProps } = this
 
         if (
-            chart.props.minTime !== origChartProps.minTime ||
-            chart.props.maxTime !== origChartProps.maxTime
+            grapher.script.minTime !== origGrapherProps.minTime ||
+            grapher.script.maxTime !== origGrapherProps.maxTime
         ) {
-            const [minTime, maxTime] = chart.timeDomain
+            const [minTime, maxTime] = grapher.timeDomain
             if (minTime === maxTime)
                 return formatTimeURIComponent(
                     minTime,
-                    !!chart.table.hasDayColumn
+                    !!grapher.table.hasDayColumn
                 )
 
             const start = formatTimeURIComponent(
                 minTime,
-                !!chart.table.hasDayColumn
+                !!grapher.table.hasDayColumn
             )
             const end = formatTimeURIComponent(
                 maxTime,
-                !!chart.table.hasDayColumn
+                !!grapher.table.hasDayColumn
             )
             return `${start}..${end}`
         } else {
@@ -273,14 +275,14 @@ export class ChartUrl implements ObservableUrl {
     }
 
     @computed private get countryParam(): string | undefined {
-        const { chart, origChartProps } = this
+        const { grapher, origGrapherProps } = this
         if (
-            chart.isReady &&
-            JSON.stringify(chart.props.selectedData) !==
-                JSON.stringify(origChartProps.selectedData)
+            grapher.isReady &&
+            JSON.stringify(grapher.script.selectedData) !==
+                JSON.stringify(origGrapherProps.selectedData)
         ) {
             return EntityUrlBuilder.entitiesToQueryParam(
-                chart.selectedEntityCodes
+                grapher.selectedEntityCodes
             )
         } else {
             return undefined
@@ -288,7 +290,7 @@ export class ChartUrl implements ObservableUrl {
     }
 
     setTimeFromTimeQueryParam(time: string) {
-        const { chart } = this
+        const { grapher } = this
 
         // In the past we supported unbounded time parameters like time=2015.. which would be
         // equivalent to time=2015..latest. We don't actively generate these kinds of URL any
@@ -304,67 +306,67 @@ export class ChartUrl implements ObservableUrl {
         )
         if (reIntRange.test(time) || reDateRange.test(time)) {
             const [start, end] = time.split("..")
-            chart.timeDomain = [
+            grapher.timeDomain = [
                 parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
                 parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
             ]
         } else {
             const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)
-            chart.timeDomain = [t, t]
+            grapher.timeDomain = [t, t]
         }
     }
 
     /**
-     * Applies query parameters to the chart config
+     * Applies query parameters to the grapher config
      */
-    @action.bound populateFromQueryParams(params: ChartQueryParams) {
-        const { chart } = this
+    @action.bound populateFromQueryParams(params: GrapherQueryParams) {
+        const { grapher } = this
 
         // Set tab if specified
         const tab = params.tab
         if (tab) {
-            if (!includes(chart.availableTabs, tab))
+            if (!includes(grapher.availableTabs, tab))
                 console.error("Unexpected tab: " + tab)
-            else chart.props.tab = tab as ChartTabOption
+            else grapher.script.tab = tab as GrapherTabOption
         }
 
         const overlay = params.overlay
         if (overlay) {
-            if (!includes(chart.availableTabs, overlay))
+            if (!includes(grapher.availableTabs, overlay))
                 console.error("Unexpected overlay: " + overlay)
-            else chart.props.overlay = overlay as ChartTabOption
+            else grapher.script.overlay = overlay as GrapherTabOption
         }
 
         // Stack mode for bar and stacked area charts
-        chart.props.stackMode = defaultTo(
+        grapher.script.stackMode = defaultTo(
             params.stackMode as StackMode,
-            chart.props.stackMode
+            grapher.script.stackMode
         )
 
-        chart.props.zoomToSelection = defaultTo(
+        grapher.script.zoomToSelection = defaultTo(
             params.zoomToSelection === "true" ? true : undefined,
-            chart.props.zoomToSelection
+            grapher.script.zoomToSelection
         )
 
-        chart.props.minPopulationFilter = defaultTo(
+        grapher.script.minPopulationFilter = defaultTo(
             params.minPopulationFilter
                 ? parseInt(params.minPopulationFilter)
                 : undefined,
-            chart.props.minPopulationFilter
+            grapher.script.minPopulationFilter
         )
 
         // Axis scale mode
         const xScaleType = params.xScale
         if (xScaleType) {
             if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
-                chart.xAxisOptions.scaleType = xScaleType
+                grapher.xAxisOptions.scaleType = xScaleType
             else console.error("Unexpected xScale: " + xScaleType)
         }
 
         const yScaleType = params.yScale
         if (yScaleType) {
             if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
-                chart.yAxisOptions.scaleType = yScaleType
+                grapher.yAxisOptions.scaleType = yScaleType
             else console.error("Unexpected xScale: " + yScaleType)
         }
 
@@ -373,43 +375,43 @@ export class ChartUrl implements ObservableUrl {
 
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined) {
-            chart.props.compareEndPointsOnly =
+            grapher.script.compareEndPointsOnly =
                 endpointsOnly === "1" ? true : undefined
         }
 
         // Map stuff below
 
-        if (chart.map) {
+        if (grapher.map) {
             if (params.year) {
                 const year = parseTimeURIComponent(
                     params.year,
                     TimeBoundValue.unboundedRight
                 )
-                chart.map.targetYear = year
+                grapher.map.targetYear = year
             }
 
             const region = params.region
             if (region !== undefined) {
-                chart.map.projection = region as MapProjection
+                grapher.map.projection = region as MapProjection
             }
         }
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
         if (
-            chart.props.useV2 ||
+            grapher.script.useV2 ||
             !country ||
-            chart.addCountryMode === "disabled"
+            grapher.addCountryMode === "disabled"
         )
             return
         when(
-            () => chart.isReady,
+            () => grapher.isReady,
             () => {
                 runInAction(() => {
                     const entityCodes = EntityUrlBuilder.queryParamToEntities(
                         country
                     )
-                    const matchedEntities = this.chart.setSelectedEntitiesByCode(
+                    const matchedEntities = this.grapher.setSelectedEntitiesByCode(
                         entityCodes
                     )
                     const notFoundEntities = Array.from(
@@ -417,7 +419,7 @@ export class ChartUrl implements ObservableUrl {
                     ).filter(key => !matchedEntities.get(key))
 
                     if (notFoundEntities.length)
-                        chart.analytics.logEntitiesNotFoundError(
+                        grapher.analytics.logEntitiesNotFoundError(
                             notFoundEntities
                         )
                 })
@@ -430,20 +432,20 @@ interface ObjectWithToQueryParamsMethod {
     toQueryParams: QueryParams
 }
 
-export class ExtendedChartUrl implements ObservableUrl {
-    chartUrl: ChartUrl
+export class ExtendedGrapherUrl implements ObservableUrl {
+    grapherUrl: GrapherUrl
     private objectsWithParams: ObjectWithToQueryParamsMethod[]
 
     constructor(
-        chartUrl: ChartUrl,
+        grapherUrl: GrapherUrl,
         objectsWithParams: ObjectWithToQueryParamsMethod[]
     ) {
-        this.chartUrl = chartUrl
+        this.grapherUrl = grapherUrl
         this.objectsWithParams = objectsWithParams
     }
 
     @computed get params(): QueryParams {
-        let obj = Object.assign({}, this.chartUrl.params)
+        let obj = Object.assign({}, this.grapherUrl.params)
         this.objectsWithParams.forEach(p => {
             obj = Object.assign(obj, p.toQueryParams)
         })
@@ -451,6 +453,6 @@ export class ExtendedChartUrl implements ObservableUrl {
     }
 
     @computed get debounceMode(): boolean {
-        return this.chartUrl.debounceMode
+        return this.grapherUrl.debounceMode
     }
 }

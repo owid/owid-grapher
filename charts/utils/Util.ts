@@ -143,7 +143,7 @@ import {
     RelatedQuestionsConfig,
     ScaleType,
     EPOCH_DATE
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"

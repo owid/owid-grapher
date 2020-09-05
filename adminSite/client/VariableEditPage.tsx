@@ -13,12 +13,12 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { ChartFigureView } from "site/client/ChartFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { EPOCH_DATE } from "charts/core/ChartConstants"
+import { EPOCH_DATE } from "charts/core/GrapherConstants"
 
 interface VariablePageData {
     id: number
@@ -71,7 +71,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref chart?: ChartConfig
+    @observable.ref chart?: Grapher
 
     @computed get isModified(): boolean {
         return (
@@ -304,7 +304,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.chart = new ChartConfig(this.chartConfig as any)
+        this.chart = new Grapher(this.chartConfig as any)
 
         this.dispose = autorun(() => {
             if (this.chart && this.chartConfig) {

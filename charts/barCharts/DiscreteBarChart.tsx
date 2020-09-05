@@ -3,19 +3,19 @@ import { select } from "d3-selection"
 import { min, max, maxBy } from "charts/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { Bounds } from "charts/utils/Bounds"
 import {
     Color,
     TickFormattingOptions,
     EntityDimensionKey,
     ScaleType
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines
 } from "charts/axis/AxisViews"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { AddEntityButton } from "charts/controls/Controls"
 
@@ -34,7 +34,7 @@ const labelToBarPadding = 5
 @observer
 export class DiscreteBarChart extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 

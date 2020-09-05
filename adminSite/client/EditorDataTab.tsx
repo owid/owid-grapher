@@ -2,8 +2,8 @@ import * as React from "react"
 import { clone, map } from "charts/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "charts/core/ChartConfig"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { Grapher } from "charts/core/Grapher"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 import {
     EditableList,
     EditableListItem,
@@ -18,7 +18,7 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 interface EntityDimensionKeyItemProps extends EditableListItemProps {
-    chart: ChartConfig
+    chart: Grapher
     entityDimensionKey: EntityDimensionKey
 }
 
@@ -67,7 +67,7 @@ class EntityDimensionKeyItem extends React.Component<
 }
 
 @observer
-class KeysSection extends React.Component<{ chart: ChartConfig }> {
+class KeysSection extends React.Component<{ chart: Grapher }> {
     @observable.ref dragKey?: EntityDimensionKey
 
     @action.bound onAddKey(key: EntityDimensionKey) {
@@ -146,7 +146,8 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 value="add-country"
                                 checked={chart.addCountryMode === "add-country"}
                                 onChange={() =>
-                                    (chart.props.addCountryMode = "add-country")
+                                    (chart.script.addCountryMode =
+                                        "add-country")
                                 }
                             />
                             User can add and remove data
@@ -163,7 +164,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                     chart.addCountryMode === "change-country"
                                 }
                                 onChange={() =>
-                                    (chart.props.addCountryMode =
+                                    (chart.script.addCountryMode =
                                         "change-country")
                                 }
                             />
@@ -179,7 +180,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 value="disabled"
                                 checked={chart.addCountryMode === "disabled"}
                                 onChange={() =>
-                                    (chart.props.addCountryMode = "disabled")
+                                    (chart.script.addCountryMode = "disabled")
                                 }
                             />
                             User cannot change/add data
