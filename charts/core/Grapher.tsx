@@ -872,7 +872,7 @@ export class Grapher {
     }
 
     @computed.struct get json(): Readonly<any> {
-        const json: any = toJS(this.script)
+        const json: any = this.script.json
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job

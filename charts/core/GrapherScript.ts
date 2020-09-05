@@ -1,4 +1,4 @@
-import { observable } from "mobx"
+import { observable, toJS } from "mobx"
 import {
     ChartTypeName,
     StackMode,
@@ -35,6 +35,10 @@ export class GrapherScript {
                 }
             }
         }
+    }
+
+    get json() {
+        return toJS(this)
     }
 
     @observable.ref type: ChartTypeName = "LineChart"
