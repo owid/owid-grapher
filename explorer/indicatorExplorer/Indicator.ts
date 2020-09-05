@@ -1,4 +1,4 @@
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 
 // This is a made-up entity to make the explorer variable dropdown possible.
 // It is currently derived from single-dimensional chart entities.

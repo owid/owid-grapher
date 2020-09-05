@@ -189,8 +189,8 @@ export class DataTableTransform extends ChartTransform {
 
     // TODO move this logic to chart
     @computed get targetYearMode(): TargetYearMode {
-        const { tab } = this.chart
-        if (tab === "chart") {
+        const { currentTab } = this.chart
+        if (currentTab === "chart") {
             if (this.chart.multiMetricTableMode) return TargetYearMode.point
             if (
                 (this.chart.isLineChart &&
@@ -218,7 +218,7 @@ export class DataTableTransform extends ChartTransform {
 
     @computed get targetYears(): TargetYears {
         // legacy support for Exemplars Explorer project
-        if (this.chart.tab === "map")
+        if (this.chart.currentTab === "map")
             return [
                 getTimeWithinTimeRange(
                     [this.chart.minYear, this.chart.maxYear],

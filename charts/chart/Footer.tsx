@@ -144,7 +144,7 @@ export class SourcesFooter {
     }
 
     @action.bound onSourcesClick() {
-        this.props.chart.tab = "sources"
+        this.props.chart.currentTab = "sources"
     }
 
     render(targetX: number, targetY: number) {

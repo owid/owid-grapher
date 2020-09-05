@@ -2,7 +2,7 @@
 
 import * as fs from "fs"
 
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 
 const readObj = (fixture: string) =>

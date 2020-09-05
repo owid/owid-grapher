@@ -3,7 +3,7 @@ import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
@@ -820,7 +820,7 @@ export class CovidExplorer extends React.Component<{
         else covidExplorerTable.removeNegativeFilterColumn()
 
         // Do not show unselected groups on scatterplots
-        if (params.type === "ScatterPlot" && this.chart.tab === "chart")
+        if (params.type === "ScatterPlot" && this.chart.currentTab === "chart")
             covidExplorerTable.addGroupFilterColumn()
         else covidExplorerTable.removeGroupFilterColumn()
 

@@ -209,7 +209,7 @@ export class CSVGenerator {
     }
 
     @computed get csvFilename(): string {
-        return this.chart.slug + ".csv"
+        return this.chart.displaySlug + ".csv"
     }
 
     // IE11 compatibility

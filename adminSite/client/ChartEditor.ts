@@ -215,7 +215,7 @@ export class ChartEditor {
     }
 
     publishChart() {
-        const url = `${BAKED_GRAPHER_URL}/${this.chart.slug}`
+        const url = `${BAKED_GRAPHER_URL}/${this.chart.displaySlug}`
 
         if (window.confirm(`Publish chart at ${url}?`)) {
             this.chart.script.isPublished = true

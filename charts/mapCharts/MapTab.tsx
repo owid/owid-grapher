@@ -100,7 +100,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         const entityName = this.props.mapToDataEntities[d.id as string]
 
         if (!ev.shiftKey) {
-            chart.tab = "chart"
+            chart.currentTab = "chart"
             chart.selectOnlyThisEntity(entityName)
         } else {
             chart.toggleEntitySelectionStatus(entityName)

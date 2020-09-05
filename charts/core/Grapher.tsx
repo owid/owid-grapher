@@ -19,7 +19,6 @@ import {
     includes,
     uniqWith,
     isEqual,
-    defaultTo,
     formatDay,
     formatYear,
     uniq,
@@ -90,7 +89,7 @@ import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { DimensionSlot } from "charts/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
@@ -103,7 +102,7 @@ const isNode: boolean =
 const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
-export class Grapher {
+export class Grapher extends GrapherScript {
     /** Stores the current state. Can be modified to change the grapher. */
     script = new GrapherScript()
 
@@ -179,7 +178,7 @@ export class Grapher {
     @observable userHasSetTimeline: boolean = false
 
     @action.bound async downloadData() {
-        if (this.script.useV2) return
+        if (this.useV2) return
 
         if (this.script.externalDataUrl) {
             const json = await fetchJSON(this.script.externalDataUrl)
@@ -360,6 +359,7 @@ export class Grapher {
             globalEntitySelection?: GlobalEntitySelection
         } = {}
     ) {
+        super()
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
 
@@ -454,63 +454,18 @@ export class Grapher {
         this.disposers.push(...disposers)
     }
 
-    @computed get subtitle() {
-        return defaultTo(this.script.subtitle, "")
-    }
-    @computed get note() {
-        return defaultTo(this.script.note, "")
-    }
-    @computed get internalNotes() {
-        return defaultTo(this.script.internalNotes, "")
-    }
-    @computed get originUrl() {
-        return defaultTo(this.script.originUrl, "")
-    }
-
     // todo: do we need this?
     @computed get originUrlWithProtocol(): string {
         let url = this.originUrl
-        if (!url.startsWith("http")) url = "https://" + url
+        if (!url.startsWith("http")) url = `https://${url}`
         return url
     }
 
-    @computed get isPublished() {
-        return defaultTo(this.script.isPublished, false)
-    }
     @computed get primaryTab() {
         return this.script.tab
     }
     @computed get overlayTab() {
         return this.script.overlay
-    }
-    @computed get addCountryMode() {
-        return this.script.addCountryMode || "add-country"
-    }
-    @computed get highlightToggle() {
-        return this.script.highlightToggle
-    }
-    @computed get hasChartTab() {
-        return this.script.hasChartTab
-    }
-    @computed get hasMapTab() {
-        return this.script.hasMapTab
-    }
-    @computed get hideLegend() {
-        return this.script.hideLegend
-    }
-    @computed get baseColorScheme() {
-        return this.script.baseColorScheme
-    }
-    @computed get comparisonLines() {
-        return this.script.comparisonLines || []
-    }
-
-    @computed get entityType() {
-        return defaultTo(this.script.entityType, "country")
-    }
-
-    @computed get entityTypePlural() {
-        return defaultTo(this.script.entityTypePlural, "countries")
     }
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
@@ -528,12 +483,12 @@ export class Grapher {
         this.script.minPopulationFilter = this.chartMinPopulationFilter
     }
 
-    @computed get tab() {
+    @computed get currentTab() {
         return this.script.overlay ? this.script.overlay : this.script.tab
     }
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
-    set tab(value) {
+    set currentTab(value) {
         if (this.script.tab === "chart")
             this.chartMinPopulationFilter = this.script.minPopulationFilter
         if (this.script.tab === "table" && value !== "table")
@@ -622,16 +577,8 @@ export class Grapher {
         return this.filledDimensions.filter(dim => dim.property === "y")
     }
 
-    @computed get dimensions() {
-        return this.script.dimensions
-    }
-
-    @computed private get defaultSlug(): string {
-        return slugify(this.title)
-    }
-
-    @computed get slug(): string {
-        return defaultTo(this.script.slug, this.defaultSlug)
+    @computed get displaySlug(): string {
+        return this.script.slug ?? slugify(this.displayTitle)
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
@@ -685,7 +632,7 @@ export class Grapher {
     }
 
     @computed get currentTitle(): string {
-        let text = this.title
+        let text = this.displayTitle
 
         if (
             this.primaryTab === "chart" &&
@@ -740,7 +687,7 @@ export class Grapher {
     @computed get maxYear(): number {
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
-        if (this.tab === "table") return this.dataTableTransform.endYear
+        if (this.currentTab === "table") return this.dataTableTransform.endYear
         else if (this.primaryTab === "map") return this.mapTransform.targetYear
         else if (this.isScatter && !this.scatterTransform.failMessage)
             return this.scatterTransform.endYear
@@ -778,7 +725,8 @@ export class Grapher {
     @computed get minYear(): number {
         //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
         //    return undefined
-        if (this.tab === "table") return this.dataTableTransform.startYear
+        if (this.currentTab === "table")
+            return this.dataTableTransform.startYear
         else if (this.primaryTab === "map") return this.mapTransform.targetYear
         else if (this.isScatter && !this.scatterTransform.failMessage)
             return this.scatterTransform.startYear
@@ -865,23 +813,22 @@ export class Grapher {
         else return primaryDimensions.map(d => d.displayName).join(", ")
     }
 
-    @computed get title(): string {
-        return this.script.title !== undefined
-            ? this.script.title
-            : this.defaultTitle
+    @computed get displayTitle(): string {
+        return this.title ?? this.defaultTitle
     }
 
     @computed.struct get json(): Readonly<any> {
-        const json: any = this.script.json
+        const json: any = this.toJson()
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!this.script.title) {
-            json.title = this.title
+        if (!json.title) {
+            json.title = this.displayTitle
             json.isAutoTitle = true
         }
-        if (!this.script.slug) {
-            json.slug = this.slug
+
+        if (!json.slug) {
+            json.slug = this.displaySlug
             json.isAutoSlug = true
         }
 
@@ -891,17 +838,9 @@ export class Grapher {
         if (json.yAxis && json.yAxis.containerOptions)
             delete json.yAxis.containerOptions
 
-        // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
-        // in the Grapher Admin with an overlay tab open
-        json.overlay = undefined
-
         json.data = {
             availableEntities: this.availableEntityNames
         }
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        json.minTime = minTimeToJSON(this.script.minTime)
-        json.maxTime = maxTimeToJSON(this.script.maxTime)
 
         if (this.map) {
             json.map.targetYear = maxTimeToJSON(this.map.targetYear)
@@ -967,14 +906,14 @@ export class Grapher {
         )
     }
 
-    @observable colorScale: ColorScaleConfigProps = new ColorScaleConfigProps()
+    @observable colorScale2: ColorScaleConfigProps = new ColorScaleConfigProps()
 
     @computed get activeColorScale() {
         return this.activeTransform.colorScale
     }
 
     @computed get activeTransform(): IChartTransform {
-        if (this.tab === "table") return this.dataTableTransform
+        if (this.currentTab === "table") return this.dataTableTransform
         else if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
             return this.scatterTransform
@@ -1001,10 +940,6 @@ export class Grapher {
 
     @computed get cacheTag(): string {
         return this.script.version.toString()
-    }
-
-    @computed get isExplorable(): boolean {
-        return this.script.isExplorable
     }
 
     // todo: remove

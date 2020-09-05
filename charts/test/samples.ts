@@ -1,4 +1,4 @@
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { parseDelimited } from "charts/utils/Util"
 import { Grapher } from "charts/core/Grapher"
 

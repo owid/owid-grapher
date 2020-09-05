@@ -1,7 +1,7 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
 import { ChartType, ChartTypeName } from "charts/core/GrapherConstants"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
@@ -54,7 +54,7 @@ export class ExploreModel {
         this.chart.script.type = this.configChartType
         this.chart.script.hasMapTab = this.isMap
         this.chart.script.hasChartTab = !this.isMap
-        this.chart.tab = this.isMap ? "map" : "chart"
+        this.chart.currentTab = this.isMap ? "map" : "chart"
     }
 
     constructor(store: RootStore) {

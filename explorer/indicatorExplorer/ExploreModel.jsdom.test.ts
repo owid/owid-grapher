@@ -48,7 +48,7 @@ describe(ExploreModel, () => {
         })
 
         it("is on the chart tab", () => {
-            expect(model.chart.tab).toBe("chart")
+            expect(model.chart.currentTab).toBe("chart")
         })
     })
 
@@ -71,7 +71,7 @@ describe(ExploreModel, () => {
         })
 
         it("is on the map tab", () => {
-            expect(model.chart.tab).toBe("map")
+            expect(model.chart.currentTab).toBe("map")
         })
     })
 })

@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, when, reaction, autorun } from "mobx"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { uniq } from "charts/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"

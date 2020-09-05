@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "charts/chart/ChartView"
@@ -325,10 +325,10 @@ export class Controls {
 
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
-        if (chart.tab === "table") return !chart.script.hideTimeline
-        if (chart.tab === "map") {
+        if (chart.currentTab === "table") return !chart.script.hideTimeline
+        if (chart.currentTab === "map") {
             return chart.mapTransform.hasTimeline
-        } else if (chart.tab === "chart") {
+        } else if (chart.currentTab === "chart") {
             if (chart.isScatter || chart.isTimeScatter)
                 return chart.scatterTransform.hasTimeline
             if (chart.isLineChart) return chart.lineChartTransform.hasTimeline
@@ -340,7 +340,7 @@ export class Controls {
     @computed get hasInlineControls(): boolean {
         const { chart } = this.props
         return (
-            (chart.tab === "chart" || chart.tab === "table") &&
+            (chart.currentTab === "chart" || chart.currentTab === "table") &&
             ((chart.canAddData && !chart.hasFloatingAddButton) ||
                 chart.isScatter ||
                 chart.canChangeEntity ||
@@ -551,9 +551,11 @@ export class ControlsFooterView extends React.Component<{
                                     key={tabName}
                                     className={
                                         "tab clickable" +
-                                        (tabName === chart.tab ? " active" : "")
+                                        (tabName === chart.currentTab
+                                            ? " active"
+                                            : "")
                                     }
-                                    onClick={() => (chart.tab = tabName)}
+                                    onClick={() => (chart.currentTab = tabName)}
                                 >
                                     <a
                                         data-track-note={
@@ -569,10 +571,10 @@ export class ControlsFooterView extends React.Component<{
                     <li
                         className={
                             "tab clickable icon download-tab-button" +
-                            (chart.tab === "download" ? " active" : "")
+                            (chart.currentTab === "download" ? " active" : "")
                         }
                         data-track-note="chart-click-download"
-                        onClick={() => (chart.tab = "download")}
+                        onClick={() => (chart.currentTab = "download")}
                         title="Download as .png or .svg"
                     >
                         <a>
@@ -621,7 +623,7 @@ export class ControlsFooterView extends React.Component<{
         const { chart } = props.controls.props
         return (
             <div className="extraControls">
-                {chart.tab === "chart" &&
+                {chart.currentTab === "chart" &&
                     chart.canAddData &&
                     !chart.hasFloatingAddButton &&
                     !chart.hideEntityControls && (
@@ -644,7 +646,7 @@ export class ControlsFooterView extends React.Component<{
                         </button>
                     )}
 
-                {chart.tab === "chart" &&
+                {chart.currentTab === "chart" &&
                     chart.canChangeEntity &&
                     !chart.hideEntityControls && (
                         <button
@@ -657,7 +659,7 @@ export class ControlsFooterView extends React.Component<{
                         </button>
                     )}
 
-                {chart.tab === "chart" &&
+                {chart.currentTab === "chart" &&
                     chart.isScatter &&
                     chart.highlightToggle && (
                         <HighlightToggle
@@ -665,26 +667,26 @@ export class ControlsFooterView extends React.Component<{
                             highlightToggle={chart.highlightToggle}
                         />
                     )}
-                {chart.tab === "chart" &&
+                {chart.currentTab === "chart" &&
                     chart.isStackedArea &&
                     chart.canToggleRelativeMode && (
                         <AbsRelToggle chart={chart} />
                     )}
-                {chart.tab === "chart" &&
+                {chart.currentTab === "chart" &&
                     chart.isScatter &&
                     chart.scatterTransform.canToggleRelativeMode && (
                         <AbsRelToggle chart={chart} />
                     )}
-                {chart.tab === "chart" &&
+                {chart.currentTab === "chart" &&
                     chart.isScatter &&
                     chart.hasSelection && <ZoomToggle chart={chart.script} />}
 
-                {(chart.tab === "table" || chart.isScatter) &&
+                {(chart.currentTab === "table" || chart.isScatter) &&
                     chart.hasCountriesSmallerThanFilterOption && (
                         <FilterSmallCountriesToggle chart={chart} />
                     )}
 
-                {chart.tab === "chart" &&
+                {chart.currentTab === "chart" &&
                     chart.isLineChart &&
                     chart.lineChartTransform.canToggleRelativeMode && (
                         <AbsRelToggle chart={chart} />
@@ -708,7 +710,7 @@ export class ControlsFooterView extends React.Component<{
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">
-                <TimelineControl chart={chart} activeTab={chart.tab} />
+                <TimelineControl chart={chart} activeTab={chart.currentTab} />
             </div>
         )
 
