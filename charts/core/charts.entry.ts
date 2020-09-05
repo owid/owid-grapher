@@ -13,4 +13,3 @@ import { ChartView } from "charts/core/ChartView"
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
 window.ChartView = ChartView
-window.App = window.App || {}

@@ -95,7 +95,6 @@ import { DimensionSlot } from "./DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
 
-declare const App: any
 declare const window: any
 
 // That node check is taken from the "detect-node" npm package: https://www.npmjs.com/package/detect-node
@@ -114,21 +113,20 @@ export class ChartConfig {
 
     private origScriptRaw: Readonly<ChartScript>
 
+    // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
     analytics: Readonly<Analytics> = new Analytics(ENV)
+    isEditor: Readonly<boolean> = (window as any).isEditor === true
+    bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     /**
      * The original chart props as they are stored in the database. Useful for deriving the URL
      * parameters that need to be applied to reach the current state.
      */
     @computed get origScript(): Readonly<ChartScript> {
-        if (typeof App !== "undefined" && App.isEditor) {
-            // In the editor, the current chart state is always the "original" state
-            return toJS(this.props)
-        }
-
-        return this.origScriptRaw
+        // In the editor, the current chart state is always the "original" state
+        return this.isEditor ? toJS(this.props) : this.origScriptRaw
     }
 
     private initialScriptRaw: Readonly<ChartScript>
@@ -138,12 +136,8 @@ export class ChartConfig {
      * changes. Helpful for "resetting" embeds to their initial state.
      */
     @computed get initialScript(): Readonly<ChartScript> {
-        if (typeof App !== "undefined" && App.isEditor) {
-            // In the editor, the current chart state is always the "initial" state
-            return toJS(this.props)
-        } else {
-            return this.initialScriptRaw
-        }
+        // In the editor, the current chart state is always the "initial" state
+        return this.isEditor ? toJS(this.props) : this.initialScriptRaw
     }
 
     @observable.ref isEmbed: boolean
@@ -305,10 +299,6 @@ export class ChartConfig {
         return window.self !== window.top
     }
 
-    private get isEditor(): boolean {
-        return typeof App !== "undefined" && App.isEditor
-    }
-
     @computed get isNativeEmbed(): boolean {
         return this.isEmbed && !this.isIframe && !this.isExporting
     }
@@ -324,7 +314,7 @@ export class ChartConfig {
     }
 
     @computed get dataUrl(): string {
-        return `${BAKED_GRAPHER_URL}/data/variables/${this.dataFileName}`
+        return `${this.bakedGrapherURL}/data/variables/${this.dataFileName}`
     }
 
     @computed get showAddEntityControls() {
@@ -416,7 +406,7 @@ export class ChartConfig {
         )
 
         this.url = new ChartUrl(this, options.queryStr)
-        this.url.urlRoot = BAKED_GRAPHER_URL
+        this.url.urlRoot = this.bakedGrapherURL
 
         // The chart props after consuming the URL parameters, but before any user interaction
         this.initialScriptRaw = toJS(this.props)
@@ -667,7 +657,7 @@ export class ChartConfig {
 
         // Auto slug is only preserved for drafts in the editor
         // Once published, slug should stick around (we don't want to create too many redirects)
-        if (json.isAutoSlug && App.isEditor && !json.isPublished)
+        if (json.isAutoSlug && this.isEditor && !json.isPublished)
             this.props.slug = undefined
 
         // JSON doesn't support Infinity, so we use strings instead.

@@ -6,8 +6,7 @@ import * as settings from "settings"
 
 export function IndexPage(props: { username: string; isSuperuser: boolean }) {
     const script = `
-        window.App = {}
-        App.isEditor = true
+        window.isEditor = true
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(

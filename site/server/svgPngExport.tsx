@@ -5,7 +5,6 @@ import svgo from "svgo"
 
 declare var global: any
 global.window = { location: { search: "" } }
-global.App = { isEditor: false }
 
 import { ChartScript } from "charts/core/ChartScript"
 import { ChartConfig } from "charts/core/ChartConfig"

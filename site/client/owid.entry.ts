@@ -39,7 +39,6 @@ window.ChartView = ChartView
 window.CovidExplorer = CovidExplorer
 window.SwitcherExplorer = SwitcherExplorer
 window.ExploreView = ExploreView
-window.App = window.App || {}
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage
