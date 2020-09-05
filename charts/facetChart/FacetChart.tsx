@@ -11,13 +11,13 @@ interface FacetChartProps {
     number: number
     padding: number
     chartTypeName: ChartTypeName
-    chart: Grapher
+    grapher: Grapher
 }
 
 @observer
 export class FacetChart extends React.Component<FacetChartProps> {
     @computed get smallCharts() {
-        const { chart, chartTypeName } = this.props
+        const { grapher, chartTypeName } = this.props
         const charts = this.bounds.split(
             this.props.number || 1,
             this.props.padding
@@ -25,7 +25,7 @@ export class FacetChart extends React.Component<FacetChartProps> {
         const ChartType = ChartTypeMap[chartTypeName] as any
 
         return charts.map((bounds: Bounds, index: number) => (
-            <ChartType key={index} bounds={bounds} chart={chart} />
+            <ChartType key={index} bounds={bounds} chart={grapher} />
         ))
     }
 

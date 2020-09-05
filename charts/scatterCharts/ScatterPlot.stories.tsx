@@ -2,7 +2,7 @@ import * as React from "react"
 import "site/client/owid.scss"
 import "charts/core/chart.scss"
 import { ScatterPlot } from "./ScatterPlot"
-import { basicScatter } from "charts/test/samples"
+import { basicScatterGrapher } from "charts/test/samples"
 
 export default {
     title: "ScatterPlot",
@@ -10,11 +10,9 @@ export default {
 }
 
 export const Default = () => {
-    const chartRuntime = basicScatter()
-
     return (
         <svg width={640} height={480}>
-            <ScatterPlot chart={chartRuntime} />
+            <ScatterPlot chart={basicScatterGrapher()} />
         </svg>
     )
 }

@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
-import { basicScatter } from "charts/test/samples"
+import { basicScatterGrapher } from "charts/test/samples"
 
 describe(ScatterTransform, () => {
     it("can create a new transform", () => {
-        const chart = basicScatter()
+        const chart = basicScatterGrapher()
         const scatterT = new ScatterTransform(chart)
         expect(scatterT.isValidConfig).toEqual(true)
         expect(scatterT.getEntityNamesToShow()).toEqual(["France", "Germany"])
@@ -14,7 +14,7 @@ describe(ScatterTransform, () => {
     })
 
     it("can remove points outside domain", () => {
-        const chart = basicScatter()
+        const chart = basicScatterGrapher()
         const scatterT = new ScatterTransform(chart)
         const count = scatterT.allPoints.length
         chart.xAxisOptions.removePointsOutsideDomain = true
