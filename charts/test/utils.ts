@@ -3,7 +3,7 @@
 import { GrapherScript } from "charts/core/GrapherScript"
 import { Grapher } from "charts/core/Grapher"
 
-import * as fixtures from "./fixtures"
+import { readVariableSet, readVariable, readChart } from "./fixtures"
 import { first } from "lodash"
 
 export function createConfig(props?: Partial<GrapherScript>) {
@@ -21,11 +21,11 @@ export function setupChart(
 ) {
     const variableSet =
         varIds.length > 1
-            ? fixtures.readVariableSet(varIds)
-            : fixtures.readVariable(first(varIds) as number)
+            ? readVariableSet(varIds)
+            : readVariable(first(varIds) as number)
 
     const props = new GrapherScript({
-        ...fixtures.readChart(id),
+        ...readChart(id),
         ...configOverrides,
         owidDataset: variableSet
     })

@@ -11,7 +11,7 @@ import { GrapherScript } from "charts/core/GrapherScript"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
-import * as fixtures from "charts/test/fixtures"
+import { readChart } from "charts/test/fixtures"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 
 describe(ChartPage, () => {
@@ -21,9 +21,27 @@ describe(ChartPage, () => {
 
     beforeAll(() => {
         chart = new GrapherScript()
-        extend(chart, fixtures.readChart(792))
-        post = fixtures.readPost(2681)
-        relatedCharts = fixtures.readChartsPost(2681)
+        extend(chart, readChart(792))
+        post = {
+            id: 2681,
+            title: "Hunger and Undernourishment",
+            slug: "hunger-and-undernourishment",
+            published_at: "Tue Oct 08 2013 17:22:54 GMT+0000 (GMT)",
+            status: "publish",
+            type: "page",
+            updated_at: "Wed Mar 25 2020 14:11:30 GMT+0000 (GMT)",
+            content: ""
+        } as any
+        relatedCharts = [
+            {
+                title: "Chart 1",
+                slug: "chart-1"
+            },
+            {
+                title: "Chart 2",
+                slug: "chart-2"
+            }
+        ]
     })
 
     describe("when the page is rendered", () => {
