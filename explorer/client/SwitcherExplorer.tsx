@@ -142,7 +142,7 @@ export class SwitcherExplorer extends React.Component<{
                 }
             })
 
-        this._chart!.props.selectedData = selectedData
+        this._chart!.script.selectedData = selectedData
     }
 
     private get panels() {

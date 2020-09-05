@@ -122,7 +122,7 @@ export class ScatterTransform extends ChartTransform {
     @computed get canToggleRelativeMode(): boolean {
         return (
             this.hasTimeline &&
-            !this.chart.props.hideRelativeToggle &&
+            !this.chart.script.hideRelativeToggle &&
             this.xOverrideYear === undefined
         )
     }
@@ -145,7 +145,7 @@ export class ScatterTransform extends ChartTransform {
 
     // todo: move to table
     @computed get excludedEntityNames(): EntityName[] {
-        const entityIds = this.chart.props.excludedEntities || []
+        const entityIds = this.chart.script.excludedEntities || []
         const entityNameMap = this.chart.table.entityIdToNameMap
         return entityIds
             .map(entityId => entityNameMap.get(entityId)!)
@@ -160,7 +160,7 @@ export class ScatterTransform extends ChartTransform {
             ? this.chart.selectedEntityNames
             : this.possibleEntityNames
 
-        if (this.chart.props.matchingEntitiesOnly && this.colorDimension)
+        if (this.chart.script.matchingEntitiesOnly && this.colorDimension)
             entityNames = intersection(
                 entityNames,
                 this.colorDimension.entityNamesUniq
@@ -203,11 +203,11 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get compareEndPointsOnly(): boolean {
-        return !!this.chart.props.compareEndPointsOnly
+        return !!this.chart.script.compareEndPointsOnly
     }
 
     set compareEndPointsOnly(value: boolean) {
-        this.chart.props.compareEndPointsOnly = value || undefined
+        this.chart.script.compareEndPointsOnly = value || undefined
     }
 
     // todo: move this sort of thing to OwidTable
@@ -373,7 +373,7 @@ export class ScatterTransform extends ChartTransform {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d[property]),
                 scaleType,
-                this.chart.props.zoomToSelection && this.selectedPoints.length
+                this.chart.script.zoomToSelection && this.selectedPoints.length
                     ? 1.1
                     : 1
             )
@@ -400,7 +400,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get pointsForAxisDomains() {
-        if (!this.chart.hasSelection || !this.chart.props.zoomToSelection)
+        if (!this.chart.hasSelection || !this.chart.script.zoomToSelection)
             return this.currentValues
 
         return this.selectedPoints.length
@@ -654,7 +654,7 @@ export class ScatterTransform extends ChartTransform {
             if (series.values.length === 0) return false
 
             // Hide lines which don't cover the full span
-            if (this.chart.props.hideLinesOutsideTolerance)
+            if (this.chart.script.hideLinesOutsideTolerance)
                 return (
                     firstOfNonEmptyArray(series.values).year === startYear &&
                     lastOfNonEmptyArray(series.values).year === endYear

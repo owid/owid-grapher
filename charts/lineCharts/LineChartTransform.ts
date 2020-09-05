@@ -35,7 +35,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get colorScheme(): ColorScheme {
         const colorScheme =
-            ColorSchemes[this.chart.props.baseColorScheme as string]
+            ColorSchemes[this.chart.script.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["owid-distinct"] as ColorScheme)
@@ -93,7 +93,7 @@ export class LineChartTransform extends ChartTransform {
         )
 
         const colors = this.colorScheme.getColors(chartData.length)
-        if (this.chart.props.invertColorScheme) colors.reverse()
+        if (this.chart.script.invertColorScheme) colors.reverse()
         chartData.forEach((series, i) => {
             series.color =
                 chart.keyColors[series.entityDimensionKey] || colors[i]
@@ -243,7 +243,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.chart.props.hideRelativeToggle && !this.isSingleYear
+        return !this.chart.script.hideRelativeToggle && !this.isSingleYear
     }
 
     // Filter the data so it fits within the domains

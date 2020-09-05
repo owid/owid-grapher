@@ -46,7 +46,7 @@ export class GlobalEntitySelection {
     }
 }
 
-export function subscribeChartToGlobalEntitySelection(
+export function subscribeGrapherToGlobalEntitySelection(
     chart: Grapher,
     globalSelection: GlobalEntitySelection
 ): IReactionDisposer {

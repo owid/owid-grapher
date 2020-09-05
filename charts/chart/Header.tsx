@@ -26,11 +26,11 @@ export class Header {
     }
 
     @computed get logo(): Logo | undefined {
-        if (this.props.chart.props.hideLogo) {
+        if (this.props.chart.script.hideLogo) {
             return undefined
         } else {
             return new Logo({
-                logo: this.props.chart.props.logo,
+                logo: this.props.chart.script.logo,
                 isLink: !this.props.chart.isNativeEmbed,
                 fontSize: this.props.chart.baseFontSize
             })

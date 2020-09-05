@@ -10,7 +10,7 @@ describe(StackedAreaTransform, () => {
         expect(transform.isValidConfig).toEqual(true)
         expect(transform.yAxis.domain[1]).toBeGreaterThan(100)
 
-        chart.props.stackMode = "relative"
+        chart.script.stackMode = "relative"
         expect(transform.yAxis.domain).toEqual([0, 100])
     })
 })

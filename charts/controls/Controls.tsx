@@ -170,7 +170,7 @@ class FilterSmallCountriesToggle extends React.Component<{
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={!!this.props.chart.props.minPopulationFilter}
+                    checked={!!this.props.chart.script.minPopulationFilter}
                     onChange={() =>
                         this.props.chart.toggleMinPopulationFilter()
                     }
@@ -325,7 +325,7 @@ export class Controls {
 
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
-        if (chart.tab === "table") return !chart.props.hideTimeline
+        if (chart.tab === "table") return !chart.script.hideTimeline
         if (chart.tab === "map") {
             return chart.mapTransform.hasTimeline
         } else if (chart.tab === "chart") {
@@ -359,7 +359,7 @@ export class Controls {
     }
 
     @computed get hasRelatedQuestion(): boolean {
-        const { relatedQuestions } = this.props.chart.props
+        const { relatedQuestions } = this.props.chart.script
         return (
             !!relatedQuestions &&
             !!relatedQuestions.length &&
@@ -677,7 +677,7 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {chart.tab === "chart" &&
                     chart.isScatter &&
-                    chart.hasSelection && <ZoomToggle chart={chart.props} />}
+                    chart.hasSelection && <ZoomToggle chart={chart.script} />}
 
                 {(chart.tab === "table" || chart.isScatter) &&
                     chart.hasCountriesSmallerThanFilterOption && (
@@ -704,7 +704,7 @@ export class ControlsFooterView extends React.Component<{
             hasRelatedQuestion
         } = props.controls
         const { chart, chartView } = props.controls.props
-        const { relatedQuestions } = chart.props
+        const { relatedQuestions } = chart.script
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">

@@ -41,7 +41,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get hasTimeline(): boolean {
-        return this.chart.isLineChart && !this.chart.props.hideTimeline
+        return this.chart.isLineChart && !this.chart.script.hideTimeline
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
@@ -49,7 +49,7 @@ export class DiscreteBarTransform extends ChartTransform {
 
         return (datum: DiscreteBarDatum) => {
             const showYearLabels =
-                this.chart.props.showYearLabels || datum.year !== targetYear
+                this.chart.script.showYearLabels || datum.year !== targetYear
             return (
                 datum.formatValue(datum.value) +
                 (showYearLabels
@@ -137,7 +137,7 @@ export class DiscreteBarTransform extends ChartTransform {
                 : undefined
             const uniqValues = uniq(data.map(d => d.value))
             const colors = colorScheme?.getColors(uniqValues.length) || []
-            if (chart.props.invertColorScheme) colors.reverse()
+            if (chart.script.invertColorScheme) colors.reverse()
 
             // We want to display same values using the same color, e.g. two values of 100 get the same shade of green
             // Therefore, we create a map from all possible (unique) values to the corresponding color
@@ -227,7 +227,7 @@ export class DiscreteBarTransform extends ChartTransform {
             : undefined
         const uniqValues = sortedUniq(data.map(d => d.value))
         const colors = colorScheme?.getColors(uniqValues.length) || []
-        if (chart.props.invertColorScheme) colors.reverse()
+        if (chart.script.invertColorScheme) colors.reverse()
 
         const colorByValue = new Map<number, string>()
         uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))

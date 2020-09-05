@@ -48,7 +48,7 @@ class DimensionSlotView extends React.Component<{
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
-            () => chart.props.type && chart.primaryDimensions,
+            () => chart.script.type && chart.primaryDimensions,
             () => {
                 if (chart.isScatter || chart.isSlopeChart) {
                     chart.selectedKeys = []
@@ -62,13 +62,13 @@ class DimensionSlotView extends React.Component<{
                     chart.selectedKeys = chart.availableKeys.filter(
                         key => chart.lookupKey(key).entityName === entityName
                     )
-                    chart.props.addCountryMode = "change-country"
+                    chart.script.addCountryMode = "change-country"
                 } else {
                     chart.selectedKeys =
                         chart.availableKeys.length > 10
                             ? sampleSize(chart.availableKeys, 3)
                             : chart.availableKeys
-                    chart.props.addCountryMode = "add-country"
+                    chart.script.addCountryMode = "add-country"
                 }
             }
         )
@@ -164,23 +164,23 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onChartType(value: string) {
         const { chart } = this.props.editor
-        chart.props.type = value as ChartTypeName
+        chart.script.type = value as ChartTypeName
 
         // Give scatterplots and slope charts a default color and size dimension if they don't have one
         if (
             (chart.isScatter || chart.isSlopeChart) &&
-            !chart.props.dimensions.find(d => d.property === "color")
+            !chart.script.dimensions.find(d => d.property === "color")
         ) {
-            chart.props.dimensions = chart.props.dimensions.concat(
+            chart.script.dimensions = chart.script.dimensions.concat(
                 new ChartDimensionSpec({ variableId: 123, property: "color" })
             )
         }
 
         if (
             (chart.isScatter || chart.isSlopeChart) &&
-            !chart.props.dimensions.find(d => d.property === "color")
+            !chart.script.dimensions.find(d => d.property === "color")
         ) {
-            chart.props.dimensions = chart.props.dimensions.concat(
+            chart.script.dimensions = chart.script.dimensions.concat(
                 new ChartDimensionSpec({ variableId: 72, property: "size" })
             )
         }
@@ -194,7 +194,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             <div className="EditorBasicTab">
                 <Section name="Type of chart">
                     <SelectField
-                        value={chart.props.type}
+                        value={chart.script.type}
                         onValue={this.onChartType}
                         options={ChartTypeDefs.map(def => def.key)}
                         optionLabels={ChartTypeDefs.map(def => def.label)}
@@ -203,26 +203,28 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                         <FieldsRow>
                             <Toggle
                                 label="Explorable chart"
-                                value={chart.props.isExplorable}
+                                value={chart.script.isExplorable}
                                 onValue={value =>
-                                    (chart.props.isExplorable = value)
+                                    (chart.script.isExplorable = value)
                                 }
-                                disabled={!canBeExplorable(chart.props)}
+                                disabled={!canBeExplorable(chart.script)}
                             />
                         </FieldsRow>
                     )}
                     <FieldsRow>
                         <Toggle
                             label="Chart tab"
-                            value={chart.props.hasChartTab}
-                            onValue={value => (chart.props.hasChartTab = value)}
-                            disabled={chart.props.isExplorable}
+                            value={chart.script.hasChartTab}
+                            onValue={value =>
+                                (chart.script.hasChartTab = value)
+                            }
+                            disabled={chart.script.isExplorable}
                         />
                         <Toggle
                             label="Map tab"
-                            value={chart.props.hasMapTab}
-                            onValue={value => (chart.props.hasMapTab = value)}
-                            disabled={chart.props.isExplorable}
+                            value={chart.script.hasMapTab}
+                            onValue={value => (chart.script.hasMapTab = value)}
+                            disabled={chart.script.isExplorable}
                         />
                     </FieldsRow>
                 </Section>

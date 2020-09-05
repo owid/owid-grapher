@@ -135,7 +135,7 @@ export class GrapherUrl implements ObservableUrl {
     @computed.struct private get allParams() {
         const params: GrapherQueryParams = {}
         const { grapher } = this
-        const props = grapher.props
+        const props = grapher.script
 
         params.tab = props.tab
         params.xScale = grapher.xAxisOptions.scaleType
@@ -178,17 +178,17 @@ export class GrapherUrl implements ObservableUrl {
         if (params.stackMode === origGrapherProps.stackMode)
             params.stackMode = undefined
 
-        if (grapher.props.zoomToSelection === origGrapherProps.zoomToSelection)
+        if (grapher.script.zoomToSelection === origGrapherProps.zoomToSelection)
             params.zoomToSelection = undefined
 
         if (
-            grapher.props.minPopulationFilter ===
+            grapher.script.minPopulationFilter ===
             origGrapherProps.minPopulationFilter
         )
             params.minPopulationFilter = undefined
 
         if (
-            grapher.props.compareEndPointsOnly ===
+            grapher.script.compareEndPointsOnly ===
             origGrapherProps.compareEndPointsOnly
         )
             params.endpointsOnly = undefined
@@ -250,8 +250,8 @@ export class GrapherUrl implements ObservableUrl {
         const { grapher, origGrapherProps } = this
 
         if (
-            grapher.props.minTime !== origGrapherProps.minTime ||
-            grapher.props.maxTime !== origGrapherProps.maxTime
+            grapher.script.minTime !== origGrapherProps.minTime ||
+            grapher.script.maxTime !== origGrapherProps.maxTime
         ) {
             const [minTime, maxTime] = grapher.timeDomain
             if (minTime === maxTime)
@@ -278,7 +278,7 @@ export class GrapherUrl implements ObservableUrl {
         const { grapher, origGrapherProps } = this
         if (
             grapher.isReady &&
-            JSON.stringify(grapher.props.selectedData) !==
+            JSON.stringify(grapher.script.selectedData) !==
                 JSON.stringify(origGrapherProps.selectedData)
         ) {
             return EntityUrlBuilder.entitiesToQueryParam(
@@ -327,32 +327,32 @@ export class GrapherUrl implements ObservableUrl {
         if (tab) {
             if (!includes(grapher.availableTabs, tab))
                 console.error("Unexpected tab: " + tab)
-            else grapher.props.tab = tab as GrapherTabOption
+            else grapher.script.tab = tab as GrapherTabOption
         }
 
         const overlay = params.overlay
         if (overlay) {
             if (!includes(grapher.availableTabs, overlay))
                 console.error("Unexpected overlay: " + overlay)
-            else grapher.props.overlay = overlay as GrapherTabOption
+            else grapher.script.overlay = overlay as GrapherTabOption
         }
 
         // Stack mode for bar and stacked area charts
-        grapher.props.stackMode = defaultTo(
+        grapher.script.stackMode = defaultTo(
             params.stackMode as StackMode,
-            grapher.props.stackMode
+            grapher.script.stackMode
         )
 
-        grapher.props.zoomToSelection = defaultTo(
+        grapher.script.zoomToSelection = defaultTo(
             params.zoomToSelection === "true" ? true : undefined,
-            grapher.props.zoomToSelection
+            grapher.script.zoomToSelection
         )
 
-        grapher.props.minPopulationFilter = defaultTo(
+        grapher.script.minPopulationFilter = defaultTo(
             params.minPopulationFilter
                 ? parseInt(params.minPopulationFilter)
                 : undefined,
-            grapher.props.minPopulationFilter
+            grapher.script.minPopulationFilter
         )
 
         // Axis scale mode
@@ -375,7 +375,7 @@ export class GrapherUrl implements ObservableUrl {
 
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined) {
-            grapher.props.compareEndPointsOnly =
+            grapher.script.compareEndPointsOnly =
                 endpointsOnly === "1" ? true : undefined
         }
 
@@ -399,7 +399,7 @@ export class GrapherUrl implements ObservableUrl {
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
         if (
-            grapher.props.useV2 ||
+            grapher.script.useV2 ||
             !country ||
             grapher.addCountryMode === "disabled"
         )

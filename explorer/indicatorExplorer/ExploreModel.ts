@@ -51,9 +51,9 @@ export class ExploreModel {
     }
 
     @action.bound updateChartFromExplorer() {
-        this.chart.props.type = this.configChartType
-        this.chart.props.hasMapTab = this.isMap
-        this.chart.props.hasChartTab = !this.isMap
+        this.chart.script.type = this.configChartType
+        this.chart.script.hasMapTab = this.isMap
+        this.chart.script.hasChartTab = !this.isMap
         this.chart.tab = this.isMap ? "map" : "chart"
     }
 

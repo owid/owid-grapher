@@ -108,8 +108,8 @@ class VariableEditRow extends React.Component<{
     @action.bound chartIsReady(chart: Grapher) {
         // XXX refactor this with EditorBasicTab
         if (lodash.isEmpty(chart.mapTransform.choroplethData)) {
-            chart.props.tab = "chart"
-            chart.props.hasMapTab = false
+            chart.script.tab = "chart"
+            chart.script.hasMapTab = false
             if (chart.isScatter || chart.isSlopeChart) {
                 chart.selectedKeys = []
             } else if (chart.primaryDimensions.length > 1) {
@@ -122,11 +122,11 @@ class VariableEditRow extends React.Component<{
                 chart.selectedKeys = chart.availableKeys.filter(
                     key => chart.lookupKey(key).entityName === entity
                 )
-                chart.props.addCountryMode = "change-country"
+                chart.script.addCountryMode = "change-country"
             } else {
-                chart.props.addCountryMode = "add-country"
+                chart.script.addCountryMode = "add-country"
                 if (chart.filledDimensions[0].yearsUniq.length === 1) {
-                    chart.props.type = ChartType.DiscreteBar
+                    chart.script.type = ChartType.DiscreteBar
                     chart.selectedKeys =
                         chart.availableKeys.length > 15
                             ? lodash.sampleSize(chart.availableKeys, 8)
@@ -157,7 +157,9 @@ class VariableEditRow extends React.Component<{
             const chart = this.chart
             const display = lodash.clone(this.newVariable.display)
             if (chart) {
-                runInAction(() => (chart.props.dimensions[0].display = display))
+                runInAction(
+                    () => (chart.script.dimensions[0].display = display)
+                )
             }
         })
     }

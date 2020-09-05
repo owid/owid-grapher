@@ -168,7 +168,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     private readonly PLAY_ANIMATION_SECONDS = 45
     @action.bound onStartPlaying() {
-        this.chart.analytics.logChartTimelinePlay(this.chart.props.slug)
+        this.chart.analytics.logChartTimelinePlay(this.chart.script.slug)
 
         let lastTime: number | undefined
         const ticksPerSec = Math.max(

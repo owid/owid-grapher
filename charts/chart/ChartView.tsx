@@ -86,24 +86,24 @@ export class ChartView extends React.Component<ChartViewProps> {
         window.addEventListener("resize", throttle(render))
 
         FullStory.event("Loaded chart v2", {
-            chart_type_str: chart.props.type,
-            chart_id_int: chart.props.id,
-            slug_str: chart.props.slug,
-            originUrl_str: chart.props.originUrl,
-            addCountryMode_str: chart.props.addCountryMode,
-            stackMode_str: chart.props.stackMode,
-            hideLegend_bool: chart.props.hideLegend,
-            hideRelativeToggle_bool: chart.props.hideRelativeToggle,
-            hideTimeline_bool: chart.props.hideTimeline,
+            chart_type_str: chart.script.type,
+            chart_id_int: chart.script.id,
+            slug_str: chart.script.slug,
+            originUrl_str: chart.script.originUrl,
+            addCountryMode_str: chart.script.addCountryMode,
+            stackMode_str: chart.script.stackMode,
+            hideLegend_bool: chart.script.hideLegend,
+            hideRelativeToggle_bool: chart.script.hideRelativeToggle,
+            hideTimeline_bool: chart.script.hideTimeline,
             hideConnectedScatterLines_bool:
-                chart.props.hideConnectedScatterLines,
-            compareEndPointsOnly_bool: chart.props.compareEndPointsOnly,
+                chart.script.hideConnectedScatterLines,
+            compareEndPointsOnly_bool: chart.script.compareEndPointsOnly,
             entityType_str: chart.entityType,
             isEmbed_bool: chart.isEmbed,
             hasChartTab_bool: chart.hasChartTab,
             hasMapTab_bool: chart.hasMapTab,
             tab_str: chart.tab,
-            totalSelectedEntities_int: chart.props.selectedData.length
+            totalSelectedEntities_int: chart.script.selectedData.length
         })
 
         return chartView
