@@ -44,6 +44,9 @@ jobs:
             - name: Install dependencies
               run: yarn --frozen-lockfile
 
+            - name: Register Problem Matcher
+              run: echo "##[add-matcher].github/problemMatchers/tsc.json"
+
             - name: Run tests & checks
               run: yarn testcheck
 
