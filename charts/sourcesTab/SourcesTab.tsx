@@ -6,7 +6,6 @@ import { Bounds } from "charts/utils/Bounds"
 import { SourceWithDimension } from "charts/core/ChartDimension"
 import { ChartConfig } from "charts/core/ChartConfig"
 import * as Cookies from "js-cookie"
-import { ADMIN_BASE_URL } from "settings"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
@@ -33,7 +32,7 @@ export class SourcesTab extends React.Component<{
         const { column } = dimension
 
         const editUrl = Cookies.get("isAdmin")
-            ? `${ADMIN_BASE_URL}/admin/datasets/${column.datasetId}`
+            ? `${this.props.chart.adminBaseUrl}/admin/datasets/${column.datasetId}`
             : undefined
 
         const minYear = min(column.years)

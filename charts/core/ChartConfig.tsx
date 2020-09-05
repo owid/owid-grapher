@@ -73,7 +73,7 @@ import { ChartView } from "./ChartView"
 import { Bounds } from "charts/utils/Bounds"
 import { IChartTransform } from "./ChartTransform"
 import { TooltipProps } from "charts/core/Tooltip"
-import { BAKED_GRAPHER_URL, ENV } from "settings"
+import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
     maxTimeFromJSON,
@@ -117,6 +117,9 @@ export class ChartConfig {
     @observable map: MapConfig = new MapConfig()
 
     private origScriptRaw: Readonly<ChartScript>
+
+    isDev: Readonly<boolean> = IS_DEV
+    adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
 
     /**
      * The original chart props as they are stored in the database. Useful for deriving the URL
