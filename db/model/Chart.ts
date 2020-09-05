@@ -8,7 +8,7 @@ import {
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "db/db"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { getVariableData } from "./Variable"
 import { User } from "./User"
 import { ChartRevision } from "./ChartRevision"

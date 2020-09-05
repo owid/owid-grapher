@@ -68,7 +68,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindAutoString
                         field="title"
                         store={chart.script}
-                        auto={chart.title}
+                        auto={chart.displayTitle}
                         softCharacterLimit={100}
                     />
                     <Toggle
@@ -82,13 +82,13 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                     <AutoTextField
                         label="/grapher"
-                        value={chart.slug}
+                        value={chart.displaySlug}
                         onValue={this.onSlug}
                         isAuto={chart.script.slug === undefined}
                         onToggleAuto={() =>
                             (chart.script.slug =
                                 chart.script.slug === undefined
-                                    ? chart.slug
+                                    ? chart.displaySlug
                                     : undefined)
                         }
                         helpText="Human-friendly URL for this chart"

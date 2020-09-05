@@ -6,7 +6,7 @@ import svgo from "svgo"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
 const svgoConfig: svgo.Options = {

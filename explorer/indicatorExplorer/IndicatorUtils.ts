@@ -1,4 +1,4 @@
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { ChartTypeName } from "charts/core/GrapherConstants"
 import { EXPLORER } from "settings"
 

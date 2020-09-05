@@ -216,7 +216,7 @@ export class GrapherUrl implements ObservableUrl {
     @computed get baseUrl(): string | undefined {
         if (this.externalBaseUrl) return this.externalBaseUrl
         if (this.grapher.isPublished)
-            return `${this.urlRoot}/${this.grapher.slug}`
+            return `${this.urlRoot}/${this.grapher.displaySlug}`
         return undefined
     }
 
@@ -398,11 +398,7 @@ export class GrapherUrl implements ObservableUrl {
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
-        if (
-            grapher.script.useV2 ||
-            !country ||
-            grapher.addCountryMode === "disabled"
-        )
+        if (grapher.useV2 || !country || grapher.addCountryMode === "disabled")
             return
         when(
             () => grapher.isReady,

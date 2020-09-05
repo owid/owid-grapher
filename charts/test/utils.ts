@@ -1,6 +1,6 @@
 // Todo: remove file.
 
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
 import { readVariableSet, readVariable, readChart } from "./fixtures"

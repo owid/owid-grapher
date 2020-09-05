@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
 import { createConfig, setupChart } from "charts/test/utils"
 import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"

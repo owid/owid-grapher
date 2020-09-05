@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import * as lodash from "lodash"
 
 function omitSaveToVariable(config: GrapherScript): GrapherScript {

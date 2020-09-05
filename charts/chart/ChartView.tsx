@@ -22,7 +22,7 @@ import { TooltipView } from "charts/chart/Tooltip"
 import { FullStory } from "charts/core/FullStory"
 import { UrlBinder } from "charts/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 
 declare const window: any
 
@@ -102,7 +102,7 @@ export class ChartView extends React.Component<ChartViewProps> {
             isEmbed_bool: chart.isEmbed,
             hasChartTab_bool: chart.hasChartTab,
             hasMapTab_bool: chart.hasMapTab,
-            tab_str: chart.tab,
+            tab_str: chart.currentTab,
             totalSelectedEntities_int: chart.script.selectedData.length
         })
 

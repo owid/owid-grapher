@@ -9,7 +9,7 @@ import md5 from "md5"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherScript } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
 export async function getChartsAndRedirectsBySlug() {
