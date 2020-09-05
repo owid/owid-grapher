@@ -1,7 +1,6 @@
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import {
-    configure,
     observable,
     computed,
     action,
@@ -99,10 +98,6 @@ import { Analytics } from "./Analytics"
 declare const App: any
 declare const window: any
 
-const IS_DEV = ENV === "development"
-const ENFORCE_ACTIONS = false
-if (IS_DEV && ENFORCE_ACTIONS) configure({ enforceActions: "observed" })
-
 // That node check is taken from the "detect-node" npm package: https://www.npmjs.com/package/detect-node
 const isNode: boolean =
     Object.prototype.toString.call(global.process) === "[object process]"
@@ -119,9 +114,8 @@ export class ChartConfig {
 
     private origScriptRaw: Readonly<ChartScript>
 
-    isDev: Readonly<boolean> = IS_DEV
+    isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
-
     analytics: Readonly<Analytics> = new Analytics(ENV)
 
     /**

@@ -1,7 +1,7 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
 import { useState, useEffect, useRef } from "react"
-import { Grapher } from "site/client/Grapher"
+import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 
 export interface RelatedChart {
     title: string
@@ -18,7 +18,9 @@ export const RelatedCharts = ({ charts }: { charts: RelatedChart[] }) => {
     useEffect(() => {
         if (refChartContainer.current) {
             // Track newly injected <figure> elements in embedder
-            Grapher.embedder.addFiguresFromDOM(refChartContainer.current)
+            GrapherPageUtils.embedder.addFiguresFromDOM(
+                refChartContainer.current
+            )
         }
     }, [currentChart])
 

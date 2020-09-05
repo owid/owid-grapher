@@ -20,7 +20,7 @@ export function shouldProgressiveEmbed() {
     )
 }
 
-/** Private class – use `Grapher` to access functionality. */
+/** Private class – use `GrapherPageUtils` to access functionality. */
 class MultiEmbedder {
     private figures: Figure[] = []
     private globalEntitySelection?: GlobalEntitySelection
@@ -117,24 +117,24 @@ class MultiEmbedder {
 
 /**
  * Global entry point for initializing charts. You can import this static class or use it through
- * `window.Grapher`.
+ * `window.GrapherPageUtils`.
  *
- * Ensures only a single GrapherSingleton instance exists in the current window.
+ * Ensures only a single GrapherPageUtilsSingleton instance exists in the current window.
  *
  */
-export class Grapher {
+export class GrapherPageUtils {
     // Since this static class can be imported as well as loaded in a hardcoded script through
-    // `window.Grapher`, we need to ensure an identical instance is used across all contexts.
-    private static getInstance(): GrapherSingleton {
-        const instance = (window as any).GrapherSingleton as
-            | GrapherSingleton
+    // `window.GrapherPageUtils`, we need to ensure an identical instance is used across all contexts.
+    private static getInstance(): GrapherPageUtilsSingleton {
+        const instance = (window as any).GrapherPageUtilsSingleton as
+            | GrapherPageUtilsSingleton
             | undefined
 
         if (instance) {
             return instance
         } else {
-            const instance = new GrapherSingleton()
-            ;(window as any).GrapherSingleton = instance
+            const instance = new GrapherPageUtilsSingleton()
+            ;(window as any).GrapherPageUtilsSingleton = instance
             return instance
         }
     }
@@ -162,10 +162,10 @@ export class Grapher {
 /**
  * Private singleton class.
  *
- * Use `window.Grapher` or import the `Grapher` static class to access its functionality. `Grapher`
- * ensures that only a single `GrapherSingleton` is instantiated in a window.
+ * Use `window.GrapherPageUtils` or import the `GrapherPageUtils` static class to access its functionality. `GrapherPageUtils`
+ * ensures that only a single `GrapherPageUtilsSingleton` is instantiated in a window.
  */
-class GrapherSingleton {
+class GrapherPageUtilsSingleton {
     public globalEntitySelection: GlobalEntitySelection
     public embedder: MultiEmbedder
 

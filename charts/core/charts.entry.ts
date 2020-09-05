@@ -8,9 +8,9 @@ const mobxFormatters = require("mobx-formatters").default
 mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
-import { Grapher } from "site/client/Grapher"
+import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 import { ChartView } from "charts/core/ChartView"
 declare var window: any
-window.Grapher = Grapher
+window.GrapherPageUtils = GrapherPageUtils
 window.ChartView = ChartView
 window.App = window.App || {}

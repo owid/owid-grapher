@@ -15,7 +15,7 @@ import { runNotFoundPage } from "./NotFoundPageMain"
 import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "stripe/DonateForm"
 import { getParent } from "./utils"
-import { Grapher } from "site/client/Grapher"
+import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 import { ChartView } from "charts/core/ChartView"
 import { ExploreView } from "explorer/indicatorExplorer/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
@@ -34,7 +34,7 @@ import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { ENV } from "settings"
 
 declare var window: any
-window.Grapher = Grapher
+window.GrapherPageUtils = GrapherPageUtils
 window.ChartView = ChartView
 window.CovidExplorer = CovidExplorer
 window.SwitcherExplorer = SwitcherExplorer

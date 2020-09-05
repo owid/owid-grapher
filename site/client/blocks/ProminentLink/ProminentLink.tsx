@@ -1,6 +1,6 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { Grapher } from "site/client/Grapher"
+import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
 import {
@@ -54,7 +54,7 @@ class ProminentLink extends React.Component<{
     }
 
     @computed private get entitiesInGlobalEntitySelection(): string[] {
-        return Grapher.globalEntitySelection.selectedEntities.map(
+        return GrapherPageUtils.globalEntitySelection.selectedEntities.map(
             entity => entity.code
         )
     }

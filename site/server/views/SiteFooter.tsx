@@ -248,8 +248,8 @@ export const SiteFooter = ({
                 runCovid();
                 runFootnotes();
                 if (!document.querySelector(".ChartPage")) {
-                    Grapher.embedAll();
-                    runGlobalEntityControl(Grapher.globalEntitySelection);
+                    GrapherPageUtils.embedAll();
+                    runGlobalEntityControl(GrapherPageUtils.globalEntitySelection);
                 }
             `
                     }}

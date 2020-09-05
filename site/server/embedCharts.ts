@@ -17,7 +17,7 @@ export function embedSnippet(): string {
         function checkReady() {
             loadedScripts += 1;
             if (loadedScripts == 3) {
-                window.Grapher.embedAll();
+                window.GrapherPageUtils.embedAll();
             }
         }
 
