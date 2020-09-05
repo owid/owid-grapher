@@ -40,11 +40,11 @@ import {
 import { AxisOptions, AxisContainerOptions } from "charts/axis/Axis"
 import {
     ChartType,
-    ChartTabOption,
+    GrapherTabOption,
     Color,
     TickFormattingOptions,
     EntityDimensionKey
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
     OwidTable,
@@ -58,20 +58,20 @@ import {
     ChartDimensionSpec,
     ChartDimensionInterface,
     SourceWithDimension
-} from "./ChartDimension"
+} from "charts/chart/ChartDimension"
 import { MapConfig } from "charts/mapCharts/MapConfig"
 import { MapTransform } from "charts/mapCharts/MapTransform"
-import { ChartUrl, EntityUrlBuilder } from "./ChartUrl"
+import { GrapherUrl, EntityUrlBuilder } from "./GrapherUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "charts/barCharts/DiscreteBarTransform"
 import { StackedAreaTransform } from "charts/areaCharts/StackedAreaTransform"
 import { LineChartTransform } from "charts/lineCharts/LineChartTransform"
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
 import { SlopeChartTransform } from "charts/slopeCharts/SlopeChartTransform"
-import { ChartView } from "./ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
-import { IChartTransform } from "./ChartTransform"
-import { TooltipProps } from "charts/core/Tooltip"
+import { IChartTransform } from "charts/chart/ChartTransform"
+import { TooltipProps } from "charts/chart/Tooltip"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
@@ -90,8 +90,8 @@ import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
-import { ChartScript } from "./ChartScript"
-import { DimensionSlot } from "./DimensionSlot"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { DimensionSlot } from "charts/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
 
@@ -103,15 +103,13 @@ const isNode: boolean =
 const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
-// TODO: this really represents more than just the configuration state and should be split
-// into multiple components. It's sort of the top-level chart state.
-export class ChartConfig {
+export class Grapher {
     /** Stores the current chart state. Can be modified to change the chart. */
-    props = new ChartScript()
+    props = new GrapherScript()
 
     @observable map: MapConfig = new MapConfig()
 
-    private origScriptRaw: Readonly<ChartScript>
+    private origScriptRaw: Readonly<GrapherScript>
 
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
@@ -124,18 +122,18 @@ export class ChartConfig {
      * The original chart props as they are stored in the database. Useful for deriving the URL
      * parameters that need to be applied to reach the current state.
      */
-    @computed get origScript(): Readonly<ChartScript> {
+    @computed get origScript(): Readonly<GrapherScript> {
         // In the editor, the current chart state is always the "original" state
         return this.isEditor ? toJS(this.props) : this.origScriptRaw
     }
 
-    private initialScriptRaw: Readonly<ChartScript>
+    private initialScriptRaw: Readonly<GrapherScript>
 
     /**
      * The chart props after consuming the initial URL parameters but before any user-triggered
      * changes. Helpful for "resetting" embeds to their initial state.
      */
-    @computed get initialScript(): Readonly<ChartScript> {
+    @computed get initialScript(): Readonly<GrapherScript> {
         // In the editor, the current chart state is always the "initial" state
         return this.isEditor ? toJS(this.props) : this.initialScriptRaw
     }
@@ -293,7 +291,7 @@ export class ChartConfig {
             .filter(id => !this.table.columnsByOwidVarId.has(id))
     }
 
-    url: ChartUrl
+    url: GrapherUrl
 
     @computed get isIframe(): boolean {
         return window.self !== window.top
@@ -354,7 +352,7 @@ export class ChartConfig {
     }
 
     constructor(
-        props?: ChartScript,
+        props?: GrapherScript,
         options: {
             isEmbed?: boolean
             isMediaCard?: boolean
@@ -405,7 +403,7 @@ export class ChartConfig {
             )
         )
 
-        this.url = new ChartUrl(this, options.queryStr)
+        this.url = new GrapherUrl(this, options.queryStr)
         this.url.urlRoot = this.bakedGrapherURL
 
         // The chart props after consuming the URL parameters, but before any user interaction
@@ -636,14 +634,14 @@ export class ChartConfig {
         return defaultTo(this.props.slug, this.defaultSlug)
     }
 
-    @computed get availableTabs(): ChartTabOption[] {
+    @computed get availableTabs(): GrapherTabOption[] {
         return filter([
             this.props.hasChartTab && "chart",
             this.props.hasMapTab && "map",
             "table",
             "sources",
             "download"
-        ]) as ChartTabOption[]
+        ]) as GrapherTabOption[]
     }
 
     @action.bound update(json: any) {

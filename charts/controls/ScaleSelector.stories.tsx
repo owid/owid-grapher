@@ -2,7 +2,7 @@ import * as React from "react"
 import "charts/controls/ScaleSelector.scss"
 
 import { ScaleSelector } from "charts/controls/ScaleSelector"
-import { ScaleType } from "charts/core/ChartConstants"
+import { ScaleType } from "charts/core/GrapherConstants"
 import { observable, action } from "mobx"
 
 export default {

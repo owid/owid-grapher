@@ -13,11 +13,11 @@ import {
     findIndex,
     last
 } from "charts/utils/Util"
-import { EntityDimensionKey, ScaleType } from "charts/core/ChartConstants"
+import { EntityDimensionKey, ScaleType } from "charts/core/GrapherConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
-import { ChartTransform } from "charts/core/ChartTransform"
-import { ChartDimension } from "charts/core/ChartDimension"
+import { ChartTransform } from "charts/chart/ChartTransform"
+import { ChartDimension } from "charts/chart/ChartDimension"
 import { Time } from "charts/utils/TimeBounds"
 import { LineLabel } from "./LineLabels"
 import { EntityName } from "owidTable/OwidTable"

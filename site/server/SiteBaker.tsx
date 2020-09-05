@@ -37,7 +37,7 @@ import { makeSitemap } from "./sitemap"
 
 import * as React from "react"
 import { embedSnippet } from "./embedCharts"
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { getVariableData } from "db/model/Variable"
 import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
@@ -433,13 +433,13 @@ export class SiteBaker {
         return vardata
     }
 
-    async bakeChartPage(chart: ChartScript) {
+    async bakeChartPage(chart: GrapherScript) {
         const outPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
         await fs.writeFile(outPath, await chartPageFromConfig(chart))
         this.stage(outPath)
     }
 
-    async bakeChart(chart: ChartScript) {
+    async bakeChart(chart: GrapherScript) {
         const htmlPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
         let isSameVersion = false
         try {
@@ -508,7 +508,7 @@ export class SiteBaker {
         const newSlugs = []
         let requests = []
         for (const row of rows) {
-            const chart: ChartScript = JSON.parse(row.config)
+            const chart: GrapherScript = JSON.parse(row.config)
             chart.id = row.id
             newSlugs.push(chart.slug)
 

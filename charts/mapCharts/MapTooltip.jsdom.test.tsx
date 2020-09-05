@@ -3,7 +3,7 @@
 import { setupChart } from "charts/test/utils"
 import { mount } from "enzyme"
 import React from "react"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
 import { MapTooltip } from "charts/mapCharts/MapTooltip"
 

@@ -1,14 +1,14 @@
-import { ChartConfig } from "./ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import React from "react"
 import { computed } from "mobx"
-import { Header, HeaderHTML } from "charts/core/Header"
-import { SourcesFooter, SourcesFooterHTML } from "charts/core/Footer"
+import { Header, HeaderHTML } from "charts/chart/Header"
+import { SourcesFooter, SourcesFooterHTML } from "charts/chart/Footer"
 import { Bounds } from "charts/utils/Bounds"
 import { ControlsOverlayView } from "charts/controls/Controls"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 
 interface ChartLayoutProps {
-    chart: ChartConfig
+    chart: Grapher
     chartView: ChartView
     bounds: Bounds
 }

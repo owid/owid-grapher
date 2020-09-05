@@ -1,6 +1,6 @@
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { parseDelimited } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 // Todo: improve ChartScript to ditch "v2", selectedData, and owidVariableId.
 export function basicGdpChart() {
@@ -13,9 +13,9 @@ export function basicGdpChart() {
         useV2: true,
         yAxis: {},
         dimensions: [{ variableId: 99, property: "y" }]
-    } as Partial<ChartScript>
+    } as Partial<GrapherScript>
 
-    const chartConfig = new ChartConfig(props as any)
+    const chartConfig = new Grapher(props as any)
     const rows = parseDelimited(`entityName,year,gdp,entityId,population
 France,2000,100,0,123
 Germany,2000,200,1,125

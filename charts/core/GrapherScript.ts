@@ -2,18 +2,18 @@ import { observable } from "mobx"
 import {
     ChartTypeName,
     StackMode,
-    ChartTabOption,
+    GrapherTabOption,
     ScatterPointLabelStrategy,
     HighlightToggleConfig,
     Color,
     RelatedQuestionsConfig
-} from "./ChartConstants"
+} from "./GrapherConstants"
 import { AxisOptionsInterface } from "charts/axis/Axis"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { TimeBound, Time } from "charts/utils/TimeBounds"
-import { ChartDimensionSpec } from "./ChartDimension"
+import { ChartDimensionSpec } from "charts/chart/ChartDimension"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
-import { LogoOption } from "./Logos"
+import { LogoOption } from "charts/chart/Logos"
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { MapConfig } from "charts/mapCharts/MapConfig"
 
@@ -23,11 +23,11 @@ interface EntitySelection {
     color?: Color
 }
 
-// This configuration represents the entire persistent state of a grapher chart
-// Ideally, this is also all of the interaction state: when a chart is saved and loaded again
+// This configuration represents the entire persistent state of a grapher
+// Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
-export class ChartScript {
-    constructor(initial?: Partial<ChartScript>) {
+export class GrapherScript {
+    constructor(initial?: Partial<GrapherScript>) {
         if (initial) {
             for (const key in this) {
                 if (key in initial) {
@@ -91,8 +91,8 @@ export class ChartScript {
 
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
-    @observable.ref tab: ChartTabOption = "chart"
-    @observable.ref overlay?: ChartTabOption = undefined
+    @observable.ref tab: GrapherTabOption = "chart"
+    @observable.ref overlay?: GrapherTabOption = undefined
 
     @observable relatedQuestions?: RelatedQuestionsConfig[]
     @observable.ref internalNotes?: string = undefined

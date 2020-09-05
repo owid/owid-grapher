@@ -15,7 +15,7 @@ import {
 import {
     TickFormattingOptions,
     EntityDimensionKey
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 import {
     AbstractColumn,
     owidVariableId,

@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { AxisOptions } from "charts/axis/Axis"
-import { ScaleType } from "charts/core/ChartConstants"
+import { ScaleType } from "charts/core/GrapherConstants"
 
 describe("basics", () => {
     it("can create an axis, clone and modify the clone without affecting the original", () => {

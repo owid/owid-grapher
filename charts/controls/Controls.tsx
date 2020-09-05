@@ -1,10 +1,10 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartScript } from "charts/core/ChartScript"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { Grapher } from "charts/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { Timeline, TimelineProps } from "./Timeline"
 import { extend, keys, entries, max, formatValue } from "charts/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -19,13 +19,13 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { TimeBound } from "charts/utils/TimeBounds"
 import {
     HighlightToggleConfig,
-    ChartTabOption
-} from "charts/core/ChartConstants"
+    GrapherTabOption
+} from "charts/core/GrapherConstants"
 import { ShareMenu } from "./ShareMenu"
 
 @observer
 class SettingsMenu extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
     onDismiss: () => void
 }> {
     @action.bound onClickOutside() {
@@ -56,7 +56,7 @@ class SettingsMenu extends React.Component<{
 
 @observer
 class HighlightToggle extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
     highlightToggle: HighlightToggleConfig
 }> {
     @computed get chart() {
@@ -104,7 +104,7 @@ class HighlightToggle extends React.Component<{
 }
 
 @observer
-class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
+class AbsRelToggle extends React.Component<{ chart: Grapher }> {
     @action.bound onToggle() {
         this.props.chart.toggleRelativeMode()
     }
@@ -133,7 +133,7 @@ class AbsRelToggle extends React.Component<{ chart: ChartConfig }> {
 
 @observer
 class ZoomToggle extends React.Component<{
-    chart: ChartScript
+    chart: GrapherScript
 }> {
     @action.bound onToggle() {
         this.props.chart.zoomToSelection = this.props.chart.zoomToSelection
@@ -159,7 +159,7 @@ class ZoomToggle extends React.Component<{
 
 @observer
 class FilterSmallCountriesToggle extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
 }> {
     render() {
         const label = `Hide countries < ${formatValue(
@@ -183,8 +183,8 @@ class FilterSmallCountriesToggle extends React.Component<{
 }
 
 interface TimelineControlProps {
-    chart: ChartConfig
-    activeTab: ChartTabOption
+    chart: Grapher
+    activeTab: GrapherTabOption
 }
 
 @observer
@@ -294,9 +294,9 @@ class TimelineControl extends React.Component<TimelineControlProps> {
 }
 
 export class Controls {
-    props: { chart: ChartConfig; chartView: ChartView; width: number }
+    props: { chart: Grapher; chartView: ChartView; width: number }
     constructor(props: {
-        chart: ChartConfig
+        chart: Grapher
         chartView: ChartView
         width: number
     }) {
@@ -471,7 +471,7 @@ export class AddEntityButton extends React.Component<{
 @observer
 export class ControlsOverlayView extends React.Component<{
     chartView: ChartView
-    chart: ChartConfig
+    chart: Grapher
     controls: Controls
     children: JSX.Element
 }> {
@@ -521,7 +521,7 @@ export class ControlsOverlayView extends React.Component<{
 @observer
 export class ControlsFooterView extends React.Component<{
     controls: Controls
-    chart: ChartConfig
+    chart: Grapher
 }> {
     @action.bound onShareMenu() {
         this.props.controls.isShareMenuActive = !this.props.controls

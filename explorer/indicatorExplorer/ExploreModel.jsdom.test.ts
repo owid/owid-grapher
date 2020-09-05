@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { ExploreModel } from "./ExploreModel"
-import { ChartType } from "charts/core/ChartConstants"
+import { ChartType } from "charts/core/GrapherConstants"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 
 const store = new RootStore()

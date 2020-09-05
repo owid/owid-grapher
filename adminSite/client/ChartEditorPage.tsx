@@ -11,10 +11,10 @@ import {
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
 import { includes, capitalize } from "charts/utils/Util"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 import {
     ChartEditor,
@@ -85,7 +85,7 @@ export class ChartEditorPage extends React.Component<{
     newChartIndex?: number
     chartConfig?: any
 }> {
-    @observable.ref chart?: ChartConfig
+    @observable.ref chart?: Grapher
     @observable.ref database?: EditorDatabase
     @observable logs?: Log[]
     @observable references?: PostReference[]
@@ -102,7 +102,7 @@ export class ChartEditorPage extends React.Component<{
             chartId === undefined
                 ? chartConfig
                 : await admin.getJSON(`/api/charts/${chartId}.config.json`)
-        runInAction(() => (this.chart = new ChartConfig(json)))
+        runInAction(() => (this.chart = new Grapher(json)))
     }
 
     async fetchData() {
@@ -151,7 +151,7 @@ export class ChartEditorPage extends React.Component<{
                     return that.context.admin
                 },
                 get chart() {
-                    return that.chart as ChartConfig
+                    return that.chart as Grapher
                 },
                 get database() {
                     return that.database as EditorDatabase

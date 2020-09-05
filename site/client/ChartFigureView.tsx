@@ -3,12 +3,12 @@ import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { Bounds } from "charts/utils/Bounds"
-import { ChartView } from "charts/core/ChartView"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { ChartView } from "charts/chart/ChartView"
+import { Grapher } from "charts/core/Grapher"
 
 // Wrapper for ChartView that uses css on figure element to determine the bounds
 @observer
-export class ChartFigureView extends React.Component<{ chart: ChartConfig }> {
+export class ChartFigureView extends React.Component<{ chart: Grapher }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref bounds?: Bounds
 

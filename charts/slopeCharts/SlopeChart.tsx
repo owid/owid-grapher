@@ -3,9 +3,9 @@ import { intersection, without, uniq } from "charts/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import {
     VerticalColorLegend,
     ScatterColorLegendView
@@ -14,14 +14,14 @@ import {
 @observer
 export class SlopeChart extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
 }> {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get chart(): ChartConfig {
+    @computed get chart(): Grapher {
         return this.props.chart
     }
 

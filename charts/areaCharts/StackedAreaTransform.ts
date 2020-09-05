@@ -13,10 +13,10 @@ import {
     max,
     formatValue
 } from "charts/utils/Util"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
 import { ColorSchemes, ColorScheme } from "charts/color/ColorSchemes"
-import { ChartTransform } from "charts/core/ChartTransform"
+import { ChartTransform } from "charts/chart/ChartTransform"
 import { Time } from "charts/utils/TimeBounds"
 
 // Responsible for translating chart configuration into the form

@@ -6,8 +6,8 @@ import svgo from "svgo"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { ChartScript } from "charts/core/ChartScript"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { Grapher } from "charts/core/Grapher"
 
 const svgoConfig: svgo.Options = {
     floatPrecision: 2,
@@ -27,10 +27,10 @@ export async function optimizeSvg(svgString: string): Promise<string> {
 }
 
 export async function chartToSVG(
-    jsonConfig: ChartScript,
+    jsonConfig: GrapherScript,
     vardata: any
 ): Promise<string> {
-    const chart = new ChartConfig(jsonConfig)
+    const chart = new Grapher(jsonConfig)
     chart.isExporting = true
     chart.receiveData(vardata)
     return chart.staticSVG
@@ -38,11 +38,11 @@ export async function chartToSVG(
 
 export async function bakeImageExports(
     outDir: string,
-    jsonConfig: ChartScript,
+    jsonConfig: GrapherScript,
     vardata: any,
     optimizeSvgs = false
 ) {
-    const chart = new ChartConfig(jsonConfig)
+    const chart = new Grapher(jsonConfig)
     chart.isExporting = true
     chart.receiveData(vardata)
     const outPath = path.join(outDir, chart.props.slug as string)

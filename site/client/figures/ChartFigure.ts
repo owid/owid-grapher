@@ -1,4 +1,4 @@
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { excludeUndefined, fetchText } from "charts/utils/Util"
 
 import { Figure, LoadProps } from "./Figure"

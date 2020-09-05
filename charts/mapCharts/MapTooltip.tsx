@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
-import { Tooltip } from "charts/core/Tooltip"
+import { Tooltip } from "charts/chart/Tooltip"
 import { takeWhile, last, first, isMobile } from "charts/utils/Util"
 import {
     SparkBars,
@@ -10,7 +10,7 @@ import {
     SparkBarsProps
 } from "charts/sparkBars/SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 interface MapTooltipProps {
     inputYear?: number
@@ -19,7 +19,7 @@ interface MapTooltipProps {
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
-    chart: ChartConfig
+    chart: Grapher
 }
 
 @observer

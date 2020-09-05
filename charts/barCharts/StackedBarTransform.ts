@@ -12,9 +12,9 @@ import {
     flatten
 } from "charts/utils/Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
-import { ChartTransform } from "charts/core/ChartTransform"
-import { ChartDimension } from "charts/core/ChartDimension"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { ChartTransform } from "charts/chart/ChartTransform"
+import { ChartDimension } from "charts/chart/ChartDimension"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 import { Time } from "charts/utils/TimeBounds"
 import { ColorScale } from "charts/color/ColorScale"
 

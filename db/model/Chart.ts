@@ -8,7 +8,7 @@ import {
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "db/db"
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { getVariableData } from "./Variable"
 import { User } from "./User"
 import { ChartRevision } from "./ChartRevision"
@@ -121,7 +121,7 @@ export class Chart extends BaseEntity {
 
 interface ChartRow {
     id: number
-    config: ChartScript
+    config: GrapherScript
 }
 
 // TODO integrate this old logic with typeorm
@@ -157,8 +157,8 @@ export class OldChart {
     }
 
     id: number
-    config: ChartScript
-    constructor(id: number, config: ChartScript) {
+    config: GrapherScript
+    constructor(id: number, config: GrapherScript) {
         this.id = id
         this.config = config
 
@@ -176,7 +176,7 @@ export class OldChart {
 
 export async function getChartById(
     chartId: number
-): Promise<ChartScript | undefined> {
+): Promise<GrapherScript | undefined> {
     const chart = (
         await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId])
     )[0]

@@ -28,11 +28,11 @@ import {
     relativeMinAndMax
 } from "charts/utils/Util"
 import { computed } from "mobx"
-import { ChartDimension } from "charts/core/ChartDimension"
+import { ChartDimension } from "charts/chart/ChartDimension"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
-import { ChartTransform } from "charts/core/ChartTransform"
+import { ChartTransform } from "charts/chart/ChartTransform"
 import { Time } from "charts/utils/TimeBounds"
-import { EntityDimensionKey, ScaleType } from "charts/core/ChartConstants"
+import { EntityDimensionKey, ScaleType } from "charts/core/GrapherConstants"
 import { ColorScale } from "charts/color/ColorScale"
 import { EntityName, Year } from "owidTable/OwidTable"
 

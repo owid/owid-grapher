@@ -3,7 +3,7 @@ import "site/client/owid.scss"
 import "charts/core/chart.scss"
 import { FacetChart } from "./FacetChart"
 import { basicGdpChart, basicScatter } from "charts/test/samples"
-import { ChartTypeName } from "charts/core/ChartTypes"
+import { ChartTypeName } from "charts/chart/ChartTypes"
 
 export default {
     title: "FacetChart",

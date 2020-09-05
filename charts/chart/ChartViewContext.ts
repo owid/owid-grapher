@@ -1,12 +1,12 @@
 // todo: remove
 
 import * as React from "react"
-import { ChartConfig } from "charts/core/ChartConfig"
-import { ChartView } from "charts/core/ChartView"
+import { Grapher } from "charts/core/Grapher"
+import { ChartView } from "charts/chart/ChartView"
 import { VNode } from "charts/utils/Util"
 
 export interface ChartViewContextType {
-    chart: ChartConfig
+    chart: Grapher
     chartView: ChartView
     baseFontSize: number
     isStatic: boolean

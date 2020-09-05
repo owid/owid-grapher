@@ -1,4 +1,4 @@
-import { ChartConfig } from "./ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import {
     dimensionProperty,
     ChartDimensionSpec,
@@ -7,9 +7,9 @@ import {
 import { computed } from "mobx"
 
 export class DimensionSlot {
-    chart: ChartConfig
+    chart: Grapher
     property: dimensionProperty
-    constructor(chart: ChartConfig, property: dimensionProperty) {
+    constructor(chart: Grapher, property: dimensionProperty) {
         this.chart = chart
         this.property = property
     }

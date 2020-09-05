@@ -33,7 +33,7 @@ import {
 } from "charts/utils/TimeBounds"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 
 const DEFAULT_MIN_YEAR = 1900
 const DEFAULT_MAX_YEAR = 2000
@@ -41,7 +41,7 @@ const DEFAULT_MAX_YEAR = 2000
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 export interface TimelineProps {
-    chart: ChartConfig
+    chart: Grapher
     years: number[]
     startYear: TimeBound
     endYear: TimeBound

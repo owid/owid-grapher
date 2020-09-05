@@ -1,7 +1,7 @@
 import { maxBy, dateDiffInDays, formatValue } from "charts/utils/Util"
 import { utcFormat } from "d3-time-format"
 
-import { TickFormattingOptions, SortOrder } from "charts/core/ChartConstants"
+import { TickFormattingOptions, SortOrder } from "charts/core/GrapherConstants"
 
 import {
     CovidSeries,

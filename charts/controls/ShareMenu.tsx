@@ -1,4 +1,4 @@
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { observer } from "mobx-react"
 import React from "react"
 import { computed, action } from "mobx"
@@ -11,7 +11,7 @@ import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -57,7 +57,7 @@ class EmbedMenu extends React.Component<{
 }
 
 interface ShareMenuProps {
-    chart: ChartConfig
+    chart: Grapher
     chartView: any
     onDismiss: () => void
 }

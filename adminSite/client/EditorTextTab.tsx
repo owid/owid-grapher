@@ -12,9 +12,9 @@ import {
     TextField,
     Button
 } from "./Forms"
-import { LogoOption } from "charts/core/Logos"
+import { LogoOption } from "charts/chart/Logos"
 import slugify from "slugify"
-import { RelatedQuestionsConfig } from "charts/core/ChartConstants"
+import { RelatedQuestionsConfig } from "charts/core/GrapherConstants"
 import { getErrorMessageRelatedQuestionUrl } from "charts/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"

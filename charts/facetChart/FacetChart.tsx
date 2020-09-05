@@ -1,9 +1,9 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { computed } from "mobx"
-import { ChartTypeMap, ChartTypeName } from "charts/core/ChartTypes"
+import { ChartTypeMap, ChartTypeName } from "charts/chart/ChartTypes"
 
 interface FacetChartProps {
     width: number
@@ -11,7 +11,7 @@ interface FacetChartProps {
     number: number
     padding: number
     chartTypeName: ChartTypeName
-    chart: ChartConfig
+    chart: Grapher
 }
 
 @observer

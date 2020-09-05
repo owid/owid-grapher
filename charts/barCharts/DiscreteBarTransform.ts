@@ -11,14 +11,14 @@ import {
     sortedUniq
 } from "charts/utils/Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
-import { ChartTransform } from "charts/core/ChartTransform"
-import { ChartDimension } from "charts/core/ChartDimension"
+import { ChartTransform } from "charts/chart/ChartTransform"
+import { ChartDimension } from "charts/chart/ChartDimension"
 import { ColorSchemes } from "charts/color/ColorSchemes"
 import {
     SortOrder,
     TickFormattingOptions,
     ScaleType
-} from "charts/core/ChartConstants"
+} from "charts/core/GrapherConstants"
 import { Time } from "charts/utils/TimeBounds"
 
 // Responsible for translating chart configuration into the form

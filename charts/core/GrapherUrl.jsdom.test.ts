@@ -1,22 +1,22 @@
 #! /usr/bin/env yarn jest
 
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
 import { createConfig, setupChart } from "charts/test/utils"
-import { ChartUrl, ChartQueryParams } from "./ChartUrl"
-import { ChartConfig } from "./ChartConfig"
-import { ScaleType } from "./ChartConstants"
+import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
+import { Grapher } from "charts/core/Grapher"
+import { ScaleType } from "./GrapherConstants"
 
 function fromQueryParams(
-    params: ChartQueryParams,
-    props?: Partial<ChartScript>
+    params: GrapherQueryParams,
+    props?: Partial<GrapherScript>
 ) {
     const chart = createConfig(props)
     chart.url.populateFromQueryParams(params)
     return chart
 }
 
-function toQueryParams(props?: Partial<ChartScript>) {
+function toQueryParams(props?: Partial<GrapherScript>) {
     const chart = createConfig({
         minTime: -5000,
         maxTime: 5000,
@@ -26,26 +26,26 @@ function toQueryParams(props?: Partial<ChartScript>) {
     return chart.url.params
 }
 
-describe(ChartUrl, () => {
+describe(GrapherUrl, () => {
     describe("scaleType", () => {
-        expect(new ChartConfig().url.params.xScale).toEqual(undefined)
+        expect(new Grapher().url.params.xScale).toEqual(undefined)
         expect(
-            new ChartConfig({
+            new Grapher({
                 xAxis: { scaleType: ScaleType.linear }
-            } as ChartScript).url.params.xScale
+            } as GrapherScript).url.params.xScale
         ).toEqual(undefined)
     })
 
     describe("base url", () => {
-        const url = new ChartUrl({ isPublished: true, slug: "foo" } as any)
+        const url = new GrapherUrl({ isPublished: true, slug: "foo" } as any)
         expect(url.baseUrl).toEqual("/grapher/foo")
     })
 
     describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {
-        const chart = new ChartConfig(
+        const chart = new Grapher(
             {
                 xAxis: { scaleType: ScaleType.linear, canChangeScaleType: true }
-            } as ChartScript,
+            } as GrapherScript,
             { queryStr: "scaleType=linear" }
         )
         expect(chart.url.params.xScale).toEqual(undefined)

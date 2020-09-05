@@ -2,7 +2,7 @@
 
 import * as fs from "fs"
 
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
@@ -20,7 +20,7 @@ export function readVariableSet(
     return readObj(`variableset-${ids.join("-")}`)
 }
 
-export function readChart(id: string | number): ChartScript {
+export function readChart(id: string | number): GrapherScript {
     return readObj(`chart-${id}`)
 }
 

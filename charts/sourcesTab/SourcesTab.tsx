@@ -3,8 +3,8 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { SourceWithDimension } from "charts/core/ChartDimension"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { SourceWithDimension } from "charts/chart/ChartDimension"
+import { Grapher } from "charts/core/Grapher"
 import * as Cookies from "js-cookie"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -16,7 +16,7 @@ function formatText(s: string) {
 @observer
 export class SourcesTab extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
 }> {
     @computed private get bounds() {
         return this.props.bounds

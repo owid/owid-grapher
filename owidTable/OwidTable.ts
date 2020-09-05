@@ -23,7 +23,7 @@ import {
 } from "charts/utils/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
-import { EPOCH_DATE } from "charts/core/ChartConstants"
+import { EPOCH_DATE } from "charts/core/GrapherConstants"
 
 declare type int = number
 export declare type Year = int

@@ -29,7 +29,7 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation
 } from "charts/utils/Util"
 import { strToQueryParams } from "utils/client/url"
-import { SortOrder, ScaleType } from "charts/core/ChartConstants"
+import { SortOrder, ScaleType } from "charts/core/GrapherConstants"
 
 describe(findClosestYear, () => {
     describe("without tolerance", () => {

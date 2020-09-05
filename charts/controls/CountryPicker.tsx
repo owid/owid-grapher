@@ -26,7 +26,7 @@ import { VerticalScrollContainer } from "charts/controls/VerticalScrollContainer
 import { Analytics } from "charts/core/Analytics"
 
 import { SortIcon } from "charts/controls/SortIcon"
-import { SortOrder } from "charts/core/ChartConstants"
+import { SortOrder } from "charts/core/GrapherConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import { AbstractColumn, OwidTable, NumericColumn } from "owidTable/OwidTable"
 

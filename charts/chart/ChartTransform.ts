@@ -13,8 +13,8 @@ import {
     sortNumeric,
     uniq
 } from "charts/utils/Util"
-import { ChartConfig } from "./ChartConfig"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { Grapher } from "charts/core/Grapher"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 import { ColorScale } from "charts/color/ColorScale"
 
 export interface IChartTransform {
@@ -30,8 +30,8 @@ export interface IChartTransform {
 }
 
 export abstract class ChartTransform implements IChartTransform {
-    chart: ChartConfig
-    constructor(chart: ChartConfig) {
+    chart: Grapher
+    constructor(chart: Grapher) {
         this.chart = chart
     }
 

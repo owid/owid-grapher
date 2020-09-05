@@ -22,8 +22,8 @@ import {
 } from "charts/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartConfig } from "charts/core/ChartConfig"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
+import { Grapher } from "charts/core/Grapher"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
 import {
     PointsWithLabels,
     ScatterSeries,
@@ -38,13 +38,13 @@ import {
 import { DualAxisComponent } from "charts/axis/AxisViews"
 import { DualAxis } from "charts/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
-import { EntityDimensionKey } from "charts/core/ChartConstants"
+import { EntityDimensionKey } from "charts/core/GrapherConstants"
 import { TimeBound } from "charts/utils/TimeBounds"
 
 @observer
 export class ScatterPlot extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
 }> {
     // Set default props
     static defaultProps = {
@@ -56,7 +56,7 @@ export class ScatterPlot extends React.Component<{
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get chart(): ChartConfig {
+    @computed get chart(): Grapher {
         return this.props.chart
     }
 

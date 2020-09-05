@@ -2,13 +2,13 @@ import * as db from "db/db"
 import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
 import React from "react"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
     CountryProfilePage
 } from "./views/CountryProfilePage"
-import { ChartDimension } from "charts/core/ChartDimension"
+import { ChartDimension } from "charts/chart/ChartDimension"
 import { Variable } from "db/model/Variable"
 import { SiteBaker } from "./SiteBaker"
 import { countries, getCountry } from "utils/countries"
@@ -32,13 +32,13 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
 
 // Find the charts that will be shown on the country profile page (if they have that country)
 // TODO: make this page per variable instead
-async function countryIndicatorCharts(): Promise<ChartScript[]> {
+async function countryIndicatorCharts(): Promise<GrapherScript[]> {
     return bakeCache(countryIndicatorCharts, async () => {
         const charts = (
             await db
                 .table("charts")
                 .whereRaw("publishedAt is not null and is_indexable is true")
-        ).map((c: any) => JSON.parse(c.config)) as ChartScript[]
+        ).map((c: any) => JSON.parse(c.config)) as GrapherScript[]
         return charts.filter(
             c =>
                 c.hasChartTab &&

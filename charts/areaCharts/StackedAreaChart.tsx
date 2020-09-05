@@ -11,7 +11,7 @@ import {
 } from "charts/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { Bounds } from "charts/utils/Bounds"
 import { DualAxisComponent } from "charts/axis/AxisViews"
 import { DualAxis } from "charts/axis/Axis"
@@ -20,12 +20,12 @@ import {
     LineLabel,
     LineLabelsComponent
 } from "charts/lineCharts/LineLabels"
-import { NoDataOverlay } from "charts/core/NoDataOverlay"
-import { Tooltip } from "charts/core/Tooltip"
+import { NoDataOverlay } from "charts/chart/NoDataOverlay"
+import { Tooltip } from "charts/chart/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import { EntityDimensionKey } from "charts/core/ChartConstants" // todo: remove
+import { EntityDimensionKey } from "charts/core/GrapherConstants" // todo: remove
 
 export interface StackedAreaValue {
     x: number
@@ -219,11 +219,11 @@ class Areas extends React.Component<AreasProps> {
 @observer
 export class StackedAreaChart extends React.Component<{
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get chart(): ChartConfig {
+    @computed get chart(): Grapher {
         return this.props.chart
     }
     @computed get bounds(): Bounds {

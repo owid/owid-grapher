@@ -21,9 +21,9 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
 import { ChartList, ChartListItem } from "./ChartList"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { ChartFigureView } from "site/client/ChartFigureView"
-import { ChartType, EPOCH_DATE } from "charts/core/ChartConstants"
+import { ChartType, EPOCH_DATE } from "charts/core/GrapherConstants"
 import { Tag } from "./TagBadge"
 import { VariableList, VariableListItem } from "./VariableList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -57,7 +57,7 @@ class VariableEditRow extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref chart?: ChartConfig
+    @observable.ref chart?: Grapher
     @observable newVariable!: VariableEditable
 
     componentWillMount() {
@@ -105,7 +105,7 @@ class VariableEditRow extends React.Component<{
         }
     }
 
-    @action.bound chartIsReady(chart: ChartConfig) {
+    @action.bound chartIsReady(chart: Grapher) {
         // XXX refactor this with EditorBasicTab
         if (lodash.isEmpty(chart.mapTransform.choroplethData)) {
             chart.props.tab = "chart"
@@ -144,13 +144,13 @@ class VariableEditRow extends React.Component<{
     dispose!: IReactionDisposer
     dispose2!: IReactionDisposer
     componentDidMount() {
-        this.chart = new ChartConfig(this.chartConfig as any, {
+        this.chart = new Grapher(this.chartConfig as any, {
             isEmbed: true
         })
 
         this.dispose2 = when(
             () => this.chart !== undefined && this.chart.isReady,
-            () => this.chartIsReady(this.chart as ChartConfig)
+            () => this.chartIsReady(this.chart as Grapher)
         )
 
         this.dispose = autorun(() => {

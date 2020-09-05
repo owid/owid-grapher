@@ -6,7 +6,7 @@ import "d3-transition"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
-import { ChartConfig } from "./ChartConfig"
+import { Grapher } from "charts/core/Grapher"
 import { Controls, ControlsFooterView } from "charts/controls/Controls"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { ChartTab } from "./ChartTab"
@@ -17,18 +17,18 @@ import { DownloadTab } from "charts/downloadTab/DownloadTab"
 import { VNode, throttle, isMobile, isTouchDevice } from "charts/utils/Util"
 import { Bounds } from "charts/utils/Bounds"
 import { EntitySelectorModal } from "charts/controls/EntitySelectorModal"
-import { ChartViewContext } from "charts/core/ChartViewContext"
-import { TooltipView } from "charts/core/Tooltip"
+import { ChartViewContext } from "charts/chart/ChartViewContext"
+import { TooltipView } from "charts/chart/Tooltip"
 import { FullStory } from "charts/core/FullStory"
 import { UrlBinder } from "charts/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
-import { ChartScript } from "./ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 
 declare const window: any
 
 interface ChartViewProps {
     bounds: Bounds
-    chart: ChartConfig
+    chart: Grapher
     isExport?: boolean
     isEditor?: boolean
     isEmbed?: boolean
@@ -54,7 +54,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         queryStr,
         globalEntitySelection
     }: {
-        jsonConfig: ChartScript
+        jsonConfig: GrapherScript
         containerNode: HTMLElement
         isEditor?: boolean
         isEmbed?: true
@@ -62,7 +62,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         globalEntitySelection?: GlobalEntitySelection
     }) {
         let chartView
-        const chart = new ChartConfig(jsonConfig, {
+        const chart = new Grapher(jsonConfig, {
             isEmbed: isEmbed,
             queryStr: queryStr,
             globalEntitySelection: globalEntitySelection

@@ -2,12 +2,12 @@ import * as React from "react"
 import { TextWrap } from "charts/text/TextWrap"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ChartConfig } from "charts/core/ChartConfig"
-import { Logo } from "charts/core/Logos"
+import { Grapher } from "charts/core/Grapher"
+import { Logo } from "charts/chart/Logos"
 
 interface HeaderProps {
     maxWidth: number
-    chart: ChartConfig
+    chart: Grapher
 }
 
 export class Header {
@@ -158,7 +158,7 @@ class HeaderView extends React.Component<{
 
 @observer
 export class HeaderHTML extends React.Component<{
-    chart: ChartConfig
+    chart: Grapher
     header: Header
 }> {
     render() {

@@ -8,7 +8,7 @@ import {
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
-import { ChartScript } from "charts/core/ChartScript"
+import { GrapherScript } from "charts/core/GrapherScript"
 import { Grid } from "charts/utils/Util"
 import {
     ExplorerProgram,
@@ -65,7 +65,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         )
     }
 
-    @observable chartConfigs: Map<number, ChartScript> = new Map()
+    @observable chartConfigs: Map<number, GrapherScript> = new Map()
 
     hotTableComponent = React.createRef<HotTable>()
 

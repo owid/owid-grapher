@@ -1,10 +1,10 @@
 import React from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
-import { ChartView } from "charts/core/ChartView"
+import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartScript } from "charts/core/ChartScript"
-import { ChartConfig } from "charts/core/ChartConfig"
+import { GrapherScript } from "charts/core/GrapherScript"
+import { Grapher } from "charts/core/Grapher"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
@@ -80,11 +80,11 @@ import {
     ChartDimensionSpec,
     ChartDimension,
     ChartDimensionInterface
-} from "charts/core/ChartDimension"
+} from "charts/chart/ChartDimension"
 import { BinningStrategy } from "charts/color/BinningStrategies"
 import { UrlBinder } from "charts/utils/UrlBinder"
-import { ExtendedChartUrl } from "charts/core/ChartUrl"
-import { ScaleType } from "charts/core/ChartConstants"
+import { ExtendedGrapherUrl } from "charts/core/GrapherUrl"
+import { ScaleType } from "charts/core/GrapherConstants"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -842,7 +842,7 @@ export class CovidExplorer extends React.Component<{
         return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
     }
 
-    @computed get sourceChart(): ChartScript | undefined {
+    @computed get sourceChart(): GrapherScript | undefined {
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
@@ -1113,7 +1113,7 @@ export class CovidExplorer extends React.Component<{
 
     bindToWindow() {
         new UrlBinder().bindToWindow(
-            new ExtendedChartUrl(this.chart.url, [this.props.params])
+            new ExtendedGrapherUrl(this.chart.url, [this.props.params])
         )
     }
 
@@ -1369,7 +1369,7 @@ export class CovidExplorer extends React.Component<{
             : ""
     }
 
-    @observable.ref chart: ChartConfig = new ChartConfig(
+    @observable.ref chart: Grapher = new Grapher(
         {
             slug: covidDashboardSlug,
             type: this.constrainedParams.type,

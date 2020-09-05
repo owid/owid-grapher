@@ -1,11 +1,15 @@
 import { computed, observable, action } from "mobx"
-import { EntityUrlBuilder } from "charts/core/ChartUrl"
+import { EntityUrlBuilder } from "charts/core/GrapherUrl"
 import {
     QueryParams,
     strToQueryParams,
     queryParamsToStr
 } from "utils/client/url"
-import { SortOrder, ChartTypeName, ScaleType } from "charts/core/ChartConstants"
+import {
+    SortOrder,
+    ChartTypeName,
+    ScaleType
+} from "charts/core/GrapherConstants"
 import { oneOf, uniq, intersection } from "charts/utils/Util"
 import {
     trajectoryColumnSpecs,
