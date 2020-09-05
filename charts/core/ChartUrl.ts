@@ -38,7 +38,6 @@ import {
     TimeBound,
     parseTimeBound
 } from "charts/utils/TimeBounds"
-import { Analytics } from "charts/core/Analytics"
 
 export interface ChartQueryParams extends QueryParams {
     tab?: string
@@ -418,7 +417,9 @@ export class ChartUrl implements ObservableUrl {
                     ).filter(key => !matchedEntities.get(key))
 
                     if (notFoundEntities.length)
-                        Analytics.logEntitiesNotFoundError(notFoundEntities)
+                        chart.analytics.logEntitiesNotFoundError(
+                            notFoundEntities
+                        )
                 })
             }
         )

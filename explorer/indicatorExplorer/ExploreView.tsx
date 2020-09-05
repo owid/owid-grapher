@@ -17,7 +17,6 @@ import { IndicatorDropdown } from "./IndicatorDropdown"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "charts/dataTable/DataTable"
-import { Analytics } from "charts/core/Analytics"
 import { UrlBinder } from "charts/utils/UrlBinder"
 
 interface ChartTypeButton {
@@ -154,6 +153,6 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     componentDidCatch(error: any, info: any) {
-        Analytics.logExploreError(error, info)
+        this.chart.analytics.logExploreError(error, info)
     }
 }

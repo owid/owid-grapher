@@ -20,7 +20,6 @@ import { EntitySelectorModal } from "charts/controls/EntitySelectorModal"
 import { ChartViewContext } from "charts/core/ChartViewContext"
 import { TooltipView } from "charts/core/Tooltip"
 import { FullStory } from "charts/core/FullStory"
-import { Analytics } from "charts/core/Analytics"
 import { UrlBinder } from "charts/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 import { ChartScript } from "./ChartScript"
@@ -445,6 +444,6 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentDidCatch(error: any, info: any) {
         this.hasError = true
-        Analytics.logChartError(error, info)
+        this.chart.analytics.logChartError(error, info)
     }
 }

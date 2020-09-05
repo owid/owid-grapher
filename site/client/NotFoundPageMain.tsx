@@ -1,4 +1,7 @@
 import { Analytics } from "charts/core/Analytics"
+import { ENV } from "settings"
+
+const analytics = new Analytics(ENV)
 
 export function runNotFoundPage() {
     const query = window.location.pathname.split("/")
@@ -8,5 +11,5 @@ export function runNotFoundPage() {
             /[\-_\+|]/g,
             " "
         )
-    Analytics.logPageNotFound(window.location.href)
+    analytics.logPageNotFound(window.location.href)
 }

@@ -72,6 +72,7 @@ export class CountryPicker extends React.Component<{
     isDropdownMenu?: boolean
     countriesMustHaveColumns: string[]
     pickerColumnSlugs: Set<string>
+    analytics?: Analytics
 }> {
     // Set default props
     static defaultProps = {
@@ -115,7 +116,7 @@ export class CountryPicker extends React.Component<{
         this.props.toggleCountryCommand(name, checked)
         // Clear search input
         this.searchInput = ""
-        Analytics.logCountrySelectorEvent(
+        this.props.analytics?.logCountrySelectorEvent(
             this.props.explorerSlug,
             checked ? "select" : "deselect",
             name
@@ -261,7 +262,7 @@ export class CountryPicker extends React.Component<{
                 const name = this.focusedOption
                 this.selectCountryName(name)
                 this.clearSearchInput()
-                Analytics.logCountrySelectorEvent(
+                this.props.analytics?.logCountrySelectorEvent(
                     this.props.explorerSlug,
                     "enter",
                     name
@@ -405,7 +406,7 @@ export class CountryPicker extends React.Component<{
             this.activePickerMetricColumn instanceof NumericColumn
                 ? SortOrder.desc
                 : SortOrder.asc
-        Analytics.logCountrySelectorEvent(
+        this.props.analytics?.logCountrySelectorEvent(
             this.props.explorerSlug,
             "sortBy",
             columnSlug
@@ -440,7 +441,7 @@ export class CountryPicker extends React.Component<{
                         onClick={() => {
                             const sortOrder = toggleSort(this.sortOrder)
                             this.props.userState.countryPickerSort = sortOrder
-                            Analytics.logCountrySelectorEvent(
+                            this.props.analytics?.logCountrySelectorEvent(
                                 this.props.explorerSlug,
                                 "sortOrder",
                                 sortOrder

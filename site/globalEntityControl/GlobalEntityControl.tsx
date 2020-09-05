@@ -29,6 +29,7 @@ import {
 } from "./GlobalEntitySelection"
 import { asArray } from "utils/client/react-select"
 import { Analytics } from "charts/core/Analytics"
+import { ENV } from "settings"
 
 const allEntities = sortBy(countries, c => c.name)
     // Add 'World'
@@ -232,6 +233,8 @@ class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
         return optionGroups
     }
 
+    analytics = new Analytics(ENV)
+
     @action.bound private onChange(
         newEntities: ValueType<GlobalEntitySelectionEntity>
     ) {
@@ -239,7 +242,7 @@ class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
 
         this.setSelectedEntities(entities)
 
-        Analytics.logGlobalEntityControl(
+        this.analytics.logGlobalEntityControl(
             "change",
             entities.map(c => c.code).join(",")
         )
@@ -264,14 +267,20 @@ class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
     @action.bound private onButtonOpen(
         event: React.MouseEvent<HTMLButtonElement>
     ) {
-        Analytics.logGlobalEntityControl("open", event.currentTarget.innerText)
+        this.analytics.logGlobalEntityControl(
+            "open",
+            event.currentTarget.innerText
+        )
         this.onMenuOpen()
     }
 
     @action.bound private onButtonClose(
         event: React.MouseEvent<HTMLButtonElement>
     ) {
-        Analytics.logGlobalEntityControl("close", event.currentTarget.innerText)
+        this.analytics.logGlobalEntityControl(
+            "close",
+            event.currentTarget.innerText
+        )
         this.onMenuClose()
     }
 

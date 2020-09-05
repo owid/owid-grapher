@@ -9,7 +9,6 @@ import {
     debounce
 } from "charts/utils/Util"
 import { Bounds } from "charts/utils/Bounds"
-import { Analytics } from "charts/core/Analytics"
 import {
     observable,
     computed,
@@ -169,7 +168,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     private readonly PLAY_ANIMATION_SECONDS = 45
     @action.bound onStartPlaying() {
-        Analytics.logChartTimelinePlay(this.chart.props.slug)
+        this.chart.analytics.logChartTimelinePlay(this.chart.props.slug)
 
         let lastTime: number | undefined
         const ticksPerSec = Math.max(

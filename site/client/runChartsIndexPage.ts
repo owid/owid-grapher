@@ -3,6 +3,7 @@ import { keyBy } from "charts/utils/Util"
 import { observable, computed, action, autorun } from "mobx"
 import { Analytics } from "charts/core/Analytics"
 import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
+import { ENV } from "settings"
 interface ChartItem {
     title: string
     li: HTMLLIElement
@@ -62,8 +63,10 @@ class ChartFilter {
         this.strings = this.chartItems.map(c => fuzzysort.prepare(c.title))
     }
 
+    analytics = new Analytics(ENV)
+
     @action.bound logSearchQuery() {
-        Analytics.logChartsPageSearchQuery(this.query)
+        this.analytics.logChartsPageSearchQuery(this.query)
     }
 
     timeout?: NodeJS.Timeout

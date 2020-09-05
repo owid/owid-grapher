@@ -6,11 +6,14 @@ import { asArray } from "utils/client/react-select"
 import { Analytics } from "charts/core/Analytics"
 import { sortBy } from "charts/utils/Util"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
+import { ENV } from "settings"
 
 interface CountrySelectOption {
     label: string
     value: string
 }
+
+const analytics = new Analytics(ENV)
 
 const SearchCountry = (props: { countryProfileRootPath: string }) => {
     const [isLoading, setIsLoading] = useState(false)
@@ -22,7 +25,7 @@ const SearchCountry = (props: { countryProfileRootPath: string }) => {
             })}
             onChange={(selected: ValueType<CountrySelectOption>) => {
                 const country = asArray(selected)[0].value
-                Analytics.logCovidCountryProfileSearch(country)
+                analytics.logCovidCountryProfileSearch(country)
                 setIsLoading(true)
                 window.location.href = `${props.countryProfileRootPath}/${country}`
             }}

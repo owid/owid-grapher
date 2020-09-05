@@ -76,7 +76,6 @@ import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "charts/controls/CommandPalette"
 import { TimeBoundValue } from "charts/utils/TimeBounds"
-import { Analytics } from "charts/core/Analytics"
 import {
     ChartDimensionSpec,
     ChartDimension,
@@ -883,7 +882,7 @@ export class CovidExplorer extends React.Component<{
             this.keyboardShortcuts.forEach(shortcut => {
                 Mousetrap.bind(shortcut.combo, () => {
                     shortcut.fn()
-                    Analytics.logKeyboardShortcut(
+                    this.chart.analytics.logKeyboardShortcut(
                         shortcut.title,
                         shortcut.combo
                     )

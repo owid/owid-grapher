@@ -4,6 +4,9 @@ import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelope
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Analytics } from "charts/core/Analytics"
+import { ENV } from "settings"
+
+const analytics = new Analytics(ENV)
 
 export enum NewsletterSubscriptionContext {
     Homepage = "homepage",
@@ -149,7 +152,7 @@ export const NewsletterSubscriptionForm = ({
                     className="owid-inline-button"
                     disabled={!isSubmittable}
                     onClick={() =>
-                        Analytics.logSiteClick(
+                        analytics.logSiteClick(
                             `Subscribe [${context ?? "other-contexts"}]`,
                             undefined,
                             "newsletter-subscribe"

@@ -31,6 +31,7 @@ import { runGlobalEntityControl } from "site/globalEntityControl/GlobalEntityCon
 import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
 import { runFootnotes } from "site/client/Footnote"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
+import { ENV } from "settings"
 
 declare var window: any
 window.Grapher = Grapher
@@ -57,7 +58,8 @@ window.runCovid = runCovid
 window.runGlobalEntityControl = runGlobalEntityControl
 window.runFootnotes = runFootnotes
 
-Analytics.logPageLoad()
+const analytics = new Analytics(ENV)
+analytics.logPageLoad()
 
 document.querySelector("html")?.classList.add("js")
 
@@ -90,7 +92,7 @@ document.addEventListener("click", async ev => {
         // navigates away from a page. An earlier implementation had a
         // timeout to send the event before navigating, but it broke
         // CMD+CLICK for opening a new tab.
-        Analytics.logSiteClick(
+        analytics.logSiteClick(
             trackedElement.innerText,
             trackedElement.getAttribute("href") || undefined,
             trackedElement.getAttribute(dataTrackAttr) || undefined

@@ -1,7 +1,4 @@
-import { ENV } from "settings"
-
 const DEBUG = false
-const IS_DEV = ENV === "development"
 
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
@@ -13,45 +10,48 @@ interface GAEvent {
 }
 
 export class Analytics {
-    static logChartError(error: any, info: any) {
+    constructor(environment: string) {
+        this.isDev = environment === "development"
+    }
+
+    private isDev: boolean
+
+    logChartError(error: any, info: any) {
         this.logToAmplitude("CHART_ERROR", { error, info })
         this.logToGA("Errors", "Chart")
     }
 
-    static logExploreError(error: any, info: any) {
+    logExploreError(error: any, info: any) {
         this.logToAmplitude("EXPLORE_ERROR", { error, info })
         this.logToGA("Errors", "Explore")
     }
 
-    static logEntitiesNotFoundError(entities: string[]) {
+    logEntitiesNotFoundError(entities: string[]) {
         this.logToAmplitude("ENTITIES_NOT_FOUND", { entities })
         this.logToGA("Errors", "ENTITIES_NOT_FOUND", JSON.stringify(entities))
     }
 
-    static logChartTimelinePlay(slug?: string) {
+    logChartTimelinePlay(slug?: string) {
         this.logToAmplitude("CHART_TIMELINE_PLAY")
         this.logToGA("Chart", "TimelinePlay", slug)
     }
 
-    static logPageNotFound(url: string) {
+    logPageNotFound(url: string) {
         this.logToAmplitude("NOT_FOUND", { href: url })
         this.logToGA("Errors", "NotFound", url)
     }
 
-    static logChartsPageSearchQuery(query: string) {
+    logChartsPageSearchQuery(query: string) {
         this.logToAmplitude("Charts Page Filter", { query })
         this.logToGA("ChartsPage", "Filter", query)
     }
 
-    static logGlobalEntityControl(
-        action: "open" | "change" | "close",
-        note?: string
-    ) {
+    logGlobalEntityControl(action: "open" | "change" | "close", note?: string) {
         this.logToAmplitude("GLOBAL_ENTITY_CONTROL", { action, note })
         this.logToGA("GlobalEntityControl", action, note)
     }
 
-    static logCountrySelectorEvent(
+    logCountrySelectorEvent(
         countryPickerName: string,
         action: "enter" | "select" | "deselect" | "sortBy" | "sortOrder",
         note?: string
@@ -70,13 +70,13 @@ export class Analytics {
         )
     }
 
-    static logCovidCountryProfileSearch(country: string) {
+    logCovidCountryProfileSearch(country: string) {
         const key = "COVID_COUNTRY_PROFILE_SEARCH"
         this.logToAmplitude(key, { country })
         this.logToGA(key, country)
     }
 
-    static logSiteClick(text: string, href?: string, note?: string) {
+    logSiteClick(text: string, href?: string, note?: string) {
         this.logToAmplitude("OWID_SITE_CLICK", {
             text,
             href,
@@ -85,16 +85,17 @@ export class Analytics {
         this.logToGA("SiteClick", note || "unknown-category", text)
     }
 
-    static logKeyboardShortcut(shortcut: string, combo: string) {
+    logKeyboardShortcut(shortcut: string, combo: string) {
         this.logToGA("KeyboardShortcut", shortcut, combo)
     }
 
-    static logPageLoad() {
+    logPageLoad() {
         this.logToAmplitude("OWID_PAGE_LOAD")
     }
 
-    private static logToAmplitude(name: string, props?: any) {
-        if (DEBUG && IS_DEV) {
+    private logToAmplitude(name: string, props?: any) {
+        if (DEBUG && this.isDev) {
+            // eslint-disable-next-line no-console
             console.log("Analytics.logToAmplitude", name, props)
         }
         if (!window.amplitude) return
@@ -113,13 +114,14 @@ export class Analytics {
         window.amplitude.getInstance().logEvent(name, props)
     }
 
-    private static logToGA(
+    private logToGA(
         eventCategory: string,
         eventAction: string,
         eventLabel?: string,
         eventValue?: number
     ) {
-        if (DEBUG && IS_DEV) {
+        if (DEBUG && this.isDev) {
+            // eslint-disable-next-line no-console
             console.log(
                 "Analytics.logToGA",
                 eventCategory,

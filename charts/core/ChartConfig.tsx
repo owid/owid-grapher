@@ -94,6 +94,7 @@ import { populationMap } from "owidTable/PopulationMap"
 import { ChartScript } from "./ChartScript"
 import { DimensionSlot } from "./DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
+import { Analytics } from "./Analytics"
 
 declare const App: any
 declare const window: any
@@ -120,6 +121,8 @@ export class ChartConfig {
 
     isDev: Readonly<boolean> = IS_DEV
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
+
+    analytics: Readonly<Analytics> = new Analytics(ENV)
 
     /**
      * The original chart props as they are stored in the database. Useful for deriving the URL
