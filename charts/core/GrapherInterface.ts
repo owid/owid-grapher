@@ -8,7 +8,10 @@ import {
     RelatedQuestionsConfig,
     AddCountryMode
 } from "./GrapherConstants"
-import { AxisOptionsInterface, AxisOptions } from "charts/axis/AxisOptions"
+import {
+    AxisOptionsInterface,
+    PersistableAxisOptions
+} from "charts/axis/AxisOptions"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
     TimeBound,
@@ -20,11 +23,11 @@ import { ChartDimensionSpec } from "charts/chart/ChartDimension"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import { LogoOption } from "charts/chart/Logos"
 import {
-    ColorScaleConfigProps,
-    PersistableColorScaleConfigProps
+    ColorScaleConfig,
+    PersistableColorScaleConfig
 } from "charts/color/ColorScaleConfig"
-import { MapConfig } from "charts/mapCharts/MapConfig"
-import { observable } from "mobx"
+import { MapConfig, PersistableMapConfig } from "charts/mapCharts/MapConfig"
+import { observable, action } from "mobx"
 import {
     Persistable,
     objectWithPersistablesToObject,
@@ -89,7 +92,7 @@ export interface GrapherInterface {
     isPublished?: true
     baseColorScheme?: string
     invertColorScheme?: true
-    colorScale?: Partial<ColorScaleConfigProps>
+    colorScale?: Partial<ColorScaleConfig>
     hideLinesOutsideTolerance?: true
     hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
@@ -148,10 +151,10 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     @observable.ref matchingEntitiesOnly?: true = undefined
 
     // Todo: make sure these all have toJson/fromJson methods.
-    @observable.ref xAxis = new AxisOptions() // todo: rename class to be persistable
-    @observable.ref yAxis = new AxisOptions()
-    @observable colorScale = new PersistableColorScaleConfigProps()
-    @observable map = new MapConfig() // todo: make persistable
+    @observable.ref xAxis = new PersistableAxisOptions() // todo: rename class to be persistable
+    @observable.ref yAxis = new PersistableAxisOptions()
+    @observable colorScale = new PersistableColorScaleConfig()
+    @observable map = new PersistableMapConfig()
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref dimensions: ChartDimensionSpec[] = []
@@ -203,9 +206,14 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
         return obj as GrapherInterface
     }
 
-    updateFromObject(obj: GrapherInterface) {
+    @action.bound updateFromObject(obj: GrapherInterface) {
         if (!obj) return
         updatePersistables(this, obj)
+
+        this.dimensions = (obj.dimensions || []).map(
+            (dimSpec: ChartDimensionInterface) =>
+                new ChartDimensionSpec(dimSpec)
+        )
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) this.minTime = minTimeToJSON(obj.minTime) as number

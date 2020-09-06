@@ -13,7 +13,6 @@ import {
 import { bind } from "decko"
 
 import {
-    extend,
     map,
     filter,
     includes,
@@ -36,7 +35,7 @@ import {
     lastOfNonEmptyArray,
     find
 } from "charts/utils/Util"
-import { AxisOptions, AxisContainerOptions } from "charts/axis/AxisOptions"
+import { AxisContainerOptions } from "charts/axis/AxisOptions"
 import {
     ChartType,
     GrapherTabOption,
@@ -55,10 +54,8 @@ import {
     EntityDimensionInfo,
     ChartDimension,
     ChartDimensionSpec,
-    ChartDimensionInterface,
     SourceWithDimension
 } from "charts/chart/ChartDimension"
-import { MapConfig } from "charts/mapCharts/MapConfig"
 import { MapTransform } from "charts/mapCharts/MapTransform"
 import { GrapherUrl, EntityUrlBuilder } from "./GrapherUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
@@ -414,31 +411,6 @@ export class Grapher extends PersistableGrapher {
         if (!this.isNode) this.ensureValidConfig()
     }
 
-    @action.bound updateFromObject(obj: any) {
-        super.updateFromObject(obj)
-
-        if (obj.isAutoTitle) this.title = undefined
-
-        // Auto slug is only preserved for drafts in the editor
-        // Once published, slug should stick around (we don't want to create too many redirects)
-        if (obj.isAutoSlug && this.isEditor && !obj.isPublished)
-            this.slug = undefined
-
-        if (obj.map) {
-            this.map = new MapConfig({
-                ...obj.map,
-                targetYear: maxTimeFromJSON(obj.map.targetYear)
-            })
-        }
-
-        extend(this.colorScale, obj["colorScale"])
-
-        this.dimensions = (obj.dimensions || []).map(
-            (dimSpec: ChartDimensionInterface) =>
-                new ChartDimensionSpec(dimSpec)
-        )
-    }
-
     updatePopulationFilter() {
         const slug = "pop_filter"
         const minPop = this.minPopulationFilter
@@ -792,8 +764,25 @@ export class Grapher extends PersistableGrapher {
         return this.title ?? this.defaultTitle
     }
 
+    toObject() {
+        const obj = super.toObject()
+
+        const availableEntities = this.availableEntityNames
+        if (availableEntities.length) obj.data = { availableEntities }
+
+        if (this.map && obj.map) {
+            obj.map.targetYear = maxTimeToJSON(this.map.targetYear)
+        }
+
+        return obj
+    }
+
     // Returns an object ready to be serialized to JSON
-    @computed.struct get object(): Readonly<any> {
+    @computed get object() {
+        return this.toObject()
+    }
+
+    @computed get objectWithAutoTitleAndAutoSlug() {
         const obj: any = this.toObject()
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
@@ -806,20 +795,6 @@ export class Grapher extends PersistableGrapher {
         if (!obj.slug) {
             obj.slug = this.displaySlug
             obj.isAutoSlug = true
-        }
-
-        if (obj.xAxis && obj.xAxis.containerOptions)
-            delete obj.xAxis.containerOptions
-
-        if (obj.yAxis && obj.yAxis.containerOptions)
-            delete obj.yAxis.containerOptions
-
-        obj.data = {
-            availableEntities: this.availableEntityNames
-        }
-
-        if (this.map) {
-            obj.map.targetYear = maxTimeToJSON(this.map.targetYear)
         }
 
         return obj

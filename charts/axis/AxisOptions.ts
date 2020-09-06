@@ -15,11 +15,13 @@ export interface AxisOptionsInterface {
     removePointsOutsideDomain?: true
 }
 
+// Todo: remove
 export interface AxisContainerOptions {
     fontSize: number
 }
 
-export class AxisOptions implements AxisOptionsInterface, Persistable {
+export class PersistableAxisOptions
+    implements AxisOptionsInterface, Persistable {
     // todo: test/refactor
     constructor(props?: AxisOptionsInterface) {
         this.updateFromObject(props)

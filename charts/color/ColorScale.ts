@@ -2,7 +2,7 @@ import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 import { bind } from "decko"
 
-import { ColorScaleConfigProps } from "./ColorScaleConfig"
+import { ColorScaleConfig } from "./ColorScaleConfig"
 import {
     defaultTo,
     isEmpty,
@@ -23,7 +23,7 @@ import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 const NO_DATA_LABEL = "No data"
 
 interface ColorScaleProps {
-    config: ColorScaleConfigProps
+    config: ColorScaleConfig
     sortedNumericValues: number[]
     categoricalValues: string[]
     hasNoDataBin: boolean

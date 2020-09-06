@@ -72,7 +72,7 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/globalEntityControl/GlobalEntitySelection"
-import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
+import { ColorScaleConfig } from "charts/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "charts/controls/CommandPalette"
 import { TimeBoundValue } from "charts/utils/TimeBounds"
@@ -1310,7 +1310,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get colorScales(): {
-        [name: string]: ColorScaleConfigProps
+        [name: string]: ColorScaleConfig
     } {
         return {
             ptr: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]

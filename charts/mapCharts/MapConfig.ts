@@ -1,13 +1,17 @@
-import { observable } from "mobx"
+import { observable, toJS } from "mobx"
 import { MapProjection } from "./MapProjections"
 import {
-    ColorScaleConfigProps,
-    PersistableColorScaleConfigProps
+    ColorScaleConfig,
+    PersistableColorScaleConfig
 } from "charts/color/ColorScaleConfig"
 import { owidVariableId } from "owidTable/OwidTable"
+import { Persistable, updatePersistables } from "charts/core/Persistable"
+import { extend } from "charts/utils/Util"
+import { maxTimeFromJSON } from "charts/utils/TimeBounds"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
+// TODO: migrate database config & only pass legend props
 export class MapConfig {
     @observable.ref variableId?: owidVariableId
     @observable.ref targetYear?: number
@@ -15,21 +19,23 @@ export class MapConfig {
     @observable.ref hideTimeline?: true
     @observable.ref projection: MapProjection = "World"
 
-    @observable colorScale: PersistableColorScaleConfigProps
+    @observable colorScale = new PersistableColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     @observable.ref tooltipUseCustomLabels?: true = undefined
+}
 
-    constructor(json?: Partial<MapConfig & ColorScaleConfigProps>) {
-        // TODO: migrate database config & only pass legend props
-        this.colorScale = new PersistableColorScaleConfigProps(json?.colorScale)
+export class PersistableMapConfig extends MapConfig implements Persistable {
+    updateFromObject(obj: any) {
+        extend(this, obj)
+        this.targetYear = maxTimeFromJSON(this.targetYear)
+    }
 
-        if (json !== undefined) {
-            for (const key in this) {
-                // `colorScale` is passed separately
-                if (key in json && key !== "legend") {
-                    this[key] = (json as any)[key]
-                }
-            }
-        }
+    toObject() {
+        return toJS(this)
+    }
+
+    constructor(obj?: Partial<ColorScaleConfig>) {
+        super()
+        updatePersistables(this, obj)
     }
 }
