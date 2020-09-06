@@ -57,7 +57,7 @@ import {
     SourceWithDimension
 } from "charts/chart/ChartDimension"
 import { MapTransform } from "charts/mapCharts/MapTransform"
-import { GrapherUrl, EntityUrlBuilder } from "./GrapherUrl"
+import { GrapherUrl } from "./GrapherUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "charts/barCharts/DiscreteBarTransform"
 import { StackedAreaTransform } from "charts/areaCharts/StackedAreaTransform"
@@ -72,7 +72,6 @@ import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
     maxTimeFromJSON,
-    maxTimeToJSON,
     TimeBounds,
     TimeBoundValue
 } from "charts/utils/TimeBounds"
@@ -91,6 +90,7 @@ import {
 import { DimensionSlot } from "charts/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
+import { EntityUrlBuilder } from "./EntityUrlBuilder"
 
 declare const window: any
 

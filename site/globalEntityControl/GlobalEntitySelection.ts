@@ -5,7 +5,7 @@ import { Grapher } from "charts/core/Grapher"
 import { excludeUndefined } from "charts/utils/Util"
 import { UrlBinder, ObservableUrl } from "charts/utils/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
-import { EntityUrlBuilder } from "charts/core/GrapherUrl"
+import { EntityUrlBuilder } from "charts/core/EntityUrlBuilder"
 
 export enum GlobalEntitySelectionModes {
     none = "none",
