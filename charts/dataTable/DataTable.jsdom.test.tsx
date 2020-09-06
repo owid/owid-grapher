@@ -3,7 +3,7 @@
 import * as React from "react"
 import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 
-import { setupChart } from "charts/test/utils"
+import { setupGrapher } from "charts/test/utils"
 
 import { DataTable, ClosestYearNotice } from "./DataTable"
 import { Grapher } from "charts/core/Grapher"
@@ -12,7 +12,7 @@ describe(DataTable, () => {
     describe("when you render a table", () => {
         let view: ReactWrapper
         beforeAll(() => {
-            const chart = setupChart(677, [104402])
+            const chart = setupGrapher(677, [104402])
             view = mount(<DataTable chart={chart} />)
         })
 
@@ -62,7 +62,7 @@ describe(DataTable, () => {
     describe("when you select a range of years", () => {
         let view: ReactWrapper
         beforeAll(() => {
-            const chart = setupChart(677, [104402], {
+            const chart = setupGrapher(677, [104402], {
                 type: "LineChart",
                 tab: "chart",
                 minTime: 1990,
@@ -104,7 +104,7 @@ describe(DataTable, () => {
     describe("when the table doesn't have data for all rows", () => {
         let view: ShallowWrapper
         beforeAll(() => {
-            const chart = setupChart(792, [3512])
+            const chart = setupGrapher(792, [3512])
             view = shallow(<DataTable chart={chart} />)
         })
 
@@ -127,7 +127,7 @@ describe(DataTable, () => {
         let chart: Grapher
         let view: ShallowWrapper
         beforeAll(() => {
-            chart = setupChart(677, [104402])
+            chart = setupGrapher(677, [104402])
             view = shallow(<DataTable chart={chart} />)
         })
 

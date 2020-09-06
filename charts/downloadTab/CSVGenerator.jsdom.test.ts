@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
 // Todo: remove snapshot testing
-import { setupChart } from "charts/test/utils"
+import { setupGrapher } from "charts/test/utils"
 import { CSVGenerator } from "./CSVGenerator"
 
 function setupCSVGenerator(chartID: number, varIDs: number[]) {
-    const chart = setupChart(chartID, varIDs)
+    const chart = setupGrapher(chartID, varIDs)
     return new CSVGenerator({ chart })
 }
 
@@ -33,13 +33,13 @@ describe("CSV data downloads", () => {
     })
 
     test("one day-based variable, one year-based variable", done => {
-        const chart = setupChart(4041, [142586, 2209, 123])
+        const chart = setupGrapher(4041, [142586, 2209, 123])
         chart.scatterTransform.xOverrideYear = 2016
         testIfCSVMatchesSnapshot(new CSVGenerator({ chart }), done)
     })
 
     test("two day-based variables, one year-based variable", done => {
-        const chart = setupChart(4058, [142600, 97587, 142583, 123])
+        const chart = setupGrapher(4058, [142600, 97587, 142583, 123])
         chart.scatterTransform.xOverrideYear = 2100
         testIfCSVMatchesSnapshot(new CSVGenerator({ chart }), done)
     })

@@ -3,7 +3,7 @@
 import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
-import { readVariableSet, readVariable, readChart } from "./fixtures"
+import { readVariableSet, readVariable, readGrapher } from "./fixtures"
 import { first } from "lodash"
 
 export function createGrapher(props?: Partial<GrapherInterface>) {
@@ -14,7 +14,7 @@ export function createGrapher(props?: Partial<GrapherInterface>) {
     return grapher
 }
 
-export function setupChart(
+export function setupGrapher(
     id: number,
     varIds: number[],
     configOverrides?: Partial<GrapherInterface>
@@ -24,10 +24,9 @@ export function setupChart(
             ? readVariableSet(varIds)
             : readVariable(first(varIds) as number)
 
-    const chart = new Grapher({
-        ...readChart(id),
+    return new Grapher({
+        ...readGrapher(id),
         ...configOverrides,
         owidDataset: variableSet
     })
-    return chart
 }

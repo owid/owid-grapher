@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { setupChart } from "charts/test/utils"
+import { setupGrapher } from "charts/test/utils"
 import { mount } from "enzyme"
 import React from "react"
 import { ChartView } from "charts/chart/ChartView"
@@ -14,7 +14,7 @@ const mockEvent = {
     clientY: 50
 }
 
-const chart = setupChart(792, [3512], { hasMapTab: true })
+const chart = setupGrapher(792, [3512], { hasMapTab: true })
 const chartWrapper = mount(<ChartView chart={chart} bounds={bounds} />)
 
 describe(MapTooltip, () => {

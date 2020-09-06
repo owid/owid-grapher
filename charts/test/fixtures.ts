@@ -18,6 +18,6 @@ export function readVariableSet(
     return readObj(`variableset-${ids.join("-")}`)
 }
 
-export function readChart(id: string | number): GrapherInterface {
+export function readGrapher(id: string | number): GrapherInterface {
     return readObj(`chart-${id}`)
 }
