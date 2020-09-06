@@ -8,7 +8,7 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle"
 
-import { Tippy } from "charts/chart/Tippy"
+import { Tippy } from "grapher/chart/Tippy"
 
 import {
     CovidTableHeaderCell as HeaderCell,
@@ -25,7 +25,7 @@ import { formatDate, formatInt } from "./CovidUtils"
 import { nouns } from "./CovidConstants"
 import { CovidDoublingTooltip } from "./CovidDoublingTooltip"
 import { CovidTimeSeriesValue } from "./CovidTimeSeriesValue"
-import { SparkBars, SparkBarsProps } from "charts/sparkBars/SparkBars"
+import { SparkBars, SparkBarsProps } from "grapher/sparkBars/SparkBars"
 
 export enum CovidTableColumnKey {
     location = "location",

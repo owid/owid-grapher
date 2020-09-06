@@ -1,4 +1,4 @@
-import { GrapherInterface } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 // This is a made-up entity to make the explorer variable dropdown possible.
 // It is currently derived from single-dimensional chart entities.

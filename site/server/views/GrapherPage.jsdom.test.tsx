@@ -6,12 +6,12 @@ import { shallow, ShallowWrapper } from "enzyme"
 import { GrapherPage } from "./GrapherPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { extend } from "charts/utils/Util"
-import { PersistableGrapher } from "charts/core/GrapherInterface"
+import { extend } from "grapher/utils/Util"
+import { PersistableGrapher } from "grapher/core/GrapherInterface"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
-import { readGrapher } from "charts/test/fixtures"
+import { readGrapher } from "grapher/test/fixtures"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 
 describe(GrapherPage, () => {

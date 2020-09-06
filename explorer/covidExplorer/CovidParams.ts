@@ -8,8 +8,8 @@ import {
     SortOrder,
     ChartTypeName,
     ScaleType
-} from "charts/core/GrapherConstants"
-import { oneOf, uniq, intersection } from "charts/utils/Util"
+} from "grapher/core/GrapherConstants"
+import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
     trajectoryColumnSpecs,
     covidCsvColumnSlug,
@@ -20,7 +20,7 @@ import {
     intervalOptions
 } from "./CovidConstants"
 import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
-import { EntityUrlBuilder } from "charts/core/EntityUrlBuilder"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.

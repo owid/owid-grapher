@@ -6,8 +6,8 @@ import svgo from "svgo"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { GrapherInterface } from "charts/core/GrapherInterface"
-import { Grapher } from "charts/core/Grapher"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher } from "grapher/core/Grapher"
 
 const svgoConfig: svgo.Options = {
     floatPrecision: 2,

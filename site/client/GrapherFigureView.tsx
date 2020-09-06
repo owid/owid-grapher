@@ -2,9 +2,9 @@ import * as React from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { Bounds } from "charts/utils/Bounds"
-import { GrapherView } from "charts/core/GrapherView"
-import { Grapher } from "charts/core/Grapher"
+import { Bounds } from "grapher/utils/Bounds"
+import { GrapherView } from "grapher/core/GrapherView"
+import { Grapher } from "grapher/core/Grapher"
 
 // Wrapper for GrapherView that uses css on figure element to determine the bounds
 @observer

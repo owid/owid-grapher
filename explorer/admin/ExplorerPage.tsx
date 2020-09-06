@@ -3,7 +3,7 @@ import * as settings from "settings"
 import { Head } from "site/server/views/Head"
 import { SiteHeader } from "site/server/views/SiteHeader"
 import { SiteFooter } from "site/server/views/SiteFooter"
-import { LoadingIndicator } from "charts/loadingIndicator/LoadingIndicator"
+import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "site/server/views/EmbedDetector"
 import {
     SiteSubnavigation,

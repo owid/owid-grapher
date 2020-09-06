@@ -6,7 +6,7 @@ import { covidSampleRows } from "./CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
 import { MetricOptions } from "explorer/covidExplorer/CovidConstants"
-import { defaultTo } from "charts/utils/Util"
+import { defaultTo } from "grapher/utils/Util"
 
 const dummyMeta = {
     charts: {},

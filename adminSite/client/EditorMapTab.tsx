@@ -2,9 +2,9 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { isEmpty } from "charts/utils/Util"
-import { MapTransform } from "charts/mapCharts/MapTransform"
-import { MapProjection } from "charts/mapCharts/MapProjections"
+import { isEmpty } from "grapher/utils/Util"
+import { MapTransform } from "grapher/mapCharts/MapTransform"
+import { MapProjection } from "grapher/mapCharts/MapProjections"
 
 import { ChartEditor } from "./ChartEditor"
 import {

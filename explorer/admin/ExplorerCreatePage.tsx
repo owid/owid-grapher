@@ -8,8 +8,8 @@ import {
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
 import { action, observable, computed, autorun } from "mobx"
-import { GrapherInterface } from "charts/core/GrapherInterface"
-import { Grid } from "charts/utils/Util"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grid } from "grapher/utils/Util"
 import {
     ExplorerProgram,
     ProgramKeyword

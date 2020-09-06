@@ -1,5 +1,10 @@
 import { BAKED_BASE_URL } from "settings"
-import { fromPairs, flatten, urlToSlug, mergeQueryStr } from "charts/utils/Util"
+import {
+    fromPairs,
+    flatten,
+    urlToSlug,
+    mergeQueryStr
+} from "grapher/utils/Util"
 import { covidDashboardSlug } from "explorer/covidExplorer/CovidConstants"
 
 interface ChartExplorerRedirect {

@@ -1,9 +1,9 @@
 import * as React from "react"
-import { clone, map } from "charts/utils/Util"
+import { clone, map } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Grapher } from "charts/core/Grapher"
-import { EntityDimensionKey } from "charts/core/GrapherConstants"
+import { Grapher } from "grapher/core/Grapher"
+import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import {
     EditableList,
     EditableListItem,

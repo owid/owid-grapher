@@ -11,7 +11,7 @@ import { Indicator } from "./Indicator"
 import { observer } from "mobx-react"
 import { StoreEntry } from "./Store"
 import { asArray } from "utils/client/react-select"
-import { first } from "charts/utils/Util"
+import { first } from "grapher/utils/Util"
 
 interface IndicatorDropdownProps {
     placeholder: string

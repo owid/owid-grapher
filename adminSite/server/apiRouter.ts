@@ -18,7 +18,7 @@ import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
 import { getVariableData } from "db/model/Variable"
-import { GrapherInterface } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
     CountryNameFormat,
     CountryDefByKey

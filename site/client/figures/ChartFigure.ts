@@ -1,5 +1,5 @@
-import { GrapherView } from "charts/core/GrapherView"
-import { excludeUndefined, fetchText } from "charts/utils/Util"
+import { GrapherView } from "grapher/core/GrapherView"
+import { excludeUndefined, fetchText } from "grapher/utils/Util"
 
 import { Figure, LoadProps } from "./Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"

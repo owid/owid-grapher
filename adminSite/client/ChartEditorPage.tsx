@@ -11,10 +11,10 @@ import {
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 
-import { GrapherView } from "charts/core/GrapherView"
-import { Bounds } from "charts/utils/Bounds"
-import { includes, capitalize } from "charts/utils/Util"
-import { Grapher } from "charts/core/Grapher"
+import { GrapherView } from "grapher/core/GrapherView"
+import { Bounds } from "grapher/utils/Bounds"
+import { includes, capitalize } from "grapher/utils/Util"
+import { Grapher } from "grapher/core/Grapher"
 
 import {
     ChartEditor,

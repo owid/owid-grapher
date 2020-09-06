@@ -36,7 +36,7 @@ import {
 import { VariableCountryPage } from "./views/VariableCountryPage"
 import { FeedbackPage } from "./views/FeedbackPage"
 import { getCountry, Country } from "utils/countries"
-import { memoize } from "charts/utils/Util"
+import { memoize } from "grapher/utils/Util"
 import { CountryProfileSpec } from "site/server/countryProfileProjects"
 
 // Wrap ReactDOMServer to stick the doctype on

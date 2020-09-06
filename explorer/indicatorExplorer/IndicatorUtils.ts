@@ -1,5 +1,5 @@
-import { GrapherInterface } from "charts/core/GrapherInterface"
-import { ChartTypeName } from "charts/core/GrapherConstants"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { EXPLORER } from "settings"
 
 export const EXPLORABLE_CHART_TYPES: ChartTypeName[] = [

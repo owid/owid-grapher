@@ -1,11 +1,11 @@
 import { observable, reaction, IReactionDisposer, computed } from "mobx"
 
 import { Country, countries } from "utils/countries"
-import { Grapher } from "charts/core/Grapher"
-import { excludeUndefined } from "charts/utils/Util"
-import { UrlBinder, ObservableUrl } from "charts/utils/UrlBinder"
+import { Grapher } from "grapher/core/Grapher"
+import { excludeUndefined } from "grapher/utils/Util"
+import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
-import { EntityUrlBuilder } from "charts/core/EntityUrlBuilder"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 export enum GlobalEntitySelectionModes {
     none = "none",
