@@ -173,9 +173,8 @@ export class ChartEditor {
         if (!currentGrapherObject.title)
             currentGrapherObject.title = grapher.displayTitle
 
-        if (!currentGrapherObject.slug) {
+        if (!currentGrapherObject.slug)
             currentGrapherObject.slug = grapher.displaySlug
-
 
         const targetUrl = isNewGrapher
             ? "/api/charts"

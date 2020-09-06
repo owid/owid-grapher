@@ -7,7 +7,7 @@ import {
 import { owidVariableId } from "owidTable/OwidTable"
 import { Persistable, updatePersistables } from "charts/core/Persistable"
 import { extend } from "charts/utils/Util"
-import { maxTimeFromJSON } from "charts/utils/TimeBounds"
+import { maxTimeFromJSON, maxTimeToJSON } from "charts/utils/TimeBounds"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -31,7 +31,11 @@ export class PersistableMapConfig extends MapConfig implements Persistable {
     }
 
     toObject() {
-        return toJS(this)
+        const obj = toJS(this)
+        if (obj.targetYear)
+            obj.targetYear = maxTimeToJSON(this.targetYear) as any
+
+        return obj
     }
 
     constructor(obj?: Partial<ColorScaleConfig>) {

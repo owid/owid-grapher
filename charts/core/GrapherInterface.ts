@@ -19,7 +19,10 @@ import {
     minTimeToJSON,
     maxTimeToJSON
 } from "charts/utils/TimeBounds"
-import { ChartDimensionSpec } from "charts/chart/ChartDimension"
+import {
+    ChartDimensionSpec,
+    ChartDimensionInterface
+} from "charts/chart/ChartDimension"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import { LogoOption } from "charts/chart/Logos"
 import {
@@ -210,10 +213,10 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
         if (!obj) return
         updatePersistables(this, obj)
 
-        this.dimensions = (obj.dimensions || []).map(
-            (dimSpec: ChartDimensionInterface) =>
-                new ChartDimensionSpec(dimSpec)
-        )
+        if (obj.dimensions?.length)
+            this.dimensions = obj.dimensions.map(
+                (spec: ChartDimensionInterface) => new ChartDimensionSpec(spec)
+            )
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) this.minTime = minTimeToJSON(obj.minTime) as number

@@ -7,8 +7,9 @@ describe(Grapher, () => {
         expect(Object.keys(new Grapher().object).length).toBe(57) // todo: this should be 0!
     })
 
-    it("container options are not serialized", () => {
+    it("regression fix: container options are not serialized", () => {
         const config = new Grapher({ xAxis: { min: 1 } })
-        expect(config.object.xAxis.containerOptions).toBe(undefined)
+        const obj = config.object.xAxis as any
+        expect(obj?.containerOptions).toBe(undefined)
     })
 })
