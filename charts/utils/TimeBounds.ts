@@ -1,8 +1,11 @@
 import {
     parseIntOrUndefined,
     findClosestYear,
-    isString
+    isString,
+    diffDateISOStringInDays,
+    formatDay
 } from "charts/utils/Util"
+import { EPOCH_DATE } from "charts/core/GrapherConstants"
 
 /**
  * A concrete point in time (year or date). It's always supposed to be a finite number, but we
@@ -128,4 +131,50 @@ export function getBoundFromTimeRange(
     if (time <= minTime) return TimeBoundValue.unboundedLeft
     if (time >= maxTime) return TimeBoundValue.unboundedRight
     return time
+}
+
+const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
+const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
+
+export function formatTimeURIComponent(
+    time: TimeBound,
+    isDate: boolean
+): string {
+    if (isUnbounded(time)) return formatTimeBound(time)
+    return isDate ? formatDay(time, { format: "YYYY-MM-DD" }) : `${time}`
+}
+
+export function parseTimeURIComponent(
+    param: string,
+    defaultValue: TimeBound
+): TimeBound {
+    if (reISODate.test(param)) {
+        return diffDateISOStringInDays(param, EPOCH_DATE)
+    }
+    return parseTimeBound(param, defaultValue)
+}
+
+export function getTimeDomainFromQueryString(time: string): [number, number] {
+    // In the past we supported unbounded time parameters like time=2015.. which would be
+    // equivalent to time=2015..latest. We don't actively generate these kinds of URL any
+    // more because URLs ending with dots are not interpreted correctly by many services
+    // (Twitter, Facebook and others) - but we still want to recognize incoming requests
+    // for these "legacy" URLs!
+    const reIntComponent = new RegExp("\\-?\\d+")
+    const reIntRange = new RegExp(
+        `^(${reIntComponent.source}|earliest)?\\.\\.(${reIntComponent.source}|latest)?$`
+    )
+    const reDateRange = new RegExp(
+        `^(${reISODateComponent.source}|earliest)?\\.\\.(${reISODateComponent.source}|latest)?$`
+    )
+    if (reIntRange.test(time) || reDateRange.test(time)) {
+        const [start, end] = time.split("..")
+        return [
+            parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
+            parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
+        ]
+    } else {
+        const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)
+        return [t, t]
+    }
 }
