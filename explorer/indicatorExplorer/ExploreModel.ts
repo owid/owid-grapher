@@ -1,7 +1,7 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
 import { ChartType, ChartTypeName } from "charts/core/GrapherConstants"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
@@ -11,7 +11,7 @@ export type ExplorerChartType = ChartTypeName | "WorldMap"
 
 function chartConfigFromIndicator(
     indicator: Indicator
-): Partial<GrapherScript> {
+): Partial<GrapherInterface> {
     return {
         ...indicator,
         // TODO need to derive selected data from ExploreModel, since selections
@@ -70,11 +70,13 @@ export class ExploreModel {
         this.disposers.push(
             autorun(() => {
                 if (this.indicatorEntry === null) {
-                    this.chart.update({ dimensions: [] })
+                    this.chart.updateFromObject({ dimensions: [] })
                 } else {
                     const indicator = this.indicatorEntry.entity
                     if (indicator) {
-                        this.chart.update(chartConfigFromIndicator(indicator))
+                        this.chart.updateFromObject(
+                            chartConfigFromIndicator(indicator)
+                        )
                     }
                 }
             })

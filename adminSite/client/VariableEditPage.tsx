@@ -71,7 +71,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref chart?: Grapher
+    @observable.ref grapher?: Grapher
 
     @computed get isModified(): boolean {
         return (
@@ -248,20 +248,20 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                             />
                         </form>
                     </div>
-                    {this.chart && (
+                    {this.grapher && (
                         <div className="col">
                             <div className="topbar">
                                 <h3>Preview</h3>
                                 <Link
                                     className="btn btn-secondary"
                                     to={`/charts/create/${Base64.encode(
-                                        JSON.stringify(this.chart.json)
+                                        JSON.stringify(this.grapher.object)
                                     )}`}
                                 >
                                     Edit as new chart
                                 </Link>
                             </div>
-                            <ChartFigureView chart={this.chart} />
+                            <ChartFigureView chart={this.grapher} />
                         </div>
                     )}
                 </div>
@@ -286,7 +286,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         }
     }
 
-    @computed get chartConfig() {
+    @computed get grapherConfig() {
         return {
             yAxis: { min: 0 },
             map: { variableId: this.props.variable.id },
@@ -304,11 +304,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.chart = new Grapher(this.chartConfig as any)
+        this.grapher = new Grapher(this.grapherConfig as any)
 
         this.dispose = autorun(() => {
-            if (this.chart && this.chartConfig) {
-                this.chart.update(this.chartConfig)
+            if (this.grapher && this.grapherConfig) {
+                this.grapher.updateFromObject(this.grapherConfig)
             }
         })
     }

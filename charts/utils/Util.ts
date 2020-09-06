@@ -147,6 +147,7 @@ import {
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
+import { Persistable } from "charts/core/Persistable"
 
 export type SVGElement = any
 export type VNode = any
@@ -531,6 +532,15 @@ export function urlToSlug(url: string): string {
 
 export function sign(n: number) {
     return n > 0 ? 1 : n < 0 ? -1 : 0
+}
+
+// Removes all undefineds from an object. If there are no keys left, returns undefined.
+export function trimObject(obj: any) {
+    const clone: any = {}
+    Object.keys(obj).forEach(key => {
+        if (obj[key] !== undefined) clone[key] = obj[key]
+    })
+    return Object.keys(clone).length ? clone : undefined
 }
 
 // TODO use fetchText() in fetchJSON()

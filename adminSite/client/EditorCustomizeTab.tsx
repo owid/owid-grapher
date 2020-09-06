@@ -79,7 +79,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get chart() {
-        return this.props.editor.chart
+        return this.props.editor.grapher
     }
 
     @computed get minTime() {
@@ -186,25 +186,25 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
     @observable comparisonLines: ComparisonLineConfig[] = []
 
     @action.bound onAddComparisonLine() {
-        const { chart } = this.props.editor
+        const { grapher } = this.props.editor
 
-        if (chart.script.comparisonLines === undefined)
-            chart.script.comparisonLines = []
+        if (grapher.script.comparisonLines === undefined)
+            grapher.script.comparisonLines = []
 
-        chart.script.comparisonLines.push({})
+        grapher.script.comparisonLines.push({})
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
-        const { chart } = this.props.editor
+        const { grapher } = this.props.editor
 
-        chart.script.comparisonLines!.splice(index, 1)
+        grapher.script.comparisonLines!.splice(index, 1)
 
-        if (chart.script.comparisonLines!.length === 0)
-            chart.script.comparisonLines = undefined
+        if (grapher.script.comparisonLines!.length === 0)
+            grapher.script.comparisonLines = undefined
     }
 
     render() {
-        const { comparisonLines } = this.props.editor.chart
+        const { comparisonLines } = this.props.editor.grapher
 
         return (
             <Section name="Comparison line">
@@ -252,11 +252,11 @@ export class EditorCustomizeTab extends React.Component<{
     editor: ChartEditor
 }> {
     render() {
-        const xAxisOptions = this.props.editor.chart.xAxisOptions
-        const yAxisOptions = this.props.editor.chart.yAxisOptions
+        const xAxisOptions = this.props.editor.grapher.xAxis
+        const yAxisOptions = this.props.editor.grapher.yAxis
 
         const { features } = this.props.editor
-        const { chart } = this.props.editor
+        const { grapher } = this.props.editor
 
         return (
             <div>
@@ -388,17 +388,17 @@ export class EditorCustomizeTab extends React.Component<{
                 )}
                 <TimelineSection editor={this.props.editor} />
                 <Section name="Color scheme">
-                    <ColorSchemeSelector chart={chart} />
+                    <ColorSchemeSelector chart={grapher} />
                 </Section>
-                {chart.activeColorScale && (
+                {grapher.activeColorScale && (
                     <EditorColorScaleSection
-                        scale={chart.activeColorScale}
+                        scale={grapher.activeColorScale}
                         features={{
                             visualScaling: false,
                             legendDescription:
-                                chart.isScatter ||
-                                chart.isSlopeChart ||
-                                chart.isStackedBar
+                                grapher.isScatter ||
+                                grapher.isSlopeChart ||
+                                grapher.isStackedBar
                         }}
                     />
                 )}
@@ -408,9 +408,9 @@ export class EditorCustomizeTab extends React.Component<{
                             {features.hideLegend && (
                                 <Toggle
                                     label={`Hide legend`}
-                                    value={!!chart.hideLegend}
+                                    value={!!grapher.hideLegend}
                                     onValue={value =>
-                                        (chart.script.hideLegend =
+                                        (grapher.script.hideLegend =
                                             value || undefined)
                                     }
                                 />
@@ -420,7 +420,7 @@ export class EditorCustomizeTab extends React.Component<{
                             <BindAutoString
                                 label="Entity name"
                                 field="entityType"
-                                store={chart.script}
+                                store={grapher.script}
                                 auto="country"
                             />
                         )}
@@ -431,9 +431,9 @@ export class EditorCustomizeTab extends React.Component<{
                         <FieldsRow>
                             <Toggle
                                 label={`Hide relative toggle`}
-                                value={!!chart.script.hideRelativeToggle}
+                                value={!!grapher.script.hideRelativeToggle}
                                 onValue={value =>
-                                    (chart.script.hideRelativeToggle =
+                                    (grapher.script.hideRelativeToggle =
                                         value || false)
                                 }
                             />

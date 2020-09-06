@@ -10,7 +10,7 @@ export class EditorFeatures {
     }
 
     @computed get chart() {
-        return this.editor.chart
+        return this.editor.grapher
     }
 
     @computed get canCustomizeYAxisScale() {

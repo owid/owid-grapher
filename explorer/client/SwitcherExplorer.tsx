@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, when, reaction, autorun } from "mobx"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { uniq } from "charts/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
@@ -17,13 +17,13 @@ declare type chartId = number
 export interface SwitcherBootstrapProps {
     explorerProgramCode: string
     slug: string
-    chartConfigs: GrapherScript[]
+    chartConfigs: GrapherInterface[]
     bindToWindow: boolean
 }
 
 @observer
 export class SwitcherExplorer extends React.Component<{
-    chartConfigs: Map<chartId, GrapherScript>
+    chartConfigs: Map<chartId, GrapherInterface>
     program: ExplorerProgram
     bindToWindow: boolean
 }> {
@@ -36,7 +36,7 @@ export class SwitcherExplorer extends React.Component<{
             explorerProgramCode,
             window.location.search
         )
-        const chartConfigsMap: Map<number, GrapherScript> = new Map()
+        const chartConfigsMap: Map<number, GrapherInterface> = new Map()
         chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
 
         return ReactDOM.render(
@@ -99,9 +99,7 @@ export class SwitcherExplorer extends React.Component<{
             ? this._chart.url.params
             : strToQueryParams(this.props.program.queryString)
 
-        const props = this.props.chartConfigs.get(newId) || new GrapherScript()
-
-        this._chart = new Grapher(props)
+        this._chart = new Grapher(this.props.chartConfigs.get(newId))
         this._chart.url.dropUnchangedParams = false
         this._chart.hideEntityControls =
             !this.explorerRuntime.hideControls && !this.isEmbed

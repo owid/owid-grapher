@@ -6,49 +6,49 @@ import { observer } from "mobx-react"
 @observer
 export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
     @action.bound onSaveChart() {
-        this.props.editor.saveChart()
+        this.props.editor.saveGrapher()
     }
 
     @action.bound onSaveAsNew() {
-        this.props.editor.saveAsNewChart()
+        this.props.editor.saveAsNewGrapher()
     }
 
     @action.bound onPublishToggle() {
-        if (this.props.editor.chart.isPublished)
-            this.props.editor.unpublishChart()
-        else this.props.editor.publishChart()
+        if (this.props.editor.grapher.isPublished)
+            this.props.editor.unpublishGrapher()
+        else this.props.editor.publishGrapher()
     }
 
     render() {
         const { editor } = this.props
-        const { chart } = editor
+        const { grapher } = editor
 
         return (
             <div className="SaveButtons">
                 <button
                     className="btn btn-success"
                     onClick={this.onSaveChart}
-                    disabled={chart.hasFatalErrors}
+                    disabled={grapher.hasFatalErrors}
                 >
-                    {chart.isPublished
+                    {grapher.isPublished
                         ? "Update chart"
-                        : chart.script.id
+                        : grapher.script.id
                         ? "Save draft"
                         : "Create draft"}
                 </button>{" "}
                 <button
                     className="btn btn-secondary"
                     onClick={this.onSaveAsNew}
-                    disabled={chart.hasFatalErrors}
+                    disabled={grapher.hasFatalErrors}
                 >
                     Save as new
                 </button>{" "}
                 <button
                     className="btn btn-danger"
                     onClick={this.onPublishToggle}
-                    disabled={chart.hasFatalErrors}
+                    disabled={grapher.hasFatalErrors}
                 >
-                    {chart.isPublished ? "Unpublish" : "Publish"}
+                    {grapher.isPublished ? "Unpublish" : "Publish"}
                 </button>
             </div>
         )

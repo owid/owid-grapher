@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
 import { createConfig, setupChart } from "charts/test/utils"
 import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
@@ -9,20 +9,20 @@ import { ScaleType } from "./GrapherConstants"
 
 function fromQueryParams(
     params: GrapherQueryParams,
-    props?: Partial<GrapherScript>
+    props?: Partial<GrapherInterface>
 ) {
     const chart = createConfig(props)
     chart.url.populateFromQueryParams(params)
     return chart
 }
 
-function toQueryParams(props?: Partial<GrapherScript>) {
+function toQueryParams(props?: Partial<GrapherInterface>) {
     const chart = createConfig({
         minTime: -5000,
         maxTime: 5000,
         map: { targetYear: 5000 }
     })
-    chart.update(props)
+    chart.updateFromObject(props)
     return chart.url.params
 }
 
@@ -32,7 +32,7 @@ describe(GrapherUrl, () => {
         expect(
             new Grapher({
                 xAxis: { scaleType: ScaleType.linear }
-            } as GrapherScript).url.params.xScale
+            } as GrapherInterface).url.params.xScale
         ).toEqual(undefined)
     })
 
@@ -45,7 +45,7 @@ describe(GrapherUrl, () => {
         const chart = new Grapher(
             {
                 xAxis: { scaleType: ScaleType.linear, canChangeScaleType: true }
-            } as GrapherScript,
+            } as GrapherInterface,
             { queryStr: "scaleType=linear" }
         )
         expect(chart.url.params.xScale).toEqual(undefined)
@@ -296,7 +296,7 @@ describe(GrapherUrl, () => {
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
                         const chart = setupChart(4066, [142708])
-                        chart.update({
+                        chart.updateFromObject({
                             minTime: test.param[0],
                             maxTime: test.param[1]
                         })
@@ -401,7 +401,7 @@ describe(GrapherUrl, () => {
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
                         const chart = setupChart(4066, [142708])
-                        chart.update({
+                        chart.updateFromObject({
                             map: { targetYear: test.param }
                         })
                         const params = chart.url.params

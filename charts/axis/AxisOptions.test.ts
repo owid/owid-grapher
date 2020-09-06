@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { AxisOptions } from "charts/axis/Axis"
+import { AxisOptions } from "charts/axis/AxisOptions"
 import { ScaleType } from "charts/core/GrapherConstants"
 
 describe("basics", () => {

@@ -283,7 +283,7 @@ class VariableEditRow extends React.Component<{
                         <Link
                             className="btn btn-secondary pull-right"
                             to={`/charts/create/${Base64.encode(
-                                JSON.stringify(this.chart.json)
+                                JSON.stringify(this.chart.object)
                             )}`}
                         >
                             Edit as new chart

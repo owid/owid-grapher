@@ -1,4 +1,4 @@
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { parseDelimited } from "charts/utils/Util"
 import { Grapher } from "charts/core/Grapher"
 
@@ -13,7 +13,7 @@ export function basicGdpGrapher() {
         useV2: true,
         yAxis: {},
         dimensions: [{ variableId: 99, property: "y" }]
-    } as Partial<GrapherScript>
+    } as Partial<GrapherInterface>
 
     const grapher = new Grapher(props as any)
     const rows = parseDelimited(`entityName,year,gdp,entityId,population
@@ -42,10 +42,10 @@ export const basicScatterGrapher = () => {
     const grapher = basicGdpGrapher()
     const script = grapher.script
     script.type = "ScatterPlot"
-    grapher.yAxisOptions.min = 0
-    grapher.yAxisOptions.max = 500
-    grapher.xAxisOptions.min = 0
-    grapher.xAxisOptions.max = 500
+    grapher.yAxis.min = 0
+    grapher.yAxis.max = 500
+    grapher.xAxis.min = 0
+    grapher.xAxis.max = 500
     script.dimensions.push({ variableId: 100, property: "x", display: {} })
     return grapher
 }

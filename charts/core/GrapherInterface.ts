@@ -5,9 +5,10 @@ import {
     ScatterPointLabelStrategy,
     HighlightToggleConfig,
     Color,
-    RelatedQuestionsConfig
+    RelatedQuestionsConfig,
+    AddCountryMode
 } from "./GrapherConstants"
-import { AxisOptionsInterface } from "charts/axis/Axis"
+import { AxisOptionsInterface, AxisOptions } from "charts/axis/AxisOptions"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
     TimeBound,
@@ -20,7 +21,8 @@ import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import { LogoOption } from "charts/chart/Logos"
 import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { MapConfig } from "charts/mapCharts/MapConfig"
-import { observable, toJS } from "mobx"
+import { observable } from "mobx"
+import { Persistable, persistableToJS, updatePersistables } from "./Persistable"
 
 interface EntitySelection {
     entityId: number
@@ -44,24 +46,18 @@ export interface GrapherInterface {
     sourceDesc?: string
     note?: string
     hideTitleAnnotation?: true
-
     xAxis?: Partial<AxisOptionsInterface>
     yAxis?: Partial<AxisOptionsInterface>
-
     externalDataUrl?: string
     owidDataset?: OwidVariablesAndEntityKey
     useV2?: boolean
-
     selectedData?: EntitySelection[]
     minTime?: TimeBound
     maxTime?: TimeBound
-
     timelineMinTime?: Time
     timelineMaxTime?: Time
-
     dimensions?: ChartDimensionSpec[]
-    addCountryMode?: "add-country" | "change-country" | "disabled"
-
+    addCountryMode?: AddCountryMode
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
     stackMode?: StackMode
@@ -74,32 +70,21 @@ export interface GrapherInterface {
     hideTimeline?: true
     zoomToSelection?: true
     minPopulationFilter?: number
-
-    // Always show year in labels for bar charts
-    showYearLabels?: boolean
-
+    showYearLabels?: boolean // Always show year in labels for bar charts
     hasChartTab?: boolean
     hasMapTab?: boolean
     tab?: GrapherTabOption
     overlay?: GrapherTabOption
-
     relatedQuestions?: RelatedQuestionsConfig[]
     internalNotes?: string
     variantName?: string
     originUrl?: string
     isPublished?: true
-
     baseColorScheme?: string
     invertColorScheme?: true
-
-    // SCATTERPLOT-SPECIFIC OPTIONS
-
     colorScale?: Partial<ColorScaleConfigProps>
-
     hideLinesOutsideTolerance?: true
-
-    // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
-    hideConnectedScatterLines?: boolean
+    hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
     compareEndPointsOnly?: true
     matchingEntitiesOnly?: true
@@ -110,33 +95,30 @@ export interface GrapherInterface {
 }
 
 // Simply implements the *saveable* properties of Grapher. This class is only concerned with parsing and serializing.
-export class GrapherScript implements GrapherInterface {
+export class PersistableGrapher implements GrapherInterface, Persistable {
     @observable.ref type: ChartTypeName = "LineChart"
     @observable.ref isExplorable: boolean = false
     @observable.ref id?: number = undefined
     @observable.ref version: number = 1
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
-    @observable.ref subtitle?: string = ""
+    @observable.ref subtitle: string = ""
     @observable.ref sourceDesc?: string = undefined
-    @observable.ref note?: string = ""
+    @observable.ref note: string = ""
     @observable.ref hideTitleAnnotation?: true = undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
     @observable.ref timelineMaxTime?: Time = undefined
-    @observable.ref addCountryMode?:
-        | "add-country"
-        | "change-country"
-        | "disabled" = "add-country"
+    @observable.ref addCountryMode: AddCountryMode = "add-country"
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode: StackMode = "absolute"
     @observable.ref hideLegend?: true = undefined
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle?: boolean = true
-    @observable.ref entityType?: string = "country"
-    @observable.ref entityTypePlural?: string = "countries"
+    @observable.ref entityType: string = "country"
+    @observable.ref entityTypePlural: string = "countries"
     @observable.ref hideTimeline?: true = undefined
     @observable.ref zoomToSelection?: true = undefined
     @observable.ref minPopulationFilter?: number = undefined
@@ -145,7 +127,7 @@ export class GrapherScript implements GrapherInterface {
     @observable.ref hasMapTab: boolean = false
     @observable.ref tab: GrapherTabOption = "chart"
     @observable.ref overlay?: GrapherTabOption = undefined
-    @observable.ref internalNotes?: string = ""
+    @observable.ref internalNotes: string = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl: string = ""
     @observable.ref isPublished?: true = undefined
@@ -158,51 +140,67 @@ export class GrapherScript implements GrapherInterface {
     @observable.ref compareEndPointsOnly?: true = undefined
     @observable.ref matchingEntitiesOnly?: true = undefined
 
-    @observable.ref xAxis: Partial<AxisOptionsInterface> = {}
-    @observable.ref yAxis: Partial<AxisOptionsInterface> = {}
+    // Todo: make sure these all have toJson/fromJson methods.
+    @observable.ref xAxis = new AxisOptions()
+    @observable.ref yAxis = new AxisOptions()
+
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref dimensions: ChartDimensionSpec[] = []
-    @observable colorScale: Partial<ColorScaleConfigProps> = {}
+    @observable colorScale = new ColorScaleConfigProps()
     @observable excludedEntities?: number[] = undefined
     @observable map: Partial<MapConfig> = {}
     data?: { availableEntities: string[] } = undefined
-    @observable comparisonLines?: ComparisonLineConfig[] = []
+    @observable comparisonLines: ComparisonLineConfig[] = []
     @observable relatedQuestions?: RelatedQuestionsConfig[]
 
     externalDataUrl?: string
     owidDataset?: OwidVariablesAndEntityKey
     useV2?: boolean = false
 
-    toJson(): GrapherInterface {
-        const defaultJson: GrapherInterface = toJS(new GrapherScript())
-        const json: GrapherInterface = toJS(this)
-        const defaultKeys = new Set(Object.keys(defaultJson))
+    toObject(): GrapherInterface {
+        const defaultObj: GrapherInterface = persistableToJS(
+            new PersistableGrapher()
+        )
+        const obj: GrapherInterface = persistableToJS(this)
 
         // Never save the followingto the DB.
-        delete json.externalDataUrl
-        delete json.owidDataset
-        delete json.useV2
+        delete obj.externalDataUrl
+        delete obj.owidDataset
+        delete obj.useV2
 
         // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
         // in the Grapher Admin with an overlay tab open
-        delete json.overlay
+        delete obj.overlay
 
-        Object.keys(json).forEach(prop => {
+        const defaultKeys = new Set(Object.keys(defaultObj))
+        Object.keys(obj).forEach(prop => {
             const key = prop as GrapherProperty
-            const currentValue = JSON.stringify(json[key])
-            const defaultValue = JSON.stringify(defaultJson[key])
-            if (currentValue === defaultValue || !defaultKeys.has(key))
-                delete json[key]
+            if (!defaultKeys.has(key)) {
+                // Don't persist any runtime info
+                delete obj[key]
+                return
+            }
+
+            const currentValue = JSON.stringify(obj[key])
+            const defaultValue = JSON.stringify(defaultObj[key])
+            if (currentValue === defaultValue) {
+                // Don't persist any values that weren't changed from the default
+                delete obj[key]
+            }
         })
 
         // JSON doesn't support Infinity, so we use strings instead.
-        json.minTime = minTimeToJSON(this.minTime) as any
-        json.maxTime = maxTimeToJSON(this.maxTime) as any
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
-        return JSON.stringify(json) as GrapherInterface
+        return obj as GrapherInterface
     }
 
-    fromJson(obj: GrapherInterface) {
-        return this
+    updateFromObject(obj: GrapherInterface) {
+        updatePersistables(this, obj)
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        this.minTime = minTimeToJSON(obj.minTime) as number
+        this.maxTime = maxTimeToJSON(obj.maxTime) as number
     }
 }

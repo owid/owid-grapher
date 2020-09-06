@@ -19,6 +19,8 @@ export class ChartType {
     static StackedBar: ChartTypeName = "StackedBar"
 }
 
+export type AddCountryMode = "add-country" | "change-country" | "disabled"
+
 export type StackMode = "absolute" | "relative"
 
 // todo: remove when we ditch Year and YearIsDay

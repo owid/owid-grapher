@@ -146,7 +146,7 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed private get isLogScale() {
-        return this.chart.yAxisOptions.scaleType === ScaleType.log
+        return this.chart.yAxis.scaleType === ScaleType.log
     }
 
     @computed private get xRange(): [number, number] {
@@ -158,7 +158,7 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed private get axis() {
         // NB: We use the user's YAxis options here to make the XAxis
-        const axis = this.chart.yAxisOptions.toHorizontalAxis()
+        const axis = this.chart.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.tickFormat = this.chart.discreteBarTransform.tickFormat

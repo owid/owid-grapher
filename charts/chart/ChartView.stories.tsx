@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 
 import { Bounds } from "charts/utils/Bounds"
 import { ChartView } from "charts/chart/ChartView"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
 const chartViewData = {
@@ -81,7 +81,7 @@ class ChartStoryView extends React.Component {
             {
                 hasMapTab: true,
                 dimensions: [{ property: "y", variableId: 66287, display: {} }]
-            } as GrapherScript,
+            } as GrapherInterface,
             {}
         )
         chart.receiveData(chartViewData as any)

@@ -331,17 +331,17 @@ export class ScatterTransform extends ChartTransform {
         // domains before creating the points, the tolerance may lead to different X-Y
         // values being joined.
         // -@danielgavrilov, 2020-04-29
-        const { yAxisOptions, xAxisOptions } = this.chart
+        const { yAxis, xAxis } = this.chart
         dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
                 // Exclude any points with data for only one axis
                 if (!has(point, "x") || !has(point, "y"))
                     dataByYear.delete(year)
                 // Exclude points that go beyond min/max of X axis
-                else if (xAxisOptions.shouldRemovePoint(point.x))
+                else if (xAxis.shouldRemovePoint(point.x))
                     dataByYear.delete(year)
                 // Exclude points that go beyond min/max of Y axis
-                else if (yAxisOptions.shouldRemovePoint(point.y))
+                else if (yAxis.shouldRemovePoint(point.y))
                     dataByYear.delete(year)
             })
         })
@@ -418,12 +418,12 @@ export class ScatterTransform extends ChartTransform {
     @computed private get yScaleType() {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.yAxisOptions.scaleType || ScaleType.linear
+            : this.chart.yAxis.scaleType || ScaleType.linear
     }
 
     @computed private get yAxisLabel(): string {
         return (
-            this.chart.yAxisOptions.label ||
+            this.chart.yAxis.label ||
             (this.yDimension && this.yDimension.displayName) ||
             ""
         )
@@ -436,7 +436,7 @@ export class ScatterTransform extends ChartTransform {
     @computed get yAxis() {
         const { chart, yDomainDefault, yDimension, isRelativeMode } = this
 
-        const axis = chart.yAxisOptions.toVerticalAxis()
+        const axis = chart.yAxis.toVerticalAxis()
         axis.tickFormat =
             (yDimension && yDimension.formatValueShort) || axis.tickFormat
 
@@ -464,7 +464,7 @@ export class ScatterTransform extends ChartTransform {
     @computed private get xScaleType(): ScaleType {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.xAxisOptions.scaleType || ScaleType.linear
+            : this.chart.xAxis.scaleType || ScaleType.linear
     }
 
     @computed private get xAxisLabelBase(): string | undefined {
@@ -482,15 +482,15 @@ export class ScatterTransform extends ChartTransform {
             xAxisLabelBase
         } = this
 
-        const { xAxisOptions } = this.chart
+        const { xAxis } = this.chart
 
-        const axis = xAxisOptions.toHorizontalAxis()
+        const axis = xAxis.toHorizontalAxis()
 
         axis.scaleType = this.xScaleType
         if (isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = xDomainDefault // Overwrite user's min/max
-            const label = xAxisOptions.label || xAxisLabelBase
+            const label = xAxis.label || xAxisLabelBase
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
                     label
@@ -499,7 +499,7 @@ export class ScatterTransform extends ChartTransform {
             axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
         } else {
             axis.updateDomainPreservingUserSettings(xDomainDefault)
-            const label = xAxisOptions.label || xAxisLabelBase
+            const label = xAxis.label || xAxisLabelBase
             if (label) axis.label = label
             axis.tickFormat =
                 (xDimension && xDimension.formatValueShort) || axis.tickFormat

@@ -145,7 +145,7 @@ class TooltipSection extends React.Component<{ mapTransform: MapTransform }> {
 @observer
 export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
     @computed get chart() {
-        return this.props.editor.chart
+        return this.props.editor.grapher
     }
     @computed get mapTransform() {
         return this.chart.mapTransform

@@ -36,7 +36,7 @@ import {
     lastOfNonEmptyArray,
     find
 } from "charts/utils/Util"
-import { AxisOptions, AxisContainerOptions } from "charts/axis/Axis"
+import { AxisOptions, AxisContainerOptions } from "charts/axis/AxisOptions"
 import {
     ChartType,
     GrapherTabOption,
@@ -75,7 +75,6 @@ import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
     maxTimeFromJSON,
-    minTimeToJSON,
     maxTimeToJSON,
     TimeBounds,
     TimeBoundValue
@@ -89,7 +88,10 @@ import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import {
+    GrapherInterface,
+    PersistableGrapher
+} from "charts/core/GrapherInterface"
 import { DimensionSlot } from "charts/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
@@ -102,13 +104,13 @@ const isNode: boolean =
 const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
-export class Grapher extends GrapherScript {
+export class Grapher extends PersistableGrapher {
     /** Stores the current state. Can be modified to change the grapher. */
-    script = new GrapherScript()
+    script = new PersistableGrapher()
 
     @observable map: MapConfig = new MapConfig()
 
-    private origScriptRaw: Readonly<GrapherScript>
+    private origScriptRaw: Readonly<GrapherInterface>
 
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
@@ -121,20 +123,20 @@ export class Grapher extends GrapherScript {
      * The original props as they are stored in the database. Useful for deriving the URL
      * parameters that need to be applied to reach the current state.
      */
-    @computed get origScript(): Readonly<GrapherScript> {
+    @computed get origScript(): Readonly<GrapherInterface> {
         // In the editor, the current state is always the "original" state
-        return this.isEditor ? toJS(this.script) : this.origScriptRaw
+        return this.isEditor ? this.toObject() : this.origScriptRaw
     }
 
-    private initialScriptRaw: Readonly<GrapherScript>
+    private initialScriptRaw: Readonly<GrapherInterface>
 
     /**
      * The props after consuming the initial URL parameters but before any user-triggered
      * changes. Helpful for "resetting" embeds to their initial state.
      */
-    @computed get initialScript(): Readonly<GrapherScript> {
+    @computed get initialScript(): Readonly<GrapherInterface> {
         // In the editor, the current state is always the "initial" state
-        return this.isEditor ? toJS(this.script) : this.initialScriptRaw
+        return this.isEditor ? this.toObject() : this.initialScriptRaw
     }
 
     @observable.ref isEmbed: boolean
@@ -351,7 +353,7 @@ export class Grapher extends GrapherScript {
     }
 
     constructor(
-        props?: GrapherScript,
+        props?: GrapherInterface,
         options: {
             isEmbed?: boolean
             isMediaCard?: boolean
@@ -370,9 +372,8 @@ export class Grapher extends GrapherScript {
                 return that.baseFontSize
             }
         }
-
-        this.yAxisOptions = new AxisOptions(undefined, axisContainer)
-        this.xAxisOptions = new AxisOptions(undefined, axisContainer)
+        this.xAxis.container = axisContainer
+        this.yAxis.container = axisContainer
 
         // This attribute is used to decide various client-vs.-server behavior. However, when
         // testing, we want the chart to behave as if it's in the client, even though it's
@@ -383,10 +384,9 @@ export class Grapher extends GrapherScript {
         // -@jasoncrawford 2019-12-04
         this.isNode = isNode && !isJsdom
 
-        this.update(props || { yAxis: { min: 0 } })
-
-        // The original props, as stored in the database
-        this.origScriptRaw = toJS(this.script)
+        this.updateFromObject(props)
+        // The original props, as stored in the database. Todo: why not just store props?
+        this.origScriptRaw = this.toObject()
 
         this.disposers.push(
             reaction(() => this.variableIds, this.downloadData, {
@@ -419,6 +419,31 @@ export class Grapher extends GrapherScript {
         }
 
         if (!this.isNode) this.ensureValidConfig()
+    }
+
+    @action.bound updateFromObject(obj: any) {
+        super.updateFromObject(obj)
+
+        if (obj.isAutoTitle) this.script.title = undefined
+
+        // Auto slug is only preserved for drafts in the editor
+        // Once published, slug should stick around (we don't want to create too many redirects)
+        if (obj.isAutoSlug && this.isEditor && !obj.isPublished)
+            this.script.slug = undefined
+
+        if (obj.map) {
+            this.map = new MapConfig({
+                ...obj.map,
+                targetYear: maxTimeFromJSON(obj.map.targetYear)
+            })
+        }
+
+        extend(this.colorScale, obj["colorScale"])
+
+        this.dimensions = (obj.dimensions || []).map(
+            (dimSpec: ChartDimensionInterface) =>
+                new ChartDimensionSpec(dimSpec)
+        )
     }
 
     updatePopulationFilter() {
@@ -500,7 +525,7 @@ export class Grapher extends GrapherScript {
         } else {
             // table tab cannot be downloaded, so revert to default tab
             if (value === "download" && this.script.tab === "table") {
-                this.script.tab = this.origScript.tab
+                this.script.tab = this.origScript.tab || "chart"
             }
             this.script.overlay = value
         }
@@ -518,9 +543,6 @@ export class Grapher extends GrapherScript {
         this.script.minTime = value[0]
         this.script.maxTime = value[1]
     }
-
-    @observable xAxisOptions: AxisOptions
-    @observable yAxisOptions: AxisOptions
 
     // Get the dimension slots appropriate for this type of chart
     @computed get dimensionSlots(): DimensionSlot[] {
@@ -589,46 +611,6 @@ export class Grapher extends GrapherScript {
             "sources",
             "download"
         ]) as GrapherTabOption[]
-    }
-
-    @action.bound update(json: any) {
-        for (const key in this.script) {
-            if (key in json && key !== "xAxis" && key !== "yAxis") {
-                ;(this.script as any)[key] = json[key]
-            }
-        }
-
-        if (json.isAutoTitle) this.script.title = undefined
-
-        // Auto slug is only preserved for drafts in the editor
-        // Once published, slug should stick around (we don't want to create too many redirects)
-        if (json.isAutoSlug && this.isEditor && !json.isPublished)
-            this.script.slug = undefined
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        this.script.minTime = minTimeFromJSON(json.minTime)
-        this.script.maxTime = maxTimeFromJSON(json.maxTime)
-
-        if (json.map) {
-            this.map = new MapConfig({
-                ...json.map,
-                targetYear: maxTimeFromJSON(json.map.targetYear)
-            })
-        }
-
-        this.xAxisOptions.update(json["xAxis"])
-        this.yAxisOptions.update(json["yAxis"])
-
-        // Todo: cleanup. This is here because of the toJS stuff
-        this.script.xAxis = this.xAxisOptions
-        this.script.yAxis = this.yAxisOptions
-
-        extend(this.colorScale, json["colorScale"])
-
-        this.script.dimensions = (json.dimensions || []).map(
-            (dimSpec: ChartDimensionInterface) =>
-                new ChartDimensionSpec(dimSpec)
-        )
     }
 
     @computed get currentTitle(): string {
@@ -817,36 +799,37 @@ export class Grapher extends GrapherScript {
         return this.title ?? this.defaultTitle
     }
 
-    @computed.struct get json(): Readonly<any> {
-        const json: any = this.toJson()
+    // Returns an object ready to be serialized to JSON
+    @computed.struct get object(): Readonly<any> {
+        const obj: any = this.toObject()
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
-        if (!json.title) {
-            json.title = this.displayTitle
-            json.isAutoTitle = true
+        if (!obj.title) {
+            obj.title = this.displayTitle
+            obj.isAutoTitle = true
         }
 
-        if (!json.slug) {
-            json.slug = this.displaySlug
-            json.isAutoSlug = true
+        if (!obj.slug) {
+            obj.slug = this.displaySlug
+            obj.isAutoSlug = true
         }
 
-        if (json.xAxis && json.xAxis.containerOptions)
-            delete json.xAxis.containerOptions
+        if (obj.xAxis && obj.xAxis.containerOptions)
+            delete obj.xAxis.containerOptions
 
-        if (json.yAxis && json.yAxis.containerOptions)
-            delete json.yAxis.containerOptions
+        if (obj.yAxis && obj.yAxis.containerOptions)
+            delete obj.yAxis.containerOptions
 
-        json.data = {
+        obj.data = {
             availableEntities: this.availableEntityNames
         }
 
         if (this.map) {
-            json.map.targetYear = maxTimeToJSON(this.map.targetYear)
+            obj.map.targetYear = maxTimeToJSON(this.map.targetYear)
         }
 
-        return json
+        return obj
     }
 
     @computed get isLineChart() {
@@ -905,8 +888,6 @@ export class Grapher extends GrapherScript {
             this.lookupKey(key)
         )
     }
-
-    @observable colorScale2: ColorScaleConfigProps = new ColorScaleConfigProps()
 
     @computed get activeColorScale() {
         return this.activeTransform.colorScale
@@ -1095,7 +1076,7 @@ export class Grapher extends GrapherScript {
 
     // todo: remove
     @action.bound resetSelectedEntities() {
-        this.script.selectedData = this.initialScript.selectedData
+        this.script.selectedData = this.initialScript.selectedData || []
     }
 
     // todo: remove
