@@ -168,7 +168,7 @@ export class OldChart {
 
     async getVariableData(): Promise<any> {
         const variableIds = lodash.uniq(
-            this.config.dimensions.map(d => d.variableId)
+            this.config.dimensions!.map(d => d.variableId)
         )
         return getVariableData(variableIds)
     }
