@@ -6,7 +6,7 @@ import { observe } from "mobx"
 
 import { ExploreView } from "./ExploreView"
 import { Bounds } from "charts/utils/Bounds"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { ChartType } from "charts/core/GrapherConstants"
 import { LineChart } from "charts/lineCharts/LineChart"
 import { StackedAreaChart } from "charts/areaCharts/StackedAreaChart"
@@ -41,18 +41,18 @@ function mockDataResponse() {
     apiMock.mockVariable(104402)
 }
 
-async function whenReady(chartView: ChartView): Promise<void> {
+async function whenReady(grapherView: GrapherView): Promise<void> {
     return new Promise(resolve => {
-        const chart = chartView.chart
-        observe(chart, "isReady", () => {
-            if (chart.isReady) resolve()
+        const grapher = grapherView.grapher
+        observe(grapher, "isReady", () => {
+            if (grapher.isReady) resolve()
         })
     })
 }
 
 async function updateViewWhenReady(exploreView: ReactWrapper) {
-    const chartView = exploreView.find(ChartView).first()
-    await whenReady(chartView.instance() as ChartView)
+    const grapherView = exploreView.find(GrapherView).first()
+    await whenReady(grapherView.instance() as GrapherView)
     exploreView.update()
 }
 
@@ -61,7 +61,7 @@ describe(ExploreView, () => {
         const view = shallow(
             <ExploreView bounds={bounds} model={getEmptyModel()} />
         )
-        expect(view.find(ChartView)).toHaveLength(1)
+        expect(view.find(GrapherView)).toHaveLength(1)
     })
 
     describe("when you render with diferent model params", () => {
@@ -91,7 +91,7 @@ describe(ExploreView, () => {
         // -@danielgavrilov 2019-12-12
         it.skip("applies the time params to the chart", async () => {
             const model = getDefaultModel()
-            model.chart.timeDomain = [1960, 2005]
+            model.grapher.timeDomain = [1960, 2005]
             const view = await renderWithModel(model)
             const style: any = view.find(".slider .interval").prop("style")
             expect(parseFloat(style.left)).toBeGreaterThan(0)
@@ -161,7 +161,7 @@ describe(ExploreView, () => {
             const view = shallow(
                 <ExploreView bounds={bounds} model={getEmptyModel()} />
             )
-            expect(view.find(ChartView)).toHaveLength(1)
+            expect(view.find(GrapherView)).toHaveLength(1)
         })
 
         it("loads a chart with the initialized indicator", async () => {
@@ -169,14 +169,14 @@ describe(ExploreView, () => {
                 <ExploreView bounds={bounds} model={getDefaultModel()} />
             )
             await updateViewWhenReady(view)
-            expect(view.find(ChartView)).toHaveLength(1)
+            expect(view.find(GrapherView)).toHaveLength(1)
             expect(view.find(".chart h1").text()).toContain(indicator.title)
         })
 
         it("loads the indicator when the indicatorId is changed", async () => {
             const model = getEmptyModel()
             const view = mount(<ExploreView bounds={bounds} model={model} />)
-            expect(view.find(ChartView)).toHaveLength(1)
+            expect(view.find(GrapherView)).toHaveLength(1)
 
             model.setIndicatorId(indicator.id)
             await updateViewWhenReady(view)

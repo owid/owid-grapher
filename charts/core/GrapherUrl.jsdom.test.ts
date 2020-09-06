@@ -2,7 +2,7 @@
 
 import { GrapherInterface } from "charts/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "charts/utils/TimeBounds"
-import { createGrapher, setupChart } from "charts/test/utils"
+import { createGrapher, setupGrapher } from "charts/test/utils"
 import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
 import { Grapher } from "charts/core/Grapher"
 import { ScaleType } from "./GrapherConstants"
@@ -37,7 +37,9 @@ describe(GrapherUrl, () => {
     })
 
     describe("base url", () => {
-        const url = new GrapherUrl({ isPublished: true, slug: "foo" } as any)
+        const url = new GrapherUrl(
+            new Grapher({ isPublished: true, slug: "foo" })
+        )
         expect(url.baseUrl).toEqual("/grapher/foo")
     })
 
@@ -45,7 +47,7 @@ describe(GrapherUrl, () => {
         const grapher = new Grapher(
             {
                 xAxis: { scaleType: ScaleType.linear, canChangeScaleType: true }
-            } as GrapherInterface,
+            },
             { queryStr: "scaleType=linear" }
         )
         expect(grapher.url.params.xScale).toEqual(undefined)
@@ -287,20 +289,20 @@ describe(GrapherUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const chart = setupChart(4066, [142708])
-                    chart.url.populateFromQueryParams({ time: test.query })
-                    const [start, end] = chart.timeDomain
+                    const grapher = setupGrapher(4066, [142708])
+                    grapher.url.populateFromQueryParams({ time: test.query })
+                    const [start, end] = grapher.timeDomain
                     expect(start).toEqual(test.param[0])
                     expect(end).toEqual(test.param[1])
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
-                        const chart = setupChart(4066, [142708])
-                        chart.updateFromObject({
+                        const grapher = setupGrapher(4066, [142708])
+                        grapher.updateFromObject({
                             minTime: test.param[0],
                             maxTime: test.param[1]
                         })
-                        const params = chart.url.params
+                        const params = grapher.url.params
                         expect(params.time).toEqual(test.query)
                     })
                 }
@@ -392,7 +394,7 @@ describe(GrapherUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const grapher = setupChart(4066, [142708])
+                    const grapher = setupGrapher(4066, [142708])
                     grapher.url.populateFromQueryParams({ year: test.query })
                     expect(grapher.mapTransform.targetYearProp).toEqual(
                         test.param
@@ -400,7 +402,7 @@ describe(GrapherUrl, () => {
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
-                        const grapher = setupChart(4066, [142708])
+                        const grapher = setupGrapher(4066, [142708])
                         grapher.updateFromObject({
                             map: { targetYear: test.param }
                         })

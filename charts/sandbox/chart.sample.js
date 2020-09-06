@@ -1,4 +1,4 @@
-const sandboxChart = {
+const sandboxGrapher = {
     id: 1,
     map: {
         projection: "World",

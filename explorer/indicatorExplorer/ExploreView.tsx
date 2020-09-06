@@ -10,7 +10,7 @@ import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
 import { Bounds } from "charts/utils/Bounds"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { ChartType } from "charts/core/GrapherConstants"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
@@ -34,9 +34,9 @@ const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
     { type: ExploreModel.WorldMap, label: "Map", icon: faMap }
 ]
 
-// This component was modeled after ChartView.
+// This component was modeled after GrapherView.
 //
-// TODO that ChartView handles but this doesn't:
+// TODO that GrapherView handles but this doesn't:
 // * re-render on window resize event (throttled)
 // * FullStory event logging on bootstrap
 // * error logging via Analytics.logEvent on componentDidCatch
@@ -76,8 +76,8 @@ export class ExploreView extends React.Component<ExploreProps> {
         return this.props.model
     }
 
-    @computed get chart() {
-        return this.model.chart
+    @computed get grapher() {
+        return this.model.grapher
     }
 
     @computed get bounds() {
@@ -135,10 +135,10 @@ export class ExploreView extends React.Component<ExploreProps> {
                 <div>
                     {this.renderChartTypes()}
                     {this.renderIndicatorSwitching()}
-                    <ChartView chart={this.chart} bounds={this.bounds} />
+                    <GrapherView grapher={this.grapher} bounds={this.bounds} />
                 </div>
                 <div>
-                    <DataTable chart={this.chart} />
+                    <DataTable grapher={this.grapher} />
                 </div>
             </ExplorerViewContext.Provider>
         )
@@ -149,10 +149,10 @@ export class ExploreView extends React.Component<ExploreProps> {
 
         // We ignore the disposer here, because this reaction lasts for the
         // lifetime of the window. -@jasoncrawford 2019-12-16
-        autorun(() => (document.title = this.chart.currentTitle))
+        autorun(() => (document.title = this.grapher.currentTitle))
     }
 
     componentDidCatch(error: any, info: any) {
-        this.chart.analytics.logExploreError(error, info)
+        this.grapher.analytics.logExploreError(error, info)
     }
 }

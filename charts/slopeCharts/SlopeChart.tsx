@@ -14,19 +14,19 @@ import {
 @observer
 export class SlopeChart extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get chart(): Grapher {
-        return this.props.chart
+    @computed get grapher() {
+        return this.props.grapher
     }
 
     @computed get transform() {
-        return this.props.chart.slopeChartTransform
+        return this.props.grapher.slopeChartTransform
     }
 
     @computed.struct get bounds(): Bounds {
@@ -40,7 +40,7 @@ export class SlopeChart extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.grapher.baseFontSize
             },
             get colorables() {
                 return that.transform.colorScale.legendData
@@ -65,12 +65,12 @@ export class SlopeChart extends React.Component<{
     }
 
     @action.bound onSlopeClick() {
-        const { chart, hoverKey } = this
-        if (chart.addCountryMode === "disabled" || hoverKey === undefined) {
+        const { grapher, hoverKey } = this
+        if (grapher.addCountryMode === "disabled" || hoverKey === undefined) {
             return
         }
 
-        this.chart.toggleKey(hoverKey)
+        this.grapher.toggleKey(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -83,8 +83,8 @@ export class SlopeChart extends React.Component<{
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { chart, hoverColor } = this
-        if (chart.addCountryMode === "disabled" || hoverColor === undefined)
+        const { grapher, hoverColor } = this
+        if (grapher.addCountryMode === "disabled" || hoverColor === undefined)
             return
 
         const { transform } = this
@@ -92,29 +92,35 @@ export class SlopeChart extends React.Component<{
             .filter(g => g.color === hoverColor)
             .map(g => g.entityDimensionKey)
         const allKeysActive =
-            intersection(keysToToggle, chart.selectedKeys).length ===
+            intersection(keysToToggle, grapher.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            chart.selectedKeys = without(chart.selectedKeys, ...keysToToggle)
-        else chart.selectedKeys = uniq(chart.selectedKeys.concat(keysToToggle))
+            grapher.selectedKeys = without(
+                grapher.selectedKeys,
+                ...keysToToggle
+            )
+        else
+            grapher.selectedKeys = uniq(
+                grapher.selectedKeys.concat(keysToToggle)
+            )
     }
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
-        const { colorsInUse, transform, chart } = this
+        const { colorsInUse, transform, grapher } = this
         return colorsInUse.filter(color => {
             const matchingKeys = transform.data
                 .filter(g => g.color === color)
                 .map(g => g.entityDimensionKey)
             return (
-                intersection(matchingKeys, chart.selectedKeys).length ===
+                intersection(matchingKeys, grapher.selectedKeys).length ===
                 matchingKeys.length
             )
         })
     }
 
     @computed get focusKeys(): string[] {
-        return this.chart.selectedKeys
+        return this.grapher.selectedKeys
     }
 
     // All currently hovered group keys, combining the legend and the main UI
@@ -194,14 +200,14 @@ export class SlopeChart extends React.Component<{
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.chart}
+                    options={this.grapher}
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />
             )
 
-        const { bounds, chart } = this.props
-        const { yAxis } = chart
+        const { bounds, grapher } = this.props
+        const { yAxis } = grapher
         const { data } = this.transform
         const {
             legend,
@@ -217,13 +223,13 @@ export class SlopeChart extends React.Component<{
         return (
             <g>
                 <LabelledSlopes
-                    chart={chart}
+                    grapher={grapher}
                     bounds={innerBounds}
-                    isInteractive={chart.isInteractive}
+                    isInteractive={grapher.isInteractive}
                     yTickFormat={this.transform.yTickFormat}
                     yAxisOptions={yAxis}
                     data={data}
-                    fontSize={chart.baseFontSize}
+                    fontSize={grapher.baseFontSize}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}

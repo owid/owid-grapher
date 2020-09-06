@@ -1,5 +1,5 @@
 import "site/client/owid.scss"
-import "charts/core/chart.scss"
+import "charts/core/grapher.scss"
 // From https://fontawesome.com/how-to-use/on-the-web/other-topics/server-side-rendering:
 // "If the CSS is missing when this icon displays in the browser it will flash
 // from a very large icon down to a properly sized one a moment later."
@@ -16,7 +16,7 @@ import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "stripe/DonateForm"
 import { getParent } from "./utils"
 import { GrapherPageUtils } from "site/client/GrapherPageUtils"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { ExploreView } from "explorer/indicatorExplorer/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
@@ -35,7 +35,7 @@ import { ENV } from "settings"
 
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
-window.ChartView = ChartView
+window.GrapherView = GrapherView
 window.CovidExplorer = CovidExplorer
 window.SwitcherExplorer = SwitcherExplorer
 window.ExploreView = ExploreView

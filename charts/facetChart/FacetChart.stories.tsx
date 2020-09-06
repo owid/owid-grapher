@@ -1,6 +1,6 @@
 import * as React from "react"
 import "site/client/owid.scss"
-import "charts/core/chart.scss"
+import "charts/core/grapher.scss"
 import { FacetChart } from "./FacetChart"
 import { basicGdpGrapher, basicScatterGrapher } from "charts/test/samples"
 import { ChartTypeName } from "charts/chart/ChartTypes"

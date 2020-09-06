@@ -104,7 +104,7 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 path="/charts/create/:config"
                                 render={({ match }) => (
                                     <ChartEditorPage
-                                        chartConfig={JSON.parse(
+                                        grapherConfig={JSON.parse(
                                             Base64.decode(match.params.config)
                                         )}
                                     />
@@ -120,7 +120,9 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 path="/charts/:chartId/edit"
                                 render={({ match }) => (
                                     <ChartEditorPage
-                                        chartId={parseInt(match.params.chartId)}
+                                        grapherId={parseInt(
+                                            match.params.chartId
+                                        )}
                                     />
                                 )}
                             />

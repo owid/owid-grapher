@@ -219,18 +219,18 @@ class Areas extends React.Component<AreasProps> {
 @observer
 export class StackedAreaChart extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get chart(): Grapher {
-        return this.props.chart
+    @computed get grapher(): Grapher {
+        return this.props.grapher
     }
     @computed get bounds(): Bounds {
         return this.props.bounds
     }
     @computed get transform() {
-        return this.props.chart.stackedAreaTransform
+        return this.props.grapher.stackedAreaTransform
     }
 
     @computed get midpoints(): number[] {
@@ -253,7 +253,7 @@ export class StackedAreaChart extends React.Component<{
             .map((d, i) => ({
                 color: d.color,
                 entityDimensionKey: d.entityDimensionKey,
-                label: this.chart.getLabelForKey(d.entityDimensionKey),
+                label: this.grapher.getLabelForKey(d.entityDimensionKey),
                 yValue: midpoints[i]
             }))
             .reverse()
@@ -261,7 +261,7 @@ export class StackedAreaChart extends React.Component<{
     }
 
     @computed private get legend(): LineLabelsHelper | undefined {
-        if (this.chart.hideLegend) return undefined
+        if (this.grapher.hideLegend) return undefined
 
         const that = this
         return new LineLabelsHelper({
@@ -269,7 +269,7 @@ export class StackedAreaChart extends React.Component<{
                 return Math.min(150, that.bounds.width / 3)
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.grapher.baseFontSize
             },
             get items() {
                 return that.legendItems
@@ -284,8 +284,8 @@ export class StackedAreaChart extends React.Component<{
 
     @observable hoverKey?: string
     @action.bound onLegendClick(key: EntityDimensionKey) {
-        if (this.chart.showAddEntityControls) {
-            this.chart.isSelectingData = true
+        if (this.grapher.showAddEntityControls) {
+            this.grapher.isSelectingData = true
         }
     }
 
@@ -325,7 +325,7 @@ export class StackedAreaChart extends React.Component<{
     @computed private get tooltip(): JSX.Element | undefined {
         if (this.hoverIndex === undefined) return undefined
 
-        const { transform, hoverIndex, dualAxis, chart } = this
+        const { transform, hoverIndex, dualAxis, grapher } = this
 
         // Grab the first value to get the year from
         const refValue = transform.stackedData[0].values[hoverIndex]
@@ -344,7 +344,7 @@ export class StackedAreaChart extends React.Component<{
 
         return (
             <Tooltip
-                tooltipContainer={this.props.chart}
+                tooltipContainer={this.props.grapher}
                 x={dualAxis.xAxis.place(refValue.x)}
                 y={dualAxis.yAxis.rangeMin + dualAxis.yAxis.rangeSize / 2}
                 style={{ padding: "0.3em" }}
@@ -355,7 +355,9 @@ export class StackedAreaChart extends React.Component<{
                         <tr>
                             <td>
                                 <strong>
-                                    {this.chart.formatYearFunction(refValue.x)}
+                                    {this.grapher.formatYearFunction(
+                                        refValue.x
+                                    )}
                                 </strong>
                             </td>
                             <td></td>
@@ -384,7 +386,7 @@ export class StackedAreaChart extends React.Component<{
                                                 backgroundColor: blockColor
                                             }}
                                         />{" "}
-                                        {chart.getLabelForKey(
+                                        {grapher.getLabelForKey(
                                             series.entityDimensionKey
                                         )}
                                     </td>
@@ -463,13 +465,13 @@ export class StackedAreaChart extends React.Component<{
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.chart}
+                    options={this.grapher}
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />
             )
 
-        const { chart, bounds, dualAxis, legend, transform, renderUid } = this
+        const { grapher, bounds, dualAxis, legend, transform, renderUid } = this
         return (
             <g ref={this.base} className="StackedArea">
                 <defs>
@@ -483,7 +485,7 @@ export class StackedAreaChart extends React.Component<{
                     </clipPath>
                 </defs>
                 <DualAxisComponent
-                    isInteractive={chart.isInteractive}
+                    isInteractive={grapher.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />
@@ -493,7 +495,7 @@ export class StackedAreaChart extends React.Component<{
                             legend={legend}
                             x={bounds.right - legend.width}
                             yAxis={dualAxis.yAxis}
-                            options={chart}
+                            options={grapher}
                             focusKeys={this.focusKeys}
                             onClick={this.onLegendClick}
                             onMouseOver={this.onLegendMouseOver}

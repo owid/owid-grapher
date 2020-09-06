@@ -3,7 +3,7 @@
 import * as React from "react"
 import { shallow, ShallowWrapper } from "enzyme"
 
-import { ChartPage } from "./ChartPage"
+import { GrapherPage } from "./GrapherPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { extend } from "charts/utils/Util"
@@ -11,17 +11,17 @@ import { PersistableGrapher } from "charts/core/GrapherInterface"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
-import { readChart } from "charts/test/fixtures"
+import { readGrapher } from "charts/test/fixtures"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 
-describe(ChartPage, () => {
+describe(GrapherPage, () => {
     let chart: PersistableGrapher
     let post: Post.Row
     let relatedCharts: RelatedChart[]
 
     beforeAll(() => {
         chart = new PersistableGrapher()
-        extend(chart, readChart(792))
+        extend(chart, readGrapher(792))
         post = {
             id: 2681,
             title: "Hunger and Undernourishment",
@@ -50,9 +50,9 @@ describe(ChartPage, () => {
         beforeAll(
             () =>
                 (view = shallow(
-                    <ChartPage
+                    <GrapherPage
                         post={post}
-                        chart={chart}
+                        grapher={chart}
                         relatedCharts={relatedCharts}
                     />
                 ))

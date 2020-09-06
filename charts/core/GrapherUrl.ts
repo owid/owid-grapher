@@ -162,7 +162,8 @@ export class GrapherUrl implements ObservableUrl {
         return this.baseUrl ? this.baseUrl + this.queryStr : undefined
     }
 
-    @computed get yearParam(): string | undefined {
+    // Todo: why do we have a year and time param? Should this be mapYear?
+    @computed private get yearParam(): string | undefined {
         const { grapher, origGrapherProps } = this
 
         if (
@@ -170,14 +171,13 @@ export class GrapherUrl implements ObservableUrl {
             origGrapherProps.map &&
             grapher.mapTransform.targetYearProp !==
                 origGrapherProps.map.targetYear
-        ) {
+        )
             return formatTimeURIComponent(
                 grapher.mapTransform.targetYearProp,
                 !!grapher.table.hasDayColumn
             )
-        } else {
-            return undefined
-        }
+
+        return undefined
     }
 
     @computed get timeParam(): string | undefined {
@@ -188,24 +188,16 @@ export class GrapherUrl implements ObservableUrl {
             grapher.maxTime !== origGrapherProps.maxTime
         ) {
             const [minTime, maxTime] = grapher.timeDomain
-            if (minTime === maxTime)
-                return formatTimeURIComponent(
-                    minTime,
-                    !!grapher.table.hasDayColumn
-                )
+            const formatAsDay = !!grapher.table.hasDayColumn
 
-            const start = formatTimeURIComponent(
-                minTime,
-                !!grapher.table.hasDayColumn
-            )
-            const end = formatTimeURIComponent(
-                maxTime,
-                !!grapher.table.hasDayColumn
-            )
+            if (minTime === maxTime)
+                return formatTimeURIComponent(minTime, formatAsDay)
+
+            const start = formatTimeURIComponent(minTime, formatAsDay)
+            const end = formatTimeURIComponent(maxTime, formatAsDay)
             return `${start}..${end}`
-        } else {
-            return undefined
         }
+        return undefined
     }
 
     @computed private get countryParam(): string | undefined {

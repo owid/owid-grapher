@@ -1,4 +1,4 @@
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { excludeUndefined, fetchText } from "charts/utils/Util"
 
 import { Figure, LoadProps } from "./Figure"
@@ -49,7 +49,7 @@ export class ChartFigure implements Figure {
             const html = await fetchText(this.props.configUrl)
             this.jsonConfig = readConfigFromHTML(html)
             this.container.classList.remove("grapherPreview")
-            ChartView.bootstrap({
+            GrapherView.bootstrap({
                 jsonConfig: this.jsonConfig,
                 containerNode: this.container,
                 isEmbed: true,

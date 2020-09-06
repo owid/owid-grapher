@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { SlopeChart } from "charts/slopeCharts/SlopeChart"
 import { Bounds } from "charts/utils/Bounds"
 import { Grapher } from "charts/core/Grapher"
-import { ChartView } from "./ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { ScatterPlot } from "charts/scatterCharts/ScatterPlot"
 import { LineChart } from "charts/lineCharts/LineChart"
 import { StackedAreaChart } from "charts/areaCharts/StackedAreaChart"
@@ -16,18 +16,18 @@ import { LoadingOverlay } from "charts/loadingIndicator/LoadingOverlay"
 
 @observer
 export class ChartTab extends React.Component<{
-    chart: Grapher
-    chartView: ChartView
+    grapher: Grapher
+    grapherView: GrapherView
     bounds: Bounds
 }> {
     @computed get layout() {
         const that = this
         return new ChartLayout({
-            get chart() {
-                return that.props.chart
+            get grapher() {
+                return that.props.grapher
             },
-            get chartView() {
-                return that.props.chartView
+            get grapherView() {
+                return that.props.grapherView
             },
             get bounds() {
                 return that.props.bounds
@@ -36,59 +36,59 @@ export class ChartTab extends React.Component<{
     }
 
     renderChart() {
-        const { chart } = this.props
+        const { grapher } = this.props
         const bounds = this.layout.innerBounds
 
-        if (!chart.isReady) {
+        if (!grapher.isReady) {
             return <LoadingOverlay bounds={bounds} />
-        } else if (chart.isSlopeChart) {
-            return <SlopeChart bounds={bounds.padTop(20)} chart={chart} />
-        } else if (chart.isScatter) {
+        } else if (grapher.isSlopeChart) {
+            return <SlopeChart bounds={bounds.padTop(20)} grapher={grapher} />
+        } else if (grapher.isScatter) {
             return (
                 <ScatterPlot
                     bounds={bounds.padTop(20).padBottom(15)}
-                    chart={chart}
+                    grapher={grapher}
                 />
             )
-        } else if (chart.isTimeScatter) {
+        } else if (grapher.isTimeScatter) {
             return (
                 <TimeScatter
                     bounds={bounds.padTop(20).padBottom(15)}
-                    chart={chart}
+                    grapher={grapher}
                 />
             )
-        } else if (chart.isLineChart) {
+        } else if (grapher.isLineChart) {
             // Switch to bar chart if a single year is selected
-            return chart.lineChartTransform.isSingleYear ? (
+            return grapher.lineChartTransform.isSingleYear ? (
                 <DiscreteBarChart
                     bounds={bounds.padTop(20).padBottom(15)}
-                    chart={chart}
+                    grapher={grapher}
                 />
             ) : (
                 <LineChart
                     bounds={bounds.padTop(20).padBottom(15)}
-                    chart={chart}
+                    chart={grapher}
                 />
             )
-        } else if (chart.isStackedArea) {
+        } else if (grapher.isStackedArea) {
             return (
                 <StackedAreaChart
                     bounds={bounds.padTop(20).padBottom(15)}
-                    chart={chart}
+                    grapher={grapher}
                 />
             )
-        } else if (chart.isDiscreteBar) {
+        } else if (grapher.isDiscreteBar) {
             return (
                 <DiscreteBarChart
                     bounds={bounds.padTop(20).padBottom(15)}
-                    chart={chart}
+                    grapher={grapher}
                 />
             )
-        } else if (chart.isStackedBar) {
+        } else if (grapher.isStackedBar) {
             return (
                 <StackedBarChart
                     bounds={bounds.padTop(20).padBottom(15)}
-                    chart={chart}
+                    grapher={grapher}
                 />
             )
         } else {

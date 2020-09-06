@@ -10,7 +10,7 @@ import {
 import { ChartDimension } from "charts/chart/ChartDimension"
 
 interface CSVGeneratorProps {
-    chart: Grapher
+    grapher: Grapher
 }
 
 interface TimeUnitDependentParams {
@@ -24,12 +24,12 @@ export class CSVGenerator {
         this.props = props
     }
 
-    @computed get chart() {
-        return this.props.chart
+    @computed get grapher() {
+        return this.props.grapher
     }
 
     @computed get csvDimensions() {
-        return this.chart.filledDimensions.filter(d => d.property !== "color")
+        return this.grapher.filledDimensions.filter(d => d.property !== "color")
     }
 
     /** Returns dimensions for which we want to show all values */
@@ -50,7 +50,7 @@ export class CSVGenerator {
     }
 
     @computed private get dayColumn() {
-        return this.props.chart.table.dayColumn
+        return this.props.grapher.table.dayColumn
     }
 
     baseTitleRow = ["Entity", "Code"]
@@ -96,11 +96,11 @@ export class CSVGenerator {
     }
 
     entityCode(entity: string) {
-        return this.chart.table.entityNameToCodeMap.get(entity) ?? ""
+        return this.grapher.table.entityNameToCodeMap.get(entity) ?? ""
     }
 
     private formattedYear(year: number) {
-        return this.chart.formatYearFunction(year)
+        return this.grapher.formatYearFunction(year)
     }
 
     private valueForDimensionEntityYear(
@@ -177,7 +177,7 @@ export class CSVGenerator {
 
     @computed get dataRows() {
         const { indexingYears } = this.timeUnitDependentParams
-        const chartEntities = this.chart.sortedUniqueEntitiesAcrossDimensions
+        const chartEntities = this.grapher.sortedUniqueEntitiesAcrossDimensions
 
         const rows: (string | number)[][] = []
         chartEntities.forEach(entity => {
@@ -209,7 +209,7 @@ export class CSVGenerator {
     }
 
     @computed get csvFilename(): string {
-        return this.chart.displaySlug + ".csv"
+        return this.grapher.displaySlug + ".csv"
     }
 
     // IE11 compatibility

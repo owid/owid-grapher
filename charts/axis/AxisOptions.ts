@@ -16,7 +16,7 @@ export interface AxisOptionsInterface {
 }
 
 // Todo: remove
-export interface AxisContainerOptions {
+interface AxisContainerOptions {
     fontSize: number
 }
 

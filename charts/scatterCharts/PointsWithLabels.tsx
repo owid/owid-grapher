@@ -76,7 +76,7 @@ interface PointsWithLabelsProps {
     onClick: () => void
     hideLines: boolean
     formatLabel: (v: ScatterValue) => string
-    chart: Grapher
+    grapher: Grapher
 }
 
 interface ScatterRenderValue {
@@ -898,7 +898,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(renderData))
-            return <NoDataOverlay options={this.props.chart} bounds={bounds} />
+            return (
+                <NoDataOverlay options={this.props.grapher} bounds={bounds} />
+            )
 
         return (
             <g

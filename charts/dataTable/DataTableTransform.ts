@@ -112,11 +112,11 @@ function getHeaderUnit(unit: string) {
 }
 
 export class DataTableTransform extends ChartTransform {
-    chart: Grapher
+    grapher: Grapher
 
-    constructor(chart: Grapher) {
-        super(chart)
-        this.chart = chart
+    constructor(grapher: Grapher) {
+        super(grapher)
+        this.grapher = grapher
     }
 
     @computed private get loadedWithData(): boolean {
@@ -133,7 +133,7 @@ export class DataTableTransform extends ChartTransform {
         let autoSelectedStartYear: number | undefined = undefined
 
         if (
-            this.chart.userHasSetTimeline ||
+            this.grapher.userHasSetTimeline ||
             this.initialTimelineStartYearSpecified ||
             !this.loadedWithData
         )
@@ -178,9 +178,9 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get dimensions() {
-        return this.chart.multiMetricTableMode
-            ? this.chart.dataTableOnlyDimensions
-            : this.chart.filledDimensions.filter(dim => dim.includeInTable)
+        return this.grapher.multiMetricTableMode
+            ? this.grapher.dataTableOnlyDimensions
+            : this.grapher.filledDimensions.filter(dim => dim.includeInTable)
     }
 
     @computed get entities() {
@@ -189,20 +189,20 @@ export class DataTableTransform extends ChartTransform {
 
     // TODO move this logic to chart
     @computed get targetYearMode(): TargetYearMode {
-        const { currentTab } = this.chart
+        const { currentTab } = this.grapher
         if (currentTab === "chart") {
-            if (this.chart.multiMetricTableMode) return TargetYearMode.point
+            if (this.grapher.multiMetricTableMode) return TargetYearMode.point
             if (
-                (this.chart.isLineChart &&
-                    !this.chart.lineChartTransform.isSingleYear) ||
-                this.chart.isStackedArea ||
-                this.chart.isStackedBar
+                (this.grapher.isLineChart &&
+                    !this.grapher.lineChartTransform.isSingleYear) ||
+                this.grapher.isStackedArea ||
+                this.grapher.isStackedBar
             ) {
                 return TargetYearMode.range
             }
             if (
-                this.chart.isScatter &&
-                !this.chart.scatterTransform.compareEndPointsOnly
+                this.grapher.isScatter &&
+                !this.grapher.scatterTransform.compareEndPointsOnly
             ) {
                 return TargetYearMode.range
             }
@@ -211,18 +211,18 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get initialTimelineStartYearSpecified(): boolean {
-        const initialMinTime = this.chart.initialScript.minTime
+        const initialMinTime = this.grapher.initialScript.minTime
         if (initialMinTime) return !isUnboundedLeft(initialMinTime)
         return false
     }
 
     @computed get targetYears(): TargetYears {
         // legacy support for Exemplars Explorer project
-        if (this.chart.currentTab === "map")
+        if (this.grapher.currentTab === "map")
             return [
                 getTimeWithinTimeRange(
-                    [this.chart.minYear, this.chart.maxYear],
-                    this.chart.mapTransform.targetYearProp
+                    [this.grapher.minYear, this.grapher.maxYear],
+                    this.grapher.mapTransform.targetYearProp
                 )
             ]
 
@@ -250,7 +250,7 @@ export class DataTableTransform extends ChartTransform {
             const targetYears =
                 // If a targetYear override is specified on the dimension (scatter plots
                 // can do this) then use that target year and ignore the timeline.
-                dim.targetYear !== undefined && this.chart.isScatter
+                dim.targetYear !== undefined && this.grapher.isScatter
                     ? [dim.targetYear]
                     : this.targetYears
 

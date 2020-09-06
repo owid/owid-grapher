@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { Timeline, TimelineProps } from "./Timeline"
 import { extend, keys, entries, max, formatValue } from "charts/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -25,7 +25,7 @@ import { ShareMenu } from "./ShareMenu"
 
 @observer
 class SettingsMenu extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
     onDismiss: () => void
 }> {
     @action.bound onClickOutside() {
@@ -56,11 +56,11 @@ class SettingsMenu extends React.Component<{
 
 @observer
 class HighlightToggle extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
     highlightToggle: HighlightToggleConfig
 }> {
-    @computed get chart() {
-        return this.props.chart
+    @computed get grapher() {
+        return this.props.grapher
     }
     @computed get highlight() {
         return this.props.highlightToggle
@@ -73,9 +73,9 @@ class HighlightToggle extends React.Component<{
     @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
         if (e.currentTarget.checked) {
             const params = extend(getWindowQueryParams(), this.highlightParams)
-            this.chart.url.populateFromQueryParams(params)
+            this.grapher.url.populateFromQueryParams(params)
         } else {
-            this.chart.selectedKeys = []
+            this.grapher.selectedKeys = []
         }
     }
 
@@ -104,24 +104,24 @@ class HighlightToggle extends React.Component<{
 }
 
 @observer
-class AbsRelToggle extends React.Component<{ chart: Grapher }> {
+class AbsRelToggle extends React.Component<{ grapher: Grapher }> {
     @action.bound onToggle() {
-        this.props.chart.toggleRelativeMode()
+        this.props.grapher.toggleRelativeMode()
     }
 
     render() {
-        const { chart } = this.props
+        const { grapher } = this.props
 
         let label = "Relative"
-        if (chart.isScatter || chart.isTimeScatter)
+        if (grapher.isScatter || grapher.isTimeScatter)
             label = "Average annual change"
-        else if (chart.isLineChart) label = "Relative change"
+        else if (grapher.isLineChart) label = "Relative change"
 
         return (
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={chart.isRelativeMode}
+                    checked={grapher.isRelativeMode}
                     onChange={this.onToggle}
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
@@ -133,10 +133,10 @@ class AbsRelToggle extends React.Component<{ chart: Grapher }> {
 
 @observer
 class ZoomToggle extends React.Component<{
-    chart: GrapherInterface
+    grapher: GrapherInterface
 }> {
     @action.bound onToggle() {
-        this.props.chart.zoomToSelection = this.props.chart.zoomToSelection
+        this.props.grapher.zoomToSelection = this.props.grapher.zoomToSelection
             ? undefined
             : true
     }
@@ -147,7 +147,7 @@ class ZoomToggle extends React.Component<{
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={this.props.chart.zoomToSelection}
+                    checked={this.props.grapher.zoomToSelection}
                     onChange={this.onToggle}
                     data-track-note="chart-zoom-to-selection"
                 />{" "}
@@ -159,20 +159,20 @@ class ZoomToggle extends React.Component<{
 
 @observer
 class FilterSmallCountriesToggle extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
 }> {
     render() {
         const label = `Hide countries < ${formatValue(
-            this.props.chart.populationFilterOption,
+            this.props.grapher.populationFilterOption,
             {}
         )} people`
         return (
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={!!this.props.chart.minPopulationFilter}
+                    checked={!!this.props.grapher.minPopulationFilter}
                     onChange={() =>
-                        this.props.chart.toggleMinPopulationFilter()
+                        this.props.grapher.toggleMinPopulationFilter()
                     }
                     data-track-note="chart-filter-small-countries"
                 />{" "}
@@ -183,7 +183,7 @@ class FilterSmallCountriesToggle extends React.Component<{
 }
 
 interface TimelineControlProps {
-    chart: Grapher
+    grapher: Grapher
     activeTab: GrapherTabOption
 }
 
@@ -194,7 +194,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
     }: {
         targetStartYear: TimeBound
     }) {
-        this.props.chart.mapTransform.targetYear = targetStartYear
+        this.props.grapher.mapTransform.targetYear = targetStartYear
     }
 
     @action.bound onChartTargetChange({
@@ -204,36 +204,36 @@ class TimelineControl extends React.Component<TimelineControlProps> {
         targetStartYear: TimeBound
         targetEndYear: TimeBound
     }) {
-        this.props.chart.timeDomain = [targetStartYear, targetEndYear]
+        this.props.grapher.timeDomain = [targetStartYear, targetEndYear]
     }
 
     @action.bound onTimelineStart() {
-        this.props.chart.useTimelineDomains = true
+        this.props.grapher.useTimelineDomains = true
     }
 
     @action.bound onTimelineStop() {
-        this.props.chart.useTimelineDomains = false
+        this.props.grapher.useTimelineDomains = false
     }
 
     @computed private get startYear() {
-        const { activeTab, chart } = this.props
+        const { activeTab, grapher } = this.props
         if (activeTab === "table")
             return (
-                chart.dataTableTransform.autoSelectedStartYear ??
-                chart.timeDomain[0]
+                grapher.dataTableTransform.autoSelectedStartYear ??
+                grapher.timeDomain[0]
             )
-        if (activeTab === "map") return chart.mapTransform.targetYearProp
-        return chart.activeTransform.startYear!
+        if (activeTab === "map") return grapher.mapTransform.targetYearProp
+        return grapher.activeTransform.startYear!
     }
 
     @computed private get endYear() {
-        const { activeTab, chart } = this.props
+        const { activeTab, grapher } = this.props
         if (activeTab === "table")
-            return chart.multiMetricTableMode
-                ? chart.dataTableTransform.startYear
-                : chart.timeDomain[1]
-        if (activeTab === "map") return chart.mapTransform.targetYearProp
-        return chart.activeTransform.endYear!
+            return grapher.multiMetricTableMode
+                ? grapher.dataTableTransform.startYear
+                : grapher.timeDomain[1]
+        if (activeTab === "map") return grapher.mapTransform.targetYearProp
+        return grapher.activeTransform.endYear!
     }
 
     componentDidUpdate(prevProps: TimelineControlProps) {
@@ -248,13 +248,13 @@ class TimelineControl extends React.Component<TimelineControlProps> {
     }
 
     @computed get timelineProps(): TimelineProps {
-        const { activeTab, chart } = this.props
+        const { activeTab, grapher } = this.props
         return {
-            chart,
+            grapher,
             years:
                 activeTab === "map"
-                    ? chart.mapTransform.timelineYears
-                    : chart.activeTransform.timelineYears,
+                    ? grapher.mapTransform.timelineYears
+                    : grapher.activeTransform.timelineYears,
             startYear: this.startYear,
             endYear: this.endYear,
             onTargetChange: this.onChartTargetChange,
@@ -266,7 +266,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
     render() {
         if (this.timelineProps.years.length === 0) return null
 
-        const { activeTab, chart } = this.props
+        const { activeTab, grapher } = this.props
 
         if (activeTab === "map")
             return (
@@ -282,24 +282,26 @@ class TimelineControl extends React.Component<TimelineControlProps> {
             return (
                 <Timeline
                     {...this.timelineProps}
-                    singleYearMode={chart.multiMetricTableMode}
+                    singleYearMode={grapher.multiMetricTableMode}
                 />
             )
-        else if (chart.isLineChart)
+        else if (grapher.isLineChart)
             return <Timeline {...this.timelineProps} singleYearPlay={true} />
-        else if (chart.isSlopeChart)
+        else if (grapher.isSlopeChart)
             return <Timeline {...this.timelineProps} disablePlay={true} />
         return <Timeline {...this.timelineProps} />
     }
 }
 
+interface ControlsProps {
+    grapher: Grapher
+    grapherView: GrapherView
+    width: number
+}
+
 export class Controls {
-    props: { chart: Grapher; chartView: ChartView; width: number }
-    constructor(props: {
-        chart: Grapher
-        chartView: ChartView
-        width: number
-    }) {
+    props: ControlsProps
+    constructor(props: ControlsProps) {
         this.props = props
     }
 
@@ -312,7 +314,7 @@ export class Controls {
         bottom: number
         left: number
     } {
-        const overlays = Object.values(this.props.chartView.overlays)
+        const overlays = Object.values(this.props.grapherView.overlays)
         return {
             top: max(overlays.map(overlay => overlay.props.paddingTop)) ?? 0,
             right:
@@ -324,29 +326,32 @@ export class Controls {
     }
 
     @computed get hasTimeline(): boolean {
-        const { chart } = this.props
-        if (chart.currentTab === "table") return !chart.hideTimeline
-        if (chart.currentTab === "map") {
-            return chart.mapTransform.hasTimeline
-        } else if (chart.currentTab === "chart") {
-            if (chart.isScatter || chart.isTimeScatter)
-                return chart.scatterTransform.hasTimeline
-            if (chart.isLineChart) return chart.lineChartTransform.hasTimeline
-            if (chart.isSlopeChart) return chart.slopeChartTransform.hasTimeline
+        const { grapher } = this.props
+        if (grapher.currentTab === "table") return !grapher.hideTimeline
+        if (grapher.currentTab === "map") {
+            return grapher.mapTransform.hasTimeline
+        } else if (grapher.currentTab === "chart") {
+            if (grapher.isScatter || grapher.isTimeScatter)
+                return grapher.scatterTransform.hasTimeline
+            if (grapher.isLineChart)
+                return grapher.lineChartTransform.hasTimeline
+            if (grapher.isSlopeChart)
+                return grapher.slopeChartTransform.hasTimeline
         }
         return false
     }
 
     @computed get hasInlineControls(): boolean {
-        const { chart } = this.props
+        const { grapher } = this.props
         return (
-            (chart.currentTab === "chart" || chart.currentTab === "table") &&
-            ((chart.canAddData && !chart.hasFloatingAddButton) ||
-                chart.isScatter ||
-                chart.canChangeEntity ||
-                (chart.isStackedArea && chart.canToggleRelativeMode) ||
-                (chart.isLineChart &&
-                    chart.lineChartTransform.canToggleRelativeMode))
+            (grapher.currentTab === "chart" ||
+                grapher.currentTab === "table") &&
+            ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
+                grapher.isScatter ||
+                grapher.canChangeEntity ||
+                (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
+                (grapher.isLineChart &&
+                    grapher.lineChartTransform.canToggleRelativeMode))
         )
     }
 
@@ -359,7 +364,7 @@ export class Controls {
     }
 
     @computed get hasRelatedQuestion(): boolean {
-        const { relatedQuestions } = this.props.chart
+        const { relatedQuestions } = this.props.grapher
         return (
             !!relatedQuestions &&
             !!relatedQuestions.length &&
@@ -378,7 +383,7 @@ export class Controls {
     }
 
     @computed get footerHeight(): number {
-        const footerRowHeight = 32 // keep in sync with chart.scss' $footerRowHeight
+        const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
         return (
             this.footerLines * footerRowHeight +
             (this.hasRelatedQuestion ? 20 : 0)
@@ -470,13 +475,13 @@ export class AddEntityButton extends React.Component<{
 
 @observer
 export class ControlsOverlayView extends React.Component<{
-    chartView: ChartView
-    chart: Grapher
+    grapherView: GrapherView
+    grapher: Grapher
     controls: Controls
     children: JSX.Element
 }> {
     @action.bound onDataSelect() {
-        this.props.chart.isSelectingData = true
+        this.props.grapher.isSelectingData = true
     }
 
     render() {
@@ -505,7 +510,7 @@ export class ControlsOverlayView extends React.Component<{
             <div style={containerStyle}>
                 {this.props.children}
                 <div className="ControlsOverlay" style={overlayStyle}>
-                    {entries(this.props.chartView.overlays).map(
+                    {entries(this.props.grapherView.overlays).map(
                         ([key, overlay]) => (
                             <React.Fragment key={key}>
                                 {overlay.props.children}
@@ -521,7 +526,7 @@ export class ControlsOverlayView extends React.Component<{
 @observer
 export class ControlsFooterView extends React.Component<{
     controls: Controls
-    chart: Grapher
+    grapher: Grapher
 }> {
     @action.bound onShareMenu() {
         this.props.controls.isShareMenuActive = !this.props.controls
@@ -534,28 +539,30 @@ export class ControlsFooterView extends React.Component<{
     }
 
     @action.bound onDataSelect() {
-        this.props.chart.isSelectingData = true
+        this.props.grapher.isSelectingData = true
     }
 
     private _getTabsElement() {
         const { props } = this
         const { hasSettingsMenu } = props.controls
-        const { chart } = props.controls.props
+        const { grapher } = props.controls.props
         return (
             <nav className="tabs">
                 <ul>
-                    {chart.availableTabs.map(tabName => {
+                    {grapher.availableTabs.map(tabName => {
                         return (
                             tabName !== "download" && (
                                 <li
                                     key={tabName}
                                     className={
                                         "tab clickable" +
-                                        (tabName === chart.currentTab
+                                        (tabName === grapher.currentTab
                                             ? " active"
                                             : "")
                                     }
-                                    onClick={() => (chart.currentTab = tabName)}
+                                    onClick={() =>
+                                        (grapher.currentTab = tabName)
+                                    }
                                 >
                                     <a
                                         data-track-note={
@@ -571,10 +578,10 @@ export class ControlsFooterView extends React.Component<{
                     <li
                         className={
                             "tab clickable icon download-tab-button" +
-                            (chart.currentTab === "download" ? " active" : "")
+                            (grapher.currentTab === "download" ? " active" : "")
                         }
                         data-track-note="chart-click-download"
-                        onClick={() => (chart.currentTab = "download")}
+                        onClick={() => (grapher.currentTab = "download")}
                         title="Download as .png or .svg"
                     >
                         <a>
@@ -601,11 +608,11 @@ export class ControlsFooterView extends React.Component<{
                             </a>
                         </li>
                     )}
-                    {chart.isEmbed && (
+                    {grapher.isEmbed && (
                         <li className="clickable icon">
                             <a
                                 title="Open chart in new tab"
-                                href={chart.url.canonicalUrl}
+                                href={grapher.url.canonicalUrl}
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
                             >
@@ -620,76 +627,76 @@ export class ControlsFooterView extends React.Component<{
 
     private _getInlineControlsElement() {
         const { props } = this
-        const { chart } = props.controls.props
+        const { grapher } = props.controls.props
         return (
             <div className="extraControls">
-                {chart.currentTab === "chart" &&
-                    chart.canAddData &&
-                    !chart.hasFloatingAddButton &&
-                    !chart.hideEntityControls && (
+                {grapher.currentTab === "chart" &&
+                    grapher.canAddData &&
+                    !grapher.hasFloatingAddButton &&
+                    !grapher.hideEntityControls && (
                         <button
                             type="button"
                             onClick={this.onDataSelect}
                             data-track-note="chart-select-entities"
                         >
-                            {chart.isScatter || chart.isSlopeChart ? (
+                            {grapher.isScatter || grapher.isSlopeChart ? (
                                 <span className="SelectEntitiesButton">
                                     <FontAwesomeIcon icon={faPencilAlt} />
-                                    {`Select ${chart.entityTypePlural}`}
+                                    {`Select ${grapher.entityTypePlural}`}
                                 </span>
                             ) : (
                                 <span>
                                     <FontAwesomeIcon icon={faPlus} />{" "}
-                                    {chart.addButtonLabel}
+                                    {grapher.addButtonLabel}
                                 </span>
                             )}
                         </button>
                     )}
 
-                {chart.currentTab === "chart" &&
-                    chart.canChangeEntity &&
-                    !chart.hideEntityControls && (
+                {grapher.currentTab === "chart" &&
+                    grapher.canChangeEntity &&
+                    !grapher.hideEntityControls && (
                         <button
                             type="button"
                             onClick={this.onDataSelect}
                             data-track-note="chart-change-entity"
                         >
                             <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                            {chart.entityType}
+                            {grapher.entityType}
                         </button>
                     )}
 
-                {chart.currentTab === "chart" &&
-                    chart.isScatter &&
-                    chart.highlightToggle && (
+                {grapher.currentTab === "chart" &&
+                    grapher.isScatter &&
+                    grapher.highlightToggle && (
                         <HighlightToggle
-                            chart={chart}
-                            highlightToggle={chart.highlightToggle}
+                            grapher={grapher}
+                            highlightToggle={grapher.highlightToggle}
                         />
                     )}
-                {chart.currentTab === "chart" &&
-                    chart.isStackedArea &&
-                    chart.canToggleRelativeMode && (
-                        <AbsRelToggle chart={chart} />
+                {grapher.currentTab === "chart" &&
+                    grapher.isStackedArea &&
+                    grapher.canToggleRelativeMode && (
+                        <AbsRelToggle grapher={grapher} />
                     )}
-                {chart.currentTab === "chart" &&
-                    chart.isScatter &&
-                    chart.scatterTransform.canToggleRelativeMode && (
-                        <AbsRelToggle chart={chart} />
+                {grapher.currentTab === "chart" &&
+                    grapher.isScatter &&
+                    grapher.scatterTransform.canToggleRelativeMode && (
+                        <AbsRelToggle grapher={grapher} />
                     )}
-                {chart.currentTab === "chart" &&
-                    chart.isScatter &&
-                    chart.hasSelection && <ZoomToggle chart={chart} />}
+                {grapher.currentTab === "chart" &&
+                    grapher.isScatter &&
+                    grapher.hasSelection && <ZoomToggle grapher={grapher} />}
 
-                {(chart.currentTab === "table" || chart.isScatter) &&
-                    chart.hasCountriesSmallerThanFilterOption && (
-                        <FilterSmallCountriesToggle chart={chart} />
+                {(grapher.currentTab === "table" || grapher.isScatter) &&
+                    grapher.hasCountriesSmallerThanFilterOption && (
+                        <FilterSmallCountriesToggle grapher={grapher} />
                     )}
 
-                {chart.currentTab === "chart" &&
-                    chart.isLineChart &&
-                    chart.lineChartTransform.canToggleRelativeMode && (
-                        <AbsRelToggle chart={chart} />
+                {grapher.currentTab === "chart" &&
+                    grapher.isLineChart &&
+                    grapher.lineChartTransform.canToggleRelativeMode && (
+                        <AbsRelToggle grapher={grapher} />
                     )}
             </div>
         )
@@ -705,12 +712,15 @@ export class ControlsFooterView extends React.Component<{
             hasSpace,
             hasRelatedQuestion
         } = props.controls
-        const { chart, chartView } = props.controls.props
-        const { relatedQuestions } = chart
+        const { grapher, grapherView } = props.controls.props
+        const { relatedQuestions } = grapher
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">
-                <TimelineControl chart={chart} activeTab={chart.currentTab} />
+                <TimelineControl
+                    grapher={grapher}
+                    activeTab={grapher.currentTab}
+                />
             </div>
         )
 
@@ -733,14 +743,14 @@ export class ControlsFooterView extends React.Component<{
 
         const shareMenuElement = isShareMenuActive && (
             <ShareMenu
-                chartView={chartView}
-                chart={chart}
+                grapherView={grapherView}
+                grapher={grapher}
                 onDismiss={this.onShareMenu}
             />
         )
 
         const settingsMenuElement = isSettingsMenuActive && (
-            <SettingsMenu chart={chart} onDismiss={this.onSettingsMenu} />
+            <SettingsMenu grapher={grapher} onDismiss={this.onSettingsMenu} />
         )
 
         const relatedQuestionElement = relatedQuestions && hasRelatedQuestion && (

@@ -25,7 +25,7 @@ describe(ExploreModel, () => {
         })
 
         it("populates the chart params", () => {
-            expect(model.chart.timeDomain).toEqual([1960, 2000])
+            expect(model.grapher.timeDomain).toEqual([1960, 2000])
         })
     })
 
@@ -36,19 +36,19 @@ describe(ExploreModel, () => {
         })
 
         it("updates the chart type to area", () => {
-            expect(model.chart.type).toBe(ChartType.StackedArea)
+            expect(model.grapher.type).toBe(ChartType.StackedArea)
         })
 
         it("has a chart tab", () => {
-            expect(model.chart.hasChartTab).toBe(true)
+            expect(model.grapher.hasChartTab).toBe(true)
         })
 
         it("doesn't have a map tab", () => {
-            expect(model.chart.hasMapTab).toBe(false)
+            expect(model.grapher.hasMapTab).toBe(false)
         })
 
         it("is on the chart tab", () => {
-            expect(model.chart.currentTab).toBe("chart")
+            expect(model.grapher.currentTab).toBe("chart")
         })
     })
 
@@ -59,19 +59,19 @@ describe(ExploreModel, () => {
         })
 
         it("updates the chart type to line", () => {
-            expect(model.chart.type).toBe(ChartType.LineChart)
+            expect(model.grapher.type).toBe(ChartType.LineChart)
         })
 
         it("has a map tab", () => {
-            expect(model.chart.hasMapTab).toBe(true)
+            expect(model.grapher.hasMapTab).toBe(true)
         })
 
         it("doesn't have a chart tab", () => {
-            expect(model.chart.hasChartTab).toBe(false)
+            expect(model.grapher.hasChartTab).toBe(false)
         })
 
         it("is on the map tab", () => {
-            expect(model.chart.currentTab).toBe("map")
+            expect(model.grapher.currentTab).toBe("map")
         })
     })
 })

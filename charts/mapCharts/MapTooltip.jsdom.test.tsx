@@ -1,9 +1,9 @@
 #! /usr/bin/env yarn jest
 
-import { setupChart } from "charts/test/utils"
+import { setupGrapher } from "charts/test/utils"
 import { mount } from "enzyme"
 import React from "react"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { Bounds } from "charts/utils/Bounds"
 import { MapTooltip } from "charts/mapCharts/MapTooltip"
 
@@ -14,8 +14,8 @@ const mockEvent = {
     clientY: 50
 }
 
-const chart = setupChart(792, [3512], { hasMapTab: true })
-const chartWrapper = mount(<ChartView chart={chart} bounds={bounds} />)
+const chart = setupGrapher(792, [3512], { hasMapTab: true })
+const chartWrapper = mount(<GrapherView grapher={chart} bounds={bounds} />)
 
 describe(MapTooltip, () => {
     test("map tooltip renders iff mouseenter", () => {

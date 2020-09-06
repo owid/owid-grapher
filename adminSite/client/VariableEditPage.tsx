@@ -14,7 +14,7 @@ import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
 import { Grapher } from "charts/core/Grapher"
-import { ChartFigureView } from "site/client/ChartFigureView"
+import { GrapherFigureView } from "site/client/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
@@ -262,7 +262,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                     Edit as new chart
                                 </Link>
                             </div>
-                            <ChartFigureView chart={this.grapher} />
+                            <GrapherFigureView grapher={this.grapher} />
                         </div>
                     )}
                 </div>

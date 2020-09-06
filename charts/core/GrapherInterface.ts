@@ -17,7 +17,9 @@ import {
     TimeBound,
     Time,
     minTimeToJSON,
-    maxTimeToJSON
+    maxTimeToJSON,
+    minTimeFromJSON,
+    maxTimeFromJSON
 } from "charts/utils/TimeBounds"
 import {
     ChartDimensionSpec,
@@ -162,13 +164,13 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref dimensions: ChartDimensionSpec[] = []
     @observable excludedEntities?: number[] = undefined
-    data?: { availableEntities: string[] } = undefined
     @observable comparisonLines: ComparisonLineConfig[] = []
     @observable relatedQuestions?: RelatedQuestionsConfig[]
+    data?: { availableEntities: string[] } = undefined // Todo: remove
 
-    externalDataUrl?: string
-    owidDataset?: OwidVariablesAndEntityKey
-    useV2?: boolean = false
+    externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
+    owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
+    useV2?: boolean = false // This will be removed.
 
     toObject(): GrapherInterface {
         const obj: GrapherInterface = objectWithPersistablesToObject(this)
@@ -224,7 +226,7 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
             )
 
         // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) this.minTime = minTimeToJSON(obj.minTime) as number
-        if (obj.maxTime) this.maxTime = maxTimeToJSON(obj.maxTime) as number
+        if (obj.minTime) this.minTime = minTimeFromJSON(obj.minTime)
+        if (obj.maxTime) this.maxTime = maxTimeFromJSON(obj.maxTime)
     }
 }

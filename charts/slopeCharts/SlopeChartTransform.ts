@@ -11,7 +11,7 @@ import { ColorScale } from "charts/color/ColorScale"
 // of a line chart
 export class SlopeChartTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart
+        const { filledDimensions } = this.grapher
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.data)) return "No matching data"
@@ -22,7 +22,7 @@ export class SlopeChartTransform extends ChartTransform {
         const that = this
         return new ColorScale({
             get config() {
-                return that.chart.colorScale
+                return that.grapher.colorScale
             },
             get defaultBaseColorScheme() {
                 return "continents"
@@ -46,7 +46,7 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(this.chart.axisDimensions.map(d => d.yearsUniq))
+        return flatten(this.grapher.axisDimensions.map(d => d.yearsUniq))
     }
 
     @computed.struct get xDomain(): [number, number] {
@@ -54,15 +54,15 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed.struct get sizeDim(): ChartDimension | undefined {
-        return find(this.chart.filledDimensions, d => d.property === "size")
+        return find(this.grapher.filledDimensions, d => d.property === "size")
     }
 
     @computed.struct get colorDimension(): ChartDimension | undefined {
-        return this.chart.filledDimensions.find(d => d.property === "color")
+        return this.grapher.filledDimensions.find(d => d.property === "color")
     }
 
     @computed.struct get yDimension(): ChartDimension | undefined {
-        return find(this.chart.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, d => d.property === "y")
     }
 
     // helper method to directly get the associated color value given an Entity
@@ -112,8 +112,14 @@ export class SlopeChartTransform extends ChartTransform {
     @computed get data(): SlopeChartSeries[] {
         if (!this.yDimension) return []
 
-        const { yDimension, xDomain, colorByEntity, sizeByEntity, chart } = this
-        const { keyColors } = chart
+        const {
+            yDimension,
+            xDomain,
+            colorByEntity,
+            sizeByEntity,
+            grapher
+        } = this
+        const { keyColors } = grapher
 
         const minYear = Math.max(xDomain[0])
         const maxYear = Math.min(xDomain[1])
@@ -136,7 +142,7 @@ export class SlopeChartTransform extends ChartTransform {
                 })
             }
 
-            const entityDimensionKey = chart.makeEntityDimensionKey(
+            const entityDimensionKey = grapher.makeEntityDimensionKey(
                 entityName,
                 yDimension.index
             )

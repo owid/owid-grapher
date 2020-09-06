@@ -173,7 +173,7 @@ function omitSaveToVariable(config: GrapherInterface): GrapherInterface {
     return newConfig
 }
 
-async function saveChart(
+async function saveGrapher(
     user: CurrentUser,
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface
@@ -188,7 +188,7 @@ async function saveChart(
             return rows.length > 0
         }
 
-        async function isSlugUsedInOtherChart() {
+        async function isSlugUsedInOtherGrapher() {
             const rows = await t.query(
                 `SELECT * FROM charts WHERE id != ? AND JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`,
                 [existingConfig ? existingConfig.id : undefined, newConfig.slug]
@@ -204,7 +204,7 @@ async function saveChart(
                 throw new JsonError(
                     `This chart slug was previously used by another chart: ${newConfig.slug}`
                 )
-            } else if (await isSlugUsedInOtherChart()) {
+            } else if (await isSlugUsedInOtherGrapher()) {
                 throw new JsonError(
                     `This chart slug is in use by another published chart: ${newConfig.slug}`
                 )
@@ -561,7 +561,7 @@ apiRouter.post("/charts/:chartId/star", async (req: Request, res: Response) => {
 })
 
 apiRouter.post("/charts", async (req: Request, res: Response) => {
-    const chartId = await saveChart(res.locals.user, req.body)
+    const chartId = await saveGrapher(res.locals.user, req.body)
     return { success: true, chartId: chartId }
 })
 
@@ -579,7 +579,7 @@ apiRouter.post(
 apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
     const existingConfig = await expectChartById(req.params.chartId)
 
-    await saveChart(res.locals.user, req.body, existingConfig)
+    await saveGrapher(res.locals.user, req.body, existingConfig)
 
     const logs = await getLogsByChartId(existingConfig.id as number)
     return { success: true, chartId: existingConfig.id, newLog: logs[0] }

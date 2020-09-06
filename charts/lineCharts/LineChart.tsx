@@ -566,7 +566,7 @@ export class LineChart extends React.Component<{
                     </clipPath>
                 </defs>
                 <DualAxisComponent
-                    isInteractive={this.transform.chart.isInteractive}
+                    isInteractive={this.transform.grapher.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />

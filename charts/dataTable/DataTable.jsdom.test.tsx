@@ -3,7 +3,7 @@
 import * as React from "react"
 import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 
-import { setupChart } from "charts/test/utils"
+import { setupGrapher } from "charts/test/utils"
 
 import { DataTable, ClosestYearNotice } from "./DataTable"
 import { Grapher } from "charts/core/Grapher"
@@ -12,8 +12,8 @@ describe(DataTable, () => {
     describe("when you render a table", () => {
         let view: ReactWrapper
         beforeAll(() => {
-            const chart = setupChart(677, [104402])
-            view = mount(<DataTable chart={chart} />)
+            const chart = setupGrapher(677, [104402])
+            view = mount(<DataTable grapher={chart} />)
         })
 
         it("renders a table", () => {
@@ -62,13 +62,13 @@ describe(DataTable, () => {
     describe("when you select a range of years", () => {
         let view: ReactWrapper
         beforeAll(() => {
-            const chart = setupChart(677, [104402], {
+            const chart = setupGrapher(677, [104402], {
                 type: "LineChart",
                 tab: "chart",
                 minTime: 1990,
                 maxTime: 2017
             })
-            view = mount(<DataTable chart={chart} />)
+            view = mount(<DataTable grapher={chart} />)
         })
 
         it("header is split into two rows", () => {
@@ -104,8 +104,8 @@ describe(DataTable, () => {
     describe("when the table doesn't have data for all rows", () => {
         let view: ShallowWrapper
         beforeAll(() => {
-            const chart = setupChart(792, [3512])
-            view = shallow(<DataTable chart={chart} />)
+            const chart = setupGrapher(792, [3512])
+            view = shallow(<DataTable grapher={chart} />)
         })
 
         it("renders no value when data is not available for years within the tolerance", () => {
@@ -124,11 +124,11 @@ describe(DataTable, () => {
     })
 
     describe("when you try to hide countries", () => {
-        let chart: Grapher
+        let grapher: Grapher
         let view: ShallowWrapper
         beforeAll(() => {
-            chart = setupChart(677, [104402])
-            view = shallow(<DataTable chart={chart} />)
+            grapher = setupGrapher(677, [104402])
+            view = shallow(<DataTable grapher={grapher} />)
         })
 
         it("initially renders small countries", () => {
@@ -136,7 +136,7 @@ describe(DataTable, () => {
         })
 
         it("renders no small countries after filter is added", () => {
-            chart.toggleMinPopulationFilter()
+            grapher.toggleMinPopulationFilter()
             expect(view.find("tbody tr")).toHaveLength(187)
         })
     })

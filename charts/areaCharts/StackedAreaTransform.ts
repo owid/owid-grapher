@@ -23,7 +23,7 @@ import { Time } from "charts/utils/TimeBounds"
 // of a stacked area chart
 export class StackedAreaTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart
+        const { filledDimensions } = this.grapher
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (
@@ -37,9 +37,9 @@ export class StackedAreaTransform extends ChartTransform {
     // Get the data for each stacked area series, cleaned to ensure every series
     // "lines up" i.e. has a data point for every year
     @computed private get groupedData(): StackedAreaSeries[] {
-        const { chart } = this
-        const { selectedKeys, selectedKeysByKey } = chart
-        const filledDimensions = chart.filledDimensions
+        const { grapher } = this
+        const { selectedKeys, selectedKeysByKey } = grapher
+        const filledDimensions = grapher.filledDimensions
 
         let groupedData: StackedAreaSeries[] = []
 
@@ -51,7 +51,7 @@ export class StackedAreaTransform extends ChartTransform {
                 const year = dimension.years[i]
                 const value = +dimension.values[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.makeEntityDimensionKey(
+                const entityDimensionKey = grapher.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -139,11 +139,11 @@ export class StackedAreaTransform extends ChartTransform {
 
         // Assign colors
         const baseColors = this.colorScheme.getColors(groupedData.length)
-        if (chart.invertColorScheme) baseColors.reverse()
+        if (grapher.invertColorScheme) baseColors.reverse()
         const colorScale = scaleOrdinal(baseColors)
         groupedData.forEach(series => {
             series.color =
-                chart.keyColors[series.entityDimensionKey] ||
+                grapher.keyColors[series.entityDimensionKey] ||
                 colorScale(series.entityDimensionKey)
         })
 
@@ -167,7 +167,7 @@ export class StackedAreaTransform extends ChartTransform {
 
     @computed get xAxis() {
         const { xDomainDefault } = this
-        const chart = this.chart
+        const chart = this.grapher
         const axis = chart.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
         axis.tickFormat = chart.formatYearFunction as any
@@ -183,9 +183,9 @@ export class StackedAreaTransform extends ChartTransform {
 
     @computed get yAxis() {
         const { isRelativeMode, yDimensionFirst } = this
-        const { chart, yDomainDefault } = this
+        const { grapher, yDomainDefault } = this
 
-        const axis = chart.yAxis.toVerticalAxis()
+        const axis = grapher.yAxis.toVerticalAxis()
         if (isRelativeMode) axis.domain = [0, 100]
         else
             axis.updateDomainPreservingUserSettings([
@@ -207,12 +207,12 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.chart.hideRelativeToggle
+        return !this.grapher.hideRelativeToggle
     }
 
     @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-        const colorScheme = ColorSchemes[this.chart.baseColorScheme as string]
+        const colorScheme = ColorSchemes[this.grapher.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
@@ -263,7 +263,7 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return find(this.chart.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, d => d.property === "y")
     }
 
     formatYTick(v: number) {

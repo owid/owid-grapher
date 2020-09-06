@@ -4,7 +4,7 @@ import ReactDOM from "react-dom"
 import { clone } from "charts/utils/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
 import { Grapher } from "charts/core/Grapher"
-import { ChartFigureView } from "./ChartFigureView"
+import { GrapherFigureView } from "./GrapherFigureView"
 import { observer } from "mobx-react"
 import { owidVariableId } from "owidTable/OwidTable"
 
@@ -72,7 +72,7 @@ class ClientVariableCountryPage extends React.Component<{
                 <h1>
                     {variable.name} in {country.name}
                 </h1>
-                {this.chart && <ChartFigureView chart={this.chart} />}
+                {this.chart && <GrapherFigureView grapher={this.chart} />}
             </React.Fragment>
         )
     }

@@ -1,6 +1,6 @@
 import * as React from "react"
 import "site/client/owid.scss"
-import "charts/core/chart.scss"
+import "charts/core/grapher.scss"
 import { StackedAreaChart } from "./StackedAreaChart"
 import { basicGdpGrapher } from "charts/test/samples"
 import { Bounds } from "charts/utils/Bounds"
@@ -16,7 +16,7 @@ export const Default = () => {
 
     return (
         <svg width={640} height={480}>
-            <StackedAreaChart chart={chart} bounds={bounds} />
+            <StackedAreaChart grapher={chart} bounds={bounds} />
         </svg>
     )
 }

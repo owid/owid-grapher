@@ -19,7 +19,7 @@ import {
     renderCovidPage,
     countryProfileCountryPage
 } from "site/server/siteBaking"
-import { chartDataJson, chartPageFromSlug } from "site/server/chartBaking"
+import { chartDataJson, grapherPageFromSlug } from "site/server/grapherBaking"
 import { BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
@@ -101,7 +101,7 @@ mockSiteRouter.get("/grapher/:slug", async (req, res) => {
         ]
         res.send(await renderCovidExplorerPage({ explorerQueryStr }))
     } else {
-        res.send(await chartPageFromSlug(req.params.slug))
+        res.send(await grapherPageFromSlug(req.params.slug))
     }
 })
 

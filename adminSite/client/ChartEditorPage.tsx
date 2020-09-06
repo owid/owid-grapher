@@ -11,7 +11,7 @@ import {
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { Bounds } from "charts/utils/Bounds"
 import { includes, capitalize } from "charts/utils/Util"
 import { Grapher } from "charts/core/Grapher"
@@ -81,11 +81,11 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 
 @observer
 export class ChartEditorPage extends React.Component<{
-    chartId?: number
-    newChartIndex?: number
-    chartConfig?: any
+    grapherId?: number
+    newGrapherIndex?: number
+    grapherConfig?: any
 }> {
-    @observable.ref chart?: Grapher
+    @observable.ref grapher?: Grapher
     @observable.ref database?: EditorDatabase
     @observable logs?: Log[]
     @observable references?: PostReference[]
@@ -95,14 +95,14 @@ export class ChartEditorPage extends React.Component<{
 
     @observable simulateVisionDeficiency?: VisionDeficiency
 
-    async fetchChart() {
-        const { chartId, chartConfig } = this.props
+    async fetchGrapher() {
+        const { grapherId, grapherConfig } = this.props
         const { admin } = this.context
         const json =
-            chartId === undefined
-                ? chartConfig
-                : await admin.getJSON(`/api/charts/${chartId}.config.json`)
-        runInAction(() => (this.chart = new Grapher(json)))
+            grapherId === undefined
+                ? grapherConfig
+                : await admin.getJSON(`/api/charts/${grapherId}.config.json`)
+        runInAction(() => (this.grapher = new Grapher(json)))
     }
 
     async fetchData() {
@@ -112,37 +112,39 @@ export class ChartEditorPage extends React.Component<{
     }
 
     async fetchLogs() {
-        const { chartId } = this.props
+        const { grapherId } = this.props
         const { admin } = this.context
         const json =
-            chartId === undefined
+            grapherId === undefined
                 ? []
-                : await admin.getJSON(`/api/charts/${chartId}.logs.json`)
+                : await admin.getJSON(`/api/charts/${grapherId}.logs.json`)
         runInAction(() => (this.logs = json.logs))
     }
 
     async fetchRefs() {
-        const { chartId } = this.props
+        const { grapherId } = this.props
         const { admin } = this.context
         const json =
-            chartId === undefined
+            grapherId === undefined
                 ? []
-                : await admin.getJSON(`/api/charts/${chartId}.references.json`)
+                : await admin.getJSON(
+                      `/api/charts/${grapherId}.references.json`
+                  )
         runInAction(() => (this.references = json.references))
     }
 
     async fetchRedirects() {
-        const { chartId } = this.props
+        const { grapherId } = this.props
         const { admin } = this.context
         const json =
-            chartId === undefined
+            grapherId === undefined
                 ? []
-                : await admin.getJSON(`/api/charts/${chartId}.redirects.json`)
+                : await admin.getJSON(`/api/charts/${grapherId}.redirects.json`)
         runInAction(() => (this.redirects = json.redirects))
     }
 
     @computed get editor(): ChartEditor | undefined {
-        if (this.chart === undefined || this.database === undefined) {
+        if (this.grapher === undefined || this.database === undefined) {
             return undefined
         } else {
             const that = this
@@ -151,7 +153,7 @@ export class ChartEditorPage extends React.Component<{
                     return that.context.admin
                 },
                 get grapher() {
-                    return that.chart as Grapher
+                    return that.grapher as Grapher
                 },
                 get database() {
                     return that.database as EditorDatabase
@@ -170,7 +172,7 @@ export class ChartEditorPage extends React.Component<{
     }
 
     @action.bound refresh() {
-        this.fetchChart()
+        this.fetchGrapher()
         this.fetchData()
         this.fetchLogs()
         this.fetchRefs()
@@ -268,7 +270,7 @@ export class ChartEditorPage extends React.Component<{
                             <EditorCustomizeTab editor={editor} />
                         )}
                         {editor.tab === "scatter" && (
-                            <EditorScatterTab chart={grapher} />
+                            <EditorScatterTab grapher={grapher} />
                         )}
                         {editor.tab === "map" && (
                             <EditorMapTab editor={editor} />
@@ -292,8 +294,8 @@ export class ChartEditorPage extends React.Component<{
                         }}
                     >
                         {
-                            <ChartView
-                                chart={grapher}
+                            <GrapherView
+                                grapher={grapher}
                                 bounds={
                                     previewMode === "mobile"
                                         ? new Bounds(0, 0, 360, 500)

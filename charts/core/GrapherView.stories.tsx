@@ -3,11 +3,11 @@ import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { Bounds } from "charts/utils/Bounds"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
-const chartViewData = {
+const variableSet = {
     variables: {
         "66287": {
             years: [1543, 1548],
@@ -55,9 +55,9 @@ const chartViewData = {
     }
 }
 
-// Wrapper for ChartView that uses css on figure element to determine the bounds
+// Wrapper for GrapherView that uses css on figure element to determine the bounds
 @observer
-class ChartStoryView extends React.Component {
+class GrapherViewStory extends React.Component {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref bounds?: Bounds
 
@@ -84,7 +84,7 @@ class ChartStoryView extends React.Component {
             } as GrapherInterface,
             {}
         )
-        chart.receiveData(chartViewData as any)
+        chart.receiveData(variableSet as any)
 
         return (
             <figure
@@ -93,7 +93,7 @@ class ChartStoryView extends React.Component {
                 ref={this.base}
             >
                 {this.bounds && (
-                    <ChartView chart={chart} bounds={this.bounds} />
+                    <GrapherView grapher={chart} bounds={this.bounds} />
                 )}
             </figure>
         )
@@ -101,8 +101,8 @@ class ChartStoryView extends React.Component {
 }
 
 export default {
-    title: "ChartView",
-    component: ChartView
+    title: "GrapherView",
+    component: GrapherView
 }
 
-export const Default = () => <ChartStoryView />
+export const Default = () => <GrapherViewStory />

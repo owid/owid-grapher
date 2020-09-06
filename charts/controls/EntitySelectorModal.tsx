@@ -12,7 +12,7 @@ import { EntityDimensionInfo } from "charts/chart/ChartDimension"
 
 @observer
 class EntitySelectorMulti extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -21,7 +21,7 @@ class EntitySelectorMulti extends React.Component<{
     dismissable: boolean = true
 
     @computed get availableEntities(): EntityDimensionInfo[] {
-        return this.props.chart.selectableEntityDimensionKeys
+        return this.props.grapher.selectableEntityDimensionKeys
     }
 
     @computed get selectedEntities() {
@@ -41,7 +41,7 @@ class EntitySelectorMulti extends React.Component<{
     }
 
     isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
-        return !!this.props.chart.selectedKeysByKey[entityDimensionKey]
+        return !!this.props.grapher.selectedKeysByKey[entityDimensionKey]
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -67,17 +67,19 @@ class EntitySelectorMulti extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.props.chart.toggleKey(this.searchResults[0].entityDimensionKey)
+            this.props.grapher.toggleKey(
+                this.searchResults[0].entityDimensionKey
+            )
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onClear() {
-        this.props.chart.selectedKeys = []
+        this.props.grapher.selectedKeys = []
     }
 
     render() {
-        const { chart } = this.props
+        const { grapher } = this.props
         const {
             selectedEntities: selectedData,
             searchResults,
@@ -120,7 +122,7 @@ class EntitySelectorMulti extends React.Component<{
                                                         d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
-                                                        chart.toggleKey(
+                                                        grapher.toggleKey(
                                                             d.entityDimensionKey
                                                         )
                                                     }
@@ -144,7 +146,7 @@ class EntitySelectorMulti extends React.Component<{
                                                         d.entityDimensionKey
                                                     )}
                                                     onChange={() =>
-                                                        chart.toggleKey(
+                                                        grapher.toggleKey(
                                                             d.entityDimensionKey
                                                         )
                                                     }
@@ -176,7 +178,7 @@ class EntitySelectorMulti extends React.Component<{
 
 @observer
 class EntitySelectorSingle extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
     isMobile: boolean
     onDismiss: () => void
 }> {
@@ -187,7 +189,7 @@ class EntitySelectorSingle extends React.Component<{
 
     @computed private get availableEntities() {
         const availableItems: { id: number; label: string }[] = []
-        this.props.chart.entityDimensionMap.forEach(meta => {
+        this.props.grapher.entityDimensionMap.forEach(meta => {
             availableItems.push({
                 id: meta.entityId,
                 label: meta.entityName
@@ -236,7 +238,7 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityId: number) {
-        this.props.chart.setSingleSelectedEntity(entityId)
+        this.props.grapher.setSingleSelectedEntity(entityId)
         this.props.onDismiss()
     }
 
@@ -289,12 +291,12 @@ class EntitySelectorSingle extends React.Component<{
 
 @observer
 export class EntitySelectorModal extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
     isMobile: boolean
     onDismiss: () => void
 }> {
     render() {
-        return this.props.chart.canChangeEntity ? (
+        return this.props.grapher.canChangeEntity ? (
             <EntitySelectorSingle {...this.props} />
         ) : (
             <EntitySelectorMulti {...this.props} />

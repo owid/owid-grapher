@@ -42,7 +42,7 @@ import { getVariableData } from "db/model/Variable"
 import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
-import { chartPageFromConfig } from "./chartBaking"
+import { grapherPageFromConfig } from "./grapherBaking"
 import { countries, getCountryDetectionRedirects } from "utils/countries"
 import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
@@ -433,14 +433,14 @@ export class SiteBaker {
         return vardata
     }
 
-    async bakeChartPage(chart: GrapherInterface) {
-        const outPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
-        await fs.writeFile(outPath, await chartPageFromConfig(chart))
+    async bakeGrapherPage(grapher: GrapherInterface) {
+        const outPath = `${BAKED_SITE_DIR}/grapher/${grapher.slug}.html`
+        await fs.writeFile(outPath, await grapherPageFromConfig(grapher))
         this.stage(outPath)
     }
 
-    async bakeChart(chart: GrapherInterface) {
-        const htmlPath = `${BAKED_SITE_DIR}/grapher/${chart.slug}.html`
+    async bakeGrapher(grapher: GrapherInterface) {
+        const htmlPath = `${BAKED_SITE_DIR}/grapher/${grapher.slug}.html`
         let isSameVersion = false
         try {
             // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
@@ -448,17 +448,17 @@ export class SiteBaker {
             const match = html.match(/jsonConfig\s*=\s*(\{.+\})/)
             if (match) {
                 const fileVersion = JSON.parse(match[1]).version
-                isSameVersion = chart.version === fileVersion
+                isSameVersion = grapher.version === fileVersion
             }
         } catch (err) {
             if (err.code !== "ENOENT") console.error(err)
         }
 
         // Always bake the html for every chart; it's cheap to do so
-        await this.bakeChartPage(chart)
+        await this.bakeGrapherPage(grapher)
 
         const variableIds = lodash.uniq(
-            chart.dimensions?.map(d => d.variableId)
+            grapher.dimensions?.map(d => d.variableId)
         )
         if (!variableIds.length) return
 
@@ -472,8 +472,8 @@ export class SiteBaker {
 
         try {
             await fs.mkdirp(`${BAKED_SITE_DIR}/grapher/exports/`)
-            const svgPath = `${BAKED_SITE_DIR}/grapher/exports/${chart.slug}.svg`
-            const pngPath = `${BAKED_SITE_DIR}/grapher/exports/${chart.slug}.png`
+            const svgPath = `${BAKED_SITE_DIR}/grapher/exports/${grapher.slug}.svg`
+            const pngPath = `${BAKED_SITE_DIR}/grapher/exports/${grapher.slug}.png`
             if (
                 !isSameVersion ||
                 !fs.existsSync(svgPath) ||
@@ -484,7 +484,7 @@ export class SiteBaker {
                 )
                 await bakeImageExports(
                     `${BAKED_SITE_DIR}/grapher/exports`,
-                    chart,
+                    grapher,
                     vardata,
                     OPTIMIZE_SVG_EXPORTS
                 )
@@ -496,7 +496,7 @@ export class SiteBaker {
         }
     }
 
-    async bakeCharts(
+    async bakeGraphers(
         opts: {
             regenConfig?: boolean
             regenData?: boolean
@@ -510,11 +510,11 @@ export class SiteBaker {
         const newSlugs = []
         let requests = []
         for (const row of rows) {
-            const chart: GrapherInterface = JSON.parse(row.config)
-            chart.id = row.id
-            newSlugs.push(chart.slug)
+            const grapher: GrapherInterface = JSON.parse(row.config)
+            grapher.id = row.id
+            newSlugs.push(grapher.slug)
 
-            requests.push(this.bakeChart(chart))
+            requests.push(this.bakeGrapher(grapher))
             // Execute in batches
             if (requests.length > 50) {
                 await Promise.all(requests)
@@ -576,7 +576,7 @@ export class SiteBaker {
         await this.bakeGoogleScholar()
         await this.bakeCountryProfiles()
         await this.bakePosts()
-        await this.bakeCharts()
+        await this.bakeGraphers()
         await this.bakeExplorerRedirects()
         // Clear caches to allow garbage collection while waiting for next run
         this.flushCache()

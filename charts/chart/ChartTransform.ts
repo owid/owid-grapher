@@ -30,9 +30,9 @@ export interface IChartTransform {
 }
 
 export abstract class ChartTransform implements IChartTransform {
-    chart: Grapher
-    constructor(chart: Grapher) {
-        this.chart = chart
+    grapher: Grapher
+    constructor(grapher: Grapher) {
+        this.grapher = grapher
     }
 
     // The most common check is just "does this have a yDimension"? So make it a default, and methods and override.
@@ -41,7 +41,7 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     @computed protected get hasYDimension() {
-        return some(this.chart.dimensions, d => d.property === "y")
+        return some(this.grapher.dimensions, d => d.property === "y")
     }
 
     /**
@@ -53,7 +53,7 @@ export abstract class ChartTransform implements IChartTransform {
     abstract get availableYears(): Time[]
 
     @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
-        return this.chart.availableKeys
+        return this.grapher.availableKeys
     }
 
     /**
@@ -62,8 +62,8 @@ export abstract class ChartTransform implements IChartTransform {
      * Might be **empty** if the data hasn't been loaded yet.
      */
     @computed get timelineYears(): Time[] {
-        const min = this.chart.timelineMinTime
-        const max = this.chart.timelineMaxTime
+        const min = this.grapher.timelineMinTime
+        const max = this.grapher.timelineMaxTime
         const filteredYears = this.availableYears.filter(year => {
             if (min !== undefined && year < min) return false
             if (max !== undefined && year > max) return false
@@ -86,7 +86,7 @@ export abstract class ChartTransform implements IChartTransform {
      * Derived from the timeline selection start.
      */
     @computed get startYear(): Time {
-        const minYear = this.chart.timeDomain[0]
+        const minYear = this.grapher.timeDomain[0]
         if (isUnboundedLeft(minYear)) {
             return this.minTimelineYear
         } else if (isUnboundedRight(minYear)) {
@@ -101,7 +101,7 @@ export abstract class ChartTransform implements IChartTransform {
      * Derived from the timeline selection end.
      */
     @computed get endYear(): Time {
-        const maxYear = this.chart.timeDomain[1]
+        const maxYear = this.grapher.timeDomain[1]
         if (isUnboundedLeft(maxYear)) {
             return this.minTimelineYear
         } else if (isUnboundedRight(maxYear)) {
@@ -111,7 +111,7 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     @computed get hasTimeline(): boolean {
-        return this.timelineYears.length > 1 && !this.chart.hideTimeline
+        return this.timelineYears.length > 1 && !this.grapher.hideTimeline
     }
 
     /**
@@ -132,10 +132,10 @@ export abstract class ChartTransform implements IChartTransform {
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
-        return this.chart.stackMode === "relative"
+        return this.grapher.stackMode === "relative"
     }
 
     set isRelativeMode(value: boolean) {
-        this.chart.stackMode = value ? "relative" : "absolute"
+        this.grapher.stackMode = value ? "relative" : "absolute"
     }
 }

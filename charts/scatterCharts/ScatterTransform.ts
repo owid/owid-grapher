@@ -43,7 +43,7 @@ export class ScatterTransform extends ChartTransform {
         const that = this
         return new ColorScale({
             get config() {
-                return that.chart.colorScale
+                return that.grapher.colorScale
             },
             get defaultBaseColorScheme() {
                 return "continents"
@@ -75,12 +75,12 @@ export class ScatterTransform extends ChartTransform {
     @computed get isValidConfig(): boolean {
         return (
             this.hasYDimension &&
-            this.chart.dimensions.some(d => d.property === "x")
+            this.grapher.dimensions.some(d => d.property === "x")
         )
     }
 
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart
+        const { filledDimensions } = this.grapher
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (!some(filledDimensions, d => d.property === "x"))
@@ -92,7 +92,7 @@ export class ScatterTransform extends ChartTransform {
         else if (isEmpty(this.currentData))
             return (
                 "No matching data" +
-                (this.chart.isReady ? "" : ". Chart is not ready")
+                (this.grapher.isReady ? "" : ". Chart is not ready")
             )
         else return undefined
     }
@@ -100,13 +100,13 @@ export class ScatterTransform extends ChartTransform {
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
     @computed private get yDimension() {
-        return this.chart.filledDimensions.find(d => d.property === "y")
+        return this.grapher.filledDimensions.find(d => d.property === "y")
     }
     @computed private get xDimension() {
-        return this.chart.filledDimensions.find(d => d.property === "x")
+        return this.grapher.filledDimensions.find(d => d.property === "x")
     }
     @computed get colorDimension() {
-        return this.chart.filledDimensions.find(d => d.property === "color")
+        return this.grapher.filledDimensions.find(d => d.property === "color")
     }
 
     // Possible to override the x axis dimension to target a special year
@@ -122,7 +122,7 @@ export class ScatterTransform extends ChartTransform {
     @computed get canToggleRelativeMode(): boolean {
         return (
             this.hasTimeline &&
-            !this.chart.hideRelativeToggle &&
+            !this.grapher.hideRelativeToggle &&
             this.xOverrideYear === undefined
         )
     }
@@ -130,7 +130,7 @@ export class ScatterTransform extends ChartTransform {
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
     @computed private get hideBackgroundEntities(): boolean {
-        return this.chart.addCountryMode === "disabled"
+        return this.grapher.addCountryMode === "disabled"
     }
     @computed private get possibleEntityNames(): EntityName[] {
         const yEntities = this.yDimension ? this.yDimension.entityNamesUniq : []
@@ -145,8 +145,8 @@ export class ScatterTransform extends ChartTransform {
 
     // todo: move to table
     @computed get excludedEntityNames(): EntityName[] {
-        const entityIds = this.chart.excludedEntities || []
-        const entityNameMap = this.chart.table.entityIdToNameMap
+        const entityIds = this.grapher.excludedEntities || []
+        const entityNameMap = this.grapher.table.entityIdToNameMap
         return entityIds
             .map(entityId => entityNameMap.get(entityId)!)
             .filter(d => d)
@@ -157,10 +157,10 @@ export class ScatterTransform extends ChartTransform {
         filterBackgroundEntities = this.hideBackgroundEntities
     ): EntityName[] {
         let entityNames = filterBackgroundEntities
-            ? this.chart.selectedEntityNames
+            ? this.grapher.selectedEntityNames
             : this.possibleEntityNames
 
-        if (this.chart.matchingEntitiesOnly && this.colorDimension)
+        if (this.grapher.matchingEntitiesOnly && this.colorDimension)
             entityNames = intersection(
                 entityNames,
                 this.colorDimension.entityNamesUniq
@@ -203,11 +203,11 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get compareEndPointsOnly(): boolean {
-        return !!this.chart.compareEndPointsOnly
+        return !!this.grapher.compareEndPointsOnly
     }
 
     set compareEndPointsOnly(value: boolean) {
-        this.chart.compareEndPointsOnly = value || undefined
+        this.grapher.compareEndPointsOnly = value || undefined
     }
 
     // todo: move this sort of thing to OwidTable
@@ -217,7 +217,7 @@ export class ScatterTransform extends ChartTransform {
     private getDataByEntityAndYear(
         entitiesToShow = this.getEntityNamesToShow()
     ): Map<EntityName, Map<Year, ScatterValue>> {
-        const { filledDimensions } = this.chart
+        const { filledDimensions } = this.grapher
         const validEntityLookup = keyBy(entitiesToShow)
 
         const dataByEntityAndYear = new Map<
@@ -331,7 +331,7 @@ export class ScatterTransform extends ChartTransform {
         // domains before creating the points, the tolerance may lead to different X-Y
         // values being joined.
         // -@danielgavrilov, 2020-04-29
-        const { yAxis, xAxis } = this.chart
+        const { yAxis, xAxis } = this.grapher
         dataByEntityAndYear.forEach(dataByYear => {
             dataByYear.forEach((point, year) => {
                 // Exclude any points with data for only one axis
@@ -369,11 +369,11 @@ export class ScatterTransform extends ChartTransform {
     // domains across the entire timeline
     private domainDefault(property: "x" | "y"): [number, number] {
         const scaleType = property === "x" ? this.xScaleType : this.yScaleType
-        if (!this.chart.useTimelineDomains) {
+        if (!this.grapher.useTimelineDomains) {
             return domainExtent(
                 this.pointsForAxisDomains.map(d => d[property]),
                 scaleType,
-                this.chart.zoomToSelection && this.selectedPoints.length
+                this.grapher.zoomToSelection && this.selectedPoints.length
                     ? 1.1
                     : 1
             )
@@ -400,7 +400,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get pointsForAxisDomains() {
-        if (!this.chart.hasSelection || !this.chart.zoomToSelection)
+        if (!this.grapher.hasSelection || !this.grapher.zoomToSelection)
             return this.currentValues
 
         return this.selectedPoints.length
@@ -418,12 +418,12 @@ export class ScatterTransform extends ChartTransform {
     @computed private get yScaleType() {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.yAxis.scaleType || ScaleType.linear
+            : this.grapher.yAxis.scaleType || ScaleType.linear
     }
 
     @computed private get yAxisLabel(): string {
         return (
-            this.chart.yAxis.label ||
+            this.grapher.yAxis.label ||
             (this.yDimension && this.yDimension.displayName) ||
             ""
         )
@@ -434,9 +434,9 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get yAxis() {
-        const { chart, yDomainDefault, yDimension, isRelativeMode } = this
+        const { grapher, yDomainDefault, yDimension, isRelativeMode } = this
 
-        const axis = chart.yAxis.toVerticalAxis()
+        const axis = grapher.yAxis.toVerticalAxis()
         axis.tickFormat =
             (yDimension && yDimension.formatValueShort) || axis.tickFormat
 
@@ -464,7 +464,7 @@ export class ScatterTransform extends ChartTransform {
     @computed private get xScaleType(): ScaleType {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.xAxis.scaleType || ScaleType.linear
+            : this.grapher.xAxis.scaleType || ScaleType.linear
     }
 
     @computed private get xAxisLabelBase(): string | undefined {
@@ -482,7 +482,7 @@ export class ScatterTransform extends ChartTransform {
             xAxisLabelBase
         } = this
 
-        const { xAxis } = this.chart
+        const { xAxis } = this.grapher
 
         const axis = xAxis.toHorizontalAxis()
 
@@ -580,10 +580,10 @@ export class ScatterTransform extends ChartTransform {
 
     // todo: refactor/remove and/or add unit tests
     @computed get currentData() {
-        if (!this.chart.isReady) return []
+        if (!this.grapher.isReady) return []
 
         const {
-            chart,
+            grapher,
             startYear,
             endYear,
             xScaleType,
@@ -592,20 +592,20 @@ export class ScatterTransform extends ChartTransform {
             compareEndPointsOnly,
             xOverrideYear
         } = this
-        const { keyColors } = chart
+        const { keyColors } = grapher
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndYear().forEach((dataByYear, entityName) => {
             // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
-            const entityDimensionKey = chart.makeEntityDimensionKey(
+            const entityDimensionKey = grapher.makeEntityDimensionKey(
                 entityName,
                 0
             )
 
             const group = {
                 entityDimensionKey,
-                label: chart.getLabelForKey(entityDimensionKey),
+                label: grapher.getLabelForKey(entityDimensionKey),
                 color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
                 values: []
@@ -654,7 +654,7 @@ export class ScatterTransform extends ChartTransform {
             if (series.values.length === 0) return false
 
             // Hide lines which don't cover the full span
-            if (this.chart.hideLinesOutsideTolerance)
+            if (this.grapher.hideLinesOutsideTolerance)
                 return (
                     firstOfNonEmptyArray(series.values).year === startYear &&
                     lastOfNonEmptyArray(series.values).year === endYear

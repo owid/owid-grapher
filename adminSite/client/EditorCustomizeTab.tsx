@@ -22,23 +22,23 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
-class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
+class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
         // we are not using the multi-option select we can force the type to be
         // a single value.
 
-        this.props.chart.baseColorScheme =
+        this.props.grapher.baseColorScheme =
             selected.value === "default" ? undefined : selected.value
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
-        this.props.chart.invertColorScheme = value || undefined
+        this.props.grapher.invertColorScheme = value || undefined
     }
 
     render() {
-        const { chart } = this.props
+        const { grapher } = this.props
 
         return (
             <React.Fragment>
@@ -46,9 +46,9 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
                     <div className="form-group">
                         <label>Color scheme</label>
                         <ColorSchemeDropdown
-                            value={chart.baseColorScheme || "default"}
+                            value={grapher.baseColorScheme || "default"}
                             onChange={this.onChange}
-                            invertedColorScheme={!!chart.invertColorScheme}
+                            invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,
@@ -63,7 +63,7 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={!!chart.invertColorScheme}
+                        value={!!grapher.invertColorScheme}
                         onValue={this.onInvertColorScheme}
                     />
                 </FieldsRow>
@@ -76,51 +76,51 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
 class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.editor.grapher
     }
 
     @computed get minTime() {
-        return this.chart.minTime
+        return this.grapher.minTime
     }
     @computed get maxTime() {
-        return this.chart.maxTime
+        return this.grapher.maxTime
     }
 
     @computed get timelineMinTime() {
-        return this.chart.timelineMinTime
+        return this.grapher.timelineMinTime
     }
     @computed get timelineMaxTime() {
-        return this.chart.timelineMaxTime
+        return this.grapher.timelineMaxTime
     }
 
     @action.bound onMinTime(value: number | undefined) {
-        this.chart.minTime = value
+        this.grapher.minTime = value
     }
 
     @action.bound onMaxTime(value: number | undefined) {
-        this.chart.maxTime = value
+        this.grapher.maxTime = value
     }
 
     @action.bound onTimelineMinTime(value: number | undefined) {
-        this.chart.timelineMinTime = value
+        this.grapher.timelineMinTime = value
     }
 
     @action.bound onTimelineMaxTime(value: number | undefined) {
-        this.chart.timelineMaxTime = value
+        this.grapher.timelineMaxTime = value
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.chart.hideTimeline = value || undefined
+        this.grapher.hideTimeline = value || undefined
     }
 
     @action.bound onToggleShowYearLabels(value: boolean) {
-        this.chart.showYearLabels = value || undefined
+        this.grapher.showYearLabels = value || undefined
     }
 
     render() {
         const { features } = this.props.editor
-        const { chart } = this
+        const { grapher } = this
 
         return (
             <Section name="Timeline selection">
@@ -128,7 +128,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                     {features.timeDomain && (
                         <NumberField
                             label="Selection start"
-                            value={chart.minTime}
+                            value={grapher.minTime}
                             onValue={debounce(this.onMinTime)}
                             allowNegative
                         />
@@ -139,7 +139,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                                 ? "Selection end"
                                 : "Selected year"
                         }
-                        value={chart.maxTime}
+                        value={grapher.maxTime}
                         onValue={debounce(this.onMaxTime)}
                         allowNegative
                     />
@@ -163,13 +163,13 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                 <FieldsRow>
                     <Toggle
                         label="Hide timeline"
-                        value={!!chart.hideTimeline}
+                        value={!!grapher.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     {features.showYearLabels && (
                         <Toggle
                             label="Always show year labels"
-                            value={!!chart.showYearLabels}
+                            value={!!grapher.showYearLabels}
                             onValue={this.onToggleShowYearLabels}
                         />
                     )}
@@ -378,7 +378,7 @@ export class EditorCustomizeTab extends React.Component<{
                 )}
                 <TimelineSection editor={this.props.editor} />
                 <Section name="Color scheme">
-                    <ColorSchemeSelector chart={grapher} />
+                    <ColorSchemeSelector grapher={grapher} />
                 </Section>
                 {grapher.activeColorScale && (
                     <EditorColorScaleSection
