@@ -8,18 +8,12 @@
 import { computed, when, runInAction, observable, action } from "mobx"
 
 import {
-    EPOCH_DATE,
     GrapherTabOption,
     ScaleType,
     StackMode
 } from "charts/core/GrapherConstants"
 
-import {
-    includes,
-    defaultTo,
-    formatDay,
-    diffDateISOStringInDays
-} from "charts/utils/Util"
+import { includes, defaultTo } from "charts/utils/Util"
 
 // todo: we should probably factor out this circular dependency
 import { Grapher } from "charts/core/Grapher"
@@ -32,11 +26,10 @@ import {
 import { MapProjection } from "charts/mapCharts/MapProjections"
 import { ObservableUrl } from "charts/utils/UrlBinder"
 import {
-    formatTimeBound,
-    isUnbounded,
     TimeBoundValue,
-    TimeBound,
-    parseTimeBound
+    formatTimeURIComponent,
+    getTimeDomainFromQueryString,
+    parseTimeURIComponent
 } from "charts/utils/TimeBounds"
 
 export interface GrapherQueryParams extends QueryParams {
@@ -96,24 +89,7 @@ export class EntityUrlBuilder {
     }
 }
 
-const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
-const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
-
-function formatTimeURIComponent(time: TimeBound, isDate: boolean): string {
-    if (isUnbounded(time)) return formatTimeBound(time)
-    return isDate ? formatDay(time, { format: "YYYY-MM-DD" }) : `${time}`
-}
-
-function parseTimeURIComponent(
-    param: string,
-    defaultValue: TimeBound
-): TimeBound {
-    if (reISODate.test(param)) {
-        return diffDateISOStringInDays(param, EPOCH_DATE)
-    }
-    return parseTimeBound(param, defaultValue)
-}
-
+// Todo: this should probably be merged into PeristableGrapher
 export class GrapherUrl implements ObservableUrl {
     private grapher: Grapher
     grapherQueryStr: string = "?"
@@ -134,20 +110,19 @@ export class GrapherUrl implements ObservableUrl {
 
     @computed.struct private get allParams() {
         const params: GrapherQueryParams = {}
-        const { grapher } = this
-        const props = grapher
+        const grapher = this.grapher
 
-        params.tab = props.tab
+        params.tab = grapher.tab
         params.xScale = grapher.xAxis.scaleType
         params.yScale = grapher.yAxis.scaleType
-        params.stackMode = props.stackMode
-        params.zoomToSelection = props.zoomToSelection ? "true" : undefined
-        params.minPopulationFilter = props.minPopulationFilter?.toString()
-        params.endpointsOnly = props.compareEndPointsOnly ? "1" : "0"
+        params.stackMode = grapher.stackMode
+        params.zoomToSelection = grapher.zoomToSelection ? "true" : undefined
+        params.minPopulationFilter = grapher.minPopulationFilter?.toString()
+        params.endpointsOnly = grapher.compareEndPointsOnly ? "1" : "0"
         params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
-        params.region = grapher.map?.projection
+        params.region = grapher.map.projection
 
         return params
     }
@@ -289,30 +264,7 @@ export class GrapherUrl implements ObservableUrl {
     }
 
     setTimeFromTimeQueryParam(time: string) {
-        const { grapher } = this
-
-        // In the past we supported unbounded time parameters like time=2015.. which would be
-        // equivalent to time=2015..latest. We don't actively generate these kinds of URL any
-        // more because URLs ending with dots are not interpreted correctly by many services
-        // (Twitter, Facebook and others) - but we still want to recognize incoming requests
-        // for these "legacy" URLs!
-        const reIntComponent = new RegExp("\\-?\\d+")
-        const reIntRange = new RegExp(
-            `^(${reIntComponent.source}|earliest)?\\.\\.(${reIntComponent.source}|latest)?$`
-        )
-        const reDateRange = new RegExp(
-            `^(${reISODateComponent.source}|earliest)?\\.\\.(${reISODateComponent.source}|latest)?$`
-        )
-        if (reIntRange.test(time) || reDateRange.test(time)) {
-            const [start, end] = time.split("..")
-            grapher.timeDomain = [
-                parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
-                parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
-            ]
-        } else {
-            const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)
-            grapher.timeDomain = [t, t]
-        }
+        this.grapher.timeDomain = getTimeDomainFromQueryString(time)
     }
 
     /**
