@@ -25,7 +25,11 @@ import {
 } from "charts/color/ColorScaleConfig"
 import { MapConfig } from "charts/mapCharts/MapConfig"
 import { observable } from "mobx"
-import { Persistable, persistableToJS, updatePersistables } from "./Persistable"
+import {
+    Persistable,
+    objectWithPersistablesToObject,
+    updatePersistables
+} from "./Persistable"
 
 interface EntitySelection {
     entityId: number
@@ -161,10 +165,10 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     useV2?: boolean = false
 
     toObject(): GrapherInterface {
-        const defaultObj: GrapherInterface = persistableToJS(
+        const defaultObj: GrapherInterface = objectWithPersistablesToObject(
             new PersistableGrapher()
         )
-        const obj: GrapherInterface = persistableToJS(this)
+        const obj: GrapherInterface = objectWithPersistablesToObject(this)
 
         // Never save the followingto the DB.
         delete obj.externalDataUrl
