@@ -6,12 +6,12 @@ import { Grapher } from "charts/core/Grapher"
 import { readVariableSet, readVariable, readChart } from "./fixtures"
 import { first } from "lodash"
 
-export function createConfig(props?: Partial<GrapherInterface>) {
-    const config = new Grapher(props)
+export function createGrapher(props?: Partial<GrapherInterface>) {
+    const grapher = new Grapher(props)
     // ensureValidConfig() is only run on non-node environments, so we have
     // to manually trigger it.
-    config.ensureValidConfig()
-    return config
+    grapher.ensureValidConfig()
+    return grapher
 }
 
 export function setupChart(

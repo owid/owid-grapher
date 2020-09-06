@@ -204,10 +204,11 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     }
 
     updateFromObject(obj: GrapherInterface) {
+        if (!obj) return
         updatePersistables(this, obj)
 
         // JSON doesn't support Infinity, so we use strings instead.
-        this.minTime = minTimeToJSON(obj.minTime) as number
-        this.maxTime = maxTimeToJSON(obj.maxTime) as number
+        if (obj.minTime) this.minTime = minTimeToJSON(obj.minTime) as number
+        if (obj.maxTime) this.maxTime = maxTimeToJSON(obj.maxTime) as number
     }
 }
