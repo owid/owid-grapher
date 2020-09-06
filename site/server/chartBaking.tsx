@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { JsonError } from "utils/server/serverUtil"
 import { Chart } from "db/model/Chart"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { ChartPage } from "site/server/views/ChartPage"
 import { renderToHtmlPage } from "site/server/siteBaking"
 import { getVariableData } from "db/model/Variable"
@@ -14,7 +14,7 @@ export async function chartDataJson(variableIds: number[]) {
     return await getVariableData(variableIds)
 }
 
-export async function chartPageFromConfig(chart: GrapherScript) {
+export async function chartPageFromConfig(chart: GrapherInterface) {
     const postSlug = urlToSlug(chart.originUrl || "")
     const post = postSlug ? await Post.bySlug(postSlug) : undefined
     const relatedCharts = post ? await getRelatedCharts(post.id) : undefined

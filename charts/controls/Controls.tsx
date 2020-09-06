@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { ChartView } from "charts/chart/ChartView"
@@ -133,7 +133,7 @@ class AbsRelToggle extends React.Component<{ chart: Grapher }> {
 
 @observer
 class ZoomToggle extends React.Component<{
-    chart: GrapherScript
+    chart: GrapherInterface
 }> {
     @action.bound onToggle() {
         this.props.chart.zoomToSelection = this.props.chart.zoomToSelection

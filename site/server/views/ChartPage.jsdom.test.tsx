@@ -7,7 +7,7 @@ import { ChartPage } from "./ChartPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { extend } from "charts/utils/Util"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { PersistableGrapher } from "charts/core/GrapherInterface"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
@@ -15,12 +15,12 @@ import { readChart } from "charts/test/fixtures"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 
 describe(ChartPage, () => {
-    let chart: GrapherScript
+    let chart: PersistableGrapher
     let post: Post.Row
     let relatedCharts: RelatedChart[]
 
     beforeAll(() => {
-        chart = new GrapherScript()
+        chart = new PersistableGrapher()
         extend(chart, readChart(792))
         post = {
             id: 2681,

@@ -3,7 +3,7 @@ import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { ChartView } from "charts/chart/ChartView"
 import { Bounds } from "charts/utils/Bounds"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
@@ -842,7 +842,7 @@ export class CovidExplorer extends React.Component<{
         return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
     }
 
-    @computed get sourceChart(): GrapherScript | undefined {
+    @computed get sourceChart(): GrapherInterface | undefined {
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
@@ -894,8 +894,8 @@ export class CovidExplorer extends React.Component<{
         // todo: Should  just be "coronaDefaultView"
         const props = this.chart.script
         props.tab = "chart"
-        this.chart.xAxisOptions.scaleType = ScaleType.linear
-        this.chart.yAxisOptions.scaleType = ScaleType.log
+        this.chart.xAxis.scaleType = ScaleType.linear
+        this.chart.yAxis.scaleType = ScaleType.log
         this.chart.timeDomain = [
             TimeBoundValue.unboundedLeft,
             TimeBoundValue.unboundedRight

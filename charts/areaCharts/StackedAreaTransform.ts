@@ -168,7 +168,7 @@ export class StackedAreaTransform extends ChartTransform {
     @computed get xAxis() {
         const { xDomainDefault } = this
         const chart = this.chart
-        const axis = chart.xAxisOptions.toHorizontalAxis()
+        const axis = chart.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
         axis.tickFormat = chart.formatYearFunction as any
         axis.hideFractionalTicks = true
@@ -185,7 +185,7 @@ export class StackedAreaTransform extends ChartTransform {
         const { isRelativeMode, yDimensionFirst } = this
         const { chart, yDomainDefault } = this
 
-        const axis = chart.yAxisOptions.toVerticalAxis()
+        const axis = chart.yAxis.toVerticalAxis()
         if (isRelativeMode) axis.domain = [0, 100]
         else
             axis.updateDomainPreservingUserSettings([

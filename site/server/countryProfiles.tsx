@@ -2,7 +2,7 @@ import * as db from "db/db"
 import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
 import React from "react"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
@@ -32,18 +32,18 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
 
 // Find the charts that will be shown on the country profile page (if they have that country)
 // TODO: make this page per variable instead
-async function countryIndicatorCharts(): Promise<GrapherScript[]> {
+async function countryIndicatorCharts(): Promise<GrapherInterface[]> {
     return bakeCache(countryIndicatorCharts, async () => {
         const charts = (
             await db
                 .table("charts")
                 .whereRaw("publishedAt is not null and is_indexable is true")
-        ).map((c: any) => JSON.parse(c.config)) as GrapherScript[]
+        ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
         return charts.filter(
             c =>
                 c.hasChartTab &&
                 c.type === "LineChart" &&
-                c.dimensions.length === 1
+                c.dimensions?.length === 1
         )
     })
 }
@@ -51,7 +51,7 @@ async function countryIndicatorCharts(): Promise<GrapherScript[]> {
 async function countryIndicatorVariables(): Promise<Variable.Row[]> {
     return bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorCharts()).map(
-            c => c.dimensions[0].variableId
+            c => c.dimensions![0]!.variableId
         )
         return Variable.rows(
             await db.table(Variable.table).whereIn("id", variableIds)
@@ -182,7 +182,8 @@ export async function countryProfilePage(countrySlug: string) {
 
     let indicators: CountryProfileIndicator[] = []
     for (const c of charts) {
-        const vid = c.dimensions[0] && c.dimensions[0].variableId
+        const firstDimension = c.dimensions![0]
+        const vid = firstDimension && firstDimension.variableId
         const values = valuesByVariableId[vid]
 
         if (values && values.length) {
@@ -198,7 +199,7 @@ export async function countryProfilePage(countrySlug: string) {
             const column = new OwidTable([], spec)
             const dim = new ChartDimension(
                 0,
-                c.dimensions[0],
+                firstDimension,
                 column.columnsBySlug.get(variable.name)!
             )
 

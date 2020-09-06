@@ -71,7 +71,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
         if (match) {
             const tab = match[1]
             if (
-                this.props.editor.chart &&
+                this.props.editor.grapher &&
                 includes(this.props.editor.availableTabs, tab)
             )
                 this.props.editor.tab = tab
@@ -150,7 +150,7 @@ export class ChartEditorPage extends React.Component<{
                 get admin() {
                     return that.context.admin
                 },
-                get chart() {
+                get grapher() {
                     return that.chart as Grapher
                 },
                 get database() {
@@ -217,7 +217,7 @@ export class ChartEditorPage extends React.Component<{
     }
 
     renderReady(editor: ChartEditor) {
-        const { chart, availableTabs, previewMode } = editor
+        const { grapher, availableTabs, previewMode } = editor
 
         return (
             <React.Fragment>
@@ -268,7 +268,7 @@ export class ChartEditorPage extends React.Component<{
                             <EditorCustomizeTab editor={editor} />
                         )}
                         {editor.tab === "scatter" && (
-                            <EditorScatterTab chart={chart} />
+                            <EditorScatterTab chart={grapher} />
                         )}
                         {editor.tab === "map" && (
                             <EditorMapTab editor={editor} />
@@ -293,7 +293,7 @@ export class ChartEditorPage extends React.Component<{
                     >
                         {
                             <ChartView
-                                chart={chart}
+                                chart={grapher}
                                 bounds={
                                     previewMode === "mobile"
                                         ? new Bounds(0, 0, 360, 500)

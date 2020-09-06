@@ -132,7 +132,7 @@ class KeysSection extends React.Component<{ chart: Grapher }> {
 export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
-        const { chart } = editor
+        const { grapher } = editor
 
         return (
             <div className="EditorDataTab">
@@ -144,9 +144,11 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 type="radio"
                                 name="add-country-mode"
                                 value="add-country"
-                                checked={chart.addCountryMode === "add-country"}
+                                checked={
+                                    grapher.addCountryMode === "add-country"
+                                }
                                 onChange={() =>
-                                    (chart.script.addCountryMode =
+                                    (grapher.script.addCountryMode =
                                         "add-country")
                                 }
                             />
@@ -161,10 +163,10 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 name="add-country-mode"
                                 value="change-country"
                                 checked={
-                                    chart.addCountryMode === "change-country"
+                                    grapher.addCountryMode === "change-country"
                                 }
                                 onChange={() =>
-                                    (chart.script.addCountryMode =
+                                    (grapher.script.addCountryMode =
                                         "change-country")
                                 }
                             />
@@ -178,16 +180,16 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 type="radio"
                                 name="add-country-mode"
                                 value="disabled"
-                                checked={chart.addCountryMode === "disabled"}
+                                checked={grapher.addCountryMode === "disabled"}
                                 onChange={() =>
-                                    (chart.script.addCountryMode = "disabled")
+                                    (grapher.script.addCountryMode = "disabled")
                                 }
                             />
                             User cannot change/add data
                         </label>
                     </div>
                 </Section>
-                <KeysSection chart={editor.chart} />
+                <KeysSection chart={editor.grapher} />
             </div>
         )
     }

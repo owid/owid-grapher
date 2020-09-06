@@ -201,7 +201,7 @@ export class SlopeChart extends React.Component<{
             )
 
         const { bounds, chart } = this.props
-        const { yAxisOptions } = chart
+        const { yAxis } = chart
         const { data } = this.transform
         const {
             legend,
@@ -221,7 +221,7 @@ export class SlopeChart extends React.Component<{
                     bounds={innerBounds}
                     isInteractive={chart.isInteractive}
                     yTickFormat={this.transform.yTickFormat}
-                    yAxisOptions={yAxisOptions}
+                    yAxisOptions={yAxis}
                     data={data}
                     fontSize={chart.baseFontSize}
                     focusKeys={focusKeys}

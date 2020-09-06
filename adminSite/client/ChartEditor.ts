@@ -68,7 +68,7 @@ export class EditorDatabase {
 
 interface ChartEditorProps {
     admin: Admin
-    chart: Grapher
+    grapher: Grapher
     database: EditorDatabase
     logs: Log[]
     references: PostReference[]
@@ -82,7 +82,7 @@ export class ChartEditor {
     @observable.ref tab: EditorTab = "basic"
     @observable.ref errorMessage?: { title: string; content: string }
     @observable.ref previewMode: "mobile" | "desktop"
-    @observable.ref savedChartConfig: string = ""
+    @observable.ref savedGrapherJson: string = ""
 
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
@@ -95,22 +95,26 @@ export class ChartEditor {
                 ? "desktop"
                 : "mobile"
         when(
-            () => this.chart.isReady,
+            () => this.grapher.isReady,
             () =>
-                (this.savedChartConfig = JSON.stringify(this.currentChartJson))
+                (this.savedGrapherJson = JSON.stringify(
+                    this.currentGrapherObject
+                ))
         )
     }
 
-    @computed get currentChartJson() {
-        return this.chart.json
+    @computed get currentGrapherObject() {
+        return this.grapher.object
     }
 
     @computed get isModified(): boolean {
-        return JSON.stringify(this.currentChartJson) !== this.savedChartConfig
+        return (
+            JSON.stringify(this.currentGrapherObject) !== this.savedGrapherJson
+        )
     }
 
-    @computed get chart(): Grapher {
-        return this.props.chart
+    @computed get grapher(): Grapher {
+        return this.props.grapher
     }
 
     @computed get database(): EditorDatabase {
@@ -130,12 +134,12 @@ export class ChartEditor {
     }
 
     @computed get availableTabs(): EditorTab[] {
-        if (!this.chart.isValidConfig) {
+        if (!this.grapher.isValidConfig) {
             return ["basic"]
         } else {
             const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
-            if (this.chart.hasMapTab) tabs.push("map")
-            if (this.chart.isScatter || this.chart.isTimeScatter)
+            if (this.grapher.hasMapTab) tabs.push("map")
+            if (this.grapher.isScatter || this.grapher.isTimeScatter)
                 tabs.push("scatter")
             tabs.push("revisions")
             tabs.push("refs")
@@ -143,8 +147,8 @@ export class ChartEditor {
         }
     }
 
-    @computed get isNewChart() {
-        return this.chart.script.id === undefined
+    @computed get isNewGrapher() {
+        return this.grapher.script.id === undefined
     }
 
     @computed get features() {
@@ -152,7 +156,7 @@ export class ChartEditor {
     }
 
     async applyConfig(config: any) {
-        this.props.chart.update(JSON.parse(config))
+        this.props.grapher.updateFromObject(JSON.parse(config))
     }
 
     // Load index of datasets and variables for the given namespace
@@ -165,27 +169,27 @@ export class ChartEditor {
         )
     }
 
-    async saveChart({ onError }: { onError?: () => void } = {}) {
-        const { chart, isNewChart, currentChartJson } = this
+    async saveGrapher({ onError }: { onError?: () => void } = {}) {
+        const { grapher, isNewGrapher, currentGrapherObject } = this
 
-        const targetUrl = isNewChart
+        const targetUrl = isNewGrapher
             ? "/api/charts"
-            : `/api/charts/${chart.script.id}`
+            : `/api/charts/${grapher.script.id}`
 
         const json = await this.props.admin.requestJSON(
             targetUrl,
-            currentChartJson,
-            isNewChart ? "POST" : "PUT"
+            currentGrapherObject,
+            isNewGrapher ? "POST" : "PUT"
         )
 
         if (json.success) {
-            if (isNewChart) {
+            if (isNewGrapher) {
                 this.newChartId = json.chartId
             } else {
                 runInAction(() => {
-                    chart.script.version += 1
+                    grapher.script.version += 1
                     this.logs.unshift(json.newLog)
-                    this.savedChartConfig = JSON.stringify(currentChartJson)
+                    this.savedGrapherJson = JSON.stringify(currentGrapherObject)
                 })
             }
         } else {
@@ -193,10 +197,10 @@ export class ChartEditor {
         }
     }
 
-    async saveAsNewChart() {
-        const { currentChartJson } = this
+    async saveAsNewGrapher() {
+        const { currentGrapherObject } = this
 
-        const chartJson = { ...currentChartJson }
+        const chartJson = { ...currentGrapherObject }
         delete chartJson.id
         delete chartJson.isPublished
 
@@ -214,26 +218,26 @@ export class ChartEditor {
             )
     }
 
-    publishChart() {
-        const url = `${BAKED_GRAPHER_URL}/${this.chart.displaySlug}`
+    publishGrapher() {
+        const url = `${BAKED_GRAPHER_URL}/${this.grapher.displaySlug}`
 
         if (window.confirm(`Publish chart at ${url}?`)) {
-            this.chart.script.isPublished = true
-            this.saveChart({
-                onError: () => (this.chart.script.isPublished = undefined)
+            this.grapher.script.isPublished = true
+            this.saveGrapher({
+                onError: () => (this.grapher.script.isPublished = undefined)
             })
         }
     }
 
-    unpublishChart() {
+    unpublishGrapher() {
         const message =
             this.references && this.references.length > 0
                 ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Remove chart anyway?"
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
-            this.chart.script.isPublished = undefined
-            this.saveChart({
-                onError: () => (this.chart.script.isPublished = true)
+            this.grapher.script.isPublished = undefined
+            this.saveGrapher({
+                onError: () => (this.grapher.script.isPublished = true)
             })
         }
     }

@@ -22,7 +22,7 @@ import { TooltipView } from "charts/chart/Tooltip"
 import { FullStory } from "charts/core/FullStory"
 import { UrlBinder } from "charts/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 
 declare const window: any
 
@@ -54,7 +54,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         queryStr,
         globalEntitySelection
     }: {
-        jsonConfig: GrapherScript
+        jsonConfig: GrapherInterface
         containerNode: HTMLElement
         isEditor?: boolean
         isEmbed?: true

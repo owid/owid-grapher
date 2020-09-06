@@ -6,7 +6,7 @@ import svgo from "svgo"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
 const svgoConfig: svgo.Options = {
@@ -27,7 +27,7 @@ export async function optimizeSvg(svgString: string): Promise<string> {
 }
 
 export async function chartToSVG(
-    jsonConfig: GrapherScript,
+    jsonConfig: GrapherInterface,
     vardata: any
 ): Promise<string> {
     const chart = new Grapher(jsonConfig)
@@ -38,7 +38,7 @@ export async function chartToSVG(
 
 export async function bakeImageExports(
     outDir: string,
-    jsonConfig: GrapherScript,
+    jsonConfig: GrapherInterface,
     vardata: any,
     optimizeSvgs = false
 ) {

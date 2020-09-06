@@ -17,8 +17,8 @@ describe(ScatterTransform, () => {
         const chart = basicScatterGrapher()
         const scatterT = new ScatterTransform(chart)
         const count = scatterT.allPoints.length
-        chart.xAxisOptions.removePointsOutsideDomain = true
-        chart.xAxisOptions.max = 201
+        chart.xAxis.removePointsOutsideDomain = true
+        chart.xAxis.max = 201
         expect(scatterT.allPoints.length).toBeGreaterThan(5)
         expect(scatterT.allPoints.length).toBeLessThan(count)
     })

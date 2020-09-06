@@ -9,7 +9,7 @@ import md5 from "md5"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { GrapherScript } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
 
 export async function getChartsAndRedirectsBySlug() {
@@ -27,7 +27,7 @@ export async function getChartsAndRedirectsBySlug() {
 }
 
 export async function getChartsBySlug() {
-    const chartsBySlug: Map<string, GrapherScript> = new Map()
+    const chartsBySlug: Map<string, GrapherInterface> = new Map()
     const chartsById = new Map()
 
     const chartsQuery = db.query(`SELECT * FROM charts`)
@@ -41,7 +41,7 @@ export async function getChartsBySlug() {
 }
 
 export async function bakeChartToImage(
-    jsonConfig: GrapherScript,
+    jsonConfig: GrapherInterface,
     outDir: string,
     slug: string,
     queryStr: string = "",

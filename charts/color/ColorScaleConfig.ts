@@ -1,9 +1,11 @@
-import { observable } from "mobx"
+import { observable, toJS } from "mobx"
 
 import { Color } from "charts/core/GrapherConstants"
 import { BinningStrategy } from "./BinningStrategies"
+import { Persistable } from "charts/core/Persistable"
+import { extend } from "charts/utils/Util"
 
-export class ColorScaleConfigProps {
+export class ColorScaleConfigProps implements Persistable {
     // Color scheme
     // ============
 
@@ -64,6 +66,14 @@ export class ColorScaleConfigProps {
 
     // Other
     // =====
+
+    updateFromObject(obj: any) {
+        extend(this, obj)
+    }
+
+    toObject() {
+        return toJS(this)
+    }
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
     @observable legendDescription?: string = undefined

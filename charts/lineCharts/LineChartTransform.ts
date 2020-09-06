@@ -43,7 +43,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get initialData(): LineChartSeries[] {
         const { chart } = this
-        const { yAxisOptions } = chart
+        const { yAxis } = chart
         const { selectedKeys, selectedKeysByKey } = chart
         const filledDimensions = chart.filledDimensions
 
@@ -65,8 +65,7 @@ export class LineChartTransform extends ChartTransform {
                 // Not a selected key, don't add any data for it
                 if (!selectedKeysByKey[entityDimensionKey]) continue
                 // Can't have values <= 0 on log scale
-                if (value <= 0 && yAxisOptions.scaleType === ScaleType.log)
-                    continue
+                if (value <= 0 && yAxis.scaleType === ScaleType.log) continue
 
                 if (!series) {
                     series = {
@@ -183,7 +182,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get xAxis() {
-        const axis = this.chart.xAxisOptions.toHorizontalAxis()
+        const axis = this.chart.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([this.startYear, this.endYear])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
@@ -207,7 +206,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get yDomain(): [number, number] {
         const { chart, yDomainDefault } = this
-        const domain = chart.yAxisOptions.domain
+        const domain = chart.yAxis.domain
         return [
             Math.min(domain[0], yDomainDefault[0]),
             Math.max(domain[1], yDomainDefault[1])
@@ -217,7 +216,7 @@ export class LineChartTransform extends ChartTransform {
     @computed get yScaleType() {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.yAxisOptions.scaleType
+            : this.chart.yAxis.scaleType
     }
 
     @computed get yTickFormat() {
@@ -233,7 +232,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get yAxis() {
         const { chart, yDomain, yTickFormat, isRelativeMode } = this
-        const axis = chart.yAxisOptions.toVerticalAxis()
+        const axis = chart.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomain)
         if (isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.allValues.every(val => val.y % 1 === 0) // all y axis points are integral, don't show fractional ticks in that case

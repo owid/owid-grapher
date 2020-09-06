@@ -138,8 +138,8 @@ export class GrapherUrl implements ObservableUrl {
         const props = grapher.script
 
         params.tab = props.tab
-        params.xScale = grapher.xAxisOptions.scaleType
-        params.yScale = grapher.yAxisOptions.scaleType
+        params.xScale = grapher.xAxis.scaleType
+        params.yScale = grapher.yAxis.scaleType
         params.stackMode = props.stackMode
         params.zoomToSelection = props.zoomToSelection ? "true" : undefined
         params.minPopulationFilter = props.minPopulationFilter?.toString()
@@ -169,10 +169,10 @@ export class GrapherUrl implements ObservableUrl {
 
         if (params.tab === origGrapherProps.tab) params.tab = undefined
 
-        if (params.xScale === origGrapherProps.xAxis.scaleType)
+        if (params.xScale === origGrapherProps.xAxis?.scaleType)
             params.xScale = undefined
 
-        if (params.yScale === origGrapherProps.yAxis.scaleType)
+        if (params.yScale === origGrapherProps.yAxis?.scaleType)
             params.yScale = undefined
 
         if (params.stackMode === origGrapherProps.stackMode)
@@ -359,14 +359,14 @@ export class GrapherUrl implements ObservableUrl {
         const xScaleType = params.xScale
         if (xScaleType) {
             if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
-                grapher.xAxisOptions.scaleType = xScaleType
+                grapher.xAxis.scaleType = xScaleType
             else console.error("Unexpected xScale: " + xScaleType)
         }
 
         const yScaleType = params.yScale
         if (yScaleType) {
             if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
-                grapher.yAxisOptions.scaleType = yScaleType
+                grapher.yAxis.scaleType = yScaleType
             else console.error("Unexpected xScale: " + yScaleType)
         }
 
