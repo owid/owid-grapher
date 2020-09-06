@@ -148,7 +148,7 @@ export class ChartEditor {
     }
 
     @computed get isNewGrapher() {
-        return this.grapher.script.id === undefined
+        return this.grapher.id === undefined
     }
 
     @computed get features() {
@@ -174,7 +174,7 @@ export class ChartEditor {
 
         const targetUrl = isNewGrapher
             ? "/api/charts"
-            : `/api/charts/${grapher.script.id}`
+            : `/api/charts/${grapher.id}`
 
         const json = await this.props.admin.requestJSON(
             targetUrl,
@@ -187,7 +187,7 @@ export class ChartEditor {
                 this.newChartId = json.chartId
             } else {
                 runInAction(() => {
-                    grapher.script.version += 1
+                    grapher.version += 1
                     this.logs.unshift(json.newLog)
                     this.savedGrapherJson = JSON.stringify(currentGrapherObject)
                 })
@@ -222,9 +222,9 @@ export class ChartEditor {
         const url = `${BAKED_GRAPHER_URL}/${this.grapher.displaySlug}`
 
         if (window.confirm(`Publish chart at ${url}?`)) {
-            this.grapher.script.isPublished = true
+            this.grapher.isPublished = true
             this.saveGrapher({
-                onError: () => (this.grapher.script.isPublished = undefined)
+                onError: () => (this.grapher.isPublished = undefined)
             })
         }
     }
@@ -235,9 +235,9 @@ export class ChartEditor {
                 ? "WARNING: This chart might be referenced from public posts, please double check before unpublishing. Remove chart anyway?"
                 : "Are you sure you want to unpublish this chart?"
         if (window.confirm(message)) {
-            this.grapher.script.isPublished = undefined
+            this.grapher.isPublished = undefined
             this.saveGrapher({
-                onError: () => (this.grapher.script.isPublished = true)
+                onError: () => (this.grapher.isPublished = true)
             })
         }
     }

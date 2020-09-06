@@ -40,7 +40,7 @@ Germany,2003,120,1,256`) as any
 
 export const basicScatterGrapher = () => {
     const grapher = basicGdpGrapher()
-    const script = grapher.script
+    const script = grapher
     script.type = "ScatterPlot"
     grapher.yAxis.min = 0
     grapher.yAxis.max = 500

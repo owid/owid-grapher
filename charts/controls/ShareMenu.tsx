@@ -83,13 +83,13 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get isDisabled(): boolean {
-        return !this.props.chart.script.slug
+        return !this.props.chart.slug
     }
 
     @computed get editUrl(): string | undefined {
         const { chart } = this.props
         return Cookies.get("isAdmin") || chart.isDev
-            ? `${chart.adminBaseUrl}/admin/charts/${chart.script.id}/edit`
+            ? `${chart.adminBaseUrl}/admin/charts/${chart.id}/edit`
             : undefined
     }
 

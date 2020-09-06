@@ -86,24 +86,23 @@ export class ChartView extends React.Component<ChartViewProps> {
         window.addEventListener("resize", throttle(render))
 
         FullStory.event("Loaded chart v2", {
-            chart_type_str: chart.script.type,
-            chart_id_int: chart.script.id,
-            slug_str: chart.script.slug,
-            originUrl_str: chart.script.originUrl,
-            addCountryMode_str: chart.script.addCountryMode,
-            stackMode_str: chart.script.stackMode,
-            hideLegend_bool: chart.script.hideLegend,
-            hideRelativeToggle_bool: chart.script.hideRelativeToggle,
-            hideTimeline_bool: chart.script.hideTimeline,
-            hideConnectedScatterLines_bool:
-                chart.script.hideConnectedScatterLines,
-            compareEndPointsOnly_bool: chart.script.compareEndPointsOnly,
+            chart_type_str: chart.type,
+            chart_id_int: chart.id,
+            slug_str: chart.slug,
+            originUrl_str: chart.originUrl,
+            addCountryMode_str: chart.addCountryMode,
+            stackMode_str: chart.stackMode,
+            hideLegend_bool: chart.hideLegend,
+            hideRelativeToggle_bool: chart.hideRelativeToggle,
+            hideTimeline_bool: chart.hideTimeline,
+            hideConnectedScatterLines_bool: chart.hideConnectedScatterLines,
+            compareEndPointsOnly_bool: chart.compareEndPointsOnly,
             entityType_str: chart.entityType,
             isEmbed_bool: chart.isEmbed,
             hasChartTab_bool: chart.hasChartTab,
             hasMapTab_bool: chart.hasMapTab,
             tab_str: chart.currentTab,
-            totalSelectedEntities_int: chart.script.selectedData.length
+            totalSelectedEntities_int: chart.selectedData.length
         })
 
         return chartView

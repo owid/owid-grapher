@@ -104,11 +104,6 @@ const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
 export class Grapher extends PersistableGrapher {
-    /** Stores the current state. Can be modified to change the grapher. */
-    script = new PersistableGrapher()
-
-    @observable map: MapConfig = new MapConfig()
-
     private origScriptRaw: Readonly<GrapherInterface>
 
     // TODO: Pass these 5 in as options, donn't get them as globals
@@ -151,7 +146,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @action.bound toggleMinPopulationFilter() {
-        this.script.minPopulationFilter = this.script.minPopulationFilter
+        this.minPopulationFilter = this.minPopulationFilter
             ? undefined
             : this.populationFilterOption
     }
@@ -159,8 +154,8 @@ export class Grapher extends PersistableGrapher {
     private populationFilterToggleOption: number = 1e6
     // Make the default filter toggle option reflect what is initially loaded.
     @computed get populationFilterOption() {
-        if (this.script.minPopulationFilter)
-            this.populationFilterToggleOption = this.script.minPopulationFilter
+        if (this.minPopulationFilter)
+            this.populationFilterToggleOption = this.minPopulationFilter
         return this.populationFilterToggleOption
     }
 
@@ -181,14 +176,14 @@ export class Grapher extends PersistableGrapher {
     @action.bound async downloadData() {
         if (this.useV2) return
 
-        if (this.script.externalDataUrl) {
-            const json = await fetchJSON(this.script.externalDataUrl)
+        if (this.externalDataUrl) {
+            const json = await fetchJSON(this.externalDataUrl)
             this.receiveData(json)
             return
         }
 
-        if (this.script.owidDataset) {
-            this.receiveData(this.script.owidDataset)
+        if (this.owidDataset) {
+            this.receiveData(this.owidDataset)
             return
         }
 
@@ -331,13 +326,12 @@ export class Grapher extends PersistableGrapher {
 
     @computed get hasOWIDLogo(): boolean {
         return (
-            !this.script.hideLogo &&
-            (this.script.logo === undefined || this.script.logo === "owid")
+            !this.hideLogo && (this.logo === undefined || this.logo === "owid")
         )
     }
 
     @computed get hasFatalErrors(): boolean {
-        const { relatedQuestions } = this.script
+        const { relatedQuestions } = this
         return (
             relatedQuestions?.some(
                 question => !!getErrorMessageRelatedQuestionUrl(question)
@@ -395,7 +389,7 @@ export class Grapher extends PersistableGrapher {
 
         this.disposers.push(
             reaction(
-                () => this.script.minPopulationFilter,
+                () => this.minPopulationFilter,
                 () => {
                     this.updatePopulationFilter()
                 }
@@ -406,7 +400,7 @@ export class Grapher extends PersistableGrapher {
         this.url.urlRoot = this.bakedGrapherURL
 
         // The props after consuming the URL parameters, but before any user interaction
-        this.initialScriptRaw = toJS(this.script)
+        this.initialScriptRaw = toJS(this)
 
         if (options.globalEntitySelection) {
             this.disposers.push(
@@ -423,12 +417,12 @@ export class Grapher extends PersistableGrapher {
     @action.bound updateFromObject(obj: any) {
         super.updateFromObject(obj)
 
-        if (obj.isAutoTitle) this.script.title = undefined
+        if (obj.isAutoTitle) this.title = undefined
 
         // Auto slug is only preserved for drafts in the editor
         // Once published, slug should stick around (we don't want to create too many redirects)
         if (obj.isAutoSlug && this.isEditor && !obj.isPublished)
-            this.script.slug = undefined
+            this.slug = undefined
 
         if (obj.map) {
             this.map = new MapConfig({
@@ -447,7 +441,7 @@ export class Grapher extends PersistableGrapher {
 
     updatePopulationFilter() {
         const slug = "pop_filter"
-        const minPop = this.script.minPopulationFilter
+        const minPop = this.minPopulationFilter
         if (!minPop) this.table.deleteColumnBySlug(slug)
         else
             this.table.addFilterColumn(slug, (row, index, table) => {
@@ -460,18 +454,18 @@ export class Grapher extends PersistableGrapher {
     @action.bound ensureValidConfig() {
         const disposers = [
             autorun(() => {
-                if (!this.availableTabs.includes(this.script.tab)) {
-                    runInAction(() => (this.script.tab = this.availableTabs[0]))
+                if (!this.availableTabs.includes(this.tab)) {
+                    runInAction(() => (this.tab = this.availableTabs[0]))
                 }
             }),
             autorun(() => {
-                if (!isEqual(this.script.dimensions, this.validDimensions)) {
-                    this.script.dimensions = this.validDimensions
+                if (!isEqual(this.dimensions, this.validDimensions)) {
+                    this.dimensions = this.validDimensions
                 }
             }),
             autorun(() => {
-                if (this.script.isExplorable && !canBeExplorable(this.script)) {
-                    this.script.isExplorable = false
+                if (this.isExplorable && !canBeExplorable(this)) {
+                    this.isExplorable = false
                 }
             })
         ]
@@ -486,10 +480,10 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get primaryTab() {
-        return this.script.tab
+        return this.tab
     }
     @computed get overlayTab() {
-        return this.script.overlay
+        return this.overlay
     }
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
@@ -504,43 +498,43 @@ export class Grapher extends PersistableGrapher {
             ]
 
         /** Revert the state of minPopulationFilter */
-        this.script.minPopulationFilter = this.chartMinPopulationFilter
+        this.minPopulationFilter = this.chartMinPopulationFilter
     }
 
     @computed get currentTab() {
-        return this.script.overlay ? this.script.overlay : this.script.tab
+        return this.overlay ? this.overlay : this.tab
     }
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     set currentTab(value) {
-        if (this.script.tab === "chart")
-            this.chartMinPopulationFilter = this.script.minPopulationFilter
-        if (this.script.tab === "table" && value !== "table")
+        if (this.tab === "chart")
+            this.chartMinPopulationFilter = this.minPopulationFilter
+        if (this.tab === "table" && value !== "table")
             this.revertDataTableSpecificState()
 
         if (value === "chart" || value === "map" || value === "table") {
-            this.script.tab = value
-            this.script.overlay = undefined
+            this.tab = value
+            this.overlay = undefined
         } else {
             // table tab cannot be downloaded, so revert to default tab
-            if (value === "download" && this.script.tab === "table") {
-                this.script.tab = this.origScript.tab || "chart"
+            if (value === "download" && this.tab === "table") {
+                this.tab = this.origScript.tab || "chart"
             }
-            this.script.overlay = value
+            this.overlay = value
         }
     }
 
     @computed get timeDomain(): TimeBounds {
         return [
             // Handle `undefined` values in minTime/maxTime
-            minTimeFromJSON(this.script.minTime),
-            maxTimeFromJSON(this.script.maxTime)
+            minTimeFromJSON(this.minTime),
+            maxTimeFromJSON(this.maxTime)
         ]
     }
 
     set timeDomain(value: TimeBounds) {
-        this.script.minTime = value[0]
-        this.script.maxTime = value[1]
+        this.minTime = value[0]
+        this.maxTime = value[1]
     }
 
     // Get the dimension slots appropriate for this type of chart
@@ -557,7 +551,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get validDimensions(): ChartDimensionSpec[] {
-        const { dimensions } = this.script
+        const { dimensions } = this
         const validProperties = map(this.dimensionSlots, "property")
         let validDimensions = filter(dimensions, dim =>
             includes(validProperties, dim.property)
@@ -599,13 +593,13 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get displaySlug(): string {
-        return this.script.slug ?? slugify(this.displayTitle)
+        return this.slug ?? slugify(this.displayTitle)
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
         return filter([
-            this.script.hasChartTab && "chart",
-            this.script.hasMapTab && "map",
+            this.hasChartTab && "chart",
+            this.hasMapTab && "map",
             "table",
             "sources",
             "download"
@@ -619,7 +613,7 @@ export class Grapher extends PersistableGrapher {
             this.primaryTab === "chart" &&
             this.addCountryMode !== "add-country" &&
             this.selectedEntityNames.length === 1 &&
-            (!this.script.hideTitleAnnotation || this.canChangeEntity)
+            (!this.hideTitleAnnotation || this.canChangeEntity)
         ) {
             const { selectedEntityNames: selectedEntities } = this
             const entityStr = selectedEntities.join(", ")
@@ -629,7 +623,7 @@ export class Grapher extends PersistableGrapher {
         }
 
         if (
-            !this.script.hideTitleAnnotation &&
+            !this.hideTitleAnnotation &&
             this.isLineChart &&
             this.lineChartTransform.isRelativeMode
         ) {
@@ -647,7 +641,7 @@ export class Grapher extends PersistableGrapher {
         }*/
 
         if (
-            !this.script.hideTitleAnnotation ||
+            !this.hideTitleAnnotation ||
             (this.isLineChart &&
                 this.lineChartTransform.isSingleYear &&
                 this.lineChartTransform.hasTimeline) ||
@@ -718,8 +712,8 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get sourcesLine(): string {
-        return this.script.sourceDesc !== undefined
-            ? this.script.sourceDesc
+        return this.sourceDesc !== undefined
+            ? this.sourceDesc
             : this.defaultSourcesLine
     }
 
@@ -832,25 +826,25 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get isLineChart() {
-        return this.script.type === ChartType.LineChart
+        return this.type === ChartType.LineChart
     }
     @computed get isScatter() {
-        return this.script.type === ChartType.ScatterPlot
+        return this.type === ChartType.ScatterPlot
     }
     @computed get isTimeScatter() {
-        return this.script.type === ChartType.TimeScatter
+        return this.type === ChartType.TimeScatter
     }
     @computed get isStackedArea() {
-        return this.script.type === ChartType.StackedArea
+        return this.type === ChartType.StackedArea
     }
     @computed get isSlopeChart() {
-        return this.script.type === ChartType.SlopeChart
+        return this.type === ChartType.SlopeChart
     }
     @computed get isDiscreteBar() {
-        return this.script.type === ChartType.DiscreteBar
+        return this.type === ChartType.DiscreteBar
     }
     @computed get isStackedBar() {
-        return this.script.type === ChartType.StackedBar
+        return this.type === ChartType.StackedBar
     }
 
     @computed get lineChartTransform() {
@@ -919,7 +913,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get cacheTag(): string {
-        return this.script.version.toString()
+        return this.version.toString()
     }
 
     // todo: remove
@@ -933,7 +927,7 @@ export class Grapher extends PersistableGrapher {
 
     // todo: remove
     @computed get hasSelection() {
-        return this.script.selectedData.length > 0
+        return this.selectedData.length > 0
     }
 
     // todo: remove
@@ -943,7 +937,7 @@ export class Grapher extends PersistableGrapher {
     }> {
         const primaryDimensions = this.primaryDimensions
         const entityIdToNameMap = this.table.entityIdToNameMap
-        let validSelections = this.script.selectedData.filter(sel => {
+        let validSelections = this.selectedData.filter(sel => {
             // Must be a dimension that's on the chart
             const dimension = primaryDimensions[sel.index]
             if (!dimension) return false
@@ -956,8 +950,7 @@ export class Grapher extends PersistableGrapher {
             // "change entity" charts can only have one entity selected
             if (
                 this.addCountryMode === "change-country" &&
-                sel.entityId !==
-                    lastOfNonEmptyArray(this.script.selectedData).entityId
+                sel.entityId !== lastOfNonEmptyArray(this.selectedData).entityId
             )
                 return false
 
@@ -1001,13 +994,13 @@ export class Grapher extends PersistableGrapher {
     // todo: remove
     setKeyColor(key: EntityDimensionKey, color: Color | undefined) {
         const meta = this.lookupKey(key)
-        const selectedData = cloneDeep(this.script.selectedData)
+        const selectedData = cloneDeep(this.selectedData)
         selectedData.forEach(d => {
             if (d.entityId === meta.entityId && d.index === meta.index) {
                 d.color = color
             }
         })
-        this.script.selectedData = selectedData
+        this.selectedData = selectedData
     }
 
     // todo: remove
@@ -1031,9 +1024,9 @@ export class Grapher extends PersistableGrapher {
 
     // todo: remove
     @action.bound setSingleSelectedEntity(entityId: EntityId) {
-        const selectedData = cloneDeep(this.script.selectedData)
+        const selectedData = cloneDeep(this.selectedData)
         selectedData.forEach(d => (d.entityId = entityId))
-        this.script.selectedData = selectedData
+        this.selectedData = selectedData
     }
 
     // todo: remove
@@ -1075,7 +1068,7 @@ export class Grapher extends PersistableGrapher {
 
     // todo: remove
     @action.bound resetSelectedEntities() {
-        this.script.selectedData = this.initialScript.selectedData || []
+        this.selectedData = this.initialScript.selectedData || []
     }
 
     // todo: remove
@@ -1108,7 +1101,7 @@ export class Grapher extends PersistableGrapher {
                 color: this.keyColors[key]
             }
         })
-        this.script.selectedData = selection
+        this.selectedData = selection
     }
 
     selectOnlyThisEntity(entityName: string) {
@@ -1184,15 +1177,15 @@ export class Grapher extends PersistableGrapher {
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
-        return this.script.stackMode === "relative"
+        return this.stackMode === "relative"
     }
 
     @action.bound toggleRelativeMode() {
-        this.script.stackMode = !this.isRelativeMode ? "relative" : "absolute"
+        this.stackMode = !this.isRelativeMode ? "relative" : "absolute"
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.script.hideRelativeToggle
+        return !this.hideRelativeToggle
     }
 
     // todo: remove

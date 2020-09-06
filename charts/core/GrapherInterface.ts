@@ -148,14 +148,14 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     @observable.ref matchingEntitiesOnly?: true = undefined
 
     // Todo: make sure these all have toJson/fromJson methods.
-    @observable.ref xAxis = new AxisOptions()
+    @observable.ref xAxis = new AxisOptions() // todo: rename class to be persistable
     @observable.ref yAxis = new AxisOptions()
+    @observable colorScale = new PersistableColorScaleConfigProps()
+    @observable map = new MapConfig() // todo: make persistable
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref dimensions: ChartDimensionSpec[] = []
-    @observable colorScale = new PersistableColorScaleConfigProps()
     @observable excludedEntities?: number[] = undefined
-    @observable map: Partial<MapConfig> = {}
     data?: { availableEntities: string[] } = undefined
     @observable comparisonLines: ComparisonLineConfig[] = []
     @observable relatedQuestions?: RelatedQuestionsConfig[]

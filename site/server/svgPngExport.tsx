@@ -45,7 +45,7 @@ export async function bakeImageExports(
     const chart = new Grapher(jsonConfig)
     chart.isExporting = true
     chart.receiveData(vardata)
-    const outPath = path.join(outDir, chart.script.slug as string)
+    const outPath = path.join(outDir, chart.slug as string)
 
     let svgCode = chart.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
