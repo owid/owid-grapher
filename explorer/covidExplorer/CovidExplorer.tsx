@@ -771,7 +771,7 @@ export class CovidExplorer extends React.Component<{
         if (params.colorStrategy === "ptr")
             this.shortTermPositivityRateVarId = this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()
 
-        const chartProps = this.chart.script
+        const chartProps = this.chart
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
         chartProps.note = this.note
@@ -892,7 +892,7 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound playDefaultViewCommand() {
         // todo: Should  just be "coronaDefaultView"
-        const props = this.chart.script
+        const props = this.chart
         props.tab = "chart"
         this.chart.xAxis.scaleType = ScaleType.linear
         this.chart.yAxis.scaleType = ScaleType.log
@@ -905,10 +905,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleTabCommand() {
-        this.chart.script.tab = next(
-            ["chart", "map", "table"],
-            this.chart.script.tab
-        )
+        this.chart.tab = next(["chart", "map", "table"], this.chart.tab)
     }
 
     @action.bound toggleKeyboardHelpCommand() {
@@ -994,9 +991,9 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleYScaleTypeCommand() {
-        this.chart.script.yAxis.scaleType = next(
+        this.chart.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
-            this.chart.script.yAxis.scaleType
+            this.chart.yAxis.scaleType
         )
     }
 
@@ -1017,8 +1014,8 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleFilterAllCommand() {
-        this.chart.script.minPopulationFilter =
-            this.chart.script.minPopulationFilter === 2e9 ? undefined : 2e9
+        this.chart.minPopulationFilter =
+            this.chart.minPopulationFilter === 2e9 ? undefined : 2e9
         this.renderControlsThenUpdateChart()
     }
 

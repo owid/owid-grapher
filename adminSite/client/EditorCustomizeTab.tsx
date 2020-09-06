@@ -29,12 +29,12 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
         // we are not using the multi-option select we can force the type to be
         // a single value.
 
-        this.props.chart.script.baseColorScheme =
+        this.props.chart.baseColorScheme =
             selected.value === "default" ? undefined : selected.value
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
-        this.props.chart.script.invertColorScheme = value || undefined
+        this.props.chart.invertColorScheme = value || undefined
     }
 
     render() {
@@ -48,9 +48,7 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
                         <ColorSchemeDropdown
                             value={chart.baseColorScheme || "default"}
                             onChange={this.onChange}
-                            invertedColorScheme={
-                                !!chart.script.invertColorScheme
-                            }
+                            invertedColorScheme={!!chart.invertColorScheme}
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,
@@ -65,7 +63,7 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={!!chart.script.invertColorScheme}
+                        value={!!chart.invertColorScheme}
                         onValue={this.onInvertColorScheme}
                     />
                 </FieldsRow>
@@ -83,41 +81,41 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     }
 
     @computed get minTime() {
-        return this.chart.script.minTime
+        return this.chart.minTime
     }
     @computed get maxTime() {
-        return this.chart.script.maxTime
+        return this.chart.maxTime
     }
 
     @computed get timelineMinTime() {
-        return this.chart.script.timelineMinTime
+        return this.chart.timelineMinTime
     }
     @computed get timelineMaxTime() {
-        return this.chart.script.timelineMaxTime
+        return this.chart.timelineMaxTime
     }
 
     @action.bound onMinTime(value: number | undefined) {
-        this.chart.script.minTime = value
+        this.chart.minTime = value
     }
 
     @action.bound onMaxTime(value: number | undefined) {
-        this.chart.script.maxTime = value
+        this.chart.maxTime = value
     }
 
     @action.bound onTimelineMinTime(value: number | undefined) {
-        this.chart.script.timelineMinTime = value
+        this.chart.timelineMinTime = value
     }
 
     @action.bound onTimelineMaxTime(value: number | undefined) {
-        this.chart.script.timelineMaxTime = value
+        this.chart.timelineMaxTime = value
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.chart.script.hideTimeline = value || undefined
+        this.chart.hideTimeline = value || undefined
     }
 
     @action.bound onToggleShowYearLabels(value: boolean) {
-        this.chart.script.showYearLabels = value || undefined
+        this.chart.showYearLabels = value || undefined
     }
 
     render() {
@@ -130,7 +128,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                     {features.timeDomain && (
                         <NumberField
                             label="Selection start"
-                            value={chart.script.minTime}
+                            value={chart.minTime}
                             onValue={debounce(this.onMinTime)}
                             allowNegative
                         />
@@ -141,7 +139,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                                 ? "Selection end"
                                 : "Selected year"
                         }
-                        value={chart.script.maxTime}
+                        value={chart.maxTime}
                         onValue={debounce(this.onMaxTime)}
                         allowNegative
                     />
@@ -165,13 +163,13 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                 <FieldsRow>
                     <Toggle
                         label="Hide timeline"
-                        value={!!chart.script.hideTimeline}
+                        value={!!chart.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     {features.showYearLabels && (
                         <Toggle
                             label="Always show year labels"
-                            value={!!chart.script.showYearLabels}
+                            value={!!chart.showYearLabels}
                             onValue={this.onToggleShowYearLabels}
                         />
                     )}
@@ -187,12 +185,12 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onAddComparisonLine() {
         const { grapher } = this.props.editor
-        grapher.script.comparisonLines.push({})
+        grapher.comparisonLines.push({})
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { grapher } = this.props.editor
-        grapher.script.comparisonLines!.splice(index, 1)
+        grapher.comparisonLines!.splice(index, 1)
     }
 
     render() {
@@ -402,7 +400,7 @@ export class EditorCustomizeTab extends React.Component<{
                                     label={`Hide legend`}
                                     value={!!grapher.hideLegend}
                                     onValue={value =>
-                                        (grapher.script.hideLegend =
+                                        (grapher.hideLegend =
                                             value || undefined)
                                     }
                                 />
@@ -412,7 +410,7 @@ export class EditorCustomizeTab extends React.Component<{
                             <BindAutoString
                                 label="Entity name"
                                 field="entityType"
-                                store={grapher.script}
+                                store={grapher}
                                 auto="country"
                             />
                         )}
@@ -423,9 +421,9 @@ export class EditorCustomizeTab extends React.Component<{
                         <FieldsRow>
                             <Toggle
                                 label={`Hide relative toggle`}
-                                value={!!grapher.script.hideRelativeToggle}
+                                value={!!grapher.hideRelativeToggle}
                                 onValue={value =>
-                                    (grapher.script.hideRelativeToggle =
+                                    (grapher.hideRelativeToggle =
                                         value || false)
                                 }
                             />

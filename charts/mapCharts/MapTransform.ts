@@ -101,7 +101,7 @@ export class MapTransform extends ChartTransform {
         // into a case where the timeline needs to be shown
         return (
             this.timelineYears.length > 1 &&
-            !this.chart.script.hideTimeline &&
+            !this.chart.hideTimeline &&
             !this.props.hideTimeline
         )
     }

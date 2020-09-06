@@ -32,7 +32,7 @@ export class SaveButtons extends React.Component<{ editor: ChartEditor }> {
                 >
                     {grapher.isPublished
                         ? "Update chart"
-                        : grapher.script.id
+                        : grapher.id
                         ? "Save draft"
                         : "Create draft"}
                 </button>{" "}

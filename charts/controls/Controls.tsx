@@ -170,7 +170,7 @@ class FilterSmallCountriesToggle extends React.Component<{
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={!!this.props.chart.script.minPopulationFilter}
+                    checked={!!this.props.chart.minPopulationFilter}
                     onChange={() =>
                         this.props.chart.toggleMinPopulationFilter()
                     }
@@ -325,7 +325,7 @@ export class Controls {
 
     @computed get hasTimeline(): boolean {
         const { chart } = this.props
-        if (chart.currentTab === "table") return !chart.script.hideTimeline
+        if (chart.currentTab === "table") return !chart.hideTimeline
         if (chart.currentTab === "map") {
             return chart.mapTransform.hasTimeline
         } else if (chart.currentTab === "chart") {
@@ -359,7 +359,7 @@ export class Controls {
     }
 
     @computed get hasRelatedQuestion(): boolean {
-        const { relatedQuestions } = this.props.chart.script
+        const { relatedQuestions } = this.props.chart
         return (
             !!relatedQuestions &&
             !!relatedQuestions.length &&
@@ -679,7 +679,7 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {chart.currentTab === "chart" &&
                     chart.isScatter &&
-                    chart.hasSelection && <ZoomToggle chart={chart.script} />}
+                    chart.hasSelection && <ZoomToggle chart={chart} />}
 
                 {(chart.currentTab === "table" || chart.isScatter) &&
                     chart.hasCountriesSmallerThanFilterOption && (
@@ -706,7 +706,7 @@ export class ControlsFooterView extends React.Component<{
             hasRelatedQuestion
         } = props.controls
         const { chart, chartView } = props.controls.props
-        const { relatedQuestions } = chart.script
+        const { relatedQuestions } = chart
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">

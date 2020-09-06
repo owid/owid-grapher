@@ -148,8 +148,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                     grapher.addCountryMode === "add-country"
                                 }
                                 onChange={() =>
-                                    (grapher.script.addCountryMode =
-                                        "add-country")
+                                    (grapher.addCountryMode = "add-country")
                                 }
                             />
                             User can add and remove data
@@ -166,8 +165,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                     grapher.addCountryMode === "change-country"
                                 }
                                 onChange={() =>
-                                    (grapher.script.addCountryMode =
-                                        "change-country")
+                                    (grapher.addCountryMode = "change-country")
                                 }
                             />
                             User can change entity
@@ -182,7 +180,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 value="disabled"
                                 checked={grapher.addCountryMode === "disabled"}
                                 onChange={() =>
-                                    (grapher.script.addCountryMode = "disabled")
+                                    (grapher.addCountryMode = "disabled")
                                 }
                             />
                             User cannot change/add data
