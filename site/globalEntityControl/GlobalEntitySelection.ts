@@ -47,17 +47,17 @@ export class GlobalEntitySelection {
 }
 
 export function subscribeGrapherToGlobalEntitySelection(
-    chart: Grapher,
+    grapher: Grapher,
     globalSelection: GlobalEntitySelection
 ): IReactionDisposer {
     return reaction(
         () => [
-            chart.isReady,
+            grapher.isReady,
             globalSelection.mode,
             globalSelection.selectedEntities
         ],
         () => {
-            if (!chart.canAddData && !chart.canChangeEntity) {
+            if (!grapher.canAddData && !grapher.canChangeEntity) {
                 // Chart doesn't support changing entities - do nothing
                 return
             }
@@ -65,11 +65,11 @@ export function subscribeGrapherToGlobalEntitySelection(
             // This implements "override" mode only!
             if (mode === GlobalEntitySelectionModes.override) {
                 if (selectedEntities.length > 0) {
-                    chart.setSelectedEntitiesByCode(
+                    grapher.setSelectedEntitiesByCode(
                         selectedEntities.map(entity => entity.code)
                     )
                 } else {
-                    chart.resetSelectedEntities()
+                    grapher.resetSelectedEntities()
                 }
             }
         },

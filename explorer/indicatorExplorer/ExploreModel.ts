@@ -36,7 +36,7 @@ export class ExploreModel {
 
     @observable indicatorId?: number = undefined
 
-    chart: Grapher
+    grapher: Grapher
     url: ExploreUrl
     store: RootStore
     disposers: IReactionDisposer[] = []
@@ -51,16 +51,16 @@ export class ExploreModel {
     }
 
     @action.bound updateChartFromExplorer() {
-        this.chart.type = this.configChartType
-        this.chart.hasMapTab = this.isMap
-        this.chart.hasChartTab = !this.isMap
-        this.chart.currentTab = this.isMap ? "map" : "chart"
+        this.grapher.type = this.configChartType
+        this.grapher.hasMapTab = this.isMap
+        this.grapher.hasChartTab = !this.isMap
+        this.grapher.currentTab = this.isMap ? "map" : "chart"
     }
 
     constructor(store: RootStore) {
         this.store = store
-        this.chart = new Grapher()
-        this.url = new ExploreUrl(this, this.chart.url)
+        this.grapher = new Grapher()
+        this.url = new ExploreUrl(this, this.grapher.url)
 
         // We need these updates in an autorun because the chart config objects aren't really meant
         // to be recreated all the time. They aren't pure value objects and have behaviors on
@@ -70,11 +70,11 @@ export class ExploreModel {
         this.disposers.push(
             autorun(() => {
                 if (this.indicatorEntry === null) {
-                    this.chart.updateFromObject({ dimensions: [] })
+                    this.grapher.updateFromObject({ dimensions: [] })
                 } else {
                     const indicator = this.indicatorEntry.entity
                     if (indicator) {
-                        this.chart.updateFromObject(
+                        this.grapher.updateFromObject(
                             chartConfigFromIndicator(indicator)
                         )
                     }

@@ -22,7 +22,7 @@ import { ColorScale } from "charts/color/ColorScale"
 // of a discrete bar chart
 export class StackedBarTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart
+        const { filledDimensions } = this.grapher
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing variable"
         else if (
@@ -34,10 +34,10 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get primaryDimension(): ChartDimension | undefined {
-        return find(this.chart.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, d => d.property === "y")
     }
     @computed get colorDimension(): ChartDimension | undefined {
-        return find(this.chart.filledDimensions, d => d.property === "color")
+        return find(this.grapher.filledDimensions, d => d.property === "color")
     }
 
     @computed get availableYears(): Time[] {
@@ -74,11 +74,11 @@ export class StackedBarTransform extends ChartTransform {
 
     // TODO: Make XAxis generic
     @computed get xAxis() {
-        const { chart, xDomainDefault } = this
-        const axis = chart.xAxis.toHorizontalAxis()
+        const { grapher, xDomainDefault } = this
+        const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
-        if (this.chart.formatYearFunction)
-            axis.tickFormat = this.chart.formatYearFunction as any
+        if (this.grapher.formatYearFunction)
+            axis.tickFormat = this.grapher.formatYearFunction as any
         axis.hideGridlines = true
         axis.hideFractionalTicks = true
         return axis
@@ -92,7 +92,7 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return find(this.chart.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, d => d.property === "y")
     }
 
     @computed get yTickFormat() {
@@ -102,8 +102,8 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get yAxis() {
-        const { chart, yDomainDefault, yTickFormat } = this
-        const axis = chart.yAxis.toVerticalAxis()
+        const { grapher, yDomainDefault, yTickFormat } = this
+        const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
         axis.tickFormat = yTickFormat
@@ -119,9 +119,9 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get groupedData(): StackedBarSeries[] {
-        const { chart, timelineYears } = this
-        const { selectedKeys, selectedKeysByKey } = chart
-        const filledDimensions = chart.filledDimensions
+        const { grapher, timelineYears } = this
+        const { selectedKeys, selectedKeysByKey } = grapher
+        const filledDimensions = grapher.filledDimensions
 
         let groupedData: StackedBarSeries[] = []
 
@@ -132,7 +132,7 @@ export class StackedBarTransform extends ChartTransform {
                 const year = dimension.years[i]
                 const entityName = dimension.entityNames[i]
                 const value = +dimension.values[i]
-                const entityDimensionKey = chart.makeEntityDimensionKey(
+                const entityDimensionKey = grapher.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -150,7 +150,7 @@ export class StackedBarTransform extends ChartTransform {
                 if (!series) {
                     series = {
                         entityDimensionKey: entityDimensionKey,
-                        label: chart.getLabelForKey(entityDimensionKey),
+                        label: grapher.getLabelForKey(entityDimensionKey),
                         values: [],
                         color: "#fff" // Temp
                     }
@@ -207,7 +207,7 @@ export class StackedBarTransform extends ChartTransform {
         const that = this
         return new ColorScale({
             get config() {
-                return that.chart.colorScale
+                return that.grapher.colorScale
             },
             get defaultBaseColorScheme() {
                 return "stackedAreaDefault"
@@ -228,7 +228,7 @@ export class StackedBarTransform extends ChartTransform {
             },
             get formatCategoricalValue() {
                 return (key: EntityDimensionKey) =>
-                    that.chart.getLabelForKey(key)
+                    that.grapher.getLabelForKey(key)
             }
         })
     }

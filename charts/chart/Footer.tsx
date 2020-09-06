@@ -10,7 +10,7 @@ import { getRelativeMouse } from "charts/utils/Util"
 import { Tooltip } from "./Tooltip"
 
 interface SourcesFooterProps {
-    chart: Grapher
+    grapher: Grapher
     maxWidth: number
 }
 
@@ -25,16 +25,16 @@ export class SourcesFooter {
     }
 
     @computed get sourcesText(): string {
-        const sourcesLine = this.props.chart.sourcesLine
+        const sourcesLine = this.props.grapher.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
     @computed get noteText(): string {
-        return this.props.chart.note ? `Note: ${this.props.chart.note}` : ""
+        return this.props.grapher.note ? `Note: ${this.props.grapher.note}` : ""
     }
 
     @computed get ccSvg(): string {
-        if (this.props.chart.hasOWIDLogo) {
+        if (this.props.grapher.hasOWIDLogo) {
             return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
         } else {
             return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
@@ -42,13 +42,13 @@ export class SourcesFooter {
     }
 
     @computed get finalUrl(): string {
-        const originUrl = this.props.chart.originUrlWithProtocol
+        const originUrl = this.props.grapher.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
     @computed get finalUrlText(): string | undefined {
-        const originUrl = this.props.chart.originUrlWithProtocol
+        const originUrl = this.props.grapher.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
@@ -59,7 +59,7 @@ export class SourcesFooter {
                 "OurWorldInData.org"
             )
             if (
-                this.props.chart.isNativeEmbed ||
+                this.props.grapher.isNativeEmbed ||
                 Bounds.forText(finalUrlText, { fontSize: this.fontSize })
                     .width >
                     0.7 * this.maxWidth
@@ -90,7 +90,7 @@ export class SourcesFooter {
     }
 
     @computed get fontSize() {
-        return 0.7 * this.props.chart.baseFontSize
+        return 0.7 * this.props.grapher.baseFontSize
     }
 
     @computed get sources() {
@@ -133,7 +133,7 @@ export class SourcesFooter {
     }
 
     @computed get height(): number {
-        if (this.props.chart.isMediaCard) return 0
+        if (this.props.grapher.isMediaCard) return 0
 
         const { sources, note, license, isCompact, paraMargin } = this
         return (
@@ -144,11 +144,11 @@ export class SourcesFooter {
     }
 
     @action.bound onSourcesClick() {
-        this.props.chart.currentTab = "sources"
+        this.props.grapher.currentTab = "sources"
     }
 
     render(targetX: number, targetY: number) {
-        if (this.props.chart.isMediaCard) return null
+        if (this.props.grapher.isMediaCard) return null
 
         return (
             <SourcesFooterView
@@ -207,7 +207,7 @@ class SourcesFooterView extends React.Component<{
 
 @observer
 export class SourcesFooterHTML extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
     footer: SourcesFooter
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -247,7 +247,7 @@ export class SourcesFooterHTML extends React.Component<{
                         {footer.finalUrlText} •{" "}
                     </a>
                 )}
-                {this.props.chart.hasOWIDLogo ? (
+                {this.props.grapher.hasOWIDLogo ? (
                     <a
                         className="cclogo"
                         href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
@@ -287,7 +287,7 @@ export class SourcesFooterHTML extends React.Component<{
                 {!footer.isCompact && license}
                 {tooltipTarget && (
                     <Tooltip
-                        tooltipContainer={this.props.chart}
+                        tooltipContainer={this.props.grapher}
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}
                         style={{

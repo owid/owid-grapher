@@ -22,23 +22,23 @@ import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 
 @observer
-class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
+class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
         // we are not using the multi-option select we can force the type to be
         // a single value.
 
-        this.props.chart.baseColorScheme =
+        this.props.grapher.baseColorScheme =
             selected.value === "default" ? undefined : selected.value
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
-        this.props.chart.invertColorScheme = value || undefined
+        this.props.grapher.invertColorScheme = value || undefined
     }
 
     render() {
-        const { chart } = this.props
+        const { grapher } = this.props
 
         return (
             <React.Fragment>
@@ -46,9 +46,9 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
                     <div className="form-group">
                         <label>Color scheme</label>
                         <ColorSchemeDropdown
-                            value={chart.baseColorScheme || "default"}
+                            value={grapher.baseColorScheme || "default"}
                             onChange={this.onChange}
-                            invertedColorScheme={!!chart.invertColorScheme}
+                            invertedColorScheme={!!grapher.invertColorScheme}
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,
@@ -63,7 +63,7 @@ class ColorSchemeSelector extends React.Component<{ chart: Grapher }> {
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={!!chart.invertColorScheme}
+                        value={!!grapher.invertColorScheme}
                         onValue={this.onInvertColorScheme}
                     />
                 </FieldsRow>
@@ -378,7 +378,7 @@ export class EditorCustomizeTab extends React.Component<{
                 )}
                 <TimelineSection editor={this.props.editor} />
                 <Section name="Color scheme">
-                    <ColorSchemeSelector chart={grapher} />
+                    <ColorSchemeSelector grapher={grapher} />
                 </Section>
                 {grapher.activeColorScale && (
                     <EditorColorScaleSection

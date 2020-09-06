@@ -5,11 +5,11 @@ import { Header, HeaderHTML } from "charts/chart/Header"
 import { SourcesFooter, SourcesFooterHTML } from "charts/chart/Footer"
 import { Bounds } from "charts/utils/Bounds"
 import { ControlsOverlayView } from "charts/controls/Controls"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 
 interface ChartLayoutProps {
-    chart: Grapher
-    chartView: ChartView
+    grapher: Grapher
+    grapherView: GrapherView
     bounds: Bounds
 }
 
@@ -26,8 +26,8 @@ export class ChartLayout {
     @computed get header() {
         const that = this
         return new Header({
-            get chart() {
-                return that.props.chart
+            get grapher() {
+                return that.props.grapher
             },
             get maxWidth() {
                 return that.paddedBounds.width
@@ -38,8 +38,8 @@ export class ChartLayout {
     @computed get footer() {
         const that = this
         return new SourcesFooter({
-            get chart() {
-                return that.props.chart
+            get grapher() {
+                return that.props.grapher
             },
             get maxWidth() {
                 return that.paddedBounds.width
@@ -48,13 +48,13 @@ export class ChartLayout {
     }
 
     @computed get isExporting(): boolean {
-        return !!this.props.chart.isExporting
+        return !!this.props.grapher.isExporting
     }
 
     @computed get svgWidth() {
         if (this.isExporting) return this.props.bounds.width
 
-        const { overlayPadding } = this.props.chartView.controls
+        const { overlayPadding } = this.props.grapherView.controls
         return (
             this.props.bounds.width - overlayPadding.left - overlayPadding.right
         )
@@ -63,7 +63,7 @@ export class ChartLayout {
     @computed get svgHeight() {
         if (this.isExporting) return this.props.bounds.height
 
-        const { overlayPadding } = this.props.chartView.controls
+        const { overlayPadding } = this.props.grapherView.controls
         return (
             this.props.bounds.height -
             this.header.height -
@@ -91,7 +91,7 @@ export class ChartLayoutView extends React.Component<{
     @computed get svgStyle() {
         return {
             fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.props.layout.props.chart.baseFontSize,
+            fontSize: this.props.layout.props.grapher.baseFontSize,
             backgroundColor: "white",
             textRendering: "optimizeLegibility",
             WebkitFontSmoothing: "antialiased"
@@ -123,15 +123,15 @@ export class ChartLayoutView extends React.Component<{
 
     renderWithHTMLText() {
         const { layout } = this.props
-        const { chart, chartView } = layout.props
+        const { grapher, grapherView } = layout.props
 
         return (
             <React.Fragment>
-                <HeaderHTML chart={chart} header={layout.header} />
+                <HeaderHTML grapher={grapher} header={layout.header} />
                 <ControlsOverlayView
-                    chart={chart}
-                    chartView={chartView}
-                    controls={chartView.controls}
+                    grapher={grapher}
+                    grapherView={grapherView}
+                    controls={grapherView.controls}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +145,7 @@ export class ChartLayoutView extends React.Component<{
                     </svg>
                 </ControlsOverlayView>
                 <SourcesFooterHTML
-                    chart={layout.props.chart}
+                    grapher={layout.props.grapher}
                     footer={layout.footer}
                 />
             </React.Fragment>

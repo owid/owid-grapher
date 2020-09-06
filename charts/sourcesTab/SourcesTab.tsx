@@ -16,14 +16,14 @@ function formatText(s: string) {
 @observer
 export class SourcesTab extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     @computed private get bounds() {
         return this.props.bounds
     }
 
     @computed private get sourcesWithDimensions() {
-        return this.props.chart.sourcesWithDimension
+        return this.props.grapher.sourcesWithDimension
     }
 
     private renderSource(sourceWithDimension: SourceWithDimension) {
@@ -32,7 +32,7 @@ export class SourcesTab extends React.Component<{
         const { column } = dimension
 
         const editUrl = Cookies.get("isAdmin")
-            ? `${this.props.chart.adminBaseUrl}/admin/datasets/${column.datasetId}`
+            ? `${this.props.grapher.adminBaseUrl}/admin/datasets/${column.datasetId}`
             : undefined
 
         const minYear = min(column.years)

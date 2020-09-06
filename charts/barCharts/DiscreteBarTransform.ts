@@ -25,7 +25,7 @@ import { Time } from "charts/utils/TimeBounds"
 // of a discrete bar chart
 export class DiscreteBarTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart
+        const { filledDimensions } = this.grapher
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing variable"
         else if (isEmpty(this.currentData)) return "No matching data"
@@ -33,7 +33,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get primaryDimensions(): ChartDimension[] {
-        return this.chart.filledDimensions.filter(d => d.property === "y")
+        return this.grapher.filledDimensions.filter(d => d.property === "y")
     }
 
     @computed get availableYears(): Time[] {
@@ -41,7 +41,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get hasTimeline(): boolean {
-        return this.chart.isLineChart && !this.chart.hideTimeline
+        return this.grapher.isLineChart && !this.grapher.hideTimeline
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
@@ -49,11 +49,11 @@ export class DiscreteBarTransform extends ChartTransform {
 
         return (datum: DiscreteBarDatum) => {
             const showYearLabels =
-                this.chart.showYearLabels || datum.year !== targetYear
+                this.grapher.showYearLabels || datum.year !== targetYear
             return (
                 datum.formatValue(datum.value) +
                 (showYearLabels
-                    ? ` (${this.chart.formatYearFunction(datum.year)})`
+                    ? ` (${this.grapher.formatYearFunction(datum.year)})`
                     : "")
             )
         }
@@ -70,12 +70,12 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get currentData(): DiscreteBarDatum[] {
-        const { chart } = this
-        const targetYear = chart.isLineChart
-            ? chart.lineChartTransform.targetYear
+        const { grapher } = this
+        const targetYear = grapher.isLineChart
+            ? grapher.lineChartTransform.targetYear
             : this.targetYear
-        const { filledDimensions } = chart
-        const { selectedKeysByKey } = chart
+        const { filledDimensions } = grapher
+        const { selectedKeysByKey } = grapher
         const dataByEntityDimensionKey: {
             [entityDimensionKey: string]: DiscreteBarDatum
         } = {}
@@ -86,7 +86,7 @@ export class DiscreteBarTransform extends ChartTransform {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.makeEntityDimensionKey(
+                const entityDimensionKey = grapher.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -112,7 +112,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     entityDimensionKey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.getLabelForKey(entityDimensionKey),
+                    label: grapher.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
@@ -121,10 +121,10 @@ export class DiscreteBarTransform extends ChartTransform {
             }
         })
 
-        if (this.chart.isLineChart) {
+        if (this.grapher.isLineChart) {
             // If derived from line chart, use line chart colors
             for (const key in dataByEntityDimensionKey) {
-                const lineSeries = this.chart.lineChartTransform.predomainData.find(
+                const lineSeries = this.grapher.lineChartTransform.predomainData.find(
                     series => series.entityDimensionKey === key
                 )
                 if (lineSeries)
@@ -132,12 +132,12 @@ export class DiscreteBarTransform extends ChartTransform {
             }
         } else {
             const data = sortBy(values(dataByEntityDimensionKey), d => d.value)
-            const colorScheme = chart.baseColorScheme
-                ? ColorSchemes[chart.baseColorScheme]
+            const colorScheme = grapher.baseColorScheme
+                ? ColorSchemes[grapher.baseColorScheme]
                 : undefined
             const uniqValues = uniq(data.map(d => d.value))
             const colors = colorScheme?.getColors(uniqValues.length) || []
-            if (chart.invertColorScheme) colors.reverse()
+            if (grapher.invertColorScheme) colors.reverse()
 
             // We want to display same values using the same color, e.g. two values of 100 get the same shade of green
             // Therefore, we create a map from all possible (unique) values to the corresponding color
@@ -146,7 +146,7 @@ export class DiscreteBarTransform extends ChartTransform {
 
             data.forEach(d => {
                 d.color =
-                    chart.keyColors[d.entityDimensionKey] ||
+                    grapher.keyColors[d.entityDimensionKey] ||
                     colorByValue.get(d.value) ||
                     d.color
             })
@@ -180,7 +180,7 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get isLogScale() {
-        return this.chart.yAxis.scaleType === ScaleType.log
+        return this.grapher.yAxis.scaleType === ScaleType.log
     }
 
     @computed get allData(): DiscreteBarDatum[] {
@@ -188,16 +188,16 @@ export class DiscreteBarTransform extends ChartTransform {
             return this.currentData
         }
 
-        const { chart } = this
-        const { selectedKeysByKey } = chart
-        const filledDimensions = chart.filledDimensions
+        const { grapher } = this
+        const { selectedKeysByKey } = grapher
+        const filledDimensions = grapher.filledDimensions
         const allData: DiscreteBarDatum[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
             for (let i = 0; i < dimension.years.length; i++) {
                 const year = dimension.years[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.makeEntityDimensionKey(
+                const entityDimensionKey = grapher.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -208,7 +208,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     entityDimensionKey,
                     value: +dimension.values[i],
                     year: year,
-                    label: chart.getLabelForKey(entityDimensionKey),
+                    label: grapher.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
                     formatValue: dimension.formatValueShort
                 }
@@ -222,19 +222,19 @@ export class DiscreteBarTransform extends ChartTransform {
             : allData
 
         const data = sortNumeric(filteredData, d => d.value)
-        const colorScheme = chart.baseColorScheme
-            ? ColorSchemes[chart.baseColorScheme]
+        const colorScheme = grapher.baseColorScheme
+            ? ColorSchemes[grapher.baseColorScheme]
             : undefined
         const uniqValues = sortedUniq(data.map(d => d.value))
         const colors = colorScheme?.getColors(uniqValues.length) || []
-        if (chart.invertColorScheme) colors.reverse()
+        if (grapher.invertColorScheme) colors.reverse()
 
         const colorByValue = new Map<number, string>()
         uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
 
         data.forEach(d => {
             d.color =
-                chart.keyColors[d.entityDimensionKey] ||
+                grapher.keyColors[d.entityDimensionKey] ||
                 colorByValue.get(d.value) ||
                 d.color
         })

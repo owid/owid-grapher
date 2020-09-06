@@ -15,29 +15,30 @@ import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "charts/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
 
-export const ChartPage = (props: {
-    chart: GrapherInterface
+export const GrapherPage = (props: {
+    grapher: GrapherInterface
     post?: Post.Row
     relatedCharts?: RelatedChart[]
 }) => {
-    const { chart, post, relatedCharts } = props
+    const { grapher, post, relatedCharts } = props
 
-    const pageTitle = chart.title
+    const pageTitle = grapher.title
     const pageDesc =
-        chart.subtitle || "An interactive visualization from Our World in Data."
-    const canonicalUrl = urljoin(BAKED_GRAPHER_URL, chart.slug as string)
+        grapher.subtitle ||
+        "An interactive visualization from Our World in Data."
+    const canonicalUrl = urljoin(BAKED_GRAPHER_URL, grapher.slug as string)
     const imageUrl = urljoin(
         BAKED_GRAPHER_URL,
         "exports",
-        `${chart.slug}.png?v=${chart.version}`
+        `${grapher.slug}.png?v=${grapher.version}`
     )
 
     const script = `
-        var jsonConfig = ${JSON.stringify(chart)};
+        var jsonConfig = ${JSON.stringify(grapher)};
         var figure = document.getElementsByTagName("figure")[0];
 
         try {
-            var view = window.ChartView.bootstrap({
+            var view = window.GrapherView.bootstrap({
                 jsonConfig: jsonConfig,
                 containerNode: figure,
                 queryStr: window.location.search
@@ -45,14 +46,14 @@ export const ChartPage = (props: {
             view.bindToWindow();
         } catch (err) {
             figure.innerHTML = "<img src=\\"/grapher/exports/${
-                chart.slug
+                grapher.slug
             }.svg\\"/><p>Unable to load interactive visualization</p>";
             figure.setAttribute("id", "fallback");
             throw err;
         }
     `
 
-    const variableIds = lodash.uniq(chart.dimensions!.map(d => d.variableId))
+    const variableIds = lodash.uniq(grapher.dimensions!.map(d => d.variableId))
 
     return (
         <html>
@@ -74,7 +75,7 @@ export const ChartPage = (props: {
                     rel="preload"
                     href={`/grapher/data/variables/${variableIds.join(
                         "+"
-                    )}.json?v=${chart.version}`}
+                    )}.json?v=${grapher.version}`}
                     as="fetch"
                     crossOrigin="anonymous"
                 />
@@ -82,12 +83,12 @@ export const ChartPage = (props: {
             <body className="ChartPage">
                 <SiteHeader />
                 <main>
-                    <figure data-grapher-src={`/grapher/${chart.slug}`}>
+                    <figure data-grapher-src={`/grapher/${grapher.slug}`}>
                         <LoadingIndicator color="#333" />
                     </figure>
                     <noscript id="fallback">
                         <img
-                            src={`${BAKED_GRAPHER_URL}/exports/${chart.slug}.svg`}
+                            src={`${BAKED_GRAPHER_URL}/exports/${grapher.slug}.svg`}
                         />
                         <p>Interactive visualization requires JavaScript</p>
                     </noscript>
@@ -109,7 +110,7 @@ export const ChartPage = (props: {
                                             .filter(
                                                 chartItem =>
                                                     chartItem.slug !==
-                                                    chart.slug
+                                                    grapher.slug
                                             )
                                             .map(c => (
                                                 <ChartListItemVariant

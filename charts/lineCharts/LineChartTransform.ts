@@ -26,7 +26,7 @@ import { EntityName } from "owidTable/OwidTable"
 // of a line chart
 export class LineChartTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
-        const { filledDimensions } = this.chart
+        const { filledDimensions } = this.grapher
         if (!some(filledDimensions, d => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData)) return "No matching data"
@@ -34,17 +34,17 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get colorScheme(): ColorScheme {
-        const colorScheme = ColorSchemes[this.chart.baseColorScheme as string]
+        const colorScheme = ColorSchemes[this.grapher.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["owid-distinct"] as ColorScheme)
     }
 
     @computed get initialData(): LineChartSeries[] {
-        const { chart } = this
-        const { yAxis } = chart
-        const { selectedKeys, selectedKeysByKey } = chart
-        const filledDimensions = chart.filledDimensions
+        const { grapher } = this
+        const { yAxis } = grapher
+        const { selectedKeys, selectedKeysByKey } = grapher
+        const filledDimensions = grapher.filledDimensions
 
         let chartData: LineChartSeries[] = []
 
@@ -55,7 +55,7 @@ export class LineChartTransform extends ChartTransform {
                 const year = dimension.years[i]
                 const value = parseFloat(dimension.values[i] as string)
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = chart.makeEntityDimensionKey(
+                const entityDimensionKey = grapher.makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -91,10 +91,10 @@ export class LineChartTransform extends ChartTransform {
         )
 
         const colors = this.colorScheme.getColors(chartData.length)
-        if (this.chart.invertColorScheme) colors.reverse()
+        if (this.grapher.invertColorScheme) colors.reverse()
         chartData.forEach((series, i) => {
             series.color =
-                chart.keyColors[series.entityDimensionKey] || colors[i]
+                grapher.keyColors[series.entityDimensionKey] || colors[i]
         })
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
@@ -142,7 +142,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get annotationsMap() {
-        return this.chart.primaryDimensions[0].column.annotationsColumn
+        return this.grapher.primaryDimensions[0].column.annotationsColumn
             ?.entityNameMap
     }
 
@@ -153,7 +153,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     getLabelForKey(key: string) {
-        return this.chart.getLabelForKey(key)
+        return this.grapher.getLabelForKey(key)
     }
 
     // Order of the legend items on a line chart should visually correspond
@@ -171,7 +171,7 @@ export class LineChartTransform extends ChartTransform {
                 color: series.color,
                 entityDimensionKey: series.entityDimensionKey,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: this.chart.hideLegend
+                label: this.grapher.hideLegend
                     ? ""
                     : `${this.getLabelForKey(series.entityDimensionKey)}`,
                 annotation: this.getAnnotationsForSeries(series.entityName),
@@ -181,22 +181,22 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get xAxis() {
-        const axis = this.chart.xAxis.toHorizontalAxis()
+        const axis = this.grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([this.startYear, this.endYear])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
-        axis.tickFormat = this.chart.formatYearTickFunction
+        axis.tickFormat = this.grapher.formatYearTickFunction
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
     }
 
     @computed private get yDimensionFirst(): ChartDimension | undefined {
-        return this.chart.filledDimensions.find(d => d.property === "y")
+        return this.grapher.filledDimensions.find(d => d.property === "y")
     }
 
     @computed private get yDomainDefault(): [number, number] {
-        const yValues = (this.chart.useTimelineDomains
+        const yValues = (this.grapher.useTimelineDomains
             ? this.allValues
             : this.filteredValues
         ).map(v => v.y)
@@ -204,8 +204,8 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get yDomain(): [number, number] {
-        const { chart, yDomainDefault } = this
-        const domain = chart.yAxis.domain
+        const { grapher, yDomainDefault } = this
+        const domain = grapher.yAxis.domain
         return [
             Math.min(domain[0], yDomainDefault[0]),
             Math.max(domain[1], yDomainDefault[1])
@@ -215,7 +215,7 @@ export class LineChartTransform extends ChartTransform {
     @computed get yScaleType() {
         return this.isRelativeMode
             ? ScaleType.linear
-            : this.chart.yAxis.scaleType
+            : this.grapher.yAxis.scaleType
     }
 
     @computed get yTickFormat() {
@@ -230,8 +230,8 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get yAxis() {
-        const { chart, yDomain, yTickFormat, isRelativeMode } = this
-        const axis = chart.yAxis.toVerticalAxis()
+        const { grapher, yDomain, yTickFormat, isRelativeMode } = this
+        const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomain)
         if (isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.allValues.every(val => val.y % 1 === 0) // all y axis points are integral, don't show fractional ticks in that case
@@ -241,7 +241,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.chart.hideRelativeToggle && !this.isSingleYear
+        return !this.grapher.hideRelativeToggle && !this.isSingleYear
     }
 
     // Filter the data so it fits within the domains

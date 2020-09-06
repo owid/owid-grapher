@@ -7,16 +7,16 @@ import {
 import { computed } from "mobx"
 
 export class DimensionSlot {
-    chart: Grapher
+    grapher: Grapher
     property: dimensionProperty
-    constructor(chart: Grapher, property: dimensionProperty) {
-        this.chart = chart
+    constructor(grapher: Grapher, property: dimensionProperty) {
+        this.grapher = grapher
         this.property = property
     }
 
     @computed get name(): string {
         const names = {
-            y: this.chart.isDiscreteBar ? "X axis" : "Y axis",
+            y: this.grapher.isDiscreteBar ? "X axis" : "Y axis",
             x: "X axis",
             size: "Size",
             color: "Color",
@@ -30,9 +30,9 @@ export class DimensionSlot {
         return (
             this.property === "y" &&
             !(
-                this.chart.isScatter ||
-                this.chart.isTimeScatter ||
-                this.chart.isSlopeChart
+                this.grapher.isScatter ||
+                this.grapher.isTimeScatter ||
+                this.grapher.isSlopeChart
             )
         )
     }
@@ -42,21 +42,21 @@ export class DimensionSlot {
     }
 
     @computed get dimensions(): ChartDimensionSpec[] {
-        return this.chart.dimensions.filter(d => d.property === this.property)
+        return this.grapher.dimensions.filter(d => d.property === this.property)
     }
 
     set dimensions(dims: ChartDimensionSpec[]) {
         let newDimensions: ChartDimensionSpec[] = []
-        this.chart.dimensionSlots.forEach(slot => {
+        this.grapher.dimensionSlots.forEach(slot => {
             if (slot.property === this.property)
                 newDimensions = newDimensions.concat(dims)
             else newDimensions = newDimensions.concat(slot.dimensions)
         })
-        this.chart.dimensions = newDimensions
+        this.grapher.dimensions = newDimensions
     }
 
     @computed get dimensionsWithData(): ChartDimension[] {
-        return this.chart.filledDimensions.filter(
+        return this.grapher.filledDimensions.filter(
             d => d.property === this.property
         )
     }

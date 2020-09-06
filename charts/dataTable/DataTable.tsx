@@ -26,7 +26,7 @@ import {
 } from "./DataTableTransform"
 
 interface DataTableProps {
-    chart: Grapher
+    grapher: Grapher
 }
 
 interface DataTableState {
@@ -105,7 +105,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get chart() {
-        return this.props.chart
+        return this.props.grapher
     }
 
     @computed get transform() {

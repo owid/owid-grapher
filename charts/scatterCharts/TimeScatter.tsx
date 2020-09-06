@@ -57,7 +57,7 @@ interface PointsWithLabelsProps {
     yAxis: VerticalAxis
     sizeDomain: [number, number]
     hideLines: boolean
-    chart: Grapher
+    grapher: Grapher
 }
 
 interface ScatterRenderPoint {
@@ -112,7 +112,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get transform() {
-        return this.props.chart.scatterTransform
+        return this.props.grapher.scatterTransform
     }
 
     @computed get tooltip() {
@@ -121,7 +121,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const value = hoverPoint.value
 
-        const formatFunction = this.props.chart.formatYearFunction
+        const formatFunction = this.props.grapher.formatYearFunction
 
         const year = value.time.span
             ? `${formatFunction(value.time.span[0])} to ${formatFunction(
@@ -131,7 +131,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         return (
             <Tooltip
-                tooltipContainer={this.props.chart}
+                tooltipContainer={this.props.grapher}
                 x={hoverPoint.position.x + 5}
                 y={hoverPoint.position.y + 5}
                 style={{ textAlign: "center" }}
@@ -537,7 +537,9 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(this.props.data) || isEmpty(this.series.points))
-            return <NoDataOverlay options={this.props.chart} bounds={bounds} />
+            return (
+                <NoDataOverlay options={this.props.grapher} bounds={bounds} />
+            )
 
         return (
             <g
@@ -579,14 +581,14 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 @observer
 export class TimeScatter extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
-    @computed get chart(): Grapher {
-        return this.props.chart
+    @computed get grapher(): Grapher {
+        return this.props.grapher
     }
 
     @computed get transform() {
-        return this.chart.scatterTransform
+        return this.grapher.scatterTransform
     }
 
     @computed.struct get bounds(): Bounds {
@@ -600,7 +602,7 @@ export class TimeScatter extends React.Component<{
         targetStartYear: TimeBound
         targetEndYear: TimeBound
     }) {
-        this.chart.timeDomain = [targetStartYear, targetEndYear]
+        this.grapher.timeDomain = [targetStartYear, targetEndYear]
     }
 
     // todo: Refactor
@@ -614,30 +616,30 @@ export class TimeScatter extends React.Component<{
     }
 
     @computed get comparisonLines() {
-        return this.chart.comparisonLines
+        return this.grapher.comparisonLines
     }
 
     @computed get hideLines(): boolean {
-        return !!this.chart.hideConnectedScatterLines
+        return !!this.grapher.hideConnectedScatterLines
     }
 
     render() {
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.chart}
+                    options={this.grapher}
                     bounds={this.bounds}
                     message={this.transform.failMessage}
                 />
             )
 
-        const { transform, dualAxis, comparisonLines, chart } = this
+        const { transform, dualAxis, comparisonLines, grapher } = this
         const { currentData, sizeDomain } = transform
 
         return (
             <g>
                 <DualAxisComponent
-                    isInteractive={chart.isInteractive}
+                    isInteractive={grapher.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={false}
                 />
@@ -650,7 +652,7 @@ export class TimeScatter extends React.Component<{
                         />
                     ))}
                 <PointsWithLabels
-                    chart={this.chart}
+                    grapher={this.grapher}
                     hideLines={this.hideLines}
                     data={currentData}
                     bounds={dualAxis.innerBounds}

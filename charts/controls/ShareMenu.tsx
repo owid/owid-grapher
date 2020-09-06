@@ -11,17 +11,17 @@ import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 
 @observer
 class EmbedMenu extends React.Component<{
-    chartView: ChartView
+    grapherView: GrapherView
 }> {
     dismissable = true
 
     @action.bound onClickSomewhere() {
         if (this.dismissable) {
-            this.props.chartView.removePopup(EmbedMenu)
+            this.props.grapherView.removePopup(EmbedMenu)
         } else {
             this.dismissable = true
         }
@@ -40,7 +40,7 @@ class EmbedMenu extends React.Component<{
     }
 
     render() {
-        const url = this.props.chartView.chart.url.canonicalUrl
+        const url = this.props.grapherView.grapher.url.canonicalUrl
         return (
             <div className="embedMenu" onClick={this.onClick}>
                 <h2>Embed</h2>
@@ -50,15 +50,15 @@ class EmbedMenu extends React.Component<{
                     onFocus={evt => evt.currentTarget.select()}
                     value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
-                {this.props.chartView.chart.embedExplorerCheckbox}
+                {this.props.grapherView.grapher.embedExplorerCheckbox}
             </div>
         )
     }
 }
 
 interface ShareMenuProps {
-    chart: Grapher
-    chartView: any
+    grapher: Grapher
+    grapherView: any
     onDismiss: () => void
 }
 
@@ -79,22 +79,22 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get title(): string {
-        return this.props.chart.currentTitle
+        return this.props.grapher.currentTitle
     }
 
     @computed get isDisabled(): boolean {
-        return !this.props.chart.slug
+        return !this.props.grapher.slug
     }
 
     @computed get editUrl(): string | undefined {
-        const { chart } = this.props
-        return Cookies.get("isAdmin") || chart.isDev
-            ? `${chart.adminBaseUrl}/admin/charts/${chart.id}/edit`
+        const { grapher } = this.props
+        return Cookies.get("isAdmin") || grapher.isDev
+            ? `${grapher.adminBaseUrl}/admin/charts/${grapher.id}/edit`
             : undefined
     }
 
     @computed get canonicalUrl(): string | undefined {
-        return this.props.chart.url.canonicalUrl
+        return this.props.grapher.url.canonicalUrl
     }
 
     @action.bound dismiss() {
@@ -119,8 +119,11 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
     @action.bound onEmbed() {
         if (this.canonicalUrl) {
-            this.props.chartView.addPopup(
-                <EmbedMenu key="EmbedMenu" chartView={this.props.chartView} />
+            this.props.grapherView.addPopup(
+                <EmbedMenu
+                    key="EmbedMenu"
+                    grapherView={this.props.grapherView}
+                />
             )
             this.dismiss()
         }

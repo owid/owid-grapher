@@ -41,7 +41,7 @@ const DEFAULT_MAX_YEAR = 2000
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 export interface TimelineProps {
-    chart: Grapher
+    grapher: Grapher
     years: number[]
     startYear: TimeBound
     endYear: TimeBound
@@ -94,7 +94,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @computed get chart() {
-        return this.props.chart
+        return this.props.grapher
     }
 
     @computed get isPlaying() {

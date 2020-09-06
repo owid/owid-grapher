@@ -12,7 +12,7 @@ import { CSVGenerator } from "./CSVGenerator"
 
 interface DownloadTabProps {
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }
 
 declare var Blob: any
@@ -20,10 +20,10 @@ declare var Blob: any
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
     @computed get targetWidth() {
-        return this.props.chart.idealBounds.width
+        return this.props.grapher.idealBounds.width
     }
     @computed get targetHeight() {
-        return this.props.chart.idealBounds.height
+        return this.props.grapher.idealBounds.height
     }
 
     @observable svgBlob?: Blob
@@ -60,11 +60,11 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
 
         const { targetWidth, targetHeight } = this
-        const { chart } = this.props
+        const { grapher } = this.props
 
-        chart.isExporting = true
-        const staticSVG = chart.staticSVG
-        chart.isExporting = false
+        grapher.isExporting = true
+        const staticSVG = grapher.staticSVG
+        grapher.isExporting = false
 
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8"
@@ -112,10 +112,10 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed get fallbackPngUrl() {
-        return `${this.props.chart.url.baseUrl}.png${this.props.chart.url.queryStr}`
+        return `${this.props.grapher.url.baseUrl}.png${this.props.grapher.url.queryStr}`
     }
     @computed get baseFilename() {
-        return this.props.chart.displaySlug
+        return this.props.grapher.displaySlug
     }
     @computed get svgPreviewUrl() {
         return this.svgDataUri
@@ -155,7 +155,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed get csvGenerator(): CSVGenerator {
-        return new CSVGenerator({ chart: this.props.chart })
+        return new CSVGenerator({ grapher: this.props.grapher })
     }
 
     renderReady() {
@@ -196,7 +196,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             maxWidth: previewWidth
         }
 
-        const externalCsvLink = this.props.chart.externalCsvLink
+        const externalCsvLink = this.props.grapher.externalCsvLink
         const csvGenerator = this.csvGenerator
         const csv_download = (
             <React.Fragment>

@@ -3,7 +3,7 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta charset="UTF-8" />
-        <title>OWID GCharts</title>
+        <title>Grapher Sandbox</title>
         <link
             href="https://fonts.googleapis.com/css?family=Lato:300,400,400i,700,700i|Playfair+Display:400,700&display=swap"
             rel="stylesheet"
@@ -17,17 +17,17 @@
         </main>
         <script src="http://localhost:8090/js/commons.js"></script>
         <script src="http://localhost:8090/js/owid.js"></script>
-        <script src="chart.js"></script>
+        <script src="grapher.js"></script>
         <script>
-            if (typeof sandboxChart === "undefined")
+            if (typeof sandboxGrapher === "undefined")
                 alert(
-                    "To use the Sandbox, first paste a ChartConfig object into 'sandbox/chart.js'. A sample is provided for you in 'sandbox/chart.sample.js'"
+                    "To use the Sandbox, first paste a Grapher object into 'sandbox/grapher.js'. A sample is provided for you in 'sandbox/grapher.sample.js'"
                 )
             var figure = document.getElementsByTagName("figure")[0]
 
             try {
-                var view = window.ChartView.bootstrap({
-                    jsonConfig: sandboxChart,
+                var view = window.GrapherView.bootstrap({
+                    jsonConfig: sandboxGrapher,
                     containerNode: figure,
                     queryStr: window.location.search
                 })

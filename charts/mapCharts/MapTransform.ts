@@ -36,14 +36,14 @@ interface MapDataValue {
 }
 
 export class MapTransform extends ChartTransform {
-    constructor(chart: Grapher) {
-        super(chart)
+    constructor(grapher: Grapher) {
+        super(grapher)
 
-        if (!chart.isNode) this.ensureValidConfig()
+        if (!grapher.isNode) this.ensureValidConfig()
     }
 
     get props() {
-        return this.chart.map
+        return this.grapher.map
     }
 
     @computed get variableId() {
@@ -77,20 +77,20 @@ export class MapTransform extends ChartTransform {
     }
 
     @computed get isValidConfig() {
-        return !!this.chart.primaryVariableId
+        return !!this.grapher.primaryVariableId
     }
 
     ensureValidConfig() {
-        const { chart } = this
+        const { grapher } = this
 
         // Validate the map variable id selection to something on the chart
         autorun(() => {
             const hasVariable =
                 this.variableId &&
-                chart.table.columnsByOwidVarId.get(this.variableId)
-            if (!hasVariable && chart.primaryVariableId)
+                grapher.table.columnsByOwidVarId.get(this.variableId)
+            if (!hasVariable && grapher.primaryVariableId)
                 runInAction(
-                    () => (this.props.variableId = chart.primaryVariableId)
+                    () => (this.props.variableId = grapher.primaryVariableId)
                 )
         })
     }
@@ -101,7 +101,7 @@ export class MapTransform extends ChartTransform {
         // into a case where the timeline needs to be shown
         return (
             this.timelineYears.length > 1 &&
-            !this.chart.hideTimeline &&
+            !this.grapher.hideTimeline &&
             !this.props.hideTimeline
         )
     }
@@ -110,12 +110,12 @@ export class MapTransform extends ChartTransform {
     @computed get isReady(): boolean {
         return (
             this.variableId !== undefined &&
-            !!this.chart.table.columnsByOwidVarId.get(this.variableId)
+            !!this.grapher.table.columnsByOwidVarId.get(this.variableId)
         )
     }
 
     @computed get dimension(): ChartDimension | undefined {
-        return this.chart.filledDimensions.find(
+        return this.grapher.filledDimensions.find(
             d => d.variableId === this.variableId
         )
     }
@@ -229,7 +229,7 @@ export class MapTransform extends ChartTransform {
 
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { targetYear, chart } = this
+        const { targetYear, grapher } = this
         const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
 
         if (targetYear === undefined || !valueByEntityAndYear) return {}
@@ -239,7 +239,7 @@ export class MapTransform extends ChartTransform {
 
         const result: { [key: string]: MapDataValue } = {}
 
-        const selectedEntityNames = new Set(chart.selectedEntityNames)
+        const selectedEntityNames = new Set(grapher.selectedEntityNames)
 
         entities.forEach(entity => {
             const valueByYear = valueByEntityAndYear.get(entity)

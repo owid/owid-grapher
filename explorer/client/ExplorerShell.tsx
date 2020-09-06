@@ -9,7 +9,7 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { CountryPicker } from "charts/controls/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { ExplorerQueryParams } from "./ExplorerProgram"
 import { throttle } from "charts/utils/Util"
 
@@ -18,7 +18,7 @@ import { throttle } from "charts/utils/Util"
 export class ExplorerShell extends React.Component<{
     explorerSlug: string
     controlPanels: JSX.Element[]
-    chart: Grapher
+    grapher: Grapher
     availableEntities: string[]
     headerElement: JSX.Element
     params: ExplorerQueryParams
@@ -86,7 +86,7 @@ export class ExplorerShell extends React.Component<{
         return (
             <CountryPicker
                 explorerSlug={this.props.explorerSlug}
-                table={this.props.chart.table}
+                table={this.props.grapher.table}
                 isDropdownMenu={this.isMobile}
                 availableEntities={this.props.availableEntities}
                 selectedEntities={this.selectedEntityNames}
@@ -179,11 +179,11 @@ export class ExplorerShell extends React.Component<{
                         ref={this.chartContainerRef}
                     >
                         {this.chartBounds && (
-                            <ChartView
+                            <GrapherView
                                 bounds={this.chartBounds}
-                                chart={this.props.chart}
+                                grapher={this.props.grapher}
                                 isEmbed={true}
-                            ></ChartView>
+                            ></GrapherView>
                         )}
                     </div>
                 </div>

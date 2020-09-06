@@ -1,6 +1,6 @@
 import * as React from "react"
 import "site/client/owid.scss"
-import "charts/core/chart.scss"
+import "charts/core/grapher.scss"
 import { NoDataOverlay } from "./NoDataOverlay"
 import { Bounds } from "charts/utils/Bounds"
 

@@ -14,7 +14,7 @@ import {
 @observer
 export class SlopeChart extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     // currently hovered individual series key
     @observable hoverKey?: string
@@ -22,11 +22,11 @@ export class SlopeChart extends React.Component<{
     @observable hoverColor?: string
 
     @computed get chart(): Grapher {
-        return this.props.chart
+        return this.props.grapher
     }
 
     @computed get transform() {
-        return this.props.chart.slopeChartTransform
+        return this.props.grapher.slopeChartTransform
     }
 
     @computed.struct get bounds(): Bounds {
@@ -200,8 +200,8 @@ export class SlopeChart extends React.Component<{
                 />
             )
 
-        const { bounds, chart } = this.props
-        const { yAxis } = chart
+        const { bounds, grapher } = this.props
+        const { yAxis } = grapher
         const { data } = this.transform
         const {
             legend,
@@ -217,13 +217,13 @@ export class SlopeChart extends React.Component<{
         return (
             <g>
                 <LabelledSlopes
-                    chart={chart}
+                    grapher={grapher}
                     bounds={innerBounds}
-                    isInteractive={chart.isInteractive}
+                    isInteractive={grapher.isInteractive}
                     yTickFormat={this.transform.yTickFormat}
                     yAxisOptions={yAxis}
                     data={data}
-                    fontSize={chart.baseFontSize}
+                    fontSize={grapher.baseFontSize}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}

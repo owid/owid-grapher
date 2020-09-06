@@ -35,7 +35,6 @@ import {
     lastOfNonEmptyArray,
     find
 } from "charts/utils/Util"
-import { AxisContainerOptions } from "charts/axis/AxisOptions"
 import {
     ChartType,
     GrapherTabOption,
@@ -64,7 +63,7 @@ import { StackedAreaTransform } from "charts/areaCharts/StackedAreaTransform"
 import { LineChartTransform } from "charts/lineCharts/LineChartTransform"
 import { ScatterTransform } from "charts/scatterCharts/ScatterTransform"
 import { SlopeChartTransform } from "charts/slopeCharts/SlopeChartTransform"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { Bounds } from "charts/utils/Bounds"
 import { IChartTransform } from "charts/chart/ChartTransform"
 import { TooltipProps } from "charts/chart/Tooltip"
@@ -345,7 +344,7 @@ export class Grapher extends PersistableGrapher {
     private initFontSizeInAxisContainers() {
         // Todo: there is probably a cleaner way to pass fontSize in.
         const that = this
-        const axisContainer: AxisContainerOptions = {
+        const axisContainer = {
             get fontSize() {
                 return that.baseFontSize
             }
@@ -881,7 +880,11 @@ export class Grapher extends PersistableGrapher {
 
     @computed get staticSVG(): string {
         const svg = ReactDOMServer.renderToStaticMarkup(
-            <ChartView chart={this} isExport={true} bounds={this.idealBounds} />
+            <GrapherView
+                grapher={this}
+                isExport={true}
+                bounds={this.idealBounds}
+            />
         )
 
         return svg

@@ -44,7 +44,7 @@ import { TimeBound } from "charts/utils/TimeBounds"
 @observer
 export class ScatterPlot extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     // Set default props
     static defaultProps = {
@@ -56,12 +56,12 @@ export class ScatterPlot extends React.Component<{
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get chart(): Grapher {
-        return this.props.chart
+    @computed get grapher(): Grapher {
+        return this.props.grapher
     }
 
     @computed get transform() {
-        return this.chart.scatterTransform
+        return this.grapher.scatterTransform
     }
 
     @computed.struct get bounds(): Bounds {
@@ -75,11 +75,12 @@ export class ScatterPlot extends React.Component<{
         targetStartYear: TimeBound
         targetEndYear: TimeBound
     }) {
-        this.chart.timeDomain = [targetStartYear, targetEndYear]
+        this.grapher.timeDomain = [targetStartYear, targetEndYear]
     }
 
     @action.bound onSelectEntity(key: EntityDimensionKey) {
-        if (this.chart.addCountryMode !== "disabled") this.chart.toggleKey(key)
+        if (this.grapher.addCountryMode !== "disabled")
+            this.grapher.toggleKey(key)
     }
 
     // Only want to show colors on legend that are actually on the chart right now
@@ -100,7 +101,7 @@ export class ScatterPlot extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.grapher.baseFontSize
             },
             get colorables() {
                 return that.transform.colorScale.legendData
@@ -129,8 +130,8 @@ export class ScatterPlot extends React.Component<{
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { chart, hoverColor } = this
-        if (chart.addCountryMode === "disabled" || hoverColor === undefined)
+        const { grapher, hoverColor } = this
+        if (grapher.addCountryMode === "disabled" || hoverColor === undefined)
             return
 
         const { transform } = this
@@ -138,22 +139,28 @@ export class ScatterPlot extends React.Component<{
             .filter(g => g.color === hoverColor)
             .map(g => g.entityDimensionKey)
         const allKeysActive =
-            intersection(keysToToggle, chart.selectedKeys).length ===
+            intersection(keysToToggle, grapher.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            chart.selectedKeys = without(chart.selectedKeys, ...keysToToggle)
-        else chart.selectedKeys = uniq(chart.selectedKeys.concat(keysToToggle))
+            grapher.selectedKeys = without(
+                grapher.selectedKeys,
+                ...keysToToggle
+            )
+        else
+            grapher.selectedKeys = uniq(
+                grapher.selectedKeys.concat(keysToToggle)
+            )
     }
 
     // Colors on the legend for which every matching group is focused
     @computed private get focusColors(): string[] {
-        const { colorsInUse, transform, chart } = this
+        const { colorsInUse, transform, grapher } = this
         return colorsInUse.filter(color => {
             const matchingKeys = transform.currentData
                 .filter(g => g.color === color)
                 .map(g => g.entityDimensionKey)
             return (
-                intersection(matchingKeys, chart.selectedKeys).length ===
+                intersection(matchingKeys, grapher.selectedKeys).length ===
                 matchingKeys.length
             )
         })
@@ -178,7 +185,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed private get focusKeys(): string[] {
-        return this.chart.selectedKeys
+        return this.grapher.selectedKeys
     }
 
     @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
@@ -193,7 +200,7 @@ export class ScatterPlot extends React.Component<{
                 return that.sidebarWidth
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.grapher.baseFontSize
             },
             get startYear() {
                 return that.transform.startYear
@@ -204,7 +211,7 @@ export class ScatterPlot extends React.Component<{
             get endpointsOnly() {
                 return that.transform.compareEndPointsOnly
             },
-            formatYearFunction: that.chart.formatYearFunction
+            formatYearFunction: that.grapher.formatYearFunction
         })
     }
 
@@ -260,7 +267,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed get comparisonLines() {
-        return this.chart.comparisonLines
+        return this.grapher.comparisonLines
     }
 
     @action.bound onToggleEndpoints() {
@@ -288,13 +295,13 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed get hideLines(): boolean {
-        return !!this.chart.hideConnectedScatterLines
+        return !!this.grapher.hideConnectedScatterLines
     }
 
     @computed private get scatterPointLabelFormatFunction() {
         const scatterPointLabelFormatFunctions = {
             year: (scatterValue: ScatterValue) =>
-                this.chart.formatYearFunction(scatterValue.year),
+                this.grapher.formatYearFunction(scatterValue.year),
             y: (scatterValue: ScatterValue) =>
                 this.transform.yFormatTooltip(scatterValue.y),
             x: (scatterValue: ScatterValue) =>
@@ -302,14 +309,14 @@ export class ScatterPlot extends React.Component<{
         }
 
         return scatterPointLabelFormatFunctions[
-            this.chart.scatterPointLabelStrategy || "year"
+            this.grapher.scatterPointLabelStrategy || "year"
         ]
     }
     render() {
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.chart}
+                    options={this.grapher}
                     bounds={this.bounds}
                     message={this.transform.failMessage}
                 />
@@ -329,14 +336,14 @@ export class ScatterPlot extends React.Component<{
             tooltipSeries,
             comparisonLines,
             hideLines,
-            chart
+            grapher
         } = this
         const { currentData, sizeDomain, colorScale } = transform
 
         return (
             <g className="ScatterPlot">
                 <DualAxisComponent
-                    isInteractive={chart.isInteractive}
+                    isInteractive={grapher.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={false}
                 />
@@ -349,7 +356,7 @@ export class ScatterPlot extends React.Component<{
                         />
                     ))}
                 <PointsWithLabels
-                    chart={chart}
+                    grapher={grapher}
                     hideLines={hideLines}
                     data={currentData}
                     dualAxis={dualAxis}
@@ -399,7 +406,7 @@ export class ScatterPlot extends React.Component<{
                         formatXYear={transform.xFormatYear}
                         series={tooltipSeries}
                         maxWidth={sidebarWidth}
-                        fontSize={this.chart.baseFontSize}
+                        fontSize={this.grapher.baseFontSize}
                         x={bounds.right - sidebarWidth}
                         y={
                             bounds.top +

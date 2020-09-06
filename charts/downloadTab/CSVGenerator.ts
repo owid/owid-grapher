@@ -10,7 +10,7 @@ import {
 import { ChartDimension } from "charts/chart/ChartDimension"
 
 interface CSVGeneratorProps {
-    chart: Grapher
+    grapher: Grapher
 }
 
 interface TimeUnitDependentParams {
@@ -25,7 +25,7 @@ export class CSVGenerator {
     }
 
     @computed get chart() {
-        return this.props.chart
+        return this.props.grapher
     }
 
     @computed get csvDimensions() {
@@ -50,7 +50,7 @@ export class CSVGenerator {
     }
 
     @computed private get dayColumn() {
-        return this.props.chart.table.dayColumn
+        return this.props.grapher.table.dayColumn
     }
 
     baseTitleRow = ["Entity", "Code"]

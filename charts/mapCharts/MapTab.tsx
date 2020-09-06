@@ -19,7 +19,7 @@ import { MapProjection } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { ChartLayout, ChartLayoutView } from "charts/chart/ChartLayout"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { LoadingOverlay } from "charts/loadingIndicator/LoadingOverlay"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
 import { MapTooltip } from "./MapTooltip"
@@ -41,8 +41,8 @@ interface MapWithLegendProps {
     projection: MapProjection
     defaultFill: string
     mapToDataEntities: { [id: string]: string }
-    chart: Grapher
-    chartView: ChartView
+    grapher: Grapher
+    grapherView: GrapherView
 }
 
 @observer
@@ -59,7 +59,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             d.id === undefined ? undefined : this.props.choroplethData[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
-        const mouse = getRelativeMouse(this.props.chartView.base.current, ev)
+        const mouse = getRelativeMouse(this.props.grapherView.base.current, ev)
         if (d.id !== undefined)
             this.tooltipTarget = {
                 x: mouse.x,
@@ -69,7 +69,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @computed get chart() {
-        return this.props.chart
+        return this.props.grapher
     }
 
     @action.bound onMapMouseLeave() {
@@ -83,7 +83,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         if (
             !chart.hasChartTab ||
             !(chart.isLineChart || chart.isScatter) ||
-            this.props.chartView.isMobile ||
+            this.props.grapherView.isMobile ||
             featureId === undefined
         )
             return false
@@ -240,7 +240,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     <MapTooltip
                         {...tooltipProps}
                         tooltipTarget={tooltipTarget}
-                        chart={this.chart}
+                        grapher={this.chart}
                     />
                 )}
             </g>
@@ -249,25 +249,25 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 }
 
 interface MapTabProps {
-    chart: Grapher
-    chartView: ChartView
+    grapher: Grapher
+    grapherView: GrapherView
     bounds: Bounds
 }
 
 @observer
 export class MapTab extends React.Component<MapTabProps> {
     @computed get map(): MapTransform {
-        return this.props.chart.mapTransform as MapTransform
+        return this.props.grapher.mapTransform as MapTransform
     }
 
     @computed get layout() {
         const that = this
         return new ChartLayout({
-            get chart() {
-                return that.props.chart
+            get grapher() {
+                return that.props.grapher
             },
-            get chartView() {
-                return that.props.chartView
+            get grapherView() {
+                return that.props.grapherView
             },
             get bounds() {
                 return that.props.bounds
@@ -281,10 +281,10 @@ export class MapTab extends React.Component<MapTabProps> {
 
         return (
             <ChartLayoutView layout={this.layout}>
-                {this.props.chart.isReady ? (
+                {this.props.grapher.isReady ? (
                     <MapWithLegend
-                        chart={this.props.chart}
-                        chartView={this.props.chartView}
+                        grapher={this.props.grapher}
+                        grapherView={this.props.grapherView}
                         bounds={layout.innerBounds}
                         choroplethData={map.choroplethData}
                         years={map.timelineYears}

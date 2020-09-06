@@ -92,7 +92,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
         const { dualAxis, showTickMarks } = this.props
         const { bounds, xAxis, yAxis, innerBounds } = dualAxis
 
-        const maxX = undefined // {chartView.tabBounds.width} todo
+        const maxX = undefined // {grapherView.tabBounds.width} todo
 
         return (
             <g className="DualAxisView">

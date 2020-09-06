@@ -1,6 +1,6 @@
 // CSS
 import "site/client/owid.scss"
-import "charts/core/chart.scss"
+import "charts/core/grapher.scss"
 
 // Enable mobx-formatters
 import * as Mobx from "mobx"
@@ -9,7 +9,7 @@ mobxFormatters(Mobx)
 //Mobx.useStrict(true)
 
 import { GrapherPageUtils } from "site/client/GrapherPageUtils"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
-window.ChartView = ChartView
+window.GrapherView = GrapherView

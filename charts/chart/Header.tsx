@@ -7,7 +7,7 @@ import { Logo } from "charts/chart/Logos"
 
 interface HeaderProps {
     maxWidth: number
-    chart: Grapher
+    grapher: Grapher
 }
 
 export class Header {
@@ -18,21 +18,21 @@ export class Header {
     }
 
     @computed get titleText() {
-        return this.props.chart.currentTitle
+        return this.props.grapher.currentTitle
     }
 
     @computed get subtitleText() {
-        return this.props.chart.subtitle
+        return this.props.grapher.subtitle
     }
 
     @computed get logo(): Logo | undefined {
-        if (this.props.chart.hideLogo) {
+        if (this.props.grapher.hideLogo) {
             return undefined
         } else {
             return new Logo({
-                logo: this.props.chart.logo,
-                isLink: !this.props.chart.isNativeEmbed,
-                fontSize: this.props.chart.baseFontSize
+                logo: this.props.grapher.logo,
+                isLink: !this.props.grapher.isNativeEmbed,
+                fontSize: this.props.grapher.baseFontSize
             })
         }
     }
@@ -54,7 +54,7 @@ export class Header {
         while (true) {
             title = new TextWrap({
                 maxWidth: maxWidth,
-                fontSize: fontScale * props.chart.baseFontSize,
+                fontSize: fontScale * props.grapher.baseFontSize,
                 text: this.titleText,
                 lineHeight: 1
             })
@@ -64,7 +64,7 @@ export class Header {
 
         return new TextWrap({
             maxWidth: maxWidth,
-            fontSize: fontScale * props.chart.baseFontSize,
+            fontSize: fontScale * props.grapher.baseFontSize,
             text: this.titleText,
             lineHeight: 1
         })
@@ -88,7 +88,7 @@ export class Header {
                 return that.subtitleWidth
             },
             get fontSize() {
-                return 0.8 * that.props.chart.baseFontSize
+                return 0.8 * that.props.grapher.baseFontSize
             },
             get text() {
                 return that.subtitleText
@@ -103,7 +103,7 @@ export class Header {
     }
 
     @computed get height() {
-        if (this.props.chart.isMediaCard) return 0
+        if (this.props.grapher.isMediaCard) return 0
         else
             return Math.max(
                 this.title.height +
@@ -127,9 +127,9 @@ class HeaderView extends React.Component<{
     render() {
         const { props } = this
         const { title, logo, subtitle } = props.header
-        const { chart, maxWidth } = props.header.props
+        const { grapher, maxWidth } = props.header.props
 
-        if (chart.isMediaCard) return null
+        if (grapher.isMediaCard) return null
 
         return (
             <g className="HeaderView">
@@ -137,7 +137,7 @@ class HeaderView extends React.Component<{
                     logo.height > 0 &&
                     logo.renderSVG(props.x + maxWidth - logo.width, props.y)}
                 <a
-                    href={chart.url.canonicalUrl}
+                    href={grapher.url.canonicalUrl}
                     style={{
                         fontFamily:
                             '"Playfair Display", Georgia, "Times New Roman", serif'
@@ -158,11 +158,11 @@ class HeaderView extends React.Component<{
 
 @observer
 export class HeaderHTML extends React.Component<{
-    chart: Grapher
+    grapher: Grapher
     header: Header
 }> {
     render() {
-        const { chart, header } = this.props
+        const { grapher, header } = this.props
 
         const titleStyle = {
             ...header.title.htmlStyle,
@@ -178,7 +178,7 @@ export class HeaderHTML extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {header.logo && header.logo.renderHTML()}
-                <a href={chart.url.canonicalUrl} target="_blank">
+                <a href={grapher.url.canonicalUrl} target="_blank">
                     <h1 style={titleStyle}>{header.title.renderHTML()}</h1>
                 </a>
                 <p style={subtitleStyle}>{header.subtitle.renderHTML()}</p>

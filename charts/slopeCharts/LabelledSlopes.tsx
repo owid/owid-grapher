@@ -285,7 +285,7 @@ class Slope extends React.Component<SlopeProps> {
 }
 
 interface LabelledSlopesProps {
-    chart: Grapher
+    grapher: Grapher
     bounds: Bounds
     data: SlopeChartSeries[]
     isInteractive: boolean
@@ -712,7 +712,9 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         } = this
 
         if (isEmpty(slopeData))
-            return <NoDataOverlay options={this.props.chart} bounds={bounds} />
+            return (
+                <NoDataOverlay options={this.props.grapher} bounds={bounds} />
+            )
 
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()

@@ -13,7 +13,7 @@ describe(DataTable, () => {
         let view: ReactWrapper
         beforeAll(() => {
             const chart = setupGrapher(677, [104402])
-            view = mount(<DataTable chart={chart} />)
+            view = mount(<DataTable grapher={chart} />)
         })
 
         it("renders a table", () => {
@@ -68,7 +68,7 @@ describe(DataTable, () => {
                 minTime: 1990,
                 maxTime: 2017
             })
-            view = mount(<DataTable chart={chart} />)
+            view = mount(<DataTable grapher={chart} />)
         })
 
         it("header is split into two rows", () => {
@@ -105,7 +105,7 @@ describe(DataTable, () => {
         let view: ShallowWrapper
         beforeAll(() => {
             const chart = setupGrapher(792, [3512])
-            view = shallow(<DataTable chart={chart} />)
+            view = shallow(<DataTable grapher={chart} />)
         })
 
         it("renders no value when data is not available for years within the tolerance", () => {
@@ -124,11 +124,11 @@ describe(DataTable, () => {
     })
 
     describe("when you try to hide countries", () => {
-        let chart: Grapher
+        let grapher: Grapher
         let view: ShallowWrapper
         beforeAll(() => {
-            chart = setupGrapher(677, [104402])
-            view = shallow(<DataTable chart={chart} />)
+            grapher = setupGrapher(677, [104402])
+            view = shallow(<DataTable grapher={grapher} />)
         })
 
         it("initially renders small countries", () => {
@@ -136,7 +136,7 @@ describe(DataTable, () => {
         })
 
         it("renders no small countries after filter is added", () => {
-            chart.toggleMinPopulationFilter()
+            grapher.toggleMinPopulationFilter()
             expect(view.find("tbody tr")).toHaveLength(187)
         })
     })

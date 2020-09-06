@@ -11,7 +11,7 @@ import {
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { Bounds } from "charts/utils/Bounds"
 import { includes, capitalize } from "charts/utils/Util"
 import { Grapher } from "charts/core/Grapher"
@@ -268,7 +268,7 @@ export class ChartEditorPage extends React.Component<{
                             <EditorCustomizeTab editor={editor} />
                         )}
                         {editor.tab === "scatter" && (
-                            <EditorScatterTab chart={grapher} />
+                            <EditorScatterTab grapher={grapher} />
                         )}
                         {editor.tab === "map" && (
                             <EditorMapTab editor={editor} />
@@ -292,8 +292,8 @@ export class ChartEditorPage extends React.Component<{
                         }}
                     >
                         {
-                            <ChartView
-                                chart={grapher}
+                            <GrapherView
+                                grapher={grapher}
                                 bounds={
                                     previewMode === "mobile"
                                         ? new Bounds(0, 0, 360, 500)

@@ -1,7 +1,7 @@
 import React from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "charts/core/GrapherView"
 import { Bounds } from "charts/utils/Bounds"
 import { GrapherInterface } from "charts/core/GrapherInterface"
 import { Grapher } from "charts/core/Grapher"
@@ -174,8 +174,8 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound selectAllCommand() {
-        const codeMap = this.chart.table.entityNameToCodeMap
-        this.chart.table.availableEntities.forEach(option =>
+        const codeMap = this.grapher.table.entityNameToCodeMap
+        this.grapher.table.availableEntities.forEach(option =>
             this.props.params.selectedCountryCodes.add(codeMap.get(option)!)
         )
         this.selectionChangeFromBuilder = true
@@ -380,7 +380,7 @@ export class CovidExplorer extends React.Component<{
         countryName: string,
         value?: boolean
     ) {
-        const codeMap = this.chart.table.entityNameToCodeMap
+        const codeMap = this.grapher.table.entityNameToCodeMap
         this.toggleSelectedCountry(codeMap.get(countryName)!, value)
         this.selectionChangeFromBuilder = true
         this.renderControlsThenUpdateChart()
@@ -440,7 +440,7 @@ export class CovidExplorer extends React.Component<{
         return (
             <CountryPicker
                 explorerSlug="Covid"
-                table={this.chart.table}
+                table={this.grapher.table}
                 pickerColumnSlugs={
                     new Set(Object.keys(metricPickerColumnSpecs))
                 }
@@ -530,11 +530,11 @@ export class CovidExplorer extends React.Component<{
                         ref={this.chartContainerRef}
                     >
                         {this.chartBounds && (
-                            <ChartView
+                            <GrapherView
                                 bounds={this.chartBounds}
-                                chart={this.chart}
+                                grapher={this.grapher}
                                 isEmbed={true}
-                            ></ChartView>
+                            ></GrapherView>
                         )}
                     </div>
                 </div>
@@ -557,7 +557,7 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound toggleControls() {
         this.props.params.hideControls = !this.props.params.hideControls
-        this.chart.embedExplorerCheckbox = this.controlsToggleElement
+        this.grapher.embedExplorerCheckbox = this.controlsToggleElement
         this._updateChart()
         requestAnimationFrame(() => this.onResize())
     }
@@ -567,8 +567,8 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed get selectedCountryOptions(): string[] {
-        const codeMap = this.chart.table.entityNameToCodeMap
-        return this.chart.table.availableEntities.filter(option =>
+        const codeMap = this.grapher.table.entityNameToCodeMap
+        return this.grapher.table.availableEntities.filter(option =>
             this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
         )
     }
@@ -659,8 +659,8 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get selectedData() {
-        const countryCodeMap = this.chart.table.entityCodeToNameMap
-        const entityIdMap = this.chart.table.entityNameToIdMap
+        const countryCodeMap = this.grapher.table.entityCodeToNameMap
+        const entityIdMap = this.grapher.table.entityNameToIdMap
         return Array.from(this.props.params.selectedCountryCodes)
             .map(code => countryCodeMap.get(code))
             .filter(i => i)
@@ -724,7 +724,7 @@ export class CovidExplorer extends React.Component<{
     get covidExplorerTable() {
         if (!this._covidExplorerTable) {
             this._covidExplorerTable = new CovidExplorerTable(
-                this.chart.table,
+                this.grapher.table,
                 this.props.data,
                 this.props.covidChartAndVariableMeta.variables,
                 this.props.isExplorerPage
@@ -738,7 +738,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed get selectedEntityNames(): string[] {
-        const entityCodeMap = this.chart.table.entityCodeToNameMap
+        const entityCodeMap = this.grapher.table.entityCodeToNameMap
         return Array.from(this.props.params.selectedCountryCodes.values())
             .map(code => entityCodeMap.get(code))
             .filter(i => i) as string[]
@@ -771,7 +771,7 @@ export class CovidExplorer extends React.Component<{
         if (params.colorStrategy === "ptr")
             this.shortTermPositivityRateVarId = this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()
 
-        const chartProps = this.chart
+        const chartProps = this.grapher
         chartProps.title = this.chartTitle
         chartProps.subtitle = this.subtitle
         chartProps.note = this.note
@@ -820,7 +820,10 @@ export class CovidExplorer extends React.Component<{
         else covidExplorerTable.removeNegativeFilterColumn()
 
         // Do not show unselected groups on scatterplots
-        if (params.type === "ScatterPlot" && this.chart.currentTab === "chart")
+        if (
+            params.type === "ScatterPlot" &&
+            this.grapher.currentTab === "chart"
+        )
             covidExplorerTable.addGroupFilterColumn()
         else covidExplorerTable.removeGroupFilterColumn()
 
@@ -829,11 +832,11 @@ export class CovidExplorer extends React.Component<{
 
         chartProps.id = this.sourceChartId
         chartProps.selectedData = this.selectedData
-        this.chart.url.externallyProvidedParams = this.props.params.toQueryParams
+        this.grapher.url.externallyProvidedParams = this.props.params.toQueryParams
     }
 
     private _updateColorScale() {
-        this.chart.colorScale.updateFromObject(
+        this.grapher.colorScale.updateFromObject(
             this.colorScales[this.constrainedParams.colorStrategy]
         )
     }
@@ -847,7 +850,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     private _updateMap() {
-        const map = this.chart.map
+        const map = this.grapher.map
         const region = map.projection
 
         Object.assign(map, this.sourceChart?.map || this.defaultMapConfig)
@@ -862,9 +865,9 @@ export class CovidExplorer extends React.Component<{
     componentDidMount() {
         if (this.props.bindToWindow) this.bindToWindow()
         // Show 'Add country' & 'Select countries' controls if the explorer controls are hidden.
-        this.chart.hideEntityControls = this.showExplorerControls
-        this.chart.externalCsvLink = covidDataPath
-        this.chart.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
+        this.grapher.hideEntityControls = this.showExplorerControls
+        this.grapher.externalCsvLink = covidDataPath
+        this.grapher.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
 
         this.observeChartEntitySelection()
@@ -875,14 +878,14 @@ export class CovidExplorer extends React.Component<{
 
         // call resize for the first time to initialize chart
         this.onResize()
-        this.chart.embedExplorerCheckbox = this.controlsToggleElement
+        this.grapher.embedExplorerCheckbox = this.controlsToggleElement
         ;(window as any).covidDataExplorer = this
 
         if (this.props.enableKeyboardShortcuts)
             this.keyboardShortcuts.forEach(shortcut => {
                 Mousetrap.bind(shortcut.combo, () => {
                     shortcut.fn()
-                    this.chart.analytics.logKeyboardShortcut(
+                    this.grapher.analytics.logKeyboardShortcut(
                         shortcut.title,
                         shortcut.combo
                     )
@@ -892,11 +895,11 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound playDefaultViewCommand() {
         // todo: Should  just be "coronaDefaultView"
-        const props = this.chart
+        const props = this.grapher
         props.tab = "chart"
-        this.chart.xAxis.scaleType = ScaleType.linear
-        this.chart.yAxis.scaleType = ScaleType.log
-        this.chart.timeDomain = [
+        this.grapher.xAxis.scaleType = ScaleType.linear
+        this.grapher.yAxis.scaleType = ScaleType.log
+        this.grapher.timeDomain = [
             TimeBoundValue.unboundedLeft,
             TimeBoundValue.unboundedRight
         ]
@@ -905,7 +908,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleTabCommand() {
-        this.chart.tab = next(["chart", "map", "table"], this.chart.tab)
+        this.grapher.tab = next(["chart", "map", "table"], this.grapher.tab)
     }
 
     @action.bound toggleKeyboardHelpCommand() {
@@ -991,16 +994,16 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleYScaleTypeCommand() {
-        this.chart.yAxis.scaleType = next(
+        this.grapher.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
-            this.chart.yAxis.scaleType
+            this.grapher.yAxis.scaleType
         )
     }
 
     @action.bound toggleTimelineCommand() {
         // Todo: add tests for this
-        this.chart.url.setTimeFromTimeQueryParam(
-            next(["latest", "earliest", ".."], this.chart.url.timeParam!)
+        this.grapher.url.setTimeFromTimeQueryParam(
+            next(["latest", "earliest", ".."], this.grapher.url.timeParam!)
         )
         this.renderControlsThenUpdateChart()
     }
@@ -1014,13 +1017,13 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleFilterAllCommand() {
-        this.chart.minPopulationFilter =
-            this.chart.minPopulationFilter === 2e9 ? undefined : 2e9
+        this.grapher.minPopulationFilter =
+            this.grapher.minPopulationFilter === 2e9 ? undefined : 2e9
         this.renderControlsThenUpdateChart()
     }
 
     @action.bound togglePlayingCommand() {
-        this.chart.isPlaying = !this.chart.isPlaying
+        this.grapher.isPlaying = !this.grapher.isPlaying
     }
 
     @action.bound toggleDimensionColumnCommand(
@@ -1058,7 +1061,7 @@ export class CovidExplorer extends React.Component<{
     // todo: remove
     private observeChartEntitySelection() {
         this.disposers.push(
-            observe(this.chart, "selectedEntityCodes", change => {
+            observe(this.grapher, "selectedEntityCodes", change => {
                 // Ignore the change if it was triggered by the chart builder,
                 // but do not ignore subsequent changes.
                 if (this.selectionChangeFromBuilder) {
@@ -1110,7 +1113,7 @@ export class CovidExplorer extends React.Component<{
 
     bindToWindow() {
         new UrlBinder().bindToWindow(
-            new ExtendedGrapherUrl(this.chart.url, [this.props.params])
+            new ExtendedGrapherUrl(this.grapher.url, [this.props.params])
         )
     }
 
@@ -1121,14 +1124,14 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get yColumn() {
-        return this.chart.table.columnsBySlug.get(
+        return this.grapher.table.columnsBySlug.get(
             this.constrainedParams.yColumnSlug
         )!
     }
 
     @computed private get xColumn() {
         return this.constrainedParams.xColumnSlug
-            ? this.chart.table.columnsBySlug.get(
+            ? this.grapher.table.columnsBySlug.get(
                   this.constrainedParams.xColumnSlug!
               )!
             : undefined
@@ -1136,7 +1139,7 @@ export class CovidExplorer extends React.Component<{
 
     @computed private get sizeColumn() {
         return this.constrainedParams.sizeColumn
-            ? this.chart.table.columnsBySlug.get(
+            ? this.grapher.table.columnsBySlug.get(
                   this.constrainedParams.sizeColumn!
               )!
             : undefined
@@ -1155,7 +1158,7 @@ export class CovidExplorer extends React.Component<{
             intervalSpecs[interval].smoothing
         )
 
-        const column = this.chart.table.columnsBySlug.get(colSlug)
+        const column = this.grapher.table.columnsBySlug.get(colSlug)
 
         if (!column) throw Error(`${colSlug} does not exist!`)
         return {
@@ -1232,12 +1235,14 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action private _addDataTableOnlyDimensionsToChart() {
-        this.chart.dataTableOnlyDimensions = this.dataTableOnlyDimensions.map(
+        this.grapher.dataTableOnlyDimensions = this.dataTableOnlyDimensions.map(
             (dimSpec, index) =>
                 new ChartDimension(
                     index,
                     new ChartDimensionSpec(dimSpec),
-                    this.chart.table.columnsByOwidVarId.get(dimSpec.variableId)!
+                    this.grapher.table.columnsByOwidVarId.get(
+                        dimSpec.variableId
+                    )!
                 )
         )
     }
@@ -1366,7 +1371,7 @@ export class CovidExplorer extends React.Component<{
             : ""
     }
 
-    @observable.ref chart: Grapher = new Grapher(
+    @observable.ref grapher: Grapher = new Grapher(
         {
             slug: covidDashboardSlug,
             type: this.constrainedParams.type,

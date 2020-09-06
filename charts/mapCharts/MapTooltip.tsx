@@ -19,13 +19,13 @@ interface MapTooltipProps {
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
-    chart: Grapher
+    grapher: Grapher
 }
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
     @computed get chart() {
-        return this.props.chart
+        return this.props.grapher
     }
 
     sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.year

@@ -9,7 +9,7 @@ import { DataTable } from "./DataTable"
 @observer
 export class TableTab extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     @computed get bounds() {
         return this.props.bounds
@@ -30,7 +30,7 @@ export class TableTab extends React.Component<{
                         overflow: "auto"
                     }}
                 >
-                    <DataTable chart={this.props.chart} />
+                    <DataTable grapher={this.props.grapher} />
                 </div>
             </div>
         )

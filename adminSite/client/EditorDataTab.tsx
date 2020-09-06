@@ -18,7 +18,7 @@ import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 interface EntityDimensionKeyItemProps extends EditableListItemProps {
-    chart: Grapher
+    grapher: Grapher
     entityDimensionKey: EntityDimensionKey
 }
 
@@ -29,21 +29,21 @@ class EntityDimensionKeyItem extends React.Component<
     @observable.ref isChoosingColor: boolean = false
 
     @computed get color() {
-        return this.props.chart.keyColors[this.props.entityDimensionKey]
+        return this.props.grapher.keyColors[this.props.entityDimensionKey]
     }
 
     @action.bound onColor(color: string | undefined) {
-        this.props.chart.setKeyColor(this.props.entityDimensionKey, color)
+        this.props.grapher.setKeyColor(this.props.entityDimensionKey, color)
     }
 
     @action.bound onRemove() {
-        this.props.chart.deselect(this.props.entityDimensionKey)
+        this.props.grapher.deselect(this.props.entityDimensionKey)
     }
 
     render() {
         const { props, color } = this
-        const { chart, entityDimensionKey, ...rest } = props
-        const meta = chart.entityDimensionMap.get(entityDimensionKey)
+        const { grapher, entityDimensionKey, ...rest } = props
+        const meta = grapher.entityDimensionMap.get(entityDimensionKey)
 
         return (
             <EditableListItem
@@ -67,11 +67,11 @@ class EntityDimensionKeyItem extends React.Component<
 }
 
 @observer
-class KeysSection extends React.Component<{ chart: Grapher }> {
+class KeysSection extends React.Component<{ grapher: Grapher }> {
     @observable.ref dragKey?: EntityDimensionKey
 
     @action.bound onAddKey(key: EntityDimensionKey) {
-        this.props.chart.selectEntityDimensionKey(key)
+        this.props.grapher.selectEntityDimensionKey(key)
     }
 
     @action.bound onStartDrag(key: EntityDimensionKey) {
@@ -88,20 +88,20 @@ class KeysSection extends React.Component<{ chart: Grapher }> {
     @action.bound onMouseEnter(targetKey: EntityDimensionKey) {
         if (!this.dragKey || targetKey === this.dragKey) return
 
-        const selectedKeys = clone(this.props.chart.selectedKeys)
+        const selectedKeys = clone(this.props.grapher.selectedKeys)
         const dragIndex = selectedKeys.indexOf(this.dragKey)
         const targetIndex = selectedKeys.indexOf(targetKey)
         selectedKeys.splice(dragIndex, 1)
         selectedKeys.splice(targetIndex, 0, this.dragKey)
-        this.props.chart.selectedKeys = selectedKeys
+        this.props.grapher.selectedKeys = selectedKeys
     }
 
     render() {
-        const { chart } = this.props
-        const { selectedKeys, remainingKeys } = chart
+        const { grapher } = this.props
+        const { selectedKeys, remainingKeys } = grapher
 
         const keyLabels = remainingKeys.map(
-            key => chart.lookupKey(key).fullLabel
+            key => grapher.lookupKey(key).fullLabel
         )
 
         return (
@@ -116,7 +116,7 @@ class KeysSection extends React.Component<{ chart: Grapher }> {
                     {map(selectedKeys, key => (
                         <EntityDimensionKeyItem
                             key={key}
-                            chart={chart}
+                            grapher={grapher}
                             entityDimensionKey={key}
                             onMouseDown={() => this.onStartDrag(key)}
                             onMouseEnter={() => this.onMouseEnter(key)}
@@ -187,7 +187,7 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                         </label>
                     </div>
                 </Section>
-                <KeysSection chart={editor.grapher} />
+                <KeysSection grapher={editor.grapher} />
             </div>
         )
     }

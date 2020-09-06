@@ -34,44 +34,44 @@ const labelToBarPadding = 5
 @observer
 export class DiscreteBarChart extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get chart() {
-        return this.props.chart
+    @computed get grapher() {
+        return this.props.grapher
     }
     @computed.struct private get bounds() {
         return this.props.bounds.padRight(10)
     }
 
     @computed private get failMessage() {
-        return this.chart.discreteBarTransform.failMessage
+        return this.grapher.discreteBarTransform.failMessage
     }
 
     @computed private get currentData() {
-        return this.chart.discreteBarTransform.currentData
+        return this.grapher.discreteBarTransform.currentData
     }
 
     @computed private get allData() {
-        return this.chart.discreteBarTransform.allData
+        return this.grapher.discreteBarTransform.allData
     }
 
     @computed private get displayData() {
         // Uses allData when the timeline handles are being dragged, and currentData otherwise
-        return this.chart.useTimelineDomains ? this.allData : this.currentData
+        return this.grapher.useTimelineDomains ? this.allData : this.currentData
     }
 
     @computed private get legendLabelStyle() {
         return {
-            fontSize: 0.75 * this.props.chart.baseFontSize,
+            fontSize: 0.75 * this.props.grapher.baseFontSize,
             fontWeight: 700
         }
     }
 
     @computed private get valueLabelStyle() {
         return {
-            fontSize: 0.75 * this.props.chart.baseFontSize,
+            fontSize: 0.75 * this.props.grapher.baseFontSize,
             fontWeight: 400
         }
     }
@@ -80,7 +80,7 @@ export class DiscreteBarChart extends React.Component<{
     @computed private get legendWidth() {
         const labels = this.currentData.map(d => d.label)
         if (this.hasFloatingAddButton)
-            labels.push(` + ${this.chart.addButtonLabel}`)
+            labels.push(` + ${this.grapher.addButtonLabel}`)
 
         const longestLabel = maxBy(labels, d => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
@@ -146,7 +146,7 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed private get isLogScale() {
-        return this.chart.yAxis.scaleType === ScaleType.log
+        return this.grapher.yAxis.scaleType === ScaleType.log
     }
 
     @computed private get xRange(): [number, number] {
@@ -158,10 +158,10 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed private get axis() {
         // NB: We use the user's YAxis options here to make the XAxis
-        const axis = this.chart.yAxis.toHorizontalAxis()
+        const axis = this.grapher.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        axis.tickFormat = this.chart.discreteBarTransform.tickFormat
+        axis.tickFormat = this.grapher.discreteBarTransform.tickFormat
         axis.range = this.xRange
         axis.label = ""
         return axis
@@ -176,7 +176,8 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed private get hasFloatingAddButton() {
         return (
-            this.chart.hasFloatingAddButton && this.chart.showAddEntityControls
+            this.grapher.hasFloatingAddButton &&
+            this.grapher.showAddEntityControls
         )
     }
 
@@ -235,11 +236,11 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get barValueFormat() {
-        return this.chart.discreteBarTransform.barValueFormat
+        return this.grapher.discreteBarTransform.barValueFormat
     }
 
     @action.bound onAddClick() {
-        this.chart.isSelectingData = true
+        this.grapher.isSelectingData = true
     }
 
     get addEntityButton() {
@@ -261,7 +262,7 @@ export class DiscreteBarChart extends React.Component<{
                     align="right"
                     verticalAlign="middle"
                     height={this.barHeight}
-                    label={`Add ${this.chart.entityType}`}
+                    label={`Add ${this.grapher.entityType}`}
                     onClick={this.onAddClick}
                 />
             </ControlsOverlay>
@@ -272,7 +273,7 @@ export class DiscreteBarChart extends React.Component<{
         if (this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.chart}
+                    options={this.grapher}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />
@@ -305,7 +306,7 @@ export class DiscreteBarChart extends React.Component<{
                 <HorizontalAxisComponent
                     maxX={maxX}
                     bounds={bounds}
-                    isInteractive={this.chart.isInteractive}
+                    isInteractive={this.grapher.isInteractive}
                     axis={axis}
                     axisPosition={innerBounds.bottom}
                 />

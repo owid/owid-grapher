@@ -9,7 +9,7 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExcla
 import { Grapher } from "charts/core/Grapher"
 import { Controls, ControlsFooterView } from "charts/controls/Controls"
 import { ControlsOverlay } from "charts/controls/ControlsOverlay"
-import { ChartTab } from "./ChartTab"
+import { ChartTab } from "charts/chart/ChartTab"
 import { TableTab } from "charts/dataTable/TableTab"
 import { MapTab } from "charts/mapCharts/MapTab"
 import { SourcesTab } from "charts/sourcesTab/SourcesTab"
@@ -17,7 +17,10 @@ import { DownloadTab } from "charts/downloadTab/DownloadTab"
 import { VNode, throttle, isMobile, isTouchDevice } from "charts/utils/Util"
 import { Bounds } from "charts/utils/Bounds"
 import { EntitySelectorModal } from "charts/controls/EntitySelectorModal"
-import { ChartViewContext } from "charts/chart/ChartViewContext"
+import {
+    GrapherViewContext,
+    GrapherViewContextInterface
+} from "charts/core/GrapherViewContext"
 import { TooltipView } from "charts/chart/Tooltip"
 import { FullStory } from "charts/core/FullStory"
 import { UrlBinder } from "charts/utils/UrlBinder"
@@ -26,9 +29,9 @@ import { GrapherInterface } from "charts/core/GrapherInterface"
 
 declare const window: any
 
-interface ChartViewProps {
+interface GrapherViewProps {
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
     isExport?: boolean
     isEditor?: boolean
     isEmbed?: boolean
@@ -45,7 +48,7 @@ function isVisible(elm: HTMLElement | null) {
 }
 
 @observer
-export class ChartView extends React.Component<ChartViewProps> {
+export class GrapherView extends React.Component<GrapherViewProps> {
     static bootstrap({
         jsonConfig,
         containerNode,
@@ -61,8 +64,8 @@ export class ChartView extends React.Component<ChartViewProps> {
         queryStr?: string
         globalEntitySelection?: GlobalEntitySelection
     }) {
-        let chartView
-        const chart = new Grapher(jsonConfig, {
+        let view
+        const grapher = new Grapher(jsonConfig, {
             isEmbed: isEmbed,
             queryStr: queryStr,
             globalEntitySelection: globalEntitySelection
@@ -71,10 +74,10 @@ export class ChartView extends React.Component<ChartViewProps> {
         function render() {
             const rect = containerNode.getBoundingClientRect()
             const containerBounds = Bounds.fromRect(rect)
-            chartView = ReactDOM.render(
-                <ChartView
+            view = ReactDOM.render(
+                <GrapherView
                     bounds={containerBounds}
-                    chart={chart}
+                    grapher={grapher}
                     isEditor={isEditor}
                     isEmbed={isEmbed}
                 />,
@@ -86,39 +89,39 @@ export class ChartView extends React.Component<ChartViewProps> {
         window.addEventListener("resize", throttle(render))
 
         FullStory.event("Loaded chart v2", {
-            chart_type_str: chart.type,
-            chart_id_int: chart.id,
-            slug_str: chart.slug,
-            originUrl_str: chart.originUrl,
-            addCountryMode_str: chart.addCountryMode,
-            stackMode_str: chart.stackMode,
-            hideLegend_bool: chart.hideLegend,
-            hideRelativeToggle_bool: chart.hideRelativeToggle,
-            hideTimeline_bool: chart.hideTimeline,
-            hideConnectedScatterLines_bool: chart.hideConnectedScatterLines,
-            compareEndPointsOnly_bool: chart.compareEndPointsOnly,
-            entityType_str: chart.entityType,
-            isEmbed_bool: chart.isEmbed,
-            hasChartTab_bool: chart.hasChartTab,
-            hasMapTab_bool: chart.hasMapTab,
-            tab_str: chart.currentTab,
-            totalSelectedEntities_int: chart.selectedData.length
+            chart_type_str: grapher.type,
+            chart_id_int: grapher.id,
+            slug_str: grapher.slug,
+            originUrl_str: grapher.originUrl,
+            addCountryMode_str: grapher.addCountryMode,
+            stackMode_str: grapher.stackMode,
+            hideLegend_bool: grapher.hideLegend,
+            hideRelativeToggle_bool: grapher.hideRelativeToggle,
+            hideTimeline_bool: grapher.hideTimeline,
+            hideConnectedScatterLines_bool: grapher.hideConnectedScatterLines,
+            compareEndPointsOnly_bool: grapher.compareEndPointsOnly,
+            entityType_str: grapher.entityType,
+            isEmbed_bool: grapher.isEmbed,
+            hasChartTab_bool: grapher.hasChartTab,
+            hasMapTab_bool: grapher.hasMapTab,
+            tab_str: grapher.currentTab,
+            totalSelectedEntities_int: grapher.selectedData.length
         })
 
-        return chartView
+        return view
     }
 
-    @computed get chart() {
-        return this.props.chart
+    @computed get grapher() {
+        return this.props.grapher
     }
 
-    @computed get isExport() {
+    @computed private get isExport() {
         return !!this.props.isExport
     }
-    @computed get isEditor() {
+    @computed private get isEditor() {
         return !!this.props.isEditor
     }
-    @computed get isEmbed() {
+    @computed private get isEmbed() {
         return (
             this.props.isEmbed ||
             (!this.isExport && (window.self !== window.top || this.isEditor))
@@ -128,29 +131,29 @@ export class ChartView extends React.Component<ChartViewProps> {
         return isMobile()
     }
 
-    @computed get containerBounds() {
+    @computed private get containerBounds() {
         return this.props.bounds
     }
 
-    @computed get isPortrait() {
+    @computed private get isPortrait() {
         return (
             this.containerBounds.width < this.containerBounds.height &&
             this.containerBounds.width < 850
         )
     }
-    @computed get isLandscape() {
+    @computed private get isLandscape() {
         return !this.isPortrait
     }
 
-    @computed get authorWidth() {
+    @computed private get authorWidth() {
         return this.isPortrait ? 400 : 680
     }
-    @computed get authorHeight() {
+    @computed private get authorHeight() {
         return this.isPortrait ? 640 : 480
     }
 
     // If the available space is very small, we use all of the space given to us
-    @computed get fitBounds(): boolean {
+    @computed private get fitBounds(): boolean {
         const {
             isEditor,
             isEmbed,
@@ -171,36 +174,36 @@ export class ChartView extends React.Component<ChartViewProps> {
     }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
-    @computed get paddedWidth(): number {
+    @computed private get paddedWidth(): number {
         return this.isPortrait
             ? this.containerBounds.width * 0.95
             : this.containerBounds.width * 0.95
     }
-    @computed get paddedHeight(): number {
+    @computed private get paddedHeight(): number {
         return this.isPortrait
             ? this.containerBounds.height * 0.95
             : this.containerBounds.height * 0.95
     }
-    @computed get scaleToFitIdeal(): number {
+    @computed private get scaleToFitIdeal(): number {
         return Math.min(
             this.paddedWidth / this.authorWidth,
             this.paddedHeight / this.authorHeight
         )
     }
-    @computed get idealWidth(): number {
+    @computed private get idealWidth(): number {
         return this.authorWidth * this.scaleToFitIdeal
     }
-    @computed get idealHeight(): number {
+    @computed private get idealHeight(): number {
         return this.authorHeight * this.scaleToFitIdeal
     }
 
     // These are the final render dimensions
-    @computed get renderWidth() {
+    @computed private get renderWidth() {
         return this.fitBounds
             ? this.containerBounds.width - (this.isExport ? 0 : 5)
             : this.idealWidth
     }
-    @computed get renderHeight() {
+    @computed private get renderHeight() {
         return this.fitBounds
             ? this.containerBounds.height - (this.isExport ? 0 : 5)
             : this.idealHeight
@@ -209,10 +212,10 @@ export class ChartView extends React.Component<ChartViewProps> {
     @computed get controls(): Controls {
         const that = this
         return new Controls({
-            get chart() {
-                return that.props.chart
+            get grapher() {
+                return that.props.grapher
             },
-            get chartView() {
+            get grapherView() {
                 return that
             },
             get width() {
@@ -221,7 +224,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         })
     }
 
-    @computed get tabBounds() {
+    @computed private get tabBounds() {
         return new Bounds(0, 0, this.renderWidth, this.renderHeight).padBottom(
             this.isExport ? 0 : this.controls.footerHeight
         )
@@ -229,14 +232,14 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     @observable.shallow overlays: { [id: string]: ControlsOverlay } = {}
 
-    @observable.ref popups: VNode[] = []
+    @observable.ref private popups: VNode[] = []
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable hasBeenVisible: boolean = false
-    @observable hasError: boolean = false
+    @observable private hasBeenVisible: boolean = false
+    @observable private hasError: boolean = false
 
-    @computed get classNames(): string {
+    @computed private get classNames(): string {
         const classNames = [
             "chart",
             this.isExport && "export",
@@ -258,76 +261,89 @@ export class ChartView extends React.Component<ChartViewProps> {
         this.popups = this.popups.filter(d => !(d.type === vnodeType))
     }
 
-    get childContext() {
+    get childContext(): GrapherViewContextInterface {
         return {
-            chart: this.chart,
-            chartView: this,
-            baseFontSize: this.chart.baseFontSize,
+            grapher: this.grapher,
+            grapherView: this,
+            baseFontSize: this.grapher.baseFontSize,
             isStatic: this.isExport,
             addPopup: this.addPopup.bind(this),
             removePopup: this.removePopup.bind(this)
         }
     }
 
-    renderPrimaryTab(): JSX.Element | undefined {
-        const { chart, tabBounds } = this
-        if (chart.primaryTab === "chart")
+    private renderPrimaryTab(): JSX.Element | undefined {
+        const { grapher, tabBounds } = this
+        if (grapher.primaryTab === "chart")
             return (
                 <ChartTab
                     bounds={tabBounds}
-                    chart={this.chart}
-                    chartView={this}
+                    grapher={this.grapher}
+                    grapherView={this}
                 />
             )
-        else if (chart.primaryTab === "map")
+        else if (grapher.primaryTab === "map")
             return (
                 <MapTab
                     bounds={tabBounds}
-                    chart={this.chart}
-                    chartView={this}
+                    grapher={this.grapher}
+                    grapherView={this}
                 />
             )
-        else if (chart.primaryTab === "table")
-            return <TableTab bounds={tabBounds} chart={chart} />
+        else if (grapher.primaryTab === "table")
+            return <TableTab bounds={tabBounds} grapher={grapher} />
         else return undefined
     }
 
-    renderOverlayTab(bounds: Bounds): JSX.Element | undefined {
-        const { chart } = this
-        if (chart.overlayTab === "sources")
-            return <SourcesTab key="sourcesTab" bounds={bounds} chart={chart} />
-        else if (chart.overlayTab === "download")
+    private renderOverlayTab(bounds: Bounds): JSX.Element | undefined {
+        const { grapher } = this
+        if (grapher.overlayTab === "sources")
             return (
-                <DownloadTab key="downloadTab" bounds={bounds} chart={chart} />
+                <SourcesTab
+                    key="sourcesTab"
+                    bounds={bounds}
+                    grapher={grapher}
+                />
+            )
+        else if (grapher.overlayTab === "download")
+            return (
+                <DownloadTab
+                    key="downloadTab"
+                    bounds={bounds}
+                    grapher={grapher}
+                />
             )
         else return undefined
     }
 
-    renderSVG() {
+    private renderSVG() {
         return this.renderPrimaryTab()
     }
 
-    renderReady() {
-        const { tabBounds, chart } = this
+    private renderReady() {
+        const { tabBounds, grapher } = this
 
         return (
             <React.Fragment>
                 {this.hasBeenVisible && this.renderSVG()}
-                <ControlsFooterView chart={chart} controls={this.controls} />
+                <ControlsFooterView
+                    grapher={grapher}
+                    controls={this.controls}
+                />
                 {this.renderOverlayTab(tabBounds)}
                 {this.popups}
                 <TooltipView
                     width={this.renderWidth}
                     height={this.renderHeight}
-                    tooltipContainer={this.chart}
+                    tooltipContainer={this.grapher}
                 />
-                {chart.isSelectingData && (
+                {grapher.isSelectingData && (
                     <EntitySelectorModal
                         key="entitySelector"
-                        chart={chart}
+                        grapher={grapher}
                         isMobile={this.isMobile}
                         onDismiss={action(
-                            () => (chart.isSelectingData = false)
+                            () => (grapher.isSelectingData = false)
                         )}
                     />
                 )}
@@ -335,7 +351,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         )
     }
 
-    renderError() {
+    private renderError() {
         return (
             <div
                 style={{
@@ -369,7 +385,7 @@ export class ChartView extends React.Component<ChartViewProps> {
         )
     }
 
-    renderMain() {
+    private renderMain() {
         // TODO how to handle errors in exports?
         // TODO tidy this up
         if (this.isExport) {
@@ -380,7 +396,7 @@ export class ChartView extends React.Component<ChartViewProps> {
             const style = {
                 width: renderWidth,
                 height: renderHeight,
-                fontSize: this.chart.baseFontSize
+                fontSize: this.grapher.baseFontSize
             }
 
             return (
@@ -393,26 +409,26 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     render() {
         return (
-            <ChartViewContext.Provider value={this.childContext}>
+            <GrapherViewContext.Provider value={this.childContext}>
                 {this.renderMain()}
-            </ChartViewContext.Provider>
+            </GrapherViewContext.Provider>
         )
     }
 
     // Chart should only render SVG when it's on the screen
-    @action.bound checkVisibility() {
+    @action.bound private checkVisibility() {
         if (!this.hasBeenVisible && isVisible(this.base.current)) {
             this.hasBeenVisible = true
         }
     }
 
-    @action.bound setBaseFontSize() {
-        if (this.renderWidth <= 400) this.props.chart.baseFontSize = 14
-        else if (this.renderWidth < 1080) this.props.chart.baseFontSize = 16
-        else if (this.renderWidth >= 1080) this.props.chart.baseFontSize = 18
+    @action.bound private setBaseFontSize() {
+        if (this.renderWidth <= 400) this.props.grapher.baseFontSize = 14
+        else if (this.renderWidth < 1080) this.props.grapher.baseFontSize = 16
+        else if (this.renderWidth >= 1080) this.props.grapher.baseFontSize = 18
     }
 
-    @action.bound onUpdate() {
+    @action.bound private onUpdate() {
         // handler always runs on resize and resets the base font size
         this.setBaseFontSize()
         this.checkVisibility()
@@ -421,10 +437,10 @@ export class ChartView extends React.Component<ChartViewProps> {
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     bindToWindow() {
-        window.chartView = this
-        window.chart = this.chart
-        new UrlBinder().bindToWindow(this.chart.url)
-        autorun(() => (document.title = this.chart.currentTitle))
+        window.grapherView = this
+        window.grapher = this.grapher
+        new UrlBinder().bindToWindow(this.grapher.url)
+        autorun(() => (document.title = this.grapher.currentTitle))
     }
 
     componentDidMount() {
@@ -434,7 +450,7 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentWillUnmount() {
         window.removeEventListener("scroll", this.checkVisibility)
-        this.chart.dispose()
+        this.grapher.dispose()
     }
 
     componentDidUpdate() {
@@ -443,6 +459,6 @@ export class ChartView extends React.Component<ChartViewProps> {
 
     componentDidCatch(error: any, info: any) {
         this.hasError = true
-        this.chart.analytics.logChartError(error, info)
+        this.grapher.analytics.logChartError(error, info)
     }
 }

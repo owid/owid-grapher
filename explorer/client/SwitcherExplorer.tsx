@@ -188,7 +188,7 @@ export class SwitcherExplorer extends React.Component<{
                 controlPanels={this.panels}
                 explorerSlug={this.props.program.slug}
                 availableEntities={this.availableEntities}
-                chart={this._chart!}
+                grapher={this._chart!}
                 params={this.explorerRuntime}
                 isEmbed={this.isEmbed}
             />

@@ -106,7 +106,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 @observer
 export class StackedBarChart extends React.Component<{
     bounds: Bounds
-    chart: Grapher
+    grapher: Grapher
 }> {
     base!: SVGGElement
     readonly minBarSpacing = 4
@@ -116,26 +116,26 @@ export class StackedBarChart extends React.Component<{
     // current hovered individual bar
     @observable hoverBar?: StackedBarValue
 
-    @computed get chart() {
-        return this.props.chart
+    @computed get grapher() {
+        return this.props.grapher
     }
     @computed get bounds(): Bounds {
         return this.props.bounds
     }
     @computed get transform() {
-        return this.props.chart.stackedBarTransform
+        return this.props.grapher.stackedBarTransform
     }
 
     @computed get failMessage() {
-        return this.chart.stackedBarTransform.failMessage
+        return this.grapher.stackedBarTransform.failMessage
     }
 
     @computed get tickFontSize() {
-        return 0.9 * this.props.chart.baseFontSize
+        return 0.9 * this.props.grapher.baseFontSize
     }
 
     @computed get barValueFormat() {
-        return this.chart.stackedBarTransform.barValueFormat
+        return this.grapher.stackedBarTransform.barValueFormat
     }
 
     @computed get barWidth() {
@@ -152,7 +152,7 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get barFontSize() {
-        return 0.75 * this.props.chart.baseFontSize
+        return 0.75 * this.props.grapher.baseFontSize
     }
 
     // todo: Refactor
@@ -221,7 +221,7 @@ export class StackedBarChart extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.grapher.baseFontSize
             },
             get colorables() {
                 return that.transform.colorScale.legendData
@@ -263,7 +263,7 @@ export class StackedBarChart extends React.Component<{
 
         return (
             <Tooltip
-                tooltipContainer={this.props.chart}
+                tooltipContainer={this.props.grapher}
                 x={xPos + barWidth}
                 y={yPos}
                 style={{ textAlign: "center" }}
@@ -291,7 +291,7 @@ export class StackedBarChart extends React.Component<{
                     <br />
                     in
                     <br />
-                    <span>{this.chart.formatYearFunction(hoverBar.x)}</span>
+                    <span>{this.grapher.formatYearFunction(hoverBar.x)}</span>
                 </p>
             </Tooltip>
         )
@@ -390,7 +390,7 @@ export class StackedBarChart extends React.Component<{
         if (this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.chart}
+                    options={this.grapher}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />
@@ -438,7 +438,7 @@ export class StackedBarChart extends React.Component<{
                 <VerticalAxisComponent
                     bounds={bounds}
                     verticalAxis={yAxis}
-                    isInteractive={this.chart.isInteractive}
+                    isInteractive={this.grapher.isInteractive}
                 />
                 <VerticalAxisGridLines
                     verticalAxis={yAxis}
