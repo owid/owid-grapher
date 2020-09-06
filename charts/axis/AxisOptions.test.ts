@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
-import { AxisOptions } from "charts/axis/AxisOptions"
+import { PersistableAxisOptions } from "charts/axis/AxisOptions"
 import { ScaleType } from "charts/core/GrapherConstants"
 
 describe("basics", () => {
     it("can create an axis, clone and modify the clone without affecting the original", () => {
-        const axis = new AxisOptions({ scaleType: ScaleType.linear })
+        const axis = new PersistableAxisOptions({ scaleType: ScaleType.linear })
         expect(axis.scaleType).toEqual(ScaleType.linear)
 
         const clone = axis.toVerticalAxis()
@@ -15,7 +15,7 @@ describe("basics", () => {
     })
 
     it("can expand the domain beyond the user's settings and not shrink it", () => {
-        const axis = new AxisOptions({
+        const axis = new PersistableAxisOptions({
             min: 0,
             max: 100,
             scaleType: ScaleType.linear

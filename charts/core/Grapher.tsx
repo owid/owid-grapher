@@ -13,7 +13,6 @@ import {
 import { bind } from "decko"
 
 import {
-    extend,
     map,
     filter,
     includes,
@@ -36,7 +35,7 @@ import {
     lastOfNonEmptyArray,
     find
 } from "charts/utils/Util"
-import { AxisOptions, AxisContainerOptions } from "charts/axis/AxisOptions"
+import { AxisContainerOptions } from "charts/axis/AxisOptions"
 import {
     ChartType,
     GrapherTabOption,
@@ -55,10 +54,8 @@ import {
     EntityDimensionInfo,
     ChartDimension,
     ChartDimensionSpec,
-    ChartDimensionInterface,
     SourceWithDimension
 } from "charts/chart/ChartDimension"
-import { MapConfig } from "charts/mapCharts/MapConfig"
 import { MapTransform } from "charts/mapCharts/MapTransform"
 import { GrapherUrl, EntityUrlBuilder } from "./GrapherUrl"
 import { StackedBarTransform } from "charts/barCharts/StackedBarTransform"
@@ -345,6 +342,18 @@ export class Grapher extends PersistableGrapher {
         this.disposers.forEach(dispose => dispose())
     }
 
+    private initFontSizeInAxisContainers() {
+        // Todo: there is probably a cleaner way to pass fontSize in.
+        const that = this
+        const axisContainer: AxisContainerOptions = {
+            get fontSize() {
+                return that.baseFontSize
+            }
+        }
+        this.xAxis.container = axisContainer
+        this.yAxis.container = axisContainer
+    }
+
     constructor(
         props?: GrapherInterface,
         options: {
@@ -358,15 +367,7 @@ export class Grapher extends PersistableGrapher {
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
 
-        // Todo: there is probably a cleaner way to pass fontSize in.
-        const that = this
-        const axisContainer: AxisContainerOptions = {
-            get fontSize() {
-                return that.baseFontSize
-            }
-        }
-        this.xAxis.container = axisContainer
-        this.yAxis.container = axisContainer
+        this.initFontSizeInAxisContainers()
 
         // This attribute is used to decide various client-vs.-server behavior. However, when
         // testing, we want the chart to behave as if it's in the client, even though it's
@@ -377,7 +378,7 @@ export class Grapher extends PersistableGrapher {
         // -@jasoncrawford 2019-12-04
         this.isNode = isNode && !isJsdom
 
-        this.updateFromObject(props)
+        if (props) this.updateFromObject(props)
         // The original props, as stored in the database. Todo: why not just store props?
         this.origScriptRaw = this.toObject()
 
@@ -412,31 +413,6 @@ export class Grapher extends PersistableGrapher {
         }
 
         if (!this.isNode) this.ensureValidConfig()
-    }
-
-    @action.bound updateFromObject(obj: any) {
-        super.updateFromObject(obj)
-
-        if (obj.isAutoTitle) this.title = undefined
-
-        // Auto slug is only preserved for drafts in the editor
-        // Once published, slug should stick around (we don't want to create too many redirects)
-        if (obj.isAutoSlug && this.isEditor && !obj.isPublished)
-            this.slug = undefined
-
-        if (obj.map) {
-            this.map = new MapConfig({
-                ...obj.map,
-                targetYear: maxTimeFromJSON(obj.map.targetYear)
-            })
-        }
-
-        extend(this.colorScale, obj["colorScale"])
-
-        this.dimensions = (obj.dimensions || []).map(
-            (dimSpec: ChartDimensionInterface) =>
-                new ChartDimensionSpec(dimSpec)
-        )
     }
 
     updatePopulationFilter() {
@@ -792,8 +768,21 @@ export class Grapher extends PersistableGrapher {
         return this.title ?? this.defaultTitle
     }
 
+    toObject() {
+        const obj = super.toObject()
+
+        const availableEntities = this.availableEntityNames
+        if (availableEntities.length) obj.data = { availableEntities }
+
+        return obj
+    }
+
     // Returns an object ready to be serialized to JSON
-    @computed.struct get object(): Readonly<any> {
+    @computed get object() {
+        return this.toObject()
+    }
+
+    @computed get objectWithAutoTitleAndAutoSlug() {
         const obj: any = this.toObject()
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
@@ -806,20 +795,6 @@ export class Grapher extends PersistableGrapher {
         if (!obj.slug) {
             obj.slug = this.displaySlug
             obj.isAutoSlug = true
-        }
-
-        if (obj.xAxis && obj.xAxis.containerOptions)
-            delete obj.xAxis.containerOptions
-
-        if (obj.yAxis && obj.yAxis.containerOptions)
-            delete obj.yAxis.containerOptions
-
-        obj.data = {
-            availableEntities: this.availableEntityNames
-        }
-
-        if (this.map) {
-            obj.map.targetYear = maxTimeToJSON(this.map.targetYear)
         }
 
         return obj

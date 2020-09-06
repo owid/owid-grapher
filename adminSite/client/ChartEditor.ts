@@ -155,10 +155,6 @@ export class ChartEditor {
         return new EditorFeatures(this)
     }
 
-    async applyConfig(config: any) {
-        this.props.grapher.updateFromObject(JSON.parse(config))
-    }
-
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
         const data = await this.props.admin.getJSON(
@@ -171,6 +167,14 @@ export class ChartEditor {
 
     async saveGrapher({ onError }: { onError?: () => void } = {}) {
         const { grapher, isNewGrapher, currentGrapherObject } = this
+
+        // Chart title and slug may be autocalculated from data, in which case they won't be in props
+        // But the server will need to know what we calculated in order to do its job
+        if (!currentGrapherObject.title)
+            currentGrapherObject.title = grapher.displayTitle
+
+        if (!currentGrapherObject.slug)
+            currentGrapherObject.slug = grapher.displaySlug
 
         const targetUrl = isNewGrapher
             ? "/api/charts"

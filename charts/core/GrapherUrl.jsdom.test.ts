@@ -11,19 +11,19 @@ function fromQueryParams(
     params: GrapherQueryParams,
     props?: Partial<GrapherInterface>
 ) {
-    const chart = createGrapher(props)
-    chart.url.populateFromQueryParams(params)
-    return chart
+    const grapher = createGrapher(props)
+    grapher.url.populateFromQueryParams(params)
+    return grapher
 }
 
 function toQueryParams(props?: Partial<GrapherInterface>) {
-    const chart = createGrapher({
+    const grapher = createGrapher({
         minTime: -5000,
         maxTime: 5000,
         map: { targetYear: 5000 }
     })
-    chart.updateFromObject(props)
-    return chart.url.params
+    if (props) grapher.updateFromObject(props)
+    return grapher.url.params
 }
 
 describe(GrapherUrl, () => {
@@ -42,15 +42,15 @@ describe(GrapherUrl, () => {
     })
 
     describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {
-        const chart = new Grapher(
+        const grapher = new Grapher(
             {
                 xAxis: { scaleType: ScaleType.linear, canChangeScaleType: true }
             } as GrapherInterface,
             { queryStr: "scaleType=linear" }
         )
-        expect(chart.url.params.xScale).toEqual(undefined)
-        chart.url.dropUnchangedParams = false
-        expect(chart.url.params.xScale).toEqual(ScaleType.linear)
+        expect(grapher.url.params.xScale).toEqual(undefined)
+        grapher.url.dropUnchangedParams = false
+        expect(grapher.url.params.xScale).toEqual(ScaleType.linear)
     })
 
     describe("time parameter", () => {
@@ -136,8 +136,8 @@ describe(GrapherUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const chart = fromQueryParams({ time: test.query })
-                    const [start, end] = chart.timeDomain
+                    const grapher = fromQueryParams({ time: test.query })
+                    const [start, end] = grapher.timeDomain
                     expect(start).toEqual(test.param[0])
                     expect(end).toEqual(test.param[1])
                 })
@@ -153,11 +153,11 @@ describe(GrapherUrl, () => {
             }
 
             it("empty string doesn't change time", () => {
-                const chart = fromQueryParams(
+                const grapher = fromQueryParams(
                     { time: "" },
                     { minTime: 0, maxTime: 5 }
                 )
-                const [start, end] = chart.timeDomain
+                const [start, end] = grapher.timeDomain
                 expect(start).toEqual(0)
                 expect(end).toEqual(5)
             })
@@ -392,19 +392,19 @@ describe(GrapherUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const chart = setupChart(4066, [142708])
-                    chart.url.populateFromQueryParams({ year: test.query })
-                    expect(chart.mapTransform.targetYearProp).toEqual(
+                    const grapher = setupChart(4066, [142708])
+                    grapher.url.populateFromQueryParams({ year: test.query })
+                    expect(grapher.mapTransform.targetYearProp).toEqual(
                         test.param
                     )
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
-                        const chart = setupChart(4066, [142708])
-                        chart.updateFromObject({
+                        const grapher = setupChart(4066, [142708])
+                        grapher.updateFromObject({
                             map: { targetYear: test.param }
                         })
-                        const params = chart.url.params
+                        const params = grapher.url.params
                         expect(params.year).toEqual(test.query)
                     })
                 }

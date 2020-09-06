@@ -5,7 +5,7 @@ import { BinningStrategy } from "./BinningStrategies"
 import { Persistable, updatePersistables } from "charts/core/Persistable"
 import { extend } from "charts/utils/Util"
 
-export class ColorScaleConfigProps {
+export class ColorScaleConfig {
     // Color scheme
     // ============
 
@@ -71,8 +71,8 @@ export class ColorScaleConfigProps {
     @observable legendDescription?: string = undefined
 }
 
-export class PersistableColorScaleConfigProps
-    extends ColorScaleConfigProps
+export class PersistableColorScaleConfig
+    extends ColorScaleConfig
     implements Persistable {
     updateFromObject(obj: any) {
         extend(this, obj)
@@ -82,7 +82,7 @@ export class PersistableColorScaleConfigProps
         return toJS(this)
     }
 
-    constructor(obj?: Partial<ColorScaleConfigProps>) {
+    constructor(obj?: Partial<ColorScaleConfig>) {
         super()
         updatePersistables(this, obj)
     }

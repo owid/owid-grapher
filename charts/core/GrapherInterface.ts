@@ -8,7 +8,10 @@ import {
     RelatedQuestionsConfig,
     AddCountryMode
 } from "./GrapherConstants"
-import { AxisOptionsInterface, AxisOptions } from "charts/axis/AxisOptions"
+import {
+    AxisOptionsInterface,
+    PersistableAxisOptions
+} from "charts/axis/AxisOptions"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
     TimeBound,
@@ -16,15 +19,18 @@ import {
     minTimeToJSON,
     maxTimeToJSON
 } from "charts/utils/TimeBounds"
-import { ChartDimensionSpec } from "charts/chart/ChartDimension"
+import {
+    ChartDimensionSpec,
+    ChartDimensionInterface
+} from "charts/chart/ChartDimension"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import { LogoOption } from "charts/chart/Logos"
 import {
-    ColorScaleConfigProps,
-    PersistableColorScaleConfigProps
+    ColorScaleConfig,
+    PersistableColorScaleConfig
 } from "charts/color/ColorScaleConfig"
-import { MapConfig } from "charts/mapCharts/MapConfig"
-import { observable } from "mobx"
+import { MapConfig, PersistableMapConfig } from "charts/mapCharts/MapConfig"
+import { observable, action } from "mobx"
 import {
     Persistable,
     objectWithPersistablesToObject,
@@ -89,7 +95,7 @@ export interface GrapherInterface {
     isPublished?: true
     baseColorScheme?: string
     invertColorScheme?: true
-    colorScale?: Partial<ColorScaleConfigProps>
+    colorScale?: Partial<ColorScaleConfig>
     hideLinesOutsideTolerance?: true
     hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
@@ -148,10 +154,10 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     @observable.ref matchingEntitiesOnly?: true = undefined
 
     // Todo: make sure these all have toJson/fromJson methods.
-    @observable.ref xAxis = new AxisOptions() // todo: rename class to be persistable
-    @observable.ref yAxis = new AxisOptions()
-    @observable colorScale = new PersistableColorScaleConfigProps()
-    @observable map = new MapConfig() // todo: make persistable
+    @observable.ref xAxis = new PersistableAxisOptions() // todo: rename class to be persistable
+    @observable.ref yAxis = new PersistableAxisOptions()
+    @observable colorScale = new PersistableColorScaleConfig()
+    @observable map = new PersistableMapConfig()
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref dimensions: ChartDimensionSpec[] = []
@@ -165,9 +171,6 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     useV2?: boolean = false
 
     toObject(): GrapherInterface {
-        const defaultObj: GrapherInterface = objectWithPersistablesToObject(
-            new PersistableGrapher()
-        )
         const obj: GrapherInterface = objectWithPersistablesToObject(this)
 
         // Never save the followingto the DB.
@@ -179,11 +182,25 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
         // in the Grapher Admin with an overlay tab open
         delete obj.overlay
 
+        this._trimDefaults(obj)
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+
+        return obj as GrapherInterface
+    }
+
+    // Don't persist properties that haven't changed from the defaults
+    private _trimDefaults(obj: GrapherInterface) {
+        const defaultObj: GrapherInterface = objectWithPersistablesToObject(
+            new PersistableGrapher()
+        )
         const defaultKeys = new Set(Object.keys(defaultObj))
         Object.keys(obj).forEach(prop => {
             const key = prop as GrapherProperty
             if (!defaultKeys.has(key)) {
-                // Don't persist any runtime info
+                // Don't persist any runtime props not in the persistable instance
                 delete obj[key]
                 return
             }
@@ -195,17 +212,16 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
                 delete obj[key]
             }
         })
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
-
-        return obj as GrapherInterface
     }
 
-    updateFromObject(obj: GrapherInterface) {
+    @action.bound updateFromObject(obj: GrapherInterface) {
         if (!obj) return
         updatePersistables(this, obj)
+
+        if (obj.dimensions?.length)
+            this.dimensions = obj.dimensions.map(
+                (spec: ChartDimensionInterface) => new ChartDimensionSpec(spec)
+            )
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) this.minTime = minTimeToJSON(obj.minTime) as number
