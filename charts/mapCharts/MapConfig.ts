@@ -1,6 +1,9 @@
 import { observable } from "mobx"
 import { MapProjection } from "./MapProjections"
-import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
+import {
+    ColorScaleConfigProps,
+    PersistableColorScaleConfigProps
+} from "charts/color/ColorScaleConfig"
 import { owidVariableId } from "owidTable/OwidTable"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
@@ -12,13 +15,13 @@ export class MapConfig {
     @observable.ref hideTimeline?: true
     @observable.ref projection: MapProjection = "World"
 
-    @observable colorScale: ColorScaleConfigProps
+    @observable colorScale: PersistableColorScaleConfigProps
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     @observable.ref tooltipUseCustomLabels?: true = undefined
 
     constructor(json?: Partial<MapConfig & ColorScaleConfigProps>) {
         // TODO: migrate database config & only pass legend props
-        this.colorScale = new ColorScaleConfigProps(json?.colorScale)
+        this.colorScale = new PersistableColorScaleConfigProps(json?.colorScale)
 
         if (json !== undefined) {
             for (const key in this) {
