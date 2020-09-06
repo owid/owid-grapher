@@ -167,7 +167,7 @@ async function expectChartById(chartId: any): Promise<GrapherInterface> {
 
 function omitSaveToVariable(config: GrapherInterface): GrapherInterface {
     const newConfig = lodash.clone(config)
-    newConfig.dimensions = newConfig.dimensions.map(dim => {
+    newConfig.dimensions = newConfig.dimensions!.map(dim => {
         return lodash.omit(dim, ["saveToVariable"])
     })
     return newConfig
@@ -227,7 +227,7 @@ async function saveChart(
 
         if (existingConfig) {
             // Bump chart version, very important for cachebusting
-            newConfig.version = existingConfig.version + 1
+            newConfig.version = existingConfig.version! + 1
         } else if (newConfig.version) {
             // If a chart is republished, we want to keep incrementing the old version number,
             // otherwise it can lead to clients receiving cached versions of the old data.
@@ -290,8 +290,8 @@ async function saveChart(
         await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
             chartId
         ])
-        for (let i = 0; i < newConfig.dimensions.length; i++) {
-            const dim = newConfig.dimensions[i]
+        for (let i = 0; i < newConfig.dimensions!.length; i++) {
+            const dim = newConfig.dimensions![i]
             await t.execute(
                 `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
                 [[chartId, dim.variableId, dim.property, i]]
@@ -321,7 +321,7 @@ async function saveChart(
         // So we can generate country profiles including this chart data
         if (newConfig.isPublished) {
             await denormalizeLatestCountryData(
-                newConfig.dimensions.map(d => d.variableId)
+                newConfig.dimensions!.map(d => d.variableId)
             )
         }
 

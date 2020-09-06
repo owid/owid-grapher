@@ -52,7 +52,7 @@ export const ChartPage = (props: {
         }
     `
 
-    const variableIds = lodash.uniq(chart.dimensions.map(d => d.variableId))
+    const variableIds = lodash.uniq(chart.dimensions!.map(d => d.variableId))
 
     return (
         <html>

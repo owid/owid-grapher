@@ -270,7 +270,7 @@ class Lines extends React.Component<LinesProps> {
 
 interface LineChartOptions {
     lineChartTransform: LineChartTransform
-    hideLegend: true | undefined
+    hideLegend?: boolean
     baseFontSize: number
     showAddEntityControls: boolean
     comparisonLines: ComparisonLineConfig[]

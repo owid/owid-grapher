@@ -8,14 +8,19 @@ export interface Persistable {
 
 // Todo: see if there's a better way to do this with Mobx
 // Note: this does not recurse! If we need that should be easy to add, but we didn't need it yet.
-export function persistableToJS(objWithPersistables: any) {
+export function objectWithPersistablesToObject(objWithPersistables: any) {
     const obj = toJS(objWithPersistables) as any
     Object.keys(obj).forEach(key => {
         const val = obj[key]
-        if (val.toObject) obj[key] = val.toObject()
-        else if (Array.isArray(val)) {
-            obj[key] = val.map(item => (item.toObject ? item.toObject() : item))
-        }
+
+        if (val && val.toObject) obj[key] = val.toObject()
+        // Val is persistable, call toObject
+        else if (Array.isArray(val))
+            // Scan array for persistables and seriazile.
+            obj[key] = val.map(item =>
+                item?.toObject ? item.toObject() : item
+            )
+        else obj[key] = val
     })
     return obj
 }

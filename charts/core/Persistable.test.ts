@@ -1,6 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { persistableToJS, Persistable, updatePersistables } from "./Persistable"
+import {
+    objectWithPersistablesToObject,
+    Persistable,
+    updatePersistables
+} from "./Persistable"
 
 class SomePersistable implements Persistable {
     updateFromObject(obj: number) {
@@ -25,10 +29,20 @@ describe("basics", () => {
             a: new SomePersistable(),
             b: [new SomeOtherPersistable(), new SomeOtherPersistable(), 3]
         }
-        expect(persistableToJS(item)).toEqual({ a: 4, b: [1, 1, 3] })
+        expect(objectWithPersistablesToObject(item)).toEqual({
+            a: 4,
+            b: [1, 1, 3]
+        })
 
         updatePersistables(item, { a: 7, b: [0] })
 
-        expect(persistableToJS(item)).toEqual({ a: 7, b: [0] })
+        expect(objectWithPersistablesToObject(item)).toEqual({ a: 7, b: [0] })
+    })
+
+    it("handles missing values", () => {
+        expect(objectWithPersistablesToObject({})).toEqual({})
+        expect(objectWithPersistablesToObject({ foo: undefined })).toEqual({
+            foo: undefined
+        })
     })
 })
