@@ -11,10 +11,11 @@ export interface Persistable {
 export function objectWithPersistablesToObject(objWithPersistables: any) {
     const obj = toJS(objWithPersistables) as any
     Object.keys(obj).forEach(key => {
-        const val = obj[key]
+        const val = objWithPersistables[key]
+        const valIsPersistable = val && val.toObject
 
-        if (val && val.toObject) obj[key] = val.toObject()
         // Val is persistable, call toObject
+        if (valIsPersistable) obj[key] = val.toObject()
         else if (Array.isArray(val))
             // Scan array for persistables and seriazile.
             obj[key] = val.map(item =>

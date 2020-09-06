@@ -171,9 +171,6 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     useV2?: boolean = false
 
     toObject(): GrapherInterface {
-        const defaultObj: GrapherInterface = objectWithPersistablesToObject(
-            new PersistableGrapher()
-        )
         const obj: GrapherInterface = objectWithPersistablesToObject(this)
 
         // Never save the followingto the DB.
@@ -185,11 +182,25 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
         // in the Grapher Admin with an overlay tab open
         delete obj.overlay
 
+        this._trimDefaults(obj)
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+
+        return obj as GrapherInterface
+    }
+
+    // Don't persist properties that haven't changed from the defaults
+    private _trimDefaults(obj: GrapherInterface) {
+        const defaultObj: GrapherInterface = objectWithPersistablesToObject(
+            new PersistableGrapher()
+        )
         const defaultKeys = new Set(Object.keys(defaultObj))
         Object.keys(obj).forEach(prop => {
             const key = prop as GrapherProperty
             if (!defaultKeys.has(key)) {
-                // Don't persist any runtime info
+                // Don't persist any runtime props not in the persistable instance
                 delete obj[key]
                 return
             }
@@ -201,12 +212,6 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
                 delete obj[key]
             }
         })
-
-        // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
-        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
-
-        return obj as GrapherInterface
     }
 
     @action.bound updateFromObject(obj: GrapherInterface) {
