@@ -12,8 +12,8 @@ import {
 } from "utils/client/url"
 import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
-import { EntityUrlBuilder } from "charts/core/GrapherUrl"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
+import { EntityUrlBuilder } from "charts/core/EntityUrlBuilder"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"

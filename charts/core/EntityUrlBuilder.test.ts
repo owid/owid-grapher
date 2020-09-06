@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { EntityUrlBuilder } from "./GrapherUrl"
+import { EntityUrlBuilder } from "./EntityUrlBuilder"
 
 describe(EntityUrlBuilder, () => {
     const encodeTests = [

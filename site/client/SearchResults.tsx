@@ -11,7 +11,7 @@ import { EmbedChart } from "./EmbedChart"
 import { BAKED_GRAPHER_URL } from "settings"
 import { uniq, capitalize } from "charts/utils/Util"
 import { Country } from "utils/countries"
-import { EntityUrlBuilder } from "charts/core/GrapherUrl"
+import { EntityUrlBuilder } from "charts/core/EntityUrlBuilder"
 
 class ChartResult extends React.Component<{
     hit: ChartHit
