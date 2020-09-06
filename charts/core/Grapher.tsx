@@ -83,7 +83,6 @@ import {
     GlobalEntitySelection,
     subscribeGrapherToGlobalEntitySelection
 } from "site/globalEntityControl/GlobalEntitySelection"
-import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "charts/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"

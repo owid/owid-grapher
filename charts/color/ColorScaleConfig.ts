@@ -2,10 +2,10 @@ import { observable, toJS } from "mobx"
 
 import { Color } from "charts/core/GrapherConstants"
 import { BinningStrategy } from "./BinningStrategies"
-import { Persistable } from "charts/core/Persistable"
+import { Persistable, updatePersistables } from "charts/core/Persistable"
 import { extend } from "charts/utils/Util"
 
-export class ColorScaleConfigProps implements Persistable {
+export class ColorScaleConfigProps {
     // Color scheme
     // ============
 
@@ -67,6 +67,13 @@ export class ColorScaleConfigProps implements Persistable {
     // Other
     // =====
 
+    /** A custom legend description. Only used in ScatterPlot legend titles for now. */
+    @observable legendDescription?: string = undefined
+}
+
+export class PersistableColorScaleConfigProps
+    extends ColorScaleConfigProps
+    implements Persistable {
     updateFromObject(obj: any) {
         extend(this, obj)
     }
@@ -75,16 +82,8 @@ export class ColorScaleConfigProps implements Persistable {
         return toJS(this)
     }
 
-    /** A custom legend description. Only used in ScatterPlot legend titles for now. */
-    @observable legendDescription?: string = undefined
-
-    constructor(json?: Partial<ColorScaleConfigProps>) {
-        if (json !== undefined) {
-            for (const key in this) {
-                if (key in json) {
-                    this[key] = (json as any)[key]
-                }
-            }
-        }
+    constructor(obj?: Partial<ColorScaleConfigProps>) {
+        super()
+        updatePersistables(this, obj)
     }
 }

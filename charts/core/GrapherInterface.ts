@@ -19,7 +19,10 @@ import {
 import { ChartDimensionSpec } from "charts/chart/ChartDimension"
 import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
 import { LogoOption } from "charts/chart/Logos"
-import { ColorScaleConfigProps } from "charts/color/ColorScaleConfig"
+import {
+    ColorScaleConfigProps,
+    PersistableColorScaleConfigProps
+} from "charts/color/ColorScaleConfig"
 import { MapConfig } from "charts/mapCharts/MapConfig"
 import { observable } from "mobx"
 import { Persistable, persistableToJS, updatePersistables } from "./Persistable"
@@ -146,7 +149,7 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
 
     @observable.ref selectedData: EntitySelection[] = []
     @observable.ref dimensions: ChartDimensionSpec[] = []
-    @observable colorScale = new ColorScaleConfigProps()
+    @observable colorScale = new PersistableColorScaleConfigProps()
     @observable excludedEntities?: number[] = undefined
     @observable map: Partial<MapConfig> = {}
     data?: { availableEntities: string[] } = undefined

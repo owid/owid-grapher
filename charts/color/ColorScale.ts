@@ -41,7 +41,7 @@ export class ColorScale {
 
     // Config accessors
 
-    @computed get config(): ColorScaleConfigProps {
+    @computed get config() {
         return this.props.config
     }
 
