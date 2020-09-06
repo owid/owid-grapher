@@ -187,20 +187,12 @@ class ComparisonLineSection extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onAddComparisonLine() {
         const { grapher } = this.props.editor
-
-        if (grapher.script.comparisonLines === undefined)
-            grapher.script.comparisonLines = []
-
         grapher.script.comparisonLines.push({})
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
         const { grapher } = this.props.editor
-
         grapher.script.comparisonLines!.splice(index, 1)
-
-        if (grapher.script.comparisonLines!.length === 0)
-            grapher.script.comparisonLines = undefined
     }
 
     render() {

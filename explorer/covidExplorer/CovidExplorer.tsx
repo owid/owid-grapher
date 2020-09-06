@@ -833,9 +833,9 @@ export class CovidExplorer extends React.Component<{
     }
 
     private _updateColorScale() {
-        this.chart.colorScale = this.colorScales[
-            this.constrainedParams.colorStrategy
-        ]
+        this.chart.colorScale.updateFromObject(
+            this.colorScales[this.constrainedParams.colorStrategy]
+        )
     }
 
     @computed get sourceChartId(): number {
