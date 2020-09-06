@@ -68,7 +68,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             }
     }
 
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.grapher
     }
 
@@ -79,7 +79,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
     // Determine if we can go to line chart by clicking on a given map entity
     private isEntityClickable(featureId: string | number | undefined) {
-        const chart = this.chart
+        const chart = this.grapher
         if (
             !chart.hasChartTab ||
             !(chart.isLineChart || chart.isScatter) ||
@@ -96,7 +96,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
     @action.bound onClick(d: GeoFeature, ev: React.MouseEvent<SVGElement>) {
         if (!this.isEntityClickable(d.id)) return
-        const chart = this.chart
+        const chart = this.grapher
         const entityName = this.props.mapToDataEntities[d.id as string]
 
         if (!ev.shiftKey) {
@@ -121,7 +121,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }: {
         targetStartYear: number
     }) {
-        this.chart.mapTransform.targetYear = targetStartYear
+        this.grapher.mapTransform.targetYear = targetStartYear
     }
 
     @action.bound onLegendMouseLeave() {
@@ -129,7 +129,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @action.bound onProjectionChange(value: MapProjection) {
-        this.chart.mapTransform.props.projection = value
+        this.grapher.mapTransform.props.projection = value
     }
 
     @computed get mapLegend(): MapColorLegend {
@@ -154,7 +154,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                 return that.focusEntity?.datum?.value
             },
             get fontSize() {
-                return that.chart.baseFontSize
+                return that.grapher.baseFontSize
             }
         })
     }
@@ -240,7 +240,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
                     <MapTooltip
                         {...tooltipProps}
                         tooltipTarget={tooltipTarget}
-                        grapher={this.chart}
+                        grapher={this.grapher}
                     />
                 )}
             </g>

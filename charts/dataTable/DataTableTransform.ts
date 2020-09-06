@@ -115,8 +115,8 @@ export class DataTableTransform extends ChartTransform {
     grapher: Grapher
 
     constructor(grapher: Grapher) {
-        super(chart)
-        this.grapher = chart
+        super(grapher)
+        this.grapher = grapher
     }
 
     @computed private get loadedWithData(): boolean {

@@ -59,7 +59,7 @@ class HighlightToggle extends React.Component<{
     grapher: Grapher
     highlightToggle: HighlightToggleConfig
 }> {
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.grapher
     }
     @computed get highlight() {
@@ -73,9 +73,9 @@ class HighlightToggle extends React.Component<{
     @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
         if (e.currentTarget.checked) {
             const params = extend(getWindowQueryParams(), this.highlightParams)
-            this.chart.url.populateFromQueryParams(params)
+            this.grapher.url.populateFromQueryParams(params)
         } else {
-            this.chart.selectedKeys = []
+            this.grapher.selectedKeys = []
         }
     }
 

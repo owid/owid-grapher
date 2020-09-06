@@ -9,20 +9,20 @@ export class EditorFeatures {
         this.editor = editor
     }
 
-    @computed get chart() {
+    @computed get grapher() {
         return this.editor.grapher
     }
 
     @computed get canCustomizeYAxisScale() {
-        return !this.chart.isStackedArea && !this.chart.isStackedBar
+        return !this.grapher.isStackedArea && !this.grapher.isStackedBar
     }
 
     @computed get canCustomizeXAxisScale() {
-        return this.chart.isScatter
+        return this.grapher.isScatter
     }
 
     @computed get canCustomizeYAxisLabel() {
-        return this.chart.isScatter
+        return this.grapher.isScatter
     }
 
     @computed get canCustomizeXAxisLabel() {
@@ -38,47 +38,47 @@ export class EditorFeatures {
     }
 
     @computed get canRemovePointsOutsideAxisDomain() {
-        return this.chart.isScatter
+        return this.grapher.isScatter
     }
 
     @computed get timeDomain() {
-        return !this.chart.isDiscreteBar
+        return !this.grapher.isDiscreteBar
     }
 
     @computed get timelineRange() {
-        return !this.chart.isDiscreteBar
+        return !this.grapher.isDiscreteBar
     }
 
     @computed get showYearLabels() {
-        return this.chart.isDiscreteBar
+        return this.grapher.isDiscreteBar
     }
 
     @computed get hideLegend() {
-        return this.chart.isLineChart || this.chart.isStackedArea
+        return this.grapher.isLineChart || this.grapher.isStackedArea
     }
 
     @computed get stackedArea() {
-        return this.chart.isStackedArea
+        return this.grapher.isStackedArea
     }
 
     @computed get entityType() {
         return (
-            (!this.chart.isScatter &&
-                this.chart.addCountryMode === "add-country") ||
-            this.chart.addCountryMode === "change-country"
+            (!this.grapher.isScatter &&
+                this.grapher.addCountryMode === "add-country") ||
+            this.grapher.addCountryMode === "change-country"
         )
     }
 
     @computed get relativeModeToggle() {
         return (
-            this.chart.isStackedArea ||
-            this.chart.isLineChart ||
-            this.chart.isScatter
+            this.grapher.isStackedArea ||
+            this.grapher.isLineChart ||
+            this.grapher.isScatter
         )
     }
 
     @computed get comparisonLine() {
-        return this.chart.isLineChart || this.chart.isScatter
+        return this.grapher.isLineChart || this.grapher.isScatter
     }
 
     @computed get explorer() {

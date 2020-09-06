@@ -101,15 +101,15 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get entityType() {
-        return this.chart.entityType
+        return this.grapher.entityType
     }
 
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.grapher
     }
 
     @computed get transform() {
-        return this.chart.dataTableTransform
+        return this.grapher.dataTableTransform
     }
 
     @computed get sortValueMapper(): (

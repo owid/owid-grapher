@@ -24,7 +24,7 @@ interface MapTooltipProps {
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.grapher
     }
 
@@ -48,7 +48,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const tooltipDatum = this.props.tooltipDatum
         if (!tooltipDatum) return sparkBarValues
 
-        this.chart.mapTransform.dimension?.valueByEntityAndYear
+        this.grapher.mapTransform.dimension?.valueByEntityAndYear
             .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
@@ -78,23 +78,23 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed get renderSparkBars() {
-        const { chart } = this
+        const { grapher } = this
         return (
-            chart.hasChartTab &&
-            (chart.isLineChart ||
-                (chart.isScatter && chart.scatterTransform.hasTimeline))
+            grapher.hasChartTab &&
+            (grapher.isLineChart ||
+                (grapher.isScatter && grapher.scatterTransform.hasTimeline))
         )
     }
 
     @computed get darkestColorInColorScheme() {
-        const { colorScale } = this.chart.mapTransform
+        const { colorScale } = this.grapher.mapTransform
         return colorScale.isColorSchemeInverted
             ? first(colorScale.baseColors)
             : last(colorScale.baseColors)
     }
 
     @computed get barColor() {
-        const { colorScale } = this.chart.mapTransform
+        const { colorScale } = this.grapher.mapTransform
         return colorScale.singleColorScale &&
             !colorScale.customNumericColorsActive
             ? this.darkestColorInColorScheme
@@ -110,14 +110,14 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             isEntityClickable
         } = this.props
 
-        const tooltipMessage = this.chart.isScatter
+        const tooltipMessage = this.grapher.isScatter
             ? "Click to select"
             : "Click for change over time"
 
         const { renderSparkBars, barColor } = this
         return (
             <Tooltip
-                tooltipContainer={this.chart}
+                tooltipContainer={this.grapher}
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}
@@ -163,7 +163,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 >
                                     <CovidTimeSeriesValue
                                         className="current"
-                                        value={this.chart.mapTransform.formatTooltipValue(
+                                        value={this.grapher.mapTransform.formatTooltipValue(
                                             tooltipDatum.value
                                         )}
                                         formattedDate={this.props.formatYear(

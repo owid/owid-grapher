@@ -439,7 +439,7 @@ export class SiteBaker {
         this.stage(outPath)
     }
 
-    async bakeChart(grapher: GrapherInterface) {
+    async bakeGrapher(grapher: GrapherInterface) {
         const htmlPath = `${BAKED_SITE_DIR}/grapher/${grapher.slug}.html`
         let isSameVersion = false
         try {
@@ -496,7 +496,7 @@ export class SiteBaker {
         }
     }
 
-    async bakeCharts(
+    async bakeGraphers(
         opts: {
             regenConfig?: boolean
             regenData?: boolean
@@ -510,11 +510,11 @@ export class SiteBaker {
         const newSlugs = []
         let requests = []
         for (const row of rows) {
-            const chart: GrapherInterface = JSON.parse(row.config)
-            chart.id = row.id
-            newSlugs.push(chart.slug)
+            const grapher: GrapherInterface = JSON.parse(row.config)
+            grapher.id = row.id
+            newSlugs.push(grapher.slug)
 
-            requests.push(this.bakeChart(chart))
+            requests.push(this.bakeGrapher(grapher))
             // Execute in batches
             if (requests.length > 50) {
                 await Promise.all(requests)
@@ -576,7 +576,7 @@ export class SiteBaker {
         await this.bakeGoogleScholar()
         await this.bakeCountryProfiles()
         await this.bakePosts()
-        await this.bakeCharts()
+        await this.bakeGraphers()
         await this.bakeExplorerRedirects()
         // Clear caches to allow garbage collection while waiting for next run
         this.flushCache()

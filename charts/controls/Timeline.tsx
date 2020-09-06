@@ -93,12 +93,12 @@ export class Timeline extends React.Component<TimelineProps> {
         }
     }
 
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.grapher
     }
 
     @computed get isPlaying() {
-        return this.chart.isPlaying
+        return this.grapher.isPlaying
     }
 
     componentDidUpdate(prevProps: TimelineProps) {
@@ -168,7 +168,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     private readonly PLAY_ANIMATION_SECONDS = 45
     @action.bound onStartPlaying() {
-        this.chart.analytics.logChartTimelinePlay(this.chart.slug)
+        this.grapher.analytics.logChartTimelinePlay(this.grapher.slug)
 
         let lastTime: number | undefined
         const ticksPerSec = Math.max(
@@ -190,7 +190,7 @@ export class Timeline extends React.Component<TimelineProps> {
                 const elapsed = time - lastTime
 
                 if (endYearUI >= maxYear) {
-                    this.chart.isPlaying = false
+                    this.grapher.isPlaying = false
                     this.startTooltipVisible = false
                 } else {
                     const nextYear = years[years.indexOf(endYearUI) + 1]
@@ -261,7 +261,7 @@ export class Timeline extends React.Component<TimelineProps> {
 
     @action.bound onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
-        if (!this.isPlaying) this.chart.userHasSetTimeline = true
+        if (!this.isPlaying) this.grapher.userHasSetTimeline = true
 
         const clampedYear = this.getClampedYear(inputYear)
 
@@ -472,10 +472,10 @@ export class Timeline extends React.Component<TimelineProps> {
                 const { isPlaying, isDragging } = this
                 const { onStartDrag, onStopDrag } = this.props
                 if (isPlaying || isDragging) {
-                    this.chart.url.debounceMode = true
+                    this.grapher.url.debounceMode = true
                     if (onStartDrag) onStartDrag()
                 } else {
-                    this.chart.url.debounceMode = false
+                    this.grapher.url.debounceMode = false
                     if (onStopDrag) onStopDrag()
                 }
             })
@@ -507,7 +507,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     @action.bound onTogglePlay() {
-        this.chart.isPlaying = !this.isPlaying
+        this.grapher.isPlaying = !this.isPlaying
         if (this.isPlaying) {
             this.startTooltipVisible = true
             this.hideStartTooltip.cancel()
@@ -521,7 +521,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     formatYear(date: number) {
-        return this.chart.formatYearFunction(
+        return this.grapher.formatYearFunction(
             date,
             isMobile() ? { format: "MMM D, 'YY" } : {}
         )

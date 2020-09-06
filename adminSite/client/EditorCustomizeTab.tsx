@@ -76,51 +76,51 @@ class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
 class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.editor.grapher
     }
 
     @computed get minTime() {
-        return this.chart.minTime
+        return this.grapher.minTime
     }
     @computed get maxTime() {
-        return this.chart.maxTime
+        return this.grapher.maxTime
     }
 
     @computed get timelineMinTime() {
-        return this.chart.timelineMinTime
+        return this.grapher.timelineMinTime
     }
     @computed get timelineMaxTime() {
-        return this.chart.timelineMaxTime
+        return this.grapher.timelineMaxTime
     }
 
     @action.bound onMinTime(value: number | undefined) {
-        this.chart.minTime = value
+        this.grapher.minTime = value
     }
 
     @action.bound onMaxTime(value: number | undefined) {
-        this.chart.maxTime = value
+        this.grapher.maxTime = value
     }
 
     @action.bound onTimelineMinTime(value: number | undefined) {
-        this.chart.timelineMinTime = value
+        this.grapher.timelineMinTime = value
     }
 
     @action.bound onTimelineMaxTime(value: number | undefined) {
-        this.chart.timelineMaxTime = value
+        this.grapher.timelineMaxTime = value
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.chart.hideTimeline = value || undefined
+        this.grapher.hideTimeline = value || undefined
     }
 
     @action.bound onToggleShowYearLabels(value: boolean) {
-        this.chart.showYearLabels = value || undefined
+        this.grapher.showYearLabels = value || undefined
     }
 
     render() {
         const { features } = this.props.editor
-        const { chart } = this
+        const { grapher } = this
 
         return (
             <Section name="Timeline selection">
@@ -128,7 +128,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                     {features.timeDomain && (
                         <NumberField
                             label="Selection start"
-                            value={chart.minTime}
+                            value={grapher.minTime}
                             onValue={debounce(this.onMinTime)}
                             allowNegative
                         />
@@ -139,7 +139,7 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                                 ? "Selection end"
                                 : "Selected year"
                         }
-                        value={chart.maxTime}
+                        value={grapher.maxTime}
                         onValue={debounce(this.onMaxTime)}
                         allowNegative
                     />
@@ -163,13 +163,13 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
                 <FieldsRow>
                     <Toggle
                         label="Hide timeline"
-                        value={!!chart.hideTimeline}
+                        value={!!grapher.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     {features.showYearLabels && (
                         <Toggle
                             label="Always show year labels"
-                            value={!!chart.showYearLabels}
+                            value={!!grapher.showYearLabels}
                             onValue={this.onToggleShowYearLabels}
                         />
                     )}

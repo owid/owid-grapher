@@ -76,7 +76,7 @@ export class ExploreView extends React.Component<ExploreProps> {
         return this.props.model
     }
 
-    @computed get chart() {
+    @computed get grapher() {
         return this.model.grapher
     }
 
@@ -135,10 +135,10 @@ export class ExploreView extends React.Component<ExploreProps> {
                 <div>
                     {this.renderChartTypes()}
                     {this.renderIndicatorSwitching()}
-                    <GrapherView grapher={this.chart} bounds={this.bounds} />
+                    <GrapherView grapher={this.grapher} bounds={this.bounds} />
                 </div>
                 <div>
-                    <DataTable grapher={this.chart} />
+                    <DataTable grapher={this.grapher} />
                 </div>
             </ExplorerViewContext.Provider>
         )
@@ -149,10 +149,10 @@ export class ExploreView extends React.Component<ExploreProps> {
 
         // We ignore the disposer here, because this reaction lasts for the
         // lifetime of the window. -@jasoncrawford 2019-12-16
-        autorun(() => (document.title = this.chart.currentTitle))
+        autorun(() => (document.title = this.grapher.currentTitle))
     }
 
     componentDidCatch(error: any, info: any) {
-        this.chart.analytics.logExploreError(error, info)
+        this.grapher.analytics.logExploreError(error, info)
     }
 }
