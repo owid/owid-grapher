@@ -174,6 +174,8 @@ $culture-color: #af488f;
 
 /* Controls color */
 $controls-color: #3f9eff;
+$light-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.08) 0px 2px 2px;
 
 /*******************************************************************************
  * Z-index
@@ -186,7 +188,6 @@ $zindex-footnote: 15;
 $zindex-sidebar: 20;
 $zindex-popover: 100;
 $zindex-search-overlay: 100;
-$zindex-dropdown: 100;
 $zindex-cookie-notice: 110;
 $zindex-nav-dropdown: 120;
 $zindex-tooltip: 1070;

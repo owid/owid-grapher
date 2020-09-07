@@ -1,0 +1,87 @@
+$zindex-ControlsFooterMenu: 3;
+$zindex-ControlsFooter: 2;
+$zindex-embedMenu: 12;
+
+.ShareMenu {
+    position: absolute;
+    right: 1em;
+    bottom: 1em;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12), 0 2px 2px 0 rgba(0, 0, 0, 0.24);
+    padding-bottom: 0.5em;
+    width: 15em;
+    z-index: $zindex-ControlsFooterMenu;
+}
+
+.ShareMenu.disabled a {
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+.ShareMenu h2 {
+    padding: 0.8em 1em;
+    margin: 0;
+    font-size: 1em;
+}
+
+.ShareMenu .btn {
+    display: flex;
+    align-items: center;
+    padding: 1em 1.5em;
+    text-align: left;
+    color: #333;
+    text-decoration: none;
+}
+
+.ShareMenu .btn > svg {
+    font-size: 1em;
+    width: 1.5em;
+    height: 1.5em;
+    margin-right: 8px;
+    position: relative;
+}
+
+.ShareMenu .btn:hover {
+    background-color: #eee;
+}
+
+.ShareMenu section.share a {
+    display: block;
+    text-align: left;
+}
+
+.ShareMenu textarea {
+    width: 30em;
+    height: 20em;
+    font-size: 0.8em;
+}
+
+.embedMenu {
+    position: absolute;
+    left: 5%;
+    top: 5%;
+    width: 90%;
+    height: 90%;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12), 0 2px 2px 0 rgba(0, 0, 0, 0.24);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1em;
+    text-align: left;
+    z-index: $zindex-embedMenu;
+}
+
+.embedMenu p {
+    margin-bottom: 0;
+    margin-bottom: 0.5em;
+}
+
+.embedMenu textarea {
+    width: 100%;
+    height: 80%;
+}
+
+.chart.mobile .ShareMenu .btn-embed {
+    display: none;
+}

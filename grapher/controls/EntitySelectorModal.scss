@@ -1,0 +1,146 @@
+$zindex-EntitySelector: 30;
+
+.entitySelectorOverlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.EntitySelectorSingle,
+.EntitySelectorMulti {
+    z-index: $zindex-EntitySelector;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.2);
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    left: 0.35em;
+    top: 0.35em;
+    bottom: 0.35em;
+    right: 0.35em;
+    border-radius: 2px;
+    text-align: left;
+
+    header {
+        position: sticky;
+        top: 0;
+        background: linear-gradient(rgba(white, 1) 75%, rgba(white, 0) 100%);
+        padding-top: 1em;
+        padding-bottom: 1.5em;
+        margin: 0;
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 0;
+        }
+    }
+
+    .wrapper {
+        padding-left: 1em;
+        padding-right: 1em;
+    }
+
+    h2 button {
+        float: right;
+        line-height: 1.15;
+        font-size: 1em;
+    }
+}
+
+.EntitySelectorSingle {
+    ul {
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        list-style-type: none;
+        padding: 0.5em;
+        color: #666;
+        cursor: pointer;
+        margin-bottom: 0.3em;
+    }
+
+    li:hover {
+        background-color: #eee;
+    }
+
+    input[type="search"] {
+        width: 100%;
+        font-size: 0.9em;
+        padding: 0.4em;
+        margin-bottom: 0.4em;
+        border: 1px solid #ccc;
+    }
+}
+
+.EntitySelectorMulti {
+    .entities {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 1em;
+    }
+
+    .selectedData {
+        min-width: 25%;
+        padding-left: 1em;
+    }
+
+    .searchResults {
+        width: 100%;
+    }
+
+    .searchResults ul {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+    }
+
+    li {
+        list-style-type: none;
+        flex: 1 0 15em;
+        margin-bottom: 0.3em;
+    }
+
+    li > label {
+        width: 100%;
+    }
+
+    input[type="search"] {
+        width: 100%;
+        font-size: 0.9em;
+        padding: 0.4em;
+        margin-bottom: 0.4em;
+        border: 1px solid #ccc;
+    }
+
+    input[type="checkbox"],
+    .clearSelection .icon {
+        margin: 0 0.1em 0 0;
+    }
+
+    .clearSelection {
+        font-size: 1em;
+        padding: 0;
+        margin: 0.5em 0 0;
+        color: rgba(black, 0.4);
+        transition: color 150ms ease;
+
+        &:hover {
+            color: $controls-color;
+        }
+    }
+}
+
+.chart.portrait .EntitySelectorMulti {
+    .selectedData {
+        min-width: 50%;
+    }
+}

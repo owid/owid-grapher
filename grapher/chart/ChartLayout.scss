@@ -1,0 +1,66 @@
+.HeaderHTML,
+.SourcesFooterHTML {
+    font-family: $sans-serif-font-stack;
+    font-size: 16px;
+    text-rendering: optimizelegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+.HeaderHTML {
+    padding: 15px;
+    padding-bottom: 2px;
+    text-align: left;
+
+    a {
+        text-decoration: none;
+        color: inherit;
+
+        &:hover {
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 0, 0, 0.2);
+        }
+    }
+
+    h1 {
+        font-family: $serif-font-stack;
+        font-weight: normal;
+        color: #555;
+        margin: 0;
+    }
+
+    p {
+        color: #666;
+        margin: 0;
+    }
+
+    .logo {
+        float: right;
+
+        svg {
+            height: 100% !important;
+            width: auto !important;
+        }
+    }
+}
+
+.SourcesFooterHTML {
+    padding: 15px;
+    padding-top: 0;
+    text-align: left;
+
+    a {
+        color: #777;
+        text-decoration: none;
+        &:visited {
+            color: #777;
+        }
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.SourcesFooterHTML.compact .license {
+    float: right;
+}
