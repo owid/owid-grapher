@@ -13,12 +13,13 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
-import { Grapher } from "charts/core/Grapher"
-import { ChartFigureView } from "site/client/ChartFigureView"
+import { Grapher } from "grapher/core/Grapher"
+import { GrapherFigureView } from "site/client/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { EPOCH_DATE } from "charts/core/GrapherConstants"
+import { EPOCH_DATE } from "grapher/core/GrapherConstants"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 interface VariablePageData {
     id: number
@@ -71,7 +72,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref chart?: Grapher
+    @observable.ref grapher?: Grapher
 
     @computed get isModified(): boolean {
         return (
@@ -248,20 +249,20 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                             />
                         </form>
                     </div>
-                    {this.chart && (
+                    {this.grapher && (
                         <div className="col">
                             <div className="topbar">
                                 <h3>Preview</h3>
                                 <Link
                                     className="btn btn-secondary"
                                     to={`/charts/create/${Base64.encode(
-                                        JSON.stringify(this.chart.json)
+                                        JSON.stringify(this.grapher.object)
                                     )}`}
                                 >
                                     Edit as new chart
                                 </Link>
                             </div>
-                            <ChartFigureView chart={this.chart} />
+                            <GrapherFigureView grapher={this.grapher} />
                         </div>
                     )}
                 </div>
@@ -286,7 +287,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         }
     }
 
-    @computed get chartConfig() {
+    @computed get grapherConfig(): GrapherInterface {
         return {
             yAxis: { min: 0 },
             map: { variableId: this.props.variable.id },
@@ -304,11 +305,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.chart = new Grapher(this.chartConfig as any)
+        this.grapher = new Grapher(this.grapherConfig as any)
 
         this.dispose = autorun(() => {
-            if (this.chart && this.chartConfig) {
-                this.chart.update(this.chartConfig)
+            if (this.grapher && this.grapherConfig) {
+                this.grapher.updateFromObject(this.grapherConfig)
             }
         })
     }

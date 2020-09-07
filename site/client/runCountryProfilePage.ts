@@ -1,8 +1,8 @@
 import fuzzysort from "fuzzysort"
-import { keyBy } from "charts/utils/Util"
+import { keyBy } from "grapher/utils/Util"
 import { observable, computed, action, autorun } from "mobx"
-import { Analytics } from "charts/core/Analytics"
-import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
+import { Analytics } from "grapher/core/Analytics"
+import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
 import { ENV } from "settings"
 interface ChartItem {
     title: string

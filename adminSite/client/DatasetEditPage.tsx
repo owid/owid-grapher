@@ -21,9 +21,9 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
 import { ChartList, ChartListItem } from "./ChartList"
-import { Grapher } from "charts/core/Grapher"
-import { ChartFigureView } from "site/client/ChartFigureView"
-import { ChartType, EPOCH_DATE } from "charts/core/GrapherConstants"
+import { Grapher } from "grapher/core/Grapher"
+import { GrapherFigureView } from "site/client/GrapherFigureView"
+import { ChartType, EPOCH_DATE } from "grapher/core/GrapherConstants"
 import { Tag } from "./TagBadge"
 import { VariableList, VariableListItem } from "./VariableList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -89,7 +89,7 @@ class VariableEditRow extends React.Component<{
         }
     }
 
-    @computed get chartConfig() {
+    @computed get grapherConfig() {
         return {
             yAxis: { min: 0 },
             map: { variableId: this.props.variable.id },
@@ -105,37 +105,37 @@ class VariableEditRow extends React.Component<{
         }
     }
 
-    @action.bound chartIsReady(chart: Grapher) {
+    @action.bound grapherIsReady(grapher: Grapher) {
         // XXX refactor this with EditorBasicTab
-        if (lodash.isEmpty(chart.mapTransform.choroplethData)) {
-            chart.script.tab = "chart"
-            chart.script.hasMapTab = false
-            if (chart.isScatter || chart.isSlopeChart) {
-                chart.selectedKeys = []
-            } else if (chart.primaryDimensions.length > 1) {
+        if (lodash.isEmpty(grapher.mapTransform.choroplethData)) {
+            grapher.tab = "chart"
+            grapher.hasMapTab = false
+            if (grapher.isScatter || grapher.isSlopeChart) {
+                grapher.selectedKeys = []
+            } else if (grapher.primaryDimensions.length > 1) {
                 const entity = lodash.includes(
-                    chart.availableEntityNames,
+                    grapher.availableEntityNames,
                     "World"
                 )
                     ? "World"
-                    : lodash.sample(chart.availableEntityNames)
-                chart.selectedKeys = chart.availableKeys.filter(
-                    key => chart.lookupKey(key).entityName === entity
+                    : lodash.sample(grapher.availableEntityNames)
+                grapher.selectedKeys = grapher.availableKeys.filter(
+                    key => grapher.lookupKey(key).entityName === entity
                 )
-                chart.script.addCountryMode = "change-country"
+                grapher.addCountryMode = "change-country"
             } else {
-                chart.script.addCountryMode = "add-country"
-                if (chart.filledDimensions[0].yearsUniq.length === 1) {
-                    chart.script.type = ChartType.DiscreteBar
-                    chart.selectedKeys =
-                        chart.availableKeys.length > 15
-                            ? lodash.sampleSize(chart.availableKeys, 8)
-                            : chart.availableKeys
+                grapher.addCountryMode = "add-country"
+                if (grapher.filledDimensions[0].yearsUniq.length === 1) {
+                    grapher.type = ChartType.DiscreteBar
+                    grapher.selectedKeys =
+                        grapher.availableKeys.length > 15
+                            ? lodash.sampleSize(grapher.availableKeys, 8)
+                            : grapher.availableKeys
                 } else {
-                    chart.selectedKeys =
-                        chart.availableKeys.length > 10
-                            ? lodash.sampleSize(chart.availableKeys, 3)
-                            : chart.availableKeys
+                    grapher.selectedKeys =
+                        grapher.availableKeys.length > 10
+                            ? lodash.sampleSize(grapher.availableKeys, 3)
+                            : grapher.availableKeys
                 }
             }
         }
@@ -144,22 +144,20 @@ class VariableEditRow extends React.Component<{
     dispose!: IReactionDisposer
     dispose2!: IReactionDisposer
     componentDidMount() {
-        this.chart = new Grapher(this.chartConfig as any, {
+        this.chart = new Grapher(this.grapherConfig as any, {
             isEmbed: true
         })
 
         this.dispose2 = when(
             () => this.chart !== undefined && this.chart.isReady,
-            () => this.chartIsReady(this.chart as Grapher)
+            () => this.grapherIsReady(this.chart as Grapher)
         )
 
         this.dispose = autorun(() => {
             const chart = this.chart
             const display = lodash.clone(this.newVariable.display)
             if (chart) {
-                runInAction(
-                    () => (chart.script.dimensions[0].display = display)
-                )
+                runInAction(() => (chart.dimensions[0].display = display))
             }
         })
     }
@@ -279,11 +277,11 @@ class VariableEditRow extends React.Component<{
                 </div>
                 {this.chart && (
                     <div className="col">
-                        <ChartFigureView chart={this.chart} />
+                        <GrapherFigureView grapher={this.chart} />
                         <Link
                             className="btn btn-secondary pull-right"
                             to={`/charts/create/${Base64.encode(
-                                JSON.stringify(this.chart.json)
+                                JSON.stringify(this.chart.object)
                             )}`}
                         >
                             Edit as new chart

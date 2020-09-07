@@ -18,7 +18,7 @@ import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
 import { getVariableData } from "db/model/Variable"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
     CountryNameFormat,
     CountryDefByKey
@@ -155,7 +155,7 @@ async function getRedirectsByChartId(
     return redirects
 }
 
-async function expectChartById(chartId: any): Promise<GrapherScript> {
+async function expectChartById(chartId: any): Promise<GrapherInterface> {
     const chart = await getChartById(expectInt(chartId))
 
     if (chart) {
@@ -165,18 +165,18 @@ async function expectChartById(chartId: any): Promise<GrapherScript> {
     }
 }
 
-function omitSaveToVariable(config: GrapherScript): GrapherScript {
+function omitSaveToVariable(config: GrapherInterface): GrapherInterface {
     const newConfig = lodash.clone(config)
-    newConfig.dimensions = newConfig.dimensions.map(dim => {
+    newConfig.dimensions = newConfig.dimensions!.map(dim => {
         return lodash.omit(dim, ["saveToVariable"])
     })
     return newConfig
 }
 
-async function saveChart(
+async function saveGrapher(
     user: CurrentUser,
-    newConfig: GrapherScript,
-    existingConfig?: GrapherScript
+    newConfig: GrapherInterface,
+    existingConfig?: GrapherInterface
 ) {
     return db.transaction(async t => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible
@@ -188,7 +188,7 @@ async function saveChart(
             return rows.length > 0
         }
 
-        async function isSlugUsedInOtherChart() {
+        async function isSlugUsedInOtherGrapher() {
             const rows = await t.query(
                 `SELECT * FROM charts WHERE id != ? AND JSON_EXTRACT(config, "$.isPublished") IS TRUE AND JSON_EXTRACT(config, "$.slug") = ?`,
                 [existingConfig ? existingConfig.id : undefined, newConfig.slug]
@@ -204,7 +204,7 @@ async function saveChart(
                 throw new JsonError(
                     `This chart slug was previously used by another chart: ${newConfig.slug}`
                 )
-            } else if (await isSlugUsedInOtherChart()) {
+            } else if (await isSlugUsedInOtherGrapher()) {
                 throw new JsonError(
                     `This chart slug is in use by another published chart: ${newConfig.slug}`
                 )
@@ -227,7 +227,7 @@ async function saveChart(
 
         if (existingConfig) {
             // Bump chart version, very important for cachebusting
-            newConfig.version = existingConfig.version + 1
+            newConfig.version = existingConfig.version! + 1
         } else if (newConfig.version) {
             // If a chart is republished, we want to keep incrementing the old version number,
             // otherwise it can lead to clients receiving cached versions of the old data.
@@ -290,8 +290,8 @@ async function saveChart(
         await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
             chartId
         ])
-        for (let i = 0; i < newConfig.dimensions.length; i++) {
-            const dim = newConfig.dimensions[i]
+        for (let i = 0; i < newConfig.dimensions!.length; i++) {
+            const dim = newConfig.dimensions![i]
             await t.execute(
                 `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
                 [[chartId, dim.variableId, dim.property, i]]
@@ -321,7 +321,7 @@ async function saveChart(
         // So we can generate country profiles including this chart data
         if (newConfig.isPublished) {
             await denormalizeLatestCountryData(
-                newConfig.dimensions.map(d => d.variableId)
+                newConfig.dimensions!.map(d => d.variableId)
             )
         }
 
@@ -561,7 +561,7 @@ apiRouter.post("/charts/:chartId/star", async (req: Request, res: Response) => {
 })
 
 apiRouter.post("/charts", async (req: Request, res: Response) => {
-    const chartId = await saveChart(res.locals.user, req.body)
+    const chartId = await saveGrapher(res.locals.user, req.body)
     return { success: true, chartId: chartId }
 })
 
@@ -579,7 +579,7 @@ apiRouter.post(
 apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
     const existingConfig = await expectChartById(req.params.chartId)
 
-    await saveChart(res.locals.user, req.body, existingConfig)
+    await saveGrapher(res.locals.user, req.body, existingConfig)
 
     const logs = await getLogsByChartId(existingConfig.id as number)
     return { success: true, chartId: existingConfig.id, newLog: logs[0] }

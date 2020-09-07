@@ -1,8 +1,8 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
-import { ChartType, ChartTypeName } from "charts/core/GrapherConstants"
-import { GrapherScript } from "charts/core/GrapherScript"
-import { Grapher } from "charts/core/Grapher"
+import { ChartType, ChartTypeName } from "grapher/core/GrapherConstants"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher } from "grapher/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
 import { Indicator } from "./Indicator"
@@ -11,7 +11,7 @@ export type ExplorerChartType = ChartTypeName | "WorldMap"
 
 function chartConfigFromIndicator(
     indicator: Indicator
-): Partial<GrapherScript> {
+): Partial<GrapherInterface> {
     return {
         ...indicator,
         // TODO need to derive selected data from ExploreModel, since selections
@@ -36,7 +36,7 @@ export class ExploreModel {
 
     @observable indicatorId?: number = undefined
 
-    chart: Grapher
+    grapher: Grapher
     url: ExploreUrl
     store: RootStore
     disposers: IReactionDisposer[] = []
@@ -51,16 +51,16 @@ export class ExploreModel {
     }
 
     @action.bound updateChartFromExplorer() {
-        this.chart.script.type = this.configChartType
-        this.chart.script.hasMapTab = this.isMap
-        this.chart.script.hasChartTab = !this.isMap
-        this.chart.tab = this.isMap ? "map" : "chart"
+        this.grapher.type = this.configChartType
+        this.grapher.hasMapTab = this.isMap
+        this.grapher.hasChartTab = !this.isMap
+        this.grapher.currentTab = this.isMap ? "map" : "chart"
     }
 
     constructor(store: RootStore) {
         this.store = store
-        this.chart = new Grapher()
-        this.url = new ExploreUrl(this, this.chart.url)
+        this.grapher = new Grapher()
+        this.url = new ExploreUrl(this, this.grapher.url)
 
         // We need these updates in an autorun because the chart config objects aren't really meant
         // to be recreated all the time. They aren't pure value objects and have behaviors on
@@ -70,11 +70,13 @@ export class ExploreModel {
         this.disposers.push(
             autorun(() => {
                 if (this.indicatorEntry === null) {
-                    this.chart.update({ dimensions: [] })
+                    this.grapher.updateFromObject({ dimensions: [] })
                 } else {
                     const indicator = this.indicatorEntry.entity
                     if (indicator) {
-                        this.chart.update(chartConfigFromIndicator(indicator))
+                        this.grapher.updateFromObject(
+                            chartConfigFromIndicator(indicator)
+                        )
                     }
                 }
             })

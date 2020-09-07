@@ -2,15 +2,18 @@ import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 
-import { includes, sample, sampleSize } from "charts/utils/Util"
-import { ChartTypeDefs, ChartTypeName } from "charts/core/GrapherConstants"
-import { ChartDimension, ChartDimensionSpec } from "charts/chart/ChartDimension"
+import { includes, sample, sampleSize } from "grapher/utils/Util"
+import { ChartTypeDefs, ChartTypeName } from "grapher/core/GrapherConstants"
+import {
+    ChartDimension,
+    ChartDimensionSpec
+} from "grapher/chart/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
-import { DimensionSlot } from "charts/chart/DimensionSlot"
+import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 
 @observer
@@ -44,31 +47,31 @@ class DimensionSlotView extends React.Component<{
     }
 
     updateDefaults() {
-        const { chart } = this.props.editor
+        const { grapher } = this.props.editor
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
-            () => chart.script.type && chart.primaryDimensions,
+            () => grapher.type && grapher.primaryDimensions,
             () => {
-                if (chart.isScatter || chart.isSlopeChart) {
-                    chart.selectedKeys = []
-                } else if (chart.primaryDimensions.length > 1) {
+                if (grapher.isScatter || grapher.isSlopeChart) {
+                    grapher.selectedKeys = []
+                } else if (grapher.primaryDimensions.length > 1) {
                     const entityName = includes(
-                        chart.availableEntityNames,
+                        grapher.availableEntityNames,
                         "World"
                     )
                         ? "World"
-                        : sample(chart.availableEntityNames)
-                    chart.selectedKeys = chart.availableKeys.filter(
-                        key => chart.lookupKey(key).entityName === entityName
+                        : sample(grapher.availableEntityNames)
+                    grapher.selectedKeys = grapher.availableKeys.filter(
+                        key => grapher.lookupKey(key).entityName === entityName
                     )
-                    chart.script.addCountryMode = "change-country"
+                    grapher.addCountryMode = "change-country"
                 } else {
-                    chart.selectedKeys =
-                        chart.availableKeys.length > 10
-                            ? sampleSize(chart.availableKeys, 3)
-                            : chart.availableKeys
-                    chart.script.addCountryMode = "add-country"
+                    grapher.selectedKeys =
+                        grapher.availableKeys.length > 10
+                            ? sampleSize(grapher.availableKeys, 3)
+                            : grapher.availableKeys
+                    grapher.addCountryMode = "add-country"
                 }
             }
         )
@@ -144,7 +147,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 
     render() {
         const { props } = this
-        const { dimensionSlots } = props.editor.chart
+        const { dimensionSlots } = props.editor.grapher
 
         return (
             <Section name="Add variables">
@@ -163,24 +166,24 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 @observer
 export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onChartType(value: string) {
-        const { chart } = this.props.editor
-        chart.script.type = value as ChartTypeName
+        const { grapher } = this.props.editor
+        grapher.type = value as ChartTypeName
 
         // Give scatterplots and slope charts a default color and size dimension if they don't have one
         if (
-            (chart.isScatter || chart.isSlopeChart) &&
-            !chart.script.dimensions.find(d => d.property === "color")
+            (grapher.isScatter || grapher.isSlopeChart) &&
+            !grapher.dimensions.find(d => d.property === "color")
         ) {
-            chart.script.dimensions = chart.script.dimensions.concat(
+            grapher.dimensions = grapher.dimensions.concat(
                 new ChartDimensionSpec({ variableId: 123, property: "color" })
             )
         }
 
         if (
-            (chart.isScatter || chart.isSlopeChart) &&
-            !chart.script.dimensions.find(d => d.property === "color")
+            (grapher.isScatter || grapher.isSlopeChart) &&
+            !grapher.dimensions.find(d => d.property === "color")
         ) {
-            chart.script.dimensions = chart.script.dimensions.concat(
+            grapher.dimensions = grapher.dimensions.concat(
                 new ChartDimensionSpec({ variableId: 72, property: "size" })
             )
         }
@@ -188,13 +191,13 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
 
     render() {
         const { editor } = this.props
-        const { chart } = editor
+        const { grapher } = editor
 
         return (
             <div className="EditorBasicTab">
                 <Section name="Type of chart">
                     <SelectField
-                        value={chart.script.type}
+                        value={grapher.type}
                         onValue={this.onChartType}
                         options={ChartTypeDefs.map(def => def.key)}
                         optionLabels={ChartTypeDefs.map(def => def.label)}
@@ -203,28 +206,26 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                         <FieldsRow>
                             <Toggle
                                 label="Explorable chart"
-                                value={chart.script.isExplorable}
+                                value={grapher.isExplorable}
                                 onValue={value =>
-                                    (chart.script.isExplorable = value)
+                                    (grapher.isExplorable = value)
                                 }
-                                disabled={!canBeExplorable(chart.script)}
+                                disabled={!canBeExplorable(grapher)}
                             />
                         </FieldsRow>
                     )}
                     <FieldsRow>
                         <Toggle
                             label="Chart tab"
-                            value={chart.script.hasChartTab}
-                            onValue={value =>
-                                (chart.script.hasChartTab = value)
-                            }
-                            disabled={chart.script.isExplorable}
+                            value={grapher.hasChartTab}
+                            onValue={value => (grapher.hasChartTab = value)}
+                            disabled={grapher.isExplorable}
                         />
                         <Toggle
                             label="Map tab"
-                            value={chart.script.hasMapTab}
-                            onValue={value => (chart.script.hasMapTab = value)}
-                            disabled={chart.script.isExplorable}
+                            value={grapher.hasMapTab}
+                            onValue={value => (grapher.hasMapTab = value)}
+                            disabled={grapher.isExplorable}
                         />
                     </FieldsRow>
                 </Section>

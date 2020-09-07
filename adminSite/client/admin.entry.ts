@@ -1,4 +1,4 @@
-import "charts/core/charts.entry"
+import "grapher/core/grapher.entry"
 import "adminSite/client/admin.scss"
 import "handsontable/dist/handsontable.full.css"
 

@@ -4,7 +4,7 @@ import {
     uniq,
     parseDelimited,
     isCellEmpty
-} from "charts/utils/Util"
+} from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
@@ -12,8 +12,8 @@ import {
 } from "utils/client/url"
 import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
-import { EntityUrlBuilder } from "charts/core/GrapherUrl"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"

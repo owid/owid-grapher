@@ -1,4 +1,4 @@
-import { filter, each, isEmpty } from "charts/utils/Util"
+import { filter, each, isEmpty } from "grapher/utils/Util"
 
 export interface QueryParams {
     [key: string]: string | undefined

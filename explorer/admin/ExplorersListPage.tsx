@@ -16,7 +16,7 @@ import {
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import { FieldsRow } from "adminSite/client/Forms"
-import { getAvailableSlugSync } from "charts/utils/Util"
+import { getAvailableSlugSync } from "grapher/utils/Util"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 import { deleteRemoteFile, writeRemoteFile } from "gitCms/client"
 import { BAKED_BASE_URL } from "settings"

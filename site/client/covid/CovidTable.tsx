@@ -21,8 +21,8 @@ import {
     extend,
     fromPairs,
     uniq
-} from "charts/utils/Util"
-import { SortOrder } from "charts/core/GrapherConstants"
+} from "grapher/utils/Util"
+import { SortOrder } from "grapher/core/GrapherConstants"
 
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 

@@ -1,10 +1,10 @@
 import * as React from "react"
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
 import ReactDOM from "react-dom"
-import { clone } from "charts/utils/Util"
+import { clone } from "grapher/utils/Util"
 import { computed, IReactionDisposer, observable } from "mobx"
-import { Grapher } from "charts/core/Grapher"
-import { ChartFigureView } from "./ChartFigureView"
+import { Grapher } from "grapher/core/Grapher"
+import { GrapherFigureView } from "./GrapherFigureView"
 import { observer } from "mobx-react"
 import { owidVariableId } from "owidTable/OwidTable"
 
@@ -72,7 +72,7 @@ class ClientVariableCountryPage extends React.Component<{
                 <h1>
                     {variable.name} in {country.name}
                 </h1>
-                {this.chart && <ChartFigureView chart={this.chart} />}
+                {this.chart && <GrapherFigureView grapher={this.chart} />}
             </React.Fragment>
         )
     }

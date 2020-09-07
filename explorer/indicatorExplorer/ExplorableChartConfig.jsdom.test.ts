@@ -1,31 +1,31 @@
 #! /usr/bin/env yarn jest
 
-import { createConfig } from "charts/test/utils"
+import { createGrapher } from "grapher/test/utils"
 
 describe("ChartConfig", () => {
     it("allows single-dimensional explorer charts", () => {
-        const config = createConfig({
+        const grapher = createGrapher({
             type: "LineChart",
             hasChartTab: false,
             hasMapTab: false,
             isExplorable: true,
             dimensions: [{ property: "y", variableId: 1, display: {} }]
         })
-        expect(config.isExplorable).toBe(true)
+        expect(grapher.isExplorable).toBe(true)
     })
 
     it("does not allow explorable scatter plots", () => {
-        const config = createConfig({
+        const grapher = createGrapher({
             type: "ScatterPlot",
             hasChartTab: true,
             isExplorable: true,
             dimensions: [{ property: "y", variableId: 1, display: {} }]
         })
-        expect(config.isExplorable).toBe(false)
+        expect(grapher.isExplorable).toBe(false)
     })
 
     it("does not allow multi-dimensional charts", () => {
-        const config = createConfig({
+        const grapher = createGrapher({
             type: "LineChart",
             hasChartTab: true,
             isExplorable: true,
@@ -34,6 +34,6 @@ describe("ChartConfig", () => {
                 { property: "y", variableId: 2, display: {} }
             ]
         })
-        expect(config.isExplorable).toBe(false)
+        expect(grapher.isExplorable).toBe(false)
     })
 })

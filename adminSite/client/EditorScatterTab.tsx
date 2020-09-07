@@ -1,19 +1,19 @@
 import * as React from "react"
-import { extend, debounce } from "charts/utils/Util"
+import { extend, debounce } from "grapher/utils/Util"
 import { observable, computed, action, toJS } from "mobx"
 import { observer } from "mobx-react"
-import { Grapher } from "charts/core/Grapher"
-import { ComparisonLineConfig } from "charts/scatterCharts/ComparisonLine"
+import { Grapher } from "grapher/core/Grapher"
+import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { Toggle, NumberField, SelectField, TextField, Section } from "./Forms"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ScatterPointLabelStrategy,
     HighlightToggleConfig
-} from "charts/core/GrapherConstants"
+} from "grapher/core/GrapherConstants"
 
 @observer
-export class EditorScatterTab extends React.Component<{ chart: Grapher }> {
+export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
     @observable highlightToggle: HighlightToggleConfig = {
         description: "",
@@ -21,69 +21,68 @@ export class EditorScatterTab extends React.Component<{ chart: Grapher }> {
     }
 
     @computed get hasHighlightToggle() {
-        return !!this.props.chart.highlightToggle
+        return !!this.props.grapher.highlightToggle
     }
 
-    constructor(props: { chart: Grapher }) {
+    constructor(props: { grapher: Grapher }) {
         super(props)
-        extend(this.highlightToggle, props.chart.highlightToggle)
+        extend(this.highlightToggle, props.grapher.highlightToggle)
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.props.chart.script.hideTimeline = value || undefined
+        this.props.grapher.hideTimeline = value || undefined
     }
 
     @action.bound onToggleHideLinesOutsideTolerance(value: boolean) {
-        this.props.chart.script.hideLinesOutsideTolerance = value || undefined
+        this.props.grapher.hideLinesOutsideTolerance = value || undefined
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
-        this.props.chart.scatterTransform.xOverrideYear = value
+        this.props.grapher.scatterTransform.xOverrideYear = value
     }
 
     @action.bound onToggleHighlightToggle(value: boolean) {
-        if (value)
-            this.props.chart.script.highlightToggle = this.highlightToggle
-        else this.props.chart.script.highlightToggle = undefined
+        if (value) this.props.grapher.highlightToggle = this.highlightToggle
+        else this.props.grapher.highlightToggle = undefined
     }
 
     save() {
         if (this.hasHighlightToggle)
-            this.props.chart.script.highlightToggle = toJS(this.highlightToggle)
+            this.props.grapher.highlightToggle = toJS(this.highlightToggle)
     }
 
     @computed get excludedEntityChoices(): string[] {
-        return this.props.chart.scatterTransform.getEntityNamesToShow()
+        return this.props.grapher.scatterTransform.getEntityNamesToShow()
     }
 
     @action.bound onExcludeEntity(entity: string) {
-        const { chart } = this.props
-        if (chart.script.excludedEntities === undefined) {
-            chart.script.excludedEntities = []
+        const { grapher } = this.props
+        if (grapher.excludedEntities === undefined) {
+            grapher.excludedEntities = []
         }
 
-        const entityId = chart.table.entityNameToIdMap.get(entity)!
-        if (chart.script.excludedEntities.indexOf(entityId) === -1)
-            chart.script.excludedEntities.push(entityId)
+        const entityId = grapher.table.entityNameToIdMap.get(entity)!
+        if (grapher.excludedEntities.indexOf(entityId) === -1)
+            grapher.excludedEntities.push(entityId)
     }
 
     @action.bound onUnexcludeEntity(entity: string) {
-        const { chart } = this.props
-        if (!chart.script.excludedEntities) return
+        const { grapher } = this.props
+        if (!grapher.excludedEntities) return
 
-        const entityId = chart.table.entityNameToIdMap.get(entity)
-        chart.script.excludedEntities = chart.script.excludedEntities.filter(
+        const entityId = grapher.table.entityNameToIdMap.get(entity)
+        grapher.excludedEntities = grapher.excludedEntities.filter(
             e => e !== entityId
         )
     }
 
     @action.bound onToggleConnection(value: boolean) {
-        const { chart } = this.props
-        chart.script.hideConnectedScatterLines = value
+        const { grapher } = this.props
+        grapher.hideConnectedScatterLines = value
     }
 
     @action.bound onChangeScatterPointLabelStrategy(value: string) {
-        this.props.chart.script.scatterPointLabelStrategy = value as ScatterPointLabelStrategy
+        this.props.grapher.scatterPointLabelStrategy = value as ScatterPointLabelStrategy
     }
 
     render() {
@@ -92,36 +91,36 @@ export class EditorScatterTab extends React.Component<{ chart: Grapher }> {
             highlightToggle,
             excludedEntityChoices
         } = this
-        const { chart } = this.props
+        const { grapher } = this.props
 
         return (
             <div className="EditorScatterTab">
                 <Section name="Timeline">
                     <Toggle
                         label="Hide timeline"
-                        value={!!chart.script.hideTimeline}
+                        value={!!grapher.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     <Toggle
                         label="Hide entities without data for full time span (within tolerance)"
-                        value={!!chart.script.hideLinesOutsideTolerance}
+                        value={!!grapher.hideLinesOutsideTolerance}
                         onValue={this.onToggleHideLinesOutsideTolerance}
                     />
                     <Toggle
                         label="Hide connected scatter lines"
-                        value={!!chart.script.hideConnectedScatterLines}
+                        value={!!grapher.hideConnectedScatterLines}
                         onValue={this.onToggleConnection}
                     />
                     <NumberField
                         label="Override X axis target year"
-                        value={chart.scatterTransform.xOverrideYear}
+                        value={grapher.scatterTransform.xOverrideYear}
                         onValue={debounce(this.onXOverrideYear, 300)}
                         allowNegative
                     />
                 </Section>
                 <Section name="Point Labels">
                     <SelectField
-                        value={chart.script.scatterPointLabelStrategy}
+                        value={grapher.scatterPointLabelStrategy}
                         onValue={this.onChangeScatterPointLabelStrategy}
                         options={["year", "y", "x"]}
                     />
@@ -129,10 +128,10 @@ export class EditorScatterTab extends React.Component<{ chart: Grapher }> {
                 <Section name="Filtering">
                     <Toggle
                         label="Exclude entities that do not belong in any color group"
-                        value={!!chart.script.matchingEntitiesOnly}
+                        value={!!grapher.matchingEntitiesOnly}
                         onValue={action(
                             (value: boolean) =>
-                                (chart.script.matchingEntitiesOnly =
+                                (grapher.matchingEntitiesOnly =
                                     value || undefined)
                         )}
                     />
@@ -143,9 +142,9 @@ export class EditorScatterTab extends React.Component<{ chart: Grapher }> {
                         onValue={v => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}
                     />
-                    {chart.scatterTransform.excludedEntityNames && (
+                    {grapher.scatterTransform.excludedEntityNames && (
                         <ul className="excludedEntities">
-                            {chart.scatterTransform.excludedEntityNames.map(
+                            {grapher.scatterTransform.excludedEntityNames.map(
                                 entity => (
                                     <li key={entity}>
                                         <div

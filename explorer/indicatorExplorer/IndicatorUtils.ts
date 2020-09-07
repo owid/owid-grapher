@@ -1,5 +1,5 @@
-import { GrapherScript } from "charts/core/GrapherScript"
-import { ChartTypeName } from "charts/core/GrapherConstants"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { EXPLORER } from "settings"
 
 export const EXPLORABLE_CHART_TYPES: ChartTypeName[] = [
@@ -85,18 +85,18 @@ export const FORCE_EXPLORABLE_CHART_IDS: number[] = [
 
 // A centralized predicate to test whether a chart can be explorable.
 // Used for validation on both server & client.
-export function canBeExplorable(config: GrapherScript) {
+export function canBeExplorable(config: GrapherInterface) {
     return (
         // Only allow explorable charts if the "EXPLORER" flag in .env is true
         EXPLORER &&
         // Only allow specific chart types to be made explorable
-        EXPLORABLE_CHART_TYPES.includes(config.type) &&
+        EXPLORABLE_CHART_TYPES.includes(config.type!) &&
         // Only allow charts with a single dimension to be explorable
-        config.dimensions.length === 1
+        config.dimensions?.length === 1
     )
 }
 
-export function isExplorable(config: GrapherScript): boolean {
+export function isExplorable(config: GrapherInterface): boolean {
     return (
         (config.isExplorable ||
             (config.id !== undefined &&

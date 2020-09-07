@@ -1,11 +1,11 @@
 import { observable, reaction, IReactionDisposer, computed } from "mobx"
 
 import { Country, countries } from "utils/countries"
-import { Grapher } from "charts/core/Grapher"
-import { excludeUndefined } from "charts/utils/Util"
-import { UrlBinder, ObservableUrl } from "charts/utils/UrlBinder"
+import { Grapher } from "grapher/core/Grapher"
+import { excludeUndefined } from "grapher/utils/Util"
+import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
 import { QueryParams, strToQueryParams } from "utils/client/url"
-import { EntityUrlBuilder } from "charts/core/GrapherUrl"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 export enum GlobalEntitySelectionModes {
     none = "none",
@@ -47,17 +47,17 @@ export class GlobalEntitySelection {
 }
 
 export function subscribeGrapherToGlobalEntitySelection(
-    chart: Grapher,
+    grapher: Grapher,
     globalSelection: GlobalEntitySelection
 ): IReactionDisposer {
     return reaction(
         () => [
-            chart.isReady,
+            grapher.isReady,
             globalSelection.mode,
             globalSelection.selectedEntities
         ],
         () => {
-            if (!chart.canAddData && !chart.canChangeEntity) {
+            if (!grapher.canAddData && !grapher.canChangeEntity) {
                 // Chart doesn't support changing entities - do nothing
                 return
             }
@@ -65,11 +65,11 @@ export function subscribeGrapherToGlobalEntitySelection(
             // This implements "override" mode only!
             if (mode === GlobalEntitySelectionModes.override) {
                 if (selectedEntities.length > 0) {
-                    chart.setSelectedEntitiesByCode(
+                    grapher.setSelectedEntitiesByCode(
                         selectedEntities.map(entity => entity.code)
                     )
                 } else {
-                    chart.resetSelectedEntities()
+                    grapher.resetSelectedEntities()
                 }
             }
         },

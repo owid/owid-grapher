@@ -1,7 +1,7 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ChartDimension } from "charts/chart/ChartDimension"
+import { ChartDimension } from "grapher/chart/ChartDimension"
 import { ChartEditor } from "./ChartEditor"
 import {
     Toggle,
@@ -69,7 +69,7 @@ export class DimensionCard extends React.Component<{
 
     render() {
         const { dimension, editor } = this.props
-        const { chart } = editor
+        const { grapher } = editor
 
         return (
             <EditableListItem className="DimensionCard">
@@ -154,16 +154,16 @@ export class DimensionCard extends React.Component<{
                             helpText={`Multiply all values by this amount`}
                         />
                         {this.tableDisplaySettings}
-                        {(chart.isScatter ||
-                            chart.isDiscreteBar ||
-                            chart.isLineChart) && (
+                        {(grapher.isScatter ||
+                            grapher.isDiscreteBar ||
+                            grapher.isLineChart) && (
                             <BindAutoFloat
                                 field="tolerance"
                                 store={dimension.spec.display}
                                 auto={dimension.tolerance}
                             />
                         )}
-                        {chart.isLineChart && (
+                        {grapher.isLineChart && (
                             <Toggle
                                 label="Is projection"
                                 value={dimension.isProjection}

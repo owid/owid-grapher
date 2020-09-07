@@ -12,10 +12,10 @@ import {
     TextField,
     Button
 } from "./Forms"
-import { LogoOption } from "charts/chart/Logos"
+import { LogoOption } from "grapher/chart/Logos"
 import slugify from "slugify"
-import { RelatedQuestionsConfig } from "charts/core/GrapherConstants"
-import { getErrorMessageRelatedQuestionUrl } from "charts/utils/Util"
+import { RelatedQuestionsConfig } from "grapher/core/GrapherConstants"
+import { getErrorMessageRelatedQuestionUrl } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
@@ -23,79 +23,78 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 @observer
 export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
     @action.bound onSlug(slug: string) {
-        this.props.editor.chart.script.slug = slugify(slug).toLowerCase()
+        this.props.editor.grapher.slug = slugify(slug).toLowerCase()
     }
 
     @action.bound onChangeLogo(value: string) {
         if (value === "none") {
-            this.props.editor.chart.script.hideLogo = true
+            this.props.editor.grapher.hideLogo = true
         } else {
-            this.props.editor.chart.script.hideLogo = undefined
-            this.props.editor.chart.script.logo =
-                (value as LogoOption) || undefined
+            this.props.editor.grapher.hideLogo = undefined
+            this.props.editor.grapher.logo = (value as LogoOption) || undefined
         }
     }
 
     @action.bound onAddRelatedQuestion() {
-        const { chart } = this.props.editor
-        if (!chart.script.relatedQuestions) {
-            chart.script.relatedQuestions = []
+        const { grapher } = this.props.editor
+        if (!grapher.relatedQuestions) {
+            grapher.relatedQuestions = []
         }
-        chart.script.relatedQuestions.push({
+        grapher.relatedQuestions.push({
             text: "",
             url: ""
         })
     }
 
     @action.bound onRemoveRelatedQuestion(idx: number) {
-        const { chart } = this.props.editor
+        const { grapher } = this.props.editor
 
-        if (chart.script.relatedQuestions) {
-            chart.script.relatedQuestions.splice(idx, 1)
-            if (chart.script.relatedQuestions.length === 0) {
-                chart.script.relatedQuestions = undefined
+        if (grapher.relatedQuestions) {
+            grapher.relatedQuestions.splice(idx, 1)
+            if (grapher.relatedQuestions.length === 0) {
+                grapher.relatedQuestions = undefined
             }
         }
     }
 
     render() {
-        const { chart, references } = this.props.editor
-        const { relatedQuestions } = chart.script
+        const { grapher, references } = this.props.editor
+        const { relatedQuestions } = grapher
 
         return (
             <div>
                 <Section name="Header">
                     <BindAutoString
                         field="title"
-                        store={chart.script}
-                        auto={chart.title}
+                        store={grapher}
+                        auto={grapher.displayTitle}
                         softCharacterLimit={100}
                     />
                     <Toggle
                         label="Hide automatic time/entity"
-                        value={!!chart.script.hideTitleAnnotation}
+                        value={!!grapher.hideTitleAnnotation}
                         onValue={action(
                             (value: boolean) =>
-                                (chart.script.hideTitleAnnotation =
+                                (grapher.hideTitleAnnotation =
                                     value || undefined)
                         )}
                     />
                     <AutoTextField
                         label="/grapher"
-                        value={chart.slug}
+                        value={grapher.displaySlug}
                         onValue={this.onSlug}
-                        isAuto={chart.script.slug === undefined}
+                        isAuto={grapher.slug === undefined}
                         onToggleAuto={() =>
-                            (chart.script.slug =
-                                chart.script.slug === undefined
-                                    ? chart.slug
+                            (grapher.slug =
+                                grapher.slug === undefined
+                                    ? grapher.displaySlug
                                     : undefined)
                         }
                         helpText="Human-friendly URL for this chart"
                     />
                     <BindString
                         field="subtitle"
-                        store={chart.script}
+                        store={grapher}
                         placeholder="Briefly describe the context of the data. It's best to avoid duplicating any information which can be easily inferred from other visual elements of the chart."
                         textarea
                         softCharacterLimit={280}
@@ -109,9 +108,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             { label: "No logo", value: "none" }
                         ]}
                         value={
-                            chart.script.hideLogo
-                                ? "none"
-                                : chart.script.logo || "owid"
+                            grapher.hideLogo ? "none" : grapher.logo || "owid"
                         }
                         onChange={this.onChangeLogo}
                     />
@@ -120,16 +117,16 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindAutoString
                         label="Source"
                         field="sourceDesc"
-                        store={chart.script}
-                        auto={chart.sourcesLine}
+                        store={grapher}
+                        auto={grapher.sourcesLine}
                         helpText="Short comma-separated list of source names"
                         softCharacterLimit={60}
                     />
                     <BindString
                         label="Origin url"
                         field="originUrl"
-                        store={chart.script}
-                        placeholder={chart.originUrlWithProtocol}
+                        store={grapher}
+                        placeholder={grapher.originUrlWithProtocol}
                         helpText="The page containing this chart where more context can be found"
                     />
                     {references && references.length > 0 && (
@@ -145,7 +142,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindString
                         label="Footer note"
                         field="note"
-                        store={chart.script}
+                        store={grapher}
                         helpText="Any important clarification needed to avoid miscommunication"
                         softCharacterLimit={140}
                     />
@@ -201,14 +198,14 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     <BindString
                         label="Internal author notes"
                         field="internalNotes"
-                        store={chart.script}
+                        store={grapher}
                         placeholder="e.g. WIP, needs review, etc"
                         textarea
                     />
                     <BindString
                         label="Variant name"
                         field="variantName"
-                        store={chart.script}
+                        store={grapher}
                         placeholder="e.g. IHME data"
                         helpText="Optional variant name for distinguishing charts with the same title"
                     />

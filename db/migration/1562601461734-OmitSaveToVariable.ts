@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { GrapherScript } from "charts/core/GrapherScript"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import * as lodash from "lodash"
 
-function omitSaveToVariable(config: GrapherScript): GrapherScript {
+function omitSaveToVariable(config: GrapherInterface): GrapherInterface {
     const newConfig = lodash.clone(config)
-    newConfig.dimensions = newConfig.dimensions.map(dim => {
+    newConfig.dimensions = newConfig.dimensions?.map(dim => {
         return lodash.omit(dim, ["saveToVariable"])
     })
     return newConfig

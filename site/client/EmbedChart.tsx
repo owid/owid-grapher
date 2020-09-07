@@ -8,8 +8,8 @@ import {
     autorun,
     IReactionDisposer
 } from "mobx"
-import { Grapher } from "charts/core/Grapher"
-import { ChartFigureView } from "./ChartFigureView"
+import { Grapher } from "grapher/core/Grapher"
+import { GrapherFigureView } from "./GrapherFigureView"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 
 @observer
@@ -51,7 +51,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
 
     render() {
         return this.chart ? (
-            <ChartFigureView chart={this.chart} />
+            <GrapherFigureView grapher={this.chart} />
         ) : (
             <figure data-grapher-src={this.props.src} />
         )

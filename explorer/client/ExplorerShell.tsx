@@ -1,24 +1,24 @@
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { Grapher } from "charts/core/Grapher"
-import { Command, CommandPalette } from "charts/controls/CommandPalette"
-import { Bounds } from "charts/utils/Bounds"
+import { Grapher } from "grapher/core/Grapher"
+import { Command, CommandPalette } from "grapher/controls/CommandPalette"
+import { Bounds } from "grapher/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { CountryPicker } from "charts/controls/CountryPicker"
+import { CountryPicker } from "grapher/controls/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
-import { ChartView } from "charts/chart/ChartView"
+import { GrapherView } from "grapher/core/GrapherView"
 import { ExplorerQueryParams } from "./ExplorerProgram"
-import { throttle } from "charts/utils/Util"
+import { throttle } from "grapher/utils/Util"
 
 // TODO: Migrate CovidExplorer to use this class as well
 @observer
 export class ExplorerShell extends React.Component<{
     explorerSlug: string
     controlPanels: JSX.Element[]
-    chart: Grapher
+    grapher: Grapher
     availableEntities: string[]
     headerElement: JSX.Element
     params: ExplorerQueryParams
@@ -86,7 +86,7 @@ export class ExplorerShell extends React.Component<{
         return (
             <CountryPicker
                 explorerSlug={this.props.explorerSlug}
-                table={this.props.chart.table}
+                table={this.props.grapher.table}
                 isDropdownMenu={this.isMobile}
                 availableEntities={this.props.availableEntities}
                 selectedEntities={this.selectedEntityNames}
@@ -179,11 +179,11 @@ export class ExplorerShell extends React.Component<{
                         ref={this.chartContainerRef}
                     >
                         {this.chartBounds && (
-                            <ChartView
+                            <GrapherView
                                 bounds={this.chartBounds}
-                                chart={this.props.chart}
+                                grapher={this.props.grapher}
                                 isEmbed={true}
-                            ></ChartView>
+                            ></GrapherView>
                         )}
                     </div>
                 </div>

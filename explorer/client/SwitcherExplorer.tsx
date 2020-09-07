@@ -1,13 +1,13 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, when, reaction, autorun } from "mobx"
-import { GrapherScript } from "charts/core/GrapherScript"
-import { Grapher } from "charts/core/Grapher"
-import { uniq } from "charts/utils/Util"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher } from "grapher/core/Grapher"
+import { uniq } from "grapher/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
-import { ExtendedGrapherUrl } from "charts/core/GrapherUrl"
+import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
 import ReactDOM from "react-dom"
-import { UrlBinder } from "charts/utils/UrlBinder"
+import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
 import { strToQueryParams } from "utils/client/url"
@@ -17,13 +17,13 @@ declare type chartId = number
 export interface SwitcherBootstrapProps {
     explorerProgramCode: string
     slug: string
-    chartConfigs: GrapherScript[]
+    chartConfigs: GrapherInterface[]
     bindToWindow: boolean
 }
 
 @observer
 export class SwitcherExplorer extends React.Component<{
-    chartConfigs: Map<chartId, GrapherScript>
+    chartConfigs: Map<chartId, GrapherInterface>
     program: ExplorerProgram
     bindToWindow: boolean
 }> {
@@ -36,7 +36,7 @@ export class SwitcherExplorer extends React.Component<{
             explorerProgramCode,
             window.location.search
         )
-        const chartConfigsMap: Map<number, GrapherScript> = new Map()
+        const chartConfigsMap: Map<number, GrapherInterface> = new Map()
         chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
 
         return ReactDOM.render(
@@ -52,7 +52,7 @@ export class SwitcherExplorer extends React.Component<{
     private urlBinding?: UrlBinder
     private lastId = 0
 
-    @observable private _chart?: Grapher = undefined
+    @observable private _grapher?: Grapher = undefined
     @observable availableEntities: string[] = []
 
     private get explorerRuntime() {
@@ -64,7 +64,7 @@ export class SwitcherExplorer extends React.Component<{
     }
 
     private bindToWindow() {
-        const url = new ExtendedGrapherUrl(this._chart!.url, [
+        const url = new ExtendedGrapherUrl(this._grapher!.url, [
             this.switcherRuntime,
             this.explorerRuntime
         ])
@@ -79,7 +79,7 @@ export class SwitcherExplorer extends React.Component<{
 
     componentWillMount() {
         // todo: add disposer
-        reaction(() => this.switcherRuntime.chartId, this.switchChart, {
+        reaction(() => this.switcherRuntime.chartId, this.switchGrapher, {
             fireImmediately: true
         })
     }
@@ -87,47 +87,45 @@ export class SwitcherExplorer extends React.Component<{
     componentDidMount() {
         autorun(() => {
             this.explorerRuntime.selectedEntityNames.size // "Dot in" to create Mobx link.
-            this.updateChartSelection()
+            this.updateGrapherSelection()
         })
     }
 
-    @action.bound private switchChart() {
+    @action.bound private switchGrapher() {
         const newId: number = this.switcherRuntime.chartId
         if (newId === this.lastId) return
 
-        const currentParams = this._chart
-            ? this._chart.url.params
+        const currentParams = this._grapher
+            ? this._grapher.url.params
             : strToQueryParams(this.props.program.queryString)
 
-        const props = this.props.chartConfigs.get(newId) || new GrapherScript()
-
-        this._chart = new Grapher(props)
-        this._chart.url.dropUnchangedParams = false
-        this._chart.hideEntityControls =
+        this._grapher = new Grapher(this.props.chartConfigs.get(newId))
+        this._grapher.url.dropUnchangedParams = false
+        this._grapher.hideEntityControls =
             !this.explorerRuntime.hideControls && !this.isEmbed
         if (this.props.bindToWindow) this.bindToWindow()
 
-        this._chart.url.populateFromQueryParams(currentParams)
+        this._grapher.url.populateFromQueryParams(currentParams)
 
         // disposer?
         when(
-            () => this._chart!.isReady,
+            () => this._grapher!.isReady,
             () => {
                 // Add any missing entities
                 this.availableEntities = uniq([
                     ...this.availableEntities,
-                    ...this._chart!.table.availableEntities
+                    ...this._grapher!.table.availableEntities
                 ]).sort()
 
-                this.updateChartSelection()
+                this.updateGrapherSelection()
             }
         )
 
         this.lastId = newId
     }
 
-    @action.bound private updateChartSelection() {
-        const table = this._chart!.table
+    @action.bound private updateGrapherSelection() {
+        const table = this._grapher!.table
         const entityIdMap = table.entityNameToIdMap
         const selectedData = Array.from(
             this.explorerRuntime.selectedEntityNames
@@ -142,7 +140,7 @@ export class SwitcherExplorer extends React.Component<{
                 }
             })
 
-        this._chart!.script.selectedData = selectedData
+        this._grapher!.selectedData = selectedData
     }
 
     private get panels() {
@@ -190,7 +188,7 @@ export class SwitcherExplorer extends React.Component<{
                 controlPanels={this.panels}
                 explorerSlug={this.props.program.slug}
                 availableEntities={this.availableEntities}
-                chart={this._chart!}
+                grapher={this._grapher!}
                 params={this.explorerRuntime}
                 isEmbed={this.isEmbed}
             />
