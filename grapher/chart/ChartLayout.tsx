@@ -6,6 +6,7 @@ import { SourcesFooter, SourcesFooterHTML } from "grapher/chart/Footer"
 import { Bounds } from "grapher/utils/Bounds"
 import { ControlsOverlayView } from "grapher/controls/Controls"
 import { GrapherView } from "grapher/core/GrapherView"
+import { ControlsRow } from "grapher/controls/ControlsRow"
 
 interface ChartLayoutProps {
     grapher: Grapher
@@ -128,6 +129,7 @@ export class ChartLayoutView extends React.Component<{
         return (
             <React.Fragment>
                 <HeaderHTML grapher={grapher} header={layout.header} />
+                <ControlsRow controls={grapherView.controls} />
                 <ControlsOverlayView
                     grapher={grapher}
                     grapherView={grapherView}
