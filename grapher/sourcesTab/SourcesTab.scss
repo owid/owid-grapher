@@ -1,0 +1,58 @@
+.sourcesTab,
+.DownloadTab {
+    padding: 1rem;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.sourcesTab > div {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.datasource-wrapper {
+    font-size: 0.8em;
+    max-width: 1024px;
+}
+
+.datasource-wrapper h2 {
+    width: 70%;
+    padding-bottom: 0.3em;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    font-family: inherit;
+    border-bottom: 1px solid #35322f;
+    margin-bottom: 0;
+}
+.datasource-wrapper h2,
+.datasource-wrapper h3,
+.datasource-wrapper h4 {
+    margin-left: 0px;
+    font-family: inherit;
+}
+.datasource-wrapper h3,
+.datasource-wrapper h4 {
+    margin-top: 2px;
+    margin-bottom: 1px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.datasource-wrapper td {
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    border-top: 1px solid #ddd;
+}
+
+.datasource-property {
+    display: inline-block;
+    width: 150px;
+}
+.datasource-additional p {
+    margin-top: 0.3em;
+}
+
+.chart.narrow .datasource-wrapper {
+    padding: 0;
+}

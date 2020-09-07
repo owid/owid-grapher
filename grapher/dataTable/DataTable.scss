@@ -25,3 +25,159 @@
         z-index: 10;
     }
 }
+
+.data-table {
+    font-size: 0.9375rem;
+    border: none;
+    background: white;
+    width: 100%;
+    border-spacing: 0px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
+        rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
+
+    th {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    tr th:first-child,
+    tr td:first-child {
+        padding-left: 15px;
+    }
+
+    tr th:last-child,
+    tr td:last-child {
+        padding-right: 15px;
+    }
+
+    thead tr:first-child th {
+        padding-top: 10px;
+        padding-bottom: 8px;
+        vertical-align: text-top;
+    }
+
+    th {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    tr:first-child td {
+        padding-top: 8px;
+    }
+
+    tr:last-child td {
+        padding-bottom: 15px;
+    }
+
+    th.sortable {
+        cursor: pointer;
+    }
+
+    th {
+        background-color: white;
+    }
+
+    th.sorted,
+    th.sortable:hover {
+        background-color: rgb(245, 245, 245);
+    }
+
+    th,
+    td {
+        padding-left: 15px;
+        padding-right: 15px;
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+        vertical-align: text-top;
+    }
+
+    th:last-child,
+    td:last-child {
+        border-right: none;
+    }
+
+    td {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
+    tbody tr {
+        padding-top: 20px;
+        padding-bottom: 20px;
+
+        td {
+            background-color: white;
+        }
+    }
+
+    tbody tr:nth-child(2n) td {
+        background-color: rgb(250, 250, 250);
+    }
+    tbody tr:nth-child(2n) td.sorted {
+        background-color: rgb(246, 246, 246);
+    }
+
+    td.sorted {
+        background-color: rgb(250, 250, 250);
+    }
+
+    tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.035);
+    }
+
+    .entity {
+        text-align: left;
+        font-weight: 700;
+    }
+
+    .dimension {
+        text-align: right;
+
+        .name,
+        .unit {
+            display: block;
+        }
+
+        .unit {
+            font-weight: 700;
+            opacity: 0.5;
+        }
+    }
+
+    .data-table-notice {
+        opacity: 0.5;
+        padding-right: 8px;
+        font-size: 13px;
+        cursor: default;
+
+        .icon {
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+    }
+
+    .range-year {
+        opacity: 0.5;
+        font-size: 13px;
+        padding-bottom: 4px;
+        padding-left: 2px;
+    }
+
+    th .sort-icon {
+        float: right;
+        opacity: 0.15;
+        padding-left: 5px;
+
+        &.active {
+            opacity: 1 !important;
+        }
+    }
+
+    th:hover .sort-icon {
+        opacity: 0.6;
+    }
+}
+
+.closest-year-notice {
+    max-width: 13rem;
+    text-align: center;
+    padding: 0.25rem;
+}
