@@ -131,7 +131,7 @@
         "file-loader": "^6.1.0",
         "filenamify": "^4.1.0",
         "fs-extra": "^9.0.1",
-        "fuzzyset": "^0.0.4",
+        "fuzzyset": "^1.0.5",
         "fuzzysort": "^1.1.4",
         "glob": "^7.1.4",
         "google-trends-api": "^4.9.0",
