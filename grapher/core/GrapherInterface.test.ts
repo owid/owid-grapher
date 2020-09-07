@@ -6,6 +6,6 @@ describe(PersistableGrapher, () => {
     it("can serialize Grapher for saving", () => {
         const script = new PersistableGrapher()
         const json = script.toObject()
-        expect(Object.keys(json).length).toBe(0) // todo: this should be 0!
+        expect(Object.keys(json).length).toBe(0)
     })
 })

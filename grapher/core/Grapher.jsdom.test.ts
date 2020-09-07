@@ -9,8 +9,8 @@ describe(Grapher, () => {
 
     it("regression fix: container options are not serialized", () => {
         const grapher = new Grapher({ xAxis: { min: 1 } })
-        const obj = grapher.object.xAxis as any
-        expect(obj?.max).toBe(undefined)
-        expect(obj?.containerOptions).toBe(undefined)
+        const obj = grapher.object.xAxis!
+        expect(obj.max).toBe(undefined)
+        expect((obj as any).containerOptions).toBe(undefined) // Regression test: should never be a containerOptions
     })
 })
