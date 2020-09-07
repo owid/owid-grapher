@@ -105,7 +105,7 @@ export class ControlsRow extends React.Component<{
         return (
             <div className="controlsRow">
                 {this.controlsToRender.map((control) => (
-                    <span key={control.key} className="control">
+                    <span key={control.type} className="control">
                         {control}
                     </span>
                 ))}
