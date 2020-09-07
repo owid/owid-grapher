@@ -17,6 +17,8 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 export class ControlsRow extends React.Component<{
     controls: Controls
 }> {
+    static readonly height = 20
+
     @action.bound onDataSelect() {
         this.chart.isSelectingData = true
     }

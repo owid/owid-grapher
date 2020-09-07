@@ -69,6 +69,7 @@ export class ChartLayout {
             this.props.bounds.height -
             this.header.height -
             this.footer.height -
+            ControlsRow.height -
             overlayPadding.top -
             overlayPadding.bottom -
             25
