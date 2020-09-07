@@ -6,7 +6,7 @@ import {
     FilterSmallCountriesToggle,
     HighlightToggle,
     AbsRelToggle,
-    ZoomToggle
+    ZoomToggle,
 } from "./Controls"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
@@ -20,83 +20,83 @@ export class ControlsRow extends React.Component<{
     static readonly height = 20
 
     @action.bound onDataSelect() {
-        this.chart.isSelectingData = true
+        this.grapher.isSelectingData = true
     }
 
-    @computed get chart() {
-        return this.props.controls.props.chart
+    @computed get grapher() {
+        return this.props.controls.props.grapher
     }
 
     @computed get controlsToRender() {
-        const chart = this.chart
+        const grapher = this.grapher
         const controls: JSX.Element[] = []
 
-        if (chart.tab === "chart") {
-            chart.canAddData &&
-                !chart.hasFloatingAddButton &&
-                !chart.hideEntityControls &&
+        if (grapher.tab === "chart") {
+            grapher.canAddData &&
+                !grapher.hasFloatingAddButton &&
+                !grapher.hideEntityControls &&
                 controls.push(
                     <button
                         type="button"
                         onClick={this.onDataSelect}
-                        data-track-note="chart-select-entities"
+                        data-track-note="grapher-select-entities"
                     >
-                        {chart.isScatter || chart.isSlopeChart ? (
+                        {grapher.isScatter || grapher.isSlopeChart ? (
                             <span className="SelectEntitiesButton">
                                 <FontAwesomeIcon icon={faPencilAlt} />
-                                {`Select ${chart.entityTypePlural}`}
+                                {`Select ${grapher.entityTypePlural}`}
                             </span>
                         ) : (
                             <span>
                                 <FontAwesomeIcon icon={faPlus} />{" "}
-                                {chart.addButtonLabel}
+                                {grapher.addButtonLabel}
                             </span>
                         )}
                     </button>
                 )
 
-            chart.canChangeEntity &&
-                !chart.hideEntityControls &&
+            grapher.canChangeEntity &&
+                !grapher.hideEntityControls &&
                 controls.push(
                     <button
                         type="button"
                         onClick={this.onDataSelect}
-                        data-track-note="chart-change-entity"
+                        data-track-note="grapher-change-entity"
                     >
                         <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                        {chart.entityType}
+                        {grapher.entityType}
                     </button>
                 )
 
-            chart.isScatter &&
-                chart.highlightToggle &&
+            grapher.isScatter &&
+                grapher.highlightToggle &&
                 controls.push(
                     <HighlightToggle
-                        chart={chart}
-                        highlightToggle={chart.highlightToggle}
+                        grapher={grapher}
+                        highlightToggle={grapher.highlightToggle}
                     />
                 )
 
-            chart.isStackedArea &&
-                chart.canToggleRelativeMode &&
-                controls.push(<AbsRelToggle chart={chart} />)
+            grapher.isStackedArea &&
+                grapher.canToggleRelativeMode &&
+                controls.push(<AbsRelToggle grapher={grapher} />)
 
-            chart.isScatter &&
-                chart.scatterTransform.canToggleRelativeMode &&
-                controls.push(<AbsRelToggle chart={chart} />)
+            grapher.isScatter &&
+                grapher.scatterTransform.canToggleRelativeMode &&
+                controls.push(<AbsRelToggle grapher={grapher} />)
 
-            chart.isScatter &&
-                chart.hasSelection &&
-                controls.push(<ZoomToggle chart={chart.script} />)
+            grapher.isScatter &&
+                grapher.hasSelection &&
+                controls.push(<ZoomToggle grapher={grapher} />)
 
-            chart.isLineChart &&
-                chart.lineChartTransform.canToggleRelativeMode &&
-                controls.push(<AbsRelToggle chart={chart} />)
+            grapher.isLineChart &&
+                grapher.lineChartTransform.canToggleRelativeMode &&
+                controls.push(<AbsRelToggle grapher={grapher} />)
         }
 
-        chart.isScatter &&
-            chart.hasCountriesSmallerThanFilterOption &&
-            controls.push(<FilterSmallCountriesToggle chart={chart} />)
+        grapher.isScatter &&
+            grapher.hasCountriesSmallerThanFilterOption &&
+            controls.push(<FilterSmallCountriesToggle grapher={grapher} />)
 
         return controls
     }
@@ -104,7 +104,7 @@ export class ControlsRow extends React.Component<{
     render() {
         return (
             <div className="controlsRow">
-                {this.controlsToRender.map(control => (
+                {this.controlsToRender.map((control) => (
                     <span key={control.key} className="control">
                         {control}
                     </span>
