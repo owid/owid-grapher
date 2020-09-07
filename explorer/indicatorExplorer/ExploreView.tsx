@@ -9,15 +9,15 @@ import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
 import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 
-import { Bounds } from "charts/utils/Bounds"
-import { GrapherView } from "charts/core/GrapherView"
-import { ChartType } from "charts/core/GrapherConstants"
+import { Bounds } from "grapher/utils/Bounds"
+import { GrapherView } from "grapher/core/GrapherView"
+import { ChartType } from "grapher/core/GrapherConstants"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
-import { DataTable } from "charts/dataTable/DataTable"
-import { UrlBinder } from "charts/utils/UrlBinder"
+import { DataTable } from "grapher/dataTable/DataTable"
+import { UrlBinder } from "grapher/utils/UrlBinder"
 
 interface ChartTypeButton {
     type: ExplorerChartType

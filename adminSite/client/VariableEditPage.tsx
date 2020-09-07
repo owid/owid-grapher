@@ -13,13 +13,13 @@ import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
-import { Grapher } from "charts/core/Grapher"
+import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { EPOCH_DATE } from "charts/core/GrapherConstants"
-import { GrapherInterface } from "charts/core/GrapherInterface"
+import { EPOCH_DATE } from "grapher/core/GrapherConstants"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 interface VariablePageData {
     id: number

@@ -2,15 +2,18 @@ import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 
-import { includes, sample, sampleSize } from "charts/utils/Util"
-import { ChartTypeDefs, ChartTypeName } from "charts/core/GrapherConstants"
-import { ChartDimension, ChartDimensionSpec } from "charts/chart/ChartDimension"
+import { includes, sample, sampleSize } from "grapher/utils/Util"
+import { ChartTypeDefs, ChartTypeName } from "grapher/core/GrapherConstants"
+import {
+    ChartDimension,
+    ChartDimensionSpec
+} from "grapher/chart/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
-import { DimensionSlot } from "charts/chart/DimensionSlot"
+import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 
 @observer

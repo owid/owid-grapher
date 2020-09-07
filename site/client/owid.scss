@@ -44,13 +44,13 @@
 @import "explorer/covidExplorer/CovidExplorer.scss";
 @import "explorer/indicatorExplorer/IndicatorExplorer.scss";
 
-@import "charts/controls/CountryPicker.scss";
-@import "charts/controls/CommandPalette.scss";
-@import "charts/controls/ScaleSelector.scss";
-@import "charts/dataTable/DataTable.scss";
-@import "charts/mapCharts/MapTooltip.scss";
-@import "charts/sparkBars/SparkBars.scss";
-@import "charts/loadingIndicator/LoadingIndicator.scss";
+@import "grapher/controls/CountryPicker.scss";
+@import "grapher/controls/CommandPalette.scss";
+@import "grapher/controls/ScaleSelector.scss";
+@import "grapher/dataTable/DataTable.scss";
+@import "grapher/mapCharts/MapTooltip.scss";
+@import "grapher/sparkBars/SparkBars.scss";
+@import "grapher/loadingIndicator/LoadingIndicator.scss";
 
 @import "site/globalEntityControl/GlobalEntityControl.scss";
 @import "css/components/cookie-notice.scss";

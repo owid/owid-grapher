@@ -1,10 +1,10 @@
 import React from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
-import { GrapherView } from "charts/core/GrapherView"
-import { Bounds } from "charts/utils/Bounds"
-import { GrapherInterface } from "charts/core/GrapherInterface"
-import { Grapher } from "charts/core/Grapher"
+import { GrapherView } from "grapher/core/GrapherView"
+import { Bounds } from "grapher/utils/Bounds"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher } from "grapher/core/Grapher"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
@@ -28,7 +28,7 @@ import {
     previous,
     startCase,
     flatten
-} from "charts/utils/Util"
+} from "grapher/utils/Util"
 import {
     ControlOption,
     ExplorerControlPanel,
@@ -36,7 +36,7 @@ import {
     ExplorerControlBar
 } from "explorer/client/ExplorerControls"
 import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
-import { CountryPicker } from "charts/controls/CountryPicker"
+import { CountryPicker } from "grapher/controls/CountryPicker"
 import {
     fetchAndParseData,
     fetchLastUpdatedTime,
@@ -67,24 +67,24 @@ import {
     ColorScheme,
     ColorSchemes,
     continentColors
-} from "charts/color/ColorSchemes"
+} from "grapher/color/ColorSchemes"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes
 } from "site/globalEntityControl/GlobalEntitySelection"
-import { ColorScaleConfig } from "charts/color/ColorScaleConfig"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
-import { CommandPalette, Command } from "charts/controls/CommandPalette"
-import { TimeBoundValue } from "charts/utils/TimeBounds"
+import { CommandPalette, Command } from "grapher/controls/CommandPalette"
+import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import {
     ChartDimensionSpec,
     ChartDimension,
     ChartDimensionInterface
-} from "charts/chart/ChartDimension"
-import { BinningStrategy } from "charts/color/BinningStrategies"
-import { UrlBinder } from "charts/utils/UrlBinder"
-import { ExtendedGrapherUrl } from "charts/core/GrapherUrl"
-import { ScaleType } from "charts/core/GrapherConstants"
+} from "grapher/chart/ChartDimension"
+import { BinningStrategy } from "grapher/color/BinningStrategies"
+import { UrlBinder } from "grapher/utils/UrlBinder"
+import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
+import { ScaleType } from "grapher/core/GrapherConstants"
 
 interface BootstrapProps {
     containerNode: HTMLElement

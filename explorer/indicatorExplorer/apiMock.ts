@@ -15,7 +15,7 @@ export function mockVariable(id: number | string) {
     const pattern = new RegExp(`\/grapher\/data\/variables\/${id}\.json`)
     xhrMock.get(pattern, {
         body: fs.readFileSync(
-            __dirname + "/../../charts/test/" + `variable-${id}.mock.json`
+            __dirname + "/../../grapher/test/" + `variable-${id}.mock.json`
         )
     })
 }

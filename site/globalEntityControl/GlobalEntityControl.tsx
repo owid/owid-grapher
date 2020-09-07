@@ -21,14 +21,14 @@ import {
     noop,
     getCountryCodeFromNetlifyRedirect,
     sortBy
-} from "charts/utils/Util"
+} from "grapher/utils/Util"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionEntity,
     GlobalEntitySelectionModes
 } from "./GlobalEntitySelection"
 import { asArray } from "utils/client/react-select"
-import { Analytics } from "charts/core/Analytics"
+import { Analytics } from "grapher/core/Analytics"
 import { ENV } from "settings"
 
 const allEntities = sortBy(countries, c => c.name)

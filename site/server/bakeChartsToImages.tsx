@@ -9,8 +9,8 @@ import md5 from "md5"
 declare var global: any
 global.window = { location: { search: "" } }
 
-import { GrapherInterface } from "charts/core/GrapherInterface"
-import { Grapher } from "charts/core/Grapher"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher } from "grapher/core/Grapher"
 
 export async function getChartsAndRedirectsBySlug() {
     const { chartsBySlug, chartsById } = await getChartsBySlug()

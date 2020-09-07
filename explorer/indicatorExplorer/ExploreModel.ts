@@ -1,8 +1,8 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
-import { ChartType, ChartTypeName } from "charts/core/GrapherConstants"
-import { GrapherInterface } from "charts/core/GrapherInterface"
-import { Grapher } from "charts/core/Grapher"
+import { ChartType, ChartTypeName } from "grapher/core/GrapherConstants"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher } from "grapher/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
 import { Indicator } from "./Indicator"

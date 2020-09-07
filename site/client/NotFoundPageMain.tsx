@@ -1,4 +1,4 @@
-import { Analytics } from "charts/core/Analytics"
+import { Analytics } from "grapher/core/Analytics"
 import { ENV } from "settings"
 
 const analytics = new Analytics(ENV)

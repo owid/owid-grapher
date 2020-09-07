@@ -1,5 +1,5 @@
 import { FORCE_EXPLORABLE_CHART_IDS, isExplorable } from "./IndicatorUtils"
-import { GrapherInterface } from "charts/core/GrapherInterface"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Indicator } from "./Indicator"
 import * as db from "db/db"
 

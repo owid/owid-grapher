@@ -14,7 +14,7 @@ import * as db from "db/db"
 import Knex from "knex"
 import fetch from "node-fetch"
 
-import { defaultTo, memoize } from "charts/utils/Util"
+import { defaultTo, memoize } from "grapher/utils/Util"
 import { Base64 } from "js-base64"
 import { registerExitHandler } from "./cleanup"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"

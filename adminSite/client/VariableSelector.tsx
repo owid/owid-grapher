@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import { groupBy, each, isString, sortBy, defaultTo } from "charts/utils/Util"
+import { groupBy, each, isString, sortBy, defaultTo } from "grapher/utils/Util"
 import {
     computed,
     action,
@@ -13,9 +13,9 @@ import { observer } from "mobx-react"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
-import { highlight as fuzzyHighlight } from "charts/controls/FuzzySearch"
+import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
 import { owidVariableId } from "owidTable/OwidTable"
-import { DimensionSlot } from "charts/chart/DimensionSlot"
+import { DimensionSlot } from "grapher/chart/DimensionSlot"
 
 interface VariableSelectorProps {
     editor: ChartEditor

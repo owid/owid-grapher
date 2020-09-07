@@ -8,7 +8,7 @@ import {
     autorun,
     IReactionDisposer
 } from "mobx"
-import { Grapher } from "charts/core/Grapher"
+import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 
