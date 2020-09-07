@@ -8656,12 +8656,11 @@ express-async-errors@^3.1.1:
   resolved "https://registry.yarnpkg.com/express-async-errors/-/express-async-errors-3.1.1.tgz#6053236d61d21ddef4892d6bd1d736889fc9da41"
   integrity sha512-h6aK1da4tpqWSbyCa3FxB/V6Ehd4EEB15zyQq9qe75OZBp0krinNKuH4rAY+S/U/2I36vdLAUFSjQJ+TFmODng==
 
-express-error-slack@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/express-error-slack/-/express-error-slack-1.1.1.tgz#b2ab339345f86024175743243b1b510f54447ffd"
-  integrity sha512-B+SJvJkE0NkjR80xPZEqHeEcrQQbCc9hLDdC+iuOj2sRZ8Dz32mQhbLe6aUxS6582hbKjw/zswf/ikdPdPoXSw==
+express-error-slack@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/express-error-slack/-/express-error-slack-2.0.0.tgz#13d79d98e28d92969294985ff1ab31c9e72db0ef"
+  integrity sha512-WoT70Dinde18obj+RQcpufTF5W14tuT+BQKFeHzhJ1qigymNFIU8iWup8mMpzRqLZUqQ72Jl5eInDnIBXjWGLg==
   dependencies:
-    lodash "^4.17.4"
     slack-node "^0.1.8"
 
 express-logging@^1.1.1:
@@ -12515,7 +12514,7 @@ lodash@4.17.15:
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
 
-"lodash@>=3.5 <5", lodash@^4.0.1, lodash@^4.15.0, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.4, lodash@^4.17.5:
+"lodash@>=3.5 <5", lodash@^4.0.1, lodash@^4.15.0, lodash@^4.17.11, lodash@^4.17.12, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.5:
   version "4.17.20"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
   integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
