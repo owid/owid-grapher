@@ -28,7 +28,7 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
                 disableAlpha
                 presetColors={availableColors}
                 color={this.props.color}
-                onChange={color => this.onColor(color.hex)}
+                onChange={(color) => this.onColor(color.hex)}
             />
         )
     }

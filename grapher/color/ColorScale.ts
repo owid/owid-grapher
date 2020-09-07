@@ -13,7 +13,7 @@ import {
     find,
     identity,
     roundSigFig,
-    mapNullToUndefined
+    mapNullToUndefined,
 } from "grapher/utils/Util"
 import { Color } from "grapher/core/GrapherConstants"
 import { ColorScheme, ColorSchemes } from "grapher/color/ColorSchemes"
@@ -172,7 +172,7 @@ export class ColorScale {
             binningStrategy: this.config.binningStrategy,
             sortedValues: this.sortedNumericBinningValues,
             binCount: this.numAutoBins,
-            minBinValue: this.minBinValue
+            minBinValue: this.minBinValue,
         })
     }
 
@@ -185,7 +185,7 @@ export class ColorScale {
     @computed get customCategoryColors(): { [key: string]: Color } {
         return {
             [NO_DATA_LABEL]: this.defaultNoDataColor, // default 'no data' color
-            ...this.config.customCategoryColors
+            ...this.config.customCategoryColors,
         }
     }
 
@@ -198,7 +198,7 @@ export class ColorScale {
             categoricalValues,
             colorScheme,
             bucketMaximums,
-            isColorSchemeInverted
+            isColorSchemeInverted,
         } = this
         const numColors = bucketMaximums.length + categoricalValues.length
         const colors = colorScheme.getColors(numColors)
@@ -231,14 +231,14 @@ export class ColorScale {
         const sampleMean = mean(sortedNumericValues) as number
         const sampleDeviation = deviation(sortedNumericValues) as number
         return sortedNumericValues.filter(
-            d => Math.abs(d - sampleMean) <= sampleDeviation * 2
+            (d) => Math.abs(d - sampleMean) <= sampleDeviation * 2
         )
     }
 
     /** Sorted numeric values passed onto the binning algorithms */
     @computed private get sortedNumericBinningValues(): number[] {
         return this.sortedNumericValuesWithoutOutliers.filter(
-            v => v > this.minBinValue
+            (v) => v > this.minBinValue
         )
     }
 
@@ -261,7 +261,7 @@ export class ColorScale {
             customNumericColors,
             customCategoryLabels,
             customHiddenCategories,
-            formatNumericValue
+            formatNumericValue,
         } = this
 
         /*var unitsString = chart.model.get("units"),
@@ -292,7 +292,7 @@ export class ColorScale {
                         max: maxValue,
                         color: color,
                         label: label,
-                        format: formatNumericValue
+                        format: formatNumericValue,
                     })
                 )
                 minValue = maxValue
@@ -328,7 +328,7 @@ export class ColorScale {
                     value: value,
                     color: color,
                     label: label,
-                    isHidden: !!customHiddenCategories[value]
+                    isHidden: !!customHiddenCategories[value],
                 })
             )
         }
@@ -338,6 +338,6 @@ export class ColorScale {
 
     @bind getColor(value: number | string | undefined): string | undefined {
         if (value === undefined) return this.customCategoryColors[NO_DATA_LABEL]
-        return find(this.legendData, b => b.contains(value))?.color
+        return find(this.legendData, (b) => b.contains(value))?.color
     }
 }

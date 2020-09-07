@@ -8,7 +8,7 @@ import {
     ChoroplethDatum,
     GeoFeature,
     MapBracket,
-    MapEntity
+    MapEntity,
 } from "grapher/mapCharts/ChoroplethMap"
 import { MapColorLegend } from "grapher/mapCharts/MapColorLegend"
 import { MapColorLegendView } from "./MapColorLegendView"
@@ -64,7 +64,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             this.tooltipTarget = {
                 x: mouse.x,
                 y: mouse.y,
-                featureId: d.id as string
+                featureId: d.id as string,
             }
     }
 
@@ -117,7 +117,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
     }
 
     @action.bound onTargetChange({
-        targetStartYear
+        targetStartYear,
     }: {
         targetStartYear: number
     }) {
@@ -155,7 +155,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             },
             get fontSize() {
                 return that.grapher.baseFontSize
-            }
+            },
         })
     }
 
@@ -200,7 +200,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             focusEntity,
             mapLegend,
             tooltipTarget,
-            projectionChooserBounds
+            projectionChooserBounds,
         } = this
 
         const tooltipProps = {
@@ -208,7 +208,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             formatYear: this.props.formatYear,
             mapToDataEntities: this.props.mapToDataEntities,
             tooltipDatum: this.tooltipDatum,
-            isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId)
+            isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId),
         }
 
         return (
@@ -271,7 +271,7 @@ export class MapTab extends React.Component<MapTabProps> {
             },
             get bounds() {
                 return that.props.bounds
-            }
+            },
         })
     }
 

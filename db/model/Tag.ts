@@ -17,7 +17,7 @@ export namespace Tag {
         ...args: K[]
     ): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
         return {
-            from: query => query.select(...args) as any
+            from: (query) => query.select(...args) as any,
         }
     }
 }

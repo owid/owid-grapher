@@ -66,7 +66,7 @@ describe(DataTable, () => {
                 type: "LineChart",
                 tab: "chart",
                 minTime: 1990,
-                maxTime: 2017
+                maxTime: 2017,
             })
             view = mount(<DataTable grapher={chart} />)
         })

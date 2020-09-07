@@ -38,7 +38,7 @@ describe("build covid column", () => {
     dataTable.table.addRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
         3,
-        row => row.total_cases,
+        (row) => row.total_cases,
         "day",
         "entityName"
     )
@@ -64,14 +64,14 @@ describe("build covid column", () => {
         rows.push({
             entityName: "USA",
             cases: index < 15 ? 10 : 20,
-            day: index
+            day: index,
         })
     }
     const table = new BasicTable(rows)
     table.addRollingAverageColumn(
         { slug: "weeklyCases" },
         7,
-        row => row.cases,
+        (row) => row.cases,
         "day",
         "entityName",
         7
@@ -84,7 +84,7 @@ describe("build covid column", () => {
     table.addRollingAverageColumn(
         { slug: "weeklyChange" },
         7,
-        row => row.cases,
+        (row) => row.cases,
         "day",
         "entityName",
         7,
@@ -126,7 +126,7 @@ describe("builds aligned tests column", () => {
                 aligned: "true",
                 perCapita: "true",
                 testsMetric: "true",
-                totalFreq: "true"
+                totalFreq: "true",
             })
         )
 
@@ -187,9 +187,9 @@ describe("column specs", () => {
                     "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
                     "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=false",
                     "testsMetric=true&dailyFreq=true&smoothing=0&perCapita=true",
-                    "testsMetric=true&totalFreq=true&smoothing=3&perCapita=true"
+                    "testsMetric=true&totalFreq=true&smoothing=3&perCapita=true",
                 ].map(
-                    queryStr =>
+                    (queryStr) =>
                         dataTable.buildColumnSpec(
                             new CovidQueryParams(queryStr)
                         ).owidVariableId

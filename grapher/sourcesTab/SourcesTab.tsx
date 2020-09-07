@@ -60,7 +60,7 @@ export class SourcesTab extends React.Component<{
                                 <td>Variable description</td>
                                 <td
                                     dangerouslySetInnerHTML={{
-                                        __html: formatText(column.description)
+                                        __html: formatText(column.description),
                                     }}
                                 />
                             </tr>
@@ -90,7 +90,7 @@ export class SourcesTab extends React.Component<{
                                     dangerouslySetInnerHTML={{
                                         __html: formatText(
                                             source.dataPublishedBy
-                                        )
+                                        ),
                                     }}
                                 />
                             </tr>
@@ -102,7 +102,7 @@ export class SourcesTab extends React.Component<{
                                     dangerouslySetInnerHTML={{
                                         __html: formatText(
                                             source.dataPublisherSource
-                                        )
+                                        ),
                                     }}
                                 />
                             </tr>
@@ -112,7 +112,7 @@ export class SourcesTab extends React.Component<{
                                 <td>Link</td>
                                 <td
                                     dangerouslySetInnerHTML={{
-                                        __html: formatText(source.link)
+                                        __html: formatText(source.link),
                                     }}
                                 />
                             </tr>
@@ -128,7 +128,7 @@ export class SourcesTab extends React.Component<{
                 {source.additionalInfo && (
                     <p
                         dangerouslySetInnerHTML={{
-                            __html: formatText(source.additionalInfo)
+                            __html: formatText(source.additionalInfo),
                         }}
                     />
                 )}
@@ -147,7 +147,7 @@ export class SourcesTab extends React.Component<{
                 <div>
                     <h2>Sources</h2>
                     <div>
-                        {this.sourcesWithDimensions.map(source =>
+                        {this.sourcesWithDimensions.map((source) =>
                             this.renderSource(source)
                         )}
                     </div>

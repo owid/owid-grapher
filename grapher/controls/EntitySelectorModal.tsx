@@ -25,7 +25,7 @@ class EntitySelectorMulti extends React.Component<{
     }
 
     @computed get selectedEntities() {
-        return this.availableEntities.filter(d =>
+        return this.availableEntities.filter((d) =>
             this.isSelectedKey(d.entityDimensionKey)
         )
     }
@@ -37,7 +37,7 @@ class EntitySelectorMulti extends React.Component<{
     @computed get searchResults(): EntityDimensionInfo[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : sortBy(this.availableEntities, result => result.label)
+            : sortBy(this.availableEntities, (result) => result.label)
     }
 
     isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
@@ -83,7 +83,7 @@ class EntitySelectorMulti extends React.Component<{
         const {
             selectedEntities: selectedData,
             searchResults,
-            searchInput
+            searchInput,
         } = this
 
         return (
@@ -103,16 +103,16 @@ class EntitySelectorMulti extends React.Component<{
                                 type="search"
                                 placeholder="Search..."
                                 value={searchInput}
-                                onInput={e =>
+                                onInput={(e) =>
                                     (this.searchInput = e.currentTarget.value)
                                 }
                                 onKeyDown={this.onSearchKeyDown}
-                                ref={e =>
+                                ref={(e) =>
                                     (this.searchField = e as HTMLInputElement)
                                 }
                             />
                             <ul>
-                                {searchResults.map(d => {
+                                {searchResults.map((d) => {
                                     return (
                                         <li key={d.entityDimensionKey}>
                                             <label className="clickable">
@@ -136,7 +136,7 @@ class EntitySelectorMulti extends React.Component<{
                         </div>
                         <div className="selectedData">
                             <ul>
-                                {selectedData.map(d => {
+                                {selectedData.map((d) => {
                                     return (
                                         <li key={d.entityDimensionKey}>
                                             <label className="clickable">
@@ -189,13 +189,13 @@ class EntitySelectorSingle extends React.Component<{
 
     @computed private get availableEntities() {
         const availableItems: { id: number; label: string }[] = []
-        this.props.grapher.entityDimensionMap.forEach(meta => {
+        this.props.grapher.entityDimensionMap.forEach((meta) => {
             availableItems.push({
                 id: meta.entityId,
-                label: meta.entityName
+                label: meta.entityName,
             })
         })
-        return uniqBy(availableItems, d => d.label)
+        return uniqBy(availableItems, (d) => d.label)
     }
 
     @computed get fuzzy(): FuzzySearch<{ id: number; label: string }> {
@@ -205,7 +205,7 @@ class EntitySelectorSingle extends React.Component<{
     @computed get searchResults(): { id: number; label: string }[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : sortBy(this.availableEntities, result => result.label)
+            : sortBy(this.availableEntities, (result) => result.label)
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -261,16 +261,16 @@ class EntitySelectorSingle extends React.Component<{
                             type="search"
                             placeholder="Search..."
                             value={searchInput}
-                            onInput={e =>
+                            onInput={(e) =>
                                 (this.searchInput = e.currentTarget.value)
                             }
                             onKeyDown={this.onSearchKeyDown}
-                            ref={e =>
+                            ref={(e) =>
                                 (this.searchField = e as HTMLInputElement)
                             }
                         />
                         <ul>
-                            {searchResults.map(d => {
+                            {searchResults.map((d) => {
                                 return (
                                     <li
                                         key={d.id}

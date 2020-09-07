@@ -18,7 +18,7 @@ export async function configureAlgolia() {
             "unordered(variantName)",
             "unordered(subtitle)",
             "unordered(_tags)",
-            "unordered(availableEntities)"
+            "unordered(availableEntities)",
         ],
         ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
         customRanking: ["asc(numDimensions)", "asc(titleLength)"],
@@ -27,12 +27,12 @@ export async function configureAlgolia() {
         alternativesAsExact: [
             "ignorePlurals",
             "singleWordSynonym",
-            "multiWordsSynonym"
+            "multiWordsSynonym",
         ],
         exactOnSingleWordQuery: "none",
         disableExactOnAttributes: ["_tags"],
         optionalWords: ["vs"],
-        removeStopWords: ["en"]
+        removeStopWords: ["en"],
     })
 
     const pagesIndex = client.initIndex("pages")
@@ -42,7 +42,7 @@ export async function configureAlgolia() {
             "unordered(title)",
             "unordered(content)",
             "unordered(_tags)",
-            "unordered(authors)"
+            "unordered(authors)",
         ],
         ranking: ["exact", "typo", "attribute", "words", "proximity", "custom"],
         customRanking: ["desc(importance)"],
@@ -51,12 +51,12 @@ export async function configureAlgolia() {
         alternativesAsExact: [
             "ignorePlurals",
             "singleWordSynonym",
-            "multiWordsSynonym"
+            "multiWordsSynonym",
         ],
         attributesForFaceting: ["searchable(_tags)", "searchable(authors)"],
         exactOnSingleWordQuery: "none",
         disableExactOnAttributes: ["_tags"],
-        removeStopWords: ["en"]
+        removeStopWords: ["en"],
     })
 
     const synonyms = [
@@ -72,7 +72,7 @@ export async function configureAlgolia() {
         ["co2", "CO₂", "carbon dioxide"],
         ["ch4", "CH₄", "methane"],
         ["n2o", "N₂O", "nitrous oxide"],
-        ["NOx", "NOₓ", "nitrogen dioxide"]
+        ["NOx", "NOₓ", "nitrogen dioxide"],
     ]
 
     // Send all our country variant names to algolia as synonyms
@@ -82,19 +82,19 @@ export async function configureAlgolia() {
         }
     }
 
-    const algoliaSynonyms = synonyms.map(s => {
+    const algoliaSynonyms = synonyms.map((s) => {
         return {
             objectID: s.join("-"),
             type: "synonym",
-            synonyms: s
+            synonyms: s,
         } as Synonym
     })
 
     await pagesIndex.saveSynonyms(algoliaSynonyms, {
-        replaceExistingSynonyms: true
+        replaceExistingSynonyms: true,
     })
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
-        replaceExistingSynonyms: true
+        replaceExistingSynonyms: true,
     })
 }
 

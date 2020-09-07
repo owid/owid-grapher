@@ -15,7 +15,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons/faArrowRight"
 import { splitOnLastWord } from "utils/server/serverUtil"
 import {
     NewsletterSubscriptionForm,
-    NewsletterSubscriptionContext
+    NewsletterSubscriptionContext,
 } from "site/client/NewsletterSubscription"
 
 export const FrontPage = (props: {
@@ -33,8 +33,8 @@ export const FrontPage = (props: {
         potentialAction: {
             "@type": "SearchAction",
             target: `${settings.BAKED_BASE_URL}/search?q={search_term_string}`,
-            "query-input": "required name=search_term_string"
-        }
+            "query-input": "required name=search_term_string",
+        },
     }
 
     const renderEntry = (entry: EntryNode, categorySlug: string) => {
@@ -54,7 +54,7 @@ export const FrontPage = (props: {
                             <div
                                 className="kpi"
                                 dangerouslySetInnerHTML={{
-                                    __html: entry.kpi
+                                    __html: entry.kpi,
                                 }}
                             />
                         )}
@@ -80,7 +80,7 @@ export const FrontPage = (props: {
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
-                        __html: JSON.stringify(structuredMarkup)
+                        __html: JSON.stringify(structuredMarkup),
                     }}
                 />
             </Head>
@@ -279,7 +279,7 @@ export const FrontPage = (props: {
                                         <h2>Latest publications</h2>
                                     </div>
                                     <ul>
-                                        {posts.slice(0, 8).map(post => (
+                                        {posts.slice(0, 8).map((post) => (
                                             <li key={post.slug}>
                                                 <a
                                                     href={`/${post.path}`}
@@ -291,7 +291,7 @@ export const FrontPage = (props: {
                                                             style={{
                                                                 backgroundImage:
                                                                     post.imageUrl &&
-                                                                    `url(${post.imageUrl})`
+                                                                    `url(${post.imageUrl})`,
                                                             }}
                                                         />
                                                     </div>
@@ -468,7 +468,7 @@ export const FrontPage = (props: {
                             All our articles on global problems and global
                             changes
                         </h2>
-                        {entries.map(category => (
+                        {entries.map((category) => (
                             <div
                                 key={category.slug}
                                 className="category-wrapper"
@@ -481,12 +481,12 @@ export const FrontPage = (props: {
                                 </h3>
                                 {!!category.entries.length && (
                                     <div className="category-entries">
-                                        {category.entries.map(entry =>
+                                        {category.entries.map((entry) =>
                                             renderEntry(entry, category.slug)
                                         )}
                                     </div>
                                 )}
-                                {category.subcategories.map(subcategory => (
+                                {category.subcategories.map((subcategory) => (
                                     <div key={subcategory.slug}>
                                         <h4
                                             className={`${category.slug}-color`}
@@ -494,7 +494,7 @@ export const FrontPage = (props: {
                                             {subcategory.name}
                                         </h4>
                                         <div className="category-entries">
-                                            {subcategory.entries.map(entry =>
+                                            {subcategory.entries.map((entry) =>
                                                 renderEntry(
                                                     entry,
                                                     category.slug

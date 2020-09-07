@@ -6,14 +6,14 @@ import { faArrowDown } from "@fortawesome/free-solid-svg-icons/faArrowDown"
 export const SectionHeading = ({
     title,
     tocHeadings,
-    children
+    children,
 }: {
     title: string
     tocHeadings: TocHeading[]
     children: any
 }) => {
     const sectionHeadingIdx = tocHeadings.findIndex(
-        heading => !heading.isSubheading && heading.text === title
+        (heading) => !heading.isSubheading && heading.text === title
     )
     const subHeadings = []
 
@@ -36,14 +36,14 @@ export const SectionHeading = ({
                             <div className="border"></div>
                         </div>
                         <ul className="subheadings">
-                            {subHeadings.map(subHeading => (
+                            {subHeadings.map((subHeading) => (
                                 <li key={subHeading.slug}>
                                     <a href={`#${subHeading.slug}`}>
                                         <FontAwesomeIcon icon={faArrowDown} />
                                         {subHeading.html ? (
                                             <span
                                                 dangerouslySetInnerHTML={{
-                                                    __html: subHeading.html
+                                                    __html: subHeading.html,
                                                 }}
                                             ></span>
                                         ) : (

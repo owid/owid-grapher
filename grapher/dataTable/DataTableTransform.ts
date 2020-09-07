@@ -9,14 +9,14 @@ import {
     flatten,
     sortBy,
     countBy,
-    union
+    union,
 } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { TickFormattingOptions } from "grapher/core/GrapherConstants"
 import {
     getTimeWithinTimeRange,
-    isUnboundedLeft
+    isUnboundedLeft,
 } from "grapher/utils/TimeBounds"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 
@@ -24,7 +24,7 @@ import { ChartTransform } from "grapher/chart/ChartTransform"
 
 export enum TargetYearMode {
     point = "point",
-    range = "range"
+    range = "range",
 }
 
 type TargetYears = [number] | [number, number]
@@ -57,7 +57,7 @@ export enum RangeValueKey {
     start = "start",
     end = "end",
     delta = "delta",
-    deltaRatio = "deltaRatio"
+    deltaRatio = "deltaRatio",
 }
 
 type RangeValue = Record<RangeValueKey, Value | undefined>
@@ -69,7 +69,7 @@ export function isRangeValue(value: DimensionValue): value is RangeValue {
 // single point values
 
 export enum SingleValueKey {
-    single = "single"
+    single = "single",
 }
 
 type SingleValue = Record<SingleValueKey, Value | undefined>
@@ -141,14 +141,14 @@ export class DataTableTransform extends ChartTransform {
 
         const numEntitiesInTable = this.entities.length
 
-        this.dimensions.forEach(dim => {
+        this.dimensions.forEach((dim) => {
             const numberOfEntitiesWithDataSortedByYear = sortBy(
                 Object.entries(countBy(dim.years)),
-                value => parseInt(value[0])
+                (value) => parseInt(value[0])
             )
 
             const firstYearWithSufficientData = numberOfEntitiesWithDataSortedByYear.find(
-                year => {
+                (year) => {
                     const numEntitiesWithData = year[1]
                     const percentEntitiesWithData =
                         numEntitiesWithData / numEntitiesInTable
@@ -174,17 +174,19 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get availableYears() {
-        return intersection(flatten(this.dimensions.map(dim => dim.yearsUniq)))
+        return intersection(
+            flatten(this.dimensions.map((dim) => dim.yearsUniq))
+        )
     }
 
     @computed get dimensions() {
         return this.grapher.multiMetricTableMode
             ? this.grapher.dataTableOnlyDimensions
-            : this.grapher.filledDimensions.filter(dim => dim.includeInTable)
+            : this.grapher.filledDimensions.filter((dim) => dim.includeInTable)
     }
 
     @computed get entities() {
-        return union(...this.dimensions.map(dim => dim.entityNamesUniq))
+        return union(...this.dimensions.map((dim) => dim.entityNamesUniq))
     }
 
     // TODO move this logic to chart
@@ -223,7 +225,7 @@ export class DataTableTransform extends ChartTransform {
                 getTimeWithinTimeRange(
                     [this.grapher.minYear, this.grapher.maxYear],
                     this.grapher.mapTransform.targetYearProp
-                )
+                ),
             ]
 
         return this.startYear === this.endYear
@@ -241,12 +243,12 @@ export class DataTableTransform extends ChartTransform {
             numberPrefixes: false,
             noTrailingZeroes: false,
             unit: dimension.shortUnit,
-            ...formattingOverrides
+            ...formattingOverrides,
         })
     }
 
     @computed get dimensionsWithValues(): Dimension[] {
-        return this.dimensions.map(dim => {
+        return this.dimensions.map((dim) => {
             const targetYears =
                 // If a targetYear override is specified on the dimension (scatter plots
                 // can do this) then use that target year and ignore the timeline.
@@ -298,12 +300,12 @@ export class DataTableTransform extends ChartTransform {
                             : RangeValueKey.end
                         : SingleValueKey.single,
                     targetYear,
-                    targetYearMode
+                    targetYearMode,
                 })),
-                ...deltaColumns
+                ...deltaColumns,
             ]
 
-            const finalValueByEntity = es6mapValues(valuesByEntity, dvs => {
+            const finalValueByEntity = es6mapValues(valuesByEntity, (dvs) => {
                 // There is always a column, but not always a data value (in the delta column the
                 // value needs to be calculated)
                 if (isRange) {
@@ -311,14 +313,14 @@ export class DataTableTransform extends ChartTransform {
                     const result: RangeValue = {
                         start: {
                             ...start,
-                            formattedValue: this.formatValue(dim, start?.value)
+                            formattedValue: this.formatValue(dim, start?.value),
                         },
                         end: {
                             ...end,
-                            formattedValue: this.formatValue(dim, end?.value)
+                            formattedValue: this.formatValue(dim, end?.value),
                         },
                         delta: undefined,
-                        deltaRatio: undefined
+                        deltaRatio: undefined,
                     }
 
                     if (
@@ -336,8 +338,10 @@ export class DataTableTransform extends ChartTransform {
                             formattedValue: this.formatValue(dim, deltaValue, {
                                 showPlus: true,
                                 unit:
-                                    dim.shortUnit === "%" ? "pp" : dim.shortUnit
-                            })
+                                    dim.shortUnit === "%"
+                                        ? "pp"
+                                        : dim.shortUnit,
+                            }),
                         }
 
                         result.deltaRatio = {
@@ -351,10 +355,10 @@ export class DataTableTransform extends ChartTransform {
                                           {
                                               unit: "%",
                                               numDecimalPlaces: 0,
-                                              showPlus: true
+                                              showPlus: true,
                                           }
                                       )
-                                    : undefined
+                                    : undefined,
                         }
                     }
                     return result
@@ -362,7 +366,7 @@ export class DataTableTransform extends ChartTransform {
                     // if single year
                     const dv = dvs[0]
                     const result: SingleValue = {
-                        single: { ...dv }
+                        single: { ...dv },
                     }
                     if (dv !== undefined) {
                         result.single!.formattedValue = this.formatValue(
@@ -377,37 +381,37 @@ export class DataTableTransform extends ChartTransform {
             return {
                 dimension: dim,
                 columns: columns,
-                valueByEntity: finalValueByEntity
+                valueByEntity: finalValueByEntity,
             }
         })
     }
 
     @computed get displayDimensions(): DataTableDimension[] {
-        return this.dimensionsWithValues.map(d => ({
+        return this.dimensionsWithValues.map((d) => ({
             key: d.dimension.variableId,
             name: d.dimension.displayName || d.dimension.column.name || "",
             unit: getHeaderUnit(d.dimension.unit),
             // A top-level header is only sortable if it has a single nested column, because
             // in that case the nested column is not rendered.
             sortable: d.columns.length === 1,
-            columns: d.columns.map(column => ({
+            columns: d.columns.map((column) => ({
                 ...column,
                 // All columns are sortable for now, but in the future we will have a sparkline that
                 // is not sortable.
-                sortable: true
+                sortable: true,
             })),
-            formatYear: d.dimension.formatYear
+            formatYear: d.dimension.formatYear,
         }))
     }
 
     @computed get displayRows(): DataTableRow[] {
-        const rows = this.entities.map(entity => {
-            const dimensionValues = this.dimensionsWithValues.map(d =>
+        const rows = this.entities.map((entity) => {
+            const dimensionValues = this.dimensionsWithValues.map((d) =>
                 d.valueByEntity.get(entity)
             )
             return {
                 entity,
-                dimensionValues
+                dimensionValues,
             }
         })
         return rows

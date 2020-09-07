@@ -10,7 +10,7 @@ import {
     AutoTextField,
     RadioGroup,
     TextField,
-    Button
+    Button,
 } from "./Forms"
 import { LogoOption } from "grapher/chart/Logos"
 import slugify from "slugify"
@@ -42,7 +42,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
         }
         grapher.relatedQuestions.push({
             text: "",
-            url: ""
+            url: "",
         })
     }
 
@@ -105,7 +105,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                             { label: "OWID", value: "owid" },
                             { label: "CORE+OWID", value: "core+owid" },
                             { label: "GV+OWID", value: "gv+owid" },
-                            { label: "No logo", value: "none" }
+                            { label: "No logo", value: "none" },
                         ]}
                         value={
                             grapher.hideLogo ? "none" : grapher.logo || "owid"
@@ -133,7 +133,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                         <div className="originSuggestions">
                             <p>Origin url suggestions</p>
                             <ul>
-                                {references.map(post => (
+                                {references.map((post) => (
                                     <li key={post.id}>{post.url}</li>
                                 ))}
                             </ul>

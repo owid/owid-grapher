@@ -93,7 +93,7 @@ export class RedirectsIndexPage extends React.Component {
                                 <th>Redirects To</th>
                                 <th></th>
                             </tr>
-                            {redirects.map(redirect => (
+                            {redirects.map((redirect) => (
                                 <RedirectRow
                                     key={redirect.id}
                                     redirect={redirect}

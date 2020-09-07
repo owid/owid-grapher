@@ -64,7 +64,7 @@ export const PUBLIC_TAG_PARENT_IDS: number[] = [
     1505,
     1508,
     1512,
-    1510
+    1510,
 ]
 
 // Feature flag for explorable charts

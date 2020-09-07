@@ -25,10 +25,10 @@ export class ProjectionChooser extends React.Component<{
     }
 
     @computed get options() {
-        return worldRegions.map(region => {
+        return worldRegions.map((region) => {
             return {
                 value: region,
-                label: labelsByRegion[region]
+                label: labelsByRegion[region],
             }
         })
     }
@@ -39,7 +39,7 @@ export class ProjectionChooser extends React.Component<{
         const style: React.CSSProperties = {
             position: "absolute",
             fontSize: "0.75rem",
-            ...bounds.toCSS()
+            ...bounds.toCSS(),
         }
 
         return (
@@ -47,10 +47,10 @@ export class ProjectionChooser extends React.Component<{
                 <Select
                     options={this.options}
                     onChange={this.onChange}
-                    value={this.options.find(opt => opt.value === value)}
+                    value={this.options.find((opt) => opt.value === value)}
                     menuPlacement="bottom"
                     components={{
-                        IndicatorSeparator: null
+                        IndicatorSeparator: null,
                     }}
                     styles={getStylesForTargetHeight(22)}
                     isSearchable={false}

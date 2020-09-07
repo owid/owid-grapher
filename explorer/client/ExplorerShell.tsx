@@ -162,7 +162,7 @@ export class ExplorerShell extends React.Component<{
                         CovidExplorer: true,
                         "mobile-explorer": this.isMobile,
                         HideControls: !this.showExplorerControls,
-                        "is-embed": this.props.isEmbed
+                        "is-embed": this.props.isEmbed,
                     })}
                 >
                     {this.showExplorerControls && (

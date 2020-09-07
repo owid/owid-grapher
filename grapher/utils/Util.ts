@@ -126,7 +126,7 @@ export {
     takeWhile,
     upperFirst,
     countBy,
-    startCase
+    startCase,
 }
 
 import moment from "moment"
@@ -142,7 +142,7 @@ import {
     SortOrder,
     RelatedQuestionsConfig,
     ScaleType,
-    EPOCH_DATE
+    EPOCH_DATE,
 } from "grapher/core/GrapherConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
@@ -176,7 +176,7 @@ const d3Format = formatLocale({
     thousands: ",",
     grouping: [3],
     minus: "-",
-    currency: ["$", ""]
+    currency: ["$", ""],
 } as any).format
 
 export function getRelativeMouse(
@@ -212,7 +212,7 @@ export function getRelativeMouse(
 
 // Make an arbitrary string workable as a css class name
 export function makeSafeForCSS(name: string) {
-    return name.replace(/[^a-z0-9]/g, s => {
+    return name.replace(/[^a-z0-9]/g, (s) => {
         const c = s.charCodeAt(0)
         if (c === 32) return "-"
         if (c === 95) return "_"
@@ -283,7 +283,7 @@ export function formatValue(
                 extend({}, options, {
                     unit: shortNumberPrefixes ? "T" : "trillion",
                     noSpaceUnit: shortNumberPrefixes,
-                    numDecimalPlaces: 2
+                    numDecimalPlaces: 2,
                 })
             )
         else if (absValue >= 1e9)
@@ -292,7 +292,7 @@ export function formatValue(
                 extend({}, options, {
                     unit: shortNumberPrefixes ? "B" : "billion",
                     noSpaceUnit: shortNumberPrefixes,
-                    numDecimalPlaces: 2
+                    numDecimalPlaces: 2,
                 })
             )
         else if (absValue >= 1e6)
@@ -301,7 +301,7 @@ export function formatValue(
                 extend({}, options, {
                     unit: shortNumberPrefixes ? "M" : "million",
                     noSpaceUnit: shortNumberPrefixes,
-                    numDecimalPlaces: 2
+                    numDecimalPlaces: 2,
                 })
             )
     } else {
@@ -352,7 +352,7 @@ export function last<T>(arr: T[]): T | undefined {
 }
 
 export function excludeUndefined<T>(arr: (T | undefined)[]): T[] {
-    return arr.filter(x => x !== undefined) as T[]
+    return arr.filter((x) => x !== undefined) as T[]
 }
 
 export function firstOfNonEmptyArray<T>(arr: T[]): T {
@@ -383,7 +383,7 @@ export function domainExtent(
     maxValueMultiplierForPadding = 1
 ): [number, number] {
     const filterValues =
-        scaleType === ScaleType.log ? numValues.filter(v => v > 0) : numValues
+        scaleType === ScaleType.log ? numValues.filter((v) => v > 0) : numValues
     const [minValue, maxValue] = extent(filterValues)
 
     if (
@@ -431,7 +431,7 @@ export const relativeMinAndMax = (
     let minChange = 0
     let maxChange = 0
 
-    const values = points.filter(point => point.x !== 0 && point.y !== 0)
+    const values = points.filter((point) => point.x !== 0 && point.y !== 0)
 
     for (let i = 0; i < values.length; i++) {
         const indexValue = values[i]
@@ -526,7 +526,7 @@ export function csvEscape(value: any): string {
 
 export function urlToSlug(url: string): string {
     const urlobj = parseUrl(url)
-    const slug = last(urlobj.pathname.split("/").filter(x => x)) as string
+    const slug = last(urlobj.pathname.split("/").filter((x) => x)) as string
     return slug
 }
 
@@ -537,7 +537,7 @@ export function sign(n: number) {
 // Removes all undefineds from an object. If there are no keys left, returns undefined.
 export function trimObject(obj: any) {
     const clone: any = {}
-    Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach((key) => {
         if (obj[key] !== undefined) clone[key] = obj[key]
     })
     return Object.keys(clone).length ? clone : undefined
@@ -663,7 +663,7 @@ export function valuesAtYears(
     tolerance: number = 0
 ) {
     const years = Array.from(valueByYear.keys())
-    const values = targetYears.map(targetYear => {
+    const values = targetYears.map((targetYear) => {
         let value
         const year = findClosestYear(years, targetYear, tolerance)
         if (year !== undefined) {
@@ -671,7 +671,7 @@ export function valuesAtYears(
         }
         return {
             year,
-            value
+            value,
         }
     })
     return values
@@ -682,7 +682,7 @@ export function valuesByEntityAtYears(
     targetYears: number[],
     tolerance: number = 0
 ): Map<string, DataValue[]> {
-    return es6mapValues(valueByEntityAndYear, valueByYear =>
+    return es6mapValues(valueByEntityAndYear, (valueByYear) =>
         valuesAtYears(valueByYear, targetYears, tolerance)
     )
 }
@@ -693,13 +693,13 @@ export function valuesByEntityWithinYears(
 ): Map<string, DataValue[]> {
     const start = range[0] !== undefined ? range[0] : -Infinity
     const end = range[1] !== undefined ? range[1] : Infinity
-    return es6mapValues(valueByEntityAndYear, valueByYear => {
+    return es6mapValues(valueByEntityAndYear, (valueByYear) => {
         const years = Array.from(valueByYear.keys()).filter(
-            year => year >= start && year <= end
+            (year) => year >= start && year <= end
         )
-        const values = years.map(year => ({
+        const values = years.map((year) => ({
             year,
-            value: valueByYear.get(year)
+            value: valueByYear.get(year),
         }))
         return values
     })
@@ -708,8 +708,8 @@ export function valuesByEntityWithinYears(
 export function getStartEndValues(
     values: DataValue[]
 ): (DataValue | undefined)[] {
-    const start = minBy(values, dv => dv.year)
-    const end = maxBy(values, dv => dv.year)
+    const start = minBy(values, (dv) => dv.year)
+    const end = maxBy(values, (dv) => dv.year)
     return [start, end]
 }
 
@@ -765,7 +765,7 @@ export const toJsTable = (rows: any[]): JsTable | undefined =>
     rows.length
         ? [
               Object.keys(rows[0]) as HeaderRow,
-              ...rows.map(row => Object.values(row) as ValueRow)
+              ...rows.map((row) => Object.values(row) as ValueRow),
           ]
         : undefined
 
@@ -939,7 +939,7 @@ export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U) {
 
 export function groupMap<T, K>(array: T[], accessor: (v: T) => K): Map<K, T[]> {
     const result = new Map<K, T[]>()
-    array.forEach(item => {
+    array.forEach((item) => {
         const key = accessor(item)
         if (result.has(key)) {
             result.get(key)?.push(item)
@@ -965,7 +965,7 @@ export function intersectionOfSets<T>(sets: Set<T>[]) {
     if (!sets.length) return new Set<T>()
     const intersection = new Set<T>(sets[0])
 
-    sets.slice(1).forEach(set => {
+    sets.slice(1).forEach((set) => {
         for (const elem of intersection) {
             if (!set.has(elem)) {
                 intersection.delete(elem)
@@ -980,7 +980,7 @@ export function sortByUndefinedLast<T>(
     accessor: (t: T) => string | number | undefined,
     order: SortOrder = SortOrder.asc
 ) {
-    const sorted = sortBy(array, value => {
+    const sorted = sortBy(array, (value) => {
         const mapped = accessor(value)
         if (mapped === undefined) {
             return order === SortOrder.asc ? Infinity : -Infinity
@@ -1003,7 +1003,7 @@ export const getErrorMessageRelatedQuestionUrl = (
 
 export function getAttributesOfHTMLElement(el: HTMLElement) {
     const attributes: { [key: string]: string } = {}
-    each(el.attributes, attr => (attributes[attr.name] = attr.value))
+    each(el.attributes, (attr) => (attributes[attr.name] = attr.value))
     return attributes
 }
 
@@ -1016,7 +1016,7 @@ export function mergeQueryStr(...queryStrs: (string | undefined)[]) {
 export function mapNullToUndefined<T>(
     array: (T | undefined | null)[]
 ): (T | undefined)[] {
-    return array.map(v => (v === null ? undefined : v))
+    return array.map((v) => (v === null ? undefined : v))
 }
 
 export const lowerCaseFirstLetterUnlessAbbreviation = (str: string) =>

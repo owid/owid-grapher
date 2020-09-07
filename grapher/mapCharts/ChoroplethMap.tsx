@@ -8,7 +8,7 @@ import {
     sortBy,
     guid,
     getRelativeMouse,
-    minBy
+    minBy,
 } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import { MapProjections, MapProjection } from "./MapProjections"
@@ -101,7 +101,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Get the bounding box for every geographical feature
     @computed get geoBounds(): Bounds[] {
-        return this.geoFeatures.map(d => {
+        return this.geoFeatures.map((d) => {
             const b = this.pathGen.bounds(d)
 
             const bounds = Bounds.fromCorners(
@@ -113,7 +113,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             if (d.id === "Fiji")
                 return bounds.extend({
                     x: bounds.right - bounds.height,
-                    width: bounds.height
+                    width: bounds.height,
                 })
             else return bounds
         })
@@ -128,16 +128,16 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @computed get geoPaths(): string[] {
         const { geoFeatures, pathGen } = this
 
-        return geoFeatures.map(d => {
+        return geoFeatures.map((d) => {
             const s = pathGen(d) as string
             const paths = s.split(/Z/).filter(identity)
 
-            const newPaths = paths.map(path => {
+            const newPaths = paths.map((path) => {
                 const points = path.split(/[MLZ]/).filter((f: any) => f)
-                const rounded = points.map(p =>
+                const rounded = points.map((p) =>
                     p
                         .split(/,/)
-                        .map(v => parseFloat(v).toFixed(1))
+                        .map((v) => parseFloat(v).toFixed(1))
                         .join(",")
                 )
                 return "M" + rounded.join("L")
@@ -154,7 +154,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             geo: geo,
             path: this.geoPaths[i],
             bounds: this.geoBounds[i],
-            center: this.geoBounds[i].centerPos
+            center: this.geoBounds[i].centerPos,
         }))
     }
 
@@ -190,7 +190,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
             SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
             Asia: { x: 0.75, y: 0.45, width: 0.3, height: 0.5 },
-            Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 }
+            Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
         }
 
         return viewports[this.props.projection]
@@ -235,7 +235,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @computed get nonProjectionFeatures(): RenderFeature[] {
         const { projection } = this.props
         return this.renderFeatures.filter(
-            feature =>
+            (feature) =>
                 projection !== "World" &&
                 worldRegionByMapEntity[feature.id] !== projection
         )
@@ -244,7 +244,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @computed get projectionFeatures(): RenderFeature[] {
         const { projection } = this.props
         return this.renderFeatures.filter(
-            feature =>
+            (feature) =>
                 projection === "World" ||
                 worldRegionByMapEntity[feature.id] === projection
         )
@@ -252,13 +252,13 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @computed get noDataFeatures(): RenderFeature[] {
         return this.projectionFeatures.filter(
-            feature => !this.choroplethData[feature.id]
+            (feature) => !this.choroplethData[feature.id]
         )
     }
 
     @computed get dataFeatures(): RenderFeature[] {
         return this.projectionFeatures.filter(
-            feature => this.choroplethData[feature.id]
+            (feature) => this.choroplethData[feature.id]
         )
     }
 
@@ -279,11 +279,11 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             ev
         )
 
-        const featuresWithDistance = projectionFeatures.map(d => {
+        const featuresWithDistance = projectionFeatures.map((d) => {
             return { feature: d, distance: Vector2.distance(d.center, mouse) }
         })
 
-        const feature = minBy(featuresWithDistance, d => d.distance)
+        const feature = minBy(featuresWithDistance, (d) => d.distance)
 
         if (feature && feature.distance < 20) {
             if (feature.feature !== this.hoverNearbyFeature) {
@@ -330,7 +330,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             viewportScale,
             nonProjectionFeatures,
             noDataFeatures,
-            dataFeatures
+            dataFeatures,
         } = this
         const focusStrokeColor = "#111"
         const focusStrokeWidth = 1.5
@@ -372,7 +372,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                 <g className="subunits" transform={matrixTransform}>
                     {nonProjectionFeatures.length && (
                         <g className="nonProjectionFeatures">
-                            {nonProjectionFeatures.map(d => {
+                            {nonProjectionFeatures.map((d) => {
                                 return (
                                     <path
                                         key={d.id}
@@ -388,7 +388,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
                     {noDataFeatures.length && (
                         <g className="noDataFeatures">
-                            {noDataFeatures.map(d => {
+                            {noDataFeatures.map((d) => {
                                 const isFocus = this.hasFocus(d.id)
                                 const outOfFocusBracket =
                                     !!this.focusBracket && !isFocus
@@ -417,7 +417,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                         onClick={(ev: SVGMouseEvent) =>
                                             this.props.onClick(d.geo, ev)
                                         }
-                                        onMouseEnter={ev =>
+                                        onMouseEnter={(ev) =>
                                             this.onMouseEnter(d, ev)
                                         }
                                         onMouseLeave={this.onMouseLeave}
@@ -428,7 +428,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     )}
 
                     {sortBy(
-                        dataFeatures.map(d => {
+                        dataFeatures.map((d) => {
                             const isFocus = this.hasFocus(d.id)
                             const showSelectedStyle =
                                 this.showSelectedStyle && this.isSelected(d.id)
@@ -466,14 +466,14 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                     onClick={(ev: SVGMouseEvent) =>
                                         this.props.onClick(d.geo, ev)
                                     }
-                                    onMouseEnter={ev =>
+                                    onMouseEnter={(ev) =>
                                         this.onMouseEnter(d, ev)
                                     }
                                     onMouseLeave={this.onMouseLeave}
                                 />
                             )
                         }),
-                        p => p.props["strokeWidth"]
+                        (p) => p.props["strokeWidth"]
                     )}
 
                     {/*dataFeatures.map(d => <rect x={d.bounds.x} y={d.bounds.y} width={d.bounds.width} height={d.bounds.height} fill="none" stroke="#000"/>)*/}

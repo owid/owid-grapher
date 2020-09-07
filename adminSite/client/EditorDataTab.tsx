@@ -10,7 +10,7 @@ import {
     EditableListItemProps,
     ColorBox,
     SelectField,
-    Section
+    Section,
 } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
@@ -101,7 +101,7 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
         const { selectedKeys, remainingKeys } = grapher
 
         const keyLabels = remainingKeys.map(
-            key => grapher.lookupKey(key).fullLabel
+            (key) => grapher.lookupKey(key).fullLabel
         )
 
         return (
@@ -113,7 +113,7 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
                     optionLabels={["Select data"].concat(keyLabels)}
                 />
                 <EditableList>
-                    {map(selectedKeys, key => (
+                    {map(selectedKeys, (key) => (
                         <EntityDimensionKeyItem
                             key={key}
                             grapher={grapher}

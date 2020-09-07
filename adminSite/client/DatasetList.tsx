@@ -36,7 +36,7 @@ class DatasetRow extends React.Component<{
         const { dataset } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/datasets/${dataset.id}/setTags`,
-            { tagIds: tags.map(t => t.id) },
+            { tagIds: tags.map((t) => t.id) },
             "POST"
         )
         if (json.success) {
@@ -117,7 +117,7 @@ export class DatasetList extends React.Component<{
                     </tr>
                 </thead>
                 <tbody>
-                    {props.datasets.map(dataset => (
+                    {props.datasets.map((dataset) => (
                         <DatasetRow
                             dataset={dataset}
                             availableTags={this.availableTags}

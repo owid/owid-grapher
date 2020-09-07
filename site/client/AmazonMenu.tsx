@@ -45,7 +45,7 @@ export class AmazonMenu extends React.Component<{
     @bind onMouseMove(event: React.MouseEvent<HTMLDivElement>) {
         this.mouseLocs.push({
             x: event.pageX,
-            y: event.pageY
+            y: event.pageY,
         })
         if (this.mouseLocs.length > MOUSE_LOCS_TRACKED) this.mouseLocs.shift()
     }
@@ -105,19 +105,19 @@ export class AmazonMenu extends React.Component<{
 
         const upperLeft = {
             x: submenuRect.left,
-            y: submenuRect.top - TOLERANCE_PX
+            y: submenuRect.top - TOLERANCE_PX,
         }
         const upperRight = {
             x: submenuRect.right,
-            y: upperLeft.y
+            y: upperLeft.y,
         }
         const lowerLeft = {
             x: submenuRect.left,
-            y: submenuRect.bottom + TOLERANCE_PX
+            y: submenuRect.bottom + TOLERANCE_PX,
         }
         const lowerRight = {
             x: submenuRect.right,
-            y: lowerLeft.y
+            y: lowerLeft.y,
         }
         const loc = this.mouseLocs[this.mouseLocs.length - 1]
         let prevLoc = this.mouseLocs[0]

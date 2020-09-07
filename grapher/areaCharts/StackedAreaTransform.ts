@@ -11,7 +11,7 @@ import {
     sortNumeric,
     uniq,
     max,
-    formatValue
+    formatValue,
 } from "grapher/utils/Util"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
@@ -24,7 +24,7 @@ import { Time } from "grapher/utils/TimeBounds"
 export class StackedAreaTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, d => d.property === "y"))
+        if (!some(filledDimensions, (d) => d.property === "y"))
             return "Missing Y axis variable"
         else if (
             this.groupedData.length === 0 ||
@@ -69,7 +69,7 @@ export class StackedAreaTransform extends ChartTransform {
                         values: [],
                         entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
-                        color: "#fff" // tmp
+                        color: "#fff", // tmp
                     }
                     seriesByKey.set(entityDimensionKey, series)
                 }
@@ -78,18 +78,18 @@ export class StackedAreaTransform extends ChartTransform {
             }
 
             groupedData = groupedData.concat([
-                ...Array.from(seriesByKey.values())
+                ...Array.from(seriesByKey.values()),
             ])
         })
 
         // Now ensure that every series has a value entry for every year in the data
         let allYears: number[] = []
-        groupedData.forEach(series =>
-            allYears.push(...series.values.map(d => d.x))
+        groupedData.forEach((series) =>
+            allYears.push(...series.values.map((d) => d.x))
         )
         allYears = sortNumeric(uniq(allYears))
 
-        groupedData.forEach(series => {
+        groupedData.forEach((series) => {
             let i = 0
             let isBeforeStart = true
 
@@ -111,7 +111,7 @@ export class StackedAreaTransform extends ChartTransform {
                         x: expectedYear,
                         y: fakeY,
                         time: expectedYear,
-                        isFake: true
+                        isFake: true,
                     })
                 } else {
                     isBeforeStart = false
@@ -123,7 +123,7 @@ export class StackedAreaTransform extends ChartTransform {
         // Strip years at start and end where we couldn't successfully interpolate
         for (const firstSeries of groupedData.slice(0, 1)) {
             for (let i = firstSeries.values.length - 1; i >= 0; i--) {
-                if (groupedData.some(series => isNaN(series.values[i].y))) {
+                if (groupedData.some((series) => isNaN(series.values[i].y))) {
                     for (const series of groupedData) {
                         series.values.splice(i, 1)
                     }
@@ -134,14 +134,14 @@ export class StackedAreaTransform extends ChartTransform {
         // Preserve order
         groupedData = sortBy(
             groupedData,
-            series => -selectedKeys.indexOf(series.entityDimensionKey)
+            (series) => -selectedKeys.indexOf(series.entityDimensionKey)
         )
 
         // Assign colors
         const baseColors = this.colorScheme.getColors(groupedData.length)
         if (grapher.invertColorScheme) baseColors.reverse()
         const colorScale = scaleOrdinal(baseColors)
-        groupedData.forEach(series => {
+        groupedData.forEach((series) => {
             series.color =
                 grapher.keyColors[series.entityDimensionKey] ||
                 colorScale(series.entityDimensionKey)
@@ -152,7 +152,9 @@ export class StackedAreaTransform extends ChartTransform {
             if (groupedData.length === 0) return []
 
             for (let i = 0; i < groupedData[0].values.length; i++) {
-                const total = sum(groupedData.map(series => series.values[i].y))
+                const total = sum(
+                    groupedData.map((series) => series.values[i].y)
+                )
                 for (let j = 0; j < groupedData.length; j++) {
                     groupedData[j].values[i].y =
                         total === 0
@@ -177,7 +179,7 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed private get yDomainDefault(): [number, number] {
-        const yValues = this.allStackedValues.map(d => d.y)
+        const yValues = this.allStackedValues.map((d) => d.y)
         return [0, max(yValues) ?? 100]
     }
 
@@ -190,7 +192,7 @@ export class StackedAreaTransform extends ChartTransform {
         else
             axis.updateDomainPreservingUserSettings([
                 yDomainDefault[0],
-                yDomainDefault[1]
+                yDomainDefault[1],
             ]) // Stacked area chart must have its own y domain)
 
         axis.tickFormat = isRelativeMode
@@ -203,7 +205,7 @@ export class StackedAreaTransform extends ChartTransform {
 
     @computed get availableYears(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
-        return this.groupedData[0].values.map(v => v.x)
+        return this.groupedData[0].values.map((v) => v.x)
     }
 
     @computed get canToggleRelativeMode(): boolean {
@@ -229,12 +231,13 @@ export class StackedAreaTransform extends ChartTransform {
         if (
             some(
                 groupedData,
-                series => series.values.length !== groupedData[0].values.length
+                (series) =>
+                    series.values.length !== groupedData[0].values.length
             )
         )
             throw new Error(
                 `Unexpected variation in stacked area chart series: ${groupedData.map(
-                    series => series.values.length
+                    (series) => series.values.length
                 )}`
             )
 
@@ -242,7 +245,7 @@ export class StackedAreaTransform extends ChartTransform {
 
         for (const series of stackedData) {
             series.values = series.values.filter(
-                v => v.x >= startYear && v.x <= endYear
+                (v) => v.x >= startYear && v.x <= endYear
             )
             for (const value of series.values) {
                 value.origY = value.y
@@ -259,11 +262,11 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get allStackedValues(): StackedAreaValue[] {
-        return flatten(this.stackedData.map(series => series.values))
+        return flatten(this.stackedData.map((series) => series.values))
     }
 
     @computed get yDimensionFirst() {
-        return find(this.grapher.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, (d) => d.property === "y")
     }
 
     formatYTick(v: number) {

@@ -41,7 +41,7 @@ export class CovidExplorerFigure implements Figure {
                 containerNode: this.container,
                 isEmbed: true,
                 queryStr: this.props.queryStr,
-                globalEntitySelection: loadProps.globalEntitySelection
+                globalEntitySelection: loadProps.globalEntitySelection,
             })
         }
     }
@@ -53,17 +53,17 @@ export class CovidExplorerFigure implements Figure {
             container.querySelectorAll<HTMLElement>("*[data-explorer-src]")
         )
         return excludeUndefined(
-            elements.map(element => {
+            elements.map((element) => {
                 const dataSrc = element.getAttribute("data-explorer-src")
                 if (!dataSrc) return undefined
                 const {
                     path: explorerUrl,
-                    queryString: queryStr
+                    queryString: queryStr,
                 } = splitURLintoPathAndQueryString(dataSrc)
                 if (!explorerUrl.includes(covidDashboardSlug)) return undefined
                 return new CovidExplorerFigure({
                     queryStr,
-                    container: element
+                    container: element,
                 })
             })
         )

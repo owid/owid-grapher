@@ -279,5 +279,5 @@ export const populationMap: { [country: string]: number } = {
     World: 7794798729,
     Yemen: 29825968,
     Zambia: 18383956,
-    Zimbabwe: 14862927
+    Zimbabwe: 14862927,
 }

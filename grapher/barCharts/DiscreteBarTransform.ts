@@ -8,7 +8,7 @@ import {
     flatten,
     uniq,
     sortNumeric,
-    sortedUniq
+    sortedUniq,
 } from "grapher/utils/Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "grapher/chart/ChartTransform"
@@ -17,7 +17,7 @@ import { ColorSchemes } from "grapher/color/ColorSchemes"
 import {
     SortOrder,
     TickFormattingOptions,
-    ScaleType
+    ScaleType,
 } from "grapher/core/GrapherConstants"
 import { Time } from "grapher/utils/TimeBounds"
 
@@ -26,18 +26,18 @@ import { Time } from "grapher/utils/TimeBounds"
 export class DiscreteBarTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, d => d.property === "y"))
+        if (!some(filledDimensions, (d) => d.property === "y"))
             return "Missing variable"
         else if (isEmpty(this.currentData)) return "No matching data"
         else return undefined
     }
 
     @computed get primaryDimensions(): ChartDimension[] {
-        return this.grapher.filledDimensions.filter(d => d.property === "y")
+        return this.grapher.filledDimensions.filter((d) => d.property === "y")
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(this.primaryDimensions.map(dim => dim.yearsUniq))
+        return flatten(this.primaryDimensions.map((dim) => dim.yearsUniq))
     }
 
     @computed get hasTimeline(): boolean {
@@ -114,7 +114,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     year: year,
                     label: grapher.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
-                    formatValue: dimension.formatValueShort
+                    formatValue: dimension.formatValueShort,
                 }
 
                 dataByEntityDimensionKey[entityDimensionKey] = datum
@@ -125,17 +125,20 @@ export class DiscreteBarTransform extends ChartTransform {
             // If derived from line chart, use line chart colors
             for (const key in dataByEntityDimensionKey) {
                 const lineSeries = this.grapher.lineChartTransform.predomainData.find(
-                    series => series.entityDimensionKey === key
+                    (series) => series.entityDimensionKey === key
                 )
                 if (lineSeries)
                     dataByEntityDimensionKey[key].color = lineSeries.color
             }
         } else {
-            const data = sortBy(values(dataByEntityDimensionKey), d => d.value)
+            const data = sortBy(
+                values(dataByEntityDimensionKey),
+                (d) => d.value
+            )
             const colorScheme = grapher.baseColorScheme
                 ? ColorSchemes[grapher.baseColorScheme]
                 : undefined
-            const uniqValues = uniq(data.map(d => d.value))
+            const uniqValues = uniq(data.map((d) => d.value))
             const colors = colorScheme?.getColors(uniqValues.length) || []
             if (grapher.invertColorScheme) colors.reverse()
 
@@ -144,7 +147,7 @@ export class DiscreteBarTransform extends ChartTransform {
             const colorByValue = new Map<number, string>()
             uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
 
-            data.forEach(d => {
+            data.forEach((d) => {
                 d.color =
                     grapher.keyColors[d.entityDimensionKey] ||
                     colorByValue.get(d.value) ||
@@ -165,7 +168,7 @@ export class DiscreteBarTransform extends ChartTransform {
     private _filterDataForLogScaleInPlace(dataByEntityDimensionKey: {
         [entityDimensionKey: string]: DiscreteBarDatum
     }) {
-        Object.keys(dataByEntityDimensionKey).forEach(key => {
+        Object.keys(dataByEntityDimensionKey).forEach((key) => {
             const datum = dataByEntityDimensionKey[key]
             if (datum.value <= 0) delete dataByEntityDimensionKey[key]
         })
@@ -176,7 +179,7 @@ export class DiscreteBarTransform extends ChartTransform {
         // This is because, as d3 puts it: "a log scale domain must be strictly-positive or strictly-negative;
         // the domain must not include or cross zero". We may want to update to d3 5.8 and explore switching to
         // scaleSymlog which handles a wider domain.
-        return allData.filter(datum => datum.value > 0)
+        return allData.filter((datum) => datum.value > 0)
     }
 
     @computed get isLogScale() {
@@ -210,7 +213,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     year: year,
                     label: grapher.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
-                    formatValue: dimension.formatValueShort
+                    formatValue: dimension.formatValueShort,
                 }
 
                 allData.push(datum)
@@ -221,24 +224,24 @@ export class DiscreteBarTransform extends ChartTransform {
             ? this._filterArrayForLogScale(allData)
             : allData
 
-        const data = sortNumeric(filteredData, d => d.value)
+        const data = sortNumeric(filteredData, (d) => d.value)
         const colorScheme = grapher.baseColorScheme
             ? ColorSchemes[grapher.baseColorScheme]
             : undefined
-        const uniqValues = sortedUniq(data.map(d => d.value))
+        const uniqValues = sortedUniq(data.map((d) => d.value))
         const colors = colorScheme?.getColors(uniqValues.length) || []
         if (grapher.invertColorScheme) colors.reverse()
 
         const colorByValue = new Map<number, string>()
         uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
 
-        data.forEach(d => {
+        data.forEach((d) => {
             d.color =
                 grapher.keyColors[d.entityDimensionKey] ||
                 colorByValue.get(d.value) ||
                 d.color
         })
 
-        return sortNumeric(data, d => d.value, SortOrder.desc)
+        return sortNumeric(data, (d) => d.value, SortOrder.desc)
     }
 }

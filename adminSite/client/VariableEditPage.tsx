@@ -5,7 +5,7 @@ import {
     computed,
     runInAction,
     autorun,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
@@ -129,7 +129,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 <div className="row">
                     <div className="col">
                         <form
-                            onSubmit={e => {
+                            onSubmit={(e) => {
                                 e.preventDefault()
                                 this.save()
                             }}
@@ -193,7 +193,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             newVariable.display.yearIsDay ===
                                             true
                                         }
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (newVariable.display.yearIsDay = value)
                                         }
                                         label="Treat year column as day series"
@@ -219,7 +219,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                                             newVariable.display
                                                 .includeInTable === true
                                         }
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (newVariable.display.includeInTable = value)
                                         }
                                         label="Include in table"
@@ -297,9 +297,9 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
                 {
                     property: "y",
                     variableId: this.props.variable.id,
-                    display: lodash.clone(this.newVariable.display)
-                }
-            ]
+                    display: lodash.clone(this.newVariable.display),
+                },
+            ],
         }
     }
 

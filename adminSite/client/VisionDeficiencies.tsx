@@ -3,7 +3,7 @@ import Select, {
     components,
     OptionProps,
     GroupedOptionsType,
-    ValueType
+    ValueType,
 } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
@@ -36,7 +36,7 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0.558, 0.442, 0,     0, 0
                 0,     0.242, 0.758, 0, 0
                 0,     0,     0,     1, 0
-                `
+                `,
     },
 
     {
@@ -50,7 +50,7 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0.7,   0.3,   0,   0, 0
                 0,     0.3,   0.7, 0, 0
                 0,     0,     0,   1, 0
-                `
+                `,
     },
     {
         id: "tritanopia",
@@ -63,7 +63,7 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0,    0.433, 0.567, 0, 0
                 0,    0.475, 0.525, 0, 0
                 0,    0,     0,     1, 0
-                `
+                `,
     },
     {
         id: "achromatopsia",
@@ -76,7 +76,7 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0.299, 0.587, 0.114, 0, 0
                 0.299, 0.587, 0.114, 0, 0
                 0,     0,     0,     1, 0
-                `
+                `,
     },
     // Then weaknesses
     {
@@ -90,7 +90,7 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0.333, 0.667, 0,     0, 0
                 0,     0.125, 0.875, 0, 0
                 0,     0,     0,     1, 0
-                `
+                `,
     },
     {
         id: "deuteranomaly",
@@ -103,7 +103,7 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0.258, 0.742, 0,     0, 0
                 0,     0.142, 0.858, 0, 0
                 0,     0,     0,     1, 0
-                `
+                `,
     },
     {
         id: "tritanomaly",
@@ -116,7 +116,7 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0,     0.733, 0.267, 0, 0
                 0,     0.183, 0.817, 0, 0
                 0,     0,     0,     1, 0
-                `
+                `,
     },
     {
         id: "achromatomaly",
@@ -129,14 +129,14 @@ const visionDeficiencies: VisionDeficiency[] = [
                 0.163, 0.775, 0.062, 0, 0
                 0.163, 0.320, 0.516, 0, 0
                 0,     0,     0,     1, 0
-                `
-    }
+                `,
+    },
 ]
 
 export const VisionDeficiencySvgFilters = () => (
     <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="0">
         <defs>
-            {visionDeficiencies.map(deficiency => (
+            {visionDeficiencies.map((deficiency) => (
                 <filter id={deficiency.id} key={deficiency.id}>
                     <feColorMatrix
                         in="SourceGraphic"
@@ -181,16 +181,16 @@ export class VisionDeficiencyDropdown extends React.Component<
 > {
     noDeficiencyOption = {
         label: "No deficiencies",
-        value: "none"
+        value: "none",
     }
 
     @computed get options(): GroupedOptionsType<VisionDeficiencyEntity> {
-        const options = visionDeficiencies.map(deficiency => ({
+        const options = visionDeficiencies.map((deficiency) => ({
             label: `${deficiency.name} (${deficiency.alternativeName})`,
             value: deficiency.id,
-            deficiency
+            deficiency,
         }))
-        const grouped = groupBy(options, option => option.deficiency.group)
+        const grouped = groupBy(options, (option) => option.deficiency.group)
         const selectGroups = Object.entries(
             grouped
         ).map(([label, options]) => ({ label, options }))
@@ -198,9 +198,9 @@ export class VisionDeficiencyDropdown extends React.Component<
         return [
             {
                 label: "No deficiencies",
-                options: [this.noDeficiencyOption]
+                options: [this.noDeficiencyOption],
             },
-            ...selectGroups
+            ...selectGroups,
         ]
     }
 
@@ -217,7 +217,7 @@ export class VisionDeficiencyDropdown extends React.Component<
                 defaultValue={this.noDeficiencyOption}
                 menuPlacement="top"
                 components={{
-                    Option: VisionDeficiencyOption
+                    Option: VisionDeficiencyOption,
                 }}
                 styles={getStylesForTargetHeight(30)}
             />

@@ -10,7 +10,7 @@ import { computed, when, runInAction, observable, action } from "mobx"
 import {
     GrapherTabOption,
     ScaleType,
-    StackMode
+    StackMode,
 } from "grapher/core/GrapherConstants"
 
 import { includes, defaultTo } from "grapher/utils/Util"
@@ -21,7 +21,7 @@ import { Grapher } from "grapher/core/Grapher"
 import {
     queryParamsToStr,
     strToQueryParams,
-    QueryParams
+    QueryParams,
 } from "utils/client/url"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
 import { ObservableUrl } from "grapher/utils/UrlBinder"
@@ -29,7 +29,7 @@ import {
     TimeBoundValue,
     formatTimeURIComponent,
     getTimeDomainFromQueryString,
-    parseTimeURIComponent
+    parseTimeURIComponent,
 } from "grapher/utils/TimeBounds"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 
@@ -140,7 +140,7 @@ export class GrapherUrl implements ObservableUrl {
         const externalParams = this.externallyProvidedParams || {}
         const queryParams = {
             ...this.params,
-            ...externalParams
+            ...externalParams,
         }
         return queryParamsToStr(queryParams)
     }
@@ -315,7 +315,7 @@ export class GrapherUrl implements ObservableUrl {
                     )
                     const notFoundEntities = Array.from(
                         matchedEntities.keys()
-                    ).filter(key => !matchedEntities.get(key))
+                    ).filter((key) => !matchedEntities.get(key))
 
                     if (notFoundEntities.length)
                         grapher.analytics.logEntitiesNotFoundError(
@@ -345,7 +345,7 @@ export class ExtendedGrapherUrl implements ObservableUrl {
 
     @computed get params(): QueryParams {
         let obj = Object.assign({}, this.grapherUrl.params)
-        this.objectsWithParams.forEach(p => {
+        this.objectsWithParams.forEach((p) => {
             obj = Object.assign(obj, p.toQueryParams)
         })
         return obj

@@ -19,7 +19,7 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import { TimeBound } from "grapher/utils/TimeBounds"
 import {
     HighlightToggleConfig,
-    GrapherTabOption
+    GrapherTabOption,
 } from "grapher/core/GrapherConstants"
 import { ShareMenu } from "./ShareMenu"
 
@@ -46,7 +46,7 @@ class SettingsMenu extends React.Component<{
         return (
             <div
                 className="SettingsMenu"
-                onClick={evt => evt.stopPropagation()}
+                onClick={(evt) => evt.stopPropagation()}
             >
                 <h2>Settings</h2>
             </div>
@@ -82,7 +82,7 @@ class HighlightToggle extends React.Component<{
     get isHighlightActive() {
         const params = getWindowQueryParams()
         let isActive = true
-        keys(this.highlightParams).forEach(key => {
+        keys(this.highlightParams).forEach((key) => {
             if (params[key] !== this.highlightParams[key]) isActive = false
         })
         return isActive
@@ -190,7 +190,7 @@ interface TimelineControlProps {
 @observer
 class TimelineControl extends React.Component<TimelineControlProps> {
     @action.bound onMapTargetChange({
-        targetStartYear
+        targetStartYear,
     }: {
         targetStartYear: TimeBound
     }) {
@@ -199,7 +199,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
 
     @action.bound onChartTargetChange({
         targetStartYear,
-        targetEndYear
+        targetEndYear,
     }: {
         targetStartYear: TimeBound
         targetEndYear: TimeBound
@@ -243,7 +243,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
         )
             this.onChartTargetChange({
                 targetStartYear: this.startYear,
-                targetEndYear: this.endYear
+                targetEndYear: this.endYear,
             })
     }
 
@@ -259,7 +259,7 @@ class TimelineControl extends React.Component<TimelineControlProps> {
             endYear: this.endYear,
             onTargetChange: this.onChartTargetChange,
             onStartDrag: this.onTimelineStart,
-            onStopDrag: this.onTimelineStop
+            onStopDrag: this.onTimelineStop,
         }
     }
 
@@ -316,12 +316,14 @@ export class Controls {
     } {
         const overlays = Object.values(this.props.grapherView.overlays)
         return {
-            top: max(overlays.map(overlay => overlay.props.paddingTop)) ?? 0,
+            top: max(overlays.map((overlay) => overlay.props.paddingTop)) ?? 0,
             right:
-                max(overlays.map(overlay => overlay.props.paddingRight)) ?? 0,
+                max(overlays.map((overlay) => overlay.props.paddingRight)) ?? 0,
             bottom:
-                max(overlays.map(overlay => overlay.props.paddingBottom)) ?? 0,
-            left: max(overlays.map(overlay => overlay.props.paddingLeft)) ?? 0
+                max(overlays.map((overlay) => overlay.props.paddingBottom)) ??
+                0,
+            left:
+                max(overlays.map((overlay) => overlay.props.paddingLeft)) ?? 0,
         }
     }
 
@@ -408,7 +410,7 @@ export class AddEntityButton extends React.Component<{
         align: "left",
         verticalAlign: "bottom",
         height: 21,
-        label: "Add country"
+        label: "Add country",
     }
 
     static calcPaddingTop(
@@ -433,12 +435,12 @@ export class AddEntityButton extends React.Component<{
             verticalAlign,
             height,
             label,
-            onClick
+            onClick,
         } = this.props
 
         const buttonStyle: React.CSSProperties = {
             position: "absolute",
-            lineHeight: `${height}px`
+            lineHeight: `${height}px`,
         }
 
         if (verticalAlign === "top") {
@@ -492,7 +494,7 @@ export class ControlsOverlayView extends React.Component<{
             paddingTop: `${overlayPadding.top}px`,
             paddingRight: `${overlayPadding.right}px`,
             paddingBottom: `${overlayPadding.bottom}px`,
-            paddingLeft: `${overlayPadding.left}px`
+            paddingLeft: `${overlayPadding.left}px`,
         }
         const overlayStyle: React.CSSProperties = {
             position: "absolute",
@@ -504,7 +506,7 @@ export class ControlsOverlayView extends React.Component<{
             // Can achieve the same with `pointer-events: none`, but then control
             // has to override `pointer-events` to capture events.
             width: "0px",
-            height: "0px"
+            height: "0px",
         }
         return (
             <div style={containerStyle}>
@@ -549,7 +551,7 @@ export class ControlsFooterView extends React.Component<{
         return (
             <nav className="tabs">
                 <ul>
-                    {grapher.availableTabs.map(tabName => {
+                    {grapher.availableTabs.map((tabName) => {
                         return (
                             tabName !== "download" && (
                                 <li
@@ -710,7 +712,7 @@ export class ControlsFooterView extends React.Component<{
             hasTimeline,
             hasInlineControls,
             hasSpace,
-            hasRelatedQuestion
+            hasRelatedQuestion,
         } = props.controls
         const { grapher, grapherView } = props.controls.props
         const { relatedQuestions } = grapher

@@ -6,7 +6,7 @@ import { getVariableData } from "db/model/Variable"
 import {
     covidChartAndVariableMetaFilename,
     sourceCharts,
-    sourceVariables
+    sourceVariables,
 } from "explorer/covidExplorer/CovidConstants"
 import { uniq } from "lodash"
 
@@ -17,7 +17,7 @@ export const bakeCovidChartAndVariableMeta = async () => {
     const output: any = {
         NOTICE: "This file is generated. Hand edits will be overwritten.",
         charts: {},
-        variables: {}
+        variables: {},
     }
 
     const charts = await db.query(

@@ -32,7 +32,7 @@ export class DatasetSourceSplit1537515786863 implements MigrationInterface {
                         dataset.metadataEditedAt,
                         dataset.metadataEditedByUserId,
                         dataset.createdByUserId,
-                        true
+                        true,
                     ]
                     const result = await queryRunner.query(
                         `INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId, createdByUserId, isPrivate) VALUES (?)`,
@@ -51,7 +51,7 @@ export class DatasetSourceSplit1537515786863 implements MigrationInterface {
                     )
                 } else {
                     await queryRunner.query("delete from sources where id=?", [
-                        source.id
+                        source.id,
                     ])
                 }
             }

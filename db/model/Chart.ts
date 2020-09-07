@@ -4,7 +4,7 @@ import {
     Column,
     BaseEntity,
     ManyToOne,
-    OneToMany
+    OneToMany,
 } from "typeorm"
 import * as lodash from "lodash"
 import * as db from "db/db"
@@ -27,11 +27,11 @@ export class Chart extends BaseEntity {
     @Column() starred!: boolean
     @Column() isExplorable!: boolean
 
-    @ManyToOne(() => User, user => user.lastEditedCharts)
+    @ManyToOne(() => User, (user) => user.lastEditedCharts)
     lastEditedByUser!: User
-    @ManyToOne(() => User, user => user.publishedCharts)
+    @ManyToOne(() => User, (user) => user.publishedCharts)
     publishedByUser!: User
-    @OneToMany(() => ChartRevision, rev => rev.chart)
+    @OneToMany(() => ChartRevision, (rev) => rev.chart)
     logs!: ChartRevision[]
 
     static table: string = "charts"
@@ -64,8 +64,8 @@ export class Chart extends BaseEntity {
     }
 
     static async setTags(chartId: number, tagIds: number[]) {
-        await db.transaction(async t => {
-            const tagRows = tagIds.map(tagId => [tagId, chartId])
+        await db.transaction(async (t) => {
+            const tagRows = tagIds.map((tagId) => [tagId, chartId])
             await t.execute(`DELETE FROM chart_tags WHERE chartId=?`, [chartId])
             if (tagRows.length)
                 await t.execute(
@@ -75,16 +75,16 @@ export class Chart extends BaseEntity {
 
             const tags = tagIds.length
                 ? ((await t.query("select parentId from tags where id in (?)", [
-                      tagIds
+                      tagIds,
                   ])) as { parentId: number }[])
                 : []
-            const isIndexable = tags.some(t =>
+            const isIndexable = tags.some((t) =>
                 PUBLIC_TAG_PARENT_IDS.includes(t.parentId)
             )
 
             await t.execute("update charts set is_indexable = ? where id = ?", [
                 isIndexable,
-                chartId
+                chartId,
             ])
         })
     }
@@ -100,7 +100,7 @@ export class Chart extends BaseEntity {
             chart.tags = []
         }
 
-        const chartsById = lodash.keyBy(charts, c => c.id)
+        const chartsById = lodash.keyBy(charts, (c) => c.id)
 
         for (const ct of chartTags) {
             const chart = chartsById[ct.chartId]
@@ -168,7 +168,7 @@ export class OldChart {
 
     async getVariableData(): Promise<any> {
         const variableIds = lodash.uniq(
-            this.config.dimensions!.map(d => d.variableId)
+            this.config.dimensions!.map((d) => d.variableId)
         )
         return getVariableData(variableIds)
     }

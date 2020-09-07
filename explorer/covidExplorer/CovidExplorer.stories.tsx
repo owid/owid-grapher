@@ -5,12 +5,12 @@ import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 
 export default {
     title: "CovidExplorer",
-    component: CovidExplorer
+    component: CovidExplorer,
 }
 
 const EMPTY_DUMMY_META = {
     charts: {},
-    variables: {}
+    variables: {},
 }
 
 export const SingleExplorerWithKeyboardShortcuts = () => {

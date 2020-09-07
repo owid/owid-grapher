@@ -2,7 +2,7 @@ import { observable, toJS } from "mobx"
 import { MapProjection } from "./MapProjections"
 import {
     ColorScaleConfig,
-    PersistableColorScaleConfig
+    PersistableColorScaleConfig,
 } from "grapher/color/ColorScaleConfig"
 import { owidVariableId } from "owidTable/OwidTable"
 import { Persistable, updatePersistables } from "grapher/core/Persistable"

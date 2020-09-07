@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { Link } from "adminSite/client/Link"
 import {
     AdminAppContext,
-    AdminAppContextType
+    AdminAppContextType,
 } from "adminSite/client/AdminAppContext"
 import {
     observable,
@@ -11,7 +11,7 @@ import {
     action,
     runInAction,
     reaction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import * as lodash from "lodash"
 import { AdminLayout } from "adminSite/client/AdminLayout"
@@ -133,7 +133,7 @@ class ExplorerList extends React.Component<{
                     </tr>
                 </thead>
                 <tbody>
-                    {props.explorers.map(explorer => (
+                    {props.explorers.map((explorer) => (
                         <ExplorerRow
                             indexPage={this.props.indexPage}
                             key={explorer.slug}
@@ -179,7 +179,7 @@ export class ExplorersIndexPage extends React.Component {
                         ),
                         "i"
                     ),
-                    s => `<b>${s}</b>`
+                    (s) => `<b>${s}</b>`
                 )
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
@@ -187,7 +187,7 @@ export class ExplorersIndexPage extends React.Component {
 
         const nextAvailableSlug = getAvailableSlugSync(
             "untitled",
-            this.explorersToShow.map(exp => exp.slug)
+            this.explorersToShow.map((exp) => exp.slug)
         )
         return (
             <AdminLayout title="Explorers">
@@ -228,13 +228,15 @@ export class ExplorersIndexPage extends React.Component {
     }
 
     @action.bound async togglePublishedStatus(filename: string) {
-        const explorer = this.explorers.find(exp => exp.filename === filename)!
+        const explorer = this.explorers.find(
+            (exp) => exp.filename === filename
+        )!
         explorer.isPublished = !explorer.isPublished
 
         this.context.admin.loadingIndicatorSetting = "loading"
         await writeRemoteFile({
             filepath: explorer.fullPath,
-            content: explorer.toString()
+            content: explorer.toString(),
         })
         this.context.admin.loadingIndicatorSetting = "default"
         this.getData()

@@ -14,14 +14,14 @@ export default {
         padding: { control: "range", defaultValue: 1 },
         width: {
             control: { type: "range", min: 50, max: 2000 },
-            defaultValue: 640
+            defaultValue: 640,
         },
         height: {
             control: { type: "range", min: 50, max: 2000 },
-            defaultValue: 480
+            defaultValue: 480,
         },
-        chart: { control: null }
-    }
+        chart: { control: null },
+    },
 }
 
 export const Default = (args: any) => {

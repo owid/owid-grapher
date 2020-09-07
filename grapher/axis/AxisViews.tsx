@@ -214,7 +214,7 @@ export class HorizontalAxisComponent extends React.Component<{
         const tickMarks = showTickMarks ? (
             <AxisTickMarks
                 tickMarkTopPosition={axisPosition}
-                tickMarkXPositions={ticks.map(tick => axis.place(tick))}
+                tickMarkXPositions={ticks.map((tick) => axis.place(tick))}
                 color="#ccc"
             />
         ) : undefined

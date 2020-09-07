@@ -7,7 +7,7 @@ import { takeWhile, last, first, isMobile } from "grapher/utils/Util"
 import {
     SparkBars,
     SparkBarsDatum,
-    SparkBarsProps
+    SparkBarsProps,
 } from "grapher/sparkBars/SparkBars"
 import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
 import { Grapher } from "grapher/core/Grapher"
@@ -39,7 +39,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             data: this.sparkBarsData,
             x: this.sparkBarsDatumXAccessor,
             y: (d: SparkBarsDatum) => d.value,
-            xDomain: this.sparkBarsDomain
+            xDomain: this.sparkBarsDomain,
         }
     }
 
@@ -53,13 +53,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             ?.forEach((value, key) => {
                 sparkBarValues.push({
                     year: key,
-                    value: value as number
+                    value: value as number,
                 })
             })
 
         return takeWhile(
             sparkBarValues,
-            d => d.year <= tooltipDatum.year
+            (d) => d.year <= tooltipDatum.year
         ).slice(-this.sparkBarsToDisplay)
     }
 
@@ -107,7 +107,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             inputYear,
             mapToDataEntities,
             tooltipDatum,
-            isEntityClickable
+            isEntityClickable,
         } = this.props
 
         const tooltipMessage = this.grapher.isScatter
@@ -131,7 +131,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                         padding: "0.3em 0.3em",
                         margin: 0,
                         fontWeight: "normal",
-                        fontSize: "1em"
+                        fontSize: "1em",
                     }}
                 >
                     {mapToDataEntities[tooltipTarget.featureId] ||
@@ -140,7 +140,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                 <div
                     style={{
                         margin: 0,
-                        padding: "0.3em 0.3em"
+                        padding: "0.3em 0.3em",
                     }}
                 >
                     {tooltipDatum ? (
@@ -189,7 +189,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 margin: 0,
                                 padding: "0.3em 0.9em",
                                 fontSize: "13px",
-                                opacity: 0.6
+                                opacity: 0.6,
                             }}
                         >
                             {tooltipMessage}

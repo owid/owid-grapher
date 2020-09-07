@@ -4,7 +4,7 @@ import {
     max,
     stripHTML,
     defaultTo,
-    linkify
+    linkify,
 } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { Bounds } from "grapher/utils/Bounds"
@@ -69,7 +69,7 @@ export class TextWrap {
         let line: string[] = []
         let lineBounds = Bounds.empty()
 
-        words.forEach(word => {
+        words.forEach((word) => {
             const nextLine = line.concat([word])
 
             // Strip HTML if a raw string is passed
@@ -79,7 +79,7 @@ export class TextWrap {
 
             const nextBounds = Bounds.forText(text, {
                 fontSize,
-                fontWeight
+                fontWeight,
             })
 
             if (
@@ -89,7 +89,7 @@ export class TextWrap {
                 lines.push({
                     text: line.join(" "),
                     width: lineBounds.width,
-                    height: lineBounds.height
+                    height: lineBounds.height,
                 })
                 line = [word]
                 lineBounds = Bounds.forText(word, { fontSize, fontWeight })
@@ -102,7 +102,7 @@ export class TextWrap {
             lines.push({
                 text: line.join(" "),
                 width: lineBounds.width,
-                height: lineBounds.height
+                height: lineBounds.height,
             })
 
         return lines
@@ -116,7 +116,7 @@ export class TextWrap {
     }
 
     @computed get width(): number {
-        return defaultTo(max(this.lines.map(l => l.width)), 0)
+        return defaultTo(max(this.lines.map((l) => l.width)), 0)
     }
 
     @computed get htmlStyle(): any {
@@ -125,7 +125,7 @@ export class TextWrap {
             fontSize: fontSize.toFixed(2) + "px",
             fontWeight: fontWeight,
             lineHeight: lineHeight,
-            overflowY: "visible"
+            overflowY: "visible",
         }
     }
 
@@ -145,13 +145,13 @@ export class TextWrap {
                     const content = props.rawHtml ? (
                         <span
                             dangerouslySetInnerHTML={{
-                                __html: line.text
+                                __html: line.text,
                             }}
                         />
                     ) : props.linkifyText ? (
                         <span
                             dangerouslySetInnerHTML={{
-                                __html: linkify(line.text)
+                                __html: linkify(line.text),
                             }}
                         />
                     ) : (

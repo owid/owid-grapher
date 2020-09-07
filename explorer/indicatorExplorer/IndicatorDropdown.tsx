@@ -5,7 +5,7 @@ import { bind } from "decko"
 
 import {
     ExplorerViewContext,
-    ExplorerViewContextType
+    ExplorerViewContextType,
 } from "./ExplorerViewContext"
 import { Indicator } from "./Indicator"
 import { observer } from "mobx-react"
@@ -25,7 +25,7 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
     context!: ExplorerViewContextType
 
     static defaultProps = {
-        placeholder: "Type to search..."
+        placeholder: "Type to search...",
     }
 
     @bind onChange(indicator: ValueType<Indicator>) {
@@ -35,9 +35,9 @@ export class IndicatorDropdown extends React.Component<IndicatorDropdownProps> {
 
     @bind async loadOptions(query: string): Promise<Indicator[]> {
         const entries = await this.context.store.indicators.search({
-            query
+            query,
         })
-        return entries.map(entry => entry.entity) as Indicator[]
+        return entries.map((entry) => entry.entity) as Indicator[]
     }
 
     @bind getValue(indicator: Indicator): string {

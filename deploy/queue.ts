@@ -1,7 +1,7 @@
 import * as fs from "fs-extra"
 import {
     DEPLOY_QUEUE_FILE_PATH,
-    DEPLOY_PENDING_FILE_PATH
+    DEPLOY_PENDING_FILE_PATH,
 } from "serverSettings"
 import { deploy } from "./deploy"
 
@@ -61,7 +61,7 @@ function parseQueueContent(content: string): IDeployQueueItem[] {
     // Parse all lines in file as JSON
     return content
         .split("\n")
-        .map(line => {
+        .map((line) => {
             try {
                 return JSON.parse(line)
             } catch (err) {
@@ -75,13 +75,13 @@ function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
     const date: string = new Date().toISOString()
 
     const message: string = queueItems
-        .filter(item => item.message)
-        .map(item => item.message)
+        .filter((item) => item.message)
+        .map((item) => item.message)
         .join("\n")
 
     const coauthors: string = queueItems
-        .filter(item => item.authorName)
-        .map(item => {
+        .filter((item) => item.authorName)
+        .map((item) => {
             return `Co-authored-by: ${item.authorName} <${item.authorEmail}>`
         })
         .join("\n")

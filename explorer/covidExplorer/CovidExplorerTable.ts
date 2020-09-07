@@ -11,7 +11,7 @@ import {
     retryPromise,
     memoize,
     fetchText,
-    fetchJSON
+    fetchJSON,
 } from "grapher/utils/Util"
 import moment from "moment"
 import { csv } from "d3-fetch"
@@ -25,7 +25,7 @@ import {
     columnSlug,
     columnTypes,
     Row,
-    generateEntityId
+    generateEntityId,
 } from "owidTable/OwidTable"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
@@ -41,7 +41,7 @@ import {
     intervalOptions,
     sourceVariables,
     testRateExcludeList,
-    metricPickerColumnSpecs
+    metricPickerColumnSpecs,
 } from "./CovidConstants"
 
 type MetricKey = {
@@ -73,9 +73,9 @@ export const buildColumnSlug = (
             ? "perMil"
             : undefined,
         interval,
-        rollingAverage ? rollingAverage + "DayAvg" : undefined
+        rollingAverage ? rollingAverage + "DayAvg" : undefined,
     ]
-        .filter(i => i)
+        .filter((i) => i)
         .join("-")
 
 export class CovidExplorerTable {
@@ -96,7 +96,7 @@ export class CovidExplorerTable {
         // This simply looks at the first row of the Covid CSV, and generates a spec for each column found.
         // I assume that the first row contains a key/value pair for every column
         const firstRow = data[0] || {}
-        const specs = Object.keys(firstRow).map(slug =>
+        const specs = Object.keys(firstRow).map((slug) =>
             CovidExplorerTable.makeSpec(slug)
         )
         this.table.addSpecs(specs)
@@ -110,7 +110,7 @@ export class CovidExplorerTable {
             slug,
             type: stringColumnSlugs.has(slug)
                 ? "String"
-                : ("Numeric" as columnTypes)
+                : ("Numeric" as columnTypes),
         }
         const metricSpec = (metricPickerColumnSpecs as any)[spec.slug]
         if (metricSpec) spec = Object.assign({}, spec, metricSpec)
@@ -129,9 +129,9 @@ export class CovidExplorerTable {
                 dataPublisherSource: "",
                 link: "",
                 retrievedDate: "",
-                additionalInfo: ""
+                additionalInfo: "",
             },
-            ...spec
+            ...spec,
         }
 
         return basicSpec
@@ -145,55 +145,55 @@ export class CovidExplorerTable {
                 ...owidVariableSpecs[sourceVariables.positive_test_rate],
                 isDailyMeasurement: true,
                 description:
-                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country."
+                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
             },
             tests_per_case: {
                 ...owidVariableSpecs[sourceVariables.tests_per_case],
                 isDailyMeasurement: true,
                 description:
-                    "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis."
+                    "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis.",
             },
             case_fatality_rate: {
                 ...owidVariableSpecs[sourceVariables.case_fatality_rate],
                 annotationsColumnSlug: "case_fatality_rate_annotations",
                 isDailyMeasurement: true,
-                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`
+                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
             },
             cases: {
                 ...owidVariableSpecs[sourceVariables.cases],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "cases_annotations",
                 name: "Confirmed cases of COVID-19",
-                description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`
+                description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
             },
             deaths: {
                 ...owidVariableSpecs[sourceVariables.deaths],
                 isDailyMeasurement: true,
                 annotationsColumnSlug: "deaths_annotations",
                 name: "Confirmed deaths due to COVID-19",
-                description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`
+                description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
             },
             tests: {
                 ...owidVariableSpecs[sourceVariables.tests],
                 isDailyMeasurement: true,
                 description: "",
                 name: "tests",
-                annotationsColumnSlug: "tests_units"
+                annotationsColumnSlug: "tests_units",
             },
             days_since: {
                 ...owidVariableSpecs[sourceVariables.days_since],
                 isDailyMeasurement: true,
                 description: "",
-                name: "days_since"
+                name: "days_since",
             },
             continents: {
                 ...owidVariableSpecs[sourceVariables.continents],
                 description: "",
                 name: "continent",
-                slug: "continent"
-            }
+                slug: "continent",
+            },
         }
-        Object.keys(this.columnSpecs).forEach(key => {
+        Object.keys(this.columnSpecs).forEach((key) => {
             this.columnSpecs[key].owidVariableId = (sourceVariables as any)[key]
         })
 
@@ -201,13 +201,13 @@ export class CovidExplorerTable {
         const ptrDisplay = this.columnSpecs.positive_test_rate.display
         if (ptrDisplay)
             ptrDisplay.tableDisplay = {
-                hideRelativeChange: true
+                hideRelativeChange: true,
             } as any
 
         const cfrDisplay = this.columnSpecs.case_fatality_rate.display
         if (cfrDisplay)
             cfrDisplay.tableDisplay = {
-                hideRelativeChange: true
+                hideRelativeChange: true,
             } as any
     }
 
@@ -217,25 +217,25 @@ export class CovidExplorerTable {
         const cfrSlug = "case_fatality_rate_annotations"
         this.table.addStringColumnSpec({ slug: caseSlug })
         this.table.addStringColumnSpec({
-            slug: deathSlug
+            slug: deathSlug,
         })
         this.table.addStringColumnSpec({
-            slug: cfrSlug
+            slug: cfrSlug,
         })
 
         const index = this.table.entityIndex
         const annotationRows = csvParse(covidAnnotations) as AnnotationsRow[]
-        annotationRows.forEach(annoRow => {
+        annotationRows.forEach((annoRow) => {
             const rows = index.get(annoRow.location)
             if (!rows) return
             // If no date on annotation apply to all rows
             const applyTo = annoRow.date
-                ? rows.filter(row => row.date === annoRow.date)
+                ? rows.filter((row) => row.date === annoRow.date)
                 : rows
             const datePrefix = annoRow.date
                 ? moment(annoRow.date).format("MMM D") + ": "
                 : ""
-            applyTo.forEach(row => {
+            applyTo.forEach((row) => {
                 if (annoRow[caseSlug])
                     row[caseSlug] = datePrefix + annoRow[caseSlug]
                 if (annoRow[deathSlug])
@@ -272,14 +272,14 @@ export class CovidExplorerTable {
             deaths: 2,
             positive_test_rate: 3,
             case_fatality_rate: 4,
-            tests_per_case: 5
+            tests_per_case: 5,
         }
         const parts = [
             arbitraryStartingPrefix,
             names[params.metricName],
             intervalOptions.indexOf(params.interval),
             params.perCapitaAdjustment,
-            params.smoothing
+            params.smoothing,
         ]
         return parseInt(parts.join(""))
     }
@@ -297,7 +297,7 @@ export class CovidExplorerTable {
         const messages: { [index: number]: string } = {
             1: "",
             1e3: " per thousand people",
-            1e6: " per million people"
+            1e6: " per million people",
         }
 
         if (!spec.display) spec.display = {}
@@ -372,7 +372,7 @@ export class CovidExplorerTable {
         else {
             table.addNumericComputedColumn({
                 ...spec,
-                fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn
+                fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn,
             })
         }
         return spec
@@ -380,17 +380,17 @@ export class CovidExplorerTable {
 
     initTestingColumn(params: CovidConstrainedQueryParams) {
         if (params.interval === "daily")
-            this.initColumn(params, row => row.new_tests)
+            this.initColumn(params, (row) => row.new_tests)
         else if (params.interval === "smoothed")
-            this.initColumn(params, row => row.new_tests_smoothed)
+            this.initColumn(params, (row) => row.new_tests_smoothed)
         else if (params.interval === "total")
-            this.initColumn(params, row => row.total_tests)
+            this.initColumn(params, (row) => row.total_tests)
     }
 
     initTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
         if (params.interval === "smoothed") {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
-            this.initColumn(params, row => {
+            this.initColumn(params, (row) => {
                 if (
                     row.new_tests_smoothed === undefined ||
                     !(row as any)[casesSlug]
@@ -403,7 +403,7 @@ export class CovidExplorerTable {
                 return tpc >= 1 ? tpc : undefined
             })
         } else if (params.interval === "total")
-            this.initColumn(params, row => {
+            this.initColumn(params, (row) => {
                 if (row.total_tests === undefined || !row.total_cases)
                     return undefined
 
@@ -417,7 +417,7 @@ export class CovidExplorerTable {
     initCfrColumn(params: CovidConstrainedQueryParams) {
         // We do not support daily freq for CFR
         if (params.interval === "total")
-            this.initColumn(params, row =>
+            this.initColumn(params, (row) =>
                 row.total_cases < 100
                     ? undefined
                     : row.total_deaths && row.total_cases
@@ -430,8 +430,8 @@ export class CovidExplorerTable {
         this.initColumn(
             params,
             params.interval === "total"
-                ? row => row.total_cases
-                : row => row.new_cases
+                ? (row) => row.total_cases
+                : (row) => row.new_cases
         )
     }
 
@@ -449,7 +449,7 @@ export class CovidExplorerTable {
     initTestRateColumn(params: CovidConstrainedQueryParams) {
         if (params.isDailyOrSmoothed) {
             const casesSlug = this.addNewCasesSmoothedColumn(params.smoothing)
-            return this.initColumn(params, row => {
+            return this.initColumn(params, (row) => {
                 const testCount =
                     params.smoothing === 7
                         ? row.new_tests_smoothed
@@ -468,7 +468,7 @@ export class CovidExplorerTable {
                 return rate >= 0 && rate <= 1 ? rate : undefined
             })
         }
-        return this.initColumn(params, row => {
+        return this.initColumn(params, (row) => {
             if (row.total_cases === undefined || !row.total_tests)
                 return undefined
 
@@ -483,8 +483,8 @@ export class CovidExplorerTable {
         this.initColumn(
             params,
             params.interval === "total"
-                ? row => row.total_deaths
-                : row => row.new_deaths
+                ? (row) => row.total_deaths
+                : (row) => row.new_deaths
         )
     }
 
@@ -509,7 +509,10 @@ export class CovidExplorerTable {
         if (filterSlug !== this.negativeFilterSlug)
             this.removeNegativeFilterColumn()
         if (!this.table.columnsBySlug.has(filterSlug))
-            this.table.addFilterColumn(filterSlug, row => !(row[slugName] < 0))
+            this.table.addFilterColumn(
+                filterSlug,
+                (row) => !(row[slugName] < 0)
+            )
         this.negativeFilterSlug = filterSlug
     }
 
@@ -568,7 +571,7 @@ export class CovidExplorerTable {
             name: title,
             owidVariableId: id,
             slug,
-            fn: row => {
+            fn: (row) => {
                 if (row.entityName !== currentCountry) {
                     const sourceValue = row[sourceColumnSlug]
                     if (sourceValue === undefined || sourceValue < threshold)
@@ -577,7 +580,7 @@ export class CovidExplorerTable {
                     countryExceededThresholdOnDay = row.day
                 }
                 return row.day - countryExceededThresholdOnDay
-            }
+            },
         }
 
         let currentCountry: number
@@ -591,10 +594,10 @@ export class CovidExplorerTable {
         if (this.table.columnsBySlug.has(slug)) return slug
         this.table.addRollingAverageColumn(
             {
-                slug
+                slug,
             },
             smoothing,
-            row => row.new_cases,
+            (row) => row.new_cases,
             "day",
             "entityName"
         )
@@ -607,8 +610,8 @@ export class CovidExplorerTable {
         const grouped = groupBy(rows, "continent")
         return flatten(
             Object.keys(grouped)
-                .filter(cont => cont)
-                .map(continentName =>
+                .filter((cont) => cont)
+                .map((continentName) =>
                     this.calculateRowsForGroup(
                         grouped[continentName],
                         continentName
@@ -622,14 +625,14 @@ export class CovidExplorerTable {
         groupName: string
     ) => {
         const rowsByDay = new Map<string, CovidGrapherRow>()
-        const rows = sortBy(group, row => dateToYear(row.date))
+        const rows = sortBy(group, (row) => dateToYear(row.date))
         const groupMembers = new Set()
-        rows.forEach(row => {
+        rows.forEach((row) => {
             const day = row.date
             groupMembers.add(row.iso_code)
             if (!rowsByDay.has(day)) {
                 const newRow: any = {}
-                Object.keys(row).forEach(key => (newRow[key] = undefined))
+                Object.keys(row).forEach((key) => (newRow[key] = undefined))
                 rowsByDay.set(day, {
                     location: groupName,
                     continent: row.continent,
@@ -641,7 +644,7 @@ export class CovidExplorerTable {
                     entityCode: groupName.replace(" ", ""),
                     entityId: generateEntityId(groupName),
                     new_deaths: 0,
-                    population: 0
+                    population: 0,
                 } as CovidGrapherRow)
             }
             const newRow = rowsByDay.get(day)!
@@ -655,7 +658,7 @@ export class CovidExplorerTable {
         let maxPopulation = 0
         const group_members = Array.from(groupMembers).join("")
         // We need to compute cumulatives again because sometimes data will stop for a country.
-        newRows.forEach(row => {
+        newRows.forEach((row) => {
             total_cases += row.new_cases
             total_deaths += row.new_deaths
             row.total_cases = total_cases
@@ -697,12 +700,12 @@ export class CovidExplorerTable {
         "Slovakia",
         "Slovenia",
         "Spain",
-        "Sweden"
+        "Sweden",
     ])
 
     static parseCovidRow(row: ParsedCovidCsvRow): CovidGrapherRow {
         const newRow: Partial<CovidGrapherRow> = row
-        Object.keys(row).forEach(key => {
+        Object.keys(row).forEach((key) => {
             const isNumeric = !stringColumnSlugs.has(key)
             if (isNumeric)
                 (row as any)[key] = parseFloatOrUndefined((row as any)[key])
@@ -758,7 +761,7 @@ export function getLeastUsedColor(
     // unused one.
     const colorCounts = entries(groupBy(usedColors)).map(([color, arr]) => [
         color,
-        arr.length
+        arr.length,
     ])
     const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
         string,

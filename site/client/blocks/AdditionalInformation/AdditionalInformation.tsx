@@ -25,7 +25,7 @@ const AdditionalInformation = ({
     title,
     image,
     variation,
-    defaultOpen
+    defaultOpen,
 }: {
     content: string | null
     title: string | null
@@ -161,25 +161,28 @@ export const render = ($: CheerioStatic) => {
 }
 
 export const hydrate = () => {
-    document.querySelectorAll<HTMLElement>(`.${CLASS_NAME}`).forEach(block => {
-        const blockWrapper = block.parentElement
-        const titleEl = block.querySelector("h3")
-        const title = titleEl ? titleEl.textContent : null
-        const variation = block.getAttribute("data-variation") || ""
-        const defaultOpen = block.getAttribute("data-default-open") === "true"
-        const figureEl = block.querySelector(".content-wrapper > figure")
-        const image = figureEl ? figureEl.innerHTML : null
-        const contentEl = block.querySelector(".content")
-        const content = contentEl ? contentEl.innerHTML : null
-        ReactDOM.hydrate(
-            <AdditionalInformation
-                content={content}
-                title={title}
-                image={image}
-                variation={variation}
-                defaultOpen={defaultOpen}
-            />,
-            blockWrapper
-        )
-    })
+    document
+        .querySelectorAll<HTMLElement>(`.${CLASS_NAME}`)
+        .forEach((block) => {
+            const blockWrapper = block.parentElement
+            const titleEl = block.querySelector("h3")
+            const title = titleEl ? titleEl.textContent : null
+            const variation = block.getAttribute("data-variation") || ""
+            const defaultOpen =
+                block.getAttribute("data-default-open") === "true"
+            const figureEl = block.querySelector(".content-wrapper > figure")
+            const image = figureEl ? figureEl.innerHTML : null
+            const contentEl = block.querySelector(".content")
+            const content = contentEl ? contentEl.innerHTML : null
+            ReactDOM.hydrate(
+                <AdditionalInformation
+                    content={content}
+                    title={title}
+                    image={image}
+                    variation={variation}
+                    defaultOpen={defaultOpen}
+                />,
+                blockWrapper
+            )
+        })
 }

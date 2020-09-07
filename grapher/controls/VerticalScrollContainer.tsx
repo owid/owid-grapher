@@ -19,7 +19,7 @@ function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T> {
     const targetRef = React.useRef<T>(null)
 
     React.useEffect(() => {
-        refs.forEach(ref => {
+        refs.forEach((ref) => {
             if (!ref) return
             if (typeof ref === "function") {
                 ref(targetRef.current || null)
@@ -62,7 +62,7 @@ export const VerticalScrollContainer = React.forwardRef(
                 className="VerticalScrollContainerShadows"
                 style={{
                     position: "relative",
-                    height: "100%"
+                    height: "100%",
                 }}
             >
                 {scrollingShadows && (
@@ -81,7 +81,7 @@ export const VerticalScrollContainer = React.forwardRef(
                         right: 0,
                         bottom: 0,
                         left: 0,
-                        ...style
+                        ...style,
                     }}
                     ref={scrollContainerRef}
                     {...rest}
@@ -136,7 +136,7 @@ const ScrollingShadow = (props: {
                 background: background,
                 opacity: props.opacity,
                 pointerEvents: "none",
-                zIndex: 10
+                zIndex: 10,
             }}
         />
     )
@@ -204,7 +204,7 @@ function useScrollLock<ElementType extends HTMLElement>(
         const el = ref.current
         const options: ScrollLockOptions = {
             doNotLockIfNoScroll: false,
-            ...opts
+            ...opts,
         }
         if (el) {
             function onWheel(ev: MouseWheelEvent) {
@@ -242,7 +242,7 @@ function useScrollLock<ElementType extends HTMLElement>(
             }
             el.addEventListener("mousewheel", onWheel as any, {
                 // We need to be in non-passive mode to be able to cancel the event
-                passive: false
+                passive: false,
             })
             return () => {
                 if (el) {

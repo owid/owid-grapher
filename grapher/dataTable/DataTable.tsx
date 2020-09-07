@@ -22,7 +22,7 @@ import {
     isRangeValue,
     RangeValueKey,
     SingleValueKey,
-    Value
+    Value,
 } from "./DataTableTransform"
 
 interface DataTableProps {
@@ -46,7 +46,7 @@ interface DataTableSortState {
 const DEFAULT_SORT_STATE: DataTableSortState = {
     dimIndex: ENTITY_DIM_INDEX,
     columnKey: undefined,
-    order: SortOrder.asc
+    order: SortOrder.asc,
 }
 
 const columnNameByType: Record<ColumnKey, string> = {
@@ -54,7 +54,7 @@ const columnNameByType: Record<ColumnKey, string> = {
     start: "Start",
     end: "End",
     delta: "Absolute Change",
-    deltaRatio: "Relative Change"
+    deltaRatio: "Relative Change",
 }
 
 function inverseSortOrder(order: SortOrder): SortOrder {
@@ -64,19 +64,19 @@ function inverseSortOrder(order: SortOrder): SortOrder {
 @observer
 export class DataTable extends React.Component<DataTableProps> {
     @observable private storedState: DataTableState = {
-        sort: DEFAULT_SORT_STATE
+        sort: DEFAULT_SORT_STATE,
     }
 
     @computed get tableState(): DataTableState {
         return {
-            sort: this.sortState
+            sort: this.sortState,
         }
     }
 
     @computed get sortState(): DataTableSortState {
         let { dimIndex, columnKey, order } = {
             ...DEFAULT_SORT_STATE,
-            ...this.storedState.sort
+            ...this.storedState.sort,
         }
 
         // If not sorted by entity, then make sure the index of the chosen column exists
@@ -84,7 +84,7 @@ export class DataTable extends React.Component<DataTableProps> {
         if (dimIndex !== ENTITY_DIM_INDEX) {
             const availableColumns = this.transform.dimensionsWithValues[
                 dimIndex
-            ].columns.map(sub => sub.key)
+            ].columns.map((sub) => sub.key)
             if (
                 columnKey === undefined ||
                 !availableColumns.includes(columnKey)
@@ -96,7 +96,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return {
             dimIndex,
             columnKey,
-            order
+            order,
         }
     }
 
@@ -118,10 +118,10 @@ export class DataTable extends React.Component<DataTableProps> {
         const { dimIndex, columnKey, order } = this.tableState.sort
 
         if (dimIndex === ENTITY_DIM_INDEX) {
-            return row => row.entity
+            return (row) => row.entity
         }
 
-        return row => {
+        return (row) => {
             const dv = row.dimensionValues[dimIndex] as DimensionValue
 
             let value: number | string | undefined
@@ -157,12 +157,15 @@ export class DataTable extends React.Component<DataTableProps> {
     @computed get displayRows() {
         const { order } = this.tableState.sort
         return orderBy(this.transform.displayRows, this.sortValueMapper, [
-            order
+            order,
         ])
     }
 
     @computed get hasSubheaders() {
-        return some(this.displayDimensions, header => header.columns.length > 1)
+        return some(
+            this.displayDimensions,
+            (header) => header.columns.length > 1
+        )
     }
 
     @action.bound updateSort(dimIndex: DimensionIndex, columnKey?: ColumnKey) {
@@ -217,7 +220,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 colSpan: dim.columns.length,
                 headerText: dimensionHeaderText,
                 colType: "dimension" as const,
-                dataType: "numeric" as const
+                dataType: "numeric" as const,
             }
 
             return <ColumnHeader key={dim.key} {...props} />
@@ -227,7 +230,7 @@ export class DataTable extends React.Component<DataTableProps> {
     private get dimensionSubheaders() {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
-            dim.columns.map(column => {
+            dim.columns.map((column) => {
                 const headerText =
                     column.targetYearMode === TargetYearMode.point
                         ? dim.formatYear(column.targetYear!)
@@ -289,8 +292,8 @@ export class DataTable extends React.Component<DataTableProps> {
                     "dimension",
                     `dimension-${column.key}`,
                     {
-                        sorted: sorted
-                    }
+                        sorted: sorted,
+                    },
                 ])}
             >
                 {value.year !== undefined &&
@@ -299,7 +302,7 @@ export class DataTable extends React.Component<DataTableProps> {
                     column.targetYear !== value.year && (
                         <ClosestYearNotice
                             closestYear={formatYear(value.year, {
-                                format: "MMM D"
+                                format: "MMM D",
                             })}
                             targetYear={formatYear(column.targetYear)}
                         />
@@ -324,7 +327,7 @@ export class DataTable extends React.Component<DataTableProps> {
                     key="entity"
                     className={classnames({
                         entity: true,
-                        sorted: sort.dimIndex === ENTITY_DIM_INDEX
+                        sorted: sort.dimIndex === ENTITY_DIM_INDEX,
                     })}
                 >
                     {row.entity}
@@ -348,7 +351,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     private get valueRows() {
-        return this.displayRows.map(row =>
+        return this.displayRows.map((row) =>
             this.renderEntityRow(row, this.displayDimensions)
         )
     }
@@ -379,7 +382,7 @@ function ColumnHeader(props: {
         <th
             className={classnames(colType, {
                 sortable: sortable,
-                sorted: sortedCol
+                sorted: sortedCol,
             })}
             rowSpan={props.rowSpan ?? 1}
             colSpan={props.colSpan ?? 1}
@@ -405,7 +408,7 @@ function ColumnHeader(props: {
 
 export const ClosestYearNotice = ({
     targetYear,
-    closestYear: year
+    closestYear: year,
 }: {
     targetYear: string
     closestYear: string

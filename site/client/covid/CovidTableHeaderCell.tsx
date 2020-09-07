@@ -33,7 +33,7 @@ export class CovidTableHeaderCell extends React.Component<
             children,
             colSpan,
             currentSortKey,
-            currentSortOrder
+            currentSortOrder,
         } = this.props
 
         const isSorted = sortKey !== undefined && sortKey === currentSortKey
@@ -44,7 +44,7 @@ export class CovidTableHeaderCell extends React.Component<
             <th
                 className={classnames(className, {
                     sortable: sortKey !== undefined,
-                    sorted: isSorted
+                    sorted: isSorted,
                 })}
                 onClick={this.onClick}
                 colSpan={colSpan}

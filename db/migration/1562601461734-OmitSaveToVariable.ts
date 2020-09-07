@@ -4,7 +4,7 @@ import * as lodash from "lodash"
 
 function omitSaveToVariable(config: GrapherInterface): GrapherInterface {
     const newConfig = lodash.clone(config)
-    newConfig.dimensions = newConfig.dimensions?.map(dim => {
+    newConfig.dimensions = newConfig.dimensions?.map((dim) => {
         return lodash.omit(dim, ["saveToVariable"])
     })
     return newConfig

@@ -6,7 +6,7 @@ import { basicGdpGrapher } from "grapher/test/samples"
 
 export default {
     title: "LineChart",
-    component: LineChart
+    component: LineChart,
 }
 
 export const Default = () => {

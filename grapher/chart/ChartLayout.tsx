@@ -31,7 +31,7 @@ export class ChartLayout {
             },
             get maxWidth() {
                 return that.paddedBounds.width
-            }
+            },
         })
     }
 
@@ -43,7 +43,7 @@ export class ChartLayout {
             },
             get maxWidth() {
                 return that.paddedBounds.width
-            }
+            },
         })
     }
 
@@ -94,7 +94,7 @@ export class ChartLayoutView extends React.Component<{
             fontSize: this.props.layout.props.grapher.baseFontSize,
             backgroundColor: "white",
             textRendering: "optimizeLegibility",
-            WebkitFontSmoothing: "antialiased"
+            WebkitFontSmoothing: "antialiased",
         }
     }
 

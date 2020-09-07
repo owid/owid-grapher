@@ -5,7 +5,7 @@ import { BAKED_GRAPHER_URL } from "settings"
 import React from "react"
 import {
     bakeChartToImage,
-    getChartsBySlug
+    getChartsBySlug,
 } from "site/server/bakeChartsToImages"
 
 const header = `bakeOrder,timeToBake,slug,chartType,md5`
@@ -20,7 +20,7 @@ interface BakedSvgInfo {
 const svgResultsPlaceholder = `${header}\n${sampleRow}\n`
 const style = {
     width: 600,
-    height: 300
+    height: 300,
 }
 
 export const svgCompareFormPage = (
@@ -72,7 +72,7 @@ export async function bakeAndSaveResultsFile(
             timeToBake: Date.now() - startTime,
             slug,
             chartType: config.type,
-            md5: md5(svg!)
+            md5: md5(svg!),
         }
         const line = `${bakeOrder},${row.timeToBake},${row.slug},${row.chartType},${row.md5}`
         // eslint-disable-next-line no-console
@@ -85,15 +85,15 @@ export async function bakeAndSaveResultsFile(
 
 const compareSets = (liveSvgs: BakedSvgInfo[], localSvgs: BakedSvgInfo[]) => {
     const localSvgMap = new Map<string, BakedSvgInfo>()
-    localSvgs.forEach(svg => {
+    localSvgs.forEach((svg) => {
         localSvgMap.set(svg.slug, svg)
     })
-    return liveSvgs.map(liveSvg => {
+    return liveSvgs.map((liveSvg) => {
         const { slug } = liveSvg
         const localSvg = localSvgMap.get(slug)
         if (!localSvg)
             return {
-                missing: slug
+                missing: slug,
             }
 
         const changed = liveSvg.md5 !== localSvg.md5
@@ -106,7 +106,7 @@ const compareSets = (liveSvgs: BakedSvgInfo[], localSvgs: BakedSvgInfo[]) => {
             liveSvgUrl,
             liveInteractiveUrl,
             devSvgPath,
-            devInteractiveUrl
+            devInteractiveUrl,
         }
     })
 }
@@ -115,11 +115,11 @@ export const getComparePage = async (liveRows: string, devRows: string) => {
     const live = csvParse(liveRows)
     const dev = csvParse(devRows)
     const files = compareSets(live as any, dev as any)
-    const missing = files.filter(file => file.missing)
-    const notMissing = files.filter(file => !file.missing)
-    const changed = notMissing.filter(file => file.changed)
+    const missing = files.filter((file) => file.missing)
+    const notMissing = files.filter((file) => !file.missing)
+    const changed = notMissing.filter((file) => file.changed)
 
-    const rows = changed.map(file => (
+    const rows = changed.map((file) => (
         <tr>
             <td>
                 <a href={file.liveSvgUrl}>
@@ -142,7 +142,7 @@ export const getComparePage = async (liveRows: string, devRows: string) => {
         notMissing.length - changed.length
     } unchanged. ${missing.length} files on live missing locally.`
 
-    const missingDivs = missing.map(el => <div>${el.missing}</div>)
+    const missingDivs = missing.map((el) => <div>${el.missing}</div>)
 
     return (
         <div>

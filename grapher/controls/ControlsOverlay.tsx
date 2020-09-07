@@ -2,7 +2,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import {
     GrapherViewContext,
-    GrapherViewContextInterface
+    GrapherViewContextInterface,
 } from "grapher/core/GrapherViewContext"
 import { action } from "mobx"
 

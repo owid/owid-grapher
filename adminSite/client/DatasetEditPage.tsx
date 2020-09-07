@@ -7,7 +7,7 @@ import {
     autorun,
     action,
     IReactionDisposer,
-    when
+    when,
 } from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
@@ -99,9 +99,9 @@ class VariableEditRow extends React.Component<{
                 {
                     property: "y",
                     variableId: this.props.variable.id,
-                    display: lodash.clone(this.newVariable.display)
-                }
-            ]
+                    display: lodash.clone(this.newVariable.display),
+                },
+            ],
         }
     }
 
@@ -120,7 +120,7 @@ class VariableEditRow extends React.Component<{
                     ? "World"
                     : lodash.sample(grapher.availableEntityNames)
                 grapher.selectedKeys = grapher.availableKeys.filter(
-                    key => grapher.lookupKey(key).entityName === entity
+                    (key) => grapher.lookupKey(key).entityName === entity
                 )
                 grapher.addCountryMode = "change-country"
             } else {
@@ -145,7 +145,7 @@ class VariableEditRow extends React.Component<{
     dispose2!: IReactionDisposer
     componentDidMount() {
         this.chart = new Grapher(this.grapherConfig as any, {
-            isEmbed: true
+            isEmbed: true,
         })
 
         this.dispose2 = when(
@@ -181,7 +181,7 @@ class VariableEditRow extends React.Component<{
                 />
                 <div className="col">
                     <form
-                        onSubmit={e => {
+                        onSubmit={(e) => {
                             e.preventDefault()
                             this.save()
                         }}
@@ -233,7 +233,7 @@ class VariableEditRow extends React.Component<{
                                     value={
                                         newVariable.display.yearIsDay === true
                                     }
-                                    onValue={value =>
+                                    onValue={(value) =>
                                         (newVariable.display.yearIsDay = value)
                                     }
                                     label="Treat year column as day series"
@@ -337,7 +337,7 @@ class DatasetEditable {
         dataPublisherSource: "",
         link: "",
         retrievedDate: "",
-        additionalInfo: ""
+        additionalInfo: "",
     }
 
     @observable tags: Tag[] = []
@@ -553,7 +553,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                 <section>
                     <h3>Dataset metadata</h3>
                     <form
-                        onSubmit={e => {
+                        onSubmit={(e) => {
                             e.preventDefault()
                             this.save()
                         }}
@@ -610,7 +610,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                                 <Toggle
                                     label="Is publishable (include in exported OWID collection)"
                                     value={!newDataset.isPrivate}
-                                    onValue={v => (newDataset.isPrivate = !v)}
+                                    onValue={(v) => (newDataset.isPrivate = !v)}
                                     disabled={isBulkImport}
                                 />
                             </div>
@@ -663,7 +663,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             variables={dataset.variables as VariableListItem[]}
                         />
                     ) : (
-                        dataset.variables.map(variable => (
+                        dataset.variables.map((variable) => (
                             <VariableEditRow
                                 key={`${variable.id}-${timesUpdated}`}
                                 variable={variable}

@@ -9,7 +9,7 @@ import {
     max,
     defaultTo,
     uniq,
-    flatten
+    flatten,
 } from "grapher/utils/Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { ChartTransform } from "grapher/chart/ChartTransform"
@@ -23,7 +23,7 @@ import { ColorScale } from "grapher/color/ColorScale"
 export class StackedBarTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, d => d.property === "y"))
+        if (!some(filledDimensions, (d) => d.property === "y"))
             return "Missing variable"
         else if (
             this.groupedData.length === 0 ||
@@ -34,10 +34,13 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get primaryDimension(): ChartDimension | undefined {
-        return find(this.grapher.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, (d) => d.property === "y")
     }
     @computed get colorDimension(): ChartDimension | undefined {
-        return find(this.grapher.filledDimensions, d => d.property === "color")
+        return find(
+            this.grapher.filledDimensions,
+            (d) => d.property === "color"
+        )
     }
 
     @computed get availableYears(): Time[] {
@@ -87,12 +90,12 @@ export class StackedBarTransform extends ChartTransform {
     @computed get yDomainDefault(): [number, number] {
         const lastSeries = this.stackedData[this.stackedData.length - 1]
 
-        const yValues = lastSeries.values.map(d => d.yOffset + d.y)
+        const yValues = lastSeries.values.map((d) => d.yOffset + d.y)
         return [0, defaultTo(max(yValues), 100)]
     }
 
     @computed get yDimensionFirst() {
-        return find(this.grapher.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, (d) => d.property === "y")
     }
 
     @computed get yTickFormat() {
@@ -111,11 +114,11 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get allStackedValues(): StackedBarValue[] {
-        return flatten(this.stackedData.map(series => series.values))
+        return flatten(this.stackedData.map((series) => series.values))
     }
 
     @computed get xValues(): number[] {
-        return uniq(this.allStackedValues.map(bar => bar.x))
+        return uniq(this.allStackedValues.map((bar) => bar.x))
     }
 
     @computed get groupedData(): StackedBarSeries[] {
@@ -152,7 +155,7 @@ export class StackedBarTransform extends ChartTransform {
                         entityDimensionKey: entityDimensionKey,
                         label: grapher.getLabelForKey(entityDimensionKey),
                         values: [],
-                        color: "#fff" // Temp
+                        color: "#fff", // Temp
                     }
                     seriesByKey.set(entityDimensionKey, series)
                 }
@@ -161,17 +164,17 @@ export class StackedBarTransform extends ChartTransform {
                     y: value,
                     yOffset: 0,
                     isFake: false,
-                    label: series.label
+                    label: series.label,
                 })
             }
 
             groupedData = groupedData.concat([
-                ...Array.from(seriesByKey.values())
+                ...Array.from(seriesByKey.values()),
             ])
         })
 
         // Now ensure that every series has a value entry for every year in the data
-        groupedData.forEach(series => {
+        groupedData.forEach((series) => {
             let i = 0
 
             while (i < timelineYears.length) {
@@ -187,7 +190,7 @@ export class StackedBarTransform extends ChartTransform {
                         y: fakeY,
                         yOffset: 0,
                         isFake: true,
-                        label: series.label
+                        label: series.label,
                     })
                 }
                 i += 1
@@ -197,7 +200,7 @@ export class StackedBarTransform extends ChartTransform {
         // Preserve order
         groupedData = sortBy(
             groupedData,
-            series => -selectedKeys.indexOf(series.entityDimensionKey)
+            (series) => -selectedKeys.indexOf(series.entityDimensionKey)
         )
 
         return groupedData
@@ -217,7 +220,7 @@ export class StackedBarTransform extends ChartTransform {
             },
             get categoricalValues() {
                 return uniq(
-                    that.groupedData.map(d => d.entityDimensionKey)
+                    that.groupedData.map((d) => d.entityDimensionKey)
                 ).reverse()
             },
             get hasNoDataBin() {
@@ -229,7 +232,7 @@ export class StackedBarTransform extends ChartTransform {
             get formatCategoricalValue() {
                 return (key: EntityDimensionKey) =>
                     that.grapher.getLabelForKey(key)
-            }
+            },
         })
     }
 
@@ -243,7 +246,7 @@ export class StackedBarTransform extends ChartTransform {
             series.color =
                 this.colorScale.getColor(series.entityDimensionKey) ?? "#ddd"
             series.values = series.values.filter(
-                v => v.x >= startYear && v.x <= endYear
+                (v) => v.x >= startYear && v.x <= endYear
             )
         }
 
@@ -265,7 +268,7 @@ export class StackedBarTransform extends ChartTransform {
             }
         })
         for (let i = keyIndicesToRemove.length - 1; i >= 0; i--) {
-            stackedData.forEach(series => {
+            stackedData.forEach((series) => {
                 series.values.splice(keyIndicesToRemove[i], 1)
             })
         }

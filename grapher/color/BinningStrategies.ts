@@ -6,7 +6,7 @@ import {
     uniq,
     last,
     roundSigFig,
-    first
+    first,
 } from "grapher/utils/Util"
 
 export enum BinningStrategy {
@@ -15,7 +15,7 @@ export enum BinningStrategy {
     ckmeans = "ckmeans",
     // The `manual` option is ignored in the algorithms below,
     // but it is stored and handled by the chart.
-    manual = "manual"
+    manual = "manual",
 }
 
 /** Human-readable labels for the binning strategies */
@@ -23,7 +23,7 @@ export const binningStrategyLabels: Record<BinningStrategy, string> = {
     equalInterval: "Equal-interval",
     quantiles: "Quantiles",
     ckmeans: "Ckmeans",
-    manual: "Manual"
+    manual: "Manual",
 }
 
 function calcEqualIntervalStepSize(
@@ -53,7 +53,7 @@ function normalizeBinValues(
 ) {
     const values = uniq(excludeUndefined(binValues))
     return minBinValue !== undefined
-        ? values.filter(v => v > minBinValue)
+        ? values.filter((v) => v > minBinValue)
         : values
 }
 
@@ -67,7 +67,7 @@ export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
         return normalizeBinValues(clusters.map(last), minBinValue)
     } else if (binningStrategy === BinningStrategy.quantiles) {
         return normalizeBinValues(
-            range(1, binCount + 1).map(v =>
+            range(1, binCount + 1).map((v) =>
                 quantile(sortedValues, v / binCount)
             ),
             minBinValue
@@ -81,7 +81,7 @@ export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
             minValue
         )
         return normalizeBinValues(
-            range(1, binCount + 1).map(n => minValue + n * binStepSize),
+            range(1, binCount + 1).map((n) => minValue + n * binStepSize),
             minBinValue
         )
     }

@@ -13,7 +13,7 @@ export const continentColors = {
     Europe: "#4C5C78",
     "North America": "#E04E4B",
     Oceania: "#A8633C",
-    "South America": "#932834"
+    "South America": "#932834",
 }
 
 const schemeProps: {
@@ -22,13 +22,13 @@ const schemeProps: {
     YlGn: { displayName: "Yellow-Green shades", singleColorScale: true },
     YlGnBu: {
         displayName: "Yellow-Green-Blue shades",
-        singleColorScale: false
+        singleColorScale: false,
     },
     GnBu: { displayName: "Green-Blue shades", singleColorScale: true },
     BuGn: { displayName: "Blue-Green shades", singleColorScale: true },
     PuBuGn: {
         displayName: "Purple-Blue-Green shades",
-        singleColorScale: false
+        singleColorScale: false,
     },
     BuPu: { displayName: "Blue-Purple shades", singleColorScale: true },
     RdPu: { displayName: "Red-Purple shades", singleColorScale: true },
@@ -36,11 +36,11 @@ const schemeProps: {
     OrRd: { displayName: "Orange-Red shades", singleColorScale: true },
     YlOrRd: {
         displayName: "Yellow-Orange-Red shades",
-        singleColorScale: true
+        singleColorScale: true,
     },
     YlOrBr: {
         displayName: "Yellow-Orange-Brown shades",
-        singleColorScale: true
+        singleColorScale: true,
     },
     Purples: { displayName: "Purple shades", singleColorScale: true },
     Blues: { displayName: "Blue shades", singleColorScale: true },
@@ -67,7 +67,7 @@ const schemeProps: {
     Set3: { displayName: "Set 3 colors", singleColorScale: false },
     PuBu: { displayName: "Purple-Blue shades", singleColorScale: true },
     "hsv-RdBu": { displayName: "HSV Red-Blue", singleColorScale: false },
-    "hsv-CyMg": { displayName: "HSV Cyan-Magenta", singleColorScale: false }
+    "hsv-CyMg": { displayName: "HSV Cyan-Magenta", singleColorScale: false },
 }
 
 function interpolateArray(scaleArr: string[]) {
@@ -98,7 +98,7 @@ export class ColorScheme {
     ) {
         const colorSetsArray: Color[][] = []
         Object.keys(colorSets).forEach(
-            numColors => (colorSetsArray[+numColors] = colorSets[numColors])
+            (numColors) => (colorSetsArray[+numColors] = colorSets[numColors])
         )
         return new ColorScheme(name, colorSetsArray, singleColorScale)
     }
@@ -118,7 +118,7 @@ export class ColorScheme {
         this.colorSets = []
         this.singleColorScale = !!singleColorScale
         this.isDistinct = !!isDistinct
-        colorSets.forEach(set => (this.colorSets[set.length] = set))
+        colorSets.forEach((set) => (this.colorSets[set.length] = set))
     }
 
     improviseGradientFromShorter(
@@ -160,12 +160,12 @@ export class ColorScheme {
         else {
             const prevColors = clone(colorSets)
                 .reverse()
-                .find(set => set && set.length < numColors)
+                .find((set) => set && set.length < numColors)
             if (prevColors)
                 return this.improviseGradientFromShorter(prevColors, numColors)
             else
                 return this.improviseGradientFromLonger(
-                    colorSets.find(set => !!set) as Color[],
+                    colorSets.find((set) => !!set) as Color[],
                     numColors
                 )
         }
@@ -479,8 +479,8 @@ export const ColorSchemes = (() => {
                 "#f6e620",
                 "#f8e621",
                 "#fbe723",
-                "#fde725"
-            ]
+                "#fde725",
+            ],
         ],
         false
     )
@@ -742,8 +742,8 @@ export const ColorSchemes = (() => {
             "#f8fb9a",
             "#f9fc9d",
             "#fafda1",
-            "#fcffa4"
-        ]
+            "#fcffa4",
+        ],
     ])
 
     colorSchemes["Magma"] = new ColorScheme("Magma", [
@@ -1003,8 +1003,8 @@ export const ColorSchemes = (() => {
             "#fcf7b9",
             "#fcf9bb",
             "#fcfbbd",
-            "#fcfdbf"
-        ]
+            "#fcfdbf",
+        ],
     ])
 
     colorSchemes["Plasma"] = new ColorScheme("Plasma", [
@@ -1264,8 +1264,8 @@ export const ColorSchemes = (() => {
             "#f1f426",
             "#f1f525",
             "#f0f724",
-            "#f0f921"
-        ]
+            "#f0f921",
+        ],
     ])
 
     // Create some of our own!
@@ -1297,8 +1297,8 @@ export const ColorSchemes = (() => {
                 "#D7263F",
                 "#18470F",
                 "#BC8E5A",
-                "#585C64"
-            ]
+                "#585C64",
+            ],
         ],
         false,
         true
@@ -1320,8 +1320,8 @@ export const ColorSchemes = (() => {
             "#ca2628",
             "#ffd53e",
             "#9ecc8a",
-            "#34983f"
-        ]
+            "#34983f",
+        ],
     ])
 
     colorSchemes["continents"] = new ColorScheme(
@@ -1354,8 +1354,8 @@ export const ColorSchemes = (() => {
                 "dbdb8d",
                 "17becf",
                 "9edae5",
-                "1f77b4"
-            ]
+                "1f77b4",
+            ],
         ],
         false,
         true

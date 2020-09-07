@@ -16,7 +16,7 @@ describe(TextWrap, () => {
                 maxWidth: Infinity,
                 fontSize: FONT_SIZE,
                 text,
-                rawHtml: raw
+                rawHtml: raw,
             })
             return textwrap.width
         }

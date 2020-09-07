@@ -44,7 +44,7 @@ describe("switcherCode", () => {
             29,
             33,
             55,
-            56
+            56,
         ])
     })
 

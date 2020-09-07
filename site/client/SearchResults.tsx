@@ -2,7 +2,7 @@ import {
     SiteSearchResults,
     ChartHit,
     CountryHit,
-    ArticleHit
+    ArticleHit,
 } from "algolia/searchClient"
 import { observer } from "mobx-react"
 import { computed } from "mobx"
@@ -55,7 +55,7 @@ class ChartResult extends React.Component<{
                 {hit._snippetResult ? (
                     <p
                         dangerouslySetInnerHTML={{
-                            __html: hit._snippetResult.subtitle.value
+                            __html: hit._snippetResult.subtitle.value,
                         }}
                     />
                 ) : undefined}
@@ -74,7 +74,7 @@ class CountryResult extends React.Component<{ hit: CountryHit }> {
                 <span className="variantName">Country</span>
                 <p
                     dangerouslySetInnerHTML={{
-                        __html: hit._snippetResult.content.value
+                        __html: hit._snippetResult.content.value,
                     }}
                 />
             </li>
@@ -97,7 +97,7 @@ class ArticleResult extends React.Component<{ hit: ArticleHit }> {
                 ) : undefined}
                 <p
                     dangerouslySetInnerHTML={{
-                        __html: hit._snippetResult.content.value
+                        __html: hit._snippetResult.content.value,
                     }}
                 />
             </li>
@@ -114,7 +114,7 @@ function pickEntitiesForChart(hit: ChartHit, queryCountries: Country[]) {
         const entity = res.value.replace(/<\/?em>/g, "")
         if (
             res.matchLevel !== "none" ||
-            queryCountries.some(c => c.name === entity)
+            queryCountries.some((c) => c.name === entity)
         ) {
             entities.push(entity)
         }
@@ -134,11 +134,11 @@ export class SearchResults extends React.Component<{
     }
 
     @computed get entries() {
-        return this.props.results.pages.filter(p => p.type === "page")
+        return this.props.results.pages.filter((p) => p.type === "page")
     }
 
     @computed get blogposts() {
-        return this.props.results.pages.filter(p => p.type === "post")
+        return this.props.results.pages.filter((p) => p.type === "post")
     }
 
     @computed get bestChartEntities() {
@@ -174,7 +174,7 @@ export class SearchResults extends React.Component<{
                             <p>No matching pages.</p>
                         ) : undefined}
                         <ul>
-                            {results.pages.map(hit =>
+                            {results.pages.map((hit) =>
                                 hit.type === "country" ? (
                                     <CountryResult
                                         key={hit.objectID}
@@ -200,7 +200,7 @@ export class SearchResults extends React.Component<{
                             />
                         )}
                         <ul>
-                            {results.charts.map(hit => (
+                            {results.charts.map((hit) => (
                                 <ChartResult
                                     key={hit.chartId}
                                     hit={hit}

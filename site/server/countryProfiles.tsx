@@ -6,7 +6,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
-    CountryProfilePage
+    CountryProfilePage,
 } from "./views/CountryProfilePage"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { Variable } from "db/model/Variable"
@@ -40,7 +40,7 @@ async function countryIndicatorCharts(): Promise<GrapherInterface[]> {
                 .whereRaw("publishedAt is not null and is_indexable is true")
         ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
         return charts.filter(
-            c =>
+            (c) =>
                 c.hasChartTab &&
                 c.type === "LineChart" &&
                 c.dimensions?.length === 1
@@ -51,7 +51,7 @@ async function countryIndicatorCharts(): Promise<GrapherInterface[]> {
 async function countryIndicatorVariables(): Promise<Variable.Row[]> {
     return bakeCache(countryIndicatorVariables, async () => {
         const variableIds = (await countryIndicatorCharts()).map(
-            c => c.dimensions![0]!.variableId
+            (c) => c.dimensions![0]!.variableId
         )
         return Variable.rows(
             await db.table(Variable.table).whereIn("id", variableIds)
@@ -68,12 +68,12 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
         code: string
     }[]
 
-    const entitiesByCode = lodash.keyBy(entities, e => e.code)
-    const entitiesById = lodash.keyBy(entities, e => e.id)
-    const entityIds = countries.map(c => entitiesByCode[c.code].id)
+    const entitiesByCode = lodash.keyBy(entities, (e) => e.code)
+    const entitiesById = lodash.keyBy(entities, (e) => e.id)
+    const entityIds = countries.map((c) => entitiesByCode[c.code].id)
 
     if (!variableIds) {
-        variableIds = (await countryIndicatorVariables()).map(v => v.id)
+        variableIds = (await countryIndicatorVariables()).map((v) => v.id)
     }
 
     const dataValuesQuery = db
@@ -93,16 +93,16 @@ export async function denormalizeLatestCountryData(variableIds?: number[]) {
     }[]
     dataValues = lodash.uniqBy(
         dataValues,
-        dv => `${dv.variableId}-${dv.entityId}`
+        (dv) => `${dv.variableId}-${dv.entityId}`
     )
-    const rows = dataValues.map(dv => ({
+    const rows = dataValues.map((dv) => ({
         variable_id: dv.variableId,
         country_code: entitiesById[dv.entityId].code,
         year: dv.year,
-        value: dv.value
+        value: dv.value,
     }))
 
-    db.knex().transaction(async t => {
+    db.knex().transaction(async (t) => {
         // Remove existing values
         await t
             .table("country_latest_data")
@@ -132,7 +132,7 @@ async function countryIndicatorLatestData(countryCode: string) {
                 value: string
             }[]
 
-            return lodash.groupBy(dataValues, dv => dv.code)
+            return lodash.groupBy(dataValues, (dv) => dv.code)
         }
     )
 
@@ -175,10 +175,10 @@ export async function countryProfilePage(countrySlug: string) {
 
     const charts = await countryIndicatorCharts()
     const variables = await countryIndicatorVariables()
-    const variablesById = lodash.keyBy(variables, v => v.id)
+    const variablesById = lodash.keyBy(variables, (v) => v.id)
     const dataValues = await countryIndicatorLatestData(country.code)
 
-    const valuesByVariableId = lodash.groupBy(dataValues, v => v.variableId)
+    const valuesByVariableId = lodash.groupBy(dataValues, (v) => v.variableId)
 
     let indicators: CountryProfileIndicator[] = []
     for (const c of charts) {
@@ -194,7 +194,7 @@ export async function countryProfilePage(countrySlug: string) {
             const spec = new Map()
             spec.set(variable.name, {
                 unit: variable.unit,
-                display: variable.display
+                display: variable.display,
             })
             const column = new OwidTable([], spec)
             const dim = new ChartDimension(
@@ -218,12 +218,12 @@ export async function countryProfilePage(countrySlug: string) {
                 value: formatValueShort(value),
                 name: c.title as string,
                 slug: `/grapher/${c.slug}?tab=chart&country=${country.code}`,
-                variantName: c.variantName
+                variantName: c.variantName,
             })
         }
     }
 
-    indicators = lodash.sortBy(indicators, i => i.name.trim())
+    indicators = lodash.sortBy(indicators, (i) => i.name.trim())
 
     return renderToHtmlPage(
         <CountryProfilePage indicators={indicators} country={country} />

@@ -12,7 +12,7 @@ import {
     NumberField,
     SelectField,
     Toggle,
-    Section
+    Section,
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { owidVariableId } from "owidTable/OwidTable"
@@ -45,7 +45,7 @@ class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
             "SouthAmerica",
             "Asia",
             "Europe",
-            "Oceania"
+            "Oceania",
         ]
         const labels = [
             "World",
@@ -54,7 +54,7 @@ class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
             "South America",
             "Asia",
             "Europe",
-            "Oceania"
+            "Oceania",
         ]
 
         return (
@@ -62,8 +62,8 @@ class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
                 <NumericSelectField
                     label="Variable"
                     value={mapTransform.variableId as number}
-                    options={filledDimensions.map(d => d.variableId)}
-                    optionLabels={filledDimensions.map(d => d.displayName)}
+                    options={filledDimensions.map((d) => d.variableId)}
+                    optionLabels={filledDimensions.map((d) => d.displayName)}
                     onValue={this.onVariableId}
                 />
                 <SelectField
@@ -164,7 +164,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
                             scale={mapTransform.colorScale}
                             features={{
                                 visualScaling: true,
-                                legendDescription: false
+                                legendDescription: false,
                             }}
                         />
                         <TooltipSection mapTransform={mapTransform} />

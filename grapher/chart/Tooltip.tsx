@@ -47,7 +47,7 @@ export class TooltipView extends React.Component<{
             boxShadow: "0 2px 2px rgba(0,0,0,.12), 0 0 1px rgba(0,0,0,.35)",
             borderRadius: "2px",
             textAlign: "left",
-            fontSize: "0.9em"
+            fontSize: "0.9em",
         }
 
         return (

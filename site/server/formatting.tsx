@@ -13,7 +13,7 @@ import * as path from "path"
 import { renderBlocks } from "site/client/blocks"
 import {
     RelatedCharts,
-    RelatedChart
+    RelatedChart,
 } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { initMathJax } from "./MathJax"
 import { bakeGlobalEntityControl } from "site/globalEntityControl/GlobalEntityControl"
@@ -26,7 +26,7 @@ import { replaceChartIframesWithExplorerIframes } from "explorer/covidExplorer/b
 import { SubNavId } from "./views/SiteSubnavigation"
 import {
     countryProfileDefaultCountryPlaceholder,
-    countryProfileSpecs
+    countryProfileSpecs,
 } from "site/server/countryProfileProjects"
 
 // A modifed FontAwesome icon
@@ -178,7 +178,9 @@ export async function formatWordpressPost(
     // Related charts
     // Mimicking SSR output of additional information block from PHP
     if (
-        !countryProfileSpecs.some(spec => post.slug === spec.landingPageSlug) &&
+        !countryProfileSpecs.some(
+            (spec) => post.slug === spec.landingPageSlug
+        ) &&
         post.relatedCharts &&
         post.relatedCharts.length !== 0
     ) {
@@ -247,7 +249,7 @@ export async function formatWordpressPost(
     if (grapherExports) {
         const grapherIframes = $("iframe")
             .toArray()
-            .filter(el => (el.attribs["src"] || "").match(/\/grapher\//))
+            .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
         for (const el of grapherIframes) {
             const $el = $(el)
             const src = el.attribs["src"].trim()
@@ -296,7 +298,7 @@ export async function formatWordpressPost(
     // Replace explorer iframes with iframeless embed
     const explorerIframes = $("iframe")
         .toArray()
-        .filter(el => (el.attribs["src"] || "").includes(covidDashboardSlug))
+        .filter((el) => (el.attribs["src"] || "").includes(covidDashboardSlug))
     for (const el of explorerIframes) {
         const $el = $(el)
         const src = el.attribs["src"].trim()
@@ -373,7 +375,7 @@ export async function formatWordpressPost(
             const originalSrc = path.format({
                 dir: parsedPath.dir,
                 name: originalFilename,
-                ext: parsedPath.ext
+                ext: parsedPath.ext,
             })
             el.attribs["data-high-res-src"] = originalSrc
         } else {
@@ -424,14 +426,14 @@ export async function formatWordpressPost(
                 tocHeadings.push({
                     text: headingText,
                     slug: "footnotes",
-                    isSubheading: false
+                    isSubheading: false,
                 })
             } else if (!$heading.is("h1") && !$heading.is("h4")) {
                 if ($heading.is("h2")) {
                     const tocHeading = {
                         text: headingText,
                         slug: slug,
-                        isSubheading: false
+                        isSubheading: false,
                     }
                     tocHeadings.push(tocHeading)
                     parentHeading = tocHeading
@@ -445,7 +447,7 @@ export async function formatWordpressPost(
                         text: headingText,
                         html: $heading.html() || undefined,
                         slug: slug,
-                        isSubheading: true
+                        isSubheading: true,
                     })
                 }
             }
@@ -477,7 +479,7 @@ export async function formatWordpressPost(
         return {
             wrapper: $columns,
             first: $columns.children().first(),
-            last: $columns.children().last()
+            last: $columns.children().last(),
         }
     }
 
@@ -520,7 +522,7 @@ export async function formatWordpressPost(
                         >
                             <div
                                 dangerouslySetInnerHTML={{
-                                    __html: $.html($el)
+                                    __html: $.html($el),
                                 }}
                             />
                         </SectionHeading>
@@ -623,7 +625,7 @@ export async function formatWordpressPost(
         excerpt: post.excerpt || $("p").first().text(),
         imageUrl: post.imageUrl,
         tocHeadings: tocHeadings,
-        relatedCharts: post.relatedCharts
+        relatedCharts: post.relatedCharts,
     }
 }
 
@@ -668,7 +670,7 @@ function parseFormattingOptions(text: string): FormattingOptions {
     const options: { [key: string]: string | boolean } = {}
     text.split(/\s+/)
         // filter out empty strings
-        .filter(s => s && s.length > 0)
+        .filter((s) => s && s.length > 0)
         // populate options object
         .forEach((option: string) => {
             const [name, value] = option.split(":") as [
@@ -723,14 +725,14 @@ export async function formatPost(
             excerpt: post.excerpt || "",
             imageUrl: post.imageUrl,
             tocHeadings: [],
-            relatedCharts: post.relatedCharts
+            relatedCharts: post.relatedCharts,
         }
     } else {
         // Override formattingOptions if specified in the post (as an HTML comment)
         const options: FormattingOptions = Object.assign(
             {
                 toc: post.type === "page",
-                footnotes: true
+                footnotes: true,
             },
             formattingOptions
         )
@@ -775,6 +777,6 @@ export function formatDate(date: Date): string {
     return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
-        day: "2-digit"
+        day: "2-digit",
     })
 }

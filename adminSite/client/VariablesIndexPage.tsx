@@ -6,7 +6,7 @@ import {
     action,
     runInAction,
     reaction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import * as lodash from "lodash"
 
@@ -47,7 +47,7 @@ export class VariablesIndexPage extends React.Component {
                         ),
                         "i"
                     ),
-                    s => `<b>${s}</b>`
+                    (s) => `<b>${s}</b>`
                 )
                 return <span dangerouslySetInnerHTML={{ __html: html }} />
             } else return text
@@ -91,7 +91,7 @@ export class VariablesIndexPage extends React.Component {
         const { searchInput, maxVisibleRows } = this
         const json = await this.context.admin.getJSON("/api/variables.json", {
             search: searchInput,
-            limit: maxVisibleRows
+            limit: maxVisibleRows,
         })
         runInAction(() => {
             if (searchInput === this.searchInput) {

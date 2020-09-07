@@ -37,7 +37,7 @@ export class EditorReferencesTab extends React.Component<{
                                 Public pages that embed or reference this chart:
                             </p>
                             <ul className="list-group">
-                                {this.references.map(post => (
+                                {this.references.map((post) => (
                                     <li
                                         key={post.id}
                                         className="list-group-item"
@@ -67,7 +67,7 @@ export class EditorReferencesTab extends React.Component<{
                         <React.Fragment>
                             <p>The following URLs redirect to this chart:</p>
                             <ul className="list-group">
-                                {this.redirects.map(redirect => (
+                                {this.redirects.map((redirect) => (
                                     <li
                                         key={redirect.id}
                                         className="list-group-item"
@@ -157,7 +157,7 @@ class AddRedirectForm extends React.Component<{
                         className="form-control"
                         placeholder="URL"
                         value={this.slug}
-                        onChange={event => this.onChange(event.target.value)}
+                        onChange={(event) => this.onChange(event.target.value)}
                     />
                     <div className="input-group-append">
                         <button

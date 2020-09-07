@@ -42,7 +42,7 @@ export enum CovidSortKey {
     daysToDoubleCases = "daysToDoubleCases",
     daysToDoubleDeaths = "daysToDoubleDeaths",
     totalTests = "totalTests",
-    testDate = "testDate"
+    testDate = "testDate",
 }
 
 export type CovidSortAccessor = (

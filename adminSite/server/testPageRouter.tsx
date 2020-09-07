@@ -95,7 +95,7 @@ function EmbedTestPage(props: EmbedTestPageProps) {
                         {!IS_LIVE && <h3>{BAKED_BASE_URL}</h3>}
                     </div>
                 </div>
-                {props.charts.map(chart => (
+                {props.charts.map((chart) => (
                     <div key={chart.slug} className="row">
                         <div className="chart-id">{chart.id}</div>
                         <div className="side-by-side">
@@ -206,13 +206,13 @@ testPageRouter.get("/embeds", async (req, res) => {
         )
     }
 
-    const charts: ChartItem[] = (await query.getMany()).map(c => ({
+    const charts: ChartItem[] = (await query.getMany()).map((c) => ({
         id: c.id,
-        slug: c.config.slug
+        slug: c.config.slug,
     }))
 
     if (tab) {
-        charts.forEach(c => (c.slug += `?tab=${tab}`))
+        charts.forEach((c) => (c.slug += `?tab=${tab}`))
     }
 
     const count = await query.getCount()
@@ -259,8 +259,8 @@ testPageRouter.get("/embeds/:id", async (req, res) => {
                 id: chart.id,
                 slug: `${chart.config.slug}${
                     req.query.tab ? `?tab=${req.query.tab}` : ""
-                }`
-            }
+                }`,
+            },
         ]
         res.send(renderToHtmlPage(<EmbedTestPage charts={charts} />))
     } else {
@@ -295,7 +295,7 @@ function PreviewTestPage(props: { charts: any[] }) {
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </head>
             <body>
-                {props.charts.map(chart => (
+                {props.charts.map((chart) => (
                     <div key={chart.slug} className="row">
                         <a
                             href={`https://ourworldindata.org/grapher/${chart.slug}`}
@@ -373,7 +373,7 @@ function EmbedVariantsTestPage(props: EmbedTestPageProps) {
                 <style dangerouslySetInnerHTML={{ __html: style }} />
             </head>
             <body>
-                {props.charts.map(chart => (
+                {props.charts.map((chart) => (
                     <div key={chart.slug} className="row">
                         <div className="chart-id">{chart.id}</div>
                         <div className="side-by-side">

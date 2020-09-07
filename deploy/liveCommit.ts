@@ -29,7 +29,7 @@ const servers = [
     "jefferson",
     "nightingale",
     "tufte",
-    "roser"
+    "roser",
 ]
 
 const args = parseArgs(process.argv.slice(2))
@@ -45,11 +45,11 @@ function getServerUrl(server: string): string {
 
 async function fetchCommitSha(server: string): Promise<string> {
     return fetch(`${getServerUrl(server)}/head.txt`)
-        .then(res => {
+        .then((res) => {
             if (res.ok) return res
             else throw Error(`Request rejected with status ${res.status}`)
         })
-        .then(resp => resp.text())
+        .then((resp) => resp.text())
 }
 
 interface ServerCommitInformation {
@@ -62,7 +62,7 @@ interface ServerCommitInformation {
 
 async function fetchAll(): Promise<Array<ServerCommitInformation>> {
     const commits = await Promise.all(
-        servers.map(async serverName => {
+        servers.map(async (serverName) => {
             let commitSha = undefined
             try {
                 commitSha = await fetchCommitSha(serverName)
@@ -75,21 +75,21 @@ async function fetchAll(): Promise<Array<ServerCommitInformation>> {
                 commitSha,
                 commitDate: undefined,
                 commitAuthor: undefined,
-                commitMessage: undefined
+                commitMessage: undefined,
             }
         })
     )
 
     const commitsWithInformation = await Promise.all(
-        commits.map(async commit => {
+        commits.map(async (commit) => {
             if (!commit.commitSha) return commit
 
             const apiResponse = (await fetch(
                 `https://api.github.com/repos/owid/owid-grapher/git/commits/${commit.commitSha}`,
                 {
                     headers: {
-                        Accept: "application/vnd.github.v3"
-                    }
+                        Accept: "application/vnd.github.v3",
+                    },
                 }
             )) as any
 
@@ -101,18 +101,18 @@ async function fetchAll(): Promise<Array<ServerCommitInformation>> {
                 commitDate:
                     response?.author?.date && new Date(response?.author?.date),
                 commitAuthor: response?.author?.name,
-                commitMessage: response?.message?.split("\n")?.[0]
+                commitMessage: response?.message?.split("\n")?.[0],
             }
         })
     )
 
-    return sortBy(commitsWithInformation, c => c.commitDate ?? 0)
+    return sortBy(commitsWithInformation, (c) => c.commitDate ?? 0)
         .reverse()
-        .map(commitInformation => ({
+        .map((commitInformation) => ({
             ...commitInformation,
             commitDate:
                 commitInformation.commitDate &&
-                timeago.format(commitInformation.commitDate)
+                timeago.format(commitInformation.commitDate),
         }))
 }
 
@@ -120,7 +120,7 @@ if (args._[0]) {
     // fetch information for one specific server
     const server = args._[0]
     fetchCommitSha(server)
-        .then(async headSha => {
+        .then(async (headSha) => {
             if (showTree)
                 await exec(
                     `git log -10 --graph --oneline --decorate --color=always ${headSha}`
@@ -134,7 +134,7 @@ if (args._[0]) {
             if (openInBrowser)
                 opener(`https://github.com/owid/owid-grapher/commit/${headSha}`)
         })
-        .catch(err =>
+        .catch((err) =>
             console.error(
                 `Could not retrieve commit information from ${getServerUrl(
                     server
@@ -143,18 +143,18 @@ if (args._[0]) {
         )
 } else {
     // fetch information for _all_ servers
-    fetchAll().then(commitInformation => {
+    fetchAll().then((commitInformation) => {
         const data = mapValues(
             keyBy(
                 commitInformation,
-                commitInformation => commitInformation.serverName
+                (commitInformation) => commitInformation.serverName
             ),
-            commitInformation => {
+            (commitInformation) => {
                 const {
                     commitSha,
                     commitDate,
                     commitAuthor,
-                    commitMessage
+                    commitMessage,
                 } = commitInformation
 
                 return {
@@ -165,7 +165,7 @@ if (args._[0]) {
                         // truncate to 50 characters
                         commitMessage && commitMessage.length > 50
                             ? commitMessage?.substr(0, 50) + "…"
-                            : commitMessage
+                            : commitMessage,
                 }
             }
         )

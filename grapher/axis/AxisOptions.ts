@@ -38,7 +38,7 @@ export class PersistableAxisOptions
             min: this.min,
             max: this.max,
             canChangeScaleType: this.canChangeScaleType,
-            removePointsOutsideDomain: this.removePointsOutsideDomain
+            removePointsOutsideDomain: this.removePointsOutsideDomain,
         })
     }
 
@@ -53,7 +53,7 @@ export class PersistableAxisOptions
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: true = undefined
     @observable.ref private containerOptions: AxisContainerOptions = {
-        fontSize: 16
+        fontSize: 16,
     }
 
     @computed get fontSize() {

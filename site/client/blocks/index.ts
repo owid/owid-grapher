@@ -1,6 +1,6 @@
 import {
     hydrate as hydrateAdditionalInformation,
-    render as renderAdditionalInformation
+    render as renderAdditionalInformation,
 } from "./AdditionalInformation/AdditionalInformation"
 import { render as renderHelp } from "./Help/Help"
 import { renderProminentLink } from "./ProminentLink/ProminentLink"

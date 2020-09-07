@@ -10,7 +10,7 @@ import {
     GitCmsReadResponse,
     WriteRequest,
     ReadRequest,
-    DeleteRequest
+    DeleteRequest,
 } from "./constants"
 const IS_PROD = ENV === "production"
 
@@ -65,7 +65,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
             if (filename.includes(".."))
                 return {
                     success: false,
-                    errorMessage: `Invalid filepath: ${filename}`
+                    errorMessage: `Invalid filepath: ${filename}`,
                 }
             const errorMessage = await saveFileToGitContentDirectory(
                 filename,
@@ -86,7 +86,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
                 return {
                     success: false,
                     errorMessage: `Invalid filepath: ${filepath}`,
-                    content: ""
+                    content: "",
                 }
             const path = GIT_CMS_DIR + filepath
             const exists = fs.existsSync(path)
@@ -94,7 +94,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
                 return {
                     success: false,
                     errorMessage: `File '${filepath}' not found`,
-                    content: ""
+                    content: "",
                 }
             const content = await fs.readFile(path, "utf8")
             return { success: true, content }
@@ -109,7 +109,7 @@ export const addGitCmsApiRoutes = (app: FunctionalRouter) => {
             if (filepath.includes(".."))
                 return {
                     success: false,
-                    errorMessage: `Invalid filepath: ${filepath}`
+                    errorMessage: `Invalid filepath: ${filepath}`,
                 }
             const errorMessage = await deleteFileFromGitContentDirectory(
                 filepath,

@@ -95,7 +95,7 @@ export const DonatePage = () => {
                     dangerouslySetInnerHTML={{
                         __html: `
                 runDonateForm()
-            `
+            `,
                     }}
                 />
             </body>

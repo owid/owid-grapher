@@ -3,7 +3,7 @@ import {
     findClosestYear,
     isString,
     diffDateISOStringInDays,
-    formatDay
+    formatDay,
 } from "grapher/utils/Util"
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
 
@@ -25,12 +25,12 @@ export type TimeBounds = [TimeBound, TimeBound]
  */
 export enum TimeBoundValue {
     unboundedLeft = -Infinity,
-    unboundedRight = Infinity
+    unboundedRight = Infinity,
 }
 
 enum TimeBoundValueStr {
     unboundedLeft = "earliest",
-    unboundedRight = "latest"
+    unboundedRight = "latest",
 }
 
 export function isUnbounded(time: TimeBound): time is TimeBoundValue {
@@ -171,7 +171,7 @@ export function getTimeDomainFromQueryString(time: string): [number, number] {
         const [start, end] = time.split("..")
         return [
             parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
-            parseTimeURIComponent(end, TimeBoundValue.unboundedRight)
+            parseTimeURIComponent(end, TimeBoundValue.unboundedRight),
         ]
     } else {
         const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)

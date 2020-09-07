@@ -37,7 +37,7 @@ export class ChartIndexPage extends React.Component {
                     `${chart.title} ${chart.variantName || ""} ${
                         chart.internalNotes || ""
                     } ${chart.publishedBy} ${chart.lastEditedBy}`
-                )
+                ),
             })
         }
 
@@ -49,7 +49,7 @@ export class ChartIndexPage extends React.Component {
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
-                key: "term"
+                key: "term",
             })
             return uniq(results.map((result: any) => result.obj.chart))
         } else {

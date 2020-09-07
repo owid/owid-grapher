@@ -6,7 +6,7 @@ import { Bounds } from "grapher/utils/Bounds"
 
 export default {
     title: "NoDataOverlay",
-    component: NoDataOverlay
+    component: NoDataOverlay,
 }
 
 export const Default = () => {
@@ -20,7 +20,7 @@ export const Default = () => {
                     canAddData: true,
                     isSelectingData: false,
                     entityType: "Country",
-                    standalone: true
+                    standalone: true,
                 }}
             />
         </div>

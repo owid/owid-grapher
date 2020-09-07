@@ -60,7 +60,7 @@ export class Analytics {
             `${countryPickerName.toUpperCase()}_DATA_EXPLORER_COUNTRY_SELECTOR`,
             {
                 action,
-                note
+                note,
             }
         )
         this.logToGA(
@@ -80,7 +80,7 @@ export class Analytics {
         this.logToAmplitude("OWID_SITE_CLICK", {
             text,
             href,
-            note
+            note,
         })
         this.logToGA("SiteClick", note || "unknown-category", text)
     }
@@ -106,8 +106,8 @@ export class Analytics {
                 context: {
                     pageHref: window.location.href,
                     pagePath: window.location.pathname,
-                    pageTitle: document.title.replace(/ - [^-]+/, "")
-                }
+                    pageTitle: document.title.replace(/ - [^-]+/, ""),
+                },
             },
             props
         )
@@ -135,7 +135,7 @@ export class Analytics {
             eventCategory,
             eventAction,
             eventLabel,
-            eventValue
+            eventValue,
         }
         if (window.ga) {
             // https://developers.google.com/analytics/devguides/collection/analyticsjs/ga-object-methods-reference

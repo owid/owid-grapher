@@ -6,7 +6,7 @@ describe(getSegmentsFromPoints, () => {
     it("splits different-colored segments", () => {
         const points = [
             { x: 0, y: 0, color: "#000" },
-            { x: 1, y: 0, color: "#111" }
+            { x: 1, y: 0, color: "#111" },
         ]
         const segments = getSegmentsFromPoints(points)
 
@@ -24,7 +24,7 @@ describe(getSegmentsFromPoints, () => {
     it("preserves same-colored segments", () => {
         const points = [
             { x: 0, y: 0, color: "#000" },
-            { x: 1, y: 0, color: "#000" }
+            { x: 1, y: 0, color: "#000" },
         ]
         const segments = getSegmentsFromPoints(points)
 
@@ -40,7 +40,7 @@ describe(getSegmentsFromPoints, () => {
             { x: 1, y: 0, color: "#000" },
             { x: 5, y: 3, color: "#000" },
             { x: 5, y: 4, color: "#111" },
-            { x: 6, y: 4, color: "#000" }
+            { x: 6, y: 4, color: "#000" },
         ]
         const segments = getSegmentsFromPoints(points)
 

@@ -35,7 +35,7 @@ export class NoDataOverlay extends React.Component<{
                     top: bounds.top,
                     left: bounds.left,
                     width: bounds.width,
-                    height: bounds.height
+                    height: bounds.height,
                 }}
             >
                 <p className="message">{message || "No available data"}</p>

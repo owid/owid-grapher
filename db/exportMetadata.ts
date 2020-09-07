@@ -20,7 +20,7 @@ const excludeTables = [
     "sessions",
     "user_invitations",
     "dataset_files",
-    "data_values"
+    "data_values",
 ]
 
 async function dataExport() {
@@ -35,7 +35,7 @@ async function dataExport() {
     // Dump all tables including schema but exclude the rows of data_values
     await exec(
         `mysqldump --default-character-set=utf8mb4 --no-tablespaces -u '${DB_USER}' -h '${DB_HOST}' -P ${DB_PORT} ${DB_NAME} ${excludeTables
-            .map(tableName => `--ignore-table=${DB_NAME}.${tableName}`)
+            .map((tableName) => `--ignore-table=${DB_NAME}.${tableName}`)
             .join(" ")} -r ${filePath}`
     )
     await exec(

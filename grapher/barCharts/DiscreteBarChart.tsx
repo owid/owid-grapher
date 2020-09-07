@@ -9,11 +9,11 @@ import {
     Color,
     TickFormattingOptions,
     EntityDimensionKey,
-    ScaleType
+    ScaleType,
 } from "grapher/core/GrapherConstants"
 import {
     HorizontalAxisComponent,
-    HorizontalAxisGridLines
+    HorizontalAxisGridLines,
 } from "grapher/axis/AxisViews"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
@@ -65,42 +65,42 @@ export class DiscreteBarChart extends React.Component<{
     @computed private get legendLabelStyle() {
         return {
             fontSize: 0.75 * this.props.grapher.baseFontSize,
-            fontWeight: 700
+            fontWeight: 700,
         }
     }
 
     @computed private get valueLabelStyle() {
         return {
             fontSize: 0.75 * this.props.grapher.baseFontSize,
-            fontWeight: 400
+            fontWeight: 400,
         }
     }
 
     // Account for the width of the legend
     @computed private get legendWidth() {
-        const labels = this.currentData.map(d => d.label)
+        const labels = this.currentData.map((d) => d.label)
         if (this.hasFloatingAddButton)
             labels.push(` + ${this.grapher.addButtonLabel}`)
 
-        const longestLabel = maxBy(labels, d => d.length)
+        const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
 
     @computed private get hasPositive() {
-        return this.displayData.some(d => d.value >= 0)
+        return this.displayData.some((d) => d.value >= 0)
     }
 
     @computed private get hasNegative() {
-        return this.displayData.some(d => d.value < 0)
+        return this.displayData.some((d) => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightEndLabelWidth(): number {
         if (this.hasPositive) {
             const positiveLabels = this.displayData
-                .filter(d => d.value >= 0)
-                .map(d => this.barValueFormat(d))
-            const longestPositiveLabel = maxBy(positiveLabels, l => l.length)
+                .filter((d) => d.value >= 0)
+                .map((d) => this.barValueFormat(d))
+            const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
             return Bounds.forText(longestPositiveLabel, this.valueLabelStyle)
                 .width
         } else {
@@ -114,9 +114,9 @@ export class DiscreteBarChart extends React.Component<{
     @computed private get leftEndLabelWidth(): number {
         if (this.hasNegative) {
             const negativeLabels = this.displayData
-                .filter(d => d.value < 0)
-                .map(d => this.barValueFormat(d))
-            const longestNegativeLabel = maxBy(negativeLabels, l => l.length)
+                .filter((d) => d.value < 0)
+                .map((d) => this.barValueFormat(d))
+            const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
             return (
                 Bounds.forText(longestNegativeLabel, this.valueLabelStyle)
                     .width + labelToTextPadding
@@ -128,7 +128,7 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed private get x0(): number {
         if (this.isLogScale) {
-            const minValue = min(this.allData.map(d => d.value))
+            const minValue = min(this.allData.map((d) => d.value))
             return minValue !== undefined ? Math.min(1, minValue) : 1
         }
         return 0
@@ -136,12 +136,12 @@ export class DiscreteBarChart extends React.Component<{
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        const allValues = this.displayData.map(d => d.value)
+        const allValues = this.displayData.map((d) => d.value)
 
         const minStart = this.x0
         return [
             Math.min(minStart, min(allValues) as number),
-            Math.max(minStart, max(allValues) as number)
+            Math.max(minStart, max(allValues) as number),
         ]
     }
 
@@ -152,7 +152,7 @@ export class DiscreteBarChart extends React.Component<{
     @computed private get xRange(): [number, number] {
         return [
             this.bounds.left + this.legendWidth + this.leftEndLabelWidth,
-            this.bounds.right - this.rightEndLabelWidth
+            this.bounds.right - this.rightEndLabelWidth,
         ]
     }
 
@@ -198,7 +198,7 @@ export class DiscreteBarChart extends React.Component<{
 
     @computed private get barPlacements() {
         const { currentData, axis } = this
-        return currentData.map(d => {
+        return currentData.map((d) => {
             const isNegative = d.value < 0
             const barX = isNegative ? axis.place(d.value) : axis.place(this.x0)
             const barWidth = isNegative
@@ -210,7 +210,7 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed private get barWidths() {
-        return this.barPlacements.map(b => b.width)
+        return this.barPlacements.map((b) => b.width)
     }
 
     private d3Bars() {
@@ -286,7 +286,7 @@ export class DiscreteBarChart extends React.Component<{
             innerBounds,
             barHeight,
             barSpacing,
-            barValueFormat
+            barValueFormat,
         } = this
 
         let yOffset = innerBounds.top + barHeight / 2
@@ -314,7 +314,7 @@ export class DiscreteBarChart extends React.Component<{
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                {currentData.map(d => {
+                {currentData.map((d) => {
                     const isNegative = d.value < 0
                     const barX = isNegative
                         ? axis.place(d.value)

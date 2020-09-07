@@ -9,7 +9,7 @@ describe("BinningStrategies", () => {
                 getBinMaximums({
                     binningStrategy: BinningStrategy.quantiles,
                     sortedValues: [],
-                    binCount: 5
+                    binCount: 5,
                 })
             ).toEqual([])
         })
@@ -19,7 +19,7 @@ describe("BinningStrategies", () => {
                 getBinMaximums({
                     binningStrategy: BinningStrategy.quantiles,
                     sortedValues: [1, 2, 3, 4, 5],
-                    binCount: 0
+                    binCount: 0,
                 })
             ).toEqual([])
         })
@@ -30,7 +30,7 @@ describe("BinningStrategies", () => {
                     getBinMaximums({
                         binningStrategy: BinningStrategy.ckmeans,
                         sortedValues: [1, 1, 1, 1, 1, 5],
-                        binCount: 5
+                        binCount: 5,
                     })
                 ).toEqual([1, 5])
             })
@@ -41,7 +41,7 @@ describe("BinningStrategies", () => {
                         binningStrategy: BinningStrategy.ckmeans,
                         sortedValues: [1, 1, 1, 1, 1, 5],
                         binCount: 5,
-                        minBinValue: 1
+                        minBinValue: 1,
                     })
                 ).toEqual([5])
             })
@@ -51,7 +51,7 @@ describe("BinningStrategies", () => {
                     getBinMaximums({
                         binningStrategy: BinningStrategy.ckmeans,
                         sortedValues: [1, 2, 4, 5, 12, 43, 52, 123, 234, 1244],
-                        binCount: 5
+                        binCount: 5,
                     })
                 ).toEqual([12, 52, 123, 234, 1244])
             })
@@ -63,7 +63,7 @@ describe("BinningStrategies", () => {
                     getBinMaximums({
                         binningStrategy: BinningStrategy.quantiles,
                         sortedValues: [1, 1, 1, 1, 1, 5],
-                        binCount: 5
+                        binCount: 5,
                     })
                 ).toEqual([1, 5])
             })
@@ -74,7 +74,7 @@ describe("BinningStrategies", () => {
                         binningStrategy: BinningStrategy.quantiles,
                         sortedValues: [1, 1, 1, 1, 1, 5],
                         binCount: 5,
-                        minBinValue: 1
+                        minBinValue: 1,
                     })
                 ).toEqual([5])
             })
@@ -84,7 +84,7 @@ describe("BinningStrategies", () => {
                     getBinMaximums({
                         binningStrategy: BinningStrategy.quantiles,
                         sortedValues: [1, 10, 20, 50, 100],
-                        binCount: 4
+                        binCount: 4,
                     })
                 ).toEqual([10, 20, 50, 100])
             })
@@ -97,7 +97,7 @@ describe("BinningStrategies", () => {
                         binningStrategy: BinningStrategy.equalInterval,
                         sortedValues: [300],
                         binCount: 3,
-                        minBinValue: 0
+                        minBinValue: 0,
                     })
                 ).toEqual([100, 200, 300])
             })
@@ -107,7 +107,7 @@ describe("BinningStrategies", () => {
                     getBinMaximums({
                         binningStrategy: BinningStrategy.equalInterval,
                         sortedValues: [100, 300],
-                        binCount: 2
+                        binCount: 2,
                     })
                 ).toEqual([200, 300])
             })
@@ -118,7 +118,7 @@ describe("BinningStrategies", () => {
                         binningStrategy: BinningStrategy.equalInterval,
                         sortedValues: [1, 1.5, 2, 3, 7.5],
                         binCount: 5,
-                        minBinValue: 0
+                        minBinValue: 0,
                     })
                 ).toEqual([2, 4, 6, 8, 10])
             })

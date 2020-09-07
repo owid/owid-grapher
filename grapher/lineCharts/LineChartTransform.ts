@@ -11,7 +11,7 @@ import {
     formatValue,
     flatten,
     findIndex,
-    last
+    last,
 } from "grapher/utils/Util"
 import { EntityDimensionKey, ScaleType } from "grapher/core/GrapherConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
@@ -27,7 +27,7 @@ import { EntityName } from "owidTable/OwidTable"
 export class LineChartTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, d => d.property === "y"))
+        if (!some(filledDimensions, (d) => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData)) return "No matching data"
         else return undefined
@@ -73,7 +73,7 @@ export class LineChartTransform extends ChartTransform {
                         entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
                         formatValue: dimension.formatValueLong,
-                        color: "#000" // tmp
+                        color: "#000", // tmp
                     }
                     seriesByKey.set(entityDimensionKey, series)
                 }
@@ -87,7 +87,7 @@ export class LineChartTransform extends ChartTransform {
         // Color from lowest to highest
         chartData = sortBy(
             chartData,
-            series => series.values[series.values.length - 1].y
+            (series) => series.values[series.values.length - 1].y
         )
 
         const colors = this.colorScheme.getColors(chartData.length)
@@ -98,7 +98,7 @@ export class LineChartTransform extends ChartTransform {
         })
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
-        chartData = sortBy(chartData, series =>
+        chartData = sortBy(chartData, (series) =>
             selectedKeys.indexOf(series.entityDimensionKey)
         )
 
@@ -106,16 +106,16 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(this.initialData.map(g => g.values.map(d => d.x)))
+        return flatten(this.initialData.map((g) => g.values.map((d) => d.x)))
     }
 
     @computed get predomainData() {
         if (!this.isRelativeMode) return this.initialData
 
-        return cloneDeep(this.initialData).map(series => {
+        return cloneDeep(this.initialData).map((series) => {
             const startIndex = findIndex(
                 series.values,
-                v => v.time >= this.startYear && v.y !== 0
+                (v) => v.time >= this.startYear && v.y !== 0
             )
             if (startIndex < 0) {
                 series.values = []
@@ -124,7 +124,7 @@ export class LineChartTransform extends ChartTransform {
                 const relativeValues = series.values.slice(startIndex)
                 // Clone to avoid overwriting in next loop
                 const indexValue = clone(relativeValues[0])
-                series.values = relativeValues.map(v => {
+                series.values = relativeValues.map((v) => {
                     v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
                     return v
                 })
@@ -134,11 +134,11 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get allValues(): LineChartValue[] {
-        return flatten(this.predomainData.map(series => series.values))
+        return flatten(this.predomainData.map((series) => series.values))
     }
 
     @computed get filteredValues(): LineChartValue[] {
-        return flatten(this.groupedData.map(series => series.values))
+        return flatten(this.groupedData.map((series) => series.values))
     }
 
     @computed get annotationsMap() {
@@ -162,10 +162,10 @@ export class LineChartTransform extends ChartTransform {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let toShow = this.groupedData
-        if (toShow.some(g => !!g.isProjection))
-            toShow = this.groupedData.filter(g => g.isProjection)
+        if (toShow.some((g) => !!g.isProjection))
+            toShow = this.groupedData.filter((g) => g.isProjection)
 
-        return toShow.map(series => {
+        return toShow.map((series) => {
             const lastValue = (last(series.values) as LineChartValue).y
             return {
                 color: series.color,
@@ -175,7 +175,7 @@ export class LineChartTransform extends ChartTransform {
                     ? ""
                     : `${this.getLabelForKey(series.entityDimensionKey)}`,
                 annotation: this.getAnnotationsForSeries(series.entityName),
-                yValue: lastValue
+                yValue: lastValue,
             }
         })
     }
@@ -192,14 +192,14 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed private get yDimensionFirst(): ChartDimension | undefined {
-        return this.grapher.filledDimensions.find(d => d.property === "y")
+        return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 
     @computed private get yDomainDefault(): [number, number] {
         const yValues = (this.grapher.useTimelineDomains
             ? this.allValues
             : this.filteredValues
-        ).map(v => v.y)
+        ).map((v) => v.y)
         return [min(yValues) ?? 0, max(yValues) ?? 100]
     }
 
@@ -208,7 +208,7 @@ export class LineChartTransform extends ChartTransform {
         const domain = grapher.yAxis.domain
         return [
             Math.min(domain[0], yDomainDefault[0]),
-            Math.max(domain[1], yDomainDefault[1])
+            Math.max(domain[1], yDomainDefault[1]),
         ]
     }
 
@@ -234,7 +234,9 @@ export class LineChartTransform extends ChartTransform {
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomain)
         if (isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
-        axis.hideFractionalTicks = this.allValues.every(val => val.y % 1 === 0) // all y axis points are integral, don't show fractional ticks in that case
+        axis.hideFractionalTicks = this.allValues.every(
+            (val) => val.y % 1 === 0
+        ) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
         axis.tickFormat = yTickFormat
         return axis
@@ -252,13 +254,13 @@ export class LineChartTransform extends ChartTransform {
         for (const g of groupedData) {
             // The values can include non-numerical values, so we need to filter with isNaN()
             g.values = g.values.filter(
-                d =>
+                (d) =>
                     d.x >= xAxis.domain[0] &&
                     d.x <= xAxis.domain[1] &&
                     !isNaN(d.y)
             )
         }
 
-        return groupedData.filter(g => g.values.length > 0)
+        return groupedData.filter((g) => g.values.length > 0)
     }
 }

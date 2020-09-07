@@ -11,11 +11,11 @@ const analytics = new Analytics(ENV)
 export enum NewsletterSubscriptionContext {
     Homepage = "homepage",
     MobileMenu = "mobile-menu",
-    Floating = "floating"
+    Floating = "floating",
 }
 
 export const NewsletterSubscription = ({
-    context
+    context,
 }: {
     context?: NewsletterSubscriptionContext
 }) => {
@@ -59,7 +59,7 @@ export const NewsletterSubscription = ({
 }
 
 export const NewsletterSubscriptionForm = ({
-    context
+    context,
 }: {
     context?: NewsletterSubscriptionContext
 }) => {
@@ -78,7 +78,7 @@ export const NewsletterSubscriptionForm = ({
             setFrequencies([e.target.value, ...frequencies])
         } else {
             setFrequencies(
-                frequencies.filter(frequency => frequency !== e.target.value)
+                frequencies.filter((frequency) => frequency !== e.target.value)
             )
         }
     }

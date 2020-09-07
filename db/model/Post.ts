@@ -25,7 +25,7 @@ export namespace Post {
         ...args: K[]
     ): { from: (query: QueryBuilder) => Promise<Pick<Row, K>[]> } {
         return {
-            from: query => query.select(...args) as any
+            from: (query) => query.select(...args) as any,
         }
     }
 
@@ -51,8 +51,8 @@ export namespace Post {
     }
 
     export async function setTags(postId: number, tagIds: number[]) {
-        await db.transaction(async t => {
-            const tagRows = tagIds.map(tagId => [tagId, postId])
+        await db.transaction(async (t) => {
+            const tagRows = tagIds.map((tagId) => [tagId, postId])
             await t.execute(`DELETE FROM post_tags WHERE post_id=?`, [postId])
             if (tagRows.length)
                 await t.execute(
@@ -83,8 +83,8 @@ export async function syncPostsToGrapher() {
     const doesExistInGrapher = lodash.keyBy(existsInGrapher, "id")
 
     const toDelete = existsInGrapher
-        .filter(p => !doesExistInWordpress[p.id])
-        .map(p => p.id)
+        .filter((p) => !doesExistInWordpress[p.id])
+        .map((p) => p.id)
     const toInsert = rows.map((post: any) => {
         return {
             id: post.ID,
@@ -100,11 +100,11 @@ export async function syncPostsToGrapher() {
             updated_at:
                 post.post_modified_gmt === "0000-00-00 00:00:00"
                     ? "1970-01-01 00:00:00"
-                    : post.post_modified_gmt
+                    : post.post_modified_gmt,
         }
     }) as Post.Row[]
 
-    await db.knex().transaction(async t => {
+    await db.knex().transaction(async (t) => {
         if (toDelete.length) {
             await t.whereIn("id", toDelete).delete().from(Post.table)
         }
@@ -125,7 +125,9 @@ export async function syncPostTagsToGrapher() {
 
     for (const post of postRows) {
         const tags = tagsByPostId.get(post.ID) || []
-        const tagNames = tags.map(t => decodeHTML(t)).concat([post.post_title])
+        const tagNames = tags
+            .map((t) => decodeHTML(t))
+            .concat([post.post_title])
         const matchingTags = await Tag.select(
             "id",
             "name",
@@ -137,8 +139,8 @@ export async function syncPostTagsToGrapher() {
                 .whereIn("name", tagNames)
                 .andWhere({ isBulkImport: false })
         )
-        const tagIds = matchingTags.map(t => t.id)
-        if (matchingTags.map(t => t.name).includes(post.post_title)) {
+        const tagIds = matchingTags.map((t) => t.id)
+        if (matchingTags.map((t) => t.name).includes(post.post_title)) {
             tagIds.push(1640)
         }
         await Post.setTags(post.ID, lodash.uniq(tagIds))
@@ -173,11 +175,11 @@ export async function syncPostToGrapher(
               updated_at:
                   wpPost.post_modified_gmt === "0000-00-00 00:00:00"
                       ? "1970-01-01 00:00:00"
-                      : wpPost.post_modified_gmt
+                      : wpPost.post_modified_gmt,
           } as Post.Row)
         : undefined
 
-    await db.knex().transaction(async t => {
+    await db.knex().transaction(async (t) => {
         if (!postRow && existsInGrapher) {
             // Delete from grapher
             await t.table(Post.table).where({ id: postId }).delete()

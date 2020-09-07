@@ -17,7 +17,7 @@ export class Text extends React.Component<TextProps> {
     render() {
         const bounds = Bounds.forText(this.props.children, {
             fontSize: this.props.fontSize,
-            fontFamily: this.props["fontFamily"]
+            fontFamily: this.props["fontFamily"],
         })
         const y = this.props.y + bounds.height - bounds.height * 0.2
 

@@ -38,8 +38,8 @@ export class ComparisonLine extends React.Component<{
         const { xAxis, yAxis } = this.props.dualAxis
         const line = d3_line()
             .curve(curveLinear)
-            .x(d => xAxis.place(d[0]))
-            .y(d => yAxis.place(d[1]))
+            .x((d) => xAxis.place(d[0]))
+            .y((d) => yAxis.place(d[1]))
         return line(controlData)
     }
 
@@ -54,8 +54,8 @@ export class ComparisonLine extends React.Component<{
 
         // Find the points of the line that are actually placeable on the chart
         const linePoints = controlData
-            .map(d => new Vector2(xAxis.place(d[0]), yAxis.place(d[1])))
-            .filter(p => innerBounds.contains(p))
+            .map((d) => new Vector2(xAxis.place(d[0]), yAxis.place(d[1])))
+            .filter((p) => innerBounds.contains(p))
         if (!linePoints.length) return
 
         const midPoint = linePoints[Math.floor(linePoints.length / 2)]
@@ -68,7 +68,7 @@ export class ComparisonLine extends React.Component<{
             y: midPoint.y,
             bounds: bounds,
             angle: angle,
-            text: label
+            text: label,
         }
     }
 
@@ -93,7 +93,7 @@ export class ComparisonLine extends React.Component<{
                         opacity: 0.9,
                         fill: "none",
                         stroke: "#ccc",
-                        strokeDasharray: "2 2"
+                        strokeDasharray: "2 2",
                     }}
                     id={`path-${renderUid}`}
                     d={linePath || undefined}
@@ -105,7 +105,7 @@ export class ComparisonLine extends React.Component<{
                             fontSize: "80%",
                             opacity: 0.9,
                             textAnchor: "end",
-                            fill: "#999"
+                            fill: "#999",
                         }}
                         clipPath={`url(#axisBounds-${renderUid})`}
                     >

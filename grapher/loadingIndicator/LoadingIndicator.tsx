@@ -11,12 +11,12 @@ export const LoadingIndicator = (props: {
             className="loading-indicator"
             style={{
                 backgroundColor: props.backgroundColor,
-                ...props.bounds?.toCSS()
+                ...props.bounds?.toCSS(),
             }}
         >
             <span
                 style={{
-                    borderColor: props.color
+                    borderColor: props.color,
                 }}
             />
         </div>

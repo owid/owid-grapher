@@ -233,9 +233,7 @@
         "xhr-mock": "^2.5.1"
     },
     "prettier": {
-        "semi": false,
-        "trailingComma": "none",
-        "arrowParens": "avoid"
+        "semi": false
     },
     "browserslist": [
         ">0.5%",

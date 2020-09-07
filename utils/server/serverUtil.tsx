@@ -83,7 +83,7 @@ export function csvEscape(value: any): string {
 }
 
 export function csvRow(arr: string[]): string {
-    return arr.map(x => csvEscape(x)).join(",") + "\n"
+    return arr.map((x) => csvEscape(x)).join(",") + "\n"
 }
 
 export function absoluteUrl(path: string): string {
@@ -103,12 +103,12 @@ export const splitOnLastWord = (s: string) => {
     const endIndex = (s.lastIndexOf(" ") as number) + 1
     return {
         start: endIndex === 0 ? "" : s.substring(0, endIndex),
-        end: s.substring(endIndex)
+        end: s.substring(endIndex),
     }
 }
 
 export async function execFormatted(cmd: string, args: string[]) {
-    const formatCmd = util.format(cmd, ...args.map(s => quote([s])))
+    const formatCmd = util.format(cmd, ...args.map((s) => quote([s])))
     console.log(formatCmd)
     await exec(formatCmd)
 }

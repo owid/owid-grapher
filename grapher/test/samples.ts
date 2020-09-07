@@ -7,12 +7,12 @@ export function basicGdpGrapher() {
     const props = {
         selectedData: [
             { index: 0, entityId: 0 },
-            { index: 0, entityId: 1 }
+            { index: 0, entityId: 1 },
         ],
         data: { availableEntities: ["Germany", "France"] },
         useV2: true,
         yAxis: {},
-        dimensions: [{ variableId: 99, property: "y" }]
+        dimensions: [{ variableId: 99, property: "y" }],
     } as Partial<GrapherInterface>
 
     const grapher = new Grapher(props as any)

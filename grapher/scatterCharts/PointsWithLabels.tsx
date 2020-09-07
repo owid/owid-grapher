@@ -24,7 +24,7 @@ import {
     intersection,
     minBy,
     maxBy,
-    sortNumeric
+    sortNumeric,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -135,7 +135,7 @@ class ScatterGroupSingle extends React.Component<{
 
         const color = group.isFocus || !isLayerMode ? value.color : "#e2e2e2"
 
-        const isLabelled = group.allLabels.some(label => !label.isHidden)
+        const isLabelled = group.allLabels.some((label) => !label.isHidden)
         const size =
             !group.isFocus && isConnected ? 1 + value.size / 16 : value.size
         const cx = value.position.x.toFixed(2)
@@ -205,10 +205,10 @@ class ScatterBackgroundLine extends React.Component<{
                         opacity={opacity}
                     />
                     <MultiColorPolyline
-                        points={group.values.map(v => ({
+                        points={group.values.map((v) => ({
                             x: v.position.x,
                             y: v.position.y,
-                            color: isLayerMode ? "#ccc" : v.color
+                            color: isLayerMode ? "#ccc" : v.color,
                         }))}
                         strokeWidth={(0.3 + group.size / 16).toFixed(2)}
                         opacity={opacity}
@@ -237,13 +237,13 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed private get isConnected(): boolean {
-        return some(this.data, g => g.values.length > 1)
+        return some(this.data, (g) => g.values.length > 1)
     }
 
     @computed private get focusKeys(): string[] {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map(g => g.entityDimensionKey)
+            this.data.map((g) => g.entityDimensionKey)
         )
     }
 
@@ -265,7 +265,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @computed private get isSubtleForeground(): boolean {
         return (
             this.focusKeys.length > 1 &&
-            some(this.props.data, series => series.values.length > 2)
+            some(this.props.data, (series) => series.values.length > 2)
         )
     }
 
@@ -301,8 +301,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         yAxis.range = this.bounds.yRange()
 
         return sortNumeric(
-            data.map(d => {
-                const values = d.values.map(v => {
+            data.map((d) => {
+                const values = d.values.map((v) => {
                     const area = sizeScale(v.size || 4)
                     const scaleColor =
                         colorScale !== undefined
@@ -317,7 +317,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         size: Math.sqrt(area / Math.PI),
                         fontSize: fontScale(d.size || 1),
                         time: v.time,
-                        label: this.props.formatLabel(v)
+                        label: this.props.formatLabel(v),
                     }
                 })
 
@@ -330,10 +330,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     text: d.label,
                     midLabels: [],
                     allLabels: [],
-                    offsetVector: Vector2.zero
+                    offsetVector: Vector2.zero,
                 }
             }),
-            d => d.size,
+            (d) => d.size,
             SortOrder.desc
         )
     }
@@ -372,7 +372,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             x: pos.x,
             y: pos.y,
             fontSize: fontSize,
-            fontFamily: labelFontFamily
+            fontFamily: labelFontFamily,
         })
         if (pos.x < firstValue.position.x)
             bounds = new Bounds(
@@ -396,7 +396,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             color: firstValue.color,
             bounds: bounds,
             series: series,
-            isStart: true
+            isStart: true,
         }
     }
 
@@ -430,9 +430,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     .add(nextSegment)
                     .normalize()
                     .normals()
-                    .map(x => x.times(5))
-                const potentialSpots = normals.map(n => v.position.add(n))
-                pos = maxBy(potentialSpots, p => {
+                    .map((x) => x.times(5))
+                const potentialSpots = normals.map((n) => v.position.add(n))
+                pos = maxBy(potentialSpots, (p) => {
                     return (
                         Vector2.distance(p, prevPos) +
                         Vector2.distance(p, nextPos)
@@ -447,7 +447,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 y: pos.y,
                 fontSize: fontSize,
                 fontWeight: fontWeight,
-                fontFamily: labelFontFamily
+                fontFamily: labelFontFamily,
             })
             if (pos.x < v.position.x)
                 bounds = new Bounds(
@@ -471,7 +471,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 color: v.color,
                 bounds: bounds,
                 series: series,
-                isMid: true
+                isMid: true,
             }
         })
     }
@@ -513,16 +513,16 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             x: labelPos.x,
             y: labelPos.y,
             fontSize: fontSize,
-            fontFamily: labelFontFamily
+            fontFamily: labelFontFamily,
         })
 
         if (labelPos.x < lastPos.x)
             labelBounds = labelBounds.extend({
-                x: labelBounds.x - labelBounds.width
+                x: labelBounds.x - labelBounds.width,
             })
         if (labelPos.y > lastPos.y)
             labelBounds = labelBounds.extend({
-                y: labelBounds.y + labelBounds.height / 2
+                y: labelBounds.y + labelBounds.height / 2,
             })
 
         return {
@@ -535,7 +535,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             color: lastValue.color,
             bounds: labelBounds,
             series: series,
-            isEnd: true
+            isEnd: true,
         }
     }
 
@@ -557,10 +557,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             series.allLabels = [series.startLabel]
                 .concat(series.midLabels)
                 .concat([series.endLabel])
-                .filter(x => x) as ScatterLabel[]
+                .filter((x) => x) as ScatterLabel[]
         }
 
-        const labels = flatten(renderData.map(series => series.allLabels))
+        const labels = flatten(renderData.map((series) => series.allLabels))
 
         // Ensure labels fit inside bounds
         // Must do before collision detection since it'll change the positions
@@ -568,7 +568,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const labelsByPriority = sortNumeric(
             labels,
-            l => this.labelPriority(l),
+            (l) => this.labelPriority(l),
             SortOrder.desc
         )
         if (this.focusKeys.length > 0)
@@ -581,8 +581,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
     private hideUnselectedLabels(labelsByPriority: ScatterLabel[]) {
         labelsByPriority
-            .filter(label => !label.series.isFocus && !label.series.isHover)
-            .forEach(label => (label.isHidden = true))
+            .filter((label) => !label.series.isFocus && !label.series.isHover)
+            .forEach((label) => (label.isHidden = true))
     }
 
     private hideCollidingLabelsByPriority(labelsByPriority: ScatterLabel[]) {
@@ -632,11 +632,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         for (const label of labels) {
             if (label.bounds.left < bounds.left - 1) {
                 label.bounds = label.bounds.extend({
-                    x: label.bounds.x + label.bounds.width
+                    x: label.bounds.x + label.bounds.width,
                 })
             } else if (label.bounds.right > bounds.right + 1) {
                 label.bounds = label.bounds.extend({
-                    x: label.bounds.x - label.bounds.width
+                    x: label.bounds.x - label.bounds.width,
                 })
             }
 
@@ -644,7 +644,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 label.bounds = label.bounds.extend({ y: bounds.top })
             } else if (label.bounds.bottom > bounds.bottom + 1) {
                 label.bounds = label.bounds.extend({
-                    y: bounds.bottom - label.bounds.height
+                    y: bounds.bottom - label.bounds.height,
                 })
             }
         }
@@ -665,7 +665,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         this.mouseFrame = requestAnimationFrame(() => {
             const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
-            const closestSeries = minBy(this.renderData, series => {
+            const closestSeries = minBy(this.renderData, (series) => {
                 /*if (some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
                     return -Infinity*/
 
@@ -681,7 +681,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     )
                 } else {
                     return min(
-                        series.values.map(v =>
+                        series.values.map((v) =>
                             Vector2.distanceSq(v.position, mouse)
                         )
                     )
@@ -696,7 +696,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             if (closestSeries && this.props.onMouseOver) {
                 const datum = find(
                     this.data,
-                    d =>
+                    (d) =>
                         d.entityDimensionKey ===
                         closestSeries.entityDimensionKey
                 )
@@ -710,11 +710,11 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get backgroundGroups(): ScatterRenderSeries[] {
-        return this.renderData.filter(group => !group.isForeground)
+        return this.renderData.filter((group) => !group.isForeground)
     }
 
     @computed get foregroundGroups(): ScatterRenderSeries[] {
-        return this.renderData.filter(group => !!group.isForeground)
+        return this.renderData.filter((group) => !!group.isForeground)
     }
 
     private renderBackgroundGroups() {
@@ -722,7 +722,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         return hideLines
             ? []
-            : backgroundGroups.map(group => (
+            : backgroundGroups.map((group) => (
                   <ScatterBackgroundLine
                       key={group.entityDimensionKey}
                       group={group}
@@ -740,10 +740,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 className="backgroundLabels"
                 fill={!isLayerMode ? "#333" : "#aaa"}
             >
-                {backgroundGroups.map(series => {
+                {backgroundGroups.map((series) => {
                     return series.allLabels
-                        .filter(l => !l.isHidden)
-                        .map(l =>
+                        .filter((l) => !l.isHidden)
+                        .map((l) =>
                             getElementWithHalo(
                                 series.displayKey + "-endLabel",
                                 <text
@@ -771,7 +771,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     private renderForegroundGroups() {
         const { foregroundGroups, isSubtleForeground, hideLines } = this
 
-        return foregroundGroups.map(series => {
+        return foregroundGroups.map((series) => {
             const lastValue = last(series.values) as ScatterRenderValue
             const strokeWidth =
                 (series.isHover ? 3 : isSubtleForeground ? 1.5 : 2) +
@@ -793,10 +793,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 return (
                     <g key={series.displayKey} className={series.displayKey}>
                         <MultiColorPolyline
-                            points={series.values.map(v => ({
+                            points={series.values.map((v) => ({
                                 x: v.position.x,
                                 y: v.position.y,
-                                color: hideLines ? "rgba(0,0,0,0)" : v.color
+                                color: hideLines ? "rgba(0,0,0,0)" : v.color,
                             }))}
                             strokeWidth={strokeWidth}
                             opacity={opacity}
@@ -844,9 +844,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
     private renderForegroundLabels() {
         const { foregroundGroups, labelFontFamily } = this
-        return foregroundGroups.map(series => {
+        return foregroundGroups.map((series) => {
             return series.allLabels
-                .filter(l => !l.isHidden)
+                .filter((l) => !l.isHidden)
                 .map((l, i) =>
                     getElementWithHalo(
                         `${series.displayKey}-label-${i}`,

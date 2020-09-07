@@ -5,7 +5,7 @@ import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 
 export default {
     title: "CommandPalette",
-    component: CommandPalette
+    component: CommandPalette,
 }
 
 export const Default = () => {
@@ -14,20 +14,20 @@ export const Default = () => {
             combo: "ctrl+o",
             fn: () => {},
             title: "Open",
-            category: "File"
+            category: "File",
         },
         {
             combo: "ctrl+s",
             fn: () => {},
             title: "Save",
-            category: "File"
+            category: "File",
         },
         {
             combo: "ctrl+c",
             fn: () => {},
             title: "Copy",
-            category: "Edit"
-        }
+            category: "Edit",
+        },
     ]
     return <CommandPalette commands={demoCommands} display="block" />
 }

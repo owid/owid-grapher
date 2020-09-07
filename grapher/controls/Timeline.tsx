@@ -6,7 +6,7 @@ import {
     findClosestYear,
     getRelativeMouse,
     isMobile,
-    debounce
+    debounce,
 } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import {
@@ -15,7 +15,7 @@ import {
     autorun,
     action,
     runInAction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
@@ -29,7 +29,7 @@ import {
     Time,
     isUnboundedLeft,
     isUnboundedRight,
-    getBoundFromTimeRange
+    getBoundFromTimeRange,
 } from "grapher/utils/TimeBounds"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
@@ -47,7 +47,7 @@ export interface TimelineProps {
     endYear: TimeBound
     onTargetChange: ({
         targetStartYear,
-        targetEndYear
+        targetEndYear,
     }: {
         targetStartYear: TimeBound
         targetEndYear: TimeBound
@@ -341,7 +341,7 @@ export class Timeline extends React.Component<TimelineProps> {
         if (this.dragTarget === "both") {
             this.dragOffsets = [
                 this.startYearUI - inputYear,
-                this.endYearUI - inputYear
+                this.endYearUI - inputYear,
             ]
         }
 
@@ -382,7 +382,7 @@ export class Timeline extends React.Component<TimelineProps> {
         if (this.startYearRaw > this.endYearRaw) {
             ;[this.startYearRaw, this.endYearRaw] = [
                 this.startYear,
-                this.endYear
+                this.endYear,
             ]
         }
 
@@ -393,7 +393,7 @@ export class Timeline extends React.Component<TimelineProps> {
         ) {
             ;[this.startYearRaw, this.endYearRaw] = [
                 this.startYearClosest,
-                this.endYearClosest
+                this.endYearClosest,
             ]
         }
     }
@@ -428,7 +428,7 @@ export class Timeline extends React.Component<TimelineProps> {
         if (this.props.onTargetChange) {
             this.props.onTargetChange({
                 targetStartYear: this.startYearClosest,
-                targetEndYear: this.endYearClosest
+                targetEndYear: this.endYearClosest,
             })
         }
     }
@@ -456,10 +456,10 @@ export class Timeline extends React.Component<TimelineProps> {
         document.documentElement.addEventListener("touchend", this.onMouseUp)
         document.documentElement.addEventListener("touchmove", this.onMouseMove)
         this.slider?.addEventListener("touchstart", this.onMouseDown, {
-            passive: false
+            passive: false,
         })
         this.playButton?.addEventListener("touchend", this.onPlayTouchEnd, {
-            passive: false
+            passive: false,
         })
 
         this.disposers = [
@@ -478,7 +478,7 @@ export class Timeline extends React.Component<TimelineProps> {
                     this.grapher.url.debounceMode = false
                     if (onStopDrag) onStopDrag()
                 }
-            })
+            }),
         ]
     }
 
@@ -498,12 +498,12 @@ export class Timeline extends React.Component<TimelineProps> {
             this.onMouseMove
         )
         this.slider?.removeEventListener("touchstart", this.onMouseDown, {
-            passive: false
+            passive: false,
         } as EventListenerOptions)
         this.playButton?.removeEventListener("touchend", this.onPlayTouchEnd, {
-            passive: false
+            passive: false,
         } as EventListenerOptions)
-        this.disposers.forEach(dispose => dispose())
+        this.disposers.forEach((dispose) => dispose())
     }
 
     @action.bound onTogglePlay() {
@@ -558,7 +558,7 @@ export class Timeline extends React.Component<TimelineProps> {
             startYearUI,
             endYearUI,
             startYearClosestUI,
-            endYearClosestUI
+            endYearClosestUI,
         } = this
 
         const startYearProgress = (startYearUI - minYear) / (maxYear - minYear)
@@ -573,7 +573,7 @@ export class Timeline extends React.Component<TimelineProps> {
             >
                 {!this.props.disablePlay && (
                     <div
-                        onMouseDown={e => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={this.onTogglePlay}
                         className="play"
                     >
@@ -602,7 +602,7 @@ export class Timeline extends React.Component<TimelineProps> {
                         className="interval"
                         style={{
                             left: `${startYearProgress * 100}%`,
-                            right: `${100 - endYearProgress * 100}%`
+                            right: `${100 - endYearProgress * 100}%`,
                         }}
                     />
                     <TimelineHandle
@@ -626,7 +626,7 @@ const TimelineHandle = ({
     offsetPercent,
     tooltipContent,
     tooltipVisible,
-    tooltipZIndex
+    tooltipZIndex,
 }: {
     type: "startMarker" | "endMarker"
     offsetPercent: number
@@ -638,7 +638,7 @@ const TimelineHandle = ({
         <div
             className={classNames("handle", type)}
             style={{
-                left: `${offsetPercent}%`
+                left: `${offsetPercent}%`,
             }}
         >
             <Tippy

@@ -7,7 +7,7 @@ import { observable, action } from "mobx"
 
 export default {
     title: "ScaleSelector",
-    component: ScaleSelector
+    component: ScaleSelector,
 }
 
 class ScaleConfig {
@@ -29,7 +29,7 @@ export const StayInBounds = () => {
                 width: 200,
                 height: 200,
                 background: "gray",
-                position: "relative"
+                position: "relative",
             }}
         >
             <ScaleSelector

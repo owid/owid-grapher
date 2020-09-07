@@ -7,7 +7,7 @@ import {
     autorun,
     action,
     reaction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 
@@ -21,7 +21,7 @@ import {
     EditorDatabase,
     Log,
     PostReference,
-    ChartRedirect
+    ChartRedirect,
 } from "./ChartEditor"
 import { EditorBasicTab } from "./EditorBasicTab"
 import { EditorDataTab } from "./EditorDataTab"
@@ -42,7 +42,7 @@ import {
     VisionDeficiency,
     VisionDeficiencySvgFilters,
     VisionDeficiencyDropdown,
-    VisionDeficiencyEntity
+    VisionDeficiencyEntity,
 } from "./VisionDeficiencies"
 
 @observer
@@ -166,7 +166,7 @@ export class ChartEditorPage extends React.Component<{
                 },
                 // Hack: Allow overriding redirects so that we can update it
                 // from the inner "add redirect" form
-                redirects: that.redirects || []
+                redirects: that.redirects || [],
             })
         }
     }
@@ -236,7 +236,7 @@ export class ChartEditorPage extends React.Component<{
                 <div className="chart-editor-settings">
                     <div className="p-2">
                         <ul className="nav nav-tabs">
-                            {availableTabs.map(tab => (
+                            {availableTabs.map((tab) => (
                                 <li key={tab} className="nav-item">
                                     <a
                                         className={
@@ -290,7 +290,7 @@ export class ChartEditorPage extends React.Component<{
                         style={{
                             filter:
                                 this.simulateVisionDeficiency &&
-                                `url(#${this.simulateVisionDeficiency.id})`
+                                `url(#${this.simulateVisionDeficiency.id})`,
                         }}
                     >
                         {

@@ -15,21 +15,21 @@ export async function renderExplorableIndicatorsJson() {
     )
 
     const explorableCharts = query
-        .map(chart => ({
+        .map((chart) => ({
             id: chart.id,
-            config: JSON.parse(chart.config) as GrapherInterface
+            config: JSON.parse(chart.config) as GrapherInterface,
         }))
         // Ensure config is consistent with the current "explorable" requirements
-        .filter(chart => isExplorable(chart.config))
+        .filter((chart) => isExplorable(chart.config))
 
-    const result: Indicator[] = explorableCharts.map(chart => ({
+    const result: Indicator[] = explorableCharts.map((chart) => ({
         id: chart.id,
         title: chart.config.title,
         subtitle: chart.config.subtitle,
         sourceDesc: chart.config.sourceDesc,
         note: chart.config.note,
         dimensions: chart.config.dimensions,
-        map: chart.config.map
+        map: chart.config.map,
     }))
 
     return JSON.stringify({ indicators: result })

@@ -6,7 +6,7 @@ import { basicScatterGrapher } from "grapher/test/samples"
 
 export default {
     title: "ScatterPlot",
-    component: ScatterPlot
+    component: ScatterPlot,
 }
 
 export const Default = () => {

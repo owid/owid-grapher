@@ -9,7 +9,7 @@ import { ColorScale } from "grapher/color/ColorScale"
 import {
     ColorScaleBin,
     NumericBin,
-    CategoricalBin
+    CategoricalBin,
 } from "grapher/color/ColorScaleBin"
 import { clone, noop, last } from "grapher/utils/Util"
 import { Color } from "grapher/core/GrapherConstants"
@@ -24,12 +24,12 @@ import {
     TextField,
     ColorBox,
     BindAutoFloat,
-    BindString
+    BindString,
 } from "./Forms"
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
 import {
     BinningStrategy,
-    binningStrategyLabels
+    binningStrategyLabels,
 } from "grapher/color/BinningStrategies"
 
 interface EditorColorScaleSectionFeatures {
@@ -144,7 +144,7 @@ class ColorsSection extends React.Component<{
         const options = Object.entries(binningStrategyLabels).map(
             ([value, label]) => ({
                 label: label,
-                value: value as BinningStrategy
+                value: value as BinningStrategy,
             })
         )
         // Remove the manual binning strategy from the options if
@@ -161,7 +161,7 @@ class ColorsSection extends React.Component<{
 
     @computed get currentBinningStrategyOption() {
         return this.binningStrategyOptions.find(
-            option => option.value === this.props.scale.config.binningStrategy
+            (option) => option.value === this.props.scale.config.binningStrategy
         )
     }
 
@@ -184,8 +184,8 @@ class ColorsSection extends React.Component<{
                                     colorScheme: undefined,
                                     gradient: undefined,
                                     label: "Custom",
-                                    value: "custom"
-                                }
+                                    value: "custom",
+                                },
                             ]}
                         />
                     </div>
@@ -205,7 +205,7 @@ class ColorsSection extends React.Component<{
                             onChange={this.onBinningStrategy}
                             value={this.currentBinningStrategyOption}
                             components={{
-                                IndicatorSeparator: null
+                                IndicatorSeparator: null,
                             }}
                             menuPlacement="auto"
                             isSearchable={false}

@@ -33,14 +33,14 @@ export const BlogIndexPage = (props: {
                     <div className="site-content">
                         <h2>{pageTitle}</h2>
                         <ul className="posts">
-                            {posts.map(post => (
+                            {posts.map((post) => (
                                 <li key={post.slug} className="post">
                                     <a href={`/${post.path}`}>
                                         {post.imageUrl && (
                                             <div
                                                 className="cover-image"
                                                 style={{
-                                                    backgroundImage: `url(${post.imageUrl})`
+                                                    backgroundImage: `url(${post.imageUrl})`,
                                                 }}
                                             />
                                         )}
@@ -61,7 +61,7 @@ export const BlogIndexPage = (props: {
                                 Posts navigation
                             </h2>
                             <div className="nav-link">
-                                {pageNums.map(num => (
+                                {pageNums.map((num) => (
                                     <a
                                         key={num}
                                         className={

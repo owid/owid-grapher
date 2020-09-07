@@ -14,7 +14,7 @@ class CountryPickerHolder extends React.Component {
                     padding: "20px",
                     height: "500px",
                     width: "300px",
-                    display: "grid"
+                    display: "grid",
                 }}
             >
                 {this.props.children}
@@ -39,7 +39,7 @@ france,3,fra,,400`)
 
     @action.bound toggleSelection(name: string) {
         this.selected.includes(name)
-            ? (this.selected = this.selected.filter(i => i !== name))
+            ? (this.selected = this.selected.filter((i) => i !== name))
             : this.selected.push(name)
     }
 
@@ -61,7 +61,7 @@ france,3,fra,,400`)
 
 export default {
     title: "CountryPicker",
-    component: CountryPicker
+    component: CountryPicker,
 }
 
 export const Empty = () => (

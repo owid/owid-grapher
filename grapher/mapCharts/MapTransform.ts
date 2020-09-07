@@ -11,13 +11,13 @@ import {
     entityNameForMap,
     formatYear,
     uniq,
-    sortNumeric
+    sortNumeric,
 } from "grapher/utils/Util"
 import {
     TimeBound,
     TimeBoundValue,
     Time,
-    getClosestTime
+    getClosestTime,
 } from "grapher/utils/TimeBounds"
 
 import { ChoroplethData } from "grapher/mapCharts/ChoroplethMap"
@@ -116,7 +116,7 @@ export class MapTransform extends ChartTransform {
 
     @computed get dimension(): ChartDimension | undefined {
         return this.grapher.filledDimensions.find(
-            d => d.variableId === this.variableId
+            (d) => d.variableId === this.variableId
         )
     }
 
@@ -129,7 +129,7 @@ export class MapTransform extends ChartTransform {
             MapTopology.objects.world.geometries.map((g: any) => g.id)
         )
         const entities = this.dimension.entityNamesUniq.filter(
-            e => !!idLookup[entityNameForMap(e)]
+            (e) => !!idLookup[entityNameForMap(e)]
         )
         return keyBy(entities)
     }
@@ -156,7 +156,7 @@ export class MapTransform extends ChartTransform {
         } = {
             years: [],
             entities: [],
-            values: []
+            values: [],
         }
 
         if (dimension) {
@@ -179,7 +179,7 @@ export class MapTransform extends ChartTransform {
 
     @computed get sortedNumericValues(): number[] {
         return sortNumeric(
-            this.mappableData.values.filter(isNumber).filter(v => !isNaN(v))
+            this.mappableData.values.filter(isNumber).filter((v) => !isNaN(v))
         )
     }
 
@@ -219,7 +219,7 @@ export class MapTransform extends ChartTransform {
             },
             get formatNumericValue() {
                 return that.formatValueShort
-            }
+            },
         })
     }
 
@@ -241,7 +241,7 @@ export class MapTransform extends ChartTransform {
 
         const selectedEntityNames = new Set(grapher.selectedEntityNames)
 
-        entities.forEach(entity => {
+        entities.forEach((entity) => {
             const valueByYear = valueByEntityAndYear.get(entity)
             if (!valueByYear) return
             const years = Array.from(valueByYear.keys())
@@ -253,7 +253,7 @@ export class MapTransform extends ChartTransform {
                 entity,
                 year,
                 value,
-                isSelected: selectedEntityNames.has(entity)
+                isSelected: selectedEntityNames.has(entity),
             }
         })
 
@@ -270,7 +270,7 @@ export class MapTransform extends ChartTransform {
             if (color) {
                 choroplethData[entity] = extend({}, datum, {
                     color: color,
-                    highlightFillColor: color
+                    highlightFillColor: color,
                 })
             }
         })

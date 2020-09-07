@@ -32,7 +32,7 @@ export class Header {
             return new Logo({
                 logo: this.props.grapher.logo,
                 isLink: !this.props.grapher.isNativeEmbed,
-                fontSize: this.props.grapher.baseFontSize
+                fontSize: this.props.grapher.baseFontSize,
             })
         }
     }
@@ -56,7 +56,7 @@ export class Header {
                 maxWidth: maxWidth,
                 fontSize: fontScale * props.grapher.baseFontSize,
                 text: this.titleText,
-                lineHeight: 1
+                lineHeight: 1,
             })
             if (fontScale <= 1.2 || title.lines.length <= 1) break
             fontScale -= 0.05
@@ -66,7 +66,7 @@ export class Header {
             maxWidth: maxWidth,
             fontSize: fontScale * props.grapher.baseFontSize,
             text: this.titleText,
-            lineHeight: 1
+            lineHeight: 1,
         })
     }
 
@@ -98,7 +98,7 @@ export class Header {
             },
             get linkifyText() {
                 return true
-            }
+            },
         })
     }
 
@@ -140,7 +140,7 @@ class HeaderView extends React.Component<{
                     href={grapher.url.canonicalUrl}
                     style={{
                         fontFamily:
-                            '"Playfair Display", Georgia, "Times New Roman", serif'
+                            '"Playfair Display", Georgia, "Times New Roman", serif',
                     }}
                     target="_blank"
                 >
@@ -166,13 +166,13 @@ export class HeaderHTML extends React.Component<{
 
         const titleStyle = {
             ...header.title.htmlStyle,
-            marginBottom: header.titleMarginBottom
+            marginBottom: header.titleMarginBottom,
         }
 
         const subtitleStyle = {
             ...header.subtitle.htmlStyle,
             // make sure there are no scrollbars on subtitle
-            overflowY: "hidden"
+            overflowY: "hidden",
         }
 
         return (

@@ -5,7 +5,7 @@ import { faLightbulb } from "@fortawesome/free-solid-svg-icons/faLightbulb"
 
 const Help = ({
     title,
-    content
+    content,
 }: {
     title: string | null
     content: string | null

@@ -33,7 +33,7 @@ export class ConnectedScatterLegend {
         return new TextWrap({
             text: this.props.formatYearFunction(props.startYear),
             fontSize: fontSize,
-            maxWidth: maxLabelWidth
+            maxWidth: maxLabelWidth,
         })
     }
 
@@ -42,7 +42,7 @@ export class ConnectedScatterLegend {
         return new TextWrap({
             text: this.props.formatYearFunction(props.endYear),
             fontSize: fontSize,
-            maxWidth: maxLabelWidth
+            maxWidth: maxLabelWidth,
         })
     }
 

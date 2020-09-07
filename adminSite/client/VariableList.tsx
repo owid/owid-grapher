@@ -67,12 +67,12 @@ export class VariableList extends React.Component<{
                     <tr>
                         <th>Variable</th>
                         {props.variables.some(
-                            v => v.uploadedAt !== undefined
+                            (v) => v.uploadedAt !== undefined
                         ) && <th>Uploaded</th>}
                     </tr>
                 </thead>
                 <tbody>
-                    {props.variables.map(variable => (
+                    {props.variables.map((variable) => (
                         <VariableRow
                             key={variable.id}
                             variable={variable}

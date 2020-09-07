@@ -30,7 +30,7 @@ export class ColorSchemeDropdown extends React.Component<
     static defaultProps = {
         additionalOptions: [],
         gradientColorCount: 6,
-        invertedColorScheme: false
+        invertedColorScheme: false,
     }
 
     @computed get additionalOptions() {
@@ -52,7 +52,7 @@ export class ColorSchemeDropdown extends React.Component<
                         this.gradientColorCount
                     ),
                     label: (scheme as ColorScheme).name,
-                    value: key
+                    value: key,
                 }
             })
     }
@@ -87,7 +87,7 @@ export class ColorSchemeDropdown extends React.Component<
                 style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center"
+                    alignItems: "center",
                 }}
             >
                 <div>{option.label}</div>
@@ -103,7 +103,7 @@ export class ColorSchemeDropdown extends React.Component<
                             // Mirror the element if color schemes are inverted
                             transform: invertedColorScheme
                                 ? "scaleX(-1)"
-                                : undefined
+                                : undefined,
                         }}
                     />
                 )}
@@ -118,18 +118,18 @@ export class ColorSchemeDropdown extends React.Component<
                 formatOptionLabel={this.formatOptionLabel}
                 onChange={this.onChange}
                 value={this.allOptions.find(
-                    scheme => scheme.value === this.props.value
+                    (scheme) => scheme.value === this.props.value
                 )}
                 components={{
-                    IndicatorSeparator: null
+                    IndicatorSeparator: null,
                 }}
                 styles={{
-                    singleValue: provided => {
+                    singleValue: (provided) => {
                         return {
                             ...provided,
-                            width: "calc(100% - 10px)"
+                            width: "calc(100% - 10px)",
                         }
-                    }
+                    },
                 }}
                 menuPlacement="auto"
             />

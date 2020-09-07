@@ -114,7 +114,7 @@ export async function getGrapherExportsByUrl(): Promise<GrapherExports> {
                 svgUrl: `${BAKED_BASE_URL}/exports/${filename}`,
                 version: versionNumber,
                 width: parseInt(width),
-                height: parseInt(height)
+                height: parseInt(height),
             })
         }
     }
@@ -124,7 +124,7 @@ export async function getGrapherExportsByUrl(): Promise<GrapherExports> {
             return exportsByKey.get(
                 grapherUrlToFilekey(grapherUrl).toLowerCase()
             )
-        }
+        },
     }
 }
 interface ChartItemWithTags {
@@ -150,7 +150,7 @@ export async function getIndexableCharts(): Promise<ChartItemWithTags[]> {
         c.tags = []
     }
 
-    const chartsById = lodash.keyBy(chartItems, c => c.id)
+    const chartsById = lodash.keyBy(chartItems, (c) => c.id)
 
     for (const ct of chartTags) {
         // XXX hardcoded filtering to public parent tags
@@ -171,7 +171,7 @@ export async function getIndexableCharts(): Promise<ChartItemWithTags[]> {
                 1505,
                 1508,
                 1512,
-                1510
+                1510,
             ].indexOf(ct.tagParentId) === -1
         )
             continue

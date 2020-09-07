@@ -23,7 +23,7 @@ async function main() {
         for (const post of postRows) {
             const categories = categoriesByPostId.get(post.ID) || []
 
-            const tagNames = categories.map(t => decodeHTML(t))
+            const tagNames = categories.map((t) => decodeHTML(t))
 
             const matchingTags = await Tag.select(
                 "id",
@@ -44,8 +44,8 @@ async function main() {
             )
 
             const tagIds = matchingTags
-                .map(t => t.id)
-                .concat(existingTags.map(t => t.id))
+                .map((t) => t.id)
+                .concat(existingTags.map((t) => t.id))
             // if (matchingTags.map(t => t.name).includes(post.post_title)) {
             //     tagIds.push(1640)
             // }

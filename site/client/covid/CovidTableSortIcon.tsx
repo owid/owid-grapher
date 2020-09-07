@@ -15,7 +15,7 @@ export const CovidTableSortIcon = (props: CovidTableSortIconProps) => {
     return (
         <span
             className={classnames("sort-icon", props.sortOrder, {
-                active: isActive
+                active: isActive,
             })}
         />
     )

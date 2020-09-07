@@ -69,7 +69,7 @@ export const CountryProfilePage = (props: CountryProfilePageProps) => {
                     </div>
                     <section>
                         <ul className="indicators">
-                            {indicators.map(indicator => (
+                            {indicators.map((indicator) => (
                                 <li key={indicator.slug}>
                                     <div className="indicatorName">
                                         <a

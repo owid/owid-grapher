@@ -10,7 +10,7 @@ function cell(data?: string) {
     return {
         data: data || "",
         colspan: 1,
-        rowspan: 1
+        rowspan: 1,
     }
 }
 

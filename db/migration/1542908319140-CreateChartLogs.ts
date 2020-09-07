@@ -19,7 +19,7 @@ export class CreateChartLogs1542908319140 implements MigrationInterface {
                 chart.lastEditedByUserId,
                 chart.updatedAt,
                 chart.updatedAt,
-                chart.config
+                chart.config,
             ])
 
             if (i % 100 === 0 || i === charts.length - 1) {

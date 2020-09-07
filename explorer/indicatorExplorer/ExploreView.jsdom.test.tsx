@@ -42,7 +42,7 @@ function mockDataResponse() {
 }
 
 async function whenReady(grapherView: GrapherView): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
         const grapher = grapherView.grapher
         observe(grapher, "isReady", () => {
             if (grapher.isReady) resolve()
@@ -123,10 +123,10 @@ describe(ExploreView, () => {
             { key: ChartType.StackedBar, expectedView: StackedBarChart },
             { key: ChartType.DiscreteBar, expectedView: DiscreteBarChart },
             { key: ChartType.SlopeChart, expectedView: SlopeChart },
-            { key: "WorldMap", expectedView: ChoroplethMap }
+            { key: "WorldMap", expectedView: ChoroplethMap },
         ]
 
-        chartTypes.forEach(type => {
+        chartTypes.forEach((type) => {
             describe(`when you click ${type.key}`, () => {
                 let view: ReactWrapper
                 const button = `.chart-type-button[data-type="${type.key}"]`

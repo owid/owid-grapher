@@ -53,8 +53,8 @@ function injectColorScheme(oldConfig: OldChartConfig): NewChartConfig {
             customHiddenCategories: {},
             colorSchemeInvert: invertColorScheme,
             isManualBuckets: customColors ? true : undefined,
-            customColorsActive: customColors ? true : undefined
-        }
+            customColorsActive: customColors ? true : undefined,
+        },
     }
 }
 
@@ -64,7 +64,7 @@ function dropColorScheme(newConfig: NewChartConfig): OldChartConfig {
         ...rest,
         baseColorScheme: colorScale.baseColorScheme,
         customColors: colorScale.customCategoryColors,
-        invertColorScheme: colorScale.colorSchemeInvert
+        invertColorScheme: colorScale.colorSchemeInvert,
     }
 }
 
@@ -75,7 +75,7 @@ async function transformScatterPlotCharts(
     await Promise.all(
         [
             { idField: "id", tableName: "charts" },
-            { idField: "chartId", tableName: "chart_revisions" }
+            { idField: "chartId", tableName: "chart_revisions" },
         ].map(async ({ idField, tableName }) => {
             const charts = (await queryRunner.query(`
             SELECT ${idField} AS id, config

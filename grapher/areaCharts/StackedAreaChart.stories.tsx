@@ -7,7 +7,7 @@ import { Bounds } from "grapher/utils/Bounds"
 
 export default {
     title: "StackedAreaChart",
-    component: StackedAreaChart
+    component: StackedAreaChart,
 }
 
 export const Default = () => {

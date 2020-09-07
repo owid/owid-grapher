@@ -7,7 +7,7 @@ import { Indicator } from "explorer/indicatorExplorer/Indicator"
 export function mockIndicators() {
     const pattern = /\/explore\/indicators\.json/
     xhrMock.get(pattern, {
-        body: fs.readFileSync(__dirname + `/indicators.mock.json`)
+        body: fs.readFileSync(__dirname + `/indicators.mock.json`),
     })
 }
 
@@ -16,7 +16,7 @@ export function mockVariable(id: number | string) {
     xhrMock.get(pattern, {
         body: fs.readFileSync(
             __dirname + "/../../grapher/test/" + `variable-${id}.mock.json`
-        )
+        ),
     })
 }
 

@@ -51,7 +51,7 @@ export class TransactionContext {
 export async function transaction<T>(
     callback: (t: TransactionContext) => Promise<T>
 ): Promise<T> {
-    return (await getConnection()).transaction(async manager => {
+    return (await getConnection()).transaction(async (manager) => {
         const t = new TransactionContext(manager)
         return callback(t)
     })
@@ -94,8 +94,8 @@ export function knex() {
                         return field.string() === "1" // 1 = true, 0 = false
                     }
                     return next()
-                }
-            }
+                },
+            },
         })
 
         registerExitHandler(async () => {

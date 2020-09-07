@@ -7,7 +7,7 @@ const sandboxGrapher = {
         customNumericColors: [],
         customCategoryColors: {},
         customCategoryLabels: {},
-        customHiddenCategories: {}
+        customHiddenCategories: {},
     },
     tab: "chart",
     data: { availableEntities: ["Germany", "Spain"] },
@@ -23,34 +23,34 @@ const sandboxGrapher = {
             {
                 year: 2000,
                 entity: "Germany",
-                value: 452
+                value: 452,
             },
             {
                 year: 2001,
                 entity: "Germany",
-                value: 459
+                value: 459,
             },
             {
                 year: 2002,
                 entity: "Germany",
-                value: 259
+                value: 259,
             },
             {
                 year: 2000,
                 entity: "Spain",
-                value: 564
+                value: 564,
             },
             {
                 year: 2001,
                 entity: "Spain",
-                value: 122
+                value: 122,
             },
             {
                 year: 2002,
                 entity: "Spain",
-                value: 999
-            }
-        ]
+                value: 999,
+            },
+        ],
     },
     minTime: 2000,
     version: 1,
@@ -65,5 +65,5 @@ const sandboxGrapher = {
     isExplorable: false,
     selectedData: [{ index: 0, entityId: 0 }],
     addCountryMode: "add-country",
-    hideRelativeToggle: true
+    hideRelativeToggle: true,
 }

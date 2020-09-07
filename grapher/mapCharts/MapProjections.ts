@@ -2,7 +2,7 @@ import {
     geoPath,
     geoConicConformal,
     geoAzimuthalEqualArea,
-    GeoProjection
+    GeoProjection,
 } from "d3-geo"
 import { geoRobinson, geoPatterson } from "d3-geo-projection"
 
@@ -59,5 +59,5 @@ export const MapProjections = {
             .rotate([-135, 0])
             .center([0, -20])
             .parallels([-10, -30])
-    )
+    ),
 }

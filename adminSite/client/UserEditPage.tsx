@@ -31,7 +31,7 @@ export class UserEditPage extends React.Component<{ userId: number }> {
                     <Toggle
                         label="User has access"
                         value={user.isActive}
-                        onValue={v => (user.isActive = v)}
+                        onValue={(v) => (user.isActive = v)}
                     />
                     <button
                         className="btn btn-success"

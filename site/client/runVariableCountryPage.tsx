@@ -46,22 +46,22 @@ class ClientVariableCountryPage extends React.Component<{
                 {
                     property: "y",
                     variableId: variable.id,
-                    display: clone(variable.display)
-                }
+                    display: clone(variable.display),
+                },
             ],
             selectedData: [
                 {
                     entityId: country.id,
-                    index: 0
-                }
-            ]
+                    index: 0,
+                },
+            ],
         }
     }
 
     dispose!: IReactionDisposer
     componentDidMount() {
         this.chart = new Grapher(this.chartConfig as any, {
-            isEmbed: true
+            isEmbed: true,
         })
     }
 

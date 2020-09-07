@@ -75,12 +75,12 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     speed: 600,
     durationMax: 800,
     durationMin: 100,
-    popstate: false
+    popstate: false,
 })
 
 const dataTrackAttr = "data-track-note"
 
-document.addEventListener("click", async ev => {
+document.addEventListener("click", async (ev) => {
     const targetElement = ev.target as HTMLElement
     const trackedElement = getParent(
         targetElement,

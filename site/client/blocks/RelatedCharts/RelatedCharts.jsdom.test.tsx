@@ -7,12 +7,12 @@ import { RelatedCharts } from "./RelatedCharts"
 const charts = [
     {
         title: "Chart 1",
-        slug: "chart-1"
+        slug: "chart-1",
     },
     {
         title: "Chart 2",
-        slug: "chart-2"
-    }
+        slug: "chart-2",
+    },
 ]
 
 it("renders active chart links and loads respective chart on click", () => {

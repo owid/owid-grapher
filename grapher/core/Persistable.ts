@@ -10,7 +10,7 @@ export interface Persistable {
 // Note: this does not recurse! If we need that should be easy to add, but we didn't need it yet.
 export function objectWithPersistablesToObject(objWithPersistables: any) {
     const obj = toJS(objWithPersistables) as any
-    Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach((key) => {
         const val = objWithPersistables[key]
         const valIsPersistable = val && val.toObject
 
@@ -18,7 +18,7 @@ export function objectWithPersistablesToObject(objWithPersistables: any) {
         if (valIsPersistable) obj[key] = val.toObject()
         else if (Array.isArray(val))
             // Scan array for persistables and seriazile.
-            obj[key] = val.map(item =>
+            obj[key] = val.map((item) =>
                 item?.toObject ? item.toObject() : item
             )
         else obj[key] = val

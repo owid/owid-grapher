@@ -6,7 +6,7 @@ import ReactDOM from "react-dom"
 export const Footnote = ({
     index,
     htmlContent,
-    triggerTarget
+    triggerTarget,
 }: {
     index: number
     htmlContent?: string
@@ -24,7 +24,7 @@ export const Footnote = ({
                     <div>
                         <div
                             dangerouslySetInnerHTML={{
-                                __html: htmlContent
+                                __html: htmlContent,
                             }}
                         />
                     </div>
@@ -64,7 +64,7 @@ function getFootnoteContent(element: Element): FootnoteContent | null {
 export function runFootnotes() {
     const footnotes = document.querySelectorAll("a.ref")
 
-    footnotes.forEach(f => {
+    footnotes.forEach((f) => {
         const footnoteContent = getFootnoteContent(f)
         if (footnoteContent == null) return
 

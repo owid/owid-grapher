@@ -12,7 +12,7 @@ import {
     BindAutoString,
     BindString,
     TextField,
-    Button
+    Button,
 } from "./Forms"
 import { debounce } from "grapher/utils/Util"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
@@ -54,8 +54,8 @@ class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
                                     colorScheme: undefined,
                                     gradient: undefined,
                                     label: "Default",
-                                    value: "default"
-                                }
+                                    value: "default",
+                                },
                             ]}
                         />
                     </div>
@@ -258,7 +258,7 @@ export class EditorCustomizeTab extends React.Component<{
                                     <NumberField
                                         label={`Min`}
                                         value={yAxisOptions.min}
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (yAxisOptions.min = value)
                                         }
                                         allowDecimal
@@ -267,7 +267,7 @@ export class EditorCustomizeTab extends React.Component<{
                                     <NumberField
                                         label={`Max`}
                                         value={yAxisOptions.max}
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (yAxisOptions.max = value)
                                         }
                                         allowDecimal
@@ -282,7 +282,7 @@ export class EditorCustomizeTab extends React.Component<{
                                                 yAxisOptions.removePointsOutsideDomain ||
                                                 false
                                             }
-                                            onValue={value =>
+                                            onValue={(value) =>
                                                 (yAxisOptions.removePointsOutsideDomain =
                                                     value || undefined)
                                             }
@@ -296,7 +296,7 @@ export class EditorCustomizeTab extends React.Component<{
                                             yAxisOptions.canChangeScaleType ||
                                             false
                                         }
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (yAxisOptions.canChangeScaleType =
                                                 value || undefined)
                                         }
@@ -321,7 +321,7 @@ export class EditorCustomizeTab extends React.Component<{
                                     <NumberField
                                         label={`Min`}
                                         value={xAxisOptions.min}
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (xAxisOptions.min = value)
                                         }
                                         allowDecimal
@@ -330,7 +330,7 @@ export class EditorCustomizeTab extends React.Component<{
                                     <NumberField
                                         label={`Max`}
                                         value={xAxisOptions.max}
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (xAxisOptions.max = value)
                                         }
                                         allowDecimal
@@ -345,7 +345,7 @@ export class EditorCustomizeTab extends React.Component<{
                                                 xAxisOptions.removePointsOutsideDomain ||
                                                 false
                                             }
-                                            onValue={value =>
+                                            onValue={(value) =>
                                                 (xAxisOptions.removePointsOutsideDomain =
                                                     value || undefined)
                                             }
@@ -359,7 +359,7 @@ export class EditorCustomizeTab extends React.Component<{
                                             xAxisOptions.canChangeScaleType ||
                                             false
                                         }
-                                        onValue={value =>
+                                        onValue={(value) =>
                                             (xAxisOptions.canChangeScaleType =
                                                 value || undefined)
                                         }
@@ -388,7 +388,7 @@ export class EditorCustomizeTab extends React.Component<{
                             legendDescription:
                                 grapher.isScatter ||
                                 grapher.isSlopeChart ||
-                                grapher.isStackedBar
+                                grapher.isStackedBar,
                         }}
                     />
                 )}
@@ -399,7 +399,7 @@ export class EditorCustomizeTab extends React.Component<{
                                 <Toggle
                                     label={`Hide legend`}
                                     value={!!grapher.hideLegend}
-                                    onValue={value =>
+                                    onValue={(value) =>
                                         (grapher.hideLegend =
                                             value || undefined)
                                     }
@@ -422,7 +422,7 @@ export class EditorCustomizeTab extends React.Component<{
                             <Toggle
                                 label={`Hide relative toggle`}
                                 value={!!grapher.hideRelativeToggle}
-                                onValue={value =>
+                                onValue={(value) =>
                                     (grapher.hideRelativeToggle =
                                         value || false)
                                 }

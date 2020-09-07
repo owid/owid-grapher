@@ -38,34 +38,34 @@ export async function makeSitemap() {
         slug: string
     }[]
 
-    let urls = countries.map(c => ({
-        loc: urljoin(BAKED_BASE_URL, "country", c.slug)
+    let urls = countries.map((c) => ({
+        loc: urljoin(BAKED_BASE_URL, "country", c.slug),
     })) as SitemapUrl[]
 
     urls = urls
         .concat(
-            ...countryProfileSpecs.map(spec => {
-                return countries.map(c => ({
-                    loc: urljoin(BAKED_BASE_URL, spec.rootPath, c.slug)
+            ...countryProfileSpecs.map((spec) => {
+                return countries.map((c) => ({
+                    loc: urljoin(BAKED_BASE_URL, spec.rootPath, c.slug),
                 }))
             })
         )
         .concat(
-            posts.map(p => ({
+            posts.map((p) => ({
                 loc: urljoin(BAKED_BASE_URL, p.slug),
-                lastmod: moment(p.updated_at).format("YYYY-MM-DD")
+                lastmod: moment(p.updated_at).format("YYYY-MM-DD"),
             }))
         )
         .concat(
-            charts.map(c => ({
+            charts.map((c) => ({
                 loc: urljoin(BAKED_GRAPHER_URL, c.slug),
-                lastmod: moment(c.updatedAt).format("YYYY-MM-DD")
+                lastmod: moment(c.updatedAt).format("YYYY-MM-DD"),
             }))
         ) as SitemapUrl[]
 
     const sitemap = `<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(url => xmlify(url)).join("\n")}
+${urls.map((url) => xmlify(url)).join("\n")}
 </urlset>`
 
     return sitemap

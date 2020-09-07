@@ -42,7 +42,7 @@ export const NotFoundPage = () => {
                     dangerouslySetInnerHTML={{
                         __html: `
                 window.runNotFoundPage()
-            `
+            `,
                     }}
                 />
             </body>

@@ -5,7 +5,7 @@ import {
     isEmpty,
     flatten,
     identity,
-    last
+    last,
 } from "grapher/utils/Util"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
@@ -19,7 +19,7 @@ import { ColorScale } from "grapher/color/ColorScale"
 export class SlopeChartTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, d => d.property === "y"))
+        if (!some(filledDimensions, (d) => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.data)) return "No matching data"
         else return undefined
@@ -48,12 +48,12 @@ export class SlopeChartTransform extends ChartTransform {
             },
             get formatNumericValue() {
                 return that.colorDimension?.formatValueShort ?? identity
-            }
+            },
         })
     }
 
     @computed get availableYears(): Time[] {
-        return flatten(this.grapher.axisDimensions.map(d => d.yearsUniq))
+        return flatten(this.grapher.axisDimensions.map((d) => d.yearsUniq))
     }
 
     @computed.struct get xDomain(): [number, number] {
@@ -61,15 +61,15 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed.struct get sizeDim(): ChartDimension | undefined {
-        return find(this.grapher.filledDimensions, d => d.property === "size")
+        return find(this.grapher.filledDimensions, (d) => d.property === "size")
     }
 
     @computed.struct get colorDimension(): ChartDimension | undefined {
-        return this.grapher.filledDimensions.find(d => d.property === "color")
+        return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 
     @computed.struct get yDimension(): ChartDimension | undefined {
-        return find(this.grapher.filledDimensions, d => d.property === "y")
+        return find(this.grapher.filledDimensions, (d) => d.property === "y")
     }
 
     // helper method to directly get the associated color value given an Entity
@@ -109,11 +109,13 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get yTickFormat(): (d: number) => string {
-        return this.yDimension ? this.yDimension.formatValueShort : d => `${d}`
+        return this.yDimension
+            ? this.yDimension.formatValueShort
+            : (d) => `${d}`
     }
 
     @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
-        return this.data.map(series => series.entityDimensionKey)
+        return this.data.map((series) => series.entityDimensionKey)
     }
 
     @computed get data(): SlopeChartSeries[] {
@@ -124,7 +126,7 @@ export class SlopeChartTransform extends ChartTransform {
             xDomain,
             colorByEntity,
             sizeByEntity,
-            grapher
+            grapher,
         } = this
         const { keyColors } = grapher
 
@@ -132,7 +134,7 @@ export class SlopeChartTransform extends ChartTransform {
         const maxYear = Math.min(xDomain[1])
 
         const entityNames = yDimension.entityNamesUniq
-        let data: SlopeChartSeries[] = entityNames.map(entityName => {
+        let data: SlopeChartSeries[] = entityNames.map((entityName) => {
             const slopeValues: SlopeChartValue[] = []
             const yValues = yDimension.valueByEntityAndYear.get(entityName)
             if (yValues !== undefined) {
@@ -143,7 +145,7 @@ export class SlopeChartTransform extends ChartTransform {
                             y:
                                 typeof value === "string"
                                     ? parseInt(value)
-                                    : value
+                                    : value,
                         })
                     }
                 })
@@ -161,10 +163,10 @@ export class SlopeChartTransform extends ChartTransform {
                     colorByEntity.get(entityName) ||
                     "#ff7f0e",
                 size: sizeByEntity.get(entityName) || 1,
-                values: slopeValues
+                values: slopeValues,
             }
         })
-        data = data.filter(d => d.values.length >= 2)
+        data = data.filter((d) => d.values.length >= 2)
         return data
     }
 }

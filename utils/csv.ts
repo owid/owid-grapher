@@ -27,7 +27,7 @@ export class CSVStreamParser {
         const parser = parse({
             relax_column_count: true,
             skip_empty_lines: true,
-            trim: true
+            trim: true,
         })
 
         parser.on("readable", () => {

@@ -11,7 +11,7 @@ const bounds = new Bounds(0, 0, 800, 600)
 
 const mockEvent = {
     clientX: 50,
-    clientY: 50
+    clientY: 50,
 }
 
 const chart = setupGrapher(792, [3512], { hasMapTab: true })
@@ -23,7 +23,7 @@ describe(MapTooltip, () => {
 
         const chartWrapperWithHover = chartWrapper
             .find("path")
-            .findWhere(node => node.key() === "United States")
+            .findWhere((node) => node.key() === "United States")
             .simulate("mouseenter", mockEvent)
             .update()
 

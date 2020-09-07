@@ -10,23 +10,23 @@ import {
     isNumber,
     extend,
     sortedUniq,
-    sortNumeric
+    sortNumeric,
 } from "grapher/utils/Util"
 import {
     TickFormattingOptions,
-    EntityDimensionKey
+    EntityDimensionKey,
 } from "grapher/core/GrapherConstants"
 import {
     AbstractColumn,
     owidVariableId,
     EntityName,
-    EntityId
+    EntityId,
 } from "owidTable/OwidTable"
 import { Time } from "grapher/utils/TimeBounds"
 
 import {
     OwidVariableDisplaySettings,
-    OwidVariableTableDisplaySettings
+    OwidVariableTableDisplaySettings,
 } from "owidTable/OwidVariable"
 import { OwidSource } from "owidTable/OwidSource"
 
@@ -71,7 +71,7 @@ export class ChartDimensionSpec implements ChartDimensionInterface {
         conversionFactor: undefined,
         numDecimalPlaces: undefined,
         tolerance: undefined,
-        tableDisplay: new OwidVariableTableDisplaySettings()
+        tableDisplay: new OwidVariableTableDisplaySettings(),
     }
 
     // XXX move this somewhere else, it's only used for scatter x override
@@ -187,7 +187,7 @@ export class ChartDimension {
         if (unit.length < 3) return unit
         else {
             const commonShortUnits = ["$", "£", "€", "%"]
-            if (some(commonShortUnits, u => unit[0] === u)) return unit[0]
+            if (some(commonShortUnits, (u) => unit[0] === u)) return unit[0]
             else return ""
         }
     }
@@ -203,7 +203,7 @@ export class ChartDimension {
                 return formatValue(value, {
                     unit: shortUnit,
                     numDecimalPlaces,
-                    ...options
+                    ...options,
                 })
         }
     }
@@ -219,7 +219,7 @@ export class ChartDimension {
                 return formatValue(value, {
                     unit: unit,
                     numDecimalPlaces: numDecimalPlaces,
-                    ...options
+                    ...options,
                 })
         }
     }
@@ -239,13 +239,15 @@ export class ChartDimension {
         const { unitConversionFactor } = this
         if (unitConversionFactor !== 1)
             return this.column.values.map(
-                v => (v as number) * unitConversionFactor
+                (v) => (v as number) * unitConversionFactor
             )
         else return this.column.values
     }
 
     @computed get sortedNumericValues(): number[] {
-        return sortNumeric(this.values.filter(isNumber).filter(v => !isNaN(v)))
+        return sortNumeric(
+            this.values.filter(isNumber).filter((v) => !isNaN(v))
+        )
     }
 
     get yearsUniq() {
