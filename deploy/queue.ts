@@ -4,6 +4,7 @@ import {
     DEPLOY_PENDING_FILE_PATH,
 } from "serverSettings"
 import { deploy } from "./deploy"
+import { DeployChange, Deploy, DeployStatus } from "./types"
 
 const MAX_SUCCESSIVE_FAILURES = 2
 
@@ -13,28 +14,51 @@ function identity(x: any) {
     return x
 }
 
-interface IDeployQueueItem {
-    authorName?: string
-    authorEmail?: string
-    message?: string
+async function readQueueContent(): Promise<string> {
+    return await fs.readFile(DEPLOY_QUEUE_FILE_PATH, "utf8")
 }
 
-async function readQueueContent(): Promise<string> {
-    const queueContent = await fs.readFile(DEPLOY_QUEUE_FILE_PATH, "utf8")
+async function readPendingContent(): Promise<string | undefined> {
+    if (fs.existsSync(DEPLOY_PENDING_FILE_PATH)) {
+        return await fs.readFile(DEPLOY_PENDING_FILE_PATH, "utf8")
+    }
+    return undefined
+}
+
+async function readQueueAndPendingContent(): Promise<string> {
+    const queueContent = await readQueueContent()
+    const pendingContent = await readPendingContent()
     // If any deploys didn't exit cleanly, DEPLOY_PENDING_FILE_PATH would exist.
     // Prepend that message to the current deploy.
-    if (fs.existsSync(DEPLOY_PENDING_FILE_PATH)) {
-        const deployingContent = await fs.readFile(
-            DEPLOY_PENDING_FILE_PATH,
-            "utf8"
-        )
-        return deployingContent + "\n" + queueContent
+    if (pendingContent) {
+        return pendingContent + "\n" + queueContent
     } else {
         return queueContent
     }
 }
 
-export async function enqueueDeploy(item: IDeployQueueItem) {
+export async function getDeploys(): Promise<Deploy[]> {
+    const [queueContent, pendingContent] = await Promise.all([
+        readQueueContent(),
+        readPendingContent()
+    ])
+    const deploys: Deploy[] = []
+    if (queueContent) {
+        deploys.push({
+            status: DeployStatus.queued,
+            changes: parseQueueContent(queueContent)
+        })
+    }
+    if (pendingContent) {
+        deploys.push({
+            status: DeployStatus.pending,
+            changes: parseQueueContent(pendingContent)
+        })
+    }
+    return deploys
+}
+
+export async function enqueueDeploy(item: DeployChange) {
     await fs.appendFile(DEPLOY_QUEUE_FILE_PATH, JSON.stringify(item) + "\n")
 }
 
@@ -43,12 +67,12 @@ async function eraseQueueContent() {
 }
 
 export async function queueIsEmpty(): Promise<boolean> {
-    return !(await readQueueContent())
+    return !(await readQueueAndPendingContent())
 }
 
 async function pullQueueContent(): Promise<string> {
     // Read line-delimited JSON
-    const queueContent = await readQueueContent()
+    const queueContent = await readQueueAndPendingContent()
 
     // Truncate file immediately. It's still somewhat possible that another process
     // writes to this file in the meantime...
@@ -57,7 +81,7 @@ async function pullQueueContent(): Promise<string> {
     return queueContent
 }
 
-function parseQueueContent(content: string): IDeployQueueItem[] {
+function parseQueueContent(content: string): DeployChange[] {
     // Parse all lines in file as JSON
     return content
         .split("\n")
@@ -71,7 +95,7 @@ function parseQueueContent(content: string): IDeployQueueItem[] {
         .filter(identity)
 }
 
-function generateCommitMsg(queueItems: IDeployQueueItem[]): string {
+function generateCommitMsg(queueItems: DeployChange[]): string {
     const date: string = new Date().toISOString()
 
     const message: string = queueItems

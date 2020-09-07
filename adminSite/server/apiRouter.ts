@@ -36,7 +36,7 @@ import { log } from "utils/server/log"
 import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSite/client/ChartEditor"
-import { enqueueDeploy } from "deploy/queue"
+import { enqueueDeploy, getDeploys } from "deploy/queue"
 import { FunctionalRouter } from "./utils/FunctionalRouter"
 import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/server"
@@ -1662,6 +1662,12 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
     )
 
     return { source: source }
+})
+
+apiRouter.get("/deploys.json", async () => {
+    return {
+        deploys: await getDeploys()
+    }
 })
 
 addExplorerApiRoutes(apiRouter)
