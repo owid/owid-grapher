@@ -1,6 +1,5 @@
 import { ScaleType } from "grapher/core/GrapherConstants"
-import { extend } from "lodash"
-import { trimObject } from "grapher/utils/Util"
+import { extend, trimObject } from "grapher/utils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import { Persistable } from "grapher/core/Persistable"
