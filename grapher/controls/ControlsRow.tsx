@@ -25,78 +25,88 @@ export class ControlsRow extends React.Component<{
         return this.props.controls.props.chart
     }
 
+    @computed get controlsToRender() {
+        const chart = this.chart
+        const controls: JSX.Element[] = []
+
+        if (chart.tab === "chart") {
+            chart.canAddData &&
+                !chart.hasFloatingAddButton &&
+                !chart.hideEntityControls &&
+                controls.push(
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-note="chart-select-entities"
+                    >
+                        {chart.isScatter || chart.isSlopeChart ? (
+                            <span className="SelectEntitiesButton">
+                                <FontAwesomeIcon icon={faPencilAlt} />
+                                {`Select ${chart.entityTypePlural}`}
+                            </span>
+                        ) : (
+                            <span>
+                                <FontAwesomeIcon icon={faPlus} />{" "}
+                                {chart.addButtonLabel}
+                            </span>
+                        )}
+                    </button>
+                )
+
+            chart.canChangeEntity &&
+                !chart.hideEntityControls &&
+                controls.push(
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        data-track-note="chart-change-entity"
+                    >
+                        <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                        {chart.entityType}
+                    </button>
+                )
+
+            chart.isScatter &&
+                chart.highlightToggle &&
+                controls.push(
+                    <HighlightToggle
+                        chart={chart}
+                        highlightToggle={chart.highlightToggle}
+                    />
+                )
+
+            chart.isStackedArea &&
+                chart.canToggleRelativeMode &&
+                controls.push(<AbsRelToggle chart={chart} />)
+
+            chart.isScatter &&
+                chart.scatterTransform.canToggleRelativeMode &&
+                controls.push(<AbsRelToggle chart={chart} />)
+
+            chart.isScatter &&
+                chart.hasSelection &&
+                controls.push(<ZoomToggle chart={chart.script} />)
+
+            chart.isLineChart &&
+                chart.lineChartTransform.canToggleRelativeMode &&
+                controls.push(<AbsRelToggle chart={chart} />)
+        }
+
+        chart.isScatter &&
+            chart.hasCountriesSmallerThanFilterOption &&
+            controls.push(<FilterSmallCountriesToggle chart={chart} />)
+
+        return controls
+    }
+
     render() {
-        const { chart } = this
         return (
             <div className="controlsRow">
-                {chart.tab === "chart" &&
-                    chart.canAddData &&
-                    !chart.hasFloatingAddButton &&
-                    !chart.hideEntityControls && (
-                        <button
-                            type="button"
-                            onClick={this.onDataSelect}
-                            data-track-note="chart-select-entities"
-                        >
-                            {chart.isScatter || chart.isSlopeChart ? (
-                                <span className="SelectEntitiesButton">
-                                    <FontAwesomeIcon icon={faPencilAlt} />
-                                    {`Select ${chart.entityTypePlural}`}
-                                </span>
-                            ) : (
-                                <span>
-                                    <FontAwesomeIcon icon={faPlus} />{" "}
-                                    {chart.addButtonLabel}
-                                </span>
-                            )}
-                        </button>
-                    )}
-
-                {chart.tab === "chart" &&
-                    chart.canChangeEntity &&
-                    !chart.hideEntityControls && (
-                        <button
-                            type="button"
-                            onClick={this.onDataSelect}
-                            data-track-note="chart-change-entity"
-                        >
-                            <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                            {chart.entityType}
-                        </button>
-                    )}
-
-                {chart.tab === "chart" &&
-                    chart.isScatter &&
-                    chart.highlightToggle && (
-                        <HighlightToggle
-                            chart={chart}
-                            highlightToggle={chart.highlightToggle}
-                        />
-                    )}
-                {chart.tab === "chart" &&
-                    chart.isStackedArea &&
-                    chart.canToggleRelativeMode && (
-                        <AbsRelToggle chart={chart} />
-                    )}
-                {chart.tab === "chart" &&
-                    chart.isScatter &&
-                    chart.scatterTransform.canToggleRelativeMode && (
-                        <AbsRelToggle chart={chart} />
-                    )}
-                {chart.tab === "chart" &&
-                    chart.isScatter &&
-                    chart.hasSelection && <ZoomToggle chart={chart.script} />}
-
-                {(chart.tab === "table" || chart.isScatter) &&
-                    chart.hasCountriesSmallerThanFilterOption && (
-                        <FilterSmallCountriesToggle chart={chart} />
-                    )}
-
-                {chart.tab === "chart" &&
-                    chart.isLineChart &&
-                    chart.lineChartTransform.canToggleRelativeMode && (
-                        <AbsRelToggle chart={chart} />
-                    )}
+                {this.controlsToRender.map(control => (
+                    <span key={control.key} className="control">
+                        {control}
+                    </span>
+                ))}
             </div>
         )
     }
