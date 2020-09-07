@@ -23,48 +23,48 @@ export function getStylesForTargetHeight(
         container,
         dropdownIndicator,
         option,
-        menu
+        menu,
     } = props
     return {
         container: (base: React.CSSProperties) => ({
             ...base,
-            ...container
+            ...container,
         }),
         control: (base: React.CSSProperties) => ({
             ...base,
             minHeight: "initial",
-            ...control
+            ...control,
         }),
         valueContainer: (base: React.CSSProperties) => ({
             ...base,
             height: `${targetHeight - 1 - 1}px`,
             padding: "0 4px",
-            ...valueContainer
+            ...valueContainer,
         }),
         singleValue: (base: React.CSSProperties) => ({
             ...base,
-            ...singleValue
+            ...singleValue,
         }),
         clearIndicator: (base: React.CSSProperties) => ({
             ...base,
             padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
-            ...clearIndicator
+            ...clearIndicator,
         }),
         dropdownIndicator: (base: React.CSSProperties) => ({
             ...base,
             padding: `${(targetHeight - 20 - 1 - 1) / 2}px`,
-            ...dropdownIndicator
+            ...dropdownIndicator,
         }),
         option: (base: React.CSSProperties) => ({
             ...base,
             paddingTop: "5px",
             paddingBottom: "5px",
-            ...option
+            ...option,
         }),
         menu: (base: React.CSSProperties) => ({
             ...base,
             zIndex: 10000,
-            ...menu
-        })
+            ...menu,
+        }),
     }
 }

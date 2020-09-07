@@ -15,7 +15,7 @@ export enum GlobalEntitySelectionModes {
     // be for single-entity charts.
 
     // add = "add",
-    override = "override"
+    override = "override",
 }
 
 export type GlobalEntitySelectionEntity = Country
@@ -33,7 +33,9 @@ export class GlobalEntitySelection {
         // We want to preserve the order, because order matters – the first entity is the "primary"
         // that is used on single-entity charts.
         this.selectedEntities = excludeUndefined(
-            codes.map(code => countries.find(country => country.code === code))
+            codes.map((code) =>
+                countries.find((country) => country.code === code)
+            )
         )
     }
 
@@ -54,7 +56,7 @@ export function subscribeGrapherToGlobalEntitySelection(
         () => [
             grapher.isReady,
             globalSelection.mode,
-            globalSelection.selectedEntities
+            globalSelection.selectedEntities,
         ],
         () => {
             if (!grapher.canAddData && !grapher.canChangeEntity) {
@@ -66,7 +68,7 @@ export function subscribeGrapherToGlobalEntitySelection(
             if (mode === GlobalEntitySelectionModes.override) {
                 if (selectedEntities.length > 0) {
                     grapher.setSelectedEntitiesByCode(
-                        selectedEntities.map(entity => entity.code)
+                        selectedEntities.map((entity) => entity.code)
                     )
                 } else {
                     grapher.resetSelectedEntities()
@@ -98,7 +100,7 @@ class GlobalEntitySelectionUrl implements ObservableUrl {
         // Do not add 'country' param unless at least one country is selected
         if (entities.length > 0) {
             params.country = EntityUrlBuilder.entitiesToQueryParam(
-                entities.map(entity => entity.code)
+                entities.map((entity) => entity.code)
             )
         }
         return params

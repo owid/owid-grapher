@@ -228,7 +228,7 @@ export class ChartEditor {
         if (window.confirm(`Publish chart at ${url}?`)) {
             this.grapher.isPublished = true
             this.saveGrapher({
-                onError: () => (this.grapher.isPublished = undefined)
+                onError: () => (this.grapher.isPublished = undefined),
             })
         }
     }
@@ -241,7 +241,7 @@ export class ChartEditor {
         if (window.confirm(message)) {
             this.grapher.isPublished = undefined
             this.saveGrapher({
-                onError: () => (this.grapher.isPublished = true)
+                onError: () => (this.grapher.isPublished = true),
             })
         }
     }

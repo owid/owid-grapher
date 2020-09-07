@@ -19,7 +19,7 @@ import {
     guid,
     getRelativeMouse,
     makeSafeForCSS,
-    minBy
+    minBy,
 } from "grapher/utils/Util"
 import { Vector2 } from "grapher/utils/Vector2"
 import { select } from "d3-selection"
@@ -143,7 +143,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         backgroundColor: "#fcfcfc",
                         borderBottom: "1px solid #ebebeb",
                         fontWeight: "normal",
-                        fontSize: "1em"
+                        fontSize: "1em",
                     }}
                 >
                     {year}
@@ -152,7 +152,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     style={{
                         margin: 0,
                         padding: "0.3em 0.9em",
-                        fontSize: "0.8em"
+                        fontSize: "0.8em",
                     }}
                 >
                     <span>
@@ -190,7 +190,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const { xAxis, yAxis } = this
         const data = cloneDeep(this.props.data[0])
 
-        const points = data.values.map(v => {
+        const points = data.values.map((v) => {
             const area = 1
             return {
                 position: new Vector2(
@@ -200,7 +200,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 size: Math.sqrt(area / Math.PI),
                 time: v.time,
                 value: v,
-                fontSize: 8
+                fontSize: 8,
             }
         })
 
@@ -210,7 +210,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             color: data.color,
             points: points,
             text: data.label,
-            offsetVector: Vector2.zero
+            offsetVector: Vector2.zero,
         }
     }
 
@@ -236,7 +236,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get labelCandidates() {
-        return this.values.map(v => {
+        return this.values.map((v) => {
             return {
                 text: v.time.y.toString(),
                 fontSize: this.labelFontSize,
@@ -245,9 +245,9 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     x: v.position.x + 3,
                     y: v.position.y - 3,
                     fontSize: this.labelFontSize,
-                    fontFamily: this.labelFontFamily
+                    fontFamily: this.labelFontFamily,
                 }),
-                isHidden: false
+                isHidden: false,
             }
         })
     }
@@ -355,13 +355,13 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 l.bounds = l.bounds.extend({ y: bounds.top })
             } else if (l.bounds.bottom > bounds.bottom + 1) {
                 l.bounds = l.bounds.extend({
-                    y: bounds.bottom - l.bounds.height
+                    y: bounds.bottom - l.bounds.height,
                 })
             }
         }
 
         // Main collision detection
-        const labelsByPriority = sortBy(labels, l => -this.labelPriority(l))
+        const labelsByPriority = sortBy(labels, (l) => -this.labelPriority(l))
         for (let i = 0; i < labelsByPriority.length; i++) {
             const l1 = labelsByPriority[i]
             if (l1.isHidden) continue
@@ -389,7 +389,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const { mousePos } = this
         if (!mousePos) return undefined
 
-        const closestPoint = minBy(this.values, v =>
+        const closestPoint = minBy(this.values, (v) =>
             Vector2.distanceSq(v.position, mousePos)
         )
 
@@ -487,7 +487,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 stroke={this.series.color}
                 points={this.values
                     .map(
-                        v =>
+                        (v) =>
                             `${v.position.x.toFixed(2)},${v.position.y.toFixed(
                                 2
                             )}`
@@ -597,7 +597,7 @@ export class TimeScatter extends React.Component<{
 
     @action.bound onTargetChange({
         targetStartYear,
-        targetEndYear
+        targetEndYear,
     }: {
         targetStartYear: TimeBound
         targetEndYear: TimeBound
@@ -611,7 +611,7 @@ export class TimeScatter extends React.Component<{
         return new DualAxis({
             bounds: this.bounds,
             xAxis,
-            yAxis
+            yAxis,
         })
     }
 

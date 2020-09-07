@@ -18,12 +18,12 @@ import {
     extractFormattingOptions,
     FormattedPost,
     FormattingOptions,
-    formatCountryProfile
+    formatCountryProfile,
 } from "./formatting"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
-    GrapherExports
+    GrapherExports,
 } from "./grapherUtil"
 import * as cheerio from "cheerio"
 import { JsonError } from "utils/server/serverUtil"
@@ -31,7 +31,7 @@ import { Post } from "db/model/Post"
 import { BAKED_BASE_URL, BLOG_POSTS_PER_PAGE } from "settings"
 import {
     EntriesByYearPage,
-    EntriesForYearPage
+    EntriesForYearPage,
 } from "./views/EntriesByYearPage"
 import { VariableCountryPage } from "./views/VariableCountryPage"
 import { FeedbackPage } from "./views/FeedbackPage"
@@ -68,7 +68,7 @@ export async function renderChartsPage() {
         c.tags = []
     }
 
-    const chartsById = lodash.keyBy(chartItems, c => c.id)
+    const chartsById = lodash.keyBy(chartItems, (c) => c.id)
 
     for (const ct of chartTags) {
         const c = chartsById[ct.chartId]
@@ -111,8 +111,8 @@ async function renderPage(postApi: any) {
 
     const grapherUrls = $("iframe")
         .toArray()
-        .filter(el => (el.attribs["src"] || "").match(/\/grapher\//))
-        .map(el => el.attribs["src"].trim())
+        .filter((el) => (el.attribs["src"] || "").match(/\/grapher\//))
+        .map((el) => el.attribs["src"].trim())
 
     // This can be slow if uncached!
     await bakeGrapherUrls(grapherUrls)
@@ -182,7 +182,7 @@ export async function renderNotFoundPage() {
 export async function makeAtomFeed() {
     const postsApi = await wpdb.getPosts(["post"], 10)
     const posts: wpdb.FullPost[] = await Promise.all(
-        postsApi.map(postApi => wpdb.getFullPost(postApi, true))
+        postsApi.map((postApi) => wpdb.getFullPost(postApi, true))
     )
 
     const feed = `<?xml version="1.0" encoding="utf-8"?>
@@ -194,7 +194,7 @@ export async function makeAtomFeed() {
 <link type="application/atom+xml" rel="self" href="${BAKED_BASE_URL}/atom.xml"/>
 <updated>${posts[0].date.toISOString()}</updated>
 ${posts
-    .map(post => {
+    .map((post) => {
         const postUrl = `${BAKED_BASE_URL}/${post.path}`
         const image = post.imageUrl
             ? `<br><br><a href="${postUrl}" target="_blank"><img src="${post.imageUrl}"/></a>`
@@ -329,7 +329,7 @@ export async function renderCountryProfile(
         citationAuthors: landing.authors,
         publicationDate: landing.date,
         canonicalUrl: `${BAKED_BASE_URL}/${profileSpec.rootPath}/${country.slug}`,
-        excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`
+        excerpt: `${country.name}: ${formattedCountryProfile.excerpt}`,
     }
     return renderToHtmlPage(
         <LongFormPage

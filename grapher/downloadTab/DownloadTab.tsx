@@ -55,7 +55,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                     }
 
                     callback(new Blob([arr], { type: type || "image/png" }))
-                }
+                },
             })
         }
 
@@ -67,7 +67,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         grapher.isExporting = false
 
         this.svgBlob = new Blob([staticSVG], {
-            type: "image/svg+xml;charset=utf-8"
+            type: "image/svg+xml;charset=utf-8",
         })
         this.svgBlobUrl = URL.createObjectURL(this.svgBlob)
         const reader = new FileReader()
@@ -82,13 +82,13 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                     canvas.width = targetWidth * 4
                     canvas.height = targetHeight * 4
                     const ctx = canvas.getContext("2d", {
-                        alpha: false
+                        alpha: false,
                     }) as CanvasRenderingContext2D
                     ctx.imageSmoothingEnabled = false
                     ctx.setTransform(4, 0, 0, 4, 0, 0)
                     ctx.drawImage(img, 0, 0)
                     this.pngDataUri = canvas.toDataURL("image/png")
-                    canvas.toBlob(blob => {
+                    canvas.toBlob((blob) => {
                         this.pngBlob = blob as Blob
                         this.pngBlobUrl = URL.createObjectURL(blob)
                         this.markAsReady()
@@ -98,7 +98,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                     this.markAsReady()
                 }
             }
-            img.onerror = err => {
+            img.onerror = (err) => {
                 console.error(JSON.stringify(err))
                 this.markAsReady()
             }
@@ -167,7 +167,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             pngDownloadUrl,
             svgPreviewUrl,
             svgDownloadUrl,
-            baseFilename
+            baseFilename,
         } = this
 
         let previewWidth: number
@@ -189,11 +189,11 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             minHeight: previewHeight,
             maxWidth: previewWidth,
             maxHeight: previewHeight,
-            border: "1px solid #ccc"
+            border: "1px solid #ccc",
         }
 
         const asideStyle = {
-            maxWidth: previewWidth
+            maxWidth: previewWidth,
         }
 
         const externalCsvLink = this.props.grapher.externalCsvLink
@@ -287,7 +287,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return (
             <div
                 className={classNames("DownloadTab", {
-                    mobile: isMobile()
+                    mobile: isMobile(),
                 })}
                 style={{ ...this.props.bounds.toCSS(), position: "absolute" }}
             >

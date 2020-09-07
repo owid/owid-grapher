@@ -178,7 +178,7 @@ export class FeedbackForm extends React.Component<{ onClose?: () => void }> {
         return (
             <form
                 className={classnames("FeedbackForm", {
-                    loading: this.loading
+                    loading: this.loading,
                 })}
                 onSubmit={this.onSubmit}
             >

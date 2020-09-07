@@ -6,7 +6,7 @@ import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 
 export default {
     title: "SwitcherExplorer",
-    component: SwitcherExplorer
+    component: SwitcherExplorer,
 }
 
 export const SwitcherTest = () => {

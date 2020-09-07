@@ -47,7 +47,7 @@ class EmbedMenu extends React.Component<{
                 <p>Paste this into any HTML page:</p>
                 <textarea
                     readOnly={true}
-                    onFocus={evt => evt.currentTarget.select()}
+                    onFocus={(evt) => evt.currentTarget.select()}
                     value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
                 {this.props.grapherView.grapher.embedExplorerCheckbox}
@@ -74,7 +74,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         super(props)
 
         this.state = {
-            copied: false
+            copied: false,
         }
     }
 
@@ -133,7 +133,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         if (this.canonicalUrl && navigator.share) {
             const shareData = {
                 title: this.title,
-                url: this.canonicalUrl
+                url: this.canonicalUrl,
             }
 
             try {

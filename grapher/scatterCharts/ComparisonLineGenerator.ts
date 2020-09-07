@@ -11,7 +11,7 @@ export function generateComparisonLinePoints(
 ) {
     const expr = parseEquation(lineFunction)?.simplify({
         e: Math.E,
-        pi: Math.PI
+        pi: Math.PI,
     })
     const yFunc = (x: number) => evalExpression(expr, { x }, undefined)
 

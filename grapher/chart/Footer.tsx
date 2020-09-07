@@ -99,7 +99,7 @@ export class SourcesFooter {
             maxWidth: maxWidth,
             fontSize: fontSize,
             text: sourcesText,
-            linkifyText: true
+            linkifyText: true,
         })
     }
 
@@ -109,7 +109,7 @@ export class SourcesFooter {
             maxWidth: maxWidth,
             fontSize: fontSize,
             text: noteText,
-            linkifyText: true
+            linkifyText: true,
         })
     }
 
@@ -119,7 +119,7 @@ export class SourcesFooter {
             maxWidth: maxWidth * 3,
             fontSize: fontSize,
             text: licenseSvg,
-            rawHtml: true
+            rawHtml: true,
         })
     }
 
@@ -175,7 +175,7 @@ class SourcesFooterView extends React.Component<{
             maxWidth,
             isCompact,
             paraMargin,
-            onSourcesClick
+            onSourcesClick,
         } = this.props.footer
 
         return (
@@ -239,7 +239,7 @@ export class SourcesFooterHTML extends React.Component<{
                 className="license"
                 style={{
                     fontSize: footer.license.fontSize,
-                    lineHeight: footer.sources.lineHeight
+                    lineHeight: footer.sources.lineHeight,
                 }}
             >
                 {footer.finalUrlText && (
@@ -295,7 +295,7 @@ export class SourcesFooterHTML extends React.Component<{
                             maxWidth: "300px",
                             whiteSpace: "inherit",
                             padding: "10px",
-                            fontSize: "0.8em"
+                            fontSize: "0.8em",
                         }}
                     >
                         <p>

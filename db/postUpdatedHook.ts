@@ -20,7 +20,7 @@ async function main(
         await enqueueDeploy({
             authorName: name,
             authorEmail: email,
-            message: slug ? `Updating ${slug}` : `Deleting ${postSlug}`
+            message: slug ? `Updating ${slug}` : `Deleting ${postSlug}`,
         })
     }
 

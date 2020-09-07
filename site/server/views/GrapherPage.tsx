@@ -53,7 +53,9 @@ export const GrapherPage = (props: {
         }
     `
 
-    const variableIds = lodash.uniq(grapher.dimensions!.map(d => d.variableId))
+    const variableIds = lodash.uniq(
+        grapher.dimensions!.map((d) => d.variableId)
+    )
 
     return (
         <html>
@@ -108,11 +110,11 @@ export const GrapherPage = (props: {
                                     <ul>
                                         {relatedCharts
                                             .filter(
-                                                chartItem =>
+                                                (chartItem) =>
                                                     chartItem.slug !==
                                                     grapher.slug
                                             )
-                                            .map(c => (
+                                            .map((c) => (
                                                 <ChartListItemVariant
                                                     key={c.slug}
                                                     chart={c}

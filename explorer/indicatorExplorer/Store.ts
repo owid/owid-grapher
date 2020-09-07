@@ -40,7 +40,7 @@ export class IndicatorStore {
 
     private async fetchAllIdempotent(): Promise<Indicator[]> {
         if (!this.fetchAllPromise) {
-            this.fetchAllPromise = new Promise(async resolve => {
+            this.fetchAllPromise = new Promise(async (resolve) => {
                 const indicators = await this.fetchAll()
 
                 // Find all IDs which are marked as loading but were not
@@ -50,12 +50,12 @@ export class IndicatorStore {
                 const loadingIds = Object.entries(this.indicatorsById)
                     .filter(([, entry]) => entry.isLoading)
                     .map(([id]) => parseInt(id))
-                const loadedIds = indicators.map(i => i.id)
+                const loadedIds = indicators.map((i) => i.id)
                 const missingIds = difference(loadingIds, loadedIds)
 
                 runInAction(() => {
                     // Update each loaded indicator in place
-                    indicators.forEach(indicator => {
+                    indicators.forEach((indicator) => {
                         const storeEntry = this.get(indicator.id)
                         storeEntry.isLoading = false
                         storeEntry.lastRetrieved = new Date()
@@ -63,7 +63,7 @@ export class IndicatorStore {
                         storeEntry.entity = indicator
                     })
                     // Mark all other indicators as failed
-                    missingIds.forEach(id => {
+                    missingIds.forEach((id) => {
                         const storeEntry = this.get(id)
                         storeEntry.isLoading = false
                         storeEntry.lastRetrieved = undefined
@@ -98,7 +98,7 @@ export class IndicatorStore {
             return indicatorEntries
         }
         const queryLower = query.toLowerCase()
-        return indicatorEntries.filter(entry => {
+        return indicatorEntries.filter((entry) => {
             // Filter out entities that haven't loaded
             if (!entry.entity) return false
             const indicator = entry.entity

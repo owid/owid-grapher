@@ -6,7 +6,7 @@ export function camelToSnake(s: string) {
 }
 
 export function snakeToCamel(s: string) {
-    return s.replace(/(\_\w)/g, m => m[1].toUpperCase())
+    return s.replace(/(\_\w)/g, (m) => m[1].toUpperCase())
 }
 
 export function camelCaseProperties<T>(obj: T): T {

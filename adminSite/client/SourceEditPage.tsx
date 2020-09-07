@@ -31,7 +31,7 @@ class SourceEditable {
         dataPublisherSource: undefined,
         link: undefined,
         retrievedDate: undefined,
-        additionalInfo: undefined
+        additionalInfo: undefined,
     }
 
     constructor(json: SourcePageData) {
@@ -95,7 +95,7 @@ class SourceEditor extends React.Component<{ source: SourcePageData }> {
                 </section>
                 <section>
                     <form
-                        onSubmit={e => {
+                        onSubmit={(e) => {
                             e.preventDefault()
                             this.save()
                         }}

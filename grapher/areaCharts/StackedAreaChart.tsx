@@ -7,7 +7,7 @@ import {
     pointsToPath,
     getRelativeMouse,
     makeSafeForCSS,
-    minBy
+    minBy,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -18,7 +18,7 @@ import { DualAxis } from "grapher/axis/Axis"
 import {
     LineLabelsHelper,
     LineLabel,
-    LineLabelsComponent
+    LineLabelsComponent,
 } from "grapher/lineCharts/LineLabels"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { Tooltip } from "grapher/chart/Tooltip"
@@ -66,7 +66,7 @@ class Areas extends React.Component<AreasProps> {
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
         if (dualAxis.innerBounds.contains(mouse)) {
-            const closestPoint = minBy(data[0].values, d =>
+            const closestPoint = minBy(data[0].values, (d) =>
                 Math.abs(dualAxis.xAxis.place(d.x) - mouse.x)
             )
             if (closestPoint) {
@@ -104,9 +104,9 @@ class Areas extends React.Component<AreasProps> {
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         let prevPoints = [xBottomLeft, xBottomRight]
-        return data.map(series => {
+        return data.map((series) => {
             const mainPoints = series.values.map(
-                v => [xAxis.place(v.x), yAxis.place(v.y)] as [number, number]
+                (v) => [xAxis.place(v.x), yAxis.place(v.y)] as [number, number]
             )
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
             prevPoints = mainPoints
@@ -132,9 +132,9 @@ class Areas extends React.Component<AreasProps> {
         const { xAxis, yAxis } = dualAxis
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
-        return data.map(series => {
+        return data.map((series) => {
             const points = series.values.map(
-                v => [xAxis.place(v.x), yAxis.place(v.y)] as [number, number]
+                (v) => [xAxis.place(v.x), yAxis.place(v.y)] as [number, number]
             )
 
             return (
@@ -187,7 +187,7 @@ class Areas extends React.Component<AreasProps> {
                 {this.borders}
                 {hoverIndex !== undefined && (
                     <g className="hoverIndicator">
-                        {data.map(series => {
+                        {data.map((series) => {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
                                     key={series.entityDimensionKey}
@@ -235,7 +235,7 @@ export class StackedAreaChart extends React.Component<{
 
     @computed get midpoints(): number[] {
         let prevY = 0
-        return this.transform.stackedData.map(series => {
+        return this.transform.stackedData.map((series) => {
             const lastValue = last(series.values)
             if (lastValue) {
                 const middleY = prevY + (lastValue.y - prevY) / 2
@@ -254,7 +254,7 @@ export class StackedAreaChart extends React.Component<{
                 color: d.color,
                 entityDimensionKey: d.entityDimensionKey,
                 label: this.grapher.getLabelForKey(d.entityDimensionKey),
-                yValue: midpoints[i]
+                yValue: midpoints[i],
             }))
             .reverse()
         return items
@@ -273,7 +273,7 @@ export class StackedAreaChart extends React.Component<{
             },
             get items() {
                 return that.legendItems
-            }
+            },
         })
     }
 
@@ -295,7 +295,7 @@ export class StackedAreaChart extends React.Component<{
         return new DualAxis({
             bounds: bounds.padRight(legend ? legend.width : 20),
             xAxis,
-            yAxis
+            yAxis,
         })
     }
 
@@ -332,14 +332,14 @@ export class StackedAreaChart extends React.Component<{
 
         // If some data is missing, don't calculate a total
         const someMissing = transform.stackedData.some(
-            g => !!g.values[hoverIndex].isFake
+            (g) => !!g.values[hoverIndex].isFake
         )
 
         const legendBlockStyle = {
             width: "10px",
             height: "10px",
             display: "inline-block",
-            marginRight: "2px"
+            marginRight: "2px",
         }
 
         return (
@@ -362,7 +362,7 @@ export class StackedAreaChart extends React.Component<{
                             </td>
                             <td></td>
                         </tr>
-                        {reverse(clone(transform.stackedData)).map(series => {
+                        {reverse(clone(transform.stackedData)).map((series) => {
                             const value = series.values[hoverIndex]
                             const isBlur = this.seriesIsBlur(series)
                             const textColor = isBlur ? "#ddd" : "#333"
@@ -377,13 +377,13 @@ export class StackedAreaChart extends React.Component<{
                                     <td
                                         style={{
                                             paddingRight: "0.8em",
-                                            fontSize: "0.9em"
+                                            fontSize: "0.9em",
                                         }}
                                     >
                                         <div
                                             style={{
                                                 ...legendBlockStyle,
-                                                backgroundColor: blockColor
+                                                backgroundColor: blockColor,
                                             }}
                                         />{" "}
                                         {grapher.getLabelForKey(
@@ -407,7 +407,7 @@ export class StackedAreaChart extends React.Component<{
                                     <div
                                         style={{
                                             ...legendBlockStyle,
-                                            backgroundColor: "transparent"
+                                            backgroundColor: "transparent",
                                         }}
                                     />{" "}
                                     <strong>Total</strong>

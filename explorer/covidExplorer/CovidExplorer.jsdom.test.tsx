@@ -10,7 +10,7 @@ import { defaultTo } from "grapher/utils/Util"
 
 const dummyMeta = {
     charts: {},
-    variables: {}
+    variables: {},
 }
 
 describe(CovidExplorer, () => {
@@ -63,7 +63,7 @@ class ExplorerDataTableTest {
             .find("thead tr")
             .first()
             .find("th span.name")
-            .map(tableHeader => tableHeader.text())
+            .map((tableHeader) => tableHeader.text())
     }
 
     bodyRow(index: number) {
@@ -71,7 +71,7 @@ class ExplorerDataTableTest {
             .find("tbody tr")
             .at(index)
             .find("td")
-            .map(td => td.text())
+            .map((td) => td.text())
     }
 }
 
@@ -92,7 +92,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
             "Tests",
             "Tests per confirmed case",
             "Case fatality rate",
-            "Share of positive tests"
+            "Share of positive tests",
         ])
     })
 
@@ -103,7 +103,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
         "May 5 7.54 million",
         "May 5 6",
         "5.9",
-        "May 5 0.2"
+        "May 5 0.2",
     ]
 
     it("renders correct table rows", () => {
@@ -123,14 +123,14 @@ describe("When you try to create a multimetric Data Explorer", () => {
             expect(dataTableTester.headers).toEqual([
                 "Confirmed cases",
                 "Confirmed deaths",
-                "Tests per confirmed case"
+                "Tests per confirmed case",
             ])
         })
     })
 
     describe("It doesn't change when", () => {
         it("explorer metrics change", () => {
-            MetricOptions.forEach(metric => {
+            MetricOptions.forEach((metric) => {
                 const params = ExplorerDataTableTest.defaultParams
                 params.setMetric(metric)
                 const dataTableTester = new ExplorerDataTableTest(params)
@@ -159,7 +159,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
                 "May 5 3.77 million",
                 "May 5 6",
                 "5.9",
-                "May 5 0.2"
+                "May 5 0.2",
             ])
         })
 
@@ -179,7 +179,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
                     "May 5 258,954",
                     "May 5 6",
                     "5.9",
-                    "May 5 0.2"
+                    "May 5 0.2",
                 ])
             })
 
@@ -197,7 +197,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
                     "May 5 7.54 million",
                     "May 5 6",
                     "5.9",
-                    "May 5 0.2"
+                    "May 5 0.2",
                 ])
             })
         })

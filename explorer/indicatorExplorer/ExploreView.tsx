@@ -31,7 +31,7 @@ const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
     { type: ChartType.StackedBar, label: "Stacked", icon: faChartBar },
     { type: ChartType.DiscreteBar, label: "Bar", icon: faChartBar },
     { type: ChartType.SlopeChart, label: "Slope", icon: faChartLine },
-    { type: ExploreModel.WorldMap, label: "Map", icon: faMap }
+    { type: ExploreModel.WorldMap, label: "Map", icon: faMap },
 ]
 
 // This component was modeled after GrapherView.
@@ -52,7 +52,7 @@ interface ExploreProps {
 export class ExploreView extends React.Component<ExploreProps> {
     static bootstrap({
         containerNode,
-        queryStr
+        queryStr,
     }: {
         containerNode: HTMLElement
         queryStr?: string
@@ -86,7 +86,7 @@ export class ExploreView extends React.Component<ExploreProps> {
 
     get childContext() {
         return {
-            store: this.model.store
+            store: this.model.store,
         }
     }
 
@@ -110,7 +110,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     renderChartTypes() {
         return (
             <div className="chart-type-buttons">
-                {CHART_TYPE_BUTTONS.map(button =>
+                {CHART_TYPE_BUTTONS.map((button) =>
                     this.renderChartTypeButton(button)
                 )}
             </div>
@@ -122,7 +122,7 @@ export class ExploreView extends React.Component<ExploreProps> {
             <div className="indicator-bar">
                 <IndicatorDropdown
                     placeholder="Select variable"
-                    onChangeId={id => (this.model.indicatorId = id)}
+                    onChangeId={(id) => (this.model.indicatorId = id)}
                     indicatorEntry={this.model.indicatorEntry}
                 />
             </div>

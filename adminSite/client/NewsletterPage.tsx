@@ -87,7 +87,7 @@ export class NewsletterPage extends React.Component {
         for (const post of this.posts) {
             searchIndex.push({
                 post: post,
-                term: fuzzysort.prepare(post.title)
+                term: fuzzysort.prepare(post.title),
             })
         }
 
@@ -99,7 +99,7 @@ export class NewsletterPage extends React.Component {
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
-                key: "term"
+                key: "term",
             })
             return lodash.uniq(results.map((result: any) => result.obj.post))
         } else {
@@ -157,7 +157,7 @@ export class NewsletterPage extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {postsToShow.map(post => (
+                            {postsToShow.map((post) => (
                                 <PostRow
                                     key={post.id}
                                     post={post}

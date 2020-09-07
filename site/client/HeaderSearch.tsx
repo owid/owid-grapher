@@ -55,7 +55,7 @@ export class HeaderSearch extends React.Component<{ autoFocus?: boolean }> {
                 <input
                     type="search"
                     name="q"
-                    onChange={e => this.onSearch(e)}
+                    onChange={(e) => this.onSearch(e)}
                     placeholder="Search..."
                     autoFocus={this.props.autoFocus}
                 />

@@ -13,7 +13,7 @@ import {
     IReactionDisposer,
     observe,
     Lambda,
-    reaction
+    reaction,
 } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
@@ -27,13 +27,13 @@ import {
     next,
     previous,
     startCase,
-    flatten
+    flatten,
 } from "grapher/utils/Util"
 import {
     ControlOption,
     ExplorerControlPanel,
     DropdownOption,
-    ExplorerControlBar
+    ExplorerControlBar,
 } from "explorer/client/ExplorerControls"
 import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
 import { CountryPicker } from "grapher/controls/CountryPicker"
@@ -44,7 +44,7 @@ import {
     CovidExplorerTable,
     fetchCovidChartAndVariableMeta,
     buildColumnSlug,
-    perCapitaDivisorByMetric
+    perCapitaDivisorByMetric,
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -60,17 +60,17 @@ import {
     metricPickerColumnSpecs,
     covidCsvColumnSlug,
     intervalSpecs,
-    intervalsAvailableByMetric
+    intervalsAvailableByMetric,
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ColorScheme,
     ColorSchemes,
-    continentColors
+    continentColors,
 } from "grapher/color/ColorSchemes"
 import {
     GlobalEntitySelection,
-    GlobalEntitySelectionModes
+    GlobalEntitySelectionModes,
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
@@ -79,7 +79,7 @@ import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import {
     ChartDimensionSpec,
     ChartDimension,
-    ChartDimensionInterface
+    ChartDimensionInterface,
 } from "grapher/chart/ChartDimension"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import { UrlBinder } from "grapher/utils/UrlBinder"
@@ -115,7 +115,7 @@ export class CovidExplorer extends React.Component<{
         const [typedData, updated, covidMeta] = await Promise.all([
             fetchAndParseData(),
             fetchLastUpdatedTime(),
-            fetchCovidChartAndVariableMeta()
+            fetchCovidChartAndVariableMeta(),
         ])
         const queryStr =
             props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
@@ -159,7 +159,7 @@ export class CovidExplorer extends React.Component<{
         )
         return CovidExplorer.bootstrap({
             ...props,
-            queryStr
+            queryStr,
         })
     }
 
@@ -175,7 +175,7 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound selectAllCommand() {
         const codeMap = this.grapher.table.entityNameToCodeMap
-        this.grapher.table.availableEntities.forEach(option =>
+        this.grapher.table.availableEntities.forEach((option) =>
             this.props.params.selectedCountryCodes.add(codeMap.get(option)!)
         )
         this.selectionChangeFromBuilder = true
@@ -188,21 +188,21 @@ export class CovidExplorer extends React.Component<{
                 available: true,
                 label: metricLabels.cases,
                 checked: this.constrainedParams.casesMetric,
-                value: "cases"
+                value: "cases",
             },
             {
                 available: true,
                 label: metricLabels.deaths,
                 checked: this.constrainedParams.deathsMetric,
-                value: "deaths"
+                value: "deaths",
             },
 
             {
                 available: true,
                 label: metricLabels.case_fatality_rate,
                 checked: this.constrainedParams.cfrMetric,
-                value: "case_fatality_rate"
-            }
+                value: "case_fatality_rate",
+            },
         ]
 
         const optionsColumn2: ControlOption[] = [
@@ -210,20 +210,20 @@ export class CovidExplorer extends React.Component<{
                 available: true,
                 label: metricLabels.tests,
                 checked: this.constrainedParams.testsMetric,
-                value: "tests"
+                value: "tests",
             },
             {
                 available: true,
                 label: metricLabels.tests_per_case,
                 checked: this.constrainedParams.testsPerCaseMetric,
-                value: "tests_per_case"
+                value: "tests_per_case",
             },
             {
                 available: true,
                 label: metricLabels.positive_test_rate,
                 checked: this.constrainedParams.positiveTestRate,
-                value: "positive_test_rate"
-            }
+                value: "positive_test_rate",
+            },
         ]
         return (
             <>
@@ -260,38 +260,38 @@ export class CovidExplorer extends React.Component<{
             {
                 available: true,
                 label: intervalSpecs.total.label,
-                value: "total"
+                value: "total",
             },
             {
                 available: available.smoothed,
                 label: intervalSpecs.smoothed.label,
-                value: "smoothed"
+                value: "smoothed",
             },
             {
                 available: available.daily,
                 label: intervalSpecs.daily.label,
-                value: "daily"
+                value: "daily",
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.weekly.label,
-                value: "weekly"
+                value: "weekly",
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.weeklyChange.label,
-                value: "weeklyChange"
+                value: "weeklyChange",
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.biweekly.label,
-                value: "biweekly"
+                value: "biweekly",
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.biweeklyChange.label,
-                value: "biweeklyChange"
-            }
+                value: "biweeklyChange",
+            },
         ]
         return (
             <ExplorerControlPanel
@@ -320,8 +320,8 @@ export class CovidExplorer extends React.Component<{
                 available: available.perCapita,
                 label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
                 checked: this.constrainedParams.perCapita,
-                value: "true"
-            }
+                value: "true",
+            },
         ]
         return (
             <ExplorerControlPanel
@@ -330,7 +330,7 @@ export class CovidExplorer extends React.Component<{
                 isCheckbox={true}
                 options={options}
                 explorerSlug="covid"
-                onChange={value => {
+                onChange={(value) => {
                     this.props.params.perCapita = value === "true"
                     this.renderControlsThenUpdateChart()
                 }}
@@ -345,8 +345,8 @@ export class CovidExplorer extends React.Component<{
                 available: available.aligned,
                 label: "Align outbreaks",
                 checked: this.constrainedParams.aligned,
-                value: "true"
-            }
+                value: "true",
+            },
         ]
         return (
             <ExplorerControlPanel
@@ -354,7 +354,7 @@ export class CovidExplorer extends React.Component<{
                 name={this.getScopedName("timeline")}
                 isCheckbox={true}
                 options={options}
-                onChange={value => {
+                onChange={(value) => {
                     this.props.params.aligned = value === "true"
                     this.renderControlsThenUpdateChart()
                 }}
@@ -460,7 +460,7 @@ export class CovidExplorer extends React.Component<{
 
     @computed get activeColumnSlugs(): string[] {
         return [this.xColumn?.slug, this.yColumn?.slug].filter(
-            i => i
+            (i) => i
         ) as string[]
     }
 
@@ -517,7 +517,7 @@ export class CovidExplorer extends React.Component<{
                         CovidExplorer: true,
                         "mobile-explorer": this.isMobile,
                         HideControls: !this.showExplorerControls,
-                        "is-embed": this.props.isEmbed
+                        "is-embed": this.props.isEmbed,
                     })}
                 >
                     {this.showExplorerControls && this.header}
@@ -568,7 +568,7 @@ export class CovidExplorer extends React.Component<{
 
     @computed get selectedCountryOptions(): string[] {
         const codeMap = this.grapher.table.entityNameToCodeMap
-        return this.grapher.table.availableEntities.filter(option =>
+        return this.grapher.table.availableEntities.filter((option) =>
             this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
         )
     }
@@ -581,7 +581,7 @@ export class CovidExplorer extends React.Component<{
         return {
             1: "",
             1e3: "per 1,000 people",
-            1e6: "per million people"
+            1e6: "per million people",
         }
     }
 
@@ -662,15 +662,15 @@ export class CovidExplorer extends React.Component<{
         const countryCodeMap = this.grapher.table.entityCodeToNameMap
         const entityIdMap = this.grapher.table.entityNameToIdMap
         return Array.from(this.props.params.selectedCountryCodes)
-            .map(code => countryCodeMap.get(code))
-            .filter(i => i)
-            .map(countryOption => {
+            .map((code) => countryCodeMap.get(code))
+            .filter((i) => i)
+            .map((countryOption) => {
                 return {
                     index: 0,
                     entityId: countryOption
                         ? entityIdMap.get(countryOption)!
                         : 0,
-                    color: this.countryNameToColorMap[countryOption!]
+                    color: this.countryNameToColorMap[countryOption!],
                 }
             })
     }
@@ -682,22 +682,22 @@ export class CovidExplorer extends React.Component<{
     @computed get countryNameToColorMap(): {
         [key: string]: string | undefined
     } {
-        const names = this.selectedCountryOptions.map(country => country)
+        const names = this.selectedCountryOptions.map((country) => country)
         // If there isn't a color for every country name, we need to update the color map
-        if (!names.every(name => name in this._countryNameToColorMapCache)) {
+        if (!names.every((name) => name in this._countryNameToColorMapCache)) {
             // Omit any unselected country names from color map
             const newColorMap = pick(this._countryNameToColorMapCache, names)
             // Check for name *key* existence, not value.
             // `undefined` value means we want the color to be automatic, determined by the chart.
             const namesWithoutColor = names.filter(
-                name => !(name in newColorMap)
+                (name) => !(name in newColorMap)
             )
             // For names that don't have a color, assign one.
-            namesWithoutColor.forEach(name => {
+            namesWithoutColor.forEach((name) => {
                 const scheme = ColorSchemes["owid-distinct"] as ColorScheme
                 const availableColors = lastOfNonEmptyArray(scheme.colorSets)
                 const usedColors = Object.values(newColorMap).filter(
-                    color => color !== undefined
+                    (color) => color !== undefined
                 ) as string[]
                 newColorMap[name] = getLeastUsedColor(
                     availableColors,
@@ -740,8 +740,8 @@ export class CovidExplorer extends React.Component<{
     @computed get selectedEntityNames(): string[] {
         const entityCodeMap = this.grapher.table.entityCodeToNameMap
         return Array.from(this.props.params.selectedCountryCodes.values())
-            .map(code => entityCodeMap.get(code))
-            .filter(i => i) as string[]
+            .map((code) => entityCodeMap.get(code))
+            .filter((i) => i) as string[]
     }
 
     @computed get canDoLogScale() {
@@ -800,7 +800,7 @@ export class CovidExplorer extends React.Component<{
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
-            spec => new ChartDimensionSpec(spec)
+            (spec) => new ChartDimensionSpec(spec)
         )
 
         // multimetric table
@@ -882,7 +882,7 @@ export class CovidExplorer extends React.Component<{
         ;(window as any).covidDataExplorer = this
 
         if (this.props.enableKeyboardShortcuts)
-            this.keyboardShortcuts.forEach(shortcut => {
+            this.keyboardShortcuts.forEach((shortcut) => {
                 Mousetrap.bind(shortcut.combo, () => {
                     shortcut.fn()
                     this.grapher.analytics.logKeyboardShortcut(
@@ -901,7 +901,7 @@ export class CovidExplorer extends React.Component<{
         this.grapher.yAxis.scaleType = ScaleType.log
         this.grapher.timeDomain = [
             TimeBoundValue.unboundedLeft,
-            TimeBoundValue.unboundedRight
+            TimeBoundValue.unboundedRight,
         ]
         this.props.params.setParamsFromQueryString(coronaDefaultView)
         this.renderControlsThenUpdateChart()
@@ -925,31 +925,31 @@ export class CovidExplorer extends React.Component<{
                 combo: "h",
                 fn: () => this.playDefaultViewCommand(),
                 title: "Default view",
-                category: "Browse"
+                category: "Browse",
             },
             {
                 combo: "right",
                 fn: () => this.playIndexCommand(++this.currentIndex),
                 title: "Next view",
-                category: "Browse"
+                category: "Browse",
             },
             {
                 combo: "left",
                 fn: () => this.playIndexCommand(--this.currentIndex),
                 title: "Previous view",
-                category: "Browse"
+                category: "Browse",
             },
             {
                 combo: "t",
                 fn: () => this.toggleTabCommand(),
                 title: "Toggle tab",
-                category: "Navigation"
+                category: "Navigation",
             },
             {
                 combo: "?",
                 fn: () => this.toggleKeyboardHelpCommand(),
                 title: "Toggle Help",
-                category: "Navigation"
+                category: "Navigation",
             },
             {
                 combo: "a",
@@ -958,38 +958,38 @@ export class CovidExplorer extends React.Component<{
                         ? this.clearSelectionCommand()
                         : this.selectAllCommand(),
                 title: "Select/Deselect all",
-                category: "Selection"
+                category: "Selection",
             },
             {
                 combo: "f",
                 fn: () => this.toggleFilterAllCommand(),
                 title: "Hide unselected",
-                category: "Selection"
+                category: "Selection",
             },
             {
                 combo: "c",
                 fn: () => this.toggleColorStrategyCommand(),
                 title: "Change line colors",
-                category: "Chart"
+                category: "Chart",
             },
             {
                 combo: "l",
                 fn: () => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
-                category: "Chart"
+                category: "Chart",
             },
             {
                 combo: "z",
                 fn: () => this.toggleTimelineCommand(),
                 title: "Latest/Earliest/All period",
-                category: "Timeline"
+                category: "Timeline",
             },
             {
                 combo: "p",
                 fn: () => this.togglePlayingCommand(),
                 title: "Play/Pause",
-                category: "Timeline"
-            }
+                category: "Timeline",
+            },
         ]
     }
 
@@ -1061,7 +1061,7 @@ export class CovidExplorer extends React.Component<{
     // todo: remove
     private observeChartEntitySelection() {
         this.disposers.push(
-            observe(this.grapher, "selectedEntityCodes", change => {
+            observe(this.grapher, "selectedEntityCodes", (change) => {
                 // Ignore the change if it was triggered by the chart builder,
                 // but do not ignore subsequent changes.
                 if (this.selectionChangeFromBuilder) {
@@ -1079,8 +1079,10 @@ export class CovidExplorer extends React.Component<{
                 // but which may be selected in the explorer.
                 const added = difference(newCodes, oldCodes)
                 const removed = difference(oldCodes, newCodes)
-                added.forEach(code => this.toggleSelectedCountry(code, true))
-                removed.forEach(code => this.toggleSelectedCountry(code, false))
+                added.forEach((code) => this.toggleSelectedCountry(code, true))
+                removed.forEach((code) =>
+                    this.toggleSelectedCountry(code, false)
+                )
                 // Trigger an update in order to apply color changes
                 this._updateChart()
             })
@@ -1094,13 +1096,13 @@ export class CovidExplorer extends React.Component<{
                 reaction(
                     () => [
                         globalEntitySelection.mode,
-                        globalEntitySelection.selectedEntities
+                        globalEntitySelection.selectedEntities,
                     ],
                     () => {
                         const { mode, selectedEntities } = globalEntitySelection
                         if (mode === GlobalEntitySelectionModes.override) {
                             this.props.params.selectedCountryCodes = new Set(
-                                selectedEntities.map(entity => entity.code)
+                                selectedEntities.map((entity) => entity.code)
                             )
                             this.renderControlsThenUpdateChart()
                         }
@@ -1120,7 +1122,7 @@ export class CovidExplorer extends React.Component<{
     disposers: (IReactionDisposer | Lambda)[] = []
 
     @bind dispose() {
-        this.disposers.forEach(dispose => dispose())
+        this.disposers.forEach((dispose) => dispose())
     }
 
     @computed private get yColumn() {
@@ -1174,17 +1176,17 @@ export class CovidExplorer extends React.Component<{
                     (interval === "weeklyChange" ||
                         interval === "biweeklyChange") &&
                     "%",
-                tableDisplay: column?.display.tableDisplay
-            }
+                tableDisplay: column?.display.tableDisplay,
+            },
         } as ChartDimensionInterface
     }
 
     @computed private get dataTableOnlyDimensions(): ChartDimensionInterface[] {
         const params = this.constrainedParams
         return flatten(
-            params.tableMetrics?.map(metric => {
+            params.tableMetrics?.map((metric) => {
                 const specs = [
-                    this._buildDataTableOnlyDimensionSpec(metric, "total")
+                    this._buildDataTableOnlyDimensionSpec(metric, "total"),
                 ]
 
                 if (
@@ -1212,7 +1214,7 @@ export class CovidExplorer extends React.Component<{
 
         const dataTableParams = new CovidConstrainedQueryParams("")
 
-        params.tableMetrics?.forEach(metric => {
+        params.tableMetrics?.forEach((metric) => {
             dataTableParams.setMetric(metric)
             dataTableParams.interval = "total"
             dataTableParams.smoothing = 0
@@ -1262,8 +1264,8 @@ export class CovidExplorer extends React.Component<{
                 tolerance: 1,
                 unit,
                 name: this.chartTitle,
-                tableDisplay: yColumn.display.tableDisplay
-            }
+                tableDisplay: yColumn.display.tableDisplay,
+            },
         }
     }
 
@@ -1274,8 +1276,8 @@ export class CovidExplorer extends React.Component<{
             variableId: xColumn.spec.owidVariableId!,
             display: {
                 name: xColumn.spec.name,
-                tableDisplay: xColumn.display.tableDisplay
-            }
+                tableDisplay: xColumn.display.tableDisplay,
+            },
         }
     }
 
@@ -1294,7 +1296,7 @@ export class CovidExplorer extends React.Component<{
     @computed private get sizeDimension(): ChartDimensionInterface {
         return {
             property: "size",
-            variableId: this.sizeColumn!.spec.owidVariableId!
+            variableId: this.sizeColumn!.spec.owidVariableId!,
         }
     }
 
@@ -1309,8 +1311,8 @@ export class CovidExplorer extends React.Component<{
             property: "color",
             variableId,
             display: {
-                tolerance: 10
-            }
+                tolerance: 10,
+            },
         }
     }
 
@@ -1329,9 +1331,9 @@ export class CovidExplorer extends React.Component<{
                 customNumericColors: [],
                 customCategoryColors: continentColors,
                 customCategoryLabels: {
-                    "No data": "Other"
+                    "No data": "Other",
                 },
-                customHiddenCategories: {}
+                customHiddenCategories: {},
             },
             none: {
                 binningStrategy: BinningStrategy.manual,
@@ -1342,10 +1344,10 @@ export class CovidExplorer extends React.Component<{
                 customNumericColors: [],
                 customCategoryColors: continentColors,
                 customCategoryLabels: {
-                    "No data": ""
+                    "No data": "",
                 },
-                customHiddenCategories: {}
-            }
+                customHiddenCategories: {},
+            },
         }
     }
 
@@ -1360,8 +1362,8 @@ export class CovidExplorer extends React.Component<{
                 customNumericColors: [],
                 customCategoryColors: {},
                 customCategoryLabels: {},
-                customHiddenCategories: {}
-            }
+                customHiddenCategories: {},
+            },
         }
     }
 
@@ -1383,14 +1385,14 @@ export class CovidExplorer extends React.Component<{
             note: this.note,
             hideTitleAnnotation: true,
             xAxis: {
-                scaleType: ScaleType.linear
+                scaleType: ScaleType.linear,
             },
             yAxis: {
                 min: 0,
                 removePointsOutsideDomain: true,
                 scaleType: ScaleType.linear,
                 canChangeScaleType: true,
-                label: this.yAxisLabel
+                label: this.yAxisLabel,
             },
             selectedData: [],
             dimensions: [],
@@ -1406,11 +1408,11 @@ export class CovidExplorer extends React.Component<{
             isPublished: true,
             map: this.defaultMapConfig as any,
             data: {
-                availableEntities: []
-            }
+                availableEntities: [],
+            },
         },
         {
-            queryStr: this.props.queryStr
+            queryStr: this.props.queryStr,
         }
     )
 }

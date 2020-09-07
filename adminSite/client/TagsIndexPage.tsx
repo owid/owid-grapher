@@ -31,7 +31,7 @@ class AddTagModal extends React.Component<{
 
         return {
             parentId: this.props.parentId,
-            name: this.tagName
+            name: this.tagName,
         }
     }
 
@@ -56,7 +56,7 @@ class AddTagModal extends React.Component<{
         return (
             <Modal onClose={this.props.onClose}>
                 <form
-                    onSubmit={e => {
+                    onSubmit={(e) => {
                         e.preventDefault()
                         this.submit()
                     }}
@@ -99,7 +99,7 @@ export class TagsIndexPage extends React.Component {
     @observable addTagParentId?: number
 
     @computed get categoriesById(): lodash.Dictionary<TagListItem> {
-        return lodash.keyBy(this.tags, t => t.id)
+        return lodash.keyBy(this.tags, (t) => t.id)
     }
 
     @computed get parentCategories(): {
@@ -109,12 +109,12 @@ export class TagsIndexPage extends React.Component {
         children: TagListItem[]
     }[] {
         const parentCategories = this.tags
-            .filter(c => !c.parentId)
-            .map(c => ({
+            .filter((c) => !c.parentId)
+            .map((c) => ({
                 id: c.id,
                 name: c.name,
                 specialType: c.specialType,
-                children: this.tags.filter(c2 => c2.parentId === c.id)
+                children: this.tags.filter((c2) => c2.parentId === c.id),
             }))
 
         return parentCategories
@@ -142,7 +142,7 @@ export class TagsIndexPage extends React.Component {
                     <div className="cardHolder">
                         <section>
                             <h4>Top-Level Categories</h4>
-                            {parentCategories.map(parent => (
+                            {parentCategories.map((parent) => (
                                 <TagBadge key={parent.id} tag={parent as Tag} />
                             ))}
                             <button
@@ -152,7 +152,7 @@ export class TagsIndexPage extends React.Component {
                                 + New Tag
                             </button>
                         </section>
-                        {parentCategories.map(parent => (
+                        {parentCategories.map((parent) => (
                             <section key={`${parent.id}-section`}>
                                 <h4>{parent.name}</h4>
                                 {parent.specialType === "systemParent" && (
@@ -161,7 +161,7 @@ export class TagsIndexPage extends React.Component {
                                         assigned automatically.
                                     </p>
                                 )}
-                                {parent.children.map(tag => (
+                                {parent.children.map((tag) => (
                                     <TagBadge key={tag.id} tag={tag as Tag} />
                                 ))}
                                 <button

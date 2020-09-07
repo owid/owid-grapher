@@ -26,14 +26,14 @@ const getPreviousHeading = (
     previousHeadings: Array<{ slug: string; previous: string | null }>
 ) => {
     return previousHeadings.find(
-        heading => heading.slug === nextHeadingRecord?.target.id
+        (heading) => heading.slug === nextHeadingRecord?.target.id
     )?.previous
 }
 
 export const TableOfContents = ({
     headings,
     pageTitle,
-    hideSubheadings
+    hideSubheadings,
 }: TableOfContentsData) => {
     const [isToggled, setIsToggled] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
@@ -52,7 +52,7 @@ export const TableOfContents = ({
             // Sets up an intersection observer to notify when the element with the class
             // `.sticky-sentinel` becomes visible/invisible at the top of the viewport.
             // Inspired by https://developers.google.com/web/updates/2017/09/sticky-headers
-            const observer = new IntersectionObserver(records => {
+            const observer = new IntersectionObserver((records) => {
                 for (const record of records) {
                     const targetInfo = record.boundingClientRect
                     // Started sticking
@@ -75,19 +75,19 @@ export const TableOfContents = ({
         if ("IntersectionObserver" in window) {
             const previousHeadings = headings.map((heading, i) => ({
                 slug: heading.slug,
-                previous: i > 0 ? headings[i - 1].slug : null
+                previous: i > 0 ? headings[i - 1].slug : null,
             }))
 
             let currentHeadingRecord: IntersectionObserverEntry | undefined
             let init = true
 
             const observer = new IntersectionObserver(
-                records => {
+                (records) => {
                     let nextHeadingRecord: IntersectionObserverEntry | undefined
 
                     // Target headings going down
                     currentHeadingRecord = records.find(
-                        record =>
+                        (record) =>
                             // filter out records no longer intersecting (triggering on exit)
                             record.isIntersecting &&
                             // filter out records fully in the page (upcoming section)
@@ -101,7 +101,7 @@ export const TableOfContents = ({
                     } else {
                         // Target headings going up
                         nextHeadingRecord = records.find(
-                            record =>
+                            (record) =>
                                 isRecordTopViewport(record) &&
                                 record.intersectionRatio === 1
                         )
@@ -116,7 +116,8 @@ export const TableOfContents = ({
                             currentHeadingRecord = records
                                 .reverse()
                                 .find(
-                                    record => record.boundingClientRect.top < 0
+                                    (record) =>
+                                        record.boundingClientRect.top < 0
                                 )
                             setActiveHeading(
                                 currentHeadingRecord?.target.id || ""
@@ -127,7 +128,7 @@ export const TableOfContents = ({
                 },
                 {
                     rootMargin: "-10px", // 10px offset to trigger intersection when landing exactly at the border when clicking an anchor
-                    threshold: new Array(11).fill(0).map((v, i) => i / 10)
+                    threshold: new Array(11).fill(0).map((v, i) => i / 10),
                 }
             )
 
@@ -137,7 +138,7 @@ export const TableOfContents = ({
             } else {
                 contentHeadings = document.querySelectorAll("h2, h3")
             }
-            contentHeadings.forEach(contentHeading => {
+            contentHeadings.forEach((contentHeading) => {
                 observer.observe(contentHeading)
             })
         }
@@ -165,7 +166,7 @@ export const TableOfContents = ({
                         </a>
                     </li>
                     {headings
-                        .filter(heading =>
+                        .filter((heading) =>
                             hideSubheadings && heading.isSubheading
                                 ? false
                                 : true

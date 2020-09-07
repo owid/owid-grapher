@@ -2,7 +2,7 @@ import {
     OwidVariable,
     OwidVariableDisplaySettings,
     EntityMeta,
-    OwidVariablesAndEntityKey
+    OwidVariablesAndEntityKey,
 } from "./OwidVariable"
 import {
     slugifySameCase,
@@ -19,7 +19,7 @@ import {
     parseDelimited,
     intersectionOfSets,
     formatValue,
-    anyToString
+    anyToString,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -64,10 +64,10 @@ const computeRollingAveragesForEachGroup = (
             const averages = computeRollingAverage(
                 insertMissingValuePlaceholders(
                     currentRows.map(valueAccessor),
-                    currentRows.map(row => row[dateColName])
+                    currentRows.map((row) => row[dateColName])
                 ),
                 rollingAverage
-            ).filter(value => value !== null) as number[]
+            ).filter((value) => value !== null) as number[]
             groups.push(averages)
             if (!row) break
             currentRows = []
@@ -81,7 +81,7 @@ const computeRollingAveragesForEachGroup = (
 enum OwidRequiredColumns {
     entityName = "entityName",
     entityCode = "entityCode",
-    entityId = "entityId"
+    entityId = "entityId",
 }
 
 // This is a row with the additional columns specific to our OWID data model
@@ -188,7 +188,7 @@ export abstract class AbstractColumn {
     private mapBy(columnSlug: columnSlug) {
         const map = new Map<any, Set<any>>()
         const slug = this.slug
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             const value = row[slug]
             // For now the behavior is to not overwrite an existing value with a falsey one
             if (value === undefined || value === "") return
@@ -225,7 +225,7 @@ export abstract class AbstractColumn {
     // todo: is the isString necessary?
     @computed get sortedUniqNonEmptyStringVals(): string[] {
         return Array.from(
-            new Set(this.values.filter(isString).filter(i => i))
+            new Set(this.values.filter(isString).filter((i) => i))
         ).sort()
     }
 
@@ -235,7 +235,7 @@ export abstract class AbstractColumn {
 
     // todo: remove
     @computed get entityNames() {
-        return this.rows.map(row => row.entityName)
+        return this.rows.map((row) => row.entityName)
     }
 
     // todo: remove
@@ -250,25 +250,25 @@ export abstract class AbstractColumn {
 
     // todo: remove
     @computed get years() {
-        return this.rows.map(row => (row.year ?? row.day)!)
+        return this.rows.map((row) => (row.year ?? row.day)!)
     }
 
     // Rows containing a value for this column
     @computed get rows() {
         const slug = this.spec.slug
         return this.table.unfilteredRows.filter(
-            row => row[slug] !== undefined && row[slug] !== ""
+            (row) => row[slug] !== undefined && row[slug] !== ""
         )
     }
 
     @computed get values() {
         const slug = this.spec.slug
-        return this.rows.map(row => row[slug])
+        return this.rows.map((row) => row[slug])
     }
 
     @computed get latestValuesMap() {
         const map = new Map<EntityName, any>()
-        this.rows.forEach(row => map.set(row.entityName, row[this.slug]))
+        this.rows.forEach((row) => map.set(row.entityName, row[this.slug]))
         return map
     }
 
@@ -292,7 +292,7 @@ class IntegerColumn extends NumericColumn {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
             numberPrefixes: true,
-            shortNumberPrefixes: true
+            shortNumberPrefixes: true,
         })
     }
 }
@@ -303,7 +303,7 @@ class CurrencyColumn extends NumericColumn {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
             numberPrefixes: false,
-            unit: "$"
+            unit: "$",
         })
     }
 }
@@ -315,7 +315,7 @@ class PercentageColumn extends NumericColumn {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
             numberPrefixes: false,
-            unit: "%"
+            unit: "%",
         })
     }
 }
@@ -327,7 +327,7 @@ class DecimalPercentageColumn extends NumericColumn {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
             numberPrefixes: false,
-            unit: "%"
+            unit: "%",
         })
     }
 }
@@ -338,7 +338,7 @@ class PopulationDensityColumn extends NumericColumn {
         return formatValue(value, {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
-            numberPrefixes: false
+            numberPrefixes: false,
         })
     }
 }
@@ -348,7 +348,7 @@ class AgeColumn extends NumericColumn {
         return formatValue(value, {
             numDecimalPlaces: 1,
             noTrailingZeroes: false,
-            numberPrefixes: false
+            numberPrefixes: false,
         })
     }
 }
@@ -358,7 +358,7 @@ class RatioColumn extends NumericColumn {
         return formatValue(value, {
             numDecimalPlaces: 1,
             noTrailingZeroes: false,
-            numberPrefixes: true
+            numberPrefixes: true,
         })
     }
 }
@@ -376,7 +376,7 @@ const columnTypeMap: { [key in columnTypes]: any } = {
     Population: PopulationColumn,
     PopulationDensity: PopulationDensityColumn,
     Age: AgeColumn,
-    Ratio: RatioColumn
+    Ratio: RatioColumn,
 }
 // Todo: Add DayColumn, YearColumn, EntityColumn, etc?
 
@@ -416,14 +416,14 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     addSpecs(columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[]) {
         if (Array.isArray(columnSpecs))
-            columnSpecs = new Map(columnSpecs.map(spec => [spec.slug, spec]))
+            columnSpecs = new Map(columnSpecs.map((spec) => [spec.slug, spec]))
         else if (!(columnSpecs instanceof Map))
             columnSpecs = new Map(
                 Object.entries(columnSpecs as ColumnSpecObject)
             )
         const specs = columnSpecs as ColumnSpecs
         const cols = this.columns
-        Array.from(specs.keys()).forEach(slug => {
+        Array.from(specs.keys()).forEach((slug) => {
             const spec = specs.get(slug)!
             const columnType =
                 (spec.type && columnTypeMap[spec.type]) || AnyColumn
@@ -435,8 +435,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     static makeSpecsFromRows(rows: any[]): ColumnSpecs {
         const map = new Map()
         // Todo: type detection
-        rows.forEach(row => {
-            Object.keys(row).forEach(key => {
+        rows.forEach((row) => {
+            Object.keys(row).forEach((key) => {
                 map.set(key, { slug: key })
             })
         })
@@ -444,7 +444,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     }
 
     @action.bound deleteColumnBySlug(slug: columnSlug) {
-        this.rows.forEach(row => delete row[slug])
+        this.rows.forEach((row) => delete row[slug])
         this.columns.delete(slug)
     }
 
@@ -497,7 +497,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         groupBy: columnSlug,
         multiplier = 1,
         intervalChange?: number,
-        transformation: (fn: RowToValueMapper) => RowToValueMapper = fn => (
+        transformation: (fn: RowToValueMapper) => RowToValueMapper = (fn) => (
             row,
             index
         ) => fn(row, index)
@@ -522,7 +522,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         this._addComputedColumn(
             new NumericColumn(this, {
                 ...spec,
-                fn: transformation(computeIntervalTotals)
+                fn: transformation(computeIntervalTotals),
             })
         )
     }
@@ -533,7 +533,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed get columnsByName() {
         const map = new Map<string, AbstractColumn>()
-        this.columns.forEach(col => {
+        this.columns.forEach((col) => {
             map.set(col.name, col)
         })
         return map
@@ -545,14 +545,14 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed get numericColumnSlugs() {
         return this.columnsAsArray
-            .filter(col => col instanceof NumericColumn)
-            .map(col => col.slug)
+            .filter((col) => col instanceof NumericColumn)
+            .map((col) => col.slug)
     }
 
     @computed get isSelectedFn() {
         const selectionColumnSlugs = this.selectionColumnSlugs
         return selectionColumnSlugs.length
-            ? (row: Row) => selectionColumnSlugs.some(slug => row[slug])
+            ? (row: Row) => selectionColumnSlugs.some((slug) => row[slug])
             : undefined
     }
 
@@ -562,19 +562,19 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed get selectedRows() {
         const isSelectedFn = this.isSelectedFn
-        return isSelectedFn ? this.rows.filter(row => isSelectedFn(row)) : []
+        return isSelectedFn ? this.rows.filter((row) => isSelectedFn(row)) : []
     }
 
     // Currently only used for debugging
     get filteredRows() {
         const unfiltered = new Set(this.unfilteredRows)
-        return this.rows.filter(row => !unfiltered.has(row))
+        return this.rows.filter((row) => !unfiltered.has(row))
     }
 
     @computed get unfilteredRows() {
         const filterFn = this.combinedFilterFn
         const res = this.filterColumnSlugs.length
-            ? this.rows.filter(row => filterFn(row))
+            ? this.rows.filter((row) => filterFn(row))
             : this.rows
 
         return res
@@ -583,7 +583,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     @computed private get combinedFilterFn() {
         const filterSlugs = this.filterColumnSlugs
         const filterFns = filterSlugs.map(
-            slug =>
+            (slug) =>
                 (this.columnsBySlug.get(slug)!.spec as ComputedColumnSpec).fn
         )
         return (row: Row) => {
@@ -596,14 +596,14 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed private get filterColumnSlugs() {
         return this.columnsAsArray
-            .filter(col => col instanceof FilterColumn)
-            .map(col => col.slug)
+            .filter((col) => col instanceof FilterColumn)
+            .map((col) => col.slug)
     }
 
     @computed private get selectionColumnSlugs() {
         return this.columnsAsArray
-            .filter(col => col instanceof SelectionColumn)
-            .map(col => col.slug)
+            .filter((col) => col instanceof SelectionColumn)
+            .map((col) => col.slug)
     }
 
     @computed get columnsAsArray() {
@@ -613,23 +613,23 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     // for debugging
     rowsWith(query: string) {
         const slugs = this.columnSlugs
-        return this.rows.filter(row =>
+        return this.rows.filter((row) =>
             slugs
-                .map(slug => slug + " " + (row[slug] ?? ""))
+                .map((slug) => slug + " " + (row[slug] ?? ""))
                 .join(" ")
                 .includes(query)
         )
     }
 
     extract(slugs = this.columnSlugs) {
-        return this.rows.map(row => slugs.map(slug => row[slug] ?? ""))
+        return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
     }
 
     toDelimited(slugs = this.columnSlugs, rowLimit?: number, delimiter = ",") {
         const header = slugs.join(delimiter) + "\n"
         const body = this.extract(slugs)
             .slice(0, rowLimit)
-            .map(row => row.join(delimiter))
+            .map((row) => row.join(delimiter))
             .join("\n")
         return header + body
     }
@@ -647,16 +647,16 @@ export class BasicTable extends AbstractTable<Row> {
     }
 
     private static standardizeSlugs(rows: Row[]) {
-        const colSpecs = Object.keys(rows[0]).map(name => {
+        const colSpecs = Object.keys(rows[0]).map((name) => {
             return {
                 name,
-                slug: slugifySameCase(name)
+                slug: slugifySameCase(name),
             }
         })
-        const colsToRename = colSpecs.filter(col => col.name !== col.slug)
+        const colsToRename = colSpecs.filter((col) => col.name !== col.slug)
         if (colsToRename.length) {
             rows.forEach((row: Row) => {
-                colsToRename.forEach(col => {
+                colsToRename.forEach((col) => {
                     row[col.slug] = row[col.name]
                     delete row[col.name]
                 })
@@ -671,7 +671,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
         const missingColumns: string[] = []
-        Object.keys(OwidRequiredColumns).forEach(slug => {
+        Object.keys(OwidRequiredColumns).forEach((slug) => {
             if (!colSlugs.includes(slug)) missingColumns.push(slug)
         })
         if (missingColumns.length)
@@ -697,17 +697,17 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     @computed get availableEntitiesSet() {
-        return new Set(this.rows.map(row => row.entityName))
+        return new Set(this.rows.map((row) => row.entityName))
     }
 
     @computed get unfilteredEntities() {
-        return new Set(this.unfilteredRows.map(row => row.entityName))
+        return new Set(this.unfilteredRows.map((row) => row.entityName))
     }
 
     // todo: can we remove at some point?
     @computed get entityIdToNameMap() {
         const map = new Map<EntityId, EntityName>()
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             map.set(row.entityId, row.entityName)
         })
         return map
@@ -716,7 +716,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     // todo: can we remove at some point?
     @computed get entityCodeToNameMap() {
         const map = new Map<EntityCode, EntityName>()
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             if (row.entityCode) map.set(row.entityCode, row.entityName)
             else map.set(row.entityName, row.entityName)
         })
@@ -726,7 +726,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     // todo: can we remove at some point?
     @computed get entityNameToIdMap() {
         const map = new Map<EntityName, number>()
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             map.set(row.entityName, row.entityId)
         })
         return map
@@ -735,7 +735,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     // todo: can we remove at some point?
     @computed get entityNameToCodeMap() {
         const map = new Map<EntityName, EntityCode>()
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             map.set(row.entityName, row.entityCode)
         })
         return map
@@ -743,7 +743,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     @computed get entityIndex() {
         const map = new Map<EntityName, OwidRow[]>()
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
             map.get(row.entityName)!.push(row)
         })
@@ -759,7 +759,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     @computed get allYears() {
-        return this.rows.filter(row => row.year).map(row => row.year!)
+        return this.rows.filter((row) => row.year).map((row) => row.year!)
     }
 
     @computed get hasDayColumn() {
@@ -772,7 +772,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     @computed get rowsByEntityName() {
         const map = new Map<EntityName, OwidRow[]>()
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             const name = row.entityName
             if (!map.has(name)) map.set(name, [])
             map.get(name)!.push(row)
@@ -784,7 +784,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     @action.bound setSelectedEntities(entityNames: EntityName[]) {
         this.initDefaultEntitySelectionColumn()
         const set = new Set(entityNames)
-        this.rows.forEach(row => {
+        this.rows.forEach((row) => {
             row[this.defaultEntitySelectionSlug] = set.has(row.entityName)
         })
         return this
@@ -796,7 +796,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             this.columns.set(
                 this.defaultEntitySelectionSlug,
                 new SelectionColumn(this, {
-                    slug: this.defaultEntitySelectionSlug
+                    slug: this.defaultEntitySelectionSlug,
                 })
             )
     }
@@ -806,20 +806,20 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
         this.rowsByEntityName
             .get(entityName)
-            ?.forEach(row => (row[this.defaultEntitySelectionSlug] = true))
+            ?.forEach((row) => (row[this.defaultEntitySelectionSlug] = true))
         return this
     }
 
     @action.bound deselectEntity(entityName: EntityName) {
         this.rowsByEntityName
             .get(entityName)
-            ?.forEach(row => delete row[this.defaultEntitySelectionSlug])
+            ?.forEach((row) => delete row[this.defaultEntitySelectionSlug])
         return this
     }
 
     specToObject() {
         const output: any = {}
-        Array.from(this.columns.values()).forEach(col => {
+        Array.from(this.columns.values()).forEach((col) => {
             output[col.slug] = col.spec
         })
         return output
@@ -828,7 +828,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     toJs() {
         return {
             columns: this.specToObject(),
-            rows: this.rows
+            rows: this.rows,
         }
     }
 
@@ -839,7 +839,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
         return intersectionOfSets<string>(
             columnSlugs.map(
-                slug => this.columnsBySlug.get(slug)!.entityNamesUniq
+                (slug) => this.columnsBySlug.get(slug)!.entityNamesUniq
             )
         )
     }
@@ -848,7 +848,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         // Todo: let's delete this and switch to traditional columns
         const entityAnnotationsMap = new Map<string, string>()
         const delimiter = ":"
-        annotations.split("\n").forEach(line => {
+        annotations.split("\n").forEach((line) => {
             const [key, ...words] = line.split(delimiter)
             entityAnnotationsMap.set(key.trim(), words.join(delimiter).trim())
         })
@@ -871,7 +871,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             datasetId,
             datasetName,
             source,
-            display
+            display,
         } = variable
 
         return {
@@ -887,7 +887,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             display,
             source,
             owidVariableId: variable.id,
-            type: "Numeric"
+            type: "Numeric",
         }
     }
 
@@ -897,22 +897,22 @@ export class OwidTable extends AbstractTable<OwidRow> {
         const columnSpecs: Map<columnSlug, ColumnSpec> = new Map()
         columnSpecs.set("entityName", {
             slug: "entityName",
-            type: "Categorical"
+            type: "Categorical",
         })
         columnSpecs.set("entityId", { slug: "entityId", type: "Categorical" })
         columnSpecs.set("entityCode", {
             slug: "entityCode",
-            type: "Categorical"
+            type: "Categorical",
         })
 
         for (const key in json.variables) {
             const variable = new OwidVariable(json.variables[key])
 
             const entityNames = variable.entities.map(
-                id => entityMetaById[id].name
+                (id) => entityMetaById[id].name
             )
             const entityCodes = variable.entities.map(
-                id => entityMetaById[id].code
+                (id) => entityMetaById[id].code
             )
 
             const columnSpec = this.columnSpecFromLegacyVariable(variable)
@@ -934,7 +934,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
                 )
                 columnSpecs.set(annotationsColumnSlug, {
                     slug: annotationsColumnSlug,
-                    type: "String"
+                    type: "String",
                 })
                 columnSpec.annotationsColumnSlug = annotationsColumnSlug
             }
@@ -960,7 +960,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
                     [columnSlug]: value,
                     entityName,
                     entityId: variable.entities[index],
-                    entityCode: entityCodes[index]
+                    entityCode: entityCodes[index],
                 }
                 if (annotationsColumnSlug)
                     row[annotationsColumnSlug] = annotationMap.get(entityName)
@@ -968,13 +968,13 @@ export class OwidTable extends AbstractTable<OwidRow> {
             })
             rows = rows.concat(newRows)
         }
-        const groupMap = groupBy(rows, row => {
+        const groupMap = groupBy(rows, (row) => {
             const timePart =
                 row.year !== undefined ? `year:` + row.year : `day:` + row.day
             return timePart + " " + row.entityName
         })
 
-        const joinedRows: OwidRow[] = Object.keys(groupMap).map(groupKey =>
+        const joinedRows: OwidRow[] = Object.keys(groupMap).map((groupKey) =>
             Object.assign({}, ...groupMap[groupKey])
         )
 
@@ -990,6 +990,6 @@ export class OwidTable extends AbstractTable<OwidRow> {
         // In order to correctly join variables with different `zeroDay`s in a single chart, we
         // normalize all days to be in reference to a single epoch date.
         const diff = diffDateISOStringInDays(zeroDay, EPOCH_DATE)
-        return years.map(y => y + diff)
+        return years.map((y) => y + diff)
     }
 }

@@ -4,7 +4,7 @@ import { FeedbackPrompt } from "./Feedback"
 import {
     NewsletterSubscription,
     NewsletterSubscriptionForm,
-    NewsletterSubscriptionContext
+    NewsletterSubscriptionContext,
 } from "./NewsletterSubscription"
 
 const SiteTools = () => {

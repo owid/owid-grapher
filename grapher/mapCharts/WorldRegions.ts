@@ -286,7 +286,7 @@ const worldRegionByEntity: Record<string, WorldRegion> = {
     Zambia: "Africa",
     Zanzibar: "Africa",
     Zimbabwe: "Africa",
-    "Åland Islands": "Europe"
+    "Åland Islands": "Europe",
 }
 
 export const worldRegionByMapEntity: { [key: string]: WorldRegion } = {}
@@ -297,7 +297,7 @@ for (const entity in worldRegionByEntity) {
 
 export const worldRegions: WorldRegion[] = [
     "World",
-    ...uniq(values(worldRegionByMapEntity))
+    ...uniq(values(worldRegionByMapEntity)),
 ]
 
 export const labelsByRegion: Record<WorldRegion, string> = {
@@ -307,5 +307,5 @@ export const labelsByRegion: Record<WorldRegion, string> = {
     SouthAmerica: "South America",
     Asia: "Asia",
     Europe: "Europe",
-    Oceania: "Oceania"
+    Oceania: "Oceania",
 }

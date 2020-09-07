@@ -18,13 +18,13 @@ export const testRateExcludeList = new Set([
     "Peru",
     "Ecuador",
     "Brazil",
-    "Costa Rica"
+    "Costa Rica",
 ])
 
 export const covidPreloads = [
     covidDataPath,
     covidChartAndVariableMetaPath,
-    covidLastUpdatedPath
+    covidLastUpdatedPath,
 ]
 
 export declare type SmoothingOption = 0 | 3 | 7 | 14
@@ -45,7 +45,7 @@ export const intervalOptions: IntervalOption[] = [
     "smoothed",
     "biweekly",
     "weeklyChange",
-    "biweeklyChange"
+    "biweeklyChange",
 ]
 
 export interface IntervalSpec {
@@ -60,7 +60,7 @@ export const intervalSpecs: { [key in IntervalOption]: IntervalSpec } = {
     smoothed: { label: "7-day rolling average", smoothing: 7 },
     biweekly: { label: "Biweekly", smoothing: 14 },
     weeklyChange: { label: "Weekly change", smoothing: 7 },
-    biweeklyChange: { label: "Biweekly Change", smoothing: 14 }
+    biweeklyChange: { label: "Biweekly Change", smoothing: 14 },
 }
 
 export declare type colorScaleOption = "continents" | "ptr" | "none"
@@ -79,7 +79,7 @@ export const MetricOptions: MetricKind[] = [
     "tests",
     "case_fatality_rate",
     "tests_per_case",
-    "positive_test_rate"
+    "positive_test_rate",
 ]
 
 export const sourceCharts = {
@@ -110,7 +110,7 @@ export const sourceCharts = {
     positive_test_rate_total: 4198,
     positive_test_rate_daily: 4198,
 
-    case_fatality_rate_total: 4056
+    case_fatality_rate_total: 4056,
 }
 
 export const sourceVariables = {
@@ -121,7 +121,7 @@ export const sourceVariables = {
     deaths: 142583,
     tests: 142601,
     days_since: 142712,
-    continents: 123
+    continents: 123,
 }
 
 export const trajectoryColumnSpecs = {
@@ -129,37 +129,37 @@ export const trajectoryColumnSpecs = {
         total: {
             name: "Days since the 5th total confirmed death",
             threshold: 5,
-            owidVariableId: 4561
+            owidVariableId: 4561,
         },
         daily: {
             name: "Days since 5 daily new deaths first reported",
             threshold: 5,
-            owidVariableId: 4562
+            owidVariableId: 4562,
         },
         perCapita: {
             name: "Days since total confirmed deaths reached 0.1 per million",
             threshold: 0.1,
-            owidVariableId: 4563
-        }
+            owidVariableId: 4563,
+        },
     },
     cases: {
         total: {
             name: "Days since the 100th confirmed case",
             threshold: 100,
-            owidVariableId: 4564
+            owidVariableId: 4564,
         },
         daily: {
             name: "Days since confirmed cases first reached 30 per day",
             threshold: 30,
-            owidVariableId: 4565
+            owidVariableId: 4565,
         },
         perCapita: {
             name:
                 "Days since the total confirmed cases per million people reached 1",
             threshold: 1,
-            owidVariableId: 4566
-        }
-    }
+            owidVariableId: 4566,
+        },
+    },
 }
 
 export const metricLabels: { [key in MetricKind]: string } = {
@@ -168,7 +168,7 @@ export const metricLabels: { [key in MetricKind]: string } = {
     tests: "Tests",
     case_fatality_rate: "Case fatality rate",
     tests_per_case: "Tests per confirmed case",
-    positive_test_rate: "Share of positive tests"
+    positive_test_rate: "Share of positive tests",
 }
 
 export const intervalsAvailableByMetric: Map<
@@ -180,7 +180,7 @@ export const intervalsAvailableByMetric: Map<
     ["tests", new Set(["total", "smoothed", "daily"])],
     ["case_fatality_rate", new Set(["total"])],
     ["tests_per_case", new Set(["total", "smoothed"])],
-    ["positive_test_rate", new Set(["total", "smoothed"])]
+    ["positive_test_rate", new Set(["total", "smoothed"])],
 ])
 
 // todo: auto import from covid repo.
@@ -266,38 +266,38 @@ export const metricPickerColumnSpecs: Partial<Record<
     population_density: {
         slug: "population_density",
         name: "Population density (people per km²)",
-        type: "PopulationDensity"
+        type: "PopulationDensity",
     },
     median_age: { slug: "median_age", name: "Median age", type: "Age" },
     aged_65_older: {
         slug: "aged_65_older",
         name: "Share aged 65+",
-        type: "Percentage"
+        type: "Percentage",
     },
     aged_70_older: {
         slug: "aged_70_older",
         name: "Share aged 70+",
-        type: "Percentage"
+        type: "Percentage",
     },
     gdp_per_capita: {
         slug: "gdp_per_capita",
         name: "GDP per capita (int.-$)",
-        type: "Currency"
+        type: "Currency",
     },
     extreme_poverty: {
         slug: "extreme_poverty",
         name: "Population in extreme poverty",
-        type: "Percentage"
+        type: "Percentage",
     },
     hospital_beds_per_thousand: {
         slug: "hospital_beds_per_thousand",
         name: "Hospital beds (per 1000)",
-        type: "Ratio"
+        type: "Ratio",
     },
     stringency_index: {
         slug: "stringency_index",
         name: "Stringency Index",
-        type: "Numeric"
+        type: "Numeric",
     },
     life_expectancy: { name: "Life expectancy", type: "Age" },
     total_deaths: { name: "Total deaths", type: "Integer" },
@@ -311,7 +311,7 @@ export const metricPickerColumnSpecs: Partial<Record<
     total_deaths_per_million: { name: "Total deaths (per 1M)", type: "Ratio" },
     total_cases_per_million: { name: "Total cases (per 1M)", type: "Ratio" },
     new_deaths_per_million: { name: "New deaths (per 1M)", type: "Ratio" },
-    new_cases_per_million: { name: "New cases (per 1M)", type: "Ratio" }
+    new_cases_per_million: { name: "New cases (per 1M)", type: "Ratio" },
 }
 // The ID of the Wordpress reusable block to show below the COVID explorer
 export const covidWpBlockId = 36313

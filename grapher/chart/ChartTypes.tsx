@@ -13,7 +13,7 @@ export const ChartTypeMap = {
     StackedBarChart,
     DiscreteBarChart,
     ScatterPlot,
-    TimeScatter
+    TimeScatter,
 }
 
 export type ChartTypeName = keyof typeof ChartTypeMap

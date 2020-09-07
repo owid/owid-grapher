@@ -5,7 +5,7 @@ import {
     fetchText,
     retryPromise,
     memoize,
-    parseIntOrUndefined
+    parseIntOrUndefined,
 } from "grapher/utils/Util"
 
 import { CovidSeries } from "./CovidTypes"
@@ -13,14 +13,14 @@ import { ECDC_DATA_URL, TESTS_DATA_URL } from "./CovidConstants"
 
 async function _fetchECDCData(): Promise<CovidSeries> {
     const responseText = await retryPromise(() => fetchText(ECDC_DATA_URL))
-    const rows: CovidSeries = csvParse(responseText).map(row => {
+    const rows: CovidSeries = csvParse(responseText).map((row) => {
         return {
             date: new Date(row.date as string),
             location: row.location as string,
             totalCases: parseIntOrUndefined(row.total_cases),
             totalDeaths: parseIntOrUndefined(row.total_deaths),
             newCases: parseIntOrUndefined(row.new_cases),
-            newDeaths: parseIntOrUndefined(row.new_deaths)
+            newDeaths: parseIntOrUndefined(row.new_deaths),
         }
     })
     return rows
@@ -58,7 +58,7 @@ export interface CovidTestsDatum {
 
 export async function fetchTestsData(): Promise<CovidSeries> {
     const responseText = await retryPromise(() => fetchText(TESTS_DATA_URL))
-    const rows: CovidSeries = csvParse(responseText).map(row => {
+    const rows: CovidSeries = csvParse(responseText).map((row) => {
         return {
             date: moment(
                 row["Date to which estimate refers (dd mmm yyyy)"] as string,
@@ -83,8 +83,8 @@ export async function fetchTestsData(): Promise<CovidSeries> {
                 nonOfficial:
                     parseIntOrUndefined(
                         row["Non-official / Non-verifiable (=1)"]
-                    ) === 1
-            }
+                    ) === 1,
+            },
         }
     })
     return rows

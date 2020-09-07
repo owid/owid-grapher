@@ -28,7 +28,7 @@ describe(IndicatorStore, () => {
             expect(store.get(indicator.id))
         })
 
-        it("updates placeholder value with indicator", done => {
+        it("updates placeholder value with indicator", (done) => {
             const entry = store.get(indicator.id)
             const dispose = observe(entry, "entity", () => {
                 expect(entry.isLoading).toBe(false)
@@ -40,7 +40,7 @@ describe(IndicatorStore, () => {
             })
         })
 
-        it("updates placeholder with error", done => {
+        it("updates placeholder with error", (done) => {
             const entry = store.get(123123123)
             const dispose = observe(entry, "error", () => {
                 expect(entry.isLoading).toBe(false)
@@ -70,7 +70,7 @@ describe(IndicatorStore, () => {
 
         it("returns no indicators for non-matching query", async () => {
             const results = await store.search({
-                query: "a thing that probably shouldn't exist"
+                query: "a thing that probably shouldn't exist",
             })
             expect(results).toHaveLength(0)
         })

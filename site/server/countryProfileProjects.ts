@@ -1,7 +1,7 @@
 enum CountryProfileProject {
     coronavirus = "coronavirus",
     co2 = "co2",
-    energy = "energy"
+    energy = "energy",
 }
 
 export const countryProfileDefaultCountryPlaceholder =
@@ -22,26 +22,26 @@ const countryProfileProjectConfigurations: CountryProfileProjectConfiguration[] 
     {
         project: CountryProfileProject.coronavirus,
         pageTitle: "Coronavirus Pandemic",
-        landingPageSlug: "coronavirus"
+        landingPageSlug: "coronavirus",
     },
     {
         project: CountryProfileProject.co2,
         pageTitle: "CO2",
-        landingPageSlug: "co2-and-other-greenhouse-gas-emissions"
+        landingPageSlug: "co2-and-other-greenhouse-gas-emissions",
     },
     {
         project: CountryProfileProject.energy,
         pageTitle: "Energy",
-        landingPageSlug: "energy"
-    }
+        landingPageSlug: "energy",
+    },
 ]
 
 export const countryProfileSpecs: CountryProfileSpec[] = countryProfileProjectConfigurations.map(
-    config => {
+    (config) => {
         return {
             ...config,
             rootPath: `${config.project}/country`,
-            genericProfileSlug: `${config.project}-country-profile`
+            genericProfileSlug: `${config.project}-country-profile`,
         }
     }
 )

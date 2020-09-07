@@ -26,12 +26,12 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderCountryProfile,
-    flushCache as siteBakingFlushCache
+    flushCache as siteBakingFlushCache,
 } from "./siteBaking"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,
-    GrapherExports
+    GrapherExports,
 } from "./grapherUtil"
 import { makeSitemap } from "./sitemap"
 
@@ -48,14 +48,14 @@ import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
 import {
     covidDashboardSlug,
-    covidChartAndVariableMetaFilename
+    covidChartAndVariableMetaFilename,
 } from "explorer/covidExplorer/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirects } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import {
     bakeAllPublishedExplorers,
-    renderCovidExplorerPage
+    renderCovidExplorerPage,
 } from "explorer/admin/ExplorerBaker"
 import { renderExplorableIndicatorsJson } from "explorer/indicatorExplorer/IndicatorBaking"
 
@@ -109,10 +109,10 @@ export class SiteBaker {
             "/grapher/public/* /grapher/:splat 301",
             "/grapher/view/* /grapher/:splat 301",
 
-            "/slides/* https://slides.ourworldindata.org/:splat 301"
+            "/slides/* https://slides.ourworldindata.org/:splat 301",
         ]
 
-        getCountryDetectionRedirects().forEach(redirect =>
+        getCountryDetectionRedirects().forEach((redirect) =>
             redirects.push(redirect)
         )
 
@@ -122,7 +122,7 @@ export class SiteBaker {
         )
         redirects.push(
             ...rows.map(
-                row =>
+                (row) =>
                     `${row.url.replace(/__/g, "/")} ${row.action_data.replace(
                         /__/g,
                         "/"
@@ -170,10 +170,10 @@ export class SiteBaker {
             grapherUrls.push(
                 ...$("iframe")
                     .toArray()
-                    .filter(el =>
+                    .filter((el) =>
                         (el.attribs["src"] || "").match(/\/grapher\//)
                     )
-                    .map(el => el.attribs["src"].trim())
+                    .map((el) => el.attribs["src"].trim())
             )
         }
         grapherUrls = lodash.uniq(grapherUrls)
@@ -184,7 +184,7 @@ export class SiteBaker {
     }
 
     async bakeCountryProfiles() {
-        countryProfileSpecs.forEach(async spec => {
+        countryProfileSpecs.forEach(async (spec) => {
             // Delete all country profiles before regenerating them
             await fs.remove(`${BAKED_SITE_DIR}/${spec.rootPath}`)
 
@@ -241,11 +241,11 @@ export class SiteBaker {
     private getPostSlugsToRemove(postSlugsFromDb: string[]) {
         const existingSlugs = glob
             .sync(`${BAKED_SITE_DIR}/**/*.html`)
-            .map(path =>
+            .map((path) =>
                 path.replace(`${BAKED_SITE_DIR}/`, "").replace(".html", "")
             )
             .filter(
-                path =>
+                (path) =>
                     !path.startsWith("uploads") &&
                     !path.startsWith("grapher") &&
                     !path.startsWith("countries") &&
@@ -255,7 +255,7 @@ export class SiteBaker {
                     !path.startsWith("entries-by-year") &&
                     !path.startsWith("explore") &&
                     !path.startsWith(covidDashboardSlug) &&
-                    !countryProfileSpecs.some(spec =>
+                    !countryProfileSpecs.some((spec) =>
                         path.startsWith(spec.rootPath)
                     ) &&
                     path !== "donate" &&
@@ -373,7 +373,7 @@ export class SiteBaker {
             .select(db.raw("distinct year(published_at) as year"))
             .orderBy("year", "DESC")) as { year: number }[]
 
-        const years = rows.map(r => r.year)
+        const years = rows.map((r) => r.year)
 
         for (const year of years) {
             await this.stageWrite(
@@ -458,7 +458,7 @@ export class SiteBaker {
         await this.bakeGrapherPage(grapher)
 
         const variableIds = lodash.uniq(
-            grapher.dimensions?.map(d => d.variableId)
+            grapher.dimensions?.map((d) => d.variableId)
         )
         if (!variableIds.length) return
 
@@ -525,7 +525,7 @@ export class SiteBaker {
         // Delete any that are missing from the database
         const oldSlugs = glob
             .sync(`${BAKED_SITE_DIR}/grapher/*.html`)
-            .map(slug =>
+            .map((slug) =>
                 slug
                     .replace(`${BAKED_SITE_DIR}/grapher/`, "")
                     .replace(".html", "")
@@ -536,10 +536,10 @@ export class SiteBaker {
             try {
                 const paths = [
                     `${BAKED_SITE_DIR}/grapher/${slug}.html`,
-                    `${BAKED_SITE_DIR}/grapher/exports/${slug}.png`
+                    `${BAKED_SITE_DIR}/grapher/exports/${slug}.png`,
                 ] //, `${BAKED_SITE_DIR}/grapher/exports/${slug}.svg`]
-                await Promise.all(paths.map(p => fs.unlink(p)))
-                paths.map(p => this.stage(p))
+                await Promise.all(paths.map((p) => fs.unlink(p)))
+                paths.map((p) => this.stage(p))
             } catch (err) {
                 console.error(err)
             }
@@ -553,7 +553,7 @@ export class SiteBaker {
             const { slugs, explorerQueryStr } = chartExplorerRedirect
             const html = await renderCovidExplorerPage({ explorerQueryStr })
             await Promise.all(
-                slugs.map(slug =>
+                slugs.map((slug) =>
                     this.stageWrite(
                         `${BAKED_SITE_DIR}/grapher/${slug}.html`,
                         html

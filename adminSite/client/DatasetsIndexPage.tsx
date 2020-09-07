@@ -32,14 +32,14 @@ export class DatasetsIndexPage extends React.Component {
                 term: fuzzysort.prepare(
                     dataset.name +
                         " " +
-                        dataset.tags.map(t => t.name).join(" ") +
+                        dataset.tags.map((t) => t.name).join(" ") +
                         " " +
                         dataset.namespace +
                         " " +
                         dataset.dataEditedByUserName +
                         " " +
                         dataset.description
-                )
+                ),
             })
         }
 
@@ -51,7 +51,7 @@ export class DatasetsIndexPage extends React.Component {
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
-                key: "term"
+                key: "term",
             })
             return lodash.uniq(results.map((result: any) => result.obj.dataset))
         } else {
@@ -60,7 +60,7 @@ export class DatasetsIndexPage extends React.Component {
     }
 
     @computed get namespaces() {
-        return lodash.uniq(this.datasets.map(d => d.namespace))
+        return lodash.uniq(this.datasets.map((d) => d.namespace))
     }
 
     @computed get numTotalRows(): number {

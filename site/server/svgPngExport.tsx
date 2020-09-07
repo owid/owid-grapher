@@ -15,8 +15,8 @@ const svgoConfig: svgo.Options = {
         { collapseGroups: false }, // breaks the "Our World in Data" logo in the upper right
         { removeUnknownsAndDefaults: false }, // would remove hrefs from links (<a>)
         { removeViewBox: false },
-        { removeXMLNS: false }
-    ]
+        { removeXMLNS: false },
+    ],
 }
 
 const svgoInstance = new svgo(svgoConfig)
@@ -58,6 +58,6 @@ export async function bakeImageExports(
             .png()
             .resize(chart.idealBounds.width, chart.idealBounds.height)
             .flatten({ background: "#ffffff" })
-            .toFile(`${outPath}.png`)
+            .toFile(`${outPath}.png`),
     ])
 }

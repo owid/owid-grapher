@@ -67,7 +67,7 @@ export class Bounds {
         xPosition: number
     ) {
         const bounds = Bounds.forText(label, {
-            fontSize
+            fontSize,
         })
         const overflow = xPosition - Math.ceil(bounds.width / 2)
         return overflow < 0 ? Math.abs(overflow) : 0
@@ -83,7 +83,7 @@ export class Bounds {
             x = 0,
             y = 0,
             fontSize = 16,
-            fontWeight = 400
+            fontWeight = 400,
         }: {
             x?: number
             y?: number
@@ -106,7 +106,7 @@ export class Bounds {
             const width = pixelWidth(str, {
                 font: "arial",
                 size: fontSize,
-                bold: fontWeight >= 600
+                bold: fontWeight >= 600,
             })
             const height = fontSize
             bounds = new Bounds(x, y - height, width, height)
@@ -262,7 +262,7 @@ export class Bounds {
             [this.topLeft, this.topRight],
             [this.topRight, this.bottomRight],
             [this.bottomRight, this.bottomLeft],
-            [this.bottomLeft, this.topLeft]
+            [this.bottomLeft, this.topLeft],
         ]
     }
 
@@ -300,7 +300,7 @@ export class Bounds {
             left: `${this.left}px`,
             top: `${this.top}px`,
             width: `${this.width}px`,
-            height: `${this.height}px`
+            height: `${this.height}px`,
         }
     }
 
@@ -311,7 +311,7 @@ export class Bounds {
     toArray(): [[number, number], [number, number]] {
         return [
             [this.left, this.top],
-            [this.right, this.bottom]
+            [this.right, this.bottom],
         ]
     }
 

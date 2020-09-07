@@ -5,7 +5,7 @@ import { faAngleRight } from "@fortawesome/free-solid-svg-icons/faAngleRight"
 import { BAKED_BASE_URL } from "settings"
 
 export const SiteFooter = ({
-    hideDonate = false
+    hideDonate = false,
 }: {
     hideDonate?: boolean
 }) => {
@@ -251,7 +251,7 @@ export const SiteFooter = ({
                     GrapherPageUtils.embedAll();
                     runGlobalEntityControl(GrapherPageUtils.globalEntitySelection);
                 }
-            `
+            `,
                     }}
                 />
             </footer>

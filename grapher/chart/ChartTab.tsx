@@ -31,7 +31,7 @@ export class ChartTab extends React.Component<{
             },
             get bounds() {
                 return that.props.bounds
-            }
+            },
         })
     }
 

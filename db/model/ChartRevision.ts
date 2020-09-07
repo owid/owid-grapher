@@ -3,7 +3,7 @@ import {
     PrimaryGeneratedColumn,
     Column,
     BaseEntity,
-    ManyToOne
+    ManyToOne,
 } from "typeorm"
 import { Chart } from "./Chart"
 import { User } from "./User"
@@ -18,9 +18,9 @@ export class ChartRevision extends BaseEntity {
     @Column() createdAt!: Date
     @Column() updatedAt!: Date
 
-    @ManyToOne(() => User, user => user.editedCharts)
+    @ManyToOne(() => User, (user) => user.editedCharts)
     user!: User
 
-    @ManyToOne(() => Chart, chart => chart.logs)
+    @ManyToOne(() => Chart, (chart) => chart.logs)
     chart!: Chart
 }

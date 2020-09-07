@@ -6,7 +6,7 @@ import {
     observable,
     runInAction,
     autorun,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
@@ -35,7 +35,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
         runInAction(() => {
             this.chart = new Grapher(config, {
                 isEmbed: true,
-                queryStr: this.queryStr
+                queryStr: this.queryStr,
             })
         })
     }

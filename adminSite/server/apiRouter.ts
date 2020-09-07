@@ -11,7 +11,7 @@ import {
     JsonError,
     expectInt,
     isValidSlug,
-    absoluteUrl
+    absoluteUrl,
 } from "utils/server/serverUtil"
 import { sendMail } from "adminSite/server/utils/mail"
 import { OldChart, Chart, getChartById } from "db/model/Chart"
@@ -21,13 +21,13 @@ import { getVariableData } from "db/model/Variable"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
     CountryNameFormat,
-    CountryDefByKey
+    CountryDefByKey,
 } from "adminSite/client/CountryNameFormat"
 import { Dataset } from "db/model/Dataset"
 import { User } from "db/model/User"
 import {
     syncDatasetToGitRepo,
-    removeDatasetFromGitRepo
+    removeDatasetFromGitRepo,
 } from "adminSite/server/utils/gitDataExport"
 import { ChartRevision } from "db/model/ChartRevision"
 import { Post } from "db/model/Post"
@@ -56,7 +56,7 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
     enqueueDeploy({
         authorName: user.fullName,
         authorEmail: user.email,
-        message: commitMessage
+        message: commitMessage,
     })
 }
 
@@ -127,13 +127,13 @@ async function getReferencesByChartId(
             // We can ignore errors due to not being able to connect.
         }
         const permalinks = await wpdb.getPermalinks()
-        return posts.map(post => {
+        return posts.map((post) => {
             const slug = permalinks.get(post.ID, post.post_name)
             return {
                 id: post.ID,
                 title: post.post_title,
                 slug: slug,
-                url: `${BAKED_BASE_URL}/${slug}`
+                url: `${BAKED_BASE_URL}/${slug}`,
             }
         })
     } else {
@@ -167,7 +167,7 @@ async function expectChartById(chartId: any): Promise<GrapherInterface> {
 
 function omitSaveToVariable(config: GrapherInterface): GrapherInterface {
     const newConfig = lodash.clone(config)
-    newConfig.dimensions = newConfig.dimensions!.map(dim => {
+    newConfig.dimensions = newConfig.dimensions!.map((dim) => {
         return lodash.omit(dim, ["saveToVariable"])
     })
     return newConfig
@@ -178,7 +178,7 @@ async function saveGrapher(
     newConfig: GrapherInterface,
     existingConfig?: GrapherInterface
 ) {
-    return db.transaction(async t => {
+    return db.transaction(async (t) => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible
         async function isSlugUsedInRedirect() {
             const rows = await t.query(
@@ -254,7 +254,7 @@ async function saveGrapher(
                     now,
                     user.id,
                     isExplorable(newConfig),
-                    chartId
+                    chartId,
                 ]
             )
         } else {
@@ -268,8 +268,8 @@ async function saveGrapher(
                         now,
                         user.id,
                         false,
-                        isExplorable(newConfig)
-                    ]
+                        isExplorable(newConfig),
+                    ],
                 ]
             )
             chartId = result.insertId
@@ -288,7 +288,7 @@ async function saveGrapher(
         // Remove any old dimensions and store the new ones
         // We only note that a relationship exists between the chart and variable in the database; the actual dimension configuration is left to the json
         await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
-            chartId
+            chartId,
         ])
         for (let i = 0; i < newConfig.dimensions!.length; i++) {
             const dim = newConfig.dimensions![i]
@@ -313,7 +313,7 @@ async function saveGrapher(
 
                 await t.execute(`UPDATE variables SET display=? WHERE id=?`, [
                     JSON.stringify(display),
-                    dim.variableId
+                    dim.variableId,
                 ])
             }
         }
@@ -321,7 +321,7 @@ async function saveGrapher(
         // So we can generate country profiles including this chart data
         if (newConfig.isPublished) {
             await denormalizeLatestCountryData(
-                newConfig.dimensions!.map(d => d.variableId)
+                newConfig.dimensions!.map((d) => d.variableId)
             )
         }
 
@@ -373,7 +373,7 @@ apiRouter.get("/charts.json", async (req: Request, res: Response) => {
     await Chart.assignTagsForCharts(charts)
 
     return {
-        charts: charts
+        charts: charts,
     }
 })
 
@@ -392,7 +392,7 @@ apiRouter.get(
         )) as { name: string; description: string }[]
 
         return {
-            namespaces: lodash.sortBy(rows, row => row.description)
+            namespaces: lodash.sortBy(rows, (row) => row.description),
         }
     }
 )
@@ -402,7 +402,7 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const logs = await getLogsByChartId(req.params.chartId)
         return {
-            logs: logs
+            logs: logs,
         }
     }
 )
@@ -412,7 +412,7 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const references = await getReferencesByChartId(req.params.chartId)
         return {
-            references: references
+            references: references,
         }
     }
 )
@@ -422,7 +422,7 @@ apiRouter.get(
     async (req: Request, res: Response) => {
         const redirects = await getRedirectsByChartId(req.params.chartId)
         return {
-            redirects: redirects
+            redirects: redirects,
         }
     }
 )
@@ -453,7 +453,7 @@ apiRouter.get("/countries.json", async (req: Request, res: Response) => {
     }
 
     return {
-        countries: rows
+        countries: rows,
     }
 })
 
@@ -464,7 +464,7 @@ apiRouter.post("/countries", async (req: Request, res: Response) => {
     let owidRows = []
 
     // find owid ID
-    const owidNames = Object.keys(countries).map(key => countries[key])
+    const owidNames = Object.keys(countries).map((key) => countries[key])
     owidRows = await db.query(
         `SELECT id, owid_name
         FROM country_name_tool_countrydata
@@ -521,13 +521,13 @@ apiRouter.get(
                     name: row.datasetName,
                     namespace: row.namespace,
                     isPrivate: row.isPrivate,
-                    variables: []
+                    variables: [],
                 }
             }
 
             dataset.variables.push({
                 id: row.id,
-                name: row.name
+                name: row.name,
             })
         }
 
@@ -588,12 +588,12 @@ apiRouter.put("/charts/:chartId", async (req: Request, res: Response) => {
 apiRouter.delete("/charts/:chartId", async (req: Request, res: Response) => {
     const chart = await expectChartById(req.params.chartId)
 
-    await db.transaction(async t => {
+    await db.transaction(async (t) => {
         await t.execute(`DELETE FROM chart_dimensions WHERE chartId=?`, [
-            chart.id
+            chart.id,
         ])
         await t.execute(`DELETE FROM chart_slug_redirects WHERE chart_id=?`, [
-            chart.id
+            chart.id,
         ])
         await t.execute(`DELETE FROM charts WHERE id=?`, [chart.id])
     })
@@ -619,10 +619,10 @@ apiRouter.get("/users.json", async (req: Request, res: Response) => {
                 "createdAt",
                 "updatedAt",
                 "lastLogin",
-                "lastSeen"
+                "lastSeen",
             ],
-            order: { lastSeen: "DESC" }
-        })
+            order: { lastSeen: "DESC" },
+        }),
     }
 })
 
@@ -637,8 +637,8 @@ apiRouter.get("/users/:userId.json", async (req: Request, res: Response) => {
             "createdAt",
             "updatedAt",
             "lastLogin",
-            "lastSeen"
-        ]
+            "lastSeen",
+        ],
     })
     return { user: user }
 })
@@ -649,7 +649,7 @@ apiRouter.delete("/users/:userId", async (req: Request, res: Response) => {
     }
 
     const userId = expectInt(req.params.userId)
-    await db.transaction(async t => {
+    await db.transaction(async (t) => {
         await t.execute(`DELETE FROM users WHERE id=?`, [userId])
     })
 
@@ -678,7 +678,7 @@ apiRouter.post("/users/invite", async (req: Request, res: Response) => {
 
     const { email } = req.body
 
-    await getConnection().transaction(async manager => {
+    await getConnection().transaction(async (manager) => {
         // Remove any previous invites for this email address to avoid duplicate accounts
         const repo = manager.getRepository(UserInvitation)
         await repo
@@ -701,14 +701,14 @@ apiRouter.post("/users/invite", async (req: Request, res: Response) => {
             from: "no-reply@ourworldindata.org",
             to: email,
             subject: "Invitation to join owid-admin",
-            text: `Hi, please follow this link to register on owid-admin: ${inviteLink}`
+            text: `Hi, please follow this link to register on owid-admin: ${inviteLink}`,
         })
     })
 
     return { success: true }
 })
 
-apiRouter.get("/variables.json", async req => {
+apiRouter.get("/variables.json", async (req) => {
     const limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 50
     const searchStr = req.query.search
 
@@ -795,7 +795,7 @@ apiRouter.get(
         variable.charts = charts
 
         return {
-            variable: variable as VariableSingleMeta
+            variable: variable as VariableSingleMeta,
         } /*, vardata: await getVariableData([variableId]) }*/
     }
 )
@@ -811,7 +811,7 @@ apiRouter.put("/variables/:variableId", async (req: Request) => {
             variable.description,
             new Date(),
             JSON.stringify(variable.display),
-            variableId
+            variableId,
         ]
     )
 
@@ -832,9 +832,9 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
         throw new JsonError(`Cannot delete bulk import variable`, 400)
     }
 
-    await db.transaction(async t => {
+    await db.transaction(async (t) => {
         await t.execute(`DELETE FROM data_values WHERE variableId=?`, [
-            variableId
+            variableId,
         ])
         await t.execute(`DELETE FROM variables WHERE id=?`, [variableId])
     })
@@ -842,7 +842,7 @@ apiRouter.delete("/variables/:variableId", async (req: Request) => {
     return { success: true }
 })
 
-apiRouter.get("/datasets.json", async req => {
+apiRouter.get("/datasets.json", async (req) => {
     const datasets = await db.query(`
         SELECT d.id, d.namespace, d.name, d.description, d.dataEditedAt, du.fullName AS dataEditedByUserName, d.metadataEditedAt, mu.fullName AS metadataEditedByUserName, d.isPrivate
         FROM datasets d
@@ -855,9 +855,9 @@ apiRouter.get("/datasets.json", async req => {
         SELECT dt.datasetId, t.id, t.name FROM dataset_tags dt
         JOIN tags t ON dt.tagId = t.id
     `)
-    const tagsByDatasetId = lodash.groupBy(tags, t => t.datasetId)
+    const tagsByDatasetId = lodash.groupBy(tags, (t) => t.datasetId)
     for (const dataset of datasets) {
-        dataset.tags = (tagsByDatasetId[dataset.id] || []).map(t =>
+        dataset.tags = (tagsByDatasetId[dataset.id] || []).map((t) =>
             lodash.omit(t, "datasetId")
         )
     }
@@ -967,7 +967,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
     const dataset = await Dataset.findOne({ id: datasetId })
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-    await db.transaction(async t => {
+    await db.transaction(async (t) => {
         const newDataset = (req.body as { dataset: any }).dataset
         await t.execute(
             `UPDATE datasets SET name=?, description=?, isPrivate=?, metadataEditedAt=?, metadataEditedByUserId=? WHERE id=?`,
@@ -977,13 +977,13 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
                 newDataset.isPrivate,
                 new Date(),
                 res.locals.user.id,
-                datasetId
+                datasetId,
             ]
         )
 
         const tagRows = newDataset.tags.map((tag: any) => [tag.id, datasetId])
         await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [
-            datasetId
+            datasetId,
         ])
         if (tagRows.length)
             await t.execute(
@@ -996,7 +996,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
         await t.execute(`UPDATE sources SET name=?, description=? WHERE id=?`, [
             source.name,
             JSON.stringify(description),
-            source.id
+            source.id,
         ])
     })
 
@@ -1005,7 +1005,7 @@ apiRouter.put("/datasets/:datasetId", async (req: Request, res: Response) => {
         await syncDatasetToGitRepo(datasetId, {
             oldDatasetName: dataset.name,
             commitName: res.locals.user.fullName,
-            commitEmail: res.locals.user.email
+            commitEmail: res.locals.user.email,
         })
     } catch (err) {
         log.error(err)
@@ -1032,9 +1032,9 @@ apiRouter.router.put(
     async (req: Request, res: Response) => {
         const datasetId = expectInt(req.params.datasetId)
 
-        await db.transaction(async t => {
+        await db.transaction(async (t) => {
             await t.execute(`DELETE FROM dataset_files WHERE datasetId=?`, [
-                datasetId
+                datasetId,
             ])
             await t.execute(
                 `INSERT INTO dataset_files (datasetId, filename, file) VALUES (?, ?, ?)`,
@@ -1054,7 +1054,7 @@ apiRouter.delete(
         const dataset = await Dataset.findOne({ id: datasetId })
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
-        await db.transaction(async t => {
+        await db.transaction(async (t) => {
             await t.execute(
                 `DELETE d FROM data_values AS d JOIN variables AS v ON d.variableId=v.id WHERE v.datasetId=?`,
                 [datasetId]
@@ -1064,13 +1064,13 @@ apiRouter.delete(
                 [datasetId]
             )
             await t.execute(`DELETE FROM dataset_files WHERE datasetId=?`, [
-                datasetId
+                datasetId,
             ])
             await t.execute(`DELETE FROM variables WHERE datasetId=?`, [
-                datasetId
+                datasetId,
             ])
             await t.execute(`DELETE FROM sources WHERE datasetId=?`, [
-                datasetId
+                datasetId,
             ])
             await t.execute(`DELETE FROM datasets WHERE id=?`, [datasetId])
         })
@@ -1078,7 +1078,7 @@ apiRouter.delete(
         try {
             await removeDatasetFromGitRepo(dataset.name, dataset.namespace, {
                 commitName: res.locals.user.fullName,
-                commitEmail: res.locals.user.email
+                commitEmail: res.locals.user.email,
             })
         } catch (err) {
             log.error(err)
@@ -1098,7 +1098,7 @@ apiRouter.post(
         if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
 
         if (req.body.republish) {
-            await db.transaction(async t => {
+            await db.transaction(async (t) => {
                 await t.execute(
                     `
             UPDATE charts
@@ -1132,7 +1132,7 @@ apiRouter.get("/redirects.json", async (req: Request, res: Response) => {
         ORDER BY r.id DESC`)
 
     return {
-        redirects: redirects
+        redirects: redirects,
     }
 })
 
@@ -1182,10 +1182,10 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
             )
             const tagsByDatasetId = lodash.groupBy(
                 datasetTags,
-                t => t.datasetId
+                (t) => t.datasetId
             )
             for (const dataset of tag.datasets) {
-                dataset.tags = tagsByDatasetId[dataset.id].map(t =>
+                dataset.tags = tagsByDatasetId[dataset.id].map((t) =>
                     lodash.omit(t, "datasetId")
                 )
             }
@@ -1227,7 +1227,7 @@ apiRouter.get("/tags/:tagId.json", async (req: Request, res: Response) => {
     tag.possibleParents = possibleParents
 
     return {
-        tag: tag
+        tag: tag,
     }
 })
 
@@ -1260,14 +1260,14 @@ apiRouter.get("/tags.json", async (req: Request, res: Response) => {
     `)
 
     return {
-        tags: tags
+        tags: tags,
     }
 })
 
 apiRouter.delete("/tags/:tagId/delete", async (req: Request, res: Response) => {
     const tagId = expectInt(req.params.tagId)
 
-    await db.transaction(async t => {
+    await db.transaction(async (t) => {
         await t.execute(`DELETE FROM tags WHERE id=?`, [tagId])
     })
 
@@ -1310,7 +1310,7 @@ apiRouter.delete("/redirects/:id", async (req: Request, res: Response) => {
     return { success: true }
 })
 
-apiRouter.get("/posts.json", async req => {
+apiRouter.get("/posts.json", async (req) => {
     const rows = await Post.select(
         "id",
         "title",
@@ -1335,10 +1335,10 @@ apiRouter.get("/posts.json", async req => {
         ;(post as any).tags = tagsByPostId.get(post.id) || []
     }
 
-    return { posts: rows.map(r => camelCaseProperties(r)) }
+    return { posts: rows.map((r) => camelCaseProperties(r)) }
 })
 
-apiRouter.get("/newsletterPosts.json", async req => {
+apiRouter.get("/newsletterPosts.json", async (req) => {
     const rows = await wpdb.query(`
         SELECT
             ID AS id,
@@ -1356,7 +1356,7 @@ apiRouter.get("/newsletterPosts.json", async req => {
     const permalinks = await wpdb.getPermalinks()
     const featuresImages = await wpdb.getFeaturedImages()
 
-    const posts = rows.map(row => {
+    const posts = rows.map((row) => {
         const slug = permalinks.get(row.id, row.name)
         return {
             id: row.id,
@@ -1368,7 +1368,7 @@ apiRouter.get("/newsletterPosts.json", async req => {
             excerpt: row.excerpt,
             slug: slug,
             imageUrl: featuresImages.get(row.id),
-            url: `${BAKED_BASE_URL}/${slug}`
+            url: `${BAKED_BASE_URL}/${slug}`,
         }
     })
 
@@ -1396,7 +1396,7 @@ apiRouter.get("/posts/:postId.json", async (req: Request, res: Response) => {
     return camelCaseProperties(post)
 })
 
-apiRouter.get("/importData.json", async req => {
+apiRouter.get("/importData.json", async (req) => {
     // Get all datasets from the importable namespace to match against
     const datasets = await db.query(
         `SELECT id, name FROM datasets WHERE namespace='owid' ORDER BY name ASC`
@@ -1410,7 +1410,7 @@ apiRouter.get("/importData.json", async req => {
     return { datasets: datasets, existingEntities: existingEntities }
 })
 
-apiRouter.get("/importData/datasets/:datasetId.json", async req => {
+apiRouter.get("/importData/datasets/:datasetId.json", async (req) => {
     const datasetId = expectInt(req.params.datasetId)
 
     const dataset = await db.get(
@@ -1477,7 +1477,7 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
     const userId = res.locals.user.id
     const { dataset, entities, years, variables } = req.body as ImportPostData
 
-    const newDatasetId = await db.transaction(async t => {
+    const newDatasetId = await db.transaction(async (t) => {
         const now = new Date()
 
         let datasetId: number
@@ -1502,7 +1502,7 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
                 now,
                 userId,
                 userId,
-                true
+                true,
             ]
             const datasetResult = await t.execute(
                 `INSERT INTO datasets (name, namespace, description, createdAt, updatedAt, dataEditedAt, dataEditedByUserId, metadataEditedAt, metadataEditedByUserId, createdByUserId, isPrivate) VALUES (?)`,
@@ -1535,7 +1535,13 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
 
         // Insert any new entities into the db
         const entitiesUniq = lodash.uniq(entities)
-        const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
+        const importEntityRows = entitiesUniq.map((e) => [
+            e,
+            false,
+            now,
+            now,
+            "",
+        ])
         await t.execute(
             `INSERT IGNORE entities (name, validated, createdAt, updatedAt, displayName) VALUES ?`,
             [importEntityRows]
@@ -1560,17 +1566,17 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
             [datasetId]
         )
         const removingVariables = existingVariables.filter(
-            (v: any) => !variables.some(v2 => v2.overwriteId === v.id)
+            (v: any) => !variables.some((v2) => v2.overwriteId === v.id)
         )
         const removingVariableIds = removingVariables.map(
             (v: any) => v.id
         ) as number[]
         if (removingVariableIds.length) {
             await t.execute(`DELETE FROM data_values WHERE variableId IN (?)`, [
-                removingVariableIds
+                removingVariableIds,
             ])
             await t.execute(`DELETE FROM variables WHERE id IN (?)`, [
-                removingVariableIds
+                removingVariableIds,
             ])
         }
 
@@ -1580,7 +1586,7 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
             if (variable.overwriteId) {
                 // Remove any existing data values
                 await t.execute(`DELETE FROM data_values WHERE variableId=?`, [
-                    variable.overwriteId
+                    variable.overwriteId,
                 ])
 
                 variableId = variable.overwriteId
@@ -1594,7 +1600,7 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
                     "",
                     "",
                     "",
-                    "{}"
+                    "{}",
                 ]
 
                 // Create a new variable
@@ -1614,7 +1620,7 @@ apiRouter.post("/importDataset", async (req: Request, res: Response) => {
                         value,
                         years[i],
                         entityIdLookup[entities[i]],
-                        variableId
+                        variableId,
                     ])
                 }
             }

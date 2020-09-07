@@ -25,12 +25,12 @@ function getPostType(post: FormattedPost, tags: Tag[]) {
     if (post.slug.startsWith("about/")) {
         return "about"
     } else if (post.type === "post") {
-        if (tags.some(t => t.name === "Explainers")) return "explainer"
-        else if (tags.some(t => t.name === "Short updates and facts"))
+        if (tags.some((t) => t.name === "Explainers")) return "explainer"
+        else if (tags.some((t) => t.name === "Short updates and facts"))
             return "fact"
         else return "post"
     } else {
-        if (tags.some(t => t.name === "Entries")) {
+        if (tags.some((t) => t.name === "Entries")) {
             return "entry"
         } else {
             return "page"
@@ -51,7 +51,7 @@ async function indexToAlgolia() {
             type: "country",
             slug: country.slug,
             title: country.name,
-            content: `All available indicators for ${country.name}.`
+            content: `All available indicators for ${country.name}.`,
         })
     }
 
@@ -83,8 +83,8 @@ async function indexToAlgolia() {
                 date: post.date,
                 modifiedDate: post.modifiedDate,
                 content: c,
-                _tags: tags.map(t => t.name),
-                importance: importance
+                _tags: tags.map((t) => t.name),
+                importance: importance,
             })
             i += 1
         }

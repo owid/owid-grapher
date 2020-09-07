@@ -13,5 +13,5 @@ export const nouns: Record<NounKey, NounGenerator> = {
     cases: createNoun("case", "cases"),
     deaths: createNoun("death", "deaths"),
     tests: createNoun("test", "tests"),
-    days: createNoun("day", "days")
+    days: createNoun("day", "days"),
 }

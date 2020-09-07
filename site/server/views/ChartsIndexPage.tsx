@@ -26,29 +26,32 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
     const { chartItems } = props
 
     const allTags = lodash.sortBy(
-        lodash.uniqBy(lodash.flatten(chartItems.map(c => c.tags)), t => t.id),
-        t => t.name
+        lodash.uniqBy(
+            lodash.flatten(chartItems.map((c) => c.tags)),
+            (t) => t.id
+        ),
+        (t) => t.name
     ) as TagWithCharts[]
 
     for (const c of chartItems) {
         for (const tag of allTags) {
             if (tag.charts === undefined) tag.charts = []
 
-            if (c.tags.some(t => t.id === tag.id)) tag.charts.push(c)
+            if (c.tags.some((t) => t.id === tag.id)) tag.charts.push(c)
         }
     }
 
     // Sort the charts in each tag
     for (const tag of allTags) {
-        tag.charts = lodash.sortBy(tag.charts, c => c.title.trim())
+        tag.charts = lodash.sortBy(tag.charts, (c) => c.title.trim())
     }
 
     const pageTitle = "Charts"
-    const tocEntries = allTags.map(t => {
+    const tocEntries = allTags.map((t) => {
         return {
             isSubheading: true,
             slug: slugify(t.name),
-            text: t.name
+            text: t.name,
         }
     })
 
@@ -80,13 +83,13 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
                                             autoFocus
                                         />
                                     </header>
-                                    {allTags.map(t => (
+                                    {allTags.map((t) => (
                                         <section key={t.id}>
                                             <h2 id={slugify(t.name)}>
                                                 {t.name}
                                             </h2>
                                             <ul>
-                                                {t.charts.map(c => (
+                                                {t.charts.map((c) => (
                                                     <ChartListItemVariant
                                                         key={c.slug}
                                                         chart={c}
@@ -107,8 +110,8 @@ export const ChartsIndexPage = (props: { chartItems: ChartIndexItem[] }) => {
                         window.runChartsIndexPage()
                         runTableOfContents(${JSON.stringify({
                             headings: tocEntries,
-                            pageTitle
-                        })})`
+                            pageTitle,
+                        })})`,
                     }}
                 />
             </body>

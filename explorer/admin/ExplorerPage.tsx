@@ -7,7 +7,7 @@ import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "site/server/views/EmbedDetector"
 import {
     SiteSubnavigation,
-    SubNavId
+    SubNavId,
 } from "site/server/views/SiteSubnavigation"
 import ExplorerContent from "./ExplorerContent"
 

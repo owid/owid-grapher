@@ -27,7 +27,7 @@ export class TableTab extends React.Component<{
                     style={{
                         width: "100%",
                         height: "100%",
-                        overflow: "auto"
+                        overflow: "auto",
                     }}
                 >
                     <DataTable grapher={this.props.grapher} />

@@ -35,6 +35,6 @@ export class EntityUrlBuilder {
         // Facebook turns %20 into +. v2 links will never contain a +, so we can safely replace all of them with %20.
         return decodeURIComponent(queryParam.replace(/\+/g, "%20"))
             .split(this.v2Delimiter)
-            .filter(item => item)
+            .filter((item) => item)
     }
 }

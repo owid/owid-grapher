@@ -18,7 +18,7 @@ import {
     first,
     last,
     excludeUndefined,
-    flatten
+    flatten,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
@@ -27,13 +27,13 @@ import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import {
     PointsWithLabels,
     ScatterSeries,
-    ScatterValue
+    ScatterValue,
 } from "./PointsWithLabels"
 import { TextWrap } from "grapher/text/TextWrap"
 import { ConnectedScatterLegend } from "./ConnectedScatterLegend"
 import {
     VerticalColorLegend,
-    ScatterColorLegendView
+    ScatterColorLegendView,
 } from "./ScatterColorLegend"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
@@ -48,7 +48,7 @@ export class ScatterPlot extends React.Component<{
 }> {
     // Set default props
     static defaultProps = {
-        bounds: new Bounds(0, 0, 640, 480)
+        bounds: new Bounds(0, 0, 640, 480),
     }
 
     // currently hovered individual series key
@@ -70,7 +70,7 @@ export class ScatterPlot extends React.Component<{
 
     @action.bound onTargetChange({
         targetStartYear,
-        targetEndYear
+        targetEndYear,
     }: {
         targetStartYear: TimeBound
         targetEndYear: TimeBound
@@ -87,7 +87,7 @@ export class ScatterPlot extends React.Component<{
     @computed get colorsInUse(): string[] {
         return excludeUndefined(
             uniq(
-                this.transform.allPoints.map(point =>
+                this.transform.allPoints.map((point) =>
                     this.transform.colorScale.getColor(point.color)
                 )
             )
@@ -105,18 +105,18 @@ export class ScatterPlot extends React.Component<{
             },
             get colorables() {
                 return that.transform.colorScale.legendData
-                    .filter(bin => that.colorsInUse.includes(bin.color))
-                    .map(bin => {
+                    .filter((bin) => that.colorsInUse.includes(bin.color))
+                    .map((bin) => {
                         return {
                             key: bin.label ?? "",
                             label: bin.label ?? "",
-                            color: bin.color
+                            color: bin.color,
                         }
                     })
             },
             get title() {
                 return that.transform.colorScale.legendDescription
-            }
+            },
         })
     }
 
@@ -136,8 +136,8 @@ export class ScatterPlot extends React.Component<{
 
         const { transform } = this
         const keysToToggle = transform.currentData
-            .filter(g => g.color === hoverColor)
-            .map(g => g.entityDimensionKey)
+            .filter((g) => g.color === hoverColor)
+            .map((g) => g.entityDimensionKey)
         const allKeysActive =
             intersection(keysToToggle, grapher.selectedKeys).length ===
             keysToToggle.length
@@ -155,10 +155,10 @@ export class ScatterPlot extends React.Component<{
     // Colors on the legend for which every matching group is focused
     @computed private get focusColors(): string[] {
         const { colorsInUse, transform, grapher } = this
-        return colorsInUse.filter(color => {
+        return colorsInUse.filter((color) => {
             const matchingKeys = transform.currentData
-                .filter(g => g.color === color)
-                .map(g => g.entityDimensionKey)
+                .filter((g) => g.color === color)
+                .map((g) => g.entityDimensionKey)
             return (
                 intersection(matchingKeys, grapher.selectedKeys).length ===
                 matchingKeys.length
@@ -175,8 +175,8 @@ export class ScatterPlot extends React.Component<{
                 ? []
                 : uniq(
                       transform.currentData
-                          .filter(g => g.color === hoverColor)
-                          .map(g => g.entityDimensionKey)
+                          .filter((g) => g.color === hoverColor)
+                          .map((g) => g.entityDimensionKey)
                   )
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
@@ -211,7 +211,7 @@ export class ScatterPlot extends React.Component<{
             get endpointsOnly() {
                 return that.transform.compareEndPointsOnly
             },
-            formatYearFunction: that.grapher.formatYearFunction
+            formatYearFunction: that.grapher.formatYearFunction,
         })
     }
 
@@ -231,11 +231,11 @@ export class ScatterPlot extends React.Component<{
         const { hoverKey, focusKeys, transform } = this
         if (hoverKey !== undefined)
             return transform.currentData.find(
-                g => g.entityDimensionKey === hoverKey
+                (g) => g.entityDimensionKey === hoverKey
             )
         else if (focusKeys && focusKeys.length === 1)
             return transform.currentData.find(
-                g => g.entityDimensionKey === focusKeys[0]
+                (g) => g.entityDimensionKey === focusKeys[0]
             )
         else return undefined
     }
@@ -260,7 +260,7 @@ export class ScatterPlot extends React.Component<{
         const axis = new DualAxis({
             bounds: this.bounds.padRight(this.sidebarWidth + 20),
             xAxis,
-            yAxis
+            yAxis,
         })
 
         return axis
@@ -283,13 +283,13 @@ export class ScatterPlot extends React.Component<{
         let series = transform.currentData
 
         if (activeKeys.length) {
-            series = series.filter(g =>
+            series = series.filter((g) =>
                 activeKeys.includes(g.entityDimensionKey)
             )
         }
 
         const colorValues = uniq(
-            flatten(series.map(s => s.values.map(p => p.color)))
+            flatten(series.map((s) => s.values.map((p) => p.color)))
         )
         return excludeUndefined(colorValues.map(transform.colorScale.getColor))
     }
@@ -305,7 +305,7 @@ export class ScatterPlot extends React.Component<{
             y: (scatterValue: ScatterValue) =>
                 this.transform.yFormatTooltip(scatterValue.y),
             x: (scatterValue: ScatterValue) =>
-                this.transform.xFormatTooltip(scatterValue.x)
+                this.transform.xFormatTooltip(scatterValue.x),
         }
 
         return scatterPointLabelFormatFunctions[
@@ -336,7 +336,7 @@ export class ScatterPlot extends React.Component<{
             tooltipSeries,
             comparisonLines,
             hideLines,
-            grapher
+            grapher,
         } = this
         const { currentData, sizeDomain, colorScale } = transform
 
@@ -467,15 +467,15 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
             wrap: new TextWrap({
                 maxWidth: maxWidth,
                 fontSize: 0.75 * fontSize,
-                text: series.label
-            })
+                text: series.label,
+            }),
         }
         elements.push(heading)
         offset += heading.wrap.height + lineHeight
 
         const { formatYYear } = this.props
 
-        values.forEach(v => {
+        values.forEach((v) => {
             const year = {
                 x: x,
                 y: y + offset,
@@ -486,8 +486,8 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                         ? `${formatYYear(v.time.span[0])} to ${formatYYear(
                               v.time.span[1]
                           )}`
-                        : formatYYear(v.time.y)
-                })
+                        : formatYYear(v.time.y),
+                }),
             }
             offset += year.wrap.height
             const line1 = {
@@ -496,8 +496,8 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                 wrap: new TextWrap({
                     maxWidth: maxWidth,
                     fontSize: 0.55 * fontSize,
-                    text: this.formatValueY(v)
-                })
+                    text: this.formatValueY(v),
+                }),
             }
             offset += line1.wrap.height
             const line2 = {
@@ -506,8 +506,8 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                 wrap: new TextWrap({
                     maxWidth: maxWidth,
                     fontSize: 0.55 * fontSize,
-                    text: this.formatValueX(v)
-                })
+                    text: this.formatValueX(v),
+                }),
             }
             offset += line2.wrap.height + lineHeight
             elements.push(...[year, line1, line2])

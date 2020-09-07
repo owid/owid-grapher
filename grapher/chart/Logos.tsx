@@ -18,20 +18,20 @@ const logos: Record<LogoOption, LogoAttributes> = {
         width: 210,
         height: 120,
         targetHeight: 35,
-        url: "https://ourworldindata.org"
+        url: "https://ourworldindata.org",
     },
     "core+owid": {
         svg: CORE_LOGO_SVG,
         width: 102,
         height: 37,
-        targetHeight: 35
+        targetHeight: 35,
     },
     "gv+owid": {
         svg: GV_LOGO_SVG,
         width: 420,
         height: 350,
-        targetHeight: 52
-    }
+        targetHeight: 52,
+    },
 }
 
 interface LogoProps {
@@ -83,7 +83,7 @@ export class Logo {
         > = {
             className: "logo",
             dangerouslySetInnerHTML: { __html: this.spec.svg },
-            style: { height: `${this.spec.targetHeight}px` }
+            style: { height: `${this.spec.targetHeight}px` },
         }
         if (this.props.isLink || !this.spec.url) {
             return <div {...props} />

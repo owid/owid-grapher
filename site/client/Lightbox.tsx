@@ -14,7 +14,7 @@ import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink/ProminentLink"
 const Lightbox = ({
     children,
     containerNode,
-    imgSrc
+    imgSrc,
 }: {
     children: any
     containerNode: Element | null
@@ -51,7 +51,7 @@ const Lightbox = ({
                         <div
                             className="content"
                             ref={contentRef}
-                            onClick={e => {
+                            onClick={(e) => {
                                 if (e.target === contentRef.current) {
                                     close()
                                 }
@@ -109,7 +109,7 @@ const Lightbox = ({
 const Image = ({
     src,
     isLoaded,
-    setIsLoaded
+    setIsLoaded,
 }: {
     src: string
     isLoaded: boolean
@@ -137,7 +137,7 @@ export const runLightbox = () => {
     }
     Array.from(
         document.querySelectorAll<HTMLImageElement>(".article-content img")
-    ).forEach(img => {
+    ).forEach((img) => {
         if (
             img.closest(`.${PROMINENT_LINK_CLASSNAME}`) ||
             img.closest("[data-no-lightbox]")

@@ -26,7 +26,7 @@ import {
     getRelativeMouse,
     domainExtent,
     minBy,
-    maxBy
+    maxBy,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -75,7 +75,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
         const { scale } = props
         const longestTick = maxBy(
             scale.ticks(6).map(props.tickFormat),
-            tick => tick.length
+            (tick) => tick.length
         )
         const axisWidth = Bounds.forText(longestTick).width
         return new Bounds(
@@ -194,7 +194,7 @@ class Slope extends React.Component<SlopeProps> {
             leftLabelBounds,
             rightLabelBounds,
             isFocused,
-            isHovered
+            isHovered,
         } = this.props
         const { isInBackground } = this
 
@@ -208,10 +208,10 @@ class Slope extends React.Component<SlopeProps> {
             : size
 
         const leftValueLabelBounds = Bounds.forText(leftValueStr, {
-            fontSize: labelFontSize
+            fontSize: labelFontSize,
         })
         const rightValueLabelBounds = Bounds.forText(rightValueStr, {
-            fontSize: labelFontSize
+            fontSize: labelFontSize,
         })
 
         return (
@@ -224,7 +224,7 @@ class Slope extends React.Component<SlopeProps> {
                             textAnchor: "end",
                             fill: labelColor,
                             fontWeight:
-                                isFocused || isHovered ? "bold" : undefined
+                                isFocused || isHovered ? "bold" : undefined,
                         }
                     )}
                 {hasLeftLabel && (
@@ -247,7 +247,7 @@ class Slope extends React.Component<SlopeProps> {
                     opacity={opacity}
                 />
                 <line
-                    ref={el => (this.line = el)}
+                    ref={(el) => (this.line = el)}
                     x1={x1}
                     y1={y1}
                     x2={x2}
@@ -277,7 +277,7 @@ class Slope extends React.Component<SlopeProps> {
                 {hasRightLabel &&
                     rightLabel.render(rightLabelBounds.x, rightLabelBounds.y, {
                         fill: labelColor,
-                        fontWeight: isFocused || isHovered ? "bold" : undefined
+                        fontWeight: isFocused || isHovered ? "bold" : undefined,
                     })}
             </g>
         )
@@ -315,14 +315,14 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get focusKeys(): string[] {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map(g => g.entityDimensionKey)
+            this.data.map((g) => g.entityDimensionKey)
         )
     }
 
     @computed get hoverKeys(): string[] {
         return intersection(
             this.props.hoverKeys || [],
-            this.data.map(g => g.entityDimensionKey)
+            this.data.map((g) => g.entityDimensionKey)
         )
     }
 
@@ -337,12 +337,12 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get allValues(): SlopeChartValue[] {
-        return flatten(this.props.data.map(g => g.values))
+        return flatten(this.props.data.map((g) => g.values))
     }
 
     @computed get xDomainDefault(): [number, number] {
         return domainExtent(
-            this.allValues.map(v => v.x),
+            this.allValues.map((v) => v.x),
             ScaleType.linear
         )
     }
@@ -353,7 +353,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     @computed private get yDomainDefault(): [number, number] {
         return domainExtent(
-            this.allValues.map(v => v.y),
+            this.allValues.map((v) => v.y),
             this.yScaleType || ScaleType.linear
         )
     }
@@ -367,14 +367,14 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         const domainDefault = this.yDomainDefault
         return [
             Math.min(domain[0], domainDefault[0]),
-            Math.max(domain[1], domainDefault[1])
+            Math.max(domain[1], domainDefault[1]),
         ]
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
         return scaleLinear()
             .domain(
-                extent(this.props.data.map(d => d.size)) as [number, number]
+                extent(this.props.data.map((d) => d.size)) as [number, number]
             )
             .range([1, 4])
     }
@@ -398,7 +398,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             : SlopeChartAxis.calculateBounds(bounds, {
                   orient: "left",
                   scale: yScale,
-                  tickFormat: this.props.yTickFormat
+                  tickFormat: this.props.yTickFormat,
               }).width
         return scaleLinear()
             .domain(xDomain)
@@ -416,7 +416,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             xScale,
             yScale,
             sizeScale,
-            maxLabelWidth
+            maxLabelWidth,
         } = this
 
         const yTickFormat = this.props.yTickFormat
@@ -424,12 +424,12 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         const slopeData: SlopeProps[] = []
         const yDomain = yScale.domain()
 
-        data.forEach(series => {
+        data.forEach((series) => {
             // Ensure values fit inside the chart
             if (
                 !every(
                     series.values,
-                    d => d.y >= yDomain[0] && d.y <= yDomain[1]
+                    (d) => d.y >= yDomain[0] && d.y <= yDomain[1]
                 )
             )
                 return
@@ -441,20 +441,20 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             const leftValueStr = yTickFormat(v1.y)
             const rightValueStr = yTickFormat(v2.y)
             const leftValueWidth = Bounds.forText(leftValueStr, {
-                fontSize: fontSize
+                fontSize: fontSize,
             }).width
             const rightValueWidth = Bounds.forText(rightValueStr, {
-                fontSize: fontSize
+                fontSize: fontSize,
             }).width
             const leftLabel = new TextWrap({
                 maxWidth: maxLabelWidth,
                 fontSize: fontSize,
-                text: series.label
+                text: series.label,
             })
             const rightLabel = new TextWrap({
                 maxWidth: maxLabelWidth,
                 fontSize: fontSize,
-                text: series.label
+                text: series.label,
             })
 
             slopeData.push({
@@ -475,7 +475,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 isFocused: false,
                 isHovered: false,
                 hasLeftLabel: true,
-                hasRightLabel: true
+                hasRightLabel: true,
             } as SlopeProps)
         })
 
@@ -483,13 +483,13 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get maxValueWidth(): number {
-        return max(this.initialSlopeData.map(s => s.leftValueWidth)) as number
+        return max(this.initialSlopeData.map((s) => s.leftValueWidth)) as number
     }
 
     @computed get labelAccountedSlopeData() {
         const { maxLabelWidth, maxValueWidth } = this
 
-        return this.initialSlopeData.map(slope => {
+        return this.initialSlopeData.map((slope) => {
             // Squish slopes to make room for labels
             const x1 = slope.x1 + maxLabelWidth + maxValueWidth + 8
             const x2 = slope.x2 - maxLabelWidth - maxValueWidth - 8
@@ -512,7 +512,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 x1: x1,
                 x2: x2,
                 leftLabelBounds: leftLabelBounds,
-                rightLabelBounds: rightLabelBounds
+                rightLabelBounds: rightLabelBounds,
             })
         })
     }
@@ -520,14 +520,14 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get backgroundGroups(): SlopeProps[] {
         return filter(
             this.slopeData,
-            group => !(group.isHovered || group.isFocused)
+            (group) => !(group.isHovered || group.isFocused)
         )
     }
 
     @computed get foregroundGroups(): SlopeProps[] {
         return filter(
             this.slopeData,
-            group => !!(group.isHovered || group.isFocused)
+            (group) => !!(group.isHovered || group.isFocused)
         )
     }
 
@@ -536,10 +536,10 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         const { focusKeys, hoverKeys } = this
         let slopeData = this.labelAccountedSlopeData
 
-        slopeData = slopeData.map(slope => {
+        slopeData = slopeData.map((slope) => {
             return extend({}, slope, {
                 isFocused: includes(focusKeys, slope.entityDimensionKey),
-                isHovered: includes(hoverKeys, slope.entityDimensionKey)
+                isHovered: includes(hoverKeys, slope.entityDimensionKey),
             })
         })
 
@@ -565,8 +565,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         }
 
         // Eliminate overlapping labels, one pass for each side
-        slopeData.forEach(s1 => {
-            slopeData.forEach(s2 => {
+        slopeData.forEach((s1) => {
+            slopeData.forEach((s2) => {
                 if (
                     s1 !== s2 &&
                     s1.hasLeftLabel &&
@@ -579,8 +579,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             })
         })
 
-        slopeData.forEach(s1 => {
-            slopeData.forEach(s2 => {
+        slopeData.forEach((s1) => {
+            slopeData.forEach((s2) => {
                 if (
                     s1 !== s2 &&
                     s1.hasRightLabel &&
@@ -594,8 +594,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         })
 
         // Order by focus/hover and size for draw order
-        slopeData = sortBy(slopeData, slope => slope.size)
-        slopeData = sortBy(slopeData, slope =>
+        slopeData = sortBy(slopeData, (slope) => slope.size)
+        slopeData = sortBy(slopeData, (slope) =>
             slope.isFocused || slope.isHovered ? 1 : 0
         )
 
@@ -628,7 +628,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                     distToSlope.set(s, dist)
                 }
 
-                const closestSlope = minBy(this.slopeData, s =>
+                const closestSlope = minBy(this.slopeData, (s) =>
                     distToSlope.get(s)
                 )
 
@@ -662,7 +662,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     renderBackgroundGroups() {
         const { backgroundGroups, isLayerMode } = this
 
-        return backgroundGroups.map(slope => (
+        return backgroundGroups.map((slope) => (
             <Slope
                 key={slope.entityDimensionKey}
                 {...slope}
@@ -674,7 +674,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     renderForegroundGroups() {
         const { foregroundGroups, isLayerMode } = this
 
-        return foregroundGroups.map(slope => (
+        return foregroundGroups.map((slope) => (
             <Slope
                 key={slope.entityDimensionKey}
                 {...slope}
@@ -708,7 +708,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             isPortrait,
             xDomain,
             yScale,
-            onMouseMove
+            onMouseMove,
         } = this
 
         if (isEmpty(slopeData))

@@ -26,7 +26,7 @@ async function indexChartsToAlgolia() {
         c.tags = []
     }
 
-    const chartsById = lodash.keyBy(allCharts, c => c.id)
+    const chartsById = lodash.keyBy(allCharts, (c) => c.id)
 
     const chartsToIndex = []
     for (const ct of chartTags) {
@@ -56,7 +56,7 @@ async function indexChartsToAlgolia() {
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
             numDimensions: parseInt(c.numDimensions),
-            titleLength: c.title.length
+            titleLength: c.title.length,
         })
     }
     await index.replaceAllObjects(records)

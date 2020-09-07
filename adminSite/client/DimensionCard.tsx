@@ -7,7 +7,7 @@ import {
     Toggle,
     EditableListItem,
     BindAutoString,
-    BindAutoFloat
+    BindAutoFloat,
 } from "./Forms"
 import { Link } from "./Link"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons/faChevronDown"
@@ -55,12 +55,16 @@ export class DimensionCard extends React.Component<{
                 <Toggle
                     label="Hide absolute change column"
                     value={tableDisplay.hideAbsoluteChange}
-                    onValue={value => (tableDisplay.hideAbsoluteChange = value)}
+                    onValue={(value) =>
+                        (tableDisplay.hideAbsoluteChange = value)
+                    }
                 />
                 <Toggle
                     label="Hide relative change column"
                     value={tableDisplay.hideRelativeChange}
-                    onValue={value => (tableDisplay.hideRelativeChange = value)}
+                    onValue={(value) =>
+                        (tableDisplay.hideRelativeChange = value)
+                    }
                 />
                 <hr className="ui divider" />
             </React.Fragment>

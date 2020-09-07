@@ -3,7 +3,7 @@ import { bind } from "decko"
 import { throttle, isMobile } from "grapher/utils/Util"
 import {
     GlobalEntitySelection,
-    pageContainsGlobalEntityControl
+    pageContainsGlobalEntityControl,
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { Figure } from "./figures/Figure"
 import { ChartFigure } from "./figures/ChartFigure"
@@ -35,7 +35,7 @@ class MultiEmbedder {
 
     @bind private addFigure(figure: Figure) {
         // Prevent adding duplicates
-        if (!this.figures.map(f => f.container).includes(figure.container)) {
+        if (!this.figures.map((f) => f.container).includes(figure.container)) {
             this.figures.push(figure)
         }
     }
@@ -71,9 +71,9 @@ class MultiEmbedder {
      * otherwise automatically loads interactive charts when they approach the viewport.
      */
     @bind public loadVisibleFigures() {
-        this.figures.filter(this.shouldLoadFigure).forEach(figure =>
+        this.figures.filter(this.shouldLoadFigure).forEach((figure) =>
             figure.load({
-                globalEntitySelection: this.globalEntitySelection
+                globalEntitySelection: this.globalEntitySelection,
             })
         )
     }
@@ -172,7 +172,7 @@ class GrapherPageUtilsSingleton {
     public constructor() {
         this.globalEntitySelection = new GlobalEntitySelection()
         this.embedder = new MultiEmbedder({
-            globalEntitySelection: this.globalEntitySelection
+            globalEntitySelection: this.globalEntitySelection,
         })
     }
 }

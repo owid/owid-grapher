@@ -8,7 +8,7 @@ import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import {
     VerticalColorLegend,
-    ScatterColorLegendView
+    ScatterColorLegendView,
 } from "grapher/scatterCharts/ScatterColorLegend"
 
 @observer
@@ -44,15 +44,15 @@ export class SlopeChart extends React.Component<{
             },
             get colorables() {
                 return that.transform.colorScale.legendData
-                    .filter(bin => that.colorsInUse.includes(bin.color))
-                    .map(bin => {
+                    .filter((bin) => that.colorsInUse.includes(bin.color))
+                    .map((bin) => {
                         return {
                             key: bin.label ?? "",
                             label: bin.label ?? "",
-                            color: bin.color
+                            color: bin.color,
                         }
                     })
-            }
+            },
         })
     }
 
@@ -89,8 +89,8 @@ export class SlopeChart extends React.Component<{
 
         const { transform } = this
         const keysToToggle = transform.data
-            .filter(g => g.color === hoverColor)
-            .map(g => g.entityDimensionKey)
+            .filter((g) => g.color === hoverColor)
+            .map((g) => g.entityDimensionKey)
         const allKeysActive =
             intersection(keysToToggle, grapher.selectedKeys).length ===
             keysToToggle.length
@@ -108,10 +108,10 @@ export class SlopeChart extends React.Component<{
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
         const { colorsInUse, transform, grapher } = this
-        return colorsInUse.filter(color => {
+        return colorsInUse.filter((color) => {
             const matchingKeys = transform.data
-                .filter(g => g.color === color)
-                .map(g => g.entityDimensionKey)
+                .filter((g) => g.color === color)
+                .map((g) => g.entityDimensionKey)
             return (
                 intersection(matchingKeys, grapher.selectedKeys).length ===
                 matchingKeys.length
@@ -132,8 +132,8 @@ export class SlopeChart extends React.Component<{
                 ? []
                 : uniq(
                       transform.data
-                          .filter(g => g.color === hoverColor)
-                          .map(g => g.entityDimensionKey)
+                          .filter((g) => g.color === hoverColor)
+                          .map((g) => g.entityDimensionKey)
                   )
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
@@ -148,20 +148,20 @@ export class SlopeChart extends React.Component<{
 
         if (activeKeys.length === 0)
             // No hover or focus means they're all active by default
-            return uniq(transform.data.map(g => g.color))
+            return uniq(transform.data.map((g) => g.color))
         else
             return uniq(
                 transform.data
                     .filter(
-                        g => activeKeys.indexOf(g.entityDimensionKey) !== -1
+                        (g) => activeKeys.indexOf(g.entityDimensionKey) !== -1
                     )
-                    .map(g => g.color)
+                    .map((g) => g.color)
             )
     }
 
     // Only show colors on legend that are actually in use
     @computed get colorsInUse() {
-        return uniq(this.transform.data.map(g => g.color))
+        return uniq(this.transform.data.map((g) => g.color))
     }
 
     @computed get sidebarMaxWidth() {
@@ -193,7 +193,7 @@ export class SlopeChart extends React.Component<{
     @computed get showLegend(): boolean {
         const { colorsInUse } = this
         const { legendData } = this.transform.colorScale
-        return legendData.some(bin => colorsInUse.includes(bin.color))
+        return legendData.some((bin) => colorsInUse.includes(bin.color))
     }
 
     render() {
@@ -217,7 +217,7 @@ export class SlopeChart extends React.Component<{
             activeColors,
             sidebarWidth,
             innerBounds,
-            showLegend
+            showLegend,
         } = this
 
         return (

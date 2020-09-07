@@ -6,7 +6,7 @@ import { renderToHtmlPage } from "utils/server/serverUtil"
 import { BAKED_SITE_DIR } from "serverSettings"
 import {
     explorerFileSuffix,
-    ExplorerProgram
+    ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
 import { Request, Response } from "adminSite/server/utils/authentication"
 
@@ -15,7 +15,7 @@ import {
     coronaOpenGraphImagePath,
     covidPageTitle,
     covidPreloads,
-    covidWpBlockId
+    covidWpBlockId,
 } from "explorer/covidExplorer/CovidConstants"
 
 import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
@@ -34,12 +34,12 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
     app.get("/explorers.json", async () => {
         const explorers = await getAllExplorers()
         return {
-            explorers: explorers.map(explorer => {
+            explorers: explorers.map((explorer) => {
                 return {
                     program: explorer.toString(),
-                    slug: explorer.slug
+                    slug: explorer.slug,
                 }
-            })
+            }),
         }
     })
 
@@ -84,14 +84,14 @@ export const bakeAllPublishedExplorers = async (
     outputFolder = `${BAKED_SITE_DIR}/explorers/`
 ) => {
     const explorers = await getAllExplorers(inputFolder)
-    const published = explorers.filter(exp => exp.isPublished)
+    const published = explorers.filter((exp) => exp.isPublished)
     await bakeExplorersToDir(outputFolder, published)
 }
 
 const getAllExplorers = async (directory = storageFolder) => {
     if (!fs.existsSync(directory)) return []
     const files = await fs.readdir(directory)
-    const explorerFiles = files.filter(filename =>
+    const explorerFiles = files.filter((filename) =>
         filename.endsWith(explorerFileSuffix)
     )
     const explorers: ExplorerProgram[] = []
@@ -136,11 +136,11 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
         bindToWindow: true,
         slug,
         explorerProgramCode: program.toString(),
-        chartConfigs: chartConfigs.map(row => {
+        chartConfigs: chartConfigs.map((row) => {
             const config = JSON.parse(row.config)
             config.id = row.id
             return config
-        })
+        }),
     }
 
     const script = `window.SwitcherExplorer.bootstrap(${JSON.stringify(props)})`

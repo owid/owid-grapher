@@ -78,8 +78,8 @@ function extractColorScaleConfig(
             customCategoryLabels,
             customHiddenCategories,
             legendDescription,
-            binStepSize
-        }
+            binStepSize,
+        },
     }
 }
 
@@ -90,7 +90,7 @@ function mergeColorScaleConfig(
     const { colorScale } = newConfig
     return {
         ...omit(newConfig, "colorScale"),
-        ...colorScale
+        ...colorScale,
     }
 }
 
@@ -101,7 +101,7 @@ async function transformAllCharts(
     await Promise.all(
         [
             { idField: "id", tableName: "charts" },
-            { idField: "chartId", tableName: "chart_revisions" }
+            { idField: "chartId", tableName: "chart_revisions" },
         ].map(async ({ idField, tableName }) => {
             const charts = (await queryRunner.query(`
                 SELECT ${idField} AS id, config
@@ -125,7 +125,7 @@ async function transformAllCharts(
 
 export class ExtractMapColorScale1590583070171 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<any> {
-        await transformAllCharts(queryRunner, oldConfig => {
+        await transformAllCharts(queryRunner, (oldConfig) => {
             // Clone and modify in place to avoid changing order of keys
             const newConfig = clone(oldConfig)
             newConfig.map = extractColorScaleConfig(
@@ -136,7 +136,7 @@ export class ExtractMapColorScale1590583070171 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<any> {
-        await transformAllCharts(queryRunner, newConfig => {
+        await transformAllCharts(queryRunner, (newConfig) => {
             // Clone and modify in place to avoid changing order of keys
             const oldConfig = clone(newConfig)
             oldConfig.map = mergeColorScaleConfig(newConfig.map as NewMapConfig)

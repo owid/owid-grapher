@@ -6,7 +6,7 @@ import {
     action,
     runInAction,
     reaction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import parse from "csv-parse"
 
@@ -18,7 +18,7 @@ import { SelectField, SelectGroupsField, SelectGroup } from "./Forms"
 import {
     CountryNameFormat,
     CountryNameFormatDefs,
-    CountryDefByKey
+    CountryDefByKey,
 } from "adminSite/client/CountryNameFormat"
 import { uniq, toString, csvEscape, values, sortBy } from "grapher/utils/Util"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -53,7 +53,7 @@ class CSV {
             return -1
         }
         return rows[0].findIndex(
-            columnName => columnName.toLowerCase() === "country"
+            (columnName) => columnName.toLowerCase() === "country"
         )
     }
 
@@ -117,7 +117,7 @@ class CSV {
             rows,
             countryColumnIndex,
             mapCountriesInputToOutput,
-            findSimilarCountries
+            findSimilarCountries,
         } = this
 
         if (countryColumnIndex < 0) {
@@ -138,10 +138,10 @@ class CSV {
 
         // for fuzzy-match, use the input and output values as target to improve matching potential
         const inputCountries = Object.keys(mapCountriesInputToOutput).filter(
-            key => mapCountriesInputToOutput[key] !== undefined
+            (key) => mapCountriesInputToOutput[key] !== undefined
         )
         const outputCountries = inputCountries.map(
-            key => mapCountriesInputToOutput[key]
+            (key) => mapCountriesInputToOutput[key]
         ) as string[]
         const fuzz = FuzzySet(inputCountries.concat(outputCountries))
 
@@ -162,7 +162,7 @@ class CSV {
                                 fuzzyMatch[1]
                         )
                     approximatedMatches = approximatedMatches.filter(
-                        key => key !== undefined
+                        (key) => key !== undefined
                     )
                 }
             } else {
@@ -174,7 +174,7 @@ class CSV {
                 standardizedName: outputCountry || undefined,
                 approximatedMatches: approximatedMatches,
                 selectedMatch: "",
-                customName: ""
+                customName: "",
             }
             entriesByCountry.set(country, entry)
         })
@@ -237,19 +237,19 @@ class CountryEntryRowRenderer extends React.Component<{
         const optgroups: SelectGroup[] = []
 
         if (entry.approximatedMatches.length > 0) {
-            const options = entry.approximatedMatches.map(countryName => ({
+            const options = entry.approximatedMatches.map((countryName) => ({
                 value: countryName,
-                label: countryName
+                label: countryName,
             }))
             optgroups.push({ title: "Likely matches", options: options })
         }
 
         optgroups.push({
             title: "All standard names",
-            options: allCountries.map(countryName => ({
+            options: allCountries.map((countryName) => ({
                 value: countryName,
-                label: countryName
-            }))
+                label: countryName,
+            })),
         })
 
         return (
@@ -265,7 +265,7 @@ class CountryEntryRowRenderer extends React.Component<{
                         value={defaultValue}
                         onValue={this.onEntrySelected}
                         options={[
-                            { value: defaultOption, label: defaultOption }
+                            { value: defaultOption, label: defaultOption },
                         ]}
                         groups={optgroups}
                     />
@@ -275,7 +275,7 @@ class CountryEntryRowRenderer extends React.Component<{
                         type="text"
                         className="form-control"
                         value={entry.customName}
-                        onChange={e =>
+                        onChange={(e) =>
                             onUpdate(
                                 e.currentTarget.value,
                                 entry.originalName,
@@ -354,14 +354,14 @@ export class CountryStandardizerPage extends React.Component {
         if (!file) return
 
         const reader = new FileReader()
-        reader.onload = e => {
+        reader.onload = (e) => {
             const csv = (e as any).target.result
             parse(
                 csv,
                 {
                     relax_column_count: true,
                     skip_empty_lines: true,
-                    rtrim: true
+                    rtrim: true,
                 },
                 (err, rows) => {
                     this.csv.onFileUpload(
@@ -485,8 +485,8 @@ export class CountryStandardizerPage extends React.Component {
             outputRows.push(newRow)
         })
 
-        const strRows = outputRows.map(row =>
-            row.map(val => csvEscape(val)).join(",")
+        const strRows = outputRows.map((row) =>
+            row.map((val) => csvEscape(val)).join(",")
         )
         return new Blob([strRows.join("\n")], { type: "text/csv" })
     }
@@ -532,7 +532,7 @@ export class CountryStandardizerPage extends React.Component {
         const countries: any = {}
         let needToSave: boolean = false
 
-        csv.countryEntriesMap.forEach(entry => {
+        csv.countryEntriesMap.forEach((entry) => {
             // ignore if there was a user entered a new name
             if (entry.customName !== undefined && entry.customName.length > 0) {
                 console.log(
@@ -560,7 +560,7 @@ export class CountryStandardizerPage extends React.Component {
         if (this.csv === undefined) return []
 
         const countries: CountryEntry[] = []
-        this.csv.countryEntriesMap.forEach(entry => {
+        this.csv.countryEntriesMap.forEach((entry) => {
             if (this.showAllRows) {
                 countries.push(entry)
             } else if (entry.standardizedName === undefined) {
@@ -575,10 +575,10 @@ export class CountryStandardizerPage extends React.Component {
         const { showDownloadOption, validationError } = csv
 
         const allowedInputFormats = CountryNameFormatDefs.filter(
-            c => c.use_as_input
+            (c) => c.use_as_input
         )
         const allowedOutputFormats = CountryNameFormatDefs.filter(
-            c => c.use_as_output
+            (c) => c.use_as_output
         )
 
         return (
@@ -622,9 +622,9 @@ export class CountryStandardizerPage extends React.Component {
                             label="Input Format"
                             value={this.inputFormat}
                             onValue={this.onInputFormat}
-                            options={allowedInputFormats.map(def => def.key)}
+                            options={allowedInputFormats.map((def) => def.key)}
                             optionLabels={allowedInputFormats.map(
-                                def => def.label
+                                (def) => def.label
                             )}
                             helpText="Choose the current format of the country names. If input format is other than the default, the tool won't attempt to find similar countries when there is no exact match."
                             data-step="1"
@@ -633,9 +633,9 @@ export class CountryStandardizerPage extends React.Component {
                             label="Output Format"
                             value={this.outputFormat}
                             onValue={this.onOutputFormat}
-                            options={allowedOutputFormats.map(def => def.key)}
+                            options={allowedOutputFormats.map((def) => def.key)}
                             optionLabels={allowedOutputFormats.map(
-                                def => def.label
+                                (def) => def.label
                             )}
                             helpText="Choose the desired format of the country names. If the chosen format is other than OWID name, the tool won't attempt to find similar countries when there is no exact match."
                         />

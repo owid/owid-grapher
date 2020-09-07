@@ -9,7 +9,7 @@ describe("ChartConfig", () => {
             hasChartTab: false,
             hasMapTab: false,
             isExplorable: true,
-            dimensions: [{ property: "y", variableId: 1, display: {} }]
+            dimensions: [{ property: "y", variableId: 1, display: {} }],
         })
         expect(grapher.isExplorable).toBe(true)
     })
@@ -19,7 +19,7 @@ describe("ChartConfig", () => {
             type: "ScatterPlot",
             hasChartTab: true,
             isExplorable: true,
-            dimensions: [{ property: "y", variableId: 1, display: {} }]
+            dimensions: [{ property: "y", variableId: 1, display: {} }],
         })
         expect(grapher.isExplorable).toBe(false)
     })
@@ -31,8 +31,8 @@ describe("ChartConfig", () => {
             isExplorable: true,
             dimensions: [
                 { property: "y", variableId: 1, display: {} },
-                { property: "y", variableId: 2, display: {} }
-            ]
+                { property: "y", variableId: 2, display: {} },
+            ],
         })
         expect(grapher.isExplorable).toBe(false)
     })

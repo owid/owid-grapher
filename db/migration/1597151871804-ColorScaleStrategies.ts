@@ -24,7 +24,7 @@ interface OldColorScaleConfig {
 
 enum ColorScaleBinningStrategy {
     equalInterval = "equalInterval",
-    manual = "manual"
+    manual = "manual",
 }
 
 interface NewColorScaleConfig {
@@ -85,7 +85,7 @@ function oldToNewColorScaleConfig(
         customCategoryLabels: oldConfig.customCategoryLabels,
         customHiddenCategories: oldConfig.customHiddenCategories,
 
-        legendDescription: oldConfig.legendDescription
+        legendDescription: oldConfig.legendDescription,
     }
 }
 
@@ -113,7 +113,7 @@ function newToOldColorScaleConfig(
         customCategoryLabels: newConfig.customCategoryLabels,
         customHiddenCategories: newConfig.customHiddenCategories,
 
-        legendDescription: newConfig.legendDescription
+        legendDescription: newConfig.legendDescription,
     }
 }
 
@@ -132,8 +132,8 @@ function transformColorScaleConfig<I, O>(
                 ? undefined
                 : {
                       ...config.map,
-                      colorScale: transform(config.map.colorScale)
-                  }
+                      colorScale: transform(config.map.colorScale),
+                  },
     }
 }
 
@@ -144,7 +144,7 @@ async function transformAllCharts(
     await Promise.all(
         [
             { idField: "id", tableName: "charts" },
-            { idField: "chartId", tableName: "chart_revisions" }
+            { idField: "chartId", tableName: "chart_revisions" },
         ].map(async ({ idField, tableName }) => {
             const charts = (await queryRunner.query(`
             SELECT ${idField} AS id, config

@@ -2,7 +2,7 @@ import { Grapher } from "grapher/core/Grapher"
 import {
     dimensionProperty,
     ChartDimensionSpec,
-    ChartDimension
+    ChartDimension,
 } from "./ChartDimension"
 import { computed } from "mobx"
 
@@ -20,7 +20,7 @@ export class DimensionSlot {
             x: "X axis",
             size: "Size",
             color: "Color",
-            filter: "Filter"
+            filter: "Filter",
         }
 
         return (names as any)[this.property] || ""
@@ -42,12 +42,14 @@ export class DimensionSlot {
     }
 
     @computed get dimensions(): ChartDimensionSpec[] {
-        return this.grapher.dimensions.filter(d => d.property === this.property)
+        return this.grapher.dimensions.filter(
+            (d) => d.property === this.property
+        )
     }
 
     set dimensions(dims: ChartDimensionSpec[]) {
         let newDimensions: ChartDimensionSpec[] = []
-        this.grapher.dimensionSlots.forEach(slot => {
+        this.grapher.dimensionSlots.forEach((slot) => {
             if (slot.property === this.property)
                 newDimensions = newDimensions.concat(dims)
             else newDimensions = newDimensions.concat(slot.dimensions)
@@ -57,7 +59,7 @@ export class DimensionSlot {
 
     @computed get dimensionsWithData(): ChartDimension[] {
         return this.grapher.filledDimensions.filter(
-            d => d.property === this.property
+            (d) => d.property === this.property
         )
     }
 

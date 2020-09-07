@@ -69,7 +69,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
 
         const style = {
             left: x - this.getLeftShiftIfNeeded(x),
-            top: y
+            top: y,
         }
         return (
             <div

@@ -25,7 +25,7 @@ async function importCodebook() {
 
     const now = new Date()
     const codebookRows = await parseCSV(codebookCSV)
-    const vdemVariables = codebookRows.slice(1).map(row => ({
+    const vdemVariables = codebookRows.slice(1).map((row) => ({
         indicatorCode: row[0],
         indicatorName: row[1],
         shortDefinition: row[2],
@@ -33,13 +33,13 @@ async function importCodebook() {
         responses: row[4],
         dataRelease: row[5],
         aggregationMethod: row[6],
-        variableSource: row[7].trim()
+        variableSource: row[7].trim(),
     }))
 
     // Need to handle these fussy subset codes separately
     const variablesByCode = lodash.keyBy(
-        vdemVariables.filter(v => v.shortDefinition),
-        v => v.indicatorCode
+        vdemVariables.filter((v) => v.shortDefinition),
+        (v) => v.indicatorCode
     )
     for (const v of vdemVariables) {
         const orig = variablesByCode[v.indicatorCode]
@@ -69,7 +69,7 @@ async function importCodebook() {
         await db.get(`SELECT * FROM users WHERE fullName=?`, ["Jaiden Mispy"])
     ).id
 
-    await db.transaction(async t => {
+    await db.transaction(async (t) => {
         const existingDataset = (
             await t.query("SELECT id FROM datasets WHERE namespace='vdem'")
         )[0]
@@ -79,13 +79,13 @@ async function importCodebook() {
                 [existingDataset.id]
             )
             await t.execute(`DELETE FROM variables WHERE datasetId=?`, [
-                existingDataset.id
+                existingDataset.id,
             ])
             await t.execute(`DELETE FROM sources WHERE datasetId=?`, [
-                existingDataset.id
+                existingDataset.id,
             ])
             await t.execute(`DELETE FROM datasets WHERE id=?`, [
-                existingDataset.id
+                existingDataset.id,
             ])
         }
 
@@ -100,7 +100,7 @@ async function importCodebook() {
             userId,
             now,
             userId,
-            userId
+            userId,
         ]
         const result = await t.query(
             "INSERT INTO datasets (namespace, name, description, isPrivate, createdAt, updatedAt, metadataEditedAt, metadataEditedByUserId, dataEditedAt, dataEditedByUserId, createdByUserId) VALUES (?)",
@@ -138,14 +138,14 @@ async function importCodebook() {
                 dataPublishedBy: "V-Dem Institute",
                 dataPublisherSource: v.variableSource,
                 link: findUrlsInText(v.variableSource).join(","),
-                additionalInfo: additionalInfo
+                additionalInfo: additionalInfo,
             }
             const sourceRow = [
                 datasetId,
                 sourceName,
                 now,
                 now,
-                JSON.stringify(sourceDescription)
+                JSON.stringify(sourceDescription),
             ]
 
             const sourceResult = await t.query(
@@ -167,7 +167,7 @@ async function importCodebook() {
                 "",
                 "",
                 "",
-                "{}"
+                "{}",
             ]
             await t.query(
                 "INSERT INTO variables (datasetId, sourceId, columnOrder, name, code, description, createdAt, updatedAt, originalMetadata, unit, coverage, timespan, display) VALUES (?)",
@@ -193,7 +193,7 @@ async function importData() {
         "Timor-Leste": "Timor",
         "United States of America": "United States",
         "Democratic Republic of Vietnam": "Vietnam",
-        Würtemberg: "Wurtemberg"
+        Würtemberg: "Wurtemberg",
     } as { [key: string]: string | undefined }
 
     const entitiesUniq = [
@@ -397,17 +397,23 @@ async function importData() {
         "South Africa",
         "Zambia",
         "Zimbabwe",
-        "Zanzibar"
+        "Zanzibar",
     ]
 
-    await db.transaction(async t => {
+    await db.transaction(async (t) => {
         await t.execute(
             `DELETE dv FROM data_values dv JOIN variables v ON dv.variableId=v.id JOIN datasets d ON v.datasetId=d.id WHERE d.namespace='vdem'`
         )
 
         const now = new Date()
         // Insert any new entities into the db
-        const importEntityRows = entitiesUniq.map(e => [e, false, now, now, ""])
+        const importEntityRows = entitiesUniq.map((e) => [
+            e,
+            false,
+            now,
+            now,
+            "",
+        ])
         await t.execute(
             `INSERT IGNORE entities (name, validated, createdAt, updatedAt, displayName) VALUES ?`,
             [importEntityRows]
@@ -474,7 +480,7 @@ async function importData() {
                         row[i],
                         parseInt(year),
                         entityId,
-                        variableId
+                        variableId,
                     ])
                 }
             }

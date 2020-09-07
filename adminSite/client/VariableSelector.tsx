@@ -7,7 +7,7 @@ import {
     observable,
     autorun,
     runInAction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import { observer } from "mobx-react"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
@@ -52,7 +52,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     @computed get currentNamespace() {
         return defaultTo(
             this.chosenNamespace,
-            this.database.namespaces.find(n => n.name === "owid") as Namespace
+            this.database.namespaces.find((n) => n.name === "owid") as Namespace
         )
     }
 
@@ -67,28 +67,28 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
         if (this.currentNamespace.name !== "owid") {
             // The default temporal ordering has no real use for bulk imports
-            return sortBy(datasets, d => d.name)
+            return sortBy(datasets, (d) => d.name)
         } else {
             return datasets
         }
     }
 
     @computed get datasetsByName(): lodash.Dictionary<Dataset> {
-        return lodash.keyBy(this.datasets, d => d.name)
+        return lodash.keyBy(this.datasets, (d) => d.name)
     }
 
     @computed get availableVariables(): Variable[] {
         const variables: Variable[] = []
-        this.datasets.forEach(dataset => {
-            const sorted = sortBy(dataset.variables, v => v.name)
-            sorted.forEach(variable => {
+        this.datasets.forEach((dataset) => {
+            const sorted = sortBy(dataset.variables, (v) => v.name)
+            sorted.forEach((variable) => {
                 variables.push({
                     id: variable.id,
                     name: variable.name,
                     datasetName: dataset.name,
                     searchKey: fuzzysort.prepare(
                         dataset.name + " - " + variable.name
-                    )
+                    ),
                     //name: variable.name.includes(dataset.name) ? variable.name : dataset.name + " - " + variable.name
                 })
             })
@@ -100,7 +100,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const results =
             this.searchInput &&
             fuzzysort.go(this.searchInput, this.availableVariables, {
-                key: "searchKey"
+                key: "searchKey",
             })
         return results && results.length
             ? results.map((result: any) => result.obj)
@@ -108,7 +108,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @computed get resultsByDataset(): { [datasetName: string]: Variable[] } {
-        return groupBy(this.searchResults, d => d.datasetName)
+        return groupBy(this.searchResults, (d) => d.datasetName)
     }
 
     @computed get searchResultRows() {
@@ -136,14 +136,14 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             currentNamespace,
             searchInput,
             chosenVariables,
-            datasetsByName
+            datasetsByName,
         } = this
         const {
             rowHeight,
             rowOffset,
             numVisibleRows,
             numTotalRows,
-            searchResultRows
+            searchResultRows,
         } = this
 
         const highlight = (text: string) => {
@@ -175,7 +175,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                 <SelectField
                                     label="Database"
                                     options={database.namespaces.map(
-                                        n => n.name
+                                        (n) => n.name
                                     )}
                                     optionLabels={database.namespaces.map(
                                         getOptionLabel
@@ -195,17 +195,17 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                             <div
                                 style={{
                                     height: numVisibleRows * rowHeight,
-                                    overflowY: "scroll"
+                                    overflowY: "scroll",
                                 }}
                                 onScroll={this.onScroll}
-                                ref={e =>
+                                ref={(e) =>
                                     (this.scrollElement = e as HTMLDivElement)
                                 }
                             >
                                 <div
                                     style={{
                                         height: numTotalRows * rowHeight,
-                                        paddingTop: rowHeight * rowOffset
+                                        paddingTop: rowHeight * rowOffset,
                                     }}
                                 >
                                     <ul>
@@ -214,7 +214,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                 rowOffset,
                                                 rowOffset + numVisibleRows
                                             )
-                                            .map(d => {
+                                            .map((d) => {
                                                 if (isString(d)) {
                                                     const dataset =
                                                         datasetsByName[d]
@@ -222,7 +222,8 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                         <li
                                                             key={dataset.name}
                                                             style={{
-                                                                minWidth: "100%"
+                                                                minWidth:
+                                                                    "100%",
                                                             }}
                                                         >
                                                             <h5>
@@ -241,17 +242,17 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                                                         </li>
                                                     )
                                                 } else {
-                                                    return d.map(v => (
+                                                    return d.map((v) => (
                                                         <li
                                                             key={`${v.id}-${v.name}`}
                                                             style={{
-                                                                minWidth: "50%"
+                                                                minWidth: "50%",
                                                             }}
                                                         >
                                                             <Toggle
                                                                 value={this.chosenVariables
                                                                     .map(
-                                                                        cv =>
+                                                                        (cv) =>
                                                                             cv.id
                                                                     )
                                                                     .includes(
@@ -276,7 +277,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                         </div>
                         <div className="selectedData">
                             <ul>
-                                {chosenVariables.map(d => {
+                                {chosenVariables.map((d) => {
                                     return (
                                         <li key={d.id}>
                                             <Toggle
@@ -322,7 +323,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     @action.bound onNamespace(namespace: string | undefined) {
         this.chosenNamespace = this.database.namespaces.find(
-            n => n.name === namespace
+            (n) => n.name === namespace
         )
     }
 
@@ -340,7 +341,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     @action.bound unselectVariable(variable: Variable) {
         this.chosenVariables = this.chosenVariables.filter(
-            v => v.id !== variable.id
+            (v) => v.id !== variable.id
         )
     }
 
@@ -376,10 +377,10 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound private initChosenVariables() {
-        this.chosenVariables = this.props.slot.dimensionsWithData.map(d => ({
+        this.chosenVariables = this.props.slot.dimensionsWithData.map((d) => ({
             name: d.displayName,
             id: d.variableId,
-            datasetName: ""
+            datasetName: "",
         }))
     }
 
@@ -388,6 +389,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     @action.bound onComplete() {
-        this.props.onComplete(this.chosenVariables.map(v => v.id))
+        this.props.onComplete(this.chosenVariables.map((v) => v.id))
     }
 }

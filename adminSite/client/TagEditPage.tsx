@@ -107,7 +107,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
     @computed get parentTag() {
         const { parentId } = this.props.tag
         return parentId
-            ? this.props.tag.possibleParents.find(c => c.id === parentId)
+            ? this.props.tag.possibleParents.find((c) => c.id === parentId)
             : undefined
     }
 
@@ -127,7 +127,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 </section>
                 <section>
                     <form
-                        onSubmit={e => {
+                        onSubmit={(e) => {
                             e.preventDefault()
                             this.save()
                         }}
@@ -146,11 +146,11 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                                     value={newtag.parentId || -1}
                                     options={[-1].concat(
                                         tag.possibleParents.map(
-                                            p => p.id as number
+                                            (p) => p.id as number
                                         )
                                     )}
                                     optionLabels={["None"].concat(
-                                        tag.possibleParents.map(p => p.name)
+                                        tag.possibleParents.map((p) => p.name)
                                     )}
                                     onValue={this.onChooseParent}
                                 />
@@ -186,7 +186,7 @@ class TagEditor extends React.Component<{ tag: TagPageData }> {
                 {tag.children.length > 0 && (
                     <section>
                         <h3>Subcategories</h3>
-                        {tag.children.map(c => (
+                        {tag.children.map((c) => (
                             <TagBadge tag={c as Tag} key={c.id} />
                         ))}
                     </section>

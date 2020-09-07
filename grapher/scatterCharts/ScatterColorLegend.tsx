@@ -47,7 +47,7 @@ export class VerticalColorLegend {
                 maxWidth: this.props.maxWidth,
                 fontSize: 0.75 * this.props.fontSize,
                 fontWeight: 700,
-                text: this.props.title
+                text: this.props.title,
             })
         }
         return
@@ -64,24 +64,24 @@ export class VerticalColorLegend {
         const { props, fontSize, rectSize, rectPadding } = this
 
         return props.colorables
-            .map(c => {
+            .map((c) => {
                 const label = new TextWrap({
                     maxWidth: props.maxWidth,
                     fontSize: fontSize,
-                    text: c.label
+                    text: c.label,
                 })
                 return {
                     label: label,
                     color: c.color,
                     width: rectSize + rectPadding + label.width,
-                    height: Math.max(label.height, rectSize)
+                    height: Math.max(label.height, rectSize),
                 }
             })
-            .filter(v => !!v) as LabelMark[]
+            .filter((v) => !!v) as LabelMark[]
     }
 
     @computed get width(): number {
-        const widths = this.labelMarks.map(d => d.width)
+        const widths = this.labelMarks.map((d) => d.width)
         if (this.title) widths.push(this.title.width)
         return defaultTo(max(widths), 0)
     }
@@ -89,7 +89,7 @@ export class VerticalColorLegend {
     @computed get height() {
         return (
             this.titleHeight +
-            sum(this.labelMarks.map(d => d.height)) +
+            sum(this.labelMarks.map((d) => d.height)) +
             this.lineHeight * this.labelMarks.length
         )
     }
@@ -117,7 +117,7 @@ export class ScatterColorLegendView extends React.Component<
             activeColors,
             onMouseOver,
             onMouseLeave,
-            onClick
+            onClick,
         } = props
         const {
             title,
@@ -125,7 +125,7 @@ export class ScatterColorLegendView extends React.Component<
             labelMarks,
             rectSize,
             rectPadding,
-            lineHeight
+            lineHeight,
         } = props.legend
 
         let markOffset = titleHeight

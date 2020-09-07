@@ -17,7 +17,7 @@ export class CommandPalette extends React.Component<{
 }> {
     render() {
         const style: any = {
-            display: this.props.display
+            display: this.props.display,
         }
         let lastCat = ""
         const commands = this.props.commands.map((command, index) => {

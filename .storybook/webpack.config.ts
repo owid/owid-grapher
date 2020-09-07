@@ -14,20 +14,20 @@ module.exports = ({ config }: { config: any }) => {
                     loader: "sass-loader",
                     options: {
                         sassOptions: {
-                            outputStyle: "expanded" // Needed so autoprefixer comments are included
-                        }
-                    }
-                }
-            ]
-        }
+                            outputStyle: "expanded", // Needed so autoprefixer comments are included
+                        },
+                    },
+                },
+            ],
+        },
     ])
     config.resolve.plugins = [
         new TsconfigPathsPlugin({
-            configFile: path.join(__dirname, "../tsconfig.client.json")
-        })
+            configFile: path.join(__dirname, "../tsconfig.client.json"),
+        }),
     ]
     config.plugins = config.plugins.concat([
-        new MiniCssExtractPlugin({ filename: "css/[name].css" })
+        new MiniCssExtractPlugin({ filename: "css/[name].css" }),
     ])
 
     return config

@@ -17,7 +17,7 @@ import {
     renderNotFoundPage,
     renderBlogByPageNum,
     renderCovidPage,
-    countryProfileCountryPage
+    countryProfileCountryPage,
 } from "site/server/siteBaking"
 import { chartDataJson, grapherPageFromSlug } from "site/server/grapherBaking"
 import { BAKED_GRAPHER_URL } from "settings"
@@ -27,14 +27,14 @@ import { expectInt, JsonError } from "utils/server/serverUtil"
 import { embedSnippet } from "site/server/embedCharts"
 import {
     countryProfilePage,
-    countriesIndexPage
+    countriesIndexPage,
 } from "site/server/countryProfiles"
 import { makeSitemap } from "site/server/sitemap"
 import { OldChart } from "db/model/Chart"
 import { chartToSVG } from "site/server/svgPngExport"
 import {
     covidDashboardSlug,
-    covidChartAndVariableMetaPath
+    covidChartAndVariableMetaPath,
 } from "explorer/covidExplorer/CovidConstants"
 import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidChartAndVariableMeta"
 import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
@@ -71,7 +71,7 @@ mockSiteRouter.get(
             await chartDataJson(
                 (req.params.variableIds as string)
                     .split("+")
-                    .map(v => expectInt(v))
+                    .map((v) => expectInt(v))
             )
         )
     }
@@ -125,7 +125,7 @@ mockSiteRouter.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidExplorerPage())
 })
 
-countryProfileSpecs.forEach(spec => {
+countryProfileSpecs.forEach((spec) => {
     mockSiteRouter.get(`/${spec.rootPath}/:countrySlug`, async (req, res) => {
         res.send(await countryProfileCountryPage(spec, req.params.countrySlug))
     })
@@ -171,7 +171,7 @@ mockSiteRouter.use(
     // on front page.
     ["/uploads", "/app/uploads"],
     express.static(path.join(WORDPRESS_DIR, "web/app/uploads"), {
-        fallthrough: false
+        fallthrough: false,
     })
 )
 

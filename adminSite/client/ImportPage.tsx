@@ -8,7 +8,7 @@ import {
     action,
     reaction,
     runInAction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import { observer } from "mobx-react"
 import { Redirect } from "react-router-dom"
@@ -71,7 +71,7 @@ class EditableDataset {
         dataPublisherSource: "",
         link: "",
         retrievedDate: "",
-        additionalInfo: ""
+        additionalInfo: "",
     }
 
     update(json: any) {
@@ -118,7 +118,7 @@ class DataPreview extends React.Component<{ csv: CSV }> {
                 <div
                     style={{
                         height: height * numRows,
-                        paddingTop: height * rowOffset
+                        paddingTop: height * rowOffset,
                     }}
                 >
                     <table className="table" style={{ background: "white" }}>
@@ -159,7 +159,7 @@ class EditVariable extends React.Component<{
                 <FieldsRow>
                     <BindString store={variable} field="name" label="" />
                     <select
-                        onChange={e => {
+                        onChange={(e) => {
                             variable.overwriteId = e.target.value
                                 ? parseInt(e.target.value)
                                 : undefined
@@ -167,7 +167,7 @@ class EditVariable extends React.Component<{
                         value={variable.overwriteId || ""}
                     >
                         <option value="">Create new variable</option>
-                        {dataset.existingVariables.map(v => (
+                        {dataset.existingVariables.map((v) => (
                             <option key={v.id} value={v.id}>
                                 Overwrite {v.name}
                             </option>
@@ -186,7 +186,7 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
         const deletingVariables: ExistingVariable[] = []
         for (const variable of dataset.existingVariables) {
             if (
-                !dataset.newVariables.some(v => v.overwriteId === variable.id)
+                !dataset.newVariables.some((v) => v.overwriteId === variable.id)
             ) {
                 deletingVariables.push(variable)
             }
@@ -217,7 +217,7 @@ class EditVariables extends React.Component<{ dataset: EditableDataset }> {
                     <div className="alert alert-danger">
                         Some existing variables are not selected to overwrite
                         and will be deleted:{" "}
-                        {this.deletingVariables.map(v => v.name).join(",")}
+                        {this.deletingVariables.map((v) => v.name).join(",")}
                     </div>
                 )}
             </section>
@@ -285,7 +285,7 @@ class CSV {
         return {
             variables: variables,
             entities: entities,
-            years: years
+            years: years,
         }
     }
 
@@ -297,7 +297,7 @@ class CSV {
         if (rows[0].length < 3) {
             validation.results.push({
                 class: "danger",
-                message: `No variables detected. CSV should have at least 3 columns.`
+                message: `No variables detected. CSV should have at least 3 columns.`,
             })
         }
 
@@ -315,7 +315,7 @@ class CSV {
                 class: "danger",
                 message: `Invalid or missing entity/year on lines: ${invalidLines.join(
                     ", "
-                )}`
+                )}`,
             })
         }
 
@@ -330,12 +330,12 @@ class CSV {
             uniqCheck[key] += 1
         }
 
-        keys(uniqCheck).forEach(key => {
+        keys(uniqCheck).forEach((key) => {
             const count = uniqCheck[key]
             if (count > 1) {
                 validation.results.push({
                     class: "danger",
-                    message: `Duplicates detected: ${count} instances of ${key}.`
+                    message: `Duplicates detected: ${count} instances of ${key}.`,
                 })
             }
         })
@@ -357,7 +357,8 @@ class CSV {
             validation.results.push({
                 class: "warning",
                 message:
-                    "Non-numeric data detected on line " + nonNumeric.join(", ")
+                    "Non-numeric data detected on line " +
+                    nonNumeric.join(", "),
             })
 
         // Warn if we're creating novel entities
@@ -370,12 +371,12 @@ class CSV {
                 class: "warning",
                 message: `These entities were not found in the database and will be created: ${newEntities.join(
                     ", "
-                )}`
+                )}`,
             })
         }
 
         validation.passed = validation.results.every(
-            result => result.class !== "danger"
+            (result) => result.class !== "danger"
         )
 
         return validation
@@ -425,14 +426,14 @@ class CSVSelector extends React.Component<{
         if (!file) return
 
         const reader = new FileReader()
-        reader.onload = e => {
+        reader.onload = (e) => {
             const csv = (e as any).target.result
             parse(
                 csv,
                 {
                     relax_column_count: true,
                     skip_empty_lines: true,
-                    rtrim: true
+                    rtrim: true,
                 },
                 (_, rows) => {
                     // TODO error handling
@@ -442,7 +443,7 @@ class CSVSelector extends React.Component<{
                     this.csv = new CSV({
                         filename: file.name,
                         rows,
-                        existingEntities
+                        existingEntities,
                     } as any)
                     this.props.onCSV(this.csv as any)
                 }
@@ -459,7 +460,7 @@ class CSVSelector extends React.Component<{
                 <input
                     type="file"
                     onChange={this.onChooseCSV}
-                    ref={e => (this.fileInput = e as HTMLInputElement)}
+                    ref={(e) => (this.fileInput = e as HTMLInputElement)}
                 />
                 {csv && <DataPreview csv={csv} />}
                 {csv && <ValidationView validation={csv.validation} />}
@@ -489,7 +490,7 @@ class Importer extends React.Component<ImportPageData> {
 
         // Look for an existing dataset that matches this csv filename
         const existingDataset = this.props.datasets.find(
-            d => d.name === csv.basename
+            (d) => d.name === csv.basename
         )
 
         if (existingDataset) {
@@ -532,12 +533,12 @@ class Importer extends React.Component<ImportPageData> {
 
         if (existingDataset) {
             // Match new variables to existing variables
-            dataset.newVariables.forEach(variable => {
+            dataset.newVariables.forEach((variable) => {
                 const match = dataset.existingVariables.filter(
-                    v => v.name === variable.name
+                    (v) => v.name === variable.name
                 )[0]
                 if (match) {
-                    keys(match).forEach(key => {
+                    keys(match).forEach((key) => {
                         if (key === "id")
                             variable.overwriteId = (match as any)[key]
                         else (variable as any)[key] = (match as any)[key]
@@ -562,11 +563,11 @@ class Importer extends React.Component<ImportPageData> {
             dataset: {
                 id: this.existingDataset ? this.existingDataset.id : undefined,
                 name: this.dataset.name,
-                description: this.dataset.description
+                description: this.dataset.description,
             },
             years,
             entities,
-            variables: newVariables
+            variables: newVariables,
         }
         this.context.admin
             .requestJSON("/api/importDataset", requestData, "POST")
@@ -625,7 +626,7 @@ class Importer extends React.Component<ImportPageData> {
                     <section>
                         <p
                             style={{
-                                opacity: dataset.id !== undefined ? 1 : 0
+                                opacity: dataset.id !== undefined ? 1 : 0,
                             }}
                             className="updateWarning"
                         >
@@ -634,9 +635,9 @@ class Importer extends React.Component<ImportPageData> {
                         <NumericSelectField
                             value={existingDataset ? existingDataset.id : -1}
                             onValue={this.onChooseDataset}
-                            options={[-1].concat(datasets.map(d => d.id))}
+                            options={[-1].concat(datasets.map((d) => d.id))}
                             optionLabels={["Create new dataset"].concat(
-                                datasets.map(d => d.name)
+                                datasets.map((d) => d.name)
                             )}
                         />
                         <hr />
@@ -678,7 +679,7 @@ class Importer extends React.Component<ImportPageData> {
                                         ? "Update dataset"
                                         : "Create dataset"
                                 }
-                            />
+                            />,
                         ]}
                         {this.postImportDatasetId && (
                             <Redirect

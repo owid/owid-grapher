@@ -29,7 +29,7 @@ function getTypedKey(value: any, key: string): string {
         return key
     } else if (Array.isArray(value)) {
         const allTypes = value.map(getType)
-        if (allTypes.some(type => type !== allTypes[0])) {
+        if (allTypes.some((type) => type !== allTypes[0])) {
             throw new Error("All array items must be of same type")
         } else {
             if (allTypes[0]) return `${key}_${allTypes[0]}s`

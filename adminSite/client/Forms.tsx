@@ -73,7 +73,7 @@ export class TextField extends React.Component<TextFieldProps> {
             "title",
             "disabled",
             "required",
-            "onBlur"
+            "onBlur",
         ])
 
         return (
@@ -83,7 +83,7 @@ export class TextField extends React.Component<TextFieldProps> {
                     className="form-control"
                     type="text"
                     value={props.value || ""}
-                    onChange={e => this.props.onValue(e.currentTarget.value)}
+                    onChange={(e) => this.props.onValue(e.currentTarget.value)}
                     onKeyDown={this.onKeyDown}
                     {...passthroughProps}
                 />
@@ -119,7 +119,7 @@ class TextAreaField extends React.Component<TextFieldProps> {
             "title",
             "disabled",
             "label",
-            "rows"
+            "rows",
         ])
 
         return (
@@ -177,7 +177,7 @@ export class NumberField extends React.Component<
         super(props)
 
         this.state = {
-            inputValue: undefined
+            inputValue: undefined,
         }
     }
 
@@ -200,8 +200,8 @@ export class NumberField extends React.Component<
             },
             onBlur: () =>
                 this.setState({
-                    inputValue: undefined
-                })
+                    inputValue: undefined,
+                }),
         })
 
         return <TextField {...textFieldProps} />
@@ -226,7 +226,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
             return {
                 key: opt,
                 value: opt,
-                text: (props.optionLabels && props.optionLabels[i]) || opt
+                text: (props.optionLabels && props.optionLabels[i]) || opt,
             }
         })
 
@@ -235,7 +235,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
                 {props.label && <label>{props.label}</label>}
                 <select
                     className="form-control"
-                    onChange={e =>
+                    onChange={(e) =>
                         props.onValue(e.currentTarget.value as string)
                     }
                     value={props.value}
@@ -246,7 +246,7 @@ export class SelectField extends React.Component<SelectFieldProps> {
                             {props.placeholder}
                         </option>
                     ) : null}
-                    {options.map(opt => (
+                    {options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                             {opt.text}
                         </option>
@@ -290,19 +290,19 @@ export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
                 {props.label && <label>{props.label}</label>}
                 <select
                     className="form-control"
-                    onChange={e =>
+                    onChange={(e) =>
                         props.onValue(e.currentTarget.value as string)
                     }
                     value={props.value}
                 >
-                    {props.options.map(opt => (
+                    {props.options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                             {opt.label}
                         </option>
                     ))}
-                    {props.groups.map(group => (
+                    {props.groups.map((group) => (
                         <optgroup key={group.title} label={group.title}>
-                            {group.options.map(opt => (
+                            {group.options.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
                                     {opt.label || opt.value}
                                 </option>
@@ -335,7 +335,7 @@ export class RadioGroup extends React.Component<RadioGroupProps> {
     render() {
         return (
             <div className="RadioGroup">
-                {this.props.options.map(option => {
+                {this.props.options.map((option) => {
                     return (
                         <div key={option.value} className="radioOption">
                             <input
@@ -375,11 +375,11 @@ export class NumericSelectField extends React.Component<
                 this.props.value !== undefined
                     ? this.props.value.toString()
                     : "",
-            options: this.props.options.map(opt => opt.toString()),
+            options: this.props.options.map((opt) => opt.toString()),
             onValue: (value: string | undefined) => {
                 const asNumber = parseFloat(value as string)
                 this.props.onValue(asNumber)
-            }
+            },
         })
         return <SelectField {...props} />
     }
@@ -479,7 +479,7 @@ export class ColorBox extends React.Component<{
                             style={{
                                 display: "flex",
                                 alignItems: "center",
-                                flexDirection: "column"
+                                flexDirection: "column",
                             }}
                         >
                             <Button
@@ -574,7 +574,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
                         className="form-control"
                         value={props.value}
                         placeholder={props.placeholder}
-                        onChange={e => props.onValue(e.currentTarget.value)}
+                        onChange={(e) => props.onValue(e.currentTarget.value)}
                     />
                     <div
                         className="input-group-addon"
@@ -711,7 +711,7 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
                 const asNumber = parseFloat(value)
                 props.onValue(isNaN(asNumber) ? undefined : asNumber)
             },
-            placeholder: props.isAuto ? props.value.toString() : undefined
+            placeholder: props.isAuto ? props.value.toString() : undefined,
         })
 
         return <AutoTextField {...textFieldProps} />
@@ -735,7 +735,7 @@ class FloatField extends React.Component<FloatFieldProps> {
             onValue: (value: string) => {
                 const asNumber = parseFloat(value)
                 props.onValue(isNaN(asNumber) ? undefined : asNumber)
-            }
+            },
         })
 
         return <TextField {...textFieldProps} />
@@ -942,8 +942,8 @@ export class EditableTags extends React.Component<{
     @action.bound onAddTag(tag: Tag) {
         this.tags.push(tag)
         this.tags = lodash
-            .uniqBy(this.tags, t => t.id)
-            .filter(t => t.name !== "Uncategorized")
+            .uniqBy(this.tags, (t) => t.id)
+            .filter((t) => t.name !== "Uncategorized")
 
         this.ensureUncategorized()
     }
@@ -956,7 +956,7 @@ export class EditableTags extends React.Component<{
     @action.bound ensureUncategorized() {
         if (this.tags.length === 0) {
             const uncategorized = this.props.suggestions.find(
-                t => t.name === "Uncategorized"
+                (t) => t.name === "Uncategorized"
             )
             if (uncategorized) this.tags.push(uncategorized)
         }
@@ -964,7 +964,9 @@ export class EditableTags extends React.Component<{
 
     @action.bound onToggleEdit() {
         if (this.isEditing) {
-            this.props.onSave(this.tags.filter(t => t.name !== "Uncategorized"))
+            this.props.onSave(
+                this.tags.filter((t) => t.name !== "Uncategorized")
+            )
         }
         this.isEditing = !this.isEditing
     }
@@ -993,7 +995,7 @@ export class EditableTags extends React.Component<{
                     />
                 ) : (
                     <div>
-                        {tags.map(t => (
+                        {tags.map((t) => (
                             <TagBadge key={t.id} tag={t} />
                         ))}
                         {!disabled && (

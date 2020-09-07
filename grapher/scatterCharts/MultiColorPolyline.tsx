@@ -23,14 +23,14 @@ interface Segment {
 function getMidpoint(a: Point, b: Point) {
     return {
         x: (a.x + b.x) / 2,
-        y: (a.y + b.y) / 2
+        y: (a.y + b.y) / 2,
     }
 }
 
 function toPoint(point: MultiColorPolylinePoint): Point {
     return {
         x: point.x,
-        y: point.y
+        y: point.y,
     }
 }
 
@@ -38,12 +38,12 @@ export function getSegmentsFromPoints(
     points: MultiColorPolylinePoint[]
 ): Segment[] {
     const segments: Segment[] = []
-    points.forEach(currentPoint => {
+    points.forEach((currentPoint) => {
         const currentSegment = segments[segments.length - 1]
         if (!currentSegment) {
             segments.push({
                 points: [toPoint(currentPoint)],
-                color: currentPoint.color
+                color: currentPoint.color,
             })
         } else if (currentSegment.color === currentPoint.color) {
             currentSegment.points.push(toPoint(currentPoint))
@@ -55,7 +55,7 @@ export function getSegmentsFromPoints(
             currentSegment.points.push(midPoint)
             segments.push({
                 points: [midPoint, toPoint(currentPoint)],
-                color: currentPoint.color
+                color: currentPoint.color,
             })
         }
     })
@@ -63,7 +63,7 @@ export function getSegmentsFromPoints(
 }
 
 function toSvgPoints(points: Point[]): string {
-    return points.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")
+    return points.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ")
 }
 
 type MultiColorPolylineProps = Omit<

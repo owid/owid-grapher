@@ -5,7 +5,7 @@ import {
     flatten,
     csvEscape,
     first,
-    valuesAtYears
+    valuesAtYears,
 } from "grapher/utils/Util"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 
@@ -29,18 +29,20 @@ export class CSVGenerator {
     }
 
     @computed get csvDimensions() {
-        return this.grapher.filledDimensions.filter(d => d.property !== "color")
+        return this.grapher.filledDimensions.filter(
+            (d) => d.property !== "color"
+        )
     }
 
     /** Returns dimensions for which we want to show all values */
     @computed get allValueDimensions() {
         return this.csvDimensions.filter(
-            dim => !this.isSingleValueDimension(dim)
+            (dim) => !this.isSingleValueDimension(dim)
         )
     }
 
     @computed get singleValueDimensions() {
-        return this.csvDimensions.filter(dim =>
+        return this.csvDimensions.filter((dim) =>
             this.isSingleValueDimension(dim)
         )
     }
@@ -59,17 +61,17 @@ export class CSVGenerator {
         const titleRow = this.baseTitleRow
         titleRow.push("Date")
 
-        this.allValueDimensions.map(dim =>
+        this.allValueDimensions.map((dim) =>
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         )
-        this.singleValueDimensions.map(dim => {
+        this.singleValueDimensions.map((dim) => {
             titleRow.push("Year")
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         })
 
         return {
             indexingYears: this.dayColumn!.valuesUniq,
-            titleRow: titleRow
+            titleRow: titleRow,
         }
     }
 
@@ -77,15 +79,15 @@ export class CSVGenerator {
         const titleRow = this.baseTitleRow
         titleRow.push("Year")
 
-        this.csvDimensions.map(dim =>
+        this.csvDimensions.map((dim) =>
             titleRow.push(csvEscape(dim.fullNameWithUnit))
         )
 
         return {
             indexingYears: uniq(
-                flatten(this.csvDimensions.map(d => d.yearsUniq))
+                flatten(this.csvDimensions.map((d) => d.yearsUniq))
             ),
-            titleRow: titleRow
+            titleRow: titleRow,
         }
     }
 
@@ -141,7 +143,7 @@ export class CSVGenerator {
     private dimensionsValues(entity: string, year: number) {
         const values: (string | number)[] = []
 
-        this.allValueDimensions.map(dim => {
+        this.allValueDimensions.map((dim) => {
             const value = this.valueForDimensionEntityYear(dim, entity, year)
 
             if (value !== undefined) {
@@ -149,7 +151,7 @@ export class CSVGenerator {
             } else values.push("")
         })
 
-        this.singleValueDimensions.map(dim => {
+        this.singleValueDimensions.map((dim) => {
             const yearAndValue = this.yearAndValueForSingleYearDimension(
                 dim,
                 entity
@@ -163,14 +165,14 @@ export class CSVGenerator {
 
     private row(entity: string, year: number) {
         const dimensionsValues = this.dimensionsValues(entity, year)
-        const rowHasSomeValue = dimensionsValues.some(v => v !== "")
+        const rowHasSomeValue = dimensionsValues.some((v) => v !== "")
 
         if (rowHasSomeValue) {
             return [
                 entity,
                 this.entityCode(entity),
                 this.formattedYear(year),
-                ...dimensionsValues
+                ...dimensionsValues,
             ]
         } else return null
     }
@@ -180,8 +182,8 @@ export class CSVGenerator {
         const chartEntities = this.grapher.sortedUniqueEntitiesAcrossDimensions
 
         const rows: (string | number)[][] = []
-        chartEntities.forEach(entity => {
-            indexingYears.forEach(year => {
+        chartEntities.forEach((entity) => {
+            indexingYears.forEach((year) => {
                 const row = this.row(entity, year)
                 if (row) rows.push(row)
             })
@@ -194,9 +196,9 @@ export class CSVGenerator {
         const { timeUnitDependentParams, dataRows: dataRows } = this
         return [
             timeUnitDependentParams.titleRow,
-            ...dataRows.map(row => row.map(csvEscape))
+            ...dataRows.map((row) => row.map(csvEscape)),
         ]
-            .map(row => row.join(","))
+            .map((row) => row.join(","))
             .join("\n")
     }
 

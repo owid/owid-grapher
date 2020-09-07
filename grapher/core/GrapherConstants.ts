@@ -40,7 +40,7 @@ export type Color = string
 
 export enum ScaleType {
     linear = "linear",
-    log = "log"
+    log = "log",
 }
 
 export interface ScaleTypeConfig {
@@ -66,7 +66,7 @@ export declare type ScatterPointLabelStrategy = "year" | "x" | "y"
 
 export enum SortOrder {
     asc = "asc",
-    desc = "desc"
+    desc = "desc",
 }
 
 export interface TickFormattingOptions {
@@ -83,33 +83,33 @@ export interface TickFormattingOptions {
 export const ChartTypeDefs = [
     {
         key: ChartType.LineChart,
-        label: "Line Chart"
+        label: "Line Chart",
     },
     {
         key: ChartType.ScatterPlot,
-        label: "Scatter Plot"
+        label: "Scatter Plot",
     },
     {
         key: ChartType.TimeScatter,
-        label: "Time Scatter"
+        label: "Time Scatter",
     },
     {
         key: ChartType.StackedArea,
-        label: "Stacked Area"
+        label: "Stacked Area",
     },
     {
         key: ChartType.DiscreteBar,
-        label: "Discrete Bar"
+        label: "Discrete Bar",
     },
     {
         key: ChartType.SlopeChart,
-        label: "Slope Chart"
+        label: "Slope Chart",
     },
     {
         key: ChartType.StackedBar,
-        label: "Stacked Bar"
-    }
+        label: "Stacked Bar",
+    },
 ]
 
 // TODO make this a string enum in TypeScript 2.4
-export const ChartTypeDefsByKey = keyBy(ChartTypeDefs, e => e.key)
+export const ChartTypeDefsByKey = keyBy(ChartTypeDefs, (e) => e.key)

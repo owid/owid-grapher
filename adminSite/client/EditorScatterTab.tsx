@@ -9,7 +9,7 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ScatterPointLabelStrategy,
-    HighlightToggleConfig
+    HighlightToggleConfig,
 } from "grapher/core/GrapherConstants"
 
 @observer
@@ -17,7 +17,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
     @observable highlightToggle: HighlightToggleConfig = {
         description: "",
-        paramStr: ""
+        paramStr: "",
     }
 
     @computed get hasHighlightToggle() {
@@ -72,7 +72,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
 
         const entityId = grapher.table.entityNameToIdMap.get(entity)
         grapher.excludedEntities = grapher.excludedEntities.filter(
-            e => e !== entityId
+            (e) => e !== entityId
         )
     }
 
@@ -89,7 +89,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
         const {
             hasHighlightToggle,
             highlightToggle,
-            excludedEntityChoices
+            excludedEntityChoices,
         } = this
         const { grapher } = this.props
 
@@ -139,13 +139,13 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         label="Exclude individual entities"
                         placeholder="Select an entity to exclude"
                         value={undefined}
-                        onValue={v => v && this.onExcludeEntity(v)}
+                        onValue={(v) => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}
                     />
                     {grapher.scatterTransform.excludedEntityNames && (
                         <ul className="excludedEntities">
                             {grapher.scatterTransform.excludedEntityNames.map(
-                                entity => (
+                                (entity) => (
                                     <li key={entity}>
                                         <div
                                             className="clickable"

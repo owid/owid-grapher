@@ -4,7 +4,7 @@ import { reaction, IReactionDisposer } from "mobx"
 import {
     setWindowQueryStr,
     queryParamsToStr,
-    QueryParams
+    QueryParams,
 } from "utils/client/url"
 
 import { debounce } from "grapher/utils/Util"

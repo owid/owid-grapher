@@ -1,7 +1,7 @@
 import * as Knex from "knex"
 
 exports.up = async function (knex: Knex): Promise<any> {
-    await knex.schema.createTable("country_latest_data", t => {
+    await knex.schema.createTable("country_latest_data", (t) => {
         t.string("country_code")
         t.integer("variable_id").references("variables.id")
         t.integer("year")

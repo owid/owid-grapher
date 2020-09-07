@@ -19,9 +19,9 @@ function chartConfigFromIndicator(
         selectedData: [
             {
                 index: 0,
-                entityId: 355
-            }
-        ]
+                entityId: 355,
+            },
+        ],
     }
 }
 
@@ -84,7 +84,7 @@ export class ExploreModel {
     }
 
     dispose() {
-        this.disposers.forEach(dispose => dispose())
+        this.disposers.forEach((dispose) => dispose())
     }
 
     populateFromQueryStr(queryStr?: string) {

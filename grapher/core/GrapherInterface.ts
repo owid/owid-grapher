@@ -6,11 +6,11 @@ import {
     HighlightToggleConfig,
     Color,
     RelatedQuestionsConfig,
-    AddCountryMode
+    AddCountryMode,
 } from "./GrapherConstants"
 import {
     AxisOptionsInterface,
-    PersistableAxisOptions
+    PersistableAxisOptions,
 } from "grapher/axis/AxisOptions"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
@@ -19,24 +19,24 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     minTimeFromJSON,
-    maxTimeFromJSON
+    maxTimeFromJSON,
 } from "grapher/utils/TimeBounds"
 import {
     ChartDimensionSpec,
-    ChartDimensionInterface
+    ChartDimensionInterface,
 } from "grapher/chart/ChartDimension"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
 import {
     ColorScaleConfig,
-    PersistableColorScaleConfig
+    PersistableColorScaleConfig,
 } from "grapher/color/ColorScaleConfig"
 import { MapConfig, PersistableMapConfig } from "grapher/mapCharts/MapConfig"
 import { observable, action } from "mobx"
 import {
     Persistable,
     objectWithPersistablesToObject,
-    updatePersistables
+    updatePersistables,
 } from "./Persistable"
 
 interface EntitySelection {
@@ -199,7 +199,7 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
             new PersistableGrapher()
         )
         const defaultKeys = new Set(Object.keys(defaultObj))
-        Object.keys(obj).forEach(prop => {
+        Object.keys(obj).forEach((prop) => {
             const key = prop as GrapherProperty
             if (!defaultKeys.has(key)) {
                 // Don't persist any runtime props not in the persistable instance

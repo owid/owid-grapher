@@ -11,7 +11,7 @@ import {
     sumBy,
     flatten,
     sign,
-    defaultTo
+    defaultTo,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -66,7 +66,7 @@ function groupBounds(group: PlacedLabel[]): Bounds {
 
 function stackGroupVertically(group: PlacedLabel[], y: number) {
     let currentY = y
-    group.forEach(mark => {
+    group.forEach((mark) => {
         mark.bounds = mark.bounds.extend({ y: currentY })
         mark.repositions += 1
         currentY += mark.bounds.height + LEGEND_ITEM_MIN_SPACING
@@ -99,18 +99,18 @@ export class LineLabelsHelper {
         const maxTextWidth = maxWidth - leftPadding
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
-        return this.props.items.map(item => {
+        return this.props.items.map((item) => {
             const annotationTextWrap = item.annotation
                 ? new TextWrap({
                       text: item.annotation,
                       maxWidth: maxAnnotationWidth,
-                      fontSize: fontSize * 0.9
+                      fontSize: fontSize * 0.9,
                   })
                 : undefined
             const textWrap = new TextWrap({
                 text: item.label,
                 maxWidth: maxTextWidth,
-                fontSize
+                fontSize,
             })
             return {
                 item,
@@ -124,14 +124,14 @@ export class LineLabelsHelper {
                     ),
                 height:
                     textWrap.height +
-                    (annotationTextWrap ? annotationTextWrap.height : 0)
+                    (annotationTextWrap ? annotationTextWrap.height : 0),
             }
         })
     }
 
     @computed get width(): number {
         if (this.marks.length === 0) return 0
-        else return defaultTo(max(this.marks.map(d => d.width)), 0)
+        else return defaultTo(max(this.marks.map((d) => d.width)), 0)
     }
 
     constructor(props: LineLabelsHelperProps) {
@@ -157,7 +157,7 @@ class PlacedMarkComponent extends React.Component<{
             needsLines,
             onMouseOver,
             onMouseLeave,
-            onClick
+            onClick,
         } = this.props
         const x = mark.origBounds.x
         const markerX1 = x + MARKER_MARGIN
@@ -204,7 +204,7 @@ class PlacedMarkComponent extends React.Component<{
                         {
                             fill: annotationColor,
                             className: "textAnnotation",
-                            style: { fontWeight: "lighter" }
+                            style: { fontWeight: "lighter" },
                         }
                     )}
             </g>
@@ -246,7 +246,7 @@ export class LineLabelsComponent extends React.Component<
     }
 
     @computed get isFocusMode() {
-        return some(this.props.legend.marks, m =>
+        return some(this.props.legend.marks, (m) =>
             includes(this.props.focusKeys, m.item.entityDimensionKey)
         )
     }
@@ -256,7 +256,7 @@ export class LineLabelsComponent extends React.Component<
         const { legend, x, yAxis } = this.props
 
         return sortBy(
-            legend.marks.map(mark => {
+            legend.marks.map((mark) => {
                 // place vertically centered at Y value
                 const initialY = yAxis.place(mark.item.yValue) - mark.height / 2
                 const origBounds = new Bounds(
@@ -281,12 +281,12 @@ export class LineLabelsComponent extends React.Component<
                     isOverlap: false,
                     repositions: 0,
                     level: 0,
-                    totalLevels: 0
+                    totalLevels: 0,
                 }
 
                 // Ensure list is sorted by the visual position in ascending order
             }),
-            mark => yAxis.place(mark.mark.item.yValue)
+            (mark) => yAxis.place(mark.mark.item.yValue)
         )
     }
 
@@ -295,7 +295,7 @@ export class LineLabelsComponent extends React.Component<
 
         const groups: PlacedLabel[][] = cloneDeep(
             this.initialMarks
-        ).map(mark => [mark])
+        ).map((mark) => [mark])
 
         let hasOverlap
 
@@ -346,8 +346,8 @@ export class LineLabelsComponent extends React.Component<
                 mark.level = currentLevel
                 prevSign = currentSign
             }
-            const minLevel = min(group.map(mark => mark.level)) as number
-            const maxLevel = max(group.map(mark => mark.level)) as number
+            const minLevel = min(group.map((mark) => mark.level)) as number
+            const maxLevel = max(group.map((mark) => mark.level)) as number
             for (const mark of group) {
                 mark.level -= minLevel
                 mark.totalLevels = maxLevel - minLevel + 1
@@ -377,7 +377,7 @@ export class LineLabelsComponent extends React.Component<
 
     @computed get placedMarks() {
         const nonOverlappingMinHeight =
-            sumBy(this.initialMarks, mark => mark.bounds.height) +
+            sumBy(this.initialMarks, (mark) => mark.bounds.height) +
             this.initialMarks.length * LEGEND_ITEM_MIN_SPACING
         const availableHeight = this.options.canAddData
             ? this.props.yAxis.rangeSize - ADD_BUTTON_HEIGHT
@@ -401,7 +401,7 @@ export class LineLabelsComponent extends React.Component<
     @computed private get backgroundMarks() {
         const { focusKeys } = this.props
         const { isFocusMode } = this
-        return this.placedMarks.filter(m =>
+        return this.placedMarks.filter((m) =>
             isFocusMode
                 ? !includes(focusKeys, m.mark.item.entityDimensionKey)
                 : m.isOverlap
@@ -411,7 +411,7 @@ export class LineLabelsComponent extends React.Component<
     @computed private get focusMarks() {
         const { focusKeys } = this.props
         const { isFocusMode } = this
-        return this.placedMarks.filter(m =>
+        return this.placedMarks.filter((m) =>
             isFocusMode
                 ? includes(focusKeys, m.mark.item.entityDimensionKey)
                 : !m.isOverlap
@@ -421,17 +421,17 @@ export class LineLabelsComponent extends React.Component<
     // TODO: looks unused. Can we remove?
     @computed get numMovesNeeded() {
         return this.placedMarks.filter(
-            m => m.isOverlap || !m.bounds.equals(m.origBounds)
+            (m) => m.isOverlap || !m.bounds.equals(m.origBounds)
         ).length
     }
 
     // Does this placement need line markers or is the position of the labels already clear?
     @computed private get needsLines(): boolean {
-        return this.placedMarks.some(mark => mark.totalLevels > 1)
+        return this.placedMarks.some((mark) => mark.totalLevels > 1)
     }
 
     private renderBackground() {
-        return this.backgroundMarks.map(mark => (
+        return this.backgroundMarks.map((mark) => (
             <PlacedMarkComponent
                 key={mark.mark.item.entityDimensionKey}
                 mark={mark}
@@ -447,7 +447,7 @@ export class LineLabelsComponent extends React.Component<
 
     // All labels are focused by default, moved to background when mouseover of other label
     private renderFocus() {
-        return this.focusMarks.map(mark => (
+        return this.focusMarks.map((mark) => (
             <PlacedMarkComponent
                 key={mark.mark.item.entityDimensionKey}
                 mark={mark}
@@ -486,7 +486,7 @@ export class LineLabelsComponent extends React.Component<
             : 5
 
         const topMarkY = defaultTo(
-            min(this.placedMarks.map(mark => mark.bounds.top)),
+            min(this.placedMarks.map((mark) => mark.bounds.top)),
             0
         )
 
@@ -518,7 +518,7 @@ export class LineLabelsComponent extends React.Component<
                 style={{
                     cursor: this.options.areMarksClickable
                         ? "pointer"
-                        : "default"
+                        : "default",
                 }}
             >
                 {this.renderBackground()}

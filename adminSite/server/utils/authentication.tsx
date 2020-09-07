@@ -103,7 +103,7 @@ export async function tryLogin(
             _auth_user_hash: saltedHmac(
                 "django.contrib.auth.models.AbstractBaseUser.get_session_auth_hash",
                 password
-            )
+            ),
         })
         const sessionHash = saltedHmac(
             "django.contrib.sessions.SessionStore",

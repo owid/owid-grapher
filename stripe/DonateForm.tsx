@@ -102,7 +102,7 @@ export class DonateForm extends React.Component {
             method: "POST",
             credentials: "same-origin",
             headers: {
-                Accept: "application/json"
+                Accept: "application/json",
             },
             body: JSON.stringify({
                 name: this.name,
@@ -111,13 +111,13 @@ export class DonateForm extends React.Component {
                 interval: this.interval,
                 successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
                 cancelUrl: `${BAKED_BASE_URL}/donate`,
-                captchaToken: captchaToken
-            })
+                captchaToken: captchaToken,
+            }),
         })
         const session = await response.json()
         if (!response.ok) throw session
         const result: { error: any } = await stripe.redirectToCheckout({
-            sessionId: session.id
+            sessionId: session.id,
         })
         if (result.error) {
             // If `redirectToCheckout` fails due to a browser or network
@@ -204,7 +204,7 @@ export class DonateForm extends React.Component {
                         <h3>Amount (USD)</h3>
                     </legend>
                     <div className="radios">
-                        {this.intervalAmounts.map(amount => (
+                        {this.intervalAmounts.map((amount) => (
                             <div key={amount} className="owid-radio">
                                 <input
                                     type="radio"
@@ -230,7 +230,7 @@ export class DonateForm extends React.Component {
                                 id="custom"
                                 name="amount"
                                 checked={this.isCustom}
-                                onChange={event =>
+                                onChange={(event) =>
                                     this.setIsCustom(event.target.checked)
                                 }
                             />
@@ -241,7 +241,7 @@ export class DonateForm extends React.Component {
                                     placeholder="Other"
                                     name="custom-amount"
                                     className="custom-amount-input"
-                                    onChange={event =>
+                                    onChange={(event) =>
                                         this.setCustomAmount(event.target.value)
                                     }
                                     value={this.customAmount}
@@ -261,7 +261,9 @@ export class DonateForm extends React.Component {
                             type="text"
                             className="owid-input"
                             value={this.name}
-                            onChange={event => this.setName(event.target.value)}
+                            onChange={(event) =>
+                                this.setName(event.target.value)
+                            }
                         />
                     </div>
                 </fieldset>
@@ -275,7 +277,7 @@ export class DonateForm extends React.Component {
                                 value="showOnList"
                                 name="type"
                                 checked={this.showOnList}
-                                onChange={event =>
+                                onChange={(event) =>
                                     this.setShowOnList(event.target.checked)
                                 }
                             />
@@ -294,7 +296,7 @@ export class DonateForm extends React.Component {
                 )}
 
                 <Recaptcha
-                    ref={inst => (this.captchaInstance = inst)}
+                    ref={(inst) => (this.captchaInstance = inst)}
                     sitekey={RECAPTCHA_SITE_KEY}
                     size="invisible"
                     badge="bottomleft"
@@ -306,7 +308,7 @@ export class DonateForm extends React.Component {
                 <button
                     type="submit"
                     className={classnames("owid-button", {
-                        disabled: this.isSubmitting
+                        disabled: this.isSubmitting,
                     })}
                     disabled={this.isLoading}
                 >

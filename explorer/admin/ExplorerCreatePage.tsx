@@ -3,7 +3,7 @@ import React from "react"
 import { AdminLayout } from "adminSite/client/AdminLayout"
 import {
     AdminAppContextType,
-    AdminAppContext
+    AdminAppContext,
 } from "adminSite/client/AdminAppContext"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
@@ -12,7 +12,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grid } from "grapher/utils/Util"
 import {
     ExplorerProgram,
-    ProgramKeyword
+    ProgramKeyword,
 } from "explorer/client/ExplorerProgram"
 import { readRemoteFile, writeRemoteFile } from "gitCms/client"
 import { Prompt } from "react-router-dom"
@@ -39,7 +39,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
 
     @action.bound async fetchExplorerProgramOnLoad() {
         const response = await readRemoteFile({
-            filepath: ExplorerProgram.fullPath(this.props.slug)
+            filepath: ExplorerProgram.fullPath(this.props.slug),
         })
         this.sourceOnDisk =
             response.content || ExplorerProgram.defaultExplorerProgram
@@ -52,7 +52,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     }
 
     @action.bound async fetchChartConfigs(chartIds: number[]) {
-        const missing = chartIds.filter(id => !this.chartConfigs.has(id))
+        const missing = chartIds.filter((id) => !this.chartConfigs.has(id))
         if (!missing.length) return
         const response = await fetch(
             `/admin/api/charts/explorer-charts.json?chartIds=${chartIds.join(
@@ -93,7 +93,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
         this.program.slug = slug
         await writeRemoteFile({
             filepath: this.program.fullPath,
-            content: this.program.toString()
+            content: this.program.toString(),
         })
         this.context.admin.loadingIndicatorSetting = "off"
         this.sourceOnDisk = this.program.toString()
@@ -141,7 +141,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
             minRows: 20,
             rowHeaders: true,
             cells,
-            afterChange: () => this.updateConfig()
+            afterChange: () => this.updateConfig(),
         }
 
         return (
@@ -157,7 +157,7 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                             right: "15px",
                             top: "5px",
                             position: "absolute",
-                            zIndex: 2
+                            zIndex: 2,
                         }}
                     >
                         {this.isModified ? (

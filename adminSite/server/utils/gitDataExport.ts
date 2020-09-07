@@ -4,7 +4,7 @@ import {
     JsonError,
     filenamify,
     exec,
-    execFormatted
+    execFormatted,
 } from "utils/server/serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
@@ -45,7 +45,7 @@ export async function removeDatasetFromGitRepo(
             repoDir,
             `${repoDir}/datasets/${datasetName}`,
             `${repoDir}/datasets/${datasetName}`,
-            `Removing ${datasetName}`
+            `Removing ${datasetName}`,
         ]
     )
 }
@@ -114,7 +114,7 @@ export async function syncDatasetToGitRepo(
         fs.writeFile(
             path.join(tmpDatasetDir, `README.md`),
             await datasetToReadme(dataset)
-        )
+        ),
     ])
 
     const datasetsDir = path.join(repoDir, "datasets")
@@ -127,7 +127,7 @@ export async function syncDatasetToGitRepo(
         finalDatasetDir,
         tmpDatasetDir,
         finalDatasetDir,
-        finalDatasetDir
+        finalDatasetDir,
     ])
 
     if (oldDatasetFilename && oldDatasetFilename !== dataset.filename) {
@@ -135,7 +135,7 @@ export async function syncDatasetToGitRepo(
         await execFormatted(`cd %s && rm -rf %s && git add -A %s`, [
             repoDir,
             oldDatasetDir,
-            oldDatasetDir
+            oldDatasetDir,
         ])
     }
 

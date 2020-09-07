@@ -2,12 +2,12 @@ import { computed, observable, action } from "mobx"
 import {
     QueryParams,
     strToQueryParams,
-    queryParamsToStr
+    queryParamsToStr,
 } from "utils/client/url"
 import {
     SortOrder,
     ChartTypeName,
-    ScaleType
+    ScaleType,
 } from "grapher/core/GrapherConstants"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
@@ -17,7 +17,7 @@ import {
     colorScaleOption,
     MetricKind,
     IntervalOption,
-    intervalOptions
+    intervalOptions,
 } from "./CovidConstants"
 import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
@@ -80,17 +80,17 @@ export class CovidQueryParams {
             "cfrMetric",
             "testsMetric",
             "testsPerCaseMetric",
-            "positiveTestRate"
+            "positiveTestRate",
         ]
         const perCapita = [true, false]
         const aligned = [true, false]
         const yScale = [ScaleType.log, ScaleType.linear] // todo
         const tab = ["map", "chart"] // todo
         const combos: any = []
-        metrics.forEach(metric => {
-            intervalOptions.forEach(interval => {
-                perCapita.forEach(perCapita => {
-                    aligned.forEach(aligned => {
+        metrics.forEach((metric) => {
+            intervalOptions.forEach((interval) => {
+                perCapita.forEach((perCapita) => {
+                    aligned.forEach((aligned) => {
                         const combo: any = {}
                         combo[metric] = true
                         combo.interval = interval
@@ -143,7 +143,7 @@ export class CovidQueryParams {
             this.selectedCountryCodes.clear()
             EntityUrlBuilder.queryParamToEntities(
                 params.country
-            ).forEach(code => this.selectedCountryCodes.add(code))
+            ).forEach((code) => this.selectedCountryCodes.add(code))
         }
 
         if (params.pickerMetric)
@@ -196,7 +196,7 @@ export class CovidQueryParams {
             weekly: "Weekly",
             biweekly: "Biweekly",
             weeklyChange: "Week by week change of",
-            biweeklyChange: "Biweekly change of"
+            biweeklyChange: "Biweekly change of",
         }
         return titles[this.interval]
     }
@@ -293,7 +293,7 @@ export class CovidQueryParams {
         return {
             ...config,
             slug: `daysSince${sourceSlug}Hit${config.threshold}`,
-            sourceSlug
+            sourceSlug,
         }
     }
 
@@ -341,9 +341,9 @@ export class CovidQueryParams {
             this.metricName,
             interval,
             this.perCapita ? "per_capita" : "",
-            this.intervalChange ? "change" : ""
+            this.intervalChange ? "change" : "",
         ]
-            .filter(i => i)
+            .filter((i) => i)
             .join("_")
     }
 
@@ -365,8 +365,8 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             this.deathsMetric,
             this.testsMetric,
             this.testsPerCaseMetric,
-            this.positiveTestRate
-        ].some(i => i)
+            this.positiveTestRate,
+        ].some((i) => i)
         if (!hasMetric) this.casesMetric = true
 
         const available = this.available
@@ -420,11 +420,11 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             aligned: !this.isRate && !isWeekly,
             daily: !this.isRate,
             smoothed: !this.cfrMetric,
-            weekly
+            weekly,
         }
 
         if (this.everythingAvailable) {
-            Object.keys(constraints).forEach(key => {
+            Object.keys(constraints).forEach((key) => {
                 constraints[key as keyof typeof constraints] = true
             })
         }
@@ -442,5 +442,5 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
 function getTableMetrics(queryParam?: string): MetricKind[] | undefined {
     if (!queryParam) return undefined
     const metricStrings = queryParam.split("~")
-    return metricStrings.map(metric => metric as MetricKind)
+    return metricStrings.map((metric) => metric as MetricKind)
 }

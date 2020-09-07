@@ -15,7 +15,7 @@ export const CovidTimeSeriesValue = ({
     tooltip,
     className,
     formattedDate,
-    valueColor
+    valueColor,
 }: {
     value: string | undefined
     date?: Date

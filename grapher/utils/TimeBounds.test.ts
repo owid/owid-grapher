@@ -5,7 +5,7 @@ import {
     minTimeFromJSON,
     maxTimeFromJSON,
     minTimeToJSON,
-    maxTimeToJSON
+    maxTimeToJSON,
 } from "grapher/utils/TimeBounds"
 
 describe(minTimeFromJSON, () => {

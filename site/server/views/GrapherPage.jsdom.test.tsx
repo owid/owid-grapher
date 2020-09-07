@@ -30,17 +30,17 @@ describe(GrapherPage, () => {
             status: "publish",
             type: "page",
             updated_at: "Wed Mar 25 2020 14:11:30 GMT+0000 (GMT)",
-            content: ""
+            content: "",
         } as any
         relatedCharts = [
             {
                 title: "Chart 1",
-                slug: "chart-1"
+                slug: "chart-1",
             },
             {
                 title: "Chart 2",
-                slug: "chart-2"
-            }
+                slug: "chart-2",
+            },
         ]
     })
 

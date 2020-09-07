@@ -102,12 +102,12 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
                     "title",
                     "type",
                     "code",
-                    "content"
+                    "content",
                 ],
                 attributesToSnippet: ["content:24"],
                 distinct: true,
-                hitsPerPage: 10
-            }
+                hitsPerPage: 10,
+            },
         },
         {
             indexName: "charts",
@@ -117,20 +117,20 @@ export async function siteSearch(query: string): Promise<SiteSearchResults> {
                     "chartId",
                     "slug",
                     "title",
-                    "variantName"
+                    "variantName",
                 ],
                 attributesToSnippet: ["subtitle:24"],
                 attributesToHighlight: ["availableEntities"],
                 hitsPerPage: 10,
                 removeStopWords: true,
-                replaceSynonymsInHighlight: false
-            }
-        }
+                replaceSynonymsInHighlight: false,
+            },
+        },
     ])
 
     return {
         pages: json.results[0].hits as PageHit[],
         charts: (json.results[1].hits as unknown) as ChartHit[],
-        countries: matchCountries
+        countries: matchCountries,
     }
 }

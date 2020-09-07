@@ -4,7 +4,7 @@ import { EXPLORER } from "settings"
 
 export const EXPLORABLE_CHART_TYPES: ChartTypeName[] = [
     "LineChart",
-    "DiscreteBar"
+    "DiscreteBar",
 ]
 
 // *****************************************************************************
@@ -80,7 +80,7 @@ export const FORCE_EXPLORABLE_CHART_IDS: number[] = [
     3873,
     3874,
     3875,
-    3876
+    3876,
 ]
 
 // A centralized predicate to test whether a chart can be explorable.

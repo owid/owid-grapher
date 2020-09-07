@@ -59,7 +59,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
                             <input
                                 type="email"
                                 className="form-control"
-                                onChange={e =>
+                                onChange={(e) =>
                                     (this.email = e.currentTarget.value)
                                 }
                                 required
@@ -146,7 +146,7 @@ export class UsersIndexPage extends React.Component {
                                 {isSuperuser && <th></th>}
                                 {isSuperuser && <th></th>}
                             </tr>
-                            {users.map(user => (
+                            {users.map((user) => (
                                 <tr key={user.id}>
                                     <td>{user.fullName}</td>
                                     <td>

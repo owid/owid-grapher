@@ -4,7 +4,7 @@ import {
     ReadRequest,
     GitCmsResponse,
     GitCmsReadResponse,
-    DeleteRequest
+    DeleteRequest,
 } from "./constants"
 const gitCmsApiPath = `/admin/api${gitCmsRoute}`
 
@@ -18,7 +18,7 @@ export const deleteRemoteFile = async (request: DeleteRequest) => {
     const response = await fetch(
         `${gitCmsApiPath}?filepath=${request.filepath}`,
         {
-            method: "DELETE"
+            method: "DELETE",
         }
     )
     const parsed: GitCmsResponse = await response.json()
@@ -41,9 +41,9 @@ export const writeRemoteFile = async (request: WriteRequest) => {
     const response = await fetch(gitCmsApiPath, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         },
-        body: JSON.stringify(request)
+        body: JSON.stringify(request),
     })
 
     const parsed: GitCmsResponse = await response.json()

@@ -8,12 +8,12 @@ import {
     isMobile,
     uniq,
     sortBy,
-    maxBy
+    maxBy,
 } from "grapher/utils/Util"
 import {
     TickFormattingOptions,
     ScaleType,
-    ScaleTypeConfig
+    ScaleTypeConfig,
 } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
@@ -35,7 +35,7 @@ declare type TickFormatFunction = (
 abstract class AbstractAxis implements ScaleTypeConfig {
     protected options: PersistableAxisOptions
     @observable.ref domain: [number, number]
-    @observable tickFormat: TickFormatFunction = d => `${d}`
+    @observable tickFormat: TickFormatFunction = (d) => `${d}`
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
     @observable.struct range: [number, number] = [0, 0]
@@ -48,7 +48,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     updateDomainPreservingUserSettings(domain: [number, number]) {
         this.domain = [
             Math.min(this.domain[0], domain[0]),
-            Math.max(this.domain[1], domain[1])
+            Math.max(this.domain[1], domain[1]),
         ]
         return this
     }
@@ -154,7 +154,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
             //
             // -@MarcelGerber, 2020-08-07
             const tickCandidates = d3_scale.ticks(maxLogLines)
-            ticks = tickCandidates.map(tickValue => {
+            ticks = tickCandidates.map((tickValue) => {
                 // 10^x
                 if (Math.fround(Math.log10(tickValue)) % 1 === 0)
                     return { value: tickValue, priority: 1 }
@@ -170,7 +170,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
             if (ticks.length > maxLogLines) {
                 if (ticks.length <= 2 * maxLogLines) {
                     // Convert all "in-between" lines to faint grid lines without labels
-                    ticks = ticks.map(tick => {
+                    ticks = ticks.map((tick) => {
                         if (tick.priority === 3)
                             tick = { ...tick, faint: true, gridLineOnly: true }
                         return tick
@@ -180,7 +180,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
                     // otherwise
                     for (let prio = 3; prio > 1; prio--) {
                         if (ticks.length > maxLogLines) {
-                            ticks = ticks.filter(tick => tick.priority < prio)
+                            ticks = ticks.filter((tick) => tick.priority < prio)
                         }
                     }
                 }
@@ -190,11 +190,11 @@ abstract class AbstractAxis implements ScaleTypeConfig {
             // to be priority 1
             ticks = d3_scale
                 .ticks(6)
-                .map(tickValue => ({ value: tickValue, priority: 2 }))
+                .map((tickValue) => ({ value: tickValue, priority: 2 }))
         }
 
         if (this.hideFractionalTicks)
-            ticks = ticks.filter(t => t.value % 1 === 0)
+            ticks = ticks.filter((t) => t.value % 1 === 0)
 
         return uniq(ticks)
     }
@@ -235,7 +235,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
 
     getFormattedTicks(): string[] {
         const options = this.getTickFormattingOptions()
-        return this.getTickValues().map(tickmark =>
+        return this.getTickValues().map((tickmark) =>
             this.tickFormat(tickmark.value, options)
         )
     }
@@ -274,30 +274,32 @@ abstract class AbstractAxis implements ScaleTypeConfig {
             }
         }
 
-        return sortBy(tickPlacements.filter(t => !t.isHidden).map(t => t.tick))
+        return sortBy(
+            tickPlacements.filter((t) => !t.isHidden).map((t) => t.tick)
+        )
     }
 
     formatTick(tick: number, isFirstOrLastTick?: boolean) {
         const tickFormattingOptions = this.getTickFormattingOptions()
         return this.tickFormat(tick, {
             ...tickFormattingOptions,
-            isFirstOrLastTick
+            isFirstOrLastTick,
         })
     }
 
     // calculates coordinates for ticks, sorted by priority
     @computed private get tickPlacements() {
-        return sortBy(this.baseTicks, tick => tick.priority).map(tick => {
+        return sortBy(this.baseTicks, (tick) => tick.priority).map((tick) => {
             const bounds = Bounds.forText(
                 this.formatTick(tick.value, !!tick.isFirstOrLastTick),
                 {
-                    fontSize: this.tickFontSize
+                    fontSize: this.tickFontSize,
                 }
             )
             return {
                 tick: tick.value,
                 bounds: bounds.extend(this.placeTick(tick.value, bounds)),
-                isHidden: false
+                isHidden: false,
             }
         })
     }
@@ -307,7 +309,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     }
 
     @computed protected get baseTicks() {
-        return this.getTickValues().filter(tick => !tick.gridLineOnly)
+        return this.getTickValues().filter((tick) => !tick.gridLineOnly)
     }
 
     abstract get labelWidth(): number
@@ -323,7 +325,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
             ? new TextWrap({
                   maxWidth: this.labelWidth,
                   fontSize: this.labelFontSize,
-                  text
+                  text,
               })
             : undefined
     }
@@ -362,7 +364,7 @@ export class HorizontalAxis extends AbstractAxis {
 
         return (
             Bounds.forText(firstFormattedTick, {
-                fontSize
+                fontSize,
             }).height +
             labelOffset +
             5
@@ -370,7 +372,7 @@ export class HorizontalAxis extends AbstractAxis {
     }
 
     @computed protected get baseTicks() {
-        let ticks = this.getTickValues().filter(tick => !tick.gridLineOnly)
+        let ticks = this.getTickValues().filter((tick) => !tick.gridLineOnly)
         const { domain } = this
 
         // Make sure the start and end values are present, if they're whole numbers
@@ -380,9 +382,9 @@ export class HorizontalAxis extends AbstractAxis {
                 {
                     value: domain[0],
                     priority: startEndPrio,
-                    isFirstOrLastTick: true
+                    isFirstOrLastTick: true,
                 },
-                ...ticks
+                ...ticks,
             ]
         if (domain[1] % 1 === 0 && this.hideFractionalTicks)
             ticks = [
@@ -390,8 +392,8 @@ export class HorizontalAxis extends AbstractAxis {
                 {
                     value: domain[1],
                     priority: startEndPrio,
-                    isFirstOrLastTick: true
-                }
+                    isFirstOrLastTick: true,
+                },
             ]
         return uniq(ticks)
     }
@@ -400,7 +402,7 @@ export class HorizontalAxis extends AbstractAxis {
         const { labelOffset } = this
         return {
             x: this.place(tickValue) - bounds.width / 2,
-            y: bounds.bottom - labelOffset
+            y: bounds.bottom - labelOffset,
         }
     }
 
@@ -426,7 +428,10 @@ export class VerticalAxis extends AbstractAxis {
 
     @computed get width() {
         const { labelOffset } = this
-        const longestTick = maxBy(this.getFormattedTicks(), tick => tick.length)
+        const longestTick = maxBy(
+            this.getFormattedTicks(),
+            (tick) => tick.length
+        )
         return (
             Bounds.forText(longestTick, { fontSize: this.tickFontSize }).width +
             labelOffset +
@@ -443,7 +448,7 @@ export class VerticalAxis extends AbstractAxis {
             y: this.place(tickValue),
             // x placement doesn't really matter here, so we're using
             // 1 for simplicity
-            x: 1
+            x: 1,
         }
     }
 }

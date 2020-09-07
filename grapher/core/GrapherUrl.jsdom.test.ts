@@ -20,7 +20,7 @@ function toQueryParams(props?: Partial<GrapherInterface>) {
     const grapher = createGrapher({
         minTime: -5000,
         maxTime: 5000,
-        map: { targetYear: 5000 }
+        map: { targetYear: 5000 },
     })
     if (props) grapher.updateFromObject(props)
     return grapher.url.params
@@ -31,7 +31,7 @@ describe(GrapherUrl, () => {
         expect(new Grapher().url.params.xScale).toEqual(undefined)
         expect(
             new Grapher({
-                xAxis: { scaleType: ScaleType.linear }
+                xAxis: { scaleType: ScaleType.linear },
             } as GrapherInterface).url.params.xScale
         ).toEqual(undefined)
     })
@@ -46,7 +46,10 @@ describe(GrapherUrl, () => {
     describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {
         const grapher = new Grapher(
             {
-                xAxis: { scaleType: ScaleType.linear, canChangeScaleType: true }
+                xAxis: {
+                    scaleType: ScaleType.linear,
+                    canChangeScaleType: true,
+                },
             },
             { queryStr: "scaleType=linear" }
         )
@@ -67,7 +70,7 @@ describe(GrapherUrl, () => {
                 {
                     name: "single year negative",
                     query: "-1500",
-                    param: [-1500, -1500]
+                    param: [-1500, -1500],
                 },
                 { name: "single year zero", query: "0", param: [0, 0] },
                 {
@@ -75,40 +78,40 @@ describe(GrapherUrl, () => {
                     query: "latest",
                     param: [
                         TimeBoundValue.unboundedRight,
-                        TimeBoundValue.unboundedRight
-                    ]
+                        TimeBoundValue.unboundedRight,
+                    ],
                 },
                 {
                     name: "single year earliest",
                     query: "earliest",
                     param: [
                         TimeBoundValue.unboundedLeft,
-                        TimeBoundValue.unboundedLeft
-                    ]
+                        TimeBoundValue.unboundedLeft,
+                    ],
                 },
                 { name: "two years", query: "2000..2005", param: [2000, 2005] },
                 {
                     name: "negative years",
                     query: "-500..-1",
-                    param: [-500, -1]
+                    param: [-500, -1],
                 },
                 {
                     name: "right unbounded",
                     query: "2000..latest",
-                    param: [2000, TimeBoundValue.unboundedRight]
+                    param: [2000, TimeBoundValue.unboundedRight],
                 },
                 {
                     name: "left unbounded",
                     query: "earliest..2005",
-                    param: [TimeBoundValue.unboundedLeft, 2005]
+                    param: [TimeBoundValue.unboundedLeft, 2005],
                 },
                 {
                     name: "left unbounded",
                     query: "earliest..latest",
                     param: [
                         TimeBoundValue.unboundedLeft,
-                        TimeBoundValue.unboundedRight
-                    ]
+                        TimeBoundValue.unboundedRight,
+                    ],
                 },
 
                 // The queries below can be considered legacy and are no longer generated this way,
@@ -117,23 +120,23 @@ describe(GrapherUrl, () => {
                     name: "right unbounded [legacy]",
                     query: "2000..",
                     param: [2000, TimeBoundValue.unboundedRight],
-                    irreversible: true
+                    irreversible: true,
                 },
                 {
                     name: "left unbounded [legacy]",
                     query: "..2005",
                     param: [TimeBoundValue.unboundedLeft, 2005],
-                    irreversible: true
+                    irreversible: true,
                 },
                 {
                     name: "both unbounded [legacy]",
                     query: "..",
                     param: [
                         TimeBoundValue.unboundedLeft,
-                        TimeBoundValue.unboundedRight
+                        TimeBoundValue.unboundedRight,
                     ],
-                    irreversible: true
-                }
+                    irreversible: true,
+                },
             ]
 
             for (const test of tests) {
@@ -147,7 +150,7 @@ describe(GrapherUrl, () => {
                     it(`encode ${test.name}`, () => {
                         const params = toQueryParams({
                             minTime: test.param[0],
-                            maxTime: test.param[1]
+                            maxTime: test.param[1],
                         })
                         expect(params.time).toEqual(test.query)
                     })
@@ -167,7 +170,7 @@ describe(GrapherUrl, () => {
             it("doesn't include URL param if it's identical to original config", () => {
                 const chart = createGrapher({
                     minTime: 0,
-                    maxTime: 75
+                    maxTime: 75,
                 })
                 expect(chart.url.params.time).toEqual(undefined)
             })
@@ -175,7 +178,7 @@ describe(GrapherUrl, () => {
             it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
                 const chart = createGrapher({
                     minTime: undefined,
-                    maxTime: 75
+                    maxTime: 75,
                 })
                 expect(chart.url.params.time).toEqual(undefined)
             })
@@ -191,56 +194,56 @@ describe(GrapherUrl, () => {
                 {
                     name: "single day (date)",
                     query: "2020-01-22",
-                    param: [1, 1]
+                    param: [1, 1],
                 },
                 {
                     name: "single day negative (date)",
                     query: "2020-01-01",
-                    param: [-20, -20]
+                    param: [-20, -20],
                 },
                 {
                     name: "single day zero (date)",
                     query: "2020-01-21",
-                    param: [0, 0]
+                    param: [0, 0],
                 },
                 {
                     name: "single day latest",
                     query: "latest",
                     param: [
                         TimeBoundValue.unboundedRight,
-                        TimeBoundValue.unboundedRight
-                    ]
+                        TimeBoundValue.unboundedRight,
+                    ],
                 },
                 {
                     name: "single day earliest",
                     query: "earliest",
                     param: [
                         TimeBoundValue.unboundedLeft,
-                        TimeBoundValue.unboundedLeft
-                    ]
+                        TimeBoundValue.unboundedLeft,
+                    ],
                 },
                 {
                     name: "two days",
                     query: "2020-01-01..2020-02-01",
-                    param: [-20, 11]
+                    param: [-20, 11],
                 },
                 {
                     name: "left unbounded (date)",
                     query: "earliest..2020-02-01",
-                    param: [TimeBoundValue.unboundedLeft, 11]
+                    param: [TimeBoundValue.unboundedLeft, 11],
                 },
                 {
                     name: "right unbounded (date)",
                     query: "2020-01-01..latest",
-                    param: [-20, TimeBoundValue.unboundedRight]
+                    param: [-20, TimeBoundValue.unboundedRight],
                 },
                 {
                     name: "both unbounded (date)",
                     query: "earliest..latest",
                     param: [
                         TimeBoundValue.unboundedLeft,
-                        TimeBoundValue.unboundedRight
-                    ]
+                        TimeBoundValue.unboundedRight,
+                    ],
                 },
 
                 // The queries below can be considered legacy and are no longer generated this way,
@@ -249,42 +252,42 @@ describe(GrapherUrl, () => {
                     name: "right unbounded (date) [legacy]",
                     query: "2020-01-01..",
                     param: [-20, TimeBoundValue.unboundedRight],
-                    irreversible: true
+                    irreversible: true,
                 },
                 {
                     name: "left unbounded (date) [legacy]",
                     query: "..2020-01-01",
                     param: [TimeBoundValue.unboundedLeft, -20],
-                    irreversible: true
+                    irreversible: true,
                 },
                 {
                     name: "both unbounded [legacy]",
                     query: "..",
                     param: [
                         TimeBoundValue.unboundedLeft,
-                        TimeBoundValue.unboundedRight
+                        TimeBoundValue.unboundedRight,
                     ],
-                    irreversible: true
+                    irreversible: true,
                 },
 
                 {
                     name: "single day (number)",
                     query: "5",
                     param: [5, 5],
-                    irreversible: true
+                    irreversible: true,
                 },
                 {
                     name: "range (number)",
                     query: "-5..5",
                     param: [-5, 5],
-                    irreversible: true
+                    irreversible: true,
                 },
                 {
                     name: "unbounded range (number)",
                     query: "-500..",
                     param: [-500, TimeBoundValue.unboundedRight],
-                    irreversible: true
-                }
+                    irreversible: true,
+                },
             ]
 
             for (const test of tests) {
@@ -300,7 +303,7 @@ describe(GrapherUrl, () => {
                         const grapher = setupGrapher(4066, [142708])
                         grapher.updateFromObject({
                             minTime: test.param[0],
-                            maxTime: test.param[1]
+                            maxTime: test.param[1],
                         })
                         const params = grapher.url.params
                         expect(params.time).toEqual(test.query)
@@ -321,19 +324,19 @@ describe(GrapherUrl, () => {
                 {
                     name: "single year negative",
                     query: "-1500",
-                    param: -1500
+                    param: -1500,
                 },
                 { name: "single year zero", query: "0", param: 0 },
                 {
                     name: "single year latest",
                     query: "latest",
-                    param: TimeBoundValue.unboundedRight
+                    param: TimeBoundValue.unboundedRight,
                 },
                 {
                     name: "single year earliest",
                     query: "earliest",
-                    param: TimeBoundValue.unboundedLeft
-                }
+                    param: TimeBoundValue.unboundedLeft,
+                },
             ]
 
             for (const test of tests) {
@@ -345,7 +348,7 @@ describe(GrapherUrl, () => {
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
-                        map: { targetYear: test.param }
+                        map: { targetYear: test.param },
                     })
                     expect(params.year).toEqual(test.query)
                 })
@@ -371,25 +374,25 @@ describe(GrapherUrl, () => {
                 {
                     name: "single day negative",
                     query: "2020-01-01",
-                    param: -20
+                    param: -20,
                 },
                 { name: "single day zero", query: "2020-01-21", param: 0 },
                 {
                     name: "single day latest",
                     query: "latest",
-                    param: TimeBoundValue.unboundedRight
+                    param: TimeBoundValue.unboundedRight,
                 },
                 {
                     name: "single day earliest",
                     query: "earliest",
-                    param: TimeBoundValue.unboundedLeft
+                    param: TimeBoundValue.unboundedLeft,
                 },
                 {
                     name: "single day (number)",
                     query: "0",
                     param: 0,
-                    irreversible: true
-                }
+                    irreversible: true,
+                },
             ]
 
             for (const test of tests) {
@@ -404,7 +407,7 @@ describe(GrapherUrl, () => {
                     it(`encode ${test.name}`, () => {
                         const grapher = setupGrapher(4066, [142708])
                         grapher.updateFromObject({
-                            map: { targetYear: test.param }
+                            map: { targetYear: test.param },
                         })
                         const params = grapher.url.params
                         expect(params.year).toEqual(test.query)

@@ -19,8 +19,8 @@ describe(OwidTable, () => {
             entityName: "United States",
             population: 3e8,
             entityId: 1,
-            entityCode: "USA"
-        }
+            entityCode: "USA",
+        },
     ]
     const table = new OwidTable(rows)
     it("can create a table and detect columns", () => {
@@ -31,7 +31,7 @@ describe(OwidTable, () => {
     it("a column can be added", () => {
         table.addNumericComputedColumn({
             slug: "populationInMillions",
-            fn: row => row.population / 1000000
+            fn: (row) => row.population / 1000000,
         })
         expect(table.rows[0].populationInMillions).toEqual(300)
     })
@@ -50,7 +50,7 @@ describe("from legacy", () => {
             "entityId",
             "entityCode",
             "year",
-            name
+            name,
         ])
     })
 })
@@ -89,7 +89,7 @@ canada,20`
         expect(table.rows.length).toEqual(4)
         expect(Array.from(table.columnsByName.keys())).toEqual([
             "country",
-            "population"
+            "population",
         ])
     })
 
@@ -99,14 +99,14 @@ canada,20`
             expect(col.values[3]).toEqual("canada")
             table.addFilterColumn(
                 "pop_filter",
-                row => parseInt(row.population) > 40
+                (row) => parseInt(row.population) > 40
             )
             expect(col?.values[0]).toEqual("france")
             expect(col?.values[1]).toEqual("usa")
         })
 
         it("multiple filters work", () => {
-            table.addFilterColumn("name_filter", row =>
+            table.addFilterColumn("name_filter", (row) =>
                 (row.country as string).startsWith("u")
             )
             expect(col?.values[0]).toEqual("usa")
@@ -116,7 +116,7 @@ canada,20`
         it("adding rows works with filters", () => {
             table.cloneAndAddRowsAndDetectColumns([
                 { country: "ireland", population: "7" },
-                { country: "united kingdom", population: "60" }
+                { country: "united kingdom", population: "60" },
             ])
             expect(col?.values[0]).toEqual("usa")
             expect(col?.values[1]).toEqual("united kingdom")
@@ -141,7 +141,7 @@ describe("immutability", () => {
     it("does not modify rows", () => {
         table.addNumericComputedColumn({
             slug: "firstLetter",
-            fn: row => row.country.length
+            fn: (row) => row.country.length,
         })
         expect(table.columnsBySlug.get("firstLetter")?.values.join("")).toEqual(
             `37`
@@ -179,7 +179,7 @@ describe("rolling averages", () => {
             population: 3e8,
             entityId: 1,
             entityCode: "USA",
-            continent: "North America"
+            continent: "North America",
         },
         {
             year: 2020,
@@ -187,7 +187,7 @@ describe("rolling averages", () => {
             population: 10e8,
             entityId: 12,
             entityCode: "World",
-            continent: ""
+            continent: "",
         },
         {
             year: 2020,
@@ -195,8 +195,8 @@ describe("rolling averages", () => {
             population: 3e8,
             entityId: 1,
             entityCode: "USA",
-            continent: "North America"
-        }
+            continent: "North America",
+        },
     ]
     const colLength = Object.keys(rows[0]).length
     const table = new OwidTable(rows)
@@ -205,7 +205,7 @@ describe("rolling averages", () => {
         expect(Array.from(table.columnsByName.keys()).length).toEqual(colLength)
         table.addNumericComputedColumn({
             slug: "populationInMillions",
-            fn: row => row.population / 1000000
+            fn: (row) => row.population / 1000000,
         })
         expect(table.rows[0].populationInMillions).toEqual(300)
         expect(Array.from(table.columnsByName.keys()).length).toEqual(

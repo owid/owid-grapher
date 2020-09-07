@@ -7,7 +7,7 @@ import {
     strToQueryParams,
     queryParamsToStr,
     splitURLintoPathAndQueryString,
-    QueryParams
+    QueryParams,
 } from "utils/client/url"
 import { union, isEmpty, getAttributesOfHTMLElement } from "grapher/utils/Util"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
@@ -55,7 +55,7 @@ class ProminentLink extends React.Component<{
 
     @computed private get entitiesInGlobalEntitySelection(): string[] {
         return GrapherPageUtils.globalEntitySelection.selectedEntities.map(
-            entity => entity.code
+            (entity) => entity.code
         )
     }
 
@@ -74,8 +74,8 @@ class ProminentLink extends React.Component<{
         return {
             ...originalURLQueryParams,
             ...(!isEmpty(updatedEntityQueryParam) && {
-                country: updatedEntityQueryParam
-            })
+                country: updatedEntityQueryParam,
+            }),
         }
     }
 
@@ -97,7 +97,7 @@ class ProminentLink extends React.Component<{
 export const renderProminentLink = () => {
     document
         .querySelectorAll<HTMLElement>(`.${PROMINENT_LINK_CLASSNAME}`)
-        .forEach(el => {
+        .forEach((el) => {
             const anchorTag = el.querySelector("a")
             if (!anchorTag) return
 

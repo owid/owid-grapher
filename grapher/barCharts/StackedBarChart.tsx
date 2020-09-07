@@ -10,14 +10,14 @@ import { Bounds } from "grapher/utils/Bounds"
 import {
     VerticalAxisComponent,
     AxisTickMarks,
-    VerticalAxisGridLines
+    VerticalAxisGridLines,
 } from "grapher/axis/AxisViews"
 import { VerticalAxis, DualAxis } from "grapher/axis/Axis"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { Text } from "grapher/text/Text"
 import {
     VerticalColorLegend,
-    ScatterColorLegendView
+    ScatterColorLegendView,
 } from "grapher/scatterCharts/ScatterColorLegend"
 import { Tooltip } from "grapher/chart/Tooltip"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
@@ -162,7 +162,7 @@ export class StackedBarChart extends React.Component<{
         return new DualAxis({
             bounds: bounds.padRight(sidebarWidth + 20),
             xAxis,
-            yAxis
+            yAxis,
         })
     }
 
@@ -183,8 +183,8 @@ export class StackedBarChart extends React.Component<{
                 ? []
                 : uniq(
                       transform.stackedData
-                          .filter(g => g.color === hoverColor)
-                          .map(g => g.entityDimensionKey)
+                          .filter((g) => g.color === hoverColor)
+                          .map((g) => g.entityDimensionKey)
                   )
 
         return hoverKeys
@@ -197,21 +197,21 @@ export class StackedBarChart extends React.Component<{
         let colors = []
         if (activeKeys.length === 0)
             // No hover means they're all active by default
-            colors = uniq(transform.stackedData.map(g => g.color))
+            colors = uniq(transform.stackedData.map((g) => g.color))
         else
             colors = uniq(
                 transform.stackedData
                     .filter(
-                        g => activeKeys.indexOf(g.entityDimensionKey) !== -1
+                        (g) => activeKeys.indexOf(g.entityDimensionKey) !== -1
                     )
-                    .map(g => g.color)
+                    .map((g) => g.color)
             )
         return colors
     }
 
     // Only show colors on legend that are actually in use
     @computed get colorsInUse() {
-        return uniq(this.transform.stackedData.map(g => g.color))
+        return uniq(this.transform.stackedData.map((g) => g.color))
     }
 
     @computed get legend(): VerticalColorLegend {
@@ -225,15 +225,15 @@ export class StackedBarChart extends React.Component<{
             },
             get colorables() {
                 return that.transform.colorScale.legendData
-                    .filter(bin => that.colorsInUse.includes(bin.color))
-                    .map(bin => {
+                    .filter((bin) => that.colorsInUse.includes(bin.color))
+                    .map((bin) => {
                         return {
                             key: bin.label ?? "",
                             label: bin.label ?? "",
-                            color: bin.color
+                            color: bin.color,
                         }
                     })
-            }
+            },
         })
     }
 
@@ -275,7 +275,7 @@ export class StackedBarChart extends React.Component<{
                         backgroundColor: "#fcfcfc",
                         borderBottom: "1px solid #ebebeb",
                         fontWeight: "normal",
-                        fontSize: "1em"
+                        fontSize: "1em",
                     }}
                 >
                     {hoverBar.label}
@@ -284,7 +284,7 @@ export class StackedBarChart extends React.Component<{
                     style={{
                         margin: 0,
                         padding: "0.3em 0.9em",
-                        fontSize: "0.8em"
+                        fontSize: "0.8em",
                     }}
                 >
                     <span>{yFormatTooltip(hoverBar.y)}</span>
@@ -316,7 +316,7 @@ export class StackedBarChart extends React.Component<{
         const { xValues } = this.transform
         const { xAxis } = dualAxis
 
-        return xValues.map(x => {
+        return xValues.map((x) => {
             const text = xAxis.tickFormat(x)
             const xPos = mapXValueToOffset.get(x) as number
 
@@ -325,9 +325,9 @@ export class StackedBarChart extends React.Component<{
                 text: text,
                 bounds: bounds.extend({
                     x: xPos + barWidth / 2 - bounds.width / 2,
-                    y: dualAxis.innerBounds.bottom + 5
+                    y: dualAxis.innerBounds.bottom + 5,
                 }),
-                isHidden: false
+                isHidden: false,
             }
         })
     }
@@ -350,7 +350,7 @@ export class StackedBarChart extends React.Component<{
             }
         }
 
-        return tickPlacements.filter(t => !t.isHidden)
+        return tickPlacements.filter((t) => !t.isHidden)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -407,7 +407,7 @@ export class StackedBarChart extends React.Component<{
             tooltip,
             barWidth,
             mapXValueToOffset,
-            ticks
+            ticks,
         } = this
         const { stackedData } = this.transform
         const { innerBounds } = dualAxis
@@ -447,7 +447,9 @@ export class StackedBarChart extends React.Component<{
 
                 <AxisTickMarks
                     tickMarkTopPosition={innerBounds.bottom}
-                    tickMarkXPositions={ticks.map(tick => tick.bounds.centerX)}
+                    tickMarkXPositions={ticks.map(
+                        (tick) => tick.bounds.centerX
+                    )}
                     color={textColor}
                 />
 
@@ -468,7 +470,7 @@ export class StackedBarChart extends React.Component<{
                 </g>
 
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
-                    {stackedData.map(series => {
+                    {stackedData.map((series) => {
                         const isLegendHovered: boolean = includes(
                             this.hoverKeys,
                             series.entityDimensionKey
@@ -486,7 +488,7 @@ export class StackedBarChart extends React.Component<{
                                     "-segments"
                                 }
                             >
-                                {series.values.map(bar => {
+                                {series.values.map((bar) => {
                                     const xPos = mapXValueToOffset.get(
                                         bar.x
                                     ) as number

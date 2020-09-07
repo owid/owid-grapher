@@ -65,13 +65,13 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
             dataPublisherSource: sourceDescription.dataPublisherSource || "",
             link: sourceDescription.link || "",
             retrievedData: sourceDescription.retrievedData || "",
-            additionalInfo: sourceDescription.additionalInfo || ""
+            additionalInfo: sourceDescription.additionalInfo || "",
         }
         data.variables[row.id] = lodash.extend(
             {
                 years: [],
                 entities: [],
-                values: []
+                values: [],
             },
             row
         )
@@ -91,7 +91,7 @@ export async function getVariableData(variableIds: number[]): Promise<any> {
         if (data.entityKey[row.entityId] === undefined) {
             data.entityKey[row.entityId] = {
                 name: row.entityName,
-                code: row.entityCode
+                code: row.entityCode,
             }
         }
     }
@@ -145,7 +145,7 @@ export async function writeVariableCSV(
 
     // Throw an error if not all variables exist
     if (variables.length !== variableIds.length) {
-        const fetchedVariableIds = variables.map(v => v.id)
+        const fetchedVariableIds = variables.map((v) => v.id)
         const missingVariables = lodash.difference(
             variableIds,
             fetchedVariableIds
@@ -153,9 +153,9 @@ export async function writeVariableCSV(
         throw Error(`Variable IDs do not exist: ${missingVariables.join(", ")}`)
     }
 
-    variables = variableIds.map(variableId => variablesById[variableId])
+    variables = variableIds.map((variableId) => variablesById[variableId])
 
-    const columns = ["Entity", "Year"].concat(variables.map(v => v.name))
+    const columns = ["Entity", "Year"].concat(variables.map((v) => v.name))
     stream.write(csvRow(columns))
 
     const variableColumnIndex: { [id: number]: number } = {}

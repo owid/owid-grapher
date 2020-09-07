@@ -11,7 +11,7 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     pointsToPath,
-    minBy
+    minBy,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -25,7 +25,7 @@ import { Vector2 } from "grapher/utils/Vector2"
 import { LineLabelsHelper, LineLabelsComponent } from "./LineLabels"
 import {
     ComparisonLine,
-    ComparisonLineConfig
+    ComparisonLineConfig,
 } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip, TooltipProps } from "grapher/chart/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
@@ -86,12 +86,12 @@ class Lines extends React.Component<LinesProps> {
 
     @computed get renderData(): LineRenderSeries[] {
         const { data, xAxis, yAxis, focusKeys } = this.props
-        return map(data, series => {
+        return map(data, (series) => {
             return {
                 entityDimensionKey: series.entityDimensionKey,
                 displayKey: `key-${makeSafeForCSS(series.entityDimensionKey)}`,
                 color: series.color,
-                values: series.values.map(v => {
+                values: series.values.map((v) => {
                     return new Vector2(
                         Math.round(xAxis.place(v.x)),
                         Math.round(yAxis.place(v.y))
@@ -100,13 +100,13 @@ class Lines extends React.Component<LinesProps> {
                 isFocus:
                     !focusKeys.length ||
                     includes(focusKeys, series.entityDimensionKey),
-                isProjection: series.isProjection
+                isProjection: series.isProjection,
             }
         })
     }
 
     @computed get isFocusMode(): boolean {
-        return some(this.renderData, d => d.isFocus)
+        return some(this.renderData, (d) => d.isFocus)
     }
 
     @computed get allValues(): LineChartValue[] {
@@ -125,7 +125,7 @@ class Lines extends React.Component<LinesProps> {
                     return {
                         pos: v,
                         series: data[i],
-                        value: data[i].values[j]
+                        value: data[i].values[j],
                     }
                 })
             })
@@ -139,7 +139,7 @@ class Lines extends React.Component<LinesProps> {
 
         let hoverX
         if (dualAxis.innerBounds.contains(mouse)) {
-            const closestValue = minBy(this.allValues, d =>
+            const closestValue = minBy(this.allValues, (d) =>
                 Math.abs(xAxis.place(d.x) - mouse.x)
             )
             hoverX = closestValue?.x
@@ -161,27 +161,30 @@ class Lines extends React.Component<LinesProps> {
     }
 
     @computed get focusGroups() {
-        return filter(this.renderData, g => g.isFocus)
+        return filter(this.renderData, (g) => g.isFocus)
     }
 
     @computed get backgroundGroups() {
-        return filter(this.renderData, g => !g.isFocus)
+        return filter(this.renderData, (g) => !g.isFocus)
     }
 
     // Don't display point markers if there are very many of them for performance reasons
     // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
     @computed get hasMarkers(): boolean {
-        return sum(this.renderData.map(g => g.values.length)) < 500
+        return sum(this.renderData.map((g) => g.values.length)) < 500
     }
 
     renderFocusGroups() {
-        return this.focusGroups.map(series => (
+        return this.focusGroups.map((series) => (
             <g key={series.displayKey} className={series.displayKey}>
                 <path
                     stroke={series.color}
                     strokeLinecap="round"
                     d={pointsToPath(
-                        series.values.map(v => [v.x, v.y]) as [number, number][]
+                        series.values.map((v) => [v.x, v.y]) as [
+                            number,
+                            number
+                        ][]
                     )}
                     fill="none"
                     strokeWidth={1.5}
@@ -199,14 +202,17 @@ class Lines extends React.Component<LinesProps> {
     }
 
     renderBackgroundGroups() {
-        return this.backgroundGroups.map(series => (
+        return this.backgroundGroups.map((series) => (
             <g key={series.displayKey} className={series.displayKey}>
                 <path
                     key={series.entityDimensionKey + "-line"}
                     strokeLinecap="round"
                     stroke="#ddd"
                     d={pointsToPath(
-                        series.values.map(v => [v.x, v.y]) as [number, number][]
+                        series.values.map((v) => [v.x, v.y]) as [
+                            number,
+                            number
+                        ][]
                     )}
                     fill="none"
                     strokeWidth={1}
@@ -292,7 +298,7 @@ export class LineChart extends React.Component<{
 
     // Set default props
     static defaultProps = {
-        bounds: new Bounds(0, 0, 640, 480)
+        bounds: new Bounds(0, 0, 640, 480),
     }
 
     @observable hoverX?: number
@@ -323,7 +329,7 @@ export class LineChart extends React.Component<{
             },
             get items() {
                 return that.transform.legendItems
-            }
+            },
         })
     }
 
@@ -339,8 +345,8 @@ export class LineChart extends React.Component<{
 
         if (hoverX === undefined) return undefined
 
-        const sortedData = sortBy(transform.groupedData, series => {
-            const value = series.values.find(v => v.x === hoverX)
+        const sortedData = sortBy(transform.groupedData, (series) => {
+            const value = series.values.find((v) => v.x === hoverX)
             return value !== undefined ? -value.y : Infinity
         })
 
@@ -360,7 +366,7 @@ export class LineChart extends React.Component<{
                     style={{
                         fontSize: "0.9em",
                         lineHeight: "1.4em",
-                        whiteSpace: "normal"
+                        whiteSpace: "normal",
                     }}
                 >
                     <tbody>
@@ -369,9 +375,9 @@ export class LineChart extends React.Component<{
                                 <strong>{formatYearFunction(hoverX)}</strong>
                             </td>
                         </tr>
-                        {sortedData.map(series => {
+                        {sortedData.map((series) => {
                             const value = series.values.find(
-                                v => v.x === hoverX
+                                (v) => v.x === hoverX
                             )
 
                             const annotation = this.transform.getAnnotationsForSeries(
@@ -386,7 +392,7 @@ export class LineChart extends React.Component<{
                             if (!value) {
                                 const [startX, endX] = extent(
                                     series.values,
-                                    v => v.x
+                                    (v) => v.x
                                 )
                                 if (
                                     startX === undefined ||
@@ -418,14 +424,14 @@ export class LineChart extends React.Component<{
                                                 borderRadius: "5px",
                                                 backgroundColor: circleColor,
                                                 display: "inline-block",
-                                                marginRight: "2px"
+                                                marginRight: "2px",
                                             }}
                                         />
                                     </td>
                                     <td
                                         style={{
                                             paddingRight: "0.8em",
-                                            fontSize: "0.9em"
+                                            fontSize: "0.9em",
                                         }}
                                     >
                                         {this.transform.getLabelForKey(
@@ -436,7 +442,7 @@ export class LineChart extends React.Component<{
                                                 className="tooltipAnnotation"
                                                 style={{
                                                     color: annotationColor,
-                                                    fontSize: "90%"
+                                                    fontSize: "90%",
                                                 }}
                                             >
                                                 {" "}
@@ -447,7 +453,7 @@ export class LineChart extends React.Component<{
                                     <td
                                         style={{
                                             textAlign: "right",
-                                            whiteSpace: "nowrap"
+                                            whiteSpace: "nowrap",
                                         }}
                                     >
                                         {!value
@@ -472,7 +478,7 @@ export class LineChart extends React.Component<{
         return new DualAxis({
             bounds: this.bounds.padRight(this.legend ? this.legend.width : 20),
             yAxis,
-            xAxis
+            xAxis,
         })
     }
 
@@ -545,7 +551,7 @@ export class LineChart extends React.Component<{
             tooltip,
             dualAxis,
             renderUid,
-            hoverX
+            hoverX,
         } = this
         const { xAxis, yAxis } = dualAxis
         const { groupedData } = transform
@@ -601,9 +607,9 @@ export class LineChart extends React.Component<{
                 </g>
                 {hoverX !== undefined && (
                     <g className="hoverIndicator">
-                        {transform.groupedData.map(series => {
+                        {transform.groupedData.map((series) => {
                             const value = series.values.find(
-                                v => v.x === hoverX
+                                (v) => v.x === hoverX
                             )
                             if (!value || this.seriesIsBlur(series)) return null
                             else

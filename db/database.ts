@@ -25,7 +25,7 @@ export function createConnection(props: { database: string }) {
         mysql.createConnection({
             host: "localhost",
             user: "root",
-            database: props.database
+            database: props.database,
         })
     )
 }

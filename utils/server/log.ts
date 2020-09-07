@@ -23,7 +23,7 @@ export namespace log {
         if (err.stderr) {
             blocks.push({
                 title: "stderr",
-                code: err.stderr
+                code: err.stderr,
             })
         }
 
@@ -39,14 +39,14 @@ export namespace log {
             //     { title: 'Remote Address', value: getRemoteAddress(req), short: true }
             //   ],
             text: blocks
-                .map(data => createCodeBlock(data.title, data.code))
+                .map((data) => createCodeBlock(data.title, data.code))
                 .join(""),
             mrkdwn_in: ["text"],
             footer: "sendErrorToSlack",
-            ts: Math.floor(Date.now() / 1000)
+            ts: Math.floor(Date.now() / 1000),
         }
 
-        slack.webhook({ attachments: [attachment] }, error => {
+        slack.webhook({ attachments: [attachment] }, (error) => {
             if (error) console.error(error)
         })
     }

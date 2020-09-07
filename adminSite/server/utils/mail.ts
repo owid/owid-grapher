@@ -4,7 +4,7 @@ import {
     EMAIL_HOST,
     EMAIL_PORT,
     EMAIL_HOST_USER,
-    EMAIL_HOST_PASSWORD
+    EMAIL_HOST_PASSWORD,
 } from "serverSettings"
 
 const transporter = nodemailer.createTransport({
@@ -13,8 +13,8 @@ const transporter = nodemailer.createTransport({
     secure: EMAIL_PORT === 465,
     auth: {
         user: EMAIL_HOST_USER,
-        pass: EMAIL_HOST_PASSWORD
-    }
+        pass: EMAIL_HOST_PASSWORD,
+    },
 })
 
 export async function sendMail(

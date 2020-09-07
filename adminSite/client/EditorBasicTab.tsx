@@ -6,7 +6,7 @@ import { includes, sample, sampleSize } from "grapher/utils/Util"
 import { ChartTypeDefs, ChartTypeName } from "grapher/core/GrapherConstants"
 import {
     ChartDimension,
-    ChartDimensionSpec
+    ChartDimensionSpec,
 } from "grapher/chart/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
@@ -28,9 +28,9 @@ class DimensionSlotView extends React.Component<{
     @action.bound onVariables(variableIds: number[]) {
         const { slot } = this.props
 
-        slot.dimensions = variableIds.map(id => {
+        slot.dimensions = variableIds.map((id) => {
             const existingDimension = slot.dimensions.find(
-                d => d.variableId === id
+                (d) => d.variableId === id
             )
             return existingDimension || slot.createDimension(id)
         })
@@ -41,7 +41,7 @@ class DimensionSlotView extends React.Component<{
 
     @action.bound onRemoveDimension(dim: ChartDimension) {
         this.props.slot.dimensions = this.props.slot.dimensions.filter(
-            d => d.variableId !== dim.variableId
+            (d) => d.variableId !== dim.variableId
         )
         this.updateDefaults()
     }
@@ -63,7 +63,8 @@ class DimensionSlotView extends React.Component<{
                         ? "World"
                         : sample(grapher.availableEntityNames)
                     grapher.selectedKeys = grapher.availableKeys.filter(
-                        key => grapher.lookupKey(key).entityName === entityName
+                        (key) =>
+                            grapher.lookupKey(key).entityName === entityName
                     )
                     grapher.addCountryMode = "change-country"
                 } else {
@@ -90,7 +91,7 @@ class DimensionSlotView extends React.Component<{
             <div>
                 <h5>{slot.name}</h5>
                 <EditableList>
-                    {slot.dimensionsWithData.map(dim => {
+                    {slot.dimensionsWithData.map((dim) => {
                         return (
                             dim.property === slot.property && (
                                 <DimensionCard
@@ -151,7 +152,7 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 
         return (
             <Section name="Add variables">
-                {dimensionSlots.map(slot => (
+                {dimensionSlots.map((slot) => (
                     <DimensionSlotView
                         key={slot.name}
                         slot={slot}
@@ -172,7 +173,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
         // Give scatterplots and slope charts a default color and size dimension if they don't have one
         if (
             (grapher.isScatter || grapher.isSlopeChart) &&
-            !grapher.dimensions.find(d => d.property === "color")
+            !grapher.dimensions.find((d) => d.property === "color")
         ) {
             grapher.dimensions = grapher.dimensions.concat(
                 new ChartDimensionSpec({ variableId: 123, property: "color" })
@@ -181,7 +182,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
 
         if (
             (grapher.isScatter || grapher.isSlopeChart) &&
-            !grapher.dimensions.find(d => d.property === "color")
+            !grapher.dimensions.find((d) => d.property === "color")
         ) {
             grapher.dimensions = grapher.dimensions.concat(
                 new ChartDimensionSpec({ variableId: 72, property: "size" })
@@ -199,15 +200,15 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                     <SelectField
                         value={grapher.type}
                         onValue={this.onChartType}
-                        options={ChartTypeDefs.map(def => def.key)}
-                        optionLabels={ChartTypeDefs.map(def => def.label)}
+                        options={ChartTypeDefs.map((def) => def.key)}
+                        optionLabels={ChartTypeDefs.map((def) => def.label)}
                     />
                     {editor.features.explorer && (
                         <FieldsRow>
                             <Toggle
                                 label="Explorable chart"
                                 value={grapher.isExplorable}
-                                onValue={value =>
+                                onValue={(value) =>
                                     (grapher.isExplorable = value)
                                 }
                                 disabled={!canBeExplorable(grapher)}
@@ -218,13 +219,13 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                         <Toggle
                             label="Chart tab"
                             value={grapher.hasChartTab}
-                            onValue={value => (grapher.hasChartTab = value)}
+                            onValue={(value) => (grapher.hasChartTab = value)}
                             disabled={grapher.isExplorable}
                         />
                         <Toggle
                             label="Map tab"
                             value={grapher.hasMapTab}
-                            onValue={value => (grapher.hasMapTab = value)}
+                            onValue={(value) => (grapher.hasMapTab = value)}
                             disabled={grapher.isExplorable}
                         />
                     </FieldsRow>

@@ -74,12 +74,12 @@ app.use(async (err: any, req: any, res: express.Response, next: any) => {
     if (!res.headersSent) {
         res.status(err.status || 500)
         res.send({
-            error: { message: err.stack || err, status: err.status || 500 }
+            error: { message: err.stack || err, status: err.status || 500 },
         })
     } else {
         res.write(
             JSON.stringify({
-                error: { message: err.stack || err, status: err.status || 500 }
+                error: { message: err.stack || err, status: err.status || 500 },
             })
         )
         res.end()

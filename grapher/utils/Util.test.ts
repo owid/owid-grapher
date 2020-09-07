@@ -26,7 +26,7 @@ import {
     JsTable,
     anyToString,
     sortNumeric,
-    lowerCaseFirstLetterUnlessAbbreviation
+    lowerCaseFirstLetterUnlessAbbreviation,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder, ScaleType } from "grapher/core/GrapherConstants"
@@ -78,7 +78,7 @@ describe(getStartEndValues, () => {
     })
     it("handles a single element array", () => {
         const extent = getStartEndValues([
-            { year: 2016, value: 1 }
+            { year: 2016, value: 1 },
         ]) as DataValue[]
         expect(extent[0].year).toEqual(2016)
         expect(extent[1].year).toEqual(2016)
@@ -87,7 +87,7 @@ describe(getStartEndValues, () => {
         const extent = getStartEndValues([
             { year: 2016, value: -20 },
             { year: 2014, value: 5 },
-            { year: 2017, value: 7 }
+            { year: 2017, value: 7 },
         ]) as DataValue[]
         expect(extent[0].year).toEqual(2014)
         expect(extent[1].year).toEqual(2017)
@@ -100,35 +100,35 @@ describe(next, () => {
             list: [55, 33, 22],
             current: 33,
             next: 22,
-            previous: 55
+            previous: 55,
         },
         {
             list: [55, 33, 22],
             current: 44,
             next: 55,
-            previous: 22
+            previous: 22,
         },
         {
             list: [55, 33, 22],
             current: 22,
             next: 55,
-            previous: 33
+            previous: 33,
         },
         {
             list: [55, 33, 22],
             current: 55,
             next: 33,
-            previous: 22
+            previous: 22,
         },
         {
             list: [55],
             current: 55,
             next: 55,
-            previous: 55
-        }
+            previous: 55,
+        },
     ]
     it("iterates correctly", () => {
-        scenarios.forEach(scenario => {
+        scenarios.forEach((scenario) => {
             expect(next(scenario.list, scenario.current)).toBe(scenario.next)
             expect(previous(scenario.list, scenario.current)).toBe(
                 scenario.previous
@@ -149,35 +149,35 @@ describe(computeRollingAverage, () => {
             numbers: [2, 4, 6, 8],
             window: 1,
             align: "right",
-            result: [2, 4, 6, 8]
+            result: [2, 4, 6, 8],
         },
         {
             numbers: [1, -1, 1, -1],
             window: 2,
             align: "right",
-            result: [1, 0, 0, 0]
+            result: [1, 0, 0, 0],
         },
         {
             numbers: [1, undefined, null, -1, 1],
             window: 2,
             align: "right",
-            result: [1, undefined, null, -1, 0]
+            result: [1, undefined, null, -1, 0],
         },
         {
             numbers: [1, 3, 5, 1],
             window: 3,
             align: "right",
-            result: [1, 2, 3, 3]
+            result: [1, 2, 3, 3],
         },
         {
             numbers: [0, 2, 4, 0],
             window: 3,
             align: "center",
-            result: [1, 2, 2, 2]
-        }
+            result: [1, 2, 2, 2],
+        },
     ]
     it("computes the rolling average", () => {
-        testCases.forEach(testCase => {
+        testCases.forEach((testCase) => {
             expect(
                 computeRollingAverage(
                     testCase.numbers,
@@ -194,11 +194,11 @@ describe(insertMissingValuePlaceholders, () => {
         {
             values: [2, -3, 10],
             years: [0, 2, 3],
-            expected: [2, null, -3, 10]
-        }
+            expected: [2, null, -3, 10],
+        },
     ]
     it("computes the rolling average", () => {
-        testCases.forEach(testCase => {
+        testCases.forEach((testCase) => {
             expect(
                 insertMissingValuePlaceholders(testCase.values, testCase.years)
             ).toEqual(testCase.expected)
@@ -209,12 +209,12 @@ describe(insertMissingValuePlaceholders, () => {
         {
             values: [0, 2, 3],
             years: [0, 2, 3],
-            expected: [0, null, 2, 2.5]
-        }
+            expected: [0, null, 2, 2.5],
+        },
     ]
 
     it("computes the rolling average for data with missing values", () => {
-        testCasesWithMissing.forEach(testCase => {
+        testCasesWithMissing.forEach((testCase) => {
             expect(
                 computeRollingAverage(
                     insertMissingValuePlaceholders(
@@ -337,7 +337,7 @@ describe("jsTables", () => {
 1,2`
         expect(toJsTable(parseDelimited(str))).toEqual([
             ["gdp", "pop"],
-            ["1", "2"]
+            ["1", "2"],
         ])
 
         expect(toJsTable(parseDelimited(""))).toEqual(undefined)
@@ -373,7 +373,7 @@ describe("anyToString", () => {
         NaN,
         Infinity,
         {},
-        0.1
+        0.1,
     ]
     const expected = [
         "false",
@@ -388,7 +388,7 @@ describe("anyToString", () => {
         "NaN",
         "Infinity",
         "[object Object]",
-        "0.1"
+        "0.1",
     ]
     it("handles edge cases in format value", () => {
         expect(values.map(anyToString)).toEqual(expected)
@@ -400,23 +400,23 @@ describe(trimEmptyRows, () => {
         const testCases: { input: JsTable; length: number }[] = [
             {
                 input: [["pop"], [123], [null], [""], [undefined]],
-                length: 2
+                length: 2,
             },
             {
                 input: [[]],
-                length: 0
+                length: 0,
             },
             {
                 input: [
                     ["pop", "gdp"],
                     [123, 345],
-                    [undefined, 456]
+                    [undefined, 456],
                 ],
-                length: 3
-            }
+                length: 3,
+            },
         ]
 
-        testCases.forEach(testCase => {
+        testCases.forEach((testCase) => {
             expect(trimEmptyRows(testCase.input).length).toEqual(
                 testCase.length
             )
@@ -426,7 +426,7 @@ describe(trimEmptyRows, () => {
 
 describe(groupMap, () => {
     it("groups by key", () => {
-        const group = groupMap([0, 1, "a", 1, 1], v => v)
+        const group = groupMap([0, 1, "a", 1, 1], (v) => v)
         expect(group.get(0)).toEqual([0])
         expect(group.get(1)).toEqual([1, 1, 1])
         expect(group.get("a")).toEqual(["a"])
@@ -511,7 +511,7 @@ describe(sortNumeric, () => {
         expect(
             sortNumeric(
                 [{ a: 3 }, { a: 4 }, { a: 2 }, { a: 1 }, { a: 3 }, { a: 8 }],
-                o => o.a
+                (o) => o.a
             )
         ).toEqual([{ a: 1 }, { a: 2 }, { a: 3 }, { a: 3 }, { a: 4 }, { a: 8 }])
     })

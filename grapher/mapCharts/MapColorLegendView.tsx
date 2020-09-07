@@ -8,7 +8,7 @@ import { ColorScaleBin, CategoricalBin } from "grapher/color/ColorScaleBin"
 import {
     MapColorLegend,
     MapNumericColorLegend,
-    MapCategoricalColorLegend
+    MapCategoricalColorLegend,
 } from "./MapColorLegend"
 
 const FOCUS_BORDER_COLOR = "#111"
@@ -30,7 +30,7 @@ export class MapColorLegendView extends React.Component<
             mainLabel,
             numericLegend,
             categoryLegend,
-            categoryLegendHeight
+            categoryLegendHeight,
         } = legend
 
         return (
@@ -118,7 +118,7 @@ class NumericColorLegendView extends React.Component<{
 
         // If inside legend bounds, trigger onMouseOver with the bin closest to the cursor.
         let newFocusBracket = null
-        legend.positionedBins.forEach(d => {
+        legend.positionedBins.forEach((d) => {
             if (mouse.x >= props.x + d.x && mouse.x <= props.x + d.x + d.width)
                 newFocusBracket = d.bin
         })
@@ -149,7 +149,7 @@ class NumericColorLegendView extends React.Component<{
             numericLabels,
             height,
             positionedBins,
-            focusBracket
+            focusBracket,
         } = legend
         //Bounds.debug([this.bounds])
 
@@ -188,7 +188,7 @@ class NumericColorLegendView extends React.Component<{
                             />
                         )
                     }),
-                    r => r.props["strokeWidth"]
+                    (r) => r.props["strokeWidth"]
                 )}
                 {numericLabels.map((label, i) => (
                     <text

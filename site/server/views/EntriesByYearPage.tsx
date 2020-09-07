@@ -12,18 +12,18 @@ import { TableOfContents } from "site/client/TableOfContents"
 type Entry = Pick<Post.Row, "title" | "slug" | "published_at">
 
 export const EntriesByYearPage = (props: { entries: Entry[] }) => {
-    const entriesByYear = lodash.groupBy(props.entries, e =>
+    const entriesByYear = lodash.groupBy(props.entries, (e) =>
         moment(e.published_at as Date).year()
     )
 
     const years = Object.keys(entriesByYear).sort().reverse()
 
     const pageTitle = "Entries by Year"
-    const tocEntries = years.map(year => {
+    const tocEntries = years.map((year) => {
         return {
             isSubheading: false,
             slug: year,
-            text: year
+            text: year,
         }
     })
 
@@ -52,7 +52,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                                         Note that older entries are often
                                         updated with new content.
                                     </p>
-                                    {years.map(year => (
+                                    {years.map((year) => (
                                         <section key={year}>
                                             <h2 id={year}>
                                                 <a
@@ -63,7 +63,7 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                                             </h2>
                                             <ul>
                                                 {entriesByYear[year].map(
-                                                    entry => (
+                                                    (entry) => (
                                                         <li key={entry.slug}>
                                                             <a
                                                                 href={`${BAKED_BASE_URL}/${entry.slug}`}
@@ -88,8 +88,8 @@ export const EntriesByYearPage = (props: { entries: Entry[] }) => {
                         __html: `
                         runTableOfContents(${JSON.stringify({
                             headings: tocEntries,
-                            pageTitle
-                        })})`
+                            pageTitle,
+                        })})`,
                     }}
                 />
             </body>
@@ -101,14 +101,14 @@ export const EntriesForYearPage = (props: {
     entries: Entry[]
     year: number
 }) => {
-    const entriesByYear = lodash.groupBy(props.entries, e =>
+    const entriesByYear = lodash.groupBy(props.entries, (e) =>
         moment(e.published_at as Date).year()
     )
 
     const years = Object.keys(entriesByYear)
         .sort()
         .reverse()
-        .filter(y => parseInt(y) === props.year)
+        .filter((y) => parseInt(y) === props.year)
 
     return (
         <html>
@@ -124,12 +124,12 @@ export const EntriesForYearPage = (props: {
                         <div className="content-wrapper">
                             <div className="offset-content">
                                 <div className="content">
-                                    {years.map(year => (
+                                    {years.map((year) => (
                                         <section key={year}>
                                             <h2>{year}</h2>
                                             <ul>
                                                 {entriesByYear[year].map(
-                                                    entry => (
+                                                    (entry) => (
                                                         <li key={entry.slug}>
                                                             <a
                                                                 href={`${BAKED_BASE_URL}/${entry.slug}`}

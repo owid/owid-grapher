@@ -24,17 +24,17 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         {
             label: "History",
             href: "/history-of-our-world-in-data",
-            id: "history"
+            id: "history",
         },
         { label: "Supporters", href: "/supporters", id: "supporters" },
         { label: "FAQs", href: "/faqs", id: "faqs" },
         {
             label: "How-Tos",
             href: "/how-to-use-our-world-in-data",
-            id: "how-tos"
+            id: "how-tos",
         },
         { label: "Grapher", href: "/owid-grapher", id: "grapher" },
-        { label: "Contact", href: "/about#contact", id: "contact" }
+        { label: "Contact", href: "/about#contact", id: "contact" },
     ],
     coronavirus: [
         { label: "Coronavirus", href: "/coronavirus", id: "coronavirus" },
@@ -42,13 +42,13 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             label: "By country",
             href: "/coronavirus#coronavirus-country-profiles",
             id: "by-country",
-            highlight: true
+            highlight: true,
         },
         {
             label: "Data explorer",
             href: "/coronavirus-data-explorer",
             id: "data-explorer",
-            highlight: true
+            highlight: true,
         },
         { label: "Deaths", href: "/covid-deaths", id: "deaths" },
         { label: "Cases", href: "/covid-cases", id: "cases" },
@@ -56,94 +56,94 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
         {
             label: "Mortality risk",
             href: "/mortality-risk-covid",
-            id: "mortality-risk"
+            id: "mortality-risk",
         },
         {
             label: "Policy responses",
             href: "/policy-responses-covid",
-            id: "policy-responses"
+            id: "policy-responses",
         },
         {
             label: "Exemplars",
             href: "/identify-covid-exemplars",
-            id: "exemplars"
+            id: "exemplars",
         },
-        { label: "All charts", href: "/coronavirus-data", id: "data" }
+        { label: "All charts", href: "/coronavirus-data", id: "data" },
     ],
     co2: [
         {
             label: "CO₂ and GHG Emissions",
             href: "/co2-and-other-greenhouse-gas-emissions",
-            id: "co2-and-ghg-emissions"
+            id: "co2-and-ghg-emissions",
         },
         {
             label: "By country",
             href:
                 "/co2-and-other-greenhouse-gas-emissions#co2-and-greenhouse-gas-emissions-country-profiles",
             id: "by-country",
-            highlight: true
+            highlight: true,
         },
         {
             label: "Data explorer",
             href: "/explorers/co2",
-            id: "co2-data-explorer"
+            id: "co2-data-explorer",
         },
         { label: "CO₂ emissions", href: "/co2-emissions", id: "co2-emissions" },
         { label: "CO₂ by fuel", href: "/emissions-by-fuel", id: "by-fuel" },
         {
             label: "GHG emissions",
             href: "/greenhouse-gas-emissions",
-            id: "ghg-emissions"
+            id: "ghg-emissions",
         },
         { label: "By sector", href: "/emissions-by-sector", id: "by-sector" },
         {
             label: "Emissions drivers",
             href: "/emissions-drivers",
-            id: "emissions-drivers"
+            id: "emissions-drivers",
         },
         {
             label: "Atmospheric concentrations",
             href: "/atmospheric-concentrations",
-            id: "atm-concentrations"
-        }
+            id: "atm-concentrations",
+        },
     ],
     energy: [
         {
             label: "Energy",
             href: "/energy",
-            id: "energy"
+            id: "energy",
         },
         {
             label: "By country",
             href: "/energy#energy-country-profiles",
             id: "by-country",
-            highlight: true
+            highlight: true,
         },
         {
             label: "Data explorer",
             href: "/explorers/energy",
-            id: "energy-data-explorer"
+            id: "energy-data-explorer",
         },
         { label: "Energy access", href: "/energy-access", id: "energy-access" },
         {
             label: "Production & Consumption",
             href: "/energy-production-consumption",
-            id: "production-consumption"
+            id: "production-consumption",
         },
         { label: "Energy mix", href: "/energy-mix", id: "energy-mix" },
         {
             label: "Electricity mix",
             href: "/electricity-mix",
-            id: "electricity-mix"
+            id: "electricity-mix",
         },
         { label: "Fossil fuels", href: "/fossil-fuels", id: "fossil-fuels" },
         {
             label: "Renewables",
             href: "/renewable-energy",
-            id: "renewable-energy"
+            id: "renewable-energy",
         },
-        { label: "Nuclear", href: "/nuclear-energy", id: "nuclear-energy" }
-    ]
+        { label: "Nuclear", href: "/nuclear-energy", id: "nuclear-energy" },
+    ],
 }
 
 export class SiteSubnavigation extends React.Component<{
@@ -164,7 +164,7 @@ export class SiteSubnavigation extends React.Component<{
                                     const dataTrackNote = [
                                         subnavId,
                                         "subnav",
-                                        id
+                                        id,
                                     ].join("-")
                                     if (id === subnavCurrentId)
                                         classes.push("current")

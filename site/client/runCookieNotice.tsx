@@ -31,7 +31,7 @@ export class CookieNotice extends React.Component {
         return (
             <div
                 className={classnames("cookie-notice", {
-                    open: this.mounted && !this.accepted
+                    open: this.mounted && !this.accepted,
                 })}
             >
                 <div className="wrapper">

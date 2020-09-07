@@ -37,7 +37,9 @@ export class SwitcherExplorer extends React.Component<{
             window.location.search
         )
         const chartConfigsMap: Map<number, GrapherInterface> = new Map()
-        chartConfigs.forEach(config => chartConfigsMap.set(config.id!, config))
+        chartConfigs.forEach((config) =>
+            chartConfigsMap.set(config.id!, config)
+        )
 
         return ReactDOM.render(
             <SwitcherExplorer
@@ -66,7 +68,7 @@ export class SwitcherExplorer extends React.Component<{
     private bindToWindow() {
         const url = new ExtendedGrapherUrl(this._grapher!.url, [
             this.switcherRuntime,
-            this.explorerRuntime
+            this.explorerRuntime,
         ])
 
         if (this.urlBinding) this.urlBinding.unbindFromWindow()
@@ -80,7 +82,7 @@ export class SwitcherExplorer extends React.Component<{
     componentWillMount() {
         // todo: add disposer
         reaction(() => this.switcherRuntime.chartId, this.switchGrapher, {
-            fireImmediately: true
+            fireImmediately: true,
         })
     }
 
@@ -114,7 +116,7 @@ export class SwitcherExplorer extends React.Component<{
                 // Add any missing entities
                 this.availableEntities = uniq([
                     ...this.availableEntities,
-                    ...this._grapher!.table.availableEntities
+                    ...this._grapher!.table.availableEntities,
                 ]).sort()
 
                 this.updateGrapherSelection()
@@ -130,13 +132,13 @@ export class SwitcherExplorer extends React.Component<{
         const selectedData = Array.from(
             this.explorerRuntime.selectedEntityNames
         )
-            .filter(i => i)
-            .map(countryOption => {
+            .filter((i) => i)
+            .map((countryOption) => {
                 return {
                     index: 0,
                     entityId: countryOption
                         ? entityIdMap.get(countryOption)!
-                        : 0
+                        : 0,
                 }
             })
 
@@ -144,7 +146,7 @@ export class SwitcherExplorer extends React.Component<{
     }
 
     private get panels() {
-        return this.switcherRuntime.groups.map(group => (
+        return this.switcherRuntime.groups.map((group) => (
             <ExplorerControlPanel
                 key={group.title}
                 value={group.value}
@@ -154,7 +156,7 @@ export class SwitcherExplorer extends React.Component<{
                 dropdownOptions={group.dropdownOptions}
                 options={group.options}
                 isCheckbox={group.isCheckbox}
-                onChange={value => {
+                onChange={(value) => {
                     this.switcherRuntime.setValue(group.title, value)
                 }}
             />
@@ -169,7 +171,7 @@ export class SwitcherExplorer extends React.Component<{
                 <div
                     className="ExplorerSubtitle"
                     dangerouslySetInnerHTML={{
-                        __html: this.props.program.subtitle || ""
+                        __html: this.props.program.subtitle || "",
                     }}
                 ></div>
             </>

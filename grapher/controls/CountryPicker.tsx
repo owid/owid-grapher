@@ -20,7 +20,7 @@ import {
     isNumber,
     sortBy,
     sortByUndefinedLast,
-    first
+    first,
 } from "grapher/utils/Util"
 import { VerticalScrollContainer } from "grapher/controls/VerticalScrollContainer"
 import { Analytics } from "grapher/core/Analytics"
@@ -37,7 +37,7 @@ enum FocusDirection {
     first = "first",
     last = "last",
     up = "up",
-    down = "down"
+    down = "down",
 }
 
 interface CountryOptionWithMetricValue {
@@ -86,7 +86,7 @@ export class CountryPicker extends React.Component<{
         availableEntities: [],
         selectedEntities: [],
         countriesMustHaveColumns: [],
-        pickerColumnSlugs: new Set()
+        pickerColumnSlugs: new Set(),
     }
 
     @observable private searchInput?: string
@@ -135,17 +135,17 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed get availablePickerColumns() {
-        return this.props.table.columnsAsArray.filter(col =>
+        return this.props.table.columnsAsArray.filter((col) =>
             this.props.pickerColumnSlugs.has(col.slug)
         )
     }
 
     @computed get metricOptions() {
         return sortBy(
-            this.availablePickerColumns.map(col => {
+            this.availablePickerColumns.map((col) => {
                 return {
                     label: col.spec.name, // todo: name
-                    value: col.slug
+                    value: col.slug,
                 }
             }),
             "label"
@@ -154,7 +154,7 @@ export class CountryPicker extends React.Component<{
 
     @computed get activePickerMetricColumn(): AbstractColumn {
         return this.availablePickerColumns.find(
-            col => col.slug === this.metric
+            (col) => col.slug === this.metric
         )!
     }
 
@@ -169,13 +169,13 @@ export class CountryPicker extends React.Component<{
     @computed
     private get optionsWithMetricValue(): CountryOptionWithMetricValue[] {
         const col = this.activePickerMetricColumn
-        return this.props.availableEntities.map(name => {
+        return this.props.availableEntities.map((name) => {
             const plotValue = col?.getLatestValueForEntity(name)
             const formattedValue = col?.formatValue(plotValue)
             return {
                 name,
                 plotValue,
-                formattedValue
+                formattedValue,
             }
         })
     }
@@ -196,7 +196,7 @@ export class CountryPicker extends React.Component<{
         const [selected, unselected] = partition(
             sortByUndefinedLast(
                 this.optionsWithMetricValue,
-                option => option.plotValue,
+                (option) => option.plotValue,
                 this.sortOrder
             ),
             this.isSelected
@@ -338,7 +338,7 @@ export class CountryPicker extends React.Component<{
                     if (!currentToken || currentToken.match !== match) {
                         tokens.push({
                             match,
-                            text: char
+                            text: char,
                         })
                     } else {
                         currentToken.text += char
@@ -365,7 +365,7 @@ export class CountryPicker extends React.Component<{
     @computed get barScale() {
         const maxValue = max(
             this.optionsWithMetricValue
-                .map(option => option.plotValue)
+                .map((option) => option.plotValue)
                 .filter(isNumber)
         )
         return scaleLinear()
@@ -423,15 +423,15 @@ export class CountryPicker extends React.Component<{
                         className="metricDropdown"
                         options={this.metricOptions}
                         value={this.metricOptions.find(
-                            option => option.value === this.metric
+                            (option) => option.value === this.metric
                         )}
-                        onChange={option => {
+                        onChange={(option) => {
                             const value = first(asArray(option))?.value
                             if (value) this.updateMetric(value)
                         }}
                         menuPlacement="bottom"
                         components={{
-                            IndicatorSeparator: null
+                            IndicatorSeparator: null,
                         }}
                         styles={getStylesForTargetHeight(26)}
                         isSearchable={false}
@@ -472,12 +472,12 @@ export class CountryPicker extends React.Component<{
                 <div className="CountryPickerSearchInput">
                     <input
                         className={classnames("input-field", {
-                            "with-done-button": this.showDoneButton
+                            "with-done-button": this.showDoneButton,
                         })}
                         type="text"
                         placeholder="Type to add a country..."
                         value={this.searchInput ?? ""}
-                        onChange={e =>
+                        onChange={(e) =>
                             (this.searchInput = e.currentTarget.value)
                         }
                         onFocus={this.onSearchFocus}
@@ -499,7 +499,7 @@ export class CountryPicker extends React.Component<{
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
                             className={classnames("CountryList", {
-                                isDropdown: this.isDropdownMenu
+                                isDropdown: this.isDropdownMenu,
                             })}
                             onMouseDown={this.onMenuMouseDown}
                         >
@@ -508,7 +508,7 @@ export class CountryPicker extends React.Component<{
                                 scrollLock={true}
                                 className="CountrySearchResults"
                                 contentsId={countries
-                                    .map(c => c.name)
+                                    .map((c) => c.name)
                                     .join(",")}
                                 onMouseMove={this.unblockHover}
                                 ref={this.scrollContainerRef}
@@ -516,7 +516,7 @@ export class CountryPicker extends React.Component<{
                                 <Flipper
                                     spring={{
                                         stiffness: 300,
-                                        damping: 33
+                                        damping: 33,
                                     }}
                                     // We only want to animate when the selection changes, but not on changes due to
                                     // searching
@@ -601,7 +601,7 @@ class PickerOption extends React.Component<CountryOptionProps> {
             isSelected,
             isFocused,
             hasDataForActiveMetric,
-            highlight
+            highlight,
         } = this.props
         const { name, plotValue, formattedValue } = optionWithMetricValue
         const metricValue = formattedValue === name ? "" : formattedValue // If the user has "country name" selected, don't show the name twice.
@@ -613,7 +613,7 @@ class PickerOption extends React.Component<CountryOptionProps> {
                         "CountryOption",
                         {
                             selected: isSelected,
-                            focused: isFocused
+                            focused: isFocused,
                         },
                         hasDataForActiveMetric ? undefined : "MissingData"
                     )}
@@ -643,7 +643,7 @@ class PickerOption extends React.Component<CountryOptionProps> {
                                 <div
                                     className="bar"
                                     style={{
-                                        width: `${barScale(plotValue) * 100}%`
+                                        width: `${barScale(plotValue) * 100}%`,
                                     }}
                                 />
                             </div>

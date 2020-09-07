@@ -61,7 +61,7 @@ export async function bakeChartToImage(
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
 
-    const variableIds = lodash.uniq(chart.dimensions.map(d => d.variableId))
+    const variableIds = lodash.uniq(chart.dimensions.map((d) => d.variableId))
     const vardata = await getVariableData(variableIds)
     chart.receiveData(vardata)
 

@@ -76,7 +76,7 @@ export class Admin {
             method: method,
             credentials: "same-origin",
             headers: headers,
-            body: method !== "GET" ? data : undefined
+            body: method !== "GET" ? data : undefined,
         })
     }
 
@@ -121,7 +121,7 @@ export class Admin {
                         `Failed to ${method} ${targetPath}` +
                         (response ? ` (${response.status})` : ""),
                     content: err?.message || text || err,
-                    isFatal: response?.status !== 404
+                    isFatal: response?.status !== 404,
                 })
             throw err
         } finally {
@@ -141,7 +141,7 @@ export class Admin {
 
     @action.bound private removeRequest(request: Promise<Response>) {
         this.currentRequests = this.currentRequests.filter(
-            req => req !== request
+            (req) => req !== request
         )
     }
 

@@ -27,18 +27,18 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleCases,
             CovidTableColumnKey.totalCases,
-            CovidTableColumnKey.newCases
+            CovidTableColumnKey.newCases,
         ],
         mobileColumns: [
             CovidTableColumnKey.location,
-            CovidTableColumnKey.daysToDoubleCases
+            CovidTableColumnKey.daysToDoubleCases,
         ],
         defaultState: {
             sortKey: CovidSortKey.daysToDoubleCases,
             sortOrder: SortOrder.asc,
-            truncate: true
+            truncate: true,
         },
-        filter: d =>
+        filter: (d) =>
             d.location.indexOf("International") === -1 &&
             (d.latest && d.latest.totalCases !== undefined
                 ? d.latest.totalCases >= CASE_THRESHOLD
@@ -63,7 +63,7 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                     .
                 </p>
             </React.Fragment>
-        )
+        ),
     },
     deaths: {
         loadData: fetchECDCData,
@@ -71,18 +71,18 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleDeaths,
             CovidTableColumnKey.totalDeaths,
-            CovidTableColumnKey.newDeaths
+            CovidTableColumnKey.newDeaths,
         ],
         mobileColumns: [
             CovidTableColumnKey.location,
-            CovidTableColumnKey.daysToDoubleDeaths
+            CovidTableColumnKey.daysToDoubleDeaths,
         ],
         defaultState: {
             sortKey: CovidSortKey.daysToDoubleDeaths,
             sortOrder: SortOrder.asc,
-            truncate: true
+            truncate: true,
         },
-        filter: d =>
+        filter: (d) =>
             d.location.indexOf("International") === -1 &&
             (d.latest && d.latest.totalDeaths !== undefined
                 ? d.latest.totalDeaths >= DEATH_THRESHOLD
@@ -107,25 +107,25 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                     .
                 </p>
             </React.Fragment>
-        )
+        ),
     },
     tests: {
         loadData: fetchTestsData,
         columns: [
             CovidTableColumnKey.locationTests,
             CovidTableColumnKey.totalTests,
-            CovidTableColumnKey.testDate
+            CovidTableColumnKey.testDate,
             // CovidTableColumnKey.testSource
         ],
         mobileColumns: [
             CovidTableColumnKey.locationTests,
-            CovidTableColumnKey.totalTests
+            CovidTableColumnKey.totalTests,
         ],
         defaultState: {
             sortKey: CovidSortKey.totalTests,
-            sortOrder: SortOrder.desc
+            sortOrder: SortOrder.desc,
         },
-        extraRow: props => {
+        extraRow: (props) => {
             if (props.datum.latestWithTests?.tests === undefined)
                 return undefined
             const { date, tests } = props.datum.latestWithTests
@@ -134,13 +134,13 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                 sourceLabel,
                 publicationDate,
                 remarks,
-                nonOfficial
+                nonOfficial,
             } = tests
             return (
                 <td colSpan={3} className="testing-notes">
                     <span
                         className={classnames("official", {
-                            "is-official": !nonOfficial
+                            "is-official": !nonOfficial,
                         })}
                     >
                         <Tippy
@@ -171,7 +171,7 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                     <br />
                 </td>
             )
-        }
+        },
     },
     deathsAndCases: {
         loadData: fetchECDCData,
@@ -182,19 +182,19 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
             CovidTableColumnKey.newDeaths,
             CovidTableColumnKey.daysToDoubleCases,
             CovidTableColumnKey.totalCases,
-            CovidTableColumnKey.newCases
+            CovidTableColumnKey.newCases,
         ],
         mobileColumns: [
             CovidTableColumnKey.location,
             CovidTableColumnKey.daysToDoubleDeaths,
-            CovidTableColumnKey.daysToDoubleCases
+            CovidTableColumnKey.daysToDoubleCases,
         ],
         defaultState: {
             sortKey: CovidSortKey.totalDeaths,
             sortOrder: SortOrder.desc,
-            truncate: true
+            truncate: true,
         },
-        filter: d =>
+        filter: (d) =>
             d.location.indexOf("International") === -1 &&
             (d.latest && d.latest.totalCases !== undefined
                 ? d.latest.totalCases >= CASE_THRESHOLD
@@ -219,15 +219,15 @@ const propsByMeasure: Record<Measure, Partial<CovidTableProps>> = {
                     .
                 </p>
             </React.Fragment>
-        )
-    }
+        ),
+    },
 }
 
 export function runCovid() {
     const elements = Array.from(
         document.querySelectorAll("*[data-covid-table], #covid-table-embed")
     )
-    elements.forEach(element => {
+    elements.forEach((element) => {
         const attr = element.getAttribute("data-measure")
         const measure = oneOf<Measure>(
             attr,

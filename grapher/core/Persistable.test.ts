@@ -3,7 +3,7 @@
 import {
     objectWithPersistablesToObject,
     Persistable,
-    updatePersistables
+    updatePersistables,
 } from "./Persistable"
 
 class SomePersistable implements Persistable {
@@ -27,11 +27,11 @@ describe("basics", () => {
     it("can serialize and rehydrate nested persistables", () => {
         const item = {
             a: new SomePersistable(),
-            b: [new SomeOtherPersistable(), new SomeOtherPersistable(), 3]
+            b: [new SomeOtherPersistable(), new SomeOtherPersistable(), 3],
         }
         expect(objectWithPersistablesToObject(item)).toEqual({
             a: 4,
-            b: [1, 1, 3]
+            b: [1, 1, 3],
         })
 
         updatePersistables(item, { a: 7, b: [0] })
@@ -42,7 +42,7 @@ describe("basics", () => {
     it("handles missing values", () => {
         expect(objectWithPersistablesToObject({})).toEqual({})
         expect(objectWithPersistablesToObject({ foo: undefined })).toEqual({
-            foo: undefined
+            foo: undefined,
         })
     })
 })

@@ -19,7 +19,7 @@ import { Bounds } from "grapher/utils/Bounds"
 import { EntitySelectorModal } from "grapher/controls/EntitySelectorModal"
 import {
     GrapherViewContext,
-    GrapherViewContextInterface
+    GrapherViewContextInterface,
 } from "grapher/core/GrapherViewContext"
 import { TooltipView } from "grapher/chart/Tooltip"
 import { FullStory } from "grapher/core/FullStory"
@@ -55,7 +55,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         isEditor,
         isEmbed,
         queryStr,
-        globalEntitySelection
+        globalEntitySelection,
     }: {
         jsonConfig: GrapherInterface
         containerNode: HTMLElement
@@ -68,7 +68,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         const grapher = new Grapher(jsonConfig, {
             isEmbed: isEmbed,
             queryStr: queryStr,
-            globalEntitySelection: globalEntitySelection
+            globalEntitySelection: globalEntitySelection,
         })
 
         function render() {
@@ -105,7 +105,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             hasChartTab_bool: grapher.hasChartTab,
             hasMapTab_bool: grapher.hasMapTab,
             tab_str: grapher.currentTab,
-            totalSelectedEntities_int: grapher.selectedData.length
+            totalSelectedEntities_int: grapher.selectedData.length,
         })
 
         return view
@@ -160,7 +160,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             isExport,
             containerBounds,
             authorWidth,
-            authorHeight
+            authorHeight,
         } = this
 
         if (isEditor) return false
@@ -220,7 +220,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             },
             get width() {
                 return that.renderWidth
-            }
+            },
         })
     }
 
@@ -247,10 +247,10 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             this.isEmbed && "embed",
             this.isPortrait && "portrait",
             this.isLandscape && "landscape",
-            isTouchDevice() && "is-touch"
+            isTouchDevice() && "is-touch",
         ]
 
-        return classNames.filter(n => !!n).join(" ")
+        return classNames.filter((n) => !!n).join(" ")
     }
 
     addPopup(vnode: VNode) {
@@ -258,7 +258,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
     }
 
     removePopup(vnodeType: any) {
-        this.popups = this.popups.filter(d => !(d.type === vnodeType))
+        this.popups = this.popups.filter((d) => !(d.type === vnodeType))
     }
 
     get childContext(): GrapherViewContextInterface {
@@ -268,7 +268,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             baseFontSize: this.grapher.baseFontSize,
             isStatic: this.isExport,
             addPopup: this.addPopup.bind(this),
-            removePopup: this.removePopup.bind(this)
+            removePopup: this.removePopup.bind(this),
         }
     }
 
@@ -363,7 +363,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
                     justifyContent: "center",
                     textAlign: "center",
                     lineHeight: 1.5,
-                    padding: "3rem"
+                    padding: "3rem",
                 }}
             >
                 <p style={{ color: "#cc0000", fontWeight: 700 }}>
@@ -396,7 +396,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             const style = {
                 width: renderWidth,
                 height: renderHeight,
-                fontSize: this.grapher.baseFontSize
+                fontSize: this.grapher.baseFontSize,
             }
 
             return (

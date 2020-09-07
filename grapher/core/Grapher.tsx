@@ -8,7 +8,7 @@ import {
     toJS,
     runInAction,
     reaction,
-    IReactionDisposer
+    IReactionDisposer,
 } from "mobx"
 import { bind } from "decko"
 
@@ -33,27 +33,27 @@ import {
     without,
     xor,
     lastOfNonEmptyArray,
-    find
+    find,
 } from "grapher/utils/Util"
 import {
     ChartType,
     GrapherTabOption,
     Color,
     TickFormattingOptions,
-    EntityDimensionKey
+    EntityDimensionKey,
 } from "grapher/core/GrapherConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
     OwidTable,
     EntityName,
     EntityId,
-    EntityCode
+    EntityCode,
 } from "owidTable/OwidTable"
 import {
     EntityDimensionInfo,
     ChartDimension,
     ChartDimensionSpec,
-    SourceWithDimension
+    SourceWithDimension,
 } from "grapher/chart/ChartDimension"
 import { MapTransform } from "grapher/mapCharts/MapTransform"
 import { GrapherUrl } from "./GrapherUrl"
@@ -72,11 +72,11 @@ import {
     minTimeFromJSON,
     maxTimeFromJSON,
     TimeBounds,
-    TimeBoundValue
+    TimeBoundValue,
 } from "grapher/utils/TimeBounds"
 import {
     GlobalEntitySelection,
-    subscribeGrapherToGlobalEntitySelection
+    subscribeGrapherToGlobalEntitySelection,
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "grapher/dataTable/DataTableTransform"
@@ -84,7 +84,7 @@ import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
 import {
     GrapherInterface,
-    PersistableGrapher
+    PersistableGrapher,
 } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
@@ -158,7 +158,7 @@ export class Grapher extends PersistableGrapher {
     // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
     @computed get hasCountriesSmallerThanFilterOption() {
         return this.table.availableEntities.some(
-            entityName =>
+            (entityName) =>
                 populationMap[entityName] &&
                 populationMap[entityName] < this.populationFilterOption
         )
@@ -226,9 +226,11 @@ export class Grapher extends PersistableGrapher {
         )
         return new Set<string>(
             countryCodes
-                .map(code => countries.find(country => country.code === code))
-                .filter(i => i)
-                .map(c => c!.name)
+                .map((code) =>
+                    countries.find((country) => country.code === code)
+                )
+                .filter((i) => i)
+                .map((c) => c!.name)
         )
     }
 
@@ -262,7 +264,7 @@ export class Grapher extends PersistableGrapher {
 
     @computed get sortedUniqueEntitiesAcrossDimensions() {
         return sortBy(
-            uniq(flatten(this.filledDimensions.map(d => d.entityNamesUniq)))
+            uniq(flatten(this.filledDimensions.map((d) => d.entityNamesUniq)))
         )
     }
 
@@ -278,8 +280,8 @@ export class Grapher extends PersistableGrapher {
 
     @computed private get loadingVarIds(): number[] {
         return this.dimensions
-            .map(dim => dim.variableId)
-            .filter(id => !this.table.columnsByOwidVarId.has(id))
+            .map((dim) => dim.variableId)
+            .filter((id) => !this.table.columnsByOwidVarId.has(id))
     }
 
     url: GrapherUrl
@@ -293,7 +295,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed.struct private get variableIds() {
-        return uniq(this.dimensions.map(d => d.variableId))
+        return uniq(this.dimensions.map((d) => d.variableId))
     }
 
     @computed get dataFileName(): string {
@@ -330,7 +332,7 @@ export class Grapher extends PersistableGrapher {
         const { relatedQuestions } = this
         return (
             relatedQuestions?.some(
-                question => !!getErrorMessageRelatedQuestionUrl(question)
+                (question) => !!getErrorMessageRelatedQuestionUrl(question)
             ) || false
         )
     }
@@ -338,7 +340,7 @@ export class Grapher extends PersistableGrapher {
     disposers: IReactionDisposer[] = []
 
     @bind dispose() {
-        this.disposers.forEach(dispose => dispose())
+        this.disposers.forEach((dispose) => dispose())
     }
 
     private initFontSizeInAxisContainers() {
@@ -347,7 +349,7 @@ export class Grapher extends PersistableGrapher {
         const axisContainer = {
             get fontSize() {
                 return that.baseFontSize
-            }
+            },
         }
         this.xAxis.container = axisContainer
         this.yAxis.container = axisContainer
@@ -383,7 +385,7 @@ export class Grapher extends PersistableGrapher {
 
         this.disposers.push(
             reaction(() => this.variableIds, this.downloadData, {
-                fireImmediately: true
+                fireImmediately: true,
             })
         )
 
@@ -442,7 +444,7 @@ export class Grapher extends PersistableGrapher {
                 if (this.isExplorable && !canBeExplorable(this)) {
                     this.isExplorable = false
                 }
-            })
+            }),
         ]
         this.disposers.push(...disposers)
     }
@@ -469,7 +471,7 @@ export class Grapher extends PersistableGrapher {
         if (!this.userHasSetTimeline)
             this.timeDomain = [
                 this.initialScript.minTime ?? TimeBoundValue.unboundedLeft,
-                this.timeDomain[1]
+                this.timeDomain[1],
             ]
 
         /** Revert the state of minPopulationFilter */
@@ -503,7 +505,7 @@ export class Grapher extends PersistableGrapher {
         return [
             // Handle `undefined` values in minTime/maxTime
             minTimeFromJSON(this.minTime),
-            maxTimeFromJSON(this.maxTime)
+            maxTimeFromJSON(this.maxTime),
         ]
     }
 
@@ -528,11 +530,11 @@ export class Grapher extends PersistableGrapher {
     @computed get validDimensions(): ChartDimensionSpec[] {
         const { dimensions } = this
         const validProperties = map(this.dimensionSlots, "property")
-        let validDimensions = filter(dimensions, dim =>
+        let validDimensions = filter(dimensions, (dim) =>
             includes(validProperties, dim.property)
         )
 
-        this.dimensionSlots.forEach(slot => {
+        this.dimensionSlots.forEach((slot) => {
             if (!slot.allowMultiple)
                 validDimensions = uniqWith(
                     validDimensions,
@@ -564,7 +566,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get primaryDimensions() {
-        return this.filledDimensions.filter(dim => dim.property === "y")
+        return this.filledDimensions.filter((dim) => dim.property === "y")
     }
 
     @computed get displaySlug(): string {
@@ -577,7 +579,7 @@ export class Grapher extends PersistableGrapher {
             this.hasMapTab && "map",
             "table",
             "sources",
-            "download"
+            "download",
         ]) as GrapherTabOption[]
     }
 
@@ -711,7 +713,7 @@ export class Grapher extends PersistableGrapher {
         const { filledDimensions } = this
 
         const sources: SourceWithDimension[] = []
-        each(filledDimensions, dim => {
+        each(filledDimensions, (dim) => {
             const { column } = dim
             // HACK (Mispy): Ignore the default color source on scatterplots.
             if (
@@ -725,15 +727,15 @@ export class Grapher extends PersistableGrapher {
 
     @computed private get defaultSourcesLine(): string {
         let sourceNames = this.sourcesWithDimension.map(
-            source => source.source?.name || ""
+            (source) => source.source?.name || ""
         )
 
         // Shorten automatic source names for certain major sources
-        sourceNames = sourceNames.map(sourceName => {
+        sourceNames = sourceNames.map((sourceName) => {
             for (const majorSource of [
                 "World Bank – WDI",
                 "World Bank",
-                "ILOSTAT"
+                "ILOSTAT",
             ]) {
                 if (sourceName.startsWith(majorSource)) return majorSource
             }
@@ -745,22 +747,23 @@ export class Grapher extends PersistableGrapher {
 
     @computed get axisDimensions() {
         return this.filledDimensions.filter(
-            dim => dim.property === "y" || dim.property === "x"
+            (dim) => dim.property === "y" || dim.property === "x"
         )
     }
 
     @computed private get defaultTitle(): string {
         const { primaryDimensions } = this
         if (this.isScatter)
-            return this.axisDimensions.map(d => d.displayName).join(" vs. ")
+            return this.axisDimensions.map((d) => d.displayName).join(" vs. ")
         else if (
             primaryDimensions.length > 1 &&
-            uniq(map(primaryDimensions, d => d.column.datasetName)).length === 1
+            uniq(map(primaryDimensions, (d) => d.column.datasetName)).length ===
+                1
         )
             return primaryDimensions[0].column.datasetName!
         else if (primaryDimensions.length === 2)
-            return primaryDimensions.map(d => d.displayName).join(" and ")
-        else return primaryDimensions.map(d => d.displayName).join(", ")
+            return primaryDimensions.map((d) => d.displayName).join(" and ")
+        else return primaryDimensions.map((d) => d.displayName).join(", ")
     }
 
     @computed get displayTitle(): string {
@@ -851,7 +854,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get selectableEntityDimensionKeys() {
-        return this.activeTransform.selectableEntityDimensionKeys.map(key =>
+        return this.activeTransform.selectableEntityDimensionKeys.map((key) =>
             this.lookupKey(key)
         )
     }
@@ -915,7 +918,7 @@ export class Grapher extends PersistableGrapher {
     }> {
         const primaryDimensions = this.primaryDimensions
         const entityIdToNameMap = this.table.entityIdToNameMap
-        let validSelections = this.selectedData.filter(sel => {
+        let validSelections = this.selectedData.filter((sel) => {
             // Must be a dimension that's on the chart
             const dimension = primaryDimensions[sel.index]
             if (!dimension) return false
@@ -940,13 +943,13 @@ export class Grapher extends PersistableGrapher {
             (a: any, b: any) => a.entityId === b.entityId && a.index === b.index
         )
 
-        return map(validSelections, sel => {
+        return map(validSelections, (sel) => {
             return {
                 entityDimensionKey: this.makeEntityDimensionKey(
                     entityIdToNameMap.get(sel.entityId)!,
                     sel.index
                 ),
-                color: sel.color
+                color: sel.color,
             }
         })
     }
@@ -963,7 +966,7 @@ export class Grapher extends PersistableGrapher {
         const keyColors: {
             [entityDimensionKey: string]: Color | undefined
         } = {}
-        this.selectionData.forEach(d => {
+        this.selectionData.forEach((d) => {
             if (d.color) keyColors[d.entityDimensionKey] = d.color
         })
         return keyColors
@@ -973,7 +976,7 @@ export class Grapher extends PersistableGrapher {
     setKeyColor(key: EntityDimensionKey, color: Color | undefined) {
         const meta = this.lookupKey(key)
         const selectedData = cloneDeep(this.selectedData)
-        selectedData.forEach(d => {
+        selectedData.forEach((d) => {
             if (d.entityId === meta.entityId && d.index === meta.index) {
                 d.color = color
             }
@@ -984,17 +987,17 @@ export class Grapher extends PersistableGrapher {
     // todo: remove
     @computed get selectedEntityNames(): EntityName[] {
         return uniq(
-            this.selectedKeys.map(key => this.lookupKey(key).entityName)
+            this.selectedKeys.map((key) => this.lookupKey(key).entityName)
         )
     }
 
     // todo: remove
     @computed get availableEntityNames(): EntityName[] {
-        const entitiesForDimensions = this.axisDimensions.map(dim => {
+        const entitiesForDimensions = this.axisDimensions.map((dim) => {
             return this.availableKeys
-                .map(key => this.lookupKey(key))
-                .filter(d => d.dimension.variableId === dim.variableId)
-                .map(d => d.entityName)
+                .map((key) => this.lookupKey(key))
+                .filter((d) => d.dimension.variableId === dim.variableId)
+                .map((d) => d.entityName)
         })
 
         return union(...entitiesForDimensions)
@@ -1003,16 +1006,16 @@ export class Grapher extends PersistableGrapher {
     // todo: remove
     @action.bound setSingleSelectedEntity(entityId: EntityId) {
         const selectedData = cloneDeep(this.selectedData)
-        selectedData.forEach(d => (d.entityId = entityId))
+        selectedData.forEach((d) => (d.entityId = entityId))
         this.selectedData = selectedData
     }
 
     // todo: remove
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
         const matchedEntities = new Map<string, boolean>()
-        entityCodes.forEach(code => matchedEntities.set(code, false))
+        entityCodes.forEach((code) => matchedEntities.set(code, false))
         if (this.canChangeEntity) {
-            this.availableEntityNames.forEach(entityName => {
+            this.availableEntityNames.forEach((entityName) => {
                 const entityId = this.table.entityNameToIdMap.get(entityName)!
                 const entityCode = this.table.entityNameToCodeMap.get(
                     entityName
@@ -1026,19 +1029,19 @@ export class Grapher extends PersistableGrapher {
                 }
             })
         } else {
-            this.selectedKeys = this.availableKeys.filter(key => {
+            this.selectedKeys = this.availableKeys.filter((key) => {
                 const meta = this.lookupKey(key)
                 const entityName = meta.entityName
                 const entityCode = this.table.entityNameToCodeMap.get(
                     entityName
                 )
                 return [meta.shortCode, entityCode, entityName]
-                    .map(key => {
+                    .map((key) => {
                         if (!matchedEntities.has(key!)) return false
                         matchedEntities.set(key!, true)
                         return true
                     })
-                    .some(item => item)
+                    .some((item) => item)
             })
         }
         return matchedEntities
@@ -1051,19 +1054,19 @@ export class Grapher extends PersistableGrapher {
 
     // todo: remove
     @computed get selectedEntityCodes(): EntityCode[] {
-        return uniq(this.selectedKeys.map(k => this.lookupKey(k).shortCode))
+        return uniq(this.selectedKeys.map((k) => this.lookupKey(k).shortCode))
     }
 
     // todo: remove
     deselect(entityDimensionKey: EntityDimensionKey) {
         this.selectedKeys = this.selectedKeys.filter(
-            e => e !== entityDimensionKey
+            (e) => e !== entityDimensionKey
         )
     }
 
     // todo: remove
     @computed get selectedKeys(): EntityDimensionKey[] {
-        return this.selectionData.map(d => d.entityDimensionKey)
+        return this.selectionData.map((d) => d.entityDimensionKey)
     }
 
     // remove
@@ -1071,12 +1074,12 @@ export class Grapher extends PersistableGrapher {
     set selectedKeys(keys: EntityDimensionKey[]) {
         if (!this.isReady) return
 
-        const selection = map(keys, key => {
+        const selection = map(keys, (key) => {
             const { entityName: entity, index } = this.lookupKey(key)
             return {
                 entityId: this.table.entityNameToIdMap.get(entity)!,
                 index: index,
-                color: this.keyColors[key]
+                color: this.keyColors[key],
             }
         })
         this.selectedData = selection
@@ -1111,7 +1114,7 @@ export class Grapher extends PersistableGrapher {
 
         const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
         primaryDimensions.forEach((dimension, dimensionIndex) => {
-            dimension.entityNamesUniq.forEach(entityName => {
+            dimension.entityNamesUniq.forEach((entityName) => {
                 const entityCode = this.table.entityNameToCodeMap.get(
                     entityName
                 )
@@ -1144,7 +1147,7 @@ export class Grapher extends PersistableGrapher {
                         primaryDimensions.length > 1 &&
                         this.addCountryMode !== "change-country"
                             ? `${entityCode || entityName}-${dimension.index}`
-                            : entityCode || entityName
+                            : entityCode || entityName,
                 })
             })
         })
@@ -1206,7 +1209,7 @@ export class Grapher extends PersistableGrapher {
     // todo: remove
     toggleKey(key: EntityDimensionKey) {
         if (includes(this.selectedKeys, key)) {
-            this.selectedKeys = this.selectedKeys.filter(k => k !== key)
+            this.selectedKeys = this.selectedKeys.filter((k) => k !== key)
         } else {
             this.selectedKeys = this.selectedKeys.concat([key])
         }

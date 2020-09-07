@@ -69,7 +69,7 @@ export class ExplorerControlPanel extends React.Component<{
             comment,
             isCheckbox,
             explorerSlug,
-            value
+            value,
         } = this.props
         const onChangeValue = isCheckbox
             ? option.checked
@@ -83,7 +83,7 @@ export class ExplorerControlPanel extends React.Component<{
                         option.checked ? "SelectedOption" : "Option",
                         option.available
                             ? "AvailableOption"
-                            : "UnavailableOption"
+                            : "UnavailableOption",
                     ].join(" ")}
                     data-track-note={`${explorerSlug}-click-${title.toLowerCase()}`}
                 >
@@ -102,7 +102,7 @@ export class ExplorerControlPanel extends React.Component<{
                                 "comment",
                                 option.available
                                     ? "AvailableOption"
-                                    : "UnavailableOption"
+                                    : "UnavailableOption",
                             ].join(" ")}
                         >
                             {comment}
@@ -115,11 +115,11 @@ export class ExplorerControlPanel extends React.Component<{
 
     get renderDropdown() {
         const options = this.props
-            .dropdownOptions!.filter(option => option.available)
-            .map(option => {
+            .dropdownOptions!.filter((option) => option.available)
+            .map((option) => {
                 return {
                     label: option.label,
-                    value: option.value
+                    value: option.value,
                 }
             })
 
@@ -134,12 +134,12 @@ export class ExplorerControlPanel extends React.Component<{
                 options={options}
                 value={
                     options.find(
-                        option => option.value === this.props.value
+                        (option) => option.value === this.props.value
                     ) || { label: "-", value: "-" }
                 }
                 onChange={(option: any) => this.customOnChange(option.value)}
                 components={{
-                    IndicatorSeparator: null
+                    IndicatorSeparator: null,
                 }}
                 styles={styles}
                 isSearchable={false}

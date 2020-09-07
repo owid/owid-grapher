@@ -7,7 +7,7 @@ import { Bounds } from "grapher/utils/Bounds"
 
 export default {
     title: "DiscreteBarChart",
-    component: DiscreteBarChart
+    component: DiscreteBarChart,
 }
 
 export const Default = () => {

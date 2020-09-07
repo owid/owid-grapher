@@ -40,7 +40,7 @@ class PostRow extends React.Component<{
         const { post } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/posts/${post.id}/setTags`,
-            { tagIds: tags.map(t => t.id) },
+            { tagIds: tags.map((t) => t.id) },
             "POST"
         )
         if (json.success) {
@@ -102,7 +102,7 @@ export class PostsIndexPage extends React.Component {
                 post: post,
                 term: fuzzysort.prepare(
                     post.title + " " + post.authors.join(", ")
-                )
+                ),
             })
         }
 
@@ -114,7 +114,7 @@ export class PostsIndexPage extends React.Component {
         if (searchInput) {
             const results = fuzzysort.go(searchInput, searchIndex, {
                 limit: 50,
-                key: "term"
+                key: "term",
             })
             return lodash.uniq(results.map((result: any) => result.obj.post))
         } else {
@@ -173,7 +173,7 @@ export class PostsIndexPage extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            {postsToShow.map(post => (
+                            {postsToShow.map((post) => (
                                 <PostRow
                                     key={post.id}
                                     post={post}

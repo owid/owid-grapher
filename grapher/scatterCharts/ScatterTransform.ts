@@ -25,7 +25,7 @@ import {
     sortNumeric,
     lowerCaseFirstLetterUnlessAbbreviation,
     cagr,
-    relativeMinAndMax
+    relativeMinAndMax,
 } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { ChartDimension } from "grapher/chart/ChartDimension"
@@ -60,7 +60,7 @@ export class ScatterTransform extends ChartTransform {
             get hasNoDataBin() {
                 return !!(
                     that.colorDimension &&
-                    that.allPoints.some(point => point.color === undefined)
+                    that.allPoints.some((point) => point.color === undefined)
                 )
             },
             get defaultNoDataColor() {
@@ -68,22 +68,22 @@ export class ScatterTransform extends ChartTransform {
             },
             get formatNumericValue() {
                 return that.colorDimension?.formatValueShort ?? identity
-            }
+            },
         })
     }
 
     @computed get isValidConfig(): boolean {
         return (
             this.hasYDimension &&
-            this.grapher.dimensions.some(d => d.property === "x")
+            this.grapher.dimensions.some((d) => d.property === "x")
         )
     }
 
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, d => d.property === "y"))
+        if (!some(filledDimensions, (d) => d.property === "y"))
             return "Missing Y axis variable"
-        else if (!some(filledDimensions, d => d.property === "x"))
+        else if (!some(filledDimensions, (d) => d.property === "x"))
             return "Missing X axis variable"
         else if (isEmpty(this.possibleEntityNames))
             return "No entities with data for both X and Y"
@@ -100,13 +100,13 @@ export class ScatterTransform extends ChartTransform {
     // Scatterplot should have exactly one dimension for each of x and y
     // The y dimension is treated as the "primary" variable
     @computed private get yDimension() {
-        return this.grapher.filledDimensions.find(d => d.property === "y")
+        return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
     @computed private get xDimension() {
-        return this.grapher.filledDimensions.find(d => d.property === "x")
+        return this.grapher.filledDimensions.find((d) => d.property === "x")
     }
     @computed get colorDimension() {
-        return this.grapher.filledDimensions.find(d => d.property === "color")
+        return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 
     // Possible to override the x axis dimension to target a special year
@@ -140,7 +140,7 @@ export class ScatterTransform extends ChartTransform {
 
     // todo: remove
     @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
-        return this.currentData.map(series => series.entityDimensionKey)
+        return this.currentData.map((series) => series.entityDimensionKey)
     }
 
     // todo: move to table
@@ -148,8 +148,8 @@ export class ScatterTransform extends ChartTransform {
         const entityIds = this.grapher.excludedEntities || []
         const entityNameMap = this.grapher.table.entityIdToNameMap
         return entityIds
-            .map(entityId => entityNameMap.get(entityId)!)
-            .filter(d => d)
+            .map((entityId) => entityNameMap.get(entityId)!)
+            .filter((d) => d)
     }
 
     // todo: remove. do this at table filter level
@@ -168,7 +168,7 @@ export class ScatterTransform extends ChartTransform {
 
         if (this.excludedEntityNames)
             entityNames = entityNames.filter(
-                entity => !includes(this.excludedEntityNames, entity)
+                (entity) => !includes(this.excludedEntityNames, entity)
             )
 
         return entityNames
@@ -312,7 +312,7 @@ export class ScatterTransform extends ChartTransform {
                     point = {
                         entityName,
                         year: outputYear,
-                        time: {}
+                        time: {},
                     } as ScatterValue
                     dataByYear.set(outputYear, point)
                 }
@@ -332,7 +332,7 @@ export class ScatterTransform extends ChartTransform {
         // values being joined.
         // -@danielgavrilov, 2020-04-29
         const { yAxis, xAxis } = this.grapher
-        dataByEntityAndYear.forEach(dataByYear => {
+        dataByEntityAndYear.forEach((dataByYear) => {
             dataByYear.forEach((point, year) => {
                 // Exclude any points with data for only one axis
                 if (!has(point, "x") || !has(point, "y"))
@@ -349,8 +349,8 @@ export class ScatterTransform extends ChartTransform {
 
     @computed get allPoints() {
         const allPoints: ScatterValue[] = []
-        this.getDataByEntityAndYear().forEach(dataByYear => {
-            dataByYear.forEach(point => {
+        this.getDataByEntityAndYear().forEach((dataByYear) => {
+            dataByYear.forEach((point) => {
                 allPoints.push(point)
             })
         })
@@ -359,11 +359,11 @@ export class ScatterTransform extends ChartTransform {
 
     // The selectable years that will end up on the timeline UI (if enabled)
     @computed get availableYears(): Time[] {
-        return this.allPoints.map(point => point.year)
+        return this.allPoints.map((point) => point.year)
     }
 
     @computed private get currentValues() {
-        return flatten(this.currentData.map(g => g.values))
+        return flatten(this.currentData.map((g) => g.values))
     }
 
     // domains across the entire timeline
@@ -371,7 +371,7 @@ export class ScatterTransform extends ChartTransform {
         const scaleType = property === "x" ? this.xScaleType : this.yScaleType
         if (!this.grapher.useTimelineDomains) {
             return domainExtent(
-                this.pointsForAxisDomains.map(d => d[property]),
+                this.pointsForAxisDomains.map((d) => d[property]),
                 scaleType,
                 this.grapher.zoomToSelection && this.selectedPoints.length
                     ? 1.1
@@ -383,7 +383,7 @@ export class ScatterTransform extends ChartTransform {
             return relativeMinAndMax(this.allPoints, property)
 
         return domainExtent(
-            this.allPoints.map(v => v[property]),
+            this.allPoints.map((v) => v[property]),
             scaleType
         )
     }
@@ -395,7 +395,7 @@ export class ScatterTransform extends ChartTransform {
     @computed private get selectedPoints() {
         const entitiesFor = new Set(this.getEntityNamesToShow(true))
         return this.allPoints.filter(
-            point => point.entityName && entitiesFor.has(point.entityName)
+            (point) => point.entityName && entitiesFor.has(point.entityName)
         )
     }
 
@@ -410,7 +410,7 @@ export class ScatterTransform extends ChartTransform {
 
     @computed get sizeDomain(): [number, number] {
         const sizeValues: number[] = []
-        this.allPoints.forEach(g => g.size && sizeValues.push(g.size))
+        this.allPoints.forEach((g) => g.size && sizeValues.push(g.size))
         if (sizeValues.length === 0) return [1, 100]
         else return domainExtent(sizeValues, ScaleType.linear)
     }
@@ -479,7 +479,7 @@ export class ScatterTransform extends ChartTransform {
             xDomainDefault,
             xDimension,
             isRelativeMode,
-            xAxisLabelBase
+            xAxisLabelBase,
         } = this
 
         const { xAxis } = this.grapher
@@ -543,9 +543,9 @@ export class ScatterTransform extends ChartTransform {
 
         // NOTE: since groupBy() creates an object, the values may be reordered. we reorder a few lines below.
         values = map(
-            groupBy(values, v => v.time.y),
+            groupBy(values, (v) => v.time.y),
             (vals: ScatterValue[]) =>
-                minBy(vals, v =>
+                minBy(vals, (v) =>
                     v.year === startYear || v.year === endYear
                         ? -Infinity
                         : Math.abs(v.year - v.time.y)
@@ -555,9 +555,9 @@ export class ScatterTransform extends ChartTransform {
         if (xOverrideYear === undefined) {
             // NOTE: since groupBy() creates an object, the values may be reordered
             values = map(
-                groupBy(values, v => v.time.x),
+                groupBy(values, (v) => v.time.x),
                 (vals: ScatterValue[]) =>
-                    minBy(vals, v =>
+                    minBy(vals, (v) =>
                         v.year === startYear || v.year === endYear
                             ? -Infinity
                             : Math.abs(v.year - v.time.x)
@@ -566,14 +566,15 @@ export class ScatterTransform extends ChartTransform {
         }
 
         // Sort values by year again in case groupBy() above reordered the values
-        values = sortNumeric(values, v => v.year)
+        values = sortNumeric(values, (v) => v.year)
 
         // Don't allow values <= 0 for log scales
-        if (yScaleType === ScaleType.log) values = values.filter(v => v.y > 0)
-        if (xScaleType === ScaleType.log) values = values.filter(v => v.x > 0)
+        if (yScaleType === ScaleType.log) values = values.filter((v) => v.y > 0)
+        if (xScaleType === ScaleType.log) values = values.filter((v) => v.x > 0)
 
         // Don't allow values *equal* to zero for CAGR mode
-        if (isRelativeMode) values = values.filter(v => v.y !== 0 && v.x !== 0)
+        if (isRelativeMode)
+            values = values.filter((v) => v.y !== 0 && v.x !== 0)
 
         return values
     }
@@ -590,7 +591,7 @@ export class ScatterTransform extends ChartTransform {
             yScaleType,
             isRelativeMode,
             compareEndPointsOnly,
-            xOverrideYear
+            xOverrideYear,
         } = this
         const { keyColors } = grapher
         let currentData: ScatterSeries[] = []
@@ -608,7 +609,7 @@ export class ScatterTransform extends ChartTransform {
                 label: grapher.getLabelForKey(entityDimensionKey),
                 color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
-                values: []
+                values: [],
             } as ScatterSeries
 
             dataByYear.forEach((point, year) => {
@@ -624,20 +625,23 @@ export class ScatterTransform extends ChartTransform {
                 if (keyColor !== undefined) {
                     group.color = keyColor
                 } else if (this.colorDimension) {
-                    const colorValue = last(group.values.map(v => v.color))
+                    const colorValue = last(group.values.map((v) => v.color))
                     const color = this.colorScale.getColor(colorValue)
                     if (color !== undefined) {
                         group.color = color
                         group.isScaleColor = true
                     }
                 }
-                const sizes = group.values.map(v => v.size)
-                group.size = defaultTo(last(sizes.filter(s => isNumber(s))), 0)
+                const sizes = group.values.map((v) => v.size)
+                group.size = defaultTo(
+                    last(sizes.filter((s) => isNumber(s))),
+                    0
+                )
                 currentData.push(group)
             }
         })
 
-        currentData.forEach(series => {
+        currentData.forEach((series) => {
             series.values = this._filterValues(
                 series.values,
                 startYear,
@@ -649,7 +653,7 @@ export class ScatterTransform extends ChartTransform {
             )
         })
 
-        currentData = currentData.filter(series => {
+        currentData = currentData.filter((series) => {
             // No point trying to render series with no valid points!
             if (series.values.length === 0) return false
 
@@ -664,14 +668,14 @@ export class ScatterTransform extends ChartTransform {
         })
 
         if (compareEndPointsOnly) {
-            currentData.forEach(series => {
+            currentData.forEach((series) => {
                 const endPoints = [first(series.values), last(series.values)]
                 series.values = compact(uniq(endPoints))
             })
         }
 
         if (isRelativeMode) {
-            currentData.forEach(series => {
+            currentData.forEach((series) => {
                 if (series.values.length === 0) return
                 const startValue = firstOfNonEmptyArray(series.values)
                 const endValue = lastOfNonEmptyArray(series.values)
@@ -685,9 +689,9 @@ export class ScatterTransform extends ChartTransform {
                         time: {
                             y: endValue.time.y,
                             x: endValue.time.x,
-                            span: [startValue.time.y, endValue.time.y]
-                        }
-                    }
+                            span: [startValue.time.y, endValue.time.y],
+                        },
+                    },
                 ]
             })
         }

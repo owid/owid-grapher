@@ -9,14 +9,14 @@ import {
     flatten,
     some,
     find,
-    sum
+    sum,
 } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import {
     ColorScaleBin,
     NumericBin,
-    CategoricalBin
+    CategoricalBin,
 } from "grapher/color/ColorScaleBin"
 
 interface PositionedBin {
@@ -53,7 +53,7 @@ export class MapNumericColorLegend {
     }
     @computed get numericBins(): NumericBin[] {
         return this.props.legendData.filter(
-            l => l instanceof NumericBin
+            (l) => l instanceof NumericBin
         ) as NumericBin[]
     }
     @computed get rectHeight(): number {
@@ -66,10 +66,10 @@ export class MapNumericColorLegend {
     // NumericColorLegend wants to map a range to a width. However, sometimes we are given
     // data without a clear min/max. So we must fit these scurrilous bins into the width somehow.
     @computed get minValue(): number {
-        return min(this.numericBins.map(d => d.min)) as number
+        return min(this.numericBins.map((d) => d.min)) as number
     }
     @computed get maxValue(): number {
-        return max(this.numericBins.map(d => d.max)) as number
+        return max(this.numericBins.map((d) => d.max)) as number
     }
     @computed get rangeSize(): number {
         return this.maxValue - this.minValue
@@ -83,7 +83,7 @@ export class MapNumericColorLegend {
     @computed get totalCategoricalWidth(): number {
         const { legendData } = this.props
         const { categoryBinWidth, categoryBinMargin } = this
-        const widths = legendData.map(d =>
+        const widths = legendData.map((d) =>
             d instanceof CategoricalBin
                 ? categoryBinWidth + categoryBinMargin
                 : 0
@@ -101,11 +101,11 @@ export class MapNumericColorLegend {
             categoryBinWidth,
             categoryBinMargin,
             availableNumericWidth,
-            numericBins
+            numericBins,
         } = this
         let xOffset = 0
 
-        return props.legendData.map(d => {
+        return props.legendData.map((d) => {
             let width = categoryBinWidth,
                 margin = categoryBinMargin
             if (d instanceof NumericBin) {
@@ -124,7 +124,7 @@ export class MapNumericColorLegend {
                 x: x,
                 width: width,
                 margin: margin,
-                bin: d
+                bin: d,
             }
         })
     }
@@ -146,13 +146,13 @@ export class MapNumericColorLegend {
                 text: text,
                 fontSize: tickFontSize,
                 bounds: labelBounds.extend({ x: x, y: y }),
-                hidden: false
+                hidden: false,
             }
         }
 
         const makeRangeLabel = (d: PositionedBin) => {
             const labelBounds = Bounds.forText(d.bin.text, {
-                fontSize: tickFontSize
+                fontSize: tickFontSize,
             })
             const x = d.x + d.width / 2 - labelBounds.width / 2
             const y = -rectHeight - labelBounds.height - 3
@@ -162,7 +162,7 @@ export class MapNumericColorLegend {
                 fontSize: tickFontSize,
                 bounds: labelBounds.extend({ x: x, y: y }),
                 priority: true,
-                hidden: false
+                hidden: false,
             }
         }
 
@@ -190,7 +190,7 @@ export class MapNumericColorLegend {
             }
         }
 
-        labels = labels.filter(l => !l.hidden)
+        labels = labels.filter((l) => !l.hidden)
 
         // If labels overlap, first we try alternating raised labels
         let raisedMode = false
@@ -208,7 +208,7 @@ export class MapNumericColorLegend {
                 const l = labels[i]
                 if (i % 2 !== 0) {
                     l.bounds = l.bounds.extend({
-                        y: l.bounds.y - l.bounds.height - 1
+                        y: l.bounds.y - l.bounds.height - 1,
                     })
                 }
             }
@@ -218,7 +218,7 @@ export class MapNumericColorLegend {
     }
 
     @computed get height(): number {
-        return Math.abs(min(this.numericLabels.map(l => l.bounds.y)) ?? 0)
+        return Math.abs(min(this.numericLabels.map((l) => l.bounds.y)) ?? 0)
     }
 
     @computed get width(): number {
@@ -268,7 +268,7 @@ export class MapCategoricalColorLegend {
         let marks: CategoricalMark[] = [],
             xOffset = 0,
             yOffset = 0
-        each(props.legendData, d => {
+        each(props.legendData, (d) => {
             const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding
@@ -287,9 +287,9 @@ export class MapCategoricalColorLegend {
                 text: d.text,
                 bounds: labelBounds.extend({
                     x: markX + rectSize + rectPadding,
-                    y: markY + 1
+                    y: markY + 1,
                 }),
-                fontSize: fontSize
+                fontSize: fontSize,
             }
 
             marks.push({
@@ -297,7 +297,7 @@ export class MapCategoricalColorLegend {
                 y: markY,
                 rectSize: rectSize,
                 label: label,
-                bin: d
+                bin: d,
             })
 
             xOffset += markWidth
@@ -311,28 +311,28 @@ export class MapCategoricalColorLegend {
     }
 
     @computed get width(): number {
-        return max(this.markLines.map(l => l.totalWidth)) as number
+        return max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
     @computed get marks(): CategoricalMark[] {
         const lines = this.markLines
 
         // Center each line
-        each(lines, line => {
+        each(lines, (line) => {
             const xShift = this.width / 2 - line.totalWidth / 2
-            each(line.marks, m => {
+            each(line.marks, (m) => {
                 m.x += xShift
                 m.label.bounds = m.label.bounds.extend({
-                    x: m.label.bounds.x + xShift
+                    x: m.label.bounds.x + xShift,
                 })
             })
         })
 
-        return flatten(map(lines, l => l.marks))
+        return flatten(map(lines, (l) => l.marks))
     }
 
     @computed get height(): number {
-        return max(this.marks.map(m => m.y + m.rectSize)) as number
+        return max(this.marks.map((m) => m.y + m.rectSize)) as number
     }
 }
 
@@ -357,15 +357,15 @@ export class MapColorLegend {
             this.hasCategorical ||
             !some(
                 this.props.legendData,
-                d => (d as CategoricalBin).value === "No data" && !d.isHidden
+                (d) => (d as CategoricalBin).value === "No data" && !d.isHidden
             )
         ) {
             return this.props.legendData.filter(
-                l => l instanceof NumericBin && !l.isHidden
+                (l) => l instanceof NumericBin && !l.isHidden
             )
         } else {
             const bin = this.props.legendData.filter(
-                l =>
+                (l) =>
                     (l instanceof NumericBin || l.value === "No data") &&
                     !l.isHidden
             )
@@ -377,7 +377,7 @@ export class MapColorLegend {
     }
     @computed get categoricalLegendData(): CategoricalBin[] {
         return this.props.legendData.filter(
-            l => l instanceof CategoricalBin && !l.isHidden
+            (l) => l instanceof CategoricalBin && !l.isHidden
         ) as CategoricalBin[]
     }
     @computed get hasCategorical(): boolean {
@@ -388,7 +388,7 @@ export class MapColorLegend {
         return new TextWrap({
             maxWidth: this.props.bounds.width,
             fontSize: 0.7 * this.props.fontSize,
-            text: this.props.title
+            text: this.props.title,
         })
     }
 
@@ -398,7 +398,7 @@ export class MapColorLegend {
 
         if (focusBracket) return focusBracket
         else if (focusValue)
-            return find(numericLegendData, bin => bin.contains(focusValue))
+            return find(numericLegendData, (bin) => bin.contains(focusValue))
         else return undefined
     }
 
@@ -408,7 +408,9 @@ export class MapColorLegend {
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
         else if (focusValue)
-            return find(categoricalLegendData, bin => bin.contains(focusValue))
+            return find(categoricalLegendData, (bin) =>
+                bin.contains(focusValue)
+            )
         else return undefined
     }
 
@@ -427,7 +429,7 @@ export class MapColorLegend {
                   },
                   get fontSize() {
                       return that.props.fontSize
-                  }
+                  },
               })
             : undefined
     }
@@ -454,7 +456,7 @@ export class MapColorLegend {
                   },
                   get fontSize() {
                       return that.props.fontSize
-                  }
+                  },
               })
             : undefined
     }

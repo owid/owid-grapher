@@ -4,7 +4,7 @@ import {
     Column,
     BaseEntity,
     ManyToOne,
-    Unique
+    Unique,
 } from "typeorm"
 import { Writable } from "stream"
 
@@ -29,7 +29,7 @@ export class Dataset extends BaseEntity {
     @Column() dataEditedByUserId!: number
     @Column({ default: false }) isPrivate!: boolean
 
-    @ManyToOne(() => User, user => user.createdDatasets)
+    @ManyToOne(() => User, (user) => user.createdDatasets)
     createdByUser!: User
 
     // Export dataset variables to CSV (not including metadata)
@@ -86,10 +86,10 @@ export class Dataset extends BaseEntity {
     }
 
     static async setTags(datasetId: number, tagIds: number[]) {
-        await db.transaction(async t => {
-            const tagRows = tagIds.map(tagId => [tagId, datasetId])
+        await db.transaction(async (t) => {
+            const tagRows = tagIds.map((tagId) => [tagId, datasetId])
             await t.execute(`DELETE FROM dataset_tags WHERE datasetId=?`, [
-                datasetId
+                datasetId,
             ])
             if (tagRows.length)
                 await t.execute(
@@ -103,7 +103,7 @@ export class Dataset extends BaseEntity {
         let csv = ""
         await Dataset.writeCSV(this.id, {
             write: (s: string) => (csv += s),
-            end: () => null
+            end: () => null,
         } as any)
         return csv
     }
@@ -130,7 +130,7 @@ export class Dataset extends BaseEntity {
 
         const initialFields = [
             { name: "Entity", type: "string" },
-            { name: "Year", type: "year" }
+            { name: "Year", type: "year" },
         ]
 
         const dataPackage = {
@@ -142,23 +142,23 @@ export class Dataset extends BaseEntity {
                     sources[0].description &&
                     sources[0].description.additionalInfo) ||
                 "",
-            sources: sources.map(s => s.toDatapackage()),
+            sources: sources.map((s) => s.toDatapackage()),
             owidTags: tags.map((t: any) => t.name),
             resources: [
                 {
                     path: `${this.name}.csv`,
                     schema: {
                         fields: initialFields.concat(
-                            variables.map(v => ({
+                            variables.map((v) => ({
                                 name: v.name,
                                 type: "any",
                                 description: v.description,
-                                owidDisplaySettings: v.display
+                                owidDisplaySettings: v.display,
                             }))
-                        )
-                    }
-                }
-            ]
+                        ),
+                    },
+                },
+            ],
         }
 
         return dataPackage

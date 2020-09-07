@@ -18,7 +18,7 @@ describe("basics", () => {
         const axis = new PersistableAxisOptions({
             min: 0,
             max: 100,
-            scaleType: ScaleType.linear
+            scaleType: ScaleType.linear,
         })
         const clone = axis.toVerticalAxis()
         clone.updateDomainPreservingUserSettings([5, 50])

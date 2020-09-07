@@ -27,24 +27,24 @@ function testIfCSVMatchesSnapshot(
 }
 
 describe("CSV data downloads", () => {
-    test("one year-based variable", done => {
+    test("one year-based variable", (done) => {
         const csvGenerator = setupCSVGenerator(792, [3512])
         testIfCSVMatchesSnapshot(csvGenerator, done, 500)
     })
 
-    test("one day-based variable, one year-based variable", done => {
+    test("one day-based variable, one year-based variable", (done) => {
         const grapher = setupGrapher(4041, [142586, 2209, 123])
         grapher.scatterTransform.xOverrideYear = 2016
         testIfCSVMatchesSnapshot(new CSVGenerator({ grapher }), done)
     })
 
-    test("two day-based variables, one year-based variable", done => {
+    test("two day-based variables, one year-based variable", (done) => {
         const grapher = setupGrapher(4058, [142600, 97587, 142583, 123])
         grapher.scatterTransform.xOverrideYear = 2100
         testIfCSVMatchesSnapshot(new CSVGenerator({ grapher }), done)
     })
 
-    test("two day-based variables", done => {
+    test("two day-based variables", (done) => {
         const csvGenerator = setupCSVGenerator(4054, [142586, 142587, 123])
         testIfCSVMatchesSnapshot(csvGenerator, done)
     })

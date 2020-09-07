@@ -27,6 +27,6 @@ export function setupGrapher(
     return new Grapher({
         ...readGrapher(id),
         ...configOverrides,
-        owidDataset: variableSet
+        owidDataset: variableSet,
     })
 }

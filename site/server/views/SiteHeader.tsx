@@ -12,13 +12,13 @@ export interface SiteHeaderProps {
 }
 
 const DEFAULT_PROPS: SiteHeaderProps = {
-    hideAlertBanner: false
+    hideAlertBanner: false,
 }
 
 export const SiteHeader = (overrideProps: Partial<SiteHeaderProps>) => {
     const props: SiteHeaderProps = {
         ...DEFAULT_PROPS,
-        ...overrideProps
+        ...overrideProps,
     }
     return (
         <>

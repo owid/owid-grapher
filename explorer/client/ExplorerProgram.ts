@@ -3,12 +3,12 @@ import {
     detectDelimiter,
     uniq,
     parseDelimited,
-    isCellEmpty
+    isCellEmpty,
 } from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
-    QueryParams
+    QueryParams,
 } from "utils/client/url"
 import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
@@ -41,7 +41,7 @@ export enum ProgramKeyword {
     thumbnail = "thumbnail",
     subtitle = "subtitle",
     defaultView = "defaultView",
-    wpBlockId = "wpBlockId"
+    wpBlockId = "wpBlockId",
 }
 
 export class ExplorerProgram {
@@ -87,7 +87,7 @@ ${ProgramKeyword.switcher}
 \t46\tMobile`
 
     private getLineValue(keyword: string) {
-        const line = this.lines.find(line =>
+        const line = this.lines.find((line) =>
             line.startsWith(keyword + this.cellDelimiter)
         )
         return line ? line.split(this.cellDelimiter)[1] : undefined
@@ -95,7 +95,7 @@ ${ProgramKeyword.switcher}
 
     getLineIndex(key: ProgramKeyword) {
         return this.lines.findIndex(
-            line => line.startsWith(key + this.cellDelimiter) || line === key
+            (line) => line.startsWith(key + this.cellDelimiter) || line === key
         )
     }
 
@@ -112,7 +112,7 @@ ${ProgramKeyword.switcher}
         if (!ends) return undefined
         return this.lines
             .slice(ends.start, ends.end)
-            .map(line => line.substr(1))
+            .map((line) => line.substr(1))
             .join(this.nodeDelimiter)
     }
 
@@ -122,13 +122,13 @@ ${ProgramKeyword.switcher}
 
     static fromArrays(slug: string, table: any[][]) {
         const str = table
-            .map(row => row.join(cellDelimiter))
+            .map((row) => row.join(cellDelimiter))
             .join(nodeDelimiter)
         return new ExplorerProgram(slug, str)
     }
 
     toArrays() {
-        return this.lines.map(line => line.split(this.cellDelimiter))
+        return this.lines.map((line) => line.split(this.cellDelimiter))
     }
 
     toString() {
@@ -137,7 +137,7 @@ ${ProgramKeyword.switcher}
 
     private prettify() {
         return trimGrid(this.toArrays())
-            .map(line => line.join(this.cellDelimiter))
+            .map((line) => line.join(this.cellDelimiter))
             .join(this.nodeDelimiter)
     }
 
@@ -147,7 +147,7 @@ ${ProgramKeyword.switcher}
         const blockStart = keyLine + 1
         let length = this.lines
             .slice(blockStart)
-            .findIndex(line => !line.startsWith(this.edgeDelimiter))
+            .findIndex((line) => !line.startsWith(this.edgeDelimiter))
         if (length === -1) length = this.lines.slice(blockStart).length
         return { start: blockStart, end: blockStart + length, length }
     }
@@ -164,7 +164,7 @@ ${ProgramKeyword.switcher}
             key,
             ...value
                 .split(this.nodeDelimiter)
-                .map(line => this.edgeDelimiter + line)
+                .map((line) => this.edgeDelimiter + line)
         )
     }
 
@@ -172,7 +172,7 @@ ${ProgramKeyword.switcher}
         this.lines.push(key)
         value
             .split(this.nodeDelimiter)
-            .forEach(line => this.lines.push(this.edgeDelimiter + line))
+            .forEach((line) => this.lines.push(this.edgeDelimiter + line))
     }
 
     private deleteBlock(key: ProgramKeyword) {
@@ -227,7 +227,7 @@ ${ProgramKeyword.switcher}
 enum ControlType {
     Radio = "Radio",
     Checkbox = "Checkbox",
-    Dropdown = "Dropdown"
+    Dropdown = "Dropdown",
 }
 
 // todo: remove
@@ -237,7 +237,8 @@ const extractColumnTypes = (str: string) => {
         .split(detectDelimiter(header))
         .slice(1)
         .map(
-            name => ControlType[name.split(" ").pop() as ControlType] || "Radio"
+            (name) =>
+                ControlType[name.split(" ").pop() as ControlType] || "Radio"
         )
 }
 
@@ -250,7 +251,7 @@ const removeColumnTypeInfo = (str: string) => {
     const reg = new RegExp("(" + types + ")$")
     lines[0] = header
         .split(delimiter)
-        .map(cell => cell.replace(reg, ""))
+        .map((cell) => cell.replace(reg, ""))
         .join(delimiter)
     return lines.join("\n")
 }
@@ -264,11 +265,11 @@ export class SwitcherRuntime {
         this.columnTypes = extractColumnTypes(delimited)
         delimited = removeColumnTypeInfo(delimited)
         this.parsed = parseDelimited(delimited)
-        this.parsed.forEach(row => {
+        this.parsed.forEach((row) => {
             row.chartId = parseInt(row.chartId)
         })
         const queryParams = strToQueryParams(decodeURIComponent(queryString))
-        this.columnNames.forEach(name => {
+        this.columnNames.forEach((name) => {
             if (queryParams[name] === undefined)
                 this.setValue(name, this.firstAvailableOptionForGroup(name))
             else this.setValue(name, queryParams[name])
@@ -287,13 +288,13 @@ export class SwitcherRuntime {
 
     static getRequiredChartIds(code: string) {
         return parseDelimited(code)
-            .map(row => parseInt(row.chartId!))
-            .filter(id => !isNaN(id))
+            .map((row) => parseInt(row.chartId!))
+            .filter((id) => !isNaN(id))
     }
 
     toConstrainedOptions() {
         const settings = this.toObject()
-        this.columnNames.forEach(group => {
+        this.columnNames.forEach((group) => {
             if (!this.isOptionAvailable(group, settings[group]))
                 settings[group] = this.firstAvailableOptionForGroup(group)
         })
@@ -307,22 +308,22 @@ export class SwitcherRuntime {
     @computed get columnNames() {
         if (!this.parsed[0]) return []
         return Object.keys(this.parsed[0]).filter(
-            name => name !== CHART_ID_SYMBOL
+            (name) => name !== CHART_ID_SYMBOL
         )
     }
 
     @computed get groupOptions(): { [title: string]: string[] } {
         const optionMap: any = {}
         this.columnNames.forEach((title, index) => {
-            optionMap[title] = uniq(this.parsed.map(row => row[title])).filter(
-                cell => !isCellEmpty(cell)
-            ) as string[]
+            optionMap[title] = uniq(
+                this.parsed.map((row) => row[title])
+            ).filter((cell) => !isCellEmpty(cell)) as string[]
         })
         return optionMap
     }
 
     firstAvailableOptionForGroup(group: string) {
-        return this.groupOptions[group].find(option =>
+        return this.groupOptions[group].find((option) =>
             this.isOptionAvailable(group, option)
         )
     }
@@ -330,7 +331,7 @@ export class SwitcherRuntime {
     isOptionAvailable(groupName: string, optionName: string) {
         const query: any = {}
         const columnNames = this.columnNames
-        columnNames.slice(0, columnNames.indexOf(groupName)).forEach(col => {
+        columnNames.slice(0, columnNames.indexOf(groupName)).forEach((col) => {
             query[col] = this._settings[col]
         })
         query[groupName] = optionName
@@ -341,9 +342,9 @@ export class SwitcherRuntime {
         return this.parsed
             .map((row, rowIndex) =>
                 Object.keys(query)
-                    .filter(key => query[key] !== undefined)
+                    .filter((key) => query[key] !== undefined)
                     .every(
-                        key =>
+                        (key) =>
                             row[key] === query[key] ||
                             (groupName && groupName !== key
                                 ? isCellEmpty(row[key])
@@ -352,12 +353,12 @@ export class SwitcherRuntime {
                     ? rowIndex
                     : null
             )
-            .filter(index => index !== null) as number[]
+            .filter((index) => index !== null) as number[]
     }
 
     rowsWith(query: any, groupName?: string) {
         return this.rowIndexesWith(query, groupName).map(
-            index => this.parsed[index]
+            (index) => this.parsed[index]
         )
     }
 
@@ -379,7 +380,7 @@ export class SwitcherRuntime {
             label: optionName,
             checked: value === optionName,
             value: optionName,
-            available: this.isOptionAvailable(groupName, optionName)
+            available: this.isOptionAvailable(groupName, optionName),
         }
     }
 
@@ -387,7 +388,7 @@ export class SwitcherRuntime {
         const constrainedOptions = this.toConstrainedOptions()
         return this.columnNames.map((title, index) => {
             const optionNames = this.groupOptions[title]
-            let options = optionNames.map(optionName =>
+            let options = optionNames.map((optionName) =>
                 this.toControlOption(
                     title,
                     optionName,
@@ -399,7 +400,7 @@ export class SwitcherRuntime {
 
             const isCheckbox = type === ControlType.Checkbox
             if (isCheckbox)
-                options = options.filter(opt => opt.label !== FALSE_SYMBOL)
+                options = options.filter((opt) => opt.label !== FALSE_SYMBOL)
 
             if (type === "Dropdown") {
                 dropdownOptions = options
@@ -410,7 +411,7 @@ export class SwitcherRuntime {
                 value: constrainedOptions[title],
                 options,
                 dropdownOptions,
-                isCheckbox
+                isCheckbox,
             }
         })
     }
@@ -429,7 +430,7 @@ export class ExplorerQueryParams {
         this.hideControls = obj.hideControls === "true"
 
         if (obj.country) {
-            EntityUrlBuilder.queryParamToEntities(obj.country).forEach(code =>
+            EntityUrlBuilder.queryParamToEntities(obj.country).forEach((code) =>
                 this.selectedEntityNames.add(code)
             )
         }

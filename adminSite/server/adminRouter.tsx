@@ -10,7 +10,7 @@ import {
     expectInt,
     tryInt,
     renderToHtmlPage,
-    JsonError
+    JsonError,
 } from "utils/server/serverUtil"
 import { tryLogin } from "./utils/authentication"
 import { LoginPage } from "./pages/LoginPage"
@@ -31,7 +31,7 @@ const limiterMiddleware = (
         windowMs: 60_000, // 1 minute
         max: 10, // max. 10 requests per minute
         handler: (req, res) =>
-            res.status(429).send(renderToHtmlPage(onFailRender(req, res)))
+            res.status(429).send(renderToHtmlPage(onFailRender(req, res))),
     })
 
 const adminRouter = Router()
@@ -71,7 +71,7 @@ adminRouter.get("/login", async (req, res) => {
 })
 adminRouter.post(
     "/login",
-    limiterMiddleware(req => (
+    limiterMiddleware((req) => (
         <LoginPage
             errorMessage="Too many attempts, please try again in a minute."
             next={req.query.next}
@@ -83,7 +83,7 @@ adminRouter.post(
             res.cookie("sessionid", session.id, {
                 httpOnly: true,
                 sameSite: "lax",
-                secure: ENV === "production"
+                secure: ENV === "production",
             })
             res.redirect(req.query.next || "/admin")
         } catch (err) {
@@ -102,7 +102,7 @@ adminRouter.post(
 adminRouter.get("/logout", async (req, res) => {
     if (res.locals.user)
         await db.query(`DELETE FROM sessions WHERE session_key = ?`, [
-            res.locals.session.id
+            res.locals.session.id,
         ])
 
     res.redirect("/admin")
@@ -110,7 +110,7 @@ adminRouter.get("/logout", async (req, res) => {
 
 adminRouter.get(
     "/register",
-    limiterMiddleware(req => (
+    limiterMiddleware((req) => (
         <RegisterPage
             errorMessage="Too many attempts, please try again in a minute."
             body={req.query}
@@ -154,7 +154,7 @@ adminRouter.get(
 
 adminRouter.post(
     "/register",
-    limiterMiddleware(req => (
+    limiterMiddleware((req) => (
         <RegisterPage
             errorMessage="Too many attempts, please try again in a minute."
             body={req.query}
@@ -177,7 +177,7 @@ adminRouter.post(
                 throw new JsonError("Passwords don't match!", 400)
             }
 
-            await getConnection().transaction(async manager => {
+            await getConnection().transaction(async (manager) => {
                 const user = new User()
                 user.email = req.body.email
                 user.fullName = req.body.fullName

@@ -13,12 +13,12 @@ export function initMathJax() {
     const svg = new SVG({ fontCache: "none" })
     const doc = mathjax.document("", {
         InputJax: tex,
-        OutputJax: svg
+        OutputJax: svg,
     })
 
     return function format(latex: string): string {
         const node = doc.convert(latex, {
-            display: true
+            display: true,
         })
         return adaptor.outerHTML(node) // as HTML
     }

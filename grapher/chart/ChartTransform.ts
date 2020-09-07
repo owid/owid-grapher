@@ -3,7 +3,7 @@ import {
     Time,
     isUnboundedLeft,
     isUnboundedRight,
-    getClosestTime
+    getClosestTime,
 } from "grapher/utils/TimeBounds"
 import {
     defaultTo,
@@ -11,7 +11,7 @@ import {
     last,
     some,
     sortNumeric,
-    uniq
+    uniq,
 } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
@@ -41,7 +41,7 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     @computed protected get hasYDimension() {
-        return some(this.grapher.dimensions, d => d.property === "y")
+        return some(this.grapher.dimensions, (d) => d.property === "y")
     }
 
     /**
@@ -64,7 +64,7 @@ export abstract class ChartTransform implements IChartTransform {
     @computed get timelineYears(): Time[] {
         const min = this.grapher.timelineMinTime
         const max = this.grapher.timelineMaxTime
-        const filteredYears = this.availableYears.filter(year => {
+        const filteredYears = this.availableYears.filter((year) => {
             if (min !== undefined && year < min) return false
             if (max !== undefined && year > max) return false
             return true

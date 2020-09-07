@@ -10,7 +10,7 @@ enum BarState {
     highlighted = "highlighted",
     current = "current",
     normal = "normal",
-    faint = "faint"
+    faint = "faint",
 }
 
 export interface SparkBarsProps<T> {
@@ -35,11 +35,11 @@ export interface SparkBarsDatum {
 export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
     static defaultProps = {
         onHover: () => undefined,
-        className: "spark-bars"
+        className: "spark-bars",
     }
 
     @computed get maxY(): number | undefined {
-        return max(this.bars.map(d => (d ? this.props.y(d) ?? 0 : 0)))
+        return max(this.bars.map((d) => (d ? this.props.y(d) ?? 0 : 0)))
     }
 
     @computed get barHeightScale() {
@@ -104,7 +104,7 @@ export class SparkBars<T> extends React.Component<SparkBarsProps<T>> {
                             }`}
                             style={{
                                 height: this.barHeight(d),
-                                backgroundColor: this.props.color
+                                backgroundColor: this.props.color,
                             }}
                         ></div>
                     </div>

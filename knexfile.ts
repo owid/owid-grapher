@@ -9,20 +9,20 @@ const dbConfig = {
         user: DB_USER,
         password: DB_PASS,
         host: DB_HOST,
-        port: DB_PORT
+        port: DB_PORT,
     },
     pool: {
         min: 2,
-        max: 10
+        max: 10,
     },
     migrations: {
         tableName: "knex_migrations",
-        directory: "./db/knexMigrations"
-    }
+        directory: "./db/knexMigrations",
+    },
 }
 
 export = {
     development: dbConfig,
     staging: dbConfig,
-    production: dbConfig
+    production: dbConfig,
 }

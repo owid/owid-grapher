@@ -46,13 +46,13 @@ const variableSet = {
                     "https://datasets.socialhistory.org/dataset.xhtml?persistentId=hdl:10622/LKYT53  and https://esa.un.org/unpd/wpp/Download/Standard/Population/",
                 retrievedData: "",
                 additionalInfo:
-                    "For historical data up until 1949, Clio-Infra's dataset compiled by Zijdeman and Ribeira da Silva (2015) was used. Further information can be found using this link: https://datasets.socialhistory.org/dataset.xhtml?persistentId=hdl:10622/LKYT53. \nData from 1950 onward uses the UN Population Division data, further information can be found at https://esa.un.org/unpd/wpp/Download/Standard/Population/"
-            }
-        }
+                    "For historical data up until 1949, Clio-Infra's dataset compiled by Zijdeman and Ribeira da Silva (2015) was used. Further information can be found using this link: https://datasets.socialhistory.org/dataset.xhtml?persistentId=hdl:10622/LKYT53. \nData from 1950 onward uses the UN Population Division data, further information can be found at https://esa.un.org/unpd/wpp/Download/Standard/Population/",
+            },
+        },
     },
     entityKey: {
-        "1": { name: "United Kingdom", code: "GBR" }
-    }
+        "1": { name: "United Kingdom", code: "GBR" },
+    },
 }
 
 // Wrapper for GrapherView that uses css on figure element to determine the bounds
@@ -80,7 +80,7 @@ class GrapherViewStory extends React.Component {
         const chart = new Grapher(
             {
                 hasMapTab: true,
-                dimensions: [{ property: "y", variableId: 66287, display: {} }]
+                dimensions: [{ property: "y", variableId: 66287, display: {} }],
             } as GrapherInterface,
             {}
         )
@@ -102,7 +102,7 @@ class GrapherViewStory extends React.Component {
 
 export default {
     title: "GrapherView",
-    component: GrapherView
+    component: GrapherView,
 }
 
 export const Default = () => <GrapherViewStory />
