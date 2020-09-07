@@ -1,5 +1,5 @@
 import * as React from "react"
-import "grapher/core/node_modules/site/client/owid.scss"
+import "site/client/owid.scss"
 import "grapher/core/grapher.scss"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { ExplorerProgram } from "explorer/client/ExplorerProgram"
