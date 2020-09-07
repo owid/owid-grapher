@@ -788,3 +788,43 @@ main:not(.ChartEditorPage) {
         color: #007bff;
     }
 }
+
+.DeploysTable {
+    width: 100%;
+    max-width: 60rem;
+    margin: 1.5rem 0;
+
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+
+    th,
+    td {
+        padding: 0.625rem;
+    }
+
+    th {
+        font-size: 12px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #999;
+    }
+
+    .cell-status {
+        font-weight: 700;
+        color: #999;
+        text-transform: capitalize;
+    }
+    .cell-status--pending {
+        color: #c36d00;
+    }
+    .cell-message {
+        font-weight: 700;
+        color: #333;
+    }
+    .cell-author {
+        font-weight: 400;
+        color: #777;
+    }
+}

@@ -21,6 +21,7 @@ import { ImportPage } from "./ImportPage"
 import { NotFoundPage } from "./NotFoundPage"
 import { PostEditorPage } from "./PostEditorPage"
 import { NewsletterPage } from "./NewsletterPage"
+import { DeployStatusPage } from "./DeployStatusPage"
 import {
     BrowserRouter as Router,
     Route,
@@ -249,6 +250,11 @@ export class AdminApp extends React.Component<{ admin: Admin }> {
                                 exact
                                 path="/test"
                                 component={TestIndexPage}
+                            />
+                            <Route
+                                exact
+                                path="/deploys"
+                                component={DeployStatusPage}
                             />
                             <Route
                                 exact
