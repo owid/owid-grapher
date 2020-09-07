@@ -789,10 +789,25 @@ main:not(.ChartEditorPage) {
     }
 }
 
+.DeploysPage {
+    .all-published-notice {
+        font-size: 18px;
+        font-weight: 700;
+        color: green;
+        margin: 10px 0;
+
+        .icon {
+            font-size: 150%;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+    }
+}
+
 .DeploysTable {
     width: 100%;
-    max-width: 60rem;
-    margin: 1.5rem 0;
+    max-width: 1000px;
+    margin: 30px 0;
 
     tr {
         border-bottom: 1px solid #eee;
@@ -800,7 +815,7 @@ main:not(.ChartEditorPage) {
 
     th,
     td {
-        padding: 0.625rem;
+        padding: 10px;
     }
 
     th {

@@ -2,6 +2,9 @@ import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
+
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Deploy } from "deploy/types"
@@ -18,34 +21,45 @@ export class DeployStatusPage extends React.Component {
             <AdminLayout title="Deploys">
                 <main className="DeploysPage">
                     <h1>Deploy status</h1>
-                    <table className="DeploysTable">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Note</th>
-                                <th>Author</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {this.deploys.map(deploy =>
-                                deploy.changes.map((change, i) => (
-                                    <tr key={`${deploy.status}-${i}`}>
-                                        <td
-                                            className={`cell-status cell-status--${deploy.status}`}
-                                        >
-                                            {deploy.status}
-                                        </td>
-                                        <td className="cell-message">
-                                            {change.message}
-                                        </td>
-                                        <td className="cell-author">
-                                            {change.authorName}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                    {this.deploys.length > 0 ? (
+                        <table className="DeploysTable">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Note</th>
+                                    <th>Author</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.deploys.map(deploy =>
+                                    deploy.changes.map((change, i) => (
+                                        <tr key={`${deploy.status}-${i}`}>
+                                            <td
+                                                className={`cell-status cell-status--${deploy.status}`}
+                                            >
+                                                {deploy.status}
+                                            </td>
+                                            <td className="cell-message">
+                                                {change.message}
+                                            </td>
+                                            <td className="cell-author">
+                                                {change.authorName}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <div className="all-published-notice">
+                            <p>
+                                <span className="icon">
+                                    <FontAwesomeIcon icon={faCheckCircle} />
+                                </span>{" "}
+                                All changes are successfully published.
+                            </p>
+                        </div>
+                    )}
                     <p>
                         Past deploys can be found in the{" "}
                         <a
