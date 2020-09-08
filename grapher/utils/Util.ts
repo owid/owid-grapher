@@ -1,130 +1,130 @@
 // We're importing every item on its own to enable webpack tree shaking
-import isEqual from "lodash/isEqual"
-import map from "lodash/map"
-import sortBy from "lodash/sortBy"
-import orderBy from "lodash/orderBy"
+import assign from "lodash/assign"
+import capitalize from "lodash/capitalize"
+import clone from "lodash/clone"
+import cloneDeep from "lodash/cloneDeep"
+import compact from "lodash/compact"
+import countBy from "lodash/countBy"
+import debounce from "lodash/debounce"
+import difference from "lodash/difference"
 import each from "lodash/each"
 import entries from "lodash/entries"
-import isNumber from "lodash/isNumber"
-import filter from "lodash/filter"
-import extend from "lodash/extend"
-import isEmpty from "lodash/isEmpty"
-import some from "lodash/some"
 import every from "lodash/every"
-import min from "lodash/min"
-import max from "lodash/max"
-import minBy from "lodash/minBy"
-import maxBy from "lodash/maxBy"
-import compact from "lodash/compact"
-import uniq from "lodash/uniq"
-import cloneDeep from "lodash/cloneDeep"
-import sum from "lodash/sum"
-import sumBy from "lodash/sumBy"
+import extend from "lodash/extend"
+import filter from "lodash/filter"
 import find from "lodash/find"
+import findIndex from "lodash/findIndex"
+import flatten from "lodash/flatten"
+import fromPairs from "lodash/fromPairs"
+import groupBy from "lodash/groupBy"
+import has from "lodash/has"
 import identity from "lodash/identity"
-import union from "lodash/union"
-import debounce from "lodash/debounce"
 import includes from "lodash/includes"
-import toString from "lodash/toString"
+import intersection from "lodash/intersection"
+import isEmpty from "lodash/isEmpty"
+import isEqual from "lodash/isEqual"
+import isNumber from "lodash/isNumber"
 import isString from "lodash/isString"
 import keyBy from "lodash/keyBy"
-import values from "lodash/values"
-import flatten from "lodash/flatten"
-import groupBy from "lodash/groupBy"
-import reverse from "lodash/reverse"
-import clone from "lodash/clone"
-import reduce from "lodash/reduce"
+import map from "lodash/map"
+import mapKeys from "lodash/mapKeys"
+import max from "lodash/max"
+import maxBy from "lodash/maxBy"
+import memoize from "lodash/memoize"
+import min from "lodash/min"
+import minBy from "lodash/minBy"
 import noop from "lodash/noop"
+import omit from "lodash/omit"
+import orderBy from "lodash/orderBy"
+import partition from "lodash/partition"
+import pick from "lodash/pick"
+import range from "lodash/range"
+import reduce from "lodash/reduce"
+import reverse from "lodash/reverse"
 import round from "lodash/round"
-import toArray from "lodash/toArray"
-import throttle from "lodash/throttle"
-import has from "lodash/has"
-import intersection from "lodash/intersection"
-import uniqWith from "lodash/uniqWith"
-import without from "lodash/without"
-import uniqBy from "lodash/uniqBy"
-import capitalize from "lodash/capitalize"
 import sample from "lodash/sample"
 import sampleSize from "lodash/sampleSize"
-import pick from "lodash/pick"
-import omit from "lodash/omit"
-import difference from "lodash/difference"
+import some from "lodash/some"
+import sortBy from "lodash/sortBy"
 import sortedUniq from "lodash/sortedUniq"
-import partition from "lodash/partition"
-import findIndex from "lodash/findIndex"
-import fromPairs from "lodash/fromPairs"
-import mapKeys from "lodash/mapKeys"
-import memoize from "lodash/memoize"
-import takeWhile from "lodash/takeWhile"
-import upperFirst from "lodash/upperFirst"
-import assign from "lodash/assign"
-import countBy from "lodash/countBy"
 import startCase from "lodash/startCase"
+import sum from "lodash/sum"
+import sumBy from "lodash/sumBy"
+import takeWhile from "lodash/takeWhile"
+import throttle from "lodash/throttle"
+import toArray from "lodash/toArray"
+import toString from "lodash/toString"
+import union from "lodash/union"
+import uniq from "lodash/uniq"
+import uniqBy from "lodash/uniqBy"
+import uniqWith from "lodash/uniqWith"
+import upperFirst from "lodash/upperFirst"
+import values from "lodash/values"
+import without from "lodash/without"
 import xor from "lodash/xor"
-import range from "lodash/range"
 
 export {
-    isEqual,
-    map,
-    sortBy,
-    orderBy,
-    xor,
+    capitalize,
+    clone,
+    cloneDeep,
+    compact,
+    countBy,
+    debounce,
+    difference,
     each,
     entries,
-    isNumber,
-    range,
-    filter,
-    extend,
-    isEmpty,
-    some,
     every,
-    min,
-    max,
-    minBy,
-    maxBy,
-    compact,
-    uniq,
-    cloneDeep,
-    sum,
-    sumBy,
+    extend,
+    filter,
     find,
+    findIndex,
+    flatten,
+    fromPairs,
+    groupBy,
+    has,
     identity,
-    union,
-    debounce,
     includes,
-    toString,
+    intersection,
+    isEmpty,
+    isEqual,
+    isNumber,
     isString,
     keyBy,
-    values,
-    flatten,
-    groupBy,
-    reverse,
-    clone,
-    reduce,
+    map,
+    mapKeys,
+    max,
+    maxBy,
+    memoize,
+    min,
+    minBy,
     noop,
-    toArray,
-    throttle,
-    has,
-    intersection,
-    uniqWith,
-    without,
-    uniqBy,
-    capitalize,
+    omit,
+    orderBy,
+    partition,
+    pick,
+    range,
+    reduce,
+    reverse,
     sample,
     sampleSize,
-    pick,
-    omit,
-    difference,
+    some,
+    sortBy,
     sortedUniq,
-    partition,
-    findIndex,
-    fromPairs,
-    mapKeys,
-    memoize,
-    takeWhile,
-    upperFirst,
-    countBy,
     startCase,
+    sum,
+    sumBy,
+    takeWhile,
+    throttle,
+    toArray,
+    toString,
+    union,
+    uniq,
+    uniqBy,
+    uniqWith,
+    upperFirst,
+    values,
+    without,
+    xor,
 }
 
 import moment from "moment"
