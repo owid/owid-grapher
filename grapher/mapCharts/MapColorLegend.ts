@@ -1,6 +1,6 @@
 import { computed } from "mobx"
 
-import { min, max, each, last, flatten, sum } from "grapher/utils/Util"
+import { min, max, last, flatten, sum } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import {
@@ -258,7 +258,7 @@ export class MapCategoricalColorLegend {
         let marks: CategoricalMark[] = [],
             xOffset = 0,
             yOffset = 0
-        each(props.legendData, (d) => {
+        props.legendData.forEach((d) => {
             const labelBounds = Bounds.forText(d.text, { fontSize: fontSize })
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding
@@ -308,9 +308,9 @@ export class MapCategoricalColorLegend {
         const lines = this.markLines
 
         // Center each line
-        each(lines, (line) => {
+        lines.forEach((line) => {
             const xShift = this.width / 2 - line.totalWidth / 2
-            each(line.marks, (m) => {
+            line.marks.forEach((m) => {
                 m.x += xShift
                 m.label.bounds = m.label.bounds.extend({
                     x: m.label.bounds.x + xShift,

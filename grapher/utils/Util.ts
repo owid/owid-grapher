@@ -7,7 +7,6 @@ import compact from "lodash/compact"
 import countBy from "lodash/countBy"
 import debounce from "lodash/debounce"
 import difference from "lodash/difference"
-import each from "lodash/each"
 import extend from "lodash/extend"
 import flatten from "lodash/flatten"
 import fromPairs from "lodash/fromPairs"
@@ -62,7 +61,6 @@ export {
     countBy,
     debounce,
     difference,
-    each,
     extend,
     flatten,
     fromPairs,
@@ -983,7 +981,10 @@ export const getErrorMessageRelatedQuestionUrl = (
 
 export function getAttributesOfHTMLElement(el: HTMLElement) {
     const attributes: { [key: string]: string } = {}
-    each(el.attributes, (attr) => (attributes[attr.name] = attr.value))
+    for (let i = 0; i < el.attributes.length; i++) {
+        const attr = el.attributes.item(i)
+        if (attr) attributes[attr.name] = attr.value
+    }
     return attributes
 }
 

@@ -23,7 +23,6 @@ import {
     sortBy,
     getErrorMessageRelatedQuestionUrl,
     slugify,
-    each,
     keyBy,
     cloneDeep,
     union,
@@ -699,7 +698,7 @@ export class Grapher extends PersistableGrapher {
         const { filledDimensions } = this
 
         const sources: SourceWithDimension[] = []
-        each(filledDimensions, (dim) => {
+        filledDimensions.forEach((dim) => {
             const { column } = dim
             // HACK (Mispy): Ignore the default color source on scatterplots.
             if (

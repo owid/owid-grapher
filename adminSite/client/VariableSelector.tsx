@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import { groupBy, each, isString, sortBy, defaultTo } from "grapher/utils/Util"
+import { groupBy, isString, sortBy, defaultTo } from "grapher/utils/Util"
 import {
     computed,
     action,
@@ -115,7 +115,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { resultsByDataset } = this
 
         const rows: Array<string | Variable[]> = []
-        each(resultsByDataset, (variables, datasetName) => {
+        Object.entries(resultsByDataset).forEach(([datasetName, variables]) => {
             rows.push(datasetName)
 
             for (let i = 0; i < variables.length; i += 2) {
