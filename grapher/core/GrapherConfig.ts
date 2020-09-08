@@ -174,6 +174,10 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
     owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean = false // This will be removed.
 
+    constructor(props?: GrapherConfigInterface) {
+        if (props) this.updateFromObject(props)
+    }
+
     // Should return the default initialized object. This is what `toObject` will compare against to generate the persistable state.
     defaultObject() {
         return objectWithPersistablesToObject(new PersistableGrapher())

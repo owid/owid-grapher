@@ -359,13 +359,12 @@ export class Grapher extends PersistableGrapher {
             globalEntitySelection?: GlobalEntitySelection
         } = {}
     ) {
-        super()
+        super(props)
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
 
         this.initFontSizeInAxisContainers()
 
-        if (props) this.updateFromObject(props)
         // The original props, as stored in the database. Todo: why not just store props?
         this.origScriptRaw = this.toObject()
 
