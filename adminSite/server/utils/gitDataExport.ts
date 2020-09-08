@@ -2,7 +2,7 @@ import * as path from "path"
 import * as fs from "fs-extra"
 import {
     JsonError,
-    filenamify,
+    sanitizeFilename,
     exec,
     execFormatted,
 } from "utils/server/serverUtil"
@@ -63,7 +63,7 @@ export async function syncDatasetToGitRepo(
     const { oldDatasetName, commitName, commitEmail, commitOnly } = options
 
     const oldDatasetFilename = oldDatasetName
-        ? filenamify(oldDatasetName)
+        ? sanitizeFilename(oldDatasetName)
         : undefined
 
     const datasetRepo = options.transaction

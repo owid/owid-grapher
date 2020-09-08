@@ -113,5 +113,5 @@ export async function execFormatted(cmd: string, args: string[]) {
     await exec(formatCmd)
 }
 
-import filenamify from "filenamify"
-export { filenamify }
+import sanitizeFilename from "sanitize-filename"
+export { sanitizeFilename }

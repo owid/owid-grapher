@@ -38,7 +38,6 @@ module.exports = (env, argv) => {
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".css"],
             modules: ["node_modules", __dirname],
-            alias: { path: false }, // TODO this is apparently caused by `filenamify`, which is a dependency of `netlify-cli`. Why does Webpack care about it?
         },
         module: {
             rules: [

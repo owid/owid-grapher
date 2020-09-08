@@ -11,7 +11,7 @@ import { Writable } from "stream"
 import { User } from "./User"
 import { Source } from "./Source"
 import { Variable } from "./Variable"
-import { csvRow, slugify, filenamify } from "utils/server/serverUtil"
+import { csvRow, slugify, sanitizeFilename } from "utils/server/serverUtil"
 import * as db from "db/db"
 
 @Entity("datasets")
@@ -109,7 +109,7 @@ export class Dataset extends BaseEntity {
     }
 
     get filename() {
-        return filenamify(this.name)
+        return sanitizeFilename(this.name)
     }
 
     get slug() {
