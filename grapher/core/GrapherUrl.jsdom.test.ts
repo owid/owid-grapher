@@ -12,7 +12,7 @@ function fromQueryParams(
     props?: Partial<GrapherConfigInterface>
 ) {
     const grapher = new Grapher(props)
-    grapher.url.populateFromQueryParams(params)
+    grapher.populateFromQueryParams(params)
     return grapher
 }
 
@@ -293,7 +293,7 @@ describe(GrapherUrl, () => {
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
                     const grapher = setupGrapher(4066, [142708])
-                    grapher.url.populateFromQueryParams({ time: test.query })
+                    grapher.populateFromQueryParams({ time: test.query })
                     const [start, end] = grapher.timeDomain
                     expect(start).toEqual(test.param[0])
                     expect(end).toEqual(test.param[1])
@@ -398,7 +398,7 @@ describe(GrapherUrl, () => {
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
                     const grapher = setupGrapher(4066, [142708])
-                    grapher.url.populateFromQueryParams({ year: test.query })
+                    grapher.populateFromQueryParams({ year: test.query })
                     expect(grapher.mapTransform.targetYearProp).toEqual(
                         test.param
                     )

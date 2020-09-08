@@ -59,6 +59,6 @@ export class ExploreUrl implements ObservableUrl {
             model.setIndicatorId(isNaN(id) ? undefined : id)
         }
 
-        this.chartUrl.populateFromQueryParams(params)
+        model.grapher.populateFromQueryParams(params)
     }
 }

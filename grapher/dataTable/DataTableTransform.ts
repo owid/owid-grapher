@@ -213,7 +213,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get initialTimelineStartYearSpecified(): boolean {
-        const initialMinTime = this.grapher.initialScript.minTime
+        const initialMinTime = this.grapher.configOnLoad.minTime
         if (initialMinTime) return !isUnboundedLeft(initialMinTime)
         return false
     }
