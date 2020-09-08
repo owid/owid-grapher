@@ -25,7 +25,7 @@ import { TooltipView } from "grapher/chart/Tooltip"
 import { FullStory } from "grapher/core/FullStory"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 
 declare const window: any
 
@@ -57,7 +57,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         queryStr,
         globalEntitySelection,
     }: {
-        jsonConfig: GrapherInterface
+        jsonConfig: GrapherConfigInterface
         containerNode: HTMLElement
         isEditor?: boolean
         isEmbed?: true

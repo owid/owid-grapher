@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 
 const variableSet = {
@@ -81,7 +81,7 @@ class GrapherViewStory extends React.Component {
             {
                 hasMapTab: true,
                 dimensions: [{ property: "y", variableId: 66287, display: {} }],
-            } as GrapherInterface,
+            } as GrapherConfigInterface,
             {}
         )
         chart.receiveData(variableSet as any)

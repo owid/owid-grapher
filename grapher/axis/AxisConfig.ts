@@ -2,10 +2,10 @@ import { ScaleType } from "grapher/core/GrapherConstants"
 import { extend, trimObject } from "grapher/utils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
-import { Persistable } from "grapher/core/Persistable"
+import { Persistable } from "grapher/persistable/Persistable"
 
 // Represents the actual entered configuration state in the editor
-export interface AxisOptionsInterface {
+export interface AxisConfigInterface {
     scaleType?: ScaleType
     label?: string
     min?: number
@@ -15,23 +15,22 @@ export interface AxisOptionsInterface {
 }
 
 // Todo: remove
-interface AxisContainerOptions {
+interface AxisContainerInterface {
     fontSize: number
 }
 
-export class PersistableAxisOptions
-    implements AxisOptionsInterface, Persistable {
+export class PersistableAxisConfig implements AxisConfigInterface, Persistable {
     // todo: test/refactor
-    constructor(props?: AxisOptionsInterface) {
+    constructor(props?: AxisConfigInterface) {
         this.updateFromObject(props)
     }
 
     // todo: test/refactor
-    updateFromObject(props?: AxisOptionsInterface) {
+    updateFromObject(props?: AxisConfigInterface) {
         if (props) extend(this, props)
     }
 
-    toObject(): AxisOptionsInterface {
+    toObject(): AxisConfigInterface {
         return trimObject({
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
@@ -42,7 +41,7 @@ export class PersistableAxisOptions
         })
     }
 
-    set container(containerOptions: AxisContainerOptions) {
+    set container(containerOptions: AxisContainerInterface) {
         this.containerOptions = containerOptions
     }
 
@@ -52,7 +51,7 @@ export class PersistableAxisOptions
     @observable.ref canChangeScaleType?: true = undefined
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: true = undefined
-    @observable.ref private containerOptions: AxisContainerOptions = {
+    @observable.ref private containerOptions: AxisContainerInterface = {
         fontSize: 16,
     }
 

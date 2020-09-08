@@ -19,7 +19,7 @@ import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 
 interface VariablePageData {
     id: number
@@ -287,7 +287,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         }
     }
 
-    @computed get grapherConfig(): GrapherInterface {
+    @computed get grapherConfig(): GrapherConfigInterface {
         return {
             yAxis: { min: 0 },
             map: { variableId: this.props.variable.id },

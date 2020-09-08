@@ -2,7 +2,7 @@ import * as db from "db/db"
 import { renderToHtmlPage, JsonError } from "utils/server/serverUtil"
 import React from "react"
 import { CountriesIndexPage } from "./views/CountriesIndexPage"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import * as lodash from "lodash"
 import {
     CountryProfileIndicator,
@@ -32,13 +32,13 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
 
 // Find the charts that will be shown on the country profile page (if they have that country)
 // TODO: make this page per variable instead
-async function countryIndicatorCharts(): Promise<GrapherInterface[]> {
+async function countryIndicatorCharts(): Promise<GrapherConfigInterface[]> {
     return bakeCache(countryIndicatorCharts, async () => {
         const charts = (
             await db
                 .table("charts")
                 .whereRaw("publishedAt is not null and is_indexable is true")
-        ).map((c: any) => JSON.parse(c.config)) as GrapherInterface[]
+        ).map((c: any) => JSON.parse(c.config)) as GrapherConfigInterface[]
         return charts.filter(
             (c) =>
                 c.hasChartTab &&

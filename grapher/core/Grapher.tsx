@@ -83,9 +83,9 @@ import { DataTableTransform } from "grapher/dataTable/DataTableTransform"
 import { getWindowQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
 import {
-    GrapherInterface,
+    GrapherConfigInterface,
     PersistableGrapher,
-} from "grapher/core/GrapherInterface"
+} from "grapher/core/GrapherConfig"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
@@ -100,7 +100,7 @@ const isJsdom: boolean =
     typeof navigator === "object" && navigator.userAgent.includes("jsdom")
 
 export class Grapher extends PersistableGrapher {
-    private origScriptRaw: Readonly<GrapherInterface>
+    private origScriptRaw: Readonly<GrapherConfigInterface>
 
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
@@ -113,18 +113,18 @@ export class Grapher extends PersistableGrapher {
      * The original props as they are stored in the database. Useful for deriving the URL
      * parameters that need to be applied to reach the current state.
      */
-    @computed get origScript(): Readonly<GrapherInterface> {
+    @computed get origScript(): Readonly<GrapherConfigInterface> {
         // In the editor, the current state is always the "original" state
         return this.isEditor ? this.toObject() : this.origScriptRaw
     }
 
-    private initialScriptRaw: Readonly<GrapherInterface>
+    private initialScriptRaw: Readonly<GrapherConfigInterface>
 
     /**
      * The props after consuming the initial URL parameters but before any user-triggered
      * changes. Helpful for "resetting" embeds to their initial state.
      */
-    @computed get initialScript(): Readonly<GrapherInterface> {
+    @computed get initialScript(): Readonly<GrapherConfigInterface> {
         // In the editor, the current state is always the "initial" state
         return this.isEditor ? this.toObject() : this.initialScriptRaw
     }
@@ -356,7 +356,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     constructor(
-        props?: GrapherInterface,
+        props?: GrapherConfigInterface,
         options: {
             isEmbed?: boolean
             isMediaCard?: boolean

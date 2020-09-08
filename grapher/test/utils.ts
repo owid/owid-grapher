@@ -1,12 +1,12 @@
 // Todo: remove file.
 
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 
 import { readVariableSet, readVariable, readGrapher } from "./fixtures"
 import { first } from "lodash"
 
-export function createGrapher(props?: Partial<GrapherInterface>) {
+export function createGrapher(props?: Partial<GrapherConfigInterface>) {
     const grapher = new Grapher(props)
     // ensureValidConfig() is only run on non-node environments, so we have
     // to manually trigger it.
@@ -17,7 +17,7 @@ export function createGrapher(props?: Partial<GrapherInterface>) {
 export function setupGrapher(
     id: number,
     varIds: number[],
-    configOverrides?: Partial<GrapherInterface>
+    configOverrides?: Partial<GrapherConfigInterface>
 ) {
     const variableSet =
         varIds.length > 1
