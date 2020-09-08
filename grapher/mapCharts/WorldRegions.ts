@@ -1,4 +1,4 @@
-import { uniq, values, entityNameForMap } from "grapher/utils/Util"
+import { uniq, entityNameForMap } from "grapher/utils/Util"
 import { MapProjection } from "./MapProjections"
 
 // The projections we currently offer are all world regions.
@@ -297,7 +297,7 @@ for (const entity in worldRegionByEntity) {
 
 export const worldRegions: WorldRegion[] = [
     "World",
-    ...uniq(values(worldRegionByMapEntity)),
+    ...uniq(Object.values(worldRegionByMapEntity)),
 ]
 
 export const labelsByRegion: Record<WorldRegion, string> = {

@@ -1,6 +1,6 @@
 import { Indicator } from "./Indicator"
 import { observable, runInAction } from "mobx"
-import { fetchJSON, difference, values } from "grapher/utils/Util"
+import { fetchJSON, difference } from "grapher/utils/Util"
 import { BAKED_BASE_URL } from "settings"
 
 export class StoreEntry<EntityType> {
@@ -92,7 +92,7 @@ export class IndicatorStore {
     async search(props: { query: string }): Promise<StoreEntry<Indicator>[]> {
         await this.fetchAllIdempotent()
         const { query } = props
-        const indicatorEntries = values(this.indicatorsById)
+        const indicatorEntries = Object.values(this.indicatorsById)
         if (!query) {
             // If there is no search query, return full list
             return indicatorEntries

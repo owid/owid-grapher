@@ -20,7 +20,7 @@ import {
     CountryNameFormatDefs,
     CountryDefByKey,
 } from "adminSite/client/CountryNameFormat"
-import { uniq, toString, csvEscape, values, sortBy } from "grapher/utils/Util"
+import { uniq, toString, csvEscape, sortBy } from "grapher/utils/Util"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -41,9 +41,9 @@ class CSV {
     }
 
     @computed get allCountries(): string[] {
-        const standardNames = values(this.mapCountriesInputToOutput).filter(
-            (value: string | undefined) => value !== undefined
-        ) as string[]
+        const standardNames = Object.values(
+            this.mapCountriesInputToOutput
+        ).filter((value: string | undefined) => value !== undefined) as string[]
         return uniq(sortBy(standardNames)) as string[]
     }
 
