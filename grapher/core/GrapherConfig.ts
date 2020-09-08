@@ -41,15 +41,13 @@ import {
     objectWithPersistablesToObject,
     updatePersistables,
     deleteRuntimeAndUnchangedProps,
-} from "../persistable/Persistable"
+} from "grapher/persistable/Persistable"
 
 interface EntitySelection {
     entityId: number
     index: number // Which dimension the entity is from
     color?: Color
 }
-
-type GrapherProperty = keyof GrapherConfigInterface
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
