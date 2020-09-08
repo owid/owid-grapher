@@ -2,7 +2,6 @@
 import * as React from "react"
 import {
     noop,
-    includes,
     cloneDeep,
     max,
     min,
@@ -246,7 +245,7 @@ export class LineLabelsComponent extends React.Component<
 
     @computed get isFocusMode() {
         return this.props.legend.marks.some((m) =>
-            includes(this.props.focusKeys, m.item.entityDimensionKey)
+            this.props.focusKeys.includes(m.item.entityDimensionKey)
         )
     }
 
@@ -402,7 +401,7 @@ export class LineLabelsComponent extends React.Component<
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
-                ? !includes(focusKeys, m.mark.item.entityDimensionKey)
+                ? !focusKeys.includes(m.mark.item.entityDimensionKey)
                 : m.isOverlap
         )
     }
@@ -412,7 +411,7 @@ export class LineLabelsComponent extends React.Component<
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
-                ? includes(focusKeys, m.mark.item.entityDimensionKey)
+                ? focusKeys.includes(m.mark.item.entityDimensionKey)
                 : !m.isOverlap
         )
     }

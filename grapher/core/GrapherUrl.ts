@@ -13,7 +13,7 @@ import {
     StackMode,
 } from "grapher/core/GrapherConstants"
 
-import { includes, defaultTo } from "grapher/utils/Util"
+import { defaultTo } from "grapher/utils/Util"
 
 // todo: we should probably factor out this circular dependency
 import { Grapher } from "grapher/core/Grapher"
@@ -228,14 +228,14 @@ export class GrapherUrl implements ObservableUrl {
         // Set tab if specified
         const tab = params.tab
         if (tab) {
-            if (!includes(grapher.availableTabs, tab))
+            if (!grapher.availableTabs.includes(tab as GrapherTabOption))
                 console.error("Unexpected tab: " + tab)
             else grapher.tab = tab as GrapherTabOption
         }
 
         const overlay = params.overlay
         if (overlay) {
-            if (!includes(grapher.availableTabs, overlay))
+            if (!grapher.availableTabs.includes(overlay as GrapherTabOption))
                 console.error("Unexpected overlay: " + overlay)
             else grapher.overlay = overlay as GrapherTabOption
         }

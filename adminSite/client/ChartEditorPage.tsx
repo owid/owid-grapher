@@ -13,7 +13,7 @@ import { Prompt, Redirect } from "react-router-dom"
 
 import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
-import { includes, capitalize } from "grapher/utils/Util"
+import { capitalize } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 
 import {
@@ -72,7 +72,7 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
             const tab = match[1]
             if (
                 this.props.editor.grapher &&
-                includes(this.props.editor.availableTabs, tab)
+                this.props.editor.availableTabs.includes(tab)
             )
                 this.props.editor.tab = tab
         }

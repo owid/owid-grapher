@@ -2,7 +2,7 @@ import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 
-import { includes, sample, sampleSize } from "grapher/utils/Util"
+import { sample, sampleSize } from "grapher/utils/Util"
 import { ChartTypeDefs, ChartTypeName } from "grapher/core/GrapherConstants"
 import {
     ChartDimension,
@@ -56,8 +56,7 @@ class DimensionSlotView extends React.Component<{
                 if (grapher.isScatter || grapher.isSlopeChart) {
                     grapher.selectedKeys = []
                 } else if (grapher.primaryDimensions.length > 1) {
-                    const entityName = includes(
-                        grapher.availableEntityNames,
+                    const entityName = grapher.availableEntityNames.includes(
                         "World"
                     )
                         ? "World"

@@ -18,7 +18,6 @@ import {
     max,
     isEmpty,
     intersection,
-    includes,
     filter,
     flatten,
     SVGElement,
@@ -536,8 +535,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
         slopeData = slopeData.map((slope) => {
             return extend({}, slope, {
-                isFocused: includes(focusKeys, slope.entityDimensionKey),
-                isHovered: includes(hoverKeys, slope.entityDimensionKey),
+                isFocused: focusKeys.includes(slope.entityDimensionKey),
+                isHovered: hoverKeys.includes(slope.entityDimensionKey),
             })
         })
 

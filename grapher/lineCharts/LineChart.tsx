@@ -2,7 +2,6 @@ import * as React from "react"
 import {
     map,
     flatten,
-    includes,
     sortBy,
     filter,
     sum,
@@ -98,7 +97,7 @@ class Lines extends React.Component<LinesProps> {
                 }),
                 isFocus:
                     !focusKeys.length ||
-                    includes(focusKeys, series.entityDimensionKey),
+                    focusKeys.includes(series.entityDimensionKey),
                 isProjection: series.isProjection,
             }
         })

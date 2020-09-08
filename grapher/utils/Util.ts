@@ -17,7 +17,6 @@ import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
 import has from "lodash/has"
 import identity from "lodash/identity"
-import includes from "lodash/includes"
 import intersection from "lodash/intersection"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
@@ -77,7 +76,6 @@ export {
     groupBy,
     has,
     identity,
-    includes,
     intersection,
     isEmpty,
     isEqual,
@@ -510,7 +508,7 @@ export interface Json {
 // Escape a function for storage in a csv cell
 export function csvEscape(value: any): string {
     const valueStr = toString(value)
-    if (includes(valueStr, ",")) return `"${value.replace(/\"/g, '""')}"`
+    if (valueStr.includes(",")) return `"${value.replace(/\"/g, '""')}"`
     else return value
 }
 

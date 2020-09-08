@@ -1,5 +1,5 @@
 import * as React from "react"
-import { sum, includes, max, defaultTo } from "grapher/utils/Util"
+import { sum, max, defaultTo } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
@@ -138,8 +138,9 @@ export class ScatterColorLegendView extends React.Component<
                     style={{ cursor: "pointer" }}
                 >
                     {labelMarks.map((mark, index) => {
-                        const isActive = includes(activeColors, mark.color)
-                        const isFocus = includes(focusColors, mark.color)
+                        const isActive = activeColors.includes(mark.color)
+                        const isFocus =
+                            focusColors?.includes(mark.color) ?? false
                         const mouseOver = onMouseOver
                             ? () => onMouseOver(mark.color)
                             : undefined
