@@ -6,7 +6,7 @@ import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Timeline, TimelineProps } from "./Timeline"
-import { extend, entries, max, formatValue } from "grapher/utils/Util"
+import { extend, max, formatValue } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -512,7 +512,7 @@ export class ControlsOverlayView extends React.Component<{
             <div style={containerStyle}>
                 {this.props.children}
                 <div className="ControlsOverlay" style={overlayStyle}>
-                    {entries(this.props.grapherView.overlays).map(
+                    {Object.entries(this.props.grapherView.overlays).map(
                         ([key, overlay]) => (
                             <React.Fragment key={key}>
                                 {overlay.props.children}

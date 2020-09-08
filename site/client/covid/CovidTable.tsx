@@ -10,7 +10,6 @@ import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoub
 
 import {
     throttle,
-    entries,
     groupBy,
     sortBy,
     maxBy,
@@ -122,7 +121,7 @@ export class CovidTable extends React.Component<CovidTableProps> {
 
     @computed get countrySeries(): CovidCountrySeries {
         if (this.data) {
-            return entries(groupBy(this.data, (d) => d.location)).map(
+            return Object.entries(groupBy(this.data, (d) => d.location)).map(
                 ([location, series]) => {
                     const sortedSeries: CovidSeries = sortBy(
                         series,
