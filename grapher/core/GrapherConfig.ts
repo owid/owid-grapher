@@ -207,6 +207,9 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
         if (!obj) return
         updatePersistables(this, obj)
 
+        // Regression fix: some legacies have this set to Null. Todo: clean DB.
+        if (obj.originUrl === null) this.originUrl = ""
+
         if (obj.dimensions?.length)
             this.dimensions = obj.dimensions.map(
                 (spec: ChartDimensionConfig) =>
