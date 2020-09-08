@@ -174,7 +174,6 @@ export class VerticalAxisComponent extends React.Component<{
                         {verticalAxis.formatTick(tick)}
                     </text>
                 ))}
-                {this.controls}
             </g>
         )
     }

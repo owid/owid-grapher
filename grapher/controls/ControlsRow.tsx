@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
+import { ScaleSelector } from "./ScaleSelector"
 
 @observer
 export class ControlsRow extends React.Component<{
@@ -32,6 +33,13 @@ export class ControlsRow extends React.Component<{
         const controls: JSX.Element[] = []
 
         if (grapher.tab === "chart") {
+            const yAxis = grapher.activeTransform.yAxis
+            yAxis &&
+                yAxis.scaleTypeOptions.length > 1 &&
+                controls.push(
+                    <ScaleSelector scaleTypeConfig={yAxis} inline={true} />
+                )
+
             grapher.canAddData &&
                 !grapher.hasFloatingAddButton &&
                 !grapher.hideEntityControls &&

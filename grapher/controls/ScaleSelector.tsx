@@ -12,20 +12,22 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType, ScaleTypeConfig } from "grapher/core/GrapherConstants"
+import classNames from "classnames"
 
 interface ScaleSelectorOptions {
-    x: number
-    y: number
+    x?: number
+    y?: number
     maxX?: number // If set, the scale toggle will shift left if it exceeds this number
     scaleTypeConfig: ScaleTypeConfig
+    inline?: boolean
 }
 
 @observer
 export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
-    @computed get x(): number {
+    @computed get x(): number | undefined {
         return this.props.x
     }
-    @computed get y(): number {
+    @computed get y(): number | undefined {
         return this.props.y
     }
 
@@ -67,15 +69,22 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
     render() {
         const { x, y, onClick, scaleType } = this
 
-        const style = {
-            left: x - this.getLeftShiftIfNeeded(x),
-            top: y,
-        }
+        const style =
+            x !== undefined && y !== undefined
+                ? {
+                      left: x - this.getLeftShiftIfNeeded(x),
+                      top: y,
+                  }
+                : {}
         return (
-            <div
+            <span
                 onClick={onClick}
                 style={style as any}
-                className="clickable toggleSwitch"
+                className={classNames([
+                    "clickable",
+                    "toggleSwitch",
+                    { inline: this.props.inline },
+                ])}
             >
                 <span
                     data-track-note="chart-toggle-scale"
@@ -95,7 +104,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
                 >
                     Log
                 </span>
-            </div>
+            </span>
         )
     }
 }

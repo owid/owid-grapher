@@ -8,7 +8,9 @@
     /* blue dark */
     color: #1d3d63;
 
-    > .control {
+    margin-left: 15px;
+
+    > .control:not(:first-child) {
         margin-left: 10px;
     }
 }

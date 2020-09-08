@@ -740,6 +740,8 @@ export class Grapher extends PersistableGrapher {
         )
     }
 
+    @observable additionalControls: JSX.Element[] = []
+
     @computed get isSingleVariable(): boolean {
         return this.primaryDimensions.length === 1
     }

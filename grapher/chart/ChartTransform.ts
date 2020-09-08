@@ -9,6 +9,7 @@ import { defaultTo, first, last, sortNumeric, uniq } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
+import { VerticalAxis } from "grapher/axis/Axis"
 
 export interface IChartTransform {
     isValidConfig: boolean
@@ -20,6 +21,7 @@ export interface IChartTransform {
     endYear?: Time
     targetYear?: Time
     colorScale?: ColorScale
+    yAxis?: VerticalAxis
 }
 
 export abstract class ChartTransform implements IChartTransform {
