@@ -9,9 +9,9 @@ import {
     AddCountryMode,
 } from "./GrapherConstants"
 import {
-    AxisOptionsInterface,
-    PersistableAxisOptions,
-} from "grapher/axis/AxisOptions"
+    AxisConfigInterface,
+    PersistableAxisConfig,
+} from "grapher/axis/AxisConfig"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
     TimeBound,
@@ -28,16 +28,20 @@ import {
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
 import {
-    ColorScaleConfig,
+    ColorScaleConfigInterface,
     PersistableColorScaleConfig,
 } from "grapher/color/ColorScaleConfig"
-import { MapConfig, PersistableMapConfig } from "grapher/mapCharts/MapConfig"
+import {
+    MapConfigInterface,
+    PersistableMapConfig,
+} from "grapher/mapCharts/MapConfig"
 import { observable, action } from "mobx"
 import {
     Persistable,
     objectWithPersistablesToObject,
     updatePersistables,
-} from "./Persistable"
+    deleteRuntimeAndUnchangedProps,
+} from "../persistable/Persistable"
 
 interface EntitySelection {
     entityId: number
@@ -45,12 +49,12 @@ interface EntitySelection {
     color?: Color
 }
 
-type GrapherProperty = keyof GrapherInterface
+type GrapherProperty = keyof GrapherConfigInterface
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
 // under the same rendering conditions it ought to remain visually identical
-export interface GrapherInterface {
+export interface GrapherConfigInterface {
     type?: ChartTypeName
     isExplorable?: boolean
     id?: number
@@ -61,8 +65,6 @@ export interface GrapherInterface {
     sourceDesc?: string
     note?: string
     hideTitleAnnotation?: true
-    xAxis?: Partial<AxisOptionsInterface>
-    yAxis?: Partial<AxisOptionsInterface>
     externalDataUrl?: string
     owidDataset?: OwidVariablesAndEntityKey
     useV2?: boolean
@@ -97,20 +99,22 @@ export interface GrapherInterface {
     isPublished?: true
     baseColorScheme?: string
     invertColorScheme?: true
-    colorScale?: Partial<ColorScaleConfig>
     hideLinesOutsideTolerance?: true
     hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
     compareEndPointsOnly?: true
     matchingEntitiesOnly?: true
     excludedEntities?: number[]
-
-    map?: Partial<MapConfig>
     data?: { availableEntities: string[] }
+
+    xAxis?: Partial<AxisConfigInterface>
+    yAxis?: Partial<AxisConfigInterface>
+    colorScale?: Partial<ColorScaleConfigInterface>
+    map?: Partial<MapConfigInterface>
 }
 
 // Simply implements the *saveable* properties of Grapher. This class is only concerned with parsing and serializing.
-export class PersistableGrapher implements GrapherInterface, Persistable {
+export class PersistableGrapher implements GrapherConfigInterface, Persistable {
     @observable.ref type: ChartTypeName = "LineChart"
     @observable.ref isExplorable: boolean = false
     @observable.ref id?: number = undefined
@@ -156,8 +160,8 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     @observable.ref matchingEntitiesOnly?: true = undefined
 
     // Todo: make sure these all have toJson/fromJson methods.
-    @observable.ref xAxis = new PersistableAxisOptions() // todo: rename class to be persistable
-    @observable.ref yAxis = new PersistableAxisOptions()
+    @observable.ref xAxis = new PersistableAxisConfig() // todo: rename class to be persistable
+    @observable.ref yAxis = new PersistableAxisConfig()
     @observable colorScale = new PersistableColorScaleConfig()
     @observable map = new PersistableMapConfig()
 
@@ -172,8 +176,13 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
     owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     useV2?: boolean = false // This will be removed.
 
-    toObject(): GrapherInterface {
-        const obj: GrapherInterface = objectWithPersistablesToObject(this)
+    // Should return the default initialized object. This is what `toObject` will compare against to generate the persistable state.
+    defaultObject() {
+        return objectWithPersistablesToObject(new PersistableGrapher())
+    }
+
+    toObject() {
+        const obj: GrapherConfigInterface = objectWithPersistablesToObject(this)
 
         // Never save the followingto the DB.
         delete obj.externalDataUrl
@@ -184,39 +193,19 @@ export class PersistableGrapher implements GrapherInterface, Persistable {
         // in the Grapher Admin with an overlay tab open
         delete obj.overlay
 
-        this._trimDefaults(obj)
+        deleteRuntimeAndUnchangedProps<GrapherConfigInterface>(
+            obj,
+            this.defaultObject()
+        )
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
-        return obj as GrapherInterface
+        return obj
     }
 
-    // Don't persist properties that haven't changed from the defaults
-    private _trimDefaults(obj: GrapherInterface) {
-        const defaultObj: GrapherInterface = objectWithPersistablesToObject(
-            new PersistableGrapher()
-        )
-        const defaultKeys = new Set(Object.keys(defaultObj))
-        Object.keys(obj).forEach((prop) => {
-            const key = prop as GrapherProperty
-            if (!defaultKeys.has(key)) {
-                // Don't persist any runtime props not in the persistable instance
-                delete obj[key]
-                return
-            }
-
-            const currentValue = JSON.stringify(obj[key])
-            const defaultValue = JSON.stringify(defaultObj[key])
-            if (currentValue === defaultValue) {
-                // Don't persist any values that weren't changed from the default
-                delete obj[key]
-            }
-        })
-    }
-
-    @action.bound updateFromObject(obj: GrapherInterface) {
+    @action.bound updateFromObject(obj: GrapherConfigInterface) {
         if (!obj) return
         updatePersistables(this, obj)
 

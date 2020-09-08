@@ -1,18 +1,21 @@
 import { observable, toJS } from "mobx"
 import { MapProjection } from "./MapProjections"
 import {
-    ColorScaleConfig,
+    ColorScaleConfigInterface,
     PersistableColorScaleConfig,
 } from "grapher/color/ColorScaleConfig"
 import { owidVariableId } from "owidTable/OwidTable"
-import { Persistable, updatePersistables } from "grapher/core/Persistable"
+import {
+    Persistable,
+    updatePersistables,
+} from "grapher/persistable/Persistable"
 import { extend } from "grapher/utils/Util"
 import { maxTimeFromJSON, maxTimeToJSON } from "grapher/utils/TimeBounds"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
 // TODO: migrate database config & only pass legend props
-export class MapConfig {
+class MapConfig {
     @observable.ref variableId?: owidVariableId
     @observable.ref targetYear?: number
     @observable.ref timeTolerance?: number
@@ -23,6 +26,8 @@ export class MapConfig {
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     @observable.ref tooltipUseCustomLabels?: true = undefined
 }
+
+export type MapConfigInterface = MapConfig
 
 export class PersistableMapConfig extends MapConfig implements Persistable {
     updateFromObject(obj: any) {
@@ -38,7 +43,7 @@ export class PersistableMapConfig extends MapConfig implements Persistable {
         return obj
     }
 
-    constructor(obj?: Partial<ColorScaleConfig>) {
+    constructor(obj?: Partial<ColorScaleConfigInterface>) {
         super()
         updatePersistables(this, obj)
     }

@@ -147,7 +147,7 @@ import {
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
-import { Persistable } from "grapher/core/Persistable"
+import { Persistable } from "grapher/persistable/Persistable"
 
 export type SVGElement = any
 export type VNode = any

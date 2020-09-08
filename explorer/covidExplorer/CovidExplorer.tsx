@@ -3,7 +3,7 @@ import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
@@ -72,7 +72,7 @@ import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes,
 } from "site/globalEntityControl/GlobalEntitySelection"
-import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
+import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
@@ -845,7 +845,7 @@ export class CovidExplorer extends React.Component<{
         return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
     }
 
-    @computed get sourceChart(): GrapherInterface | undefined {
+    @computed get sourceChart(): GrapherConfigInterface | undefined {
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
@@ -1317,7 +1317,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get colorScales(): {
-        [name: string]: ColorScaleConfig
+        [name: string]: ColorScaleConfigInterface
     } {
         return {
             ptr: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]

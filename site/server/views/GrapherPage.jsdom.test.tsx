@@ -7,7 +7,7 @@ import { GrapherPage } from "./GrapherPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { extend } from "grapher/utils/Util"
-import { PersistableGrapher } from "grapher/core/GrapherInterface"
+import { PersistableGrapher } from "grapher/core/GrapherConfig"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 

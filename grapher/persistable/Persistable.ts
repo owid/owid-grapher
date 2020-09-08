@@ -41,3 +41,30 @@ export function updatePersistables(target: any, obj: any) {
         }
     }
 }
+
+// Don't persist properties that haven't changed from the defaults, and don't
+// keep properties not on the comparable class
+export function deleteRuntimeAndUnchangedProps<T>(
+    changedObj: T,
+    defaultObject: T
+) {
+    const obj = changedObj as any
+    const defaultObj = defaultObject as any
+    const defaultKeys = new Set(Object.keys(defaultObj))
+    Object.keys(obj).forEach((prop) => {
+        const key = prop as any
+        if (!defaultKeys.has(key)) {
+            // Don't persist any runtime props not in the persistable instance
+            delete obj[key]
+            return
+        }
+
+        const currentValue = JSON.stringify(obj[key])
+        const defaultValue = JSON.stringify(defaultObj[key])
+        if (currentValue === defaultValue) {
+            // Don't persist any values that weren't changed from the default
+            delete obj[key]
+        }
+    })
+    return obj
+}

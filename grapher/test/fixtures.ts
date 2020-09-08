@@ -2,7 +2,7 @@
 
 import * as fs from "fs"
 
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 
 const readObj = (fixture: string) =>
@@ -18,6 +18,6 @@ export function readVariableSet(
     return readObj(`variableset-${ids.join("-")}`)
 }
 
-export function readGrapher(id: string | number): GrapherInterface {
+export function readGrapher(id: string | number): GrapherConfigInterface {
     return readObj(`chart-${id}`)
 }

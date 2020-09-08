@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, when, reaction, autorun } from "mobx"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 import { uniq } from "grapher/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
@@ -17,13 +17,13 @@ declare type chartId = number
 export interface SwitcherBootstrapProps {
     explorerProgramCode: string
     slug: string
-    chartConfigs: GrapherInterface[]
+    chartConfigs: GrapherConfigInterface[]
     bindToWindow: boolean
 }
 
 @observer
 export class SwitcherExplorer extends React.Component<{
-    chartConfigs: Map<chartId, GrapherInterface>
+    chartConfigs: Map<chartId, GrapherConfigInterface>
     program: ExplorerProgram
     bindToWindow: boolean
 }> {
@@ -36,7 +36,7 @@ export class SwitcherExplorer extends React.Component<{
             explorerProgramCode,
             window.location.search
         )
-        const chartConfigsMap: Map<number, GrapherInterface> = new Map()
+        const chartConfigsMap: Map<number, GrapherConfigInterface> = new Map()
         chartConfigs.forEach((config) =>
             chartConfigsMap.set(config.id!, config)
         )

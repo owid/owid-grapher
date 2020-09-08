@@ -1,7 +1,7 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 
 import { ChartType, ChartTypeName } from "grapher/core/GrapherConstants"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
 import { RootStore, StoreEntry } from "./Store"
@@ -11,7 +11,7 @@ export type ExplorerChartType = ChartTypeName | "WorldMap"
 
 function chartConfigFromIndicator(
     indicator: Indicator
-): Partial<GrapherInterface> {
+): Partial<GrapherConfigInterface> {
     return {
         ...indicator,
         // TODO need to derive selected data from ExploreModel, since selections

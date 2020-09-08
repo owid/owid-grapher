@@ -2,10 +2,13 @@ import { observable, toJS } from "mobx"
 
 import { Color } from "grapher/core/GrapherConstants"
 import { BinningStrategy } from "./BinningStrategies"
-import { Persistable, updatePersistables } from "grapher/core/Persistable"
+import {
+    Persistable,
+    updatePersistables,
+} from "grapher/persistable/Persistable"
 import { extend } from "grapher/utils/Util"
 
-export class ColorScaleConfig {
+class ColorScaleConfig {
     // Color scheme
     // ============
 
@@ -70,6 +73,8 @@ export class ColorScaleConfig {
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
     @observable legendDescription?: string = undefined
 }
+
+export type ColorScaleConfigInterface = ColorScaleConfig
 
 export class PersistableColorScaleConfig
     extends ColorScaleConfig

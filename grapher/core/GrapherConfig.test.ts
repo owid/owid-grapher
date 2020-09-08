@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { PersistableGrapher } from "grapher/core/GrapherInterface"
+import { PersistableGrapher } from "grapher/core/GrapherConfig"
 
 describe(PersistableGrapher, () => {
     it("can serialize Grapher for saving", () => {

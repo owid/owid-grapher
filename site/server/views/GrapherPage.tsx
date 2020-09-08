@@ -5,7 +5,7 @@ import { faFileAlt } from "@fortawesome/free-solid-svg-icons/faFileAlt"
 import * as React from "react"
 import urljoin from "url-join"
 import * as lodash from "lodash"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
 import { Head } from "./Head"
@@ -16,7 +16,7 @@ import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
 
 export const GrapherPage = (props: {
-    grapher: GrapherInterface
+    grapher: GrapherConfigInterface
     post?: Post.Row
     relatedCharts?: RelatedChart[]
 }) => {
