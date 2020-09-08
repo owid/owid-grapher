@@ -8,6 +8,8 @@ import { owidVariableId } from "owidTable/OwidTable"
 import {
     Persistable,
     updatePersistables,
+    objectWithPersistablesToObject,
+    deleteRuntimeAndUnchangedProps,
 } from "grapher/persistable/Persistable"
 import { extend } from "grapher/utils/Util"
 import { maxTimeFromJSON, maxTimeToJSON } from "grapher/utils/TimeBounds"
@@ -36,7 +38,9 @@ export class PersistableMapConfig extends MapConfig implements Persistable {
     }
 
     toObject() {
-        const obj = toJS(this)
+        const obj = objectWithPersistablesToObject(this)
+        deleteRuntimeAndUnchangedProps<MapConfigInterface>(obj, new MapConfig())
+
         if (obj.targetYear)
             obj.targetYear = maxTimeToJSON(this.targetYear) as any
 

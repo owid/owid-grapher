@@ -2,7 +2,7 @@
 
 import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { TimeBoundValue, TimeBound, TimeBounds } from "grapher/utils/TimeBounds"
-import { createGrapher, setupGrapher } from "grapher/test/utils"
+import { setupGrapher } from "grapher/test/utils"
 import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
 import { Grapher } from "grapher/core/Grapher"
 import { ScaleType } from "./GrapherConstants"
@@ -11,13 +11,13 @@ function fromQueryParams(
     params: GrapherQueryParams,
     props?: Partial<GrapherConfigInterface>
 ) {
-    const grapher = createGrapher(props)
+    const grapher = new Grapher(props)
     grapher.url.populateFromQueryParams(params)
     return grapher
 }
 
 function toQueryParams(props?: Partial<GrapherConfigInterface>) {
-    const grapher = createGrapher({
+    const grapher = new Grapher({
         minTime: -5000,
         maxTime: 5000,
         map: { targetYear: 5000 },
@@ -168,7 +168,7 @@ describe(GrapherUrl, () => {
             })
 
             it("doesn't include URL param if it's identical to original config", () => {
-                const chart = createGrapher({
+                const chart = new Grapher({
                     minTime: 0,
                     maxTime: 75,
                 })
@@ -176,7 +176,7 @@ describe(GrapherUrl, () => {
             })
 
             it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
-                const chart = createGrapher({
+                const chart = new Grapher({
                     minTime: undefined,
                     maxTime: 75,
                 })

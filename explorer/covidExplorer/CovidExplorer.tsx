@@ -1399,7 +1399,7 @@ export class CovidExplorer extends React.Component<{
             scatterPointLabelStrategy: "y",
             addCountryMode: "add-country",
             stackMode: "absolute",
-            useV2: true,
+            manuallyProvideData: true,
             colorScale: this.colorScales.continents,
             hideRelativeToggle: true,
             hasChartTab: true,

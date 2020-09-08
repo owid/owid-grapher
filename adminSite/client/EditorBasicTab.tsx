@@ -207,7 +207,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                         <FieldsRow>
                             <Toggle
                                 label="Explorable chart"
-                                value={grapher.isExplorable}
+                                value={grapher.isExplorableConstrained}
                                 onValue={(value) =>
                                     (grapher.isExplorable = value)
                                 }
@@ -220,13 +220,13 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                             label="Chart tab"
                             value={grapher.hasChartTab}
                             onValue={(value) => (grapher.hasChartTab = value)}
-                            disabled={grapher.isExplorable}
+                            disabled={grapher.isExplorableConstrained}
                         />
                         <Toggle
                             label="Map tab"
                             value={grapher.hasMapTab}
                             onValue={(value) => (grapher.hasMapTab = value)}
-                            disabled={grapher.isExplorable}
+                            disabled={grapher.isExplorableConstrained}
                         />
                     </FieldsRow>
                 </Section>

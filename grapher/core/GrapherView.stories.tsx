@@ -81,6 +81,7 @@ class GrapherViewStory extends React.Component {
             {
                 hasMapTab: true,
                 dimensions: [{ property: "y", variableId: 66287, display: {} }],
+                manuallyProvideData: true,
             } as GrapherConfigInterface,
             {}
         )

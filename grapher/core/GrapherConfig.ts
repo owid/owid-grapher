@@ -65,7 +65,7 @@ export interface GrapherConfigInterface {
     hideTitleAnnotation?: true
     externalDataUrl?: string
     owidDataset?: OwidVariablesAndEntityKey
-    useV2?: boolean
+    manuallyProvideData?: boolean
     selectedData?: EntitySelection[]
     minTime?: TimeBound
     maxTime?: TimeBound
@@ -172,7 +172,7 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
 
     externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
-    useV2?: boolean = false // This will be removed.
+    manuallyProvideData?: boolean = false // This will be removed.
 
     // Should return the default initialized object. This is what `toObject` will compare against to generate the persistable state.
     defaultObject() {
@@ -185,7 +185,7 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
         // Never save the followingto the DB.
         delete obj.externalDataUrl
         delete obj.owidDataset
-        delete obj.useV2
+        delete obj.manuallyProvideData
 
         // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
         // in the Grapher Admin with an overlay tab open

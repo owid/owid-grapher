@@ -10,7 +10,7 @@ export function basicGdpGrapher() {
             { index: 0, entityId: 1 },
         ],
         data: { availableEntities: ["Germany", "France"] },
-        useV2: true,
+        manuallyProvideData: true,
         yAxis: {},
         dimensions: [{ variableId: 99, property: "y" }],
     } as Partial<GrapherConfigInterface>
