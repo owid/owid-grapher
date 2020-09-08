@@ -11,7 +11,14 @@
     margin: 12px 0px;
     margin-left: 15px;
 
-    > .control:not(:first-child) {
-        margin-left: 16px;
+    ul {
+        list-style: none;
+        > .control:not(:first-child) {
+            margin-left: 16px;
+        }
+
+        li {
+            display: inline-block;
+        }
     }
 }
