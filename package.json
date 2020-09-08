@@ -210,10 +210,10 @@
         "url-loader": "^4.1.0",
         "url-parse": "^1.4.7",
         "url-slug": "^3.0.0-beta.1",
-        "webpack": "^4.44.1",
+        "webpack": "5.0.0-beta.29",
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0",
-        "webpack-manifest-plugin": "^2.2.0",
+        "webpack-manifest-plugin": "3.0.0-rc.0",
         "xlsx": "^0.14.3"
     },
     "devDependencies": {
