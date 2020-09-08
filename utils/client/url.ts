@@ -1,4 +1,4 @@
-import { each, isEmpty } from "grapher/utils/Util"
+import { isEmpty } from "grapher/utils/Util"
 
 export interface QueryParams {
     [key: string]: string | undefined
@@ -31,7 +31,7 @@ export function strToQueryParams(queryStr: string): QueryParams {
 export function queryParamsToStr(params: QueryParams) {
     let newQueryStr = ""
 
-    each(params, (v, k) => {
+    Object.entries(params).forEach(([k, v]) => {
         if (v === undefined) return
 
         if (isEmpty(newQueryStr)) newQueryStr += "?"

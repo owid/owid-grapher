@@ -5,7 +5,6 @@ import {
     isString,
     findClosestYear,
     extend,
-    each,
     keyBy,
     isNumber,
     entityNameForMap,
@@ -248,7 +247,7 @@ export class MapTransform extends ChartTransform {
         const { valuesByEntity } = this
         const choroplethData: ChoroplethData = {}
 
-        each(valuesByEntity, (datum, entity) => {
+        Object.entries(valuesByEntity).forEach(([entity, datum]) => {
             const color = this.colorScale.getColor(datum.value)
             if (color) {
                 choroplethData[entity] = extend({}, datum, {
