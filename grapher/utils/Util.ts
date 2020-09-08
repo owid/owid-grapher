@@ -8,7 +8,6 @@ import countBy from "lodash/countBy"
 import debounce from "lodash/debounce"
 import difference from "lodash/difference"
 import each from "lodash/each"
-import every from "lodash/every"
 import extend from "lodash/extend"
 import filter from "lodash/filter"
 import find from "lodash/find"
@@ -70,7 +69,6 @@ export {
     debounce,
     difference,
     each,
-    every,
     extend,
     filter,
     find,
