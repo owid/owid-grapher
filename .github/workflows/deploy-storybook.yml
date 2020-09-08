@@ -62,6 +62,8 @@ jobs:
                   CLEAN: true # Automatically remove deleted files from the deploy branch
                   REPOSITORY_NAME: owid/owid.github.io
                   TARGET_FOLDER: stories
-                  COMMIT_MESSAGE: 🤖 update Storybook
+                  COMMIT_MESSAGE: |-
+                      🤖 update Storybook
+                      owid/owid-grapher@${{ github.sha }}
                   GIT_CONFIG_NAME: owidbot
                   GIT_CONFIG_EMAIL: tech@ourworldindata.org
