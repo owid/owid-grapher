@@ -6,7 +6,7 @@ import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Timeline, TimelineProps } from "./Timeline"
-import { extend, keys, entries, max, formatValue } from "grapher/utils/Util"
+import { extend, entries, max, formatValue } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -82,7 +82,7 @@ class HighlightToggle extends React.Component<{
     get isHighlightActive() {
         const params = getWindowQueryParams()
         let isActive = true
-        keys(this.highlightParams).forEach((key) => {
+        Object.keys(this.highlightParams).forEach((key) => {
             if (params[key] !== this.highlightParams[key]) isActive = false
         })
         return isActive

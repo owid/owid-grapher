@@ -4,7 +4,6 @@ import map from "lodash/map"
 import sortBy from "lodash/sortBy"
 import orderBy from "lodash/orderBy"
 import each from "lodash/each"
-import keys from "lodash/keys"
 import entries from "lodash/entries"
 import isNumber from "lodash/isNumber"
 import filter from "lodash/filter"
@@ -71,7 +70,6 @@ export {
     orderBy,
     xor,
     each,
-    keys,
     entries,
     isNumber,
     range,
