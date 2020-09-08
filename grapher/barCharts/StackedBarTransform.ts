@@ -2,7 +2,6 @@ import { computed } from "mobx"
 import {
     identity,
     cloneDeep,
-    find,
     sortBy,
     max,
     defaultTo,
@@ -32,13 +31,10 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get primaryDimension(): ChartDimension | undefined {
-        return find(this.grapher.filledDimensions, (d) => d.property === "y")
+        return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
     @computed get colorDimension(): ChartDimension | undefined {
-        return find(
-            this.grapher.filledDimensions,
-            (d) => d.property === "color"
-        )
+        return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 
     @computed get availableYears(): Time[] {
@@ -93,7 +89,7 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return find(this.grapher.filledDimensions, (d) => d.property === "y")
+        return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 
     @computed get yTickFormat() {

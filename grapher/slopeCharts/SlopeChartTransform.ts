@@ -1,5 +1,5 @@
 import { computed } from "mobx"
-import { find, isEmpty, flatten, identity, last } from "grapher/utils/Util"
+import { isEmpty, flatten, identity, last } from "grapher/utils/Util"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
@@ -54,7 +54,7 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed.struct get sizeDim(): ChartDimension | undefined {
-        return find(this.grapher.filledDimensions, (d) => d.property === "size")
+        return this.grapher.filledDimensions.find((d) => d.property === "size")
     }
 
     @computed.struct get colorDimension(): ChartDimension | undefined {
@@ -62,7 +62,7 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed.struct get yDimension(): ChartDimension | undefined {
-        return find(this.grapher.filledDimensions, (d) => d.property === "y")
+        return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 
     // helper method to directly get the associated color value given an Entity

@@ -10,7 +10,6 @@ import {
     toArray,
     first,
     last,
-    find,
     identity,
     roundSigFig,
     mapNullToUndefined,
@@ -338,6 +337,6 @@ export class ColorScale {
 
     @bind getColor(value: number | string | undefined): string | undefined {
         if (value === undefined) return this.customCategoryColors[NO_DATA_LABEL]
-        return find(this.legendData, (b) => b.contains(value))?.color
+        return this.legendData.find((b) => b.contains(value))?.color
     }
 }
