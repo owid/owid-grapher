@@ -13,7 +13,6 @@ import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
 import {
-    every,
     sortBy,
     extend,
     max,
@@ -427,8 +426,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         data.forEach((series) => {
             // Ensure values fit inside the chart
             if (
-                !every(
-                    series.values,
+                !series.values.every(
                     (d) => d.y >= yDomain[0] && d.y <= yDomain[1]
                 )
             )
