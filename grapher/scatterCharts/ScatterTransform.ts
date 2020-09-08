@@ -6,7 +6,6 @@ import {
     has,
     groupBy,
     map,
-    includes,
     sortedFindClosestIndex,
     firstOfNonEmptyArray,
     lastOfNonEmptyArray,
@@ -167,7 +166,7 @@ export class ScatterTransform extends ChartTransform {
 
         if (this.excludedEntityNames)
             entityNames = entityNames.filter(
-                (entity) => !includes(this.excludedEntityNames, entity)
+                (entity) => !this.excludedEntityNames.includes(entity)
             )
 
         return entityNames

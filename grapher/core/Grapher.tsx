@@ -15,7 +15,6 @@ import { bind } from "decko"
 import {
     map,
     filter,
-    includes,
     uniqWith,
     isEqual,
     formatDay,
@@ -520,7 +519,7 @@ export class Grapher extends PersistableGrapher {
         const { dimensions } = this
         const validProperties = map(this.dimensionSlots, "property")
         let validDimensions = filter(dimensions, (dim) =>
-            includes(validProperties, dim.property)
+            validProperties.includes(dim.property)
         )
 
         this.dimensionSlots.forEach((slot) => {
@@ -914,7 +913,7 @@ export class Grapher extends PersistableGrapher {
 
             // Entity must be within that dimension
             const entityName = entityIdToNameMap.get(sel.entityId)
-            if (!entityName || !includes(dimension.entityNamesUniq, entityName))
+            if (!entityName || !dimension.entityNamesUniq.includes(entityName))
                 return false
 
             // "change entity" charts can only have one entity selected
@@ -1197,7 +1196,7 @@ export class Grapher extends PersistableGrapher {
 
     // todo: remove
     toggleKey(key: EntityDimensionKey) {
-        if (includes(this.selectedKeys, key)) {
+        if (this.selectedKeys.includes(key)) {
             this.selectedKeys = this.selectedKeys.filter((k) => k !== key)
         } else {
             this.selectedKeys = this.selectedKeys.concat([key])

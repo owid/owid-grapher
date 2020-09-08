@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import { includes, guid, uniq, makeSafeForCSS } from "grapher/utils/Util"
+import { guid, uniq, makeSafeForCSS } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { Bounds } from "grapher/utils/Bounds"
 import {
@@ -471,8 +471,7 @@ export class StackedBarChart extends React.Component<{
 
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {stackedData.map((series) => {
-                        const isLegendHovered: boolean = includes(
-                            this.hoverKeys,
+                        const isLegendHovered: boolean = this.hoverKeys.includes(
                             series.entityDimensionKey
                         )
                         const opacity =

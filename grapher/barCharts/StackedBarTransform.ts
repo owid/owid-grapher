@@ -1,6 +1,5 @@
 import { computed } from "mobx"
 import {
-    includes,
     identity,
     cloneDeep,
     find,
@@ -147,7 +146,7 @@ export class StackedBarTransform extends ChartTransform {
                 // Stacked bar chart can't go negative!
                 if (value < 0) continue
                 // only consider years that are part of timeline to line up the bars
-                if (!includes(timelineYears, year)) continue
+                if (!timelineYears.includes(year)) continue
 
                 if (!series) {
                     series = {
