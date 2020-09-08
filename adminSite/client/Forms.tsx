@@ -10,7 +10,7 @@ import { bind } from "decko"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { extend, pick, capitalize } from "grapher/utils/Util"
+import { pick, capitalize } from "grapher/utils/Util"
 import { Colorpicker } from "./Colorpicker"
 import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faLink } from "@fortawesome/free-solid-svg-icons/faLink"
@@ -184,7 +184,8 @@ export class NumberField extends React.Component<
     render() {
         const { props, state } = this
 
-        const textFieldProps = extend({}, props, {
+        const textFieldProps = {
+            ...props,
             value: state.inputValue ?? props.value?.toString(),
             onValue: (value: string) => {
                 const allowInputRegex = new RegExp(
@@ -202,7 +203,7 @@ export class NumberField extends React.Component<
                 this.setState({
                     inputValue: undefined,
                 }),
-        })
+        }
 
         return <TextField {...textFieldProps} />
     }
@@ -370,7 +371,8 @@ export class NumericSelectField extends React.Component<
     NumericSelectFieldProps
 > {
     render() {
-        const props = extend({}, this.props, {
+        const props = {
+            ...this.props,
             value:
                 this.props.value !== undefined
                     ? this.props.value.toString()
@@ -380,7 +382,7 @@ export class NumericSelectField extends React.Component<
                 const asNumber = parseFloat(value as string)
                 this.props.onValue(asNumber)
             },
-        })
+        }
         return <SelectField {...props} />
     }
 }
@@ -705,14 +707,15 @@ class AutoFloatField extends React.Component<AutoFloatFieldProps> {
     render() {
         const { props } = this
 
-        const textFieldProps = extend({}, props, {
+        const textFieldProps = {
+            ...props,
             value: props.isAuto ? undefined : props.value.toString(),
             onValue: (value: string) => {
                 const asNumber = parseFloat(value)
                 props.onValue(isNaN(asNumber) ? undefined : asNumber)
             },
             placeholder: props.isAuto ? props.value.toString() : undefined,
-        })
+        }
 
         return <AutoTextField {...textFieldProps} />
     }
@@ -729,14 +732,15 @@ class FloatField extends React.Component<FloatFieldProps> {
     render() {
         const { props } = this
 
-        const textFieldProps = extend({}, props, {
+        const textFieldProps = {
+            ...props,
             value:
                 props.value === undefined ? undefined : props.value.toString(),
             onValue: (value: string) => {
                 const asNumber = parseFloat(value)
                 props.onValue(isNaN(asNumber) ? undefined : asNumber)
             },
-        })
+        }
 
         return <TextField {...textFieldProps} />
     }

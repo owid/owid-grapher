@@ -6,7 +6,7 @@ import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Timeline, TimelineProps } from "./Timeline"
-import { extend, max, formatValue } from "grapher/utils/Util"
+import { max, formatValue } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -72,7 +72,10 @@ class HighlightToggle extends React.Component<{
 
     @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
         if (e.currentTarget.checked) {
-            const params = extend(getWindowQueryParams(), this.highlightParams)
+            const params = {
+                ...getWindowQueryParams(),
+                ...this.highlightParams,
+            }
             this.grapher.url.populateFromQueryParams(params)
         } else {
             this.grapher.selectedKeys = []

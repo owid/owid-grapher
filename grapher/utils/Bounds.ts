@@ -1,4 +1,4 @@
-import { extend, range } from "grapher/utils/Util"
+import { range } from "grapher/utils/Util"
 import { Vector2 } from "grapher/utils/Vector2"
 import pixelWidth from "string-pixel-width"
 
@@ -233,7 +233,7 @@ export class Bounds {
         width?: number
         height?: number
     }): Bounds {
-        return Bounds.fromProps(extend({}, this, props))
+        return Bounds.fromProps({ ...this, ...props })
     }
 
     scale(scale: number): Bounds {

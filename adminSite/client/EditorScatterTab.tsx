@@ -1,5 +1,5 @@
 import * as React from "react"
-import { extend, debounce } from "grapher/utils/Util"
+import { debounce } from "grapher/utils/Util"
 import { observable, computed, action, toJS } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "grapher/core/Grapher"
@@ -26,7 +26,10 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
 
     constructor(props: { grapher: Grapher }) {
         super(props)
-        extend(this.highlightToggle, props.grapher.highlightToggle)
+        this.highlightToggle = {
+            ...this.highlightToggle,
+            ...props.grapher.highlightToggle,
+        }
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
