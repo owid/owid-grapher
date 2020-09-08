@@ -6,10 +6,10 @@ import { computed, IReactionDisposer, observable } from "mobx"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { observer } from "mobx-react"
-import { owidVariableId } from "owidTable/OwidTable"
+import { OwidVariableId } from "owidTable/OwidTable"
 
 interface Variable {
-    id: owidVariableId
+    id: OwidVariableId
     name: string
     unit: string
     shortUnit: string

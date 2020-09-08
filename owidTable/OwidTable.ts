@@ -25,13 +25,13 @@ import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
 
-declare type int = number
-export declare type Year = int
+declare type Int = number
+export declare type Year = Int
 export declare type EntityName = string
 export declare type EntityCode = string
 export declare type EntityId = number
-export declare type owidVariableId = int
-export declare type columnSlug = string // let's be very restrictive on valid column names to start.
+export declare type OwidVariableId = Int
+export declare type ColumnSlug = string // let's be very restrictive on valid column names to start.
 
 export interface Row {
     [columnName: string]: any
@@ -90,7 +90,7 @@ interface OwidRow extends Row {
     entityCode: EntityCode
     entityId: EntityId
     year?: Year
-    day?: int
+    day?: Int
     date?: string
 }
 
@@ -110,9 +110,9 @@ export declare type columnTypes =
     | "Ratio"
 
 export interface ColumnSpec {
-    slug: columnSlug
+    slug: ColumnSlug
     name?: string
-    owidVariableId?: owidVariableId
+    owidVariableId?: OwidVariableId
     unit?: string
     shortUnit?: string
     isDailyMeasurement?: boolean
@@ -124,7 +124,7 @@ export interface ColumnSpec {
     display?: OwidVariableDisplaySettings
 
     // More advanced options:
-    annotationsColumnSlug?: columnSlug
+    annotationsColumnSlug?: ColumnSlug
     fn?: RowToValueMapper
 
     type?: columnTypes
@@ -133,7 +133,7 @@ export interface ColumnSpec {
 // todo: remove index param?
 export declare type RowToValueMapper = (
     row: Row,
-    index?: int,
+    index?: Int,
     table?: AbstractTable<Row>
 ) => any
 
@@ -185,7 +185,7 @@ export abstract class AbstractColumn {
         return this.mapBy("entityName")
     }
 
-    private mapBy(columnSlug: columnSlug) {
+    private mapBy(columnSlug: ColumnSlug) {
         const map = new Map<any, Set<any>>()
         const slug = this.slug
         this.rows.forEach((row) => {
@@ -380,12 +380,12 @@ const columnTypeMap: { [key in columnTypes]: any } = {
 }
 // Todo: Add DayColumn, YearColumn, EntityColumn, etc?
 
-declare type ColumnSpecs = Map<columnSlug, ColumnSpec>
+declare type ColumnSpecs = Map<ColumnSlug, ColumnSpec>
 declare type ColumnSpecObject = { [columnSlug: string]: ColumnSpec }
 
 abstract class AbstractTable<ROW_TYPE extends Row> {
     @observable.ref private _rows: ROW_TYPE[] = []
-    @observable protected columns: Map<columnSlug, AbstractColumn> = new Map()
+    @observable protected columns: Map<ColumnSlug, AbstractColumn> = new Map()
 
     constructor(
         rows: ROW_TYPE[],
@@ -443,20 +443,20 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return map
     }
 
-    @action.bound deleteColumnBySlug(slug: columnSlug) {
+    @action.bound deleteColumnBySlug(slug: ColumnSlug) {
         this.rows.forEach((row) => delete row[slug])
         this.columns.delete(slug)
     }
 
     @action.bound addFilterColumn(
-        slug: columnSlug,
+        slug: ColumnSlug,
         predicate: RowToValueMapper
     ) {
         this._addComputedColumn(new FilterColumn(this, { slug, fn: predicate }))
     }
 
     @action.bound addSelectionColumn(
-        slug: columnSlug,
+        slug: ColumnSlug,
         predicate: (row: Row) => boolean
     ) {
         this._addComputedColumn(
@@ -491,10 +491,10 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     // todo: this won't work when adding rows dynamically
     @action.bound addRollingAverageColumn(
         spec: ColumnSpec,
-        windowSize: int,
+        windowSize: Int,
         valueAccessor: (row: Row) => any,
-        dateColName: columnSlug,
-        groupBy: columnSlug,
+        dateColName: ColumnSlug,
+        groupBy: ColumnSlug,
         multiplier = 1,
         intervalChange?: number,
         transformation: (fn: RowToValueMapper) => RowToValueMapper = (fn) => (
@@ -855,14 +855,14 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return entityAnnotationsMap
     }
 
-    static makeAnnotationColumnSlug(columnSlug: columnSlug) {
+    static makeAnnotationColumnSlug(columnSlug: ColumnSlug) {
         return columnSlug + "-annotations"
     }
 
     private static columnSpecFromLegacyVariable(
         variable: OwidVariable
     ): ColumnSpec {
-        const slug = variable.id + "-" + slugifySameCase(variable.name) // todo: remove?
+        const slug = variable.id.toString() // For now, the variableId will be the column slug
         const {
             unit,
             shortUnit,
@@ -894,7 +894,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     static fromLegacy(json: OwidVariablesAndEntityKey) {
         let rows: OwidRow[] = []
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
-        const columnSpecs: Map<columnSlug, ColumnSpec> = new Map()
+        const columnSpecs: Map<ColumnSlug, ColumnSpec> = new Map()
         columnSpecs.set("entityName", {
             slug: "entityName",
             type: "Categorical",
