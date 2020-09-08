@@ -1,15 +1,6 @@
 import { computed } from "mobx"
 
-import {
-    min,
-    max,
-    map,
-    each,
-    last,
-    flatten,
-    find,
-    sum,
-} from "grapher/utils/Util"
+import { min, max, each, last, flatten, find, sum } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import {
@@ -327,7 +318,7 @@ export class MapCategoricalColorLegend {
             })
         })
 
-        return flatten(map(lines, (l) => l.marks))
+        return flatten(lines.map((l) => l.marks))
     }
 
     @computed get height(): number {

@@ -1,6 +1,5 @@
 import * as React from "react"
 import {
-    map,
     flatten,
     sortBy,
     sum,
@@ -83,23 +82,21 @@ class Lines extends React.Component<LinesProps> {
 
     @computed get renderData(): LineRenderSeries[] {
         const { data, xAxis, yAxis, focusKeys } = this.props
-        return map(data, (series) => {
-            return {
-                entityDimensionKey: series.entityDimensionKey,
-                displayKey: `key-${makeSafeForCSS(series.entityDimensionKey)}`,
-                color: series.color,
-                values: series.values.map((v) => {
-                    return new Vector2(
-                        Math.round(xAxis.place(v.x)),
-                        Math.round(yAxis.place(v.y))
-                    )
-                }),
-                isFocus:
-                    !focusKeys.length ||
-                    focusKeys.includes(series.entityDimensionKey),
-                isProjection: series.isProjection,
-            }
-        })
+        return data.map((series) => ({
+            entityDimensionKey: series.entityDimensionKey,
+            displayKey: `key-${makeSafeForCSS(series.entityDimensionKey)}`,
+            color: series.color,
+            values: series.values.map((v) => {
+                return new Vector2(
+                    Math.round(xAxis.place(v.x)),
+                    Math.round(yAxis.place(v.y))
+                )
+            }),
+            isFocus:
+                !focusKeys.length ||
+                focusKeys.includes(series.entityDimensionKey),
+            isProjection: series.isProjection,
+        }))
     }
 
     @computed get isFocusMode(): boolean {

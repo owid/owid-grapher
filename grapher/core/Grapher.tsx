@@ -13,7 +13,6 @@ import {
 import { bind } from "decko"
 
 import {
-    map,
     uniqWith,
     isEqual,
     formatDay,
@@ -517,7 +516,7 @@ export class Grapher extends PersistableGrapher {
 
     @computed get validDimensions(): ChartDimensionSpec[] {
         const { dimensions } = this
-        const validProperties = map(this.dimensionSlots, "property")
+        const validProperties = this.dimensionSlots.map((d) => d.property)
         let validDimensions = dimensions.filter((dim) =>
             validProperties.includes(dim.property)
         )
@@ -544,7 +543,7 @@ export class Grapher extends PersistableGrapher {
     @computed.struct get filledDimensions(): ChartDimension[] {
         if (!this.isReady) return []
 
-        return map(this.dimensions, (dim, i) => {
+        return this.dimensions.map((dim, i) => {
             return new ChartDimension(
                 i,
                 dim,
@@ -745,7 +744,7 @@ export class Grapher extends PersistableGrapher {
             return this.axisDimensions.map((d) => d.displayName).join(" vs. ")
         else if (
             primaryDimensions.length > 1 &&
-            uniq(map(primaryDimensions, (d) => d.column.datasetName)).length ===
+            uniq(primaryDimensions.map((d) => d.column.datasetName)).length ===
                 1
         )
             return primaryDimensions[0].column.datasetName!
@@ -931,7 +930,7 @@ export class Grapher extends PersistableGrapher {
             (a: any, b: any) => a.entityId === b.entityId && a.index === b.index
         )
 
-        return map(validSelections, (sel) => {
+        return validSelections.map((sel) => {
             return {
                 entityDimensionKey: this.makeEntityDimensionKey(
                     entityIdToNameMap.get(sel.entityId)!,
@@ -1062,7 +1061,7 @@ export class Grapher extends PersistableGrapher {
     set selectedKeys(keys: EntityDimensionKey[]) {
         if (!this.isReady) return
 
-        const selection = map(keys, (key) => {
+        const selection = keys.map((key) => {
             const { entityName: entity, index } = this.lookupKey(key)
             return {
                 entityId: this.table.entityNameToIdMap.get(entity)!,
