@@ -18,6 +18,7 @@ async function main(
 
     if (BAKE_ON_CHANGE) {
         await enqueueDeploy({
+            timeISOString: new Date().toISOString(),
             authorName: name,
             authorEmail: email,
             message: slug ? `Updating ${slug}` : `Deleting ${postSlug}`,

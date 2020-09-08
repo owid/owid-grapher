@@ -54,6 +54,7 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
     }
 
     enqueueDeploy({
+        timeISOString: new Date().toISOString(),
         authorName: user.fullName,
         authorEmail: user.email,
         message: commitMessage,

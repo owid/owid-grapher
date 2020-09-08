@@ -5,6 +5,7 @@ export enum DeployStatus {
 }
 
 export interface DeployChange {
+    timeISOString?: string
     authorName?: string
     authorEmail?: string
     message?: string
