@@ -36,18 +36,16 @@ interface MapDataValue {
 }
 
 export class MapTransform extends ChartTransform {
-    constructor(grapher: Grapher) {
-        super(grapher)
-
-        if (!grapher.isNode) this.ensureValidConfig()
-    }
-
     get props() {
         return this.grapher.map
     }
 
     @computed get variableId() {
-        return this.props.variableId
+        const { grapher } = this
+        const variableId = this.props.variableId
+        const hasVar =
+            variableId && grapher.table.columnsByOwidVarId.get(variableId)
+        return hasVar ? variableId : grapher.primaryVariableId
     }
 
     @computed get tolerance() {
@@ -78,21 +76,6 @@ export class MapTransform extends ChartTransform {
 
     @computed get isValidConfig() {
         return !!this.grapher.primaryVariableId
-    }
-
-    ensureValidConfig() {
-        const { grapher } = this
-
-        // Validate the map variable id selection to something on the chart
-        autorun(() => {
-            const hasVariable =
-                this.variableId &&
-                grapher.table.columnsByOwidVarId.get(this.variableId)
-            if (!hasVariable && grapher.primaryVariableId)
-                runInAction(
-                    () => (this.props.variableId = grapher.primaryVariableId)
-                )
-        })
     }
 
     @computed get hasTimeline(): boolean {

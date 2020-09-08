@@ -301,7 +301,11 @@ export class GrapherUrl implements ObservableUrl {
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
-        if (grapher.useV2 || !country || grapher.addCountryMode === "disabled")
+        if (
+            grapher.manuallyProvideData ||
+            !country ||
+            grapher.addCountryMode === "disabled"
+        )
             return
         when(
             () => grapher.isReady,

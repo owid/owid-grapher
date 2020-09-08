@@ -93,12 +93,6 @@ import { EntityUrlBuilder } from "./EntityUrlBuilder"
 
 declare const window: any
 
-// That node check is taken from the "detect-node" npm package: https://www.npmjs.com/package/detect-node
-const isNode: boolean =
-    Object.prototype.toString.call(global.process) === "[object process]"
-const isJsdom: boolean =
-    typeof navigator === "object" && navigator.userAgent.includes("jsdom")
-
 export class Grapher extends PersistableGrapher {
     private origScriptRaw: Readonly<GrapherConfigInterface>
 
@@ -131,7 +125,6 @@ export class Grapher extends PersistableGrapher {
 
     @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
-    @observable.ref isNode: boolean
     @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
     @observable isPlaying: boolean = false
@@ -169,21 +162,19 @@ export class Grapher extends PersistableGrapher {
 
     @observable userHasSetTimeline: boolean = false
 
-    @action.bound async downloadData() {
-        if (this.useV2) return
-
+    @action.bound private async downloadData() {
         if (this.externalDataUrl) {
             const json = await fetchJSON(this.externalDataUrl)
-            this.receiveData(json)
+            this._receiveData(json)
             return
         }
 
         if (this.owidDataset) {
-            this.receiveData(this.owidDataset)
+            this._receiveData(this.owidDataset)
             return
         }
 
-        if (this.variableIds.length === 0 || this.isNode) {
+        if (this.variableIds.length === 0) {
             // No data to download
             return
         }
@@ -192,10 +183,10 @@ export class Grapher extends PersistableGrapher {
             const json = await window.admin.getJSON(
                 `/api/data/variables/${this.dataFileName}`
             )
-            this.receiveData(json)
+            this._receiveData(json)
         } else {
             const json = await fetchJSON(this.dataUrl)
-            this.receiveData(json)
+            this._receiveData(json)
         }
     }
 
@@ -208,6 +199,10 @@ export class Grapher extends PersistableGrapher {
     @observable.ref embedExplorerCheckbox?: JSX.Element
 
     @action.bound receiveData(json: OwidVariablesAndEntityKey) {
+        this._receiveData(json)
+    }
+
+    @action.bound private _receiveData(json: OwidVariablesAndEntityKey) {
         this.table = OwidTable.fromLegacy(json)
         this.updatePopulationFilter()
     }
@@ -370,24 +365,16 @@ export class Grapher extends PersistableGrapher {
 
         this.initFontSizeInAxisContainers()
 
-        // This attribute is used to decide various client-vs.-server behavior. However, when
-        // testing, we want the chart to behave as if it's in the client, even though it's
-        // technically being run in a Node environment. To solve this, we override isNode to false
-        // if we're in a jsdom environment (where client tests are run). It would probably be best
-        // to rename this variable, or better, to break it into one or more behavior flags that
-        // could be set by the environment, rather than directly querying the environment itself.
-        // -@jasoncrawford 2019-12-04
-        this.isNode = isNode && !isJsdom
-
         if (props) this.updateFromObject(props)
         // The original props, as stored in the database. Todo: why not just store props?
         this.origScriptRaw = this.toObject()
 
-        this.disposers.push(
-            reaction(() => this.variableIds, this.downloadData, {
-                fireImmediately: true,
-            })
-        )
+        if (!this.manuallyProvideData)
+            this.disposers.push(
+                reaction(() => this.variableIds, this.downloadData, {
+                    fireImmediately: true,
+                })
+            )
 
         this.disposers.push(
             reaction(
@@ -413,7 +400,7 @@ export class Grapher extends PersistableGrapher {
             )
         }
 
-        if (!this.isNode) this.ensureValidConfig()
+        if (this.isEditor) this.ensureValidConfig()
     }
 
     updatePopulationFilter() {
@@ -428,6 +415,8 @@ export class Grapher extends PersistableGrapher {
             })
     }
 
+    // todo: can we remove this?
+    // I believe these states can only occur during editing.
     @action.bound ensureValidConfig() {
         const disposers = [
             autorun(() => {
@@ -440,13 +429,13 @@ export class Grapher extends PersistableGrapher {
                     this.dimensions = this.validDimensions
                 }
             }),
-            autorun(() => {
-                if (this.isExplorable && !canBeExplorable(this)) {
-                    this.isExplorable = false
-                }
-            }),
         ]
         this.disposers.push(...disposers)
+    }
+
+    // Only true if isExplorable is true and chart meets certain criteria
+    @computed get isExplorableConstrained() {
+        return this.isExplorable && canBeExplorable(this)
     }
 
     // todo: do we need this?
