@@ -1,5 +1,5 @@
 import * as React from "react"
-import { clone, map } from "grapher/utils/Util"
+import { clone } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "grapher/core/Grapher"
@@ -113,7 +113,7 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
                     optionLabels={["Select data"].concat(keyLabels)}
                 />
                 <EditableList>
-                    {map(selectedKeys, (key) => (
+                    {selectedKeys.map((key) => (
                         <EntityDimensionKeyItem
                             key={key}
                             grapher={grapher}
