@@ -8,7 +8,6 @@ import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
-import { CSVGenerator } from "./CSVGenerator"
 
 interface DownloadTabProps {
     bounds: Bounds
@@ -154,8 +153,65 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
     }
 
-    @computed get csvGenerator(): CSVGenerator {
-        return new CSVGenerator({ grapher: this.props.grapher })
+    onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
+        const grapher = this.props.grapher
+        const dropCols = grapher.table.constantColumnSlugs()
+        dropCols.push("entityId")
+        const csvFilename = grapher.displaySlug + ".csv"
+        const csv = grapher.table
+            .toView()
+            .deleteColumns(dropCols)
+            .sortBy("entityName")
+            .toDelimitedWithColumnNames()
+        // todo: date to string
+
+        // IE11 compatibility
+        if (window.navigator.msSaveBlob) {
+            window.navigator.msSaveBlob(
+                new Blob([csv], { type: "text/csv" }),
+                csvFilename
+            )
+            ev.preventDefault()
+        } else {
+            const downloadLink = document.createElement("a")
+            downloadLink.setAttribute(
+                "href",
+                `data:text/csv,` + encodeURIComponent(csv)
+            )
+            downloadLink.setAttribute("download", csvFilename)
+            downloadLink.click()
+        }
+    }
+
+    @computed private get csvButton() {
+        const grapher = this.props.grapher
+        const externalCsvLink = grapher.externalCsvLink
+        const csvFilename = grapher.displaySlug + ".csv"
+        const props = externalCsvLink
+            ? {
+                  href: externalCsvLink,
+                  download: csvFilename,
+              }
+            : {
+                  onClick: (ev: React.MouseEvent<HTMLAnchorElement>) =>
+                      this.onCsvDownload(ev),
+              }
+
+        return (
+            <div className="download-csv" style={{ maxWidth: "100%" }}>
+                <p>
+                    Download a CSV file containing all data used in this
+                    visualization:
+                </p>
+                <a
+                    className="btn btn-primary"
+                    data-track-note="chart-download-csv"
+                    {...props}
+                >
+                    <FontAwesomeIcon icon={faDownload} /> {csvFilename}
+                </a>
+            </div>
+        )
     }
 
     renderReady() {
@@ -195,37 +251,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         const asideStyle = {
             maxWidth: previewWidth,
         }
-
-        const externalCsvLink = this.props.grapher.externalCsvLink
-        const csvGenerator = this.csvGenerator
-        const csv_download = (
-            <React.Fragment>
-                <div className="download-csv" style={{ maxWidth: "100%" }}>
-                    <p>
-                        Download a CSV file containing all data used in this
-                        visualization:
-                    </p>
-                    <a
-                        href={
-                            externalCsvLink
-                                ? externalCsvLink
-                                : csvGenerator.csvDataUri
-                        }
-                        download={csvGenerator.csvFilename}
-                        className="btn btn-primary"
-                        data-track-note="chart-download-csv"
-                        onClick={
-                            externalCsvLink
-                                ? undefined
-                                : csvGenerator.onDownload
-                        }
-                    >
-                        <FontAwesomeIcon icon={faDownload} />{" "}
-                        {csvGenerator.csvFilename}
-                    </a>
-                </div>
-            </React.Fragment>
-        )
 
         return (
             <React.Fragment>
@@ -269,7 +294,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                         </div>
                     </a>
                 </div>
-                {csv_download}
+                {this.csvButton}
             </React.Fragment>
         )
     }

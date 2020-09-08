@@ -20,6 +20,7 @@ import {
     intersectionOfSets,
     formatValue,
     anyToString,
+    formatDay,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -99,7 +100,6 @@ export declare type columnTypes =
     | "String"
     | "Categorical"
     | "Boolean"
-    | "Temporal"
     | "Currency"
     | "Percentage"
     | "DecimalPercentage"
@@ -108,6 +108,8 @@ export declare type columnTypes =
     | "PopulationDensity"
     | "Age"
     | "Ratio"
+    | "Year"
+    | "Date"
 
 export interface ColumnSpec {
     slug: ColumnSlug
@@ -245,7 +247,16 @@ export abstract class AbstractColumn {
 
     // todo: remove
     @computed get valuesUniq(): any[] {
-        return Array.from(new Set(this.values))
+        return Array.from(this.valuesAsSet)
+    }
+
+    @computed private get valuesAsSet() {
+        return new Set(this.values)
+    }
+
+    // True if the column has only 1 value
+    @computed get isConstant() {
+        return this.valuesAsSet.size === 1
     }
 
     // todo: remove
@@ -279,7 +290,17 @@ export abstract class AbstractColumn {
 
 class AnyColumn extends AbstractColumn {}
 class StringColumn extends AbstractColumn {}
-class TemporalColumn extends AbstractColumn {}
+abstract class TemporalColumn extends AbstractColumn {}
+
+class YearColumn extends TemporalColumn {}
+
+class DateColumn extends TemporalColumn {
+    formatValue(value: number) {
+        if (value === undefined) return ""
+        return formatDay(value)
+    }
+}
+
 class CategoricalColumn extends AbstractColumn {}
 class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
@@ -365,9 +386,10 @@ class RatioColumn extends NumericColumn {
 
 const columnTypeMap: { [key in columnTypes]: any } = {
     String: StringColumn,
-    Temporal: TemporalColumn,
     Categorical: CategoricalColumn,
     Numeric: NumericColumn,
+    Date: DateColumn,
+    Year: YearColumn,
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,
     Percentage: PercentageColumn,
@@ -615,7 +637,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         const slugs = this.columnSlugs
         return this.rows.filter((row) =>
             slugs
-                .map((slug) => slug + " " + (row[slug] ?? ""))
+                .map((slug) => `${slug} ${row[slug] ?? ""}`)
                 .join(" ")
                 .includes(query)
         )
@@ -638,6 +660,16 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         this._rows = this.rows.concat(cloneDeep(rows))
         this.addSpecs(AbstractTable.makeSpecsFromRows(rows))
         return this
+    }
+
+    constantColumnSlugs() {
+        return this.columnsAsArray
+            .filter((col) => col.isConstant)
+            .map((col) => col.slug)
+    }
+
+    toView() {
+        return new TableView(this.rows, this.columnsAsArray)
     }
 }
 
@@ -663,6 +695,42 @@ export class BasicTable extends AbstractTable<Row> {
             })
         }
         return rows
+    }
+}
+
+// A mutable Table class without observables for simple table ops. Likely will merge with the main Table class.
+export class TableView {
+    private rows: Row[]
+    private columns: ColumnSpec[]
+    constructor(rows: Row[], columns: ColumnSpec[]) {
+        this.rows = cloneDeep(rows)
+        this.columns = cloneDeep(columns)
+    }
+
+    sortBy(columnSlug: ColumnSlug) {
+        this.rows = sortBy(this.rows, columnSlug)
+        return this
+    }
+
+    deleteColumns(columnSlugs: ColumnSlug[]) {
+        const deleteThese = new Set(columnSlugs)
+        this.columns = this.columns.filter((col) => !deleteThese.has(col.slug))
+        return this
+    }
+
+    extract(slugs: ColumnSlug[]) {
+        return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
+    }
+
+    toDelimitedWithColumnNames() {
+        const delimiter = ","
+        const slugs = this.columns.map((col) => col.slug)
+        const header =
+            this.columns.map((col) => col.name).join(delimiter) + "\n"
+        const body = this.extract(slugs)
+            .map((row) => row.join(delimiter))
+            .join("\n")
+        return header + body
     }
 }
 
@@ -874,8 +942,11 @@ export class OwidTable extends AbstractTable<OwidRow> {
             display,
         } = variable
 
+        // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
+        const name = variable.id == 123 ? "Continent" : variable.name
+
         return {
-            name: variable.name,
+            name,
             slug,
             isDailyMeasurement: variable.display.yearIsDay,
             unit,
@@ -896,11 +967,13 @@ export class OwidTable extends AbstractTable<OwidRow> {
         const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
         const columnSpecs: Map<ColumnSlug, ColumnSpec> = new Map()
         columnSpecs.set("entityName", {
+            name: "Entity",
             slug: "entityName",
             type: "Categorical",
         })
         columnSpecs.set("entityId", { slug: "entityId", type: "Categorical" })
         columnSpecs.set("entityCode", {
+            name: "Code",
             slug: "entityCode",
             type: "Categorical",
         })
@@ -918,8 +991,16 @@ export class OwidTable extends AbstractTable<OwidRow> {
             const columnSpec = this.columnSpecFromLegacyVariable(variable)
             const columnSlug = columnSpec.slug
             columnSpec.isDailyMeasurement
-                ? columnSpecs.set("day", { slug: "day", type: "Temporal" })
-                : columnSpecs.set("year", { slug: "year", type: "Temporal" })
+                ? columnSpecs.set("day", {
+                      slug: "day",
+                      type: "Date",
+                      name: "Date",
+                  })
+                : columnSpecs.set("year", {
+                      slug: "year",
+                      type: "Year",
+                      name: "Year",
+                  })
             columnSpecs.set(columnSlug, columnSpec)
 
             // todo: remove. move annotations to their own first class column.
@@ -935,6 +1016,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
                 columnSpecs.set(annotationsColumnSlug, {
                     slug: annotationsColumnSlug,
                     type: "String",
+                    name: `${columnSpec.name} Annotations`,
                 })
                 columnSpec.annotationsColumnSlug = annotationsColumnSlug
             }
@@ -970,7 +1052,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         }
         const groupMap = groupBy(rows, (row) => {
             const timePart =
-                row.year !== undefined ? `year:` + row.year : `day:` + row.day
+                row.year !== undefined ? `year:${row.year}` : `day:${row.day}`
             return timePart + " " + row.entityName
         })
 

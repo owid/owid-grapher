@@ -9,6 +9,7 @@ import {
     sortedUniq,
     sortNumeric,
     trimObject,
+    extend,
 } from "grapher/utils/Util"
 import {
     TickFormattingOptions,
