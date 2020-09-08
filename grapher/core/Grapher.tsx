@@ -30,7 +30,6 @@ import {
     without,
     xor,
     lastOfNonEmptyArray,
-    find,
     identity,
 } from "grapher/utils/Util"
 import {
@@ -267,7 +266,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get primaryVariableId() {
-        const yDimension = find(this.dimensions, { property: "y" })
+        const yDimension = this.dimensions.find((d) => d.property === "y")
         return yDimension ? yDimension.variableId : undefined
     }
 

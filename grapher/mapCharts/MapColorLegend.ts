@@ -1,6 +1,6 @@
 import { computed } from "mobx"
 
-import { min, max, each, last, flatten, find, sum } from "grapher/utils/Util"
+import { min, max, each, last, flatten, sum } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import {
@@ -387,7 +387,7 @@ export class MapColorLegend {
 
         if (focusBracket) return focusBracket
         else if (focusValue)
-            return find(numericLegendData, (bin) => bin.contains(focusValue))
+            return numericLegendData.find((bin) => bin.contains(focusValue))
         else return undefined
     }
 
@@ -397,9 +397,7 @@ export class MapColorLegend {
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
         else if (focusValue)
-            return find(categoricalLegendData, (bin) =>
-                bin.contains(focusValue)
-            )
+            return categoricalLegendData.find((bin) => bin.contains(focusValue))
         else return undefined
     }
 

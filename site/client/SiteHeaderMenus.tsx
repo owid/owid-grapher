@@ -11,7 +11,7 @@ import { observer } from "mobx-react"
 import { HeaderSearch } from "./HeaderSearch"
 import { CategoryWithEntries, EntryMeta } from "db/wpdb"
 import classnames from "classnames"
-import { find, flatten } from "grapher/utils/Util"
+import { flatten } from "grapher/utils/Util"
 import { bind } from "decko"
 
 import { BAKED_BASE_URL } from "settings"
@@ -339,8 +339,7 @@ export class DesktopTopicsMenu extends React.Component<{
 
     @bind onActivate(categorySlug: string) {
         if (categorySlug) {
-            const category = find(
-                this.props.categories,
+            const category = this.props.categories.find(
                 (c) => c.slug === categorySlug
             )
             if (category) this.setCategory(category)
@@ -349,8 +348,7 @@ export class DesktopTopicsMenu extends React.Component<{
 
     @bind onDeactivate(categorySlug: string) {
         if (categorySlug) {
-            const category = find(
-                this.props.categories,
+            const category = this.props.categories.find(
                 (c) => c.slug === categorySlug
             )
             if (category === this.activeCategory) this.setCategory(undefined)

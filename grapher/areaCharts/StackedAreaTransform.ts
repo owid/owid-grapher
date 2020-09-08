@@ -4,7 +4,6 @@ import {
     sortBy,
     cloneDeep,
     sum,
-    find,
     identity,
     flatten,
     sortNumeric,
@@ -264,7 +263,7 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get yDimensionFirst() {
-        return find(this.grapher.filledDimensions, (d) => d.property === "y")
+        return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 
     formatYTick(v: number) {

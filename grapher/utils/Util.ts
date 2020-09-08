@@ -9,7 +9,6 @@ import debounce from "lodash/debounce"
 import difference from "lodash/difference"
 import each from "lodash/each"
 import extend from "lodash/extend"
-import find from "lodash/find"
 import flatten from "lodash/flatten"
 import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
@@ -65,7 +64,6 @@ export {
     difference,
     each,
     extend,
-    find,
     flatten,
     fromPairs,
     groupBy,

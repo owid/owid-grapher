@@ -14,7 +14,6 @@ import {
     last,
     flatten,
     min,
-    find,
     first,
     isEmpty,
     guid,
@@ -693,8 +692,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 this.hoverKey = null*/
 
             if (closestSeries && this.props.onMouseOver) {
-                const datum = find(
-                    this.data,
+                const datum = this.data.find(
                     (d) =>
                         d.entityDimensionKey ===
                         closestSeries.entityDimensionKey
