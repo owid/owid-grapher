@@ -9,7 +9,6 @@ import debounce from "lodash/debounce"
 import difference from "lodash/difference"
 import each from "lodash/each"
 import extend from "lodash/extend"
-import filter from "lodash/filter"
 import find from "lodash/find"
 import findIndex from "lodash/findIndex"
 import flatten from "lodash/flatten"
@@ -68,7 +67,6 @@ export {
     difference,
     each,
     extend,
-    filter,
     find,
     findIndex,
     flatten,

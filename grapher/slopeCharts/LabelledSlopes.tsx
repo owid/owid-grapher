@@ -18,7 +18,6 @@ import {
     max,
     isEmpty,
     intersection,
-    filter,
     flatten,
     SVGElement,
     getRelativeMouse,
@@ -515,15 +514,13 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get backgroundGroups(): SlopeProps[] {
-        return filter(
-            this.slopeData,
+        return this.slopeData.filter(
             (group) => !(group.isHovered || group.isFocused)
         )
     }
 
     @computed get foregroundGroups(): SlopeProps[] {
-        return filter(
-            this.slopeData,
+        return this.slopeData.filter(
             (group) => !!(group.isHovered || group.isFocused)
         )
     }

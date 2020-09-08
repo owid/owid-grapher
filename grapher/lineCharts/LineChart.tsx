@@ -3,7 +3,6 @@ import {
     map,
     flatten,
     sortBy,
-    filter,
     sum,
     guid,
     getRelativeMouse,
@@ -159,11 +158,11 @@ class Lines extends React.Component<LinesProps> {
     }
 
     @computed get focusGroups() {
-        return filter(this.renderData, (g) => g.isFocus)
+        return this.renderData.filter((g) => g.isFocus)
     }
 
     @computed get backgroundGroups() {
-        return filter(this.renderData, (g) => !g.isFocus)
+        return this.renderData.filter((g) => !g.isFocus)
     }
 
     // Don't display point markers if there are very many of them for performance reasons
