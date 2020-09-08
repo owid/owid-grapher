@@ -5,10 +5,10 @@ import {
     computed,
     action,
     autorun,
-    toJS,
     runInAction,
     reaction,
     IReactionDisposer,
+    when,
 } from "mobx"
 import { bind } from "decko"
 
@@ -37,6 +37,8 @@ import {
     Color,
     TickFormattingOptions,
     EntityDimensionKey,
+    ScaleType,
+    StackMode,
 } from "grapher/core/GrapherConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
 import {
@@ -52,7 +54,7 @@ import {
     SourceWithDimension,
 } from "grapher/chart/ChartDimension"
 import { MapTransform } from "grapher/mapCharts/MapTransform"
-import { GrapherUrl } from "./GrapherUrl"
+import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
 import { StackedBarTransform } from "grapher/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "grapher/barCharts/DiscreteBarTransform"
 import { StackedAreaTransform } from "grapher/areaCharts/StackedAreaTransform"
@@ -69,6 +71,8 @@ import {
     maxTimeFromJSON,
     TimeBounds,
     TimeBoundValue,
+    getTimeDomainFromQueryString,
+    parseTimeURIComponent,
 } from "grapher/utils/TimeBounds"
 import {
     GlobalEntitySelection,
@@ -76,7 +80,7 @@ import {
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { countries } from "utils/countries"
 import { DataTableTransform } from "grapher/dataTable/DataTableTransform"
-import { getWindowQueryParams } from "utils/client/url"
+import { getWindowQueryParams, strToQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
 import {
     GrapherConfigInterface,
@@ -86,12 +90,11 @@ import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { MapProjection } from "grapher/mapCharts/MapProjections"
 
 declare const window: any
 
 export class Grapher extends PersistableGrapher {
-    private origScriptRaw: Readonly<GrapherConfigInterface>
-
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
@@ -99,24 +102,160 @@ export class Grapher extends PersistableGrapher {
     isEditor: Readonly<boolean> = (window as any).isEditor === true
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
-    /**
-     * The original props as they are stored in the database. Useful for deriving the URL
-     * parameters that need to be applied to reach the current state.
-     */
-    @computed get origScript(): Readonly<GrapherConfigInterface> {
-        // In the editor, the current state is always the "original" state
-        return this.isEditor ? this.toObject() : this.origScriptRaw
+    configOnLoad: Readonly<GrapherConfigInterface>
+
+    constructor(
+        config?: GrapherConfigInterface,
+        options: {
+            isEmbed?: boolean
+            isMediaCard?: boolean
+            queryStr?: string
+            globalEntitySelection?: GlobalEntitySelection
+        } = {}
+    ) {
+        super(config)
+        this.isEmbed = !!options.isEmbed
+        this.isMediaCard = !!options.isMediaCard
+
+        this.initFontSizeInAxisContainers()
+
+        if (!this.manuallyProvideData)
+            this.disposers.push(
+                reaction(() => this.variableIds, this.downloadData, {
+                    fireImmediately: true,
+                })
+            )
+
+        this.disposers.push(
+            reaction(
+                () => this.minPopulationFilter,
+                () => {
+                    this.updatePopulationFilter()
+                }
+            )
+        )
+
+        this.url = new GrapherUrl(this, config, this.bakedGrapherURL)
+        if (options.queryStr !== undefined)
+            this.populateFromQueryParams(strToQueryParams(options.queryStr))
+
+        // The props after consuming the URL parameters, but before any user interaction
+        this.configOnLoad = this.toObject()
+
+        if (options.globalEntitySelection) {
+            this.disposers.push(
+                subscribeGrapherToGlobalEntitySelection(
+                    this,
+                    options.globalEntitySelection
+                )
+            )
+        }
+
+        if (this.isEditor) this.ensureValidConfig()
     }
 
-    private initialScriptRaw: Readonly<GrapherConfigInterface>
-
     /**
-     * The props after consuming the initial URL parameters but before any user-triggered
-     * changes. Helpful for "resetting" embeds to their initial state.
+     * Applies query parameters to the grapher config
      */
-    @computed get initialScript(): Readonly<GrapherConfigInterface> {
-        // In the editor, the current state is always the "initial" state
-        return this.isEditor ? this.toObject() : this.initialScriptRaw
+    @action.bound populateFromQueryParams(params: GrapherQueryParams) {
+        // Set tab if specified
+        const tab = params.tab
+        if (tab) {
+            if (!this.availableTabs.includes(tab as GrapherTabOption))
+                console.error("Unexpected tab: " + tab)
+            else this.tab = tab as GrapherTabOption
+        }
+
+        const overlay = params.overlay
+        if (overlay) {
+            if (!this.availableTabs.includes(overlay as GrapherTabOption))
+                console.error("Unexpected overlay: " + overlay)
+            else this.overlay = overlay as GrapherTabOption
+        }
+
+        // Stack mode for bar and stacked area charts
+        this.stackMode = (params.stackMode ?? this.stackMode) as StackMode
+
+        this.zoomToSelection =
+            params.zoomToSelection === "true" ? true : this.zoomToSelection
+
+        this.minPopulationFilter = params.minPopulationFilter
+            ? parseInt(params.minPopulationFilter)
+            : this.minPopulationFilter
+
+        // Axis scale mode
+        const xScaleType = params.xScale
+        if (xScaleType) {
+            if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
+                this.xAxis.scaleType = xScaleType
+            else console.error("Unexpected xScale: " + xScaleType)
+        }
+
+        const yScaleType = params.yScale
+        if (yScaleType) {
+            if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
+                this.yAxis.scaleType = yScaleType
+            else console.error("Unexpected xScale: " + yScaleType)
+        }
+
+        const time = params.time
+        if (time) this.setTimeFromTimeQueryParam(time)
+
+        const endpointsOnly = params.endpointsOnly
+        if (endpointsOnly !== undefined) {
+            this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
+        }
+
+        // Map stuff below
+
+        if (this.map) {
+            if (params.year) {
+                const year = parseTimeURIComponent(
+                    params.year,
+                    TimeBoundValue.unboundedRight
+                )
+                this.map.targetYear = year
+            }
+
+            const region = params.region
+            if (region !== undefined) {
+                this.map.projection = region as MapProjection
+            }
+        }
+
+        // Selected countries -- we can't actually look these up until we have the data
+        const country = params.country
+        if (
+            this.manuallyProvideData ||
+            !country ||
+            this.addCountryMode === "disabled"
+        )
+            return
+        when(
+            () => this.isReady,
+            () => {
+                runInAction(() => {
+                    const entityCodes = EntityUrlBuilder.queryParamToEntities(
+                        country
+                    )
+                    const matchedEntities = this.setSelectedEntitiesByCode(
+                        entityCodes
+                    )
+                    const notFoundEntities = Array.from(
+                        matchedEntities.keys()
+                    ).filter((key) => !matchedEntities.get(key))
+
+                    if (notFoundEntities.length)
+                        this.analytics.logEntitiesNotFoundError(
+                            notFoundEntities
+                        )
+                })
+            }
+        )
+    }
+
+    setTimeFromTimeQueryParam(time: string) {
+        this.timeDomain = getTimeDomainFromQueryString(time)
     }
 
     @observable.ref isEmbed: boolean
@@ -350,58 +489,6 @@ export class Grapher extends PersistableGrapher {
         this.yAxis.container = axisContainer
     }
 
-    constructor(
-        props?: GrapherConfigInterface,
-        options: {
-            isEmbed?: boolean
-            isMediaCard?: boolean
-            queryStr?: string
-            globalEntitySelection?: GlobalEntitySelection
-        } = {}
-    ) {
-        super(props)
-        this.isEmbed = !!options.isEmbed
-        this.isMediaCard = !!options.isMediaCard
-
-        this.initFontSizeInAxisContainers()
-
-        // The original props, as stored in the database. Todo: why not just store props?
-        this.origScriptRaw = this.toObject()
-
-        if (!this.manuallyProvideData)
-            this.disposers.push(
-                reaction(() => this.variableIds, this.downloadData, {
-                    fireImmediately: true,
-                })
-            )
-
-        this.disposers.push(
-            reaction(
-                () => this.minPopulationFilter,
-                () => {
-                    this.updatePopulationFilter()
-                }
-            )
-        )
-
-        this.url = new GrapherUrl(this, options.queryStr)
-        this.url.urlRoot = this.bakedGrapherURL
-
-        // The props after consuming the URL parameters, but before any user interaction
-        this.initialScriptRaw = toJS(this)
-
-        if (options.globalEntitySelection) {
-            this.disposers.push(
-                subscribeGrapherToGlobalEntitySelection(
-                    this,
-                    options.globalEntitySelection
-                )
-            )
-        }
-
-        if (this.isEditor) this.ensureValidConfig()
-    }
-
     updatePopulationFilter() {
         const slug = "pop_filter"
         const minPop = this.minPopulationFilter
@@ -458,7 +545,7 @@ export class Grapher extends PersistableGrapher {
         /** If the start year was autoselected in the DataTable, revert. */
         if (!this.userHasSetTimeline)
             this.timeDomain = [
-                this.initialScript.minTime ?? TimeBoundValue.unboundedLeft,
+                this.configOnLoad.minTime ?? TimeBoundValue.unboundedLeft,
                 this.timeDomain[1],
             ]
 
@@ -483,7 +570,7 @@ export class Grapher extends PersistableGrapher {
         } else {
             // table tab cannot be downloaded, so revert to default tab
             if (value === "download" && this.tab === "table") {
-                this.tab = this.origScript.tab || "chart"
+                this.tab = this.configOnLoad.tab || "chart"
             }
             this.overlay = value
         }
@@ -603,12 +690,6 @@ export class Grapher extends PersistableGrapher {
                     : text.charAt(0).toLowerCase() + text.slice(1))
         }
 
-        // Causes difficulties with charts like https://ourworldindata.org/grapher/antibiotic-use-in-livestock-in-europe
-        /*if (chart.props.tab === "map" && chart.map.props.projection !== "World") {
-            const label = labelsByRegion[chart.map.props.projection]
-            text = text + ` in ${label}`
-        }*/
-
         if (
             !this.hideTitleAnnotation ||
             (this.isLineChart &&
@@ -629,8 +710,6 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get maxYear(): number {
-        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
-        //    return undefined
         if (this.currentTab === "table") return this.dataTableTransform.endYear
         else if (this.primaryTab === "map") return this.mapTransform.targetYear
         else if (this.isScatter && !this.scatterTransform.failMessage)
@@ -667,8 +746,6 @@ export class Grapher extends PersistableGrapher {
 
     // XXX refactor into the transforms
     @computed get minYear(): number {
-        //if (chart.isScatter && !chart.scatter.failMessage && chart.scatter.xOverrideYear != undefined)
-        //    return undefined
         if (this.currentTab === "table")
             return this.dataTableTransform.startYear
         else if (this.primaryTab === "map") return this.mapTransform.targetYear
@@ -1041,7 +1118,7 @@ export class Grapher extends PersistableGrapher {
 
     // todo: remove
     @action.bound resetSelectedEntities() {
-        this.selectedData = this.initialScript.selectedData || []
+        this.selectedData = this.configOnLoad.selectedData || []
     }
 
     // todo: remove

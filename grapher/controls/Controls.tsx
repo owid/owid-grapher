@@ -76,7 +76,7 @@ class HighlightToggle extends React.Component<{
                 ...getWindowQueryParams(),
                 ...this.highlightParams,
             }
-            this.grapher.url.populateFromQueryParams(params)
+            this.grapher.populateFromQueryParams(params)
         } else {
             this.grapher.selectedKeys = []
         }

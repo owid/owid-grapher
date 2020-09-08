@@ -107,7 +107,7 @@ export class SwitcherExplorer extends React.Component<{
             !this.explorerRuntime.hideControls && !this.isEmbed
         if (this.props.bindToWindow) this.bindToWindow()
 
-        this._grapher.url.populateFromQueryParams(currentParams)
+        this._grapher.populateFromQueryParams(currentParams)
 
         // disposer?
         when(

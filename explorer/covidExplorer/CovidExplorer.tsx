@@ -1002,7 +1002,7 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound toggleTimelineCommand() {
         // Todo: add tests for this
-        this.grapher.url.setTimeFromTimeQueryParam(
+        this.grapher.setTimeFromTimeQueryParam(
             next(["latest", "earliest", ".."], this.grapher.url.timeParam!)
         )
         this.renderControlsThenUpdateChart()

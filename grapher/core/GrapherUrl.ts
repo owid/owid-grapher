@@ -5,33 +5,16 @@
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
  */
-import { computed, when, runInAction, observable, action } from "mobx"
-
-import {
-    GrapherTabOption,
-    ScaleType,
-    StackMode,
-} from "grapher/core/GrapherConstants"
-
-import { defaultTo } from "grapher/utils/Util"
+import { computed, observable } from "mobx"
 
 // todo: we should probably factor out this circular dependency
 import { Grapher } from "grapher/core/Grapher"
 
-import {
-    queryParamsToStr,
-    strToQueryParams,
-    QueryParams,
-} from "utils/client/url"
-import { MapProjection } from "grapher/mapCharts/MapProjections"
+import { queryParamsToStr, QueryParams } from "utils/client/url"
 import { ObservableUrl } from "grapher/utils/UrlBinder"
-import {
-    TimeBoundValue,
-    formatTimeURIComponent,
-    getTimeDomainFromQueryString,
-    parseTimeURIComponent,
-} from "grapher/utils/TimeBounds"
+import { formatTimeURIComponent } from "grapher/utils/TimeBounds"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
+import { GrapherConfigInterface } from "./GrapherConfig"
 
 export interface GrapherQueryParams extends QueryParams {
     tab?: string
@@ -52,20 +35,18 @@ export interface GrapherQueryParams extends QueryParams {
 // Todo: this should probably be merged into PeristableGrapher
 export class GrapherUrl implements ObservableUrl {
     private grapher: Grapher
-    grapherQueryStr: string = "?"
-    mapQueryStr: string = "?"
     debounceMode: boolean = false
+    private originalConfig: GrapherConfigInterface
+    private urlRoot: string
 
-    constructor(grapher: Grapher, queryStr?: string) {
+    constructor(
+        grapher: Grapher,
+        originalConfig?: GrapherConfigInterface,
+        urlRoot = "/grapher"
+    ) {
         this.grapher = grapher
-
-        if (queryStr !== undefined) {
-            this.populateFromQueryParams(strToQueryParams(queryStr))
-        }
-    }
-
-    @computed private get origGrapherProps() {
-        return this.grapher.origScript
+        this.originalConfig = originalConfig || {}
+        this.urlRoot = urlRoot
     }
 
     @computed.struct private get allParams() {
@@ -100,36 +81,33 @@ export class GrapherUrl implements ObservableUrl {
     // and original config state
     @computed.struct private get changedParams() {
         const params = this.allParams
-        const { grapher, origGrapherProps } = this
+        const { grapher, originalConfig } = this
 
-        if (params.tab === origGrapherProps.tab) params.tab = undefined
+        if (params.tab === originalConfig.tab) params.tab = undefined
 
-        if (params.xScale === origGrapherProps.xAxis?.scaleType)
+        if (params.xScale === originalConfig.xAxis?.scaleType)
             params.xScale = undefined
 
-        if (params.yScale === origGrapherProps.yAxis?.scaleType)
+        if (params.yScale === originalConfig.yAxis?.scaleType)
             params.yScale = undefined
 
-        if (params.stackMode === origGrapherProps.stackMode)
+        if (params.stackMode === originalConfig.stackMode)
             params.stackMode = undefined
 
-        if (grapher.zoomToSelection === origGrapherProps.zoomToSelection)
+        if (grapher.zoomToSelection === originalConfig.zoomToSelection)
             params.zoomToSelection = undefined
 
-        if (
-            grapher.minPopulationFilter === origGrapherProps.minPopulationFilter
-        )
+        if (grapher.minPopulationFilter === originalConfig.minPopulationFilter)
             params.minPopulationFilter = undefined
 
         if (
-            grapher.compareEndPointsOnly ===
-            origGrapherProps.compareEndPointsOnly
+            grapher.compareEndPointsOnly === originalConfig.compareEndPointsOnly
         )
             params.endpointsOnly = undefined
 
         if (
-            origGrapherProps.map &&
-            params.region === origGrapherProps.map.projection
+            originalConfig.map &&
+            params.region === originalConfig.map.projection
         )
             params.region = undefined
 
@@ -144,8 +122,6 @@ export class GrapherUrl implements ObservableUrl {
         }
         return queryParamsToStr(queryParams)
     }
-
-    @observable urlRoot = "/grapher"
 
     @computed get baseUrl(): string | undefined {
         if (this.externalBaseUrl) return this.externalBaseUrl
@@ -164,13 +140,13 @@ export class GrapherUrl implements ObservableUrl {
 
     // Todo: why do we have a year and time param? Should this be mapYear?
     @computed private get yearParam(): string | undefined {
-        const { grapher, origGrapherProps } = this
+        const { grapher, originalConfig } = this
 
         if (
             grapher.mapTransform &&
-            origGrapherProps.map &&
+            originalConfig.map &&
             grapher.mapTransform.targetYearProp !==
-                origGrapherProps.map.targetYear
+                originalConfig.map.targetYear
         )
             return formatTimeURIComponent(
                 grapher.mapTransform.targetYearProp,
@@ -181,11 +157,11 @@ export class GrapherUrl implements ObservableUrl {
     }
 
     @computed get timeParam(): string | undefined {
-        const { grapher, origGrapherProps } = this
+        const { grapher, originalConfig } = this
 
         if (
-            grapher.minTime !== origGrapherProps.minTime ||
-            grapher.maxTime !== origGrapherProps.maxTime
+            grapher.minTime !== originalConfig.minTime ||
+            grapher.maxTime !== originalConfig.maxTime
         ) {
             const [minTime, maxTime] = grapher.timeDomain
             const formatAsDay = !!grapher.table.hasDayColumn
@@ -201,11 +177,11 @@ export class GrapherUrl implements ObservableUrl {
     }
 
     @computed private get countryParam(): string | undefined {
-        const { grapher, origGrapherProps } = this
+        const { grapher, originalConfig } = this
         if (
             grapher.isReady &&
             JSON.stringify(grapher.selectedData) !==
-                JSON.stringify(origGrapherProps.selectedData)
+                JSON.stringify(originalConfig.selectedData)
         ) {
             return EntityUrlBuilder.entitiesToQueryParam(
                 grapher.selectedEntityCodes
@@ -213,121 +189,6 @@ export class GrapherUrl implements ObservableUrl {
         } else {
             return undefined
         }
-    }
-
-    setTimeFromTimeQueryParam(time: string) {
-        this.grapher.timeDomain = getTimeDomainFromQueryString(time)
-    }
-
-    /**
-     * Applies query parameters to the grapher config
-     */
-    @action.bound populateFromQueryParams(params: GrapherQueryParams) {
-        const { grapher } = this
-
-        // Set tab if specified
-        const tab = params.tab
-        if (tab) {
-            if (!grapher.availableTabs.includes(tab as GrapherTabOption))
-                console.error("Unexpected tab: " + tab)
-            else grapher.tab = tab as GrapherTabOption
-        }
-
-        const overlay = params.overlay
-        if (overlay) {
-            if (!grapher.availableTabs.includes(overlay as GrapherTabOption))
-                console.error("Unexpected overlay: " + overlay)
-            else grapher.overlay = overlay as GrapherTabOption
-        }
-
-        // Stack mode for bar and stacked area charts
-        grapher.stackMode = defaultTo(
-            params.stackMode as StackMode,
-            grapher.stackMode
-        )
-
-        grapher.zoomToSelection = defaultTo(
-            params.zoomToSelection === "true" ? true : undefined,
-            grapher.zoomToSelection
-        )
-
-        grapher.minPopulationFilter = defaultTo(
-            params.minPopulationFilter
-                ? parseInt(params.minPopulationFilter)
-                : undefined,
-            grapher.minPopulationFilter
-        )
-
-        // Axis scale mode
-        const xScaleType = params.xScale
-        if (xScaleType) {
-            if (xScaleType === ScaleType.linear || xScaleType === ScaleType.log)
-                grapher.xAxis.scaleType = xScaleType
-            else console.error("Unexpected xScale: " + xScaleType)
-        }
-
-        const yScaleType = params.yScale
-        if (yScaleType) {
-            if (yScaleType === ScaleType.linear || yScaleType === ScaleType.log)
-                grapher.yAxis.scaleType = yScaleType
-            else console.error("Unexpected xScale: " + yScaleType)
-        }
-
-        const time = params.time
-        if (time) this.setTimeFromTimeQueryParam(time)
-
-        const endpointsOnly = params.endpointsOnly
-        if (endpointsOnly !== undefined) {
-            grapher.compareEndPointsOnly =
-                endpointsOnly === "1" ? true : undefined
-        }
-
-        // Map stuff below
-
-        if (grapher.map) {
-            if (params.year) {
-                const year = parseTimeURIComponent(
-                    params.year,
-                    TimeBoundValue.unboundedRight
-                )
-                grapher.map.targetYear = year
-            }
-
-            const region = params.region
-            if (region !== undefined) {
-                grapher.map.projection = region as MapProjection
-            }
-        }
-
-        // Selected countries -- we can't actually look these up until we have the data
-        const country = params.country
-        if (
-            grapher.manuallyProvideData ||
-            !country ||
-            grapher.addCountryMode === "disabled"
-        )
-            return
-        when(
-            () => grapher.isReady,
-            () => {
-                runInAction(() => {
-                    const entityCodes = EntityUrlBuilder.queryParamToEntities(
-                        country
-                    )
-                    const matchedEntities = this.grapher.setSelectedEntitiesByCode(
-                        entityCodes
-                    )
-                    const notFoundEntities = Array.from(
-                        matchedEntities.keys()
-                    ).filter((key) => !matchedEntities.get(key))
-
-                    if (notFoundEntities.length)
-                        grapher.analytics.logEntitiesNotFoundError(
-                            notFoundEntities
-                        )
-                })
-            }
-        )
     }
 }
 
