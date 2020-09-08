@@ -18,7 +18,7 @@ import { ScaleSelector } from "./ScaleSelector"
 export class ControlsRow extends React.Component<{
     controls: Controls
 }> {
-    static readonly height = 20
+    static readonly height = 45
 
     @action.bound onDataSelect() {
         this.grapher.isSelectingData = true
