@@ -287,10 +287,10 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         }
     }
 
-    @computed get grapherConfig(): GrapherConfigInterface {
+    @computed private get grapherConfig(): GrapherConfigInterface {
         return {
             yAxis: { min: 0 },
-            map: { variableId: this.props.variable.id },
+            map: { columnSlug: this.props.variable.id.toString() },
             tab: "map",
             hasMapTab: true,
             dimensions: [
@@ -305,7 +305,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.grapher = new Grapher(this.grapherConfig as any)
+        this.grapher = new Grapher(this.grapherConfig)
 
         this.dispose = autorun(() => {
             if (this.grapher && this.grapherConfig) {

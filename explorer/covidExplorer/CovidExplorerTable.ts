@@ -21,7 +21,7 @@ import {
     RowToValueMapper,
     ColumnSpec,
     EntityName,
-    columnSlug,
+    ColumnSlug,
     columnTypes,
     Row,
     generateEntityId,
@@ -502,8 +502,8 @@ export class CovidExplorerTable {
         this.table.deleteColumnBySlug(this.groupFilterSlug)
     }
 
-    private negativeFilterSlug: columnSlug = ""
-    addNegativeFilterColumn(slugName: columnSlug) {
+    private negativeFilterSlug: ColumnSlug = ""
+    addNegativeFilterColumn(slugName: ColumnSlug) {
         const filterSlug = "filter_negatives_in_" + slugName
         if (filterSlug !== this.negativeFilterSlug)
             this.removeNegativeFilterColumn()

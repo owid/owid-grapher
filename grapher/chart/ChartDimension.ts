@@ -16,7 +16,7 @@ import {
 } from "grapher/core/GrapherConstants"
 import {
     AbstractColumn,
-    owidVariableId,
+    OwidVariableId,
     EntityName,
     EntityId,
 } from "owidTable/OwidTable"
@@ -37,7 +37,7 @@ export interface SourceWithDimension {
 
 export interface ChartDimensionInterface {
     property: dimensionProperty
-    variableId: owidVariableId
+    variableId: OwidVariableId
     targetYear?: Time
     display?: OwidVariableDisplaySettings
 }
@@ -57,7 +57,7 @@ export interface EntityDimensionInfo {
 // and a particular variable that it requests as data
 export class ChartDimensionSpec implements ChartDimensionInterface {
     @observable property!: dimensionProperty
-    @observable variableId!: owidVariableId
+    @observable variableId!: OwidVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
@@ -93,8 +93,12 @@ export class ChartDimension {
     spec: ChartDimensionSpec
     @observable.ref index: number
 
-    @computed get variableId(): owidVariableId {
+    @computed get variableId(): OwidVariableId {
         return this.spec.variableId
+    }
+
+    @computed get columnSlug(): string {
+        return this.variableId.toString()
     }
 
     @computed get property(): string {

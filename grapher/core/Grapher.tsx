@@ -269,6 +269,10 @@ export class Grapher extends PersistableGrapher {
         return yDimension ? yDimension.variableId : undefined
     }
 
+    @computed get primaryColumnSlug() {
+        return this.primaryVariableId?.toString()
+    }
+
     @computed private get loadingVarIds(): number[] {
         return this.dimensions
             .map((dim) => dim.variableId)

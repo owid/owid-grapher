@@ -15,12 +15,12 @@ import {
     Section,
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { owidVariableId } from "owidTable/OwidTable"
+import { OwidVariableId } from "owidTable/OwidTable"
 
 @observer
 class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
-    @action.bound onVariableId(variableId: owidVariableId) {
-        this.props.mapTransform.props.variableId = variableId
+    @action.bound onVariableId(variableId: OwidVariableId) {
+        this.props.mapTransform.props.columnSlug = variableId.toString()
     }
 
     @action.bound onProjection(projection: string | undefined) {
@@ -61,7 +61,11 @@ class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
             <Section name="Map">
                 <NumericSelectField
                     label="Variable"
-                    value={mapTransform.variableId as number}
+                    value={
+                        mapTransform.columnSlug
+                            ? parseInt(mapTransform.columnSlug)
+                            : undefined
+                    }
                     options={filledDimensions.map((d) => d.variableId)}
                     optionLabels={filledDimensions.map((d) => d.displayName)}
                     onValue={this.onVariableId}

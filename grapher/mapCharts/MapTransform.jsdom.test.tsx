@@ -6,6 +6,6 @@ import { Grapher } from "grapher/core/Grapher"
 describe(MapTransform, () => {
     test("can create a transform", () => {
         const transform = new MapTransform(new Grapher())
-        expect(transform.variableId).toBe(undefined)
+        expect(transform.columnSlug).toBe(undefined)
     })
 })

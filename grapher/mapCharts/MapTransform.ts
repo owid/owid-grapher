@@ -38,12 +38,12 @@ export class MapTransform extends ChartTransform {
         return this.grapher.map
     }
 
-    @computed get variableId() {
-        const { grapher } = this
-        const variableId = this.props.variableId
-        const hasVar =
-            variableId && grapher.table.columnsByOwidVarId.get(variableId)
-        return hasVar ? variableId : grapher.primaryVariableId
+    @computed get columnSlug() {
+        const grapher = this.grapher
+        return this.props.columnSlug &&
+            grapher.table.columnsBySlug.get(this.props.columnSlug)
+            ? this.props.columnSlug
+            : grapher.primaryColumnSlug
     }
 
     @computed get tolerance() {
@@ -90,14 +90,14 @@ export class MapTransform extends ChartTransform {
     // Make sure map has an assigned variable and the data is ready
     @computed get isReady(): boolean {
         return (
-            this.variableId !== undefined &&
-            !!this.grapher.table.columnsByOwidVarId.get(this.variableId)
+            !!this.columnSlug &&
+            this.grapher.table.columnsBySlug.has(this.columnSlug)
         )
     }
 
     @computed get dimension(): ChartDimension | undefined {
         return this.grapher.filledDimensions.find(
-            (d) => d.variableId === this.variableId
+            (d) => d.columnSlug === this.columnSlug
         )
     }
 

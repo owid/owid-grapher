@@ -16,4 +16,12 @@ describe(PersistableMapConfig, () => {
             projection: "Africa",
         })
     })
+
+    it("works with legacy variableId", () => {
+        const map = new PersistableMapConfig({ variableId: 23 })
+        expect(map.columnSlug).toEqual("23")
+        expect(map.toObject()).toEqual({
+            variableId: 23,
+        })
+    })
 })
