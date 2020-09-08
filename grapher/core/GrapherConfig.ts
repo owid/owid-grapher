@@ -22,8 +22,8 @@ import {
     maxTimeFromJSON,
 } from "grapher/utils/TimeBounds"
 import {
-    ChartDimensionSpec,
-    ChartDimensionInterface,
+    PersistableChartDimension,
+    ChartDimensionConfig,
 } from "grapher/chart/ChartDimension"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
@@ -71,7 +71,7 @@ export interface GrapherConfigInterface {
     maxTime?: TimeBound
     timelineMinTime?: Time
     timelineMaxTime?: Time
-    dimensions?: ChartDimensionSpec[]
+    dimensions?: PersistableChartDimension[]
     addCountryMode?: AddCountryMode
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
@@ -164,7 +164,7 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
     @observable map = new PersistableMapConfig()
 
     @observable.ref selectedData: EntitySelection[] = []
-    @observable.ref dimensions: ChartDimensionSpec[] = []
+    @observable.ref dimensions: PersistableChartDimension[] = []
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = []
     @observable relatedQuestions?: RelatedQuestionsConfig[]
@@ -209,7 +209,8 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
 
         if (obj.dimensions?.length)
             this.dimensions = obj.dimensions.map(
-                (spec: ChartDimensionInterface) => new ChartDimensionSpec(spec)
+                (spec: ChartDimensionConfig) =>
+                    new PersistableChartDimension(spec)
             )
 
         // JSON doesn't support Infinity, so we use strings instead.

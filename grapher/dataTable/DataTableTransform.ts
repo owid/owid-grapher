@@ -285,7 +285,7 @@ export class DataTableTransform extends ChartTransform {
             // One column for absolute difference, another for % difference.
             const deltaColumns: DimensionColumn[] = []
             if (isRange) {
-                const { tableDisplay } = dim.spec.display
+                const { tableDisplay } = dim.display
                 if (!tableDisplay?.hideAbsoluteChange)
                     deltaColumns.push({ key: RangeValueKey.delta })
                 if (!tableDisplay?.hideRelativeChange)

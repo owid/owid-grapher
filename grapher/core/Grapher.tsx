@@ -48,7 +48,7 @@ import {
 import {
     EntityDimensionInfo,
     ChartDimension,
-    ChartDimensionSpec,
+    PersistableChartDimension,
     SourceWithDimension,
 } from "grapher/chart/ChartDimension"
 import { MapTransform } from "grapher/mapCharts/MapTransform"
@@ -516,7 +516,7 @@ export class Grapher extends PersistableGrapher {
         else return [yAxis]
     }
 
-    @computed get validDimensions(): ChartDimensionSpec[] {
+    @computed get validDimensions(): PersistableChartDimension[] {
         const { dimensions } = this
         const validProperties = this.dimensionSlots.map((d) => d.property)
         let validDimensions = dimensions.filter((dim) =>
@@ -527,7 +527,10 @@ export class Grapher extends PersistableGrapher {
             if (!slot.allowMultiple)
                 validDimensions = uniqWith(
                     validDimensions,
-                    (a: ChartDimensionSpec, b: ChartDimensionSpec) =>
+                    (
+                        a: PersistableChartDimension,
+                        b: PersistableChartDimension
+                    ) =>
                         a.property === slot.property &&
                         a.property === b.property
                 )
@@ -545,13 +548,14 @@ export class Grapher extends PersistableGrapher {
     @computed.struct get filledDimensions(): ChartDimension[] {
         if (!this.isReady) return []
 
-        return this.dimensions.map((dim, i) => {
-            return new ChartDimension(
-                i,
-                dim,
-                this.table.columnsByOwidVarId.get(dim.variableId)!
-            )
-        })
+        return this.dimensions.map(
+            (dim, index) =>
+                new ChartDimension(
+                    dim,
+                    index,
+                    this.table.columnsByOwidVarId.get(dim.variableId)!
+                )
+        )
     }
 
     @computed get primaryDimensions() {

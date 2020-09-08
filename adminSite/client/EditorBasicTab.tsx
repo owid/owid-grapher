@@ -6,7 +6,7 @@ import { sample, sampleSize } from "grapher/utils/Util"
 import { ChartTypeDefs, ChartTypeName } from "grapher/core/GrapherConstants"
 import {
     ChartDimension,
-    ChartDimensionSpec,
+    PersistableChartDimension,
 } from "grapher/chart/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
@@ -15,6 +15,7 @@ import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
+import { OwidVariableId } from "owidTable/OwidTable"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -25,7 +26,7 @@ class DimensionSlotView extends React.Component<{
 
     @observable.ref isSelectingVariables: boolean = false
 
-    @action.bound onVariables(variableIds: number[]) {
+    @action.bound onVariables(variableIds: OwidVariableId[]) {
         const { slot } = this.props
 
         slot.dimensions = variableIds.map((id) => {
@@ -175,7 +176,10 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !grapher.dimensions.find((d) => d.property === "color")
         ) {
             grapher.dimensions = grapher.dimensions.concat(
-                new ChartDimensionSpec({ variableId: 123, property: "color" })
+                new PersistableChartDimension({
+                    variableId: 123,
+                    property: "color",
+                })
             )
         }
 
@@ -184,7 +188,10 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
             !grapher.dimensions.find((d) => d.property === "color")
         ) {
             grapher.dimensions = grapher.dimensions.concat(
-                new ChartDimensionSpec({ variableId: 72, property: "size" })
+                new PersistableChartDimension({
+                    variableId: 72,
+                    property: "size",
+                })
             )
         }
     }

@@ -114,7 +114,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     set xOverrideYear(value: number | undefined) {
-        this.xDimension!.spec.targetYear = value
+        this.xDimension!.targetYear = value
     }
 
     @computed get canToggleRelativeMode(): boolean {

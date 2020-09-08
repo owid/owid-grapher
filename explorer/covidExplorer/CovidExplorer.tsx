@@ -77,9 +77,9 @@ import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import {
-    ChartDimensionSpec,
+    PersistableChartDimension,
     ChartDimension,
-    ChartDimensionInterface,
+    ChartDimensionConfig,
 } from "grapher/chart/ChartDimension"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import { UrlBinder } from "grapher/utils/UrlBinder"
@@ -800,7 +800,7 @@ export class CovidExplorer extends React.Component<{
 
         // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
         chartProps.dimensions = this.dimensionSpecs.map(
-            (spec) => new ChartDimensionSpec(spec)
+            (spec) => new PersistableChartDimension(spec)
         )
 
         // multimetric table
@@ -1178,10 +1178,10 @@ export class CovidExplorer extends React.Component<{
                     "%",
                 tableDisplay: column?.display.tableDisplay,
             },
-        } as ChartDimensionInterface
+        } as ChartDimensionConfig
     }
 
-    @computed private get dataTableOnlyDimensions(): ChartDimensionInterface[] {
+    @computed private get dataTableOnlyDimensions(): ChartDimensionConfig[] {
         const params = this.constrainedParams
         return flatten(
             params.tableMetrics?.map((metric) => {
@@ -1240,8 +1240,8 @@ export class CovidExplorer extends React.Component<{
         this.grapher.dataTableOnlyDimensions = this.dataTableOnlyDimensions.map(
             (dimSpec, index) =>
                 new ChartDimension(
+                    dimSpec,
                     index,
-                    new ChartDimensionSpec(dimSpec),
                     this.grapher.table.columnsByOwidVarId.get(
                         dimSpec.variableId
                     )!
@@ -1249,7 +1249,7 @@ export class CovidExplorer extends React.Component<{
         )
     }
 
-    @computed private get yDimension(): ChartDimensionInterface {
+    @computed private get yDimension(): ChartDimensionConfig {
         const yColumn = this.yColumn
         const unit = this.constrainedParams.isWeeklyOrBiweeklyChange
             ? "%"
@@ -1269,7 +1269,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get xDimension(): ChartDimensionInterface {
+    @computed private get xDimension(): ChartDimensionConfig {
         const xColumn = this.xColumn!
         return {
             property: "x",
@@ -1281,7 +1281,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get dimensionSpecs(): ChartDimensionInterface[] {
+    @computed private get dimensionSpecs(): ChartDimensionConfig[] {
         if (this.constrainedParams.type !== "ScatterPlot")
             return [this.yDimension]
 
@@ -1293,7 +1293,7 @@ export class CovidExplorer extends React.Component<{
         return dimensions
     }
 
-    @computed private get sizeDimension(): ChartDimensionInterface {
+    @computed private get sizeDimension(): ChartDimensionConfig {
         return {
             property: "size",
             variableId: this.sizeColumn!.spec.owidVariableId!,
@@ -1301,7 +1301,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     private shortTermPositivityRateVarId: number = 0
-    @computed private get colorDimension(): ChartDimensionInterface {
+    @computed private get colorDimension(): ChartDimensionConfig {
         const variableId =
             this.constrainedParams.colorStrategy === "continents"
                 ? 123
