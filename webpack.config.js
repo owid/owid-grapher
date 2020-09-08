@@ -10,6 +10,8 @@ const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 module.exports = (env, argv) => {
     const isProduction = argv.mode === "production"
     return {
+        cache: { type: "filesystem" },
+        mode: isProduction ? "production" : "development",
         context: __dirname,
         entry: {
             admin: "./adminSite/client/admin.entry.ts",
@@ -36,6 +38,7 @@ module.exports = (env, argv) => {
         resolve: {
             extensions: [".ts", ".tsx", ".js", ".css"],
             modules: ["node_modules", __dirname],
+            alias: { path: false }, // TODO this is apparently caused by `filenamify`, which is a dependency of `netlify-cli`. Why does Webpack care about it?
         },
         module: {
             rules: [
