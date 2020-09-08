@@ -838,7 +838,8 @@ main:not(.ChartEditorPage) {
         font-weight: 700;
         color: #333;
     }
-    .cell-author {
+    .cell-author,
+    .cell-time {
         font-weight: 400;
         color: #777;
     }

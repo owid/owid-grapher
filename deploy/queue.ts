@@ -91,13 +91,16 @@ export async function getDeploys(): Promise<Deploy[]> {
     if (queueContent) {
         deploys.push({
             status: DeployStatus.queued,
-            changes: parseContent(queueContent)
+            // Changes are always appended. Reversing them means the latest changes are first
+            // (which is what we want in the UI).
+            // We can't sort by time because the presence of "time" is not guaranteed.
+            changes: parseContent(queueContent).reverse()
         })
     }
     if (pendingContent) {
         deploys.push({
             status: DeployStatus.pending,
-            changes: parseContent(pendingContent)
+            changes: parseContent(pendingContent).reverse()
         })
     }
     return deploys

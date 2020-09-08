@@ -1,6 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction } from "mobx"
+import { format } from "timeago.js"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
@@ -28,6 +29,7 @@ export class DeployStatusPage extends React.Component {
                                     <th>Status</th>
                                     <th>Note</th>
                                     <th>Author</th>
+                                    <th>Time</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -44,6 +46,15 @@ export class DeployStatusPage extends React.Component {
                                             </td>
                                             <td className="cell-author">
                                                 {change.authorName}
+                                            </td>
+                                            <td className="cell-time">
+                                                {change.timeISOString
+                                                    ? format(
+                                                          Date.parse(
+                                                              change.timeISOString
+                                                          )
+                                                      )
+                                                    : ""}
                                             </td>
                                         </tr>
                                     ))
