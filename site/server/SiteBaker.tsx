@@ -27,7 +27,7 @@ import {
     renderNotFoundPage,
     renderCountryProfile,
     flushCache as siteBakingFlushCache,
-} from "./siteBaking"
+} from "./siteRenderers"
 import {
     bakeGrapherUrls,
     getGrapherExportsByUrl,

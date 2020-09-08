@@ -19,7 +19,7 @@ import { Dataset } from "db/model/Dataset"
 
 import { User } from "db/model/User"
 import { UserInvitation } from "db/model/UserInvitation"
-import { renderPreview } from "site/server/siteBaking"
+import { renderPreview } from "site/server/siteRenderers"
 import { ENV } from "settings"
 import { addExplorerAdminRoutes } from "explorer/admin/ExplorerBaker"
 

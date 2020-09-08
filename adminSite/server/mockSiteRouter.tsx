@@ -18,7 +18,7 @@ import {
     renderBlogByPageNum,
     renderCovidPage,
     countryProfileCountryPage,
-} from "site/server/siteBaking"
+} from "site/server/siteRenderers"
 import { chartDataJson, grapherPageFromSlug } from "site/server/grapherBaking"
 import { BAKED_GRAPHER_URL } from "settings"
 import { WORDPRESS_DIR, BASE_DIR, BAKED_SITE_DIR } from "serverSettings"
