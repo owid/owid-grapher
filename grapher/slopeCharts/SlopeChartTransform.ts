@@ -1,12 +1,5 @@
 import { computed } from "mobx"
-import {
-    some,
-    find,
-    isEmpty,
-    flatten,
-    identity,
-    last,
-} from "grapher/utils/Util"
+import { find, isEmpty, flatten, identity, last } from "grapher/utils/Util"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
@@ -19,7 +12,7 @@ import { ColorScale } from "grapher/color/ColorScale"
 export class SlopeChartTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, (d) => d.property === "y"))
+        if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.data)) return "No matching data"
         else return undefined

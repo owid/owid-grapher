@@ -1,6 +1,5 @@
 import { computed } from "mobx"
 import {
-    some,
     isEmpty,
     sortBy,
     orderBy,
@@ -25,7 +24,7 @@ import { Time } from "grapher/utils/TimeBounds"
 export class DiscreteBarTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, (d) => d.property === "y"))
+        if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing variable"
         else if (isEmpty(this.currentData)) return "No matching data"
         else return undefined

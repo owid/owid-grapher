@@ -1,7 +1,6 @@
 import { computed } from "mobx"
 import { scaleOrdinal } from "d3-scale"
 import {
-    some,
     sortBy,
     cloneDeep,
     sum,
@@ -24,7 +23,7 @@ import { Time } from "grapher/utils/TimeBounds"
 export class StackedAreaTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, (d) => d.property === "y"))
+        if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
         else if (
             this.groupedData.length === 0 ||
@@ -229,8 +228,7 @@ export class StackedAreaTransform extends ChartTransform {
         const { groupedData, startYear, endYear } = this
 
         if (
-            some(
-                groupedData,
+            groupedData.some(
                 (series) =>
                     series.values.length !== groupedData[0].values.length
             )

@@ -11,7 +11,6 @@
 import * as React from "react"
 import { scaleLinear } from "d3-scale"
 import {
-    some,
     last,
     flatten,
     min,
@@ -237,7 +236,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed private get isConnected(): boolean {
-        return some(this.data, (g) => g.values.length > 1)
+        return this.data.some((g) => g.values.length > 1)
     }
 
     @computed private get focusKeys(): string[] {
@@ -265,7 +264,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @computed private get isSubtleForeground(): boolean {
         return (
             this.focusKeys.length > 1 &&
-            some(this.props.data, (series) => series.values.length > 2)
+            this.props.data.some((series) => series.values.length > 2)
         )
     }
 

@@ -1,6 +1,5 @@
 import { computed } from "mobx"
 import {
-    some,
     min,
     max,
     isEmpty,
@@ -27,7 +26,7 @@ import { EntityName } from "owidTable/OwidTable"
 export class LineChartTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, (d) => d.property === "y"))
+        if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData)) return "No matching data"
         else return undefined

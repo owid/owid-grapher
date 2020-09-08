@@ -42,7 +42,6 @@ import reverse from "lodash/reverse"
 import round from "lodash/round"
 import sample from "lodash/sample"
 import sampleSize from "lodash/sampleSize"
-import some from "lodash/some"
 import sortBy from "lodash/sortBy"
 import sortedUniq from "lodash/sortedUniq"
 import startCase from "lodash/startCase"
@@ -102,7 +101,6 @@ export {
     reverse,
     sample,
     sampleSize,
-    some,
     sortBy,
     sortedUniq,
     startCase,

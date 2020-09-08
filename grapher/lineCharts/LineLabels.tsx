@@ -1,7 +1,6 @@
 // This implements the line labels that appear to the right of the lines/polygons in LineCharts/StackedAreas.
 import * as React from "react"
 import {
-    some,
     noop,
     includes,
     cloneDeep,
@@ -246,7 +245,7 @@ export class LineLabelsComponent extends React.Component<
     }
 
     @computed get isFocusMode() {
-        return some(this.props.legend.marks, (m) =>
+        return this.props.legend.marks.some((m) =>
             includes(this.props.focusKeys, m.item.entityDimensionKey)
         )
     }

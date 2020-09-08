@@ -1,5 +1,4 @@
 import {
-    some,
     isEmpty,
     intersection,
     keyBy,
@@ -81,9 +80,9 @@ export class ScatterTransform extends ChartTransform {
 
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, (d) => d.property === "y"))
+        if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
-        else if (!some(filledDimensions, (d) => d.property === "x"))
+        else if (!filledDimensions.some((d) => d.property === "x"))
             return "Missing X axis variable"
         else if (isEmpty(this.possibleEntityNames))
             return "No entities with data for both X and Y"

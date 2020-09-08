@@ -2,7 +2,6 @@ import { computed } from "mobx"
 import {
     includes,
     identity,
-    some,
     cloneDeep,
     find,
     sortBy,
@@ -23,7 +22,7 @@ import { ColorScale } from "grapher/color/ColorScale"
 export class StackedBarTransform extends ChartTransform {
     @computed get failMessage(): string | undefined {
         const { filledDimensions } = this.grapher
-        if (!some(filledDimensions, (d) => d.property === "y"))
+        if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing variable"
         else if (
             this.groupedData.length === 0 ||

@@ -2,7 +2,6 @@ import * as React from "react"
 import {
     map,
     flatten,
-    some,
     includes,
     sortBy,
     filter,
@@ -106,7 +105,7 @@ class Lines extends React.Component<LinesProps> {
     }
 
     @computed get isFocusMode(): boolean {
-        return some(this.renderData, (d) => d.isFocus)
+        return this.renderData.some((d) => d.isFocus)
     }
 
     @computed get allValues(): LineChartValue[] {

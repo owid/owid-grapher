@@ -8,7 +8,7 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
 
 import { Grapher } from "grapher/core/Grapher"
 import { SortOrder } from "grapher/core/GrapherConstants"
-import { capitalize, some, orderBy, upperFirst } from "grapher/utils/Util"
+import { capitalize, orderBy, upperFirst } from "grapher/utils/Util"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { Tippy } from "grapher/chart/Tippy"
 import {
@@ -162,8 +162,7 @@ export class DataTable extends React.Component<DataTableProps> {
     }
 
     @computed get hasSubheaders() {
-        return some(
-            this.displayDimensions,
+        return this.displayDimensions.some(
             (header) => header.columns.length > 1
         )
     }
