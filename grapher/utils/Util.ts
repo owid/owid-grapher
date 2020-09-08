@@ -256,32 +256,26 @@ export function formatValue(
     if (!isNoSpaceUnit && numberPrefixes && absValue >= 1e6) {
         if (!isFinite(absValue)) output = "Infinity"
         else if (absValue >= 1e12)
-            output = formatValue(
-                value / 1e12,
-                extend({}, options, {
-                    unit: shortNumberPrefixes ? "T" : "trillion",
-                    noSpaceUnit: shortNumberPrefixes,
-                    numDecimalPlaces: 2,
-                })
-            )
+            output = formatValue(value / 1e12, {
+                ...options,
+                unit: shortNumberPrefixes ? "T" : "trillion",
+                noSpaceUnit: shortNumberPrefixes,
+                numDecimalPlaces: 2,
+            })
         else if (absValue >= 1e9)
-            output = formatValue(
-                value / 1e9,
-                extend({}, options, {
-                    unit: shortNumberPrefixes ? "B" : "billion",
-                    noSpaceUnit: shortNumberPrefixes,
-                    numDecimalPlaces: 2,
-                })
-            )
+            output = formatValue(value / 1e9, {
+                ...options,
+                unit: shortNumberPrefixes ? "B" : "billion",
+                noSpaceUnit: shortNumberPrefixes,
+                numDecimalPlaces: 2,
+            })
         else if (absValue >= 1e6)
-            output = formatValue(
-                value / 1e6,
-                extend({}, options, {
-                    unit: shortNumberPrefixes ? "M" : "million",
-                    noSpaceUnit: shortNumberPrefixes,
-                    numDecimalPlaces: 2,
-                })
-            )
+            output = formatValue(value / 1e6, {
+                ...options,
+                unit: shortNumberPrefixes ? "M" : "million",
+                noSpaceUnit: shortNumberPrefixes,
+                numDecimalPlaces: 2,
+            })
     } else {
         const targetDigits = Math.pow(10, -numDecimalPlaces)
 

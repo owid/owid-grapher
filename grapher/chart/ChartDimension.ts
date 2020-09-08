@@ -7,7 +7,6 @@ import {
     formatYear,
     last,
     isNumber,
-    extend,
     sortedUniq,
     sortNumeric,
 } from "grapher/utils/Util"
@@ -82,7 +81,7 @@ export class ChartDimensionSpec implements ChartDimensionInterface {
     @observable saveToVariable?: true = undefined
 
     constructor(spec: ChartDimensionInterface) {
-        if (spec.display) extend(this.display, spec.display)
+        if (spec.display) this.display = { ...this.display, ...spec.display }
 
         this.targetYear = spec.targetYear
         this.variableId = spec.variableId

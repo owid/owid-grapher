@@ -14,7 +14,6 @@ import { extent } from "d3-array"
 import { select } from "d3-selection"
 import {
     sortBy,
-    extend,
     max,
     isEmpty,
     intersection,
@@ -504,12 +503,13 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 slope.rightLabel.height
             )
 
-            return extend({}, slope, {
+            return {
+                ...slope,
                 x1: x1,
                 x2: x2,
                 leftLabelBounds: leftLabelBounds,
                 rightLabelBounds: rightLabelBounds,
-            })
+            }
         })
     }
 
@@ -531,10 +531,11 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         let slopeData = this.labelAccountedSlopeData
 
         slopeData = slopeData.map((slope) => {
-            return extend({}, slope, {
+            return {
+                ...slope,
                 isFocused: focusKeys.includes(slope.entityDimensionKey),
                 isHovered: hoverKeys.includes(slope.entityDimensionKey),
-            })
+            }
         })
 
         // How to work out which of two slopes to prioritize for labelling conflicts

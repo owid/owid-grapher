@@ -1,4 +1,3 @@
-import { extend } from "grapher/utils/Util"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -54,7 +53,7 @@ export class TooltipView extends React.Component<{
             <div
                 ref={this.base}
                 className="Tooltip"
-                style={extend(tooltipStyle, tooltip.style || {})}
+                style={{ ...tooltipStyle, ...tooltip.style }}
             >
                 {tooltip.children}
             </div>

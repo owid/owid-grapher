@@ -4,7 +4,7 @@ import { ObservableUrl } from "grapher/utils/UrlBinder"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { GrapherUrl, GrapherQueryParams } from "grapher/core/GrapherUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
-import { omit, extend } from "grapher/utils/Util"
+import { omit } from "grapher/utils/Util"
 
 type ExploreQueryParams = Omit<GrapherQueryParams, "tab"> & {
     type?: string
@@ -21,10 +21,9 @@ export class ExploreUrl implements ObservableUrl {
     }
 
     @computed get params(): QueryParams {
-        const params: ExploreQueryParams = {}
         const { model } = this
 
-        extend(params, omit(this.chartUrl.params, "tab"))
+        const params: ExploreQueryParams = omit(this.chartUrl.params, "tab")
 
         params.type =
             model.chartType === ExploreModel.defaultChartType
