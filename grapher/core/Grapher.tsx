@@ -516,7 +516,7 @@ export class Grapher extends PersistableGrapher {
         else return [yAxis]
     }
 
-    @computed get validDimensions(): PersistableChartDimension[] {
+    @computed get validDimensions() {
         const { dimensions } = this
         const validProperties = this.dimensionSlots.map((d) => d.property)
         let validDimensions = dimensions.filter((dim) =>
