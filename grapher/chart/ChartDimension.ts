@@ -2,7 +2,6 @@ import { observable, computed } from "mobx"
 import {
     defaultTo,
     formatValue,
-    some,
     isString,
     formatDay,
     formatYear,
@@ -187,7 +186,7 @@ export class ChartDimension {
         if (unit.length < 3) return unit
         else {
             const commonShortUnits = ["$", "£", "€", "%"]
-            if (some(commonShortUnits, (u) => unit[0] === u)) return unit[0]
+            if (commonShortUnits.some((u) => unit[0] === u)) return unit[0]
             else return ""
         }
     }

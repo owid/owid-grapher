@@ -7,7 +7,6 @@ import {
     each,
     last,
     flatten,
-    some,
     find,
     sum,
 } from "grapher/utils/Util"
@@ -355,8 +354,7 @@ export class MapColorLegend {
     @computed get numericLegendData(): ColorScaleBin[] {
         if (
             this.hasCategorical ||
-            !some(
-                this.props.legendData,
+            !this.props.legendData.some(
                 (d) => (d as CategoricalBin).value === "No data" && !d.isHidden
             )
         ) {

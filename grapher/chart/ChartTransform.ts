@@ -5,14 +5,7 @@ import {
     isUnboundedRight,
     getClosestTime,
 } from "grapher/utils/TimeBounds"
-import {
-    defaultTo,
-    first,
-    last,
-    some,
-    sortNumeric,
-    uniq,
-} from "grapher/utils/Util"
+import { defaultTo, first, last, sortNumeric, uniq } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
@@ -41,7 +34,7 @@ export abstract class ChartTransform implements IChartTransform {
     }
 
     @computed protected get hasYDimension() {
-        return some(this.grapher.dimensions, (d) => d.property === "y")
+        return this.grapher.dimensions.some((d) => d.property === "y")
     }
 
     /**
