@@ -38,6 +38,7 @@ export interface ChartDimensionConfig {
     variableId: OwidVariableId
     targetYear?: Time
     display?: OwidVariableDisplaySettings
+    saveToVariable?: boolean // todo: remove
 }
 
 export interface EntityDimensionInfo {
