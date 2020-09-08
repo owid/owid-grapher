@@ -128,8 +128,13 @@ function EmbedTestPage(props: EmbedTestPageProps) {
 }
 
 testPageRouter.get("/embeds", async (req, res) => {
-    const numPerPage = 20,
-        page = req.query.page ? expectInt(req.query.page) : 1
+    const numPerPage = 20
+    const page = req.query.page
+        ? expectInt(req.query.page)
+        : req.query.random
+        ? Math.floor(1 + Math.random() * 180) // Sample one of 180 pages. Some charts won't ever get picked but good enough.
+        : 1
+
     let query = Chart.createQueryBuilder("charts")
         .where("publishedAt IS NOT NULL")
         .limit(numPerPage)

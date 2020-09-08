@@ -25,6 +25,15 @@ export class TestIndexPage extends React.Component {
                             <Link
                                 native
                                 target="_blank"
+                                to={`/test/embeds?random=true`}
+                            >
+                                Random Page of Charts
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
                                 to="/test/embeds?type=ChoroplethMap"
                             >
                                 Choropleth Map
