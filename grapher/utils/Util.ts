@@ -506,13 +506,13 @@ export function sign(n: number) {
     return n > 0 ? 1 : n < 0 ? -1 : 0
 }
 
-// Removes all undefineds from an object. If there are no keys left, returns undefined.
+// Removes all undefineds from an object.
 export function trimObject(obj: any) {
     const clone: any = {}
     Object.keys(obj).forEach((key) => {
         if (obj[key] !== undefined) clone[key] = obj[key]
     })
-    return Object.keys(clone).length ? clone : undefined
+    return clone
 }
 
 // TODO use fetchText() in fetchJSON()

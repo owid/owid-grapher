@@ -1,6 +1,5 @@
 import { observable, computed } from "mobx"
 import {
-    defaultTo,
     formatValue,
     isString,
     formatDay,
@@ -9,6 +8,7 @@ import {
     isNumber,
     sortedUniq,
     sortNumeric,
+    trimObject,
 } from "grapher/utils/Util"
 import {
     TickFormattingOptions,
@@ -22,11 +22,9 @@ import {
 } from "owidTable/OwidTable"
 import { Time } from "grapher/utils/TimeBounds"
 
-import {
-    OwidVariableDisplaySettings,
-    OwidVariableTableDisplaySettings,
-} from "owidTable/OwidVariable"
+import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
 import { OwidSource } from "owidTable/OwidSource"
+import { Persistable } from "grapher/persistable/Persistable"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color" | "table"
 
@@ -35,7 +33,7 @@ export interface SourceWithDimension {
     dimension: ChartDimension
 }
 
-export interface ChartDimensionInterface {
+export interface ChartDimensionConfig {
     property: dimensionProperty
     variableId: OwidVariableId
     targetYear?: Time
@@ -55,22 +53,14 @@ export interface EntityDimensionInfo {
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
-export class ChartDimensionSpec implements ChartDimensionInterface {
+export class PersistableChartDimension
+    implements ChartDimensionConfig, Persistable {
     @observable property!: dimensionProperty
     @observable variableId!: OwidVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable display: OwidVariableDisplaySettings = {
-        name: undefined,
-        unit: undefined,
-        shortUnit: undefined,
-        isProjection: undefined,
-        conversionFactor: undefined,
-        numDecimalPlaces: undefined,
-        tolerance: undefined,
-        tableDisplay: new OwidVariableTableDisplaySettings(),
-    }
+    @observable display: OwidVariableDisplaySettings = {}
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: Time = undefined
@@ -80,36 +70,49 @@ export class ChartDimensionSpec implements ChartDimensionInterface {
     // todo: remove this. Add an explicit "Update variable button"
     @observable saveToVariable?: true = undefined
 
-    constructor(spec: ChartDimensionInterface) {
-        if (spec.display) this.display = { ...this.display, ...spec.display }
+    constructor(obj?: ChartDimensionConfig) {
+        if (obj) this.updateFromObject(obj)
+    }
 
-        this.targetYear = spec.targetYear
-        this.variableId = spec.variableId
-        this.property = spec.property
+    updateFromObject(obj: ChartDimensionConfig) {
+        if (obj.display) extend(this.display, obj.display)
+
+        this.targetYear = obj.targetYear
+        this.variableId = obj.variableId
+        this.property = obj.property
+    }
+
+    toObject(): ChartDimensionConfig {
+        return trimObject({
+            targetYear: this.targetYear,
+            variableId: this.variableId,
+            property: this.property,
+            display: Object.keys(this.display).length
+                ? this.display
+                : undefined,
+        })
     }
 }
 
-export class ChartDimension {
-    spec: ChartDimensionSpec
+export class ChartDimension extends PersistableChartDimension {
     @observable.ref index: number
 
-    @computed get variableId(): OwidVariableId {
-        return this.spec.variableId
+    constructor(
+        obj: ChartDimensionConfig,
+        index: number,
+        column: AbstractColumn
+    ) {
+        super(obj)
+        this.index = index
+        this.column = column
     }
 
     @computed get columnSlug(): string {
         return this.variableId.toString()
     }
 
-    @computed get property(): string {
-        return this.spec.property
-    }
-
     @computed get displayName(): string {
-        return defaultTo(
-            defaultTo(this.spec.display.name, this.column.display.name),
-            this.column.name
-        )
+        return this.display.name ?? this.column.display.name ?? this.column.name
     }
 
     @computed get includeInTable(): boolean {
@@ -120,10 +123,7 @@ export class ChartDimension {
     }
 
     @computed get unit(): string {
-        return defaultTo(
-            defaultTo(this.spec.display.unit, this.column.display.unit),
-            this.column.unit
-        )
+        return this.display.unit ?? this.column.display.unit ?? this.column.unit
     }
 
     // Full name of the variable with associated unit information, used for data export
@@ -132,55 +132,39 @@ export class ChartDimension {
     }
 
     @computed get unitConversionFactor(): number {
-        return defaultTo(
-            defaultTo(
-                this.spec.display.conversionFactor,
-                this.column.display.conversionFactor
-            ),
+        return (
+            this.display.conversionFactor ??
+            this.column.display.conversionFactor ??
             1
         )
     }
 
     @computed get isProjection(): boolean {
-        return !!defaultTo(
-            this.spec.display.isProjection,
-            this.column.display.isProjection
-        )
-    }
-
-    @computed get targetYear(): number | undefined {
-        return this.spec.targetYear
+        return !!(this.display.isProjection ?? this.column.display.isProjection)
     }
 
     @computed get tolerance(): number {
-        return defaultTo(
-            defaultTo(
-                this.spec.display.tolerance,
-                this.column.display.tolerance
-            ),
-            this.property === "color" ? Infinity : 0
+        return (
+            this.display.tolerance ??
+            this.column.display.tolerance ??
+            (this.property === "color" ? Infinity : 0)
         )
     }
 
     @computed get numDecimalPlaces(): number {
-        return defaultTo(
-            defaultTo(
-                this.spec.display.numDecimalPlaces,
-                this.column.display.numDecimalPlaces
-            ),
+        return (
+            this.display.numDecimalPlaces ??
+            this.column.display.numDecimalPlaces ??
             2
         )
     }
 
     @computed get shortUnit(): string {
         const { unit } = this
-        const shortUnit = defaultTo(
-            defaultTo(
-                this.spec.display.shortUnit,
-                this.column.display.shortUnit
-            ),
-            this.column.shortUnit || undefined
-        )
+        const shortUnit =
+            this.display.shortUnit ??
+            this.column.display.shortUnit ??
+            (this.column.shortUnit || undefined)
 
         if (shortUnit !== undefined) return shortUnit
 
@@ -199,15 +183,14 @@ export class ChartDimension {
         options?: TickFormattingOptions
     ) => string {
         const { shortUnit, numDecimalPlaces } = this
-        return (value, options) => {
-            if (isString(value)) return value
-            else
-                return formatValue(value, {
-                    unit: shortUnit,
-                    numDecimalPlaces,
-                    ...options,
-                })
-        }
+        return (value, options) =>
+            isString(value)
+                ? value
+                : formatValue(value, {
+                      unit: shortUnit,
+                      numDecimalPlaces,
+                      ...options,
+                  })
     }
 
     @computed get formatValueLong(): (
@@ -215,15 +198,14 @@ export class ChartDimension {
         options?: TickFormattingOptions
     ) => string {
         const { unit, numDecimalPlaces } = this
-        return (value, options) => {
-            if (isString(value)) return value
-            else
-                return formatValue(value, {
-                    unit: unit,
-                    numDecimalPlaces: numDecimalPlaces,
-                    ...options,
-                })
-        }
+        return (value, options) =>
+            isString(value)
+                ? value
+                : formatValue(value, {
+                      unit: unit,
+                      numDecimalPlaces: numDecimalPlaces,
+                      ...options,
+                  })
     }
 
     @computed get formatYear(): (
@@ -239,11 +221,11 @@ export class ChartDimension {
     // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
     @computed get values(): (number | string)[] {
         const { unitConversionFactor } = this
-        if (unitConversionFactor !== 1)
-            return this.column.values.map(
-                (v) => (v as number) * unitConversionFactor
-            )
-        else return this.column.values
+        return unitConversionFactor === 1
+            ? this.column.values
+            : this.column.values.map(
+                  (v) => (v as number) * unitConversionFactor
+              )
     }
 
     @computed get sortedNumericValues(): number[] {
@@ -297,14 +279,4 @@ export class ChartDimension {
     }
 
     @observable.ref column: AbstractColumn
-
-    constructor(
-        index: number,
-        dimensionSpec: ChartDimensionSpec,
-        column: AbstractColumn
-    ) {
-        this.index = index
-        this.spec = dimensionSpec
-        this.column = column
-    }
 }

@@ -198,8 +198,8 @@ export async function countryProfilePage(countrySlug: string) {
             })
             const column = new OwidTable([], spec)
             const dim = new ChartDimension(
-                0,
                 firstDimension,
+                0,
                 column.columnsBySlug.get(variable.name)!
             )
 

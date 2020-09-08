@@ -27,6 +27,7 @@ import {
     anyToString,
     sortNumeric,
     lowerCaseFirstLetterUnlessAbbreviation,
+    trimObject,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder, ScaleType } from "grapher/core/GrapherConstants"
@@ -392,6 +393,14 @@ describe("anyToString", () => {
     ]
     it("handles edge cases in format value", () => {
         expect(values.map(anyToString)).toEqual(expected)
+    })
+})
+
+describe(trimObject, () => {
+    it("trims an object", () => {
+        expect(trimObject({ foo: undefined })).toEqual({})
+
+        expect(trimObject({ foo: undefined, bar: 1 })).toEqual({ bar: 1 })
     })
 })
 
