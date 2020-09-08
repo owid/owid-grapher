@@ -8,6 +8,7 @@ import { Grapher } from "grapher/core/Grapher"
 import * as Cookies from "js-cookie"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { CookieKeys } from "grapher/core/GrapherConstants"
 
 function formatText(s: string) {
     return linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
@@ -31,7 +32,7 @@ export class SourcesTab extends React.Component<{
         const dimension = sourceWithDimension.dimension
         const { column } = dimension
 
-        const editUrl = Cookies.get("isAdmin")
+        const editUrl = Cookies.get(CookieKeys.isAdmin)
             ? `${this.props.grapher.adminBaseUrl}/admin/datasets/${column.datasetId}`
             : undefined
 

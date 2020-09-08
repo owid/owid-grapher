@@ -12,6 +12,7 @@ import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
 import { GrapherView } from "grapher/core/GrapherView"
+import { CookieKeys } from "grapher/core/GrapherConstants"
 
 @observer
 class EmbedMenu extends React.Component<{
@@ -88,7 +89,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
     @computed get editUrl(): string | undefined {
         const { grapher } = this.props
-        return Cookies.get("isAdmin") || grapher.isDev
+        return Cookies.get(CookieKeys.isAdmin) || grapher.isDev
             ? `${grapher.adminBaseUrl}/admin/charts/${grapher.id}/edit`
             : undefined
     }

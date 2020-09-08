@@ -19,6 +19,10 @@ export class ChartType {
     static StackedBar: ChartTypeName = "StackedBar"
 }
 
+export enum CookieKeys {
+    isAdmin = "isAdmin",
+}
+
 export type AddCountryMode = "add-country" | "change-country" | "disabled"
 
 export type StackMode = "absolute" | "relative"
