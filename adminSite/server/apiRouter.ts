@@ -169,9 +169,10 @@ function omitSaveToVariable(
     config: GrapherConfigInterface
 ): GrapherConfigInterface {
     const newConfig = lodash.clone(config)
-    newConfig.dimensions = newConfig.dimensions!.map((dim) => {
-        return lodash.omit(dim, ["saveToVariable"])
-    })
+    if (newConfig.dimensions)
+        newConfig.dimensions = newConfig.dimensions.map((dim) =>
+            lodash.omit(dim, ["saveToVariable"])
+        )
     return newConfig
 }
 
