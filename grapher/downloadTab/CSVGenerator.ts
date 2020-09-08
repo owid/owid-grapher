@@ -24,30 +24,30 @@ export class CSVGenerator {
         this.props = props
     }
 
-    @computed get grapher() {
+    @computed private get grapher() {
         return this.props.grapher
     }
 
-    @computed get csvDimensions() {
+    @computed private get csvDimensions() {
         return this.grapher.filledDimensions.filter(
             (d) => d.property !== "color"
         )
     }
 
     /** Returns dimensions for which we want to show all values */
-    @computed get allValueDimensions() {
+    @computed private get allValueDimensions() {
         return this.csvDimensions.filter(
             (dim) => !this.isSingleValueDimension(dim)
         )
     }
 
-    @computed get singleValueDimensions() {
+    @computed private get singleValueDimensions() {
         return this.csvDimensions.filter((dim) =>
             this.isSingleValueDimension(dim)
         )
     }
 
-    @computed get dayIndexedCSV() {
+    @computed private get dayIndexedCSV() {
         return this.dayColumn ? true : false
     }
 
@@ -55,9 +55,9 @@ export class CSVGenerator {
         return this.props.grapher.table.dayColumn
     }
 
-    baseTitleRow = ["Entity", "Code"]
+    private baseTitleRow = ["Entity", "Code"]
 
-    @computed get dayBasedCSVParams(): TimeUnitDependentParams {
+    @computed private get dayBasedCSVParams(): TimeUnitDependentParams {
         const titleRow = this.baseTitleRow
         titleRow.push("Date")
 
@@ -75,7 +75,7 @@ export class CSVGenerator {
         }
     }
 
-    @computed get yearBasedCSVParams(): TimeUnitDependentParams {
+    @computed private get yearBasedCSVParams(): TimeUnitDependentParams {
         const titleRow = this.baseTitleRow
         titleRow.push("Year")
 
@@ -91,13 +91,13 @@ export class CSVGenerator {
         }
     }
 
-    @computed get timeUnitDependentParams(): TimeUnitDependentParams {
+    @computed private get timeUnitDependentParams(): TimeUnitDependentParams {
         return this.dayIndexedCSV
             ? this.dayBasedCSVParams
             : this.yearBasedCSVParams
     }
 
-    entityCode(entity: string) {
+    private entityCode(entity: string) {
         return this.grapher.table.entityNameToCodeMap.get(entity) ?? ""
     }
 
@@ -177,7 +177,7 @@ export class CSVGenerator {
         } else return null
     }
 
-    @computed get dataRows() {
+    @computed private get dataRows() {
         const { indexingYears } = this.timeUnitDependentParams
         const chartEntities = this.grapher.sortedUniqueEntitiesAcrossDimensions
 
@@ -192,7 +192,7 @@ export class CSVGenerator {
         return rows
     }
 
-    @computed get csvRows() {
+    @computed private get csvRows() {
         const { timeUnitDependentParams, dataRows: dataRows } = this
         return [
             timeUnitDependentParams.titleRow,
