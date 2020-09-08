@@ -10,7 +10,6 @@ import difference from "lodash/difference"
 import each from "lodash/each"
 import extend from "lodash/extend"
 import find from "lodash/find"
-import findIndex from "lodash/findIndex"
 import flatten from "lodash/flatten"
 import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
@@ -67,7 +66,6 @@ export {
     each,
     extend,
     find,
-    findIndex,
     flatten,
     fromPairs,
     groupBy,

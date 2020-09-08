@@ -9,7 +9,6 @@ import {
     clone,
     formatValue,
     flatten,
-    findIndex,
     last,
 } from "grapher/utils/Util"
 import { EntityDimensionKey, ScaleType } from "grapher/core/GrapherConstants"
@@ -112,8 +111,7 @@ export class LineChartTransform extends ChartTransform {
         if (!this.isRelativeMode) return this.initialData
 
         return cloneDeep(this.initialData).map((series) => {
-            const startIndex = findIndex(
-                series.values,
+            const startIndex = series.values.findIndex(
                 (v) => v.time >= this.startYear && v.y !== 0
             )
             if (startIndex < 0) {
