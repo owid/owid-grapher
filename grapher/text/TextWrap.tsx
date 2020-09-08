@@ -1,11 +1,4 @@
-import {
-    isEmpty,
-    reduce,
-    max,
-    stripHTML,
-    defaultTo,
-    linkify,
-} from "grapher/utils/Util"
+import { isEmpty, max, stripHTML, defaultTo, linkify } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { Bounds } from "grapher/utils/Bounds"
 import * as React from "react"
@@ -110,7 +103,7 @@ export class TextWrap {
 
     @computed get height(): number {
         return (
-            reduce(this.lines, (total, line) => total + line.height, 0) +
+            this.lines.reduce((total, line) => total + line.height, 0) +
             this.lineHeight * (this.lines.length - 1)
         )
     }

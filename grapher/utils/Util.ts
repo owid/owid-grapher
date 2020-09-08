@@ -35,7 +35,6 @@ import orderBy from "lodash/orderBy"
 import partition from "lodash/partition"
 import pick from "lodash/pick"
 import range from "lodash/range"
-import reduce from "lodash/reduce"
 import reverse from "lodash/reverse"
 import round from "lodash/round"
 import sample from "lodash/sample"
@@ -93,7 +92,6 @@ export {
     partition,
     pick,
     range,
-    reduce,
     reverse,
     sample,
     sampleSize,
