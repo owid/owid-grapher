@@ -71,7 +71,7 @@ export interface GrapherConfigInterface {
     maxTime?: TimeBound
     timelineMinTime?: Time
     timelineMaxTime?: Time
-    dimensions?: PersistableChartDimension[]
+    dimensions?: ChartDimensionConfig[]
     addCountryMode?: AddCountryMode
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
