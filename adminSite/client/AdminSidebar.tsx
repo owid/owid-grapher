@@ -77,7 +77,11 @@ export const AdminSidebar = () => (
                 </Link>
             </li>
             <li>
-                <a href="/admin/storybook" target="storybook">
+                <a
+                    href="https://owid.github.io/stories/"
+                    target="_blank"
+                    rel="noopener"
+                >
                     <FontAwesomeIcon icon={faBook} /> Storybook
                 </a>
             </li>
