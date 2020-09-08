@@ -1,7 +1,7 @@
 // WIP
 
 import * as React from "react"
-import { keys, isEmpty, difference, clone, uniq } from "grapher/utils/Util"
+import { isEmpty, difference, clone, uniq } from "grapher/utils/Util"
 import {
     observable,
     computed,
@@ -330,7 +330,7 @@ class CSV {
             uniqCheck[key] += 1
         }
 
-        keys(uniqCheck).forEach((key) => {
+        Object.keys(uniqCheck).forEach((key) => {
             const count = uniqCheck[key]
             if (count > 1) {
                 validation.results.push({
@@ -538,7 +538,7 @@ class Importer extends React.Component<ImportPageData> {
                     (v) => v.name === variable.name
                 )[0]
                 if (match) {
-                    keys(match).forEach((key) => {
+                    Object.keys(match).forEach((key) => {
                         if (key === "id")
                             variable.overwriteId = (match as any)[key]
                         else (variable as any)[key] = (match as any)[key]
