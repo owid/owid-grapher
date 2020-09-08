@@ -43,13 +43,22 @@ describe("from legacy", () => {
     const table = OwidTable.fromLegacy(varSet)
     const name =
         "Prevalence of wasting, weight for height (% of children under 5)"
+
     it("can create a table and detect columns from legacy", () => {
         expect(table.rows.length).toEqual(805)
-        expect(Array.from(table.columnsByName.keys())).toEqual([
+        expect(Array.from(table.columnsBySlug.keys())).toEqual([
             "entityName",
             "entityId",
             "entityCode",
             "year",
+            "3512",
+        ])
+
+        expect(Array.from(table.columnsByName.keys())).toEqual([
+            "Entity",
+            "entityId",
+            "Code",
+            "Year",
             name,
         ])
     })
@@ -60,7 +69,6 @@ describe("annotations column", () => {
 usa,322,in hundreds of millions,2000
 hi,1,in millions,2000
 hi,1,,2001`
-    const specs = new Map()
     const table = BasicTable.fromDelimited(csv)
     table.addStringColumnSpec({ slug: "pop", annotationsColumnSlug: "notes" })
 

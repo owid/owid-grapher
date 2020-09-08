@@ -3,7 +3,7 @@ import { parseDelimited } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { PersistableChartDimension } from "grapher/chart/ChartDimension"
 
-// Todo: improve ChartScript to ditch "v2", selectedData, and owidVariableId.
+// Todo: improve ChartScript to ditch selectedData and owidVariableId.
 export function basicGdpGrapher() {
     const props = {
         selectedData: [
