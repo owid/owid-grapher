@@ -14,7 +14,6 @@ import { bind } from "decko"
 
 import {
     map,
-    filter,
     uniqWith,
     isEqual,
     formatDay,
@@ -33,6 +32,7 @@ import {
     xor,
     lastOfNonEmptyArray,
     find,
+    identity,
 } from "grapher/utils/Util"
 import {
     ChartType,
@@ -518,7 +518,7 @@ export class Grapher extends PersistableGrapher {
     @computed get validDimensions(): ChartDimensionSpec[] {
         const { dimensions } = this
         const validProperties = map(this.dimensionSlots, "property")
-        let validDimensions = filter(dimensions, (dim) =>
+        let validDimensions = dimensions.filter((dim) =>
             validProperties.includes(dim.property)
         )
 
@@ -562,13 +562,13 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed get availableTabs(): GrapherTabOption[] {
-        return filter([
+        return [
             this.hasChartTab && "chart",
             this.hasMapTab && "map",
             "table",
             "sources",
             "download",
-        ]) as GrapherTabOption[]
+        ].filter(identity) as GrapherTabOption[]
     }
 
     @computed get currentTitle(): string {

@@ -1,4 +1,4 @@
-import { filter, each, isEmpty } from "grapher/utils/Util"
+import { each, isEmpty } from "grapher/utils/Util"
 
 export interface QueryParams {
     [key: string]: string | undefined
@@ -17,7 +17,7 @@ export function getWindowQueryParams(): QueryParams {
 export function strToQueryParams(queryStr: string): QueryParams {
     if (queryStr[0] === "?") queryStr = queryStr.substring(1)
 
-    const querySplit = filter(queryStr.split("&"), (s) => !isEmpty(s))
+    const querySplit = queryStr.split("&").filter((s) => !isEmpty(s))
     const params: QueryParams = {}
 
     for (const param of querySplit) {
