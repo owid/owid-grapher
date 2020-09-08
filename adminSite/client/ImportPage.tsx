@@ -13,7 +13,7 @@ import {
 import { observer } from "mobx-react"
 import { Redirect } from "react-router-dom"
 
-import parse from "csv-parse"
+import { parse } from "papaparse"
 import { BindString, NumericSelectField, FieldsRow } from "./Forms"
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -428,26 +428,24 @@ class CSVSelector extends React.Component<{
         const reader = new FileReader()
         reader.onload = (e) => {
             const csv = (e as any).target.result
-            parse(
-                csv,
-                {
-                    relax_column_count: true,
-                    skip_empty_lines: true,
-                    rtrim: true,
-                },
-                (_, rows) => {
-                    // TODO error handling
-                    //console.log("Error?", err)
-                    if (rows[0][0].toLowerCase() === "year")
-                        rows = CSV.transformSingleLayout(rows, file.name)
-                    this.csv = new CSV({
-                        filename: file.name,
-                        rows,
-                        existingEntities,
-                    } as any)
-                    this.props.onCSV(this.csv as any)
-                }
-            )
+            const parsed = parse<string[]>(csv, {
+                skipEmptyLines: true,
+            })
+            {
+                // TODO error handling
+                //console.log("Error?", err)
+                if (parsed.data[0][0].toLowerCase() === "year")
+                    parsed.data = CSV.transformSingleLayout(
+                        parsed.data,
+                        file.name
+                    )
+                this.csv = new CSV({
+                    filename: file.name,
+                    rows: parsed.data,
+                    existingEntities,
+                } as any)
+                this.props.onCSV(this.csv as any)
+            }
         }
         reader.readAsText(file)
     }

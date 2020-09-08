@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer,
 } from "mobx"
-import parse from "csv-parse"
+import { parse } from "papaparse"
 
 import unidecode from "unidecode"
 import FuzzySet from "fuzzyset"
@@ -93,7 +93,7 @@ class CSV {
     ) {
         this.filename = filename
         if (err) {
-            this.parseError = err.message
+            this.parseError = err[0].message
             this.rows = []
         } else {
             this.parseError = undefined
@@ -356,21 +356,15 @@ export class CountryStandardizerPage extends React.Component {
         const reader = new FileReader()
         reader.onload = (e) => {
             const csv = (e as any).target.result
-            parse(
-                csv,
-                {
-                    relax_column_count: true,
-                    skip_empty_lines: true,
-                    rtrim: true,
-                },
-                (err, rows) => {
-                    this.csv.onFileUpload(
-                        file.name,
-                        rows,
-                        err,
-                        this.shouldSaveSelection
-                    )
-                }
+            const parsed = parse<string[]>(csv, {
+                skipEmptyLines: true,
+            })
+
+            this.csv.onFileUpload(
+                file.name,
+                parsed.data,
+                parsed.errors,
+                this.shouldSaveSelection
             )
         }
         reader.readAsText(file)
