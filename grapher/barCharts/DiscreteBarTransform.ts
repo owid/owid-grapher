@@ -4,7 +4,6 @@ import {
     isEmpty,
     sortBy,
     orderBy,
-    values,
     flatten,
     uniq,
     sortNumeric,
@@ -132,7 +131,7 @@ export class DiscreteBarTransform extends ChartTransform {
             }
         } else {
             const data = sortBy(
-                values(dataByEntityDimensionKey),
+                Object.values(dataByEntityDimensionKey),
                 (d) => d.value
             )
             const colorScheme = grapher.baseColorScheme
@@ -159,7 +158,7 @@ export class DiscreteBarTransform extends ChartTransform {
             this._filterDataForLogScaleInPlace(dataByEntityDimensionKey)
 
         return orderBy(
-            values(dataByEntityDimensionKey),
+            Object.values(dataByEntityDimensionKey),
             ["value", "key"],
             ["desc", "asc"]
         )

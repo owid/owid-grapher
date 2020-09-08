@@ -59,7 +59,6 @@ import uniq from "lodash/uniq"
 import uniqBy from "lodash/uniqBy"
 import uniqWith from "lodash/uniqWith"
 import upperFirst from "lodash/upperFirst"
-import values from "lodash/values"
 import without from "lodash/without"
 import xor from "lodash/xor"
 
@@ -122,7 +121,6 @@ export {
     uniqBy,
     uniqWith,
     upperFirst,
-    values,
     without,
     xor,
 }
