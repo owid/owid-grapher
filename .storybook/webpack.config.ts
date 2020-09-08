@@ -8,7 +8,7 @@ module.exports = ({ config }: { config: any }) => {
             test: /\.s?css$/,
             use: [
                 MiniCssExtractPlugin.loader,
-                "css-loader",
+                "css-loader?url=false",
                 "postcss-loader",
                 {
                     loader: "sass-loader",
