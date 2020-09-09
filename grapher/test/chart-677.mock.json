@@ -1,1 +1,45 @@
-{"id":677,"map":{"projection":"World","targetYear":2017,"variableId":104402,"equalSizeBins":true,"timeTolerance":5,"baseColorScheme":"YlGnBu","isManualBuckets":true,"colorSchemeLabels":["","","","","","",""],"colorSchemeValues":[0.5,1,2.5,5,10,15],"legendDescription":"Child mortality rate (per 1,000 live births)","customNumericColors":[],"customCategoryColors":{},"customCategoryLabels":{},"customHiddenCategories":{}},"tab":"map","data":{"availableEntities":["Afghanistan","Albania","Algeria","American Samoa","Andean Latin America","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australasia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Caribbean","Central African Republic","Central Asia","Central Europe","Central Latin America","Central Sub-Saharan Africa","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Cote d'Ivoire","Croatia","Cuba","Cyprus","Czech Republic","Democratic Republic of Congo","Denmark","Djibouti","Dominica","Dominican Republic","East Asia","Eastern Europe","Eastern Sub-Saharan Africa","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Greenland","Grenada","Guam","Guatemala","Guinea-Bissau","Guinea","Guyana","Haiti","High SDI","High-income North America","High-income","High-middle SDI","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latin America and the Caribbean","Latvia","Lebanon","Lesotho","Liberia","Libya","Lithuania","Low SDI","Low-middle SDI","Luxembourg","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Middle SDI","Moldova","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Africa and Middle East","North Korea","Northern Mariana Islands","Norway","Oceania","Oman","Pakistan","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Romania","Russia","Rwanda","Saint Lucia","Saint Vincent and the Grenadines","Samoa","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Asia","South Korea","South Sudan","Southeast Asia","Southern Latin America","Southern Sub-Saharan Africa","Spain","Sri Lanka","Sub-Saharan Africa","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor","Togo","Tonga","Trinidad and Tobago","Tropical Latin America","Tunisia","Turkey","Turkmenistan","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States Virgin Islands","United States","Uruguay","Uzbekistan","Vanuatu","Venezuela","Vietnam","Western Europe","Western Sub-Saharan Africa","World","Yemen","Zambia","Zimbabwe"]},"note":"","slug":"child-mortality-rate-ihme","type":"LineChart","title":"Child mortality rate","xAxis":{"scaleType":"linear"},"yAxis":{"min":0,"scaleType":"linear","labelDistance":-10},"version":7,"subtitle":"Share of newborns who die before reaching the age of five.","hasMapTab":true,"originUrl":"","stackMode":null,"dimensions":[{"display":{},"property":"y","variableId":104402}],"entityType":"country","hideLegend":false,"sourceDesc":"IHME, Global Burden of Disease","hasChartTab":true,"isPublished":true,"variantName":"IHME, GBD","selectedData":[{"index":0,"entityId":72},{"index":0,"entityId":66},{"index":0,"entityId":229}],"internalNotes":"IHME Global Burden of Disease","addCountryMode":"add-country","hideRelativeToggle":true}
+{
+    "id": 677,
+    "version": 7,
+    "slug": "child-mortality-rate-ihme",
+    "title": "Child mortality rate",
+    "subtitle": "Share of newborns who die before reaching the age of five.",
+    "sourceDesc": "IHME, Global Burden of Disease",
+    "hasMapTab": true,
+    "tab": "map",
+    "internalNotes": "IHME Global Burden of Disease",
+    "variantName": "IHME, GBD",
+    "isPublished": true,
+    "xAxis": {
+      "scaleType": "linear"
+    },
+    "yAxis": {
+      "scaleType": "linear",
+      "min": 0
+    },
+    "map": {
+      "targetYear": 2017,
+      "timeTolerance": 5,
+      "variableId": 104402
+    },
+    "selectedData": [
+      {
+        "index": 0,
+        "entityId": 72
+      },
+      {
+        "index": 0,
+        "entityId": 66
+      },
+      {
+        "index": 0,
+        "entityId": 229
+      }
+    ],
+    "dimensions": [
+      {
+        "variableId": 104402,
+        "property": "y"
+      }
+    ]
+  }

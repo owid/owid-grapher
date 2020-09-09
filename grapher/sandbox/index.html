@@ -23,10 +23,10 @@
                 alert(
                     "To use the Sandbox, first paste a Grapher object into 'sandbox/grapher.js'. A sample is provided for you in 'sandbox/grapher.sample.js'"
                 )
-            var figure = document.getElementsByTagName("figure")[0]
+            const figure = document.getElementsByTagName("figure")[0]
 
             try {
-                var view = window.GrapherView.bootstrap({
+                const view = window.GrapherView.bootstrap({
                     jsonConfig: sandboxGrapher,
                     containerNode: figure,
                     queryStr: window.location.search,
