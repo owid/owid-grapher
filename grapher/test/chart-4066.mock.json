@@ -1,60 +1,27 @@
 {
     "id": 4066,
-    "map": {
-      "projection": "World",
-      "targetYear": 78,
-      "variableId": 142609,
-      "equalSizeBins": true,
-      "baseColorScheme": "YlGnBu",
-      "isManualBuckets": true,
-      "colorSchemeLabels": [],
-      "colorSchemeValues": [
-        5,
-        10,
-        25,
-        50,
-        100,
-        250,
-        500,
-        1000
-      ],
-      "customNumericColors": [],
-      "customCategoryColors": {},
-      "customCategoryLabels": {},
-      "customHiddenCategories": {}
-    },
-    "tab": "chart",
-    "note": "The rolling average is the average across three days – the confirmed deaths on the particular date, and those on the previous and the following day. For example, the value for 26th March is the average over the 25th, 26th and 27th March. The latest value is calculated as the average of confirmed deaths on the particular date and the previous day.",
+    "version": 29,
     "slug": "daily-covid-deaths-3-day-average",
-    "type": "LineChart",
     "title": "COVID-19 – Daily new confirmed deaths – rolling 3-day average",
+    "subtitle": "Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.",
+    "note": "The rolling average is the average across three days – the confirmed deaths on the particular date, and those on the previous and the following day. For example, the value for 26th March is the average over the 25th, 26th and 27th March. The latest value is calculated as the average of confirmed deaths on the particular date and the previous day.",
+    "minTime": 27,
+    "maxTime": 78,
+    "hasMapTab": true,
+    "originUrl": "ourworldindata.org/coronavirus",
+    "isPublished": true,
     "xAxis": {
       "scaleType": "linear"
     },
     "yAxis": {
-      "min": 0,
       "scaleType": "linear",
+      "min": 0,
       "canChangeScaleType": true
     },
-    "maxTime": 78,
-    "minTime": 27,
-    "version": 29,
-    "subtitle": "Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.",
-    "hasMapTab": true,
-    "originUrl": "ourworldindata.org/coronavirus",
-    "stackMode": "absolute",
-    "dimensions": [
-      {
-        "display": {
-          "numDecimalPlaces": 0
-        },
-        "property": "y",
-        "variableId": 142609
-      }
-    ],
-    "hasChartTab": true,
-    "isPublished": true,
-    "isExplorable": false,
+    "map": {
+      "targetYear": 78,
+      "variableId": 142609
+    },
     "selectedData": [
       {
         "index": 0,
@@ -77,6 +44,13 @@
         "entityId": 127
       }
     ],
-    "addCountryMode": "add-country",
-    "hideRelativeToggle": true
+    "dimensions": [
+      {
+        "variableId": 142609,
+        "property": "y",
+        "display": {
+          "numDecimalPlaces": 0
+        }
+      }
+    ]
   }
