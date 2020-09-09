@@ -10,7 +10,15 @@ const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 module.exports = (env, argv) => {
     const isProduction = argv.mode === "production"
     return {
-        cache: { type: "filesystem" },
+        cache: {
+            type: "filesystem",
+            buildDependencies: {
+                config: [
+                    __filename,
+                    path.resolve(__dirname, "node_modules/.yarn-integrity"),
+                ],
+            },
+        },
         mode: isProduction ? "production" : "development",
         context: __dirname,
         entry: {
