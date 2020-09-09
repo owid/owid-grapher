@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { OwidTable, BasicTable } from "owidTable/OwidTable"
-import { readVariable } from "grapher/test/fixtures"
+import { OwidVariablesAndEntityKey } from "./OwidVariable"
 
 describe(OwidTable, () => {
     // Scenarios
@@ -37,15 +37,66 @@ describe(OwidTable, () => {
     })
 })
 
+const legacyVarSet: OwidVariablesAndEntityKey = {
+    variables: {
+        "3512": {
+            years: [1983, 1985, 1985, 1985, 1985, 1986, 1986],
+            entities: [99, 45, 204, 213, 104, 28, 172],
+            values: [5.5, 4.2, 12.6, 18.3, 25.3, 17.3, 0.7],
+            id: 3512,
+            name:
+                "Prevalence of wasting, weight for height (% of children under 5)",
+            unit: "% of children under 5",
+            description:
+                "Prevalence of wasting is the proportion of children under age 5 whose weight for height is more than two standard deviations below the median for the international reference population ages 0-59.",
+            createdAt: "2017-07-06T09:04:22.000Z",
+            updatedAt: "2018-12-11T20:12:30.000Z",
+            code: "SH.STA.WAST.ZS",
+            coverage: "",
+            timespan: "1960-2017",
+            datasetId: 563,
+            sourceId: 2174,
+            shortUnit: "%",
+            display: {},
+            columnOrder: 0,
+            originalMetadata: null,
+            datasetName: "World Development Indicators - Health",
+            s_id: 2174,
+            s_name:
+                "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
+            source: {
+                id: 2174,
+                name:
+                    "World Bank - WDI: Prevalence of wasting, weight for height (% of children under 5)",
+                dataPublishedBy: "World Bank – World Development Indicators",
+                dataPublisherSource:
+                    "UNICEF, WHO, World Bank: Joint child malnutrition estimates (JME). Aggregation is based on UNICEF, WHO, and the World Bank harmonized dataset (adjusted, comparable data) and methodology.",
+                link:
+                    "http://data.worldbank.org/data-catalog/world-development-indicators",
+                retrievedData: "",
+                additionalInfo:
+                    "General comments: Undernourished children have lower resistance to infection and are more likely to die from common childhood ailments such as diarrheal diseases and respiratory infections. Frequent illness saps the nutritional status of those who survive, locking them into a vicious cycle of recurring sickness and faltering growth (UNICEF, www.childinfo.org). Estimates of child malnutrition, based on prevalence of underweight and stunting, are from national survey data. The proportion of underweight children is the most common malnutrition indicator. Being even mildly underweight increases the risk of death and inhibits cognitive development in children. And it perpetuates the problem across generations, as malnourished women are more likely to have low-birth-weight babies. Stunting, or being below median height for age, is often used as a proxy for multifaceted deprivation and as an indicator of long-term changes in malnutrition.",
+            },
+        },
+    },
+    entityKey: {
+        28: { name: "Bangladesh", code: "BGD" },
+        45: { name: "Cape Verde", code: "CPV" },
+        99: { name: "Papua New Guinea", code: "PNG" },
+        104: { name: "Niger", code: "NER" },
+        172: { name: "Chile", code: "CHL" },
+        204: { name: "Kiribati", code: "KIR" },
+        213: { name: "Mauritius", code: "MUS" },
+    },
+} as any
+
 describe("from legacy", () => {
-    const varId = 3512
-    const varSet = readVariable(varId)
-    const table = OwidTable.fromLegacy(varSet)
+    const table = OwidTable.fromLegacy(legacyVarSet)
     const name =
         "Prevalence of wasting, weight for height (% of children under 5)"
 
     it("can create a table and detect columns from legacy", () => {
-        expect(table.rows.length).toEqual(805)
+        expect(table.rows.length).toEqual(7)
         expect(Array.from(table.columnsBySlug.keys())).toEqual([
             "entityName",
             "entityId",
