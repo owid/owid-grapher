@@ -155,15 +155,8 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
     onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
         const grapher = this.props.grapher
-        const dropCols = grapher.table.constantColumnSlugs()
-        dropCols.push("entityId")
         const csvFilename = grapher.displaySlug + ".csv"
-        const csv = grapher.table
-            .toView()
-            .deleteColumns(dropCols)
-            .sortBy("entityName")
-            .toDelimitedWithColumnNames()
-        // todo: date to string
+        const csv = grapher.table.toView().toPrettyCsv()
 
         // IE11 compatibility
         if (window.navigator.msSaveBlob) {

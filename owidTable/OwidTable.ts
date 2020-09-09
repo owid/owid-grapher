@@ -21,6 +21,7 @@ import {
     formatValue,
     anyToString,
     formatDay,
+    csvEscape,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -182,6 +183,11 @@ export abstract class AbstractColumn {
         return anyToString(value)
     }
 
+    // A method for formatting for CSV
+    formatForCsv(value: any): string {
+        return csvEscape(this.formatValue(value))
+    }
+
     // todo: remove/generalize?
     @computed get entityNameMap() {
         return this.mapBy("entityName")
@@ -190,7 +196,7 @@ export abstract class AbstractColumn {
     private mapBy(columnSlug: ColumnSlug) {
         const map = new Map<any, Set<any>>()
         const slug = this.slug
-        this.rows.forEach((row) => {
+        this.rowsWithValue.forEach((row) => {
             const value = row[slug]
             // For now the behavior is to not overwrite an existing value with a falsey one
             if (value === undefined || value === "") return
@@ -237,7 +243,7 @@ export abstract class AbstractColumn {
 
     // todo: remove
     @computed get entityNames() {
-        return this.rows.map((row) => row.entityName)
+        return this.rowsWithValue.map((row) => row.entityName)
     }
 
     // todo: remove
@@ -254,18 +260,27 @@ export abstract class AbstractColumn {
         return new Set(this.values)
     }
 
+    @computed private get allValuesAsSet() {
+        return new Set(this.allValues)
+    }
+
     // True if the column has only 1 value
     @computed get isConstant() {
-        return this.valuesAsSet.size === 1
+        return this.allValuesAsSet.size === 1
     }
 
     // todo: remove
     @computed get years() {
-        return this.rows.map((row) => (row.year ?? row.day)!)
+        return this.rowsWithValue.map((row) => (row.year ?? row.day)!)
+    }
+
+    @computed private get allValues() {
+        const slug = this.spec.slug
+        return this.table.unfilteredRows.map((row) => row[slug])
     }
 
     // Rows containing a value for this column
-    @computed get rows() {
+    @computed get rowsWithValue() {
         const slug = this.spec.slug
         return this.table.unfilteredRows.filter(
             (row) => row[slug] !== undefined && row[slug] !== ""
@@ -274,12 +289,14 @@ export abstract class AbstractColumn {
 
     @computed get values() {
         const slug = this.spec.slug
-        return this.rows.map((row) => row[slug])
+        return this.rowsWithValue.map((row) => row[slug])
     }
 
     @computed get latestValuesMap() {
         const map = new Map<EntityName, any>()
-        this.rows.forEach((row) => map.set(row.entityName, row[this.slug]))
+        this.rowsWithValue.forEach((row) =>
+            map.set(row.entityName, row[this.slug])
+        )
         return map
     }
 
@@ -296,8 +313,13 @@ class YearColumn extends TemporalColumn {}
 
 class DateColumn extends TemporalColumn {
     formatValue(value: number) {
-        if (value === undefined) return ""
-        return formatDay(value)
+        return value === undefined ? "" : formatDay(value)
+    }
+
+    formatForCsv(value: number) {
+        return value === undefined
+            ? ""
+            : formatDay(value, { format: "YYYY-MM-DD" })
     }
 }
 
@@ -421,6 +443,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         if (cloneRows) this.cloneAndSetRows(rows)
         else this.setRowsWithoutCloning(rows)
         this.addSpecs(columnSpecs)
+
+        // Todo: add warning if you provide Specs but not for all cols?
     }
 
     @computed get rows() {
@@ -662,14 +686,60 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return this
     }
 
-    constantColumnSlugs() {
-        return this.columnsAsArray
-            .filter((col) => col.isConstant)
-            .map((col) => col.slug)
+    // Get all the columns that only have 1 value
+    constantColumns() {
+        return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
-    toView() {
-        return new TableView(this.rows, this.columnsAsArray)
+    toView(): TableView {
+        return new TableView(this)
+    }
+}
+
+// A mutable Table class without observables for simple table ops. Likely will merge with the main Table class.
+class TableView {
+    private parentTable: AbstractTable<any>
+    private rows: Row[]
+    private columns: AbstractColumn[]
+    constructor(parentTable: AbstractTable<any>) {
+        this.parentTable = parentTable
+        this.rows = parentTable.rows.slice(0)
+        this.columns = parentTable.columnsAsArray.slice(0)
+    }
+
+    private sortBy(columnSlug: ColumnSlug) {
+        this.rows = sortBy(this.rows, columnSlug)
+        return this
+    }
+
+    private deleteColumns(columnSlugs: ColumnSlug[]) {
+        const deleteThese = new Set(columnSlugs)
+        this.columns = this.columns.filter((col) => !deleteThese.has(col.slug))
+        return this
+    }
+
+    private toCsvWithColumnNames() {
+        const delimiter = ","
+        const header =
+            this.columns.map((col) => col.name).join(delimiter) + "\n"
+        const body = this.rows
+            .map((row) =>
+                this.columns.map((col) => col.formatForCsv(row[col.slug]) ?? "")
+            )
+            .map((row) => row.join(delimiter))
+            .join("\n")
+        return header + body
+    }
+
+    // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
+    toPrettyCsv() {
+        const dropCols = this.parentTable
+            .constantColumns()
+            .map((col) => col.slug)
+        dropCols.push("entityId")
+        return this.deleteColumns(dropCols)
+            .sortBy("entityName")
+            .toCsvWithColumnNames()
     }
 }
 
@@ -695,42 +765,6 @@ export class BasicTable extends AbstractTable<Row> {
             })
         }
         return rows
-    }
-}
-
-// A mutable Table class without observables for simple table ops. Likely will merge with the main Table class.
-export class TableView {
-    private rows: Row[]
-    private columns: ColumnSpec[]
-    constructor(rows: Row[], columns: ColumnSpec[]) {
-        this.rows = cloneDeep(rows)
-        this.columns = cloneDeep(columns)
-    }
-
-    sortBy(columnSlug: ColumnSlug) {
-        this.rows = sortBy(this.rows, columnSlug)
-        return this
-    }
-
-    deleteColumns(columnSlugs: ColumnSlug[]) {
-        const deleteThese = new Set(columnSlugs)
-        this.columns = this.columns.filter((col) => !deleteThese.has(col.slug))
-        return this
-    }
-
-    extract(slugs: ColumnSlug[]) {
-        return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
-    }
-
-    toDelimitedWithColumnNames() {
-        const delimiter = ","
-        const slugs = this.columns.map((col) => col.slug)
-        const header =
-            this.columns.map((col) => col.name).join(delimiter) + "\n"
-        const body = this.extract(slugs)
-            .map((row) => row.join(delimiter))
-            .join("\n")
-        return header + body
     }
 }
 

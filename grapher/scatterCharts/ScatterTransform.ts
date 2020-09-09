@@ -229,7 +229,7 @@ export class ScatterTransform extends ChartTransform {
                 EntityName,
                 { years: Year[]; values: (string | number)[] }
             >()
-            const rows = dimension.column.rows
+            const rows = dimension.column.rowsWithValue
             dimension.values.forEach((value, index) => {
                 const row = rows[index]
                 const year = row.year ?? row.day

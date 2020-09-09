@@ -209,12 +209,13 @@ describe("immutability", () => {
     })
 })
 
-describe("getting entities with all requires columns", () => {
-    const csv = `entityName,entityCode,entityId,gdp,pop
+const basicTableCsv = `entityName,entityCode,entityId,gdp,pop
 iceland,ice,1,123,3
 usa,us,2,23,
 france,fr,3,23,4`
-    const table = OwidTable.fromDelimited(csv)
+
+describe("can get entities with all required columns", () => {
+    const table = OwidTable.fromDelimited(basicTableCsv)
 
     it("gets entities only with values for that column", () => {
         expect(table.columnsBySlug.get("pop")?.entityNamesUniq.size).toEqual(2)
@@ -227,6 +228,37 @@ france,fr,3,23,4`
     it("filters rows correctly", () => {
         expect(table.entitiesWith(["gdp"]).size).toEqual(3)
         expect(table.entitiesWith(["gdp", "pop"]).size).toEqual(2)
+    })
+})
+
+describe("csv export", () => {
+    it("can export a clean csv", () => {
+        const table = OwidTable.fromDelimited(basicTableCsv)
+        expect(table.toView().toPrettyCsv())
+            .toEqual(`entityName,entityCode,gdp,pop
+france,fr,23,4
+iceland,ice,123,3
+usa,us,23,`)
+    })
+
+    it("can export a clean csv with dates", () => {
+        const table = new BasicTable(
+            [
+                { entityName: "Aruba", day: 1, annotation: "Something, foo" },
+                { entityName: "Canada", day: 2 },
+            ],
+            [
+                { slug: "entityName" },
+                { slug: "day", type: "Date" },
+                { slug: "annotation" },
+            ]
+        )
+
+        expect(table.constantColumns().length).toEqual(0)
+
+        expect(table.toView().toPrettyCsv()).toEqual(`entityName,day,annotation
+Aruba,2020-01-22,"Something, foo"
+Canada,2020-01-23,`)
     })
 })
 
