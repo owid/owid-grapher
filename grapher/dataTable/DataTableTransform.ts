@@ -331,7 +331,7 @@ export class DataTableTransform extends ChartTransform {
                     ) {
                         const deltaValue = end.value - start.value
                         const deltaRatioValue =
-                            (end.value - start.value) / start.value
+                            deltaValue / Math.abs(start.value)
 
                         result.delta = {
                             value: deltaValue,
