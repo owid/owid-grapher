@@ -11,8 +11,8 @@ import { PersistableGrapher } from "grapher/core/GrapherConfig"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
-import { readGrapher } from "grapher/test/fixtures"
 import { ChartListItemVariant } from "./ChartListItemVariant"
+import { readGrapherConfig } from "grapher/test/utils"
 
 describe(GrapherPage, () => {
     let chart: PersistableGrapher
@@ -21,7 +21,7 @@ describe(GrapherPage, () => {
 
     beforeAll(() => {
         chart = new PersistableGrapher()
-        extend(chart, readGrapher(792))
+        extend(chart, readGrapherConfig(792))
         post = {
             id: 2681,
             title: "Hunger and Undernourishment",
