@@ -15,7 +15,6 @@ module.exports = (env, argv) => {
             buildDependencies: {
                 config: [
                     __filename,
-                    path.resolve(__dirname, "node_modules/.yarn-integrity"),
                 ],
             },
         },
