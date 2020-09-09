@@ -1,6 +1,6 @@
 export enum DeployStatus {
     queued = "queued",
-    pending = "pending"
+    pending = "pending",
     // done = "done"
 }
 

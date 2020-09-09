@@ -33,7 +33,7 @@ export class DeployStatusPage extends React.Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {this.deploys.map(deploy =>
+                                {this.deploys.map((deploy) =>
                                     deploy.changes.map((change, i) => (
                                         <tr key={`${deploy.status}-${i}`}>
                                             <td
