@@ -33,10 +33,12 @@ import { runFootnotes } from "site/client/Footnote"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { ENV } from "settings"
 import { CookieKeys } from "grapher/core/GrapherConstants"
+import { Grapher } from "grapher/core/Grapher"
 
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
 window.GrapherView = GrapherView
+window.Grapher = Grapher
 window.CovidExplorer = CovidExplorer
 window.SwitcherExplorer = SwitcherExplorer
 window.ExploreView = ExploreView
