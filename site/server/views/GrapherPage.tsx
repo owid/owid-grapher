@@ -34,7 +34,7 @@ export const GrapherPage = (props: {
     )
 
     const script = `
-        var jsonConfig = ${JSON.stringify(grapher, null, 2)};
+        var jsonConfig = ${JSON.stringify(grapher)};
         var figure = document.getElementsByTagName("figure")[0];
 
         try {
