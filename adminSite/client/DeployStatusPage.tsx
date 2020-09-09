@@ -8,7 +8,12 @@ import { faCheckCircle } from "@fortawesome/free-solid-svg-icons/faCheckCircle"
 
 import { AdminLayout } from "./AdminLayout"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
-import { Deploy } from "deploy/types"
+import { Deploy, DeployStatus } from "deploy/types"
+
+const statusLabel: Record<DeployStatus, string> = {
+    [DeployStatus.queued]: "Next up",
+    [DeployStatus.pending]: "Deploying",
+}
 
 @observer
 export class DeployStatusPage extends React.Component {
@@ -39,7 +44,7 @@ export class DeployStatusPage extends React.Component {
                                             <td
                                                 className={`cell-status cell-status--${deploy.status}`}
                                             >
-                                                {deploy.status}
+                                                {statusLabel[deploy.status]}
                                             </td>
                                             <td className="cell-message">
                                                 {change.message}
@@ -67,7 +72,7 @@ export class DeployStatusPage extends React.Component {
                                 <span className="icon">
                                     <FontAwesomeIcon icon={faCheckCircle} />
                                 </span>{" "}
-                                All changes are successfully published.
+                                All changes are successfully deployed.
                             </p>
                         </div>
                     )}
