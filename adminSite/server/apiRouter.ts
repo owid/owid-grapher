@@ -36,7 +36,7 @@ import { log } from "utils/server/log"
 import { denormalizeLatestCountryData } from "site/server/countryProfiles"
 import { BAKED_BASE_URL } from "settings"
 import { PostReference, ChartRedirect } from "adminSite/client/ChartEditor"
-import { enqueueDeploy, getDeploys } from "deploy/queue"
+import { enqueueChange, getDeploys } from "deploy/queue"
 import { FunctionalRouter } from "./utils/FunctionalRouter"
 import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/server"
@@ -53,7 +53,7 @@ async function triggerStaticBuild(user: CurrentUser, commitMessage: string) {
         return
     }
 
-    enqueueDeploy({
+    enqueueChange({
         timeISOString: new Date().toISOString(),
         authorName: user.fullName,
         authorEmail: user.email,
@@ -1667,7 +1667,7 @@ apiRouter.get("/sources/:sourceId.json", async (req: Request) => {
 
 apiRouter.get("/deploys.json", async () => {
     return {
-        deploys: await getDeploys()
+        deploys: await getDeploys(),
     }
 })
 
