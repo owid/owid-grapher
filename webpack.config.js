@@ -13,9 +13,7 @@ module.exports = (env, argv) => {
         cache: {
             type: "filesystem",
             buildDependencies: {
-                config: [
-                    __filename,
-                ],
+                config: [__filename],
             },
         },
         mode: isProduction ? "production" : "development",
