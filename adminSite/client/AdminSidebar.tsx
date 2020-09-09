@@ -14,6 +14,7 @@ import { faEye } from "@fortawesome/free-solid-svg-icons/faEye"
 import { faCoffee } from "@fortawesome/free-solid-svg-icons/faCoffee"
 import { faNewspaper } from "@fortawesome/free-solid-svg-icons/faNewspaper"
 import { faBook } from "@fortawesome/free-solid-svg-icons/faBook"
+import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons/faSatelliteDish"
 
 export const AdminSidebar = () => (
     <aside className="AdminSidebar">
@@ -87,6 +88,9 @@ export const AdminSidebar = () => (
             </li>
             <li className="header">UTILITIES</li>
             <li>
+                <Link to="/deploys">
+                    <FontAwesomeIcon icon={faSatelliteDish} /> Deploy status
+                </Link>
                 <Link to="/newsletter">
                     <FontAwesomeIcon icon={faNewspaper} /> Newsletter
                 </Link>

@@ -788,3 +788,59 @@ main:not(.ChartEditorPage) {
         color: #007bff;
     }
 }
+
+.DeploysPage {
+    .all-published-notice {
+        font-size: 18px;
+        font-weight: 700;
+        color: green;
+        margin: 10px 0;
+
+        .icon {
+            font-size: 150%;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+    }
+}
+
+.DeploysTable {
+    width: 100%;
+    max-width: 1000px;
+    margin: 30px 0;
+
+    tr {
+        border-bottom: 1px solid #eee;
+    }
+
+    th,
+    td {
+        padding: 10px;
+    }
+
+    th {
+        font-size: 12px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #999;
+    }
+
+    .cell-status {
+        font-weight: 700;
+        color: #999;
+        text-transform: capitalize;
+    }
+    .cell-status--pending {
+        color: #c36d00;
+    }
+    .cell-message {
+        font-weight: 700;
+        color: #333;
+    }
+    .cell-author,
+    .cell-time {
+        font-weight: 400;
+        color: #777;
+    }
+}
