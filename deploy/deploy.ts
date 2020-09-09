@@ -114,7 +114,7 @@ export async function deployIfQueueIsNotEmpty() {
             console.log(`Deploying site...\n---\n${message}\n---`)
             try {
                 await deploy(message)
-                await deletePendingFile
+                await deletePendingFile()
             } catch (err) {
                 failures++
                 // The error is already sent to Slack inside the deploy() function.
