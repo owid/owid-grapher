@@ -839,36 +839,9 @@ export class Grapher extends PersistableGrapher {
         return this.title ?? this.defaultTitle
     }
 
-    toObject() {
-        const obj = super.toObject()
-
-        const availableEntities = this.availableEntityNames
-        if (availableEntities.length) obj.data = { availableEntities }
-
-        return obj
-    }
-
     // Returns an object ready to be serialized to JSON
     @computed get object() {
         return this.toObject()
-    }
-
-    @computed get objectWithAutoTitleAndAutoSlug() {
-        const obj: any = this.toObject()
-
-        // Chart title and slug may be autocalculated from data, in which case they won't be in props
-        // But the server will need to know what we calculated in order to do its job
-        if (!obj.title) {
-            obj.title = this.displayTitle
-            obj.isAutoTitle = true
-        }
-
-        if (!obj.slug) {
-            obj.slug = this.displaySlug
-            obj.isAutoSlug = true
-        }
-
-        return obj
     }
 
     @computed get isLineChart() {

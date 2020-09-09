@@ -96,21 +96,12 @@ export class ChartEditor {
                 : "mobile"
         when(
             () => this.grapher.isReady,
-            () =>
-                (this.savedGrapherJson = JSON.stringify(
-                    this.currentGrapherObject
-                ))
+            () => (this.savedGrapherJson = JSON.stringify(this.grapher.object))
         )
-    }
-
-    @computed get currentGrapherObject() {
-        return this.grapher.object
     }
 
     @computed get isModified(): boolean {
-        return (
-            JSON.stringify(this.currentGrapherObject) !== this.savedGrapherJson
-        )
+        return JSON.stringify(this.grapher.object) !== this.savedGrapherJson
     }
 
     @computed get grapher(): Grapher {
@@ -166,7 +157,8 @@ export class ChartEditor {
     }
 
     async saveGrapher({ onError }: { onError?: () => void } = {}) {
-        const { grapher, isNewGrapher, currentGrapherObject } = this
+        const { grapher, isNewGrapher } = this
+        const currentGrapherObject = this.grapher.object
 
         // Chart title and slug may be autocalculated from data, in which case they won't be in props
         // But the server will need to know what we calculated in order to do its job
@@ -175,6 +167,11 @@ export class ChartEditor {
 
         if (!currentGrapherObject.slug)
             currentGrapherObject.slug = grapher.displaySlug
+
+        // We need to save availableEntities for Algolia search. Todo: remove.
+        const availableEntities = grapher.availableEntityNames
+        if (availableEntities.length)
+            (currentGrapherObject as any).data = { availableEntities }
 
         const targetUrl = isNewGrapher
             ? "/api/charts"
@@ -202,7 +199,7 @@ export class ChartEditor {
     }
 
     async saveAsNewGrapher() {
-        const { currentGrapherObject } = this
+        const currentGrapherObject = this.grapher.object
 
         const chartJson = { ...currentGrapherObject }
         delete chartJson.id

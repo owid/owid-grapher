@@ -10,7 +10,6 @@ const sandboxGrapher = {
         customHiddenCategories: {},
     },
     tab: "chart",
-    data: { availableEntities: ["Germany", "Spain"] },
     note: "Note placeholder",
     slug: "slug-placeholder",
     type: "LineChart",
