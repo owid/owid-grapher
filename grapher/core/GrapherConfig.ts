@@ -103,7 +103,6 @@ export interface GrapherConfigInterface {
     compareEndPointsOnly?: true
     matchingEntitiesOnly?: true
     excludedEntities?: number[]
-    data?: { availableEntities: string[] }
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
@@ -168,7 +167,6 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = []
     @observable relatedQuestions?: RelatedQuestionsConfig[]
-    data?: { availableEntities: string[] } = undefined // Todo: remove
 
     externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed

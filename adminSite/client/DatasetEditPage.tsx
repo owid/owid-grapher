@@ -57,7 +57,7 @@ class VariableEditRow extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref chart?: Grapher
+    @observable.ref grapher?: Grapher
     @observable newVariable!: VariableEditable
 
     componentWillMount() {
@@ -144,17 +144,17 @@ class VariableEditRow extends React.Component<{
     dispose!: IReactionDisposer
     dispose2!: IReactionDisposer
     componentDidMount() {
-        this.chart = new Grapher(this.grapherConfig as any, {
+        this.grapher = new Grapher(this.grapherConfig as any, {
             isEmbed: true,
         })
 
         this.dispose2 = when(
-            () => this.chart !== undefined && this.chart.isReady,
-            () => this.grapherIsReady(this.chart as Grapher)
+            () => this.grapher !== undefined && this.grapher.isReady,
+            () => this.grapherIsReady(this.grapher as Grapher)
         )
 
         this.dispose = autorun(() => {
-            const chart = this.chart
+            const chart = this.grapher
             const display = lodash.clone(this.newVariable.display)
             if (chart) {
                 runInAction(() => (chart.dimensions[0].display = display))
@@ -275,13 +275,13 @@ class VariableEditRow extends React.Component<{
                         />
                     </form>
                 </div>
-                {this.chart && (
+                {this.grapher && (
                     <div className="col">
-                        <GrapherFigureView grapher={this.chart} />
+                        <GrapherFigureView grapher={this.grapher} />
                         <Link
                             className="btn btn-secondary pull-right"
                             to={`/charts/create/${Base64.encode(
-                                JSON.stringify(this.chart.object)
+                                JSON.stringify(this.grapher.object)
                             )}`}
                         >
                             Edit as new chart

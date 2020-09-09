@@ -1407,9 +1407,6 @@ export class CovidExplorer extends React.Component<{
             tab: "chart",
             isPublished: true,
             map: this.defaultMapConfig as any,
-            data: {
-                availableEntities: [],
-            },
         },
         {
             queryStr: this.props.queryStr,
