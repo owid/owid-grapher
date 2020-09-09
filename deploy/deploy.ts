@@ -99,28 +99,27 @@ let deploying: boolean = false
  * If there are no changes in the queue, a deploy won't be initiated.
  */
 export async function deployIfQueueIsNotEmpty() {
-    if (!deploying) {
-        deploying = true
-        let failures = 0
-        while (!(await queueIsEmpty()) && failures < MAX_SUCCESSIVE_FAILURES) {
-            const deployContent = await readQueuedAndPendingFiles()
-            // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
-            // possible that another process writes to this file in the meantime...
-            await clearQueueFile()
-            // Write to `.deploying` file to be able to recover the deploy message
-            // in case of failure.
-            await writePendingFile(deployContent)
-            const message = generateCommitMsg(parseQueueContent(deployContent))
-            console.log(`Deploying site...\n---\n${message}\n---`)
-            try {
-                await deploy(message)
-                await deletePendingFile()
-            } catch (err) {
-                failures++
-                // The error is already sent to Slack inside the deploy() function.
-                // The deploy will be retried unless we've reached MAX_SUCCESSIVE_FAILURES.
-            }
+    if (deploying) return
+    deploying = true
+    let failures = 0
+    while (!(await queueIsEmpty()) && failures < MAX_SUCCESSIVE_FAILURES) {
+        const deployContent = await readQueuedAndPendingFiles()
+        // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
+        // possible that another process writes to this file in the meantime...
+        await clearQueueFile()
+        // Write to `.deploying` file to be able to recover the deploy message
+        // in case of failure.
+        await writePendingFile(deployContent)
+        const message = generateCommitMsg(parseQueueContent(deployContent))
+        console.log(`Deploying site...\n---\n${message}\n---`)
+        try {
+            await deploy(message)
+            await deletePendingFile()
+        } catch (err) {
+            failures++
+            // The error is already sent to Slack inside the deploy() function.
+            // The deploy will be retried unless we've reached MAX_SUCCESSIVE_FAILURES.
         }
-        deploying = false
     }
+    deploying = false
 }
