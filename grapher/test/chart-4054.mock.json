@@ -1,62 +1,47 @@
 {
-    "id": 4054,
-    "map": {
-      "projection": "World",
-      "targetYear": "latest",
-      "colorSchemeLabels": [],
-      "colorSchemeValues": [],
-      "customNumericColors": [],
-      "customCategoryColors": {},
-      "customCategoryLabels": {},
-      "customHiddenCategories": {}
-    },
-    "tab": "chart",
-    "slug": "rate-confirmed-cases-vs-rate-confirmed-deaths",
     "type": "ScatterPlot",
+    "id": 4054,
+    "version": 38,
+    "slug": "rate-confirmed-cases-vs-rate-confirmed-deaths",
     "title": "COVID-19: Confirmed cases vs. deaths per million",
+    "subtitle": "Both measures are expressed per million people of the country's population.\nThe confirmed counts are lower than the totals. The main reason for this is limited testing.\n",
+    "minTime": "latest",
+    "maxTime": "latest",
+    "timelineMinTime": 0,
+    "originUrl": "https://ourworldindata.org/coronavirus",
+    "isPublished": true,
+    "matchingEntitiesOnly": true,
     "xAxis": {
       "scaleType": "log",
       "canChangeScaleType": true
     },
     "yAxis": {
-      "min": 0,
       "scaleType": "log",
+      "min": 0,
       "canChangeScaleType": true
     },
-    "maxTime": "latest",
-    "minTime": "latest",
-    "version": 38,
-    "subtitle": "Both measures are expressed per million people of the country's population.\nThe confirmed counts are lower than the totals. The main reason for this is limited testing.\n",
-    "hasMapTab": false,
-    "originUrl": "https://ourworldindata.org/coronavirus",
-    "stackMode": "absolute",
+    "map": {
+      "targetYear": "latest"
+    },
     "dimensions": [
       {
+        "variableId": 142586,
+        "property": "y",
         "display": {
           "name": "Total confirmed cases of COVID-19 per million"
-        },
-        "property": "y",
-        "variableId": 142586
+        }
       },
       {
+        "variableId": 142587,
+        "property": "x",
         "display": {
           "name": "Total confirmed deaths due to COVID-19 per million"
-        },
-        "property": "x",
-        "variableId": 142587
+        }
       },
       {
-        "display": {},
-        "property": "color",
-        "variableId": 123
+        "variableId": 123,
+        "property": "color"
       }
     ],
-    "hasChartTab": true,
-    "isPublished": true,
-    "isExplorable": false,
-    "selectedData": [],
-    "timelineMinTime": 0,
-    "excludedEntities": [],
-    "hideRelativeToggle": true,
-    "matchingEntitiesOnly": true
+    "excludedEntities": []
   }

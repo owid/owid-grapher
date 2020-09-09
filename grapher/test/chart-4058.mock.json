@@ -1,84 +1,80 @@
 {
-    "id": 4058,
-    "map": {
-        "colorScale": {
-            "colorSchemeLabels": [],
-            "colorSchemeValues": [],
-            "customNumericColors": [],
-            "customCategoryColors": {},
-            "customCategoryLabels": {},
-            "customHiddenCategories": {}
-        },
-        "projection": "World",
-        "targetYear": "latest"
-    },
-    "tab": "chart",
-    "note": "Only countries with more than 100 confirmed cases are included.",
-    "slug": "case-fatality-rate-of-covid-19-vs-median-age",
     "type": "ScatterPlot",
+    "id": 4058,
+    "version": 152,
+    "slug": "case-fatality-rate-of-covid-19-vs-median-age",
     "title": "Case fatality rate of COVID-19 vs. Median Age",
+    "subtitle": "The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases.\nDuring an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus\nThe size of the bubble corresponds to the total confirmed deaths up to that date.",
+    "sourceDesc": "European CDC – Situation Update Worldwide – Last updated 8th April, 11:30 (London time); UN Population Division",
+    "note": "Only countries with more than 100 confirmed cases are included.",
+    "minTime": "latest",
+    "maxTime": "latest",
+    "originUrl": "https://ourworldindata.org/coronavirus",
+    "isPublished": true,
+    "hideConnectedScatterLines": false,
+    "matchingEntitiesOnly": true,
     "xAxis": {
-        "scaleType": "linear",
-        "canChangeScaleType": true
+      "scaleType": "linear",
+      "canChangeScaleType": true
     },
     "yAxis": {
-        "min": 0,
-        "scaleType": "linear",
-        "canChangeScaleType": true
+      "scaleType": "linear",
+      "min": 0,
+      "canChangeScaleType": true
     },
-    "maxTime": "latest",
-    "minTime": "latest",
-    "version": 152,
-    "subtitle": "The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases.\nDuring an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus\nThe size of the bubble corresponds to the total confirmed deaths up to that date.",
-    "hasMapTab": false,
-    "originUrl": "https://ourworldindata.org/coronavirus",
-    "stackMode": "absolute",
     "colorScale": {
-        "colorSchemeLabels": [],
-        "colorSchemeValues": [],
+      "binningStrategy": "ckmeans",
+      "customNumericValues": [],
+      "customNumericLabels": [],
+      "customNumericColors": [],
+      "customCategoryColors": {},
+      "customCategoryLabels": {},
+      "customHiddenCategories": {},
+      "colorSchemeLabels": [],
+      "colorSchemeValues": []
+    },
+    "map": {
+      "targetYear": "latest",
+      "colorScale": {
+        "binningStrategy": "ckmeans",
+        "customNumericValues": [],
+        "customNumericLabels": [],
         "customNumericColors": [],
         "customCategoryColors": {},
         "customCategoryLabels": {},
-        "customHiddenCategories": {}
+        "customHiddenCategories": {},
+        "colorSchemeLabels": [],
+        "colorSchemeValues": []
+      }
     },
     "dimensions": [
-        {
-            "display": {
-                "name": "Case fatality rate of COVID-19",
-                "tolerance": 2
-            },
-            "property": "y",
-            "variableId": 142600
-        },
-        {
-            "display": {
-                "name": "Median Age",
-                "tolerance": 4
-            },
-            "property": "x",
-            "targetYear": 2017,
-            "variableId": 97587
-        },
-        {
-            "display": {},
-            "property": "size",
-            "variableId": 142583
-        },
-        {
-            "display": {},
-            "property": "color",
-            "variableId": 123
+      {
+        "variableId": 142600,
+        "property": "y",
+        "display": {
+          "name": "Case fatality rate of COVID-19",
+          "tolerance": 2
         }
+      },
+      {
+        "targetYear": 2017,
+        "variableId": 97587,
+        "property": "x",
+        "display": {
+          "name": "Median Age",
+          "tolerance": 4
+        }
+      },
+      {
+        "variableId": 142583,
+        "property": "size"
+      },
+      {
+        "variableId": 123,
+        "property": "color"
+      }
     ],
-    "sourceDesc": "European CDC – Situation Update Worldwide – Last updated 8th April, 11:30 (London time); UN Population Division",
-    "hasChartTab": true,
-    "isPublished": true,
-    "isExplorable": false,
-    "selectedData": [],
     "excludedEntities": [
-        355
-    ],
-    "hideRelativeToggle": true,
-    "matchingEntitiesOnly": true,
-    "hideConnectedScatterLines": false
-}
+      355
+    ]
+  }
