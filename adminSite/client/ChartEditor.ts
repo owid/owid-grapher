@@ -125,17 +125,13 @@ export class ChartEditor {
     }
 
     @computed get availableTabs(): EditorTab[] {
-        if (!this.grapher.isValidConfig) {
-            return ["basic"]
-        } else {
-            const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
-            if (this.grapher.hasMapTab) tabs.push("map")
-            if (this.grapher.isScatter || this.grapher.isTimeScatter)
-                tabs.push("scatter")
-            tabs.push("revisions")
-            tabs.push("refs")
-            return tabs
-        }
+        const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
+        if (this.grapher.hasMapTab) tabs.push("map")
+        if (this.grapher.isScatter || this.grapher.isTimeScatter)
+            tabs.push("scatter")
+        tabs.push("revisions")
+        tabs.push("refs")
+        return tabs
     }
 
     @computed get isNewGrapher() {

@@ -879,6 +879,7 @@ export class Grapher extends PersistableGrapher {
         return this.type === ChartType.StackedBar
     }
 
+    // WARNING: ALL OF THESE WILL BE REMOVED!!!! DO NOT USE
     @computed get lineChartTransform() {
         return new LineChartTransform(this)
     }
@@ -904,10 +905,6 @@ export class Grapher extends PersistableGrapher {
         return new DataTableTransform(this)
     }
 
-    @computed get isValidConfig() {
-        return this.activeTransform.isValidConfig
-    }
-
     @computed get selectableEntityDimensionKeys() {
         return this.activeTransform.selectableEntityDimensionKeys.map((key) =>
             this.lookupKey(key)
@@ -918,7 +915,8 @@ export class Grapher extends PersistableGrapher {
         return this.activeTransform.colorScale
     }
 
-    @computed get activeTransform(): IChartTransform {
+    // WARNING: THIS WILL BE REMOVED!!!! DO NOT USE
+    @computed private get activeTransform(): IChartTransform {
         if (this.currentTab === "table") return this.dataTableTransform
         else if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
