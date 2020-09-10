@@ -5,7 +5,7 @@ import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { GrapherView } from "grapher/core/GrapherView"
-import { Timeline, TimelineProps } from "./Timeline"
+import { TimelineControl } from "./TimelineControl"
 import { max, formatValue } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
@@ -16,11 +16,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { TimeBound } from "grapher/utils/TimeBounds"
-import {
-    HighlightToggleConfig,
-    GrapherTabOption,
-} from "grapher/core/GrapherConstants"
+import { HighlightToggleConfig } from "grapher/core/GrapherConstants"
 import { ShareMenu } from "./ShareMenu"
 
 @observer
@@ -182,114 +178,6 @@ class FilterSmallCountriesToggle extends React.Component<{
                 {label}
             </label>
         )
-    }
-}
-
-interface TimelineControlProps {
-    grapher: Grapher
-    activeTab: GrapherTabOption
-}
-
-@observer
-class TimelineControl extends React.Component<TimelineControlProps> {
-    @action.bound onMapTargetChange({
-        targetStartYear,
-    }: {
-        targetStartYear: TimeBound
-    }) {
-        this.props.grapher.mapTransform.targetYear = targetStartYear
-    }
-
-    @action.bound onChartTargetChange({
-        targetStartYear,
-        targetEndYear,
-    }: {
-        targetStartYear: TimeBound
-        targetEndYear: TimeBound
-    }) {
-        this.props.grapher.timeDomain = [targetStartYear, targetEndYear]
-    }
-
-    @action.bound onTimelineStart() {
-        this.props.grapher.useTimelineDomains = true
-    }
-
-    @action.bound onTimelineStop() {
-        this.props.grapher.useTimelineDomains = false
-    }
-
-    @computed private get startYear() {
-        const { activeTab, grapher } = this.props
-        if (activeTab === "table")
-            return (
-                grapher.dataTableTransform.autoSelectedStartYear ??
-                grapher.timeDomain[0]
-            )
-        if (activeTab === "map") return grapher.mapTransform.targetYearProp
-        return grapher.activeTransform.startYear!
-    }
-
-    @computed private get endYear() {
-        const { activeTab, grapher } = this.props
-        if (activeTab === "table")
-            return grapher.multiMetricTableMode
-                ? grapher.dataTableTransform.startYear
-                : grapher.timeDomain[1]
-        if (activeTab === "map") return grapher.mapTransform.targetYearProp
-        return grapher.activeTransform.endYear!
-    }
-
-    componentDidUpdate(prevProps: TimelineControlProps) {
-        if (
-            prevProps.activeTab !== this.props.activeTab &&
-            this.props.activeTab !== "map"
-        )
-            this.onChartTargetChange({
-                targetStartYear: this.startYear,
-                targetEndYear: this.endYear,
-            })
-    }
-
-    @computed private get timelineProps(): TimelineProps {
-        const { grapher } = this.props
-        return {
-            grapher,
-            years: grapher.activeTransform.timelineYears,
-            startYear: this.startYear,
-            endYear: this.endYear,
-            onTargetChange: this.onChartTargetChange,
-            onStartDrag: this.onTimelineStart,
-            onStopDrag: this.onTimelineStop,
-        }
-    }
-
-    render() {
-        if (this.timelineProps.years.length === 0) return null
-
-        const { activeTab, grapher } = this.props
-
-        if (activeTab === "map")
-            return (
-                <Timeline
-                    {...this.timelineProps}
-                    onTargetChange={this.onMapTargetChange}
-                    singleYearMode={true}
-                    onStartDrag={undefined}
-                    onStopDrag={undefined}
-                />
-            )
-        else if (activeTab === "table")
-            return (
-                <Timeline
-                    {...this.timelineProps}
-                    singleYearMode={grapher.multiMetricTableMode}
-                />
-            )
-        else if (grapher.isLineChart)
-            return <Timeline {...this.timelineProps} singleYearPlay={true} />
-        else if (grapher.isSlopeChart)
-            return <Timeline {...this.timelineProps} disablePlay={true} />
-        return <Timeline {...this.timelineProps} />
     }
 }
 
@@ -719,10 +607,7 @@ export class ControlsFooterView extends React.Component<{
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">
-                <TimelineControl
-                    grapher={grapher}
-                    activeTab={grapher.currentTab}
-                />
+                <TimelineControl grapher={grapher} />
             </div>
         )
 
