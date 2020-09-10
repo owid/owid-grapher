@@ -14,7 +14,7 @@ import { Grapher } from "grapher/core/Grapher"
 
 interface MapTooltipProps {
     inputYear?: number
-    formatYear: (year: number) => string
+    formatYearFn?: (year: number) => string
     mapToDataEntities: { [id: string]: string }
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
@@ -115,6 +115,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             : "Click for change over time"
 
         const { renderSparkBars, barColor } = this
+        const formatYearFn = this.props.formatYearFn || ((value: any) => value)
         return (
             <Tooltip
                 tooltipContainer={this.grapher}
@@ -166,7 +167,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                         value={this.grapher.mapTransform.formatTooltipValue(
                                             tooltipDatum.value
                                         )}
-                                        formattedDate={this.props.formatYear(
+                                        formattedDate={formatYearFn(
                                             tooltipDatum.year as number
                                         )}
                                         valueColor={
@@ -177,9 +178,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             </div>
                         </div>
                     ) : (
-                        `No data for ${this.props.formatYear(
-                            inputYear as number
-                        )}`
+                        `No data for ${formatYearFn(inputYear as number)}`
                     )}
                 </div>
                 {isEntityClickable && (

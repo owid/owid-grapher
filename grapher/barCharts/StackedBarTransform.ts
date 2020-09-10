@@ -48,17 +48,19 @@ export class StackedBarTransform extends ChartTransform {
         }
     }
 
-    @computed get tickFormat(): (d: number) => string {
+    @computed get tickFormatFn(): (d: number) => string {
         const { primaryDimension } = this
         return primaryDimension
-            ? primaryDimension.formatValueShort
+            ? primaryDimension.formatValueShortFn
             : (d: number) => `${d}`
     }
 
-    @computed get yFormatTooltip(): (d: number) => string {
-        const { primaryDimension, yTickFormat } = this
+    @computed get yFormatTooltipFn(): (d: number) => string {
+        const { primaryDimension, yTickFormatFn } = this
 
-        return primaryDimension ? primaryDimension.formatValueLong : yTickFormat
+        return primaryDimension
+            ? primaryDimension.formatValueLongFn
+            : yTickFormatFn
     }
 
     // @computed get xFormatTooltip(): (d: number) => string {
@@ -74,7 +76,7 @@ export class StackedBarTransform extends ChartTransform {
         const { grapher, xDomainDefault } = this
         const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
-        axis.tickFormat = this.grapher.table.timeColumn!.formatValue
+        axis.tickFormatFn = this.grapher.table.timeColumn!.formatValue
         axis.hideGridlines = true
         axis.hideFractionalTicks = true
         return axis
@@ -91,18 +93,18 @@ export class StackedBarTransform extends ChartTransform {
         return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 
-    @computed get yTickFormat() {
+    @computed get yTickFormatFn() {
         const { yDimensionFirst } = this
 
-        return yDimensionFirst ? yDimensionFirst.formatValueShort : identity
+        return yDimensionFirst ? yDimensionFirst.formatValueShortFn : identity
     }
 
     @computed get yAxis() {
-        const { grapher, yDomainDefault, yTickFormat } = this
+        const { grapher, yDomainDefault, yTickFormatFn } = this
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
-        axis.tickFormat = yTickFormat
+        axis.tickFormatFn = yTickFormatFn
         return axis
     }
 
@@ -219,10 +221,10 @@ export class StackedBarTransform extends ChartTransform {
             get hasNoDataBin() {
                 return false
             },
-            get formatNumericValue() {
-                return that.colorDimension?.formatValueShort ?? identity
+            get formatNumericValueFn() {
+                return that.colorDimension?.formatValueShortFn ?? identity
             },
-            get formatCategoricalValue() {
+            get formatCategoricalValueFn() {
                 return (key: EntityDimensionKey) =>
                     that.grapher.getLabelForKey(key)
             },

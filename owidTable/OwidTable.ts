@@ -174,6 +174,10 @@ export abstract class AbstractColumn {
         return this.formatValue(value)
     }
 
+    formatValueShort(value: any) {
+        return this.formatValue(value)
+    }
+
     // A method for formatting for CSV
     formatForCsv(value: any): string {
         return csvEscape(this.formatValue(value))
@@ -332,7 +336,15 @@ class CategoricalColumn extends AbstractColumn {}
 class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
-export class NumericColumn extends AbstractColumn {}
+export class NumericColumn extends AbstractColumn {
+    formatValueShort(value: any) {
+        const numDecimalPlaces = this.display?.numDecimalPlaces
+        return formatValue(value, {
+            unit: this.shortUnit,
+            numDecimalPlaces,
+        })
+    }
+}
 class IntegerColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""

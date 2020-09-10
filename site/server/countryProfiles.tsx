@@ -203,7 +203,7 @@ export async function countryProfilePage(countrySlug: string) {
                 column.columnsBySlug.get(variable.name)!
             )
 
-            const formatValueShort = dim.formatValueShort
+            const formatValueShort = dim.formatValueShortFn
 
             let value: string | number
             value = parseFloat(latestValue.value)

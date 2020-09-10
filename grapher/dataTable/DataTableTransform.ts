@@ -239,7 +239,7 @@ export class DataTableTransform extends ChartTransform {
         formattingOverrides?: TickFormattingOptions
     ): string | undefined {
         if (value === undefined) return value
-        return dimension.formatValueShort(value, {
+        return dimension.formatValueShortFn(value, {
             numberPrefixes: false,
             noTrailingZeroes: false,
             unit: dimension.shortUnit,

@@ -180,7 +180,7 @@ export class ChartDimension extends PersistableChartDimension {
         }
     }
 
-    @computed get formatValueShort(): (
+    @computed get formatValueShortFn(): (
         value: number | string,
         options?: TickFormattingOptions
     ) => string {
@@ -195,7 +195,7 @@ export class ChartDimension extends PersistableChartDimension {
                   })
     }
 
-    @computed get formatValueLong(): (
+    @computed get formatValueLongFn(): (
         value: number | string,
         options?: TickFormattingOptions
     ) => string {

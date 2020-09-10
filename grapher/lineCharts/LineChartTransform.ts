@@ -70,7 +70,7 @@ export class LineChartTransform extends ChartTransform {
                         entityName,
                         entityDimensionKey: entityDimensionKey,
                         isProjection: dimension.isProjection,
-                        formatValue: dimension.formatValueLong,
+                        formatValue: dimension.formatValueLongFn,
                         color: "#000", // tmp
                     }
                     seriesByKey.set(entityDimensionKey, series)
@@ -182,7 +182,7 @@ export class LineChartTransform extends ChartTransform {
         axis.updateDomainPreservingUserSettings([this.startYear, this.endYear])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
-        axis.tickFormat = this.grapher.formatYearTickFunction
+        axis.tickFormatFn = this.grapher.formatYearTickFunction
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -221,7 +221,7 @@ export class LineChartTransform extends ChartTransform {
                 (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
         } else {
             return this.yDimensionFirst
-                ? this.yDimensionFirst.formatValueShort
+                ? this.yDimensionFirst.formatValueShortFn
                 : identity
         }
     }
@@ -235,7 +235,7 @@ export class LineChartTransform extends ChartTransform {
             (val) => val.y % 1 === 0
         ) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
-        axis.tickFormat = yTickFormat
+        axis.tickFormatFn = yTickFormat
         return axis
     }
 

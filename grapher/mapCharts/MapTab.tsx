@@ -25,6 +25,7 @@ import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"
 import { ColorScale } from "grapher/color/ColorScale"
+import { AbstractColumn } from "owidTable/OwidTable"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -36,7 +37,7 @@ interface MapWithLegendProps {
     choroplethData: ChoroplethData
     years: number[]
     inputYear?: number
-    formatYear: (year: number) => string
+    column?: AbstractColumn
     colorScale: ColorScale
     projection: MapProjection
     defaultFill: string
@@ -205,7 +206,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
         const tooltipProps = {
             inputYear: this.props.inputYear,
-            formatYear: this.props.formatYear,
+            formatYearFn: this.props.column?.formatValue,
             mapToDataEntities: this.props.mapToDataEntities,
             tooltipDatum: this.tooltipDatum,
             isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId),
@@ -293,7 +294,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         projection={map.projection}
                         defaultFill={map.colorScale.noDataColor}
                         mapToDataEntities={map.mapToDataEntities}
-                        formatYear={map.formatYear}
+                        column={map.dimension?.column}
                     />
                 ) : (
                     <LoadingOverlay bounds={layout.innerBounds} />

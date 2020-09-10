@@ -39,8 +39,8 @@ export class SlopeChartTransform extends ChartTransform {
             get hasNoDataBin() {
                 return false
             },
-            get formatNumericValue() {
-                return that.colorDimension?.formatValueShort ?? identity
+            get formatNumericValueFn() {
+                return that.colorDimension?.formatValueShortFn ?? identity
             },
         })
     }
@@ -103,7 +103,7 @@ export class SlopeChartTransform extends ChartTransform {
 
     @computed get yTickFormat(): (d: number) => string {
         return this.yDimension
-            ? this.yDimension.formatValueShort
+            ? this.yDimension.formatValueShortFn
             : (d) => `${d}`
     }
 

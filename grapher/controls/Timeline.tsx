@@ -521,7 +521,7 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     formatYear(date: number) {
-        const timeColumn = this.grapher.table.timeColumn
+        const timeColumn = this.grapher.table.timeColumn!
         const format = isMobile()
             ? timeColumn.formatValueForMobile
             : timeColumn.formatValue
