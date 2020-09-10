@@ -104,7 +104,6 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
     }
 }
 
-@observer
 export class MoreButton extends React.Component<{
     options: React.ReactElement[]
 }> {
