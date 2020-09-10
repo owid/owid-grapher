@@ -65,7 +65,7 @@ export class DiscreteBarTransform extends ChartTransform {
     ) => string {
         const { primaryDimensions } = this
         return primaryDimensions[0]
-            ? primaryDimensions[0].formatValueShort
+            ? primaryDimensions[0].formatValueShortFn
             : (d: number) => `${d}`
     }
 
@@ -114,7 +114,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     year: year,
                     label: grapher.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
-                    formatValue: dimension.formatValueShort,
+                    formatValue: dimension.formatValueShortFn,
                 }
 
                 dataByEntityDimensionKey[entityDimensionKey] = datum
@@ -213,7 +213,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     year: year,
                     label: grapher.getLabelForKey(entityDimensionKey),
                     color: "#2E5778",
-                    formatValue: dimension.formatValueShort,
+                    formatValue: dimension.formatValueShortFn,
                 }
 
                 allData.push(datum)

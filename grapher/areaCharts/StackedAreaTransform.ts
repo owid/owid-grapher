@@ -170,7 +170,7 @@ export class StackedAreaTransform extends ChartTransform {
         const grapher = this.grapher
         const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
-        axis.tickFormat = this.grapher.table.timeColumn!.formatValue
+        axis.tickFormatFn = this.grapher.table.timeColumn!.formatValue
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -193,10 +193,10 @@ export class StackedAreaTransform extends ChartTransform {
                 yDomainDefault[1],
             ]) // Stacked area chart must have its own y domain)
 
-        axis.tickFormat = isRelativeMode
+        axis.tickFormatFn = isRelativeMode
             ? (v: number) => formatValue(v, { unit: "%" })
             : yDimensionFirst
-            ? yDimensionFirst.formatValueShort
+            ? yDimensionFirst.formatValueShortFn
             : identity
         return axis
     }
@@ -270,7 +270,7 @@ export class StackedAreaTransform extends ChartTransform {
         if (this.isRelativeMode) return formatValue(v, { unit: "%" })
 
         const tickFormat = this.yDimensionFirst
-            ? this.yDimensionFirst.formatValueShort
+            ? this.yDimensionFirst.formatValueShortFn
             : identity
         return tickFormat(v, { noTrailingZeroes: false })
     }

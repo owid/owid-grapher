@@ -35,7 +35,7 @@ declare type TickFormatFunction = (
 abstract class AbstractAxis implements ScaleTypeConfig {
     protected options: PersistableAxisConfig
     @observable.ref domain: [number, number]
-    @observable tickFormat: TickFormatFunction = (d) => `${d}`
+    @observable tickFormatFn: TickFormatFunction = (d) => `${d}`
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
     @observable.struct range: [number, number] = [0, 0]
@@ -236,7 +236,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     getFormattedTicks(): string[] {
         const options = this.getTickFormattingOptions()
         return this.getTickValues().map((tickmark) =>
-            this.tickFormat(tickmark.value, options)
+            this.tickFormatFn(tickmark.value, options)
         )
     }
 
@@ -281,7 +281,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
 
     formatTick(tick: number, isFirstOrLastTick?: boolean) {
         const tickFormattingOptions = this.getTickFormattingOptions()
-        return this.tickFormat(tick, {
+        return this.tickFormatFn(tick, {
             ...tickFormattingOptions,
             isFirstOrLastTick,
         })

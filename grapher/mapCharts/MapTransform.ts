@@ -1,5 +1,4 @@
-import { computed, autorun, runInAction } from "mobx"
-import { Grapher } from "grapher/core/Grapher"
+import { computed } from "mobx"
 import {
     defaultTo,
     isString,
@@ -7,7 +6,6 @@ import {
     keyBy,
     isNumber,
     entityNameForMap,
-    formatYear,
     uniq,
     sortNumeric,
 } from "grapher/utils/Util"
@@ -164,10 +162,6 @@ export class MapTransform extends ChartTransform {
         )
     }
 
-    @computed get formatValueShort() {
-        return this.dimension ? this.dimension.formatValueShort : () => ""
-    }
-
     @computed get categoricalValues(): string[] {
         return uniq(this.mappableData.values.filter(isString))
     }
@@ -198,8 +192,8 @@ export class MapTransform extends ChartTransform {
             get defaultBaseColorScheme() {
                 return "BuGn"
             },
-            get formatNumericValue() {
-                return that.formatValueShort
+            get formatNumericValueFn() {
+                return that.dimension?.formatValueShortFn || ((val: any) => "")
             },
         })
     }
@@ -261,7 +255,8 @@ export class MapTransform extends ChartTransform {
     }
 
     @computed get formatTooltipValue(): (d: number | string) => string {
-        const formatValueLong = this.dimension && this.dimension.formatValueLong
+        const formatValueLong =
+            this.dimension && this.dimension.formatValueLongFn
         const customLabels = this.tooltipUseCustomLabels
             ? this.colorScale.customNumericLabels
             : []
@@ -271,9 +266,5 @@ export class MapTransform extends ChartTransform {
                   else return customLabels[d] ?? formatValueLong(d)
               }
             : () => ""
-    }
-
-    @computed get formatYear(): (year: number) => string {
-        return this.dimension ? this.dimension.formatYear : formatYear
     }
 }

@@ -28,8 +28,8 @@ interface ColorScaleProps {
     hasNoDataBin: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: string
-    formatNumericValue?: (v: number) => string
-    formatCategoricalValue?: (v: string) => string
+    formatNumericValueFn?: (v: number) => string
+    formatCategoricalValueFn?: (v: string) => string
 }
 
 export class ColorScale {
@@ -103,11 +103,11 @@ export class ColorScale {
     }
 
     @computed get formatNumericValue(): (v: number) => string {
-        return defaultTo(this.props.formatNumericValue, identity)
+        return defaultTo(this.props.formatNumericValueFn, identity)
     }
 
     @computed get formatCategoricalValue(): (v: string) => string {
-        return defaultTo(this.props.formatCategoricalValue, identity)
+        return defaultTo(this.props.formatCategoricalValueFn, identity)
     }
 
     @computed get legendDescription(): string | undefined {

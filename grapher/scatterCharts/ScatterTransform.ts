@@ -64,8 +64,8 @@ export class ScatterTransform extends ChartTransform {
             get defaultNoDataColor() {
                 return "#959595"
             },
-            get formatNumericValue() {
-                return that.colorDimension?.formatValueShort ?? identity
+            get formatNumericValueFn() {
+                return that.colorDimension?.formatValueShortFn ?? identity
             },
         })
     }
@@ -435,8 +435,8 @@ export class ScatterTransform extends ChartTransform {
         const { grapher, yDomainDefault, yDimension, isRelativeMode } = this
 
         const axis = grapher.yAxis.toVerticalAxis()
-        axis.tickFormat =
-            (yDimension && yDimension.formatValueShort) || axis.tickFormat
+        axis.tickFormatFn =
+            (yDimension && yDimension.formatValueShortFn) || axis.tickFormatFn
 
         const label = this.yAxisLabel
 
@@ -450,7 +450,7 @@ export class ScatterTransform extends ChartTransform {
                     label
                 )}`
             }
-            axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            axis.tickFormatFn = (v: number) => formatValue(v, { unit: "%" })
         } else {
             axis.updateDomainPreservingUserSettings(yDomainDefault)
             axis.label = label
@@ -494,13 +494,14 @@ export class ScatterTransform extends ChartTransform {
                     label
                 )}`
             }
-            axis.tickFormat = (v: number) => formatValue(v, { unit: "%" })
+            axis.tickFormatFn = (v: number) => formatValue(v, { unit: "%" })
         } else {
             axis.updateDomainPreservingUserSettings(xDomainDefault)
             const label = xAxis.label || xAxisLabelBase
             if (label) axis.label = label
-            axis.tickFormat =
-                (xDimension && xDimension.formatValueShort) || axis.tickFormat
+            axis.tickFormatFn =
+                (xDimension && xDimension.formatValueShortFn) ||
+                axis.tickFormatFn
         }
 
         return axis
@@ -508,14 +509,14 @@ export class ScatterTransform extends ChartTransform {
 
     @computed get yFormatTooltip(): (d: number) => string {
         return this.isRelativeMode || !this.yDimension
-            ? this.yAxis.tickFormat
-            : this.yDimension.formatValueLong
+            ? this.yAxis.tickFormatFn
+            : this.yDimension.formatValueLongFn
     }
 
     @computed get xFormatTooltip(): (d: number) => string {
         return this.isRelativeMode || !this.xDimension
-            ? this.xAxis.tickFormat
-            : this.xDimension.formatValueLong
+            ? this.xAxis.tickFormatFn
+            : this.xDimension.formatValueLongFn
     }
 
     @computed get yFormatYear(): (year: number) => string {
