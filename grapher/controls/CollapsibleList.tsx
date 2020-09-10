@@ -1,6 +1,7 @@
 import React from "react"
-import { observable } from "mobx"
+import { observable, action, runInAction, computed } from "mobx"
 import { observer } from "mobx-react"
+import { throttle } from "grapher/utils/Util"
 
 interface CollapsibleListProps {
     items: React.ReactElement[]
@@ -8,28 +9,103 @@ interface CollapsibleListProps {
 
 @observer
 export class CollapsibleList extends React.Component<CollapsibleListProps> {
+    outerContainer: React.RefObject<HTMLDivElement> = React.createRef()
+    moreButton: React.RefObject<HTMLLIElement> = React.createRef()
+    outerWidth: number = 0
+    moreButtonWidth: number = 0
+
     @observable visibleItems: React.ReactElement[] = []
-    @observable dropdownItems: React.ReactElement[] = [
-        <div key="Extra">Extra</div>,
-    ]
+    @observable dropdownItems: React.ReactElement[] = []
+    widthsArray: number[] = []
+
+    constructor(props: CollapsibleListProps) {
+        super(props)
+        this.visibleItems.push(...props.items)
+    }
+
+    updateOuterWidth() {
+        this.outerWidth = this.outerContainer.current?.clientWidth ?? 0
+    }
+
+    numItemsVisible(outerWidth: number, initialWidth: number) {
+        let total = initialWidth
+        for (let i = 0; i < this.widthsArray.length; i++) {
+            if (total + this.widthsArray[i] > outerWidth) {
+                return i
+            } else {
+                total += this.widthsArray[i]
+            }
+        }
+        return this.widthsArray.length
+    }
+
+    @action updateItemPartition() {
+        const numItemsVisible = this.numItemsVisible(
+            this.outerWidth, // outerListWidth,
+            this.moreButtonWidth
+        )
+        console.log(numItemsVisible)
+
+        this.visibleItems = this.props.items.slice(0, numItemsVisible)
+        this.dropdownItems = this.props.items.slice(numItemsVisible)
+    }
+
+    onResize = throttle(() => {
+        this.updateOuterWidth()
+        this.updateItemPartition()
+    }, 100)
 
     componentDidMount() {
-        this.visibleItems.push(...this.props.items)
+        window.addEventListener("resize", this.onResize)
+        this.updateOuterWidth()
+        this.moreButtonWidth = this.moreButton.current?.clientWidth ?? 0
+        this.outerContainer.current
+            ?.querySelectorAll("li")
+            .forEach((item) => this.widthsArray.push(item.clientWidth))
+        this.updateItemPartition()
+
+        console.log("mounted")
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.onResize)
     }
 
     render() {
         return (
-            <div className="collapsibleList">
+            <div className="collapsibleList" ref={this.outerContainer}>
                 <ul>
                     {this.visibleItems.map((item) => (
                         <li key={item.key} className="list-item">
                             {item}
                         </li>
                     ))}
+                    {
+                        <li
+                            className="list-item moreButton"
+                            ref={this.moreButton}
+                            style={{
+                                visibility: this.dropdownItems.length
+                                    ? "visible"
+                                    : "hidden",
+                            }}
+                            onClick={() =>
+                                console.log(Array.from(this.dropdownItems))
+                            }
+                        >
+                            More
+                        </li>
+                    }
                 </ul>
-                {this.dropdownItems.length > 0 && <div>More</div>}
             </div>
         )
+    }
+}
+
+@observer
+export class MoreButton extends React.Component {
+    render() {
+        return "hello"
     }
 }
 
@@ -195,29 +271,3 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
 //   }
 
 /** ---------------------------- */
-
-// interface ListItem {
-//     name: string
-//         item: React.ReactElement
-// }
-
-// export class CollapsingList extends React.Component<{
-//     items: {
-//         name: string
-//         item: React.ReactElement
-//     }[]
-// }> {
-//     render() {
-//         return (
-//             <div className="controlsRow">
-//                 <ul>
-//                     {this.props.items.map((item) => (
-//                         <li key={item.type} className="control">
-//                             {control}
-//                         </li>
-//                     ))}
-//                 </ul>
-//             </div>
-//         )
-//     }
-// }

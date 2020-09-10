@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CollapsibleList } from "./CollapsibleList"
+import { CollapsibleList, MoreButton } from "./CollapsibleList"
 
 export default {
     title: "CollapsibleList",
@@ -24,4 +24,8 @@ export const Default = () => {
     ]
 
     return <CollapsibleList items={items} />
+}
+
+export const MoreButtonComponent = () => {
+    return <MoreButton />
 }
