@@ -8,6 +8,7 @@ interface CollapsibleListProps {
     items: React.ReactElement[]
 }
 
+/** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar" */
 @observer
 export class CollapsibleList extends React.Component<CollapsibleListProps> {
     outerContainer: React.RefObject<HTMLDivElement> = React.createRef()
