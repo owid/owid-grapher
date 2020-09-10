@@ -3,28 +3,7 @@ import * as React from "react"
 import { Head } from "./Head"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
-
-export interface VariableCountryPageProps {
-    country: {
-        id: number
-        name: string
-    }
-    variable: {
-        id: number
-        name: string
-        unit: string
-        shortUnit: string
-        description: string
-        display: OwidVariableDisplaySettings
-
-        datasetId: number
-        datasetName: string
-        datasetNamespace: string
-
-        source: { id: number; name: string }
-    }
-}
+import { VariableCountryPageProps } from "./VariableCountryPageProps"
 
 export const VariableCountryPage = (props: VariableCountryPageProps) => {
     const { variable, country } = props

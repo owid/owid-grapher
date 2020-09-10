@@ -4,17 +4,18 @@ import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 
 import { first } from "lodash"
-import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
+import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { readFileSync } from "fs-extra"
 
 const readObj = (fixture: string) =>
     JSON.parse(readFileSync(__dirname + `/${fixture}.mock.json`, "utf8"))
 
-const readVariable = (id: string | number): OwidVariablesAndEntityKey =>
+const readVariable = (id: string | number): LegacyVariablesAndEntityKey =>
     readObj(`variable-${id}`)
 
-const readVariableSet = (ids: string[] | number[]): OwidVariablesAndEntityKey =>
-    readObj(`variableset-${ids.join("-")}`)
+const readVariableSet = (
+    ids: string[] | number[]
+): LegacyVariablesAndEntityKey => readObj(`variableset-${ids.join("-")}`)
 
 export function setupGrapher(
     id: number,

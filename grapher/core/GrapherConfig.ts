@@ -12,7 +12,7 @@ import {
     AxisConfigInterface,
     PersistableAxisConfig,
 } from "grapher/axis/AxisConfig"
-import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
+import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import {
     TimeBound,
     Time,
@@ -64,7 +64,7 @@ export interface GrapherConfigInterface {
     note?: string
     hideTitleAnnotation?: true
     externalDataUrl?: string
-    owidDataset?: OwidVariablesAndEntityKey
+    owidDataset?: LegacyVariablesAndEntityKey
     manuallyProvideData?: boolean
     selectedData?: EntitySelection[]
     minTime?: TimeBound
@@ -169,7 +169,7 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
     @observable relatedQuestions?: RelatedQuestionsConfig[]
 
     externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
-    owidDataset?: OwidVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
+    owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean = false // This will be removed.
 
     constructor(props?: GrapherConfigInterface) {

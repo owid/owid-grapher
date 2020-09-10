@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { OwidTable, BasicTable } from "owidTable/OwidTable"
-import { OwidVariablesAndEntityKey } from "./OwidVariable"
+import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 
 describe(OwidTable, () => {
     // Scenarios
@@ -37,7 +37,7 @@ describe(OwidTable, () => {
     })
 })
 
-const legacyVarSet: OwidVariablesAndEntityKey = {
+const legacyVarSet: LegacyVariablesAndEntityKey = {
     variables: {
         "3512": {
             years: [1983, 1985, 1985, 1985, 1985, 1986, 1986],

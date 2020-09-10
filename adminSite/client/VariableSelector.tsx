@@ -14,14 +14,14 @@ import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
 import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
-import { OwidVariableId } from "owidTable/OwidTableConstants"
+import { LegacyVariableId } from "owidTable/OwidTableConstants"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 
 interface VariableSelectorProps {
     editor: ChartEditor
     slot: DimensionSlot
     onDismiss: () => void
-    onComplete: (variableIds: OwidVariableId[]) => void
+    onComplete: (variableIds: LegacyVariableId[]) => void
 }
 
 interface Variable {

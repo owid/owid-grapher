@@ -18,10 +18,10 @@ import {
 import { AbstractColumn } from "owidTable/OwidTable"
 import { Time } from "grapher/utils/TimeBounds"
 
-import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
+import { LegacyVariableDisplaySettings } from "owidTable/LegacyVariableCode"
 import {
     OwidSource,
-    OwidVariableId,
+    LegacyVariableId,
     EntityName,
     EntityId,
 } from "owidTable/OwidTableConstants"
@@ -36,9 +36,9 @@ export interface SourceWithDimension {
 
 export interface ChartDimensionConfig {
     property: dimensionProperty
-    variableId: OwidVariableId
+    variableId: LegacyVariableId
     targetYear?: Time
-    display?: OwidVariableDisplaySettings
+    display?: LegacyVariableDisplaySettings
     saveToVariable?: boolean // todo: remove
 }
 
@@ -58,11 +58,11 @@ export interface EntityDimensionInfo {
 export class PersistableChartDimension
     implements ChartDimensionConfig, Persistable {
     @observable property!: dimensionProperty
-    @observable variableId!: OwidVariableId
+    @observable variableId!: LegacyVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable display: OwidVariableDisplaySettings = {}
+    @observable display: LegacyVariableDisplaySettings = {}
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: Time = undefined
