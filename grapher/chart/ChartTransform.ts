@@ -5,7 +5,7 @@ import {
     isUnboundedRight,
     getClosestTime,
 } from "grapher/utils/TimeBounds"
-import { defaultTo, first, last, sortNumeric, uniq } from "grapher/utils/Util"
+import { first, last, sortNumeric, uniq } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
@@ -13,8 +13,6 @@ import { ColorScale } from "grapher/color/ColorScale"
 export interface IChartTransform {
     isValidConfig: boolean
     selectableEntityDimensionKeys: EntityDimensionKey[]
-    minTimelineYear: Time
-    maxTimelineYear: Time
     timelineYears: Time[]
     startYear?: Time
     endYear?: Time
@@ -30,11 +28,7 @@ export abstract class ChartTransform implements IChartTransform {
 
     // The most common check is just "does this have a yDimension"? So make it a default, and methods and override.
     @computed get isValidConfig(): boolean {
-        return this.hasYDimension
-    }
-
-    @computed protected get hasYDimension() {
-        return this.grapher.dimensions.some((d) => d.property === "y")
+        return this.grapher.hasYDimension
     }
 
     /**
@@ -65,12 +59,12 @@ export abstract class ChartTransform implements IChartTransform {
         return sortNumeric(uniq(filteredYears))
     }
 
-    @computed get minTimelineYear(): Time {
-        return defaultTo(first(this.timelineYears), 1900)
+    @computed private get minTimelineYear(): Time {
+        return first(this.timelineYears) ?? 1900
     }
 
-    @computed get maxTimelineYear(): Time {
-        return defaultTo(last(this.timelineYears), 2000)
+    @computed private get maxTimelineYear(): Time {
+        return last(this.timelineYears) ?? 2000
     }
 
     /**

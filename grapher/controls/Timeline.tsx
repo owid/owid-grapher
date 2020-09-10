@@ -77,11 +77,11 @@ export class Timeline extends React.Component<TimelineProps> {
     @observable startYearRaw: TimeBound = TimeBoundValue.unboundedLeft
     @observable endYearRaw: TimeBound = TimeBoundValue.unboundedRight
 
-    @computed get startYear(): TimeBound {
+    @computed private get startYear(): TimeBound {
         return Math.min(this.startYearRaw, this.endYearRaw)
     }
 
-    @computed get endYear(): TimeBound {
+    @computed private get endYear(): TimeBound {
         return Math.max(this.startYearRaw, this.endYearRaw)
     }
 

@@ -72,7 +72,7 @@ export class ScatterTransform extends ChartTransform {
 
     @computed get isValidConfig(): boolean {
         return (
-            this.hasYDimension &&
+            this.grapher.hasYDimension &&
             this.grapher.dimensions.some((d) => d.property === "x")
         )
     }
