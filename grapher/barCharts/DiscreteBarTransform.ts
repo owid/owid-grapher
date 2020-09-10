@@ -51,7 +51,9 @@ export class DiscreteBarTransform extends ChartTransform {
             return (
                 datum.formatValue(datum.value) +
                 (showYearLabels
-                    ? ` (${this.grapher.formatYearFunction(datum.year)})`
+                    ? ` (${this.grapher.table.timeColumn!.formatValue(
+                          datum.year
+                      )})`
                     : "")
             )
         }

@@ -291,7 +291,9 @@ export class StackedBarChart extends React.Component<{
                     <br />
                     in
                     <br />
-                    <span>{this.grapher.formatYearFunction(hoverBar.x)}</span>
+                    <span>
+                        {this.grapher.table.timeColumn!.formatValue(hoverBar.x)}
+                    </span>
                 </p>
             </Tooltip>
         )

@@ -167,10 +167,10 @@ export class StackedAreaTransform extends ChartTransform {
 
     @computed get xAxis() {
         const { xDomainDefault } = this
-        const chart = this.grapher
-        const axis = chart.xAxis.toHorizontalAxis()
+        const grapher = this.grapher
+        const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
-        axis.tickFormat = chart.formatYearFunction as any
+        axis.tickFormat = this.grapher.table.timeColumn!.formatValue
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
