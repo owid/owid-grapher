@@ -911,6 +911,10 @@ export class Grapher extends PersistableGrapher {
             : new Bounds(0, 0, 850, 600)
     }
 
+    @computed get hasYDimension() {
+        return this.dimensions.some((d) => d.property === "y")
+    }
+
     @computed get staticSVG(): string {
         const svg = ReactDOMServer.renderToStaticMarkup(
             <GrapherView

@@ -250,14 +250,11 @@ class TimelineControl extends React.Component<TimelineControlProps> {
             })
     }
 
-    @computed get timelineProps(): TimelineProps {
-        const { activeTab, grapher } = this.props
+    @computed private get timelineProps(): TimelineProps {
+        const { grapher } = this.props
         return {
             grapher,
-            years:
-                activeTab === "map"
-                    ? grapher.mapTransform.timelineYears
-                    : grapher.activeTransform.timelineYears,
+            years: grapher.activeTransform.timelineYears,
             startYear: this.startYear,
             endYear: this.endYear,
             onTargetChange: this.onChartTargetChange,
