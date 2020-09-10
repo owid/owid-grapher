@@ -59,8 +59,123 @@ export interface TimelineProps {
     disablePlay?: boolean
 }
 
+interface TimelineControlProps {
+    grapher: Grapher
+}
+
 @observer
-export class Timeline extends React.Component<TimelineProps> {
+export class TimelineControl extends React.Component<TimelineControlProps> {
+    @action.bound onMapTargetChange({
+        targetStartYear,
+    }: {
+        targetStartYear: TimeBound
+    }) {
+        this.props.grapher.mapTransform.targetYear = targetStartYear
+    }
+
+    @action.bound onChartTargetChange({
+        targetStartYear,
+        targetEndYear,
+    }: {
+        targetStartYear: TimeBound
+        targetEndYear: TimeBound
+    }) {
+        this.props.grapher.timeDomain = [targetStartYear, targetEndYear]
+    }
+
+    @action.bound onTimelineStart() {
+        this.props.grapher.useTimelineDomains = true
+    }
+
+    @action.bound onTimelineStop() {
+        this.props.grapher.useTimelineDomains = false
+    }
+
+    @computed private get activeTab() {
+        return this.props.grapher.tab
+    }
+
+    @computed private get startYear() {
+        const { grapher } = this.props
+        const activeTab = this.activeTab
+        if (activeTab === "table")
+            return (
+                grapher.dataTableTransform.autoSelectedStartYear ??
+                grapher.timeDomain[0]
+            )
+        if (activeTab === "map") return grapher.mapTransform.targetYearProp
+        return grapher.activeTransform.startYear!
+    }
+
+    @computed private get endYear() {
+        const { grapher } = this.props
+        const activeTab = this.activeTab
+        if (activeTab === "table")
+            return grapher.multiMetricTableMode
+                ? grapher.dataTableTransform.startYear
+                : grapher.timeDomain[1]
+        if (activeTab === "map") return grapher.mapTransform.targetYearProp
+        return grapher.activeTransform.endYear!
+    }
+
+    componentDidUpdate(prevProps: TimelineControlProps) {
+        // todo: cleanup
+        // if (
+        //     prevProps.grapher.activeTab !== this.props.activeTab &&
+        //     this.props.activeTab !== "map"
+        // )
+        //     this.onChartTargetChange({
+        //         targetStartYear: this.startYear,
+        //         targetEndYear: this.endYear,
+        //     })
+    }
+
+    @computed private get timelineProps(): TimelineProps {
+        const { grapher } = this.props
+        return {
+            grapher,
+            years: grapher.activeTransform.timelineYears,
+            startYear: this.startYear,
+            endYear: this.endYear,
+            onTargetChange: this.onChartTargetChange,
+            onStartDrag: this.onTimelineStart,
+            onStopDrag: this.onTimelineStop,
+        }
+    }
+
+    render() {
+        if (this.timelineProps.years.length === 0) return null
+
+        const { grapher } = this.props
+        const activeTab = this.activeTab
+
+        if (activeTab === "map")
+            return (
+                <Timeline
+                    {...this.timelineProps}
+                    onTargetChange={this.onMapTargetChange}
+                    singleYearMode={true}
+                    onStartDrag={undefined}
+                    onStopDrag={undefined}
+                />
+            )
+        else if (activeTab === "table")
+            return (
+                <Timeline
+                    {...this.timelineProps}
+                    singleYearMode={grapher.multiMetricTableMode}
+                />
+            )
+        else if (grapher.isLineChart)
+            return <Timeline {...this.timelineProps} singleYearPlay={true} />
+        else if (grapher.isSlopeChart)
+            return <Timeline {...this.timelineProps} disablePlay={true} />
+        return <Timeline {...this.timelineProps} />
+    }
+}
+
+@observer
+class Timeline extends React.Component<TimelineProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     disposers!: IReactionDisposer[]
@@ -521,7 +636,9 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     formatYear(date: number) {
-        const timeColumn = this.grapher.table.timeColumn!
+        const timeColumn = this.grapher.table.timeColumn
+        if (!timeColumn)
+            return this.grapher.table.timeColumnFormatFunction(date)
         const format = isMobile()
             ? timeColumn.formatValueForMobile
             : timeColumn.formatValue
