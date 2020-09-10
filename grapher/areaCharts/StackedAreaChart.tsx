@@ -223,14 +223,14 @@ export class StackedAreaChart extends React.Component<{
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get grapher(): Grapher {
+    @computed private get grapher(): Grapher {
         return this.props.grapher
     }
     @computed get bounds(): Bounds {
         return this.props.bounds
     }
-    @computed get transform() {
-        return this.props.grapher.stackedAreaTransform
+    @computed private get transform() {
+        return this.grapher.stackedAreaTransform
     }
 
     @computed get midpoints(): number[] {

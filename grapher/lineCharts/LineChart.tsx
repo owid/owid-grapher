@@ -285,7 +285,7 @@ interface LineChartOptions {
 @observer
 export class LineChart extends React.Component<{
     bounds: Bounds
-    chart: LineChartOptions
+    grapher: LineChartOptions
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -300,7 +300,7 @@ export class LineChart extends React.Component<{
     }
 
     @computed private get options() {
-        return this.props.chart
+        return this.props.grapher
     }
 
     @computed get bounds() {

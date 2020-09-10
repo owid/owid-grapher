@@ -25,7 +25,7 @@ export class FacetChart extends React.Component<FacetChartProps> {
         const ChartType = ChartTypeMap[chartTypeName] as any
 
         return charts.map((bounds: Bounds, index: number) => (
-            <ChartType key={index} bounds={bounds} chart={grapher} />
+            <ChartType key={index} bounds={bounds} grapher={grapher} />
         ))
     }
 
