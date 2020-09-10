@@ -109,7 +109,9 @@ export class CovidExplorerTable {
             slug,
             type: stringColumnSlugs.has(slug)
                 ? "String"
-                : ("Numeric" as columnTypes),
+                : slug === "day"
+                ? "Date"
+                : "Numeric",
         }
         const metricSpec = (metricPickerColumnSpecs as any)[spec.slug]
         if (metricSpec) spec = Object.assign({}, spec, metricSpec)

@@ -22,6 +22,7 @@ import {
     anyToString,
     formatDay,
     csvEscape,
+    formatYear,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { OwidSource } from "./OwidSource"
@@ -183,6 +184,10 @@ export abstract class AbstractColumn {
         return anyToString(value)
     }
 
+    formatValueForMobile(value: any): string {
+        return this.formatValue(value)
+    }
+
     // A method for formatting for CSV
     formatForCsv(value: any): string {
         return csvEscape(this.formatValue(value))
@@ -309,11 +314,25 @@ class AnyColumn extends AbstractColumn {}
 class StringColumn extends AbstractColumn {}
 abstract class TemporalColumn extends AbstractColumn {}
 
-class YearColumn extends TemporalColumn {}
+class YearColumn extends TemporalColumn {
+    formatValue(value: number) {
+        // Include BCE
+        return formatYear(value)
+    }
+
+    formatForCsv(value: number) {
+        // Don't include BCE in CSV exports.
+        return anyToString(value)
+    }
+}
 
 class DateColumn extends TemporalColumn {
     formatValue(value: number) {
         return value === undefined ? "" : formatDay(value)
+    }
+
+    formatValueForMobile(value: number) {
+        return formatDay(value, { format: "MMM D, 'YY" })
     }
 
     formatForCsv(value: number) {
@@ -449,6 +468,13 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed get rows() {
         return this._rows
+    }
+
+    @computed get timeColumn() {
+        const col = this.columnsAsArray.find(
+            (col) => col instanceof TemporalColumn
+        )
+        return col
     }
 
     // The name is explicit to warn that these rows may be modified by this class.

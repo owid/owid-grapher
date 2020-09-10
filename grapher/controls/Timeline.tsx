@@ -521,10 +521,11 @@ export class Timeline extends React.Component<TimelineProps> {
     }
 
     formatYear(date: number) {
-        return this.grapher.formatYearFunction(
-            date,
-            isMobile() ? { format: "MMM D, 'YY" } : {}
-        )
+        const timeColumn = this.grapher.table.timeColumn
+        const format = isMobile()
+            ? timeColumn.formatValueForMobile
+            : timeColumn.formatValue
+        return format(date)
     }
 
     private timelineDate(dateType: "start" | "end", date: number) {

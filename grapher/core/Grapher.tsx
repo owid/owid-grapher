@@ -30,6 +30,7 @@ import {
     xor,
     lastOfNonEmptyArray,
     identity,
+    lowerCaseFirstLetterUnlessAbbreviation,
 } from "grapher/utils/Util"
 import {
     ChartType,
@@ -375,13 +376,6 @@ export class Grapher extends PersistableGrapher {
         this._baseFontSize = val
     }
 
-    @computed get formatYearFunction(): (
-        year: number,
-        options?: { format?: string }
-    ) => string {
-        return this.table.hasDayColumn ? formatDay : formatYear
-    }
-
     @computed get formatYearTickFunction() {
         return this.table.hasDayColumn
             ? (day: number, options?: TickFormattingOptions) =>
@@ -664,49 +658,47 @@ export class Grapher extends PersistableGrapher {
 
     @computed get currentTitle(): string {
         let text = this.displayTitle
+        const selectedEntityNames = this.selectedEntityNames
 
         if (
             this.primaryTab === "chart" &&
             this.addCountryMode !== "add-country" &&
-            this.selectedEntityNames.length === 1 &&
+            selectedEntityNames.length === 1 &&
             (!this.hideTitleAnnotation || this.canChangeEntity)
         ) {
-            const { selectedEntityNames: selectedEntities } = this
-            const entityStr = selectedEntities.join(", ")
-            if (entityStr.length > 0) {
-                text = text + ", " + entityStr
-            }
+            const entityStr = selectedEntityNames[0]
+            if (entityStr.length) text = text + ", " + entityStr
         }
 
         if (
             !this.hideTitleAnnotation &&
             this.isLineChart &&
             this.lineChartTransform.isRelativeMode
-        ) {
-            text =
-                "Change in " +
-                (text.charAt(1).match(/[A-Z]/)
-                    ? text
-                    : text.charAt(0).toLowerCase() + text.slice(1))
-        }
+        )
+            text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
-            !this.hideTitleAnnotation ||
-            (this.isLineChart &&
-                this.lineChartTransform.isSingleYear &&
-                this.lineChartTransform.hasTimeline) ||
-            (this.primaryTab === "map" && this.mapTransform.hasTimeline)
-        ) {
-            const { minYear, maxYear } = this
-            const timeFrom = this.formatYearFunction(minYear)
-            const timeTo = this.formatYearFunction(maxYear)
-            const time =
-                timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
-
-            text = text + ", " + time
-        }
+            this.isReady &&
+            (!this.hideTitleAnnotation ||
+                (this.isLineChart &&
+                    this.lineChartTransform.isSingleYear &&
+                    this.lineChartTransform.hasTimeline) ||
+                (this.primaryTab === "map" && this.mapTransform.hasTimeline))
+        )
+            text += this.timeTitleSuffix
 
         return text.trim()
+    }
+
+    @computed private get timeTitleSuffix() {
+        const { minYear, maxYear } = this
+        if (!this.table.timeColumn) return ""
+        const fn = this.table.timeColumn.formatValue
+        const timeFrom = fn(minYear)
+        const timeTo = fn(maxYear)
+        const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+
+        return ", " + time
     }
 
     @computed get maxYear(): number {

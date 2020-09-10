@@ -274,7 +274,6 @@ interface LineChartOptions {
     baseFontSize: number
     showAddEntityControls: boolean
     comparisonLines: ComparisonLineConfig[]
-    formatYearFunction?: (year: number) => string // todo: remove
     isSelectingData: boolean
     canAddData: boolean
     entityType: string
@@ -344,9 +343,9 @@ export class LineChart extends React.Component<{
             return value !== undefined ? -value.y : Infinity
         })
 
-        // todo: remove.
-        const formatYearFunction =
-            this.options.formatYearFunction || ((val: any) => val)
+        const formatted = this.transform.grapher.table.timeColumn!.formatValue(
+            hoverX
+        )
 
         return (
             <Tooltip
@@ -366,7 +365,7 @@ export class LineChart extends React.Component<{
                     <tbody>
                         <tr>
                             <td colSpan={3}>
-                                <strong>{formatYearFunction(hoverX)}</strong>
+                                <strong>{formatted}</strong>
                             </td>
                         </tr>
                         {sortedData.map((series) => {

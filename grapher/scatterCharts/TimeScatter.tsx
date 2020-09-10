@@ -121,7 +121,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const value = hoverPoint.value
 
-        const formatFunction = this.props.grapher.formatYearFunction
+        const formatFunction = this.props.grapher.table.timeColumn!.formatValue
 
         const year = value.time.span
             ? `${formatFunction(value.time.span[0])} to ${formatFunction(

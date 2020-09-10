@@ -6,10 +6,9 @@ import { TextWrap } from "grapher/text/TextWrap"
 interface ConnectedScatterLegendProps {
     maxWidth: number
     fontSize: number
-    startYear: number
-    endYear: number
+    startTime: string
+    endTime: string
     endpointsOnly: boolean
-    formatYearFunction: (year: number) => string
 }
 
 export class ConnectedScatterLegend {
@@ -31,7 +30,7 @@ export class ConnectedScatterLegend {
     @computed get startLabel() {
         const { props, maxLabelWidth, fontSize } = this
         return new TextWrap({
-            text: this.props.formatYearFunction(props.startYear),
+            text: props.startTime,
             fontSize: fontSize,
             maxWidth: maxLabelWidth,
         })
@@ -40,7 +39,7 @@ export class ConnectedScatterLegend {
     @computed get endLabel() {
         const { props, maxLabelWidth, fontSize } = this
         return new TextWrap({
-            text: this.props.formatYearFunction(props.endYear),
+            text: props.endTime,
             fontSize: fontSize,
             maxWidth: maxLabelWidth,
         })
