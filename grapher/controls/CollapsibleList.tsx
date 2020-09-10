@@ -1,16 +1,17 @@
-import React from "react"
-import { observable, action } from "mobx"
+import React, { ReactNode } from "react"
+import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { throttle } from "grapher/utils/Util"
 import { Tippy } from "grapher/chart/Tippy"
 
-interface CollapsibleListProps {
-    items: React.ReactElement[]
+interface ListChild {
+    index: number
+    child: ReactNode
 }
 
 /** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar"*/
 @observer
-export class CollapsibleList extends React.Component<CollapsibleListProps> {
+export class CollapsibleList extends React.Component {
     private outerContainerRef: React.RefObject<
         HTMLDivElement
     > = React.createRef()
@@ -19,12 +20,23 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
     private moreButtonWidth: number = 0
     private itemsWidths: number[] = []
 
-    @observable private visibleItems: React.ReactElement[] = []
-    @observable private dropdownItems: React.ReactElement[] = []
+    @observable private visibleItems: ListChild[] = []
+    @observable private dropdownItems: ListChild[] = []
 
-    constructor(props: CollapsibleListProps) {
+    constructor(props: any) {
         super(props)
-        this.visibleItems.push(...props.items)
+        this.visibleItems = this.children
+    }
+
+    @computed get children(): ListChild[] {
+        return (
+            React.Children.map(this.props.children, (child, i) => {
+                return {
+                    index: i,
+                    child,
+                }
+            }) ?? []
+        )
     }
 
     private updateOuterContainerWidth() {
@@ -48,8 +60,8 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
     }
 
     @action private updateItemPartition() {
-        this.visibleItems = this.props.items.slice(0, this.numItemsVisible)
-        this.dropdownItems = this.props.items.slice(this.numItemsVisible)
+        this.visibleItems = this.children.slice(0, this.numItemsVisible)
+        this.dropdownItems = this.children.slice(this.numItemsVisible)
     }
 
     @action private onResize = throttle(() => {
@@ -75,8 +87,8 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
             <div className="collapsibleList" ref={this.outerContainerRef}>
                 <ul>
                     {this.visibleItems.map((item) => (
-                        <li key={item.key} className="list-item visible">
-                            {item}
+                        <li key={item.index} className="list-item visible">
+                            {item.child}
                         </li>
                     ))}
                     <li
@@ -91,10 +103,10 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
                         <MoreButton
                             options={this.dropdownItems.map((item) => (
                                 <li
-                                    key={item.key}
+                                    key={item.index}
                                     className="list-item dropdown"
                                 >
-                                    {item}
+                                    {item.child}
                                 </li>
                             ))}
                         />
