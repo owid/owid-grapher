@@ -1,11 +1,59 @@
 import { Grapher } from "grapher/core/Grapher"
 import React from "react"
-import { computed } from "mobx"
+import { computed, action } from "mobx"
 import { Header, HeaderHTML } from "grapher/chart/Header"
 import { SourcesFooter, SourcesFooterHTML } from "grapher/chart/Footer"
 import { Bounds } from "grapher/utils/Bounds"
-import { ControlsOverlayView } from "grapher/controls/Controls"
 import { GrapherView } from "grapher/core/GrapherView"
+import { observer } from "mobx-react"
+
+@observer
+class ControlsOverlayView extends React.Component<{
+    grapherView: GrapherView
+    children: JSX.Element
+}> {
+    @action.bound onDataSelect() {
+        this.props.grapherView.grapher.isSelectingData = true
+    }
+
+    render() {
+        const { overlayPadding } = this.props.grapherView
+        const containerStyle: React.CSSProperties = {
+            position: "relative",
+            clear: "both",
+            paddingTop: `${overlayPadding.top}px`,
+            paddingRight: `${overlayPadding.right}px`,
+            paddingBottom: `${overlayPadding.bottom}px`,
+            paddingLeft: `${overlayPadding.left}px`,
+        }
+        const overlayStyle: React.CSSProperties = {
+            position: "absolute",
+            // Overlays should be positioned relative to the same origin
+            // as the <svg>
+            top: `${overlayPadding.top}px`,
+            left: `${overlayPadding.left}px`,
+            // Create 0px element to avoid capturing events.
+            // Can achieve the same with `pointer-events: none`, but then control
+            // has to override `pointer-events` to capture events.
+            width: "0px",
+            height: "0px",
+        }
+        return (
+            <div style={containerStyle}>
+                {this.props.children}
+                <div className="ControlsOverlay" style={overlayStyle}>
+                    {Object.entries(this.props.grapherView.overlays).map(
+                        ([key, overlay]) => (
+                            <React.Fragment key={key}>
+                                {overlay.props.children}
+                            </React.Fragment>
+                        )
+                    )}
+                </div>
+            </div>
+        )
+    }
+}
 
 interface ChartLayoutProps {
     grapher: Grapher
@@ -54,7 +102,7 @@ export class ChartLayout {
     @computed get svgWidth() {
         if (this.isExporting) return this.props.bounds.width
 
-        const { overlayPadding } = this.props.grapherView.controls
+        const { overlayPadding } = this.props.grapherView
         return (
             this.props.bounds.width - overlayPadding.left - overlayPadding.right
         )
@@ -63,7 +111,7 @@ export class ChartLayout {
     @computed get svgHeight() {
         if (this.isExporting) return this.props.bounds.height
 
-        const { overlayPadding } = this.props.grapherView.controls
+        const { overlayPadding } = this.props.grapherView
         return (
             this.props.bounds.height -
             this.header.height -
@@ -128,11 +176,7 @@ export class ChartLayoutView extends React.Component<{
         return (
             <React.Fragment>
                 <HeaderHTML grapher={grapher} header={layout.header} />
-                <ControlsOverlayView
-                    grapher={grapher}
-                    grapherView={grapherView}
-                    controls={grapherView.controls}
-                >
+                <ControlsOverlayView grapherView={grapherView}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         version="1.1"

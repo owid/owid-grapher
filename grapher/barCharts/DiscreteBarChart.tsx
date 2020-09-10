@@ -17,7 +17,7 @@ import {
 } from "grapher/axis/AxisViews"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { AddEntityButton } from "grapher/controls/Controls"
+import { AddEntityButton } from "grapher/controls/AddEntityButton"
 
 export interface DiscreteBarDatum {
     entityDimensionKey: EntityDimensionKey

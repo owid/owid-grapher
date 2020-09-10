@@ -16,7 +16,7 @@ import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
-import { AddEntityButton } from "grapher/controls/Controls"
+import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 
