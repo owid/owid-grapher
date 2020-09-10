@@ -1,9 +1,9 @@
 import {
-    OwidVariable,
-    OwidVariableDisplaySettings,
-    EntityMeta,
-    OwidVariablesAndEntityKey,
-} from "./OwidVariable"
+    LegacyVariableConfig,
+    LegacyVariableDisplaySettings,
+    LegacyEntityMeta,
+    LegacyVariablesAndEntityKey,
+} from "./LegacyVariableCode"
 import {
     slugifySameCase,
     groupBy,
@@ -34,7 +34,7 @@ import {
     EntityCode,
     Integer,
     EntityName,
-    OwidVariableId,
+    LegacyVariableId,
     OwidSource,
 } from "./OwidTableConstants"
 
@@ -45,7 +45,7 @@ export interface Row {
 export interface ColumnSpec {
     slug: ColumnSlug
     name?: string
-    owidVariableId?: OwidVariableId
+    owidVariableId?: LegacyVariableId
     unit?: string
     shortUnit?: string
     isDailyMeasurement?: boolean
@@ -54,7 +54,7 @@ export interface ColumnSpec {
     datasetId?: string
     datasetName?: string
     source?: OwidSource
-    display?: OwidVariableDisplaySettings
+    display?: LegacyVariableDisplaySettings
 
     // More advanced options:
     annotationsColumnSlug?: ColumnSlug
@@ -153,7 +153,7 @@ export abstract class AbstractColumn {
     }
 
     @computed get display() {
-        return this.spec.display || new OwidVariableDisplaySettings()
+        return this.spec.display || new LegacyVariableDisplaySettings()
     }
 
     @computed get coverage() {
@@ -992,7 +992,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
     }
 
     private static columnSpecFromLegacyVariable(
-        variable: OwidVariable
+        variable: LegacyVariableConfig
     ): ColumnSpec {
         const slug = variable.id.toString() // For now, the variableId will be the column slug
         const {
@@ -1012,7 +1012,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return {
             name,
             slug,
-            isDailyMeasurement: variable.display.yearIsDay,
+            isDailyMeasurement: variable.display?.yearIsDay,
             unit,
             shortUnit,
             description,
@@ -1026,9 +1026,10 @@ export class OwidTable extends AbstractTable<OwidRow> {
         }
     }
 
-    static fromLegacy(json: OwidVariablesAndEntityKey) {
+    static fromLegacy(json: LegacyVariablesAndEntityKey) {
         let rows: OwidRow[] = []
-        const entityMetaById: { [id: string]: EntityMeta } = json.entityKey
+        const entityMetaById: { [id: string]: LegacyEntityMeta } =
+            json.entityKey
         const columnSpecs: Map<ColumnSlug, ColumnSpec> = new Map()
         columnSpecs.set("entityName", {
             name: "Entity",
@@ -1046,14 +1047,12 @@ export class OwidTable extends AbstractTable<OwidRow> {
         })
 
         for (const key in json.variables) {
-            const variable = new OwidVariable(json.variables[key])
+            const variable = json.variables[key]
 
-            const entityNames = variable.entities.map(
-                (id) => entityMetaById[id].name
-            )
-            const entityCodes = variable.entities.map(
-                (id) => entityMetaById[id].code
-            )
+            const entityNames =
+                variable.entities?.map((id) => entityMetaById[id].name) || []
+            const entityCodes =
+                variable.entities?.map((id) => entityMetaById[id].code) || []
 
             const columnSpec = this.columnSpecFromLegacyVariable(variable)
             const columnSlug = columnSpec.slug
@@ -1073,7 +1072,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             // todo: remove. move annotations to their own first class column.
             let annotationsColumnSlug: string
             let annotationMap: Map<string, string>
-            if (variable.display.entityAnnotationsMap) {
+            if (variable.display?.entityAnnotationsMap) {
                 annotationsColumnSlug = this.makeAnnotationColumnSlug(
                     columnSlug
                 )
@@ -1095,20 +1094,26 @@ export class OwidTable extends AbstractTable<OwidRow> {
             // Todo: remove
             const display = variable.display
             const yearsNeedTransform =
+                display &&
                 display.yearIsDay &&
                 display.zeroDay !== undefined &&
                 display.zeroDay !== EPOCH_DATE
-            const years = yearsNeedTransform
-                ? this.convertLegacyYears(variable.years, display.zeroDay!)
-                : variable.years
+            const yearsRaw = variable.years || []
+            const years =
+                yearsNeedTransform && display
+                    ? this.convertLegacyYears(yearsRaw, display.zeroDay!)
+                    : yearsRaw
 
-            const newRows = variable.values.map((value, index) => {
+            const values = variable.values || []
+            const entities = variable.entities || []
+
+            const newRows = values.map((value, index) => {
                 const entityName = entityNames[index]
                 const row: any = {
                     [timeColumnName]: years[index],
                     [columnSlug]: value,
                     entityName,
-                    entityId: variable.entities[index],
+                    entityId: entities[index],
                     entityCode: entityCodes[index],
                 }
                 if (annotationsColumnSlug)

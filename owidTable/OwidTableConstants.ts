@@ -3,7 +3,7 @@ export declare type Year = Integer
 export declare type EntityName = string
 export declare type EntityCode = string
 export declare type EntityId = number
-export declare type OwidVariableId = Integer
+export declare type LegacyVariableId = Integer
 export declare type ColumnSlug = string // let's be very restrictive on valid column names to start.
 
 export interface OwidSource {

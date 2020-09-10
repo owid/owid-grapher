@@ -12,7 +12,7 @@ import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
-import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
+import { LegacyVariableDisplaySettings } from "owidTable/LegacyVariableCode"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
@@ -27,7 +27,7 @@ interface VariablePageData {
     unit: string
     shortUnit: string
     description: string
-    display: OwidVariableDisplaySettings
+    display: LegacyVariableDisplaySettings
 
     datasetId: number
     datasetName: string
@@ -44,7 +44,7 @@ class VariableEditable {
     @observable description: string = ""
     @observable entityAnnotationsMap: string = ""
     @observable
-    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
+    display = new LegacyVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {

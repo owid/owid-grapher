@@ -1,7 +1,7 @@
 import { observable } from "mobx"
 import { MapProjection } from "./MapProjections"
 import { PersistableColorScaleConfig } from "grapher/color/ColorScaleConfig"
-import { ColumnSlug, OwidVariableId } from "owidTable/OwidTableConstants"
+import { ColumnSlug, LegacyVariableId } from "owidTable/OwidTableConstants"
 import {
     Persistable,
     updatePersistables,
@@ -28,7 +28,7 @@ class MapConfig {
 export type MapConfigInterface = MapConfig
 
 interface MapConfigWithLegacyInterface extends MapConfigInterface {
-    variableId?: OwidVariableId
+    variableId?: LegacyVariableId
 }
 
 export class PersistableMapConfig extends MapConfig implements Persistable {

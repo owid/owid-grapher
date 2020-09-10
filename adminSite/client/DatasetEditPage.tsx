@@ -14,7 +14,7 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
+import { LegacyVariableDisplaySettings } from "owidTable/LegacyVariableCode"
 import { OwidSource } from "owidTable/OwidTableConstants"
 
 import { AdminLayout } from "./AdminLayout"
@@ -38,8 +38,7 @@ class VariableEditable {
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-    @observable
-    display: OwidVariableDisplaySettings = new OwidVariableDisplaySettings()
+    @observable display = new LegacyVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {
@@ -57,8 +56,8 @@ class VariableEditRow extends React.Component<{
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
-    @observable.ref grapher?: Grapher
-    @observable newVariable!: VariableEditable
+    @observable.ref private grapher?: Grapher
+    @observable private newVariable!: VariableEditable
 
     componentWillMount() {
         this.componentWillReceiveProps()
@@ -67,14 +66,14 @@ class VariableEditRow extends React.Component<{
         this.newVariable = new VariableEditable(this.props.variable)
     }
 
-    @computed get isModified(): boolean {
+    @computed private get isModified(): boolean {
         return (
             JSON.stringify(this.newVariable) !==
             JSON.stringify(new VariableEditable(this.props.variable))
         )
     }
 
-    async save() {
+    private async save() {
         const { variable } = this.props
         const json = await this.context.admin.requestJSON(
             `/api/variables/${variable.id}`,
@@ -89,7 +88,7 @@ class VariableEditRow extends React.Component<{
         }
     }
 
-    @computed get grapherConfig() {
+    @computed private get grapherConfig() {
         return {
             yAxis: { min: 0 },
             map: { variableId: this.props.variable.id },
@@ -299,7 +298,7 @@ interface VariableEditListItem {
     unit: string
     shortUnit: string
     description: string
-    display: OwidVariableDisplaySettings
+    display: LegacyVariableDisplaySettings
 }
 
 interface DatasetPageData {

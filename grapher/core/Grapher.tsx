@@ -41,7 +41,7 @@ import {
     ScaleType,
     StackMode,
 } from "grapher/core/GrapherConstants"
-import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
+import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { OwidTable } from "owidTable/OwidTable"
 import { EntityName, EntityId, EntityCode } from "owidTable/OwidTableConstants"
 import {
@@ -330,11 +330,11 @@ export class Grapher extends PersistableGrapher {
     // In the future if we merge the two we could shift to a cleaner approach.
     @observable.ref embedExplorerCheckbox?: JSX.Element
 
-    @action.bound receiveData(json: OwidVariablesAndEntityKey) {
+    @action.bound receiveData(json: LegacyVariablesAndEntityKey) {
         this._receiveData(json)
     }
 
-    @action.bound private _receiveData(json: OwidVariablesAndEntityKey) {
+    @action.bound private _receiveData(json: LegacyVariablesAndEntityKey) {
         this.table = OwidTable.fromLegacy(json)
         this.updatePopulationFilter()
     }

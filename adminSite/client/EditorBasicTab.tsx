@@ -15,7 +15,7 @@ import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
-import { OwidVariableId } from "owidTable/OwidTableConstants"
+import { LegacyVariableId } from "owidTable/OwidTableConstants"
 
 @observer
 class DimensionSlotView extends React.Component<{
@@ -26,7 +26,7 @@ class DimensionSlotView extends React.Component<{
 
     @observable.ref isSelectingVariables: boolean = false
 
-    @action.bound onVariables(variableIds: OwidVariableId[]) {
+    @action.bound onVariables(variableIds: LegacyVariableId[]) {
         const { slot } = this.props
 
         slot.dimensions = variableIds.map((id) => {

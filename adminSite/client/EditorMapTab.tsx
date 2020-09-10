@@ -15,11 +15,11 @@ import {
     Section,
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
-import { OwidVariableId } from "owidTable/OwidTableConstants"
+import { LegacyVariableId } from "owidTable/OwidTableConstants"
 
 @observer
 class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
-    @action.bound onVariableId(variableId: OwidVariableId) {
+    @action.bound onVariableId(variableId: LegacyVariableId) {
         this.props.mapTransform.props.columnSlug = variableId.toString()
     }
 
