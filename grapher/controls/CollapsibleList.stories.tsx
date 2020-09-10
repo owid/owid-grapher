@@ -15,6 +15,7 @@ class SampleCheckBox extends React.Component<{ id: number }> {
     @action.bound onToggle() {
         this.checked = !this.checked
     }
+
     render() {
         return (
             <label className="clickable">
@@ -33,10 +34,10 @@ const items: React.ReactElement[] = []
 for (let i = 0; i < 13; i++) {
     items.push(<SampleCheckBox key={i} id={i} />)
 }
-export const collapsibleListInputItems: React.ReactElement[] = items
+export const collapsibleListSampleItems: React.ReactElement[] = items
 
 export const CollapsibleListComponent = () => {
-    return <CollapsibleList items={collapsibleListInputItems} />
+    return <CollapsibleList>{collapsibleListSampleItems}</CollapsibleList>
 }
 
 export const MoreButtonComponent = () => {
