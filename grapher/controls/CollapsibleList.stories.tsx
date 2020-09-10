@@ -29,13 +29,14 @@ class SampleCheckBox extends React.Component<{ id: number }> {
     }
 }
 
-export const Default = () => {
-    const items: React.ReactElement[] = []
-    for (let i = 0; i < 13; i++) {
-        items.push(<SampleCheckBox key={i} id={i} />)
-    }
+const items: React.ReactElement[] = []
+for (let i = 0; i < 13; i++) {
+    items.push(<SampleCheckBox key={i} id={i} />)
+}
+export const collapsibleListInputItems: React.ReactElement[] = items
 
-    return <CollapsibleList items={items} />
+export const CollapsibleListComponent = () => {
+    return <CollapsibleList items={collapsibleListInputItems} />
 }
 
 export const MoreButtonComponent = () => {
