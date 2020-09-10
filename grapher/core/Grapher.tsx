@@ -688,7 +688,7 @@ export class Grapher extends PersistableGrapher {
 
     @computed private get timeTitleSuffix() {
         const { minYear, maxYear } = this
-        if (!this.table.timeColumn) return ""
+        if (!this.table.timeColumn) return "" // Do not show year until data is loaded
         const fn = this.table.timeColumn.formatValue
         const timeFrom = fn(minYear)
         const timeTo = fn(maxYear)

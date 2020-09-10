@@ -170,7 +170,7 @@ export class StackedAreaTransform extends ChartTransform {
         const grapher = this.grapher
         const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
-        axis.tickFormatFn = this.grapher.table.timeColumn!.formatValue
+        axis.tickFormatFn = this.grapher.table.timeColumnFormatFunction
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis

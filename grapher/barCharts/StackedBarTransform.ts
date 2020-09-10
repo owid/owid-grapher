@@ -76,7 +76,7 @@ export class StackedBarTransform extends ChartTransform {
         const { grapher, xDomainDefault } = this
         const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
-        axis.tickFormatFn = this.grapher.table.timeColumn!.formatValue
+        axis.tickFormatFn = this.grapher.table.timeColumnFormatFunction
         axis.hideGridlines = true
         axis.hideFractionalTicks = true
         return axis

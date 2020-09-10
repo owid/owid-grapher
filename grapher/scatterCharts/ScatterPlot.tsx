@@ -195,7 +195,7 @@ export class ScatterPlot extends React.Component<{
         if (startYear === endYear || transform.isRelativeMode) return undefined
 
         const that = this
-        const formatFn = this.grapher.table.timeColumn!.formatValue
+        const formatFn = this.grapher.table.timeColumnFormatFunction
         return new ConnectedScatterLegend({
             get maxWidth() {
                 return that.sidebarWidth
@@ -301,7 +301,7 @@ export class ScatterPlot extends React.Component<{
     @computed private get scatterPointLabelFormatFunction() {
         const scatterPointLabelFormatFunctions = {
             year: (scatterValue: ScatterValue) =>
-                this.grapher.table.timeColumn!.formatValue(scatterValue.year),
+                this.grapher.table.timeColumnFormatFunction(scatterValue.year),
             y: (scatterValue: ScatterValue) =>
                 this.transform.yFormatTooltip(scatterValue.y),
             x: (scatterValue: ScatterValue) =>
