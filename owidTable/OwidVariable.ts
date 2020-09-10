@@ -1,7 +1,7 @@
 // todo: remove file
 
 import { observable } from "mobx"
-import { OwidSource } from "./OwidSource"
+import { OwidSource } from "./OwidTableConstants"
 
 export class OwidVariableTableDisplaySettings {
     @observable hideAbsoluteChange: boolean = false

@@ -15,16 +15,16 @@ import {
     TickFormattingOptions,
     EntityDimensionKey,
 } from "grapher/core/GrapherConstants"
-import {
-    AbstractColumn,
-    OwidVariableId,
-    EntityName,
-    EntityId,
-} from "owidTable/OwidTable"
+import { AbstractColumn } from "owidTable/OwidTable"
 import { Time } from "grapher/utils/TimeBounds"
 
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
-import { OwidSource } from "owidTable/OwidSource"
+import {
+    OwidSource,
+    OwidVariableId,
+    EntityName,
+    EntityId,
+} from "owidTable/OwidTableConstants"
 import { Persistable } from "grapher/persistable/Persistable"
 
 export declare type dimensionProperty = "y" | "x" | "size" | "color" | "table"

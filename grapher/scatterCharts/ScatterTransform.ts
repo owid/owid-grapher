@@ -32,7 +32,7 @@ import { ChartTransform } from "grapher/chart/ChartTransform"
 import { Time } from "grapher/utils/TimeBounds"
 import { EntityDimensionKey, ScaleType } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
-import { EntityName, Year } from "owidTable/OwidTable"
+import { EntityName, Year } from "owidTable/OwidTableConstants"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot

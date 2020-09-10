@@ -1,3 +1,4 @@
+import { ColumnTypeNames } from "owidTable/OwidTableConstants"
 import { ColumnSpec } from "owidTable/OwidTable"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
@@ -262,56 +263,82 @@ export const metricPickerColumnSpecs: Partial<Record<
     Partial<ColumnSpec>
 >> = {
     location: { slug: "location", name: "Country name" },
-    population: { slug: "population", name: "Population", type: "Population" },
+    population: {
+        slug: "population",
+        name: "Population",
+        type: ColumnTypeNames.Population,
+    },
     population_density: {
         slug: "population_density",
         name: "Population density (people per km²)",
-        type: "PopulationDensity",
+        type: ColumnTypeNames.PopulationDensity,
     },
-    median_age: { slug: "median_age", name: "Median age", type: "Age" },
+    median_age: {
+        slug: "median_age",
+        name: "Median age",
+        type: ColumnTypeNames.Age,
+    },
     aged_65_older: {
         slug: "aged_65_older",
         name: "Share aged 65+",
-        type: "Percentage",
+        type: ColumnTypeNames.Percentage,
     },
     aged_70_older: {
         slug: "aged_70_older",
         name: "Share aged 70+",
-        type: "Percentage",
+        type: ColumnTypeNames.Percentage,
     },
     gdp_per_capita: {
         slug: "gdp_per_capita",
         name: "GDP per capita (int.-$)",
-        type: "Currency",
+        type: ColumnTypeNames.Currency,
     },
     extreme_poverty: {
         slug: "extreme_poverty",
         name: "Population in extreme poverty",
-        type: "Percentage",
+        type: ColumnTypeNames.Percentage,
     },
     hospital_beds_per_thousand: {
         slug: "hospital_beds_per_thousand",
         name: "Hospital beds (per 1000)",
-        type: "Ratio",
+        type: ColumnTypeNames.Ratio,
     },
     stringency_index: {
         slug: "stringency_index",
         name: "Stringency Index",
-        type: "Numeric",
+        type: ColumnTypeNames.Numeric,
     },
-    life_expectancy: { name: "Life expectancy", type: "Age" },
-    total_deaths: { name: "Total deaths", type: "Integer" },
-    new_cases: { name: "New cases", type: "Integer" },
-    new_deaths: { name: "New deaths", type: "Integer" },
-    total_cases: { name: "Total cases", type: "Integer" },
-    total_tests: { name: "Total tests", type: "Integer" },
-    total_tests_per_thousand: { name: "Total tests (per 1K)", type: "Ratio" },
-    positive_rate: { name: "Positive test rate", type: "DecimalPercentage" },
-    tests_per_case: { name: "Tests per case", type: "Ratio" },
-    total_deaths_per_million: { name: "Total deaths (per 1M)", type: "Ratio" },
-    total_cases_per_million: { name: "Total cases (per 1M)", type: "Ratio" },
-    new_deaths_per_million: { name: "New deaths (per 1M)", type: "Ratio" },
-    new_cases_per_million: { name: "New cases (per 1M)", type: "Ratio" },
+    life_expectancy: { name: "Life expectancy", type: ColumnTypeNames.Age },
+    total_deaths: { name: "Total deaths", type: ColumnTypeNames.Integer },
+    new_cases: { name: "New cases", type: ColumnTypeNames.Integer },
+    new_deaths: { name: "New deaths", type: ColumnTypeNames.Integer },
+    total_cases: { name: "Total cases", type: ColumnTypeNames.Integer },
+    total_tests: { name: "Total tests", type: ColumnTypeNames.Integer },
+    total_tests_per_thousand: {
+        name: "Total tests (per 1K)",
+        type: ColumnTypeNames.Ratio,
+    },
+    positive_rate: {
+        name: "Positive test rate",
+        type: ColumnTypeNames.DecimalPercentage,
+    },
+    tests_per_case: { name: "Tests per case", type: ColumnTypeNames.Ratio },
+    total_deaths_per_million: {
+        name: "Total deaths (per 1M)",
+        type: ColumnTypeNames.Ratio,
+    },
+    total_cases_per_million: {
+        name: "Total cases (per 1M)",
+        type: ColumnTypeNames.Ratio,
+    },
+    new_deaths_per_million: {
+        name: "New deaths (per 1M)",
+        type: ColumnTypeNames.Ratio,
+    },
+    new_cases_per_million: {
+        name: "New cases (per 1M)",
+        type: ColumnTypeNames.Ratio,
+    },
 }
 // The ID of the Wordpress reusable block to show below the COVID explorer
 export const covidWpBlockId = 36313

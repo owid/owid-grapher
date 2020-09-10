@@ -25,19 +25,42 @@ import {
     formatYear,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
-import { OwidSource } from "./OwidSource"
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
-
-declare type Int = number
-export declare type Year = Int
-export declare type EntityName = string
-export declare type EntityCode = string
-export declare type EntityId = number
-export declare type OwidVariableId = Int
-export declare type ColumnSlug = string // let's be very restrictive on valid column names to start.
+import {
+    ColumnTypeNames,
+    Year,
+    ColumnSlug,
+    EntityId,
+    EntityCode,
+    Integer,
+    EntityName,
+    OwidVariableId,
+    OwidSource,
+} from "./OwidTableConstants"
 
 export interface Row {
     [columnName: string]: any
+}
+
+export interface ColumnSpec {
+    slug: ColumnSlug
+    name?: string
+    owidVariableId?: OwidVariableId
+    unit?: string
+    shortUnit?: string
+    isDailyMeasurement?: boolean
+    description?: string
+    coverage?: string
+    datasetId?: string
+    datasetName?: string
+    source?: OwidSource
+    display?: OwidVariableDisplaySettings
+
+    // More advanced options:
+    annotationsColumnSlug?: ColumnSlug
+    fn?: RowToValueMapper
+
+    type?: ColumnTypeNames
 }
 
 const globalEntityIds = new Map()
@@ -93,51 +116,14 @@ interface OwidRow extends Row {
     entityCode: EntityCode
     entityId: EntityId
     year?: Year
-    day?: Int
+    day?: Integer
     date?: string
-}
-
-export declare type columnTypes =
-    | "Numeric"
-    | "String"
-    | "Categorical"
-    | "Boolean"
-    | "Currency"
-    | "Percentage"
-    | "DecimalPercentage"
-    | "Integer"
-    | "Population"
-    | "PopulationDensity"
-    | "Age"
-    | "Ratio"
-    | "Year"
-    | "Date"
-
-export interface ColumnSpec {
-    slug: ColumnSlug
-    name?: string
-    owidVariableId?: OwidVariableId
-    unit?: string
-    shortUnit?: string
-    isDailyMeasurement?: boolean
-    description?: string
-    coverage?: string
-    datasetId?: string
-    datasetName?: string
-    source?: OwidSource
-    display?: OwidVariableDisplaySettings
-
-    // More advanced options:
-    annotationsColumnSlug?: ColumnSlug
-    fn?: RowToValueMapper
-
-    type?: columnTypes
 }
 
 // todo: remove index param?
 export declare type RowToValueMapper = (
     row: Row,
-    index?: Int,
+    index?: Integer,
     table?: AbstractTable<Row>
 ) => any
 
@@ -425,7 +411,7 @@ class RatioColumn extends NumericColumn {
     }
 }
 
-const columnTypeMap: { [key in columnTypes]: any } = {
+const columnTypeMap: { [key in ColumnTypeNames]: any } = {
     String: StringColumn,
     Categorical: CategoricalColumn,
     Numeric: NumericColumn,
@@ -563,7 +549,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     // todo: this won't work when adding rows dynamically
     @action.bound addRollingAverageColumn(
         spec: ColumnSpec,
-        windowSize: Int,
+        windowSize: Integer,
         valueAccessor: (row: Row) => any,
         dateColName: ColumnSlug,
         groupBy: ColumnSlug,
@@ -1018,7 +1004,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             display,
             source,
             owidVariableId: variable.id,
-            type: "Numeric",
+            type: ColumnTypeNames.Numeric,
         }
     }
 
@@ -1029,13 +1015,16 @@ export class OwidTable extends AbstractTable<OwidRow> {
         columnSpecs.set("entityName", {
             name: "Entity",
             slug: "entityName",
-            type: "Categorical",
+            type: ColumnTypeNames.Categorical,
         })
-        columnSpecs.set("entityId", { slug: "entityId", type: "Categorical" })
+        columnSpecs.set("entityId", {
+            slug: "entityId",
+            type: ColumnTypeNames.Categorical,
+        })
         columnSpecs.set("entityCode", {
             name: "Code",
             slug: "entityCode",
-            type: "Categorical",
+            type: ColumnTypeNames.Categorical,
         })
 
         for (const key in json.variables) {
@@ -1053,12 +1042,12 @@ export class OwidTable extends AbstractTable<OwidRow> {
             columnSpec.isDailyMeasurement
                 ? columnSpecs.set("day", {
                       slug: "day",
-                      type: "Date",
+                      type: ColumnTypeNames.Date,
                       name: "Date",
                   })
                 : columnSpecs.set("year", {
                       slug: "year",
-                      type: "Year",
+                      type: ColumnTypeNames.Year,
                       name: "Year",
                   })
             columnSpecs.set(columnSlug, columnSpec)
@@ -1075,7 +1064,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
                 )
                 columnSpecs.set(annotationsColumnSlug, {
                     slug: annotationsColumnSlug,
-                    type: "String",
+                    type: ColumnTypeNames.String,
                     name: `${columnSpec.name} Annotations`,
                 })
                 columnSpec.annotationsColumnSlug = annotationsColumnSlug
