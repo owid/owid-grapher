@@ -33,7 +33,7 @@
         "deploy": "./deploy/deploy.sh",
         "serve": "yarn tsn adminSite/server/app.tsx",
         "bake": "yarn tsn deploy/bakeSite.ts",
-        "post-update": "yarn tsn db/postUpdateHook.ts",
+        "post-update": "yarn tsn db/postUpdatedHook.ts",
         "deploy-queue": "yarn tsn deploy/watch.ts",
         "storybook": "start-storybook -p 6006",
         "build-storybook": "build-storybook -o .storybook/build",
