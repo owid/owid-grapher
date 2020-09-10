@@ -1,11 +1,16 @@
 .collapsibleList {
     margin: 12px 0px;
-    margin-left: 15px;
+    padding-left: 15px;
+    white-space: nowrap;
 
     ul {
         list-style: none;
         > .list-item:not(:first-child) {
-            margin-left: 16px;
+            padding-left: 16px;
+        }
+
+        .moreButton {
+            padding-left: 16px;
         }
 
         li {
