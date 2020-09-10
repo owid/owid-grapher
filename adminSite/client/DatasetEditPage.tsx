@@ -15,7 +15,7 @@ import filenamify from "filenamify"
 import { format } from "timeago.js"
 
 import { OwidVariableDisplaySettings } from "owidTable/OwidVariable"
-import { OwidSource } from "owidTable/OwidSource"
+import { OwidSource } from "owidTable/OwidTableConstants"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"

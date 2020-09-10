@@ -42,12 +42,8 @@ import {
     StackMode,
 } from "grapher/core/GrapherConstants"
 import { OwidVariablesAndEntityKey } from "owidTable/OwidVariable"
-import {
-    OwidTable,
-    EntityName,
-    EntityId,
-    EntityCode,
-} from "owidTable/OwidTable"
+import { OwidTable } from "owidTable/OwidTable"
+import { EntityName, EntityId, EntityCode } from "owidTable/OwidTableConstants"
 import {
     EntityDimensionInfo,
     ChartDimension,

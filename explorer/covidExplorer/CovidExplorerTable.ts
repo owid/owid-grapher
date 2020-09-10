@@ -17,15 +17,17 @@ import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"
 import {
     OwidTable,
+    ColumnSpec,
     ComputedColumnSpec,
     RowToValueMapper,
-    ColumnSpec,
-    EntityName,
-    ColumnSlug,
-    columnTypes,
     Row,
     generateEntityId,
 } from "owidTable/OwidTable"
+import {
+    ColumnTypeNames,
+    EntityName,
+    ColumnSlug,
+} from "owidTable/OwidTableConstants"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
     ParsedCovidCsvRow,
@@ -108,10 +110,10 @@ export class CovidExplorerTable {
         let spec = {
             slug,
             type: stringColumnSlugs.has(slug)
-                ? "String"
+                ? ColumnTypeNames.String
                 : slug === "day"
-                ? "Date"
-                : "Numeric",
+                ? ColumnTypeNames.Date
+                : ColumnTypeNames.Numeric,
         }
         const metricSpec = (metricPickerColumnSpecs as any)[spec.slug]
         if (metricSpec) spec = Object.assign({}, spec, metricSpec)

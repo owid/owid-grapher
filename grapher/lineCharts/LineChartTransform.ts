@@ -18,7 +18,7 @@ import { ChartTransform } from "grapher/chart/ChartTransform"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { Time } from "grapher/utils/TimeBounds"
 import { LineLabel } from "./LineLabels"
-import { EntityName } from "owidTable/OwidTable"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 // Responsible for translating chart configuration into the form
 // of a line chart

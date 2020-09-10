@@ -249,7 +249,7 @@ usa,us,23,`)
             ],
             [
                 { slug: "entityName" },
-                { slug: "day", type: "Date" },
+                { slug: "day", type: "Date" as any },
                 { slug: "annotation" },
             ]
         )

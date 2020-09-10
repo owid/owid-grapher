@@ -15,7 +15,7 @@ import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
-import { OwidVariableId } from "owidTable/OwidTable"
+import { OwidVariableId } from "owidTable/OwidTableConstants"
 
 @observer
 class DimensionSlotView extends React.Component<{
