@@ -1,7 +1,8 @@
 import React from "react"
-import { observable, action, runInAction, computed } from "mobx"
+import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 import { throttle } from "grapher/utils/Util"
+import { Tippy } from "grapher/chart/Tippy"
 
 interface CollapsibleListProps {
     items: React.ReactElement[]
@@ -44,7 +45,6 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
             this.outerWidth, // outerListWidth,
             this.moreButtonWidth
         )
-        console.log(numItemsVisible)
 
         this.visibleItems = this.props.items.slice(0, numItemsVisible)
         this.dropdownItems = this.props.items.slice(numItemsVisible)
@@ -63,8 +63,6 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
             ?.querySelectorAll("li")
             .forEach((item) => this.widthsArray.push(item.clientWidth))
         this.updateItemPartition()
-
-        console.log("mounted")
     }
 
     componentWillUnmount() {
@@ -89,11 +87,17 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
                                     ? "visible"
                                     : "hidden",
                             }}
-                            onClick={() =>
-                                console.log(Array.from(this.dropdownItems))
-                            }
                         >
-                            More
+                            <MoreButton
+                                options={this.dropdownItems.map((item) => (
+                                    <li
+                                        key={item.key}
+                                        className="list-item dropdown"
+                                    >
+                                        {item}
+                                    </li>
+                                ))}
+                            />
                         </li>
                     }
                 </ul>
@@ -103,171 +107,15 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
 }
 
 @observer
-export class MoreButton extends React.Component {
+export class MoreButton extends React.Component<{
+    options: React.ReactElement[]
+}> {
     render() {
-        return "hello"
+        const { options } = this.props
+        return (
+            <Tippy content={options} interactive={true} trigger={"click"}>
+                <span>More</span>
+            </Tippy>
+        )
     }
 }
-
-// class Useless extends React.Component {
-//     constructor(props) {
-//       super(props);
-//       this.updateNavigation = this.updateNavigation.bind(this);
-//       this.state = {
-//         priorityItems: [],
-//         moreItems: []
-//       }
-//       this.fullNavArray = this.props.navigationItems;
-//     }
-
-//     static propTypes = {
-//       name: React.PropTypes.string,
-//       navigationItems: React.PropTypes.array
-//     };
-
-//     static defaultProps = {
-//       navigationItems: [
-//         {
-//           title: 'News',
-//           link: '/news'
-//         },
-//         {
-//           title: 'Gigs',
-//           link: '/gigs'
-//         },
-//         {
-//           title: 'Festivals',
-//           link: '/festivals'
-//         },
-//         {
-//           title: 'Club Nights',
-//           link: '/club-nights'
-//         },
-//         {
-//           title: 'Brands',
-//           link: '/brands'
-//         },
-//         {
-//           title: 'Genres',
-//           link: '/genres'
-//         },
-//         {
-//           title: 'Venues',
-//           link: '/venues'
-//         },
-//         {
-//           title: 'Artists',
-//           link: '/artists'
-//         },
-//         {
-//           title: 'News',
-//           link: '/news'
-//         },
-//         {
-//           title: 'Gigs',
-//           link: '/gigs'
-//         },
-//         {
-//           title: 'Festivals',
-//           link: '/festivals'
-//         },
-//         {
-//           title: 'Club Nights',
-//           link: '/club-nights'
-//         },
-//         {
-//           title: 'Brands',
-//           link: '/brands'
-//         },
-//         {
-//           title: 'Genres',
-//           link: '/genres'
-//         },
-//         {
-//           title: 'Venues',
-//           link: '/venues'
-//         },
-//         {
-//           title: 'Artists',
-//           link: '/artists'
-//         }
-//       ]
-//     };
-
-//     componentWillMount() {
-//        this.setState({
-//           priorityItems: this.props.navigationItems
-//         })
-//     }
-
-//     componentDidMount() {
-//       //Get width of all items in navigation menu
-//       this.widthsArray = Array.from(this.refs.navigation.children).map(item => item.getBoundingClientRect().width);
-//       //Add resize listener but throttle for smoother experience
-//       window.addEventListener('resize', _.throttle(this.updateNavigation), 100);
-//       this.updateNavigation();
-//     }
-
-//     howManyItemsInMenuArray(array, outerWidth, initialWidth, minimumNumberInNav) {
-//       let total = (initialWidth*1.75);
-//       for(let i = 0; i < array.length; i++) {
-//           if(total + array[i] > outerWidth) {
-//             console.log(i);
-//             return i < minimumNumberInNav ? minimumNumberInNav : i;
-//           } else {
-//             total += array[i];
-//           }
-//         }
-//     }
-
-//     updateNavigation() {
-//       this.outerWidth = this.refs.navigationOuter.getBoundingClientRect().width;
-//       this.moreMenu = this.refs.moreMenu ? this.refs.moreMenu.getBoundingClientRect().width : 0;
-//       const arrayAmount = this.howManyItemsInMenuArray(this.widthsArray, this.outerWidth, this.moreMenu, 5);
-//       const navItemsCopy = this.fullNavArray;
-//       const priorityItems = navItemsCopy.slice(0, arrayAmount);
-
-//       this.setState({
-//         priorityItems: priorityItems,
-//         moreItems: priorityItems.length !== navItemsCopy.length ? navItemsCopy.slice(arrayAmount, navItemsCopy.length) : []
-//      });
-//    }
-
-//     componentWillUnmount() {
-//       window.removeEventListener('resize', this.updateNavigation());
-//     }
-
-//     render() {
-//       const { priorityItems, moreItems } = this.state;
-
-//       return (
-//         <div>
-//         <nav ref="navigationOuter" className="navigation" role="navigation">
-//           <ul ref="navigation" className="navigation-list">
-//             {
-//               priorityItems.map((item, i) => <li key={`navItem-${i}`} className="navigation-item">
-//                 <a className="navigation-link" to={item.link}>{item.title}</a>
-//               </li>)
-//             }
-//           </ul>
-//           {
-//             moreItems.length > 0 && <ul ref="moreMenu" className="navigation-list-absolute">
-//             <li className="navigation-item more-item">
-//               <a className="navigation-link" to="#">More ></a>
-//               <ul ref="moreNav" className="more-navigation">
-//                 {
-//                   moreItems.map((item, i) => <li key={`moreNavItem-${i}`} className="navigation-item">
-//                     <a className="navigation-link" to={item.link}>{item.title}</a>
-//                   </li>)
-//                 }
-//               </ul>
-//             </li>
-//           </ul>
-//           }
-//         </nav>
-//         </div>
-//       );
-//     }
-//   }
-
-/** ---------------------------- */
