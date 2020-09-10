@@ -1,12 +1,12 @@
 import * as React from "react"
-import { observable, computed, action } from "mobx"
+import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { GrapherView } from "grapher/core/GrapherView"
 import { TimelineControl } from "./TimelineControl"
-import { max, formatValue } from "grapher/utils/Util"
+import { formatValue } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -181,261 +181,34 @@ class FilterSmallCountriesToggle extends React.Component<{
     }
 }
 
-interface ControlsProps {
-    grapher: Grapher
-    grapherView: GrapherView
-    width: number
-}
-
-export class Controls {
-    props: ControlsProps
-    constructor(props: ControlsProps) {
-        this.props = props
-    }
-
-    @observable isShareMenuActive: boolean = false
-    @observable isSettingsMenuActive: boolean = false
-
-    @computed.struct get overlayPadding(): {
-        top: number
-        right: number
-        bottom: number
-        left: number
-    } {
-        const overlays = Object.values(this.props.grapherView.overlays)
-        return {
-            top: max(overlays.map((overlay) => overlay.props.paddingTop)) ?? 0,
-            right:
-                max(overlays.map((overlay) => overlay.props.paddingRight)) ?? 0,
-            bottom:
-                max(overlays.map((overlay) => overlay.props.paddingBottom)) ??
-                0,
-            left:
-                max(overlays.map((overlay) => overlay.props.paddingLeft)) ?? 0,
-        }
-    }
-
-    @computed get hasTimeline(): boolean {
-        const { grapher } = this.props
-        if (grapher.currentTab === "table") return !grapher.hideTimeline
-        if (grapher.currentTab === "map") {
-            return grapher.mapTransform.hasTimeline
-        } else if (grapher.currentTab === "chart") {
-            if (grapher.isScatter || grapher.isTimeScatter)
-                return grapher.scatterTransform.hasTimeline
-            if (grapher.isLineChart)
-                return grapher.lineChartTransform.hasTimeline
-            if (grapher.isSlopeChart)
-                return grapher.slopeChartTransform.hasTimeline
-        }
-        return false
-    }
-
-    @computed get hasInlineControls(): boolean {
-        const { grapher } = this.props
-        return (
-            (grapher.currentTab === "chart" ||
-                grapher.currentTab === "table") &&
-            ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
-                grapher.isScatter ||
-                grapher.canChangeEntity ||
-                (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
-                (grapher.isLineChart &&
-                    grapher.lineChartTransform.canToggleRelativeMode))
-        )
-    }
-
-    @computed get hasSettingsMenu(): boolean {
-        return false
-    }
-
-    @computed get hasSpace(): boolean {
-        return this.props.width > 700
-    }
-
-    @computed get hasRelatedQuestion(): boolean {
-        const { relatedQuestions } = this.props.grapher
-        return (
-            !!relatedQuestions &&
-            !!relatedQuestions.length &&
-            !!relatedQuestions[0].text &&
-            !!relatedQuestions[0].url
-        )
-    }
-
-    @computed get footerLines(): number {
-        let numLines = 1
-        if (this.hasTimeline) numLines += 1
-        if (this.hasInlineControls) numLines += 1
-        if (this.hasSpace && this.hasInlineControls && numLines > 1)
-            numLines -= 1
-        return numLines
-    }
-
-    @computed get footerHeight(): number {
-        const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
-        return (
-            this.footerLines * footerRowHeight +
-            (this.hasRelatedQuestion ? 20 : 0)
-        )
-    }
-}
-
-type HorizontalAlign = "left" | "right"
-type VerticalAlign = "top" | "middle" | "bottom"
-
-@observer
-export class AddEntityButton extends React.Component<{
-    x: number
-    y: number
-    align: HorizontalAlign
-    verticalAlign: VerticalAlign
-    height: number
-    label: string
-    onClick: () => void
-}> {
-    static defaultProps = {
-        align: "left",
-        verticalAlign: "bottom",
-        height: 21,
-        label: "Add country",
-    }
-
-    static calcPaddingTop(
-        y: number,
-        verticalAlign: VerticalAlign,
-        height: number
-    ): number {
-        const realY =
-            verticalAlign === "bottom"
-                ? y - height
-                : verticalAlign === "middle"
-                ? y - height / 2
-                : y
-        return Math.max(0, -realY)
-    }
-
-    render() {
-        const {
-            x,
-            y,
-            align,
-            verticalAlign,
-            height,
-            label,
-            onClick,
-        } = this.props
-
-        const buttonStyle: React.CSSProperties = {
-            position: "absolute",
-            lineHeight: `${height}px`,
-        }
-
-        if (verticalAlign === "top") {
-            buttonStyle.top = `${y}px`
-        } else if (verticalAlign === "bottom") {
-            buttonStyle.top = `${y - height}px`
-        } else {
-            buttonStyle.top = `${y - height / 2}px`
-        }
-
-        if (align === "left") {
-            buttonStyle.left = `${x}px`
-        } else if (align === "right") {
-            buttonStyle.right = `${-x}px`
-        }
-
-        return (
-            <button
-                className="addDataButton clickable"
-                onClick={onClick}
-                data-track-note="chart-add-entity"
-                style={buttonStyle}
-            >
-                <span className="icon">
-                    <svg width={16} height={16}>
-                        <path d="M3,8 h10 m-5,-5 v10" />
-                    </svg>
-                </span>
-                <span className="label">{label}</span>
-            </button>
-        )
-    }
-}
-
-@observer
-export class ControlsOverlayView extends React.Component<{
-    grapherView: GrapherView
-    grapher: Grapher
-    controls: Controls
-    children: JSX.Element
-}> {
-    @action.bound onDataSelect() {
-        this.props.grapher.isSelectingData = true
-    }
-
-    render() {
-        const { overlayPadding } = this.props.controls
-        const containerStyle: React.CSSProperties = {
-            position: "relative",
-            clear: "both",
-            paddingTop: `${overlayPadding.top}px`,
-            paddingRight: `${overlayPadding.right}px`,
-            paddingBottom: `${overlayPadding.bottom}px`,
-            paddingLeft: `${overlayPadding.left}px`,
-        }
-        const overlayStyle: React.CSSProperties = {
-            position: "absolute",
-            // Overlays should be positioned relative to the same origin
-            // as the <svg>
-            top: `${overlayPadding.top}px`,
-            left: `${overlayPadding.left}px`,
-            // Create 0px element to avoid capturing events.
-            // Can achieve the same with `pointer-events: none`, but then control
-            // has to override `pointer-events` to capture events.
-            width: "0px",
-            height: "0px",
-        }
-        return (
-            <div style={containerStyle}>
-                {this.props.children}
-                <div className="ControlsOverlay" style={overlayStyle}>
-                    {Object.entries(this.props.grapherView.overlays).map(
-                        ([key, overlay]) => (
-                            <React.Fragment key={key}>
-                                {overlay.props.children}
-                            </React.Fragment>
-                        )
-                    )}
-                </div>
-            </div>
-        )
-    }
-}
-
 @observer
 export class ControlsFooterView extends React.Component<{
-    controls: Controls
-    grapher: Grapher
+    grapherView: GrapherView
 }> {
+    @computed private get grapher() {
+        return this.grapherView.grapher
+    }
+
+    @computed private get grapherView() {
+        return this.props.grapherView
+    }
+
     @action.bound onShareMenu() {
-        this.props.controls.isShareMenuActive = !this.props.controls
-            .isShareMenuActive
+        this.grapherView.isShareMenuActive = !this.grapherView.isShareMenuActive
     }
 
     @action.bound onSettingsMenu() {
-        this.props.controls.isSettingsMenuActive = !this.props.controls
+        this.grapherView.isSettingsMenuActive = !this.grapherView
             .isSettingsMenuActive
     }
 
     @action.bound onDataSelect() {
-        this.props.grapher.isSelectingData = true
+        this.grapher.isSelectingData = true
     }
 
     private _getTabsElement() {
-        const { props } = this
-        const { hasSettingsMenu } = props.controls
-        const { grapher } = props.controls.props
+        const { hasSettingsMenu } = this.grapherView
+        const { grapher } = this
         return (
             <nav className="tabs">
                 <ul>
@@ -516,8 +289,7 @@ export class ControlsFooterView extends React.Component<{
     }
 
     private _getInlineControlsElement() {
-        const { props } = this
-        const { grapher } = props.controls.props
+        const { grapher } = this
         return (
             <div className="extraControls">
                 {grapher.currentTab === "chart" &&
@@ -593,7 +365,7 @@ export class ControlsFooterView extends React.Component<{
     }
 
     render() {
-        const { props } = this
+        const { grapher, grapherView } = this
         const {
             isShareMenuActive,
             isSettingsMenuActive,
@@ -601,8 +373,7 @@ export class ControlsFooterView extends React.Component<{
             hasInlineControls,
             hasSpace,
             hasRelatedQuestion,
-        } = props.controls
-        const { grapher, grapherView } = props.controls.props
+        } = grapherView
         const { relatedQuestions } = grapher
 
         const timelineElement = hasTimeline && (
@@ -658,7 +429,7 @@ export class ControlsFooterView extends React.Component<{
         return (
             <div
                 className={"ControlsFooter"}
-                style={{ height: props.controls.footerHeight }}
+                style={{ height: grapherView.footerHeight }}
             >
                 {timelineElement}
                 {inlineControlsElement}

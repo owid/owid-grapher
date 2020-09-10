@@ -7,14 +7,20 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 
 import { Grapher } from "grapher/core/Grapher"
-import { Controls, ControlsFooterView } from "grapher/controls/Controls"
+import { ControlsFooterView } from "grapher/controls/Controls"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { ChartTab } from "grapher/chart/ChartTab"
 import { TableTab } from "grapher/dataTable/TableTab"
 import { MapTab } from "grapher/mapCharts/MapTab"
 import { SourcesTab } from "grapher/sourcesTab/SourcesTab"
 import { DownloadTab } from "grapher/downloadTab/DownloadTab"
-import { VNode, throttle, isMobile, isTouchDevice } from "grapher/utils/Util"
+import {
+    VNode,
+    throttle,
+    isMobile,
+    isTouchDevice,
+    max,
+} from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import { EntitySelectorModal } from "grapher/controls/EntitySelectorModal"
 import {
@@ -209,24 +215,9 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             : this.idealHeight
     }
 
-    @computed get controls(): Controls {
-        const that = this
-        return new Controls({
-            get grapher() {
-                return that.props.grapher
-            },
-            get grapherView() {
-                return that
-            },
-            get width() {
-                return that.renderWidth
-            },
-        })
-    }
-
     @computed private get tabBounds() {
         return new Bounds(0, 0, this.renderWidth, this.renderHeight).padBottom(
-            this.isExport ? 0 : this.controls.footerHeight
+            this.isExport ? 0 : this.footerHeight
         )
     }
 
@@ -326,10 +317,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         return (
             <React.Fragment>
                 {this.hasBeenVisible && this.renderSVG()}
-                <ControlsFooterView
-                    grapher={grapher}
-                    controls={this.controls}
-                />
+                <ControlsFooterView grapherView={this} />
                 {this.renderOverlayTab(tabBounds)}
                 {this.popups}
                 <TooltipView
@@ -460,5 +448,92 @@ export class GrapherView extends React.Component<GrapherViewProps> {
     componentDidCatch(error: any, info: any) {
         this.hasError = true
         this.grapher.analytics.logChartError(error, info)
+    }
+
+    @observable isShareMenuActive: boolean = false
+    @observable isSettingsMenuActive: boolean = false
+
+    @computed.struct get overlayPadding(): {
+        top: number
+        right: number
+        bottom: number
+        left: number
+    } {
+        const overlays = Object.values(this.overlays)
+        return {
+            top: max(overlays.map((overlay) => overlay.props.paddingTop)) ?? 0,
+            right:
+                max(overlays.map((overlay) => overlay.props.paddingRight)) ?? 0,
+            bottom:
+                max(overlays.map((overlay) => overlay.props.paddingBottom)) ??
+                0,
+            left:
+                max(overlays.map((overlay) => overlay.props.paddingLeft)) ?? 0,
+        }
+    }
+
+    @computed get hasTimeline(): boolean {
+        const grapher = this.grapher
+        if (grapher.currentTab === "table") return !grapher.hideTimeline
+        if (grapher.currentTab === "map") {
+            return grapher.mapTransform.hasTimeline
+        } else if (grapher.currentTab === "chart") {
+            if (grapher.isScatter || grapher.isTimeScatter)
+                return grapher.scatterTransform.hasTimeline
+            if (grapher.isLineChart)
+                return grapher.lineChartTransform.hasTimeline
+            if (grapher.isSlopeChart)
+                return grapher.slopeChartTransform.hasTimeline
+        }
+        return false
+    }
+
+    @computed get hasInlineControls(): boolean {
+        const grapher = this.grapher
+        return (
+            (grapher.currentTab === "chart" ||
+                grapher.currentTab === "table") &&
+            ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
+                grapher.isScatter ||
+                grapher.canChangeEntity ||
+                (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
+                (grapher.isLineChart &&
+                    grapher.lineChartTransform.canToggleRelativeMode))
+        )
+    }
+
+    @computed get hasSettingsMenu(): boolean {
+        return false
+    }
+
+    @computed get hasSpace(): boolean {
+        return this.renderWidth > 700
+    }
+
+    @computed get hasRelatedQuestion(): boolean {
+        const { relatedQuestions } = this.props.grapher
+        return (
+            !!relatedQuestions &&
+            !!relatedQuestions.length &&
+            !!relatedQuestions[0].text &&
+            !!relatedQuestions[0].url
+        )
+    }
+
+    @computed get footerLines(): number {
+        let numLines = 1
+        if (this.hasTimeline) numLines += 1
+        if (this.hasInlineControls) numLines += 1
+        if (this.hasSpace && this.hasInlineControls && numLines > 1)
+            numLines -= 1
+        return numLines
+    }
+
+    @computed get footerHeight(): number {
+        const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
+        return (
+            this.footerLines * footerRowHeight +
+            (this.hasRelatedQuestion ? 20 : 0)
+        )
     }
 }
