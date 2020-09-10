@@ -414,6 +414,31 @@ export class Grapher extends PersistableGrapher {
         return window.self !== window.top
     }
 
+    @computed get years() {
+        return this.activeTransform.timelineYears
+    }
+
+    @computed get startYear() {
+        const activeTab = this.tab
+        if (activeTab === "table")
+            return (
+                this.dataTableTransform.autoSelectedStartYear ??
+                this.timeDomain[0]
+            )
+        if (activeTab === "map") return this.mapTransform.targetYearProp
+        return this.activeTransform.startYear!
+    }
+
+    @computed get endYear() {
+        const activeTab = this.tab
+        if (activeTab === "table")
+            return this.multiMetricTableMode
+                ? this.dataTableTransform.startYear
+                : this.timeDomain[1]
+        if (activeTab === "map") return this.mapTransform.targetYearProp
+        return this.activeTransform.endYear!
+    }
+
     @computed get isNativeEmbed(): boolean {
         return this.isEmbed && !this.isIframe && !this.isExporting
     }

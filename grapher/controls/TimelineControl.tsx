@@ -1,7 +1,6 @@
 import * as React from "react"
 import { select } from "d3-selection"
 import {
-    first,
     last,
     findClosestYear,
     getRelativeMouse,
@@ -9,14 +8,7 @@ import {
     debounce,
 } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
-import {
-    observable,
-    computed,
-    autorun,
-    action,
-    runInAction,
-    IReactionDisposer,
-} from "mobx"
+import { observable, computed, autorun, action, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay } from "@fortawesome/free-solid-svg-icons/faPlay"
 import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
@@ -29,261 +21,112 @@ import {
     Time,
     isUnboundedLeft,
     isUnboundedRight,
-    getBoundFromTimeRange,
 } from "grapher/utils/TimeBounds"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
-import { Grapher } from "grapher/core/Grapher"
-
-const DEFAULT_MIN_YEAR = 1900
-const DEFAULT_MAX_YEAR = 2000
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
-export interface TimelineProps {
-    grapher: Grapher
-    years: number[]
-    startYear: TimeBound
-    endYear: TimeBound
-    onTargetChange: ({
-        targetStartYear,
-        targetEndYear,
-    }: {
-        targetStartYear: TimeBound
-        targetEndYear: TimeBound
-    }) => void
+// The interface for the thing to be changed
+interface TimelineSubject {
+    isPlaying: boolean
+    userHasSetTimeline: boolean
     onStartDrag?: () => void
     onStopDrag?: () => void
+    years: number[]
+    startYear: number
+    endYear: number
+}
+
+export interface TimelineProps {
+    subject: TimelineSubject
     singleYearMode?: boolean
     singleYearPlay?: boolean
+    onPlay?: () => void
     disablePlay?: boolean
-}
-
-interface TimelineControlProps {
-    grapher: Grapher
+    formatYearFn?: (value: any) => any
 }
 
 @observer
-export class TimelineControl extends React.Component<TimelineControlProps> {
-    @action.bound onMapTargetChange({
-        targetStartYear,
-    }: {
-        targetStartYear: TimeBound
-    }) {
-        this.props.grapher.mapTransform.targetYear = targetStartYear
-    }
-
-    @action.bound onChartTargetChange({
-        targetStartYear,
-        targetEndYear,
-    }: {
-        targetStartYear: TimeBound
-        targetEndYear: TimeBound
-    }) {
-        this.props.grapher.timeDomain = [targetStartYear, targetEndYear]
-    }
-
-    @action.bound onTimelineStart() {
-        this.props.grapher.useTimelineDomains = true
-    }
-
-    @action.bound onTimelineStop() {
-        this.props.grapher.useTimelineDomains = false
-    }
-
-    @computed private get activeTab() {
-        return this.props.grapher.tab
-    }
-
-    @computed private get startYear() {
-        const { grapher } = this.props
-        const activeTab = this.activeTab
-        if (activeTab === "table")
-            return (
-                grapher.dataTableTransform.autoSelectedStartYear ??
-                grapher.timeDomain[0]
-            )
-        if (activeTab === "map") return grapher.mapTransform.targetYearProp
-        return grapher.activeTransform.startYear!
-    }
-
-    @computed private get endYear() {
-        const { grapher } = this.props
-        const activeTab = this.activeTab
-        if (activeTab === "table")
-            return grapher.multiMetricTableMode
-                ? grapher.dataTableTransform.startYear
-                : grapher.timeDomain[1]
-        if (activeTab === "map") return grapher.mapTransform.targetYearProp
-        return grapher.activeTransform.endYear!
-    }
-
-    componentDidUpdate(prevProps: TimelineControlProps) {
-        // todo: cleanup
-        // if (
-        //     prevProps.grapher.activeTab !== this.props.activeTab &&
-        //     this.props.activeTab !== "map"
-        // )
-        //     this.onChartTargetChange({
-        //         targetStartYear: this.startYear,
-        //         targetEndYear: this.endYear,
-        //     })
-    }
-
-    @computed private get timelineProps(): TimelineProps {
-        const { grapher } = this.props
-        return {
-            grapher,
-            years: grapher.activeTransform.timelineYears,
-            startYear: this.startYear,
-            endYear: this.endYear,
-            onTargetChange: this.onChartTargetChange,
-            onStartDrag: this.onTimelineStart,
-            onStopDrag: this.onTimelineStop,
-        }
-    }
-
-    render() {
-        if (this.timelineProps.years.length === 0) return null
-
-        const { grapher } = this.props
-        const activeTab = this.activeTab
-
-        if (activeTab === "map")
-            return (
-                <Timeline
-                    {...this.timelineProps}
-                    onTargetChange={this.onMapTargetChange}
-                    singleYearMode={true}
-                    onStartDrag={undefined}
-                    onStopDrag={undefined}
-                />
-            )
-        else if (activeTab === "table")
-            return (
-                <Timeline
-                    {...this.timelineProps}
-                    singleYearMode={grapher.multiMetricTableMode}
-                />
-            )
-        else if (grapher.isLineChart)
-            return <Timeline {...this.timelineProps} singleYearPlay={true} />
-        else if (grapher.isSlopeChart)
-            return <Timeline {...this.timelineProps} disablePlay={true} />
-        return <Timeline {...this.timelineProps} />
-    }
-}
-
-@observer
-class Timeline extends React.Component<TimelineProps> {
+export class TimelineControl extends React.Component<TimelineProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    disposers!: IReactionDisposer[]
+    private disposers!: IReactionDisposer[]
 
-    @observable dragTarget?: "start" | "end" | "both"
+    @observable private dragTarget?: "start" | "end" | "both"
 
-    @computed get isDragging(): boolean {
+    @computed private get isDragging(): boolean {
         return !!this.dragTarget
     }
 
-    // Used for storing the state of the timeline.
-    // They are not suitable for direct access because start can be greater than end.
-    // Use `startYear` and `endYear` if the correct order of bounds is needed.
-    @observable startYearRaw: TimeBound = TimeBoundValue.unboundedLeft
-    @observable endYearRaw: TimeBound = TimeBoundValue.unboundedRight
-
-    @computed private get startYear(): TimeBound {
-        return Math.min(this.startYearRaw, this.endYearRaw)
+    @computed private get subject() {
+        return this.props.subject
     }
 
-    @computed private get endYear(): TimeBound {
-        return Math.max(this.startYearRaw, this.endYearRaw)
+    @computed private get isPlaying() {
+        return this.subject.isPlaying
     }
 
-    constructor(props: TimelineProps) {
-        super(props)
-
-        if (this.props.years.length === 0) {
-            console.warn("invoking HTMLTimeline with empty years array")
-        }
+    @computed private get years(): Time[] {
+        return this.subject.years
     }
 
-    @computed get grapher() {
-        return this.props.grapher
+    @computed private get minYear(): Time {
+        return this.years[0]
     }
 
-    @computed get isPlaying() {
-        return this.grapher.isPlaying
+    @computed private get maxYear(): Time {
+        return last(this.years)!
     }
 
-    componentDidUpdate(prevProps: TimelineProps) {
-        const { isPlaying, isDragging } = this
-        const { startYear, endYear } = this.props
-        if (
-            !isPlaying &&
-            !isDragging &&
-            (prevProps.startYear != startYear || prevProps.endYear != endYear)
-        ) {
-            runInAction(() => {
-                this.startYearRaw = this.props.startYear
-                this.endYearRaw = this.props.endYear
-            })
-        }
-    }
-
-    @computed get years(): Time[] {
-        return this.props.years
-    }
-
-    @computed get minYear(): Time {
-        return first(this.props.years) ?? DEFAULT_MIN_YEAR
-    }
-
-    @computed get maxYear(): Time {
-        return last(this.props.years) ?? DEFAULT_MAX_YEAR
-    }
-
-    @computed get timeDomain(): [Time, Time] {
+    @computed private get timeDomain(): [Time, Time] {
         return [this.minYear, this.maxYear]
     }
 
-    getClampedYear(inputYear: Time): Time {
+    private getClampedYear(inputYear: Time): Time {
         const { minYear, maxYear } = this
         return Math.min(maxYear, Math.max(minYear, inputYear))
     }
 
-    getYearUI(bound: TimeBound): Time {
+    private getYearUI(bound: TimeBound): Time {
         if (isUnboundedLeft(bound)) return this.minYear
         if (isUnboundedRight(bound)) return this.maxYear
         return bound
     }
 
-    getClosest(bound: TimeBound, defaultValue: TimeBound): TimeBound {
+    private getClosest(bound: TimeBound, defaultValue: TimeBound): TimeBound {
         if (isUnbounded(bound)) return bound
         return findClosestYear(this.years, bound) ?? defaultValue
     }
 
-    @computed get startYearUI(): Time {
-        return this.getYearUI(this.startYear)
+    @computed private get startYearUI() {
+        return this.getYearUI(this.subject.startYear)
     }
 
-    @computed get startYearClosest(): TimeBound {
-        return this.getClosest(this.startYear, TimeBoundValue.unboundedLeft)
+    @computed private get startYearClosest() {
+        return this.getClosest(
+            this.subject.startYear,
+            TimeBoundValue.unboundedLeft
+        )
     }
 
-    @computed get endYearUI(): Time {
-        return this.getYearUI(this.endYear)
+    @computed private get endYearUI() {
+        return this.getYearUI(this.subject.endYear)
     }
 
-    @computed get endYearClosest(): TimeBound {
-        return this.getClosest(this.endYear, TimeBoundValue.unboundedRight)
+    @computed private get endYearClosest() {
+        return this.getClosest(
+            this.subject.endYear,
+            TimeBoundValue.unboundedRight
+        )
     }
 
-    animRequest?: number
+    private animRequest?: number
 
     private readonly PLAY_ANIMATION_SECONDS = 45
-    @action.bound onStartPlaying() {
-        this.grapher.analytics.logChartTimelinePlay(this.grapher.slug)
+    @action.bound private onStartPlaying() {
+        const { onPlay } = this.props
+        if (onPlay) onPlay()
 
         let lastTime: number | undefined
         const ticksPerSec = Math.max(
@@ -298,43 +141,41 @@ class Timeline extends React.Component<TimelineProps> {
             if (lastTime === undefined) {
                 // If we start playing from the end, loop around to beginning
                 if (endYearUI >= maxYear) {
-                    this.startYearRaw = minYear
-                    this.endYearRaw = minYear
+                    this.subject.startYear = minYear
+                    this.subject.endYear = minYear
                 }
             } else {
                 const elapsed = time - lastTime
 
                 if (endYearUI >= maxYear) {
-                    this.grapher.isPlaying = false
+                    this.subject.isPlaying = false
                     this.startTooltipVisible = false
                 } else {
                     const nextYear = years[years.indexOf(endYearUI) + 1]
                     const yearsToNext = nextYear - endYearUI
 
-                    this.endYearRaw =
+                    this.subject.endYear =
                         endYearUI +
                         (Math.max(yearsToNext / 3, 1) * elapsed * ticksPerSec) /
                             1000
                     if (this.props.singleYearMode || this.props.singleYearPlay)
-                        this.startYearRaw = this.endYearRaw
+                        this.subject.startYear = this.subject.endYear
                 }
             }
 
             lastTime = time
             this.animRequest = requestAnimationFrame(playFrame)
-
-            this.updateChartTimeDomain()
         })
 
         this.animRequest = requestAnimationFrame(playFrame)
     }
 
-    onStopPlaying() {
+    private onStopPlaying() {
         if (this.animRequest !== undefined)
             cancelAnimationFrame(this.animRequest)
     }
 
-    get sliderBounds() {
+    private get sliderBounds() {
         return this.slider
             ? Bounds.fromRect(this.slider.getBoundingClientRect())
             : new Bounds(0, 0, 100, 100)
@@ -343,7 +184,7 @@ class Timeline extends React.Component<TimelineProps> {
     private slider?: Element | HTMLElement | null
     private playButton?: Element | HTMLElement | null
 
-    getInputYearFromMouse(evt: MouseEvent) {
+    private getInputYearFromMouse(evt: MouseEvent) {
         const { minYear, maxYear } = this
         const mouseX = getRelativeMouse(this.slider, evt).x
 
@@ -353,30 +194,29 @@ class Timeline extends React.Component<TimelineProps> {
         return inputYear
     }
 
-    dragOffsets = [0, 0]
+    private dragOffsets = [0, 0]
 
-    @action.bound onStartYearChange(inputYear: Time) {
-        this.startYearRaw = getBoundFromTimeRange(this.timeDomain, inputYear)
+    @action.bound private updateStartYear(inputYear: Time) {
+        this.subject.startYear = inputYear
     }
 
-    @action.bound onEndYearChange(inputYear: number) {
-        this.endYearRaw = getBoundFromTimeRange(this.timeDomain, inputYear)
+    @action.bound private updateEndYear(inputYear: number) {
+        this.subject.endYear = inputYear
     }
 
-    @action.bound onSingleYearChange(inputYear: number) {
-        const year = getBoundFromTimeRange(this.timeDomain, inputYear)
-        this.startYearRaw = year
-        this.endYearRaw = year
+    @action.bound private updateSingleYear(inputYear: number) {
+        this.subject.startYear = inputYear
+        this.subject.endYear = inputYear
     }
 
-    @action.bound onRangeYearChange([startYear, endYear]: [number, number]) {
-        this.startYearRaw = getBoundFromTimeRange(this.timeDomain, startYear)
-        this.endYearRaw = getBoundFromTimeRange(this.timeDomain, endYear)
+    @action.bound private updateRange([startYear, endYear]: [number, number]) {
+        this.subject.startYear = startYear
+        this.subject.endYear = endYear
     }
 
-    @action.bound onDrag(inputYear: number) {
+    @action.bound private onDrag(inputYear: number) {
         const { props, dragTarget, minYear, maxYear } = this
-        if (!this.isPlaying) this.grapher.userHasSetTimeline = true
+        if (!this.isPlaying) this.subject.userHasSetTimeline = true
 
         const clampedYear = this.getClampedYear(inputYear)
 
@@ -384,11 +224,11 @@ class Timeline extends React.Component<TimelineProps> {
             props.singleYearMode ||
             (this.isPlaying && this.props.singleYearPlay)
         ) {
-            this.onSingleYearChange(clampedYear)
+            this.updateSingleYear(clampedYear)
         } else if (dragTarget === "start") {
-            this.onStartYearChange(clampedYear)
+            this.updateStartYear(clampedYear)
         } else if (dragTarget === "end") {
-            this.onEndYearChange(clampedYear)
+            this.updateEndYear(clampedYear)
         } else if (dragTarget === "both") {
             let startYear = this.dragOffsets[0] + inputYear
             let endYear = this.dragOffsets[1] + inputYear
@@ -405,14 +245,13 @@ class Timeline extends React.Component<TimelineProps> {
                 endYear = maxYear
             }
 
-            this.onRangeYearChange([startYear, endYear])
+            this.updateRange([startYear, endYear])
         }
 
-        this.updateChartTimeDomain()
         this.showTooltips()
     }
 
-    @action showTooltips() {
+    @action private showTooltips() {
         this.hideStartTooltip.cancel()
         this.hideEndTooltip.cancel()
         this.startTooltipVisible = true
@@ -420,14 +259,14 @@ class Timeline extends React.Component<TimelineProps> {
 
         if (this.dragTarget === "start") this.lastUpdatedTooltip = "startMarker"
         if (this.dragTarget === "end") this.lastUpdatedTooltip = "endMarker"
-        if (this.startYearRaw > this.endYearRaw)
+        if (this.subject.startYear > this.subject.endYear)
             this.lastUpdatedTooltip =
                 this.lastUpdatedTooltip === "startMarker"
                     ? "endMarker"
                     : "startMarker"
     }
 
-    @action.bound onMouseDown(e: any) {
+    @action.bound private onMouseDown(e: any) {
         const targetEl = select(e.target)
 
         const { startYearUI, endYearUI } = this
@@ -465,8 +304,8 @@ class Timeline extends React.Component<TimelineProps> {
         e.preventDefault()
     }
 
-    queuedDrag?: boolean
-    @action.bound onMouseMove(ev: MouseEvent | TouchEvent) {
+    private queuedDrag?: boolean
+    @action.bound private onMouseMove(ev: MouseEvent | TouchEvent) {
         const { dragTarget } = this
         if (!dragTarget) return
         if (this.queuedDrag) return
@@ -478,7 +317,7 @@ class Timeline extends React.Component<TimelineProps> {
         this.queuedDrag = false
     }
 
-    @action.bound onMouseUp() {
+    @action.bound private onMouseUp() {
         this.dragTarget = undefined
 
         if (this.isPlaying) return
@@ -491,30 +330,18 @@ class Timeline extends React.Component<TimelineProps> {
             this.endTooltipVisible = false
         }
 
-        // In case start handle has been dragged past end handle, make sure
-        //  startYearRaw is still smallest value
-        // NOTE: This needs to be an atomic assignment.
-        if (this.startYearRaw > this.endYearRaw) {
-            ;[this.startYearRaw, this.endYearRaw] = [
-                this.startYear,
-                this.endYear,
-            ]
-        }
-
         // if handles within 1 year of each other, snap to closest year.
         if (
             this.endYearClosestUI - this.startYearClosestUI <= 1 &&
-            this.startYear !== this.endYear
+            this.subject.startYear !== this.subject.endYear
         ) {
-            ;[this.startYearRaw, this.endYearRaw] = [
-                this.startYearClosest,
-                this.endYearClosest,
-            ]
+            this.subject.startYear = this.startYearClosest
+            this.subject.endYear = this.endYearClosest
         }
     }
 
     private mouseHoveringOverTimeline: boolean = false
-    @action.bound onMouseOver() {
+    @action.bound private onMouseOver() {
         this.mouseHoveringOverTimeline = true
 
         this.hideStartTooltip.cancel()
@@ -524,7 +351,7 @@ class Timeline extends React.Component<TimelineProps> {
         this.endTooltipVisible = true
     }
 
-    @action.bound onMouseLeave() {
+    @action.bound private onMouseLeave() {
         if (!this.isPlaying && !this.isDragging) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
@@ -532,20 +359,15 @@ class Timeline extends React.Component<TimelineProps> {
         this.mouseHoveringOverTimeline = false
     }
 
-    hideStartTooltip = debounce(() => {
+    private hideStartTooltip = debounce(() => {
         this.startTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
-    hideEndTooltip = debounce(() => {
+    private hideEndTooltip = debounce(() => {
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
 
     @action updateChartTimeDomain() {
-        if (this.props.onTargetChange) {
-            this.props.onTargetChange({
-                targetStartYear: this.startYearClosest,
-                targetEndYear: this.endYearClosest,
-            })
-        }
+        // this.props.grapher.mapTransform.targetYear = this.startYearClosest
     }
 
     @action.bound onPlayTouchEnd(e: Event) {
@@ -554,16 +376,13 @@ class Timeline extends React.Component<TimelineProps> {
         this.onTogglePlay()
     }
 
-    // Allow proper dragging behavior even if mouse leaves timeline area
     componentDidMount() {
-        runInAction(() => {
-            this.startYearRaw = this.props.startYear
-            this.endYearRaw = this.props.endYear
-            this.updateChartTimeDomain()
-        })
+        const current = this.base.current
 
-        this.slider = this.base.current!.querySelector(".slider")
-        this.playButton = this.base.current!.querySelector(".play")
+        if (current) {
+            this.slider = current.querySelector(".slider")
+            this.playButton = current.querySelector(".play")
+        }
 
         document.documentElement.addEventListener("mouseup", this.onMouseUp)
         document.documentElement.addEventListener("mouseleave", this.onMouseUp)
@@ -585,12 +404,12 @@ class Timeline extends React.Component<TimelineProps> {
             }),
             autorun(() => {
                 const { isPlaying, isDragging } = this
-                const { onStartDrag, onStopDrag } = this.props
+                const { onStartDrag, onStopDrag } = this.subject
                 if (isPlaying || isDragging) {
-                    this.grapher.url.debounceMode = true
+                    // this.grapher.url.debounceMode = true
                     if (onStartDrag) onStartDrag()
                 } else {
-                    this.grapher.url.debounceMode = false
+                    // this.grapher.url.debounceMode = false
                     if (onStopDrag) onStopDrag()
                 }
             }),
@@ -622,27 +441,20 @@ class Timeline extends React.Component<TimelineProps> {
     }
 
     @action.bound onTogglePlay() {
-        this.grapher.isPlaying = !this.isPlaying
+        this.subject.isPlaying = !this.isPlaying
         if (this.isPlaying) {
             this.startTooltipVisible = true
             this.hideStartTooltip.cancel()
         }
     }
 
-    @action onClickDate(dateType: "start" | "end", date: number) {
-        if (dateType === "start") this.onStartYearChange(date)
-        else this.onEndYearChange(date)
-        this.updateChartTimeDomain()
+    @action private onClickDate(dateType: "start" | "end", date: number) {
+        if (dateType === "start") this.updateStartYear(date)
+        else this.updateEndYear(date)
     }
 
-    formatYear(date: number) {
-        const timeColumn = this.grapher.table.timeColumn
-        if (!timeColumn)
-            return this.grapher.table.timeColumnFormatFunction(date)
-        const format = isMobile()
-            ? timeColumn.formatValueForMobile
-            : timeColumn.formatValue
-        return format(date)
+    private formatYear(date: number) {
+        return this.props.formatYearFn ? this.props.formatYearFn(date) : date
     }
 
     private timelineDate(dateType: "start" | "end", date: number) {
@@ -664,9 +476,9 @@ class Timeline extends React.Component<TimelineProps> {
         return this.getYearUI(this.endYearClosest)
     }
 
-    @observable startTooltipVisible: boolean = false
-    @observable endTooltipVisible: boolean = false
-    @observable lastUpdatedTooltip?: "startMarker" | "endMarker"
+    @observable private startTooltipVisible: boolean = false
+    @observable private endTooltipVisible: boolean = false
+    @observable private lastUpdatedTooltip?: "startMarker" | "endMarker"
 
     render() {
         const {
@@ -679,13 +491,15 @@ class Timeline extends React.Component<TimelineProps> {
             endYearClosestUI,
         } = this
 
+        if (!this.years.length) return null
+
         const startYearProgress = (startYearUI - minYear) / (maxYear - minYear)
         const endYearProgress = (endYearUI - minYear) / (maxYear - minYear)
 
         return (
             <div
                 ref={this.base}
-                className={"TimelineControl"}
+                className="TimelineControl"
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
             >

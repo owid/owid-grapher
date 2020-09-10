@@ -5,8 +5,8 @@ import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { GrapherView } from "grapher/core/GrapherView"
-import { TimelineControl } from "./TimelineControl"
-import { formatValue } from "grapher/utils/Util"
+import { TimelineControl, TimelineProps } from "./TimelineControl"
+import { formatValue, isMobile } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -364,6 +364,50 @@ export class ControlsFooterView extends React.Component<{
         )
     }
 
+    @computed private get timelineProps(): TimelineProps {
+        const grapher = this.grapher
+        const timelineProps: TimelineProps = {
+            subject: grapher,
+            onPlay: () => {
+                grapher.analytics.logChartTimelinePlay(grapher.slug)
+            },
+            formatYearFn: (value: number) => {
+                const timeColumn = grapher.table.timeColumn
+                if (!timeColumn)
+                    return grapher.table.timeColumnFormatFunction(value)
+                const format = isMobile()
+                    ? timeColumn.formatValueForMobile
+                    : timeColumn.formatValue
+                return format(value)
+            },
+        }
+
+        const tab = grapher.tab
+
+        if (tab === "map")
+            return {
+                ...timelineProps,
+                singleYearMode: true,
+            }
+        if (tab === "table")
+            return {
+                ...timelineProps,
+                singleYearMode: grapher.multiMetricTableMode,
+            }
+        if (grapher.isLineChart)
+            return {
+                ...timelineProps,
+                singleYearPlay: true,
+            }
+        if (grapher.isSlopeChart)
+            return {
+                ...timelineProps,
+                disablePlay: true,
+            }
+
+        return timelineProps
+    }
+
     render() {
         const { grapher, grapherView } = this
         const {
@@ -378,7 +422,7 @@ export class ControlsFooterView extends React.Component<{
 
         const timelineElement = hasTimeline && (
             <div className="footerRowSingle">
-                <TimelineControl grapher={grapher} />
+                <TimelineControl {...this.timelineProps} />
             </div>
         )
 
