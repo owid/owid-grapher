@@ -74,32 +74,30 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
             <div className="collapsibleList" ref={this.outerContainer}>
                 <ul>
                     {this.visibleItems.map((item) => (
-                        <li key={item.key} className="list-item">
+                        <li key={item.key} className="list-item visible">
                             {item}
                         </li>
                     ))}
-                    {
-                        <li
-                            className="list-item moreButton"
-                            ref={this.moreButton}
-                            style={{
-                                visibility: this.dropdownItems.length
-                                    ? "visible"
-                                    : "hidden",
-                            }}
-                        >
-                            <MoreButton
-                                options={this.dropdownItems.map((item) => (
-                                    <li
-                                        key={item.key}
-                                        className="list-item dropdown"
-                                    >
-                                        {item}
-                                    </li>
-                                ))}
-                            />
-                        </li>
-                    }
+                    <li
+                        className="list-item visible moreButton"
+                        ref={this.moreButton}
+                        style={{
+                            visibility: this.dropdownItems.length
+                                ? "visible"
+                                : "hidden",
+                        }}
+                    >
+                        <MoreButton
+                            options={this.dropdownItems.map((item) => (
+                                <li
+                                    key={item.key}
+                                    className="list-item dropdown"
+                                >
+                                    {item}
+                                </li>
+                            ))}
+                        />
+                    </li>
                 </ul>
             </div>
         )

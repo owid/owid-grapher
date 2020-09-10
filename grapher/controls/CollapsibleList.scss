@@ -1,22 +1,15 @@
 .collapsibleList {
-    margin: 12px 0px;
     padding-left: 15px;
     white-space: nowrap;
 
     ul {
         list-style: none;
         > .list-item {
-            &:not(.dropdown) {
+            &.visible {
                 display: inline-block;
-            }
 
-            :not(:first-child) {
-                padding-left: 16px;
+                padding-left: 15px;
             }
-        }
-
-        .moreButton {
-            padding-left: 16px;
         }
     }
 }
