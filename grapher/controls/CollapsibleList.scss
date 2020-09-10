@@ -5,16 +5,18 @@
 
     ul {
         list-style: none;
-        > .list-item:not(:first-child) {
-            padding-left: 16px;
+        > .list-item {
+            &:not(.dropdown) {
+                display: inline-block;
+            }
+
+            :not(:first-child) {
+                padding-left: 16px;
+            }
         }
 
         .moreButton {
             padding-left: 16px;
-        }
-
-        li {
-            display: inline-block;
         }
     }
 }

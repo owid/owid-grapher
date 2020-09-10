@@ -27,5 +27,11 @@ export const Default = () => {
 }
 
 export const MoreButtonComponent = () => {
-    return <MoreButton />
+    const options = [
+        <div key="option1">option1</div>,
+        <div key="option2">option2</div>,
+        <div key="option3">option3</div>,
+    ]
+
+    return <MoreButton options={options} />
 }
