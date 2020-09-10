@@ -40,7 +40,6 @@ async function deploy(message?: string, email?: string, name?: string) {
         await baker.deploy(message, email, name)
     } catch (err) {
         log.error(err)
-        baker.end()
         throw err
     }
 }
