@@ -18,7 +18,7 @@ The `client/` folder contains all the code necessary for the browser to run Expl
 
 The `admin/` folder contains the backend pages for authors to create explorers, and scripts for the baker to bake the Explorers to HTML pages for our static site.
 
-The Explorer depends uses our Chart library, but the Chart library does not have a dependency on the Explorer. You should be able to delete the `explorer` folder, remove a few links, and the rest of Grapher should still work fine.
+The Explorer depends on our Chart library, but the Chart library does not have a dependency on the Explorer. You should be able to delete the `explorer` folder, remove a few links, and the rest of Grapher should still work fine.
 
 ### Query Parameters
 
