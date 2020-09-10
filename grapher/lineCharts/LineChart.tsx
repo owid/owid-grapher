@@ -343,7 +343,7 @@ export class LineChart extends React.Component<{
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = this.transform.grapher.table.timeColumn!.formatValue(
+        const formatted = this.transform.grapher.table.timeColumnFormatFunction(
             hoverX
         )
 

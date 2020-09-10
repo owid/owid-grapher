@@ -475,6 +475,12 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return col
     }
 
+    // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
+    // on the column itself, and not tied tightly to the idea of a time column.
+    @computed get timeColumnFormatFunction() {
+        return this.timeColumn ? this.timeColumn.formatValue : formatYear
+    }
+
     // The name is explicit to warn that these rows may be modified by this class.
     setRowsWithoutCloning(rows: ROW_TYPE[]) {
         this._rows = rows

@@ -355,7 +355,7 @@ export class StackedAreaChart extends React.Component<{
                         <tr>
                             <td>
                                 <strong>
-                                    {this.grapher.table.timeColumn!.formatValue(
+                                    {this.grapher.table.timeColumnFormatFunction(
                                         refValue.x
                                     )}
                                 </strong>
