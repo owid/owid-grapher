@@ -8,61 +8,61 @@ interface CollapsibleListProps {
     items: React.ReactElement[]
 }
 
-/** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar" */
+/** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar"*/
 @observer
 export class CollapsibleList extends React.Component<CollapsibleListProps> {
-    outerContainer: React.RefObject<HTMLDivElement> = React.createRef()
-    moreButton: React.RefObject<HTMLLIElement> = React.createRef()
-    outerWidth: number = 0
-    moreButtonWidth: number = 0
+    private outerContainerRef: React.RefObject<
+        HTMLDivElement
+    > = React.createRef()
+    private moreButtonRef: React.RefObject<HTMLLIElement> = React.createRef()
+    private outerContainerWidth: number = 0
+    private moreButtonWidth: number = 0
+    private itemsWidths: number[] = []
 
-    @observable visibleItems: React.ReactElement[] = []
-    @observable dropdownItems: React.ReactElement[] = []
-    widthsArray: number[] = []
+    @observable private visibleItems: React.ReactElement[] = []
+    @observable private dropdownItems: React.ReactElement[] = []
 
     constructor(props: CollapsibleListProps) {
         super(props)
         this.visibleItems.push(...props.items)
     }
 
-    updateOuterWidth() {
-        this.outerWidth = this.outerContainer.current?.clientWidth ?? 0
+    private updateOuterContainerWidth() {
+        this.outerContainerWidth =
+            this.outerContainerRef.current?.clientWidth ?? 0
     }
 
-    numItemsVisible(outerWidth: number, initialWidth: number) {
-        let total = initialWidth
-        for (let i = 0; i < this.widthsArray.length; i++) {
-            if (total + this.widthsArray[i] > outerWidth) {
-                return i
-            } else {
-                total += this.widthsArray[i]
-            }
+    private calculateItemWidths() {
+        this.outerContainerRef.current
+            ?.querySelectorAll(".list-item")
+            .forEach((item) => this.itemsWidths.push(item.clientWidth))
+    }
+
+    private get numItemsVisible() {
+        let total = this.moreButtonWidth
+        for (let i = 0; i < this.itemsWidths.length; i++) {
+            if (total + this.itemsWidths[i] > this.outerContainerWidth) return i
+            else total += this.itemsWidths[i]
         }
-        return this.widthsArray.length
+        return this.itemsWidths.length
     }
 
-    @action updateItemPartition() {
-        const numItemsVisible = this.numItemsVisible(
-            this.outerWidth, // outerListWidth,
-            this.moreButtonWidth
-        )
-
-        this.visibleItems = this.props.items.slice(0, numItemsVisible)
-        this.dropdownItems = this.props.items.slice(numItemsVisible)
+    @action private updateItemPartition() {
+        this.visibleItems = this.props.items.slice(0, this.numItemsVisible)
+        this.dropdownItems = this.props.items.slice(this.numItemsVisible)
     }
 
-    onResize = throttle(() => {
-        this.updateOuterWidth()
+    @action private onResize = throttle(() => {
+        this.updateOuterContainerWidth()
         this.updateItemPartition()
     }, 100)
 
     componentDidMount() {
         window.addEventListener("resize", this.onResize)
-        this.updateOuterWidth()
-        this.moreButtonWidth = this.moreButton.current?.clientWidth ?? 0
-        this.outerContainer.current
-            ?.querySelectorAll("li")
-            .forEach((item) => this.widthsArray.push(item.clientWidth))
+
+        this.moreButtonWidth = this.moreButtonRef.current?.clientWidth ?? 0
+        this.updateOuterContainerWidth()
+        this.calculateItemWidths()
         this.updateItemPartition()
     }
 
@@ -72,7 +72,7 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
 
     render() {
         return (
-            <div className="collapsibleList" ref={this.outerContainer}>
+            <div className="collapsibleList" ref={this.outerContainerRef}>
                 <ul>
                     {this.visibleItems.map((item) => (
                         <li key={item.key} className="list-item visible">
@@ -81,7 +81,7 @@ export class CollapsibleList extends React.Component<CollapsibleListProps> {
                     ))}
                     <li
                         className="list-item visible moreButton"
-                        ref={this.moreButton}
+                        ref={this.moreButtonRef}
                         style={{
                             visibility: this.dropdownItems.length
                                 ? "visible"
