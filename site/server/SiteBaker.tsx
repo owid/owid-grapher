@@ -37,7 +37,7 @@ import { makeSitemap } from "./sitemap"
 
 import * as React from "react"
 import { embedSnippet } from "./embedCharts"
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { getVariableData } from "db/model/Variable"
 import { bakeImageExports } from "./svgPngExport"
 import { Post } from "db/model/Post"
@@ -433,13 +433,13 @@ export class SiteBaker {
         return vardata
     }
 
-    async bakeGrapherPage(grapher: GrapherConfigInterface) {
+    async bakeGrapherPage(grapher: GrapherInterface) {
         const outPath = `${BAKED_SITE_DIR}/grapher/${grapher.slug}.html`
         await fs.writeFile(outPath, await grapherPageFromConfig(grapher))
         this.stage(outPath)
     }
 
-    async bakeGrapher(grapher: GrapherConfigInterface) {
+    async bakeGrapher(grapher: GrapherInterface) {
         const htmlPath = `${BAKED_SITE_DIR}/grapher/${grapher.slug}.html`
         let isSameVersion = false
         try {
@@ -510,7 +510,7 @@ export class SiteBaker {
         const newSlugs = []
         let requests = []
         for (const row of rows) {
-            const grapher: GrapherConfigInterface = JSON.parse(row.config)
+            const grapher: GrapherInterface = JSON.parse(row.config)
             grapher.id = row.id
             newSlugs.push(grapher.slug)
 

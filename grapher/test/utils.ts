@@ -1,6 +1,6 @@
 // Todo: remove file.
 
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 
 import { first } from "lodash"
@@ -20,7 +20,7 @@ const readVariableSet = (
 export function setupGrapher(
     id: number,
     varIds: number[],
-    configOverrides?: Partial<GrapherConfigInterface>
+    configOverrides?: Partial<GrapherInterface>
 ) {
     const variableSet =
         varIds.length > 1
@@ -34,6 +34,5 @@ export function setupGrapher(
     })
 }
 
-export const readGrapherConfig = (
-    id: string | number
-): GrapherConfigInterface => readObj(`chart-${id}`)
+export const readGrapherConfig = (id: string | number): GrapherInterface =>
+    readObj(`chart-${id}`)

@@ -86,6 +86,13 @@ export interface TickFormattingOptions {
     isFirstOrLastTick?: boolean
 }
 
+// todo: remove
+export interface EntitySelection {
+    entityId: number
+    index: number // Which dimension the entity is from
+    color?: Color
+}
+
 export const ChartTypeDefs = [
     {
         key: ChartType.LineChart,

@@ -125,7 +125,6 @@ import {
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
-import { Persistable } from "grapher/persistable/Persistable"
 import { isObject } from "lodash"
 
 export type SVGElement = any

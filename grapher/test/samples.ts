@@ -1,4 +1,4 @@
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { parseDelimited } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 
@@ -12,7 +12,7 @@ export function basicGdpGrapher() {
         manuallyProvideData: true,
         yAxis: {},
         dimensions: [{ variableId: 99, property: "y" }],
-    } as Partial<GrapherConfigInterface>
+    } as Partial<GrapherInterface>
 
     const grapher = new Grapher(props as any)
     const rows = parseDelimited(`entityName,year,gdp,entityId,population

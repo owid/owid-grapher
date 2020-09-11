@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { PersistableLegacyVariableDisplaySettings } from "./LegacyVariableCode"
+import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 
 describe("display settings", () => {
     it("can create and save display settings", () => {
-        const settings = new PersistableLegacyVariableDisplaySettings()
+        const settings = new LegacyVariableDisplayConfig()
         expect(settings.toObject()).toEqual({})
 
         settings.shortUnit = "kwh"

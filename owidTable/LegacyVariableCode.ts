@@ -9,12 +9,12 @@ import {
     deleteRuntimeAndUnchangedProps,
 } from "grapher/persistable/Persistable"
 
-class LegacyVariableTableDisplaySettings {
+class LegacyVariableTableDisplayConfig {
     @observable hideAbsoluteChange: boolean = false
     @observable hideRelativeChange: boolean = false
 }
 
-class LegacyVariableDisplaySettings {
+class LegacyVariableDisplayConfigDefaults {
     @observable name?: string = undefined
     @observable unit?: string = undefined
     @observable shortUnit?: string = undefined
@@ -26,13 +26,13 @@ class LegacyVariableDisplaySettings {
     @observable zeroDay?: string = undefined
     @observable entityAnnotationsMap?: string = undefined
     @observable includeInTable?: boolean = true
-    @observable tableDisplay?: LegacyVariableTableDisplaySettings
+    @observable tableDisplay?: LegacyVariableTableDisplayConfig
 }
 
-export type LegacyVariableDisplayConfigInterface = LegacyVariableDisplaySettings
+export type LegacyVariableDisplayConfigInterface = LegacyVariableDisplayConfigDefaults
 
-export class PersistableLegacyVariableDisplaySettings
-    extends LegacyVariableDisplaySettings
+export class LegacyVariableDisplayConfig
+    extends LegacyVariableDisplayConfigDefaults
     implements Persistable {
     updateFromObject(obj?: Partial<LegacyVariableDisplayConfigInterface>) {
         if (obj) updatePersistables(this, obj)
@@ -41,7 +41,7 @@ export class PersistableLegacyVariableDisplaySettings
     toObject() {
         return deleteRuntimeAndUnchangedProps(
             objectWithPersistablesToObject(this),
-            new LegacyVariableDisplaySettings()
+            new LegacyVariableDisplayConfigDefaults()
         )
     }
 

@@ -6,22 +6,20 @@ import { shallow, ShallowWrapper } from "enzyme"
 import { GrapherPage } from "./GrapherPage"
 import { SiteHeader } from "./SiteHeader"
 import { SiteFooter } from "./SiteFooter"
-import { extend } from "grapher/utils/Util"
-import { PersistableGrapher } from "grapher/core/GrapherConfig"
 import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { readGrapherConfig } from "grapher/test/utils"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 describe(GrapherPage, () => {
-    let chart: PersistableGrapher
+    let grapher: GrapherInterface
     let post: Post.Row
     let relatedCharts: RelatedChart[]
 
     beforeAll(() => {
-        chart = new PersistableGrapher()
-        extend(chart, readGrapherConfig(792))
+        grapher = readGrapherConfig(792)
         post = {
             id: 2681,
             title: "Hunger and Undernourishment",
@@ -52,7 +50,7 @@ describe(GrapherPage, () => {
                 (view = shallow(
                     <GrapherPage
                         post={post}
-                        grapher={chart}
+                        grapher={grapher}
                         relatedCharts={relatedCharts}
                     />
                 ))

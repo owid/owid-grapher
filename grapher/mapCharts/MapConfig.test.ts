@@ -1,14 +1,12 @@
 #! /usr/bin/env yarn jest
 
-import { PersistableMapConfig } from "./MapConfig"
+import { MapConfig } from "./MapConfig"
 
-describe(PersistableMapConfig, () => {
+describe(MapConfig, () => {
     it("can serialize for saving", () => {
-        expect(Object.keys(new PersistableMapConfig().toObject()).length).toBe(
-            0
-        )
+        expect(Object.keys(new MapConfig().toObject()).length).toBe(0)
 
-        const map = new PersistableMapConfig()
+        const map = new MapConfig()
         map.hideTimeline = true
         map.projection = "Africa"
         expect(map.toObject()).toEqual({
@@ -18,7 +16,7 @@ describe(PersistableMapConfig, () => {
     })
 
     it("works with legacy variableId", () => {
-        const map = new PersistableMapConfig({ variableId: 23 })
+        const map = new MapConfig({ variableId: 23 })
         expect(map.columnSlug).toEqual("23")
         expect(map.toObject()).toEqual({
             variableId: 23,
