@@ -3,7 +3,7 @@ import { observer } from "mobx-react"
 import { observable, action } from "mobx"
 
 @observer
-export class SampleCheckBox extends React.Component<{ id: number }> {
+class SampleCheckBox extends React.Component<{ id: number }> {
     @observable checked: boolean = false
 
     @action.bound onToggle() {
