@@ -17,11 +17,11 @@ export class Header {
         this.props = props
     }
 
-    @computed get titleText() {
+    @computed private get titleText() {
         return this.props.grapher.currentTitle
     }
 
-    @computed get subtitleText() {
+    @computed private get subtitleText() {
         return this.props.grapher.subtitle
     }
 
@@ -37,10 +37,10 @@ export class Header {
         }
     }
 
-    @computed get logoWidth(): number {
+    @computed private get logoWidth(): number {
         return this.logo ? this.logo.width : 0
     }
-    @computed get logoHeight(): number {
+    @computed private get logoHeight(): number {
         return this.logo ? this.logo.height : 0
     }
 
