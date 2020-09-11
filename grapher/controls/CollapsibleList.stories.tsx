@@ -1,40 +1,11 @@
 import * as React from "react"
 import { CollapsibleList, MoreButton } from "./CollapsibleList"
-import { observer } from "mobx-react"
-import { observable, action } from "mobx"
+import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput"
 
 export default {
     title: "CollapsibleList",
     component: CollapsibleList,
 }
-
-@observer
-class SampleCheckBox extends React.Component<{ id: number }> {
-    @observable checked: boolean = false
-
-    @action.bound onToggle() {
-        this.checked = !this.checked
-    }
-
-    render() {
-        return (
-            <label className="clickable">
-                <input
-                    type="checkbox"
-                    checked={this.checked}
-                    onChange={this.onToggle}
-                />
-                {` checkbox ${this.props.id}`}
-            </label>
-        )
-    }
-}
-
-const items: React.ReactElement[] = []
-for (let i = 0; i < 13; i++) {
-    items.push(<SampleCheckBox key={i} id={i} />)
-}
-export const collapsibleListSampleItems: React.ReactElement[] = items
 
 export const CollapsibleListComponent = () => {
     return <CollapsibleList>{collapsibleListSampleItems}</CollapsibleList>
