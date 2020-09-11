@@ -241,6 +241,7 @@ export interface ParsedCovidCsvRow {
     positive_rate: number
     tests_per_case: number
     extreme_poverty: number
+    human_development_index: number
     cvd_death_rate: number
     diabetes_prevalence: number
     female_smokers: number
@@ -257,9 +258,9 @@ export interface CovidGrapherRow extends ParsedCovidCsvRow {
     day: number
 }
 
-export declare type covidCsvColumnSlug = keyof ParsedCovidCsvRow
+export declare type CovidCsvColumnSlug = keyof ParsedCovidCsvRow
 export const metricPickerColumnSpecs: Partial<Record<
-    covidCsvColumnSlug,
+    CovidCsvColumnSlug,
     Partial<ColumnSpec>
 >> = {
     location: { slug: "location", name: "Country name" },
@@ -297,6 +298,11 @@ export const metricPickerColumnSpecs: Partial<Record<
         slug: "extreme_poverty",
         name: "Population in extreme poverty",
         type: ColumnTypeNames.Percentage,
+    },
+    human_development_index: {
+        slug: "human_development_index",
+        name: "Human Development Index",
+        type: ColumnTypeNames.Numeric,
     },
     hospital_beds_per_thousand: {
         slug: "hospital_beds_per_thousand",
