@@ -143,30 +143,6 @@ $zindex-ControlsFooter: 2;
     }
 }
 
-.SettingsMenu {
-    position: absolute;
-    right: 1em;
-    bottom: 1em;
-    text-align: left;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid #e0e0e0;
-    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.12), 0 2px 2px 0 rgba(0, 0, 0, 0.24);
-    padding: 0.8em 1em;
-    padding-bottom: 0.5em;
-    width: 15em;
-    z-index: $zindex-ControlsFooterMenu;
-}
-
-.SettingsMenu h2 {
-    font-size: 1em;
-}
-
-.SettingsMenu label {
-    display: block;
-    font-size: 0.8em;
-    margin-bottom: 0.2em;
-}
-
 $footerRowHeight: 32px; // keep in sync with Controls.tsx's footerRowHeight
 
 .ControlsFooter {

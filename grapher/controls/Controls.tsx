@@ -10,7 +10,6 @@ import { formatValue, isMobile } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
-import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
@@ -18,37 +17,6 @@ import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { HighlightToggleConfig } from "grapher/core/GrapherConstants"
 import { ShareMenu } from "./ShareMenu"
-
-@observer
-class SettingsMenu extends React.Component<{
-    grapher: Grapher
-    onDismiss: () => void
-}> {
-    @action.bound onClickOutside() {
-        this.props.onDismiss()
-    }
-
-    componentDidMount() {
-        setTimeout(() => {
-            window.addEventListener("click", this.onClickOutside)
-        }, 50)
-    }
-
-    componentWillUnmount() {
-        window.removeEventListener("click", this.onClickOutside)
-    }
-
-    render() {
-        return (
-            <div
-                className="SettingsMenu"
-                onClick={(evt) => evt.stopPropagation()}
-            >
-                <h2>Settings</h2>
-            </div>
-        )
-    }
-}
 
 @observer
 class HighlightToggle extends React.Component<{
@@ -197,17 +165,11 @@ export class ControlsFooterView extends React.Component<{
         this.grapherView.isShareMenuActive = !this.grapherView.isShareMenuActive
     }
 
-    @action.bound onSettingsMenu() {
-        this.grapherView.isSettingsMenuActive = !this.grapherView
-            .isSettingsMenuActive
-    }
-
     @action.bound onDataSelect() {
         this.grapher.isSelectingData = true
     }
 
     private _getTabsElement() {
-        const { hasSettingsMenu } = this.grapherView
         const { grapher } = this
         return (
             <nav className="tabs">
@@ -260,17 +222,6 @@ export class ControlsFooterView extends React.Component<{
                             <FontAwesomeIcon icon={faShareAlt} />
                         </a>
                     </li>
-                    {hasSettingsMenu && (
-                        <li className="clickable icon">
-                            <a
-                                title="Settings"
-                                onClick={this.onSettingsMenu}
-                                data-track-note="chart-click-settings"
-                            >
-                                <FontAwesomeIcon icon={faCog} />
-                            </a>
-                        </li>
-                    )}
                     {grapher.isEmbed && (
                         <li className="clickable icon">
                             <a
@@ -412,7 +363,6 @@ export class ControlsFooterView extends React.Component<{
         const { grapher, grapherView } = this
         const {
             isShareMenuActive,
-            isSettingsMenuActive,
             hasTimeline,
             hasInlineControls,
             hasSpace,
@@ -451,10 +401,6 @@ export class ControlsFooterView extends React.Component<{
             />
         )
 
-        const settingsMenuElement = isSettingsMenuActive && (
-            <SettingsMenu grapher={grapher} onDismiss={this.onSettingsMenu} />
-        )
-
         const relatedQuestionElement = relatedQuestions && hasRelatedQuestion && (
             <div className="relatedQuestion">
                 Related:&nbsp;
@@ -479,7 +425,6 @@ export class ControlsFooterView extends React.Component<{
                 {inlineControlsElement}
                 {tabsElement}
                 {shareMenuElement}
-                {settingsMenuElement}
                 {relatedQuestionElement}
             </div>
         )
