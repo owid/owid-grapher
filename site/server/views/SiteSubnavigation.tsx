@@ -59,6 +59,11 @@ const subnavs: { [key in SubNavId]: SubnavItem[] } = {
             id: "mortality-risk",
         },
         {
+            label: "Excess mortality",
+            href: "/excess-mortality-covid",
+            id: "excess-mortality",
+        },
+        {
             label: "Policy responses",
             href: "/policy-responses-covid",
             id: "policy-responses",
