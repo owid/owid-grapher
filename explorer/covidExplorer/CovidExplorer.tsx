@@ -58,7 +58,7 @@ import {
     sourceCharts,
     metricLabels,
     metricPickerColumnSpecs,
-    covidCsvColumnSlug,
+    CovidCsvColumnSlug,
     intervalSpecs,
     intervalsAvailableByMetric,
 } from "./CovidConstants"
@@ -463,7 +463,7 @@ export class CovidExplorer extends React.Component<{
         ) as string[]
     }
 
-    @action.bound changePickerMetric(metric: covidCsvColumnSlug) {
+    @action.bound changePickerMetric(metric: CovidCsvColumnSlug) {
         this.props.params.countryPickerMetric = metric
     }
 
