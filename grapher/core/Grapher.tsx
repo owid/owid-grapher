@@ -455,7 +455,6 @@ export class Grapher extends GrapherDefaults {
 
     @action.bound private _receiveData(json: LegacyVariablesAndEntityKey) {
         this.table.loadFromLegacy(json)
-        console.log("received data")
         this.updatePopulationFilter() // todo: remove
     }
 
