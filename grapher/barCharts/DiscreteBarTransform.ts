@@ -10,7 +10,6 @@ import {
 } from "grapher/utils/Util"
 import { DiscreteBarDatum } from "./DiscreteBarChart"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { ChartDimension } from "grapher/chart/ChartDimension"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import {
     SortOrder,
@@ -30,7 +29,7 @@ export class DiscreteBarTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimensions(): ChartDimension[] {
+    @computed get primaryDimensions() {
         return this.grapher.filledDimensions.filter((d) => d.property === "y")
     }
 

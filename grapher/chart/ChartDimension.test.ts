@@ -1,9 +1,15 @@
 #! /usr/bin/env yarn jest
 
-import { PersistableChartDimension } from "./ChartDimension"
+import { ChartDimension } from "./ChartDimension"
+import { OwidTable } from "owidTable/OwidTable"
 
-describe(PersistableChartDimension, () => {
+describe(ChartDimension, () => {
     it("can serialize for saving", () => {
-        expect(new PersistableChartDimension().toObject()).toEqual({})
+        expect(
+            new ChartDimension(
+                { property: "x", variableId: 1 },
+                new OwidTable([])
+            ).toObject()
+        ).toEqual({ property: "x", variableId: 1 })
     })
 })

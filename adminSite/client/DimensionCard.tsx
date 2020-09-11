@@ -41,10 +41,6 @@ export class DimensionCard extends React.Component<{
         this.props.dimension.display.isProjection = value
     }
 
-    @action.bound onSaveToVariable(value: boolean) {
-        this.props.dimension.saveToVariable = value || undefined
-    }
-
     private get tableDisplaySettings() {
         const { tableDisplay } = this.props.dimension.display
         if (!tableDisplay) return
@@ -175,11 +171,6 @@ export class DimensionCard extends React.Component<{
                             />
                         )}
                         <hr className="ui divider" />
-                        <Toggle
-                            label="Use these settings as defaults for future charts"
-                            value={!!dimension.saveToVariable}
-                            onValue={this.onSaveToVariable}
-                        />
                     </div>
                 )}
             </EditableListItem>

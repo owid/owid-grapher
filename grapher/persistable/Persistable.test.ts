@@ -38,10 +38,7 @@ class PersistableGameBoyGame extends GameBoyGame implements Persistable {
     toObject(): GameBoyGameInterface {
         const obj = objectWithPersistablesToObject(this)
 
-        return deleteRuntimeAndUnchangedProps<PersistableGameBoyGame>(
-            obj,
-            new PersistableGameBoyGame()
-        )
+        return deleteRuntimeAndUnchangedProps(obj, new PersistableGameBoyGame())
     }
 
     @observable someRuntimeProp = 5

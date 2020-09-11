@@ -22,8 +22,8 @@ import {
     maxTimeFromJSON,
 } from "grapher/utils/TimeBounds"
 import {
-    PersistableChartDimension,
-    ChartDimensionConfig,
+    ChartDimensionConfigInterface,
+    ChartDimension,
 } from "grapher/chart/ChartDimension"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
@@ -71,7 +71,7 @@ export interface GrapherConfigInterface {
     maxTime?: TimeBound
     timelineMinTime?: Time
     timelineMaxTime?: Time
-    dimensions?: ChartDimensionConfig[]
+    dimensions?: ChartDimensionConfigInterface[]
     addCountryMode?: AddCountryMode
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
@@ -157,13 +157,13 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
     @observable.ref matchingEntitiesOnly?: true = undefined
 
     // Todo: make sure these all have toJson/fromJson methods.
-    @observable.ref xAxis = new PersistableAxisConfig() // todo: rename class to be persistable
+    @observable.ref xAxis = new PersistableAxisConfig()
     @observable.ref yAxis = new PersistableAxisConfig()
     @observable colorScale = new PersistableColorScaleConfig()
     @observable map = new PersistableMapConfig()
 
     @observable.ref selectedData: EntitySelection[] = []
-    @observable.ref dimensions: PersistableChartDimension[] = []
+    @observable.ref dimensions: ChartDimension[] = [] // todo: should this just be the interface?
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = []
     @observable relatedQuestions?: RelatedQuestionsConfig[]
@@ -193,10 +193,7 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
         // in the Grapher Admin with an overlay tab open
         delete obj.overlay
 
-        deleteRuntimeAndUnchangedProps<GrapherConfigInterface>(
-            obj,
-            this.defaultObject()
-        )
+        deleteRuntimeAndUnchangedProps(obj, this.defaultObject())
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
@@ -211,12 +208,6 @@ export class PersistableGrapher implements GrapherConfigInterface, Persistable {
 
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
         if (obj.originUrl === null) this.originUrl = ""
-
-        if (obj.dimensions?.length)
-            this.dimensions = obj.dimensions.map(
-                (spec: ChartDimensionConfig) =>
-                    new PersistableChartDimension(spec)
-            )
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) this.minTime = minTimeFromJSON(obj.minTime)

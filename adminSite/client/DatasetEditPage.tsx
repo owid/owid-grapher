@@ -14,7 +14,10 @@ import { Prompt, Redirect } from "react-router-dom"
 import filenamify from "filenamify"
 import { format } from "timeago.js"
 
-import { LegacyVariableDisplaySettings } from "owidTable/LegacyVariableCode"
+import {
+    LegacyVariableDisplayConfigInterface,
+    PersistableLegacyVariableDisplaySettings,
+} from "owidTable/LegacyVariableCode"
 import { OwidSource } from "owidTable/OwidTableConstants"
 
 import { AdminLayout } from "./AdminLayout"
@@ -38,7 +41,7 @@ class VariableEditable {
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-    @observable display = new LegacyVariableDisplaySettings()
+    @observable display = new PersistableLegacyVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {
@@ -298,7 +301,7 @@ interface VariableEditListItem {
     unit: string
     shortUnit: string
     description: string
-    display: LegacyVariableDisplaySettings
+    display: LegacyVariableDisplayConfigInterface
 }
 
 interface DatasetPageData {

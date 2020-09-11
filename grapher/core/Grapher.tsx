@@ -40,6 +40,7 @@ import {
     EntityDimensionKey,
     ScaleType,
     StackMode,
+    DimensionProperty,
 } from "grapher/core/GrapherConstants"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { OwidTable } from "owidTable/OwidTable"
@@ -47,8 +48,8 @@ import { EntityName, EntityId, EntityCode } from "owidTable/OwidTableConstants"
 import {
     EntityDimensionInfo,
     ChartDimension,
-    PersistableChartDimension,
     SourceWithDimension,
+    ChartDimensionConfigInterface,
 } from "grapher/chart/ChartDimension"
 import { MapTransform } from "grapher/mapCharts/MapTransform"
 import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
@@ -605,7 +606,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     // Get the dimension slots appropriate for this type of chart
-    @computed get dimensionSlots(): DimensionSlot[] {
+    @computed get dimensionSlots() {
         const xAxis = new DimensionSlot(this, "x")
         const yAxis = new DimensionSlot(this, "y")
         const color = new DimensionSlot(this, "color")
@@ -629,8 +630,8 @@ export class Grapher extends PersistableGrapher {
                 validDimensions = uniqWith(
                     validDimensions,
                     (
-                        a: PersistableChartDimension,
-                        b: PersistableChartDimension
+                        a: ChartDimensionConfigInterface,
+                        b: ChartDimensionConfigInterface
                     ) =>
                         a.property === slot.property &&
                         a.property === b.property
@@ -646,17 +647,46 @@ export class Grapher extends PersistableGrapher {
         return this.dataTableOnlyDimensions.length > 0
     }
 
-    @computed.struct get filledDimensions(): ChartDimension[] {
+    @computed.struct get filledDimensions() {
         if (!this.isReady) return []
 
-        return this.dimensions.map(
-            (dim, index) =>
-                new ChartDimension(
-                    dim,
-                    index,
-                    this.table.columnsByOwidVarId.get(dim.variableId)!
+        return this.dimensions.map((dim) => new ChartDimension(dim, this.table))
+    }
+
+    @action.bound addDimension(config: ChartDimensionConfigInterface) {
+        this.dimensions.push(new ChartDimension(config, this.table))
+    }
+
+    @action.bound setDimensionsForProperty(
+        property: DimensionProperty,
+        newConfigs: ChartDimensionConfigInterface[]
+    ) {
+        let newDimensions: ChartDimension[] = []
+        this.dimensionSlots.forEach((slot) => {
+            if (slot.property === property)
+                newDimensions = newDimensions.concat(
+                    newConfigs.map(
+                        (config) => new ChartDimension(config, this.table)
+                    )
                 )
+            else newDimensions = newDimensions.concat(slot.dimensions)
+        })
+        this.dimensions = newDimensions
+    }
+
+    @action.bound setDimensions(configs: ChartDimensionConfigInterface[]) {
+        this.dimensions = configs.map(
+            (config) => new ChartDimension(config, this.table)
         )
+    }
+
+    @action.bound updateFromObject(obj: GrapherConfigInterface) {
+        super.updateFromObject(obj)
+
+        if (obj.dimensions?.length)
+            this.dimensions = obj.dimensions.map(
+                (spec) => new ChartDimension(spec, this.table)
+            )
     }
 
     @computed get primaryDimensions() {
@@ -1168,6 +1198,7 @@ export class Grapher extends PersistableGrapher {
         if (!this.isReady) return new Map()
         const { isSingleEntity, isSingleVariable } = this
         const primaryDimensions = this.primaryDimensions
+        const dimensions = this.dimensions
 
         const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
         primaryDimensions.forEach((dimension, dimensionIndex) => {
@@ -1203,7 +1234,9 @@ export class Grapher extends PersistableGrapher {
                     shortCode:
                         primaryDimensions.length > 1 &&
                         this.addCountryMode !== "change-country"
-                            ? `${entityCode || entityName}-${dimension.index}`
+                            ? `${entityCode || entityName}-${dimensions.indexOf(
+                                  dimension
+                              )}`
                             : entityCode || entityName,
                 })
             })

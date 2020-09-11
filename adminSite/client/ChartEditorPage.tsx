@@ -148,7 +148,7 @@ export class ChartEditorPage extends React.Component<{
             return undefined
         } else {
             const that = this
-            return new ChartEditor({
+            const editor = new ChartEditor({
                 get admin() {
                     return that.context.admin
                 },
@@ -168,6 +168,9 @@ export class ChartEditorPage extends React.Component<{
                 // from the inner "add redirect" form
                 redirects: that.redirects || [],
             })
+
+            ;(window as any).editor = editor
+            return editor
         }
     }
 

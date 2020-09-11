@@ -44,7 +44,7 @@ export class PersistableMapConfig extends MapConfig implements Persistable {
         const obj = objectWithPersistablesToObject(
             this
         ) as MapConfigWithLegacyInterface
-        deleteRuntimeAndUnchangedProps<MapConfigInterface>(obj, new MapConfig())
+        deleteRuntimeAndUnchangedProps(obj, new MapConfig())
 
         if (obj.targetYear)
             obj.targetYear = maxTimeToJSON(this.targetYear) as any

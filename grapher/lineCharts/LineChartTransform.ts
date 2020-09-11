@@ -15,7 +15,6 @@ import { EntityDimensionKey, ScaleType } from "grapher/core/GrapherConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { ChartDimension } from "grapher/chart/ChartDimension"
 import { Time } from "grapher/utils/TimeBounds"
 import { LineLabel } from "./LineLabels"
 import { EntityName } from "owidTable/OwidTableConstants"
@@ -188,7 +187,7 @@ export class LineChartTransform extends ChartTransform {
         return axis
     }
 
-    @computed private get yDimensionFirst(): ChartDimension | undefined {
+    @computed private get yDimensionFirst() {
         return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 

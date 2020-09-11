@@ -17,7 +17,6 @@ import {
 } from "grapher/utils/TimeBounds"
 
 import { ChoroplethData } from "grapher/mapCharts/ChoroplethMap"
-import { ChartDimension } from "grapher/chart/ChartDimension"
 import { MapTopology } from "./MapTopology"
 
 import { ChartTransform } from "grapher/chart/ChartTransform"
@@ -93,7 +92,7 @@ export class MapTransform extends ChartTransform {
         )
     }
 
-    @computed get dimension(): ChartDimension | undefined {
+    @computed get dimension() {
         return this.grapher.filledDimensions.find(
             (d) => d.columnSlug === this.columnSlug
         )

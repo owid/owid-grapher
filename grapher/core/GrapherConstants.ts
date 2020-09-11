@@ -73,6 +73,8 @@ export enum SortOrder {
     desc = "desc",
 }
 
+export declare type DimensionProperty = "y" | "x" | "size" | "color" | "table"
+
 export interface TickFormattingOptions {
     numDecimalPlaces?: number
     unit?: string
