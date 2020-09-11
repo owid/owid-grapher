@@ -451,7 +451,6 @@ export class GrapherView extends React.Component<GrapherViewProps> {
     }
 
     @observable isShareMenuActive: boolean = false
-    @observable isSettingsMenuActive: boolean = false
 
     @computed.struct get overlayPadding(): {
         top: number
@@ -500,10 +499,6 @@ export class GrapherView extends React.Component<GrapherViewProps> {
                 (grapher.isLineChart &&
                     grapher.lineChartTransform.canToggleRelativeMode))
         )
-    }
-
-    @computed get hasSettingsMenu(): boolean {
-        return false
     }
 
     @computed get hasSpace(): boolean {
