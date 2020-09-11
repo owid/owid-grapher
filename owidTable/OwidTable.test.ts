@@ -91,7 +91,7 @@ const legacyVarSet: LegacyVariablesAndEntityKey = {
 } as any
 
 describe("from legacy", () => {
-    const table = OwidTable.fromLegacy(legacyVarSet)
+    const table = new OwidTable([]).loadFromLegacy(legacyVarSet)
     const name =
         "Prevalence of wasting, weight for height (% of children under 5)"
 

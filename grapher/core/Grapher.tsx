@@ -101,6 +101,7 @@ export class Grapher extends PersistableGrapher {
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     configOnLoad: Readonly<GrapherConfigInterface>
+    @observable.ref table: OwidTable
 
     constructor(
         config?: GrapherConfigInterface,
@@ -117,11 +118,19 @@ export class Grapher extends PersistableGrapher {
 
         this.initFontSizeInAxisContainers()
 
-        if (!this.manuallyProvideData)
+        this.table = new OwidTable([])
+        if (this.owidDataset) this._receiveData(this.owidDataset)
+        else if (this.externalDataUrl)
+            this.downloadDataFromUrl(this.externalDataUrl)
+        else if (!this.manuallyProvideData)
             this.disposers.push(
-                reaction(() => this.variableIds, this.downloadData, {
-                    fireImmediately: true,
-                })
+                reaction(
+                    () => this.variableIds,
+                    this.downloadDataFromOwidVariableIds,
+                    {
+                        fireImmediately: true,
+                    }
+                )
             )
 
         this.disposers.push(
@@ -150,6 +159,23 @@ export class Grapher extends PersistableGrapher {
         }
 
         if (this.isEditor) this.ensureValidConfig()
+
+        this._initDimensions(config)
+    }
+
+    @action.bound private _initDimensions(config?: GrapherConfigInterface) {
+        // Todo: remove once we are more RAII.
+        if (config?.dimensions?.length)
+            this.dimensions = config.dimensions.map(
+                (spec) => new ChartDimension(spec, this.table)
+            )
+    }
+
+    @action.bound updateFromObject(obj: GrapherConfigInterface) {
+        super.updateFromObject(obj)
+
+        // Todo: remove once we are more RAII.
+        if (this.table) this._initDimensions(obj)
     }
 
     /**
@@ -295,18 +321,12 @@ export class Grapher extends PersistableGrapher {
 
     @observable userHasSetTimeline: boolean = false
 
-    @action.bound private async downloadData() {
-        if (this.externalDataUrl) {
-            const json = await fetchJSON(this.externalDataUrl)
-            this._receiveData(json)
-            return
-        }
+    @action.bound private async downloadDataFromUrl(url: string) {
+        const json = await fetchJSON(url)
+        this._receiveData(json)
+    }
 
-        if (this.owidDataset) {
-            this._receiveData(this.owidDataset)
-            return
-        }
-
+    @action.bound private async downloadDataFromOwidVariableIds() {
         if (this.variableIds.length === 0) {
             // No data to download
             return
@@ -317,13 +337,8 @@ export class Grapher extends PersistableGrapher {
                 `/api/data/variables/${this.dataFileName}`
             )
             this._receiveData(json)
-        } else {
-            const json = await fetchJSON(this.dataUrl)
-            this._receiveData(json)
-        }
+        } else await this.downloadDataFromUrl(this.dataUrl)
     }
-
-    @observable.ref table: OwidTable = new OwidTable([])
 
     // Provide a way to insert an arbitrary element into the embed popup.
     // The "hideControls" property is a param on the explorer, so to maintain
@@ -336,7 +351,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @action.bound private _receiveData(json: LegacyVariablesAndEntityKey) {
-        this.table = OwidTable.fromLegacy(json)
+        this.table.loadFromLegacy(json)
         this.updatePopulationFilter()
     }
 
@@ -391,7 +406,7 @@ export class Grapher extends PersistableGrapher {
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
-        return this.loadingVarIds.length === 0
+        return this.loadingDimensions.length === 0
     }
 
     @computed get primaryVariableId() {
@@ -403,10 +418,8 @@ export class Grapher extends PersistableGrapher {
         return this.primaryVariableId?.toString()
     }
 
-    @computed private get loadingVarIds(): number[] {
-        return this.dimensions
-            .map((dim) => dim.variableId)
-            .filter((id) => !this.table.columnsByOwidVarId.has(id))
+    @computed private get loadingDimensions() {
+        return this.dimensions.filter((dim) => !dim.isLoaded)
     }
 
     url: GrapherUrl
@@ -648,9 +661,7 @@ export class Grapher extends PersistableGrapher {
     }
 
     @computed.struct get filledDimensions() {
-        if (!this.isReady) return []
-
-        return this.dimensions.map((dim) => new ChartDimension(dim, this.table))
+        return this.isReady ? this.dimensions : []
     }
 
     @action.bound addDimension(config: ChartDimensionConfigInterface) {
@@ -678,15 +689,6 @@ export class Grapher extends PersistableGrapher {
         this.dimensions = configs.map(
             (config) => new ChartDimension(config, this.table)
         )
-    }
-
-    @action.bound updateFromObject(obj: GrapherConfigInterface) {
-        super.updateFromObject(obj)
-
-        if (obj.dimensions?.length)
-            this.dimensions = obj.dimensions.map(
-                (spec) => new ChartDimension(spec, this.table)
-            )
     }
 
     @computed get primaryDimensions() {

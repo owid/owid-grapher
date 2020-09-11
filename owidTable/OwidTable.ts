@@ -461,12 +461,24 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             | ColumnSpecObject = AbstractTable.makeSpecsFromRows(rows),
         cloneRows = true
     ) {
+        this.load(rows, columnSpecs, cloneRows)
+        // Todo: add warning if you provide Specs but not for all cols?
+    }
+
+    // Todo: remove? Generally do not call this method. Call the constructor instead. RAII style.
+    @action.bound load(
+        rows: ROW_TYPE[],
+        columnSpecs:
+            | ColumnSpecs
+            | ColumnSpec[]
+            | ColumnSpecObject = AbstractTable.makeSpecsFromRows(rows),
+        cloneRows = true
+    ) {
         // Allow skipping of the clone for perf gains.
         if (cloneRows) this.cloneAndSetRows(rows)
         else this.setRowsWithoutCloning(rows)
         this.addSpecs(columnSpecs)
-
-        // Todo: add warning if you provide Specs but not for all cols?
+        return this
     }
 
     @computed get rows() {
@@ -495,7 +507,9 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         this._rows = cloneDeep(rows)
     }
 
-    addSpecs(columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[]) {
+    @action.bound addSpecs(
+        columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[]
+    ) {
         if (Array.isArray(columnSpecs))
             columnSpecs = new Map(columnSpecs.map((spec) => [spec.slug, spec]))
         else if (!(columnSpecs instanceof Map))
@@ -1031,7 +1045,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         }
     }
 
-    static fromLegacy(json: LegacyVariablesAndEntityKey) {
+    @action.bound loadFromLegacy(json: LegacyVariablesAndEntityKey) {
         let rows: OwidRow[] = []
         const entityMetaById: { [id: string]: LegacyEntityMeta } =
             json.entityKey
@@ -1059,7 +1073,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             const entityCodes =
                 variable.entities?.map((id) => entityMetaById[id].code) || []
 
-            const columnSpec = this.columnSpecFromLegacyVariable(variable)
+            const columnSpec = OwidTable.columnSpecFromLegacyVariable(variable)
             const columnSlug = columnSpec.slug
             columnSpec.isDailyMeasurement
                 ? columnSpecs.set("day", {
@@ -1078,10 +1092,10 @@ export class OwidTable extends AbstractTable<OwidRow> {
             let annotationsColumnSlug: string
             let annotationMap: Map<string, string>
             if (variable.display?.entityAnnotationsMap) {
-                annotationsColumnSlug = this.makeAnnotationColumnSlug(
+                annotationsColumnSlug = OwidTable.makeAnnotationColumnSlug(
                     columnSlug
                 )
-                annotationMap = this.annotationsToMap(
+                annotationMap = OwidTable.annotationsToMap(
                     variable.display.entityAnnotationsMap
                 )
                 columnSpecs.set(annotationsColumnSlug, {
@@ -1106,7 +1120,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             const yearsRaw = variable.years || []
             const years =
                 yearsNeedTransform && display
-                    ? this.convertLegacyYears(yearsRaw, display.zeroDay!)
+                    ? OwidTable.convertLegacyYears(yearsRaw, display.zeroDay!)
                     : yearsRaw
 
             const values = variable.values || []
@@ -1138,7 +1152,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         )
 
         const sorted = sortBy(joinedRows, ["year", "day"])
-        return new OwidTable(sorted, columnSpecs, false)
+        return this.load(sorted, columnSpecs, false)
     }
 
     // todo: remove

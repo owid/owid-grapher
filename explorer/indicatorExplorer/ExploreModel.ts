@@ -9,7 +9,7 @@ import { Indicator } from "./Indicator"
 
 export type ExplorerChartType = ChartTypeName | "WorldMap"
 
-function chartConfigFromIndicator(
+function grapherConfigFromIndicator(
     indicator: Indicator
 ): Partial<GrapherConfigInterface> {
     return {
@@ -47,10 +47,10 @@ export class ExploreModel {
 
     @action.bound setChartType(chartType: ExplorerChartType) {
         this.chartType = chartType
-        this.updateChartFromExplorer()
+        this.updateGrapherFromExplorer()
     }
 
-    @action.bound updateChartFromExplorer() {
+    @action.bound updateGrapherFromExplorer() {
         this.grapher.type = this.configChartType
         this.grapher.hasMapTab = this.isMap
         this.grapher.hasChartTab = !this.isMap
@@ -70,12 +70,12 @@ export class ExploreModel {
         this.disposers.push(
             autorun(() => {
                 if (this.indicatorEntry === null) {
-                    this.grapher.updateFromObject({ dimensions: [] })
+                    this.grapher.setDimensions([])
                 } else {
                     const indicator = this.indicatorEntry.entity
                     if (indicator) {
                         this.grapher.updateFromObject(
-                            chartConfigFromIndicator(indicator)
+                            grapherConfigFromIndicator(indicator)
                         )
                     }
                 }
