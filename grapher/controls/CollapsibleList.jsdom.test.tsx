@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { shallow } from "enzyme"
-import { collapsibleListSampleItems } from "./CollapsibleList.stories"
 import { CollapsibleList } from "./CollapsibleList"
+import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput"
 
 // configure({ adapter: new Adapter() })
 describe(CollapsibleList, () => {
