@@ -41,7 +41,7 @@ jobs:
                   path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
                   key: ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-yarn-${{ hashFiles('**/yarn.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-yarn-
+                      ${{ runner.os }}-${{ steps.nvm.outputs.NVMRC }}-yarn
 
             - uses: actions/cache@v2
               id: node-modules-cache
