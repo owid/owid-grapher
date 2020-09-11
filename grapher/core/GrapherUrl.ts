@@ -164,12 +164,12 @@ export class GrapherUrl implements ObservableUrl {
             grapher.maxTime !== originalConfig.maxTime
         ) {
             const [minTime, maxTime] = grapher.timeDomain
-            const formatAsDay = !!grapher.table.hasDayColumn
-
-            if (minTime === maxTime)
-                return formatTimeURIComponent(minTime, formatAsDay)
+            const formatAsDay = grapher.table.hasDayColumn
 
             const start = formatTimeURIComponent(minTime, formatAsDay)
+
+            if (minTime === maxTime) return start
+
             const end = formatTimeURIComponent(maxTime, formatAsDay)
             return `${start}..${end}`
         }

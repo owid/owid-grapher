@@ -97,6 +97,11 @@ class PersistableChartDimensionConfig
 export class ChartDimension extends PersistableChartDimensionConfig {
     @observable.ref private table: OwidTable
 
+    constructor(obj: ChartDimensionConfigInterface, table: OwidTable) {
+        super(obj)
+        this.table = table
+    }
+
     @computed get column() {
         return (
             this.table.columnsByOwidVarId.get(this.variableId) ||
@@ -106,13 +111,12 @@ export class ChartDimension extends PersistableChartDimensionConfig {
         )
     }
 
-    constructor(obj: ChartDimensionConfigInterface, table: OwidTable) {
-        super(obj)
-        this.table = table
-    }
-
     @computed get columnSlug() {
         return this.variableId.toString()
+    }
+
+    @computed get isLoaded() {
+        return this.table.columnsByOwidVarId.has(this.variableId)
     }
 
     @computed get displayName() {
