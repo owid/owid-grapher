@@ -376,23 +376,21 @@ export class GrapherView extends React.Component<GrapherViewProps> {
     private renderMain() {
         // TODO how to handle errors in exports?
         // TODO tidy this up
-        if (this.isExport) {
-            return this.renderSVG()
-        } else {
-            const { renderWidth, renderHeight } = this
+        if (this.isExport) return this.renderSVG()
 
-            const style = {
-                width: renderWidth,
-                height: renderHeight,
-                fontSize: this.grapher.baseFontSize,
-            }
+        const { renderWidth, renderHeight } = this
 
-            return (
-                <div ref={this.base} className={this.classNames} style={style}>
-                    {this.hasError ? this.renderError() : this.renderReady()}
-                </div>
-            )
+        const style = {
+            width: renderWidth,
+            height: renderHeight,
+            fontSize: this.grapher.baseFontSize,
         }
+
+        return (
+            <div ref={this.base} className={this.classNames} style={style}>
+                {this.hasError ? this.renderError() : this.renderReady()}
+            </div>
+        )
     }
 
     render() {
@@ -515,7 +513,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         )
     }
 
-    @computed get footerLines(): number {
+    @computed private get footerLines(): number {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
