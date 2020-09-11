@@ -331,6 +331,14 @@ export class ControlsFooterView extends React.Component<{
                     : timeColumn.formatValue
                 return format(value)
             },
+            onStartPlayOrDrag: () => {
+                grapher.url.debounceMode = true
+                grapher.useTimelineDomains = true
+            },
+            onStopPlayOrDrag: () => {
+                grapher.url.debounceMode = false
+                grapher.useTimelineDomains = false
+            },
         }
 
         const tab = grapher.tab

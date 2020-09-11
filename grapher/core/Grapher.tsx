@@ -546,6 +546,18 @@ export class Grapher extends GrapherDefaults {
         return this.activeTransform.startYear!
     }
 
+    set startYear(value: any) {
+        const activeTab = this.tab
+        if (activeTab === "map") this.mapTransform.targetYear = value
+        else this.timeDomain = [value, this.timeDomain[1]]
+    }
+
+    set endYear(value: any) {
+        const activeTab = this.tab
+        if (activeTab === "map") this.mapTransform.targetYear = value
+        else this.timeDomain = [this.timeDomain[0], value]
+    }
+
     @computed get endYear() {
         const activeTab = this.tab
         if (activeTab === "table")
