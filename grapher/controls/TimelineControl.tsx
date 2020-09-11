@@ -31,8 +31,6 @@ const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 interface TimelineSubject {
     isPlaying: boolean
     userHasSetTimeline: boolean
-    onStartDrag?: () => void
-    onStopDrag?: () => void
     years: number[]
     startYear: number
     endYear: number
@@ -42,9 +40,11 @@ export interface TimelineProps {
     subject: TimelineSubject
     singleYearMode?: boolean
     singleYearPlay?: boolean
-    onPlay?: () => void
     disablePlay?: boolean
     formatYearFn?: (value: any) => any
+    onPlay?: () => void
+    onStartPlayOrDrag?: () => void
+    onStopPlayOrDrag?: () => void
 }
 
 @observer
@@ -61,10 +61,6 @@ export class TimelineControl extends React.Component<TimelineProps> {
 
     @computed private get subject() {
         return this.props.subject
-    }
-
-    @computed private get isPlaying() {
-        return this.subject.isPlaying
     }
 
     @computed private get years(): Time[] {
@@ -135,8 +131,9 @@ export class TimelineControl extends React.Component<TimelineProps> {
         )
 
         const playFrame = action((time: number) => {
-            const { isPlaying, endYearUI, years, minYear, maxYear } = this
-            if (!isPlaying) return
+            // TODO: This method should be unit tested!
+            const { endYearUI, years, minYear, maxYear, subject } = this
+            if (!subject.isPlaying) return
 
             if (lastTime === undefined) {
                 // If we start playing from the end, loop around to beginning
@@ -148,16 +145,19 @@ export class TimelineControl extends React.Component<TimelineProps> {
                 const elapsed = time - lastTime
 
                 if (endYearUI >= maxYear) {
-                    this.subject.isPlaying = false
+                    subject.isPlaying = false
                     this.startTooltipVisible = false
                 } else {
                     const nextYear = years[years.indexOf(endYearUI) + 1]
                     const yearsToNext = nextYear - endYearUI
-
                     this.subject.endYear =
                         endYearUI +
-                        (Math.max(yearsToNext / 3, 1) * elapsed * ticksPerSec) /
-                            1000
+                        Math.ceil(
+                            (Math.max(yearsToNext / 3, 1) *
+                                elapsed *
+                                ticksPerSec) /
+                                1000
+                        )
                     if (this.props.singleYearMode || this.props.singleYearPlay)
                         this.subject.startYear = this.subject.endYear
                 }
@@ -204,27 +204,18 @@ export class TimelineControl extends React.Component<TimelineProps> {
         this.subject.endYear = inputYear
     }
 
-    @action.bound private updateSingleYear(inputYear: number) {
-        this.subject.startYear = inputYear
-        this.subject.endYear = inputYear
-    }
-
-    @action.bound private updateRange([startYear, endYear]: [number, number]) {
-        this.subject.startYear = startYear
-        this.subject.endYear = endYear
-    }
-
     @action.bound private onDrag(inputYear: number) {
-        const { props, dragTarget, minYear, maxYear } = this
-        if (!this.isPlaying) this.subject.userHasSetTimeline = true
+        const { props, dragTarget, minYear, maxYear, subject } = this
+        if (!subject.isPlaying) this.subject.userHasSetTimeline = true
 
         const clampedYear = this.getClampedYear(inputYear)
 
         if (
             props.singleYearMode ||
-            (this.isPlaying && this.props.singleYearPlay)
+            (subject.isPlaying && this.props.singleYearPlay)
         ) {
-            this.updateSingleYear(clampedYear)
+            this.updateStartYear(clampedYear)
+            this.updateEndYear(clampedYear)
         } else if (dragTarget === "start") {
             this.updateStartYear(clampedYear)
         } else if (dragTarget === "end") {
@@ -245,7 +236,8 @@ export class TimelineControl extends React.Component<TimelineProps> {
                 endYear = maxYear
             }
 
-            this.updateRange([startYear, endYear])
+            this.updateStartYear(startYear)
+            this.updateEndYear(endYear)
         }
 
         this.showTooltips()
@@ -320,7 +312,7 @@ export class TimelineControl extends React.Component<TimelineProps> {
     @action.bound private onMouseUp() {
         this.dragTarget = undefined
 
-        if (this.isPlaying) return
+        if (this.subject.isPlaying) return
 
         if (isMobile()) {
             if (this.startTooltipVisible) this.hideStartTooltip()
@@ -352,7 +344,7 @@ export class TimelineControl extends React.Component<TimelineProps> {
     }
 
     @action.bound private onMouseLeave() {
-        if (!this.isPlaying && !this.isDragging) {
+        if (!this.subject.isPlaying && !this.isDragging) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
         }
@@ -366,14 +358,14 @@ export class TimelineControl extends React.Component<TimelineProps> {
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
 
-    @action updateChartTimeDomain() {
-        // this.props.grapher.mapTransform.targetYear = this.startYearClosest
-    }
-
     @action.bound onPlayTouchEnd(e: Event) {
         e.preventDefault()
         e.stopPropagation()
         this.onTogglePlay()
+    }
+
+    @computed private get isPlayingOrDragging() {
+        return this.subject.isPlaying || this.isDragging
     }
 
     componentDidMount() {
@@ -398,20 +390,14 @@ export class TimelineControl extends React.Component<TimelineProps> {
 
         this.disposers = [
             autorun(() => {
-                const { isPlaying } = this
-                if (isPlaying) this.onStartPlaying()
+                if (this.subject.isPlaying) this.onStartPlaying()
                 else this.onStopPlaying()
             }),
             autorun(() => {
-                const { isPlaying, isDragging } = this
-                const { onStartDrag, onStopDrag } = this.subject
-                if (isPlaying || isDragging) {
-                    // this.grapher.url.debounceMode = true
-                    if (onStartDrag) onStartDrag()
-                } else {
-                    // this.grapher.url.debounceMode = false
-                    if (onStopDrag) onStopDrag()
-                }
+                const { onStartPlayOrDrag, onStopPlayOrDrag } = this.props
+                if (this.isPlayingOrDragging) {
+                    if (onStartPlayOrDrag) onStartPlayOrDrag()
+                } else if (onStopPlayOrDrag) onStopPlayOrDrag()
             }),
         ]
     }
@@ -441,8 +427,8 @@ export class TimelineControl extends React.Component<TimelineProps> {
     }
 
     @action.bound onTogglePlay() {
-        this.subject.isPlaying = !this.isPlaying
-        if (this.isPlaying) {
+        this.subject.isPlaying = !this.subject.isPlaying
+        if (this.subject.isPlaying) {
             this.startTooltipVisible = true
             this.hideStartTooltip.cancel()
         }
@@ -484,7 +470,7 @@ export class TimelineControl extends React.Component<TimelineProps> {
         const {
             minYear,
             maxYear,
-            isPlaying,
+            subject,
             startYearUI,
             endYearUI,
             startYearClosestUI,
@@ -509,7 +495,7 @@ export class TimelineControl extends React.Component<TimelineProps> {
                         onClick={this.onTogglePlay}
                         className="play"
                     >
-                        {isPlaying ? (
+                        {subject.isPlaying ? (
                             <FontAwesomeIcon icon={faPause} />
                         ) : (
                             <FontAwesomeIcon icon={faPlay} />
