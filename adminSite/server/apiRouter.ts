@@ -18,7 +18,7 @@ import { OldChart, Chart, getChartById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
 import { getVariableData } from "db/model/Variable"
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import {
     CountryNameFormat,
     CountryDefByKey,
@@ -156,7 +156,7 @@ async function getRedirectsByChartId(
     return redirects
 }
 
-async function expectChartById(chartId: any): Promise<GrapherConfigInterface> {
+async function expectChartById(chartId: any): Promise<GrapherInterface> {
     const chart = await getChartById(expectInt(chartId))
 
     if (chart) {
@@ -168,8 +168,8 @@ async function expectChartById(chartId: any): Promise<GrapherConfigInterface> {
 
 async function saveGrapher(
     user: CurrentUser,
-    newConfig: GrapherConfigInterface,
-    existingConfig?: GrapherConfigInterface
+    newConfig: GrapherInterface,
+    existingConfig?: GrapherInterface
 ) {
     return db.transaction(async (t) => {
         // Slugs need some special logic to ensure public urls remain consistent whenever possible

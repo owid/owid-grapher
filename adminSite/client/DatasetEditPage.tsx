@@ -16,7 +16,7 @@ import { format } from "timeago.js"
 
 import {
     LegacyVariableDisplayConfigInterface,
-    PersistableLegacyVariableDisplaySettings,
+    LegacyVariableDisplayConfig,
 } from "owidTable/LegacyVariableCode"
 import { OwidSource } from "owidTable/OwidTableConstants"
 
@@ -41,7 +41,7 @@ class VariableEditable {
     @observable unit: string = ""
     @observable shortUnit: string = ""
     @observable description: string = ""
-    @observable display = new PersistableLegacyVariableDisplaySettings()
+    @observable display = new LegacyVariableDisplayConfig()
 
     constructor(json: any) {
         for (const key in this) {

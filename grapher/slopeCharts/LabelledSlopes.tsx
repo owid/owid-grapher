@@ -34,7 +34,7 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { PersistableAxisConfig } from "grapher/axis/AxisConfig"
+import { AxisConfig } from "grapher/axis/AxisConfig"
 import { Grapher } from "grapher/core/Grapher"
 
 export interface SlopeChartValue {
@@ -286,7 +286,7 @@ interface LabelledSlopesProps {
     data: SlopeChartSeries[]
     isInteractive: boolean
     yTickFormat: (value: number) => string
-    yAxisOptions: PersistableAxisConfig
+    yAxisOptions: AxisConfig
     fontSize: number
     focusKeys: string[]
     hoverKeys: string[]

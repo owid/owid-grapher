@@ -1,4 +1,4 @@
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { EXPLORER } from "settings"
 
@@ -85,7 +85,7 @@ export const FORCE_EXPLORABLE_CHART_IDS: number[] = [
 
 // A centralized predicate to test whether a chart can be explorable.
 // Used for validation on both server & client.
-export function canBeExplorable(config: GrapherConfigInterface) {
+export function canBeExplorable(config: GrapherInterface) {
     return (
         // Only allow explorable charts if the "EXPLORER" flag in .env is true
         EXPLORER &&
@@ -96,7 +96,7 @@ export function canBeExplorable(config: GrapherConfigInterface) {
     )
 }
 
-export function isExplorable(config: GrapherConfigInterface): boolean {
+export function isExplorable(config: GrapherInterface): boolean {
     return (
         (config.isExplorable ||
             (config.id !== undefined &&

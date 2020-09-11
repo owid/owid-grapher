@@ -17,7 +17,7 @@ import {
 } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
-import { PersistableAxisConfig } from "./AxisConfig"
+import { AxisConfig } from "./AxisConfig"
 
 interface Tickmark {
     value: number
@@ -33,7 +33,7 @@ declare type TickFormatFunction = (
 ) => string
 
 abstract class AbstractAxis implements ScaleTypeConfig {
-    protected options: PersistableAxisConfig
+    protected options: AxisConfig
     @observable.ref domain: [number, number]
     @observable tickFormatFn: TickFormatFunction = (d) => `${d}`
     @observable hideFractionalTicks = false
@@ -57,7 +57,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         return this.options.fontSize
     }
 
-    constructor(options: PersistableAxisConfig) {
+    constructor(options: AxisConfig) {
         this.options = options
         this.domain = [options.domain[0], options.domain[1]]
     }

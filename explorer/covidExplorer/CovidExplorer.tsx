@@ -3,7 +3,7 @@ import classnames from "classnames"
 import ReactDOM from "react-dom"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
@@ -78,7 +78,7 @@ import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import {
     ChartDimension,
-    ChartDimensionConfigInterface,
+    ChartDimensionInterface,
 } from "grapher/chart/ChartDimension"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import { UrlBinder } from "grapher/utils/UrlBinder"
@@ -797,7 +797,7 @@ export class CovidExplorer extends React.Component<{
 
         grapher.yAxis.min = params.intervalChange ? undefined : 0
 
-        grapher.setDimensions(this.dimensionSpecs)
+        grapher.setDimensionsFromConfigs(this.dimensionSpecs)
 
         // multimetric table
         if (this.constrainedParams.tableMetrics) {
@@ -841,7 +841,7 @@ export class CovidExplorer extends React.Component<{
         return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
     }
 
-    @computed get sourceChart(): GrapherConfigInterface | undefined {
+    @computed get sourceChart(): GrapherInterface | undefined {
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
@@ -1174,11 +1174,11 @@ export class CovidExplorer extends React.Component<{
                     "%",
                 tableDisplay: column?.display.tableDisplay,
             },
-        } as ChartDimensionConfigInterface
+        } as ChartDimensionInterface
     }
 
     @computed
-    private get dataTableOnlyDimensions(): ChartDimensionConfigInterface[] {
+    private get dataTableOnlyDimensions(): ChartDimensionInterface[] {
         const params = this.constrainedParams
         return flatten(
             params.tableMetrics?.map((metric) => {
@@ -1239,7 +1239,7 @@ export class CovidExplorer extends React.Component<{
         )
     }
 
-    @computed private get yDimension(): ChartDimensionConfigInterface {
+    @computed private get yDimension(): ChartDimensionInterface {
         const yColumn = this.yColumn
         const unit = this.constrainedParams.isWeeklyOrBiweeklyChange
             ? "%"
@@ -1259,7 +1259,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get xDimension(): ChartDimensionConfigInterface {
+    @computed private get xDimension(): ChartDimensionInterface {
         const xColumn = this.xColumn!
         return {
             property: "x",
@@ -1271,7 +1271,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get dimensionSpecs(): ChartDimensionConfigInterface[] {
+    @computed private get dimensionSpecs(): ChartDimensionInterface[] {
         if (this.constrainedParams.type !== "ScatterPlot")
             return [this.yDimension]
 
@@ -1283,7 +1283,7 @@ export class CovidExplorer extends React.Component<{
         return dimensions
     }
 
-    @computed private get sizeDimension(): ChartDimensionConfigInterface {
+    @computed private get sizeDimension(): ChartDimensionInterface {
         return {
             property: "size",
             variableId: this.sizeColumn!.spec.owidVariableId!,
@@ -1291,7 +1291,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     private shortTermPositivityRateVarId: number = 0
-    @computed private get colorDimension(): ChartDimensionConfigInterface {
+    @computed private get colorDimension(): ChartDimensionInterface {
         const variableId =
             this.constrainedParams.colorStrategy === "continents"
                 ? 123

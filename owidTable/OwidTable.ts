@@ -3,7 +3,7 @@ import {
     LegacyVariableDisplayConfigInterface,
     LegacyEntityMeta,
     LegacyVariablesAndEntityKey,
-    PersistableLegacyVariableDisplaySettings,
+    LegacyVariableDisplayConfig,
 } from "./LegacyVariableCode"
 import {
     slugifySameCase,
@@ -154,9 +154,7 @@ export abstract class AbstractColumn {
     }
 
     @computed get display() {
-        return (
-            this.spec.display || new PersistableLegacyVariableDisplaySettings()
-        )
+        return this.spec.display || new LegacyVariableDisplayConfig()
     }
 
     @computed get coverage() {

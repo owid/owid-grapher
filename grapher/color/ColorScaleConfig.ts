@@ -8,7 +8,7 @@ import {
 } from "grapher/persistable/Persistable"
 import { extend } from "grapher/utils/Util"
 
-class ColorScaleConfig {
+class ColorScaleConfigDefaults {
     // Color scheme
     // ============
 
@@ -74,10 +74,10 @@ class ColorScaleConfig {
     @observable legendDescription?: string = undefined
 }
 
-export type ColorScaleConfigInterface = ColorScaleConfig
+export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 
-export class PersistableColorScaleConfig
-    extends ColorScaleConfig
+export class ColorScaleConfig
+    extends ColorScaleConfigDefaults
     implements Persistable {
     updateFromObject(obj: any) {
         extend(this, obj)

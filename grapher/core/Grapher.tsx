@@ -41,6 +41,12 @@ import {
     ScaleType,
     StackMode,
     DimensionProperty,
+    ChartTypeName,
+    AddCountryMode,
+    HighlightToggleConfig,
+    ScatterPointLabelStrategy,
+    RelatedQuestionsConfig,
+    EntitySelection,
 } from "grapher/core/GrapherConstants"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { OwidTable } from "owidTable/OwidTable"
@@ -49,7 +55,7 @@ import {
     EntityDimensionInfo,
     ChartDimension,
     SourceWithDimension,
-    ChartDimensionConfigInterface,
+    ChartDimensionInterface,
 } from "grapher/chart/ChartDimension"
 import { MapTransform } from "grapher/mapCharts/MapTransform"
 import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
@@ -71,6 +77,10 @@ import {
     TimeBoundValue,
     getTimeDomainFromQueryString,
     parseTimeURIComponent,
+    TimeBound,
+    Time,
+    minTimeToJSON,
+    maxTimeToJSON,
 } from "grapher/utils/TimeBounds"
 import {
     GlobalEntitySelection,
@@ -80,19 +90,89 @@ import { countries } from "utils/countries"
 import { DataTableTransform } from "grapher/dataTable/DataTableTransform"
 import { getWindowQueryParams, strToQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
-import {
-    GrapherConfigInterface,
-    PersistableGrapher,
-} from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
+import { LogoOption } from "grapher/chart/Logos"
+import { AxisConfig } from "grapher/axis/AxisConfig"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
+import { MapConfig } from "grapher/mapCharts/MapConfig"
+import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
+import {
+    objectWithPersistablesToObject,
+    deleteRuntimeAndUnchangedProps,
+    updatePersistables,
+} from "grapher/persistable/Persistable"
 
 declare const window: any
 
-export class Grapher extends PersistableGrapher {
+class GrapherDefaults implements GrapherInterface {
+    @observable.ref type: ChartTypeName = "LineChart"
+    @observable.ref isExplorable: boolean = false
+    @observable.ref id?: number = undefined
+    @observable.ref version: number = 1
+    @observable.ref slug?: string = undefined
+    @observable.ref title?: string = undefined
+    @observable.ref subtitle: string = ""
+    @observable.ref sourceDesc?: string = undefined
+    @observable.ref note: string = ""
+    @observable.ref hideTitleAnnotation?: true = undefined
+    @observable.ref minTime?: TimeBound = undefined
+    @observable.ref maxTime?: TimeBound = undefined
+    @observable.ref timelineMinTime?: Time = undefined
+    @observable.ref timelineMaxTime?: Time = undefined
+    @observable.ref addCountryMode: AddCountryMode = "add-country"
+    @observable.ref highlightToggle?: HighlightToggleConfig = undefined
+    @observable.ref stackMode: StackMode = "absolute"
+    @observable.ref hideLegend?: true = undefined
+    @observable.ref logo?: LogoOption = undefined
+    @observable.ref hideLogo?: boolean = undefined
+    @observable.ref hideRelativeToggle?: boolean = true
+    @observable.ref entityType: string = "country"
+    @observable.ref entityTypePlural: string = "countries"
+    @observable.ref hideTimeline?: true = undefined
+    @observable.ref zoomToSelection?: true = undefined
+    @observable.ref minPopulationFilter?: number = undefined
+    @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
+    @observable.ref hasChartTab: boolean = true
+    @observable.ref hasMapTab: boolean = false
+    @observable.ref tab: GrapherTabOption = "chart"
+    @observable.ref overlay?: GrapherTabOption = undefined
+    @observable.ref internalNotes: string = ""
+    @observable.ref variantName?: string = undefined
+    @observable.ref originUrl: string = ""
+    @observable.ref isPublished?: true = undefined
+    @observable.ref baseColorScheme?: string = undefined
+    @observable.ref invertColorScheme?: true = undefined
+    @observable.ref hideLinesOutsideTolerance?: true = undefined
+    @observable hideConnectedScatterLines?: boolean = undefined // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
+    @observable
+    scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
+    @observable.ref compareEndPointsOnly?: true = undefined
+    @observable.ref matchingEntitiesOnly?: true = undefined
+
+    @observable.ref xAxis = new AxisConfig()
+    @observable.ref yAxis = new AxisConfig()
+    @observable colorScale = new ColorScaleConfig()
+    @observable map = new MapConfig()
+    @observable.ref dimensions: ChartDimension[] = []
+
+    @observable excludedEntities?: number[] = undefined
+    @observable.ref selectedData: EntitySelection[] = [] // todo: Persistables?
+    @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
+    @observable relatedQuestions?: RelatedQuestionsConfig[] // todo: Persistables?
+
+    externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
+    owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
+    manuallyProvideData?: boolean = false // This will be removed.
+}
+
+const defaultObject = objectWithPersistablesToObject(new GrapherDefaults())
+
+export class Grapher extends GrapherDefaults {
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
@@ -100,11 +180,11 @@ export class Grapher extends PersistableGrapher {
     isEditor: Readonly<boolean> = (window as any).isEditor === true
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
-    configOnLoad: Readonly<GrapherConfigInterface>
+    configOnLoad: Readonly<GrapherInterface>
     @observable.ref table: OwidTable
 
     constructor(
-        config?: GrapherConfigInterface,
+        config?: GrapherInterface,
         options: {
             isEmbed?: boolean
             isMediaCard?: boolean
@@ -112,13 +192,14 @@ export class Grapher extends PersistableGrapher {
             globalEntitySelection?: GlobalEntitySelection
         } = {}
     ) {
-        super(config)
+        super()
+        this.table = new OwidTable([])
+        this.updateFromObject(config)
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
 
         this.initFontSizeInAxisContainers()
 
-        this.table = new OwidTable([])
         if (this.owidDataset) this._receiveData(this.owidDataset)
         else if (this.externalDataUrl)
             this.downloadDataFromUrl(this.externalDataUrl)
@@ -158,24 +239,44 @@ export class Grapher extends PersistableGrapher {
             )
         }
 
-        if (this.isEditor) this.ensureValidConfig()
-
-        this._initDimensions(config)
+        if (this.isEditor) this.ensureValidConfigWhenEditing()
     }
 
-    @action.bound private _initDimensions(config?: GrapherConfigInterface) {
-        // Todo: remove once we are more RAII.
-        if (config?.dimensions?.length)
-            this.dimensions = config.dimensions.map(
-                (spec) => new ChartDimension(spec, this.table)
-            )
+    toObject() {
+        const obj: GrapherInterface = objectWithPersistablesToObject(this)
+
+        // Never save the followingto the DB.
+        delete obj.externalDataUrl
+        delete obj.owidDataset
+        delete obj.manuallyProvideData
+
+        // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
+        // in the Grapher Admin with an overlay tab open
+        delete obj.overlay
+
+        deleteRuntimeAndUnchangedProps(obj, defaultObject)
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
+        if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+
+        return obj
     }
 
-    @action.bound updateFromObject(obj: GrapherConfigInterface) {
-        super.updateFromObject(obj)
+    @action.bound updateFromObject(obj?: GrapherInterface) {
+        if (!obj) return
+        updatePersistables(this, obj)
+
+        // Regression fix: some legacies have this set to Null. Todo: clean DB.
+        if (obj.originUrl === null) this.originUrl = ""
+
+        // JSON doesn't support Infinity, so we use strings instead.
+        if (obj.minTime) this.minTime = minTimeFromJSON(obj.minTime)
+        if (obj.maxTime) this.maxTime = maxTimeFromJSON(obj.maxTime)
 
         // Todo: remove once we are more RAII.
-        if (this.table) this._initDimensions(obj)
+        if (obj?.dimensions?.length)
+            this.setDimensionsFromConfigs(obj.dimensions)
     }
 
     /**
@@ -337,7 +438,9 @@ export class Grapher extends PersistableGrapher {
                 `/api/data/variables/${this.dataFileName}`
             )
             this._receiveData(json)
-        } else await this.downloadDataFromUrl(this.dataUrl)
+        } else {
+            await this.downloadDataFromUrl(this.dataUrl)
+        }
     }
 
     // Provide a way to insert an arbitrary element into the embed popup.
@@ -352,7 +455,8 @@ export class Grapher extends PersistableGrapher {
 
     @action.bound private _receiveData(json: LegacyVariablesAndEntityKey) {
         this.table.loadFromLegacy(json)
-        this.updatePopulationFilter()
+        console.log("received data")
+        this.updatePopulationFilter() // todo: remove
     }
 
     // todo: refactor
@@ -532,7 +636,7 @@ export class Grapher extends PersistableGrapher {
 
     // todo: can we remove this?
     // I believe these states can only occur during editing.
-    @action.bound ensureValidConfig() {
+    @action.bound private ensureValidConfigWhenEditing() {
         const disposers = [
             autorun(() => {
                 if (!this.availableTabs.includes(this.tab)) {
@@ -540,12 +644,32 @@ export class Grapher extends PersistableGrapher {
                 }
             }),
             autorun(() => {
-                if (!isEqual(this.dimensions, this.validDimensions)) {
-                    this.dimensions = this.validDimensions
-                }
+                const validDimensions = this.validDimensions
+                if (!isEqual(this.dimensions, validDimensions))
+                    this.dimensions = validDimensions
             }),
         ]
         this.disposers.push(...disposers)
+    }
+
+    @computed private get validDimensions() {
+        const { dimensions } = this
+        const validProperties = this.dimensionSlots.map((d) => d.property)
+        let validDimensions = dimensions.filter((dim) =>
+            validProperties.includes(dim.property)
+        )
+
+        this.dimensionSlots.forEach((slot) => {
+            if (!slot.allowMultiple)
+                validDimensions = uniqWith(
+                    validDimensions,
+                    (a: ChartDimensionInterface, b: ChartDimensionInterface) =>
+                        a.property === slot.property &&
+                        a.property === b.property
+                )
+        })
+
+        return validDimensions
     }
 
     // Only true if isExplorable is true and chart meets certain criteria
@@ -628,30 +752,7 @@ export class Grapher extends PersistableGrapher {
         if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isTimeScatter) return [yAxis, xAxis]
         else if (this.isSlopeChart) return [yAxis, size, color]
-        else return [yAxis]
-    }
-
-    @computed get validDimensions() {
-        const { dimensions } = this
-        const validProperties = this.dimensionSlots.map((d) => d.property)
-        let validDimensions = dimensions.filter((dim) =>
-            validProperties.includes(dim.property)
-        )
-
-        this.dimensionSlots.forEach((slot) => {
-            if (!slot.allowMultiple)
-                validDimensions = uniqWith(
-                    validDimensions,
-                    (
-                        a: ChartDimensionConfigInterface,
-                        b: ChartDimensionConfigInterface
-                    ) =>
-                        a.property === slot.property &&
-                        a.property === b.property
-                )
-        })
-
-        return validDimensions
+        return [yAxis]
     }
 
     @observable dataTableOnlyDimensions: ChartDimension[] = []
@@ -664,13 +765,13 @@ export class Grapher extends PersistableGrapher {
         return this.isReady ? this.dimensions : []
     }
 
-    @action.bound addDimension(config: ChartDimensionConfigInterface) {
+    @action.bound addDimension(config: ChartDimensionInterface) {
         this.dimensions.push(new ChartDimension(config, this.table))
     }
 
     @action.bound setDimensionsForProperty(
         property: DimensionProperty,
-        newConfigs: ChartDimensionConfigInterface[]
+        newConfigs: ChartDimensionInterface[]
     ) {
         let newDimensions: ChartDimension[] = []
         this.dimensionSlots.forEach((slot) => {
@@ -685,7 +786,7 @@ export class Grapher extends PersistableGrapher {
         this.dimensions = newDimensions
     }
 
-    @action.bound setDimensions(configs: ChartDimensionConfigInterface[]) {
+    @action.bound setDimensionsFromConfigs(configs: ChartDimensionInterface[]) {
         this.dimensions = configs.map(
             (config) => new ChartDimension(config, this.table)
         )

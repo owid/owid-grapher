@@ -14,7 +14,7 @@ import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import {
     LegacyVariableConfig,
-    PersistableLegacyVariableDisplaySettings,
+    LegacyVariableDisplayConfig,
 } from "owidTable/LegacyVariableCode"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
@@ -22,7 +22,7 @@ import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 interface VariablePageData extends Omit<LegacyVariableConfig, "source"> {
     datasetNamespace: string
@@ -36,7 +36,7 @@ class VariableEditable implements Omit<LegacyVariableConfig, "id"> {
     @observable shortUnit = ""
     @observable description = ""
     @observable entityAnnotationsMap = ""
-    @observable display = new PersistableLegacyVariableDisplaySettings()
+    @observable display = new LegacyVariableDisplayConfig()
 
     constructor(json: any) {
         for (const key in this) {
@@ -279,7 +279,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         }
     }
 
-    @computed private get grapherConfig(): GrapherConfigInterface {
+    @computed private get grapherConfig(): GrapherInterface {
         return {
             yAxis: { min: 0 },
             map: { columnSlug: this.props.variable.id.toString() },
@@ -298,6 +298,7 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     dispose!: IReactionDisposer
     componentDidMount() {
         this.grapher = new Grapher(this.grapherConfig)
+        ;(window as any).grapher = this.grapher
 
         this.dispose = autorun(() => {
             if (this.grapher && this.grapherConfig) {

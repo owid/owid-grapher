@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
-import { PersistableAxisConfig } from "grapher/axis/AxisConfig"
+import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ScaleType } from "grapher/core/GrapherConstants"
 
 describe("basics", () => {
     it("can create an axis, clone and modify the clone without affecting the original", () => {
-        const axis = new PersistableAxisConfig({ scaleType: ScaleType.linear })
+        const axis = new AxisConfig({ scaleType: ScaleType.linear })
         expect(axis.scaleType).toEqual(ScaleType.linear)
 
         const clone = axis.toVerticalAxis()
@@ -15,7 +15,7 @@ describe("basics", () => {
     })
 
     it("can expand the domain beyond the user's settings and not shrink it", () => {
-        const axis = new PersistableAxisConfig({
+        const axis = new AxisConfig({
             min: 0,
             max: 100,
             scaleType: ScaleType.linear,

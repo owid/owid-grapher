@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "grapher/utils/TimeBounds"
 import { setupGrapher } from "grapher/test/utils"
 import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
@@ -9,14 +9,14 @@ import { ScaleType } from "./GrapherConstants"
 
 function fromQueryParams(
     params: GrapherQueryParams,
-    props?: Partial<GrapherConfigInterface>
+    props?: Partial<GrapherInterface>
 ) {
     const grapher = new Grapher(props)
     grapher.populateFromQueryParams(params)
     return grapher
 }
 
-function toQueryParams(props?: Partial<GrapherConfigInterface>) {
+function toQueryParams(props?: Partial<GrapherInterface>) {
     const grapher = new Grapher({
         minTime: -5000,
         maxTime: 5000,
@@ -32,7 +32,7 @@ describe(GrapherUrl, () => {
         expect(
             new Grapher({
                 xAxis: { scaleType: ScaleType.linear },
-            } as GrapherConfigInterface).url.params.xScale
+            } as GrapherInterface).url.params.xScale
         ).toEqual(undefined)
     })
 

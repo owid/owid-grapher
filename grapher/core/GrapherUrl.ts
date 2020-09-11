@@ -14,7 +14,7 @@ import { queryParamsToStr, QueryParams } from "utils/client/url"
 import { ObservableUrl } from "grapher/utils/UrlBinder"
 import { formatTimeURIComponent } from "grapher/utils/TimeBounds"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { GrapherConfigInterface } from "./GrapherConfig"
+import { GrapherInterface } from "./GrapherInterface"
 
 export interface GrapherQueryParams extends QueryParams {
     tab?: string
@@ -36,12 +36,12 @@ export interface GrapherQueryParams extends QueryParams {
 export class GrapherUrl implements ObservableUrl {
     private grapher: Grapher
     debounceMode: boolean = false
-    private originalConfig: GrapherConfigInterface
+    private originalConfig: GrapherInterface
     private urlRoot: string
 
     constructor(
         grapher: Grapher,
-        originalConfig?: GrapherConfigInterface,
+        originalConfig?: GrapherInterface,
         urlRoot = "/grapher"
     ) {
         this.grapher = grapher

@@ -25,7 +25,7 @@ class DimensionSlotView extends React.Component<{
     @action.bound private onAddVariables(variableIds: LegacyVariableId[]) {
         const { slot } = this.props
 
-        const dimensions = variableIds.map((id) => {
+        const dimensionConfigs = variableIds.map((id) => {
             const existingDimension = slot.dimensions.find(
                 (d) => d.variableId === id
             )
@@ -39,7 +39,7 @@ class DimensionSlotView extends React.Component<{
 
         this.props.editor.grapher.setDimensionsForProperty(
             slot.property,
-            dimensions
+            dimensionConfigs
         )
 
         this.isSelectingVariables = false

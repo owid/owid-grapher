@@ -19,9 +19,21 @@ interface AxisContainerInterface {
     fontSize: number
 }
 
-export class PersistableAxisConfig implements AxisConfigInterface, Persistable {
+class AxisConfigDefaults {
+    @observable.ref min?: number = undefined
+    @observable.ref max?: number = undefined
+    @observable.ref scaleType?: ScaleType = undefined
+    @observable.ref canChangeScaleType?: true = undefined
+    @observable label: string = ""
+    @observable.ref removePointsOutsideDomain?: true = undefined
+}
+
+export class AxisConfig
+    extends AxisConfigDefaults
+    implements AxisConfigInterface, Persistable {
     // todo: test/refactor
     constructor(props?: AxisConfigInterface) {
+        super()
         this.updateFromObject(props)
     }
 
@@ -45,12 +57,6 @@ export class PersistableAxisConfig implements AxisConfigInterface, Persistable {
         this.containerOptions = containerOptions
     }
 
-    @observable.ref min?: number = undefined
-    @observable.ref max?: number = undefined
-    @observable.ref scaleType?: ScaleType = undefined
-    @observable.ref canChangeScaleType?: true = undefined
-    @observable label: string = ""
-    @observable.ref removePointsOutsideDomain?: true = undefined
     @observable.ref private containerOptions: AxisContainerInterface = {
         fontSize: 16,
     }

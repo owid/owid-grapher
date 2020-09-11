@@ -20,7 +20,7 @@ import { Time } from "grapher/utils/TimeBounds"
 
 import {
     LegacyVariableDisplayConfigInterface,
-    PersistableLegacyVariableDisplaySettings,
+    LegacyVariableDisplayConfig,
 } from "owidTable/LegacyVariableCode"
 import {
     OwidSource,
@@ -40,7 +40,7 @@ export interface SourceWithDimension {
     dimension: ChartDimension
 }
 
-export interface ChartDimensionConfigInterface {
+export interface ChartDimensionInterface {
     property: DimensionProperty
     variableId: LegacyVariableId
     targetYear?: Time
@@ -60,23 +60,30 @@ export interface EntityDimensionInfo {
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
-class PersistableChartDimensionConfig
-    implements ChartDimensionConfigInterface, Persistable {
+class ChartDimensionDefaults implements ChartDimensionInterface {
     @observable property!: DimensionProperty
     @observable variableId!: LegacyVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable display = new PersistableLegacyVariableDisplaySettings() // todo: make persistable
+    @observable display = new LegacyVariableDisplayConfig() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: Time = undefined
+}
 
-    constructor(obj?: ChartDimensionConfigInterface) {
+export class ChartDimension
+    extends ChartDimensionDefaults
+    implements Persistable {
+    @observable.ref private table: OwidTable
+
+    constructor(obj: ChartDimensionInterface, table: OwidTable) {
+        super()
+        this.table = table
         if (obj) this.updateFromObject(obj)
     }
 
-    updateFromObject(obj: ChartDimensionConfigInterface) {
+    updateFromObject(obj: ChartDimensionInterface) {
         updatePersistables(this, obj)
 
         this.targetYear = obj.targetYear
@@ -84,22 +91,13 @@ class PersistableChartDimensionConfig
         this.property = obj.property
     }
 
-    toObject(): ChartDimensionConfigInterface {
+    toObject(): ChartDimensionInterface {
         return trimObject(
             deleteRuntimeAndUnchangedProps(
                 objectWithPersistablesToObject(this),
-                new PersistableChartDimensionConfig()
+                new ChartDimensionDefaults()
             )
         )
-    }
-}
-
-export class ChartDimension extends PersistableChartDimensionConfig {
-    @observable.ref private table: OwidTable
-
-    constructor(obj: ChartDimensionConfigInterface, table: OwidTable) {
-        super(obj)
-        this.table = table
     }
 
     @computed get column() {
