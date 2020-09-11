@@ -12,7 +12,10 @@ import { Prompt, Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
 import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
-import { LegacyVariableDisplaySettings } from "owidTable/LegacyVariableCode"
+import {
+    LegacyVariableConfig,
+    PersistableLegacyVariableDisplaySettings,
+} from "owidTable/LegacyVariableCode"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
@@ -21,30 +24,19 @@ import { Base64 } from "js-base64"
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
 import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 
-interface VariablePageData {
-    id: number
-    name: string
-    unit: string
-    shortUnit: string
-    description: string
-    display: LegacyVariableDisplaySettings
-
-    datasetId: number
-    datasetName: string
+interface VariablePageData extends Omit<LegacyVariableConfig, "source"> {
     datasetNamespace: string
-
     charts: ChartListItem[]
     source: { id: number; name: string }
 }
 
-class VariableEditable {
-    @observable name: string = ""
-    @observable unit: string = ""
-    @observable shortUnit: string = ""
-    @observable description: string = ""
-    @observable entityAnnotationsMap: string = ""
-    @observable
-    display = new LegacyVariableDisplaySettings()
+class VariableEditable implements Omit<LegacyVariableConfig, "id"> {
+    @observable name = ""
+    @observable unit = ""
+    @observable shortUnit = ""
+    @observable description = ""
+    @observable entityAnnotationsMap = ""
+    @observable display = new PersistableLegacyVariableDisplaySettings()
 
     constructor(json: any) {
         for (const key in this) {

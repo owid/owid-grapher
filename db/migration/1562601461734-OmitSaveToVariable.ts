@@ -5,8 +5,8 @@ import * as lodash from "lodash"
 function omitSaveToVariable(
     config: GrapherConfigInterface
 ): GrapherConfigInterface {
-    const newConfig = lodash.clone(config)
-    newConfig.dimensions = newConfig.dimensions?.map((dim) => {
+    const newConfig = lodash.clone(config) as any
+    newConfig.dimensions = newConfig.dimensions?.map((dim: any) => {
         return lodash.omit(dim, ["saveToVariable"])
     })
     return newConfig

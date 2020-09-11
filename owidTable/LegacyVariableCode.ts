@@ -2,13 +2,19 @@
 
 import { observable } from "mobx"
 import { OwidSource } from "./OwidTableConstants"
+import {
+    Persistable,
+    updatePersistables,
+    objectWithPersistablesToObject,
+    deleteRuntimeAndUnchangedProps,
+} from "grapher/persistable/Persistable"
 
-export class LegacyVariableTableDisplaySettings {
+class LegacyVariableTableDisplaySettings {
     @observable hideAbsoluteChange: boolean = false
     @observable hideRelativeChange: boolean = false
 }
 
-export class LegacyVariableDisplaySettings {
+class LegacyVariableDisplaySettings {
     @observable name?: string = undefined
     @observable unit?: string = undefined
     @observable shortUnit?: string = undefined
@@ -23,12 +29,34 @@ export class LegacyVariableDisplaySettings {
     @observable tableDisplay?: LegacyVariableTableDisplaySettings
 }
 
+export type LegacyVariableDisplayConfigInterface = LegacyVariableDisplaySettings
+
+export class PersistableLegacyVariableDisplaySettings
+    extends LegacyVariableDisplaySettings
+    implements Persistable {
+    updateFromObject(obj?: Partial<LegacyVariableDisplayConfigInterface>) {
+        if (obj) updatePersistables(this, obj)
+    }
+
+    toObject() {
+        return deleteRuntimeAndUnchangedProps(
+            objectWithPersistablesToObject(this),
+            new LegacyVariableDisplaySettings()
+        )
+    }
+
+    constructor(obj?: Partial<LegacyVariableDisplayConfigInterface>) {
+        super()
+        if (obj) this.updateFromObject(obj)
+    }
+}
+
 export interface LegacyVariableConfig {
     id: number
     name?: string
     description?: string
     unit?: string
-    display?: LegacyVariableDisplaySettings
+    display?: LegacyVariableDisplayConfigInterface
     shortUnit?: string
     datasetName?: string
     datasetId?: string

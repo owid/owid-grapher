@@ -1,8 +1,9 @@
 import {
     LegacyVariableConfig,
-    LegacyVariableDisplaySettings,
+    LegacyVariableDisplayConfigInterface,
     LegacyEntityMeta,
     LegacyVariablesAndEntityKey,
+    PersistableLegacyVariableDisplaySettings,
 } from "./LegacyVariableCode"
 import {
     slugifySameCase,
@@ -54,7 +55,7 @@ export interface ColumnSpec {
     datasetId?: string
     datasetName?: string
     source?: OwidSource
-    display?: LegacyVariableDisplaySettings
+    display?: LegacyVariableDisplayConfigInterface
 
     // More advanced options:
     annotationsColumnSlug?: ColumnSlug
@@ -153,7 +154,9 @@ export abstract class AbstractColumn {
     }
 
     @computed get display() {
-        return this.spec.display || new LegacyVariableDisplaySettings()
+        return (
+            this.spec.display || new PersistableLegacyVariableDisplaySettings()
+        )
     }
 
     @computed get coverage() {
@@ -300,6 +303,8 @@ export abstract class AbstractColumn {
     }
 }
 
+export class LoadingColumn extends AbstractColumn {} // Todo: remove. A placeholder for now. Represents a column that has not loaded yet
+
 class AnyColumn extends AbstractColumn {}
 class StringColumn extends AbstractColumn {}
 abstract class TemporalColumn extends AbstractColumn {}
@@ -338,7 +343,7 @@ class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
 export class NumericColumn extends AbstractColumn {
     formatValueShort(value: any) {
-        const numDecimalPlaces = this.display?.numDecimalPlaces
+        const numDecimalPlaces = this.display.numDecimalPlaces
         return formatValue(value, {
             unit: this.shortUnit,
             numDecimalPlaces,

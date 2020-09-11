@@ -10,7 +10,6 @@ import {
 } from "grapher/utils/Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { ChartDimension } from "grapher/chart/ChartDimension"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { Time } from "grapher/utils/TimeBounds"
 import { ColorScale } from "grapher/color/ColorScale"
@@ -30,10 +29,10 @@ export class StackedBarTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get primaryDimension(): ChartDimension | undefined {
+    @computed get primaryDimension() {
         return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
-    @computed get colorDimension(): ChartDimension | undefined {
+    @computed get colorDimension() {
         return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 

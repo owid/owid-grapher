@@ -32,25 +32,25 @@ function bakeCache<T>(cacheKey: any, retriever: () => T): T {
 
 // Find the charts that will be shown on the country profile page (if they have that country)
 // TODO: make this page per variable instead
-async function countryIndicatorCharts(): Promise<GrapherConfigInterface[]> {
-    return bakeCache(countryIndicatorCharts, async () => {
-        const charts = (
+async function countryIndicatorGraphers(): Promise<GrapherConfigInterface[]> {
+    return bakeCache(countryIndicatorGraphers, async () => {
+        const graphers = (
             await db
                 .table("charts")
                 .whereRaw("publishedAt is not null and is_indexable is true")
         ).map((c: any) => JSON.parse(c.config)) as GrapherConfigInterface[]
-        return charts.filter(
-            (c) =>
-                c.hasChartTab &&
-                c.type === "LineChart" &&
-                c.dimensions?.length === 1
+        return graphers.filter(
+            (grapher) =>
+                grapher.hasChartTab &&
+                grapher.type === "LineChart" &&
+                grapher.dimensions?.length === 1
         )
     })
 }
 
 async function countryIndicatorVariables(): Promise<Variable.Row[]> {
     return bakeCache(countryIndicatorVariables, async () => {
-        const variableIds = (await countryIndicatorCharts()).map(
+        const variableIds = (await countryIndicatorGraphers()).map(
             (c) => c.dimensions![0]!.variableId
         )
         return Variable.rows(
@@ -173,7 +173,7 @@ export async function countryProfilePage(countrySlug: string) {
         throw new JsonError(`No such country ${countrySlug}`, 404)
     }
 
-    const charts = await countryIndicatorCharts()
+    const graphers = await countryIndicatorGraphers()
     const variables = await countryIndicatorVariables()
     const variablesById = lodash.keyBy(variables, (v) => v.id)
     const dataValues = await countryIndicatorLatestData(country.code)
@@ -181,8 +181,8 @@ export async function countryProfilePage(countrySlug: string) {
     const valuesByVariableId = lodash.groupBy(dataValues, (v) => v.variableId)
 
     let indicators: CountryProfileIndicator[] = []
-    for (const c of charts) {
-        const firstDimension = c.dimensions![0]
+    for (const grapher of graphers) {
+        const firstDimension = grapher.dimensions![0]
         const vid = firstDimension && firstDimension.variableId
         const values = valuesByVariableId[vid]
 
@@ -193,15 +193,12 @@ export async function countryProfilePage(countrySlug: string) {
             // todo: this is a lot of setup to get formatValueShort. Maybe cleanup?
             const spec = new Map()
             spec.set(variable.name, {
+                owidVariableId: vid,
                 unit: variable.unit,
                 display: variable.display,
             })
-            const column = new OwidTable([], spec)
-            const dim = new ChartDimension(
-                firstDimension,
-                0,
-                column.columnsBySlug.get(variable.name)!
-            )
+            const table = new OwidTable([], spec)
+            const dim = new ChartDimension(firstDimension, table)
 
             const formatValueShort = dim.formatValueShortFn
 
@@ -216,9 +213,9 @@ export async function countryProfilePage(countrySlug: string) {
             indicators.push({
                 year: latestValue.year,
                 value: formatValueShort(value),
-                name: c.title as string,
-                slug: `/grapher/${c.slug}?tab=chart&country=${country.code}`,
-                variantName: c.variantName,
+                name: grapher.title as string,
+                slug: `/grapher/${grapher.slug}?tab=chart&country=${country.code}`,
+                variantName: grapher.variantName,
             })
         }
     }

@@ -399,7 +399,7 @@ describe("anyToString", () => {
 describe(trimObject, () => {
     it("trims an object", () => {
         expect(trimObject({ foo: undefined })).toEqual({})
-
+        expect(trimObject({ foo: {} })).toEqual({})
         expect(trimObject({ foo: undefined, bar: 1 })).toEqual({ bar: 1 })
     })
 })

@@ -1,7 +1,6 @@
 import { GrapherConfigInterface } from "grapher/core/GrapherConfig"
 import { parseDelimited } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
-import { PersistableChartDimension } from "grapher/chart/ChartDimension"
 
 // Todo: improve ChartScript to ditch selectedData and owidVariableId.
 export function basicGdpGrapher() {
@@ -40,14 +39,11 @@ Germany,2003,120,1,256`) as any
 
 export const basicScatterGrapher = () => {
     const grapher = basicGdpGrapher()
-    const script = grapher
-    script.type = "ScatterPlot"
+    grapher.type = "ScatterPlot"
     grapher.yAxis.min = 0
     grapher.yAxis.max = 500
     grapher.xAxis.min = 0
     grapher.xAxis.max = 500
-    script.dimensions.push(
-        new PersistableChartDimension({ variableId: 100, property: "x" })
-    )
+    grapher.addDimension({ variableId: 100, property: "x" })
     return grapher
 }

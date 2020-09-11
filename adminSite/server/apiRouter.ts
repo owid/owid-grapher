@@ -166,17 +166,6 @@ async function expectChartById(chartId: any): Promise<GrapherConfigInterface> {
     }
 }
 
-function omitSaveToVariable(
-    config: GrapherConfigInterface
-): GrapherConfigInterface {
-    const newConfig = lodash.clone(config)
-    if (newConfig.dimensions)
-        newConfig.dimensions = newConfig.dimensions.map((dim) =>
-            lodash.omit(dim, ["saveToVariable"])
-        )
-    return newConfig
-}
-
 async function saveGrapher(
     user: CurrentUser,
     newConfig: GrapherConfigInterface,
@@ -243,11 +232,7 @@ async function saveGrapher(
         // Execute the actual database update or creation
         const now = new Date()
         let chartId = existingConfig && existingConfig.id
-
-        // We shouldn't store the 'saveToVariable' setting in the database.
-        // It is a one-off setting to apply the settings to the variable, it
-        // should not be ticked after a refresh.
-        const newJsonConfig = JSON.stringify(omitSaveToVariable(newConfig))
+        const newJsonConfig = JSON.stringify(newConfig)
 
         if (existingConfig) {
             await t.query(
@@ -300,26 +285,6 @@ async function saveGrapher(
                 `INSERT INTO chart_dimensions (chartId, variableId, property, \`order\`) VALUES (?)`,
                 [[chartId, dim.variableId, dim.property, i]]
             )
-
-            if (dim.saveToVariable) {
-                const display = JSON.parse(
-                    (
-                        await t.query(
-                            `SELECT display FROM variables WHERE id=?`,
-                            [dim.variableId]
-                        )
-                    )[0].display
-                )
-
-                for (const key in dim.display) {
-                    display[key] = (dim.display as any)[key]
-                }
-
-                await t.execute(`UPDATE variables SET display=? WHERE id=?`, [
-                    JSON.stringify(display),
-                    dim.variableId,
-                ])
-            }
         }
 
         // So we can generate country profiles including this chart data

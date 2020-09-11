@@ -1,11 +1,11 @@
 import { Grapher } from "grapher/core/Grapher"
-import { dimensionProperty, PersistableChartDimension } from "./ChartDimension"
 import { computed } from "mobx"
+import { DimensionProperty } from "grapher/core/GrapherConstants"
 
 export class DimensionSlot {
-    grapher: Grapher
-    property: dimensionProperty
-    constructor(grapher: Grapher, property: dimensionProperty) {
+    private grapher: Grapher
+    property: DimensionProperty
+    constructor(grapher: Grapher, property: DimensionProperty) {
         this.grapher = grapher
         this.property = property
     }
@@ -43,26 +43,9 @@ export class DimensionSlot {
         )
     }
 
-    set dimensions(dims: PersistableChartDimension[]) {
-        let newDimensions: PersistableChartDimension[] = []
-        this.grapher.dimensionSlots.forEach((slot) => {
-            if (slot.property === this.property)
-                newDimensions = newDimensions.concat(dims)
-            else newDimensions = newDimensions.concat(slot.dimensions)
-        })
-        this.grapher.dimensions = newDimensions
-    }
-
     @computed get dimensionsWithData() {
         return this.grapher.filledDimensions.filter(
             (d) => d.property === this.property
         )
-    }
-
-    createDimension(variableId: number) {
-        return new PersistableChartDimension({
-            property: this.property,
-            variableId,
-        })
     }
 }

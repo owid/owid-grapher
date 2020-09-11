@@ -4,10 +4,6 @@ import { observer } from "mobx-react"
 
 import { sample, sampleSize } from "grapher/utils/Util"
 import { ChartTypeDefs, ChartTypeName } from "grapher/core/GrapherConstants"
-import {
-    ChartDimension,
-    PersistableChartDimension,
-} from "grapher/chart/ChartDimension"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
@@ -26,28 +22,44 @@ class DimensionSlotView extends React.Component<{
 
     @observable.ref isSelectingVariables: boolean = false
 
-    @action.bound onVariables(variableIds: LegacyVariableId[]) {
+    @action.bound private onAddVariables(variableIds: LegacyVariableId[]) {
         const { slot } = this.props
 
-        slot.dimensions = variableIds.map((id) => {
+        const dimensions = variableIds.map((id) => {
             const existingDimension = slot.dimensions.find(
                 (d) => d.variableId === id
             )
-            return existingDimension || slot.createDimension(id)
+            return (
+                existingDimension || {
+                    property: slot.property,
+                    variableId: id,
+                }
+            )
         })
+
+        this.props.editor.grapher.setDimensionsForProperty(
+            slot.property,
+            dimensions
+        )
 
         this.isSelectingVariables = false
         this.updateDefaults()
     }
 
-    @action.bound onRemoveDimension(dim: ChartDimension) {
-        this.props.slot.dimensions = this.props.slot.dimensions.filter(
-            (d) => d.variableId !== dim.variableId
+    @action.bound private onRemoveDimension(variableId: LegacyVariableId) {
+        const { slot } = this.props
+
+        this.props.editor.grapher.setDimensionsForProperty(
+            slot.property,
+            this.props.slot.dimensions.filter(
+                (d) => d.variableId !== variableId
+            )
         )
+
         this.updateDefaults()
     }
 
-    updateDefaults() {
+    private updateDefaults() {
         const { grapher } = this.props.editor
 
         if (this.dispose) this.dispose()
@@ -86,6 +98,7 @@ class DimensionSlotView extends React.Component<{
         const { isSelectingVariables } = this
         const { slot, editor } = this.props
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
+        const dimensions = editor.grapher.dimensions
 
         return (
             <div>
@@ -95,7 +108,7 @@ class DimensionSlotView extends React.Component<{
                         return (
                             dim.property === slot.property && (
                                 <DimensionCard
-                                    key={dim.index}
+                                    key={dimensions.indexOf(dim)}
                                     dimension={dim}
                                     editor={editor}
                                     onEdit={
@@ -108,7 +121,10 @@ class DimensionSlotView extends React.Component<{
                                     }
                                     onRemove={
                                         slot.isOptional
-                                            ? () => this.onRemoveDimension(dim)
+                                            ? () =>
+                                                  this.onRemoveDimension(
+                                                      dim.variableId
+                                                  )
                                             : undefined
                                     }
                                 />
@@ -133,7 +149,7 @@ class DimensionSlotView extends React.Component<{
                         onDismiss={action(
                             () => (this.isSelectingVariables = false)
                         )}
-                        onComplete={this.onVariables}
+                        onComplete={this.onAddVariables}
                     />
                 )}
             </div>
@@ -166,34 +182,27 @@ class VariablesSection extends React.Component<{ editor: ChartEditor }> {
 
 @observer
 export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
-    @action.bound onChartType(value: string) {
+    @action.bound onChartTypeChange(value: string) {
         const { grapher } = this.props.editor
         grapher.type = value as ChartTypeName
 
-        // Give scatterplots and slope charts a default color and size dimension if they don't have one
-        if (
-            (grapher.isScatter || grapher.isSlopeChart) &&
-            !grapher.dimensions.find((d) => d.property === "color")
-        ) {
-            grapher.dimensions = grapher.dimensions.concat(
-                new PersistableChartDimension({
-                    variableId: 123,
-                    property: "color",
-                })
-            )
-        }
+        if (!grapher.isScatter && !grapher.isSlopeChart) return
 
-        if (
-            (grapher.isScatter || grapher.isSlopeChart) &&
-            !grapher.dimensions.find((d) => d.property === "color")
-        ) {
-            grapher.dimensions = grapher.dimensions.concat(
-                new PersistableChartDimension({
-                    variableId: 72,
-                    property: "size",
-                })
-            )
-        }
+        // Give scatterplots and slope charts a default color and size dimension if they don't have one
+        const hasColor = grapher.dimensions.find((d) => d.property === "color")
+        const hasSize = grapher.dimensions.find((d) => d.property === "size")
+
+        if (!hasColor)
+            grapher.addDimension({
+                variableId: 123,
+                property: "color",
+            })
+
+        if (!hasSize)
+            grapher.addDimension({
+                variableId: 72,
+                property: "size",
+            })
     }
 
     render() {
@@ -205,7 +214,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                 <Section name="Type of chart">
                     <SelectField
                         value={grapher.type}
-                        onValue={this.onChartType}
+                        onValue={this.onChartTypeChange}
                         options={ChartTypeDefs.map((def) => def.key)}
                         optionLabels={ChartTypeDefs.map((def) => def.label)}
                     />

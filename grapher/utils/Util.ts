@@ -126,6 +126,7 @@ import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
 import { Persistable } from "grapher/persistable/Persistable"
+import { isObject } from "lodash"
 
 export type SVGElement = any
 export type VNode = any
@@ -510,7 +511,10 @@ export function sign(n: number) {
 export function trimObject(obj: any) {
     const clone: any = {}
     Object.keys(obj).forEach((key) => {
-        if (obj[key] !== undefined) clone[key] = obj[key]
+        const val = obj[key]
+        if (isObject(val) && isEmpty(val)) {
+            // Drop empty objects
+        } else if (val !== undefined) clone[key] = obj[key]
     })
     return clone
 }

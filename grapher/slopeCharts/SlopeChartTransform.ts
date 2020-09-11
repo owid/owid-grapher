@@ -1,6 +1,5 @@
 import { computed } from "mobx"
 import { isEmpty, flatten, identity, last } from "grapher/utils/Util"
-import { ChartDimension } from "grapher/chart/ChartDimension"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 import { Time } from "grapher/utils/TimeBounds"
@@ -53,15 +52,15 @@ export class SlopeChartTransform extends ChartTransform {
         return [this.startYear, this.endYear]
     }
 
-    @computed.struct get sizeDim(): ChartDimension | undefined {
+    @computed.struct get sizeDim() {
         return this.grapher.filledDimensions.find((d) => d.property === "size")
     }
 
-    @computed.struct get colorDimension(): ChartDimension | undefined {
+    @computed.struct get colorDimension() {
         return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 
-    @computed.struct get yDimension(): ChartDimension | undefined {
+    @computed.struct get yDimension() {
         return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 
@@ -146,7 +145,7 @@ export class SlopeChartTransform extends ChartTransform {
 
             const entityDimensionKey = grapher.makeEntityDimensionKey(
                 entityName,
-                yDimension.index
+                grapher.dimensions.indexOf(yDimension)
             )
             return {
                 entityDimensionKey,

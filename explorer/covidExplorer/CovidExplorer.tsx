@@ -77,9 +77,8 @@ import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import {
-    PersistableChartDimension,
     ChartDimension,
-    ChartDimensionConfig,
+    ChartDimensionConfigInterface,
 } from "grapher/chart/ChartDimension"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import { UrlBinder } from "grapher/utils/UrlBinder"
@@ -771,37 +770,34 @@ export class CovidExplorer extends React.Component<{
         if (params.colorStrategy === "ptr")
             this.shortTermPositivityRateVarId = this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()
 
-        const chartProps = this.grapher
-        chartProps.title = this.chartTitle
-        chartProps.subtitle = this.subtitle
-        chartProps.note = this.note
+        const grapher = this.grapher
+        grapher.title = this.chartTitle
+        grapher.subtitle = this.subtitle
+        grapher.note = this.note
 
         // If we switch to scatter, set zoomToSelection to true. I don't set it to true initially in the chart
         // config because then it won't appear in the URL.
-        if (chartProps.type === "LineChart" && params.type === "ScatterPlot")
-            chartProps.zoomToSelection = true
+        if (grapher.type === "LineChart" && params.type === "ScatterPlot")
+            grapher.zoomToSelection = true
 
-        chartProps.type = params.type
-        chartProps.yAxis.label = this.yAxisLabel
+        grapher.type = params.type
+        grapher.yAxis.label = this.yAxisLabel
 
         if (!this.canDoLogScale) {
-            this.switchBackToLog = chartProps.yAxis.scaleType === ScaleType.log
-            chartProps.yAxis.scaleType = ScaleType.linear
-            chartProps.yAxis.canChangeScaleType = undefined
+            this.switchBackToLog = grapher.yAxis.scaleType === ScaleType.log
+            grapher.yAxis.scaleType = ScaleType.linear
+            grapher.yAxis.canChangeScaleType = undefined
         } else {
-            chartProps.yAxis.canChangeScaleType = true
+            grapher.yAxis.canChangeScaleType = true
             if (this.switchBackToLog) {
-                chartProps.yAxis.scaleType = ScaleType.log
+                grapher.yAxis.scaleType = ScaleType.log
                 this.switchBackToLog = false
             }
         }
 
-        chartProps.yAxis.min = params.intervalChange ? undefined : 0
+        grapher.yAxis.min = params.intervalChange ? undefined : 0
 
-        // When dimensions changes, chart.variableIds change, which calls downloadData(), which reparses variableSet
-        chartProps.dimensions = this.dimensionSpecs.map(
-            (spec) => new PersistableChartDimension(spec)
-        )
+        grapher.setDimensions(this.dimensionSpecs)
 
         // multimetric table
         if (this.constrainedParams.tableMetrics) {
@@ -830,8 +826,8 @@ export class CovidExplorer extends React.Component<{
         this._updateMap()
         this._updateColorScale()
 
-        chartProps.id = this.sourceChartId
-        chartProps.selectedData = this.selectedData
+        grapher.id = this.sourceChartId
+        grapher.selectedData = this.selectedData
         this.grapher.url.externallyProvidedParams = this.props.params.toQueryParams
     }
 
@@ -1178,10 +1174,11 @@ export class CovidExplorer extends React.Component<{
                     "%",
                 tableDisplay: column?.display.tableDisplay,
             },
-        } as ChartDimensionConfig
+        } as ChartDimensionConfigInterface
     }
 
-    @computed private get dataTableOnlyDimensions(): ChartDimensionConfig[] {
+    @computed
+    private get dataTableOnlyDimensions(): ChartDimensionConfigInterface[] {
         const params = this.constrainedParams
         return flatten(
             params.tableMetrics?.map((metric) => {
@@ -1238,18 +1235,11 @@ export class CovidExplorer extends React.Component<{
 
     @action private _addDataTableOnlyDimensionsToChart() {
         this.grapher.dataTableOnlyDimensions = this.dataTableOnlyDimensions.map(
-            (dimSpec, index) =>
-                new ChartDimension(
-                    dimSpec,
-                    index,
-                    this.grapher.table.columnsByOwidVarId.get(
-                        dimSpec.variableId
-                    )!
-                )
+            (dimSpec) => new ChartDimension(dimSpec, this.grapher.table)
         )
     }
 
-    @computed private get yDimension(): ChartDimensionConfig {
+    @computed private get yDimension(): ChartDimensionConfigInterface {
         const yColumn = this.yColumn
         const unit = this.constrainedParams.isWeeklyOrBiweeklyChange
             ? "%"
@@ -1269,7 +1259,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get xDimension(): ChartDimensionConfig {
+    @computed private get xDimension(): ChartDimensionConfigInterface {
         const xColumn = this.xColumn!
         return {
             property: "x",
@@ -1281,7 +1271,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get dimensionSpecs(): ChartDimensionConfig[] {
+    @computed private get dimensionSpecs(): ChartDimensionConfigInterface[] {
         if (this.constrainedParams.type !== "ScatterPlot")
             return [this.yDimension]
 
@@ -1293,7 +1283,7 @@ export class CovidExplorer extends React.Component<{
         return dimensions
     }
 
-    @computed private get sizeDimension(): ChartDimensionConfig {
+    @computed private get sizeDimension(): ChartDimensionConfigInterface {
         return {
             property: "size",
             variableId: this.sizeColumn!.spec.owidVariableId!,
@@ -1301,7 +1291,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     private shortTermPositivityRateVarId: number = 0
-    @computed private get colorDimension(): ChartDimensionConfig {
+    @computed private get colorDimension(): ChartDimensionConfigInterface {
         const variableId =
             this.constrainedParams.colorStrategy === "continents"
                 ? 123

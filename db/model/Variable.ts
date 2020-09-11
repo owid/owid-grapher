@@ -3,7 +3,7 @@ import { Writable } from "stream"
 
 import * as db from "db/db"
 import { csvRow } from "utils/server/serverUtil"
-import { LegacyVariableDisplaySettings } from "owidTable/LegacyVariableCode"
+import { LegacyVariableDisplayConfigInterface } from "owidTable/LegacyVariableCode"
 
 export namespace Variable {
     export interface Row {
@@ -12,7 +12,7 @@ export namespace Variable {
         unit: string
         description: string
         columnOrder: number
-        display: LegacyVariableDisplaySettings
+        display: LegacyVariableDisplayConfigInterface
     }
 
     export type Field = keyof Row

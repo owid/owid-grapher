@@ -9,37 +9,42 @@ import {
     sortedUniq,
     sortNumeric,
     trimObject,
-    extend,
 } from "grapher/utils/Util"
 import {
     TickFormattingOptions,
     EntityDimensionKey,
+    DimensionProperty,
 } from "grapher/core/GrapherConstants"
-import { AbstractColumn } from "owidTable/OwidTable"
+import { LoadingColumn, OwidTable } from "owidTable/OwidTable"
 import { Time } from "grapher/utils/TimeBounds"
 
-import { LegacyVariableDisplaySettings } from "owidTable/LegacyVariableCode"
+import {
+    LegacyVariableDisplayConfigInterface,
+    PersistableLegacyVariableDisplaySettings,
+} from "owidTable/LegacyVariableCode"
 import {
     OwidSource,
     LegacyVariableId,
     EntityName,
     EntityId,
 } from "owidTable/OwidTableConstants"
-import { Persistable } from "grapher/persistable/Persistable"
-
-export declare type dimensionProperty = "y" | "x" | "size" | "color" | "table"
+import {
+    Persistable,
+    deleteRuntimeAndUnchangedProps,
+    objectWithPersistablesToObject,
+    updatePersistables,
+} from "grapher/persistable/Persistable"
 
 export interface SourceWithDimension {
     source: OwidSource
     dimension: ChartDimension
 }
 
-export interface ChartDimensionConfig {
-    property: dimensionProperty
+export interface ChartDimensionConfigInterface {
+    property: DimensionProperty
     variableId: LegacyVariableId
     targetYear?: Time
-    display?: LegacyVariableDisplaySettings
-    saveToVariable?: boolean // todo: remove
+    display?: LegacyVariableDisplayConfigInterface
 }
 
 export interface EntityDimensionInfo {
@@ -55,117 +60,118 @@ export interface EntityDimensionInfo {
 
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
-export class PersistableChartDimension
-    implements ChartDimensionConfig, Persistable {
-    @observable property!: dimensionProperty
+class PersistableChartDimensionConfig
+    implements ChartDimensionConfigInterface, Persistable {
+    @observable property!: DimensionProperty
     @observable variableId!: LegacyVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable display: LegacyVariableDisplaySettings = {}
+    @observable display = new PersistableLegacyVariableDisplaySettings() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override
     @observable targetYear?: Time = undefined
 
-    // If enabled, dimension settings will be saved onto variable as defaults
-    // for future charts
-    // todo: remove this. Add an explicit "Update variable button"
-    @observable saveToVariable?: true = undefined
-
-    constructor(obj?: ChartDimensionConfig) {
+    constructor(obj?: ChartDimensionConfigInterface) {
         if (obj) this.updateFromObject(obj)
     }
 
-    updateFromObject(obj: ChartDimensionConfig) {
-        if (obj.display) extend(this.display, obj.display)
+    updateFromObject(obj: ChartDimensionConfigInterface) {
+        updatePersistables(this, obj)
 
         this.targetYear = obj.targetYear
         this.variableId = obj.variableId
         this.property = obj.property
     }
 
-    toObject(): ChartDimensionConfig {
-        return trimObject({
-            targetYear: this.targetYear,
-            variableId: this.variableId,
-            property: this.property,
-            display: Object.keys(this.display).length
-                ? this.display
-                : undefined,
-        })
+    toObject(): ChartDimensionConfigInterface {
+        return trimObject(
+            deleteRuntimeAndUnchangedProps(
+                objectWithPersistablesToObject(this),
+                new PersistableChartDimensionConfig()
+            )
+        )
     }
 }
 
-export class ChartDimension extends PersistableChartDimension {
-    @observable.ref index: number
+export class ChartDimension extends PersistableChartDimensionConfig {
+    @observable.ref private table: OwidTable
 
-    constructor(
-        obj: ChartDimensionConfig,
-        index: number,
-        column: AbstractColumn
-    ) {
-        super(obj)
-        this.index = index
-        this.column = column
-    }
-
-    @computed get columnSlug(): string {
-        return this.variableId.toString()
-    }
-
-    @computed get displayName(): string {
-        return this.display.name ?? this.column.display.name ?? this.column.name
-    }
-
-    @computed get includeInTable(): boolean {
+    @computed get column() {
         return (
-            this.property !== "color" &&
-            (this.column.display.includeInTable ?? true)
+            this.table.columnsByOwidVarId.get(this.variableId) ||
+            new LoadingColumn(this.table, {
+                slug: this.variableId?.toString() || "loading",
+            })
         )
     }
 
-    @computed get unit(): string {
-        return this.display.unit ?? this.column.display.unit ?? this.column.unit
+    constructor(obj: ChartDimensionConfigInterface, table: OwidTable) {
+        super(obj)
+        this.table = table
+    }
+
+    @computed get columnSlug() {
+        return this.variableId.toString()
+    }
+
+    @computed get displayName() {
+        return this.display.name ?? this.columnDisplay.name ?? this.column.name
+    }
+
+    @computed get columnDisplay() {
+        return this.column.display
+    }
+
+    @computed get includeInTable() {
+        return (
+            this.property !== "color" &&
+            (this.columnDisplay.includeInTable ?? true)
+        )
+    }
+
+    @computed get unit() {
+        return this.display.unit ?? this.columnDisplay.unit ?? this.column.unit
     }
 
     // Full name of the variable with associated unit information, used for data export
-    @computed get fullNameWithUnit(): string {
-        return this.displayName + (this.unit ? ` (${this.unit})` : "")
+    @computed get fullNameWithUnit() {
+        return `${this.displayName}${this.unit ? ` (${this.unit})` : ""}`
     }
 
-    @computed get unitConversionFactor(): number {
+    @computed get unitConversionFactor() {
         return (
             this.display.conversionFactor ??
-            this.column.display.conversionFactor ??
+            this.columnDisplay.conversionFactor ??
             1
         )
     }
 
-    @computed get isProjection(): boolean {
-        return !!(this.display.isProjection ?? this.column.display.isProjection)
+    @computed get isProjection() {
+        return !!(this.display.isProjection ?? this.columnDisplay.isProjection)
     }
 
-    @computed get tolerance(): number {
+    @computed get tolerance() {
         return (
             this.display.tolerance ??
-            this.column.display.tolerance ??
+            this.columnDisplay.tolerance ??
             (this.property === "color" ? Infinity : 0)
         )
     }
 
-    @computed get numDecimalPlaces(): number {
+    @computed get numDecimalPlaces() {
         return (
             this.display.numDecimalPlaces ??
-            this.column.display.numDecimalPlaces ??
+            this.columnDisplay.numDecimalPlaces ??
             2
         )
     }
 
-    @computed get shortUnit(): string {
+    @computed get shortUnit() {
         const { unit } = this
         const shortUnit =
             this.display.shortUnit ??
-            this.column.display.shortUnit ??
+            this.columnDisplay.shortUnit ??
             (this.column.shortUnit || undefined)
 
         if (shortUnit !== undefined) return shortUnit
@@ -230,7 +236,7 @@ export class ChartDimension extends PersistableChartDimension {
               )
     }
 
-    @computed get sortedNumericValues(): number[] {
+    @computed get sortedNumericValues() {
         return sortNumeric(
             this.values.filter(isNumber).filter((v) => !isNaN(v))
         )
@@ -257,10 +263,7 @@ export class ChartDimension extends PersistableChartDimension {
         return valueByYear ? last(Array.from(valueByYear)) ?? null : null
     }
 
-    @computed get valueByEntityAndYear(): Map<
-        string,
-        Map<number, string | number>
-    > {
+    @computed get valueByEntityAndYear() {
         const valueByEntityAndYear = new Map<
             string,
             Map<number, string | number>
@@ -279,6 +282,4 @@ export class ChartDimension extends PersistableChartDimension {
         }
         return valueByEntityAndYear
     }
-
-    @observable.ref column: AbstractColumn
 }
