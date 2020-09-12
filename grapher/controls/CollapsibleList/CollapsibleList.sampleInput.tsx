@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, action } from "mobx"
+import { range } from "grapher/utils/Util"
 
 @observer
 class SampleCheckBox extends React.Component<{ id: number }> {
@@ -24,8 +25,6 @@ class SampleCheckBox extends React.Component<{ id: number }> {
     }
 }
 
-const items: React.ReactElement[] = []
-for (let i = 0; i < 13; i++) {
-    items.push(<SampleCheckBox key={i} id={i} />)
-}
-export const collapsibleListSampleItems = items
+export const collapsibleListSampleItems = range(0, 12).map((i) => (
+    <SampleCheckBox key={i} id={i} />
+))
