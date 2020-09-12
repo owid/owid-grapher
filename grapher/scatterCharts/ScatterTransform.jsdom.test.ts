@@ -10,7 +10,7 @@ describe(ScatterTransform, () => {
         expect(scatterT.isValidConfig).toEqual(true)
         expect(scatterT.getEntityNamesToShow()).toEqual(["France", "Germany"])
         expect(scatterT.allPoints.length).toBeGreaterThan(5)
-        expect(scatterT.availableYears).toContain(2003)
+        expect(scatterT.availableTimes).toContain(2003)
     })
 
     it("can remove points outside domain", () => {

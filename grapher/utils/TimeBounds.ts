@@ -1,17 +1,11 @@
 import {
     parseIntOrUndefined,
-    findClosestYear,
+    findClosestTime,
     isString,
     diffDateISOStringInDays,
     formatDay,
 } from "grapher/utils/Util"
-import { EPOCH_DATE } from "grapher/core/GrapherConstants"
-
-/**
- * A concrete point in time (year or date). It's always supposed to be a finite number, but we
- * cannot enforce this in TypeScript.
- */
-export type Time = number
+import { EPOCH_DATE, Time } from "grapher/core/GrapherConstants"
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).
@@ -121,7 +115,7 @@ export function getClosestTime(
     bound: TimeBound,
     defaultValue: Time
 ): Time {
-    return findClosestYear(times, bound) ?? defaultValue
+    return findClosestTime(times, bound) ?? defaultValue
 }
 
 export function getBoundFromTimeRange(

@@ -1,22 +1,21 @@
 import { computed } from "mobx"
 import {
-    Time,
     isUnboundedLeft,
     isUnboundedRight,
     getClosestTime,
 } from "grapher/utils/TimeBounds"
 import { first, last, sortNumeric, uniq } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
+import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 
 export interface IChartTransform {
     isValidConfig: boolean
     selectableEntityDimensionKeys: EntityDimensionKey[]
-    timelineYears: Time[]
-    startYear?: Time
-    endYear?: Time
-    targetYear?: Time
+    timelineTimes: Time[]
+    startTime?: Time
+    endTime?: Time
+    targetTime?: Time
     colorScale?: ColorScale
 }
 
@@ -37,7 +36,7 @@ export abstract class ChartTransform implements IChartTransform {
      *
      * Might be **empty** if the data hasn't been loaded yet.
      */
-    abstract get availableYears(): Time[]
+    abstract get availableTimes(): Time[]
 
     @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
         return this.grapher.availableKeys
@@ -48,23 +47,23 @@ export abstract class ChartTransform implements IChartTransform {
      *
      * Might be **empty** if the data hasn't been loaded yet.
      */
-    @computed get timelineYears(): Time[] {
+    @computed get timelineTimes(): Time[] {
         const min = this.grapher.timelineMinTime
         const max = this.grapher.timelineMaxTime
-        const filteredYears = this.availableYears.filter((year) => {
-            if (min !== undefined && year < min) return false
-            if (max !== undefined && year > max) return false
+        const filteredYears = this.availableTimes.filter((time) => {
+            if (min !== undefined && time < min) return false
+            if (max !== undefined && time > max) return false
             return true
         })
         return sortNumeric(uniq(filteredYears))
     }
 
-    @computed private get minTimelineYear(): Time {
-        return first(this.timelineYears) ?? 1900
+    @computed private get minTimelineTime(): Time {
+        return first(this.timelineTimes) ?? 1900
     }
 
-    @computed private get maxTimelineYear(): Time {
-        return last(this.timelineYears) ?? 2000
+    @computed private get maxTimelineTime(): Time {
+        return last(this.timelineTimes) ?? 2000
     }
 
     /**
@@ -72,14 +71,14 @@ export abstract class ChartTransform implements IChartTransform {
      *
      * Derived from the timeline selection start.
      */
-    @computed get startYear(): Time {
-        const minYear = this.grapher.timeDomain[0]
-        if (isUnboundedLeft(minYear)) {
-            return this.minTimelineYear
-        } else if (isUnboundedRight(minYear)) {
-            return this.maxTimelineYear
+    @computed get startTime(): Time {
+        const min = this.grapher.timeDomain[0]
+        if (isUnboundedLeft(min)) {
+            return this.minTimelineTime
+        } else if (isUnboundedRight(min)) {
+            return this.maxTimelineTime
         }
-        return getClosestTime(this.timelineYears, minYear, this.minTimelineYear)
+        return getClosestTime(this.timelineTimes, min, this.minTimelineTime)
     }
 
     /**
@@ -87,33 +86,33 @@ export abstract class ChartTransform implements IChartTransform {
      *
      * Derived from the timeline selection end.
      */
-    @computed get endYear(): Time {
-        const maxYear = this.grapher.timeDomain[1]
-        if (isUnboundedLeft(maxYear)) {
-            return this.minTimelineYear
-        } else if (isUnboundedRight(maxYear)) {
-            return this.maxTimelineYear
+    @computed get endTime(): Time {
+        const max = this.grapher.timeDomain[1]
+        if (isUnboundedLeft(max)) {
+            return this.minTimelineTime
+        } else if (isUnboundedRight(max)) {
+            return this.maxTimelineTime
         }
-        return getClosestTime(this.timelineYears, maxYear, this.maxTimelineYear)
+        return getClosestTime(this.timelineTimes, max, this.maxTimelineTime)
     }
 
     @computed get hasTimeline() {
-        return this.timelineYears.length > 1 && !this.grapher.hideTimeline
+        return this.timelineTimes.length > 1 && !this.grapher.hideTimeline
     }
 
     /**
      * Whether the plotted data only contains a single year.
      */
-    @computed get isSingleYear() {
-        return this.startYear === this.endYear
+    @computed get isSingleTime() {
+        return this.startTime === this.endTime
     }
 
     /**
      * The single targetYear, if a chart is in a "single year" mode, like a LineChart becoming a
      * DiscreteBar when only a single year on the timeline is selected.
      */
-    @computed get targetYear(): Time {
-        return this.endYear
+    @computed get targetTime(): Time {
+        return this.endTime
     }
 
     // NB: The timeline scatterplot in relative mode calculates changes relative

@@ -14,9 +14,9 @@ import {
     TickFormattingOptions,
     EntityDimensionKey,
     DimensionProperty,
+    Time,
 } from "grapher/core/GrapherConstants"
 import { LoadingColumn, OwidTable } from "owidTable/OwidTable"
-import { Time } from "grapher/utils/TimeBounds"
 
 import {
     LegacyVariableDisplayConfigInterface,

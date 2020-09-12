@@ -2,8 +2,7 @@ import { computed } from "mobx"
 import { isEmpty, flatten, identity, last } from "grapher/utils/Util"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { Time } from "grapher/utils/TimeBounds"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
+import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 
 // Responsible for translating chart configuration into the form
@@ -44,12 +43,12 @@ export class SlopeChartTransform extends ChartTransform {
         })
     }
 
-    @computed get availableYears(): Time[] {
+    @computed get availableTimes(): Time[] {
         return flatten(this.grapher.axisDimensions.map((d) => d.yearsUniq))
     }
 
     @computed.struct get xDomain(): [number, number] {
-        return [this.startYear, this.endYear]
+        return [this.startTime, this.endTime]
     }
 
     @computed.struct get sizeDim() {

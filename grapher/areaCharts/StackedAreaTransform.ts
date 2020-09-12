@@ -11,11 +11,10 @@ import {
     max,
     formatValue,
 } from "grapher/utils/Util"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
+import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { Time } from "grapher/utils/TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
@@ -201,7 +200,7 @@ export class StackedAreaTransform extends ChartTransform {
         return axis
     }
 
-    @computed get availableYears(): Time[] {
+    @computed get availableTimes(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
         return this.groupedData[0].values.map((v) => v.x)
     }
@@ -219,12 +218,12 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get xDomainDefault(): [number, number] {
-        return [this.startYear, this.endYear]
+        return [this.startTime, this.endTime]
     }
 
     // Apply time filtering and stacking
     @computed get stackedData(): StackedAreaSeries[] {
-        const { groupedData, startYear, endYear } = this
+        const { groupedData, startTime, endTime } = this
 
         if (
             groupedData.some(
@@ -242,7 +241,7 @@ export class StackedAreaTransform extends ChartTransform {
 
         for (const series of stackedData) {
             series.values = series.values.filter(
-                (v) => v.x >= startYear && v.x <= endYear
+                (v) => v.x >= startTime && v.x <= endTime
             )
             for (const value of series.values) {
                 value.origY = value.y

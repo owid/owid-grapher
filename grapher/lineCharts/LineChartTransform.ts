@@ -11,11 +11,14 @@ import {
     flatten,
     last,
 } from "grapher/utils/Util"
-import { EntityDimensionKey, ScaleType } from "grapher/core/GrapherConstants"
+import {
+    EntityDimensionKey,
+    ScaleType,
+    Time,
+} from "grapher/core/GrapherConstants"
 import { LineChartSeries, LineChartValue } from "./LineChart"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { Time } from "grapher/utils/TimeBounds"
 import { LineLabel } from "./LineLabels"
 import { EntityName } from "owidTable/OwidTableConstants"
 
@@ -102,7 +105,7 @@ export class LineChartTransform extends ChartTransform {
         return chartData
     }
 
-    @computed get availableYears(): Time[] {
+    @computed get availableTimes(): Time[] {
         return flatten(this.initialData.map((g) => g.values.map((d) => d.x)))
     }
 
@@ -111,7 +114,7 @@ export class LineChartTransform extends ChartTransform {
 
         return cloneDeep(this.initialData).map((series) => {
             const startIndex = series.values.findIndex(
-                (v) => v.time >= this.startYear && v.y !== 0
+                (v) => v.time >= this.startTime && v.y !== 0
             )
             if (startIndex < 0) {
                 series.values = []
@@ -178,7 +181,7 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get xAxis() {
         const axis = this.grapher.xAxis.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings([this.startYear, this.endYear])
+        axis.updateDomainPreservingUserSettings([this.startTime, this.endTime])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
         axis.tickFormatFn = this.grapher.formatYearTickFunction
@@ -239,7 +242,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get canToggleRelativeMode(): boolean {
-        return !this.grapher.hideRelativeToggle && !this.isSingleYear
+        return !this.grapher.hideRelativeToggle && !this.isSingleTime
     }
 
     // Filter the data so it fits within the domains

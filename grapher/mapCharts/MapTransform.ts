@@ -2,7 +2,7 @@ import { computed } from "mobx"
 import {
     defaultTo,
     isString,
-    findClosestYear,
+    findClosestTime,
     keyBy,
     isNumber,
     entityNameForMap,
@@ -12,7 +12,6 @@ import {
 import {
     TimeBound,
     TimeBoundValue,
-    Time,
     getClosestTime,
 } from "grapher/utils/TimeBounds"
 
@@ -22,6 +21,7 @@ import { MapTopology } from "./MapTopology"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 import { ColorScale } from "grapher/color/ColorScale"
+import { Time } from "grapher/core/GrapherConstants"
 
 interface MapDataValue {
     entity: string
@@ -53,11 +53,11 @@ export class MapTransform extends ChartTransform {
 
     // Overrides the default ChartTransform#targetYear method because the map stores the target year
     // separately in the config.
-    @computed get targetYear(): TimeBound {
-        return getClosestTime(this.timelineYears, this.targetYearProp, 2000)
+    @computed get targetTime(): TimeBound {
+        return getClosestTime(this.timelineTimes, this.targetYearProp, 2000)
     }
 
-    set targetYear(value: TimeBound) {
+    set targetTime(value: TimeBound) {
         this.props.targetYear = value
     }
 
@@ -78,7 +78,7 @@ export class MapTransform extends ChartTransform {
         // The config objects in the database still have this property, though we have not yet run
         // into a case where the timeline needs to be shown
         return (
-            this.timelineYears.length > 1 &&
+            this.timelineTimes.length > 1 &&
             !this.grapher.hideTimeline &&
             !this.props.hideTimeline
         )
@@ -166,7 +166,7 @@ export class MapTransform extends ChartTransform {
     }
 
     // All available years with data for the map
-    @computed get availableYears(): Time[] {
+    @computed get availableTimes(): Time[] {
         const { mappableData } = this
         return mappableData.years.filter(
             (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
@@ -203,10 +203,10 @@ export class MapTransform extends ChartTransform {
 
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { targetYear, grapher } = this
+        const { targetTime, grapher } = this
         const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
 
-        if (targetYear === undefined || !valueByEntityAndYear) return {}
+        if (targetTime === undefined || !valueByEntityAndYear) return {}
 
         const { tolerance } = this
         const entities = Object.keys(this.knownMapEntities)
@@ -219,7 +219,7 @@ export class MapTransform extends ChartTransform {
             const valueByYear = valueByEntityAndYear.get(entity)
             if (!valueByYear) return
             const years = Array.from(valueByYear.keys())
-            const year = findClosestYear(years, targetYear, tolerance)
+            const year = findClosestTime(years, targetTime, tolerance)
             if (year === undefined) return
             const value = valueByYear.get(year)
             if (value === undefined) return

@@ -173,7 +173,7 @@ export class DataTableTransform extends ChartTransform {
         return true
     }
 
-    @computed get availableYears() {
+    @computed get availableTimes() {
         return intersection(
             flatten(this.dimensions.map((dim) => dim.yearsUniq))
         )
@@ -196,7 +196,7 @@ export class DataTableTransform extends ChartTransform {
             if (this.grapher.multiMetricTableMode) return TargetYearMode.point
             if (
                 (this.grapher.isLineChart &&
-                    !this.grapher.lineChartTransform.isSingleYear) ||
+                    !this.grapher.lineChartTransform.isSingleTime) ||
                 this.grapher.isStackedArea ||
                 this.grapher.isStackedBar
             ) {
@@ -228,9 +228,9 @@ export class DataTableTransform extends ChartTransform {
                 ),
             ]
 
-        return this.startYear === this.endYear
-            ? [this.startYear]
-            : [this.startYear, this.endYear]
+        return this.startTime === this.endTime
+            ? [this.startTime]
+            : [this.startTime, this.endTime]
     }
 
     formatValue(
