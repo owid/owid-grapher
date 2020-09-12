@@ -332,10 +332,9 @@ export class ControlsFooterView extends React.Component<{
                 const timeColumn = grapher.table.timeColumn
                 if (!timeColumn)
                     return grapher.table.timeColumnFormatFunction(value)
-                const format = isMobile()
-                    ? timeColumn.formatValueForMobile
-                    : timeColumn.formatValue
-                return format(value)
+                return isMobile()
+                    ? timeColumn.formatValueForMobile(value)
+                    : timeColumn.formatValue(value)
             },
             onStartPlayOrDrag: () => {
                 grapher.url.debounceMode = true
