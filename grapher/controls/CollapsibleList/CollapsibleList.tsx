@@ -28,7 +28,7 @@ export class CollapsibleList extends React.Component {
         this.visibleItems = this.children
     }
 
-    @computed get children(): ListChild[] {
+    @computed private get children(): ListChild[] {
         return (
             React.Children.map(this.props.children, (child, i) => {
                 return {
