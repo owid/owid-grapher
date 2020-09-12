@@ -51,12 +51,11 @@ export class CollapsibleList extends React.Component {
     }
 
     private get numItemsVisible() {
-        let total = this.moreButtonWidth
-        for (let i = 0; i < this.itemsWidths.length; i++) {
-            if (total + this.itemsWidths[i] > this.outerContainerWidth) return i
-            else total += this.itemsWidths[i]
-        }
-        return this.itemsWidths.length
+        return numItemsVisible(
+            this.itemsWidths,
+            this.outerContainerWidth,
+            this.moreButtonWidth
+        )
     }
 
     @action private updateItemPartition() {
@@ -128,4 +127,21 @@ export class MoreButton extends React.Component<{
             </Tippy>
         )
     }
+}
+
+/**
+ * Given: an array of item widths, a container width, and a starting width
+ * Returns the number of items that can fit in the container
+ */
+export function numItemsVisible(
+    itemWidths: number[],
+    containerWidth: number,
+    startingWidth: number
+) {
+    let total = startingWidth
+    for (let i = 0; i < itemWidths.length; i++) {
+        if (total + itemWidths[i] > containerWidth) return i
+        else total += itemWidths[i]
+    }
+    return itemWidths.length
 }
