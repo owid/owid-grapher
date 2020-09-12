@@ -5,7 +5,6 @@ import { shallow } from "enzyme"
 import { CollapsibleList } from "./CollapsibleList"
 import { collapsibleListSampleItems } from "./CollapsibleList.sampleInput"
 
-// configure({ adapter: new Adapter() })
 describe(CollapsibleList, () => {
     describe("when you render a collapsible list", () => {
         test("something renders", () => {
