@@ -7,10 +7,11 @@ import {
     RelatedQuestionsConfig,
     AddCountryMode,
     EntitySelection,
+    Time,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfig"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
-import { TimeBound, Time } from "grapher/utils/TimeBounds"
+import { TimeBound } from "grapher/utils/TimeBounds"
 import { ChartDimensionInterface } from "grapher/chart/ChartDimension"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"

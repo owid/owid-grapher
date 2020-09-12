@@ -10,8 +10,7 @@ import {
 } from "grapher/utils/Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
-import { Time } from "grapher/utils/TimeBounds"
+import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 
 // Responsible for translating chart configuration into the form
@@ -36,7 +35,7 @@ export class StackedBarTransform extends ChartTransform {
         return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 
-    @computed get availableYears(): Time[] {
+    @computed get availableTimes(): Time[] {
         if (this.primaryDimension === undefined) return []
         return this.primaryDimension.yearsUniq
     }
@@ -67,7 +66,7 @@ export class StackedBarTransform extends ChartTransform {
     // }
 
     @computed get xDomainDefault(): [number, number] {
-        return [this.startYear, this.endYear]
+        return [this.startTime, this.endTime]
     }
 
     // TODO: Make XAxis generic
@@ -116,7 +115,7 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     @computed get groupedData(): StackedBarSeries[] {
-        const { grapher, timelineYears } = this
+        const { grapher, timelineTimes } = this
         const { selectedKeys, selectedKeysByKey } = grapher
         const filledDimensions = grapher.filledDimensions
 
@@ -142,7 +141,7 @@ export class StackedBarTransform extends ChartTransform {
                 // Stacked bar chart can't go negative!
                 if (value < 0) continue
                 // only consider years that are part of timeline to line up the bars
-                if (!timelineYears.includes(year)) continue
+                if (!timelineTimes.includes(year)) continue
 
                 if (!series) {
                     series = {
@@ -171,11 +170,11 @@ export class StackedBarTransform extends ChartTransform {
         groupedData.forEach((series) => {
             let i = 0
 
-            while (i < timelineYears.length) {
+            while (i < timelineTimes.length) {
                 const value = series.values[i] as StackedBarValue | undefined
-                const expectedYear = timelineYears[i]
+                const expectedYear = timelineTimes[i]
 
-                if (value === undefined || value.x > timelineYears[i]) {
+                if (value === undefined || value.x > timelineTimes[i]) {
                     // console.log("series " + series.key + " needs fake bar for " + expectedYear)
 
                     const fakeY = 0
@@ -232,7 +231,7 @@ export class StackedBarTransform extends ChartTransform {
 
     // Apply time filtering and stacking
     @computed get stackedData(): StackedBarSeries[] {
-        const { groupedData, startYear, endYear } = this
+        const { groupedData, startTime, endTime } = this
 
         const stackedData = cloneDeep(groupedData)
 
@@ -240,7 +239,7 @@ export class StackedBarTransform extends ChartTransform {
             series.color =
                 this.colorScale.getColor(series.entityDimensionKey) ?? "#ddd"
             series.values = series.values.filter(
-                (v) => v.x >= startYear && v.x <= endYear
+                (v) => v.x >= startTime && v.x <= endTime
             )
         }
 

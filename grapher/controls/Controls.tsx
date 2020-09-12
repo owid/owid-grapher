@@ -5,7 +5,10 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import { GrapherView } from "grapher/core/GrapherView"
-import { TimelineControl, TimelineProps } from "./TimelineControl"
+import {
+    TimelineComponent,
+    TimelineComponentProps,
+} from "grapher/timeline/TimelineComponent"
 import { formatValue, isMobile } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
@@ -315,14 +318,17 @@ export class ControlsFooterView extends React.Component<{
         )
     }
 
-    @computed private get timelineProps(): TimelineProps {
+    @computed private get timeline() {
+        if (!this.grapherView.hasTimeline) return null
+
         const grapher = this.grapher
-        const timelineProps: TimelineProps = {
-            subject: grapher,
+
+        const props: TimelineComponentProps = {
+            target: grapher,
             onPlay: () => {
                 grapher.analytics.logChartTimelinePlay(grapher.slug)
             },
-            formatYearFn: (value: number) => {
+            formatTimeFn: (value: number) => {
                 const timeColumn = grapher.table.timeColumn
                 if (!timeColumn)
                     return grapher.table.timeColumnFormatFunction(value)
@@ -339,50 +345,25 @@ export class ControlsFooterView extends React.Component<{
                 grapher.url.debounceMode = false
                 grapher.useTimelineDomains = false
             },
+            disablePlay: grapher.isSlopeChart,
         }
 
-        const tab = grapher.tab
-
-        if (tab === "map")
-            return {
-                ...timelineProps,
-                singleYearMode: true,
-            }
-        if (tab === "table")
-            return {
-                ...timelineProps,
-                singleYearMode: grapher.multiMetricTableMode,
-            }
-        if (grapher.isLineChart)
-            return {
-                ...timelineProps,
-                singleYearPlay: true,
-            }
-        if (grapher.isSlopeChart)
-            return {
-                ...timelineProps,
-                disablePlay: true,
-            }
-
-        return timelineProps
+        return (
+            <div className="footerRowSingle">
+                <TimelineComponent {...props} />
+            </div>
+        )
     }
 
     render() {
         const { grapher, grapherView } = this
         const {
             isShareMenuActive,
-            hasTimeline,
             hasInlineControls,
             hasSpace,
             hasRelatedQuestion,
         } = grapherView
         const { relatedQuestions } = grapher
-
-        const timelineElement = hasTimeline && (
-            <div className="footerRowSingle">
-                <TimelineControl {...this.timelineProps} />
-            </div>
-        )
 
         const inlineControlsElement = hasInlineControls && !hasSpace && (
             <div className="footerRowSingle">
@@ -429,7 +410,7 @@ export class ControlsFooterView extends React.Component<{
                 className={"ControlsFooter"}
                 style={{ height: grapherView.footerHeight }}
             >
-                {timelineElement}
+                {this.timeline}
                 {inlineControlsElement}
                 {tabsElement}
                 {shareMenuElement}

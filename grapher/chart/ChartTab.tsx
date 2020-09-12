@@ -59,7 +59,7 @@ export class ChartTab extends React.Component<{
             )
         } else if (grapher.isLineChart) {
             // Switch to bar chart if a single year is selected
-            return grapher.lineChartTransform.isSingleYear ? (
+            return grapher.lineChartTransform.isSingleTime ? (
                 <DiscreteBarChart
                     bounds={bounds.padTop(20).padBottom(15)}
                     grapher={grapher}

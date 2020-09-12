@@ -121,6 +121,7 @@ import {
     RelatedQuestionsConfig,
     ScaleType,
     EPOCH_DATE,
+    Time,
 } from "grapher/core/GrapherConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
@@ -585,31 +586,31 @@ export function stripHTML(html: string): string {
     return striptags(html)
 }
 
-export function findClosestYear(
-    years: number[],
-    targetYear: number,
+export function findClosestTime(
+    times: Time[],
+    targetTime: number,
     tolerance?: number
 ): number | undefined {
-    if (isUnboundedLeft(targetYear)) return min(years)
-    if (isUnboundedRight(targetYear)) return max(years)
+    if (isUnboundedLeft(targetTime)) return min(times)
+    if (isUnboundedRight(targetTime)) return max(times)
     let closest: number | undefined
-    for (const year of years) {
-        const currentYearDist = Math.abs(year - targetYear)
-        const closestYearDist = closest
-            ? Math.abs(closest - targetYear)
+    for (const time of times) {
+        const currentTimeDist = Math.abs(time - targetTime)
+        const closestTimeDist = closest
+            ? Math.abs(closest - targetTime)
             : Infinity
 
-        if (tolerance !== undefined && currentYearDist > tolerance) {
+        if (tolerance !== undefined && currentTimeDist > tolerance) {
             continue
         }
 
         if (
             closest === undefined ||
-            closestYearDist > currentYearDist ||
-            // Prefer later years, e.g. if targetYear is 2010, prefer 2011 to 2009
-            (closestYearDist === currentYearDist && year > closest)
+            closestTimeDist > currentTimeDist ||
+            // Prefer later times, e.g. if targetTime is 2010, prefer 2011 to 2009
+            (closestTimeDist === currentTimeDist && time > closest)
         ) {
-            closest = year
+            closest = time
         }
     }
     return closest
@@ -640,7 +641,7 @@ export function valuesAtYears(
     const years = Array.from(valueByYear.keys())
     const values = targetYears.map((targetYear) => {
         let value
-        const year = findClosestYear(years, targetYear, tolerance)
+        const year = findClosestTime(years, targetYear, tolerance)
         if (year !== undefined) {
             value = valueByYear.get(year)
         }

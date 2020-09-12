@@ -15,8 +15,8 @@ import {
     SortOrder,
     TickFormattingOptions,
     ScaleType,
+    Time,
 } from "grapher/core/GrapherConstants"
-import { Time } from "grapher/utils/TimeBounds"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -33,7 +33,7 @@ export class DiscreteBarTransform extends ChartTransform {
         return this.grapher.filledDimensions.filter((d) => d.property === "y")
     }
 
-    @computed get availableYears(): Time[] {
+    @computed get availableTimes(): Time[] {
         return flatten(this.primaryDimensions.map((dim) => dim.yearsUniq))
     }
 
@@ -42,11 +42,11 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
-        const { targetYear } = this
+        const { targetTime } = this
 
         return (datum: DiscreteBarDatum) => {
             const showYearLabels =
-                this.grapher.showYearLabels || datum.year !== targetYear
+                this.grapher.showYearLabels || datum.year !== targetTime
             return (
                 datum.formatValue(datum.value) +
                 (showYearLabels
@@ -71,8 +71,8 @@ export class DiscreteBarTransform extends ChartTransform {
     @computed get currentData(): DiscreteBarDatum[] {
         const { grapher } = this
         const targetYear = grapher.isLineChart
-            ? grapher.lineChartTransform.targetYear
-            : this.targetYear
+            ? grapher.lineChartTransform.targetTime
+            : this.targetTime
         const { filledDimensions } = grapher
         const { selectedKeysByKey } = grapher
         const dataByEntityDimensionKey: {

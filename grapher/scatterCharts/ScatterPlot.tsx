@@ -190,9 +190,9 @@ export class ScatterPlot extends React.Component<{
 
     @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
         const { transform } = this
-        const { startYear, endYear } = transform
+        const { startTime, endTime } = transform
 
-        if (startYear === endYear || transform.isRelativeMode) return undefined
+        if (startTime === endTime || transform.isRelativeMode) return undefined
 
         const that = this
         const formatFn = this.grapher.table.timeColumnFormatFunction
@@ -204,10 +204,10 @@ export class ScatterPlot extends React.Component<{
                 return that.grapher.baseFontSize
             },
             get startTime() {
-                return formatFn(that.transform.startYear)
+                return formatFn(that.transform.startTime)
             },
             get endTime() {
-                return formatFn(that.transform.endYear)
+                return formatFn(that.transform.endTime)
             },
             get endpointsOnly() {
                 return that.transform.compareEndPointsOnly

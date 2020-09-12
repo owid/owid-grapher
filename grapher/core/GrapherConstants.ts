@@ -30,6 +30,13 @@ export type StackMode = "absolute" | "relative"
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
 
+export type Integer = number
+/**
+ * A concrete point in time (year or date). It's always supposed to be a finite number, but we
+ * cannot enforce this in TypeScript.
+ */
+export type Time = Integer
+
 // todo: remove
 export type EntityDimensionKey = string
 

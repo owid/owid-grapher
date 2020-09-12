@@ -29,8 +29,11 @@ import { computed } from "mobx"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { Time } from "grapher/utils/TimeBounds"
-import { EntityDimensionKey, ScaleType } from "grapher/core/GrapherConstants"
+import {
+    EntityDimensionKey,
+    ScaleType,
+    Time,
+} from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { EntityName, Year } from "owidTable/OwidTableConstants"
 
@@ -356,7 +359,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     // The selectable years that will end up on the timeline UI (if enabled)
-    @computed get availableYears(): Time[] {
+    @computed get availableTimes(): Time[] {
         return this.allPoints.map((point) => point.year)
     }
 
@@ -584,8 +587,8 @@ export class ScatterTransform extends ChartTransform {
 
         const {
             grapher,
-            startYear,
-            endYear,
+            startTime,
+            endTime,
             xScaleType,
             yScaleType,
             isRelativeMode,
@@ -612,7 +615,7 @@ export class ScatterTransform extends ChartTransform {
             } as ScatterSeries
 
             dataByYear.forEach((point, year) => {
-                if (year < startYear || year > endYear) return
+                if (year < startTime || year > endTime) return
                 group.values.push(point)
             })
 
@@ -643,8 +646,8 @@ export class ScatterTransform extends ChartTransform {
         currentData.forEach((series) => {
             series.values = this._filterValues(
                 series.values,
-                startYear,
-                endYear,
+                startTime,
+                endTime,
                 yScaleType,
                 xScaleType,
                 isRelativeMode,
@@ -659,8 +662,8 @@ export class ScatterTransform extends ChartTransform {
             // Hide lines which don't cover the full span
             if (this.grapher.hideLinesOutsideTolerance)
                 return (
-                    firstOfNonEmptyArray(series.values).year === startYear &&
-                    lastOfNonEmptyArray(series.values).year === endYear
+                    firstOfNonEmptyArray(series.values).year === startTime &&
+                    lastOfNonEmptyArray(series.values).year === endTime
                 )
 
             return true

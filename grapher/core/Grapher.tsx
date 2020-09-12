@@ -47,6 +47,7 @@ import {
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
     EntitySelection,
+    Time,
 } from "grapher/core/GrapherConstants"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { OwidTable } from "owidTable/OwidTable"
@@ -78,7 +79,6 @@ import {
     getTimeDomainFromQueryString,
     parseTimeURIComponent,
     TimeBound,
-    Time,
     minTimeToJSON,
     maxTimeToJSON,
 } from "grapher/utils/TimeBounds"
@@ -531,11 +531,11 @@ export class Grapher extends GrapherDefaults {
         return window.self !== window.top
     }
 
-    @computed get years() {
-        return this.activeTransform.timelineYears
+    @computed get times() {
+        return this.activeTransform.timelineTimes
     }
 
-    @computed get startYear() {
+    @computed get startTime() {
         const activeTab = this.tab
         if (activeTab === "table")
             return (
@@ -543,29 +543,32 @@ export class Grapher extends GrapherDefaults {
                 this.timeDomain[0]
             )
         if (activeTab === "map") return this.mapTransform.targetYearProp
-        return this.activeTransform.startYear!
+        return this.activeTransform.startTime!
     }
 
-    set startYear(value: any) {
+    set startTime(value: any) {
         const activeTab = this.tab
-        if (activeTab === "map") this.mapTransform.targetYear = value
+        if (activeTab === "map") this.mapTransform.targetTime = value
         else this.timeDomain = [value, this.timeDomain[1]]
     }
 
-    set endYear(value: any) {
+    set endTime(value: any) {
         const activeTab = this.tab
-        if (activeTab === "map") this.mapTransform.targetYear = value
+        if (activeTab === "map") this.mapTransform.targetTime = value
+
+        if (activeTab === "table" && this.multiMetricTableMode)
+            this.timeDomain = [value, value]
         else this.timeDomain = [this.timeDomain[0], value]
     }
 
-    @computed get endYear() {
+    @computed get endTime() {
         const activeTab = this.tab
         if (activeTab === "table")
             return this.multiMetricTableMode
-                ? this.dataTableTransform.startYear
+                ? this.dataTableTransform.startTime
                 : this.timeDomain[1]
         if (activeTab === "map") return this.mapTransform.targetYearProp
-        return this.activeTransform.endYear!
+        return this.activeTransform.endTime!
     }
 
     @computed get isNativeEmbed(): boolean {
@@ -846,7 +849,7 @@ export class Grapher extends GrapherDefaults {
             this.isReady &&
             (!this.hideTitleAnnotation ||
                 (this.isLineChart &&
-                    this.lineChartTransform.isSingleYear &&
+                    this.lineChartTransform.isSingleTime &&
                     this.lineChartTransform.hasTimeline) ||
                 (this.primaryTab === "map" && this.mapTransform.hasTimeline))
         )
@@ -867,14 +870,14 @@ export class Grapher extends GrapherDefaults {
     }
 
     @computed get maxYear(): number {
-        if (this.currentTab === "table") return this.dataTableTransform.endYear
-        else if (this.primaryTab === "map") return this.mapTransform.targetYear
+        if (this.currentTab === "table") return this.dataTableTransform.endTime
+        else if (this.primaryTab === "map") return this.mapTransform.targetTime
         else if (this.isScatter && !this.scatterTransform.failMessage)
-            return this.scatterTransform.endYear
+            return this.scatterTransform.endTime
         else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.targetYear
-        else if (this.isSlopeChart) return this.slopeChartTransform.endYear
-        else return this.lineChartTransform.endYear
+            return this.discreteBarTransform.targetTime
+        else if (this.isSlopeChart) return this.slopeChartTransform.endTime
+        else return this.lineChartTransform.endTime
     }
 
     @computed get isSingleEntity(): boolean {
@@ -904,14 +907,14 @@ export class Grapher extends GrapherDefaults {
     // XXX refactor into the transforms
     @computed get minYear(): number {
         if (this.currentTab === "table")
-            return this.dataTableTransform.startYear
-        else if (this.primaryTab === "map") return this.mapTransform.targetYear
+            return this.dataTableTransform.startTime
+        else if (this.primaryTab === "map") return this.mapTransform.targetTime
         else if (this.isScatter && !this.scatterTransform.failMessage)
-            return this.scatterTransform.startYear
+            return this.scatterTransform.startTime
         else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.targetYear
-        else if (this.isSlopeChart) return this.slopeChartTransform.startYear
-        else return this.lineChartTransform.startYear
+            return this.discreteBarTransform.targetTime
+        else if (this.isSlopeChart) return this.slopeChartTransform.startTime
+        else return this.lineChartTransform.startTime
     }
 
     @computed get sourcesLine(): string {
