@@ -153,6 +153,6 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     componentDidCatch(error: any, info: any) {
-        this.grapher.analytics.logExploreError(error, info)
+        this.grapher.analytics.logIndicatorExplorerViewError(error, info)
     }
 }

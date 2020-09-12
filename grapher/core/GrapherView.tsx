@@ -445,7 +445,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
 
     componentDidCatch(error: any, info: any) {
         this.hasError = true
-        this.grapher.analytics.logChartError(error, info)
+        this.grapher.analytics.logGrapherViewError(error, info)
     }
 
     @observable isShareMenuActive: boolean = false

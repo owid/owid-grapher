@@ -3,17 +3,16 @@ import ReactDOM from "react-dom"
 import Select, { ValueType } from "react-select"
 import { countries } from "utils/countries"
 import { asArray } from "utils/client/react-select"
-import { Analytics } from "grapher/core/Analytics"
 import { sortBy } from "grapher/utils/Util"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
-import { ENV } from "settings"
+import { SiteAnalytics } from "./SiteAnalytics"
 
 interface CountrySelectOption {
     label: string
     value: string
 }
 
-const analytics = new Analytics(ENV)
+const analytics = new SiteAnalytics()
 
 const SearchCountry = (props: { countryProfileRootPath: string }) => {
     const [isLoading, setIsLoading] = useState(false)

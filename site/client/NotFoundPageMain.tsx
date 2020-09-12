@@ -1,7 +1,6 @@
-import { Analytics } from "grapher/core/Analytics"
-import { ENV } from "settings"
+import { SiteAnalytics } from "./SiteAnalytics"
 
-const analytics = new Analytics(ENV)
+const analytics = new SiteAnalytics()
 
 export function runNotFoundPage() {
     const query = window.location.pathname.split("/")
@@ -11,5 +10,5 @@ export function runNotFoundPage() {
             /[\-_\+|]/g,
             " "
         )
-    analytics.logPageNotFound(window.location.href)
+    analytics.logPageNotFoundError(window.location.href)
 }

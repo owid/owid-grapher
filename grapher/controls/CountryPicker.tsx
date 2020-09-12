@@ -23,7 +23,7 @@ import {
     first,
 } from "grapher/utils/Util"
 import { VerticalScrollContainer } from "grapher/controls/VerticalScrollContainer"
-import { Analytics } from "grapher/core/Analytics"
+import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 
 import { SortIcon } from "grapher/controls/SortIcon"
 import { SortOrder } from "grapher/core/GrapherConstants"
@@ -72,7 +72,7 @@ export class CountryPicker extends React.Component<{
     isDropdownMenu?: boolean
     countriesMustHaveColumns: string[]
     pickerColumnSlugs: Set<string>
-    analytics?: Analytics
+    analytics?: GrapherAnalytics
 }> {
     // Set default props
     static defaultProps = {

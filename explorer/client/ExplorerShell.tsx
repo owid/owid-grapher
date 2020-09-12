@@ -92,6 +92,7 @@ export class ExplorerShell extends React.Component<{
                 selectedEntities={this.selectedEntityNames}
                 clearSelectionCommand={this.clearSelectionCommand}
                 toggleCountryCommand={this.toggleSelectedEntityCommand}
+                analytics={this.props.grapher.analytics}
             ></CountryPicker>
         )
     }
