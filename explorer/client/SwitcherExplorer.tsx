@@ -54,7 +54,6 @@ export class SwitcherExplorer extends React.Component<{
     private urlBinding?: UrlBinder
     private lastId = 0
 
-    @observable private _grapher?: Grapher = undefined
     @observable availableEntities: string[] = []
 
     private get explorerRuntime() {
@@ -64,6 +63,10 @@ export class SwitcherExplorer extends React.Component<{
     private get switcherRuntime() {
         return this.props.program.switcherRuntime
     }
+
+    @observable private _grapher?: Grapher = this.setGrapher(
+        this.switcherRuntime.chartId
+    )
 
     private bindToWindow() {
         const url = new ExtendedGrapherUrl(this._grapher!.url, [
@@ -79,24 +82,19 @@ export class SwitcherExplorer extends React.Component<{
         win.switcherExplorer = this
     }
 
-    componentWillMount() {
-        // todo: add disposer
-        reaction(() => this.switcherRuntime.chartId, this.switchGrapher, {
-            fireImmediately: true,
-        })
-    }
-
     componentDidMount() {
         autorun(() => {
             this.explorerRuntime.selectedEntityNames.size // "Dot in" to create Mobx link.
             this.updateGrapherSelection()
         })
+
+        // todo: add disposer?
+        reaction(() => this.switcherRuntime.chartId, this.switchGrapher, {
+            fireImmediately: true,
+        })
     }
 
-    @action.bound private switchGrapher() {
-        const newId: number = this.switcherRuntime.chartId
-        if (newId === this.lastId) return
-
+    @action.bound private setGrapher(newId: number) {
         const currentParams = this._grapher
             ? this._grapher.url.params
             : strToQueryParams(this.props.program.queryString)
@@ -124,6 +122,13 @@ export class SwitcherExplorer extends React.Component<{
         )
 
         this.lastId = newId
+        return this._grapher
+    }
+
+    @action.bound private switchGrapher() {
+        const newId = this.switcherRuntime.chartId
+        if (newId === this.lastId) return
+        this.setGrapher(newId)
     }
 
     @action.bound private updateGrapherSelection() {

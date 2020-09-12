@@ -631,7 +631,6 @@ export class CovidExplorer extends React.Component<{
         if (params.interval === "biweeklyChange")
             return `The biweekly growth rate on any given date measures the percentage change in the number of new confirmed ${metric} over the last 14 days relative to the number in the previous 14 days.`
 
-        console.log("Error generating subtitle")
         return ""
     }
 
@@ -717,23 +716,6 @@ export class CovidExplorer extends React.Component<{
             this.selectionChangeFromBuilder = true
             this._updateChart()
         }, 1)
-    }
-
-    private _covidExplorerTable?: CovidExplorerTable
-    get covidExplorerTable() {
-        if (!this._covidExplorerTable) {
-            this._covidExplorerTable = new CovidExplorerTable(
-                this.grapher.table,
-                this.props.data,
-                this.props.covidChartAndVariableMeta.variables,
-                this.props.isExplorerPage
-            )
-        }
-        return this._covidExplorerTable
-    }
-
-    componentWillMount() {
-        this.covidExplorerTable // init table.
     }
 
     @computed get selectedEntityNames(): string[] {
@@ -1401,6 +1383,13 @@ export class CovidExplorer extends React.Component<{
         {
             queryStr: this.props.queryStr,
         }
+    )
+
+    private covidExplorerTable = new CovidExplorerTable(
+        this.grapher.table,
+        this.props.data,
+        this.props.covidChartAndVariableMeta.variables,
+        this.props.isExplorerPage
     )
 }
 
