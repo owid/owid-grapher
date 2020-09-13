@@ -7,6 +7,7 @@ describe("ChartConfig", () => {
         const grapher = new Grapher({
             type: "LineChart",
             hasChartTab: false,
+            manuallyProvideData: true,
             hasMapTab: false,
             isExplorable: true,
             dimensions: [{ property: "y", variableId: 1, display: {} }],
@@ -18,6 +19,7 @@ describe("ChartConfig", () => {
         const grapher = new Grapher({
             type: "ScatterPlot",
             hasChartTab: true,
+            manuallyProvideData: true,
             isExplorable: true,
             dimensions: [{ property: "y", variableId: 1, display: {} }],
         })
@@ -29,6 +31,7 @@ describe("ChartConfig", () => {
             type: "LineChart",
             hasChartTab: true,
             isExplorable: true,
+            manuallyProvideData: true,
             dimensions: [
                 { property: "y", variableId: 1, display: {} },
                 { property: "y", variableId: 2, display: {} },
