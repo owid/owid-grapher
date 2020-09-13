@@ -433,13 +433,17 @@ export class Grapher extends GrapherDefaults {
             return
         }
 
-        if (window.admin) {
-            const json = await window.admin.getJSON(
-                `/api/data/variables/${this.dataFileName}`
-            )
-            this._receiveData(json)
-        } else {
-            await this.downloadDataFromUrl(this.dataUrl)
+        try {
+            if (window.admin) {
+                const json = await window.admin.getJSON(
+                    `/api/data/variables/${this.dataFileName}`
+                )
+                this._receiveData(json)
+            } else {
+                await this.downloadDataFromUrl(this.dataUrl)
+            }
+        } catch (err) {
+            console.error(err)
         }
     }
 
