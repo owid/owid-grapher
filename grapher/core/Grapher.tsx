@@ -59,7 +59,11 @@ import {
     ChartDimensionInterface,
 } from "grapher/chart/ChartDimension"
 import { MapTransform } from "grapher/mapCharts/MapTransform"
-import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
+import {
+    GrapherQueryParams,
+    GrapherUrl,
+    legacyQueryParamsToCurrentQueryParams,
+} from "./GrapherUrl"
 import { StackedBarTransform } from "grapher/barCharts/StackedBarTransform"
 import { DiscreteBarTransform } from "grapher/barCharts/DiscreteBarTransform"
 import { StackedAreaTransform } from "grapher/areaCharts/StackedAreaTransform"
@@ -77,7 +81,6 @@ import {
     TimeBounds,
     TimeBoundValue,
     getTimeDomainFromQueryString,
-    parseTimeURIComponent,
     TimeBound,
     minTimeToJSON,
     maxTimeToJSON,
@@ -224,8 +227,13 @@ export class Grapher extends GrapherDefaults {
         )
 
         this.url = new GrapherUrl(this, config, this.bakedGrapherURL)
+
         if (options.queryStr !== undefined)
-            this.populateFromQueryParams(strToQueryParams(options.queryStr))
+            this.populateFromQueryParams(
+                legacyQueryParamsToCurrentQueryParams(
+                    strToQueryParams(options.queryStr)
+                )
+            )
 
         // The props after consuming the URL parameters, but before any user interaction
         this.configOnLoad = this.toObject()
@@ -324,29 +332,15 @@ export class Grapher extends GrapherDefaults {
         }
 
         const time = params.time
-        if (time) this.setTimeFromTimeQueryParam(time)
+        if (time !== undefined && time !== "")
+            this.setTimeFromTimeQueryParam(time)
 
         const endpointsOnly = params.endpointsOnly
-        if (endpointsOnly !== undefined) {
+        if (endpointsOnly !== undefined)
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
-        }
 
-        // Map stuff below
-
-        if (this.map) {
-            if (params.year) {
-                const year = parseTimeURIComponent(
-                    params.year,
-                    TimeBoundValue.unboundedRight
-                )
-                this.map.targetYear = year
-            }
-
-            const region = params.region
-            if (region !== undefined) {
-                this.map.projection = region as MapProjection
-            }
-        }
+        const region = params.region
+        if (region !== undefined) this.map.projection = region as MapProjection
 
         // Selected countries -- we can't actually look these up until we have the data
         const country = params.country
@@ -546,21 +540,19 @@ export class Grapher extends GrapherDefaults {
                 this.dataTableTransform.autoSelectedStartYear ??
                 this.timeDomain[0]
             )
-        if (activeTab === "map") return this.mapTransform.targetYearProp
+        if (activeTab === "map")
+            return this.map.time ?? TimeBoundValue.unboundedRight
         return this.activeTransform.startTime!
     }
 
     set startTime(value: any) {
-        const activeTab = this.tab
-        if (activeTab === "map") this.mapTransform.targetTime = value
+        if (this.tab === "map") this.timeDomain = [value, value]
         else this.timeDomain = [value, this.timeDomain[1]]
     }
 
     set endTime(value: any) {
         const activeTab = this.tab
-        if (activeTab === "map") this.mapTransform.targetTime = value
-
-        if (activeTab === "table" && this.multiMetricTableMode)
+        if (activeTab === "map" || activeTab === "table")
             this.timeDomain = [value, value]
         else this.timeDomain = [this.timeDomain[0], value]
     }
@@ -571,7 +563,8 @@ export class Grapher extends GrapherDefaults {
             return this.multiMetricTableMode
                 ? this.dataTableTransform.startTime
                 : this.timeDomain[1]
-        if (activeTab === "map") return this.mapTransform.targetYearProp
+        if (activeTab === "map")
+            return this.map.time ?? TimeBoundValue.unboundedRight
         return this.activeTransform.endTime!
     }
 
@@ -875,11 +868,11 @@ export class Grapher extends GrapherDefaults {
 
     @computed get maxYear(): number {
         if (this.currentTab === "table") return this.dataTableTransform.endTime
-        else if (this.primaryTab === "map") return this.mapTransform.targetTime
+        else if (this.primaryTab === "map") return this.mapTransform.time
         else if (this.isScatter && !this.scatterTransform.failMessage)
             return this.scatterTransform.endTime
         else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.targetTime
+            return this.discreteBarTransform.time
         else if (this.isSlopeChart) return this.slopeChartTransform.endTime
         else return this.lineChartTransform.endTime
     }
@@ -912,11 +905,11 @@ export class Grapher extends GrapherDefaults {
     @computed get minYear(): number {
         if (this.currentTab === "table")
             return this.dataTableTransform.startTime
-        else if (this.primaryTab === "map") return this.mapTransform.targetTime
+        else if (this.primaryTab === "map") return this.mapTransform.time
         else if (this.isScatter && !this.scatterTransform.failMessage)
             return this.scatterTransform.startTime
         else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.targetTime
+            return this.discreteBarTransform.time
         else if (this.isSlopeChart) return this.slopeChartTransform.startTime
         else return this.lineChartTransform.startTime
     }

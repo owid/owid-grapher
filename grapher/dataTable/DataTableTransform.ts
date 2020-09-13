@@ -17,6 +17,7 @@ import { TickFormattingOptions } from "grapher/core/GrapherConstants"
 import {
     getTimeWithinTimeRange,
     isUnboundedLeft,
+    TimeBoundValue,
 } from "grapher/utils/TimeBounds"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 
@@ -220,11 +221,12 @@ export class DataTableTransform extends ChartTransform {
 
     @computed get targetYears(): TargetYears {
         // legacy support for Exemplars Explorer project
-        if (this.grapher.currentTab === "map")
+        const grapher = this.grapher
+        if (grapher.currentTab === "map")
             return [
                 getTimeWithinTimeRange(
-                    [this.grapher.minYear, this.grapher.maxYear],
-                    this.grapher.mapTransform.targetYearProp
+                    [grapher.minYear, grapher.maxYear],
+                    grapher.map.time ?? TimeBoundValue.unboundedRight
                 ),
             ]
 

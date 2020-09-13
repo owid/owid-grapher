@@ -851,7 +851,7 @@ export class CovidExplorer extends React.Component<{
 
         Object.assign(map, this.sourceChart?.map || this.defaultMapConfig)
 
-        map.targetYear = undefined
+        map.time = undefined
         map.columnSlug = this.yColumn.spec.owidVariableId?.toString()
 
         // Preserve region

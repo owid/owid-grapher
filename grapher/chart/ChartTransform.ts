@@ -15,7 +15,7 @@ export interface IChartTransform {
     timelineTimes: Time[]
     startTime?: Time
     endTime?: Time
-    targetTime?: Time
+    time?: Time
     colorScale?: ColorScale
 }
 
@@ -88,11 +88,10 @@ export abstract class ChartTransform implements IChartTransform {
      */
     @computed get endTime(): Time {
         const max = this.grapher.timeDomain[1]
-        if (isUnboundedLeft(max)) {
-            return this.minTimelineTime
-        } else if (isUnboundedRight(max)) {
-            return this.maxTimelineTime
-        }
+
+        if (isUnboundedLeft(max)) return this.minTimelineTime
+        else if (isUnboundedRight(max)) return this.maxTimelineTime
+
         return getClosestTime(this.timelineTimes, max, this.maxTimelineTime)
     }
 
@@ -111,7 +110,7 @@ export abstract class ChartTransform implements IChartTransform {
      * The single targetYear, if a chart is in a "single year" mode, like a LineChart becoming a
      * DiscreteBar when only a single year on the timeline is selected.
      */
-    @computed get targetTime(): Time {
+    @computed get time(): Time {
         return this.endTime
     }
 

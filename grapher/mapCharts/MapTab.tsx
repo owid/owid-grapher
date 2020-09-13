@@ -117,14 +117,6 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.focusBracket = d
     }
 
-    @action.bound onTargetChange({
-        targetStartYear,
-    }: {
-        targetStartYear: number
-    }) {
-        this.grapher.mapTransform.targetTime = targetStartYear
-    }
-
     @action.bound onLegendMouseLeave() {
         this.focusBracket = undefined
     }
@@ -289,7 +281,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         bounds={layout.innerBounds}
                         choroplethData={map.choroplethData}
                         years={map.timelineTimes}
-                        inputYear={map.targetTime}
+                        inputYear={map.time}
                         colorScale={map.colorScale}
                         projection={map.projection}
                         defaultFill={map.colorScale.noDataColor}

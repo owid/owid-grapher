@@ -51,20 +51,6 @@ export class MapTransform extends ChartTransform {
         return defaultTo(this.props.projection, "World")
     }
 
-    // Overrides the default ChartTransform#targetYear method because the map stores the target year
-    // separately in the config.
-    @computed get targetTime(): TimeBound {
-        return getClosestTime(this.timelineTimes, this.targetYearProp, 2000)
-    }
-
-    set targetTime(value: TimeBound) {
-        this.props.targetYear = value
-    }
-
-    @computed get targetYearProp(): TimeBound {
-        return this.props.targetYear ?? TimeBoundValue.unboundedRight
-    }
-
     @computed get tooltipUseCustomLabels() {
         return this.props.tooltipUseCustomLabels ?? false
     }
@@ -203,10 +189,10 @@ export class MapTransform extends ChartTransform {
 
     // Get values for the current year, without any color info yet
     @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { targetTime, grapher } = this
+        const { time, grapher } = this
         const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
 
-        if (targetTime === undefined || !valueByEntityAndYear) return {}
+        if (time === undefined || !valueByEntityAndYear) return {}
 
         const { tolerance } = this
         const entities = Object.keys(this.knownMapEntities)
@@ -219,7 +205,7 @@ export class MapTransform extends ChartTransform {
             const valueByYear = valueByEntityAndYear.get(entity)
             if (!valueByYear) return
             const years = Array.from(valueByYear.keys())
-            const year = findClosestTime(years, targetTime, tolerance)
+            const year = findClosestTime(years, time, tolerance)
             if (year === undefined) return
             const value = valueByYear.get(year)
             if (value === undefined) return
