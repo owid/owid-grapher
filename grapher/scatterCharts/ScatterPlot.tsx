@@ -68,16 +68,6 @@ export class ScatterPlot extends React.Component<{
         return this.props.bounds
     }
 
-    @action.bound onTargetChange({
-        targetStartYear,
-        targetEndYear,
-    }: {
-        targetStartYear: TimeBound
-        targetEndYear: TimeBound
-    }) {
-        this.grapher.timeDomain = [targetStartYear, targetEndYear]
-    }
-
     @action.bound onSelectEntity(key: EntityDimensionKey) {
         if (this.grapher.addCountryMode !== "disabled")
             this.grapher.toggleKey(key)

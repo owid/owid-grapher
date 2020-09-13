@@ -15,29 +15,33 @@ import { maxTimeFromJSON, maxTimeToJSON } from "grapher/utils/TimeBounds"
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
     @observable columnSlug?: ColumnSlug
-    @observable.ref targetYear?: number
-    @observable.ref timeTolerance?: number
-    @observable.ref hideTimeline?: true
-    @observable.ref projection: MapProjection = "World"
+    @observable time?: number
+    @observable timeTolerance?: number
+    @observable hideTimeline?: true
+    @observable projection: MapProjection = "World"
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable.ref tooltipUseCustomLabels?: true = undefined
+    @observable tooltipUseCustomLabels?: true = undefined
 }
 
 export type MapConfigInterface = MapConfigDefaults
 
 interface MapConfigWithLegacyInterface extends MapConfigInterface {
     variableId?: LegacyVariableId
+    year?: number
 }
 
 export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigWithLegacyInterface>) {
+        // Migrate variableIds to columnSlugs
         if (obj.variableId && !obj.columnSlug)
-            // Migrate variableIds to columnSlugs
             obj.columnSlug = obj.variableId.toString()
+
+        // Migrate "targetYear" to "time"
+        if (obj.year) this.time = maxTimeFromJSON(obj.year)
+
         updatePersistables(this, obj)
-        if (obj.targetYear) this.targetYear = maxTimeFromJSON(obj.targetYear)
     }
 
     toObject() {
@@ -46,8 +50,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         ) as MapConfigWithLegacyInterface
         deleteRuntimeAndUnchangedProps(obj, new MapConfigDefaults())
 
-        if (obj.targetYear)
-            obj.targetYear = maxTimeToJSON(this.targetYear) as any
+        if (obj.time) obj.time = maxTimeToJSON(this.time) as any
 
         if (obj.columnSlug) {
             // Restore variableId for legacy for now

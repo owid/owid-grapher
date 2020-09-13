@@ -88,8 +88,8 @@ class TimelineSection extends React.Component<{ mapTransform: MapTransform }> {
         this.props.mapTransform.props.hideTimeline = value || undefined
     }
 
-    @action.bound onTargetYear(targetYear: number | undefined) {
-        this.props.mapTransform.props.targetYear = targetYear
+    @action.bound setMapTime(time: number | undefined) {
+        this.props.mapTransform.props.time = time
     }
 
     @action.bound onTolerance(tolerance: number | undefined) {
@@ -102,8 +102,8 @@ class TimelineSection extends React.Component<{ mapTransform: MapTransform }> {
             <Section name="Timeline">
                 <NumberField
                     label="Target year"
-                    value={mapTransform.props.targetYear}
-                    onValue={this.onTargetYear}
+                    value={mapTransform.props.time}
+                    onValue={this.setMapTime}
                     allowNegative
                 />
                 <Toggle

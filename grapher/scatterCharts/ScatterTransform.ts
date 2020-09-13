@@ -110,6 +110,7 @@ export class ScatterTransform extends ChartTransform {
         return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 
+    // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
     @computed get xOverrideYear(): number | undefined {

@@ -3,16 +3,22 @@
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "grapher/utils/TimeBounds"
 import { setupGrapher } from "grapher/test/utils"
-import { GrapherUrl, GrapherQueryParams } from "./GrapherUrl"
+import {
+    GrapherUrl,
+    LegacyGrapherQueryParams,
+    legacyQueryParamsToCurrentQueryParams,
+} from "./GrapherUrl"
 import { Grapher } from "grapher/core/Grapher"
 import { ScaleType } from "./GrapherConstants"
 
 function fromQueryParams(
-    params: GrapherQueryParams,
+    params: LegacyGrapherQueryParams,
     props?: Partial<GrapherInterface>
 ) {
     const grapher = new Grapher(props)
-    grapher.populateFromQueryParams(params)
+    grapher.populateFromQueryParams(
+        legacyQueryParamsToCurrentQueryParams(params)
+    )
     return grapher
 }
 
@@ -20,11 +26,27 @@ function toQueryParams(props?: Partial<GrapherInterface>) {
     const grapher = new Grapher({
         minTime: -5000,
         maxTime: 5000,
-        map: { targetYear: 5000 },
+        map: { time: 5000 },
     })
     if (props) grapher.updateFromObject(props)
     return grapher.url.params
 }
+
+describe("legacy urls", () => {
+    it("can upgrade legacy urls", () => {
+        expect(
+            legacyQueryParamsToCurrentQueryParams({ year: "2000" })
+        ).toEqual({ time: "2000" })
+
+        // Do not override time if set
+        expect(
+            legacyQueryParamsToCurrentQueryParams({
+                year: "2000",
+                time: "2001..2002",
+            })
+        ).toEqual({ time: "2001..2002" })
+    })
+})
 
 describe(GrapherUrl, () => {
     describe("scaleType", () => {
@@ -168,19 +190,19 @@ describe(GrapherUrl, () => {
             })
 
             it("doesn't include URL param if it's identical to original config", () => {
-                const chart = new Grapher({
+                const grapher = new Grapher({
                     minTime: 0,
                     maxTime: 75,
                 })
-                expect(chart.url.params.time).toEqual(undefined)
+                expect(grapher.url.params.time).toEqual(undefined)
             })
 
             it("doesn't include URL param if unbounded is encoded as `undefined`", () => {
-                const chart = new Grapher({
+                const grapher = new Grapher({
                     minTime: undefined,
                     maxTime: 75,
                 })
-                expect(chart.url.params.time).toEqual(undefined)
+                expect(grapher.url.params.time).toEqual(undefined)
             })
         })
 
@@ -341,25 +363,20 @@ describe(GrapherUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const chart = fromQueryParams({ year: test.query })
-                    expect(chart.mapTransform.targetYearProp).toEqual(
-                        test.param
-                    )
+                    const grapher = fromQueryParams({ year: test.query })
+                    expect(grapher.timeDomain[1]).toEqual(test.param)
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
-                        map: { targetYear: test.param },
+                        map: { time: test.param },
                     })
-                    expect(params.year).toEqual(test.query)
+                    expect(params.time).toEqual(test.query)
                 })
             }
 
             it("empty string doesn't change time", () => {
-                const chart = fromQueryParams(
-                    { year: "" },
-                    { map: { targetYear: 2015 } }
-                )
-                expect(chart.mapTransform.targetYearProp).toEqual(2015)
+                const grapher = fromQueryParams({ year: "", time: "2015" })
+                expect(grapher.timeDomain[1]).toEqual(2015)
             })
         })
 
@@ -398,19 +415,21 @@ describe(GrapherUrl, () => {
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
                     const grapher = setupGrapher(4066, [142708])
-                    grapher.populateFromQueryParams({ year: test.query })
-                    expect(grapher.mapTransform.targetYearProp).toEqual(
-                        test.param
+                    grapher.populateFromQueryParams(
+                        legacyQueryParamsToCurrentQueryParams({
+                            year: test.query,
+                        })
                     )
+                    expect(grapher.timeDomain).toEqual([test.param, test.param])
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
                         const grapher = setupGrapher(4066, [142708])
                         grapher.updateFromObject({
-                            map: { targetYear: test.param },
+                            map: { time: test.param },
                         })
                         const params = grapher.url.params
-                        expect(params.year).toEqual(test.query)
+                        expect(params.time).toEqual(test.query)
                     })
                 }
             }

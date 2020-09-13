@@ -42,11 +42,11 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
-        const { targetTime } = this
+        const { time } = this
 
         return (datum: DiscreteBarDatum) => {
             const showYearLabels =
-                this.grapher.showYearLabels || datum.year !== targetTime
+                this.grapher.showYearLabels || datum.year !== time
             return (
                 datum.formatValue(datum.value) +
                 (showYearLabels
@@ -71,8 +71,8 @@ export class DiscreteBarTransform extends ChartTransform {
     @computed get currentData(): DiscreteBarDatum[] {
         const { grapher } = this
         const targetYear = grapher.isLineChart
-            ? grapher.lineChartTransform.targetTime
-            : this.targetTime
+            ? grapher.lineChartTransform.time
+            : this.time
         const { filledDimensions } = grapher
         const { selectedKeysByKey } = grapher
         const dataByEntityDimensionKey: {

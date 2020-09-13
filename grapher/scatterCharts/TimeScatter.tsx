@@ -595,16 +595,6 @@ export class TimeScatter extends React.Component<{
         return this.props.bounds
     }
 
-    @action.bound onTargetChange({
-        targetStartYear,
-        targetEndYear,
-    }: {
-        targetStartYear: TimeBound
-        targetEndYear: TimeBound
-    }) {
-        this.grapher.timeDomain = [targetStartYear, targetEndYear]
-    }
-
     // todo: Refactor
     @computed private get dualAxis() {
         const { xAxis, yAxis } = this.transform

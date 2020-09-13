@@ -15,8 +15,9 @@ import { ObservableUrl } from "grapher/utils/UrlBinder"
 import { formatTimeURIComponent } from "grapher/utils/TimeBounds"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { GrapherInterface } from "./GrapherInterface"
+import { omit } from "grapher/utils/Util"
 
-export interface GrapherQueryParams extends QueryParams {
+export interface GrapherQueryParams {
     tab?: string
     overlay?: string
     stackMode?: string
@@ -25,11 +26,24 @@ export interface GrapherQueryParams extends QueryParams {
     xScale?: string
     yScale?: string
     time?: string
-    year?: string
     region?: string
     country?: string
     shown?: string
     endpointsOnly?: string
+}
+
+export interface LegacyGrapherQueryParams extends GrapherQueryParams {
+    year?: string
+}
+
+export const legacyQueryParamsToCurrentQueryParams = (
+    params: LegacyGrapherQueryParams
+) => {
+    const obj = omit(params, "year") as GrapherQueryParams
+
+    if (params.year !== undefined) obj.time = obj.time ?? params.year
+
+    return obj
 }
 
 // Todo: this should probably be merged into PeristableGrapher
@@ -60,7 +74,6 @@ export class GrapherUrl implements ObservableUrl {
         params.zoomToSelection = grapher.zoomToSelection ? "true" : undefined
         params.minPopulationFilter = grapher.minPopulationFilter?.toString()
         params.endpointsOnly = grapher.compareEndPointsOnly ? "1" : "0"
-        params.year = this.yearParam
         params.time = this.timeParam
         params.country = this.countryParam
         params.region = grapher.map.projection
@@ -74,7 +87,9 @@ export class GrapherUrl implements ObservableUrl {
     @observable dropUnchangedParams = true
 
     @computed get params() {
-        return this.dropUnchangedParams ? this.changedParams : this.allParams
+        return (this.dropUnchangedParams
+            ? this.changedParams
+            : this.allParams) as QueryParams
     }
 
     // Autocomputed url params to reflect difference between current grapher state
@@ -138,33 +153,15 @@ export class GrapherUrl implements ObservableUrl {
         return this.baseUrl ? this.baseUrl + this.queryStr : undefined
     }
 
-    // Todo: why do we have a year and time param? Should this be mapYear?
-    @computed private get yearParam(): string | undefined {
-        const { grapher, originalConfig } = this
-
-        if (
-            grapher.mapTransform &&
-            originalConfig.map &&
-            grapher.mapTransform.targetYearProp !==
-                originalConfig.map.targetYear
-        )
-            return formatTimeURIComponent(
-                grapher.mapTransform.targetYearProp,
-                !!grapher.table.hasDayColumn
-            )
-
-        return undefined
-    }
-
     @computed get timeParam(): string | undefined {
         const { grapher, originalConfig } = this
+        const formatAsDay = grapher.table.hasDayColumn
 
         if (
             grapher.minTime !== originalConfig.minTime ||
             grapher.maxTime !== originalConfig.maxTime
         ) {
             const [minTime, maxTime] = grapher.timeDomain
-            const formatAsDay = grapher.table.hasDayColumn
 
             const start = formatTimeURIComponent(minTime, formatAsDay)
 
@@ -173,6 +170,10 @@ export class GrapherUrl implements ObservableUrl {
             const end = formatTimeURIComponent(maxTime, formatAsDay)
             return `${start}..${end}`
         }
+
+        if (grapher.map.time !== undefined)
+            return formatTimeURIComponent(grapher.map.time, formatAsDay)
+
         return undefined
     }
 
@@ -208,8 +209,8 @@ export class ExtendedGrapherUrl implements ObservableUrl {
         this.objectsWithParams = objectsWithParams
     }
 
-    @computed get params(): QueryParams {
-        let obj = Object.assign({}, this.grapherUrl.params)
+    @computed get params() {
+        let obj = Object.assign({}, this.grapherUrl.params) as QueryParams
         this.objectsWithParams.forEach((p) => {
             obj = Object.assign(obj, p.toQueryParams)
         })
