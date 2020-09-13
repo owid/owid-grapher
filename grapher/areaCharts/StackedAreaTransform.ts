@@ -145,7 +145,7 @@ export class StackedAreaTransform extends ChartTransform {
         })
 
         // In relative mode, transform data to be a percentage of the total for that year
-        if (this.isRelativeMode) {
+        if (grapher.isRelativeMode) {
             if (groupedData.length === 0) return []
 
             for (let i = 0; i < groupedData[0].values.length; i++) {
@@ -181,18 +181,18 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     @computed get yAxis() {
-        const { isRelativeMode, yDimensionFirst } = this
+        const { yDimensionFirst } = this
         const { grapher, yDomainDefault } = this
 
         const axis = grapher.yAxis.toVerticalAxis()
-        if (isRelativeMode) axis.domain = [0, 100]
+        if (grapher.isRelativeMode) axis.domain = [0, 100]
         else
             axis.updateDomainPreservingUserSettings([
                 yDomainDefault[0],
                 yDomainDefault[1],
             ]) // Stacked area chart must have its own y domain)
 
-        axis.tickFormatFn = isRelativeMode
+        axis.tickFormatFn = grapher.isRelativeMode
             ? (v: number) => formatValue(v, { unit: "%" })
             : yDimensionFirst
             ? yDimensionFirst.formatValueShortFn
@@ -266,7 +266,7 @@ export class StackedAreaTransform extends ChartTransform {
     }
 
     formatYTick(v: number) {
-        if (this.isRelativeMode) return formatValue(v, { unit: "%" })
+        if (this.grapher.isRelativeMode) return formatValue(v, { unit: "%" })
 
         const tickFormat = this.yDimensionFirst
             ? this.yDimensionFirst.formatValueShortFn

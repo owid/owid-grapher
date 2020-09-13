@@ -838,7 +838,7 @@ export class Grapher extends GrapherDefaults {
         if (
             !this.hideTitleAnnotation &&
             this.isLineChart &&
-            this.lineChartTransform.isRelativeMode
+            this.isRelativeMode
         )
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 

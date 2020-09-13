@@ -182,7 +182,8 @@ export class ScatterPlot extends React.Component<{
         const { transform } = this
         const { startTime, endTime } = transform
 
-        if (startTime === endTime || transform.isRelativeMode) return undefined
+        if (startTime === endTime || this.grapher.isRelativeMode)
+            return undefined
 
         const that = this
         const formatFn = this.grapher.table.timeColumnFormatFunction
