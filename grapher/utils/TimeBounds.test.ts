@@ -6,6 +6,7 @@ import {
     maxTimeFromJSON,
     minTimeToJSON,
     maxTimeToJSON,
+    getTimeDomainFromQueryString,
 } from "grapher/utils/TimeBounds"
 
 describe(minTimeFromJSON, () => {
@@ -95,5 +96,14 @@ describe(maxTimeToJSON, () => {
     })
     it("handles zero", () => {
         expect(maxTimeToJSON(0)).toEqual(0)
+    })
+})
+
+describe(getTimeDomainFromQueryString, () => {
+    it("can handle both unbounded", () => {
+        expect(getTimeDomainFromQueryString("..")).toEqual([
+            -Infinity,
+            Infinity,
+        ])
     })
 })
