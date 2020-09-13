@@ -381,7 +381,7 @@ export class ScatterTransform extends ChartTransform {
             )
         }
 
-        if (this.isRelativeMode)
+        if (this.grapher.isRelativeMode)
             return relativeMinAndMax(this.allPoints, property)
 
         return domainExtent(
@@ -418,7 +418,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get yScaleType() {
-        return this.isRelativeMode
+        return this.grapher.isRelativeMode
             ? ScaleType.linear
             : this.grapher.yAxis.scaleType || ScaleType.linear
     }
@@ -436,7 +436,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get yAxis() {
-        const { grapher, yDomainDefault, yDimension, isRelativeMode } = this
+        const { grapher, yDomainDefault, yDimension } = this
 
         const axis = grapher.yAxis.toVerticalAxis()
         axis.tickFormatFn =
@@ -446,7 +446,7 @@ export class ScatterTransform extends ChartTransform {
 
         axis.scaleType = this.yScaleType
 
-        if (isRelativeMode) {
+        if (grapher.isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = yDomainDefault // Overwrite user's min/max
             if (label && label.length > 1) {
@@ -464,7 +464,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get xScaleType(): ScaleType {
-        return this.isRelativeMode
+        return this.grapher.isRelativeMode
             ? ScaleType.linear
             : this.grapher.xAxis.scaleType || ScaleType.linear
     }
@@ -477,19 +477,14 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get xAxis() {
-        const {
-            xDomainDefault,
-            xDimension,
-            isRelativeMode,
-            xAxisLabelBase,
-        } = this
+        const { xDomainDefault, xDimension, grapher, xAxisLabelBase } = this
 
-        const { xAxis } = this.grapher
+        const { xAxis } = grapher
 
         const axis = xAxis.toHorizontalAxis()
 
         axis.scaleType = this.xScaleType
-        if (isRelativeMode) {
+        if (grapher.isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = xDomainDefault // Overwrite user's min/max
             const label = xAxis.label || xAxisLabelBase
@@ -512,13 +507,13 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get yFormatTooltip(): (d: number) => string {
-        return this.isRelativeMode || !this.yDimension
+        return this.grapher.isRelativeMode || !this.yDimension
             ? this.yAxis.tickFormatFn
             : this.yDimension.formatValueLongFn
     }
 
     @computed get xFormatTooltip(): (d: number) => string {
-        return this.isRelativeMode || !this.xDimension
+        return this.grapher.isRelativeMode || !this.xDimension
             ? this.xAxis.tickFormatFn
             : this.xDimension.formatValueLongFn
     }
@@ -592,11 +587,10 @@ export class ScatterTransform extends ChartTransform {
             endTime,
             xScaleType,
             yScaleType,
-            isRelativeMode,
             compareEndPointsOnly,
             xOverrideYear,
         } = this
-        const { keyColors } = grapher
+        const { keyColors, isRelativeMode } = grapher
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"

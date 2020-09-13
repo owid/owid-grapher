@@ -110,7 +110,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get predomainData() {
-        if (!this.isRelativeMode) return this.initialData
+        if (!this.grapher.isRelativeMode) return this.initialData
 
         return cloneDeep(this.initialData).map((series) => {
             const startIndex = series.values.findIndex(
@@ -212,13 +212,13 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get yScaleType() {
-        return this.isRelativeMode
+        return this.grapher.isRelativeMode
             ? ScaleType.linear
             : this.grapher.yAxis.scaleType
     }
 
     @computed get yTickFormat() {
-        if (this.isRelativeMode) {
+        if (this.grapher.isRelativeMode) {
             return (v: number) =>
                 (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
         } else {
@@ -229,10 +229,10 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed get yAxis() {
-        const { grapher, yDomain, yTickFormat, isRelativeMode } = this
+        const { grapher, yDomain, yTickFormat } = this
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomain)
-        if (isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
+        if (grapher.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.allValues.every(
             (val) => val.y % 1 === 0
         ) // all y axis points are integral, don't show fractional ticks in that case
