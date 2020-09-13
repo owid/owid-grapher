@@ -53,12 +53,12 @@ export function parseTimeBound(
     str: string,
     defaultTo: TimeBoundValue
 ): TimeBound {
-    if (str === TimeBoundValueStr.unboundedLeft) {
+    if (str === TimeBoundValueStr.unboundedLeft)
         return TimeBoundValue.unboundedLeft
-    }
-    if (str === TimeBoundValueStr.unboundedRight) {
+
+    if (str === TimeBoundValueStr.unboundedRight)
         return TimeBoundValue.unboundedRight
-    }
+
     const time = parseIntOrUndefined(str)
     return time !== undefined ? time : defaultTo
 }
@@ -142,24 +142,34 @@ export function parseTimeURIComponent(
     param: string,
     defaultValue: TimeBound
 ): TimeBound {
-    if (reISODate.test(param)) {
-        return diffDateISOStringInDays(param, EPOCH_DATE)
-    }
-    return parseTimeBound(param, defaultValue)
+    return reISODate.test(param)
+        ? diffDateISOStringInDays(param, EPOCH_DATE)
+        : parseTimeBound(param, defaultValue)
 }
 
-export function getTimeDomainFromQueryString(time: string): [number, number] {
+const upgradeLegacyTimeString = (time: string) => {
     // In the past we supported unbounded time parameters like time=2015.. which would be
     // equivalent to time=2015..latest. We don't actively generate these kinds of URL any
     // more because URLs ending with dots are not interpreted correctly by many services
     // (Twitter, Facebook and others) - but we still want to recognize incoming requests
     // for these "legacy" URLs!
+    if (time === "..") return "earliest..latest"
+    return time.endsWith("..")
+        ? time + "latest"
+        : time.startsWith("..")
+        ? "earliest" + time
+        : time
+}
+
+export function getTimeDomainFromQueryString(time: string): [number, number] {
+    time = upgradeLegacyTimeString(time)
+
     const reIntComponent = new RegExp("\\-?\\d+")
     const reIntRange = new RegExp(
-        `^(${reIntComponent.source}|earliest)?\\.\\.(${reIntComponent.source}|latest)?$`
+        `^(${reIntComponent.source}|earliest)\\.\\.(${reIntComponent.source}|latest)$`
     )
     const reDateRange = new RegExp(
-        `^(${reISODateComponent.source}|earliest)?\\.\\.(${reISODateComponent.source}|latest)?$`
+        `^(${reISODateComponent.source}|earliest)\\.\\.(${reISODateComponent.source}|latest)$`
     )
     if (reIntRange.test(time) || reDateRange.test(time)) {
         const [start, end] = time.split("..")
@@ -167,8 +177,8 @@ export function getTimeDomainFromQueryString(time: string): [number, number] {
             parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
             parseTimeURIComponent(end, TimeBoundValue.unboundedRight),
         ]
-    } else {
-        const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)
-        return [t, t]
     }
+
+    const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)
+    return [t, t]
 }
