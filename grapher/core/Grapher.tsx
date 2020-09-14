@@ -109,6 +109,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
+import { reduceEachTrailingCommentRange } from "typescript"
 
 declare const window: any
 
@@ -542,7 +543,7 @@ export class Grapher extends GrapherDefaults {
             )
         if (activeTab === "map")
             return this.map.time ?? TimeBoundValue.unboundedRight
-        return this.activeTransform.startTime!
+        return this.activeTransform.startTimelineTime!
     }
 
     set startTime(value: any) {
@@ -561,11 +562,11 @@ export class Grapher extends GrapherDefaults {
         const activeTab = this.tab
         if (activeTab === "table")
             return this.multiMetricTableMode
-                ? this.dataTableTransform.startTime
+                ? this.dataTableTransform.startTimelineTime
                 : this.timeDomain[1]
         if (activeTab === "map")
             return this.map.time ?? TimeBoundValue.unboundedRight
-        return this.activeTransform.endTime!
+        return this.activeTransform.endTimelineTime!
     }
 
     @computed get isNativeEmbed(): boolean {
@@ -867,14 +868,17 @@ export class Grapher extends GrapherDefaults {
     }
 
     @computed get maxYear(): number {
-        if (this.currentTab === "table") return this.dataTableTransform.endTime
-        else if (this.primaryTab === "map") return this.mapTransform.time
+        if (this.currentTab === "table")
+            return this.dataTableTransform.endTimelineTime
+        else if (this.primaryTab === "map")
+            return this.mapTransform.endTimelineTime
         else if (this.isScatter && !this.scatterTransform.failMessage)
-            return this.scatterTransform.endTime
+            return this.scatterTransform.endTimelineTime
         else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.time
-        else if (this.isSlopeChart) return this.slopeChartTransform.endTime
-        else return this.lineChartTransform.endTime
+            return this.discreteBarTransform.endTimelineTime
+        else if (this.isSlopeChart)
+            return this.slopeChartTransform.endTimelineTime
+        else return this.lineChartTransform.endTimelineTime
     }
 
     @computed get isSingleEntity(): boolean {
@@ -904,14 +908,16 @@ export class Grapher extends GrapherDefaults {
     // XXX refactor into the transforms
     @computed get minYear(): number {
         if (this.currentTab === "table")
-            return this.dataTableTransform.startTime
-        else if (this.primaryTab === "map") return this.mapTransform.time
+            return this.dataTableTransform.startTimelineTime
+        else if (this.primaryTab === "map")
+            return this.mapTransform.endTimelineTime
         else if (this.isScatter && !this.scatterTransform.failMessage)
-            return this.scatterTransform.startTime
+            return this.scatterTransform.startTimelineTime
         else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.time
-        else if (this.isSlopeChart) return this.slopeChartTransform.startTime
-        else return this.lineChartTransform.startTime
+            return this.discreteBarTransform.endTimelineTime
+        else if (this.isSlopeChart)
+            return this.slopeChartTransform.startTimelineTime
+        else return this.lineChartTransform.startTimelineTime
     }
 
     @computed get sourcesLine(): string {
@@ -1050,9 +1056,13 @@ export class Grapher extends GrapherDefaults {
     }
 
     @computed get selectableEntityDimensionKeys() {
-        return this.activeTransform.selectableEntityDimensionKeys.map((key) =>
-            this.lookupKey(key)
-        )
+        let keys = this.availableKeys
+        if (this.isScatter || this.isTimeScatter)
+            keys = this.scatterTransform.selectableEntityDimensionKeys
+        else if (this.isSlopeChart)
+            keys = this.slopeChartTransform.selectableEntityDimensionKeys
+
+        return keys.map((key) => this.lookupKey(key))
     }
 
     @computed get activeColorScale() {

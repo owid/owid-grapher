@@ -7,6 +7,6 @@ describe(DiscreteBarTransform, () => {
     it("can create a new transform and toggle relative mode", () => {
         const grapher = basicGdpGrapher()
         const transform = new DiscreteBarTransform(grapher)
-        expect(transform.isValidConfig).toEqual(true)
+        expect(!!transform).toEqual(true)
     })
 })

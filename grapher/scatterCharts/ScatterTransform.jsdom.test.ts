@@ -7,7 +7,6 @@ describe(ScatterTransform, () => {
     it("can create a new transform", () => {
         const chart = basicScatterGrapher()
         const scatterT = new ScatterTransform(chart)
-        expect(scatterT.isValidConfig).toEqual(true)
         expect(scatterT.getEntityNamesToShow()).toEqual(["France", "Germany"])
         expect(scatterT.allPoints.length).toBeGreaterThan(5)
         expect(scatterT.availableTimes).toContain(2003)

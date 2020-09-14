@@ -1,13 +1,3 @@
-/* ScatterPlot.tsx
- * ================
- *
- * Entry point for scatter charts
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-03-09
- */
-
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import {
@@ -39,7 +29,6 @@ import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
-import { TimeBound } from "grapher/utils/TimeBounds"
 
 @observer
 export class ScatterPlot extends React.Component<{
@@ -180,9 +169,12 @@ export class ScatterPlot extends React.Component<{
 
     @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
         const { transform } = this
-        const { startTime, endTime } = transform
+        const { startTimelineTime, endTimelineTime } = transform
 
-        if (startTime === endTime || this.grapher.isRelativeMode)
+        if (
+            startTimelineTime === endTimelineTime ||
+            this.grapher.isRelativeMode
+        )
             return undefined
 
         const that = this
@@ -195,10 +187,10 @@ export class ScatterPlot extends React.Component<{
                 return that.grapher.baseFontSize
             },
             get startTime() {
-                return formatFn(that.transform.startTime)
+                return formatFn(that.transform.startTimelineTime)
             },
             get endTime() {
-                return formatFn(that.transform.endTime)
+                return formatFn(that.transform.endTimelineTime)
             },
             get endpointsOnly() {
                 return that.transform.compareEndPointsOnly

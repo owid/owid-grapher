@@ -21,7 +21,7 @@ import {
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
 export class DiscreteBarTransform extends ChartTransform {
-    @computed get failMessage(): string | undefined {
+    @computed get failMessage() {
         const { filledDimensions } = this.grapher
         if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing variable"
@@ -34,19 +34,19 @@ export class DiscreteBarTransform extends ChartTransform {
     }
 
     @computed get availableTimes(): Time[] {
-        return flatten(this.primaryDimensions.map((dim) => dim.yearsUniq))
+        return flatten(this.primaryDimensions.map((dim) => dim.timesUniq))
     }
 
-    @computed get hasTimeline(): boolean {
+    @computed get hasTimeline() {
         return this.grapher.isLineChart && !this.grapher.hideTimeline
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
-        const { time } = this
+        const { endTimelineTime } = this
 
         return (datum: DiscreteBarDatum) => {
             const showYearLabels =
-                this.grapher.showYearLabels || datum.year !== time
+                this.grapher.showYearLabels || datum.year !== endTimelineTime
             return (
                 datum.formatValue(datum.value) +
                 (showYearLabels
@@ -68,11 +68,11 @@ export class DiscreteBarTransform extends ChartTransform {
             : (d: number) => `${d}`
     }
 
-    @computed get currentData(): DiscreteBarDatum[] {
+    @computed get currentData() {
         const { grapher } = this
         const targetYear = grapher.isLineChart
-            ? grapher.lineChartTransform.time
-            : this.time
+            ? grapher.lineChartTransform.endTimelineTime
+            : this.endTimelineTime
         const { filledDimensions } = grapher
         const { selectedKeysByKey } = grapher
         const dataByEntityDimensionKey: {
@@ -82,8 +82,8 @@ export class DiscreteBarTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             const { tolerance } = dimension
 
-            for (let i = 0; i < dimension.years.length; i++) {
-                const year = dimension.years[i]
+            for (let i = 0; i < dimension.times.length; i++) {
+                const year = dimension.times[i]
                 const entityName = dimension.entityNames[i]
                 const entityDimensionKey = grapher.makeEntityDimensionKey(
                     entityName,
@@ -185,7 +185,7 @@ export class DiscreteBarTransform extends ChartTransform {
         return this.grapher.yAxis.scaleType === ScaleType.log
     }
 
-    @computed get allData(): DiscreteBarDatum[] {
+    @computed get allData() {
         if (!this.hasTimeline) {
             return this.currentData
         }
@@ -196,8 +196,8 @@ export class DiscreteBarTransform extends ChartTransform {
         const allData: DiscreteBarDatum[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
-            for (let i = 0; i < dimension.years.length; i++) {
-                const year = dimension.years[i]
+            for (let i = 0; i < dimension.times.length; i++) {
+                const year = dimension.times[i]
                 const entityName = dimension.entityNames[i]
                 const entityDimensionKey = grapher.makeEntityDimensionKey(
                     entityName,
