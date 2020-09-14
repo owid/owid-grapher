@@ -22,7 +22,7 @@ import { HighlightToggleConfig } from "grapher/core/GrapherConstants"
 import { ShareMenu } from "./ShareMenu"
 
 @observer
-class HighlightToggle extends React.Component<{
+export class HighlightToggle extends React.Component<{
     grapher: Grapher
     highlightToggle: HighlightToggleConfig
 }> {
@@ -74,7 +74,7 @@ class HighlightToggle extends React.Component<{
 }
 
 @observer
-class AbsRelToggle extends React.Component<{ grapher: Grapher }> {
+export class AbsRelToggle extends React.Component<{ grapher: Grapher }> {
     @action.bound onToggle() {
         this.props.grapher.toggleRelativeMode()
     }
@@ -102,7 +102,7 @@ class AbsRelToggle extends React.Component<{ grapher: Grapher }> {
 }
 
 @observer
-class ZoomToggle extends React.Component<{
+export class ZoomToggle extends React.Component<{
     grapher: GrapherInterface
 }> {
     @action.bound onToggle() {
@@ -128,7 +128,7 @@ class ZoomToggle extends React.Component<{
 }
 
 @observer
-class FilterSmallCountriesToggle extends React.Component<{
+export class FilterSmallCountriesToggle extends React.Component<{
     grapher: Grapher
 }> {
     render() {

@@ -6,6 +6,7 @@ import { SourcesFooter, SourcesFooterHTML } from "grapher/chart/Footer"
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
 import { observer } from "mobx-react"
+import { ControlsRow } from "grapher/controls/ControlsRow"
 
 @observer
 class ControlsOverlayView extends React.Component<{
@@ -176,6 +177,7 @@ export class ChartLayoutView extends React.Component<{
         return (
             <React.Fragment>
                 <HeaderHTML grapher={grapher} header={layout.header} />
+                <ControlsRow grapher={grapher} />
                 <ControlsOverlayView grapherView={grapherView}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
