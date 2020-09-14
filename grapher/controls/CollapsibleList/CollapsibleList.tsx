@@ -22,13 +22,7 @@ export class CollapsibleList extends React.Component<{
     private moreButtonWidth: number = 0
     private itemsWidths: number[] = []
 
-    @observable private visibleItems: ListChild[] = []
-    @observable private dropdownItems: ListChild[] = []
-
-    constructor(props: any) {
-        super(props)
-        this.visibleItems = this.children
-    }
+    @observable private numItemsVisible?: number
 
     private get children(): ListChild[] {
         return (
@@ -52,31 +46,39 @@ export class CollapsibleList extends React.Component<{
             .forEach((item) => this.itemsWidths.push(item.clientWidth))
     }
 
-    private get numItemsVisible() {
-        return numItemsVisible(
+    @action private updateNumItemsVisible() {
+        this.numItemsVisible = numItemsVisible(
             this.itemsWidths,
             this.outerContainerWidth,
             this.moreButtonWidth
         )
     }
 
-    @action private updateItemPartition() {
-        this.visibleItems = this.children.slice(0, this.numItemsVisible)
-        this.dropdownItems = this.children.slice(this.numItemsVisible)
+    private get visibleItems() {
+        return this.children.slice(0, this.numItemsVisible)
+    }
+
+    private get dropdownItems() {
+        return this.numItemsVisible
+            ? this.children.slice(this.numItemsVisible)
+            : []
     }
 
     @action private onResize = throttle(() => {
-        this.updateOuterContainerWidth()
-        this.updateItemPartition()
+        this.updateItemVisibility()
     }, 100)
+
+    @action private updateItemVisibility() {
+        this.updateOuterContainerWidth()
+        this.updateNumItemsVisible()
+    }
 
     componentDidMount() {
         window.addEventListener("resize", this.onResize)
 
         this.moreButtonWidth = this.moreButtonRef.current?.clientWidth ?? 0
-        this.updateOuterContainerWidth()
         this.calculateItemWidths()
-        this.updateItemPartition()
+        this.updateItemVisibility()
     }
 
     componentWillUnmount() {
@@ -84,7 +86,6 @@ export class CollapsibleList extends React.Component<{
     }
 
     render() {
-        console.log("collapsible list rerendering")
         return (
             <div className="collapsibleList" ref={this.outerContainerRef}>
                 <ul>
