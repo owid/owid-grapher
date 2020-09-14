@@ -144,7 +144,7 @@ export class DataTableTransform extends ChartTransform {
 
         this.dimensions.forEach((dim) => {
             const numberOfEntitiesWithDataSortedByYear = sortBy(
-                Object.entries(countBy(dim.years)),
+                Object.entries(countBy(dim.times)),
                 (value) => parseInt(value[0])
             )
 
@@ -170,13 +170,9 @@ export class DataTableTransform extends ChartTransform {
         return autoSelectedStartYear
     }
 
-    @computed get isValidConfig(): boolean {
-        return true
-    }
-
     @computed get availableTimes() {
         return intersection(
-            flatten(this.dimensions.map((dim) => dim.yearsUniq))
+            flatten(this.dimensions.map((dim) => dim.timesUniq))
         )
     }
 
@@ -230,9 +226,9 @@ export class DataTableTransform extends ChartTransform {
                 ),
             ]
 
-        return this.startTime === this.endTime
-            ? [this.startTime]
-            : [this.startTime, this.endTime]
+        return this.startTimelineTime === this.endTimelineTime
+            ? [this.startTimelineTime]
+            : [this.startTimelineTime, this.endTimelineTime]
     }
 
     formatValue(
@@ -270,13 +266,13 @@ export class DataTableTransform extends ChartTransform {
                       // getStartEndValues() extracts these two values.
                       es6mapValues(
                           valuesByEntityWithinYears(
-                              dim.valueByEntityAndYear,
+                              dim.valueByEntityAndTime,
                               targetYears
                           ),
                           getStartEndValues
                       )
                     : valuesByEntityAtYears(
-                          dim.valueByEntityAndYear,
+                          dim.valueByEntityAndTime,
                           targetYears,
                           dim.tolerance
                       )
@@ -402,7 +398,7 @@ export class DataTableTransform extends ChartTransform {
                 // is not sortable.
                 sortable: true,
             })),
-            formatYear: d.dimension.formatYear,
+            formatYear: d.dimension.formatTimeFn,
         }))
     }
 

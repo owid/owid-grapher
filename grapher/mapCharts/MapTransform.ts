@@ -1,6 +1,5 @@
 import { computed } from "mobx"
 import {
-    defaultTo,
     isString,
     findClosestTime,
     keyBy,
@@ -9,17 +8,11 @@ import {
     uniq,
     sortNumeric,
 } from "grapher/utils/Util"
-import {
-    TimeBound,
-    TimeBoundValue,
-    getClosestTime,
-} from "grapher/utils/TimeBounds"
 
 import { ChoroplethData } from "grapher/mapCharts/ChoroplethMap"
 import { MapTopology } from "./MapTopology"
 
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 import { ColorScale } from "grapher/color/ColorScale"
 import { Time } from "grapher/core/GrapherConstants"
 
@@ -43,23 +36,11 @@ export class MapTransform extends ChartTransform {
             : grapher.primaryColumnSlug
     }
 
-    @computed get tolerance() {
-        return defaultTo(this.props.timeTolerance, 0)
-    }
-
     @computed get projection() {
-        return defaultTo(this.props.projection, "World")
+        return this.props.projection ?? "World"
     }
 
-    @computed get tooltipUseCustomLabels() {
-        return this.props.tooltipUseCustomLabels ?? false
-    }
-
-    @computed get isValidConfig() {
-        return !!this.grapher.primaryVariableId
-    }
-
-    @computed get hasTimeline(): boolean {
+    @computed get hasTimeline() {
         // Maps have historically had an independent property to hide the timeline.
         // The config objects in the database still have this property, though we have not yet run
         // into a case where the timeline needs to be shown
@@ -71,7 +52,7 @@ export class MapTransform extends ChartTransform {
     }
 
     // Make sure map has an assigned variable and the data is ready
-    @computed get isReady(): boolean {
+    @computed get isReady() {
         return (
             !!this.columnSlug &&
             this.grapher.table.columnsBySlug.has(this.columnSlug)
@@ -86,7 +67,7 @@ export class MapTransform extends ChartTransform {
 
     // Figure out which entities in the variable can be shown on the map
     // (we can't render data for things that aren't countries)
-    @computed get knownMapEntities(): { [entity: string]: string } {
+    @computed private get knownMapEntities(): { [entity: string]: string } {
         if (!this.dimension) return {}
 
         const idLookup = keyBy(
@@ -110,7 +91,7 @@ export class MapTransform extends ChartTransform {
     }
 
     // Filter data to what can be display on the map (across all years)
-    @computed get mappableData() {
+    @computed private get mappableData() {
         const { dimension } = this
 
         const mappableData: {
@@ -125,8 +106,8 @@ export class MapTransform extends ChartTransform {
 
         if (dimension) {
             const { knownMapEntities } = this
-            for (let i = 0; i < dimension.years.length; i++) {
-                const year = dimension.years[i]
+            for (let i = 0; i < dimension.times.length; i++) {
+                const year = dimension.times[i]
                 const entity = dimension.entityNames[i]
                 const value = dimension.values[i]
 
@@ -141,13 +122,13 @@ export class MapTransform extends ChartTransform {
         return mappableData
     }
 
-    @computed get sortedNumericValues(): number[] {
+    @computed get sortedNumericValues() {
         return sortNumeric(
             this.mappableData.values.filter(isNumber).filter((v) => !isNaN(v))
         )
     }
 
-    @computed get categoricalValues(): string[] {
+    @computed get categoricalValues() {
         return uniq(this.mappableData.values.filter(isString))
     }
 
@@ -159,7 +140,7 @@ export class MapTransform extends ChartTransform {
         )
     }
 
-    @computed get colorScale(): ColorScale {
+    @computed get colorScale() {
         const that = this
         return new ColorScale({
             get config() {
@@ -183,18 +164,14 @@ export class MapTransform extends ChartTransform {
         })
     }
 
-    @computed get legendData(): ColorScaleBin[] {
-        return this.colorScale.legendData
-    }
-
     // Get values for the current year, without any color info yet
-    @computed get valuesByEntity(): { [key: string]: MapDataValue } {
-        const { time, grapher } = this
-        const valueByEntityAndYear = this.dimension?.valueByEntityAndYear
+    @computed private get valuesByEntity(): { [key: string]: MapDataValue } {
+        const { endTimelineTime, grapher } = this
+        const valueByEntityAndYear = this.dimension?.valueByEntityAndTime
 
-        if (time === undefined || !valueByEntityAndYear) return {}
+        if (endTimelineTime === undefined || !valueByEntityAndYear) return {}
 
-        const { tolerance } = this
+        const tolerance = this.props.timeTolerance ?? 0
         const entities = Object.keys(this.knownMapEntities)
 
         const result: { [key: string]: MapDataValue } = {}
@@ -205,7 +182,7 @@ export class MapTransform extends ChartTransform {
             const valueByYear = valueByEntityAndYear.get(entity)
             if (!valueByYear) return
             const years = Array.from(valueByYear.keys())
-            const year = findClosestTime(years, time, tolerance)
+            const year = findClosestTime(years, endTimelineTime, tolerance)
             if (year === undefined) return
             const value = valueByYear.get(year)
             if (value === undefined) return
@@ -221,7 +198,7 @@ export class MapTransform extends ChartTransform {
     }
 
     // Get the final data incorporating the binning colors
-    @computed get choroplethData(): ChoroplethData {
+    @computed get choroplethData() {
         const { valuesByEntity } = this
         const choroplethData: ChoroplethData = {}
 
@@ -242,7 +219,7 @@ export class MapTransform extends ChartTransform {
     @computed get formatTooltipValue(): (d: number | string) => string {
         const formatValueLong =
             this.dimension && this.dimension.formatValueLongFn
-        const customLabels = this.tooltipUseCustomLabels
+        const customLabels = this.props.tooltipUseCustomLabels
             ? this.colorScale.customNumericLabels
             : []
         return formatValueLong

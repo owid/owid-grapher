@@ -266,7 +266,7 @@ export abstract class AbstractColumn {
     }
 
     // todo: remove
-    @computed get years() {
+    @computed get times() {
         return this.rowsWithValue.map((row) => (row.year ?? row.day)!)
     }
 
@@ -900,15 +900,15 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return map
     }
 
-    @computed get maxYear() {
-        return max(this.allYears)
+    @computed get maxTime() {
+        return max(this.allTimes)
     }
 
-    @computed get minYear() {
-        return min(this.allYears)
+    @computed get minTime() {
+        return min(this.allTimes)
     }
 
-    @computed get allYears() {
+    @computed get allTimes() {
         return this.rows.filter((row) => row.year).map((row) => row.year!)
     }
 

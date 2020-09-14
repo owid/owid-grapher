@@ -16,7 +16,7 @@ import { ColorScale } from "grapher/color/ColorScale"
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
 export class StackedBarTransform extends ChartTransform {
-    @computed get failMessage(): string | undefined {
+    @computed get failMessage() {
         const { filledDimensions } = this.grapher
         if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing variable"
@@ -37,13 +37,11 @@ export class StackedBarTransform extends ChartTransform {
 
     @computed get availableTimes(): Time[] {
         if (this.primaryDimension === undefined) return []
-        return this.primaryDimension.yearsUniq
+        return this.primaryDimension.timesUniq
     }
 
     @computed get barValueFormat(): (datum: StackedBarValue) => string {
-        return (datum: StackedBarValue) => {
-            return datum.y.toString()
-        }
+        return (datum: StackedBarValue) => datum.y.toString()
     }
 
     @computed get tickFormatFn(): (d: number) => string {
@@ -61,12 +59,8 @@ export class StackedBarTransform extends ChartTransform {
             : yTickFormatFn
     }
 
-    // @computed get xFormatTooltip(): (d: number) => string {
-    //     return !this.xDimension ? this.xAxis.tickFormat : this.xDimension.formatValueLong
-    // }
-
     @computed get xDomainDefault(): [number, number] {
-        return [this.startTime, this.endTime]
+        return [this.startTimelineTime, this.endTimelineTime]
     }
 
     // TODO: Make XAxis generic
@@ -106,15 +100,15 @@ export class StackedBarTransform extends ChartTransform {
         return axis
     }
 
-    @computed get allStackedValues(): StackedBarValue[] {
+    @computed get allStackedValues() {
         return flatten(this.stackedData.map((series) => series.values))
     }
 
-    @computed get xValues(): number[] {
+    @computed get xValues() {
         return uniq(this.allStackedValues.map((bar) => bar.x))
     }
 
-    @computed get groupedData(): StackedBarSeries[] {
+    @computed get groupedData() {
         const { grapher, timelineTimes } = this
         const { selectedKeys, selectedKeysByKey } = grapher
         const filledDimensions = grapher.filledDimensions
@@ -124,8 +118,8 @@ export class StackedBarTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             const seriesByKey = new Map<EntityDimensionKey, StackedBarSeries>()
 
-            for (let i = 0; i <= dimension.years.length; i += 1) {
-                const year = dimension.years[i]
+            for (let i = 0; i <= dimension.times.length; i += 1) {
+                const year = dimension.times[i]
                 const entityName = dimension.entityNames[i]
                 const value = +dimension.values[i]
                 const entityDimensionKey = grapher.makeEntityDimensionKey(
@@ -199,7 +193,7 @@ export class StackedBarTransform extends ChartTransform {
         return groupedData
     }
 
-    @computed get colorScale(): ColorScale {
+    @computed get colorScale() {
         const that = this
         return new ColorScale({
             get config() {
@@ -230,8 +224,8 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     // Apply time filtering and stacking
-    @computed get stackedData(): StackedBarSeries[] {
-        const { groupedData, startTime, endTime } = this
+    @computed get stackedData() {
+        const { groupedData, startTimelineTime, endTimelineTime } = this
 
         const stackedData = cloneDeep(groupedData)
 
@@ -239,7 +233,7 @@ export class StackedBarTransform extends ChartTransform {
             series.color =
                 this.colorScale.getColor(series.entityDimensionKey) ?? "#ddd"
             series.values = series.values.filter(
-                (v) => v.x >= startTime && v.x <= endTime
+                (v) => v.x >= startTimelineTime && v.x <= endTimelineTime
             )
         }
 

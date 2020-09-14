@@ -73,14 +73,7 @@ export class ScatterTransform extends ChartTransform {
         })
     }
 
-    @computed get isValidConfig(): boolean {
-        return (
-            this.grapher.hasYDimension &&
-            this.grapher.dimensions.some((d) => d.property === "x")
-        )
-    }
-
-    @computed get failMessage(): string | undefined {
+    @computed get failMessage() {
         const { filledDimensions } = this.grapher
         if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
@@ -88,7 +81,7 @@ export class ScatterTransform extends ChartTransform {
             return "Missing X axis variable"
         else if (isEmpty(this.possibleEntityNames))
             return "No entities with data for both X and Y"
-        else if (isEmpty(this.possibleDataYears))
+        else if (isEmpty(this.possibleDataTimes))
             return "No years with data for both X and Y"
         else if (isEmpty(this.currentData))
             return (
@@ -113,7 +106,7 @@ export class ScatterTransform extends ChartTransform {
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
-    @computed get xOverrideYear(): number | undefined {
+    @computed get xOverrideYear() {
         return this.xDimension && this.xDimension.targetYear
     }
 
@@ -121,7 +114,7 @@ export class ScatterTransform extends ChartTransform {
         this.xDimension!.targetYear = value
     }
 
-    @computed get canToggleRelativeMode(): boolean {
+    @computed get canToggleRelativeMode() {
         return (
             this.hasTimeline &&
             !this.grapher.hideRelativeToggle &&
@@ -131,7 +124,7 @@ export class ScatterTransform extends ChartTransform {
 
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
-    @computed private get hideBackgroundEntities(): boolean {
+    @computed private get hideBackgroundEntities() {
         return this.grapher.addCountryMode === "disabled"
     }
     @computed private get possibleEntityNames(): EntityName[] {
@@ -179,17 +172,17 @@ export class ScatterTransform extends ChartTransform {
     // The years for which there MAY be data on the scatterplot
     // Not all of these will necessarily end up on the timeline, because there may be no x/y entity overlap for that year
     // e.g. https://ourworldindata.org/grapher/life-expectancy-years-vs-real-gdp-per-capita-2011us
-    @computed private get possibleDataYears(): number[] {
-        const yDimensionYears = this.yDimension ? this.yDimension.yearsUniq : []
-        const xDimensionYears = this.xDimension ? this.xDimension.yearsUniq : []
+    @computed private get possibleDataTimes(): Time[] {
+        const yDimensionYears = this.yDimension ? this.yDimension.timesUniq : []
+        const xDimensionYears = this.xDimension ? this.xDimension.timesUniq : []
 
         if (this.xOverrideYear !== undefined) return yDimensionYears
         else return intersection(yDimensionYears, xDimensionYears)
     }
 
     // The years for which we intend to calculate output data
-    @computed private get yearsToCalculate(): number[] {
-        return this.possibleDataYears
+    @computed private get yearsToCalculate(): Time[] {
+        return this.possibleDataTimes
 
         // XXX: Causes issues here https://ourworldindata.org/grapher/fish-consumption-vs-gdp-per-capita
         /*if (!this.chart.props.hideTimeline) {
@@ -204,7 +197,7 @@ export class ScatterTransform extends ChartTransform {
         }*/
     }
 
-    @computed get compareEndPointsOnly(): boolean {
+    @computed get compareEndPointsOnly() {
         return !!this.grapher.compareEndPointsOnly
     }
 
@@ -423,7 +416,7 @@ export class ScatterTransform extends ChartTransform {
             : this.grapher.yAxis.scaleType || ScaleType.linear
     }
 
-    @computed private get yAxisLabel(): string {
+    @computed private get yAxisLabel() {
         return (
             this.grapher.yAxis.label ||
             (this.yDimension && this.yDimension.displayName) ||
@@ -463,13 +456,13 @@ export class ScatterTransform extends ChartTransform {
         return axis
     }
 
-    @computed private get xScaleType(): ScaleType {
+    @computed private get xScaleType() {
         return this.grapher.isRelativeMode
             ? ScaleType.linear
             : this.grapher.xAxis.scaleType || ScaleType.linear
     }
 
-    @computed private get xAxisLabelBase(): string | undefined {
+    @computed private get xAxisLabelBase() {
         const xDimName = this.xDimension && this.xDimension.displayName
         if (this.xOverrideYear !== undefined)
             return `${xDimName} in ${this.xOverrideYear}`
@@ -519,11 +512,11 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed get yFormatYear(): (year: number) => string {
-        return this.yDimension ? this.yDimension.formatYear : formatYear
+        return this.yDimension ? this.yDimension.formatTimeFn : formatYear
     }
 
     @computed get xFormatYear(): (year: number) => string {
-        return this.xDimension ? this.xDimension.formatYear : formatYear
+        return this.xDimension ? this.xDimension.formatTimeFn : formatYear
     }
 
     // todo: add unit tests
@@ -583,8 +576,8 @@ export class ScatterTransform extends ChartTransform {
 
         const {
             grapher,
-            startTime,
-            endTime,
+            startTimelineTime,
+            endTimelineTime,
             xScaleType,
             yScaleType,
             compareEndPointsOnly,
@@ -610,7 +603,7 @@ export class ScatterTransform extends ChartTransform {
             } as ScatterSeries
 
             dataByYear.forEach((point, year) => {
-                if (year < startTime || year > endTime) return
+                if (year < startTimelineTime || year > endTimelineTime) return
                 group.values.push(point)
             })
 
@@ -641,8 +634,8 @@ export class ScatterTransform extends ChartTransform {
         currentData.forEach((series) => {
             series.values = this._filterValues(
                 series.values,
-                startTime,
-                endTime,
+                startTimelineTime,
+                endTimelineTime,
                 yScaleType,
                 xScaleType,
                 isRelativeMode,
@@ -657,8 +650,9 @@ export class ScatterTransform extends ChartTransform {
             // Hide lines which don't cover the full span
             if (this.grapher.hideLinesOutsideTolerance)
                 return (
-                    firstOfNonEmptyArray(series.values).year === startTime &&
-                    lastOfNonEmptyArray(series.values).year === endTime
+                    firstOfNonEmptyArray(series.values).year ===
+                        startTimelineTime &&
+                    lastOfNonEmptyArray(series.values).year === endTimelineTime
                 )
 
             return true

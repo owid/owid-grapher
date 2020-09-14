@@ -25,7 +25,7 @@ import { EntityName } from "owidTable/OwidTableConstants"
 // Responsible for translating chart configuration into the form
 // of a line chart
 export class LineChartTransform extends ChartTransform {
-    @computed get failMessage(): string | undefined {
+    @computed get failMessage() {
         const { filledDimensions } = this.grapher
         if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
@@ -33,14 +33,14 @@ export class LineChartTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get colorScheme(): ColorScheme {
+    @computed private get colorScheme() {
         const colorScheme = ColorSchemes[this.grapher.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["owid-distinct"] as ColorScheme)
     }
 
-    @computed get initialData(): LineChartSeries[] {
+    @computed private get initialData() {
         const { grapher } = this
         const { yAxis } = grapher
         const { selectedKeys, selectedKeysByKey } = grapher
@@ -51,8 +51,8 @@ export class LineChartTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             const seriesByKey = new Map<EntityDimensionKey, LineChartSeries>()
 
-            for (let i = 0; i < dimension.years.length; i++) {
-                const year = dimension.years[i]
+            for (let i = 0; i < dimension.times.length; i++) {
+                const year = dimension.times[i]
                 const value = parseFloat(dimension.values[i] as string)
                 const entityName = dimension.entityNames[i]
                 const entityDimensionKey = grapher.makeEntityDimensionKey(
@@ -70,9 +70,8 @@ export class LineChartTransform extends ChartTransform {
                     series = {
                         values: [],
                         entityName,
-                        entityDimensionKey: entityDimensionKey,
+                        entityDimensionKey,
                         isProjection: dimension.isProjection,
-                        formatValue: dimension.formatValueLongFn,
                         color: "#000", // tmp
                     }
                     seriesByKey.set(entityDimensionKey, series)
@@ -84,18 +83,7 @@ export class LineChartTransform extends ChartTransform {
             chartData = chartData.concat([...Array.from(seriesByKey.values())])
         })
 
-        // Color from lowest to highest
-        chartData = sortBy(
-            chartData,
-            (series) => series.values[series.values.length - 1].y
-        )
-
-        const colors = this.colorScheme.getColors(chartData.length)
-        if (this.grapher.invertColorScheme) colors.reverse()
-        chartData.forEach((series, i) => {
-            series.color =
-                grapher.keyColors[series.entityDimensionKey] || colors[i]
-        })
+        this._addColorsToSeries(chartData)
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
         chartData = sortBy(chartData, (series) =>
@@ -103,6 +91,19 @@ export class LineChartTransform extends ChartTransform {
         )
 
         return chartData
+    }
+
+    private _addColorsToSeries(allSeries: LineChartSeries[]) {
+        // Color from lowest to highest
+        const sorted = sortBy(allSeries, (series) => last(series.values)!.y)
+
+        const colors = this.colorScheme.getColors(sorted.length)
+        if (this.grapher.invertColorScheme) colors.reverse()
+
+        sorted.forEach((series, i) => {
+            series.color =
+                this.grapher.keyColors[series.entityDimensionKey] || colors[i]
+        })
     }
 
     @computed get availableTimes(): Time[] {
@@ -114,33 +115,34 @@ export class LineChartTransform extends ChartTransform {
 
         return cloneDeep(this.initialData).map((series) => {
             const startIndex = series.values.findIndex(
-                (v) => v.time >= this.startTime && v.y !== 0
+                (value) => value.time >= this.startTimelineTime && value.y !== 0
             )
             if (startIndex < 0) {
                 series.values = []
                 return series
-            } else {
-                const relativeValues = series.values.slice(startIndex)
-                // Clone to avoid overwriting in next loop
-                const indexValue = clone(relativeValues[0])
-                series.values = relativeValues.map((v) => {
-                    v.y = (v.y - indexValue.y) / Math.abs(indexValue.y)
-                    return v
-                })
             }
+
+            const relativeValues = series.values.slice(startIndex)
+            // Clone to avoid overwriting in next loop
+            const indexValue = clone(relativeValues[0])
+            series.values = relativeValues.map((value) => {
+                value.y = (value.y - indexValue.y) / Math.abs(indexValue.y)
+                return value
+            })
+
             return series
         })
     }
 
-    @computed get allValues(): LineChartValue[] {
+    @computed private get allValues() {
         return flatten(this.predomainData.map((series) => series.values))
     }
 
-    @computed get filteredValues(): LineChartValue[] {
+    @computed private get filteredValues() {
         return flatten(this.groupedData.map((series) => series.values))
     }
 
-    @computed get annotationsMap() {
+    @computed private get annotationsMap() {
         return this.grapher.primaryDimensions[0].column.annotationsColumn
             ?.entityNameMap
     }
@@ -162,10 +164,10 @@ export class LineChartTransform extends ChartTransform {
         // Bit of a hack
         let toShow = this.groupedData
         if (toShow.some((g) => !!g.isProjection))
-            toShow = this.groupedData.filter((g) => g.isProjection)
+            toShow = toShow.filter((g) => g.isProjection)
 
         return toShow.map((series) => {
-            const lastValue = (last(series.values) as LineChartValue).y
+            const lastValue = last(series.values)!.y
             return {
                 color: series.color,
                 entityDimensionKey: series.entityDimensionKey,
@@ -181,7 +183,10 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get xAxis() {
         const axis = this.grapher.xAxis.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings([this.startTime, this.endTime])
+        axis.updateDomainPreservingUserSettings([
+            this.startTimelineTime,
+            this.endTimelineTime,
+        ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
         axis.tickFormatFn = this.grapher.formatYearTickFunction
@@ -202,7 +207,7 @@ export class LineChartTransform extends ChartTransform {
         return [min(yValues) ?? 0, max(yValues) ?? 100]
     }
 
-    @computed get yDomain(): [number, number] {
+    @computed private get yDomain(): [number, number] {
         const { grapher, yDomainDefault } = this
         const domain = grapher.yAxis.domain
         return [
@@ -211,13 +216,7 @@ export class LineChartTransform extends ChartTransform {
         ]
     }
 
-    @computed get yScaleType() {
-        return this.grapher.isRelativeMode
-            ? ScaleType.linear
-            : this.grapher.yAxis.scaleType
-    }
-
-    @computed get yTickFormat() {
+    @computed private get yTickFormat() {
         if (this.grapher.isRelativeMode) {
             return (v: number) =>
                 (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
@@ -241,12 +240,12 @@ export class LineChartTransform extends ChartTransform {
         return axis
     }
 
-    @computed get canToggleRelativeMode(): boolean {
+    @computed get canToggleRelativeMode() {
         return !this.grapher.hideRelativeToggle && !this.isSingleTime
     }
 
     // Filter the data so it fits within the domains
-    @computed get groupedData(): LineChartSeries[] {
+    @computed get groupedData() {
         const { xAxis } = this
         const groupedData = cloneDeep(this.predomainData)
 

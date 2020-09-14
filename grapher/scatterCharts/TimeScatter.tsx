@@ -24,7 +24,6 @@ import {
 import { Vector2 } from "grapher/utils/Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "grapher/chart/Tooltip"
-import { TimeBound } from "grapher/utils/TimeBounds"
 
 interface ScatterSeries {
     color: string

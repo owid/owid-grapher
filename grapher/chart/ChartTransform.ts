@@ -6,16 +6,13 @@ import {
 } from "grapher/utils/TimeBounds"
 import { first, last, sortNumeric, uniq } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
-import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
+import { Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 
 export interface IChartTransform {
-    isValidConfig: boolean
-    selectableEntityDimensionKeys: EntityDimensionKey[]
     timelineTimes: Time[]
-    startTime?: Time
-    endTime?: Time
-    time?: Time
+    startTimelineTime?: Time
+    endTimelineTime?: Time
     colorScale?: ColorScale
 }
 
@@ -23,11 +20,6 @@ export abstract class ChartTransform implements IChartTransform {
     grapher: Grapher
     constructor(grapher: Grapher) {
         this.grapher = grapher
-    }
-
-    // The most common check is just "does this have a yDimension"? So make it a default, and methods and override.
-    @computed get isValidConfig(): boolean {
-        return this.grapher.hasYDimension
     }
 
     /**
@@ -38,10 +30,6 @@ export abstract class ChartTransform implements IChartTransform {
      */
     abstract get availableTimes(): Time[]
 
-    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
-        return this.grapher.availableKeys
-    }
-
     /**
      * A unique, sorted array of years that are possible to be selected on the timeline.
      *
@@ -50,12 +38,12 @@ export abstract class ChartTransform implements IChartTransform {
     @computed get timelineTimes(): Time[] {
         const min = this.grapher.timelineMinTime
         const max = this.grapher.timelineMaxTime
-        const filteredYears = this.availableTimes.filter((time) => {
+        const filteredTimes = this.availableTimes.filter((time) => {
             if (min !== undefined && time < min) return false
             if (max !== undefined && time > max) return false
             return true
         })
-        return sortNumeric(uniq(filteredYears))
+        return sortNumeric(uniq(filteredTimes))
     }
 
     @computed private get minTimelineTime(): Time {
@@ -71,14 +59,13 @@ export abstract class ChartTransform implements IChartTransform {
      *
      * Derived from the timeline selection start.
      */
-    @computed get startTime(): Time {
-        const min = this.grapher.timeDomain[0]
-        if (isUnboundedLeft(min)) {
-            return this.minTimelineTime
-        } else if (isUnboundedRight(min)) {
-            return this.maxTimelineTime
-        }
-        return getClosestTime(this.timelineTimes, min, this.minTimelineTime)
+    @computed get startTimelineTime(): Time {
+        const time = this.grapher.timeDomain[0]
+
+        if (isUnboundedLeft(time)) return this.minTimelineTime
+        else if (isUnboundedRight(time)) return this.maxTimelineTime
+
+        return getClosestTime(this.timelineTimes, time, this.minTimelineTime)
     }
 
     /**
@@ -86,13 +73,13 @@ export abstract class ChartTransform implements IChartTransform {
      *
      * Derived from the timeline selection end.
      */
-    @computed get endTime(): Time {
-        const max = this.grapher.timeDomain[1]
+    @computed get endTimelineTime(): Time {
+        const time = this.grapher.timeDomain[1]
 
-        if (isUnboundedLeft(max)) return this.minTimelineTime
-        else if (isUnboundedRight(max)) return this.maxTimelineTime
+        if (isUnboundedLeft(time)) return this.minTimelineTime
+        else if (isUnboundedRight(time)) return this.maxTimelineTime
 
-        return getClosestTime(this.timelineTimes, max, this.maxTimelineTime)
+        return getClosestTime(this.timelineTimes, time, this.maxTimelineTime)
     }
 
     @computed get hasTimeline() {
@@ -103,14 +90,6 @@ export abstract class ChartTransform implements IChartTransform {
      * Whether the plotted data only contains a single year.
      */
     @computed get isSingleTime() {
-        return this.startTime === this.endTime
-    }
-
-    /**
-     * The single targetYear, if a chart is in a "single year" mode, like a LineChart becoming a
-     * DiscreteBar when only a single year on the timeline is selected.
-     */
-    @computed get time(): Time {
-        return this.endTime
+        return this.startTimelineTime === this.endTimelineTime
     }
 }

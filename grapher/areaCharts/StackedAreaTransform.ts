@@ -19,7 +19,7 @@ import { ChartTransform } from "grapher/chart/ChartTransform"
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
 export class StackedAreaTransform extends ChartTransform {
-    @computed get failMessage(): string | undefined {
+    @computed get failMessage() {
         const { filledDimensions } = this.grapher
         if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
@@ -33,7 +33,7 @@ export class StackedAreaTransform extends ChartTransform {
 
     // Get the data for each stacked area series, cleaned to ensure every series
     // "lines up" i.e. has a data point for every year
-    @computed private get groupedData(): StackedAreaSeries[] {
+    @computed private get groupedData() {
         const { grapher } = this
         const { selectedKeys, selectedKeysByKey } = grapher
         const filledDimensions = grapher.filledDimensions
@@ -44,8 +44,8 @@ export class StackedAreaTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             const seriesByKey = new Map<EntityDimensionKey, StackedAreaSeries>()
 
-            for (let i = 0; i < dimension.years.length; i++) {
-                const year = dimension.years[i]
+            for (let i = 0; i < dimension.times.length; i++) {
+                const year = dimension.times[i]
                 const value = +dimension.values[i]
                 const entityName = dimension.entityNames[i]
                 const entityDimensionKey = grapher.makeEntityDimensionKey(
@@ -205,10 +205,6 @@ export class StackedAreaTransform extends ChartTransform {
         return this.groupedData[0].values.map((v) => v.x)
     }
 
-    @computed get canToggleRelativeMode(): boolean {
-        return !this.grapher.hideRelativeToggle
-    }
-
     @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
         const colorScheme = ColorSchemes[this.grapher.baseColorScheme as string]
@@ -217,13 +213,13 @@ export class StackedAreaTransform extends ChartTransform {
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
-    @computed get xDomainDefault(): [number, number] {
-        return [this.startTime, this.endTime]
+    @computed private get xDomainDefault(): [number, number] {
+        return [this.startTimelineTime, this.endTimelineTime]
     }
 
     // Apply time filtering and stacking
-    @computed get stackedData(): StackedAreaSeries[] {
-        const { groupedData, startTime, endTime } = this
+    @computed get stackedData() {
+        const { groupedData, startTimelineTime, endTimelineTime } = this
 
         if (
             groupedData.some(
@@ -241,7 +237,7 @@ export class StackedAreaTransform extends ChartTransform {
 
         for (const series of stackedData) {
             series.values = series.values.filter(
-                (v) => v.x >= startTime && v.x <= endTime
+                (v) => v.x >= startTimelineTime && v.x <= endTimelineTime
             )
             for (const value of series.values) {
                 value.origY = value.y
@@ -257,11 +253,11 @@ export class StackedAreaTransform extends ChartTransform {
         return stackedData
     }
 
-    @computed get allStackedValues(): StackedAreaValue[] {
+    @computed private get allStackedValues() {
         return flatten(this.stackedData.map((series) => series.values))
     }
 
-    @computed get yDimensionFirst() {
+    @computed private get yDimensionFirst() {
         return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 

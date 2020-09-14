@@ -36,13 +36,13 @@ export class SourcesTab extends React.Component<{
             ? `${this.props.grapher.adminBaseUrl}/admin/datasets/${column.datasetId}`
             : undefined
 
-        const minYear = min(column.years)
-        const maxYear = max(column.years)
+        const minYear = min(column.times)
+        const maxYear = max(column.times)
         let timespan = ""
         if (minYear !== undefined && maxYear !== undefined)
-            timespan = `${dimension.formatYear(
+            timespan = `${dimension.formatTimeFn(
                 minYear
-            )} – ${dimension.formatYear(maxYear)}`
+            )} – ${dimension.formatTimeFn(maxYear)}`
 
         return (
             <div key={source.id} className="datasource-wrapper">

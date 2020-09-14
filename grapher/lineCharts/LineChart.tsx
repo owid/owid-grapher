@@ -1,6 +1,5 @@
 import * as React from "react"
 import {
-    flatten,
     sortBy,
     sum,
     guid,
@@ -42,7 +41,6 @@ export interface LineChartSeries {
     values: LineChartValue[]
     classed?: string
     isProjection?: boolean
-    formatValue: (value: number) => string
 }
 
 const BLUR_COLOR = "#eee"
@@ -74,13 +72,9 @@ interface HoverTarget {
 @observer
 class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
-    @observable.ref hover: HoverTarget | null = null
+    @observable.ref private hover: HoverTarget | null = null
 
-    @computed get renderUid(): number {
-        return guid()
-    }
-
-    @computed get renderData(): LineRenderSeries[] {
+    @computed private get renderData(): LineRenderSeries[] {
         const { data, xAxis, yAxis, focusKeys } = this.props
         return data.map((series) => ({
             entityDimensionKey: series.entityDimensionKey,
@@ -99,11 +93,11 @@ class Lines extends React.Component<LinesProps> {
         }))
     }
 
-    @computed get isFocusMode(): boolean {
+    @computed private get isFocusMode(): boolean {
         return this.renderData.some((d) => d.isFocus)
     }
 
-    @computed get allValues(): LineChartValue[] {
+    @computed private get allValues(): LineChartValue[] {
         const values = []
         for (const series of this.props.data) {
             values.push(...series.values)
@@ -111,22 +105,7 @@ class Lines extends React.Component<LinesProps> {
         return values
     }
 
-    @computed get hoverData(): HoverTarget[] {
-        const { data } = this.props
-        return flatten(
-            this.renderData.map((series, i) => {
-                return series.values.map((v, j) => {
-                    return {
-                        pos: v,
-                        series: data[i],
-                        value: data[i].values[j],
-                    }
-                })
-            })
-        )
-    }
-
-    @action.bound onCursorMove(ev: MouseEvent | TouchEvent) {
+    @action.bound private onCursorMove(ev: MouseEvent | TouchEvent) {
         const { dualAxis, xAxis } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev)
@@ -142,7 +121,7 @@ class Lines extends React.Component<LinesProps> {
         this.props.onHover(hoverX)
     }
 
-    @action.bound onCursorLeave(ev: MouseEvent | TouchEvent) {
+    @action.bound private onCursorLeave(ev: MouseEvent | TouchEvent) {
         this.props.onHover(undefined)
     }
 
@@ -154,21 +133,21 @@ class Lines extends React.Component<LinesProps> {
         )
     }
 
-    @computed get focusGroups() {
+    @computed private get focusGroups() {
         return this.renderData.filter((g) => g.isFocus)
     }
 
-    @computed get backgroundGroups() {
+    @computed private get backgroundGroups() {
         return this.renderData.filter((g) => !g.isFocus)
     }
 
     // Don't display point markers if there are very many of them for performance reasons
     // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
-    @computed get hasMarkers(): boolean {
+    @computed private get hasMarkers(): boolean {
         return sum(this.renderData.map((g) => g.values.length)) < 500
     }
 
-    renderFocusGroups() {
+    private renderFocusGroups() {
         return this.focusGroups.map((series) => (
             <g key={series.displayKey} className={series.displayKey}>
                 <path
@@ -195,7 +174,7 @@ class Lines extends React.Component<LinesProps> {
         ))
     }
 
-    renderBackgroundGroups() {
+    private renderBackgroundGroups() {
         return this.backgroundGroups.map((series) => (
             <g key={series.displayKey} className={series.displayKey}>
                 <path

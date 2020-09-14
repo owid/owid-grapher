@@ -281,7 +281,7 @@ export class MapTab extends React.Component<MapTabProps> {
                         bounds={layout.innerBounds}
                         choroplethData={map.choroplethData}
                         years={map.timelineTimes}
-                        inputYear={map.time}
+                        inputYear={map.endTimelineTime}
                         colorScale={map.colorScale}
                         projection={map.projection}
                         defaultFill={map.colorScale.noDataColor}

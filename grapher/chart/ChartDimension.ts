@@ -218,12 +218,12 @@ export class ChartDimension
                   })
     }
 
-    @computed get formatYear(): (
-        year: number,
+    @computed get formatTimeFn(): (
+        time: Time,
         options?: { format?: string }
     ) => string {
         return this.column.isDailyMeasurement
-            ? (year: number, options?) => formatDay(year, options)
+            ? (day: Time, options?) => formatDay(day, options)
             : formatYear
     }
 
@@ -244,12 +244,12 @@ export class ChartDimension
         )
     }
 
-    get yearsUniq() {
-        return sortedUniq(this.years)
+    get timesUniq() {
+        return sortedUniq(this.times)
     }
 
-    get years(): Time[] {
-        return this.column.years
+    get times(): Time[] {
+        return this.column.times
     }
 
     get entityNamesUniq(): EntityName[] {
@@ -260,28 +260,28 @@ export class ChartDimension
         return this.column.entityNames
     }
 
-    yearAndValueOfLatestValueforEntity(entity: string) {
-        const valueByYear = this.valueByEntityAndYear.get(entity)
-        return valueByYear ? last(Array.from(valueByYear)) ?? null : null
+    timeAndValueOfLatestValueforEntity(entity: string) {
+        const valueByTime = this.valueByEntityAndTime.get(entity)
+        return valueByTime ? last(Array.from(valueByTime)) ?? null : null
     }
 
-    @computed get valueByEntityAndYear() {
-        const valueByEntityAndYear = new Map<
+    @computed get valueByEntityAndTime() {
+        const valueByEntityAndTime = new Map<
             string,
             Map<number, string | number>
         >()
         for (let i = 0; i < this.values.length; i++) {
             const entity = this.entityNames[i]
-            const year = this.years[i]
+            const time = this.times[i]
             const value = this.values[i]
 
-            let valueByYear = valueByEntityAndYear.get(entity)
-            if (!valueByYear) {
-                valueByYear = new Map()
-                valueByEntityAndYear.set(entity, valueByYear)
+            let valueByTime = valueByEntityAndTime.get(entity)
+            if (!valueByTime) {
+                valueByTime = new Map()
+                valueByEntityAndTime.set(entity, valueByTime)
             }
-            valueByYear.set(year, value)
+            valueByTime.set(time, value)
         }
-        return valueByEntityAndYear
+        return valueByEntityAndTime
     }
 }

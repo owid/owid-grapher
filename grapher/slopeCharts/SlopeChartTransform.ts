@@ -8,7 +8,7 @@ import { ColorScale } from "grapher/color/ColorScale"
 // Responsible for translating chart configuration into the form
 // of a line chart
 export class SlopeChartTransform extends ChartTransform {
-    @computed get failMessage(): string | undefined {
+    @computed get failMessage() {
         const { filledDimensions } = this.grapher
         if (!filledDimensions.some((d) => d.property === "y"))
             return "Missing Y axis variable"
@@ -16,7 +16,7 @@ export class SlopeChartTransform extends ChartTransform {
         else return undefined
     }
 
-    @computed get colorScale(): ColorScale {
+    @computed get colorScale() {
         const that = this
         return new ColorScale({
             get config() {
@@ -44,11 +44,11 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get availableTimes(): Time[] {
-        return flatten(this.grapher.axisDimensions.map((d) => d.yearsUniq))
+        return flatten(this.grapher.axisDimensions.map((d) => d.timesUniq))
     }
 
     @computed.struct get xDomain(): [number, number] {
-        return [this.startTime, this.endTime]
+        return [this.startTimelineTime, this.endTimelineTime]
     }
 
     @computed.struct get sizeDim() {
@@ -71,7 +71,7 @@ export class SlopeChartTransform extends ChartTransform {
         const colorByEntity = new Map<string, string | undefined>()
 
         if (colorDimension !== undefined) {
-            colorDimension.valueByEntityAndYear.forEach(
+            colorDimension.valueByEntityAndTime.forEach(
                 (yearToColorMap, entity) => {
                     const values = Array.from(yearToColorMap.values())
                     const key = last(values)
@@ -91,7 +91,7 @@ export class SlopeChartTransform extends ChartTransform {
         const sizeByEntity = new Map<string, any>()
 
         if (sizeDim !== undefined) {
-            sizeDim.valueByEntityAndYear.forEach((yearToSizeMap, entity) => {
+            sizeDim.valueByEntityAndTime.forEach((yearToSizeMap, entity) => {
                 const values = Array.from(yearToSizeMap.values())
                 sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first year
             })
@@ -109,7 +109,7 @@ export class SlopeChartTransform extends ChartTransform {
         return this.data.map((series) => series.entityDimensionKey)
     }
 
-    @computed get data(): SlopeChartSeries[] {
+    @computed get data() {
         if (!this.yDimension) return []
 
         const {
@@ -127,7 +127,7 @@ export class SlopeChartTransform extends ChartTransform {
         const entityNames = yDimension.entityNamesUniq
         let data: SlopeChartSeries[] = entityNames.map((entityName) => {
             const slopeValues: SlopeChartValue[] = []
-            const yValues = yDimension.valueByEntityAndYear.get(entityName)
+            const yValues = yDimension.valueByEntityAndTime.get(entityName)
             if (yValues !== undefined) {
                 yValues.forEach((value, year) => {
                     if (year === minYear || year === maxYear) {
