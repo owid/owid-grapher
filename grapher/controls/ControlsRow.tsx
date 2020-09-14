@@ -130,8 +130,8 @@ export class ControlsRow extends React.Component<{
     render() {
         return this.grapher.isReady && this.controlsToRender.length ? (
             <div className="controlsRow">
-                <CollapsibleList rendo={...this.controlsToRender}>
-                    {...this.controlsToRender}
+                <CollapsibleList rendo={this.controlsToRender}>
+                    {this.controlsToRender}
                 </CollapsibleList>
             </div>
         ) : null
