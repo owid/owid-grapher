@@ -1,5 +1,5 @@
 import React, { ReactNode } from "react"
-import { observable, action, computed } from "mobx"
+import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 import { throttle } from "grapher/utils/Util"
 import { Tippy } from "grapher/chart/Tippy"
@@ -44,16 +44,24 @@ export class CollapsibleList extends React.Component<{
 
     private calculateItemWidths() {
         this.outerContainerRef.current
-            ?.querySelectorAll(".list-item")
+            ?.querySelectorAll(".list-item.visible")
             .forEach((item) => this.itemsWidths.push(item.clientWidth))
     }
 
     @action private updateNumItemsVisible() {
-        this.numItemsVisible = numItemsVisible(
+        const numItemsVisibleWithoutMoreButton = numItemsVisible(
             this.itemsWidths,
-            this.outerContainerWidth,
-            this.moreButtonWidth
+            this.outerContainerWidth
         )
+
+        this.numItemsVisible =
+            numItemsVisibleWithoutMoreButton >= this.children.length
+                ? numItemsVisibleWithoutMoreButton
+                : numItemsVisible(
+                      this.itemsWidths,
+                      this.outerContainerWidth,
+                      this.moreButtonWidth
+                  )
     }
 
     private get visibleItems() {
@@ -97,7 +105,7 @@ export class CollapsibleList extends React.Component<{
                         </li>
                     ))}
                     <li
-                        className="list-item visible moreButton"
+                        className="list-item moreButton"
                         ref={this.moreButtonRef}
                         style={{
                             visibility: this.dropdownItems.length
@@ -150,7 +158,7 @@ export class MoreButton extends React.Component<{
 export function numItemsVisible(
     itemWidths: number[],
     containerWidth: number,
-    startingWidth: number
+    startingWidth: number = 0
 ) {
     let total = startingWidth
     for (let i = 0; i < itemWidths.length; i++) {
