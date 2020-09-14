@@ -128,7 +128,6 @@ export class ControlsRow extends React.Component<{
     }
 
     render() {
-        console.log("controlsrow rendering")
         return this.grapher.isReady && this.controlsToRender.length ? (
             <div className="controlsRow">
                 <CollapsibleList rendo={...this.controlsToRender}>
