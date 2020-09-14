@@ -3,6 +3,8 @@ import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { throttle } from "grapher/utils/Util"
 import { Tippy } from "grapher/chart/Tippy"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 
 interface ListChild {
     index: number
@@ -126,8 +128,16 @@ export class MoreButton extends React.Component<{
     render() {
         const { options } = this.props
         return (
-            <Tippy content={options} interactive={true} trigger={"click"}>
-                <span>More</span>
+            <Tippy
+                content={options}
+                interactive={true}
+                trigger={"click"}
+                placement={"bottom"}
+            >
+                <span>
+                    <FontAwesomeIcon icon={faCog} />
+                    &nbsp;More
+                </span>
             </Tippy>
         )
     }
