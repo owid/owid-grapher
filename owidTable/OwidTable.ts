@@ -768,7 +768,8 @@ class TableView {
     private toCsvWithColumnNames() {
         const delimiter = ","
         const header =
-            this.columns.map((col) => col.name).join(delimiter) + "\n"
+            this.columns.map((col) => csvEscape(col.name)).join(delimiter) +
+            "\n"
         const body = this.rows
             .map((row) =>
                 this.columns.map((col) => col.formatForCsv(row[col.slug]) ?? "")

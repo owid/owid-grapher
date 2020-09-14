@@ -260,6 +260,16 @@ usa,us,23,`)
 Aruba,2020-01-22,"Something, foo"
 Canada,2020-01-23,`)
     })
+
+    it("can handle columns with commas", () => {
+        const table = OwidTable.fromDelimited(basicTableCsv)
+        table.columnsBySlug.get("gdp")!.spec.name = "Gross, Domestic, Product"
+        expect(table.toView().toPrettyCsv())
+            .toEqual(`entityName,entityCode,"Gross, Domestic, Product",pop
+france,fr,23,4
+iceland,ice,123,3
+usa,us,23,`)
+    })
 })
 
 describe("rolling averages", () => {
