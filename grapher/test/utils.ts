@@ -18,7 +18,7 @@ const readVariableSet = (
 ): LegacyVariablesAndEntityKey => readObj(`variableset-${ids.join("-")}`)
 
 export function setupGrapher(
-    id: number,
+    grapherConfigId: number,
     varIds: number[],
     configOverrides?: Partial<GrapherInterface>
 ) {
@@ -28,7 +28,7 @@ export function setupGrapher(
             : readVariable(first(varIds) as number)
 
     return new Grapher({
-        ...readGrapherConfig(id),
+        ...readGrapherConfig(grapherConfigId),
         ...configOverrides,
         owidDataset: variableSet,
     })
