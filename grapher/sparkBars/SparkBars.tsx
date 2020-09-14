@@ -27,7 +27,7 @@ export interface SparkBarsProps<T> {
 }
 
 export interface SparkBarsDatum {
-    year: number
+    time: number
     value: number
 }
 

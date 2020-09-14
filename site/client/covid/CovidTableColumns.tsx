@@ -24,7 +24,7 @@ import {
 import { formatDate, formatInt } from "./CovidUtils"
 import { nouns } from "./CovidConstants"
 import { CovidDoublingTooltip } from "./CovidDoublingTooltip"
-import { CovidTimeSeriesValue } from "./CovidTimeSeriesValue"
+import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
 import { SparkBars, SparkBarsProps } from "grapher/sparkBars/SparkBars"
 
 export enum CovidTableColumnKey {
@@ -185,10 +185,11 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                         y={accessor}
                         renderValue={(d) =>
                             d && accessor(d) !== undefined ? (
-                                <CovidTimeSeriesValue
+                                <SparkBarTimeSeriesValue
                                     className="highlighted"
                                     value={formatInt(accessor(d))}
                                     date={d.date}
+                                    formattedDate={formatDate(d.date)}
                                 />
                             ) : undefined
                         }
@@ -196,10 +197,11 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                 </div>
                 <div className="value">
                     {datum.latest && accessor(datum.latest) !== undefined && (
-                        <CovidTimeSeriesValue
+                        <SparkBarTimeSeriesValue
                             className="current"
                             value={`${formatInt(accessor(datum.latest))} total`}
                             date={datum.latest.date}
+                            formattedDate={formatDate(datum.latest.date)}
                             latest={true}
                         />
                     )}
@@ -226,12 +228,13 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                         y={accessor}
                         renderValue={(d) =>
                             d && accessor(d) !== undefined ? (
-                                <CovidTimeSeriesValue
+                                <SparkBarTimeSeriesValue
                                     className="highlighted"
                                     value={formatInt(accessor(d), "", {
                                         showPlus: true,
                                     })}
                                     date={d && d.date}
+                                    formattedDate={d && formatDate(d.date)}
                                 />
                             ) : undefined
                         }
@@ -239,7 +242,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                 </div>
                 <div className="value">
                     {datum.latest && accessor(datum.latest) !== undefined && (
-                        <CovidTimeSeriesValue
+                        <SparkBarTimeSeriesValue
                             className="current"
                             value={`${formatInt(accessor(datum.latest), "", {
                                 showPlus: true,

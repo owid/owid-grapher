@@ -19,7 +19,7 @@ import { Time } from "grapher/core/GrapherConstants"
 interface MapDataValue {
     entity: string
     value: number | string
-    year: number
+    time: number
     isSelected?: boolean
 }
 
@@ -90,16 +90,16 @@ export class MapTransform extends ChartTransform {
         return entities
     }
 
-    // Filter data to what can be display on the map (across all years)
+    // Filter data to what can be display on the map (across all times)
     @computed private get mappableData() {
         const { dimension } = this
 
         const mappableData: {
-            years: number[]
+            times: number[]
             entities: string[]
             values: (number | string)[]
         } = {
-            years: [],
+            times: [],
             entities: [],
             values: [],
         }
@@ -107,12 +107,12 @@ export class MapTransform extends ChartTransform {
         if (dimension) {
             const { knownMapEntities } = this
             for (let i = 0; i < dimension.times.length; i++) {
-                const year = dimension.times[i]
+                const time = dimension.times[i]
                 const entity = dimension.entityNames[i]
                 const value = dimension.values[i]
 
                 if (knownMapEntities[entity]) {
-                    mappableData.years.push(year)
+                    mappableData.times.push(time)
                     mappableData.entities.push(entity)
                     mappableData.values.push(value)
                 }
@@ -132,10 +132,10 @@ export class MapTransform extends ChartTransform {
         return uniq(this.mappableData.values.filter(isString))
     }
 
-    // All available years with data for the map
+    // All available times with data for the map
     @computed get availableTimes(): Time[] {
         const { mappableData } = this
-        return mappableData.years.filter(
+        return mappableData.times.filter(
             (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
         )
     }
@@ -164,12 +164,12 @@ export class MapTransform extends ChartTransform {
         })
     }
 
-    // Get values for the current year, without any color info yet
+    // Get values for the current time, without any color info yet
     @computed private get valuesByEntity(): { [key: string]: MapDataValue } {
         const { endTimelineTime, grapher } = this
-        const valueByEntityAndYear = this.dimension?.valueByEntityAndTime
+        const valueByEntityAndTime = this.dimension?.valueByEntityAndTime
 
-        if (endTimelineTime === undefined || !valueByEntityAndYear) return {}
+        if (endTimelineTime === undefined || !valueByEntityAndTime) return {}
 
         const tolerance = this.props.timeTolerance ?? 0
         const entities = Object.keys(this.knownMapEntities)
@@ -179,16 +179,16 @@ export class MapTransform extends ChartTransform {
         const selectedEntityNames = new Set(grapher.selectedEntityNames)
 
         entities.forEach((entity) => {
-            const valueByYear = valueByEntityAndYear.get(entity)
-            if (!valueByYear) return
-            const years = Array.from(valueByYear.keys())
-            const year = findClosestTime(years, endTimelineTime, tolerance)
-            if (year === undefined) return
-            const value = valueByYear.get(year)
+            const valueByTime = valueByEntityAndTime.get(entity)
+            if (!valueByTime) return
+            const times = Array.from(valueByTime.keys())
+            const time = findClosestTime(times, endTimelineTime, tolerance)
+            if (time === undefined) return
+            const value = valueByTime.get(time)
             if (value === undefined) return
             result[entity] = {
                 entity,
-                year,
+                time,
                 value,
                 isSelected: selectedEntityNames.has(entity),
             }

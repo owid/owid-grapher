@@ -9,12 +9,11 @@ import {
     SparkBarsDatum,
     SparkBarsProps,
 } from "grapher/sparkBars/SparkBars"
-import { CovidTimeSeriesValue } from "site/client/covid/CovidTimeSeriesValue"
+import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
 import { Grapher } from "grapher/core/Grapher"
 
 interface MapTooltipProps {
-    inputYear?: number
-    formatYearFn?: (year: number) => string
+    inputTime?: number
     mapToDataEntities: { [id: string]: string }
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
@@ -28,13 +27,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return this.props.grapher
     }
 
-    sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.year
+    private sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.time
 
-    @computed get sparkBarsToDisplay() {
+    @computed private get sparkBarsToDisplay() {
         return isMobile() ? 13 : 20
     }
 
-    @computed get sparkBarsProps(): SparkBarsProps<SparkBarsDatum> {
+    @computed private get sparkBarsProps(): SparkBarsProps<SparkBarsDatum> {
         return {
             data: this.sparkBarsData,
             x: this.sparkBarsDatumXAccessor,
@@ -43,27 +42,27 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         }
     }
 
-    @computed get sparkBarsData(): SparkBarsDatum[] {
-        const sparkBarValues: SparkBarsDatum[] = []
+    @computed private get sparkBarsData() {
         const tooltipDatum = this.props.tooltipDatum
-        if (!tooltipDatum) return sparkBarValues
+        if (!tooltipDatum) return []
 
+        const sparkBarValues: SparkBarsDatum[] = []
         this.grapher.mapTransform.dimension?.valueByEntityAndTime
             .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
-                    year: key,
+                    time: key,
                     value: value as number,
                 })
             })
 
         return takeWhile(
             sparkBarValues,
-            (d) => d.year <= tooltipDatum.year
+            (d) => d.time <= tooltipDatum.time
         ).slice(-this.sparkBarsToDisplay)
     }
 
-    @computed get sparkBarsDomain(): [number, number] {
+    @computed private get sparkBarsDomain(): [number, number] {
         const lastVal = last(this.sparkBarsData)
 
         const end = lastVal ? this.sparkBarsDatumXAccessor(lastVal) : 0
@@ -72,12 +71,12 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return [start, end]
     }
 
-    @computed get currentSparkBar() {
+    @computed private get currentSparkBar() {
         const lastVal = last(this.sparkBarsData)
         return lastVal ? this.sparkBarsDatumXAccessor(lastVal) : undefined
     }
 
-    @computed get renderSparkBars() {
+    @computed private get renderSparkBars() {
         const { grapher } = this
         return (
             grapher.hasChartTab &&
@@ -86,14 +85,14 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         )
     }
 
-    @computed get darkestColorInColorScheme() {
+    @computed private get darkestColorInColorScheme() {
         const { colorScale } = this.grapher.mapTransform
         return colorScale.isColorSchemeInverted
             ? first(colorScale.baseColors)
             : last(colorScale.baseColors)
     }
 
-    @computed get barColor() {
+    @computed private get barColor() {
         const { colorScale } = this.grapher.mapTransform
         return colorScale.singleColorScale &&
             !colorScale.customNumericColorsActive
@@ -104,7 +103,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     render() {
         const {
             tooltipTarget,
-            inputYear,
+            inputTime,
             mapToDataEntities,
             tooltipDatum,
             isEntityClickable,
@@ -115,7 +114,9 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             : "Click for change over time"
 
         const { renderSparkBars, barColor } = this
-        const formatYearFn = this.props.formatYearFn || ((value: any) => value)
+        const formatYearFn =
+            this.grapher.table.timeColumn?.formatValue ||
+            ((value: any) => value)
         return (
             <Tooltip
                 tooltipContainer={this.grapher}
@@ -162,13 +163,13 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                         (renderSparkBars ? "" : " no-plot")
                                     }
                                 >
-                                    <CovidTimeSeriesValue
+                                    <SparkBarTimeSeriesValue
                                         className="current"
                                         value={this.grapher.mapTransform.formatTooltipValue(
                                             tooltipDatum.value
                                         )}
                                         formattedDate={formatYearFn(
-                                            tooltipDatum.year as number
+                                            tooltipDatum.time as number
                                         )}
                                         valueColor={
                                             renderSparkBars ? barColor : "black"
@@ -178,7 +179,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             </div>
                         </div>
                     ) : (
-                        `No data for ${formatYearFn(inputYear as number)}`
+                        `No data for ${formatYearFn(inputTime as number)}`
                     )}
                 </div>
                 {isEntityClickable && (
