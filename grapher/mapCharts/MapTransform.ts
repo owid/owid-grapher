@@ -266,4 +266,8 @@ export class MapTransform extends ChartTransform {
               }
             : () => ""
     }
+
+    @computed get formatYear() {
+        return this.dimension?.formatYear
+    }
 }
