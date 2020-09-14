@@ -44,7 +44,6 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
     }
 
     @action.bound onClick() {
-        console.log("clicked!")
         const { scaleType, scaleTypeOptions } = this
 
         let nextScaleTypeIndex = scaleTypeOptions.indexOf(scaleType) + 1
