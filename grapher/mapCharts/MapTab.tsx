@@ -37,7 +37,6 @@ interface MapWithLegendProps {
     choroplethData: ChoroplethData
     years: number[]
     inputYear?: number
-    formatYear?: (year: number, options?: { format?: string }) => string
     column?: AbstractColumn
     colorScale: ColorScale
     projection: MapProjection
@@ -207,7 +206,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
         const tooltipProps = {
             inputYear: this.props.inputYear,
-            formatYearFn: this.props.formatYear,
+            formatYearFn: this.props.column?.formatValue,
             mapToDataEntities: this.props.mapToDataEntities,
             tooltipDatum: this.tooltipDatum,
             isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId),
@@ -291,7 +290,6 @@ export class MapTab extends React.Component<MapTabProps> {
                         choroplethData={map.choroplethData}
                         years={map.timelineTimes}
                         inputYear={map.targetTime}
-                        formatYear={map.formatYear}
                         colorScale={map.colorScale}
                         projection={map.projection}
                         defaultFill={map.colorScale.noDataColor}
