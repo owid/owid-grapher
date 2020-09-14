@@ -530,10 +530,13 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return window.self !== window.top
     }
 
+    // todo: remove ifs
     @computed get times() {
+        if (this.tab === "map") return this.mapTransform.timelineTimes
         return this.activeTransform.timelineTimes
     }
 
+    // todo: remove ifs
     @computed get startTime() {
         const activeTab = this.tab
         if (activeTab === "table")
@@ -541,14 +544,17 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                 this.dataTableTransform.autoSelectedStartYear ??
                 this.timeDomain[0]
             )
+        else if (activeTab === "map") return this.mapTransform.startTimelineTime
         return this.activeTransform.startTimelineTime!
     }
 
+    // todo: remove ifs
     set startTime(value: any) {
         if (this.tab === "map") this.timeDomain = [value, value]
         else this.timeDomain = [value, this.timeDomain[1]]
     }
 
+    // todo: remove ifs
     set endTime(value: any) {
         const activeTab = this.tab
         if (activeTab === "map" || activeTab === "table")
@@ -556,12 +562,14 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         else this.timeDomain = [this.timeDomain[0], value]
     }
 
+    // todo: remove ifs
     @computed get endTime() {
         const activeTab = this.tab
         if (activeTab === "table")
             return this.multiMetricTableMode
                 ? this.dataTableTransform.startTimelineTime
                 : this.timeDomain[1]
+        else if (activeTab === "map") return this.mapTransform.endTimelineTime
         return this.activeTransform.endTimelineTime!
     }
 

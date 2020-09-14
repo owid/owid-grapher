@@ -249,9 +249,6 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     render() {
         const { subject, controller } = this
-
-        if (!this.subject.times.length) return null
-
         const { startTimeProgress, endTimeProgress } = controller
         const { startTime, endTime } = subject
 

@@ -65,19 +65,20 @@ export class MapTransform extends ChartTransform {
         )
     }
 
+    private static _countryNamesWithMapSvg: Set<string>
+    private static get countryNamesWithMapSvg() {
+        // Cache the result
+        if (!this._countryNamesWithMapSvg)
+            this._countryNamesWithMapSvg = new Set(
+                MapTopology.objects.world.geometries.map(
+                    (region: any) => region.id
+                )
+            )
+        return this._countryNamesWithMapSvg
+    }
+
     // Figure out which entities in the variable can be shown on the map
     // (we can't render data for things that aren't countries)
-    @computed private get knownMapEntities(): { [entity: string]: string } {
-        if (!this.dimension) return {}
-
-        const idLookup = keyBy(
-            MapTopology.objects.world.geometries.map((g: any) => g.id)
-        )
-        const entities = this.dimension.entityNamesUniq.filter(
-            (e) => !!idLookup[entityNameForMap(e)]
-        )
-        return keyBy(entities)
-    }
 
     // Reverse lookup of map ids => data entities
     @computed get mapToDataEntities(): { [id: string]: string } {
@@ -104,19 +105,15 @@ export class MapTransform extends ChartTransform {
             values: [],
         }
 
-        if (dimension) {
-            const { knownMapEntities } = this
-            for (let i = 0; i < dimension.times.length; i++) {
-                const time = dimension.times[i]
-                const entity = dimension.entityNames[i]
-                const value = dimension.values[i]
+        if (!dimension) return mappableData
 
-                if (knownMapEntities[entity]) {
-                    mappableData.times.push(time)
-                    mappableData.entities.push(entity)
-                    mappableData.values.push(value)
-                }
-            }
+        for (let i = 0; i < dimension.times.length; i++) {
+            const entity = dimension.entityNames[i]
+            if (!MapTransform.countryNamesWithMapSvg.has(entity)) continue
+
+            mappableData.entities.push(entity)
+            mappableData.times.push(dimension.times[i])
+            mappableData.values.push(dimension.values[i])
         }
 
         return mappableData
@@ -134,10 +131,7 @@ export class MapTransform extends ChartTransform {
 
     // All available times with data for the map
     @computed get availableTimes(): Time[] {
-        const { mappableData } = this
-        return mappableData.times.filter(
-            (_, i) => !!this.knownMapEntities[mappableData.entities[i]]
-        )
+        return this.mappableData.times
     }
 
     @computed get colorScale() {
@@ -172,13 +166,17 @@ export class MapTransform extends ChartTransform {
         if (endTimelineTime === undefined || !valueByEntityAndTime) return {}
 
         const tolerance = this.props.timeTolerance ?? 0
-        const entities = Object.keys(this.knownMapEntities)
+        const entityNames = this.dimension
+            ? this.dimension.entityNamesUniq.filter((name) =>
+                  MapTransform.countryNamesWithMapSvg.has(name)
+              )
+            : []
 
         const result: { [key: string]: MapDataValue } = {}
 
         const selectedEntityNames = new Set(grapher.selectedEntityNames)
 
-        entities.forEach((entity) => {
+        entityNames.forEach((entity) => {
             const valueByTime = valueByEntityAndTime.get(entity)
             if (!valueByTime) return
             const times = Array.from(valueByTime.keys())
