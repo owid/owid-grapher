@@ -51,29 +51,29 @@ export class ControlsRow extends React.Component<{
                     />
                 )
 
-            // grapher.canAddData &&
-            //     !grapher.hasFloatingAddButton &&
-            //     !grapher.hideEntityControls &&
-            //     controls.push(
-            //         <button
-            //             type="button"
-            //             onClick={this.onDataSelect}
-            //             key="grapher-select-entities"
-            //             data-track-note="grapher-select-entities"
-            //         >
-            //             {grapher.isScatter || grapher.isSlopeChart ? (
-            //                 <span className="SelectEntitiesButton">
-            //                     <FontAwesomeIcon icon={faPencilAlt} />
-            //                     {`Select ${grapher.entityTypePlural}`}
-            //                 </span>
-            //             ) : (
-            //                 <span>
-            //                     <FontAwesomeIcon icon={faPlus} />{" "}
-            //                     {grapher.addButtonLabel}
-            //                 </span>
-            //             )}
-            //         </button>
-            //     )
+            grapher.canAddData &&
+                !grapher.hasFloatingAddButton &&
+                !grapher.hideEntityControls &&
+                controls.push(
+                    <button
+                        type="button"
+                        onClick={this.onDataSelect}
+                        key="grapher-select-entities"
+                        data-track-note="grapher-select-entities"
+                    >
+                        {grapher.isScatter || grapher.isSlopeChart ? (
+                            <span className="SelectEntitiesButton">
+                                <FontAwesomeIcon icon={faPencilAlt} />
+                                {`Select ${grapher.entityTypePlural}`}
+                            </span>
+                        ) : (
+                            <span>
+                                <FontAwesomeIcon icon={faPlus} />{" "}
+                                {grapher.addButtonLabel}
+                            </span>
+                        )}
+                    </button>
+                )
 
             grapher.canChangeEntity &&
                 !grapher.hideEntityControls &&
