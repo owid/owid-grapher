@@ -14,9 +14,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faExpand } from "@fortawesome/free-solid-svg-icons/faExpand"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
-import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
 import { HighlightToggleConfig } from "grapher/core/GrapherConstants"
 import { ShareMenu } from "./ShareMenu"
@@ -242,82 +239,6 @@ export class ControlsFooterView extends React.Component<{
         )
     }
 
-    private _getInlineControlsElement() {
-        const { grapher } = this
-        return (
-            <div className="extraControls">
-                {grapher.currentTab === "chart" &&
-                    grapher.canAddData &&
-                    !grapher.hasFloatingAddButton &&
-                    !grapher.hideEntityControls && (
-                        <button
-                            type="button"
-                            onClick={this.onDataSelect}
-                            data-track-note="chart-select-entities"
-                        >
-                            {grapher.isScatter || grapher.isSlopeChart ? (
-                                <span className="SelectEntitiesButton">
-                                    <FontAwesomeIcon icon={faPencilAlt} />
-                                    {`Select ${grapher.entityTypePlural}`}
-                                </span>
-                            ) : (
-                                <span>
-                                    <FontAwesomeIcon icon={faPlus} />{" "}
-                                    {grapher.addButtonLabel}
-                                </span>
-                            )}
-                        </button>
-                    )}
-
-                {grapher.currentTab === "chart" &&
-                    grapher.canChangeEntity &&
-                    !grapher.hideEntityControls && (
-                        <button
-                            type="button"
-                            onClick={this.onDataSelect}
-                            data-track-note="chart-change-entity"
-                        >
-                            <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                            {grapher.entityType}
-                        </button>
-                    )}
-
-                {grapher.currentTab === "chart" &&
-                    grapher.isScatter &&
-                    grapher.highlightToggle && (
-                        <HighlightToggle
-                            grapher={grapher}
-                            highlightToggle={grapher.highlightToggle}
-                        />
-                    )}
-                {grapher.currentTab === "chart" &&
-                    grapher.isStackedArea &&
-                    grapher.canToggleRelativeMode && (
-                        <AbsRelToggle grapher={grapher} />
-                    )}
-                {grapher.currentTab === "chart" &&
-                    grapher.isScatter &&
-                    grapher.scatterTransform.canToggleRelativeMode && (
-                        <AbsRelToggle grapher={grapher} />
-                    )}
-                {grapher.currentTab === "chart" &&
-                    grapher.isScatter &&
-                    grapher.hasSelection && <ZoomToggle grapher={grapher} />}
-
-                {(grapher.currentTab === "table" || grapher.isScatter) &&
-                    grapher.hasCountriesSmallerThanFilterOption && (
-                        <FilterSmallCountriesToggle grapher={grapher} />
-                    )}
-
-                {grapher.currentTab === "chart" &&
-                    grapher.isLineChart &&
-                    grapher.lineChartTransform.canToggleRelativeMode && (
-                        <AbsRelToggle grapher={grapher} />
-                    )}
-            </div>
-        )
-    }
-
     @computed private get timeline() {
         if (!this.grapherView.hasTimeline) return null
 
@@ -358,28 +279,10 @@ export class ControlsFooterView extends React.Component<{
 
     render() {
         const { grapher, grapherView } = this
-        const {
-            isShareMenuActive,
-            hasInlineControls,
-            hasSpace,
-            hasRelatedQuestion,
-        } = grapherView
+        const { isShareMenuActive, hasRelatedQuestion } = grapherView
         const { relatedQuestions } = grapher
 
-        const inlineControlsElement = hasInlineControls && !hasSpace && (
-            <div className="footerRowSingle">
-                {this._getInlineControlsElement()}
-            </div>
-        )
-
-        const tabsElement = hasSpace ? (
-            <div className="footerRowMulti">
-                <div className="inline-controls">
-                    {hasInlineControls && this._getInlineControlsElement()}
-                </div>
-                {this._getTabsElement()}
-            </div>
-        ) : (
+        const tabsElement = (
             <div className="footerRowSingle">{this._getTabsElement()}</div>
         )
 
@@ -412,7 +315,6 @@ export class ControlsFooterView extends React.Component<{
                 style={{ height: grapherView.footerHeight }}
             >
                 {this.timeline}
-                {inlineControlsElement}
                 {tabsElement}
                 {shareMenuElement}
                 {relatedQuestionElement}
