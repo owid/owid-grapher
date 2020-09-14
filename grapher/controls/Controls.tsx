@@ -92,7 +92,7 @@ export class AbsRelToggle extends React.Component<{ grapher: Grapher }> {
                     onChange={this.onToggle}
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
-                {label}
+                &nbsp;{label}
             </label>
         )
     }
@@ -143,7 +143,7 @@ export class FilterSmallCountriesToggle extends React.Component<{
                     }
                     data-track-note="chart-filter-small-countries"
                 />{" "}
-                {label}
+                &nbsp;{label}
             </label>
         )
     }
