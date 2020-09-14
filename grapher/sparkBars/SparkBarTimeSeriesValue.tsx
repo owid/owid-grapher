@@ -6,9 +6,7 @@ import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons/faQuestion
 
 import { Tippy } from "grapher/chart/Tippy"
 
-import { formatDate } from "./CovidUtils"
-
-export const CovidTimeSeriesValue = ({
+export const SparkBarTimeSeriesValue = ({
     value,
     date,
     latest,
@@ -39,7 +37,7 @@ export const CovidTimeSeriesValue = ({
                     )}
                 </span>
                 <span className={classnames("date", { latest: latest })}>
-                    {formattedDate ?? formatDate(date)}
+                    {formattedDate ?? date}
                 </span>
             </>
         ) : undefined}

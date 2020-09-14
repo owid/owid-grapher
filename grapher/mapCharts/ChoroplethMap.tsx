@@ -20,7 +20,7 @@ import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 
 export interface ChoroplethDatum {
     entity: string
-    year: number
+    time: number
     value: number | string
     color: string
     highlightFillColor: string

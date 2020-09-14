@@ -5,7 +5,6 @@ import { observer } from "mobx-react"
 import {
     ChoroplethMap,
     ChoroplethData,
-    ChoroplethDatum,
     GeoFeature,
     MapBracket,
     MapEntity,
@@ -14,7 +13,6 @@ import { MapColorLegend } from "grapher/mapCharts/MapColorLegend"
 import { MapColorLegendView } from "./MapColorLegendView"
 import { getRelativeMouse } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
-import { MapTransform } from "./MapTransform"
 import { MapProjection } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -26,6 +24,7 @@ import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"
 import { ColorScale } from "grapher/color/ColorScale"
 import { AbstractColumn } from "owidTable/OwidTable"
+import { Time } from "grapher/core/GrapherConstants"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -35,8 +34,8 @@ const PROJECTION_CHOOSER_HEIGHT = 22
 interface MapWithLegendProps {
     bounds: Bounds
     choroplethData: ChoroplethData
-    years: number[]
-    inputYear?: number
+    times: Time[]
+    inputTime?: Time
     column?: AbstractColumn
     colorScale: ColorScale
     projection: MapProjection
@@ -103,9 +102,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         if (!ev.shiftKey) {
             chart.currentTab = "chart"
             chart.selectOnlyThisEntity(entityName)
-        } else {
-            chart.toggleEntitySelectionStatus(entityName)
-        }
+        } else chart.toggleEntitySelectionStatus(entityName)
     }
 
     componentWillUnmount() {
@@ -125,7 +122,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         this.grapher.mapTransform.props.projection = value
     }
 
-    @computed get mapLegend(): MapColorLegend {
+    @computed get mapLegend() {
         const that = this
         return new MapColorLegend({
             get bounds() {
@@ -152,7 +149,7 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
         })
     }
 
-    @computed get tooltipDatum(): ChoroplethDatum | undefined {
+    @computed get tooltipDatum() {
         return this.tooltipTarget
             ? this.props.choroplethData[this.tooltipTarget.featureId]
             : undefined
@@ -194,13 +191,13 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
             mapLegend,
             tooltipTarget,
             projectionChooserBounds,
+            tooltipDatum,
         } = this
 
         const tooltipProps = {
-            inputYear: this.props.inputYear,
-            formatYearFn: this.props.column?.formatValue,
+            inputTime: this.props.inputTime,
             mapToDataEntities: this.props.mapToDataEntities,
-            tooltipDatum: this.tooltipDatum,
+            tooltipDatum,
             isEntityClickable: this.isEntityClickable(tooltipTarget?.featureId),
         }
 
@@ -249,8 +246,8 @@ interface MapTabProps {
 
 @observer
 export class MapTab extends React.Component<MapTabProps> {
-    @computed get map(): MapTransform {
-        return this.props.grapher.mapTransform as MapTransform
+    @computed get map() {
+        return this.props.grapher.mapTransform
     }
 
     @computed get layout() {
@@ -280,8 +277,8 @@ export class MapTab extends React.Component<MapTabProps> {
                         grapherView={this.props.grapherView}
                         bounds={layout.innerBounds}
                         choroplethData={map.choroplethData}
-                        years={map.timelineTimes}
-                        inputYear={map.endTimelineTime}
+                        times={map.timelineTimes}
+                        inputTime={map.endTimelineTime}
                         colorScale={map.colorScale}
                         projection={map.projection}
                         defaultFill={map.colorScale.noDataColor}
