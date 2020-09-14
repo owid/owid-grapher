@@ -136,6 +136,16 @@ hi,1,,2001`
     })
 })
 
+describe("when it has both a day and year column, prefer the day column", () => {
+    const csv = `entityName,entityCode,entityId,pop,year,day
+usa,usa,1,322,2000,2`
+
+    const table = OwidTable.fromDelimited(csv)
+    it("prefers a day column when both year and day are in the chart", () => {
+        expect(table.timeColumn!.slug).toBe("day")
+    })
+})
+
 describe("from csv", () => {
     const csv = `country,population
 iceland,1
@@ -234,8 +244,7 @@ describe("can get entities with all required columns", () => {
 describe("csv export", () => {
     it("can export a clean csv", () => {
         const table = OwidTable.fromDelimited(basicTableCsv)
-        expect(table.toView().toPrettyCsv())
-            .toEqual(`entityName,entityCode,gdp,pop
+        expect(table.toView().toPrettyCsv()).toEqual(`Entity,Code,gdp,pop
 france,fr,23,4
 iceland,ice,123,3
 usa,us,23,`)
@@ -265,7 +274,7 @@ Canada,2020-01-23,`)
         const table = OwidTable.fromDelimited(basicTableCsv)
         table.columnsBySlug.get("gdp")!.spec.name = "Gross, Domestic, Product"
         expect(table.toView().toPrettyCsv())
-            .toEqual(`entityName,entityCode,"Gross, Domestic, Product",pop
+            .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
 france,fr,23,4
 iceland,ice,123,3
 usa,us,23,`)

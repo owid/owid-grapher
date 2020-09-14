@@ -105,12 +105,6 @@ const computeRollingAveragesForEachGroup = (
     return flatten(groups)
 }
 
-enum OwidRequiredColumns {
-    entityName = "entityName",
-    entityCode = "entityCode",
-    entityId = "entityId",
-}
-
 // This is a row with the additional columns specific to our OWID data model
 interface OwidRow extends Row {
     entityName: EntityName
@@ -483,10 +477,14 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return this._rows
     }
 
+    // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
+    // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
+    // and not the first time column from the table.
     @computed get timeColumn() {
-        const col = this.columnsAsArray.find(
-            (col) => col instanceof TemporalColumn
-        )
+        // For now, return a day column first if present. But see note above about removing this method.
+        const col =
+            this.columnsAsArray.find((col) => col instanceof DateColumn) ||
+            this.columnsAsArray.find((col) => col instanceof TemporalColumn)
         return col
     }
 
@@ -506,7 +504,8 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     }
 
     @action.bound addSpecs(
-        columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[]
+        columnSpecs: ColumnSpecs | ColumnSpecObject | ColumnSpec[],
+        overwriteExistingSpec = false
     ) {
         if (Array.isArray(columnSpecs))
             columnSpecs = new Map(columnSpecs.map((spec) => [spec.slug, spec]))
@@ -521,16 +520,33 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
             const columnType =
                 (spec.type && columnTypeMap[spec.type]) || AnyColumn
             // At the moment we do not overwrite existing columns
-            if (!cols.has(slug)) cols.set(slug, new columnType(this, spec))
+            if (overwriteExistingSpec || !cols.has(slug))
+                cols.set(slug, new columnType(this, spec))
         })
+    }
+
+    static guessColumnSpec(slug: string) {
+        if (slug === "day")
+            return {
+                slug: "day",
+                type: ColumnTypeNames.Date,
+                name: "Date",
+            }
+        else if (slug === "year")
+            return {
+                slug: "year",
+                type: ColumnTypeNames.Year,
+                name: "Year",
+            }
+        return { slug }
     }
 
     static makeSpecsFromRows(rows: any[]): ColumnSpecs {
         const map = new Map()
         // Todo: type detection
         rows.forEach((row) => {
-            Object.keys(row).forEach((key) => {
-                map.set(key, { slug: key })
+            Object.keys(row).forEach((slug) => {
+                map.set(slug, OwidTable.guessColumnSpec(slug))
             })
         })
         return map
@@ -820,10 +836,11 @@ export class OwidTable extends AbstractTable<OwidRow> {
     static fromDelimited(csvOrTsv: string) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
-        const missingColumns: string[] = []
-        Object.keys(OwidRequiredColumns).forEach((slug) => {
-            if (!colSlugs.includes(slug)) missingColumns.push(slug)
-        })
+
+        const missingColumns = OwidTable.requiredColumnSpecs.filter(
+            (spec) => !colSlugs.includes(spec.slug)
+        )
+
         if (missingColumns.length)
             throw new Error(
                 `Table is missing required OWID columns: '${missingColumns.join(
@@ -831,7 +848,9 @@ export class OwidTable extends AbstractTable<OwidRow> {
                 )}'`
             )
 
-        return new OwidTable((parsed as any) as OwidRow[])
+        const table = new OwidTable((parsed as any) as OwidRow[])
+        table.addSpecs(OwidTable.requiredColumnSpecs, true)
+        return table
     }
 
     @computed get columnsByOwidVarId() {
@@ -1044,24 +1063,30 @@ export class OwidTable extends AbstractTable<OwidRow> {
         }
     }
 
+    static requiredColumnSpecs: ColumnSpec[] = [
+        {
+            name: "Entity",
+            slug: "entityName",
+            type: ColumnTypeNames.Categorical,
+        },
+        {
+            slug: "entityId",
+            type: ColumnTypeNames.Categorical,
+        },
+        {
+            name: "Code",
+            slug: "entityCode",
+            type: ColumnTypeNames.Categorical,
+        },
+    ]
+
     @action.bound loadFromLegacy(json: LegacyVariablesAndEntityKey) {
         let rows: OwidRow[] = []
         const entityMetaById: { [id: string]: LegacyEntityMeta } =
             json.entityKey
-        const columnSpecs: Map<ColumnSlug, ColumnSpec> = new Map()
-        columnSpecs.set("entityName", {
-            name: "Entity",
-            slug: "entityName",
-            type: ColumnTypeNames.Categorical,
-        })
-        columnSpecs.set("entityId", {
-            slug: "entityId",
-            type: ColumnTypeNames.Categorical,
-        })
-        columnSpecs.set("entityCode", {
-            name: "Code",
-            slug: "entityCode",
-            type: ColumnTypeNames.Categorical,
+        const columnSpecs: ColumnSpecs = new Map()
+        OwidTable.requiredColumnSpecs.forEach((spec) => {
+            columnSpecs.set(spec.slug, spec)
         })
 
         for (const key in json.variables) {
