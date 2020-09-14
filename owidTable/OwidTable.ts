@@ -1080,7 +1080,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
         },
     ]
 
-    @action.bound loadFromLegacy(json: LegacyVariablesAndEntityKey) {
+    static legacyVariablesToTabular(json: LegacyVariablesAndEntityKey) {
         let rows: OwidRow[] = []
         const entityMetaById: { [id: string]: LegacyEntityMeta } =
             json.entityKey
@@ -1175,8 +1175,15 @@ export class OwidTable extends AbstractTable<OwidRow> {
             Object.assign({}, ...groupMap[groupKey])
         )
 
-        const sorted = sortBy(joinedRows, ["year", "day"])
-        return this.load(sorted, columnSpecs, false)
+        return {
+            rows: sortBy(joinedRows, ["year", "day"]),
+            columnSpecs,
+        }
+    }
+
+    @action.bound loadFromLegacy(json: LegacyVariablesAndEntityKey) {
+        const { rows, columnSpecs } = OwidTable.legacyVariablesToTabular(json)
+        return this.load(rows, columnSpecs, false)
     }
 
     // todo: remove

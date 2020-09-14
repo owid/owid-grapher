@@ -1,7 +1,5 @@
 import xhrMock from "xhr-mock"
-
 import * as fs from "fs-extra"
-
 import { Indicator } from "explorer/indicatorExplorer/Indicator"
 
 export function mockIndicators() {

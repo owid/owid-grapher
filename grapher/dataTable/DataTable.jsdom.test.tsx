@@ -8,12 +8,45 @@ import { setupGrapher } from "grapher/test/utils"
 import { DataTable, ClosestYearNotice } from "./DataTable"
 import { Grapher } from "grapher/core/Grapher"
 
+const getGrapher = (props: any = {}) =>
+    new Grapher({
+        hasMapTab: true,
+        tab: "map",
+        dimensions: [
+            {
+                variableId: 104402,
+                property: "y",
+            },
+        ],
+        ...props,
+        owidDataset: {
+            variables: {
+                "104402": {
+                    years: [1950, 1950, 2005, 2005, 2019, 2019],
+                    entities: [15, 207, 15, 207, 15, 207],
+                    values: [224.45, 333.68, 295.59, 246.12, 215.59, 226.12],
+                    id: 104402,
+                    display: {
+                        name: "Child mortality",
+                        unit: "%",
+                        shortUnit: "%",
+                        conversionFactor: 0.1,
+                    },
+                },
+            },
+            entityKey: {
+                "15": { name: "Afghanistan", id: 15 },
+                "207": { name: "Iceland", id: 207 },
+            },
+        },
+    })
+
 describe(DataTable, () => {
     describe("when you render a table", () => {
         let view: ReactWrapper
         beforeAll(() => {
-            const chart = setupGrapher(677, [104402])
-            view = mount(<DataTable grapher={chart} />)
+            const grapher = getGrapher()
+            view = mount(<DataTable grapher={grapher} />)
         })
 
         it("renders a table", () => {
@@ -40,7 +73,7 @@ describe(DataTable, () => {
         })
 
         it("renders a row for each country", () => {
-            expect(view.find("tbody tr")).toHaveLength(224)
+            expect(view.find("tbody tr")).toHaveLength(2)
         })
 
         it("renders the name of each country", () => {
@@ -50,7 +83,7 @@ describe(DataTable, () => {
 
         it("renders the value for each country", () => {
             const cell = view.find("tbody tr td.dimension").first()
-            expect(cell.text()).toBe("5.58%")
+            expect(cell.text()).toBe("21.56%")
         })
 
         it("renders the unit in cell values when the unit is '%'", () => {
@@ -62,13 +95,13 @@ describe(DataTable, () => {
     describe("when you select a range of years", () => {
         let view: ReactWrapper
         beforeAll(() => {
-            const chart = setupGrapher(677, [104402], {
+            const grapher = getGrapher({
                 type: "LineChart",
                 tab: "chart",
                 minTime: 1990,
                 maxTime: 2017,
             })
-            view = mount(<DataTable grapher={chart} />)
+            view = mount(<DataTable grapher={grapher} />)
         })
 
         it("header is split into two rows", () => {
@@ -82,22 +115,22 @@ describe(DataTable, () => {
 
         it("renders start values", () => {
             const cell = view.find("tbody .dimension-start").first()
-            expect(cell.text()).toBe("14.76% in 1990")
+            expect(cell.text()).toBe("29.56% in 2005")
         })
 
         it("renders end values", () => {
             const cell = view.find("tbody .dimension-end").first()
-            expect(cell.text()).toBe("5.58% in 2017")
+            expect(cell.text()).toBe("21.56% in 2019")
         })
 
         it("renders absolute change values", () => {
             const cell = view.find("tbody .dimension-delta").first()
-            expect(cell.text()).toBe("-9.18 pp")
+            expect(cell.text()).toBe("-8.00 pp")
         })
 
         it("renders relative change values", () => {
             const cell = view.find("tbody .dimension-deltaRatio").first()
-            expect(cell.text()).toBe("-62%")
+            expect(cell.text()).toBe("-27%")
         })
     })
 
@@ -127,17 +160,17 @@ describe(DataTable, () => {
         let grapher: Grapher
         let view: ShallowWrapper
         beforeAll(() => {
-            grapher = setupGrapher(677, [104402])
+            grapher = getGrapher()
             view = shallow(<DataTable grapher={grapher} />)
         })
 
         it("initially renders small countries", () => {
-            expect(view.find("tbody tr")).toHaveLength(224)
+            expect(view.find("tbody tr")).toHaveLength(2)
         })
 
         it("renders no small countries after filter is added", () => {
             grapher.toggleMinPopulationFilter()
-            expect(view.find("tbody tr")).toHaveLength(187)
+            expect(view.find("tbody tr")).toHaveLength(1)
         })
     })
 })
