@@ -109,7 +109,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { reduceEachTrailingCommentRange } from "typescript"
+import { TimeViz } from "grapher/timeline/TimelineController"
 
 declare const window: any
 
@@ -176,7 +176,7 @@ class GrapherDefaults implements GrapherInterface {
 
 const defaultObject = objectWithPersistablesToObject(new GrapherDefaults())
 
-export class Grapher extends GrapherDefaults {
+export class Grapher extends GrapherDefaults implements TimeViz {
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
@@ -541,8 +541,6 @@ export class Grapher extends GrapherDefaults {
                 this.dataTableTransform.autoSelectedStartYear ??
                 this.timeDomain[0]
             )
-        if (activeTab === "map")
-            return this.map.time ?? TimeBoundValue.unboundedRight
         return this.activeTransform.startTimelineTime!
     }
 
@@ -564,8 +562,6 @@ export class Grapher extends GrapherDefaults {
             return this.multiMetricTableMode
                 ? this.dataTableTransform.startTimelineTime
                 : this.timeDomain[1]
-        if (activeTab === "map")
-            return this.map.time ?? TimeBoundValue.unboundedRight
         return this.activeTransform.endTimelineTime!
     }
 
@@ -705,8 +701,8 @@ export class Grapher extends GrapherDefaults {
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     private chartMinPopulationFilter?: number = undefined
-    @action
-    revertDataTableSpecificState() {
+
+    @action.bound private revertDataTableSpecificState() {
         /** If the start year was autoselected in the DataTable, revert. */
         if (!this.userHasSetTimeline)
             this.timeDomain = [
