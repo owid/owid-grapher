@@ -34,13 +34,12 @@ export class ControlsRow extends React.Component<{
         const controls: JSX.Element[] = []
 
         if (grapher.tab === "chart") {
-            const yAxis = grapher.activeTransform.yAxis
-            // const yAxis =
-            //     (grapher.isStackedArea && grapher.stackedAreaTransform.yAxis) ||
-            //     (grapher.isStackedBar && grapher.stackedBarTransform.yAxis) ||
-            //     (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
-            //     ((grapher.isScatter || grapher.isTimeScatter) &&
-            //         grapher.scatterTransform.yAxis)
+            const yAxis =
+                (grapher.isStackedArea && grapher.stackedAreaTransform.yAxis) ||
+                (grapher.isStackedBar && grapher.stackedBarTransform.yAxis) ||
+                (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
+                ((grapher.isScatter || grapher.isTimeScatter) &&
+                    grapher.scatterTransform.yAxis)
 
             yAxis &&
                 yAxis.scaleTypeOptions.length > 1 &&
