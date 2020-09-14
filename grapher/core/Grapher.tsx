@@ -540,7 +540,7 @@ export class Grapher extends GrapherDefaults {
         if (activeTab === "table")
             return (
                 this.dataTableTransform.autoSelectedStartYear ??
-                this.timeDomain[0]
+                this.dataTableTransform.startTime
             )
         if (activeTab === "map") return this.mapTransform.targetTime
         return this.activeTransform.startTime!
@@ -566,7 +566,7 @@ export class Grapher extends GrapherDefaults {
         if (activeTab === "table")
             return this.multiMetricTableMode
                 ? this.dataTableTransform.startTime
-                : this.timeDomain[1]
+                : this.dataTableTransform.endTime
         if (activeTab === "map") return this.mapTransform.targetTime
         return this.activeTransform.endTime!
     }
