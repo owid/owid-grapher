@@ -11,7 +11,9 @@ interface ListChild {
 
 /** A UI component inspired by the "Priority+ Navbar" or "Progressively Collapsing Navbar"*/
 @observer
-export class CollapsibleList extends React.Component {
+export class CollapsibleList extends React.Component<{
+    rendo: React.ReactElement[]
+}> {
     private outerContainerRef: React.RefObject<
         HTMLDivElement
     > = React.createRef()
@@ -28,7 +30,7 @@ export class CollapsibleList extends React.Component {
         this.visibleItems = this.children
     }
 
-    @computed private get children(): ListChild[] {
+    private get children(): ListChild[] {
         return (
             React.Children.map(this.props.children, (child, i) => {
                 return {
@@ -82,6 +84,7 @@ export class CollapsibleList extends React.Component {
     }
 
     render() {
+        console.log("collapsible list rerendering")
         return (
             <div className="collapsibleList" ref={this.outerContainerRef}>
                 <ul>

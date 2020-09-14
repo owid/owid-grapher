@@ -13,6 +13,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { Grapher } from "grapher/core/Grapher"
 import { CollapsibleList } from "./CollapsibleList/CollapsibleList"
+import { ScaleSelector } from "./ScaleSelector"
 
 @observer
 export class ControlsRow extends React.Component<{
@@ -33,29 +34,47 @@ export class ControlsRow extends React.Component<{
         const controls: JSX.Element[] = []
 
         if (grapher.tab === "chart") {
-            grapher.canAddData &&
-                !grapher.hasFloatingAddButton &&
-                !grapher.hideEntityControls &&
+            const yAxis = grapher.activeTransform.yAxis
+            // const yAxis =
+            //     (grapher.isStackedArea && grapher.stackedAreaTransform.yAxis) ||
+            //     (grapher.isStackedBar && grapher.stackedBarTransform.yAxis) ||
+            //     (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
+            //     ((grapher.isScatter || grapher.isTimeScatter) &&
+            //         grapher.scatterTransform.yAxis)
+
+            yAxis &&
+                yAxis.scaleTypeOptions.length > 1 &&
                 controls.push(
-                    <button
-                        type="button"
-                        onClick={this.onDataSelect}
-                        key="grapher-select-entities"
-                        data-track-note="grapher-select-entities"
-                    >
-                        {grapher.isScatter || grapher.isSlopeChart ? (
-                            <span className="SelectEntitiesButton">
-                                <FontAwesomeIcon icon={faPencilAlt} />
-                                {`Select ${grapher.entityTypePlural}`}
-                            </span>
-                        ) : (
-                            <span>
-                                <FontAwesomeIcon icon={faPlus} />{" "}
-                                {grapher.addButtonLabel}
-                            </span>
-                        )}
-                    </button>
+                    <ScaleSelector
+                        key="scaleSelector"
+                        scaleTypeConfig={yAxis}
+                        inline={true}
+                    />
                 )
+
+            // grapher.canAddData &&
+            //     !grapher.hasFloatingAddButton &&
+            //     !grapher.hideEntityControls &&
+            //     controls.push(
+            //         <button
+            //             type="button"
+            //             onClick={this.onDataSelect}
+            //             key="grapher-select-entities"
+            //             data-track-note="grapher-select-entities"
+            //         >
+            //             {grapher.isScatter || grapher.isSlopeChart ? (
+            //                 <span className="SelectEntitiesButton">
+            //                     <FontAwesomeIcon icon={faPencilAlt} />
+            //                     {`Select ${grapher.entityTypePlural}`}
+            //                 </span>
+            //             ) : (
+            //                 <span>
+            //                     <FontAwesomeIcon icon={faPlus} />{" "}
+            //                     {grapher.addButtonLabel}
+            //                 </span>
+            //             )}
+            //         </button>
+            //     )
 
             grapher.canChangeEntity &&
                 !grapher.hideEntityControls &&
@@ -110,9 +129,12 @@ export class ControlsRow extends React.Component<{
     }
 
     render() {
-        return this.controlsToRender.length ? (
+        console.log("controlsrow rendering")
+        return this.grapher.isReady && this.controlsToRender.length ? (
             <div className="controlsRow">
-                <CollapsibleList>{this.controlsToRender}</CollapsibleList>
+                <CollapsibleList rendo={...this.controlsToRender}>
+                    {...this.controlsToRender}
+                </CollapsibleList>
             </div>
         ) : null
     }

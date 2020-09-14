@@ -132,22 +132,6 @@ export class VerticalAxisComponent extends React.Component<{
     verticalAxis: VerticalAxis
     isInteractive: boolean
 }> {
-    @computed get controls() {
-        const { bounds, verticalAxis } = this.props
-        const showControls =
-            this.props.isInteractive && verticalAxis.scaleTypeOptions.length > 1
-        if (!showControls) return undefined
-        return (
-            <ControlsOverlay id="vertical-scale-selector" paddingTop={18}>
-                <ScaleSelector
-                    x={bounds.left}
-                    y={bounds.top - 34}
-                    scaleTypeConfig={verticalAxis}
-                />
-            </ControlsOverlay>
-        )
-    }
-
     render() {
         const { bounds, verticalAxis } = this.props
         const { ticks, labelTextWrap } = verticalAxis
@@ -174,7 +158,6 @@ export class VerticalAxisComponent extends React.Component<{
                         {verticalAxis.formatTick(tick)}
                     </text>
                 ))}
-                {this.controls}
             </g>
         )
     }
