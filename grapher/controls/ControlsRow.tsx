@@ -93,16 +93,6 @@ export class ControlsRow extends React.Component<{
                 grapher.hasSelection &&
                 controls.push(<ZoomToggle key="ZoomToggle" grapher={grapher} />)
 
-            grapher.isScatter &&
-                grapher.highlightToggle &&
-                controls.push(
-                    <HighlightToggle
-                        key="highlight-toggle"
-                        grapher={grapher}
-                        highlightToggle={grapher.highlightToggle}
-                    />
-                )
-
             const absRelToggle =
                 (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
                 (grapher.isScatter &&
@@ -112,6 +102,16 @@ export class ControlsRow extends React.Component<{
             absRelToggle &&
                 controls.push(
                     <AbsRelToggle key="AbsRelToggle" grapher={grapher} />
+                )
+
+            grapher.isScatter &&
+                grapher.highlightToggle &&
+                controls.push(
+                    <HighlightToggle
+                        key="highlight-toggle"
+                        grapher={grapher}
+                        highlightToggle={grapher.highlightToggle}
+                    />
                 )
         }
 
