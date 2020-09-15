@@ -3,7 +3,6 @@ bakedSite
 datasetsExport
 dist
 package.json
-*.mock.json
 covidChartAndVariableMeta.json
 .storybook/build
 coverage

@@ -2,7 +2,6 @@
 
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "grapher/utils/TimeBounds"
-import { setupGrapher } from "grapher/test/utils"
 import {
     GrapherUrl,
     LegacyGrapherQueryParams,
@@ -10,6 +9,31 @@ import {
 } from "./GrapherUrl"
 import { Grapher } from "grapher/core/Grapher"
 import { ScaleType } from "./GrapherConstants"
+
+const getGrapher = () =>
+    new Grapher({
+        dimensions: [
+            {
+                variableId: 142609,
+                property: "y",
+            },
+        ],
+        owidDataset: {
+            variables: {
+                "142708": {
+                    years: [-1, 0, 1, 2],
+                    entities: [1, 2, 1, 2],
+                    values: [51, 52, 53, 54],
+                    id: 142708,
+                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+                },
+            },
+            entityKey: {
+                "1": { name: "United Kingdom", code: "GBR", id: 1 },
+                "2": { name: "Ireland", code: "IRL", id: 2 },
+            },
+        },
+    })
 
 function fromQueryParams(
     params: LegacyGrapherQueryParams,
@@ -314,7 +338,7 @@ describe(GrapherUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const grapher = setupGrapher(4066, [142708])
+                    const grapher = getGrapher()
                     grapher.populateFromQueryParams({ time: test.query })
                     const [start, end] = grapher.timeDomain
                     expect(start).toEqual(test.param[0])
@@ -322,7 +346,7 @@ describe(GrapherUrl, () => {
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
-                        const grapher = setupGrapher(4066, [142708])
+                        const grapher = getGrapher()
                         grapher.updateFromObject({
                             minTime: test.param[0],
                             maxTime: test.param[1],
@@ -414,7 +438,7 @@ describe(GrapherUrl, () => {
 
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
-                    const grapher = setupGrapher(4066, [142708])
+                    const grapher = getGrapher()
                     grapher.populateFromQueryParams(
                         legacyQueryParamsToCurrentQueryParams({
                             year: test.query,
@@ -424,7 +448,7 @@ describe(GrapherUrl, () => {
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {
-                        const grapher = setupGrapher(4066, [142708])
+                        const grapher = getGrapher()
                         grapher.updateFromObject({
                             map: { time: test.param },
                         })
