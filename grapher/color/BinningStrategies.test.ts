@@ -55,6 +55,16 @@ describe("BinningStrategies", () => {
                     })
                 ).toEqual([12, 52, 123, 234, 1244])
             })
+
+            it("handles when there are more bins than values", () => {
+                expect(
+                    getBinMaximums({
+                        binningStrategy: BinningStrategy.ckmeans,
+                        sortedValues: [1, 2],
+                        binCount: 5,
+                    })
+                ).toEqual([1, 2])
+            })
         })
 
         describe("quantiles strategy", () => {
