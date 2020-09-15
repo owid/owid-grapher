@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { ExploreModel } from "./ExploreModel"
-import { ChartType } from "grapher/core/GrapherConstants"
+import { ChartTypes } from "grapher/core/GrapherConstants"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 
 const store = new RootStore()
@@ -32,11 +32,11 @@ describe(ExploreModel, () => {
     describe("when you set an area type", () => {
         beforeAll(() => {
             model = new ExploreModel(store)
-            model.setChartType(ChartType.StackedArea)
+            model.setChartType(ChartTypes.StackedArea)
         })
 
         it("updates the chart type to area", () => {
-            expect(model.grapher.type).toBe(ChartType.StackedArea)
+            expect(model.grapher.type).toBe(ChartTypes.StackedArea)
         })
 
         it("has a chart tab", () => {
@@ -59,7 +59,7 @@ describe(ExploreModel, () => {
         })
 
         it("updates the chart type to line", () => {
-            expect(model.grapher.type).toBe(ChartType.LineChart)
+            expect(model.grapher.type).toBe(ChartTypes.LineChart)
         })
 
         it("has a map tab", () => {

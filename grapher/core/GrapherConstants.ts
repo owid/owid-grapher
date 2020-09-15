@@ -1,23 +1,14 @@
-import { keyBy } from "grapher/utils/Util" // todo: remove
-
-export type ChartTypeName =
-    | "LineChart"
-    | "ScatterPlot"
-    | "TimeScatter"
-    | "StackedArea"
-    | "DiscreteBar"
-    | "SlopeChart"
-    | "StackedBar"
-
-export class ChartType {
-    static LineChart: ChartTypeName = "LineChart"
-    static ScatterPlot: ChartTypeName = "ScatterPlot"
-    static TimeScatter: ChartTypeName = "TimeScatter"
-    static StackedArea: ChartTypeName = "StackedArea"
-    static DiscreteBar: ChartTypeName = "DiscreteBar"
-    static SlopeChart: ChartTypeName = "SlopeChart"
-    static StackedBar: ChartTypeName = "StackedBar"
+export enum ChartTypes {
+    LineChart = "LineChart",
+    ScatterPlot = "ScatterPlot",
+    TimeScatter = "TimeScatter",
+    StackedArea = "StackedArea",
+    DiscreteBar = "DiscreteBar",
+    SlopeChart = "SlopeChart",
+    StackedBar = "StackedBar",
 }
+
+export type ChartTypeName = keyof typeof ChartTypes
 
 export enum CookieKeys {
     isAdmin = "isAdmin",
@@ -99,37 +90,3 @@ export interface EntitySelection {
     index: number // Which dimension the entity is from
     color?: Color
 }
-
-export const ChartTypeDefs = [
-    {
-        key: ChartType.LineChart,
-        label: "Line Chart",
-    },
-    {
-        key: ChartType.ScatterPlot,
-        label: "Scatter Plot",
-    },
-    {
-        key: ChartType.TimeScatter,
-        label: "Time Scatter",
-    },
-    {
-        key: ChartType.StackedArea,
-        label: "Stacked Area",
-    },
-    {
-        key: ChartType.DiscreteBar,
-        label: "Discrete Bar",
-    },
-    {
-        key: ChartType.SlopeChart,
-        label: "Slope Chart",
-    },
-    {
-        key: ChartType.StackedBar,
-        label: "Stacked Bar",
-    },
-]
-
-// TODO make this a string enum in TypeScript 2.4
-export const ChartTypeDefsByKey = keyBy(ChartTypeDefs, (e) => e.key)

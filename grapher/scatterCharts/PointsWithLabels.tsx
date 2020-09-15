@@ -27,7 +27,10 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
-import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
+import {
+    NoDataOverlay,
+    NoDataOverlayOptionsProvider,
+} from "grapher/chart/NoDataOverlay"
 import { DualAxis } from "grapher/axis/Axis"
 import { Vector2 } from "grapher/utils/Vector2"
 import { Triangle } from "./Triangle"
@@ -60,21 +63,6 @@ export interface ScatterValue {
         y: number
         span?: [number, number]
     }
-}
-
-interface PointsWithLabelsProps {
-    data: ScatterSeries[]
-    hoverKeys: string[]
-    focusKeys: string[]
-    dualAxis: DualAxis
-    colorScale?: ColorScale
-    sizeDomain: [number, number]
-    onMouseOver: (series: ScatterSeries) => void
-    onMouseLeave: () => void
-    onClick: () => void
-    hideLines: boolean
-    formatLabel: (v: ScatterValue) => string
-    grapher: Grapher
 }
 
 interface ScatterRenderValue {
@@ -225,6 +213,21 @@ class ScatterBackgroundLine extends React.Component<{
             )
         }
     }
+}
+
+interface PointsWithLabelsProps {
+    data: ScatterSeries[]
+    hoverKeys: string[]
+    focusKeys: string[]
+    dualAxis: DualAxis
+    colorScale?: ColorScale
+    sizeDomain: [number, number]
+    onMouseOver: (series: ScatterSeries) => void
+    onMouseLeave: () => void
+    onClick: () => void
+    hideLines: boolean
+    formatLabel: (v: ScatterValue) => string
+    noDataOverlayOptionsProvider: NoDataOverlayOptionsProvider
 }
 
 @observer
@@ -896,7 +899,10 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         if (isEmpty(renderData))
             return (
-                <NoDataOverlay options={this.props.grapher} bounds={bounds} />
+                <NoDataOverlay
+                    options={this.props.noDataOverlayOptionsProvider}
+                    bounds={bounds}
+                />
             )
 
         return (

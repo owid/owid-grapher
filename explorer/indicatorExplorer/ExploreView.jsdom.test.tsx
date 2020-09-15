@@ -7,7 +7,7 @@ import xhrMock from "xhr-mock"
 import { ExploreView } from "./ExploreView"
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
-import { ChartType } from "grapher/core/GrapherConstants"
+import { ChartTypes } from "grapher/core/GrapherConstants"
 import { LineChart } from "grapher/lineCharts/LineChart"
 import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
 import { StackedBarChart } from "grapher/barCharts/StackedBarChart"
@@ -145,10 +145,10 @@ describe(ExploreView, () => {
         })
 
         const chartTypes = [
-            { key: ChartType.StackedArea, expectedView: StackedAreaChart },
-            { key: ChartType.StackedBar, expectedView: StackedBarChart },
-            { key: ChartType.DiscreteBar, expectedView: DiscreteBarChart },
-            { key: ChartType.SlopeChart, expectedView: SlopeChart },
+            { key: ChartTypes.StackedArea, expectedView: StackedAreaChart },
+            { key: ChartTypes.StackedBar, expectedView: StackedBarChart },
+            { key: ChartTypes.DiscreteBar, expectedView: DiscreteBarChart },
+            { key: ChartTypes.SlopeChart, expectedView: SlopeChart },
             { key: "WorldMap", expectedView: ChoroplethMap },
         ]
 

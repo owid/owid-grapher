@@ -5,7 +5,6 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
 import { guid, uniq, makeSafeForCSS } from "grapher/utils/Util"
-import { Grapher } from "grapher/core/Grapher"
 import { Bounds } from "grapher/utils/Bounds"
 import {
     VerticalAxisComponent,
@@ -19,8 +18,11 @@ import {
     VerticalColorLegend,
     ScatterColorLegendView,
 } from "grapher/scatterCharts/ScatterColorLegend"
-import { Tooltip } from "grapher/chart/Tooltip"
+import { Tooltip } from "grapher/tooltip/Tooltip"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { StackedBarTransform } from "./StackedBarTransform"
+import { OwidTable } from "owidTable/OwidTable"
 
 export interface StackedBarValue {
     x: number
@@ -103,10 +105,14 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     }
 }
 
+interface StackedBarChartOptionsProvider extends ChartOptionsProvider {
+    stackedBarTransform: StackedBarTransform
+}
+
 @observer
 export class StackedBarChart extends React.Component<{
     bounds: Bounds
-    grapher: Grapher
+    options: StackedBarChartOptionsProvider
 }> {
     base!: SVGGElement
     readonly minBarSpacing = 4
@@ -116,26 +122,26 @@ export class StackedBarChart extends React.Component<{
     // current hovered individual bar
     @observable hoverBar?: StackedBarValue
 
-    @computed get grapher() {
-        return this.props.grapher
+    @computed get options() {
+        return this.props.options
     }
     @computed get bounds(): Bounds {
         return this.props.bounds
     }
     @computed get transform() {
-        return this.props.grapher.stackedBarTransform
+        return this.props.options.stackedBarTransform
     }
 
     @computed get failMessage() {
-        return this.grapher.stackedBarTransform.failMessage
+        return this.options.stackedBarTransform.failMessage
     }
 
     @computed get tickFontSize() {
-        return 0.9 * this.props.grapher.baseFontSize
+        return 0.9 * this.props.options.baseFontSize
     }
 
     @computed get barValueFormat() {
-        return this.grapher.stackedBarTransform.barValueFormat
+        return this.options.stackedBarTransform.barValueFormat
     }
 
     @computed get barWidth() {
@@ -152,7 +158,7 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get barFontSize() {
-        return 0.75 * this.props.grapher.baseFontSize
+        return 0.75 * this.props.options.baseFontSize
     }
 
     // todo: Refactor
@@ -221,7 +227,7 @@ export class StackedBarChart extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.grapher.baseFontSize
+                return that.options.baseFontSize
             },
             get colorables() {
                 return that.transform.colorScale.legendData
@@ -263,7 +269,7 @@ export class StackedBarChart extends React.Component<{
 
         return (
             <Tooltip
-                tooltipContainer={this.props.grapher}
+                tooltipProvider={this.props.options}
                 x={xPos + barWidth}
                 y={yPos}
                 style={{ textAlign: "center" }}
@@ -292,7 +298,7 @@ export class StackedBarChart extends React.Component<{
                     in
                     <br />
                     <span>
-                        {this.grapher.table.timeColumnFormatFunction(
+                        {this.options.table.timeColumnFormatFunction(
                             hoverBar.x
                         )}
                     </span>
@@ -394,7 +400,7 @@ export class StackedBarChart extends React.Component<{
         if (this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.grapher}
+                    options={this.options}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />
@@ -442,7 +448,7 @@ export class StackedBarChart extends React.Component<{
                 <VerticalAxisComponent
                     bounds={bounds}
                     verticalAxis={yAxis}
-                    isInteractive={this.grapher.isInteractive}
+                    isInteractive={this.options.isInteractive}
                 />
                 <VerticalAxisGridLines
                     verticalAxis={yAxis}

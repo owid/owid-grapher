@@ -3,16 +3,7 @@ import { extend, trimObject } from "grapher/utils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import { Persistable } from "grapher/persistable/Persistable"
-
-// Represents the actual entered configuration state in the editor
-export interface AxisConfigInterface {
-    scaleType?: ScaleType
-    label?: string
-    min?: number
-    max?: number
-    canChangeScaleType?: true
-    removePointsOutsideDomain?: true
-}
+import { AxisConfigInterface } from "./AxisConfigInterface"
 
 // Todo: remove
 interface AxisContainerInterface {

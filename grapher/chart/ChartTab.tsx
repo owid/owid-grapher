@@ -1,18 +1,12 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { SlopeChart } from "grapher/slopeCharts/SlopeChart"
 import { Bounds } from "grapher/utils/Bounds"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherView } from "grapher/core/GrapherView"
-import { ScatterPlot } from "grapher/scatterCharts/ScatterPlot"
-import { LineChart } from "grapher/lineCharts/LineChart"
-import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
-import { DiscreteBarChart } from "grapher/barCharts/DiscreteBarChart"
-import { StackedBarChart } from "grapher/barCharts/StackedBarChart"
 import { ChartLayout, ChartLayoutView } from "./ChartLayout"
-import { TimeScatter } from "grapher/scatterCharts/TimeScatter"
 import { LoadingOverlay } from "grapher/loadingIndicator/LoadingOverlay"
+import { getChartComponent } from "./ChartTypeMap"
 
 @observer
 export class ChartTab extends React.Component<{
@@ -36,64 +30,28 @@ export class ChartTab extends React.Component<{
     }
 
     renderChart() {
-        const { grapher } = this.props
-        const bounds = this.layout.innerBounds
+        const options = this.props.grapher
+        const type = options.type
+        const innerBounds = this.layout.innerBounds
 
-        if (!grapher.isReady) {
-            return <LoadingOverlay bounds={bounds} />
-        } else if (grapher.isSlopeChart) {
-            return <SlopeChart bounds={bounds.padTop(20)} grapher={grapher} />
-        } else if (grapher.isScatter) {
-            return (
-                <ScatterPlot
-                    bounds={bounds.padTop(20).padBottom(15)}
-                    grapher={grapher}
-                />
-            )
-        } else if (grapher.isTimeScatter) {
-            return (
-                <TimeScatter
-                    bounds={bounds.padTop(20).padBottom(15)}
-                    grapher={grapher}
-                />
-            )
-        } else if (grapher.isLineChart) {
-            // Switch to bar chart if a single year is selected
-            return grapher.lineChartTransform.isSingleTime ? (
-                <DiscreteBarChart
-                    bounds={bounds.padTop(20).padBottom(15)}
-                    grapher={grapher}
-                />
-            ) : (
-                <LineChart
-                    bounds={bounds.padTop(20).padBottom(15)}
-                    grapher={grapher}
-                />
-            )
-        } else if (grapher.isStackedArea) {
-            return (
-                <StackedAreaChart
-                    bounds={bounds.padTop(20).padBottom(15)}
-                    grapher={grapher}
-                />
-            )
-        } else if (grapher.isDiscreteBar) {
-            return (
-                <DiscreteBarChart
-                    bounds={bounds.padTop(20).padBottom(15)}
-                    grapher={grapher}
-                />
-            )
-        } else if (grapher.isStackedBar) {
-            return (
-                <StackedBarChart
-                    bounds={bounds.padTop(20).padBottom(15)}
-                    grapher={grapher}
-                />
-            )
-        } else {
-            return null
-        }
+        if (!options.isReady) return <LoadingOverlay bounds={innerBounds} />
+
+        const bounds =
+            type === "SlopeChart"
+                ? innerBounds.padTop(20)
+                : innerBounds.padTop(20).padBottom(15)
+
+        // Switch to bar chart if a single year is selected
+        const chartTypeName =
+            type === "LineChart" && options.lineChartTransform.isSingleTime
+                ? "DiscreteBar"
+                : type
+
+        const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
+
+        return ChartType ? (
+            <ChartType bounds={bounds} options={options} />
+        ) : null
     }
 
     render() {

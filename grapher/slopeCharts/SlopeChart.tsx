@@ -3,30 +3,30 @@ import { intersection, without, uniq } from "grapher/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
-import { Grapher } from "grapher/core/Grapher"
 import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import {
     VerticalColorLegend,
     ScatterColorLegendView,
 } from "grapher/scatterCharts/ScatterColorLegend"
+import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 
 @observer
 export class SlopeChart extends React.Component<{
     bounds: Bounds
-    grapher: Grapher
+    options: SlopeChartOptionsProvider
 }> {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get grapher() {
-        return this.props.grapher
+    @computed get options() {
+        return this.props.options
     }
 
     @computed get transform() {
-        return this.props.grapher.slopeChartTransform
+        return this.props.options.slopeChartTransform
     }
 
     @computed.struct get bounds(): Bounds {
@@ -40,7 +40,7 @@ export class SlopeChart extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.grapher.baseFontSize
+                return that.options.baseFontSize
             },
             get colorables() {
                 return that.transform.colorScale.legendData
@@ -65,12 +65,12 @@ export class SlopeChart extends React.Component<{
     }
 
     @action.bound onSlopeClick() {
-        const { grapher, hoverKey } = this
-        if (grapher.addCountryMode === "disabled" || hoverKey === undefined) {
+        const { options, hoverKey } = this
+        if (options.addCountryMode === "disabled" || hoverKey === undefined) {
             return
         }
 
-        this.grapher.toggleKey(hoverKey)
+        this.options.toggleKey(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -83,8 +83,8 @@ export class SlopeChart extends React.Component<{
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { grapher, hoverColor } = this
-        if (grapher.addCountryMode === "disabled" || hoverColor === undefined)
+        const { options, hoverColor } = this
+        if (options.addCountryMode === "disabled" || hoverColor === undefined)
             return
 
         const { transform } = this
@@ -92,35 +92,35 @@ export class SlopeChart extends React.Component<{
             .filter((g) => g.color === hoverColor)
             .map((g) => g.entityDimensionKey)
         const allKeysActive =
-            intersection(keysToToggle, grapher.selectedKeys).length ===
+            intersection(keysToToggle, options.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            grapher.selectedKeys = without(
-                grapher.selectedKeys,
+            options.selectedKeys = without(
+                options.selectedKeys,
                 ...keysToToggle
             )
         else
-            grapher.selectedKeys = uniq(
-                grapher.selectedKeys.concat(keysToToggle)
+            options.selectedKeys = uniq(
+                options.selectedKeys.concat(keysToToggle)
             )
     }
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors(): string[] {
-        const { colorsInUse, transform, grapher } = this
+        const { colorsInUse, transform, options } = this
         return colorsInUse.filter((color) => {
             const matchingKeys = transform.data
                 .filter((g) => g.color === color)
                 .map((g) => g.entityDimensionKey)
             return (
-                intersection(matchingKeys, grapher.selectedKeys).length ===
+                intersection(matchingKeys, options.selectedKeys).length ===
                 matchingKeys.length
             )
         })
     }
 
     @computed get focusKeys(): string[] {
-        return this.grapher.selectedKeys
+        return this.options.selectedKeys
     }
 
     // All currently hovered group keys, combining the legend and the main UI
@@ -200,14 +200,13 @@ export class SlopeChart extends React.Component<{
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.grapher}
+                    options={this.options}
                     bounds={this.props.bounds}
                     message={this.transform.failMessage}
                 />
             )
 
-        const { bounds, grapher } = this.props
-        const { yAxis } = grapher
+        const { bounds, options } = this.props
         const { data } = this.transform
         const {
             legend,
@@ -223,13 +222,13 @@ export class SlopeChart extends React.Component<{
         return (
             <g>
                 <LabelledSlopes
-                    grapher={grapher}
+                    options={options}
                     bounds={innerBounds}
-                    isInteractive={grapher.isInteractive}
+                    isInteractive={options.isInteractive}
                     yTickFormat={this.transform.yTickFormat}
-                    yAxisOptions={yAxis}
+                    yAxisOptions={options.yAxis}
                     data={data}
-                    fontSize={grapher.baseFontSize}
+                    fontSize={options.baseFontSize}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}

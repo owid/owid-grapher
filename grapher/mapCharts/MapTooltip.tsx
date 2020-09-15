@@ -2,7 +2,7 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { ChoroplethDatum } from "./ChoroplethMap"
-import { Tooltip } from "grapher/chart/Tooltip"
+import { Tooltip } from "grapher/tooltip/Tooltip"
 import { takeWhile, last, first, isMobile } from "grapher/utils/Util"
 import {
     SparkBars,
@@ -119,7 +119,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             ((value: any) => value)
         return (
             <Tooltip
-                tooltipContainer={this.grapher}
+                tooltipProvider={this.grapher}
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}

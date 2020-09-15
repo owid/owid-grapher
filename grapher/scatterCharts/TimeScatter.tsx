@@ -4,7 +4,6 @@ import * as React from "react"
 import { observable, computed, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
-import { Grapher } from "grapher/core/Grapher"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "grapher/axis/Axis"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
@@ -23,7 +22,8 @@ import {
 } from "grapher/utils/Util"
 import { Vector2 } from "grapher/utils/Vector2"
 import { select } from "d3-selection"
-import { Tooltip } from "grapher/chart/Tooltip"
+import { Tooltip } from "grapher/tooltip/Tooltip"
+import { ScatterPlotOptionsProvider } from "./ScatterPlotOptionsProvider"
 
 interface ScatterSeries {
     color: string
@@ -56,7 +56,7 @@ interface PointsWithLabelsProps {
     yAxis: VerticalAxis
     sizeDomain: [number, number]
     hideLines: boolean
-    grapher: Grapher
+    options: TimeScatterChartOptionsProvider
 }
 
 interface ScatterRenderPoint {
@@ -111,7 +111,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed get transform() {
-        return this.props.grapher.scatterTransform
+        return this.props.options.scatterTransform
     }
 
     @computed get tooltip() {
@@ -120,7 +120,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const value = hoverPoint.value
 
-        const formatFunction = this.props.grapher.table.timeColumnFormatFunction
+        const formatFunction = this.props.options.table.timeColumnFormatFunction
 
         const year = value.time.span
             ? `${formatFunction(value.time.span[0])} to ${formatFunction(
@@ -130,7 +130,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         return (
             <Tooltip
-                tooltipContainer={this.props.grapher}
+                tooltipProvider={this.props.options}
                 x={hoverPoint.position.x + 5}
                 y={hoverPoint.position.y + 5}
                 style={{ textAlign: "center" }}
@@ -251,92 +251,6 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
     }
 
-    // @computed get startLabel(): ScatterLabel|undefined {
-    //     const { series, labelFontFamily, labelFontSize } = this
-    //     if (series.values.length === 1)
-    //         return undefined
-
-    //     const firstValue = series.values[0]
-    //     const nextValue = series.values[1]
-    //     const nextSegment = nextValue.position.subtract(firstValue.position)
-
-    //     const pos = firstValue.position.subtract(nextSegment.normalize().times(5))
-    //     let bounds = Bounds.forText(firstValue.time.y.toString(), { x: pos.x, y: pos.y, fontSize: labelFontSize, fontFamily: labelFontFamily })
-    //     if (pos.x < firstValue.position.x)
-    //         bounds = new Bounds(bounds.x - bounds.width + 2, bounds.y, bounds.width, bounds.height)
-    //     if (pos.y > firstValue.position.y)
-    //         bounds = new Bounds(bounds.x, bounds.y + bounds.height / 2, bounds.width, bounds.height)
-
-    //     return {
-    //         text: firstValue.time.y.toString(),
-    //         fontSize: labelFontSize,
-    //         bounds: bounds
-    //     }
-
-    // }
-
-    // // Make labels for the points between start and end on a series
-    // // Positioned using normals of the line segmen
-    // @computed get midLabels(): ScatterLabel[] {
-    //     const { labelFontFamily, labelFontSize, series } = this
-
-    //     return series.values.slice(1, -1).map((v, i) => {
-    //         const prevPos = i > 0 && series.values[i - 1].position
-    //         const prevSegment = prevPos && v.position.subtract(prevPos)
-    //         const nextPos = series.values[i + 1].position
-    //         const nextSegment = nextPos.subtract(v.position)
-
-    //         let pos = v.position
-    //         if (prevPos && prevSegment) {
-    //             const normals = prevSegment.add(nextSegment).normalize().normals().map(x => x.times(5))
-    //             const potentialSpots = normals.map(n => v.position.add(n))
-    //             pos = sortBy(potentialSpots, p => {
-    //                 return -(Vector2.distance(p, prevPos) + Vector2.distance(p, nextPos))
-    //             })[0]
-    //         } else {
-    //             pos = v.position.subtract(nextSegment.normalize().times(5))
-    //         }
-
-    //         let bounds = Bounds.forText(v.time.y.toString(), { x: pos.x, y: pos.y, fontSize: labelFontSize, fontFamily: labelFontFamily })
-    //         if (pos.x < v.position.x)
-    //             bounds = new Bounds(bounds.x - bounds.width + 2, bounds.y, bounds.width, bounds.height)
-    //         if (pos.y > v.position.y)
-    //             bounds = new Bounds(bounds.x, bounds.y + bounds.height / 2, bounds.width, bounds.height)
-
-    //         return {
-    //             text: v.time.y.toString(),
-    //             fontSize: labelFontSize,
-    //             bounds: bounds,
-    //             series: series
-    //         }
-    //     })
-    // }
-
-    // Make the end label (entity label) for a series. Will be pushed
-    // slightly out based on the direction of the series if multiple values
-    // are present
-    // This is also the one label in the case of a single point
-    // @computed get endLabel(): ScatterLabel {
-    //     const { series, labelFontSize, labelFontFamily, offsetVector } = this
-
-    //     const lastValue = last(this.allPoints) as ScatterRenderValue
-    //     const lastPos = lastValue.position
-    //     const labelPos = lastPos.add(offsetVector.normalize().times(series.values.length === 1 ? lastValue.size + 1 : 5))
-
-    //     let labelBounds = Bounds.forText(series.text, { x: labelPos.x, y: labelPos.y, fontSize: labelFontSize, fontFamily: labelFontFamily })
-
-    //     if (labelPos.x < lastPos.x)
-    //         labelBounds = labelBounds.extend({ x: labelBounds.x - labelBounds.width })
-    //     if (labelPos.y > lastPos.y)
-    //         labelBounds = labelBounds.extend({ y: labelBounds.y + labelBounds.height / 2 })
-
-    //     return {
-    //         text: lastValue.time.y.toString(),
-    //         fontSize: labelFontSize,
-    //         bounds: labelBounds
-    //     }
-    // }
-
     @computed get allLabels() {
         const { bounds } = this
         const labels = cloneDeep(this.labelCandidates)
@@ -432,22 +346,9 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return this.values
     }
 
-    renderBackgroundPoints() {
-        // const { backgroundPoints, isLayerMode, isConnected, hideLines } = this
-        // return hideLines ? [] : backgroundPoints.map(group => <ScatterBackgroundLine key={group.key} group={group} isLayerMode={isLayerMode} isConnected={isConnected}/>)
-    }
+    renderBackgroundPoints() {}
 
-    renderBackgroundLabels() {
-        // const { backgroundPoints } = this
-        // return <g className="backgroundLabels" fill={"#333"}>
-        //     {this.allLabels.map(l =>
-        //             !l.isHidden && <text key={}
-        //                 x={l.bounds.x.toFixed(2)}
-        //                 y={(l.bounds.y + l.bounds.height).toFixed(2)}
-        //                 fontSize={l.fontSize.toFixed(2)}
-        //             >{l.text}</text>
-        //         )
-    }
+    renderBackgroundLabels() {}
 
     @computed get renderUid() {
         return guid()
@@ -537,7 +438,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         if (isEmpty(this.props.data) || isEmpty(this.series.points))
             return (
-                <NoDataOverlay options={this.props.grapher} bounds={bounds} />
+                <NoDataOverlay options={this.props.options} bounds={bounds} />
             )
 
         return (
@@ -577,17 +478,21 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 }
 
+interface TimeScatterChartOptionsProvider extends ScatterPlotOptionsProvider {
+    foo?: string
+}
+
 @observer
 export class TimeScatter extends React.Component<{
     bounds: Bounds
-    grapher: Grapher
+    options: TimeScatterChartOptionsProvider
 }> {
-    @computed get grapher(): Grapher {
-        return this.props.grapher
+    @computed get options() {
+        return this.props.options
     }
 
     @computed get transform() {
-        return this.grapher.scatterTransform
+        return this.options.scatterTransform
     }
 
     @computed.struct get bounds(): Bounds {
@@ -605,30 +510,30 @@ export class TimeScatter extends React.Component<{
     }
 
     @computed get comparisonLines() {
-        return this.grapher.comparisonLines
+        return this.options.comparisonLines
     }
 
     @computed get hideLines(): boolean {
-        return !!this.grapher.hideConnectedScatterLines
+        return !!this.options.hideConnectedScatterLines
     }
 
     render() {
         if (this.transform.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.grapher}
+                    options={this.options}
                     bounds={this.bounds}
                     message={this.transform.failMessage}
                 />
             )
 
-        const { transform, dualAxis, comparisonLines, grapher } = this
+        const { transform, dualAxis, comparisonLines, options } = this
         const { currentData, sizeDomain } = transform
 
         return (
             <g>
                 <DualAxisComponent
-                    isInteractive={grapher.isInteractive}
+                    isInteractive={options.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={false}
                 />
@@ -641,7 +546,7 @@ export class TimeScatter extends React.Component<{
                         />
                     ))}
                 <PointsWithLabels
-                    grapher={this.grapher}
+                    options={this.options}
                     hideLines={this.hideLines}
                     data={currentData}
                     bounds={dualAxis.innerBounds}

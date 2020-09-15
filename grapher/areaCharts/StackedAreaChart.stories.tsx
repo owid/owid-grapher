@@ -16,7 +16,7 @@ export const Default = () => {
 
     return (
         <svg width={640} height={480}>
-            <StackedAreaChart grapher={grapher} bounds={bounds} />
+            <StackedAreaChart options={grapher} bounds={bounds} />
         </svg>
     )
 }

@@ -15,7 +15,7 @@ export const Default = () => {
 
     return (
         <svg width={640} height={480}>
-            <LineChart grapher={grapher} />
+            <LineChart options={grapher} />
         </svg>
     )
 }

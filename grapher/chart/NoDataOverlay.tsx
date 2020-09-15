@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 
-interface NoDataOverlayOptions {
+export interface NoDataOverlayOptionsProvider {
     canChangeEntity: boolean
     canAddData: boolean
     isSelectingData: boolean
@@ -19,7 +19,7 @@ interface NoDataOverlayOptions {
 export class NoDataOverlay extends React.Component<{
     bounds: Bounds
     message?: string
-    options: NoDataOverlayOptions
+    options: NoDataOverlayOptionsProvider
 }> {
     @action.bound private onDataSelect() {
         this.props.options.isSelectingData = true

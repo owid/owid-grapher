@@ -9,7 +9,7 @@ import {
     EntitySelection,
     Time,
 } from "./GrapherConstants"
-import { AxisConfigInterface } from "grapher/axis/AxisConfig"
+import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { TimeBound } from "grapher/utils/TimeBounds"
 import { ChartDimensionInterface } from "grapher/chart/ChartDimension"

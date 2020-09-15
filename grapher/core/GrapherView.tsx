@@ -27,7 +27,7 @@ import {
     GrapherViewContext,
     GrapherViewContextInterface,
 } from "grapher/core/GrapherViewContext"
-import { TooltipView } from "grapher/chart/Tooltip"
+import { TooltipView } from "grapher/tooltip/Tooltip"
 import { FullStory } from "grapher/core/FullStory"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
@@ -273,7 +273,8 @@ export class GrapherView extends React.Component<GrapherViewProps> {
                     grapherView={this}
                 />
             )
-        else if (grapher.primaryTab === "map")
+
+        if (grapher.primaryTab === "map")
             return (
                 <MapTab
                     bounds={tabBounds}
@@ -281,9 +282,11 @@ export class GrapherView extends React.Component<GrapherViewProps> {
                     grapherView={this}
                 />
             )
-        else if (grapher.primaryTab === "table")
+
+        if (grapher.primaryTab === "table")
             return <TableTab bounds={tabBounds} grapher={grapher} />
-        else return undefined
+
+        return undefined
     }
 
     private renderOverlayTab(bounds: Bounds): JSX.Element | undefined {
@@ -323,7 +326,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
                 <TooltipView
                     width={this.renderWidth}
                     height={this.renderHeight}
-                    tooltipContainer={this.grapher}
+                    tooltipProvider={this.grapher}
                 />
                 {grapher.isSelectingData && (
                     <EntitySelectorModal

@@ -3,7 +3,8 @@ import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
 import { Grapher } from "grapher/core/Grapher"
 import { computed } from "mobx"
-import { ChartTypeMap, ChartTypeName } from "grapher/chart/ChartTypes"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { getChartComponent } from "grapher/chart/ChartTypeMap"
 
 interface FacetChartProps {
     width: number
@@ -14,6 +15,9 @@ interface FacetChartProps {
     grapher: Grapher
 }
 
+// Facet by columnSlug. If the columnSlug is entityName than will do one chart per country. If it is an array of column slugs, then will do
+// one chart per slug with series broken out.
+
 @observer
 export class FacetChart extends React.Component<FacetChartProps> {
     @computed get smallCharts() {
@@ -22,10 +26,10 @@ export class FacetChart extends React.Component<FacetChartProps> {
             this.props.number || 1,
             this.props.padding
         )
-        const ChartType = ChartTypeMap[chartTypeName] as any
+        const ChartType = getChartComponent(chartTypeName) as any // todo: how to type this?
 
         return charts.map((bounds: Bounds, index: number) => (
-            <ChartType key={index} bounds={bounds} grapher={grapher} />
+            <ChartType key={index} bounds={bounds} options={grapher} />
         ))
     }
 

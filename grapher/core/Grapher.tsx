@@ -33,7 +33,7 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation,
 } from "grapher/utils/Util"
 import {
-    ChartType,
+    ChartTypes,
     GrapherTabOption,
     Color,
     TickFormattingOptions,
@@ -73,7 +73,7 @@ import { SlopeChartTransform } from "grapher/slopeCharts/SlopeChartTransform"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
 import { IChartTransform } from "grapher/chart/ChartTransform"
-import { TooltipProps } from "grapher/chart/Tooltip"
+import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
@@ -982,25 +982,25 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed get isLineChart() {
-        return this.type === ChartType.LineChart
+        return this.type === ChartTypes.LineChart
     }
     @computed get isScatter() {
-        return this.type === ChartType.ScatterPlot
+        return this.type === ChartTypes.ScatterPlot
     }
     @computed get isTimeScatter() {
-        return this.type === ChartType.TimeScatter
+        return this.type === ChartTypes.TimeScatter
     }
     @computed get isStackedArea() {
-        return this.type === ChartType.StackedArea
+        return this.type === ChartTypes.StackedArea
     }
     @computed get isSlopeChart() {
-        return this.type === ChartType.SlopeChart
+        return this.type === ChartTypes.SlopeChart
     }
     @computed get isDiscreteBar() {
-        return this.type === ChartType.DiscreteBar
+        return this.type === ChartTypes.DiscreteBar
     }
     @computed get isStackedBar() {
-        return this.type === ChartType.StackedBar
+        return this.type === ChartTypes.StackedBar
     }
 
     // WARNING: ALL OF THESE WILL BE REMOVED!!!! DO NOT USE
@@ -1394,10 +1394,8 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     // todo: remove
     toggleKey(key: EntityDimensionKey) {
-        if (this.selectedKeys.includes(key)) {
+        if (this.selectedKeys.includes(key))
             this.selectedKeys = this.selectedKeys.filter((k) => k !== key)
-        } else {
-            this.selectedKeys = this.selectedKeys.concat([key])
-        }
+        else this.selectedKeys = this.selectedKeys.concat([key])
     }
 }

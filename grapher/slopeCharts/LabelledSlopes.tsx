@@ -35,7 +35,7 @@ import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { AxisConfig } from "grapher/axis/AxisConfig"
-import { Grapher } from "grapher/core/Grapher"
+import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 
 export interface SlopeChartValue {
     x: number
@@ -281,7 +281,7 @@ class Slope extends React.Component<SlopeProps> {
 }
 
 interface LabelledSlopesProps {
-    grapher: Grapher
+    options: SlopeChartOptionsProvider
     bounds: Bounds
     data: SlopeChartSeries[]
     isInteractive: boolean
@@ -708,7 +708,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
         if (isEmpty(slopeData))
             return (
-                <NoDataOverlay options={this.props.grapher} bounds={bounds} />
+                <NoDataOverlay options={this.props.options} bounds={bounds} />
             )
 
         const { x1, x2 } = slopeData[0]

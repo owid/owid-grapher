@@ -26,7 +26,7 @@ import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
 import { ChartList, ChartListItem } from "./ChartList"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
-import { ChartType, EPOCH_DATE } from "grapher/core/GrapherConstants"
+import { ChartTypes, EPOCH_DATE } from "grapher/core/GrapherConstants"
 import { Tag } from "./TagBadge"
 import { VariableList, VariableListItem } from "./VariableList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -128,7 +128,7 @@ class VariableEditRow extends React.Component<{
             } else {
                 grapher.addCountryMode = "add-country"
                 if (grapher.filledDimensions[0].timesUniq.length === 1) {
-                    grapher.type = ChartType.DiscreteBar
+                    grapher.type = ChartTypes.DiscreteBar
                     grapher.selectedKeys =
                         grapher.availableKeys.length > 15
                             ? lodash.sampleSize(grapher.availableKeys, 8)

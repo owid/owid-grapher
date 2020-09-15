@@ -7,7 +7,7 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { Grapher } from "grapher/core/Grapher"
 import { Bounds } from "grapher/utils/Bounds"
 import { getRelativeMouse } from "grapher/utils/Util"
-import { Tooltip } from "./Tooltip"
+import { Tooltip } from "../tooltip/Tooltip"
 
 interface SourcesFooterProps {
     grapher: Grapher
@@ -287,7 +287,7 @@ export class SourcesFooterHTML extends React.Component<{
                 {!footer.isCompact && license}
                 {tooltipTarget && (
                     <Tooltip
-                        tooltipContainer={this.props.grapher}
+                        tooltipProvider={this.props.grapher}
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}
                         style={{

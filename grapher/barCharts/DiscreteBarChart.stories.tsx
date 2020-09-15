@@ -16,7 +16,7 @@ export const Default = () => {
 
     return (
         <svg width={640} height={480}>
-            <DiscreteBarChart grapher={grapher} bounds={bounds} />
+            <DiscreteBarChart options={grapher} bounds={bounds} />
         </svg>
     )
 }

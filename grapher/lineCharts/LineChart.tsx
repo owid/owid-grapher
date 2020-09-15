@@ -22,11 +22,12 @@ import {
     ComparisonLine,
     ComparisonLineConfig,
 } from "grapher/scatterCharts/ComparisonLine"
-import { Tooltip, TooltipProps } from "grapher/chart/Tooltip"
+import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { LineChartTransform } from "./LineChartTransform"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 
 export interface LineChartValue {
     x: number
@@ -247,24 +248,14 @@ class Lines extends React.Component<LinesProps> {
     }
 }
 
-interface LineChartOptions {
+interface LineChartOptionsProvider extends ChartOptionsProvider {
     lineChartTransform: LineChartTransform
-    hideLegend?: boolean
-    baseFontSize: number
-    showAddEntityControls: boolean
-    comparisonLines: ComparisonLineConfig[]
-    isSelectingData: boolean
-    canAddData: boolean
-    entityType: string
-    canChangeEntity: boolean
-    areMarksClickable: boolean
-    tooltip?: TooltipProps
 }
 
 @observer
 export class LineChart extends React.Component<{
     bounds: Bounds
-    grapher: LineChartOptions
+    options: LineChartOptionsProvider
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -279,7 +270,7 @@ export class LineChart extends React.Component<{
     }
 
     @computed private get options() {
-        return this.props.grapher
+        return this.props.options
     }
 
     @computed get bounds() {
@@ -328,7 +319,7 @@ export class LineChart extends React.Component<{
 
         return (
             <Tooltip
-                tooltipContainer={this.options}
+                tooltipProvider={this.options}
                 x={dualAxis.xAxis.place(hoverX)}
                 y={dualAxis.yAxis.rangeMin + dualAxis.yAxis.rangeSize / 2}
                 style={{ padding: "0.3em" }}

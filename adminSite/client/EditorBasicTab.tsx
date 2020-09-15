@@ -2,8 +2,8 @@ import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 
-import { sample, sampleSize } from "grapher/utils/Util"
-import { ChartTypeDefs, ChartTypeName } from "grapher/core/GrapherConstants"
+import { sample, sampleSize, startCase } from "grapher/utils/Util"
+import { ChartTypeName, ChartTypes } from "grapher/core/GrapherConstants"
 
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
@@ -208,6 +208,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
         const { grapher } = editor
+        const chartTypes = Object.keys(ChartTypes)
 
         return (
             <div className="EditorBasicTab">
@@ -215,8 +216,8 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                     <SelectField
                         value={grapher.type}
                         onValue={this.onChartTypeChange}
-                        options={ChartTypeDefs.map((def) => def.key)}
-                        optionLabels={ChartTypeDefs.map((def) => def.label)}
+                        options={chartTypes}
+                        optionLabels={chartTypes.map((key) => startCase(key))}
                     />
                     {editor.features.explorer && (
                         <FieldsRow>

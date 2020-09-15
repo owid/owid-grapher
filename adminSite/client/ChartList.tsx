@@ -10,7 +10,8 @@ import { bind } from "decko"
 import { EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { BAKED_GRAPHER_URL } from "settings"
-import { ChartTypeDefsByKey } from "grapher/core/GrapherConstants"
+import { ChartTypeName, ChartTypes } from "grapher/core/GrapherConstants"
+import { startCase } from "grapher/utils/Util"
 
 export interface ChartListItem {
     id: number
@@ -23,7 +24,7 @@ export interface ChartListItem {
     isStarred: boolean
     variantName: string
     internalNotes: string
-    type: string
+    type: ChartTypeName
     lastEditedAt: string
     lastEditedBy: string
     publishedAt: string
@@ -32,8 +33,9 @@ export interface ChartListItem {
 }
 
 function showChartType(chart: ChartListItem) {
-    const chartTypeDefs = ChartTypeDefsByKey[chart.type]
-    const displayType = (chartTypeDefs && chartTypeDefs.label) || "Unknown"
+    const displayType = ChartTypes[chart.type]
+        ? startCase(ChartTypes[chart.type])
+        : "Unknown"
 
     if (chart.tab === "map") {
         if (chart.hasChartTab) return `Map + ${displayType}`

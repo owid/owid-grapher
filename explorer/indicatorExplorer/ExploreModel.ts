@@ -1,6 +1,5 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
-
-import { ChartType, ChartTypeName } from "grapher/core/GrapherConstants"
+import { ChartTypes, ChartTypeName } from "grapher/core/GrapherConstants"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
@@ -27,7 +26,7 @@ function grapherConfigFromIndicator(
 
 export class ExploreModel {
     static WorldMap: ExplorerChartType = "WorldMap"
-    static defaultChartType: ExplorerChartType = ChartType.LineChart
+    static defaultChartType: ExplorerChartType = ChartTypes.LineChart
 
     // This is different from the chart's concept of chart type because it includes "WorldMap" as
     // an option, and doesn't include certain chart types we don't support right now, such as
@@ -100,7 +99,7 @@ export class ExploreModel {
     // chart (arbitrarily) to be a line chart, and set the tab to map.
     @computed get configChartType(): ChartTypeName {
         return this.isMap
-            ? ChartType.LineChart
+            ? ChartTypes.LineChart
             : (this.chartType as ChartTypeName)
     }
 

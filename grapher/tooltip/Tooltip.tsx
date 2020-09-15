@@ -2,20 +2,21 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
+import { TooltipProps, TooltipProvider } from "./TooltipProps"
 
 @observer
 export class TooltipView extends React.Component<{
-    tooltipContainer: TooltipContainer
+    tooltipProvider: TooltipProvider
     width: number
     height: number
 }> {
     @computed private get rendered() {
         const { bounds } = this
-        const tooltipContainer = this.props.tooltipContainer
+        const tooltipProvider = this.props.tooltipProvider
 
-        if (!tooltipContainer.tooltip) return null
+        if (!tooltipProvider.tooltip) return null
 
-        const tooltip = tooltipContainer.tooltip
+        const tooltip = tooltipProvider.tooltip
 
         const offsetX = tooltip.offsetX ?? 0
         let offsetY = tooltip.offsetY ?? 0
@@ -81,22 +82,6 @@ export class TooltipView extends React.Component<{
     }
 }
 
-// We can't pass the property directly because we need it to be observable.
-interface TooltipContainer {
-    tooltip?: TooltipProps
-}
-
-export interface TooltipProps {
-    x: number
-    y: number
-    offsetX?: number
-    offsetY?: number
-    offsetYDirection?: "upward" | "downward"
-    style?: React.CSSProperties
-    children?: React.ReactNode
-    tooltipContainer: TooltipContainer
-}
-
 @observer
 export class Tooltip extends React.Component<TooltipProps> {
     componentDidMount() {
@@ -104,11 +89,11 @@ export class Tooltip extends React.Component<TooltipProps> {
     }
 
     @action.bound private connectTooltipToContainer() {
-        this.props.tooltipContainer.tooltip = this.props
+        this.props.tooltipProvider.tooltip = this.props
     }
 
     @action.bound private removeToolTipFromContainer() {
-        this.props.tooltipContainer.tooltip = undefined
+        this.props.tooltipProvider.tooltip = undefined
     }
 
     componentDidUpdate() {

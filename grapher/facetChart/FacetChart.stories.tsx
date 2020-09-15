@@ -41,3 +41,39 @@ export const Default = (args: any) => {
         />
     )
 }
+
+export const OneChartPerMetric = (args: any) => {
+    const chartType: ChartTypeName = args.chartTypeName
+    const grapher = chartType.includes("Scatter")
+        ? basicScatterGrapher()
+        : basicGdpGrapher()
+
+    return (
+        <FacetChart
+            number={args.number}
+            chartTypeName={chartType}
+            grapher={grapher}
+            width={args.width}
+            height={args.height}
+            padding={args.padding}
+        />
+    )
+}
+
+export const OneChartPerCountry = (args: any) => {
+    const chartType: ChartTypeName = args.chartTypeName
+    const grapher = chartType.includes("Scatter")
+        ? basicScatterGrapher()
+        : basicGdpGrapher()
+
+    return (
+        <FacetChart
+            number={args.number}
+            chartTypeName={chartType}
+            grapher={grapher}
+            width={args.width}
+            height={args.height}
+            padding={args.padding}
+        />
+    )
+}
