@@ -3,7 +3,7 @@
 import * as React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
 import { observe } from "mobx"
-
+import xhrMock from "xhr-mock"
 import { ExploreView } from "./ExploreView"
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
@@ -16,29 +16,55 @@ import { SlopeChart } from "grapher/slopeCharts/SlopeChart"
 import { ChoroplethMap } from "grapher/mapCharts/ChoroplethMap"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel } from "explorer/indicatorExplorer/ExploreModel"
-
-import * as apiMock from "explorer/indicatorExplorer/apiMock"
+import {
+    mockIndicator,
+    mockIndicators,
+    initXhrMock,
+} from "explorer/indicatorExplorer/apiMock"
 
 const bounds = new Bounds(0, 0, 800, 600)
-const indicator = apiMock.readIndicators().indicators[0]
-
-function getStore() {
-    return new RootStore()
-}
 
 function getDefaultModel() {
-    const model = new ExploreModel(getStore())
-    model.setIndicatorId(indicator.id)
+    const model = new ExploreModel(new RootStore())
+    model.setIndicatorId(mockIndicator.id)
     return model
 }
 
-function getEmptyModel() {
-    return new ExploreModel(getStore())
+const getEmptyModel = () => new ExploreModel(new RootStore())
+
+const mockVariable = {
+    variables: {
+        "104402": {
+            years: [1950, 1950, 2005, 2005, 2019, 2019],
+            entities: [15, 207, 15, 207, 15, 207],
+            values: [224.45, 333.68, 295.59, 246.12, 215.59, 226.12],
+            id: 104402,
+            name: "Child mortality 1950-2017 (IHME, 2017)",
+            unit: "",
+            description:
+                "Child mortality is the share of newborns who die before reaching the age of five. ",
+            datasetId: "4123",
+            display: {
+                name: "Child mortality",
+                unit: "%",
+                shortUnit: "%",
+                conversionFactor: 0.1,
+            },
+            datasetName: "Child mortality, 1950-2017 (IHME, 2017)",
+        },
+    },
+    entityKey: {
+        "15": { name: "Afghanistan", code: "AFG", id: 15 },
+        "207": { name: "Iceland", code: "ISL", id: 207 },
+    },
 }
 
 function mockDataResponse() {
-    apiMock.mockIndicators()
-    apiMock.mockVariable(104402)
+    mockIndicators()
+
+    xhrMock.get(new RegExp(`\/grapher\/data\/variables\/104402\.json`), {
+        body: JSON.stringify(mockVariable),
+    })
 }
 
 async function whenReady(grapherView: GrapherView): Promise<void> {
@@ -64,8 +90,8 @@ describe(ExploreView, () => {
         expect(view.find(GrapherView)).toHaveLength(1)
     })
 
-    describe("when you render with diferent model params", () => {
-        apiMock.init()
+    describe("when you render with different model params", () => {
+        initXhrMock()
         beforeAll(() => mockDataResponse())
 
         async function renderWithModel(model: ExploreModel) {
@@ -100,7 +126,7 @@ describe(ExploreView, () => {
     })
 
     describe("chart types", () => {
-        apiMock.init()
+        initXhrMock()
         beforeAll(() => mockDataResponse())
 
         it("displays chart types", () => {
@@ -154,7 +180,7 @@ describe(ExploreView, () => {
     })
 
     describe("indicator switching", () => {
-        apiMock.init()
+        initXhrMock()
         beforeAll(() => mockDataResponse())
 
         it("loads an empty chart with no indicator", () => {
@@ -170,7 +196,7 @@ describe(ExploreView, () => {
             )
             await updateViewWhenReady(view)
             expect(view.find(GrapherView)).toHaveLength(1)
-            expect(view.find(".chart h1").text()).toContain(indicator.title)
+            expect(view.find(".chart h1").text()).toContain(mockIndicator.title)
         })
 
         it("loads the indicator when the indicatorId is changed", async () => {
@@ -178,10 +204,10 @@ describe(ExploreView, () => {
             const view = mount(<ExploreView bounds={bounds} model={model} />)
             expect(view.find(GrapherView)).toHaveLength(1)
 
-            model.setIndicatorId(indicator.id)
+            model.setIndicatorId(mockIndicator.id)
             await updateViewWhenReady(view)
             expect(view.find(".chart h1")).toHaveLength(1)
-            expect(view.find(".chart h1").text()).toContain(indicator.title)
+            expect(view.find(".chart h1").text()).toContain(mockIndicator.title)
         })
 
         it("shows the loaded indicator in the dropdown", async () => {
@@ -190,7 +216,7 @@ describe(ExploreView, () => {
             )
             await updateViewWhenReady(view)
             expect(view.find(".indicator-dropdown").first().text()).toContain(
-                indicator.title
+                mockIndicator.title
             )
         })
     })

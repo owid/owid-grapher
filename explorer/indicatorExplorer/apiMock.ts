@@ -1,30 +1,45 @@
 import xhrMock from "xhr-mock"
-import * as fs from "fs-extra"
 import { Indicator } from "explorer/indicatorExplorer/Indicator"
 
-export function mockIndicators() {
-    const pattern = /\/explore\/indicators\.json/
-    xhrMock.get(pattern, {
-        body: fs.readFileSync(__dirname + `/indicators.mock.json`),
+export const mockIndicator = {
+    id: 677,
+    title: "Child mortality rate",
+    subtitle: "The share of newborns who die before reaching the age of five.",
+    sourceDesc: "IHME, Global Burden of Disease",
+    note:
+        "The child mortality rate expresses the probability of a child born in a specific year or period dying before reaching the age of 5 years, if subject to age-specific mortality rates of that period. This is given as the share of live births.",
+    dimensions: [
+        {
+            display: {},
+            property: "y",
+            variableId: 104402,
+        },
+    ],
+    map: {
+        projection: "World",
+        targetYear: 2017,
+        variableId: 104402,
+        equalSizeBins: true,
+        timeTolerance: 5,
+        baseColorScheme: "YlGnBu",
+        isManualBuckets: true,
+        colorSchemeLabels: ["", "", "", "", "", "", ""],
+        colorSchemeValues: [0.5, 1, 2.5, 5, 10, 15],
+        legendDescription: "Child mortality rate (per 1,000 live births)",
+        customNumericColors: [],
+        customCategoryColors: {},
+        customCategoryLabels: {},
+        customHiddenCategories: {},
+    },
+} as Indicator
+
+export const mockIndicators = () => {
+    xhrMock.get(/\/explore\/indicators\.json/, {
+        body: JSON.stringify({ indicators: [mockIndicator] }),
     })
 }
 
-export function mockVariable(id: number | string) {
-    const pattern = new RegExp(`\/grapher\/data\/variables\/${id}\.json`)
-    xhrMock.get(pattern, {
-        body: fs.readFileSync(
-            __dirname + "/../../grapher/test/" + `variable-${id}.mock.json`
-        ),
-    })
-}
-
-export function init() {
+export function initXhrMock() {
     beforeAll(() => xhrMock.setup())
     afterAll(() => xhrMock.teardown())
-}
-
-export function readIndicators(): { indicators: Indicator[] } {
-    return JSON.parse(
-        fs.readFileSync(__dirname + "/indicators.mock.json", "utf8")
-    )
 }

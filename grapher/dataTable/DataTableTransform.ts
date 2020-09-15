@@ -1,9 +1,8 @@
 import { computed } from "mobx"
-
 import {
-    valuesByEntityAtYears,
+    valuesByEntityAtTimes,
     es6mapValues,
-    valuesByEntityWithinYears,
+    valuesByEntityWithinTimes,
     getStartEndValues,
     intersection,
     flatten,
@@ -13,7 +12,7 @@ import {
 } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { ChartDimension } from "grapher/chart/ChartDimension"
-import { TickFormattingOptions } from "grapher/core/GrapherConstants"
+import { TickFormattingOptions, Time } from "grapher/core/GrapherConstants"
 import {
     getTimeWithinTimeRange,
     isUnboundedLeft,
@@ -21,16 +20,10 @@ import {
 } from "grapher/utils/TimeBounds"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 
-// Target year modes
-
-export enum TargetYearMode {
+export enum TargetTimeMode {
     point = "point",
     range = "range",
 }
-
-type TargetYears = [number] | [number, number]
-
-// Dimensions
 
 interface Dimension {
     dimension: ChartDimension
@@ -40,20 +33,17 @@ interface Dimension {
 
 interface DimensionColumn {
     key: SingleValueKey | RangeValueKey
-    targetYear?: number
-    targetYearMode?: TargetYearMode
+    targetTime?: Time
+    targetTimeMode?: TargetTimeMode
 }
-
-// Data value types
 
 export interface Value {
     value?: string | number
     formattedValue?: string
-    year?: number
+    time?: Time
 }
 
 // range (two point values)
-
 export enum RangeValueKey {
     start = "start",
     end = "end",
@@ -68,7 +58,6 @@ export function isRangeValue(value: DimensionValue): value is RangeValue {
 }
 
 // single point values
-
 export enum SingleValueKey {
     single = "single",
 }
@@ -80,13 +69,10 @@ export function isSingleValue(value: DimensionValue): value is SingleValue {
 }
 
 // combined types
-
 export type DimensionValue = SingleValue | RangeValue
-
 export type ColumnKey = SingleValueKey | RangeValueKey
 
 // Data table types
-
 interface Sortable {
     sortable: boolean
 }
@@ -96,21 +82,17 @@ export interface DataTableDimension extends Sortable {
     name: string
     unit?: string
     columns: DataTableColumn[]
-    formatYear: (num: number, options?: { format?: string }) => string
+    formatTime: (num: Time, options?: { format?: string }) => string
 }
 
 export type DataTableColumn = DimensionColumn & Sortable
-
 export interface DataTableRow {
     entity: string
     dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
 }
 
 // Utilities
-
-function getHeaderUnit(unit: string) {
-    return unit !== "%" ? unit : "percent"
-}
+const getHeaderUnit = (unit: string) => (unit !== "%" ? unit : "percent")
 
 export class DataTableTransform extends ChartTransform {
     grapher: Grapher
@@ -127,15 +109,15 @@ export class DataTableTransform extends ChartTransform {
     private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE: number = 0.5
 
     /**
-     * If the user or the editor hasn't specified a start, auto-select a start year
+     * If the user or the editor hasn't specified a start, auto-select a start time
      *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
      */
-    @computed get autoSelectedStartYear(): number | undefined {
-        let autoSelectedStartYear: number | undefined = undefined
+    @computed get autoSelectedStartTime(): number | undefined {
+        let autoSelectedStartTime: number | undefined = undefined
 
         if (
             this.grapher.userHasSetTimeline ||
-            this.initialTimelineStartYearSpecified ||
+            this.initialTimelineStartTimeSpecified ||
             !this.loadedWithData
         )
             return undefined
@@ -143,14 +125,14 @@ export class DataTableTransform extends ChartTransform {
         const numEntitiesInTable = this.entities.length
 
         this.dimensions.forEach((dim) => {
-            const numberOfEntitiesWithDataSortedByYear = sortBy(
+            const numberOfEntitiesWithDataSortedByTime = sortBy(
                 Object.entries(countBy(dim.times)),
                 (value) => parseInt(value[0])
             )
 
-            const firstYearWithSufficientData = numberOfEntitiesWithDataSortedByYear.find(
-                (year) => {
-                    const numEntitiesWithData = year[1]
+            const firstTimeWithSufficientData = numberOfEntitiesWithDataSortedByTime.find(
+                (time) => {
+                    const numEntitiesWithData = time[1]
                     const percentEntitiesWithData =
                         numEntitiesWithData / numEntitiesInTable
                     return (
@@ -160,14 +142,14 @@ export class DataTableTransform extends ChartTransform {
                 }
             )?.[0]
 
-            if (firstYearWithSufficientData) {
-                autoSelectedStartYear = parseInt(firstYearWithSufficientData)
+            if (firstTimeWithSufficientData) {
+                autoSelectedStartTime = parseInt(firstTimeWithSufficientData)
                 return false
             }
             return true
         })
 
-        return autoSelectedStartYear
+        return autoSelectedStartTime
     }
 
     @computed get availableTimes() {
@@ -187,41 +169,33 @@ export class DataTableTransform extends ChartTransform {
     }
 
     // TODO move this logic to chart
-    @computed get targetYearMode(): TargetYearMode {
-        const { currentTab } = this.grapher
-        if (currentTab === "chart") {
-            if (this.grapher.multiMetricTableMode) return TargetYearMode.point
-            if (
-                (this.grapher.isLineChart &&
-                    !this.grapher.lineChartTransform.isSingleTime) ||
-                this.grapher.isStackedArea ||
-                this.grapher.isStackedBar
-            ) {
-                return TargetYearMode.range
-            }
-            if (
-                this.grapher.isScatter &&
-                !this.grapher.scatterTransform.compareEndPointsOnly
-            ) {
-                return TargetYearMode.range
-            }
-        }
-        return TargetYearMode.point
+    @computed get targetTimeMode(): TargetTimeMode {
+        const { grapher } = this
+        if (
+            (grapher.isLineChart && !grapher.lineChartTransform.isSingleTime) ||
+            grapher.isStackedArea ||
+            grapher.isStackedBar ||
+            (grapher.isScatter &&
+                !grapher.scatterTransform.compareEndPointsOnly)
+        )
+            return TargetTimeMode.range
+
+        return TargetTimeMode.point
     }
 
-    @computed get initialTimelineStartYearSpecified(): boolean {
+    @computed get initialTimelineStartTimeSpecified(): boolean {
         const initialMinTime = this.grapher.configOnLoad.minTime
         if (initialMinTime) return !isUnboundedLeft(initialMinTime)
         return false
     }
 
-    @computed get targetYears(): TargetYears {
+    @computed get targetTimes(): [Time] | [Time, Time] {
         // legacy support for Exemplars Explorer project
         const grapher = this.grapher
         if (grapher.currentTab === "map")
             return [
                 getTimeWithinTimeRange(
-                    [grapher.minYear, grapher.maxYear],
+                    [grapher.startTime, grapher.endTime],
                     grapher.map.time ?? TimeBoundValue.unboundedRight
                 ),
             ]
@@ -246,44 +220,44 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get dimensionsWithValues(): Dimension[] {
-        return this.dimensions.map((dim) => {
-            const targetYears =
-                // If a targetYear override is specified on the dimension (scatter plots
-                // can do this) then use that target year and ignore the timeline.
-                dim.targetYear !== undefined && this.grapher.isScatter
-                    ? [dim.targetYear]
-                    : this.targetYears
+        return this.dimensions.map((dimension) => {
+            const targetTimes =
+                // If a targetTime override is specified on the dimension (scatter plots
+                // can do this) then use that target time and ignore the timeline.
+                dimension.targetTime !== undefined && this.grapher.isScatter
+                    ? [dimension.targetTime]
+                    : this.targetTimes
 
-            const targetYearMode =
-                targetYears.length < 2
-                    ? TargetYearMode.point
-                    : this.targetYearMode
+            const targetTimeMode =
+                targetTimes.length < 2
+                    ? TargetTimeMode.point
+                    : this.targetTimeMode
 
-            const valuesByEntity =
-                targetYearMode === TargetYearMode.range
+            const prelimValuesByEntity =
+                targetTimeMode === TargetTimeMode.range
                     ? // In the "range" mode, we receive all data values within the range. But we
                       // only want to plot the start & end values in the table.
                       // getStartEndValues() extracts these two values.
                       es6mapValues(
-                          valuesByEntityWithinYears(
-                              dim.valueByEntityAndTime,
-                              targetYears
+                          valuesByEntityWithinTimes(
+                              dimension.valueByEntityAndTime,
+                              targetTimes
                           ),
                           getStartEndValues
                       )
-                    : valuesByEntityAtYears(
-                          dim.valueByEntityAndTime,
-                          targetYears,
-                          dim.tolerance
+                    : valuesByEntityAtTimes(
+                          dimension.valueByEntityAndTime,
+                          targetTimes,
+                          dimension.tolerance
                       )
 
-            const isRange = targetYears.length === 2
+            const isRange = targetTimes.length === 2
 
             // Inject delta columns if we have start & end values to compare in the table.
             // One column for absolute difference, another for % difference.
             const deltaColumns: DimensionColumn[] = []
             if (isRange) {
-                const { tableDisplay } = dim.display
+                const { tableDisplay } = dimension.display
                 if (!tableDisplay?.hideAbsoluteChange)
                     deltaColumns.push({ key: RangeValueKey.delta })
                 if (!tableDisplay?.hideRelativeChange)
@@ -291,19 +265,19 @@ export class DataTableTransform extends ChartTransform {
             }
 
             const columns: DimensionColumn[] = [
-                ...targetYears.map((targetYear, index) => ({
+                ...targetTimes.map((targetTime, index) => ({
                     key: isRange
                         ? index === 0
                             ? RangeValueKey.start
                             : RangeValueKey.end
                         : SingleValueKey.single,
-                    targetYear,
-                    targetYearMode,
+                    targetTime,
+                    targetTimeMode,
                 })),
                 ...deltaColumns,
             ]
 
-            const finalValueByEntity = es6mapValues(valuesByEntity, (dvs) => {
+            const valueByEntity = es6mapValues(prelimValuesByEntity, (dvs) => {
                 // There is always a column, but not always a data value (in the delta column the
                 // value needs to be calculated)
                 if (isRange) {
@@ -311,11 +285,17 @@ export class DataTableTransform extends ChartTransform {
                     const result: RangeValue = {
                         start: {
                             ...start,
-                            formattedValue: this.formatValue(dim, start?.value),
+                            formattedValue: this.formatValue(
+                                dimension,
+                                start?.value
+                            ),
                         },
                         end: {
                             ...end,
-                            formattedValue: this.formatValue(dim, end?.value),
+                            formattedValue: this.formatValue(
+                                dimension,
+                                end?.value
+                            ),
                         },
                         delta: undefined,
                         deltaRatio: undefined,
@@ -333,13 +313,17 @@ export class DataTableTransform extends ChartTransform {
 
                         result.delta = {
                             value: deltaValue,
-                            formattedValue: this.formatValue(dim, deltaValue, {
-                                showPlus: true,
-                                unit:
-                                    dim.shortUnit === "%"
-                                        ? "pp"
-                                        : dim.shortUnit,
-                            }),
+                            formattedValue: this.formatValue(
+                                dimension,
+                                deltaValue,
+                                {
+                                    showPlus: true,
+                                    unit:
+                                        dimension.shortUnit === "%"
+                                            ? "pp"
+                                            : dimension.shortUnit,
+                                }
+                            ),
                         }
 
                         result.deltaRatio = {
@@ -348,7 +332,7 @@ export class DataTableTransform extends ChartTransform {
                                 isFinite(deltaRatioValue) &&
                                 !isNaN(deltaRatioValue)
                                     ? this.formatValue(
-                                          dim,
+                                          dimension,
                                           deltaRatioValue * 100,
                                           {
                                               unit: "%",
@@ -361,25 +345,24 @@ export class DataTableTransform extends ChartTransform {
                     }
                     return result
                 } else {
-                    // if single year
+                    // if single time
                     const dv = dvs[0]
                     const result: SingleValue = {
                         single: { ...dv },
                     }
-                    if (dv !== undefined) {
+                    if (dv !== undefined)
                         result.single!.formattedValue = this.formatValue(
-                            dim,
+                            dimension,
                             dv.value
                         )
-                    }
                     return result
                 }
             })
 
             return {
-                dimension: dim,
-                columns: columns,
-                valueByEntity: finalValueByEntity,
+                dimension,
+                columns,
+                valueByEntity,
             }
         })
     }
@@ -398,7 +381,7 @@ export class DataTableTransform extends ChartTransform {
                 // is not sortable.
                 sortable: true,
             })),
-            formatYear: d.dimension.formatTimeFn,
+            formatTime: d.dimension.formatTimeFn,
         }))
     }
 

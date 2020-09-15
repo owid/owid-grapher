@@ -3,9 +3,11 @@
 import { observe } from "mobx"
 
 import { RootStore, IndicatorStore } from "explorer/indicatorExplorer/Store"
-import * as apiMock from "explorer/indicatorExplorer/apiMock"
-
-const indicator = apiMock.readIndicators().indicators[0]
+import {
+    mockIndicator,
+    initXhrMock,
+    mockIndicators,
+} from "explorer/indicatorExplorer/apiMock"
 
 function createIndicatorStore() {
     return new IndicatorStore()
@@ -18,23 +20,23 @@ function createRootStore() {
 describe(IndicatorStore, () => {
     let store: IndicatorStore
 
-    apiMock.init()
+    initXhrMock()
 
     describe("get()", () => {
-        beforeEach(() => apiMock.mockIndicators())
+        beforeEach(() => mockIndicators())
         beforeEach(() => (store = createIndicatorStore()))
 
         it("returns a placeholder value", () => {
-            expect(store.get(indicator.id))
+            expect(store.get(mockIndicator.id))
         })
 
         it("updates placeholder value with indicator", (done) => {
-            const entry = store.get(indicator.id)
+            const entry = store.get(mockIndicator.id)
             const dispose = observe(entry, "entity", () => {
                 expect(entry.isLoading).toBe(false)
                 expect(entry.lastRetrieved).toBeDefined()
                 expect(entry.error).toBeUndefined()
-                expect(entry.entity).toEqual(indicator)
+                expect(entry.entity).toEqual(mockIndicator)
                 dispose()
                 done()
             })
@@ -54,7 +56,7 @@ describe(IndicatorStore, () => {
     })
 
     describe("search()", () => {
-        beforeEach(() => apiMock.mockIndicators())
+        beforeEach(() => mockIndicators())
         beforeEach(() => (store = createIndicatorStore()))
 
         it("returns all indicators for no query", async () => {
@@ -65,7 +67,7 @@ describe(IndicatorStore, () => {
         it("returns found indicators for matching query", async () => {
             const results = await store.search({ query: "child" })
             expect(results).toHaveLength(1)
-            expect(results).toContain(store.get(indicator.id))
+            expect(results).toContain(store.get(mockIndicator.id))
         })
 
         it("returns no indicators for non-matching query", async () => {

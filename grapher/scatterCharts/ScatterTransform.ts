@@ -35,7 +35,7 @@ import {
     Time,
 } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
-import { EntityName, Year } from "owidTable/OwidTableConstants"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -82,7 +82,7 @@ export class ScatterTransform extends ChartTransform {
         else if (isEmpty(this.possibleEntityNames))
             return "No entities with data for both X and Y"
         else if (isEmpty(this.possibleDataTimes))
-            return "No years with data for both X and Y"
+            return "No times with data for both X and Y"
         else if (isEmpty(this.currentData))
             return (
                 "No matching data" +
@@ -106,19 +106,19 @@ export class ScatterTransform extends ChartTransform {
     // todo: remove this. Should be done as a simple column transform at the data level.
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
-    @computed get xOverrideYear() {
-        return this.xDimension && this.xDimension.targetYear
+    @computed get xOverrideTime() {
+        return this.xDimension && this.xDimension.targetTime
     }
 
-    set xOverrideYear(value: number | undefined) {
-        this.xDimension!.targetYear = value
+    set xOverrideTime(value: number | undefined) {
+        this.xDimension!.targetTime = value
     }
 
     @computed get canToggleRelativeMode() {
         return (
             this.hasTimeline &&
             !this.grapher.hideRelativeToggle &&
-            this.xOverrideYear === undefined
+            this.xOverrideTime === undefined
         )
     }
 
@@ -169,32 +169,20 @@ export class ScatterTransform extends ChartTransform {
         return entityNames
     }
 
-    // The years for which there MAY be data on the scatterplot
-    // Not all of these will necessarily end up on the timeline, because there may be no x/y entity overlap for that year
+    // The times for which there MAY be data on the scatterplot
+    // Not all of these will necessarily end up on the timeline, because there may be no x/y entity overlap for that time
     // e.g. https://ourworldindata.org/grapher/life-expectancy-years-vs-real-gdp-per-capita-2011us
     @computed private get possibleDataTimes(): Time[] {
-        const yDimensionYears = this.yDimension ? this.yDimension.timesUniq : []
-        const xDimensionYears = this.xDimension ? this.xDimension.timesUniq : []
+        const yDimensionTimes = this.yDimension ? this.yDimension.timesUniq : []
+        const xDimensionTimes = this.xDimension ? this.xDimension.timesUniq : []
 
-        if (this.xOverrideYear !== undefined) return yDimensionYears
-        else return intersection(yDimensionYears, xDimensionYears)
+        if (this.xOverrideTime !== undefined) return yDimensionTimes
+        else return intersection(yDimensionTimes, xDimensionTimes)
     }
 
-    // The years for which we intend to calculate output data
-    @computed private get yearsToCalculate(): Time[] {
+    // The times for which we intend to calculate output data
+    @computed private get timesToCalculate(): Time[] {
         return this.possibleDataTimes
-
-        // XXX: Causes issues here https://ourworldindata.org/grapher/fish-consumption-vs-gdp-per-capita
-        /*if (!this.chart.props.hideTimeline) {
-            return this.possibleDataYears
-        } else {
-            // If there's no timeline, we only need to calculate data for the displayed range
-            const minPossibleYear = this.possibleDataYears[0]
-            const maxPossibleYear = this.possibleDataYears[this.possibleDataYears.length-1]
-            const startYear = defaultTo(this.chart.timeDomain[0], minPossibleYear)
-            const endYear = defaultTo(this.chart.timeDomain[1], maxPossibleYear)
-            return this.possibleDataYears.filter(y => y >= startYear && y <= endYear)
-        }*/
     }
 
     @computed get compareEndPointsOnly() {
@@ -209,27 +197,27 @@ export class ScatterTransform extends ChartTransform {
     // todo: add unit tests for this thing
     // Precompute the data transformation for every timeline year (so later animation is fast)
     // If there's no timeline, this uses the same structure but only computes for a single year
-    private getDataByEntityAndYear(
+    private getDataByEntityAndTime(
         entitiesToShow = this.getEntityNamesToShow()
-    ): Map<EntityName, Map<Year, ScatterValue>> {
+    ): Map<EntityName, Map<Time, ScatterValue>> {
         const { filledDimensions } = this.grapher
         const validEntityLookup = keyBy(entitiesToShow)
 
-        const dataByEntityAndYear = new Map<
+        const dataByEntityAndTime = new Map<
             EntityName,
-            Map<Year, ScatterValue>
+            Map<Time, ScatterValue>
         >()
 
         for (const dimension of filledDimensions) {
             // First, we organize the data by entity
             const initialDataByEntity = new Map<
                 EntityName,
-                { years: Year[]; values: (string | number)[] }
+                { times: Time[]; values: (string | number)[] }
             >()
             const rows = dimension.column.rowsWithValue
             dimension.values.forEach((value, index) => {
                 const row = rows[index]
-                const year = row.year ?? row.day
+                const time = row.year ?? row.day
                 const entityName = row.entityName
 
                 if (!validEntityLookup[entityName]) return
@@ -242,35 +230,35 @@ export class ScatterTransform extends ChartTransform {
 
                 let byEntity = initialDataByEntity.get(entityName)
                 if (!byEntity) {
-                    byEntity = { years: [], values: [] }
+                    byEntity = { times: [], values: [] }
                     initialDataByEntity.set(entityName, byEntity)
                 }
 
-                byEntity.years.push(year)
+                byEntity.times.push(time)
                 byEntity.values.push(value)
             })
 
             this._useTolerance(
                 dimension,
-                dataByEntityAndYear,
+                dataByEntityAndTime,
                 initialDataByEntity
             )
         }
 
-        this._removeUnwantedPoints(dataByEntityAndYear)
+        this._removeUnwantedPoints(dataByEntityAndTime)
 
-        return dataByEntityAndYear
+        return dataByEntityAndTime
     }
 
     private _useTolerance(
         dimension: ChartDimension,
-        dataByEntityAndYear: Map<EntityName, Map<Year, ScatterValue>>,
+        dataByEntityAndTime: Map<EntityName, Map<Time, ScatterValue>>,
         initialDataByEntity: Map<
             EntityName,
-            { years: Year[]; values: (string | number)[] }
+            { times: Time[]; values: (string | number)[] }
         >
     ) {
-        const { yearsToCalculate, xOverrideYear } = this
+        const { timesToCalculate, xOverrideTime } = this
         const tolerance =
             dimension.property === "size" ? Infinity : dimension.tolerance
 
@@ -278,19 +266,19 @@ export class ScatterTransform extends ChartTransform {
         // matching data year within tolerance
         // NOTE: this code assumes years is sorted asc!!!
         initialDataByEntity.forEach((byEntity, entityName) => {
-            let dataByYear = dataByEntityAndYear.get(entityName)
+            let dataByYear = dataByEntityAndTime.get(entityName)
             if (dataByYear === undefined) {
-                dataByYear = new Map<Year, ScatterValue>()
-                dataByEntityAndYear.set(entityName, dataByYear)
+                dataByYear = new Map<Time, ScatterValue>()
+                dataByEntityAndTime.set(entityName, dataByYear)
             }
 
-            for (const outputYear of yearsToCalculate) {
+            for (const outputYear of timesToCalculate) {
                 const targetYear =
-                    xOverrideYear !== undefined && dimension.property === "x"
-                        ? xOverrideYear
+                    xOverrideTime !== undefined && dimension.property === "x"
+                        ? xOverrideTime
                         : outputYear
-                const i = sortedFindClosestIndex(byEntity.years, targetYear)
-                const year = byEntity.years[i]
+                const i = sortedFindClosestIndex(byEntity.times, targetYear)
+                const year = byEntity.times[i]
 
                 // Skip years that aren't within tolerance of the target
                 if (
@@ -319,7 +307,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     private _removeUnwantedPoints(
-        dataByEntityAndYear: Map<EntityName, Map<Year, ScatterValue>>
+        dataByEntityAndTime: Map<EntityName, Map<Time, ScatterValue>>
     ) {
         // The exclusion of points happens as a last step in order to avoid artefacts due to
         // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
@@ -327,25 +315,25 @@ export class ScatterTransform extends ChartTransform {
         // values being joined.
         // -@danielgavrilov, 2020-04-29
         const { yAxis, xAxis } = this.grapher
-        dataByEntityAndYear.forEach((dataByYear) => {
-            dataByYear.forEach((point, year) => {
+        dataByEntityAndTime.forEach((dataByTime) => {
+            dataByTime.forEach((point, time) => {
                 // Exclude any points with data for only one axis
                 if (!has(point, "x") || !has(point, "y"))
-                    dataByYear.delete(year)
+                    dataByTime.delete(time)
                 // Exclude points that go beyond min/max of X axis
                 else if (xAxis.shouldRemovePoint(point.x))
-                    dataByYear.delete(year)
+                    dataByTime.delete(time)
                 // Exclude points that go beyond min/max of Y axis
                 else if (yAxis.shouldRemovePoint(point.y))
-                    dataByYear.delete(year)
+                    dataByTime.delete(time)
             })
         })
     }
 
     @computed get allPoints() {
         const allPoints: ScatterValue[] = []
-        this.getDataByEntityAndYear().forEach((dataByYear) => {
-            dataByYear.forEach((point) => {
+        this.getDataByEntityAndTime().forEach((dataByTime) => {
+            dataByTime.forEach((point) => {
                 allPoints.push(point)
             })
         })
@@ -464,8 +452,8 @@ export class ScatterTransform extends ChartTransform {
 
     @computed private get xAxisLabelBase() {
         const xDimName = this.xDimension && this.xDimension.displayName
-        if (this.xOverrideYear !== undefined)
-            return `${xDimName} in ${this.xOverrideYear}`
+        if (this.xOverrideTime !== undefined)
+            return `${xDimName} in ${this.xOverrideTime}`
         return xDimName
     }
 
@@ -522,12 +510,12 @@ export class ScatterTransform extends ChartTransform {
     // todo: add unit tests
     private _filterValues(
         values: ScatterValue[],
-        startYear: Year,
-        endYear: Year,
+        startTime: Time,
+        endTime: Time,
         yScaleType: ScaleType,
         xScaleType: ScaleType,
         isRelativeMode: boolean,
-        xOverrideYear?: Year
+        xOverrideTime?: Time
     ) {
         // Only allow tolerance data to occur once in any given chart (no duplicate data points)
         // Prioritize the start and end years first, then the "true" year
@@ -537,19 +525,19 @@ export class ScatterTransform extends ChartTransform {
             groupBy(values, (v) => v.time.y),
             (vals: ScatterValue[]) =>
                 minBy(vals, (v) =>
-                    v.year === startYear || v.year === endYear
+                    v.year === startTime || v.year === endTime
                         ? -Infinity
                         : Math.abs(v.year - v.time.y)
                 ) as ScatterValue
         )
 
-        if (xOverrideYear === undefined) {
+        if (xOverrideTime === undefined) {
             // NOTE: since groupBy() creates an object, the values may be reordered
             values = map(
                 groupBy(values, (v) => v.time.x),
                 (vals: ScatterValue[]) =>
                     minBy(vals, (v) =>
-                        v.year === startYear || v.year === endYear
+                        v.year === startTime || v.year === endTime
                             ? -Infinity
                             : Math.abs(v.year - v.time.x)
                     ) as ScatterValue
@@ -581,13 +569,13 @@ export class ScatterTransform extends ChartTransform {
             xScaleType,
             yScaleType,
             compareEndPointsOnly,
-            xOverrideYear,
+            xOverrideTime,
         } = this
         const { keyColors, isRelativeMode } = grapher
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"
-        this.getDataByEntityAndYear().forEach((dataByYear, entityName) => {
+        this.getDataByEntityAndTime().forEach((dataByTime, entityName) => {
             // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
             const entityDimensionKey = grapher.makeEntityDimensionKey(
                 entityName,
@@ -602,7 +590,7 @@ export class ScatterTransform extends ChartTransform {
                 values: [],
             } as ScatterSeries
 
-            dataByYear.forEach((point, year) => {
+            dataByTime.forEach((point, year) => {
                 if (year < startTimelineTime || year > endTimelineTime) return
                 group.values.push(point)
             })
@@ -639,7 +627,7 @@ export class ScatterTransform extends ChartTransform {
                 yScaleType,
                 xScaleType,
                 isRelativeMode,
-                xOverrideYear
+                xOverrideTime
             )
         })
 

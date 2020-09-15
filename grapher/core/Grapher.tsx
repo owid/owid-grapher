@@ -541,10 +541,10 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         const activeTab = this.tab
         if (activeTab === "table")
             return (
-                this.dataTableTransform.autoSelectedStartYear ??
+                this.dataTableTransform.autoSelectedStartTime ??
                 this.timeDomain[0]
             )
-        else if (activeTab === "map") return this.mapTransform.startTimelineTime
+        else if (activeTab === "map") return this.mapTransform.startTimelineTime // todo: always use endTimelineTime for maps?
         return this.activeTransform.startTimelineTime!
     }
 
@@ -861,28 +861,14 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed private get timeTitleSuffix() {
-        const { minYear, maxYear } = this
         if (!this.table.timeColumn) return "" // Do not show year until data is loaded
+        const { startTime, endTime } = this
         const fn = this.table.timeColumn.formatValue
-        const timeFrom = fn(minYear)
-        const timeTo = fn(maxYear)
+        const timeFrom = fn(startTime)
+        const timeTo = fn(endTime)
         const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
 
         return ", " + time
-    }
-
-    @computed get maxYear(): number {
-        if (this.currentTab === "table")
-            return this.dataTableTransform.endTimelineTime
-        else if (this.primaryTab === "map")
-            return this.mapTransform.endTimelineTime
-        else if (this.isScatter && !this.scatterTransform.failMessage)
-            return this.scatterTransform.endTimelineTime
-        else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.endTimelineTime
-        else if (this.isSlopeChart)
-            return this.slopeChartTransform.endTimelineTime
-        else return this.lineChartTransform.endTimelineTime
     }
 
     @computed get isSingleEntity(): boolean {
@@ -909,35 +895,20 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.primaryDimensions.length === 1
     }
 
-    // XXX refactor into the transforms
-    @computed get minYear(): number {
-        if (this.currentTab === "table")
-            return this.dataTableTransform.startTimelineTime
-        else if (this.primaryTab === "map")
-            return this.mapTransform.endTimelineTime
-        else if (this.isScatter && !this.scatterTransform.failMessage)
-            return this.scatterTransform.startTimelineTime
-        else if (this.isDiscreteBar && !this.discreteBarTransform.failMessage)
-            return this.discreteBarTransform.endTimelineTime
-        else if (this.isSlopeChart)
-            return this.slopeChartTransform.startTimelineTime
-        else return this.lineChartTransform.startTimelineTime
-    }
-
-    @computed get sourcesLine(): string {
+    @computed get sourcesLine() {
         return this.sourceDesc !== undefined
             ? this.sourceDesc
             : this.defaultSourcesLine
     }
 
-    @computed get canAddData(): boolean {
+    @computed get canAddData() {
         return (
             this.addCountryMode === "add-country" &&
             this.availableKeys.length > 1
         )
     }
 
-    @computed get canChangeEntity(): boolean {
+    @computed get canChangeEntity() {
         return (
             !this.isScatter &&
             this.addCountryMode === "change-country" &&
@@ -945,7 +916,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         )
     }
 
-    @computed get sourcesWithDimension(): SourceWithDimension[] {
+    @computed get sourcesWithDimension() {
         const { filledDimensions } = this
 
         const sources: SourceWithDimension[] = []
@@ -961,7 +932,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return sources
     }
 
-    @computed private get defaultSourcesLine(): string {
+    @computed private get defaultSourcesLine() {
         let sourceNames = this.sourcesWithDimension.map(
             (source) => source.source?.name || ""
         )
@@ -987,7 +958,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         )
     }
 
-    @computed private get defaultTitle(): string {
+    @computed private get defaultTitle() {
         const { primaryDimensions } = this
         if (this.isScatter)
             return this.axisDimensions.map((d) => d.displayName).join(" vs. ")
@@ -1002,7 +973,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         else return primaryDimensions.map((d) => d.displayName).join(", ")
     }
 
-    @computed get displayTitle(): string {
+    @computed get displayTitle() {
         return this.title ?? this.defaultTitle
     }
 
@@ -1086,7 +1057,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         else throw new Error("No transform found")
     }
 
-    @computed get idealBounds(): Bounds {
+    @computed get idealBounds() {
         return this.isMediaCard
             ? new Bounds(0, 0, 1200, 630)
             : new Bounds(0, 0, 850, 600)
@@ -1096,19 +1067,17 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.dimensions.some((d) => d.property === "y")
     }
 
-    @computed get staticSVG(): string {
-        const svg = ReactDOMServer.renderToStaticMarkup(
+    @computed get staticSVG() {
+        return ReactDOMServer.renderToStaticMarkup(
             <GrapherView
                 grapher={this}
                 isExport={true}
                 bounds={this.idealBounds}
             />
         )
-
-        return svg
     }
 
-    @computed get cacheTag(): string {
+    @computed get cacheTag() {
         return this.version.toString()
     }
 
