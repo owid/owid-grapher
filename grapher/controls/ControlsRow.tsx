@@ -21,16 +21,16 @@ export class ControlsRow extends React.Component<{
 }> {
     static readonly height = 45
 
-    @action.bound onDataSelect() {
+    @action.bound private onDataSelect() {
         this.grapher.isSelectingData = true
     }
 
-    @computed get grapher() {
+    @computed private get grapher() {
         return this.props.grapher
     }
 
-    @computed get controlsToRender() {
-        const grapher = this.grapher
+    @computed private get controlsToRender() {
+        const { grapher } = this
         const controls: JSX.Element[] = []
 
         if (grapher.tab === "chart") {
