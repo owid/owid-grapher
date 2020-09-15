@@ -90,6 +90,10 @@ export class ControlsRow extends React.Component<{
                 )
 
             grapher.isScatter &&
+                grapher.hasSelection &&
+                controls.push(<ZoomToggle key="ZoomToggle" grapher={grapher} />)
+
+            grapher.isScatter &&
                 grapher.highlightToggle &&
                 controls.push(
                     <HighlightToggle
@@ -109,10 +113,6 @@ export class ControlsRow extends React.Component<{
                 controls.push(
                     <AbsRelToggle key="AbsRelToggle" grapher={grapher} />
                 )
-
-            grapher.isScatter &&
-                grapher.hasSelection &&
-                controls.push(<ZoomToggle key="ZoomToggle" grapher={grapher} />)
         }
 
         grapher.isScatter &&
