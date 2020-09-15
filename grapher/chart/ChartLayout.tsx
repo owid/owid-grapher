@@ -109,6 +109,21 @@ export class ChartLayout {
         )
     }
 
+    // TEMP: will be removed when ControlsRow is rendered by individual charts
+    @computed private get hasControlsRow() {
+        const { grapher } = this.props
+        return (
+            (grapher.currentTab === "chart" ||
+                grapher.currentTab === "table") &&
+            ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
+                grapher.isScatter ||
+                grapher.canChangeEntity ||
+                (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
+                (grapher.isLineChart &&
+                    grapher.lineChartTransform.canToggleRelativeMode))
+        )
+    }
+
     @computed get svgHeight() {
         if (this.isExporting) return this.props.bounds.height
 
@@ -116,7 +131,7 @@ export class ChartLayout {
         return (
             this.props.bounds.height -
             this.header.height -
-            ControlsRow.height -
+            (this.hasControlsRow ? ControlsRow.height : 0) -
             this.footer.height -
             overlayPadding.top -
             overlayPadding.bottom -
