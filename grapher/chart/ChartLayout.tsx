@@ -113,8 +113,7 @@ export class ChartLayout {
     @computed private get hasControlsRow() {
         const { grapher } = this.props
         return (
-            (grapher.currentTab === "chart" ||
-                grapher.currentTab === "table") &&
+            grapher.primaryTab === "chart" &&
             ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
                 grapher.isScatter ||
                 grapher.canChangeEntity ||
