@@ -10,12 +10,12 @@ export default {
 }
 
 export const Default = () => {
-    const chartConfig = basicGdpGrapher()
-    chartConfig.hideEntityControls = true
+    const grapher = basicGdpGrapher()
+    grapher.hideEntityControls = true
 
     return (
         <svg width={640} height={480}>
-            <LineChart grapher={chartConfig} />
+            <LineChart grapher={grapher} />
         </svg>
     )
 }
