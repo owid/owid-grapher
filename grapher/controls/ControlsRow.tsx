@@ -83,6 +83,7 @@ export class ControlsRow extends React.Component<{
                         onClick={this.onDataSelect}
                         key="grapher-change-entities"
                         data-track-note="grapher-change-entity"
+                        className="ChangeEntityButton"
                     >
                         <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
                         {grapher.entityType}
