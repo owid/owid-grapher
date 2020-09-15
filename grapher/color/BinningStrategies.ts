@@ -59,11 +59,15 @@ function normalizeBinValues(
 
 export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
     const { binningStrategy, sortedValues, binCount, minBinValue } = args
+    const valueCount = sortedValues.length
 
-    if (sortedValues.length < 1 || binCount < 1) return []
+    if (valueCount < 1 || binCount < 1) return []
 
     if (binningStrategy === BinningStrategy.ckmeans) {
-        const clusters = ckmeans(sortedValues, binCount)
+        const clusters = ckmeans(
+            sortedValues,
+            binCount > valueCount ? valueCount : binCount
+        )
         return normalizeBinValues(clusters.map(last), minBinValue)
     } else if (binningStrategy === BinningStrategy.quantiles) {
         return normalizeBinValues(
