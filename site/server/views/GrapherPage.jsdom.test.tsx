@@ -10,8 +10,19 @@ import { Post } from "db/model/Post"
 import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 import { ChartListItemVariant } from "./ChartListItemVariant"
-import { readGrapherConfig } from "grapher/test/utils"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
+
+const mockGrapher: GrapherInterface = {
+    version: 5,
+    slug: "share-of-children-with-a-weight-too-low-for-their-height-wasting",
+    originUrl: "https://ourworldindata.org/hunger-and-undernourishment/",
+    dimensions: [
+        {
+            variableId: 3512,
+            property: "y",
+        },
+    ],
+}
 
 describe(GrapherPage, () => {
     let grapher: GrapherInterface
@@ -19,7 +30,7 @@ describe(GrapherPage, () => {
     let relatedCharts: RelatedChart[]
 
     beforeAll(() => {
-        grapher = readGrapherConfig(792)
+        grapher = mockGrapher
         post = {
             id: 2681,
             title: "Hunger and Undernourishment",
