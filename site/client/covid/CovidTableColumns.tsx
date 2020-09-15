@@ -188,7 +188,6 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                                 <SparkBarTimeSeriesValue
                                     className="highlighted"
                                     value={formatInt(accessor(d))}
-                                    date={d.date}
                                     formattedDate={formatDate(d.date)}
                                 />
                             ) : undefined
@@ -200,7 +199,6 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                         <SparkBarTimeSeriesValue
                             className="current"
                             value={`${formatInt(accessor(datum.latest))} total`}
-                            date={datum.latest.date}
                             formattedDate={formatDate(datum.latest.date)}
                             latest={true}
                         />
@@ -233,7 +231,6 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                                     value={formatInt(accessor(d), "", {
                                         showPlus: true,
                                     })}
-                                    date={d && d.date}
                                     formattedDate={d && formatDate(d.date)}
                                 />
                             ) : undefined
@@ -247,7 +244,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                             value={`${formatInt(accessor(datum.latest), "", {
                                 showPlus: true,
                             })} new`}
-                            date={datum.latest.date}
+                            formattedDate={formatDate(datum.latest.date)}
                             latest={true}
                         />
                     )}

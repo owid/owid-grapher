@@ -8,7 +8,6 @@ import { Tippy } from "grapher/chart/Tippy"
 
 export const SparkBarTimeSeriesValue = ({
     value,
-    date,
     latest,
     tooltip,
     className,
@@ -16,7 +15,6 @@ export const SparkBarTimeSeriesValue = ({
     valueColor,
 }: {
     value: string | undefined
-    date?: Date
     latest?: boolean
     tooltip?: JSX.Element | string
     className?: string
@@ -37,7 +35,7 @@ export const SparkBarTimeSeriesValue = ({
                     )}
                 </span>
                 <span className={classnames("date", { latest: latest })}>
-                    {formattedDate ?? date}
+                    {formattedDate}
                 </span>
             </>
         ) : undefined}
