@@ -1045,7 +1045,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // WARNING: THIS WILL BE REMOVED!!!! DO NOT USE
-    @computed get activeTransform(): IChartTransform {
+    @computed private get activeTransform(): IChartTransform {
         if (this.currentTab === "table") return this.dataTableTransform
         else if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
