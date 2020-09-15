@@ -41,7 +41,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
-        this.props.grapher.scatterTransform.xOverrideYear = value
+        this.props.grapher.scatterTransform.xOverrideTime = value
     }
 
     @action.bound onToggleHighlightToggle(value: boolean) {
@@ -116,7 +116,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                     />
                     <NumberField
                         label="Override X axis target year"
-                        value={grapher.scatterTransform.xOverrideYear}
+                        value={grapher.scatterTransform.xOverrideTime}
                         onValue={debounce(this.onXOverrideYear, 300)}
                         allowNegative
                     />

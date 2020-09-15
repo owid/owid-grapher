@@ -202,7 +202,7 @@ export class StackedAreaTransform extends ChartTransform {
 
     @computed get availableTimes(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
-        return this.groupedData[0].values.map((v) => v.x)
+        return this.groupedData[0]?.values.map((v) => v.x) || []
     }
 
     @computed private get colorScheme() {

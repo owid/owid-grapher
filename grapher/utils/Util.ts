@@ -139,13 +139,6 @@ declare type HeaderRow = string[]
 declare type ValueRow = any[]
 export type JsTable = [HeaderRow, ...ValueRow]
 
-interface TouchListLike {
-    [index: number]: {
-        clientX: number
-        clientY: number
-    }
-}
-
 // d3 v6 changed the default minus sign used in d3-format to "−" (Unicode minus sign), which looks
 // nicer but can cause issues when copy-pasting values into a spreadsheet or script.
 // For that reason we change that back to a plain old hyphen.
@@ -158,27 +151,23 @@ const d3Format = formatLocale({
     currency: ["$", ""],
 } as any).format
 
-export function getRelativeMouse(
+export const getRelativeMouse = (
     node: SVGElement,
-    event:
-        | { clientX: number; clientY: number }
-        | { targetTouches: TouchListLike }
-): Vector2 {
-    let clientX, clientY
-    if ((event as any).clientX != null) {
-        clientX = (event as any).clientX
-        clientY = (event as any).clientY
-    } else {
-        clientX = (event as any).targetTouches[0].clientX
-        clientY = (event as any).targetTouches[0].clientY
-    }
+    event: TouchEvent | { clientX: number; clientY: number }
+) => {
+    const isTouchEvent = !!(event as TouchEvent).targetTouches
+    const eventOwner = isTouchEvent
+        ? (event as TouchEvent).targetTouches[0]
+        : (event as MouseEvent)
 
+    const { clientX, clientY } = eventOwner
     const svg = node.ownerSVGElement || node
 
     if (svg.createSVGPoint) {
-        let point = svg.createSVGPoint()
-        ;(point.x = clientX), (point.y = clientY)
-        point = point.matrixTransform(node.getScreenCTM().inverse())
+        const svgPoint = svg.createSVGPoint()
+        svgPoint.x = clientX
+        svgPoint.y = clientY
+        const point = svgPoint.matrixTransform(node.getScreenCTM().inverse())
         return new Vector2(point.x, point.y)
     }
 
@@ -628,66 +617,56 @@ export function es6mapValues<K, V, M>(
     )
 }
 
-export interface DataValue {
-    year: number | undefined
+interface DataValue {
+    time: Time | undefined
     value: number | string | undefined
 }
 
-export function valuesAtYears(
-    valueByYear: Map<number, string | number>,
-    targetYears: number[],
-    tolerance: number = 0
+function valuesAtTimes(
+    valueByTime: Map<number, string | number>,
+    targetTimes: Time[],
+    tolerance = 0
 ) {
-    const years = Array.from(valueByYear.keys())
-    const values = targetYears.map((targetYear) => {
-        let value
-        const year = findClosestTime(years, targetYear, tolerance)
-        if (year !== undefined) {
-            value = valueByYear.get(year)
-        }
+    const times = Array.from(valueByTime.keys())
+    return targetTimes.map((targetTime) => {
+        const time = findClosestTime(times, targetTime, tolerance)
+        const value = time === undefined ? undefined : valueByTime.get(time)
         return {
-            year,
+            time,
             value,
         }
     })
-    return values
 }
 
-export function valuesByEntityAtYears(
-    valueByEntityAndYear: Map<string, Map<number, string | number>>,
-    targetYears: number[],
-    tolerance: number = 0
-): Map<string, DataValue[]> {
-    return es6mapValues(valueByEntityAndYear, (valueByYear) =>
-        valuesAtYears(valueByYear, targetYears, tolerance)
+export const valuesByEntityAtTimes = (
+    valueByEntityAndTime: Map<string, Map<number, string | number>>,
+    targetTimes: Time[],
+    tolerance = 0
+): Map<string, DataValue[]> =>
+    es6mapValues(valueByEntityAndTime, (valueByTime) =>
+        valuesAtTimes(valueByTime, targetTimes, tolerance)
     )
-}
 
-export function valuesByEntityWithinYears(
-    valueByEntityAndYear: Map<string, Map<number, string | number>>,
+export function valuesByEntityWithinTimes(
+    valueByEntityAndTimes: Map<string, Map<number, string | number>>,
     range: (number | undefined)[]
 ): Map<string, DataValue[]> {
     const start = range[0] !== undefined ? range[0] : -Infinity
     const end = range[1] !== undefined ? range[1] : Infinity
-    return es6mapValues(valueByEntityAndYear, (valueByYear) => {
-        const years = Array.from(valueByYear.keys()).filter(
-            (year) => year >= start && year <= end
-        )
-        const values = years.map((year) => ({
-            year,
-            value: valueByYear.get(year),
-        }))
-        return values
-    })
+    return es6mapValues(valueByEntityAndTimes, (valueByTime) =>
+        Array.from(valueByTime.keys())
+            .filter((time) => time >= start && time <= end)
+            .map((time) => ({
+                time,
+                value: valueByTime.get(time),
+            }))
+    )
 }
 
-export function getStartEndValues(
-    values: DataValue[]
-): (DataValue | undefined)[] {
-    const start = minBy(values, (dv) => dv.year)
-    const end = maxBy(values, (dv) => dv.year)
-    return [start, end]
-}
+export const getStartEndValues = (values: DataValue[]) => [
+    minBy(values, (dv) => dv.time),
+    maxBy(values, (dv) => dv.time),
+]
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
@@ -699,9 +678,8 @@ export function dateDiffInDays(a: Date, b: Date) {
     return Math.floor((utca - utcb) / MS_PER_DAY)
 }
 
-export function diffDateISOStringInDays(a: string, b: string): number {
-    return moment.utc(a).diff(moment.utc(b), "days")
-}
+export const diffDateISOStringInDays = (a: string, b: string) =>
+    moment.utc(a).diff(moment.utc(b), "days")
 
 export function addDays(date: Date, days: number): Date {
     const newDate = new Date(date.getTime())
