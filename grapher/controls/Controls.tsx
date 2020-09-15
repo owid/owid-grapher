@@ -64,7 +64,7 @@ export class HighlightToggle extends React.Component<{
                     checked={isHighlightActive}
                     onChange={this.onHighlightToggle}
                 />{" "}
-                {highlight.description}
+                &nbsp;{highlight.description}
             </label>
         )
     }
@@ -118,6 +118,7 @@ export class ZoomToggle extends React.Component<{
                     onChange={this.onToggle}
                     data-track-note="chart-zoom-to-selection"
                 />{" "}
+                &nbsp;
                 {label}
             </label>
         )
