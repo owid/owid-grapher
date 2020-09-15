@@ -240,6 +240,17 @@ export class LineChartTransform extends ChartTransform {
         return axis
     }
 
+    @computed get hasTimeline() {
+        return this.timelineTimes.length > 1 && !this.grapher.hideTimeline
+    }
+
+    /**
+     * Whether the plotted data only contains a single year.
+     */
+    @computed get isSingleTime() {
+        return this.startTimelineTime === this.endTimelineTime
+    }
+
     @computed get canToggleRelativeMode() {
         return !this.grapher.hideRelativeToggle && !this.isSingleTime
     }

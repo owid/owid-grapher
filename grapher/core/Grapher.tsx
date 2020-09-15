@@ -382,8 +382,8 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @observable.ref isMediaCard: boolean
     @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
-    @observable isPlaying: boolean = false
-    @observable.ref isSelectingData: boolean = false
+    @observable isPlaying = false
+    @observable.ref isSelectingData = false
 
     @computed get isInteractive() {
         return !this.isExporting
@@ -395,7 +395,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
             : this.populationFilterOption
     }
 
-    private populationFilterToggleOption: number = 1e6
+    private populationFilterToggleOption = 1e6
     // Make the default filter toggle option reflect what is initially loaded.
     @computed get populationFilterOption() {
         if (this.minPopulationFilter)
@@ -415,7 +415,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
 
-    @observable userHasSetTimeline: boolean = false
+    @observable userHasSetTimeline = false
 
     @action.bound private async downloadDataFromUrl(url: string) {
         const json = await fetchJSON(url)
@@ -479,8 +479,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         )
     }
 
-    @observable.ref private _baseFontSize: number = 16
-    @computed get baseFontSize(): number {
+    @observable.ref private _baseFontSize = 16
+
+    @computed get baseFontSize() {
         if (this.isMediaCard) return 24
         else if (this.isExporting) return 18
         else return this._baseFontSize
@@ -507,7 +508,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
-    @computed get isReady(): boolean {
+    @computed get isReady() {
         return this.loadingDimensions.length === 0
     }
 
@@ -526,36 +527,36 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     url: GrapherUrl
 
-    @computed get isIframe(): boolean {
+    @computed get isIframe() {
         return window.self !== window.top
     }
 
     // todo: remove ifs
-    @computed get times() {
+    @computed get times(): Time[] {
         if (this.tab === "map") return this.mapTransform.timelineTimes
         return this.activeTransform.timelineTimes
     }
 
     // todo: remove ifs
-    @computed get startTime() {
+    @computed get startTime(): Time {
         const activeTab = this.tab
         if (activeTab === "table")
             return (
                 this.dataTableTransform.autoSelectedStartTime ??
                 this.timeDomain[0]
             )
-        else if (activeTab === "map") return this.mapTransform.startTimelineTime // todo: always use endTimelineTime for maps?
+        else if (activeTab === "map") return this.mapTransform.endTimelineTime // todo: always use endTimelineTime for maps?
         return this.activeTransform.startTimelineTime!
     }
 
     // todo: remove ifs
-    set startTime(value: any) {
-        if (this.tab === "map") this.timeDomain = [value, value]
-        else this.timeDomain = [value, this.timeDomain[1]]
+    set startTime(newValue: Time) {
+        if (this.tab === "map") this.timeDomain = [newValue, newValue]
+        else this.timeDomain = [newValue, this.timeDomain[1]]
     }
 
     // todo: remove ifs
-    set endTime(value: any) {
+    set endTime(value: Time) {
         const activeTab = this.tab
         if (activeTab === "map" || activeTab === "table")
             this.timeDomain = [value, value]
@@ -563,7 +564,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // todo: remove ifs
-    @computed get endTime() {
+    @computed get endTime(): Time {
         const activeTab = this.tab
         if (activeTab === "table")
             return this.multiMetricTableMode
@@ -573,7 +574,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.activeTransform.endTimelineTime!
     }
 
-    @computed get isNativeEmbed(): boolean {
+    @computed get isNativeEmbed() {
         return this.isEmbed && !this.isIframe && !this.isExporting
     }
 
@@ -581,13 +582,13 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return uniq(this.dimensions.map((d) => d.variableId))
     }
 
-    @computed get dataFileName(): string {
+    @computed get dataFileName() {
         return `${this.variableIds.join("+")}.json?v=${
             this.isEditor ? undefined : this.cacheTag
         }`
     }
 
-    @computed get dataUrl(): string {
+    @computed get dataUrl() {
         return `${this.bakedGrapherURL}/data/variables/${this.dataFileName}`
     }
 
@@ -602,16 +603,16 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
-    @observable hideEntityControls: boolean = false
+    @observable hideEntityControls = false
     externalCsvLink = ""
 
-    @computed get hasOWIDLogo(): boolean {
+    @computed get hasOWIDLogo() {
         return (
             !this.hideLogo && (this.logo === undefined || this.logo === "owid")
         )
     }
 
-    @computed get hasFatalErrors(): boolean {
+    @computed get hasFatalErrors() {
         const { relatedQuestions } = this
         return (
             relatedQuestions?.some(
@@ -655,9 +656,8 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @action.bound private ensureValidConfigWhenEditing() {
         const disposers = [
             autorun(() => {
-                if (!this.availableTabs.includes(this.tab)) {
+                if (!this.availableTabs.includes(this.tab))
                     runInAction(() => (this.tab = this.availableTabs[0]))
-                }
             }),
             autorun(() => {
                 const validDimensions = this.validDimensions
@@ -694,7 +694,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // todo: do we need this?
-    @computed get originUrlWithProtocol(): string {
+    @computed get originUrlWithProtocol() {
         let url = this.originUrl
         if (!url.startsWith("http")) url = `https://${url}`
         return url
@@ -738,9 +738,8 @@ export class Grapher extends GrapherDefaults implements TimeViz {
             this.overlay = undefined
         } else {
             // table tab cannot be downloaded, so revert to default tab
-            if (value === "download" && this.tab === "table") {
+            if (value === "download" && this.tab === "table")
                 this.tab = this.configOnLoad.tab || "chart"
-            }
             this.overlay = value
         }
     }
@@ -773,7 +772,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @observable dataTableOnlyDimensions: ChartDimension[] = []
 
-    @computed get multiMetricTableMode(): boolean {
+    @computed get multiMetricTableMode() {
         return this.dataTableOnlyDimensions.length > 0
     }
 
@@ -812,11 +811,11 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.filledDimensions.filter((dim) => dim.property === "y")
     }
 
-    @computed get displaySlug(): string {
+    @computed get displaySlug() {
         return this.slug ?? slugify(this.displayTitle)
     }
 
-    @computed get availableTabs(): GrapherTabOption[] {
+    @computed get availableTabs() {
         return [
             this.hasChartTab && "chart",
             this.hasMapTab && "map",
@@ -826,7 +825,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         ].filter(identity) as GrapherTabOption[]
     }
 
-    @computed get currentTitle(): string {
+    @computed get currentTitle() {
         let text = this.displayTitle
         const selectedEntityNames = this.selectedEntityNames
 
@@ -871,7 +870,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return ", " + time
     }
 
-    @computed get isSingleEntity(): boolean {
+    @computed get isSingleEntity() {
         return (
             this.table.availableEntities.length === 1 ||
             this.addCountryMode === "change-country"
@@ -882,7 +881,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return `Add ${this.isSingleEntity ? "data" : this.entityType}`
     }
 
-    @computed get hasFloatingAddButton(): boolean {
+    @computed get hasFloatingAddButton() {
         return (
             this.primaryTab === "chart" &&
             !this.isExporting &&
@@ -891,7 +890,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         )
     }
 
-    @computed get isSingleVariable(): boolean {
+    @computed get isSingleVariable() {
         return this.primaryDimensions.length === 1
     }
 
@@ -1389,7 +1388,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // todo: remove
-    getLabelForKey(key: EntityDimensionKey): string {
+    getLabelForKey(key: EntityDimensionKey) {
         return this.lookupKey(key).label
     }
 

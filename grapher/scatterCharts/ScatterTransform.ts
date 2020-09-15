@@ -114,6 +114,10 @@ export class ScatterTransform extends ChartTransform {
         this.xDimension!.targetTime = value
     }
 
+    @computed get hasTimeline() {
+        return this.timelineTimes.length > 1 && !this.grapher.hideTimeline
+    }
+
     @computed get canToggleRelativeMode() {
         return (
             this.hasTimeline &&

@@ -43,6 +43,10 @@ export class SlopeChartTransform extends ChartTransform {
         })
     }
 
+    @computed get hasTimeline() {
+        return this.timelineTimes.length > 1 && !this.grapher.hideTimeline
+    }
+
     @computed get availableTimes(): Time[] {
         return flatten(this.grapher.axisDimensions.map((d) => d.timesUniq))
     }

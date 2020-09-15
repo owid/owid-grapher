@@ -81,15 +81,4 @@ export abstract class ChartTransform implements IChartTransform {
 
         return getClosestTime(this.timelineTimes, time, this.maxTimelineTime)
     }
-
-    @computed get hasTimeline() {
-        return this.timelineTimes.length > 1 && !this.grapher.hideTimeline
-    }
-
-    /**
-     * Whether the plotted data only contains a single year.
-     */
-    @computed get isSingleTime() {
-        return this.startTimelineTime === this.endTimelineTime
-    }
 }
