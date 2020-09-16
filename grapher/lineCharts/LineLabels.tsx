@@ -11,13 +11,11 @@ import {
     sign,
     defaultTo,
 } from "grapher/utils/Util"
-import { computed, action } from "mobx"
+import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
-import { AddEntityButton } from "grapher/controls/AddEntityButton"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 
 // Minimum vertical space between two legend items
@@ -463,50 +461,8 @@ export class LineLabelsComponent extends React.Component<
         ))
     }
 
-    @action.bound onAddClick() {
-        // Do this for mobx
-        this.options.isSelectingData = true
-    }
-
     @computed get options() {
         return this.props.options
-    }
-
-    get addEntityButton() {
-        if (!this.options.showAddEntityControls) return undefined
-
-        const verticalAlign = "bottom"
-
-        const leftOffset = this.needsLines
-            ? this.props.legend.leftPadding
-            : this.props.legend.width > 70
-            ? 21
-            : 5
-
-        const topMarkY = defaultTo(
-            min(this.placedMarks.map((mark) => mark.bounds.top)),
-            0
-        )
-
-        const paddingTop = AddEntityButton.calcPaddingTop(
-            topMarkY,
-            verticalAlign,
-            ADD_BUTTON_HEIGHT
-        )
-
-        return (
-            <ControlsOverlay id="add-country" paddingTop={paddingTop}>
-                <AddEntityButton
-                    x={this.props.x + leftOffset}
-                    y={topMarkY}
-                    align="left"
-                    verticalAlign={verticalAlign}
-                    height={ADD_BUTTON_HEIGHT}
-                    label={`Add ${this.options.entityType}`}
-                    onClick={this.onAddClick}
-                />
-            </ControlsOverlay>
-        )
     }
 
     render() {
@@ -521,7 +477,6 @@ export class LineLabelsComponent extends React.Component<
             >
                 {this.renderBackground()}
                 {this.renderFocus()}
-                {this.addEntityButton}
             </g>
         )
     }

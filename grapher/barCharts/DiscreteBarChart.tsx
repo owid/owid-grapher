@@ -16,9 +16,6 @@ import {
     HorizontalAxisGridLines,
 } from "grapher/axis/AxisViews"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { AddEntityButton } from "grapher/controls/AddEntityButton"
-
 export interface DiscreteBarDatum {
     entityDimensionKey: EntityDimensionKey
     value: number
@@ -79,8 +76,6 @@ export class DiscreteBarChart extends React.Component<{
     // Account for the width of the legend
     @computed private get legendWidth() {
         const labels = this.currentData.map((d) => d.label)
-        if (this.hasFloatingAddButton)
-            labels.push(` + ${this.grapher.addButtonLabel}`)
 
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
@@ -174,18 +169,9 @@ export class DiscreteBarChart extends React.Component<{
             .padRight(this.rightEndLabelWidth)
     }
 
-    @computed private get hasFloatingAddButton() {
-        return (
-            this.grapher.hasFloatingAddButton &&
-            this.grapher.showAddEntityControls
-        )
-    }
-
     // Leave space for extra bar at bottom to show "Add country" button
     @computed private get totalBars() {
-        return this.hasFloatingAddButton
-            ? this.currentData.length + 1
-            : this.currentData.length
+        return this.currentData.length
     }
 
     @computed private get barHeight() {
@@ -241,32 +227,6 @@ export class DiscreteBarChart extends React.Component<{
 
     @action.bound onAddClick() {
         this.grapher.isSelectingData = true
-    }
-
-    get addEntityButton() {
-        if (!this.hasFloatingAddButton) return undefined
-        const y =
-            this.bounds.top +
-            (this.barHeight + this.barSpacing) * (this.totalBars - 1) +
-            this.barHeight / 2
-        const paddingTop = AddEntityButton.calcPaddingTop(
-            y,
-            "middle",
-            this.barHeight
-        )
-        return (
-            <ControlsOverlay id="add-country" paddingTop={paddingTop}>
-                <AddEntityButton
-                    x={this.bounds.left + this.legendWidth}
-                    y={y}
-                    align="right"
-                    verticalAlign="middle"
-                    height={this.barHeight}
-                    label={`Add ${this.grapher.entityType}`}
-                    onClick={this.onAddClick}
-                />
-            </ControlsOverlay>
-        )
     }
 
     render() {
@@ -386,7 +346,6 @@ export class DiscreteBarChart extends React.Component<{
 
                     return result
                 })}
-                {this.addEntityButton}
             </g>
         )
     }

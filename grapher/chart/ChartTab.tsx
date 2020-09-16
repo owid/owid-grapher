@@ -24,6 +24,7 @@ import {
     FilterSmallCountriesToggle,
 } from "grapher/controls/Controls"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
+import { AddEntityButton } from "grapher/controls/AddEntityButton"
 
 @observer
 export class ChartTab extends React.Component<{
@@ -39,11 +40,14 @@ export class ChartTab extends React.Component<{
 
         if (grapher.tab === "chart") {
             const yAxis =
-                (grapher.isStackedArea && grapher.stackedAreaTransform.yAxis) ||
-                (grapher.isStackedBar && grapher.stackedBarTransform.yAxis) ||
-                (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
-                ((grapher.isScatter || grapher.isTimeScatter) &&
-                    grapher.scatterTransform.yAxis)
+                grapher.isReady &&
+                ((grapher.isStackedArea &&
+                    grapher.stackedAreaTransform.yAxis) ||
+                    (grapher.isStackedBar &&
+                        grapher.stackedBarTransform.yAxis) ||
+                    (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
+                    ((grapher.isScatter || grapher.isTimeScatter) &&
+                        grapher.scatterTransform.yAxis))
 
             yAxis &&
                 yAxis.scaleTypeOptions.length > 1 &&
@@ -93,6 +97,10 @@ export class ChartTab extends React.Component<{
                         {grapher.entityType}
                     </button>
                 )
+
+            grapher.hasFloatingAddButton &&
+                grapher.showAddEntityControls &&
+                controls.push(<AddEntityButton grapher={grapher} />)
 
             grapher.isScatter &&
                 grapher.hasSelection &&
