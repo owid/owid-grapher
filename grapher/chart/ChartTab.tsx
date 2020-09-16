@@ -42,7 +42,9 @@ export class ChartTab extends React.Component<{
         if (grapher.tab === "chart") {
             const yAxis =
                 (grapher.isStackedArea && grapher.stackedAreaTransform.yAxis) ||
-                (grapher.isStackedBar && grapher.stackedBarTransform.yAxis) ||
+                (grapher.isStackedBar &&
+                    !grapher.stackedBarTransform.failMessage &&
+                    grapher.stackedBarTransform.yAxis) ||
                 (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
                 ((grapher.isScatter || grapher.isTimeScatter) &&
                     grapher.scatterTransform.yAxis)
