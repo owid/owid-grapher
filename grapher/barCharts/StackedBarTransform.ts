@@ -12,6 +12,7 @@ import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
+import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -122,7 +123,7 @@ export class StackedBarTransform extends ChartTransform {
                 const year = dimension.times[i]
                 const entityName = dimension.entityNames[i]
                 const value = +dimension.values[i]
-                const entityDimensionKey = grapher.makeEntityDimensionKey(
+                const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )

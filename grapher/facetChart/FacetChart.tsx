@@ -26,10 +26,10 @@ export class FacetChart extends React.Component<FacetChartProps> {
             this.props.number || 1,
             this.props.padding
         )
-        const ChartType = getChartComponent(chartTypeName) as any // todo: how to type this?
+        const ChartComponent = getChartComponent(chartTypeName) as any // todo: how to type this?
 
         return charts.map((bounds: Bounds, index: number) => (
-            <ChartType key={index} bounds={bounds} options={grapher} />
+            <ChartComponent key={index} bounds={bounds} options={grapher} />
         ))
     }
 

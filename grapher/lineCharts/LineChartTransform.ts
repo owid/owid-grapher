@@ -16,11 +16,12 @@ import {
     ScaleType,
     Time,
 } from "grapher/core/GrapherConstants"
-import { LineChartSeries, LineChartValue } from "./LineChart"
+import { LineChartSeries } from "./LineChart"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 import { LineLabel } from "./LineLabels"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -31,6 +32,37 @@ export class LineChartTransform extends ChartTransform {
             return "Missing Y axis variable"
         else if (isEmpty(this.groupedData)) return "No matching data"
         else return undefined
+    }
+
+    // Filter the data so it fits within the domains
+    @computed get groupedData() {
+        const { xAxis } = this
+        const groupedData = cloneDeep(this.predomainData)
+
+        for (const g of groupedData) {
+            // The values can include non-numerical values, so we need to filter with isNaN()
+            g.values = g.values.filter(
+                (d) =>
+                    d.x >= xAxis.domain[0] &&
+                    d.x <= xAxis.domain[1] &&
+                    !isNaN(d.y)
+            )
+        }
+
+        return groupedData.filter((g) => g.values.length > 0)
+    }
+
+    @computed private get allValues() {
+        return flatten(this.predomainData.map((series) => series.values))
+    }
+
+    @computed private get filteredValues() {
+        return flatten(this.groupedData.map((series) => series.values))
+    }
+
+    @computed private get annotationsMap() {
+        return this.grapher.primaryDimensions[0].column.annotationsColumn
+            ?.entityNameMap
     }
 
     @computed private get colorScheme() {
@@ -55,7 +87,7 @@ export class LineChartTransform extends ChartTransform {
                 const year = dimension.times[i]
                 const value = parseFloat(dimension.values[i] as string)
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = grapher.makeEntityDimensionKey(
+                const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -134,19 +166,6 @@ export class LineChartTransform extends ChartTransform {
         })
     }
 
-    @computed private get allValues() {
-        return flatten(this.predomainData.map((series) => series.values))
-    }
-
-    @computed private get filteredValues() {
-        return flatten(this.groupedData.map((series) => series.values))
-    }
-
-    @computed private get annotationsMap() {
-        return this.grapher.primaryDimensions[0].column.annotationsColumn
-            ?.entityNameMap
-    }
-
     getAnnotationsForSeries(entityName: EntityName) {
         const annotationsMap = this.annotationsMap
         const annos = annotationsMap?.get(entityName)
@@ -195,10 +214,6 @@ export class LineChartTransform extends ChartTransform {
         return axis
     }
 
-    @computed private get yDimensionFirst() {
-        return this.grapher.filledDimensions.find((d) => d.property === "y")
-    }
-
     @computed private get yDomainDefault(): [number, number] {
         const yValues = (this.grapher.useTimelineDomains
             ? this.allValues
@@ -217,14 +232,15 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed private get yTickFormat() {
-        if (this.grapher.isRelativeMode) {
+        if (this.grapher.isRelativeMode)
             return (v: number) =>
                 (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
-        } else {
-            return this.yDimensionFirst
-                ? this.yDimensionFirst.formatValueShortFn
-                : identity
-        }
+
+        const yDimensionFirst = this.grapher.filledDimensions.find(
+            (d) => d.property === "y"
+        )
+
+        return yDimensionFirst ? yDimensionFirst.formatValueShortFn : identity
     }
 
     @computed get yAxis() {
@@ -253,23 +269,5 @@ export class LineChartTransform extends ChartTransform {
 
     @computed get canToggleRelativeMode() {
         return !this.grapher.hideRelativeToggle && !this.isSingleTime
-    }
-
-    // Filter the data so it fits within the domains
-    @computed get groupedData() {
-        const { xAxis } = this
-        const groupedData = cloneDeep(this.predomainData)
-
-        for (const g of groupedData) {
-            // The values can include non-numerical values, so we need to filter with isNaN()
-            g.values = g.values.filter(
-                (d) =>
-                    d.x >= xAxis.domain[0] &&
-                    d.x <= xAxis.domain[1] &&
-                    !isNaN(d.y)
-            )
-        }
-
-        return groupedData.filter((g) => g.values.length > 0)
     }
 }

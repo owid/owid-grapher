@@ -17,6 +17,7 @@ import {
     ScaleType,
     Time,
 } from "grapher/core/GrapherConstants"
+import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -85,7 +86,7 @@ export class DiscreteBarTransform extends ChartTransform {
             for (let i = 0; i < dimension.times.length; i++) {
                 const year = dimension.times[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = grapher.makeEntityDimensionKey(
+                const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )
@@ -199,7 +200,7 @@ export class DiscreteBarTransform extends ChartTransform {
             for (let i = 0; i < dimension.times.length; i++) {
                 const year = dimension.times[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = grapher.makeEntityDimensionKey(
+                const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )

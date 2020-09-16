@@ -8,10 +8,10 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 
 export interface NoDataOverlayOptionsProvider {
-    canChangeEntity: boolean
-    canAddData: boolean
-    isSelectingData: boolean
-    entityType: string
+    canChangeEntity?: boolean
+    canAddData?: boolean
+    isSelectingData?: boolean
+    entityType?: string
     standalone?: boolean // Until we remove ControlsOverlay have this option to render it for testing
 }
 
@@ -27,6 +27,7 @@ export class NoDataOverlay extends React.Component<{
 
     @computed private get message() {
         const { bounds, message, options } = this.props
+        const entityType = options.entityType
         return (
             <div
                 className="NoData"
@@ -42,14 +43,13 @@ export class NoDataOverlay extends React.Component<{
                 <div className="actions">
                     {options.canAddData && (
                         <button className="action" onClick={this.onDataSelect}>
-                            <FontAwesomeIcon icon={faPlus} /> Add{" "}
-                            {options.entityType}
+                            <FontAwesomeIcon icon={faPlus} /> Add {entityType}
                         </button>
                     )}
                     {options.canChangeEntity && (
                         <button className="action" onClick={this.onDataSelect}>
                             <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                            {options.entityType}
+                            {entityType}
                         </button>
                     )}
                 </div>

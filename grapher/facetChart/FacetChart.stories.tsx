@@ -3,7 +3,7 @@ import "site/client/owid.scss"
 import "grapher/core/grapher.scss"
 import { FacetChart } from "./FacetChart"
 import { basicGdpGrapher, basicScatterGrapher } from "grapher/test/samples"
-import { ChartTypeName } from "grapher/chart/ChartTypes"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 
 export default {
     title: "FacetChart",
@@ -42,34 +42,14 @@ export const Default = (args: any) => {
     )
 }
 
-export const OneChartPerMetric = (args: any) => {
-    const chartType: ChartTypeName = args.chartTypeName
-    const grapher = chartType.includes("Scatter")
-        ? basicScatterGrapher()
-        : basicGdpGrapher()
-
-    return (
-        <FacetChart
-            number={args.number}
-            chartTypeName={chartType}
-            grapher={grapher}
-            width={args.width}
-            height={args.height}
-            padding={args.padding}
-        />
-    )
-}
-
+// One chart for France. One for Germany. One line for pop. One line for GDP.
 export const OneChartPerCountry = (args: any) => {
-    const chartType: ChartTypeName = args.chartTypeName
-    const grapher = chartType.includes("Scatter")
-        ? basicScatterGrapher()
-        : basicGdpGrapher()
+    const grapher = basicGdpGrapher()
 
     return (
         <FacetChart
-            number={args.number}
-            chartTypeName={chartType}
+            number={2}
+            chartTypeName="LineChart"
             grapher={grapher}
             width={args.width}
             height={args.height}

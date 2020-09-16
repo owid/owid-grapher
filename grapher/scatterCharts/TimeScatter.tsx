@@ -509,7 +509,7 @@ export class TimeScatter extends React.Component<{
         })
     }
 
-    @computed get comparisonLines() {
+    @computed private get comparisonLines() {
         return this.options.comparisonLines
     }
 

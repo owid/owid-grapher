@@ -249,7 +249,7 @@ export class ScatterPlot extends React.Component<{
         return axis
     }
 
-    @computed get comparisonLines() {
+    @computed private get comparisonLines() {
         return this.options.comparisonLines
     }
 

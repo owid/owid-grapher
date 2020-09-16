@@ -4,6 +4,7 @@ import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
+import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -146,7 +147,7 @@ export class SlopeChartTransform extends ChartTransform {
                 })
             }
 
-            const entityDimensionKey = grapher.makeEntityDimensionKey(
+            const entityDimensionKey = makeEntityDimensionKey(
                 entityName,
                 grapher.dimensions.indexOf(yDimension)
             )

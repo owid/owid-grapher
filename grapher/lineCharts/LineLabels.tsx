@@ -210,11 +210,11 @@ class PlacedMarkComponent extends React.Component<{
     }
 }
 
-interface ObservableObject {
-    areMarksClickable: boolean
-    canAddData: boolean
-    isSelectingData: boolean
-    showAddEntityControls: boolean
+export interface LineLabelsOptionsProvider {
+    areMarksClickable?: boolean
+    canAddData?: boolean
+    isSelectingData?: boolean
+    showAddEntityControls?: boolean
     entityType: string
 }
 
@@ -226,7 +226,7 @@ interface LineLabelsComponentProps {
     onMouseOver?: (key: EntityDimensionKey) => void
     onClick?: (key: EntityDimensionKey) => void
     onMouseLeave?: () => void
-    options: ObservableObject
+    options: LineLabelsOptionsProvider
 }
 
 @observer

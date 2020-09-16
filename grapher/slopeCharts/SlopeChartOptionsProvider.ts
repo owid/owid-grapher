@@ -1,6 +1,9 @@
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
+import {
+    AddCountryMode,
+    EntityDimensionKey,
+} from "grapher/core/GrapherConstants"
 import { SlopeChartTransform } from "./SlopeChartTransform"
 
 export interface SlopeChartOptionsProvider extends ChartOptionsProvider {
@@ -8,4 +11,5 @@ export interface SlopeChartOptionsProvider extends ChartOptionsProvider {
     toggleKey: (key: EntityDimensionKey) => void
     selectedKeys: EntityDimensionKey[]
     yAxis: AxisConfig // just pass interface?
+    addCountryMode: AddCountryMode
 }

@@ -83,7 +83,7 @@ interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
     showTickMarks: boolean
-    isInteractive: boolean
+    isInteractive?: boolean
 }
 
 @observer
@@ -130,7 +130,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
-    isInteractive: boolean
+    isInteractive?: boolean
 }> {
     @computed get controls() {
         const { bounds, verticalAxis } = this.props
@@ -186,7 +186,7 @@ export class HorizontalAxisComponent extends React.Component<{
     axisPosition: number
     maxX?: number
     showTickMarks?: boolean
-    isInteractive: boolean
+    isInteractive?: boolean
 }> {
     @computed get controls() {
         const { bounds, axis, maxX } = this.props

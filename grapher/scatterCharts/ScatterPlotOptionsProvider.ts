@@ -1,5 +1,6 @@
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import {
+    AddCountryMode,
     EntityDimensionKey,
     ScatterPointLabelStrategy,
 } from "grapher/core/GrapherConstants"
@@ -11,4 +12,5 @@ export interface ScatterPlotOptionsProvider extends ChartOptionsProvider {
     selectedKeys: EntityDimensionKey[]
     hideConnectedScatterLines?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
+    addCountryMode: AddCountryMode
 }

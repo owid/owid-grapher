@@ -18,10 +18,7 @@ import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "grapher/axis/Axis"
 import { Vector2 } from "grapher/utils/Vector2"
 import { LineLabelsHelper, LineLabelsComponent } from "./LineLabels"
-import {
-    ComparisonLine,
-    ComparisonLineConfig,
-} from "grapher/scatterCharts/ComparisonLine"
+import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"

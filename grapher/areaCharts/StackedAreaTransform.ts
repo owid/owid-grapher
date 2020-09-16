@@ -15,6 +15,7 @@ import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
+import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
@@ -48,7 +49,7 @@ export class StackedAreaTransform extends ChartTransform {
                 const year = dimension.times[i]
                 const value = +dimension.values[i]
                 const entityName = dimension.entityNames[i]
-                const entityDimensionKey = grapher.makeEntityDimensionKey(
+                const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex
                 )

@@ -2,7 +2,8 @@ import * as React from "react"
 import "site/client/owid.scss"
 import "grapher/core/grapher.scss"
 import { LineChart } from "grapher/lineCharts/LineChart"
-import { basicGdpGrapher } from "grapher/test/samples"
+import { OwidTable } from "owidTable/OwidTable"
+import { synthOwidTableCsv } from "owidTable/TableSynthesizer"
 
 export default {
     title: "LineChart",
@@ -10,12 +11,12 @@ export default {
 }
 
 export const Default = () => {
-    const grapher = basicGdpGrapher()
-    grapher.hideEntityControls = true
+    const table = OwidTable.fromDelimited(synthOwidTableCsv())
+    const options = { baseFontSize: 16, entityType: "Country", table }
 
     return (
         <svg width={640} height={480}>
-            <LineChart options={grapher} />
+            <LineChart options={options} />
         </svg>
     )
 }

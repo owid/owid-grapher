@@ -110,6 +110,7 @@ import {
     updatePersistables,
 } from "grapher/persistable/Persistable"
 import { TimeViz } from "grapher/timeline/TimelineController"
+import { makeEntityDimensionKey } from "./EntityDimensionKey"
 
 declare const window: any
 
@@ -1081,15 +1082,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // todo: remove
-    // Make a unique string key for an entity on a variable
-    makeEntityDimensionKey(
-        entityName: EntityName,
-        dimensionIndex: number
-    ): EntityDimensionKey {
-        return `${entityName}_${dimensionIndex}`
-    }
-
-    // todo: remove
     @computed get hasSelection() {
         return this.selectedData.length > 0
     }
@@ -1128,7 +1120,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
         return validSelections.map((sel) => {
             return {
-                entityDimensionKey: this.makeEntityDimensionKey(
+                entityDimensionKey: makeEntityDimensionKey(
                     entityIdToNameMap.get(sel.entityId)!,
                     sel.index
                 ),
@@ -1303,7 +1295,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                     entityName
                 )
                 const entityId = this.table.entityNameToIdMap.get(entityName)!
-                const entityDimensionKey = this.makeEntityDimensionKey(
+                const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimensionIndex
                 )

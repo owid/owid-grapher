@@ -36,6 +36,7 @@ import {
 } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -581,10 +582,7 @@ export class ScatterTransform extends ChartTransform {
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndTime().forEach((dataByTime, entityName) => {
             // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
-            const entityDimensionKey = grapher.makeEntityDimensionKey(
-                entityName,
-                0
-            )
+            const entityDimensionKey = makeEntityDimensionKey(entityName, 0)
 
             const group = {
                 entityDimensionKey,

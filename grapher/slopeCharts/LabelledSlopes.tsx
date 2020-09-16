@@ -284,7 +284,7 @@ interface LabelledSlopesProps {
     options: SlopeChartOptionsProvider
     bounds: Bounds
     data: SlopeChartSeries[]
-    isInteractive: boolean
+    isInteractive?: boolean
     yTickFormat: (value: number) => string
     yAxisOptions: AxisConfig
     fontSize: number
