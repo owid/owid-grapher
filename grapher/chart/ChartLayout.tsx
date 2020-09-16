@@ -6,7 +6,7 @@ import { SourcesFooter, SourcesFooterHTML } from "grapher/chart/Footer"
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
 import { observer } from "mobx-react"
-import { ControlsRow } from "grapher/controls/ControlsRow"
+import { ControlsRow, ControlsRowHeight } from "grapher/controls/ControlsRow"
 
 @observer
 class ControlsOverlayView extends React.Component<{
@@ -60,6 +60,7 @@ interface ChartLayoutProps {
     grapher: Grapher
     grapherView: GrapherView
     bounds: Bounds
+    renderControlsRow?: boolean
 }
 
 export class ChartLayout {
@@ -109,20 +110,6 @@ export class ChartLayout {
         )
     }
 
-    // TEMP: will be removed when ControlsRow is rendered by individual charts
-    @computed private get hasControlsRow() {
-        const { grapher } = this.props
-        return (
-            grapher.primaryTab === "chart" &&
-            ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
-                grapher.isScatter ||
-                grapher.canChangeEntity ||
-                (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
-                (grapher.isLineChart &&
-                    grapher.lineChartTransform.canToggleRelativeMode))
-        )
-    }
-
     @computed get svgHeight() {
         if (this.isExporting) return this.props.bounds.height
 
@@ -130,7 +117,7 @@ export class ChartLayout {
         return (
             this.props.bounds.height -
             this.header.height -
-            (this.hasControlsRow ? ControlsRow.height : 0) -
+            (this.props.renderControlsRow ? ControlsRowHeight : 0) -
             this.footer.height -
             overlayPadding.top -
             overlayPadding.bottom -
@@ -150,6 +137,7 @@ export class ChartLayout {
 
 export class ChartLayoutView extends React.Component<{
     layout: ChartLayout
+    controlsRowControls?: React.ReactElement[]
     children: any
 }> {
     @computed get svgStyle() {
@@ -186,13 +174,15 @@ export class ChartLayoutView extends React.Component<{
     }
 
     renderWithHTMLText() {
-        const { layout } = this.props
+        const { layout, controlsRowControls } = this.props
         const { grapher, grapherView } = layout.props
 
         return (
             <React.Fragment>
                 <HeaderHTML grapher={grapher} header={layout.header} />
-                <ControlsRow grapher={grapher} />
+                {controlsRowControls && (
+                    <ControlsRow controls={controlsRowControls} />
+                )}
                 <ControlsOverlayView grapherView={grapherView}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
