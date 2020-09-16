@@ -1,7 +1,7 @@
 import React from "react"
 import { CollapsibleList } from "./CollapsibleList/CollapsibleList"
 
-export const ControlsRowHeight = 45
+export const ControlsRowHeight = 36
 
 export class ControlsRow extends React.Component<{
     controls: React.ReactElement[]
