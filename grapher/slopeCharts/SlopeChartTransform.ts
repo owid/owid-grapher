@@ -26,7 +26,7 @@ export class SlopeChartTransform extends ChartTransform {
                 return "continents"
             },
             get sortedNumericValues() {
-                return that.colorDimension?.sortedNumericValues ?? []
+                return that.colorDimension?.column.sortedNumericValues ?? []
             },
             get categoricalValues() {
                 return (
@@ -55,31 +55,31 @@ export class SlopeChartTransform extends ChartTransform {
         )
     }
 
-    @computed.struct get xDomain(): [number, number] {
+    @computed.struct private get xDomain(): [number, number] {
         return [this.startTimelineTime, this.endTimelineTime]
     }
 
-    @computed.struct get sizeDim() {
+    @computed.struct private get sizeDim() {
         return this.grapher.filledDimensions.find((d) => d.property === "size")
     }
 
-    @computed.struct get colorDimension() {
+    @computed.struct private get colorDimension() {
         return this.grapher.filledDimensions.find((d) => d.property === "color")
     }
 
-    @computed.struct get yDimension() {
+    @computed.struct private get yDimension() {
         return this.grapher.filledDimensions.find((d) => d.property === "y")
     }
 
     // helper method to directly get the associated color value given an Entity
     // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
     // this returns that data in the form { Afghanistan => Asia }
-    @computed get colorByEntity(): Map<string, string | undefined> {
+    @computed private get colorByEntity(): Map<string, string | undefined> {
         const { colorDimension, colorScale } = this
         const colorByEntity = new Map<string, string | undefined>()
 
         if (colorDimension !== undefined) {
-            colorDimension.valueByEntityAndTime.forEach(
+            colorDimension.column.valueByEntityNameAndTime.forEach(
                 (yearToColorMap, entity) => {
                     const values = Array.from(yearToColorMap.values())
                     const key = last(values)
@@ -94,15 +94,17 @@ export class SlopeChartTransform extends ChartTransform {
     // helper method to directly get the associated size value given an Entity
     // dimension data saves size a level deeper. eg: { Afghanistan => { 1990: 1, 2015: 10 }}
     // this returns that data in the form { Afghanistan => 1 }
-    @computed get sizeByEntity(): Map<string, any> {
+    @computed private get sizeByEntity(): Map<string, any> {
         const { sizeDim } = this
         const sizeByEntity = new Map<string, any>()
 
         if (sizeDim !== undefined) {
-            sizeDim.valueByEntityAndTime.forEach((yearToSizeMap, entity) => {
-                const values = Array.from(yearToSizeMap.values())
-                sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first year
-            })
+            sizeDim.column.valueByEntityNameAndTime.forEach(
+                (yearToSizeMap, entity) => {
+                    const values = Array.from(yearToSizeMap.values())
+                    sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first year
+                }
+            )
         }
         return sizeByEntity
     }
@@ -119,14 +121,17 @@ export class SlopeChartTransform extends ChartTransform {
         const { yDimension, xDomain, colorByEntity, sizeByEntity } = this
 
         const table = this.grapher.table
+        const column = yDimension.column
 
         const minYear = Math.max(xDomain[0])
         const maxYear = Math.min(xDomain[1])
 
-        const entityNames = yDimension.column.entityNamesUniqArr
+        const entityNames = column.entityNamesUniqArr
         let data: SlopeChartSeries[] = entityNames.map((entityName) => {
             const slopeValues: SlopeChartValue[] = []
-            const yValues = yDimension.valueByEntityAndTime.get(entityName)
+            const yValues = yDimension.column.valueByEntityNameAndTime.get(
+                entityName
+            )
             if (yValues !== undefined) {
                 yValues.forEach((value, year) => {
                     if (year === minYear || year === maxYear) {

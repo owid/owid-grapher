@@ -124,10 +124,12 @@ export class StackedBarTransform extends ChartTransform {
         filledDimensions.forEach((dimension) => {
             const seriesByKey = new Map<EntityName, StackedBarSeries>()
 
-            for (let i = 0; i <= dimension.column.times.length; i += 1) {
-                const year = dimension.column.times[i]
-                const entityName = dimension.column.entityNames[i]
-                const value = +dimension.values[i]
+            const { column } = dimension
+
+            for (let i = 0; i <= column.times.length; i += 1) {
+                const year = column.times[i]
+                const entityName = column.entityNames[i]
+                const value = +column.values[i]
                 let series = seriesByKey.get(entityName)
 
                 // Not a selected key, don't add any data for it
@@ -205,7 +207,7 @@ export class StackedBarTransform extends ChartTransform {
                 return "stackedAreaDefault"
             },
             get sortedNumericValues() {
-                return that.colorDimension?.sortedNumericValues ?? []
+                return that.colorDimension?.column.sortedNumericValues ?? []
             },
             get categoricalValues() {
                 return uniq(that.groupedData.map((d) => d.entityName)).reverse()

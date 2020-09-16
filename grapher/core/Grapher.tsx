@@ -214,14 +214,14 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
         this.initFontSizeInAxisContainers()
 
-        if (this.owidDataset) this._receiveData(this.owidDataset)
+        if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
         else if (this.externalDataUrl)
-            this.downloadDataFromUrl(this.externalDataUrl)
+            this.downloadLegacyDataFromUrl(this.externalDataUrl)
         else if (!this.manuallyProvideData)
             this.disposers.push(
                 reaction(
                     () => this.variableIds,
-                    this.downloadDataFromOwidVariableIds,
+                    this.downloadLegacyDataFromOwidVariableIds,
                     {
                         fireImmediately: true,
                     }
@@ -431,12 +431,12 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @observable userHasSetTimeline = false
 
-    @action.bound private async downloadDataFromUrl(url: string) {
+    @action.bound private async downloadLegacyDataFromUrl(url: string) {
         const json = await fetchJSON(url)
-        this._receiveData(json)
+        this._receiveLegacyData(json)
     }
 
-    @action.bound private async downloadDataFromOwidVariableIds() {
+    @action.bound private async downloadLegacyDataFromOwidVariableIds() {
         if (this.variableIds.length === 0)
             // No data to download
             return
@@ -446,9 +446,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
-                this._receiveData(json)
+                this._receiveLegacyData(json)
             } else {
-                await this.downloadDataFromUrl(this.dataUrl)
+                await this.downloadLegacyDataFromUrl(this.dataUrl)
             }
         } catch (err) {
             console.error(err)
@@ -461,13 +461,39 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     // In the future if we merge the two we could shift to a cleaner approach.
     @observable.ref embedExplorerCheckbox?: JSX.Element
 
-    @action.bound receiveData(json: LegacyVariablesAndEntityKey) {
-        this._receiveData(json)
+    @action.bound receiveLegacyData(json: LegacyVariablesAndEntityKey) {
+        this._receiveLegacyData(json)
     }
 
-    @action.bound private _receiveData(json: LegacyVariablesAndEntityKey) {
+    @action.bound applyLegacyUnitConversionFactors() {
+        const table = this.table
+        table.columnsAsArray
+            .filter((col) => col.display.conversionFactor !== undefined)
+            .forEach((col) => {
+                table.addLegacyColumnFromUnitConversion(
+                    col.display.conversionFactor!,
+                    col.spec.owidVariableId!
+                )
+            })
+
+        this.dimensions
+            .filter((dim) => dim.display?.conversionFactor !== undefined)
+            .forEach((dimension) => {
+                table.addLegacyColumnFromUnitConversion(
+                    dimension.display!.conversionFactor!,
+                    dimension.variableId
+                )
+            })
+    }
+
+    @action.bound private _receiveLegacyData(
+        json: LegacyVariablesAndEntityKey
+    ) {
         const { table } = this
         table.loadFromLegacy(json)
+
+        this.applyLegacyUnitConversionFactors()
+
         if (this.selectedEntityIds.length)
             table.setSelectedEntitiesByEntityId(this.selectedEntityIds)
         else if (this.selectedEntityNames.length)

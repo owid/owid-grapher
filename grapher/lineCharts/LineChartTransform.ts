@@ -76,7 +76,8 @@ export class LineChartTransform extends ChartTransform {
 
         filledDimensions.forEach((dimension) => {
             const seriesByKey = new Map<EntityName, LineChartSeries>()
-            const { column, isProjection, values } = dimension
+            const { column, isProjection } = dimension
+            const { values } = column
 
             for (let i = 0; i < column.times.length; i++) {
                 const time = column.times[i]

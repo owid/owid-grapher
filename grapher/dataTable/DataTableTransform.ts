@@ -223,6 +223,7 @@ export class DataTableTransform extends ChartTransform {
 
     @computed get dimensionsWithValues(): Dimension[] {
         return this.dimensions.map((dimension) => {
+            const { column } = dimension
             const targetTimes =
                 // If a targetTime override is specified on the dimension (scatter plots
                 // can do this) then use that target time and ignore the timeline.
@@ -242,13 +243,13 @@ export class DataTableTransform extends ChartTransform {
                       // getStartEndValues() extracts these two values.
                       es6mapValues(
                           valuesByEntityWithinTimes(
-                              dimension.valueByEntityAndTime,
+                              column.valueByEntityNameAndTime,
                               targetTimes
                           ),
                           getStartEndValues
                       )
                     : valuesByEntityAtTimes(
-                          dimension.valueByEntityAndTime,
+                          column.valueByEntityNameAndTime,
                           targetTimes,
                           dimension.tolerance
                       )

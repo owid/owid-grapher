@@ -66,7 +66,7 @@ export async function bakeChartToImage(
 
     const variableIds = lodash.uniq(chart.dimensions.map((d) => d.variableId))
     const vardata = await getVariableData(variableIds)
-    chart.receiveData(vardata)
+    chart.receiveLegacyData(vardata)
 
     let svgCode = chart.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)

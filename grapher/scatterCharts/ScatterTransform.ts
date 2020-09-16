@@ -46,7 +46,7 @@ export class ScatterTransform extends ChartTransform {
                 return "continents"
             },
             get sortedNumericValues() {
-                return that.colorDimension?.sortedNumericValues ?? []
+                return that.colorDimension?.column.sortedNumericValues ?? []
             },
             get categoricalValues() {
                 return (
@@ -217,8 +217,9 @@ export class ScatterTransform extends ChartTransform {
                 EntityName,
                 { times: Time[]; values: (string | number)[] }
             >()
-            const rows = dimension.column.rowsWithValue
-            dimension.values.forEach((value, index) => {
+            const { column } = dimension
+            const rows = column.rowsWithValue
+            column.values.forEach((value, index) => {
                 const row = rows[index]
                 const time = row.year ?? row.day
                 const entityName = row.entityName

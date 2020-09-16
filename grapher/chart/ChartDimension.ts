@@ -4,8 +4,6 @@ import {
     isString,
     formatDay,
     formatYear,
-    isNumber,
-    sortNumeric,
     trimObject,
 } from "grapher/utils/Util"
 import {
@@ -200,49 +198,13 @@ export class ChartDimension
             : formatYear
     }
 
+    // todo: remove unitConversionFactor concept? use computed columns instead?
+    // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
     @computed get unitConversionFactor() {
         return (
             this.display.conversionFactor ??
             this.columnDisplay.conversionFactor ??
             1
         )
-    }
-
-    // todo: remove unitConversionFactor concept? use computed columns instead?
-    // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
-    @computed get values(): (number | string)[] {
-        const { unitConversionFactor } = this
-        return unitConversionFactor === 1
-            ? this.column.values
-            : this.column.values.map(
-                  (v) => (v as number) * unitConversionFactor
-              )
-    }
-
-    @computed get sortedNumericValues() {
-        return sortNumeric(
-            this.values.filter(isNumber).filter((v) => !isNaN(v))
-        )
-    }
-
-    @computed get valueByEntityAndTime() {
-        const valueByEntityAndTime = new Map<
-            string,
-            Map<number, string | number>
-        >()
-        for (let i = 0; i < this.values.length; i++) {
-            const column = this.column
-            const entity = column.entityNames[i]
-            const time = column.times[i]
-            const value = this.values[i]
-
-            let valueByTime = valueByEntityAndTime.get(entity)
-            if (!valueByTime) {
-                valueByTime = new Map()
-                valueByEntityAndTime.set(entity, valueByTime)
-            }
-            valueByTime.set(time, value)
-        }
-        return valueByEntityAndTime
     }
 }

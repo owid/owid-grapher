@@ -87,10 +87,11 @@ export class DiscreteBarTransform extends ChartTransform {
 
         filledDimensions.forEach((dimension) => {
             const { tolerance } = dimension
+            const { column } = dimension
 
-            for (let i = 0; i < dimension.column.times.length; i++) {
-                const year = dimension.column.times[i]
-                const entityName = dimension.column.entityNames[i]
+            for (let i = 0; i < column.times.length; i++) {
+                const year = column.times[i]
+                const entityName = column.entityNames[i]
                 if (
                     year < targetYear - tolerance ||
                     year > targetYear + tolerance ||
@@ -109,7 +110,7 @@ export class DiscreteBarTransform extends ChartTransform {
 
                 const datum = {
                     entityName,
-                    value: +dimension.values[i],
+                    value: +column.values[i],
                     year: year,
                     label: getLabelForEntityName(entityName),
                     color: "#2E5778",
@@ -196,15 +197,17 @@ export class DiscreteBarTransform extends ChartTransform {
         const allData: DiscreteBarDatum[] = []
 
         filledDimensions.forEach((dimension) => {
-            for (let i = 0; i < dimension.column.times.length; i++) {
-                const year = dimension.column.times[i]
-                const entityName = dimension.column.entityNames[i]
+            const { column } = dimension
+
+            for (let i = 0; i < column.times.length; i++) {
+                const year = column.times[i]
+                const entityName = column.entityNames[i]
 
                 if (!selectedEntityNameSet.has(entityName)) continue
 
                 const datum = {
                     entityName,
-                    value: +dimension.values[i],
+                    value: +column.values[i],
                     year,
                     label: getLabelForEntityName(entityName),
                     color: "#2E5778",

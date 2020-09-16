@@ -25,6 +25,8 @@ import {
     csvEscape,
     formatYear,
     sortedUniq,
+    sortNumeric,
+    isNumber,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { EPOCH_DATE, Time } from "grapher/core/GrapherConstants"
@@ -289,6 +291,32 @@ export abstract class AbstractColumn {
     @computed get values() {
         const slug = this.spec.slug
         return this.rowsWithValue.map((row) => row[slug])
+    }
+
+    @computed get sortedNumericValues() {
+        return sortNumeric(
+            this.values.filter(isNumber).filter((v) => !isNaN(v))
+        )
+    }
+
+    @computed get valueByEntityNameAndTime() {
+        const valueByEntityNameAndTime = new Map<
+            string,
+            Map<number, string | number>
+        >()
+        for (let i = 0; i < this.values.length; i++) {
+            const entityName = this.entityNames[i]
+            const time = this.times[i]
+            const value = this.values[i]
+
+            let valueByTime = valueByEntityNameAndTime.get(entityName)
+            if (!valueByTime) {
+                valueByTime = new Map()
+                valueByEntityNameAndTime.set(entityName, valueByTime)
+            }
+            valueByTime.set(time, value)
+        }
+        return valueByEntityNameAndTime
     }
 
     @computed get latestValuesMap() {

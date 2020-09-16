@@ -106,13 +106,15 @@ export class MapTransform extends ChartTransform {
 
         if (!dimension) return mappableData
 
-        for (let i = 0; i < dimension.column.times.length; i++) {
-            const entity = dimension.column.entityNames[i]
+        const { column } = dimension
+
+        for (let i = 0; i < column.times.length; i++) {
+            const entity = column.entityNames[i]
             if (!MapTransform.countryNamesWithMapSvg.has(entity)) continue
 
             mappableData.entities.push(entity)
-            mappableData.times.push(dimension.column.times[i])
-            mappableData.values.push(dimension.values[i])
+            mappableData.times.push(column.times[i])
+            mappableData.values.push(column.values[i])
         }
 
         return mappableData
@@ -160,7 +162,8 @@ export class MapTransform extends ChartTransform {
     // Get values for the current time, without any color info yet
     @computed private get valuesByEntity(): { [key: string]: MapDataValue } {
         const { endTimelineTime, grapher } = this
-        const valueByEntityAndTime = this.dimension?.valueByEntityAndTime
+        const valueByEntityAndTime = this.dimension?.column
+            .valueByEntityNameAndTime
 
         if (endTimelineTime === undefined || !valueByEntityAndTime) return {}
 

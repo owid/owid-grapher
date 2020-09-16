@@ -47,7 +47,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         if (!tooltipDatum) return []
 
         const sparkBarValues: SparkBarsDatum[] = []
-        this.grapher.mapTransform.dimension?.valueByEntityAndTime
+        this.grapher.mapTransform.dimension?.column.valueByEntityNameAndTime
             .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({

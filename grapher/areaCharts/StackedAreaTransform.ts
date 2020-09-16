@@ -47,10 +47,12 @@ export class StackedAreaTransform extends ChartTransform {
         filledDimensions.forEach((dimension) => {
             const seriesByKey = new Map<EntityName, StackedAreaSeries>()
 
-            for (let i = 0; i < dimension.column.times.length; i++) {
-                const year = dimension.column.times[i]
-                const value = +dimension.values[i]
-                const entityName = dimension.column.entityNames[i]
+            const { column } = dimension
+
+            for (let i = 0; i < column.times.length; i++) {
+                const year = column.times[i]
+                const value = +column.values[i]
+                const entityName = column.entityNames[i]
                 let series = seriesByKey.get(entityName)
 
                 // Not a selected key, don't add any data for it
