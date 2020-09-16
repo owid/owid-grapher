@@ -49,7 +49,11 @@ export class SlopeChartTransform extends ChartTransform {
     }
 
     @computed get availableTimes(): Time[] {
-        return flatten(this.grapher.axisDimensions.map((d) => d.timesUniq))
+        return flatten(
+            this.grapher.axisDimensions.map(
+                (dimension) => dimension.column.timesUniq
+            )
+        )
     }
 
     @computed.struct get xDomain(): [number, number] {
@@ -129,7 +133,7 @@ export class SlopeChartTransform extends ChartTransform {
         const minYear = Math.max(xDomain[0])
         const maxYear = Math.min(xDomain[1])
 
-        const entityNames = yDimension.entityNamesUniq
+        const entityNames = yDimension.column.entityNamesUniqArr
         let data: SlopeChartSeries[] = entityNames.map((entityName) => {
             const slopeValues: SlopeChartValue[] = []
             const yValues = yDimension.valueByEntityAndTime.get(entityName)

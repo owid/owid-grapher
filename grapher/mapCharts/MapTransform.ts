@@ -85,7 +85,7 @@ export class MapTransform extends ChartTransform {
         if (!this.dimension) return {}
 
         const entities: { [id: string]: string } = {}
-        for (const entity of this.dimension.entityNamesUniq) {
+        for (const entity of this.dimension.column.entityNamesUniqArr) {
             entities[entityNameForMap(entity)] = entity
         }
         return entities
@@ -107,12 +107,12 @@ export class MapTransform extends ChartTransform {
 
         if (!dimension) return mappableData
 
-        for (let i = 0; i < dimension.times.length; i++) {
-            const entity = dimension.entityNames[i]
+        for (let i = 0; i < dimension.column.times.length; i++) {
+            const entity = dimension.column.entityNames[i]
             if (!MapTransform.countryNamesWithMapSvg.has(entity)) continue
 
             mappableData.entities.push(entity)
-            mappableData.times.push(dimension.times[i])
+            mappableData.times.push(dimension.column.times[i])
             mappableData.values.push(dimension.values[i])
         }
 
@@ -167,7 +167,7 @@ export class MapTransform extends ChartTransform {
 
         const tolerance = this.props.timeTolerance ?? 0
         const entityNames = this.dimension
-            ? this.dimension.entityNamesUniq.filter((name) =>
+            ? this.dimension.column.entityNamesUniqArr.filter((name) =>
                   MapTransform.countryNamesWithMapSvg.has(name)
               )
             : []

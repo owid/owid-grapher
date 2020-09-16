@@ -127,7 +127,7 @@ class VariableEditRow extends React.Component<{
                 grapher.addCountryMode = "change-country"
             } else {
                 grapher.addCountryMode = "add-country"
-                if (grapher.filledDimensions[0].timesUniq.length === 1) {
+                if (grapher.filledDimensions[0].column.timesUniq.length === 1) {
                     grapher.type = ChartTypes.DiscreteBar
                     grapher.selectedKeys =
                         grapher.availableKeys.length > 15

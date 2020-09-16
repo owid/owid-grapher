@@ -45,10 +45,10 @@ export class StackedAreaTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             const seriesByKey = new Map<EntityDimensionKey, StackedAreaSeries>()
 
-            for (let i = 0; i < dimension.times.length; i++) {
-                const year = dimension.times[i]
+            for (let i = 0; i < dimension.column.times.length; i++) {
+                const year = dimension.column.times[i]
                 const value = +dimension.values[i]
-                const entityName = dimension.entityNames[i]
+                const entityName = dimension.column.entityNames[i]
                 const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex

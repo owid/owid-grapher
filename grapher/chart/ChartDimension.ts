@@ -6,7 +6,6 @@ import {
     formatYear,
     last,
     isNumber,
-    sortedUniq,
     sortNumeric,
     trimObject,
 } from "grapher/utils/Util"
@@ -244,22 +243,6 @@ export class ChartDimension
         )
     }
 
-    get timesUniq() {
-        return sortedUniq(this.times)
-    }
-
-    get times(): Time[] {
-        return this.column.times
-    }
-
-    get entityNamesUniq(): EntityName[] {
-        return Array.from(this.column.entityNamesUniq)
-    }
-
-    get entityNames() {
-        return this.column.entityNames
-    }
-
     timeAndValueOfLatestValueforEntity(entity: string) {
         const valueByTime = this.valueByEntityAndTime.get(entity)
         return valueByTime ? last(Array.from(valueByTime)) ?? null : null
@@ -271,8 +254,9 @@ export class ChartDimension
             Map<number, string | number>
         >()
         for (let i = 0; i < this.values.length; i++) {
-            const entity = this.entityNames[i]
-            const time = this.times[i]
+            const column = this.column
+            const entity = column.entityNames[i]
+            const time = column.times[i]
             const value = this.values[i]
 
             let valueByTime = valueByEntityAndTime.get(entity)

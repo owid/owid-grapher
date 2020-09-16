@@ -126,7 +126,7 @@ export class DataTableTransform extends ChartTransform {
 
         this.dimensions.forEach((dim) => {
             const numberOfEntitiesWithDataSortedByTime = sortBy(
-                Object.entries(countBy(dim.times)),
+                Object.entries(countBy(dim.column.times)),
                 (value) => parseInt(value[0])
             )
 
@@ -154,7 +154,7 @@ export class DataTableTransform extends ChartTransform {
 
     @computed get availableTimes() {
         return intersection(
-            flatten(this.dimensions.map((dim) => dim.timesUniq))
+            flatten(this.dimensions.map((dim) => dim.column.timesUniq))
         )
     }
 
@@ -165,7 +165,9 @@ export class DataTableTransform extends ChartTransform {
     }
 
     @computed get entities() {
-        return union(...this.dimensions.map((dim) => dim.entityNamesUniq))
+        return union(
+            ...this.dimensions.map((dim) => dim.column.entityNamesUniqArr)
+        )
     }
 
     // TODO move this logic to chart

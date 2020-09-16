@@ -133,8 +133,12 @@ export class ScatterTransform extends ChartTransform {
         return this.grapher.addCountryMode === "disabled"
     }
     @computed private get possibleEntityNames(): EntityName[] {
-        const yEntities = this.yDimension ? this.yDimension.entityNamesUniq : []
-        const xEntities = this.xDimension ? this.xDimension.entityNamesUniq : []
+        const yEntities = this.yDimension
+            ? this.yDimension.column.entityNamesUniqArr
+            : []
+        const xEntities = this.xDimension
+            ? this.xDimension.column.entityNamesUniqArr
+            : []
         return intersection(yEntities, xEntities)
     }
 
@@ -163,7 +167,7 @@ export class ScatterTransform extends ChartTransform {
         if (this.grapher.matchingEntitiesOnly && this.colorDimension)
             entityNames = intersection(
                 entityNames,
-                this.colorDimension.entityNamesUniq
+                this.colorDimension.column.entityNamesUniqArr
             )
 
         if (this.excludedEntityNames)
@@ -178,8 +182,12 @@ export class ScatterTransform extends ChartTransform {
     // Not all of these will necessarily end up on the timeline, because there may be no x/y entity overlap for that time
     // e.g. https://ourworldindata.org/grapher/life-expectancy-years-vs-real-gdp-per-capita-2011us
     @computed private get possibleDataTimes(): Time[] {
-        const yDimensionTimes = this.yDimension ? this.yDimension.timesUniq : []
-        const xDimensionTimes = this.xDimension ? this.xDimension.timesUniq : []
+        const yDimensionTimes = this.yDimension
+            ? this.yDimension.column.timesUniq
+            : []
+        const xDimensionTimes = this.xDimension
+            ? this.xDimension.column.timesUniq
+            : []
 
         if (this.xOverrideTime !== undefined) return yDimensionTimes
         else return intersection(yDimensionTimes, xDimensionTimes)

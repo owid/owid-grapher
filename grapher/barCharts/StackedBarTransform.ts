@@ -38,7 +38,7 @@ export class StackedBarTransform extends ChartTransform {
 
     @computed get availableTimes(): Time[] {
         if (this.primaryDimension === undefined) return []
-        return this.primaryDimension.timesUniq
+        return this.primaryDimension.column.timesUniq
     }
 
     @computed get barValueFormat(): (datum: StackedBarValue) => string {
@@ -119,9 +119,9 @@ export class StackedBarTransform extends ChartTransform {
         filledDimensions.forEach((dimension, dimIndex) => {
             const seriesByKey = new Map<EntityDimensionKey, StackedBarSeries>()
 
-            for (let i = 0; i <= dimension.times.length; i += 1) {
-                const year = dimension.times[i]
-                const entityName = dimension.entityNames[i]
+            for (let i = 0; i <= dimension.column.times.length; i += 1) {
+                const year = dimension.column.times[i]
+                const entityName = dimension.column.entityNames[i]
                 const value = +dimension.values[i]
                 const entityDimensionKey = makeEntityDimensionKey(
                     entityName,

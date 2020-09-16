@@ -504,7 +504,13 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @computed get sortedUniqueEntitiesAcrossDimensions() {
         return sortBy(
-            uniq(flatten(this.filledDimensions.map((d) => d.entityNamesUniq)))
+            uniq(
+                flatten(
+                    this.filledDimensions.map(
+                        (dim) => dim.column.entityNamesUniqArr
+                    )
+                )
+            )
         )
     }
 
@@ -1100,7 +1106,10 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
             // Entity must be within that dimension
             const entityName = entityIdToNameMap.get(sel.entityId)
-            if (!entityName || !dimension.entityNamesUniq.includes(entityName))
+            if (
+                !entityName ||
+                !dimension.column.entityNamesUniq.has(entityName)
+            )
                 return false
 
             // "change entity" charts can only have one entity selected
@@ -1290,7 +1299,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
         const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
         primaryDimensions.forEach((dimension, dimensionIndex) => {
-            dimension.entityNamesUniq.forEach((entityName) => {
+            dimension.column.entityNamesUniqArr.forEach((entityName) => {
                 const entityCode = this.table.entityNameToCodeMap.get(
                     entityName
                 )

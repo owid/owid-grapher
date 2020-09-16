@@ -73,20 +73,22 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed private get initialData() {
-        const { grapher } = this
-        const { yAxis } = grapher
-        const { selectedKeys, selectedKeysByKey } = grapher
-        const filledDimensions = grapher.filledDimensions
+        const {
+            selectedKeys,
+            selectedKeysByKey,
+            filledDimensions,
+            yAxis,
+        } = this.grapher
 
         let chartData: LineChartSeries[] = []
 
         filledDimensions.forEach((dimension, dimIndex) => {
             const seriesByKey = new Map<EntityDimensionKey, LineChartSeries>()
 
-            for (let i = 0; i < dimension.times.length; i++) {
-                const year = dimension.times[i]
+            for (let i = 0; i < dimension.column.times.length; i++) {
+                const year = dimension.column.times[i]
                 const value = parseFloat(dimension.values[i] as string)
-                const entityName = dimension.entityNames[i]
+                const entityName = dimension.column.entityNames[i]
                 const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex

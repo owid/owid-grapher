@@ -24,9 +24,10 @@ import {
     formatDay,
     csvEscape,
     formatYear,
+    sortedUniq,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
-import { EPOCH_DATE } from "grapher/core/GrapherConstants"
+import { EPOCH_DATE, Time } from "grapher/core/GrapherConstants"
 import {
     ColumnTypeNames,
     Year,
@@ -241,6 +242,10 @@ export abstract class AbstractColumn {
         return new Set<string>(this.entityNames)
     }
 
+    @computed get entityNamesUniqArr(): EntityName[] {
+        return Array.from(this.entityNamesUniq)
+    }
+
     // todo: remove
     @computed get valuesUniq(): any[] {
         return Array.from(this.valuesAsSet)
@@ -260,8 +265,12 @@ export abstract class AbstractColumn {
     }
 
     // todo: remove
-    @computed get times() {
+    @computed get times(): Time[] {
         return this.rowsWithValue.map((row) => (row.year ?? row.day)!)
+    }
+
+    get timesUniq() {
+        return sortedUniq(this.times)
     }
 
     @computed private get allValues() {
