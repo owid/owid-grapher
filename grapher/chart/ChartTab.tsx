@@ -32,22 +32,20 @@ export class ChartTab extends React.Component<{
     grapherView: GrapherView
     bounds: Bounds
 }> {
-    @computed get controlsRowControls() {
+    @computed get controlsRowControls(): React.ReactElement[] {
         const controls: JSX.Element[] = []
-
         const { grapher } = this.props
+
+        if (!grapher.isReady) return []
         const onDataSelect = action(() => (grapher.isSelectingData = true))
 
         if (grapher.tab === "chart") {
             const yAxis =
-                grapher.isReady &&
-                ((grapher.isStackedArea &&
-                    grapher.stackedAreaTransform.yAxis) ||
-                    (grapher.isStackedBar &&
-                        grapher.stackedBarTransform.yAxis) ||
-                    (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
-                    ((grapher.isScatter || grapher.isTimeScatter) &&
-                        grapher.scatterTransform.yAxis))
+                (grapher.isStackedArea && grapher.stackedAreaTransform.yAxis) ||
+                (grapher.isStackedBar && grapher.stackedBarTransform.yAxis) ||
+                (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
+                ((grapher.isScatter || grapher.isTimeScatter) &&
+                    grapher.scatterTransform.yAxis)
 
             yAxis &&
                 yAxis.scaleTypeOptions.length > 1 &&
