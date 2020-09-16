@@ -1,13 +1,3 @@
-/* PointsWithLabels.tsx
- * ================
- *
- * Core scatterplot renderer
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-03-09
- */
-
 import * as React from "react"
 import { scaleLinear } from "d3-scale"
 import {
@@ -40,7 +30,6 @@ import { EntityDimensionKey, SortOrder } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { EntityName } from "owidTable/OwidTableConstants"
-import { Grapher } from "grapher/core/Grapher"
 
 export interface ScatterSeries {
     color: string

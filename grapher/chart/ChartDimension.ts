@@ -4,7 +4,6 @@ import {
     isString,
     formatDay,
     formatYear,
-    last,
     isNumber,
     sortNumeric,
     trimObject,
@@ -120,7 +119,7 @@ export class ChartDimension
         return this.display.name ?? this.columnDisplay.name ?? this.column.name
     }
 
-    @computed get columnDisplay() {
+    @computed private get columnDisplay() {
         return this.column.display
     }
 
@@ -138,14 +137,6 @@ export class ChartDimension
     // Full name of the variable with associated unit information, used for data export
     @computed get fullNameWithUnit() {
         return `${this.displayName}${this.unit ? ` (${this.unit})` : ""}`
-    }
-
-    @computed get unitConversionFactor() {
-        return (
-            this.display.conversionFactor ??
-            this.columnDisplay.conversionFactor ??
-            1
-        )
     }
 
     @computed get isProjection() {
@@ -211,8 +202,8 @@ export class ChartDimension
             isString(value)
                 ? value
                 : formatValue(value, {
-                      unit: unit,
-                      numDecimalPlaces: numDecimalPlaces,
+                      unit,
+                      numDecimalPlaces,
                       ...options,
                   })
     }
@@ -224,6 +215,14 @@ export class ChartDimension
         return this.column.isDailyMeasurement
             ? (day: Time, options?) => formatDay(day, options)
             : formatYear
+    }
+
+    @computed get unitConversionFactor() {
+        return (
+            this.display.conversionFactor ??
+            this.columnDisplay.conversionFactor ??
+            1
+        )
     }
 
     // todo: remove unitConversionFactor concept? use computed columns instead?
@@ -241,11 +240,6 @@ export class ChartDimension
         return sortNumeric(
             this.values.filter(isNumber).filter((v) => !isNaN(v))
         )
-    }
-
-    timeAndValueOfLatestValueforEntity(entity: string) {
-        const valueByTime = this.valueByEntityAndTime.get(entity)
-        return valueByTime ? last(Array.from(valueByTime)) ?? null : null
     }
 
     @computed get valueByEntityAndTime() {

@@ -84,11 +84,12 @@ export class LineChartTransform extends ChartTransform {
 
         filledDimensions.forEach((dimension, dimIndex) => {
             const seriesByKey = new Map<EntityDimensionKey, LineChartSeries>()
+            const { column, isProjection, values } = dimension
 
-            for (let i = 0; i < dimension.column.times.length; i++) {
-                const year = dimension.column.times[i]
-                const value = parseFloat(dimension.values[i] as string)
-                const entityName = dimension.column.entityNames[i]
+            for (let i = 0; i < column.times.length; i++) {
+                const time = column.times[i]
+                const value = parseFloat(values[i] as string)
+                const entityName = column.entityNames[i]
                 const entityDimensionKey = makeEntityDimensionKey(
                     entityName,
                     dimIndex
@@ -105,13 +106,13 @@ export class LineChartTransform extends ChartTransform {
                         values: [],
                         entityName,
                         entityDimensionKey,
-                        isProjection: dimension.isProjection,
+                        isProjection,
                         color: "#000", // tmp
                     }
                     seriesByKey.set(entityDimensionKey, series)
                 }
 
-                series.values.push({ x: year, y: value, time: year })
+                series.values.push({ x: time, y: value, time })
             }
 
             chartData = chartData.concat([...Array.from(seriesByKey.values())])
