@@ -32,8 +32,6 @@ import { Bounds } from "grapher/utils/Bounds"
 import { Text } from "grapher/text/Text"
 import { TextWrap } from "grapher/text/TextWrap"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
-import { ScaleSelector } from "grapher/controls/ScaleSelector"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { Grapher } from "grapher/core/Grapher"
 
@@ -678,22 +676,6 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         ))
     }
 
-    @computed get controls() {
-        const { yAxisOptions } = this.props
-        const showScaleSelector =
-            this.props.isInteractive && yAxisOptions.canChangeScaleType
-        if (!showScaleSelector) return undefined
-        return (
-            <ControlsOverlay id="slope-scale-selector" paddingTop={20}>
-                <ScaleSelector
-                    x={this.bounds.x}
-                    y={this.bounds.y - 35}
-                    scaleTypeConfig={yAxisOptions.toVerticalAxis()}
-                />
-            </ControlsOverlay>
-        )
-    }
-
     render() {
         const { yTickFormat, fontSize } = this.props
         const yScaleType = this.yScaleType
@@ -769,7 +751,6 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 )}
                 <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
                 <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333" />
-                {this.controls}
                 <Text
                     x={x1}
                     y={y1 + 10}

@@ -47,7 +47,8 @@ export class ChartTab extends React.Component<{
                     grapher.stackedBarTransform.yAxis) ||
                 (grapher.isLineChart && grapher.lineChartTransform.yAxis) ||
                 ((grapher.isScatter || grapher.isTimeScatter) &&
-                    grapher.scatterTransform.yAxis)
+                    grapher.scatterTransform.yAxis) ||
+                (grapher.isSlopeChart && grapher.yAxis.toVerticalAxis())
 
             yAxis &&
                 yAxis.scaleTypeOptions.length > 1 &&
