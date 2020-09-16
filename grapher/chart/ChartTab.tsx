@@ -75,7 +75,7 @@ export class ChartTab extends React.Component<{
                                 {`Select ${grapher.entityTypePlural}`}
                             </span>
                         ) : (
-                            <span>
+                            <span className="SelectEntitiesButton">
                                 <FontAwesomeIcon icon={faPlus} />{" "}
                                 {grapher.addButtonLabel}
                             </span>
