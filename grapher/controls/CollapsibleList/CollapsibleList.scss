@@ -1,15 +1,19 @@
 .collapsibleList {
-    padding-left: 15px;
     white-space: nowrap;
 
     ul {
         list-style: none;
         > .list-item {
-            &.visible {
+            &.visible,
+            &.moreButton {
                 display: inline-block;
 
                 padding-left: 15px;
             }
         }
+    }
+
+    .moreButton {
+        cursor: pointer;
     }
 }

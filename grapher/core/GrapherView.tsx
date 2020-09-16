@@ -485,20 +485,6 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         return false
     }
 
-    @computed get hasInlineControls(): boolean {
-        const grapher = this.grapher
-        return (
-            (grapher.currentTab === "chart" ||
-                grapher.currentTab === "table") &&
-            ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
-                grapher.isScatter ||
-                grapher.canChangeEntity ||
-                (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
-                (grapher.isLineChart &&
-                    grapher.lineChartTransform.canToggleRelativeMode))
-        )
-    }
-
     @computed get hasSpace(): boolean {
         return this.renderWidth > 700
     }
@@ -516,9 +502,6 @@ export class GrapherView extends React.Component<GrapherViewProps> {
     @computed private get footerLines(): number {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
-        if (this.hasInlineControls) numLines += 1
-        if (this.hasSpace && this.hasInlineControls && numLines > 1)
-            numLines -= 1
         return numLines
     }
 

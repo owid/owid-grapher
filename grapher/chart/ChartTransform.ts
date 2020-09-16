@@ -8,12 +8,14 @@ import { first, last, sortNumeric, uniq } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 import { Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
+import { VerticalAxis } from "grapher/axis/Axis"
 
 export interface IChartTransform {
     timelineTimes: Time[]
     startTimelineTime?: Time
     endTimelineTime?: Time
     colorScale?: ColorScale
+    yAxis?: VerticalAxis
 }
 
 export abstract class ChartTransform implements IChartTransform {

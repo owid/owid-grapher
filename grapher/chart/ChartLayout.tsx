@@ -6,6 +6,7 @@ import { SourcesFooter, SourcesFooterHTML } from "grapher/chart/Footer"
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
 import { observer } from "mobx-react"
+import { ControlsRow, ControlsRowHeight } from "grapher/controls/ControlsRow"
 
 @observer
 class ControlsOverlayView extends React.Component<{
@@ -59,6 +60,7 @@ interface ChartLayoutProps {
     grapher: Grapher
     grapherView: GrapherView
     bounds: Bounds
+    renderControlsRow?: boolean
 }
 
 export class ChartLayout {
@@ -115,6 +117,7 @@ export class ChartLayout {
         return (
             this.props.bounds.height -
             this.header.height -
+            (this.props.renderControlsRow ? ControlsRowHeight : 0) -
             this.footer.height -
             overlayPadding.top -
             overlayPadding.bottom -
@@ -134,6 +137,7 @@ export class ChartLayout {
 
 export class ChartLayoutView extends React.Component<{
     layout: ChartLayout
+    controlsRowControls?: React.ReactElement[]
     children: any
 }> {
     @computed get svgStyle() {
@@ -170,12 +174,15 @@ export class ChartLayoutView extends React.Component<{
     }
 
     renderWithHTMLText() {
-        const { layout } = this.props
+        const { layout, controlsRowControls } = this.props
         const { grapher, grapherView } = layout.props
 
         return (
             <React.Fragment>
                 <HeaderHTML grapher={grapher} header={layout.header} />
+                {controlsRowControls && (
+                    <ControlsRow controls={controlsRowControls} />
+                )}
                 <ControlsOverlayView grapherView={grapherView}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
