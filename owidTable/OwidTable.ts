@@ -467,7 +467,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     }
 
     // Todo: remove? Generally do not call this method. Call the constructor instead. RAII style.
-    @action.bound load(
+    @action.bound protected load(
         rows: ROW_TYPE[],
         columnSpecs:
             | ColumnSpecs
@@ -1253,6 +1253,27 @@ export class OwidTable extends AbstractTable<OwidRow> {
             rows: sortBy(joinedRows, ["year", "day"]),
             columnSpecs,
         }
+    }
+
+    getNewIdForColumnsWithUnitConversions(variableId: LegacyVariableId) {
+        return variableId + 1e7
+    }
+
+    @action.bound addLegacyColumnFromUnitConversion(
+        unitConversionFactor: number,
+        variableId: LegacyVariableId
+    ) {
+        const sourceColumn = this.columnsByOwidVarId.get(variableId)!
+        const owidVariableId = this.getNewIdForColumnsWithUnitConversions(
+            variableId
+        )
+        this.addNumericComputedColumn({
+            ...sourceColumn.spec,
+            slug: owidVariableId.toString(),
+            owidVariableId,
+            fn: (row) => row[sourceColumn.slug] * unitConversionFactor,
+        })
+        return owidVariableId
     }
 
     @action.bound loadFromLegacy(json: LegacyVariablesAndEntityKey) {
