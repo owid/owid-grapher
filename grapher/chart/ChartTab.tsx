@@ -167,18 +167,18 @@ export class ChartTab extends React.Component<{
         if (!grapher.isReady) {
             return <LoadingOverlay bounds={bounds} />
         } else if (grapher.isSlopeChart) {
-            return <SlopeChart bounds={bounds.padTop(15)} grapher={grapher} />
+            return <SlopeChart bounds={bounds.padTop(18)} grapher={grapher} />
         } else if (grapher.isScatter) {
             return (
                 <ScatterPlot
-                    bounds={bounds.padTop(15).padBottom(15)}
+                    bounds={bounds.padTop(18).padBottom(15)}
                     grapher={grapher}
                 />
             )
         } else if (grapher.isTimeScatter) {
             return (
                 <TimeScatter
-                    bounds={bounds.padTop(15).padBottom(15)}
+                    bounds={bounds.padTop(18).padBottom(15)}
                     grapher={grapher}
                 />
             )
@@ -186,33 +186,33 @@ export class ChartTab extends React.Component<{
             // Switch to bar chart if a single year is selected
             return grapher.lineChartTransform.isSingleTime ? (
                 <DiscreteBarChart
-                    bounds={bounds.padTop(15).padBottom(15)}
+                    bounds={bounds.padTop(18).padBottom(15)}
                     grapher={grapher}
                 />
             ) : (
                 <LineChart
-                    bounds={bounds.padTop(15).padBottom(15)}
+                    bounds={bounds.padTop(18).padBottom(15)}
                     grapher={grapher}
                 />
             )
         } else if (grapher.isStackedArea) {
             return (
                 <StackedAreaChart
-                    bounds={bounds.padTop(15).padBottom(15)}
+                    bounds={bounds.padTop(18).padBottom(15)}
                     grapher={grapher}
                 />
             )
         } else if (grapher.isDiscreteBar) {
             return (
                 <DiscreteBarChart
-                    bounds={bounds.padTop(15).padBottom(15)}
+                    bounds={bounds.padTop(18).padBottom(15)}
                     grapher={grapher}
                 />
             )
         } else if (grapher.isStackedBar) {
             return (
                 <StackedBarChart
-                    bounds={bounds.padTop(15).padBottom(15)}
+                    bounds={bounds.padTop(18).padBottom(15)}
                     grapher={grapher}
                 />
             )
