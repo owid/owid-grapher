@@ -100,7 +100,9 @@ export class ChartTab extends React.Component<{
 
             grapher.hasFloatingAddButton &&
                 grapher.showAddEntityControls &&
-                controls.push(<AddEntityButton grapher={grapher} />)
+                controls.push(
+                    <AddEntityButton key="AddEntityButton" grapher={grapher} />
+                )
 
             grapher.isScatter &&
                 grapher.hasSelection &&
