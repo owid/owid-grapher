@@ -1,20 +1,13 @@
-import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { parseDelimited } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
 
-// Todo: improve ChartScript to ditch selectedData and owidVariableId.
+// Todo: improve ChartScript to ditch owidVariableId.
 export function basicGdpGrapher() {
-    const props = {
-        selectedData: [
-            { index: 0, entityId: 0 },
-            { index: 0, entityId: 1 },
-        ],
+    const grapher = new Grapher({
         manuallyProvideData: true,
-        yAxis: {},
         dimensions: [{ variableId: 99, property: "y" }],
-    } as Partial<GrapherInterface>
-
-    const grapher = new Grapher(props as any)
+    })
+    const table = grapher.table
     const rows = parseDelimited(`entityName,year,gdp,entityId,population
 France,2000,100,0,123
 Germany,2000,200,1,125
@@ -31,9 +24,10 @@ Germany,2003,120,1,256`) as any
         row.year = parseInt(row.year)
         row.population = parseInt(row.population)
     })
-    grapher.table.cloneAndAddRowsAndDetectColumns(rows)
-    grapher.table.columnsBySlug.get("gdp")!.spec.owidVariableId = 99
-    grapher.table.columnsBySlug.get("population")!.spec.owidVariableId = 100
+    table.cloneAndAddRowsAndDetectColumns(rows)
+    table.columnsBySlug.get("gdp")!.spec.owidVariableId = 99
+    table.columnsBySlug.get("population")!.spec.owidVariableId = 100
+    table.setSelectedEntities(["France", "Germany"])
     return grapher
 }
 

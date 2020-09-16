@@ -23,21 +23,13 @@ import {
     sortBy,
     getErrorMessageRelatedQuestionUrl,
     slugify,
-    keyBy,
-    cloneDeep,
-    union,
-    without,
-    xor,
-    lastOfNonEmptyArray,
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
 } from "grapher/utils/Util"
 import {
     ChartTypes,
     GrapherTabOption,
-    Color,
     TickFormattingOptions,
-    EntityDimensionKey,
     ScaleType,
     StackMode,
     DimensionProperty,
@@ -46,14 +38,11 @@ import {
     HighlightToggleConfig,
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
-    EntitySelection,
     Time,
 } from "grapher/core/GrapherConstants"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { OwidTable } from "owidTable/OwidTable"
-import { EntityName, EntityId, EntityCode } from "owidTable/OwidTableConstants"
 import {
-    EntityDimensionInfo,
     ChartDimension,
     SourceWithDimension,
     ChartDimensionInterface,
@@ -93,7 +82,10 @@ import { countries } from "utils/countries"
 import { DataTableTransform } from "grapher/dataTable/DataTableTransform"
 import { getWindowQueryParams, strToQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import {
+    GrapherInterface,
+    LegacyGrapherInterface,
+} from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
@@ -110,7 +102,7 @@ import {
     updatePersistables,
 } from "grapher/persistable/Persistable"
 import { TimeViz } from "grapher/timeline/TimelineController"
-import { makeEntityDimensionKey } from "./EntityDimensionKey"
+import { EntityId, EntityName } from "owidTable/OwidTableConstants"
 
 declare const window: any
 
@@ -165,8 +157,9 @@ class GrapherDefaults implements GrapherInterface {
     @observable map = new MapConfig()
     @observable.ref dimensions: ChartDimension[] = []
 
+    @observable selectedEntityNames: EntityName[] = []
+    @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
-    @observable.ref selectedData: EntitySelection[] = [] // todo: Persistables?
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
     @observable relatedQuestions?: RelatedQuestionsConfig[] // todo: Persistables?
 
@@ -176,6 +169,19 @@ class GrapherDefaults implements GrapherInterface {
 }
 
 const defaultObject = objectWithPersistablesToObject(new GrapherDefaults())
+
+const legacyConfigToConfig = (
+    config: LegacyGrapherInterface | GrapherInterface
+): GrapherInterface => {
+    const legacyConfig = config as LegacyGrapherInterface
+    if (!legacyConfig.selectedData) return legacyConfig
+
+    const newConfig = legacyConfig as GrapherInterface
+    newConfig.selectedEntityIds = legacyConfig.selectedData.map(
+        (row) => row.entityId
+    )
+    return newConfig
+}
 
 export class Grapher extends GrapherDefaults implements TimeViz {
     // TODO: Pass these 5 in as options, donn't get them as globals
@@ -189,7 +195,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @observable.ref table: OwidTable
 
     constructor(
-        config?: GrapherInterface,
+        legacyConfig?: LegacyGrapherInterface | GrapherInterface,
         options: {
             isEmbed?: boolean
             isMediaCard?: boolean
@@ -199,6 +205,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     ) {
         super()
         this.table = new OwidTable([])
+        const config = legacyConfig
+            ? legacyConfigToConfig(legacyConfig)
+            : legacyConfig
         this.updateFromObject(config)
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
@@ -255,6 +264,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     toObject() {
         const obj: GrapherInterface = objectWithPersistablesToObject(this)
 
+        if (this.table.hasSelection)
+            obj.selectedEntityNames = this.table.selectedEntityNames
+
         // Never save the followingto the DB.
         delete obj.externalDataUrl
         delete obj.owidDataset
@@ -275,6 +287,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @action.bound updateFromObject(obj?: GrapherInterface) {
         if (!obj) return
+
         updatePersistables(this, obj)
 
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
@@ -359,13 +372,13 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                     const entityCodes = EntityUrlBuilder.queryParamToEntities(
                         country
                     )
-                    const matchedEntities = this.setSelectedEntitiesByCode(
-                        entityCodes
+                    const matchedEntities = new Set(
+                        this.table.setSelectedEntitiesByCode(entityCodes)
                     )
-                    const notFoundEntities = Array.from(
-                        matchedEntities.keys()
-                    ).filter((key) => !matchedEntities.get(key))
 
+                    const notFoundEntities = entityCodes.filter(
+                        (code) => !matchedEntities.has(code)
+                    )
                     if (notFoundEntities.length)
                         this.analytics.logEntitiesNotFoundError(
                             notFoundEntities
@@ -406,7 +419,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
     @computed get hasCountriesSmallerThanFilterOption() {
-        return this.table.availableEntities.some(
+        return this.table.availableEntityNames.some(
             (entityName) =>
                 populationMap[entityName] &&
                 populationMap[entityName] < this.populationFilterOption
@@ -424,10 +437,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @action.bound private async downloadDataFromOwidVariableIds() {
-        if (this.variableIds.length === 0) {
+        if (this.variableIds.length === 0)
             // No data to download
             return
-        }
 
         try {
             if (window.admin) {
@@ -454,7 +466,13 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @action.bound private _receiveData(json: LegacyVariablesAndEntityKey) {
-        this.table.loadFromLegacy(json)
+        const { table } = this
+        table.loadFromLegacy(json)
+        if (this.selectedEntityIds.length)
+            table.setSelectedEntitiesByEntityId(this.selectedEntityIds)
+        else if (this.selectedEntityNames.length)
+            table.setSelectedEntities(this.selectedEntityNames)
+        // Todo: load colors
         this.updatePopulationFilter() // todo: remove
     }
 
@@ -834,7 +852,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @computed get currentTitle() {
         let text = this.displayTitle
-        const selectedEntityNames = this.selectedEntityNames
+        const selectedEntityNames = this.table.selectedEntityNames
 
         if (
             this.primaryTab === "chart" &&
@@ -843,7 +861,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
             (!this.hideTitleAnnotation || this.canChangeEntity)
         ) {
             const entityStr = selectedEntityNames[0]
-            if (entityStr.length) text = text + ", " + entityStr
+            if (entityStr.length) text = `${text}, ${entityStr}`
         }
 
         if (
@@ -879,7 +897,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @computed get isSingleEntity() {
         return (
-            this.table.availableEntities.length === 1 ||
+            this.table.availableEntityNames.length === 1 ||
             this.addCountryMode === "change-country"
         )
     }
@@ -910,7 +928,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @computed get canAddData() {
         return (
             this.addCountryMode === "add-country" &&
-            this.availableKeys.length > 1
+            this.table.availableEntityNames.length > 1
         )
     }
 
@@ -918,7 +936,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return (
             !this.isScatter &&
             this.addCountryMode === "change-country" &&
-            this.availableEntityNames.length > 1
+            this.table.availableEntityNames.length > 1
         )
     }
 
@@ -1036,16 +1054,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return new DataTableTransform(this)
     }
 
-    @computed get selectableEntityDimensionKeys() {
-        let keys = this.availableKeys
-        if (this.isScatter || this.isTimeScatter)
-            keys = this.scatterTransform.selectableEntityDimensionKeys
-        else if (this.isSlopeChart)
-            keys = this.slopeChartTransform.selectableEntityDimensionKeys
-
-        return keys.map((key) => this.lookupKey(key))
-    }
-
     @computed get activeColorScale() {
         return this.activeTransform.colorScale
     }
@@ -1087,261 +1095,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.version.toString()
     }
 
-    // todo: remove
-    @computed get hasSelection() {
-        return this.selectedData.length > 0
-    }
-
-    // todo: remove
-    @computed private get selectionData(): Array<{
-        entityDimensionKey: EntityDimensionKey
-        color?: Color
-    }> {
-        const primaryDimensions = this.primaryDimensions
-        const entityIdToNameMap = this.table.entityIdToNameMap
-        let validSelections = this.selectedData.filter((sel) => {
-            // Must be a dimension that's on the chart
-            const dimension = primaryDimensions[sel.index]
-            if (!dimension) return false
-
-            // Entity must be within that dimension
-            const entityName = entityIdToNameMap.get(sel.entityId)
-            if (
-                !entityName ||
-                !dimension.column.entityNamesUniq.has(entityName)
-            )
-                return false
-
-            // "change entity" charts can only have one entity selected
-            if (
-                this.addCountryMode === "change-country" &&
-                sel.entityId !== lastOfNonEmptyArray(this.selectedData).entityId
-            )
-                return false
-
-            return true
-        })
-
-        validSelections = uniqWith(
-            validSelections,
-            (a: any, b: any) => a.entityId === b.entityId && a.index === b.index
-        )
-
-        return validSelections.map((sel) => {
-            return {
-                entityDimensionKey: makeEntityDimensionKey(
-                    entityIdToNameMap.get(sel.entityId)!,
-                    sel.index
-                ),
-                color: sel.color,
-            }
-        })
-    }
-
-    // todo: remove
-    selectEntityDimensionKey(key: EntityDimensionKey) {
-        this.selectedKeys = this.selectedKeys.concat([key])
-    }
-
-    // todo: remove
-    @computed.struct get keyColors(): {
-        [entityDimensionKey: string]: Color | undefined
-    } {
-        const keyColors: {
-            [entityDimensionKey: string]: Color | undefined
-        } = {}
-        this.selectionData.forEach((d) => {
-            if (d.color) keyColors[d.entityDimensionKey] = d.color
-        })
-        return keyColors
-    }
-
-    // todo: remove
-    setKeyColor(key: EntityDimensionKey, color: Color | undefined) {
-        const meta = this.lookupKey(key)
-        const selectedData = cloneDeep(this.selectedData)
-        selectedData.forEach((d) => {
-            if (d.entityId === meta.entityId && d.index === meta.index) {
-                d.color = color
-            }
-        })
-        this.selectedData = selectedData
-    }
-
-    // todo: remove
-    @computed get selectedEntityNames(): EntityName[] {
-        return uniq(
-            this.selectedKeys.map((key) => this.lookupKey(key).entityName)
-        )
-    }
-
-    // todo: remove
-    @computed get availableEntityNames(): EntityName[] {
-        const entitiesForDimensions = this.axisDimensions.map((dim) => {
-            return this.availableKeys
-                .map((key) => this.lookupKey(key))
-                .filter((d) => d.dimension.variableId === dim.variableId)
-                .map((d) => d.entityName)
-        })
-
-        return union(...entitiesForDimensions)
-    }
-
-    // todo: remove
-    @action.bound setSingleSelectedEntity(entityId: EntityId) {
-        const selectedData = cloneDeep(this.selectedData)
-        selectedData.forEach((d) => (d.entityId = entityId))
-        this.selectedData = selectedData
-    }
-
-    // todo: remove
-    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
-        const matchedEntities = new Map<string, boolean>()
-        entityCodes.forEach((code) => matchedEntities.set(code, false))
-        if (this.canChangeEntity) {
-            this.availableEntityNames.forEach((entityName) => {
-                const entityId = this.table.entityNameToIdMap.get(entityName)!
-                const entityCode = this.table.entityNameToCodeMap.get(
-                    entityName
-                )
-                if (
-                    entityCode === entityCodes[0] ||
-                    entityName === entityCodes[0]
-                ) {
-                    matchedEntities.set(entityCodes[0], true)
-                    this.setSingleSelectedEntity(entityId)
-                }
-            })
-        } else {
-            this.selectedKeys = this.availableKeys.filter((key) => {
-                const meta = this.lookupKey(key)
-                const entityName = meta.entityName
-                const entityCode = this.table.entityNameToCodeMap.get(
-                    entityName
-                )
-                return [meta.shortCode, entityCode, entityName]
-                    .map((key) => {
-                        if (!matchedEntities.has(key!)) return false
-                        matchedEntities.set(key!, true)
-                        return true
-                    })
-                    .some((item) => item)
-            })
-        }
-        return matchedEntities
-    }
-
-    // todo: remove
-    @action.bound resetSelectedEntities() {
-        this.selectedData = this.configOnLoad.selectedData || []
-    }
-
-    // todo: remove
-    @computed get selectedEntityCodes(): EntityCode[] {
-        return uniq(this.selectedKeys.map((k) => this.lookupKey(k).shortCode))
-    }
-
-    // todo: remove
-    deselect(entityDimensionKey: EntityDimensionKey) {
-        this.selectedKeys = this.selectedKeys.filter(
-            (e) => e !== entityDimensionKey
-        )
-    }
-
-    // todo: remove
-    @computed get selectedKeys(): EntityDimensionKey[] {
-        return this.selectionData.map((d) => d.entityDimensionKey)
-    }
-
-    // remove
-    // Map keys back to their components for storage
-    set selectedKeys(keys: EntityDimensionKey[]) {
-        if (!this.isReady) return
-
-        const selection = keys.map((key) => {
-            const { entityName: entity, index } = this.lookupKey(key)
-            return {
-                entityId: this.table.entityNameToIdMap.get(entity)!,
-                index: index,
-                color: this.keyColors[key],
-            }
-        })
-        this.selectedData = selection
-    }
-
-    selectOnlyThisEntity(entityName: string) {
-        const keys = this.availableKeysByEntity.get(entityName)
-        if (keys?.length) this.selectedKeys = keys
-    }
-
-    toggleEntitySelectionStatus(entityName: string) {
-        const keys = this.availableKeysByEntity.get(entityName)
-        if (keys?.length) this.selectedKeys = xor(keys, this.selectedKeys)
-    }
-
-    // todo: remove
-    @computed get selectedKeysByKey(): {
-        [entityDimensionKey: string]: EntityDimensionKey
-    } {
-        return keyBy(this.selectedKeys)
-    }
-
-    // todo: remove this
-    // Calculate the available entityDimensionKeys and their associated info
-    @computed get entityDimensionMap(): Map<
-        EntityDimensionKey,
-        EntityDimensionInfo
-    > {
-        if (!this.isReady) return new Map()
-        const { isSingleEntity, isSingleVariable } = this
-        const primaryDimensions = this.primaryDimensions
-        const dimensions = this.dimensions
-
-        const keyData = new Map<EntityDimensionKey, EntityDimensionInfo>()
-        primaryDimensions.forEach((dimension, dimensionIndex) => {
-            dimension.column.entityNamesUniqArr.forEach((entityName) => {
-                const entityCode = this.table.entityNameToCodeMap.get(
-                    entityName
-                )
-                const entityId = this.table.entityNameToIdMap.get(entityName)!
-                const entityDimensionKey = makeEntityDimensionKey(
-                    entityName,
-                    dimensionIndex
-                )
-
-                // Full label completely represents the data in the key and is used in the editor
-                const fullLabel = `${entityName} - ${dimension.displayName}`
-
-                // The output label however is context-dependent
-                let label = fullLabel
-                if (isSingleVariable) {
-                    label = entityName
-                } else if (isSingleEntity) {
-                    label = `${dimension.displayName}`
-                }
-
-                keyData.set(entityDimensionKey, {
-                    entityDimensionKey,
-                    entityId,
-                    entityName: entityName,
-                    dimension,
-                    index: dimensionIndex,
-                    fullLabel,
-                    label,
-                    shortCode:
-                        primaryDimensions.length > 1 &&
-                        this.addCountryMode !== "change-country"
-                            ? `${entityCode || entityName}-${dimensions.indexOf(
-                                  dimension
-                              )}`
-                            : entityCode || entityName,
-                })
-            })
-        })
-
-        return keyData
-    }
-
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode(): boolean {
@@ -1354,49 +1107,5 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @computed get canToggleRelativeMode(): boolean {
         return !this.hideRelativeToggle
-    }
-
-    // todo: remove
-    @computed.struct get availableKeys(): EntityDimensionKey[] {
-        return sortBy(Array.from(this.entityDimensionMap.keys()))
-    }
-
-    // todo: remove
-    @computed.struct get remainingKeys(): EntityDimensionKey[] {
-        const { availableKeys, selectedKeys } = this
-        return without(availableKeys, ...selectedKeys)
-    }
-
-    // todo: remove
-    @computed get availableKeysByEntity(): Map<
-        EntityName,
-        EntityDimensionKey[]
-    > {
-        const keysByEntity = new Map()
-        this.entityDimensionMap.forEach((info, key) => {
-            const keys = keysByEntity.get(info.entityName) || []
-            keys.push(key)
-            keysByEntity.set(info.entityName, keys)
-        })
-        return keysByEntity
-    }
-
-    // todo: remove
-    lookupKey(key: EntityDimensionKey): EntityDimensionInfo {
-        const keyDatum = this.entityDimensionMap.get(key)
-        if (keyDatum !== undefined) return keyDatum
-        else throw new Error(`Unknown data key: ${key}`)
-    }
-
-    // todo: remove
-    getLabelForKey(key: EntityDimensionKey) {
-        return this.lookupKey(key).label
-    }
-
-    // todo: remove
-    toggleKey(key: EntityDimensionKey) {
-        if (this.selectedKeys.includes(key))
-            this.selectedKeys = this.selectedKeys.filter((k) => k !== key)
-        else this.selectedKeys = this.selectedKeys.concat([key])
     }
 }

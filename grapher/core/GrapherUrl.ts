@@ -1,6 +1,4 @@
-/* ChartUrl.ts
- * ================
- *
+/*
  * This component is responsible for translating between the
  * the chart and url parameters, to enable nice linking support
  * for specific countries and years.
@@ -181,15 +179,14 @@ export class GrapherUrl implements ObservableUrl {
         const { grapher, originalConfig } = this
         if (
             grapher.isReady &&
-            JSON.stringify(grapher.selectedData) !==
-                JSON.stringify(originalConfig.selectedData)
-        ) {
+            JSON.stringify(grapher.selectedEntityNames) !==
+                JSON.stringify(originalConfig.selectedEntityNames)
+        )
             return EntityUrlBuilder.entitiesToQueryParam(
-                grapher.selectedEntityCodes
+                grapher.table.selectedEntityCodes
             )
-        } else {
-            return undefined
-        }
+
+        return undefined
     }
 }
 

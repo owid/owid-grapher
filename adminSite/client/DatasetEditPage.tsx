@@ -109,36 +109,35 @@ class VariableEditRow extends React.Component<{
 
     @action.bound grapherIsReady(grapher: Grapher) {
         // XXX refactor this with EditorBasicTab
-        if (lodash.isEmpty(grapher.mapTransform.choroplethData)) {
-            grapher.tab = "chart"
-            grapher.hasMapTab = false
-            if (grapher.isScatter || grapher.isSlopeChart) {
-                grapher.selectedKeys = []
-            } else if (grapher.primaryDimensions.length > 1) {
-                const entity = lodash.includes(
-                    grapher.availableEntityNames,
-                    "World"
+        if (!lodash.isEmpty(grapher.mapTransform.choroplethData)) return
+
+        grapher.tab = "chart"
+        grapher.hasMapTab = false
+        const { table } = grapher
+        const { availableEntityNames } = table
+        if (grapher.isScatter || grapher.isSlopeChart) {
+            table.clearSelection()
+        } else if (grapher.primaryDimensions.length > 1) {
+            const entity = table.availableEntityNameSet.has("World")
+                ? "World"
+                : lodash.sample(availableEntityNames)
+            table.selectEntity(entity!)
+            grapher.addCountryMode = "change-country"
+        } else {
+            grapher.addCountryMode = "add-country"
+            if (grapher.filledDimensions[0].column.timesUniq.length === 1) {
+                grapher.type = ChartTypes.DiscreteBar
+                table.setSelectedEntities(
+                    availableEntityNames.length > 15
+                        ? lodash.sampleSize(availableEntityNames, 8)
+                        : availableEntityNames
                 )
-                    ? "World"
-                    : lodash.sample(grapher.availableEntityNames)
-                grapher.selectedKeys = grapher.availableKeys.filter(
-                    (key) => grapher.lookupKey(key).entityName === entity
-                )
-                grapher.addCountryMode = "change-country"
             } else {
-                grapher.addCountryMode = "add-country"
-                if (grapher.filledDimensions[0].column.timesUniq.length === 1) {
-                    grapher.type = ChartTypes.DiscreteBar
-                    grapher.selectedKeys =
-                        grapher.availableKeys.length > 15
-                            ? lodash.sampleSize(grapher.availableKeys, 8)
-                            : grapher.availableKeys
-                } else {
-                    grapher.selectedKeys =
-                        grapher.availableKeys.length > 10
-                            ? lodash.sampleSize(grapher.availableKeys, 3)
-                            : grapher.availableKeys
-                }
+                table.setSelectedEntities(
+                    availableEntityNames.length > 10
+                        ? lodash.sampleSize(availableEntityNames, 3)
+                        : availableEntityNames
+                )
             }
         }
     }
@@ -156,10 +155,10 @@ class VariableEditRow extends React.Component<{
         )
 
         this.dispose = autorun(() => {
-            const chart = this.grapher
+            const grapher = this.grapher
             const display = lodash.clone(this.newVariable.display)
-            if (chart) {
-                runInAction(() => (chart.dimensions[0].display = display))
+            if (grapher) {
+                runInAction(() => (grapher.dimensions[0].display = display))
             }
         })
     }

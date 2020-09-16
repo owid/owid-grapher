@@ -2,9 +2,8 @@ import { computed } from "mobx"
 import { isEmpty, flatten, identity, last } from "grapher/utils/Util"
 import { SlopeChartSeries, SlopeChartValue } from "./LabelledSlopes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
+import { Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
-import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -114,21 +113,12 @@ export class SlopeChartTransform extends ChartTransform {
             : (d) => `${d}`
     }
 
-    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
-        return this.data.map((series) => series.entityDimensionKey)
-    }
-
     @computed get data() {
         if (!this.yDimension) return []
 
-        const {
-            yDimension,
-            xDomain,
-            colorByEntity,
-            sizeByEntity,
-            grapher,
-        } = this
-        const { keyColors } = grapher
+        const { yDimension, xDomain, colorByEntity, sizeByEntity } = this
+
+        const table = this.grapher.table
 
         const minYear = Math.max(xDomain[0])
         const maxYear = Math.min(xDomain[1])
@@ -151,15 +141,11 @@ export class SlopeChartTransform extends ChartTransform {
                 })
             }
 
-            const entityDimensionKey = makeEntityDimensionKey(
-                entityName,
-                grapher.dimensions.indexOf(yDimension)
-            )
             return {
-                entityDimensionKey,
+                entityName,
                 label: entityName,
                 color:
-                    keyColors[entityDimensionKey] ||
+                    table.getColorForEntityName(entityName) ||
                     colorByEntity.get(entityName) ||
                     "#ff7f0e",
                 size: sizeByEntity.get(entityName) || 1,

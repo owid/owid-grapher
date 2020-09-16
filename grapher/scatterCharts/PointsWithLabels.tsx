@@ -26,14 +26,14 @@ import { Vector2 } from "grapher/utils/Vector2"
 import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
-import { EntityDimensionKey, SortOrder } from "grapher/core/GrapherConstants"
+import { SortOrder } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { EntityName } from "owidTable/OwidTableConstants"
 
 export interface ScatterSeries {
     color: string
-    entityDimensionKey: EntityDimensionKey
+    entityName: string
     label: string
     size: number
     values: ScatterValue[]
@@ -67,7 +67,7 @@ interface ScatterRenderValue {
 }
 
 interface ScatterRenderSeries {
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     displayKey: string
     color: string
     size: number
@@ -233,7 +233,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @computed private get focusKeys(): string[] {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map((g) => g.entityDimensionKey)
+            this.data.map((g) => g.entityName)
         )
     }
 
@@ -312,8 +312,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 })
 
                 return {
-                    entityDimensionKey: d.entityDimensionKey,
-                    displayKey: "key-" + makeSafeForCSS(d.entityDimensionKey),
+                    entityName: d.entityName,
+                    displayKey: "key-" + makeSafeForCSS(d.entityName),
                     color: d.color,
                     size: (last(values) as any).size,
                     values: values,
@@ -534,8 +534,8 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const renderData = this.initialRenderData
 
         for (const series of renderData) {
-            series.isHover = this.hoverKeys.includes(series.entityDimensionKey)
-            series.isFocus = this.focusKeys.includes(series.entityDimensionKey)
+            series.isHover = this.hoverKeys.includes(series.entityName)
+            series.isFocus = this.focusKeys.includes(series.entityName)
             series.isForeground = series.isHover || series.isFocus
             if (series.isHover) series.size += 1
         }
@@ -620,23 +620,21 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         bounds: Bounds
     ) {
         for (const label of labels) {
-            if (label.bounds.left < bounds.left - 1) {
+            if (label.bounds.left < bounds.left - 1)
                 label.bounds = label.bounds.extend({
                     x: label.bounds.x + label.bounds.width,
                 })
-            } else if (label.bounds.right > bounds.right + 1) {
+            else if (label.bounds.right > bounds.right + 1)
                 label.bounds = label.bounds.extend({
                     x: label.bounds.x - label.bounds.width,
                 })
-            }
 
-            if (label.bounds.top < bounds.top - 1) {
+            if (label.bounds.top < bounds.top - 1)
                 label.bounds = label.bounds.extend({ y: bounds.top })
-            } else if (label.bounds.bottom > bounds.bottom + 1) {
+            else if (label.bounds.bottom > bounds.bottom + 1)
                 label.bounds = label.bounds.extend({
                     y: bounds.bottom - label.bounds.height,
                 })
-            }
         }
     }
 
@@ -656,10 +654,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
             const closestSeries = minBy(this.renderData, (series) => {
-                /*if (some(series.allLabels, l => !l.isHidden && l.bounds.contains(mouse)))
-                    return -Infinity*/
-
-                if (series.values.length > 1) {
+                if (series.values.length > 1)
                     return min(
                         series.values.slice(0, -1).map((d, i) => {
                             return Vector2.distanceFromPointToLineSq(
@@ -669,25 +664,17 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             )
                         })
                     )
-                } else {
-                    return min(
-                        series.values.map((v) =>
-                            Vector2.distanceSq(v.position, mouse)
-                        )
-                    )
-                }
-            })
 
-            /*if (closestSeries)
-                this.hoverKey = closestSeries.key
-            else
-                this.hoverKey = null*/
+                return min(
+                    series.values.map((v) =>
+                        Vector2.distanceSq(v.position, mouse)
+                    )
+                )
+            })
 
             if (closestSeries && this.props.onMouseOver) {
                 const datum = this.data.find(
-                    (d) =>
-                        d.entityDimensionKey ===
-                        closestSeries.entityDimensionKey
+                    (d) => d.entityName === closestSeries.entityName
                 )
                 if (datum) this.props.onMouseOver(datum)
             }
@@ -713,7 +700,7 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             ? []
             : backgroundGroups.map((group) => (
                   <ScatterBackgroundLine
-                      key={group.entityDimensionKey}
+                      key={group.entityName}
                       group={group}
                       isLayerMode={isLayerMode}
                       isConnected={isConnected}

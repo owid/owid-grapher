@@ -9,8 +9,6 @@ import { DualAxis, HorizontalAxis, VerticalAxis } from "grapher/axis/Axis"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { ComparisonLine } from "./ComparisonLine"
 
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
-
 import {
     sortBy,
     cloneDeep,
@@ -24,10 +22,11 @@ import { Vector2 } from "grapher/utils/Vector2"
 import { select } from "d3-selection"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { ScatterPlotOptionsProvider } from "./ScatterPlotOptionsProvider"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 interface ScatterSeries {
     color: string
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     label: string
     size: number
     values: ScatterValue[]
@@ -71,7 +70,7 @@ interface ScatterRenderPoint {
 }
 
 interface ScatterRenderSeries {
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     displayKey: string
     color: string
     points: ScatterRenderPoint[]
@@ -204,8 +203,8 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         })
 
         return {
-            entityDimensionKey: data.entityDimensionKey,
-            displayKey: "key-" + makeSafeForCSS(data.entityDimensionKey),
+            entityName: data.entityName,
+            displayKey: "key-" + makeSafeForCSS(data.entityName),
             color: data.color,
             points: points,
             text: data.label,

@@ -11,11 +11,11 @@ import {
     max,
     formatValue,
 } from "grapher/utils/Util"
-import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
+import { Time } from "grapher/core/GrapherConstants"
 import { StackedAreaSeries, StackedAreaValue } from "./StackedAreaChart"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 // Responsible for translating chart configuration into the form
 // of a stacked area chart
@@ -29,34 +29,32 @@ export class StackedAreaTransform extends ChartTransform {
             this.groupedData[0].values.length === 0
         )
             return "No matching data"
-        else return undefined
+
+        return undefined
     }
 
     // Get the data for each stacked area series, cleaned to ensure every series
     // "lines up" i.e. has a data point for every year
     @computed private get groupedData() {
         const { grapher } = this
-        const { selectedKeys, selectedKeysByKey } = grapher
+        const { selectedEntityNameSet, selectedEntityNames } = grapher.table
+        const table = grapher.table
         const filledDimensions = grapher.filledDimensions
 
         let groupedData: StackedAreaSeries[] = []
 
         // First, we populate the data as we would for a line chart (each series independently)
-        filledDimensions.forEach((dimension, dimIndex) => {
-            const seriesByKey = new Map<EntityDimensionKey, StackedAreaSeries>()
+        filledDimensions.forEach((dimension) => {
+            const seriesByKey = new Map<EntityName, StackedAreaSeries>()
 
             for (let i = 0; i < dimension.column.times.length; i++) {
                 const year = dimension.column.times[i]
                 const value = +dimension.values[i]
                 const entityName = dimension.column.entityNames[i]
-                const entityDimensionKey = makeEntityDimensionKey(
-                    entityName,
-                    dimIndex
-                )
-                let series = seriesByKey.get(entityDimensionKey)
+                let series = seriesByKey.get(entityName)
 
                 // Not a selected key, don't add any data for it
-                if (!selectedKeysByKey[entityDimensionKey]) continue
+                if (!selectedEntityNameSet.has(entityName)) continue
                 // Must be numeric
                 if (isNaN(value)) continue
                 // Stacked area chart can't go negative!
@@ -65,11 +63,11 @@ export class StackedAreaTransform extends ChartTransform {
                 if (!series) {
                     series = {
                         values: [],
-                        entityDimensionKey: entityDimensionKey,
+                        entityName,
                         isProjection: dimension.isProjection,
                         color: "#fff", // tmp
                     }
-                    seriesByKey.set(entityDimensionKey, series)
+                    seriesByKey.set(entityName, series)
                 }
 
                 series.values.push({ x: year, y: value, time: year })
@@ -132,7 +130,7 @@ export class StackedAreaTransform extends ChartTransform {
         // Preserve order
         groupedData = sortBy(
             groupedData,
-            (series) => -selectedKeys.indexOf(series.entityDimensionKey)
+            (series) => -selectedEntityNames.indexOf(series.entityName)
         )
 
         // Assign colors
@@ -141,8 +139,8 @@ export class StackedAreaTransform extends ChartTransform {
         const colorScale = scaleOrdinal(baseColors)
         groupedData.forEach((series) => {
             series.color =
-                grapher.keyColors[series.entityDimensionKey] ||
-                colorScale(series.entityDimensionKey)
+                table.getColorForEntityName(series.entityName) ||
+                colorScale(series.entityName)
         })
 
         // In relative mode, transform data to be a percentage of the total for that year

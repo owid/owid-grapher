@@ -20,10 +20,10 @@ export const bakeCovidChartAndVariableMeta = async () => {
         variables: {},
     }
 
-    const charts = await db.query(
+    const graphers = await db.query(
         `select id, config from charts where id in (${chartIds.join(",")})`
     )
-    charts.forEach((row: any) => {
+    graphers.forEach((row: any) => {
         const config = JSON.parse(row.config)
         delete config.data
         delete config.selectedData

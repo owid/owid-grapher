@@ -79,30 +79,29 @@ class MapWithLegend extends React.Component<MapWithLegendProps> {
 
     // Determine if we can go to line chart by clicking on a given map entity
     private isEntityClickable(featureId: string | number | undefined) {
-        const chart = this.grapher
+        const grapher = this.grapher
         if (
-            !chart.hasChartTab ||
-            !(chart.isLineChart || chart.isScatter) ||
+            !grapher.hasChartTab ||
+            !(grapher.isLineChart || grapher.isScatter) ||
             this.props.grapherView.isMobile ||
             featureId === undefined
         )
             return false
 
         const entity = this.props.mapToDataEntities[featureId]
-        const datakeys = chart.availableKeysByEntity.get(entity)
-
-        return datakeys && datakeys.length > 0
+        return grapher.table.availableEntityNameSet.has(entity)
     }
 
     @action.bound onClick(d: GeoFeature, ev: React.MouseEvent<SVGElement>) {
         if (!this.isEntityClickable(d.id)) return
-        const chart = this.grapher
+        const grapher = this.grapher
+        const { table } = grapher
         const entityName = this.props.mapToDataEntities[d.id as string]
 
         if (!ev.shiftKey) {
-            chart.currentTab = "chart"
-            chart.selectOnlyThisEntity(entityName)
-        } else chart.toggleEntitySelectionStatus(entityName)
+            grapher.currentTab = "chart"
+            table.setSelectedEntities([entityName])
+        } else table.toggleSelection(entityName)
     }
 
     componentWillUnmount() {

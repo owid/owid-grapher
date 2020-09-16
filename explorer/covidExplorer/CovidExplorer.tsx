@@ -11,14 +11,12 @@ import {
     action,
     observable,
     IReactionDisposer,
-    observe,
     Lambda,
     reaction,
 } from "mobx"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import {
-    difference,
     pick,
     lastOfNonEmptyArray,
     throttle,
@@ -174,7 +172,7 @@ export class CovidExplorer extends React.Component<{
 
     @action.bound selectAllCommand() {
         const codeMap = this.grapher.table.entityNameToCodeMap
-        this.grapher.table.availableEntities.forEach((option) =>
+        this.grapher.table.availableEntityNames.forEach((option) =>
             this.props.params.selectedCountryCodes.add(codeMap.get(option)!)
         )
         this.selectionChangeFromBuilder = true
@@ -447,7 +445,7 @@ export class CovidExplorer extends React.Component<{
                 optionColorMap={this.countryNameToColorMap}
                 selectedEntities={this.selectedEntityNames}
                 availableEntities={
-                    this.covidExplorerTable.table.availableEntities
+                    this.covidExplorerTable.table.availableEntityNames
                 }
                 userState={this.props.params}
                 countriesMustHaveColumns={this.activeColumnSlugs}
@@ -567,7 +565,7 @@ export class CovidExplorer extends React.Component<{
 
     @computed get selectedCountryOptions(): string[] {
         const codeMap = this.grapher.table.entityNameToCodeMap
-        return this.grapher.table.availableEntities.filter((option) =>
+        return this.grapher.table.availableEntityNames.filter((option) =>
             this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
         )
     }
@@ -631,7 +629,6 @@ export class CovidExplorer extends React.Component<{
         if (params.interval === "biweeklyChange")
             return `The biweekly growth rate on any given date measures the percentage change in the number of new confirmed ${metric} over the last 14 days relative to the number in the previous 14 days.`
 
-        console.log("Error generating subtitle")
         return ""
     }
 
@@ -655,23 +652,6 @@ export class CovidExplorer extends React.Component<{
         if (params.testsMetric)
             return "For testing figures, there are substantial differences across countries in terms of the units, whether or not all labs are included, the extent to which negative and pending tests are included and other aspects. Details for each country can be found on ourworldindata.org/covid-testing."
         return ""
-    }
-
-    @computed private get selectedData() {
-        const countryCodeMap = this.grapher.table.entityCodeToNameMap
-        const entityIdMap = this.grapher.table.entityNameToIdMap
-        return Array.from(this.props.params.selectedCountryCodes)
-            .map((code) => countryCodeMap.get(code))
-            .filter((i) => i)
-            .map((countryOption) => {
-                return {
-                    index: 0,
-                    entityId: countryOption
-                        ? entityIdMap.get(countryOption)!
-                        : 0,
-                    color: this.countryNameToColorMap[countryOption!],
-                }
-            })
     }
 
     private _countryNameToColorMapCache: {
@@ -827,7 +807,11 @@ export class CovidExplorer extends React.Component<{
         this._updateColorScale()
 
         grapher.id = this.sourceChartId
-        grapher.selectedData = this.selectedData
+
+        grapher.table.setSelectedEntitiesByCode(
+            Array.from(params.selectedCountryCodes)
+        )
+
         this.grapher.url.externallyProvidedParams = this.props.params.toQueryParams
     }
 
@@ -866,7 +850,6 @@ export class CovidExplorer extends React.Component<{
         this.grapher.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
 
-        this.observeChartEntitySelection()
         this.observeGlobalEntitySelection()
 
         this.onResizeThrottled = throttle(this.onResize, 100)
@@ -950,7 +933,7 @@ export class CovidExplorer extends React.Component<{
             {
                 combo: "a",
                 fn: () =>
-                    this.selectedData.length
+                    this.grapher.table.hasSelection
                         ? this.clearSelectionCommand()
                         : this.selectAllCommand(),
                 title: "Select/Deselect all",
@@ -1053,37 +1036,6 @@ export class CovidExplorer extends React.Component<{
     }
 
     onResizeThrottled?: () => void
-
-    // todo: remove
-    private observeChartEntitySelection() {
-        this.disposers.push(
-            observe(this.grapher, "selectedEntityCodes", (change) => {
-                // Ignore the change if it was triggered by the chart builder,
-                // but do not ignore subsequent changes.
-                if (this.selectionChangeFromBuilder) {
-                    this.selectionChangeFromBuilder = false
-                    return
-                }
-                const newCodes = change.newValue
-                const oldCodes = change.oldValue ?? []
-
-                if (newCodes.join(" ") === oldCodes.join(" ")) return
-
-                // We want to find the added/removed entities based on the chart selection, not
-                // taking the explorer selection into account. This is because there can be
-                // entities excluded in the chart selection because we have no data for them,
-                // but which may be selected in the explorer.
-                const added = difference(newCodes, oldCodes)
-                const removed = difference(oldCodes, newCodes)
-                added.forEach((code) => this.toggleSelectedCountry(code, true))
-                removed.forEach((code) =>
-                    this.toggleSelectedCountry(code, false)
-                )
-                // Trigger an update in order to apply color changes
-                this._updateChart()
-            })
-        )
-    }
 
     private observeGlobalEntitySelection() {
         const { globalEntitySelection } = this.props
@@ -1384,7 +1336,6 @@ export class CovidExplorer extends React.Component<{
                 canChangeScaleType: true,
                 label: this.yAxisLabel,
             },
-            selectedData: [],
             dimensions: [],
             scatterPointLabelStrategy: "y",
             addCountryMode: "add-country",

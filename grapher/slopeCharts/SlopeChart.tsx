@@ -57,7 +57,7 @@ export class SlopeChart extends React.Component<{
     }
 
     @action.bound onSlopeMouseOver(slopeProps: SlopeProps) {
-        this.hoverKey = slopeProps.entityDimensionKey
+        this.hoverKey = slopeProps.entityName
     }
 
     @action.bound onSlopeMouseLeave() {
@@ -70,7 +70,7 @@ export class SlopeChart extends React.Component<{
             return
         }
 
-        this.options.toggleKey(hoverKey)
+        this.options.table.toggleSelection(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -79,6 +79,10 @@ export class SlopeChart extends React.Component<{
 
     @action.bound onLegendMouseLeave() {
         this.hoverColor = undefined
+    }
+
+    @computed private get selectedKeys() {
+        return this.options.table.selectedEntityNames
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
@@ -90,41 +94,40 @@ export class SlopeChart extends React.Component<{
         const { transform } = this
         const keysToToggle = transform.data
             .filter((g) => g.color === hoverColor)
-            .map((g) => g.entityDimensionKey)
+            .map((g) => g.entityName)
         const allKeysActive =
-            intersection(keysToToggle, options.selectedKeys).length ===
+            intersection(keysToToggle, this.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            options.selectedKeys = without(
-                options.selectedKeys,
-                ...keysToToggle
+            this.options.table.setSelectedEntities(
+                without(this.selectedKeys, ...keysToToggle)
             )
         else
-            options.selectedKeys = uniq(
-                options.selectedKeys.concat(keysToToggle)
+            this.options.table.setSelectedEntities(
+                this.selectedKeys.concat(keysToToggle)
             )
     }
 
     // Colors on the legend for which every matching group is focused
-    @computed get focusColors(): string[] {
-        const { colorsInUse, transform, options } = this
+    @computed get focusColors() {
+        const { colorsInUse, transform } = this
         return colorsInUse.filter((color) => {
             const matchingKeys = transform.data
                 .filter((g) => g.color === color)
-                .map((g) => g.entityDimensionKey)
+                .map((g) => g.entityName)
             return (
-                intersection(matchingKeys, options.selectedKeys).length ===
+                intersection(matchingKeys, this.selectedKeys).length ===
                 matchingKeys.length
             )
         })
     }
 
-    @computed get focusKeys(): string[] {
-        return this.options.selectedKeys
+    @computed get focusKeys() {
+        return this.selectedKeys
     }
 
     // All currently hovered group keys, combining the legend and the main UI
-    @computed.struct get hoverKeys(): string[] {
+    @computed.struct get hoverKeys() {
         const { hoverColor, hoverKey, transform } = this
 
         const hoverKeys =
@@ -133,7 +136,7 @@ export class SlopeChart extends React.Component<{
                 : uniq(
                       transform.data
                           .filter((g) => g.color === hoverColor)
-                          .map((g) => g.entityDimensionKey)
+                          .map((g) => g.entityName)
                   )
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
@@ -152,9 +155,7 @@ export class SlopeChart extends React.Component<{
         else
             return uniq(
                 transform.data
-                    .filter(
-                        (g) => activeKeys.indexOf(g.entityDimensionKey) !== -1
-                    )
+                    .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
                     .map((g) => g.color)
             )
     }

@@ -3,12 +3,10 @@ import { select } from "d3-selection"
 import { min, max, maxBy } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Grapher } from "grapher/core/Grapher"
 import { Bounds } from "grapher/utils/Bounds"
 import {
     Color,
     TickFormattingOptions,
-    EntityDimensionKey,
     ScaleType,
 } from "grapher/core/GrapherConstants"
 import {
@@ -20,9 +18,11 @@ import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { DiscreteBarTransform } from "./DiscreteBarTransform"
+import { EntityName } from "owidTable/OwidTableConstants"
+import { AxisConfig } from "grapher/axis/AxisConfig"
 
 export interface DiscreteBarDatum {
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     value: number
     year: number
     label: string
@@ -35,12 +35,15 @@ const labelToBarPadding = 5
 
 interface DiscreteBarChartOptionsProvider extends ChartOptionsProvider {
     discreteBarTransform: DiscreteBarTransform
+    addButtonLabel?: string
+    hasFloatingAddButton?: boolean
+    yAxis: AxisConfig // just pass interface?
 }
 
 @observer
 export class DiscreteBarChart extends React.Component<{
     bounds: Bounds
-    options: Grapher
+    options: DiscreteBarChartOptionsProvider
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
@@ -86,7 +89,7 @@ export class DiscreteBarChart extends React.Component<{
     @computed private get legendWidth() {
         const labels = this.currentData.map((d) => d.label)
         if (this.hasFloatingAddButton)
-            labels.push(` + ${this.options.addButtonLabel}`)
+            labels.push(` + ${this.options.addButtonLabel ?? "Add data"}`)
 
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
@@ -341,7 +344,7 @@ export class DiscreteBarChart extends React.Component<{
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={d.entityDimensionKey}
+                            key={d.entityName}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                             style={{ transition: "transform 200ms ease" }}

@@ -20,4 +20,5 @@ export interface ChartOptionsProvider {
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean
     tooltip?: TooltipProps
+    useTimelineDomains?: boolean
 }

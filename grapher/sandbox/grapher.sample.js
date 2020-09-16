@@ -62,7 +62,6 @@ const sandboxGrapher = {
     hasChartTab: true,
     isPublished: true,
     isExplorable: false,
-    selectedData: [{ index: 0, entityId: 0 }],
     addCountryMode: "add-country",
     hideRelativeToggle: true,
 }

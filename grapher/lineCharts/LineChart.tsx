@@ -22,9 +22,9 @@ import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { LineChartTransform } from "./LineChartTransform"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 export interface LineChartValue {
     x: number
@@ -33,7 +33,6 @@ export interface LineChartValue {
 }
 
 export interface LineChartSeries {
-    entityDimensionKey: EntityDimensionKey
     entityName: string
     color: string
     values: LineChartValue[]
@@ -48,12 +47,12 @@ interface LinesProps {
     xAxis: HorizontalAxis
     yAxis: VerticalAxis
     data: LineChartSeries[]
-    focusKeys: EntityDimensionKey[]
+    focusKeys: EntityName[]
     onHover: (hoverX: number | undefined) => void
 }
 
 interface LineRenderSeries {
-    entityDimensionKey: EntityDimensionKey
+    entityName: string
     displayKey: string
     color: string
     values: Vector2[]
@@ -75,8 +74,8 @@ class Lines extends React.Component<LinesProps> {
     @computed private get renderData(): LineRenderSeries[] {
         const { data, xAxis, yAxis, focusKeys } = this.props
         return data.map((series) => ({
-            entityDimensionKey: series.entityDimensionKey,
-            displayKey: `key-${makeSafeForCSS(series.entityDimensionKey)}`,
+            entityName: series.entityName,
+            displayKey: `key-${makeSafeForCSS(series.entityName)}`,
             color: series.color,
             values: series.values.map((v) => {
                 return new Vector2(
@@ -84,9 +83,7 @@ class Lines extends React.Component<LinesProps> {
                     Math.round(yAxis.place(v.y))
                 )
             }),
-            isFocus:
-                !focusKeys.length ||
-                focusKeys.includes(series.entityDimensionKey),
+            isFocus: !focusKeys.length || focusKeys.includes(series.entityName),
             isProjection: series.isProjection,
         }))
     }
@@ -176,7 +173,7 @@ class Lines extends React.Component<LinesProps> {
         return this.backgroundGroups.map((series) => (
             <g key={series.displayKey} className={series.displayKey}>
                 <path
-                    key={series.entityDimensionKey + "-line"}
+                    key={series.entityName + "-line"}
                     strokeLinecap="round"
                     stroke="#ddd"
                     d={pointsToPath(
@@ -294,10 +291,7 @@ export class LineChart extends React.Component<{
     }
 
     seriesIsBlur(series: LineChartSeries) {
-        return (
-            this.isFocusMode &&
-            !this.focusKeys.includes(series.entityDimensionKey)
-        )
+        return this.isFocusMode && !this.focusKeys.includes(series.entityName)
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
@@ -373,7 +367,7 @@ export class LineChart extends React.Component<{
                                 : series.color
                             return (
                                 <tr
-                                    key={series.entityDimensionKey}
+                                    key={series.entityName}
                                     style={{ color: textColor }}
                                 >
                                     <td>
@@ -394,8 +388,8 @@ export class LineChart extends React.Component<{
                                             fontSize: "0.9em",
                                         }}
                                     >
-                                        {this.transform.getLabelForKey(
-                                            series.entityDimensionKey
+                                        {this.options.table.getLabelForEntityName(
+                                            series.entityName
                                         )}
                                         {annotation && (
                                             <span
@@ -443,13 +437,13 @@ export class LineChart extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(key: EntityDimensionKey) {
+    @action.bound onLegendClick(key: EntityName) {
         if (this.options.showAddEntityControls) {
             this.options.isSelectingData = true
         }
     }
 
-    @action.bound onLegendMouseOver(key: EntityDimensionKey) {
+    @action.bound onLegendMouseOver(key: EntityName) {
         this.hoverKey = key
     }
 
@@ -575,7 +569,7 @@ export class LineChart extends React.Component<{
                             else
                                 return (
                                     <circle
-                                        key={series.entityDimensionKey}
+                                        key={series.entityName}
                                         cx={xAxis.place(value.x)}
                                         cy={yAxis.place(value.y)}
                                         r={4}

@@ -111,7 +111,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             hasChartTab_bool: grapher.hasChartTab,
             hasMapTab_bool: grapher.hasMapTab,
             tab_str: grapher.currentTab,
-            totalSelectedEntities_int: grapher.selectedData.length,
+            totalSelectedEntities_int: grapher.table.selectedEntityNames.length,
         })
 
         return view

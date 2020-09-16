@@ -1,13 +1,3 @@
-/* LabelledSlopes.jsx
- * ================
- *
- * Decoupled view component that does the bulk rendering work for slope charts.
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-02-11
- */
-
 import * as React from "react"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
@@ -27,7 +17,7 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { ScaleType, EntityDimensionKey } from "grapher/core/GrapherConstants"
+import { ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { Text } from "grapher/text/Text"
 import { TextWrap } from "grapher/text/TextWrap"
@@ -36,6 +26,7 @@ import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 export interface SlopeChartValue {
     x: number
@@ -44,7 +35,7 @@ export interface SlopeChartValue {
 
 export interface SlopeChartSeries {
     label: string
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     color: string
     size: number
     values: SlopeChartValue[]
@@ -137,7 +128,7 @@ class SlopeChartAxis extends React.Component<AxisProps> {
 }
 
 export interface SlopeProps {
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     isLayerMode: boolean
     x1: number
     y1: number
@@ -311,14 +302,14 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get focusKeys(): string[] {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map((g) => g.entityDimensionKey)
+            this.data.map((g) => g.entityName)
         )
     }
 
     @computed get hoverKeys(): string[] {
         return intersection(
             this.props.hoverKeys || [],
-            this.data.map((g) => g.entityDimensionKey)
+            this.data.map((g) => g.entityName)
         )
     }
 
@@ -466,7 +457,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 leftLabel,
                 rightLabel,
                 labelFontSize: fontSize,
-                entityDimensionKey: series.entityDimensionKey,
+                entityName: series.entityName,
                 isFocused: false,
                 isHovered: false,
                 hasLeftLabel: true,
@@ -533,8 +524,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         slopeData = slopeData.map((slope) => {
             return {
                 ...slope,
-                isFocused: focusKeys.includes(slope.entityDimensionKey),
-                isHovered: hoverKeys.includes(slope.entityDimensionKey),
+                isFocused: focusKeys.includes(slope.entityName),
+                isHovered: hoverKeys.includes(slope.entityName),
             }
         })
 
@@ -659,7 +650,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
         return backgroundGroups.map((slope) => (
             <Slope
-                key={slope.entityDimensionKey}
+                key={slope.entityName}
                 {...slope}
                 isLayerMode={isLayerMode}
             />
@@ -671,7 +662,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
         return foregroundGroups.map((slope) => (
             <Slope
-                key={slope.entityDimensionKey}
+                key={slope.entityName}
                 {...slope}
                 isLayerMode={isLayerMode}
             />

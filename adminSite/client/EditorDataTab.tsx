@@ -3,7 +3,6 @@ import { clone } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Grapher } from "grapher/core/Grapher"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import {
     EditableList,
     EditableListItem,
@@ -16,39 +15,43 @@ import { ChartEditor } from "./ChartEditor"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { EntityName } from "owidTable/OwidTableConstants"
 
-interface EntityDimensionKeyItemProps extends EditableListItemProps {
+interface EntityItemProps extends EditableListItemProps {
     grapher: Grapher
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
 }
 
 @observer
-class EntityDimensionKeyItem extends React.Component<
-    EntityDimensionKeyItemProps
-> {
+class EntityItem extends React.Component<EntityItemProps> {
     @observable.ref isChoosingColor: boolean = false
 
+    @computed get table() {
+        return this.props.grapher.table
+    }
+
     @computed get color() {
-        return this.props.grapher.keyColors[this.props.entityDimensionKey]
+        return this.table.getColorForEntityName(this.props.entityName)
     }
 
     @action.bound onColor(color: string | undefined) {
-        this.props.grapher.setKeyColor(this.props.entityDimensionKey, color)
+        // todo
+        // this.props.grapher.setKeyColor(this.props.entityName, color)
     }
 
     @action.bound onRemove() {
-        this.props.grapher.deselect(this.props.entityDimensionKey)
+        // todo
+        // this.props.grapher.deselect(this.props.entityName)
     }
 
     render() {
         const { props, color } = this
-        const { grapher, entityDimensionKey, ...rest } = props
-        const meta = grapher.entityDimensionMap.get(entityDimensionKey)
+        const { entityName, ...rest } = props
 
         return (
             <EditableListItem
-                className="EntityDimensionKeyItem"
-                key={entityDimensionKey}
+                className="EditableListItem"
+                key={entityName}
                 {...rest}
             >
                 <div>
@@ -56,7 +59,7 @@ class EntityDimensionKeyItem extends React.Component<
                         <FontAwesomeIcon icon={faArrowsAltV} />
                     </div>
                     <ColorBox color={color} onColor={this.onColor} />
-                    {meta ? meta.fullLabel : entityDimensionKey}
+                    {entityName}
                 </div>
                 <div className="clickable" onClick={this.onRemove}>
                     <FontAwesomeIcon icon={faTimes} />
@@ -68,13 +71,13 @@ class EntityDimensionKeyItem extends React.Component<
 
 @observer
 class KeysSection extends React.Component<{ grapher: Grapher }> {
-    @observable.ref dragKey?: EntityDimensionKey
+    @observable.ref dragKey?: EntityName
 
-    @action.bound onAddKey(key: EntityDimensionKey) {
-        this.props.grapher.selectEntityDimensionKey(key)
+    @action.bound onAddKey(entityName: EntityName) {
+        this.props.grapher.table.selectEntity(entityName)
     }
 
-    @action.bound onStartDrag(key: EntityDimensionKey) {
+    @action.bound onStartDrag(key: EntityName) {
         this.dragKey = key
 
         const onDrag = action(() => {
@@ -85,39 +88,36 @@ class KeysSection extends React.Component<{ grapher: Grapher }> {
         window.addEventListener("mouseup", onDrag)
     }
 
-    @action.bound onMouseEnter(targetKey: EntityDimensionKey) {
+    @action.bound onMouseEnter(targetKey: EntityName) {
         if (!this.dragKey || targetKey === this.dragKey) return
 
-        const selectedKeys = clone(this.props.grapher.selectedKeys)
+        const selectedKeys = clone(this.props.grapher.table.selectedEntityNames)
         const dragIndex = selectedKeys.indexOf(this.dragKey)
         const targetIndex = selectedKeys.indexOf(targetKey)
         selectedKeys.splice(dragIndex, 1)
         selectedKeys.splice(targetIndex, 0, this.dragKey)
-        this.props.grapher.selectedKeys = selectedKeys
+        this.props.grapher.table.setSelectedEntities(selectedKeys)
     }
 
     render() {
         const { grapher } = this.props
-        const { selectedKeys, remainingKeys } = grapher
-
-        const keyLabels = remainingKeys.map(
-            (key) => grapher.lookupKey(key).fullLabel
-        )
+        const { table } = grapher
+        const { unselectedEntityNames, selectedEntityNames } = table
 
         return (
             <Section name="Data to show">
                 <SelectField
                     onValue={this.onAddKey}
                     value="Select data"
-                    options={["Select data"].concat(remainingKeys)}
-                    optionLabels={["Select data"].concat(keyLabels)}
+                    options={["Select data"].concat(unselectedEntityNames)}
+                    optionLabels={["Select data"].concat(unselectedEntityNames)}
                 />
                 <EditableList>
-                    {selectedKeys.map((key) => (
-                        <EntityDimensionKeyItem
+                    {selectedEntityNames.map((key) => (
+                        <EntityItem
                             key={key}
                             grapher={grapher}
-                            entityDimensionKey={key}
+                            entityName={key}
                             onMouseDown={() => this.onStartDrag(key)}
                             onMouseEnter={() => this.onMouseEnter(key)}
                         />

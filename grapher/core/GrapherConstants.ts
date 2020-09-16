@@ -28,9 +28,6 @@ export type Integer = number
  */
 export type Time = Integer
 
-// todo: remove
-export type EntityDimensionKey = string
-
 export type GrapherTabOption =
     | "chart"
     | "map"

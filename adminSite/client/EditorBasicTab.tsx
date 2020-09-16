@@ -1,10 +1,8 @@
 import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
-
 import { sample, sampleSize, startCase } from "grapher/utils/Util"
 import { ChartTypeName, ChartTypes } from "grapher/core/GrapherConstants"
-
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
@@ -61,29 +59,27 @@ class DimensionSlotView extends React.Component<{
 
     private updateDefaults() {
         const { grapher } = this.props.editor
+        const { table } = grapher
+        const { availableEntityNames, availableEntityNameSet } = table
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
             () => grapher.type && grapher.primaryDimensions,
             () => {
                 if (grapher.isScatter || grapher.isSlopeChart) {
-                    grapher.selectedKeys = []
+                    table.clearSelection()
                 } else if (grapher.primaryDimensions.length > 1) {
-                    const entityName = grapher.availableEntityNames.includes(
-                        "World"
-                    )
+                    const entity = availableEntityNameSet.has("World")
                         ? "World"
-                        : sample(grapher.availableEntityNames)
-                    grapher.selectedKeys = grapher.availableKeys.filter(
-                        (key) =>
-                            grapher.lookupKey(key).entityName === entityName
-                    )
+                        : sample(availableEntityNames)
+                    table.selectEntity(entity!)
                     grapher.addCountryMode = "change-country"
                 } else {
-                    grapher.selectedKeys =
-                        grapher.availableKeys.length > 10
-                            ? sampleSize(grapher.availableKeys, 3)
-                            : grapher.availableKeys
+                    table.setSelectedEntities(
+                        availableEntityNames.length > 10
+                            ? sampleSize(availableEntityNames, 3)
+                            : availableEntityNames
+                    )
                     grapher.addCountryMode = "add-country"
                 }
             }

@@ -17,6 +17,7 @@ import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
+import { EntityId, EntityName } from "owidTable/OwidTableConstants"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -35,7 +36,6 @@ export interface GrapherInterface {
     externalDataUrl?: string
     owidDataset?: LegacyVariablesAndEntityKey
     manuallyProvideData?: boolean
-    selectedData?: EntitySelection[]
     minTime?: TimeBound
     maxTime?: TimeBound
     timelineMinTime?: Time
@@ -72,9 +72,15 @@ export interface GrapherInterface {
     compareEndPointsOnly?: true
     matchingEntitiesOnly?: true
     excludedEntities?: number[]
+    selectedEntityNames?: EntityName[]
+    selectedEntityIds?: EntityId[]
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
+}
+
+export interface LegacyGrapherInterface extends GrapherInterface {
+    selectedData?: EntitySelection[]
 }

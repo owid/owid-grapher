@@ -19,10 +19,9 @@ import {
     ScatterColorLegendView,
 } from "grapher/scatterCharts/ScatterColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { StackedBarTransform } from "./StackedBarTransform"
-import { OwidTable } from "owidTable/OwidTable"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 export interface StackedBarValue {
     x: number
@@ -33,7 +32,7 @@ export interface StackedBarValue {
 }
 
 export interface StackedBarSeries {
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     label: string
     values: StackedBarValue[]
     color: string
@@ -190,7 +189,7 @@ export class StackedBarChart extends React.Component<{
                 : uniq(
                       transform.stackedData
                           .filter((g) => g.color === hoverColor)
-                          .map((g) => g.entityDimensionKey)
+                          .map((g) => g.entityName)
                   )
 
         return hoverKeys
@@ -207,9 +206,7 @@ export class StackedBarChart extends React.Component<{
         else
             colors = uniq(
                 transform.stackedData
-                    .filter(
-                        (g) => activeKeys.indexOf(g.entityDimensionKey) !== -1
-                    )
+                    .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
                     .map((g) => g.color)
             )
         return colors
@@ -482,7 +479,7 @@ export class StackedBarChart extends React.Component<{
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {stackedData.map((series) => {
                         const isLegendHovered: boolean = this.hoverKeys.includes(
-                            series.entityDimensionKey
+                            series.entityName
                         )
                         const opacity =
                             isLegendHovered || this.hoverKeys.length === 0
@@ -491,9 +488,9 @@ export class StackedBarChart extends React.Component<{
 
                         return (
                             <g
-                                key={series.entityDimensionKey}
+                                key={series.entityName}
                                 className={
-                                    makeSafeForCSS(series.entityDimensionKey) +
+                                    makeSafeForCSS(series.entityName) +
                                     "-segments"
                                 }
                             >

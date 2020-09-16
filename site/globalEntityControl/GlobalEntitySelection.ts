@@ -1,5 +1,4 @@
 import { observable, reaction, IReactionDisposer, computed } from "mobx"
-
 import { Country, countries } from "utils/countries"
 import { Grapher } from "grapher/core/Grapher"
 import { excludeUndefined } from "grapher/utils/Util"
@@ -67,11 +66,11 @@ export function subscribeGrapherToGlobalEntitySelection(
             // This implements "override" mode only!
             if (mode === GlobalEntitySelectionModes.override) {
                 if (selectedEntities.length > 0) {
-                    grapher.setSelectedEntitiesByCode(
+                    grapher.table.setSelectedEntitiesByCode(
                         selectedEntities.map((entity) => entity.code)
                     )
                 } else {
-                    grapher.resetSelectedEntities()
+                    grapher.table.clearSelection()
                 }
             }
         },

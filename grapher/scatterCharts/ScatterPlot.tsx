@@ -27,8 +27,8 @@ import {
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
 import { ScatterPlotOptionsProvider } from "./ScatterPlotOptionsProvider"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 @observer
 export class ScatterPlot extends React.Component<{
@@ -41,7 +41,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     // currently hovered individual series key
-    @observable hoverKey?: EntityDimensionKey
+    @observable hoverKey?: EntityName
     // currently hovered legend color
     @observable hoverColor?: string
 
@@ -57,9 +57,9 @@ export class ScatterPlot extends React.Component<{
         return this.props.bounds
     }
 
-    @action.bound onSelectEntity(key: EntityDimensionKey) {
+    @action.bound onSelectEntity(entityName: EntityName) {
         if (this.options.addCountryMode !== "disabled")
-            this.options.toggleKey(key)
+            this.options.table.toggleSelection(entityName)
     }
 
     // Only want to show colors on legend that are actually on the chart right now
@@ -113,40 +113,40 @@ export class ScatterPlot extends React.Component<{
         if (options.addCountryMode === "disabled" || hoverColor === undefined)
             return
 
+        const table = this.options.table
         const { transform } = this
         const keysToToggle = transform.currentData
             .filter((g) => g.color === hoverColor)
-            .map((g) => g.entityDimensionKey)
+            .map((g) => g.entityName)
         const allKeysActive =
-            intersection(keysToToggle, options.selectedKeys).length ===
+            intersection(keysToToggle, this.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            options.selectedKeys = without(
-                options.selectedKeys,
-                ...keysToToggle
+            table.setSelectedEntities(
+                without(this.selectedKeys, ...keysToToggle)
             )
         else
-            options.selectedKeys = uniq(
-                options.selectedKeys.concat(keysToToggle)
+            table.setSelectedEntities(
+                uniq(this.selectedKeys.concat(keysToToggle))
             )
     }
 
     // Colors on the legend for which every matching group is focused
     @computed private get focusColors(): string[] {
-        const { colorsInUse, transform, options } = this
+        const { colorsInUse, transform } = this
         return colorsInUse.filter((color) => {
             const matchingKeys = transform.currentData
                 .filter((g) => g.color === color)
-                .map((g) => g.entityDimensionKey)
+                .map((g) => g.entityName)
             return (
-                intersection(matchingKeys, options.selectedKeys).length ===
+                intersection(matchingKeys, this.selectedKeys).length ===
                 matchingKeys.length
             )
         })
     }
 
     // All currently hovered group keys, combining the legend and the main UI
-    @computed private get hoverKeys(): string[] {
+    @computed private get hoverKeys() {
         const { hoverColor, hoverKey, transform } = this
 
         const hoverKeys =
@@ -155,7 +155,7 @@ export class ScatterPlot extends React.Component<{
                 : uniq(
                       transform.currentData
                           .filter((g) => g.color === hoverColor)
-                          .map((g) => g.entityDimensionKey)
+                          .map((g) => g.entityName)
                   )
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
@@ -163,8 +163,12 @@ export class ScatterPlot extends React.Component<{
         return hoverKeys
     }
 
-    @computed private get focusKeys(): string[] {
-        return this.options.selectedKeys
+    @computed private get focusKeys() {
+        return this.selectedKeys
+    }
+
+    @computed private get selectedKeys() {
+        return this.options.table.selectedEntityNames
     }
 
     @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
@@ -199,7 +203,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     @action.bound onScatterMouseOver(series: ScatterSeries) {
-        this.hoverKey = series.entityDimensionKey
+        this.hoverKey = series.entityName
     }
 
     @action.bound onScatterMouseLeave() {
@@ -213,12 +217,10 @@ export class ScatterPlot extends React.Component<{
     @computed get tooltipSeries(): ScatterSeries | undefined {
         const { hoverKey, focusKeys, transform } = this
         if (hoverKey !== undefined)
-            return transform.currentData.find(
-                (g) => g.entityDimensionKey === hoverKey
-            )
+            return transform.currentData.find((g) => g.entityName === hoverKey)
         else if (focusKeys && focusKeys.length === 1)
             return transform.currentData.find(
-                (g) => g.entityDimensionKey === focusKeys[0]
+                (g) => g.entityName === focusKeys[0]
             )
         else return undefined
     }
@@ -266,9 +268,7 @@ export class ScatterPlot extends React.Component<{
         let series = transform.currentData
 
         if (activeKeys.length) {
-            series = series.filter((g) =>
-                activeKeys.includes(g.entityDimensionKey)
-            )
+            series = series.filter((g) => activeKeys.includes(g.entityName))
         }
 
         const colorValues = uniq(

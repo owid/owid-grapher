@@ -19,7 +19,7 @@ describe("makeCountryOptions", () => {
             new OwidTable([]),
             covidSampleRows
         )
-        expect(dataTable.table.availableEntities[2]).toEqual("World")
+        expect(dataTable.table.availableEntityNames[2]).toEqual("World")
     })
 })
 

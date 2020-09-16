@@ -18,7 +18,7 @@ import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -28,7 +28,7 @@ const MARKER_MARGIN = 4
 const ADD_BUTTON_HEIGHT = 30
 
 export interface LineLabel {
-    entityDimensionKey: EntityDimensionKey
+    entityName: EntityName
     label: string
     color: string
     yValue: number
@@ -222,9 +222,9 @@ interface LineLabelsComponentProps {
     x: number
     legend: LineLabelsHelper
     yAxis: VerticalAxis
-    focusKeys: EntityDimensionKey[]
-    onMouseOver?: (key: EntityDimensionKey) => void
-    onClick?: (key: EntityDimensionKey) => void
+    focusKeys: EntityName[]
+    onMouseOver?: (key: EntityName) => void
+    onClick?: (key: EntityName) => void
     onMouseLeave?: () => void
     options: LineLabelsOptionsProvider
 }
@@ -245,7 +245,7 @@ export class LineLabelsComponent extends React.Component<
 
     @computed get isFocusMode() {
         return this.props.legend.marks.some((m) =>
-            this.props.focusKeys.includes(m.item.entityDimensionKey)
+            this.props.focusKeys.includes(m.item.entityName)
         )
     }
 
@@ -401,7 +401,7 @@ export class LineLabelsComponent extends React.Component<
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
-                ? !focusKeys.includes(m.mark.item.entityDimensionKey)
+                ? !focusKeys.includes(m.mark.item.entityName)
                 : m.isOverlap
         )
     }
@@ -411,7 +411,7 @@ export class LineLabelsComponent extends React.Component<
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
-                ? focusKeys.includes(m.mark.item.entityDimensionKey)
+                ? focusKeys.includes(m.mark.item.entityName)
                 : !m.isOverlap
         )
     }
@@ -431,14 +431,12 @@ export class LineLabelsComponent extends React.Component<
     private renderBackground() {
         return this.backgroundMarks.map((mark) => (
             <PlacedMarkComponent
-                key={mark.mark.item.entityDimensionKey}
+                key={mark.mark.item.entityName}
                 mark={mark}
                 legend={this.props.legend}
                 needsLines={this.needsLines}
-                onMouseOver={() =>
-                    this.onMouseOver(mark.mark.item.entityDimensionKey)
-                }
-                onClick={() => this.onClick(mark.mark.item.entityDimensionKey)}
+                onMouseOver={() => this.onMouseOver(mark.mark.item.entityName)}
+                onClick={() => this.onClick(mark.mark.item.entityName)}
             />
         ))
     }
@@ -447,17 +445,15 @@ export class LineLabelsComponent extends React.Component<
     private renderFocus() {
         return this.focusMarks.map((mark) => (
             <PlacedMarkComponent
-                key={mark.mark.item.entityDimensionKey}
+                key={mark.mark.item.entityName}
                 mark={mark}
                 legend={this.props.legend}
                 isFocus={true}
                 needsLines={this.needsLines}
-                onMouseOver={() =>
-                    this.onMouseOver(mark.mark.item.entityDimensionKey)
-                }
-                onClick={() => this.onClick(mark.mark.item.entityDimensionKey)}
+                onMouseOver={() => this.onMouseOver(mark.mark.item.entityName)}
+                onClick={() => this.onClick(mark.mark.item.entityName)}
                 onMouseLeave={() =>
-                    this.onMouseLeave(mark.mark.item.entityDimensionKey)
+                    this.onMouseLeave(mark.mark.item.entityName)
                 }
             />
         ))

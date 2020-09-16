@@ -29,14 +29,9 @@ import { computed } from "mobx"
 import { ChartDimension } from "grapher/chart/ChartDimension"
 import { ScatterSeries, ScatterValue } from "./PointsWithLabels"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import {
-    EntityDimensionKey,
-    ScaleType,
-    Time,
-} from "grapher/core/GrapherConstants"
+import { ScaleType, Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { EntityName } from "owidTable/OwidTableConstants"
-import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a scatter plot
@@ -142,11 +137,6 @@ export class ScatterTransform extends ChartTransform {
         return intersection(yEntities, xEntities)
     }
 
-    // todo: remove
-    @computed get selectableEntityDimensionKeys(): EntityDimensionKey[] {
-        return this.currentData.map((series) => series.entityDimensionKey)
-    }
-
     // todo: move to table
     @computed get excludedEntityNames(): EntityName[] {
         const entityIds = this.grapher.excludedEntities || []
@@ -161,7 +151,7 @@ export class ScatterTransform extends ChartTransform {
         filterBackgroundEntities = this.hideBackgroundEntities
     ): EntityName[] {
         let entityNames = filterBackgroundEntities
-            ? this.grapher.selectedEntityNames
+            ? this.grapher.table.selectedEntityNames
             : this.possibleEntityNames
 
         if (this.grapher.matchingEntitiesOnly && this.colorDimension)
@@ -396,7 +386,10 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get pointsForAxisDomains() {
-        if (!this.grapher.hasSelection || !this.grapher.zoomToSelection)
+        if (
+            !this.grapher.table.selectedEntityNames.length ||
+            !this.grapher.zoomToSelection
+        )
             return this.currentValues
 
         return this.selectedPoints.length
@@ -584,17 +577,14 @@ export class ScatterTransform extends ChartTransform {
             compareEndPointsOnly,
             xOverrideTime,
         } = this
-        const { keyColors, isRelativeMode } = grapher
+        const { isRelativeMode, table } = grapher
         let currentData: ScatterSeries[] = []
 
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndTime().forEach((dataByTime, entityName) => {
-            // Since scatterplots interrelate two variables via entity overlap, their entityDimensionKeys are solely entity-based
-            const entityDimensionKey = makeEntityDimensionKey(entityName, 0)
-
             const group = {
-                entityDimensionKey,
-                label: grapher.getLabelForKey(entityDimensionKey),
+                entityName,
+                label: entityName,
                 color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
                 values: [],
@@ -609,7 +599,7 @@ export class ScatterTransform extends ChartTransform {
             // const lastPoint = last(group.values)
 
             if (group.values.length) {
-                const keyColor = keyColors[entityDimensionKey]
+                const keyColor = table.getColorForEntityName(entityName)
                 if (keyColor !== undefined) {
                     group.color = keyColor
                 } else if (this.colorDimension) {

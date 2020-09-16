@@ -15,12 +15,7 @@ function grapherConfigFromIndicator(
         ...indicator,
         // TODO need to derive selected data from ExploreModel, since selections
         // should persist when switching indicators.
-        selectedData: [
-            {
-                index: 0,
-                entityId: 355,
-            },
-        ],
+        selectedEntityNames: ["World"],
     }
 }
 

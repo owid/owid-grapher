@@ -11,17 +11,12 @@ import {
     flatten,
     last,
 } from "grapher/utils/Util"
-import {
-    EntityDimensionKey,
-    ScaleType,
-    Time,
-} from "grapher/core/GrapherConstants"
+import { ScaleType, Time } from "grapher/core/GrapherConstants"
 import { LineChartSeries } from "./LineChart"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 import { LineLabel } from "./LineLabels"
 import { EntityName } from "owidTable/OwidTableConstants"
-import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
 
 // Responsible for translating chart configuration into the form
 // of a line chart
@@ -73,31 +68,24 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed private get initialData() {
-        const {
-            selectedKeys,
-            selectedKeysByKey,
-            filledDimensions,
-            yAxis,
-        } = this.grapher
+        const { filledDimensions, yAxis, table } = this.grapher
+
+        const { selectedEntityNameSet, selectedEntityNames } = table
 
         let chartData: LineChartSeries[] = []
 
-        filledDimensions.forEach((dimension, dimIndex) => {
-            const seriesByKey = new Map<EntityDimensionKey, LineChartSeries>()
+        filledDimensions.forEach((dimension) => {
+            const seriesByKey = new Map<EntityName, LineChartSeries>()
             const { column, isProjection, values } = dimension
 
             for (let i = 0; i < column.times.length; i++) {
                 const time = column.times[i]
                 const value = parseFloat(values[i] as string)
                 const entityName = column.entityNames[i]
-                const entityDimensionKey = makeEntityDimensionKey(
-                    entityName,
-                    dimIndex
-                )
-                let series = seriesByKey.get(entityDimensionKey)
+                let series = seriesByKey.get(entityName)
 
                 // Not a selected key, don't add any data for it
-                if (!selectedKeysByKey[entityDimensionKey]) continue
+                if (!selectedEntityNameSet.has(entityName)) continue
                 // Can't have values <= 0 on log scale
                 if (value <= 0 && yAxis.scaleType === ScaleType.log) continue
 
@@ -105,11 +93,10 @@ export class LineChartTransform extends ChartTransform {
                     series = {
                         values: [],
                         entityName,
-                        entityDimensionKey,
                         isProjection,
                         color: "#000", // tmp
                     }
-                    seriesByKey.set(entityDimensionKey, series)
+                    seriesByKey.set(entityName, series)
                 }
 
                 series.values.push({ x: time, y: value, time })
@@ -122,7 +109,7 @@ export class LineChartTransform extends ChartTransform {
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
         chartData = sortBy(chartData, (series) =>
-            selectedKeys.indexOf(series.entityDimensionKey)
+            selectedEntityNames.indexOf(series.entityName)
         )
 
         return chartData
@@ -135,9 +122,11 @@ export class LineChartTransform extends ChartTransform {
         const colors = this.colorScheme.getColors(sorted.length)
         if (this.grapher.invertColorScheme) colors.reverse()
 
+        const table = this.grapher.table
+
         sorted.forEach((series, i) => {
             series.color =
-                this.grapher.keyColors[series.entityDimensionKey] || colors[i]
+                table.getColorForEntityName(series.entityName) || colors[i]
         })
     }
 
@@ -175,10 +164,6 @@ export class LineChartTransform extends ChartTransform {
         return annos ? Array.from(annos.values()).join(" & ") : undefined
     }
 
-    getLabelForKey(key: string) {
-        return this.grapher.getLabelForKey(key)
-    }
-
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get legendItems(): LineLabel[] {
@@ -192,11 +177,13 @@ export class LineChartTransform extends ChartTransform {
             const lastValue = last(series.values)!.y
             return {
                 color: series.color,
-                entityDimensionKey: series.entityDimensionKey,
+                entityName: series.entityName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
                 label: this.grapher.hideLegend
                     ? ""
-                    : `${this.getLabelForKey(series.entityDimensionKey)}`,
+                    : `${this.grapher.table.getLabelForEntityName(
+                          series.entityName
+                      )}`,
                 annotation: this.getAnnotationsForSeries(series.entityName),
                 yValue: lastValue,
             }

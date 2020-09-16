@@ -2,7 +2,6 @@ import { computed } from "mobx"
 import {
     isString,
     findClosestTime,
-    keyBy,
     isNumber,
     entityNameForMap,
     uniq,
@@ -174,7 +173,7 @@ export class MapTransform extends ChartTransform {
 
         const result: { [key: string]: MapDataValue } = {}
 
-        const selectedEntityNames = new Set(grapher.selectedEntityNames)
+        const selectedEntityNames = grapher.table.selectedEntityNameSet
 
         entityNames.forEach((entity) => {
             const valueByTime = valueByEntityAndTime.get(entity)

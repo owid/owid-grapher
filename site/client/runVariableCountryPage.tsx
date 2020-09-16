@@ -6,14 +6,15 @@ import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { observer } from "mobx-react"
 import { VariableCountryPageProps } from "site/server/views/VariableCountryPageProps"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 @observer
 class ClientVariableCountryPage extends React.Component<{
     countryPageProps: VariableCountryPageProps
 }> {
-    @observable.ref chart?: Grapher
+    @observable.ref grapher?: Grapher
 
-    @computed get chartConfig() {
+    @computed get grapherConfig() {
         const { variable, country } = this.props.countryPageProps
         return {
             yAxis: { min: 0 },
@@ -27,18 +28,13 @@ class ClientVariableCountryPage extends React.Component<{
                     display: clone(variable.display),
                 },
             ],
-            selectedData: [
-                {
-                    entityId: country.id,
-                    index: 0,
-                },
-            ],
-        }
+            selectedEntityNames: [country.name],
+        } as GrapherInterface
     }
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.chart = new Grapher(this.chartConfig as any, {
+        this.grapher = new Grapher(this.grapherConfig as any, {
             isEmbed: true,
         })
     }
@@ -50,7 +46,7 @@ class ClientVariableCountryPage extends React.Component<{
                 <h1>
                     {variable.name} in {country.name}
                 </h1>
-                {this.chart && <GrapherFigureView grapher={this.chart} />}
+                {this.grapher && <GrapherFigureView grapher={this.grapher} />}
             </React.Fragment>
         )
     }

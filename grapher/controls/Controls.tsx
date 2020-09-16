@@ -44,9 +44,7 @@ class HighlightToggle extends React.Component<{
                 ...this.highlightParams,
             }
             this.grapher.populateFromQueryParams(params)
-        } else {
-            this.grapher.selectedKeys = []
-        }
+        } else this.grapher.table.clearSelection()
     }
 
     get isHighlightActive() {
@@ -302,7 +300,9 @@ export class ControlsFooterView extends React.Component<{
                     )}
                 {grapher.currentTab === "chart" &&
                     grapher.isScatter &&
-                    grapher.hasSelection && <ZoomToggle grapher={grapher} />}
+                    grapher.table.hasSelection && (
+                        <ZoomToggle grapher={grapher} />
+                    )}
 
                 {(grapher.currentTab === "table" || grapher.isScatter) &&
                     grapher.hasCountriesSmallerThanFilterOption && (

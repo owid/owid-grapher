@@ -683,6 +683,25 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return isSelectedFn ? this.rows.filter((row) => isSelectedFn(row)) : []
     }
 
+    @computed get unselectedRows() {
+        const isSelectedFn = this.isSelectedFn
+        return isSelectedFn
+            ? this.rows.filter((row) => !isSelectedFn(row))
+            : this.rows
+    }
+
+    @computed get unselectedEntityNames() {
+        return this.unselectedRows.map((row) => row.entityName)
+    }
+
+    @computed get selectedEntityNames() {
+        return this.selectedRows.map((row) => row.entityName)
+    }
+
+    @computed get hasSelection() {
+        return this.selectedEntityNames.length
+    }
+
     // Currently only used for debugging
     get filteredRows() {
         const unfiltered = new Set(this.unfilteredRows)
@@ -870,11 +889,11 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return map
     }
 
-    @computed get availableEntities() {
-        return Array.from(this.availableEntitiesSet)
+    @computed get availableEntityNames() {
+        return Array.from(this.availableEntityNameSet)
     }
 
-    @computed get availableEntitiesSet() {
+    @computed get availableEntityNameSet() {
         return new Set(this.rows.map((row) => row.entityName))
     }
 
@@ -965,7 +984,24 @@ export class OwidTable extends AbstractTable<OwidRow> {
         this.rows.forEach((row) => {
             row[this.defaultEntitySelectionSlug] = set.has(row.entityName)
         })
-        return this
+    }
+
+    @action.bound clearSelection() {
+        this.selectedEntityNames.forEach((name) => {
+            this.deselectEntity(name)
+        })
+    }
+
+    @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
+        const map = this.entityCodeToNameMap
+        const codesInData = entityCodes.filter((code) => map.has(code))
+        this.setSelectedEntities(codesInData.map((code) => map.get(code)!))
+        return codesInData
+    }
+
+    @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {
+        const map = this.entityIdToNameMap
+        this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
     }
 
     private defaultEntitySelectionSlug = "is_entity_selected"
@@ -977,6 +1013,35 @@ export class OwidTable extends AbstractTable<OwidRow> {
                     slug: this.defaultEntitySelectionSlug,
                 })
             )
+    }
+
+    isEntitySelected(entityName: EntityName) {
+        return this.selectedEntityNameSet.has(entityName)
+    }
+
+    @computed get selectedEntityNameSet() {
+        return new Set(this.selectedEntityNames)
+    }
+
+    @computed get selectedEntityCodes() {
+        const map = this.entityNameToCodeMap
+        return Array.from(this.selectedEntityNameSet)
+            .map((name) => map.get(name))
+            .filter((code) => code) as string[]
+    }
+
+    getColorForEntityName(entityName: string) {
+        // Todo: restore Grapher keycolors functionality
+        return "red"
+    }
+
+    getLabelForEntityName(entityName: string) {
+        return entityName
+    }
+
+    @action.bound toggleSelection(entityName: EntityName) {
+        if (this.isEntitySelected(entityName)) this.deselectEntity(entityName)
+        else this.selectEntity(entityName)
     }
 
     @action.bound selectEntity(entityName: EntityName) {

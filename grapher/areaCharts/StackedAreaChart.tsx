@@ -24,9 +24,9 @@ import { Tooltip } from "grapher/tooltip/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants" // todo: remove
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { StackedAreaTransform } from "./StackedAreaTransform"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 export interface StackedAreaValue {
     x: number
@@ -37,7 +37,7 @@ export interface StackedAreaValue {
 }
 
 export interface StackedAreaSeries {
-    entityDimensionKey: EntityDimensionKey // todo: remove
+    entityName: EntityName
     color: string
     values: StackedAreaValue[]
     classed?: string
@@ -47,7 +47,7 @@ export interface StackedAreaSeries {
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     data: StackedAreaSeries[]
-    focusKeys: EntityDimensionKey[] // todo: remove
+    focusKeys: EntityName[]
     onHover: (hoverIndex: number | undefined) => void
 }
 
@@ -93,7 +93,7 @@ class Areas extends React.Component<AreasProps> {
     private seriesIsBlur(series: StackedAreaSeries) {
         return (
             this.props.focusKeys.length > 0 &&
-            !this.props.focusKeys.includes(series.entityDimensionKey)
+            !this.props.focusKeys.includes(series.entityName)
         )
     }
 
@@ -114,10 +114,8 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={
-                        makeSafeForCSS(series.entityDimensionKey) + "-area"
-                    }
-                    key={series.entityDimensionKey + "-area"}
+                    className={makeSafeForCSS(series.entityName) + "-area"}
+                    key={series.entityName + "-area"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
@@ -140,10 +138,8 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={
-                        makeSafeForCSS(series.entityDimensionKey) + "-border"
-                    }
-                    key={series.entityDimensionKey + "-border"}
+                    className={makeSafeForCSS(series.entityName) + "-border"}
+                    key={series.entityName + "-border"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     stroke={rgb(
@@ -191,7 +187,7 @@ class Areas extends React.Component<AreasProps> {
                         {data.map((series) => {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
-                                    key={series.entityDimensionKey}
+                                    key={series.entityName}
                                     cx={xAxis.place(
                                         series.values[hoverIndex].x
                                     )}
@@ -219,7 +215,6 @@ class Areas extends React.Component<AreasProps> {
 
 interface StackedAreaChartOptionsProvider extends ChartOptionsProvider {
     stackedAreaTransform: StackedAreaTransform
-    getLabelForKey: (key: EntityDimensionKey) => string
 }
 
 @observer
@@ -259,8 +254,8 @@ export class StackedAreaChart extends React.Component<{
         const items = transform.stackedData
             .map((d, i) => ({
                 color: d.color,
-                entityDimensionKey: d.entityDimensionKey,
-                label: this.options.getLabelForKey(d.entityDimensionKey),
+                entityName: d.entityName,
+                label: this.options.table.getLabelForEntityName(d.entityName),
                 yValue: midpoints[i],
             }))
             .reverse()
@@ -290,7 +285,7 @@ export class StackedAreaChart extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(key: EntityDimensionKey) {
+    @action.bound onLegendClick(key: EntityName) {
         if (this.options.showAddEntityControls) {
             this.options.isSelectingData = true
         }
@@ -306,7 +301,7 @@ export class StackedAreaChart extends React.Component<{
         })
     }
 
-    @action.bound onLegendMouseOver(key: EntityDimensionKey) {
+    @action.bound onLegendMouseOver(key: EntityName) {
         this.hoverKey = key
     }
 
@@ -314,22 +309,22 @@ export class StackedAreaChart extends React.Component<{
         this.hoverKey = undefined
     }
 
-    @computed get focusKeys(): string[] {
+    @computed get focusKeys() {
         return this.hoverKey ? [this.hoverKey] : []
     }
 
-    @computed get isFocusMode(): boolean {
+    @computed get isFocusMode() {
         return this.focusKeys.length > 0
     }
 
     seriesIsBlur(series: StackedAreaSeries) {
         return (
             this.focusKeys.length > 0 &&
-            !this.focusKeys.includes(series.entityDimensionKey)
+            !this.focusKeys.includes(series.entityName)
         )
     }
 
-    @computed private get tooltip(): JSX.Element | undefined {
+    @computed private get tooltip() {
         if (this.hoverIndex === undefined) return undefined
 
         const { transform, hoverIndex, dualAxis, options } = this
@@ -378,7 +373,7 @@ export class StackedAreaChart extends React.Component<{
                                 : series.color
                             return (
                                 <tr
-                                    key={series.entityDimensionKey}
+                                    key={series.entityName}
                                     style={{ color: textColor }}
                                 >
                                     <td
@@ -393,8 +388,8 @@ export class StackedAreaChart extends React.Component<{
                                                 backgroundColor: blockColor,
                                             }}
                                         />{" "}
-                                        {options.getLabelForKey(
-                                            series.entityDimensionKey
+                                        {options.table.getLabelForEntityName(
+                                            series.entityName
                                         )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>

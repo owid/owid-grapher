@@ -10,9 +10,9 @@ import {
 } from "grapher/utils/Util"
 import { StackedBarValue, StackedBarSeries } from "./StackedBarChart"
 import { ChartTransform } from "grapher/chart/ChartTransform"
-import { EntityDimensionKey, Time } from "grapher/core/GrapherConstants"
+import { Time } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
-import { makeEntityDimensionKey } from "grapher/core/EntityDimensionKey"
+import { EntityName } from "owidTable/OwidTableConstants"
 
 // Responsible for translating chart configuration into the form
 // of a discrete bar chart
@@ -111,26 +111,27 @@ export class StackedBarTransform extends ChartTransform {
 
     @computed get groupedData() {
         const { grapher, timelineTimes } = this
-        const { selectedKeys, selectedKeysByKey } = grapher
+        const { table } = grapher
+        const {
+            selectedEntityNameSet,
+            selectedEntityNames,
+            getLabelForEntityName,
+        } = table
         const filledDimensions = grapher.filledDimensions
 
         let groupedData: StackedBarSeries[] = []
 
-        filledDimensions.forEach((dimension, dimIndex) => {
-            const seriesByKey = new Map<EntityDimensionKey, StackedBarSeries>()
+        filledDimensions.forEach((dimension) => {
+            const seriesByKey = new Map<EntityName, StackedBarSeries>()
 
             for (let i = 0; i <= dimension.column.times.length; i += 1) {
                 const year = dimension.column.times[i]
                 const entityName = dimension.column.entityNames[i]
                 const value = +dimension.values[i]
-                const entityDimensionKey = makeEntityDimensionKey(
-                    entityName,
-                    dimIndex
-                )
-                let series = seriesByKey.get(entityDimensionKey)
+                let series = seriesByKey.get(entityName)
 
                 // Not a selected key, don't add any data for it
-                if (!selectedKeysByKey[entityDimensionKey]) continue
+                if (!selectedEntityNameSet.has(entityName)) continue
                 // Must be numeric
                 if (isNaN(value)) continue
                 // Stacked bar chart can't go negative!
@@ -140,12 +141,12 @@ export class StackedBarTransform extends ChartTransform {
 
                 if (!series) {
                     series = {
-                        entityDimensionKey: entityDimensionKey,
-                        label: grapher.getLabelForKey(entityDimensionKey),
+                        entityName,
+                        label: getLabelForEntityName(entityName),
                         values: [],
                         color: "#fff", // Temp
                     }
-                    seriesByKey.set(entityDimensionKey, series)
+                    seriesByKey.set(entityName, series)
                 }
                 series.values.push({
                     x: year,
@@ -188,7 +189,7 @@ export class StackedBarTransform extends ChartTransform {
         // Preserve order
         groupedData = sortBy(
             groupedData,
-            (series) => -selectedKeys.indexOf(series.entityDimensionKey)
+            (series) => -selectedEntityNames.indexOf(series.entityName)
         )
 
         return groupedData
@@ -207,9 +208,7 @@ export class StackedBarTransform extends ChartTransform {
                 return that.colorDimension?.sortedNumericValues ?? []
             },
             get categoricalValues() {
-                return uniq(
-                    that.groupedData.map((d) => d.entityDimensionKey)
-                ).reverse()
+                return uniq(that.groupedData.map((d) => d.entityName)).reverse()
             },
             get hasNoDataBin() {
                 return false
@@ -218,8 +217,8 @@ export class StackedBarTransform extends ChartTransform {
                 return that.colorDimension?.formatValueShortFn ?? identity
             },
             get formatCategoricalValueFn() {
-                return (key: EntityDimensionKey) =>
-                    that.grapher.getLabelForKey(key)
+                return (key: EntityName) =>
+                    that.grapher.table.getLabelForEntityName(key)
             },
         })
     }
@@ -231,8 +230,7 @@ export class StackedBarTransform extends ChartTransform {
         const stackedData = cloneDeep(groupedData)
 
         for (const series of stackedData) {
-            series.color =
-                this.colorScale.getColor(series.entityDimensionKey) ?? "#ddd"
+            series.color = this.colorScale.getColor(series.entityName) ?? "#ddd"
             series.values = series.values.filter(
                 (v) => v.x >= startTimelineTime && v.x <= endTimelineTime
             )

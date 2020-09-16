@@ -347,7 +347,7 @@ body {
 }
 
 .EditorDataTab {
-    .EntityDimensionKeyItem {
+    .EditableListItem {
         @extend .draggable;
         display: flex;
         justify-content: space-between;

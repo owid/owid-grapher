@@ -10,7 +10,6 @@ import {
 } from "grapher/utils/Util"
 import {
     TickFormattingOptions,
-    EntityDimensionKey,
     DimensionProperty,
     Time,
 } from "grapher/core/GrapherConstants"
@@ -20,12 +19,7 @@ import {
     LegacyVariableDisplayConfigInterface,
     LegacyVariableDisplayConfig,
 } from "owidTable/LegacyVariableCode"
-import {
-    OwidSource,
-    LegacyVariableId,
-    EntityName,
-    EntityId,
-} from "owidTable/OwidTableConstants"
+import { OwidSource, LegacyVariableId } from "owidTable/OwidTableConstants"
 import {
     Persistable,
     deleteRuntimeAndUnchangedProps,
@@ -43,17 +37,6 @@ export interface ChartDimensionInterface {
     variableId: LegacyVariableId
     targetTime?: Time
     display?: LegacyVariableDisplayConfigInterface
-}
-
-export interface EntityDimensionInfo {
-    entityName: EntityName
-    entityId: EntityId
-    dimension: ChartDimension
-    index: number
-    entityDimensionKey: EntityDimensionKey
-    fullLabel: string
-    label: string
-    shortCode: string
 }
 
 // A chart "dimension" represents a binding between a chart

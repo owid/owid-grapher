@@ -116,7 +116,7 @@ export class SwitcherExplorer extends React.Component<{
                 // Add any missing entities
                 this.availableEntities = uniq([
                     ...this.availableEntities,
-                    ...this._grapher!.table.availableEntities,
+                    ...this._grapher!.table.availableEntityNames,
                 ]).sort()
 
                 this.updateGrapherSelection()
@@ -128,21 +128,9 @@ export class SwitcherExplorer extends React.Component<{
 
     @action.bound private updateGrapherSelection() {
         const table = this._grapher!.table
-        const entityIdMap = table.entityNameToIdMap
-        const selectedData = Array.from(
-            this.explorerRuntime.selectedEntityNames
+        table.setSelectedEntities(
+            Array.from(this.explorerRuntime.selectedEntityNames)
         )
-            .filter((i) => i)
-            .map((countryOption) => {
-                return {
-                    index: 0,
-                    entityId: countryOption
-                        ? entityIdMap.get(countryOption)!
-                        : 0,
-                }
-            })
-
-        this._grapher!.selectedData = selectedData
     }
 
     private get panels() {

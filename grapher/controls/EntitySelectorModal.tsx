@@ -7,8 +7,10 @@ import { Grapher } from "grapher/core/Grapher"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EntityDimensionKey } from "grapher/core/GrapherConstants"
-import { EntityDimensionInfo } from "grapher/chart/ChartDimension"
+
+interface SearchableEntity {
+    name: string
+}
 
 @observer
 class EntitySelectorMulti extends React.Component<{
@@ -20,28 +22,24 @@ class EntitySelectorMulti extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    @computed get availableEntities(): EntityDimensionInfo[] {
-        return this.props.grapher.selectableEntityDimensionKeys
+    @computed get availableEntities() {
+        return this.props.grapher.table.availableEntityNames
     }
 
-    @computed get selectedEntities() {
-        return this.availableEntities.filter((d) =>
-            this.isSelectedKey(d.entityDimensionKey)
-        )
+    @computed get fuzzy(): FuzzySearch<SearchableEntity> {
+        return new FuzzySearch(this.searchableEntities, "name")
     }
 
-    @computed get fuzzy(): FuzzySearch<EntityDimensionInfo> {
-        return new FuzzySearch(this.availableEntities, "label")
+    @computed private get searchableEntities() {
+        return this.availableEntities.map((name) => {
+            return { name } as SearchableEntity
+        })
     }
 
-    @computed get searchResults(): EntityDimensionInfo[] {
+    @computed get searchResults() {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
-            : sortBy(this.availableEntities, (result) => result.label)
-    }
-
-    isSelectedKey(entityDimensionKey: EntityDimensionKey): boolean {
-        return !!this.props.grapher.selectedKeysByKey[entityDimensionKey]
+            : this.searchableEntities
     }
 
     @action.bound onClickOutside(e: MouseEvent) {
@@ -67,24 +65,21 @@ class EntitySelectorMulti extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.props.grapher.toggleKey(
-                this.searchResults[0].entityDimensionKey
-            )
+            this.props.grapher.table.selectEntity(this.searchResults[0].name)
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onClear() {
-        this.props.grapher.selectedKeys = []
+        this.props.grapher.table.clearSelection()
     }
 
     render() {
         const { grapher } = this.props
-        const {
-            selectedEntities: selectedData,
-            searchResults,
-            searchInput,
-        } = this
+        const { searchResults, searchInput } = this
+
+        const table = grapher.table
+        const selectedEntityNames = table.selectedEntityNames
 
         return (
             <div className="entitySelectorOverlay">
@@ -112,22 +107,22 @@ class EntitySelectorMulti extends React.Component<{
                                 }
                             />
                             <ul>
-                                {searchResults.map((d) => {
+                                {searchResults.map((result) => {
                                     return (
-                                        <li key={d.entityDimensionKey}>
+                                        <li key={result.name}>
                                             <label className="clickable">
                                                 <input
                                                     type="checkbox"
-                                                    checked={this.isSelectedKey(
-                                                        d.entityDimensionKey
+                                                    checked={table.isEntitySelected(
+                                                        result.name
                                                     )}
                                                     onChange={() =>
-                                                        grapher.toggleKey(
-                                                            d.entityDimensionKey
+                                                        table.toggleSelection(
+                                                            result.name
                                                         )
                                                     }
                                                 />{" "}
-                                                {d.label}
+                                                {result.name}
                                             </label>
                                         </li>
                                     )
@@ -136,28 +131,26 @@ class EntitySelectorMulti extends React.Component<{
                         </div>
                         <div className="selectedData">
                             <ul>
-                                {selectedData.map((d) => {
+                                {selectedEntityNames.map((name) => {
                                     return (
-                                        <li key={d.entityDimensionKey}>
+                                        <li key={name}>
                                             <label className="clickable">
                                                 <input
                                                     type="checkbox"
-                                                    checked={this.isSelectedKey(
-                                                        d.entityDimensionKey
-                                                    )}
+                                                    checked={true}
                                                     onChange={() =>
-                                                        grapher.toggleKey(
-                                                            d.entityDimensionKey
+                                                        table.deselectEntity(
+                                                            name
                                                         )
                                                     }
                                                 />{" "}
-                                                {d.label}
+                                                {name.label}
                                             </label>
                                         </li>
                                     )
                                 })}
                             </ul>
-                            {selectedData && selectedData.length > 1 ? (
+                            {selectedEntityNames.length > 1 ? (
                                 <button
                                     className="clearSelection"
                                     onClick={this.onClear}
@@ -188,21 +181,21 @@ class EntitySelectorSingle extends React.Component<{
     dismissable: boolean = true
 
     @computed private get availableEntities() {
-        const availableItems: { id: number; label: string }[] = []
-        this.props.grapher.entityDimensionMap.forEach((meta) => {
+        const availableItems: { id: string; label: string }[] = []
+        this.props.grapher.table.availableEntityNames.forEach((name) => {
             availableItems.push({
-                id: meta.entityId,
-                label: meta.entityName,
+                id: name,
+                label: name,
             })
         })
         return uniqBy(availableItems, (d) => d.label)
     }
 
-    @computed get fuzzy(): FuzzySearch<{ id: number; label: string }> {
+    @computed get fuzzy(): FuzzySearch<{ id: string; label: string }> {
         return new FuzzySearch(this.availableEntities, "label")
     }
 
-    @computed get searchResults(): { id: number; label: string }[] {
+    @computed get searchResults(): { id: string; label: string }[] {
         return this.searchInput
             ? this.fuzzy.search(this.searchInput)
             : sortBy(this.availableEntities, (result) => result.label)
@@ -232,13 +225,13 @@ class EntitySelectorSingle extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.onSelect(this.searchResults[0].id)
+            this.onSelect(this.searchResults[0].label)
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
-    @action.bound onSelect(entityId: number) {
-        this.props.grapher.setSingleSelectedEntity(entityId)
+    @action.bound onSelect(entityName: string) {
+        this.props.grapher.table.setSelectedEntities([entityName])
         this.props.onDismiss()
     }
 
