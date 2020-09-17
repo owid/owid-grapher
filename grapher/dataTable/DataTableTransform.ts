@@ -224,8 +224,8 @@ export class DataTableTransform extends ChartTransform {
             const targetTimes =
                 // If a targetTime override is specified on the dimension (scatter plots
                 // can do this) then use that target time and ignore the timeline.
-                dimension.targetTime !== undefined && this.grapher.isScatter
-                    ? [dimension.targetTime]
+                dimension.targetYear !== undefined && this.grapher.isScatter
+                    ? [dimension.targetYear]
                     : this.targetTimes
 
             const targetTimeMode =
