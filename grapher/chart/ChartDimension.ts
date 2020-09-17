@@ -43,7 +43,7 @@ export interface SourceWithDimension {
 export interface ChartDimensionInterface {
     property: DimensionProperty
     variableId: LegacyVariableId
-    targetTime?: Time
+    targetYear?: Time
     display?: LegacyVariableDisplayConfigInterface
 }
 
@@ -69,7 +69,7 @@ class ChartDimensionDefaults implements ChartDimensionInterface {
     @observable display = new LegacyVariableDisplayConfig() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override
-    @observable targetTime?: Time = undefined
+    @observable targetYear?: Time = undefined
 }
 
 export class ChartDimension
@@ -86,7 +86,7 @@ export class ChartDimension
     updateFromObject(obj: ChartDimensionInterface) {
         updatePersistables(this, obj)
 
-        this.targetTime = obj.targetTime
+        this.targetYear = obj.targetYear
         this.variableId = obj.variableId
         this.property = obj.property
     }

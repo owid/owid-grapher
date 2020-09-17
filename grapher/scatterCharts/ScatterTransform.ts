@@ -107,11 +107,11 @@ export class ScatterTransform extends ChartTransform {
     // Possible to override the x axis dimension to target a special year
     // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
     @computed get xOverrideTime() {
-        return this.xDimension && this.xDimension.targetTime
+        return this.xDimension && this.xDimension.targetYear
     }
 
     set xOverrideTime(value: number | undefined) {
-        this.xDimension!.targetTime = value
+        this.xDimension!.targetYear = value
     }
 
     @computed get canToggleRelativeMode() {
