@@ -1,6 +1,7 @@
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { OwidTable } from "owidTable/OwidTable"
+import { ColumnSlug } from "owidTable/OwidTableConstants"
 
 // NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
 // our Options as an "Options Provider". To get or set any of the options, you then have to "dot in" to the options provider
@@ -21,4 +22,8 @@ export interface ChartOptionsProvider {
     hideLegend?: boolean
     tooltip?: TooltipProps
     useTimelineDomains?: boolean
+    yColumnSlug?: ColumnSlug
+    xColumnSlug?: ColumnSlug
+    sizeColumnSlug?: ColumnSlug
+    colorColumnSlug?: ColumnSlug
 }

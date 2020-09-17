@@ -27,6 +27,7 @@ import {
     sortNumeric,
     lowerCaseFirstLetterUnlessAbbreviation,
     trimObject,
+    getRandomNumberGenerator,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder, ScaleType } from "grapher/core/GrapherConstants"
@@ -184,6 +185,13 @@ describe(computeRollingAverage, () => {
                 )
             ).toEqual(testCase.result)
         })
+    })
+})
+
+describe(getRandomNumberGenerator, () => {
+    it("can generate a repeatable sequence of random numbers between 1 and 100 given a seed", () => {
+        const rand = getRandomNumberGenerator(1, 100, 123)
+        expect([rand(), rand()]).toEqual([96, 13])
     })
 })
 

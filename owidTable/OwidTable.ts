@@ -27,9 +27,12 @@ import {
     sortedUniq,
     sortNumeric,
     isNumber,
+    last,
+    getRandomNumberGenerator,
+    range,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
-import { EPOCH_DATE, Time } from "grapher/core/GrapherConstants"
+import { CellValue, EPOCH_DATE, Time } from "grapher/core/GrapherConstants"
 import {
     ColumnTypeNames,
     Year,
@@ -40,6 +43,7 @@ import {
     EntityName,
     LegacyVariableId,
     OwidSource,
+    Range,
 } from "./OwidTableConstants"
 
 export interface Row {
@@ -65,6 +69,9 @@ export interface ColumnSpec {
     fn?: RowToValueMapper
 
     type?: ColumnTypeNames
+
+    // A range of values to use when generating synthetic data for testing
+    range?: Range
 }
 
 const globalEntityIds = new Map()
@@ -146,10 +153,6 @@ export abstract class AbstractColumn {
         return this.spec.unit || ""
     }
 
-    @computed get shortUnit() {
-        return this.spec.shortUnit || ""
-    }
-
     @computed get display() {
         return this.spec.display || new LegacyVariableDisplayConfig()
     }
@@ -174,6 +177,24 @@ export abstract class AbstractColumn {
 
     formatValueShort(value: any) {
         return this.formatValue(value)
+    }
+
+    @computed get numDecimalPlaces() {
+        return this.display.numDecimalPlaces ?? 2
+    }
+
+    @computed get shortUnit() {
+        const shortUnit =
+            this.display.shortUnit ?? this.spec.shortUnit ?? undefined
+        if (shortUnit !== undefined) return shortUnit
+
+        const { unit } = this
+        if (!unit) return ""
+
+        if (unit.length < 3) return unit
+        if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
+
+        return ""
     }
 
     // A method for formatting for CSV
@@ -271,8 +292,28 @@ export abstract class AbstractColumn {
         return this.rowsWithValue.map((row) => (row.year ?? row.day)!)
     }
 
-    get timesUniq() {
+    @computed get timesUniq() {
         return sortedUniq(this.times)
+    }
+
+    @computed get hasMultipleTimes() {
+        return this.timesUniq.length > 1
+    }
+
+    @computed get maxTime() {
+        return last(this.timesUniq)!
+    }
+
+    @computed get minTime() {
+        return this.timesUniq[0]
+    }
+
+    @computed get minValue() {
+        return this.sortedNumericValues[0]
+    }
+
+    @computed get maxValue() {
+        return last(this.sortedNumericValues)!
     }
 
     @computed private get allValues() {
@@ -299,23 +340,28 @@ export abstract class AbstractColumn {
         )
     }
 
+    @computed get owidRows() {
+        return this.times.map((time, index) => {
+            return {
+                entityName: this.entityNames[index],
+                time: this.times[index],
+                value: this.values[index],
+            }
+        })
+    }
+
     @computed get valueByEntityNameAndTime() {
         const valueByEntityNameAndTime = new Map<
-            string,
-            Map<number, string | number>
+            EntityName,
+            Map<Time, CellValue>
         >()
-        for (let i = 0; i < this.values.length; i++) {
-            const entityName = this.entityNames[i]
-            const time = this.times[i]
-            const value = this.values[i]
-
-            let valueByTime = valueByEntityNameAndTime.get(entityName)
-            if (!valueByTime) {
-                valueByTime = new Map()
-                valueByEntityNameAndTime.set(entityName, valueByTime)
-            }
-            valueByTime.set(time, value)
-        }
+        this.owidRows.forEach((row) => {
+            if (!valueByEntityNameAndTime.has(row.entityName))
+                valueByEntityNameAndTime.set(row.entityName, new Map())
+            valueByEntityNameAndTime
+                .get(row.entityName)!
+                .set(row.time, row.value)
+        })
         return valueByEntityNameAndTime
     }
 
@@ -372,7 +418,7 @@ class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
 export class NumericColumn extends AbstractColumn {
     formatValueShort(value: any) {
-        const numDecimalPlaces = this.display.numDecimalPlaces
+        const numDecimalPlaces = this.numDecimalPlaces
         return formatValue(value, {
             unit: this.shortUnit,
             numDecimalPlaces,
@@ -790,12 +836,28 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
     }
 
-    toDelimited(slugs = this.columnSlugs, rowLimit?: number, delimiter = ",") {
-        const header = slugs.join(delimiter) + "\n"
+    toDebugInfo() {
+        return `columns\n${this.columnsAsArray
+            .map(
+                (col) =>
+                    ` slug:${col.slug} type:${col.spec.type} name:${col.name}`
+            )
+            .join("\n")}\ndata rows 0 - 5 of ${
+            this.rows.length
+        }\n ${this.toDelimited(undefined, 5, ",", "\n ")}`
+    }
+
+    toDelimited(
+        slugs = this.columnSlugs,
+        rowLimit?: number,
+        delimiter = ",",
+        rowDelimiter = "\n"
+    ) {
+        const header = slugs.join(delimiter) + rowDelimiter
         const body = this.extract(slugs)
             .slice(0, rowLimit)
             .map((row) => row.join(delimiter))
-            .join("\n")
+            .join(rowDelimiter)
         return header + body
     }
 
@@ -889,7 +951,7 @@ export class BasicTable extends AbstractTable<Row> {
 }
 
 export class OwidTable extends AbstractTable<OwidRow> {
-    static fromDelimited(csvOrTsv: string) {
+    static fromDelimited(csvOrTsv: string, specs?: ColumnSpec[]) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
 
@@ -905,6 +967,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
             )
 
         const table = new OwidTable((parsed as any) as OwidRow[])
+        if (specs) table.addSpecs(specs, true)
         table.addSpecs(OwidTable.requiredColumnSpecs, true)
         return table
     }
@@ -1283,25 +1346,16 @@ export class OwidTable extends AbstractTable<OwidRow> {
         }
     }
 
-    getNewIdForColumnsWithUnitConversions(variableId: LegacyVariableId) {
-        return variableId + 1e7
-    }
-
-    @action.bound addLegacyColumnFromUnitConversion(
+    // todo: move "unit conversions" to computed columns
+    @action.bound applyUnitConversionAndOverwriteLegacyColumn(
         unitConversionFactor: number,
         variableId: LegacyVariableId
     ) {
         const sourceColumn = this.columnsByOwidVarId.get(variableId)!
-        const owidVariableId = this.getNewIdForColumnsWithUnitConversions(
-            variableId
-        )
         this.addNumericComputedColumn({
             ...sourceColumn.spec,
-            slug: owidVariableId.toString(),
-            owidVariableId,
             fn: (row) => row[sourceColumn.slug] * unitConversionFactor,
         })
-        return owidVariableId
     }
 
     @action.bound loadFromLegacy(json: LegacyVariablesAndEntityKey) {
@@ -1319,4 +1373,52 @@ export class OwidTable extends AbstractTable<OwidRow> {
         const diff = diffDateISOStringInDays(zeroDay, EPOCH_DATE)
         return years.map((y) => y + diff)
     }
+}
+
+interface SynthOptions {
+    countries: string[]
+    timeRange: Range
+    columnSpecs: ColumnSpec[]
+}
+
+// Generate a fake table for testing
+export const SynthesizeTable = (options?: Partial<SynthOptions>) => {
+    const finalOptions = {
+        countries: ["Iceland", "France"],
+        timeRange: [1950, 2020],
+        columnSpecs: [
+            { slug: "Population", type: "Population", range: [1e6, 1e8] },
+            { slug: "GDP", type: "Currency", range: [1e6, 1e8] },
+        ] as ColumnSpec[],
+        ...options,
+    }
+    const { countries, columnSpecs, timeRange } = finalOptions
+    const colSlugs = ["entityName", "entityCode", "entityId", "year"].concat(
+        columnSpecs.map((col) => col.slug!)
+    )
+
+    const generators = columnSpecs.map((col, index) =>
+        getRandomNumberGenerator(col.range![0], col.range![1], index)
+    )
+
+    const rows = countries.map((country, index) =>
+        range(timeRange[0], timeRange[1])
+            .map((year) =>
+                [
+                    country,
+                    country.substr(3).toUpperCase(),
+                    index,
+                    year,
+                    ...columnSpecs.map((slug, index) => generators[index]()),
+                ].join(",")
+            )
+            .join("\n")
+    )
+
+    const table = OwidTable.fromDelimited(
+        `${colSlugs.join(",")}\n${rows.join("\n")}`,
+        columnSpecs
+    )
+
+    return table
 }

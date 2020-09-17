@@ -145,18 +145,17 @@ export class ChartDimension
         const shortUnit =
             this.display.shortUnit ??
             this.columnDisplay.shortUnit ??
-            (this.column.shortUnit || undefined)
+            (this.column.spec.shortUnit || undefined)
 
         if (shortUnit !== undefined) return shortUnit
 
         if (!unit) return ""
 
         if (unit.length < 3) return unit
-        else {
-            const commonShortUnits = ["$", "£", "€", "%"]
-            if (commonShortUnits.some((u) => unit[0] === u)) return unit[0]
-            else return ""
-        }
+
+        if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
+
+        return ""
     }
 
     @computed get formatValueShortFn(): (

@@ -58,7 +58,6 @@ import { DiscreteBarTransform } from "grapher/barCharts/DiscreteBarTransform"
 import { StackedAreaTransform } from "grapher/areaCharts/StackedAreaTransform"
 import { LineChartTransform } from "grapher/lineCharts/LineChartTransform"
 import { ScatterTransform } from "grapher/scatterCharts/ScatterTransform"
-import { SlopeChartTransform } from "grapher/slopeCharts/SlopeChartTransform"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
 import { IChartTransform } from "grapher/chart/ChartTransform"
@@ -470,7 +469,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         table.columnsAsArray
             .filter((col) => col.display.conversionFactor !== undefined)
             .forEach((col) => {
-                table.addLegacyColumnFromUnitConversion(
+                table.applyUnitConversionAndOverwriteLegacyColumn(
                     col.display.conversionFactor!,
                     col.spec.owidVariableId!
                 )
@@ -479,7 +478,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         this.dimensions
             .filter((dim) => dim.display?.conversionFactor !== undefined)
             .forEach((dimension) => {
-                table.addLegacyColumnFromUnitConversion(
+                table.applyUnitConversionAndOverwriteLegacyColumn(
                     dimension.display!.conversionFactor!,
                     dimension.variableId
                 )
@@ -585,7 +584,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === "map") return this.mapTransform.timelineTimes
-        return this.activeTransform.timelineTimes
+        return this.activeTransform?.timelineTimes || this.table.allTimes
     }
 
     // todo: remove ifs
@@ -597,7 +596,11 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                 this.timeDomain[0]
             )
         else if (activeTab === "map") return this.mapTransform.endTimelineTime // todo: always use endTimelineTime for maps?
-        return this.activeTransform.startTimelineTime!
+        return (
+            this.activeTransform?.startTimelineTime ||
+            this.table.minTime ||
+            1900
+        )
     }
 
     // todo: remove ifs
@@ -622,7 +625,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                 ? this.dataTableTransform.startTimelineTime
                 : this.timeDomain[1]
         else if (activeTab === "map") return this.mapTransform.endTimelineTime
-        return this.activeTransform.endTimelineTime!
+        return (
+            this.activeTransform?.endTimelineTime || this.table.maxTime || 2000
+        )
     }
 
     @computed get isNativeEmbed() {
@@ -910,6 +915,16 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return text.trim()
     }
 
+    @computed get yColumnSlug() {
+        return this.dimensions
+            .find((dim) => dim.property === "y")
+            ?.variableId.toString()
+    }
+
+    @computed get yColumn() {
+        return this.table.columnsBySlug.get(this.yColumnSlug || "")
+    }
+
     @computed private get timeTitleSuffix() {
         if (!this.table.timeColumn) return "" // Do not show year until data is loaded
         const { startTime, endTime } = this
@@ -1002,7 +1017,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return uniq(sourceNames).join(", ")
     }
 
-    @computed get axisDimensions() {
+    @computed private get axisDimensions() {
         return this.filledDimensions.filter(
             (dim) => dim.property === "y" || dim.property === "x"
         )
@@ -1064,9 +1079,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @computed get stackedAreaTransform() {
         return new StackedAreaTransform(this)
     }
-    @computed get slopeChartTransform() {
-        return new SlopeChartTransform(this)
-    }
     @computed get discreteBarTransform() {
         return new DiscreteBarTransform(this)
     }
@@ -1081,20 +1093,20 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed get activeColorScale() {
-        return this.activeTransform.colorScale
+        return this.activeTransform?.colorScale
     }
 
     // WARNING: THIS WILL BE REMOVED!!!! DO NOT USE
-    @computed private get activeTransform(): IChartTransform {
+    @computed private get activeTransform(): IChartTransform | undefined {
         if (this.currentTab === "table") return this.dataTableTransform
         else if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
             return this.scatterTransform
         else if (this.isStackedArea) return this.stackedAreaTransform
-        else if (this.isSlopeChart) return this.slopeChartTransform
         else if (this.isDiscreteBar) return this.discreteBarTransform
         else if (this.isStackedBar) return this.stackedBarTransform
-        else throw new Error("No transform found")
+
+        return undefined
     }
 
     @computed get idealBounds() {

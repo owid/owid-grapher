@@ -575,6 +575,17 @@ export function stripHTML(html: string): string {
     return striptags(html)
 }
 
+// Math.rand doesn't have between nor seed. Lodash's Random doesn't take a seed, making it bad for testing.
+// So we have our own *very* psuedo-RNG.
+export const getRandomNumberGenerator = (
+    min = 0,
+    max = 1,
+    seed = Date.now()
+) => () => {
+    const semiRand = Math.sin(seed++) * 10000
+    return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
+}
+
 export function findClosestTime(
     times: Time[],
     targetTime: number,

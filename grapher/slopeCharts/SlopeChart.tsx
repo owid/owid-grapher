@@ -1,15 +1,29 @@
 import * as React from "react"
-import { intersection, without, uniq } from "grapher/utils/Util"
+import {
+    intersection,
+    without,
+    uniq,
+    isEmpty,
+    identity,
+    last,
+} from "grapher/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
-import { LabelledSlopes, SlopeProps } from "./LabelledSlopes"
+import {
+    LabelledSlopes,
+    SlopeChartSeries,
+    SlopeChartValue,
+    SlopeProps,
+} from "./LabelledSlopes"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import {
     VerticalColorLegend,
     ScatterColorLegendView,
 } from "grapher/scatterCharts/ScatterColorLegend"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
+import { ColorScale } from "grapher/color/ColorScale"
+import { Time } from "grapher/core/GrapherConstants"
 
 @observer
 export class SlopeChart extends React.Component<{
@@ -23,10 +37,6 @@ export class SlopeChart extends React.Component<{
 
     @computed get options() {
         return this.props.options
-    }
-
-    @computed get transform() {
-        return this.props.options.slopeChartTransform
     }
 
     @computed.struct get bounds(): Bounds {
@@ -43,7 +53,7 @@ export class SlopeChart extends React.Component<{
                 return that.options.baseFontSize
             },
             get colorables() {
-                return that.transform.colorScale.legendData
+                return that.colorScale.legendData
                     .filter((bin) => that.colorsInUse.includes(bin.color))
                     .map((bin) => {
                         return {
@@ -91,8 +101,7 @@ export class SlopeChart extends React.Component<{
         if (options.addCountryMode === "disabled" || hoverColor === undefined)
             return
 
-        const { transform } = this
-        const keysToToggle = transform.data
+        const keysToToggle = this.data
             .filter((g) => g.color === hoverColor)
             .map((g) => g.entityName)
         const allKeysActive =
@@ -110,9 +119,9 @@ export class SlopeChart extends React.Component<{
 
     // Colors on the legend for which every matching group is focused
     @computed get focusColors() {
-        const { colorsInUse, transform } = this
+        const { colorsInUse } = this
         return colorsInUse.filter((color) => {
-            const matchingKeys = transform.data
+            const matchingKeys = this.data
                 .filter((g) => g.color === color)
                 .map((g) => g.entityName)
             return (
@@ -128,13 +137,13 @@ export class SlopeChart extends React.Component<{
 
     // All currently hovered group keys, combining the legend and the main UI
     @computed.struct get hoverKeys() {
-        const { hoverColor, hoverKey, transform } = this
+        const { hoverColor, hoverKey } = this
 
         const hoverKeys =
             hoverColor === undefined
                 ? []
                 : uniq(
-                      transform.data
+                      this.data
                           .filter((g) => g.color === hoverColor)
                           .map((g) => g.entityName)
                   )
@@ -146,31 +155,33 @@ export class SlopeChart extends React.Component<{
 
     // Colors currently on the chart and not greyed out
     @computed get activeColors(): string[] {
-        const { hoverKeys, focusKeys, transform } = this
+        const { hoverKeys, focusKeys } = this
         const activeKeys = hoverKeys.concat(focusKeys)
 
         if (activeKeys.length === 0)
             // No hover or focus means they're all active by default
-            return uniq(transform.data.map((g) => g.color))
-        else
-            return uniq(
-                transform.data
-                    .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
-                    .map((g) => g.color)
-            )
+            return uniq(this.data.map((g) => g.color))
+
+        return uniq(
+            this.data
+                .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
+                .map((g) => g.color)
+        )
     }
 
     // Only show colors on legend that are actually in use
     @computed get colorsInUse() {
-        return uniq(this.transform.data.map((g) => g.color))
+        return uniq(this.data.map((g) => g.color))
     }
 
     @computed get sidebarMaxWidth() {
         return this.bounds.width * 0.5
     }
+
     @computed get sidebarMinWidth() {
         return 100
     }
+
     @computed.struct get sidebarWidth() {
         const { sidebarMinWidth, sidebarMaxWidth, legend } = this
         return Math.max(
@@ -193,23 +204,23 @@ export class SlopeChart extends React.Component<{
     // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
     @computed get showLegend(): boolean {
         const { colorsInUse } = this
-        const { legendData } = this.transform.colorScale
+        const { legendData } = this.colorScale
         return legendData.some((bin) => colorsInUse.includes(bin.color))
     }
 
     render() {
-        if (this.transform.failMessage)
+        if (this.failMessage)
             return (
                 <NoDataOverlay
                     options={this.options}
                     bounds={this.props.bounds}
-                    message={this.transform.failMessage}
+                    message={this.failMessage}
                 />
             )
 
         const { bounds, options } = this.props
-        const { data } = this.transform
         const {
+            data,
             legend,
             focusKeys,
             hoverKeys,
@@ -225,11 +236,8 @@ export class SlopeChart extends React.Component<{
                 <LabelledSlopes
                     options={options}
                     bounds={innerBounds}
-                    isInteractive={options.isInteractive}
-                    yTickFormat={this.transform.yTickFormat}
-                    yAxisOptions={options.yAxis}
+                    yColumn={this.yColumn!}
                     data={data}
-                    fontSize={options.baseFontSize}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}
@@ -252,5 +260,127 @@ export class SlopeChart extends React.Component<{
                 )}
             </g>
         )
+    }
+
+    @computed get failMessage() {
+        if (!this.yColumn) return "Missing Y column"
+        else if (isEmpty(this.data)) return "No matching data"
+        return undefined
+    }
+
+    @computed get colorScale() {
+        const that = this
+        return new ColorScale({
+            get config() {
+                return {} as any // that.grapher.colorScale
+            },
+            get defaultBaseColorScheme() {
+                return "continents"
+            },
+            get sortedNumericValues() {
+                return that.colorColumn?.sortedNumericValues ?? []
+            },
+            get categoricalValues() {
+                return that.colorColumn?.sortedUniqNonEmptyStringVals ?? []
+            },
+            get hasNoDataBin() {
+                return false
+            },
+            get formatNumericValueFn() {
+                return that.colorColumn?.formatValueShort ?? identity
+            },
+        })
+    }
+
+    @computed get availableTimes(): Time[] {
+        return this.yColumn?.timesUniq || []
+    }
+
+    @computed private get columns() {
+        return this.options.table.columnsBySlug
+    }
+
+    @computed private get yColumn() {
+        return this.columns.get(this.options.yColumnSlug!)
+    }
+
+    @computed private get colorColumn() {
+        return this.columns.get(this.options.colorColumnSlug!)
+    }
+
+    // helper method to directly get the associated color value given an Entity
+    // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
+    // this returns that data in the form { Afghanistan => Asia }
+    @computed private get colorByEntity(): Map<string, string | undefined> {
+        const { colorScale, colorColumn } = this
+        const colorByEntity = new Map<string, string | undefined>()
+
+        if (colorColumn)
+            colorColumn.valueByEntityNameAndTime.forEach(
+                (timeToColorMap, entity) => {
+                    const values = Array.from(timeToColorMap.values())
+                    const key = last(values)
+                    colorByEntity.set(entity, colorScale.getColor(key))
+                }
+            )
+
+        return colorByEntity
+    }
+
+    // helper method to directly get the associated size value given an Entity
+    // dimension data saves size a level deeper. eg: { Afghanistan => { 1990: 1, 2015: 10 }}
+    // this returns that data in the form { Afghanistan => 1 }
+    @computed private get sizeByEntity(): Map<string, any> {
+        const sizeCol = this.columns.get(this.options.sizeColumnSlug!)
+        const sizeByEntity = new Map<string, any>()
+
+        if (sizeCol)
+            sizeCol.valueByEntityNameAndTime.forEach(
+                (timeToSizeMap, entity) => {
+                    const values = Array.from(timeToSizeMap.values())
+                    sizeByEntity.set(entity, values[0]) // hack: default to the value associated with the first time
+                }
+            )
+
+        return sizeByEntity
+    }
+
+    @computed get data() {
+        const column = this.yColumn
+        if (!column) return []
+
+        const { colorByEntity, sizeByEntity } = this
+        const { minTime, maxTime } = column
+
+        const table = this.options.table
+
+        return column.entityNamesUniqArr
+            .map((entityName) => {
+                const values: SlopeChartValue[] = []
+
+                const yValues =
+                    column.valueByEntityNameAndTime.get(entityName)! || []
+
+                yValues.forEach((value, time) => {
+                    if (time !== minTime && time !== maxTime) return
+
+                    values.push({
+                        x: time,
+                        y: typeof value === "string" ? parseInt(value) : value,
+                    })
+                })
+
+                return {
+                    entityName,
+                    label: entityName,
+                    color:
+                        table.getColorForEntityName(entityName) ||
+                        colorByEntity.get(entityName) ||
+                        "#ff7f0e",
+                    size: sizeByEntity.get(entityName) || 1,
+                    values,
+                } as SlopeChartSeries
+            })
+            .filter((d) => d.values.length >= 2)
     }
 }

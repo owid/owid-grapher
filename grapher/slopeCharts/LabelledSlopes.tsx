@@ -24,9 +24,9 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { AxisConfig } from "grapher/axis/AxisConfig"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { AbstractColumn } from "owidTable/OwidTable"
 
 export interface SlopeChartValue {
     x: number
@@ -155,7 +155,7 @@ export interface SlopeProps {
 class Slope extends React.Component<SlopeProps> {
     line: SVGElement
 
-    @computed get isInBackground(): boolean {
+    @computed get isInBackground() {
         const { isLayerMode, isHovered, isFocused } = this.props
 
         if (!isLayerMode) return false
@@ -273,12 +273,9 @@ class Slope extends React.Component<SlopeProps> {
 
 interface LabelledSlopesProps {
     options: SlopeChartOptionsProvider
+    yColumn: AbstractColumn
     bounds: Bounds
     data: SlopeChartSeries[]
-    isInteractive?: boolean
-    yTickFormat: (value: number) => string
-    yAxisOptions: AxisConfig
-    fontSize: number
     focusKeys: string[]
     hoverKeys: string[]
     onMouseOver: (slopeProps: SlopeProps) => void
@@ -291,22 +288,30 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
     svg: SVGElement
 
-    @computed get data(): SlopeChartSeries[] {
+    @computed get data() {
         return this.props.data
     }
 
-    @computed get bounds(): Bounds {
+    @computed get yColumn() {
+        return this.props.yColumn
+    }
+
+    @computed get options() {
+        return this.props.options
+    }
+
+    @computed get bounds() {
         return this.props.bounds
     }
 
-    @computed get focusKeys(): string[] {
+    @computed get focusKeys() {
         return intersection(
             this.props.focusKeys || [],
             this.data.map((g) => g.entityName)
         )
     }
 
-    @computed get hoverKeys(): string[] {
+    @computed get hoverKeys() {
         return intersection(
             this.props.hoverKeys || [],
             this.data.map((g) => g.entityName)
@@ -319,11 +324,11 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return this.focusKeys.length > 0 || this.hoverKeys.length > 0
     }
 
-    @computed get isPortrait(): boolean {
+    @computed get isPortrait() {
         return this.bounds.width < 400
     }
 
-    @computed get allValues(): SlopeChartValue[] {
+    @computed get allValues() {
         return flatten(this.props.data.map((g) => g.values))
     }
 
@@ -335,7 +340,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed private get yScaleType() {
-        return this.props.yAxisOptions.scaleType || ScaleType.linear
+        return this.options.yAxis?.scaleType || ScaleType.linear
     }
 
     @computed private get yDomainDefault(): [number, number] {
@@ -345,12 +350,12 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         )
     }
 
-    @computed get xDomain(): [number, number] {
+    @computed private get xDomain(): [number, number] {
         return this.xDomainDefault
     }
 
-    @computed get yDomain(): [number, number] {
-        const domain = this.props.yAxisOptions.domain
+    @computed private get yDomain(): [number, number] {
+        const domain = this.options.yAxis?.domain || [Infinity, -Infinity]
         const domainDefault = this.yDomainDefault
         return [
             Math.min(domain[0], domainDefault[0]),
@@ -385,28 +390,26 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             : SlopeChartAxis.calculateBounds(bounds, {
                   orient: "left",
                   scale: yScale,
-                  tickFormat: this.props.yTickFormat,
+                  tickFormat: this.formatValueFn,
               }).width
         return scaleLinear()
             .domain(xDomain)
             .range(bounds.padWidth(padding).xRange())
     }
 
-    @computed get maxLabelWidth(): number {
+    @computed get maxLabelWidth() {
         return this.bounds.width / 5
     }
 
-    @computed get initialSlopeData(): SlopeProps[] {
+    @computed private get initialSlopeData() {
         const {
             data,
             isPortrait,
             xScale,
             yScale,
             sizeScale,
-            maxLabelWidth,
+            maxLabelWidth: maxWidth,
         } = this
-
-        const yTickFormat = this.props.yTickFormat
 
         const slopeData: SlopeProps[] = []
         const yDomain = yScale.domain()
@@ -420,34 +423,36 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             )
                 return
 
+            const text = series.label
             const [v1, v2] = series.values
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
             const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
-            const fontSize = (isPortrait ? 0.6 : 0.65) * this.props.fontSize
-            const leftValueStr = yTickFormat(v1.y)
-            const rightValueStr = yTickFormat(v2.y)
+            const fontSize =
+                (isPortrait ? 0.6 : 0.65) * this.options.baseFontSize
+            const leftValueStr = this.formatValueFn(v1.y)
+            const rightValueStr = this.formatValueFn(v2.y)
             const leftValueWidth = Bounds.forText(leftValueStr, {
-                fontSize: fontSize,
+                fontSize,
             }).width
             const rightValueWidth = Bounds.forText(rightValueStr, {
-                fontSize: fontSize,
+                fontSize,
             }).width
             const leftLabel = new TextWrap({
-                maxWidth: maxLabelWidth,
-                fontSize: fontSize,
-                text: series.label,
+                maxWidth,
+                fontSize,
+                text,
             })
             const rightLabel = new TextWrap({
-                maxWidth: maxLabelWidth,
-                fontSize: fontSize,
-                text: series.label,
+                maxWidth,
+                fontSize,
+                text,
             })
 
             slopeData.push({
-                x1: x1,
-                y1: y1,
-                x2: x2,
-                y2: y2,
+                x1,
+                y1,
+                x2,
+                y2,
                 color: series.color,
                 size: sizeScale(series.size) || 1,
                 leftValueStr,
@@ -468,11 +473,11 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return slopeData
     }
 
-    @computed get maxValueWidth(): number {
+    @computed get maxValueWidth() {
         return max(this.initialSlopeData.map((s) => s.leftValueWidth)) as number
     }
 
-    @computed get labelAccountedSlopeData() {
+    @computed private get labelAccountedSlopeData() {
         const { maxLabelWidth, maxValueWidth } = this
 
         return this.initialSlopeData.map((slope) => {
@@ -504,13 +509,13 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         })
     }
 
-    @computed get backgroundGroups(): SlopeProps[] {
+    @computed get backgroundGroups() {
         return this.slopeData.filter(
             (group) => !(group.isHovered || group.isFocused)
         )
     }
 
-    @computed get foregroundGroups(): SlopeProps[] {
+    @computed get foregroundGroups() {
         return this.slopeData.filter(
             (group) => !!(group.isHovered || group.isFocused)
         )
@@ -645,22 +650,10 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             .attr("stroke-dashoffset", "0%")
     }
 
-    renderBackgroundGroups() {
-        const { backgroundGroups, isLayerMode } = this
+    renderGroups(groups: SlopeProps[]) {
+        const { isLayerMode } = this
 
-        return backgroundGroups.map((slope) => (
-            <Slope
-                key={slope.entityName}
-                {...slope}
-                isLayerMode={isLayerMode}
-            />
-        ))
-    }
-
-    renderForegroundGroups() {
-        const { foregroundGroups, isLayerMode } = this
-
-        return foregroundGroups.map((slope) => (
+        return groups.map((slope) => (
             <Slope
                 key={slope.entityName}
                 {...slope}
@@ -670,23 +663,28 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get controls() {
-        const { yAxisOptions } = this.props
+        const { yAxis } = this.options
         const showScaleSelector =
-            this.props.isInteractive && yAxisOptions.canChangeScaleType
+            this.options.isInteractive && yAxis?.canChangeScaleType
         if (!showScaleSelector) return undefined
         return (
             <ControlsOverlay id="slope-scale-selector" paddingTop={20}>
                 <ScaleSelector
                     x={this.bounds.x}
                     y={this.bounds.y - 35}
-                    scaleTypeConfig={yAxisOptions.toVerticalAxis()}
+                    scaleTypeConfig={yAxis!.toVerticalAxis()}
                 />
             </ControlsOverlay>
         )
     }
 
+    @computed get formatValueFn() {
+        return (val: any) => this.yColumn.formatValueShort(val)
+    }
+
     render() {
-        const { yTickFormat, fontSize } = this.props
+        const yTickFormat = this.formatValueFn
+        const { baseFontSize } = this.options
         const yScaleType = this.yScaleType
         const {
             bounds,
@@ -766,7 +764,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                     y={y1 + 10}
                     textAnchor="middle"
                     fill="#666"
-                    fontSize={fontSize}
+                    fontSize={baseFontSize}
                 >
                     {xDomain[0].toString()}
                 </Text>
@@ -775,13 +773,13 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                     y={y1 + 10}
                     textAnchor="middle"
                     fill="#666"
-                    fontSize={fontSize}
+                    fontSize={baseFontSize}
                 >
                     {xDomain[1].toString()}
                 </Text>
                 <g className="slopes">
-                    {this.renderBackgroundGroups()}
-                    {this.renderForegroundGroups()}
+                    {this.renderGroups(this.backgroundGroups)}
+                    {this.renderGroups(this.foregroundGroups)}
                 </g>
             </g>
         )

@@ -472,19 +472,22 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         }
     }
 
-    @computed get hasTimeline(): boolean {
+    @computed get hasTimeline() {
         const grapher = this.grapher
-        if (grapher.currentTab === "table") return !grapher.hideTimeline
-        if (grapher.currentTab === "map") {
+        if (grapher.hideTimeline) return false
+
+        if (grapher.currentTab === "table") return true
+
+        if (grapher.currentTab === "map")
             return grapher.mapTransform.hasTimeline
-        } else if (grapher.currentTab === "chart") {
-            if (grapher.isScatter || grapher.isTimeScatter)
-                return grapher.scatterTransform.hasTimeline
-            if (grapher.isLineChart)
-                return grapher.lineChartTransform.hasTimeline
-            if (grapher.isSlopeChart)
-                return grapher.slopeChartTransform.hasTimeline
-        }
+
+        if (grapher.currentTab !== "chart") return false
+
+        if (grapher.isScatter || grapher.isTimeScatter)
+            return grapher.scatterTransform.hasTimeline
+        if (grapher.isLineChart) return grapher.lineChartTransform.hasTimeline
+        if (grapher.isSlopeChart) return grapher.yColumn?.hasMultipleTimes
+
         return false
     }
 

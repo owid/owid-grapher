@@ -1,5 +1,6 @@
 export declare type Integer = number
 export declare type Year = Integer
+export declare type Range = [number, number]
 export declare type EntityName = string
 export declare type EntityCode = string
 export declare type EntityId = number

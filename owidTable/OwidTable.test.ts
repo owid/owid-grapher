@@ -95,8 +95,8 @@ describe("from legacy", () => {
     it("can apply legacy unit conversion factors", () => {
         const varSet = getLegacyVarSet()
         const table = new OwidTable([]).loadFromLegacy(varSet)
-        const newId = table.addLegacyColumnFromUnitConversion(100, 3512)
-        expect(table.columnsBySlug.get(newId.toString())!.values).toEqual([
+        table.applyUnitConversionAndOverwriteLegacyColumn(100, 3512)
+        expect(table.columnsBySlug.get("3512")!.values).toEqual([
             550,
             420,
             1260,
