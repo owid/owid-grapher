@@ -9,7 +9,6 @@ import { SynthesizeOwidTable } from "owidTable/OwidTable"
 
 const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
 const options: DiscreteBarChartOptionsProvider = {
-    baseFontSize: 16,
     entityType: "Country",
     table,
     yColumnSlug: "Population",

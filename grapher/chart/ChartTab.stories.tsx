@@ -3,12 +3,12 @@ import "site/client/owid.scss"
 import "grapher/core/grapher.scss"
 import { basicGdpGrapher } from "grapher/test/samples"
 import { GrapherView } from "grapher/core/GrapherView"
-import { MapTab } from "./MapTab"
+import { ChartTab } from "./ChartTab"
 import { Bounds } from "grapher/utils/Bounds"
 
 export default {
-    title: "MapTab",
-    component: MapTab,
+    title: "ChartTab",
+    component: ChartTab,
 }
 
 export const Default = () => {

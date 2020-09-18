@@ -29,6 +29,7 @@ import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 import { ScatterPlotOptionsProvider } from "./ScatterPlotOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 @observer
 export class ScatterPlot extends React.Component<{
@@ -73,6 +74,10 @@ export class ScatterPlot extends React.Component<{
         )
     }
 
+    @computed private get baseFontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
     @computed get legend(): VerticalColorLegend {
         const that = this
         return new VerticalColorLegend({
@@ -80,7 +85,7 @@ export class ScatterPlot extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.options.baseFontSize
+                return that.baseFontSize
             },
             get colorables() {
                 return that.transform.colorScale.legendData
@@ -188,7 +193,7 @@ export class ScatterPlot extends React.Component<{
                 return that.sidebarWidth
             },
             get fontSize() {
-                return that.options.baseFontSize
+                return that.baseFontSize
             },
             get startTime() {
                 return formatFn(that.transform.startTimelineTime)
@@ -403,7 +408,7 @@ export class ScatterPlot extends React.Component<{
                         formatXYear={transform.xFormatYear}
                         series={tooltipSeries}
                         maxWidth={sidebarWidth}
-                        fontSize={this.options.baseFontSize}
+                        fontSize={this.baseFontSize}
                         x={bounds.right - sidebarWidth}
                         y={
                             bounds.top +

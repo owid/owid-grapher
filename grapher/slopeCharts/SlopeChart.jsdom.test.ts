@@ -7,7 +7,6 @@ import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 
 const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
 const options: SlopeChartOptionsProvider = {
-    baseFontSize: 16,
     entityType: "Country",
     addCountryMode: "add-country",
     table,

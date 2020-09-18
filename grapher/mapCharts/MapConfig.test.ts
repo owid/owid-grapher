@@ -4,7 +4,7 @@ import { MapConfig } from "./MapConfig"
 
 describe(MapConfig, () => {
     it("can serialize for saving", () => {
-        expect(Object.keys(new MapConfig().toObject()).length).toBe(0)
+        expect(new MapConfig().toObject()).toEqual({})
 
         const map = new MapConfig()
         map.hideTimeline = true

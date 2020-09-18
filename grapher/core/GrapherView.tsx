@@ -11,7 +11,6 @@ import { ControlsFooterView } from "grapher/controls/Controls"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { ChartTab } from "grapher/chart/ChartTab"
 import { TableTab } from "grapher/dataTable/TableTab"
-import { MapTab } from "grapher/mapCharts/MapTab"
 import { SourcesTab } from "grapher/sourcesTab/SourcesTab"
 import { DownloadTab } from "grapher/downloadTab/DownloadTab"
 import {
@@ -265,18 +264,9 @@ export class GrapherView extends React.Component<GrapherViewProps> {
 
     private renderPrimaryTab(): JSX.Element | undefined {
         const { grapher, tabBounds } = this
-        if (grapher.primaryTab === "chart")
+        if (grapher.primaryTab === "chart" || grapher.primaryTab === "map")
             return (
                 <ChartTab
-                    bounds={tabBounds}
-                    grapher={this.grapher}
-                    grapherView={this}
-                />
-            )
-
-        if (grapher.primaryTab === "map")
-            return (
-                <MapTab
                     bounds={tabBounds}
                     grapher={this.grapher}
                     grapherView={this}

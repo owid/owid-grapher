@@ -22,6 +22,7 @@ import { Tooltip } from "grapher/tooltip/Tooltip"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { StackedBarTransform } from "./StackedBarTransform"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 export interface StackedBarValue {
     x: number
@@ -135,8 +136,12 @@ export class StackedBarChart extends React.Component<{
         return this.options.stackedBarTransform.failMessage
     }
 
+    @computed private get baseFontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
     @computed get tickFontSize() {
-        return 0.9 * this.props.options.baseFontSize
+        return 0.9 * this.baseFontSize
     }
 
     @computed get barValueFormat() {
@@ -157,7 +162,7 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get barFontSize() {
-        return 0.75 * this.props.options.baseFontSize
+        return 0.75 * this.baseFontSize
     }
 
     // todo: Refactor
@@ -224,7 +229,7 @@ export class StackedBarChart extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.options.baseFontSize
+                return that.baseFontSize
             },
             get colorables() {
                 return that.transform.colorScale.legendData

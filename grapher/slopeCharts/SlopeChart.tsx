@@ -16,7 +16,7 @@ import {
 } from "grapher/scatterCharts/ScatterColorLegend"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 import { ColorScale } from "grapher/color/ColorScale"
-import { Time } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, Time } from "grapher/core/GrapherConstants"
 
 @observer
 export class SlopeChart extends React.Component<{
@@ -43,7 +43,7 @@ export class SlopeChart extends React.Component<{
                 return that.sidebarMaxWidth
             },
             get fontSize() {
-                return that.options.baseFontSize
+                return that.options.baseFontSize ?? BASE_FONT_SIZE
             },
             get colorables() {
                 return that.colorScale.legendData

@@ -27,6 +27,7 @@ import { rgb } from "d3-color"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { StackedAreaTransform } from "./StackedAreaTransform"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 export interface StackedAreaValue {
     x: number
@@ -83,9 +84,7 @@ class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
-    @action.bound private onCursorLeave(
-        ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
-    ) {
+    @action.bound private onCursorLeave() {
         this.hoverIndex = undefined
         this.props.onHover(this.hoverIndex)
     }
@@ -271,7 +270,7 @@ export class StackedAreaChart extends React.Component<{
                 return Math.min(150, that.bounds.width / 3)
             },
             get fontSize() {
-                return that.options.baseFontSize
+                return that.options.baseFontSize ?? BASE_FONT_SIZE
             },
             get items() {
                 return that.legendItems
@@ -285,10 +284,9 @@ export class StackedAreaChart extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(key: EntityName) {
-        if (this.options.showAddEntityControls) {
+    @action.bound onLegendClick() {
+        if (this.options.showAddEntityControls)
             this.options.isSelectingData = true
-        }
     }
 
     @computed private get dualAxis() {

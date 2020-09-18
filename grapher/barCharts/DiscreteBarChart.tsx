@@ -9,6 +9,7 @@ import {
     TickFormattingOptions,
     ScaleType,
     Time,
+    BASE_FONT_SIZE,
 } from "grapher/core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -59,16 +60,20 @@ export class DiscreteBarChart extends React.Component<{
         return this.options.useTimelineDomains ? this.allData : this.currentData
     }
 
+    @computed private get baseFontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
     @computed private get legendLabelStyle() {
         return {
-            fontSize: 0.75 * this.props.options.baseFontSize,
+            fontSize: 0.75 * this.baseFontSize,
             fontWeight: 700,
         }
     }
 
     @computed private get valueLabelStyle() {
         return {
-            fontSize: 0.75 * this.props.options.baseFontSize,
+            fontSize: 0.75 * this.baseFontSize,
             fontWeight: 400,
         }
     }

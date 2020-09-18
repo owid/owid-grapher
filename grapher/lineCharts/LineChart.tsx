@@ -25,6 +25,7 @@ import { extent } from "d3-array"
 import { LineChartTransform } from "./LineChartTransform"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 export interface LineChartValue {
     x: number
@@ -282,7 +283,7 @@ export class LineChart extends React.Component<{
                 return that.bounds.width / 3
             },
             get fontSize() {
-                return that.options.baseFontSize
+                return that.options.baseFontSize ?? BASE_FONT_SIZE
             },
             get items() {
                 return that.transform.legendItems

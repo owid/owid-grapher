@@ -8,7 +8,7 @@ import { ColumnSlug } from "owidTable/OwidTableConstants"
 // instance. By "dotting in" Mobx will track the reads or trigger actions on writes. You can still also just create plain
 // vanilla JS options objects to easily make static charts (without reactivity).
 export interface ChartOptionsProvider {
-    baseFontSize: number
+    baseFontSize?: number
     table: OwidTable // todo: abstract table?
     entityType: string
     showAddEntityControls?: boolean

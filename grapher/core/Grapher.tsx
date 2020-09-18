@@ -42,6 +42,7 @@ import {
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
     Time,
+    BASE_FONT_SIZE,
 } from "grapher/core/GrapherConstants"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
 import { OwidTable } from "owidTable/OwidTable"
@@ -105,6 +106,8 @@ import { TimeViz } from "grapher/timeline/TimelineController"
 import { EntityId, EntityName } from "owidTable/OwidTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
+import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
 
 declare const window: any
 
@@ -187,7 +190,11 @@ const legacyConfigToConfig = (
 
 export class Grapher
     extends GrapherDefaults
-    implements TimeViz, ChartOptionsProvider {
+    implements
+        TimeViz,
+        ChartOptionsProvider,
+        FooterOptionsProvider,
+        HeaderOptionsProvider {
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
@@ -545,7 +552,11 @@ export class Grapher
         )
     }
 
-    @observable.ref private _baseFontSize = 16
+    @observable.ref private _baseFontSize = BASE_FONT_SIZE
+
+    @computed get canonicalUrl() {
+        return this.url.canonicalUrl
+    }
 
     @computed get baseFontSize() {
         if (this.isMediaCard) return 24

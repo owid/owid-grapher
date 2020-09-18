@@ -23,6 +23,7 @@ import { EntityName } from "owidTable/OwidTableConstants"
 import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
 import { MapConfig } from "./MapConfig"
 import { ColorScale } from "grapher/color/ColorScale"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -215,7 +216,7 @@ export class MapChartWithLegend extends React.Component<
                 return that.focusEntity?.datum?.value
             },
             get fontSize() {
-                return that.options.baseFontSize
+                return that.options.baseFontSize ?? BASE_FONT_SIZE
             },
         })
     }

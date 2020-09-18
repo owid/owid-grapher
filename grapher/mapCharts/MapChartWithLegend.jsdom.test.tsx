@@ -7,7 +7,6 @@ import { MapChartWithLegend } from "./MapChartWithLegend"
 
 const table = SynthesizeOwidTable({ timeRange: [2000, 2010], countryCount: 5 })
 const options: MapChartOptionsProvider = {
-    baseFontSize: 16,
     entityType: "Country",
     table,
     mapColumn: table.columnsBySlug.get("Population")!,

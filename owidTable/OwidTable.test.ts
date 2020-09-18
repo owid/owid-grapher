@@ -26,7 +26,7 @@ describe(OwidTable, () => {
     const table = new OwidTable(rows)
     it("can create a table and detect columns", () => {
         expect(table.rows.length).toEqual(1)
-        expect(Array.from(table.columnsByName.keys()).length).toEqual(5)
+        expect(Array.from(table.columnsByName.keys()).length).toEqual(6)
     })
 
     it("a column can be added", () => {

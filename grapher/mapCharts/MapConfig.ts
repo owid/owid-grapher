@@ -9,6 +9,7 @@ import {
     deleteRuntimeAndUnchangedProps,
 } from "grapher/persistable/Persistable"
 import { maxTimeFromJSON, maxTimeToJSON } from "grapher/utils/TimeBounds"
+import { trimObject } from "grapher/utils/Util"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
 // It wraps the map property on ChartConfig.
@@ -58,7 +59,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             delete obj.columnSlug
         }
 
-        return obj
+        return trimObject(obj)
     }
 
     constructor(obj?: Partial<MapConfigWithLegacyInterface>) {

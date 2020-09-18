@@ -17,7 +17,7 @@ import {
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
-import { ScaleType } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { Text } from "grapher/text/Text"
 import { TextWrap } from "grapher/text/TextWrap"
@@ -428,7 +428,8 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
             const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
             const fontSize =
-                (isPortrait ? 0.6 : 0.65) * this.options.baseFontSize
+                (isPortrait ? 0.6 : 0.65) *
+                (this.options.baseFontSize ?? BASE_FONT_SIZE)
             const leftValueStr = this.formatValueFn(v1.y)
             const rightValueStr = this.formatValueFn(v2.y)
             const leftValueWidth = Bounds.forText(leftValueStr, {
@@ -684,7 +685,7 @@ export class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     render() {
         const yTickFormat = this.formatValueFn
-        const { baseFontSize } = this.options
+        const baseFontSize = this.options.baseFontSize ?? BASE_FONT_SIZE
         const yScaleType = this.yScaleType
         const {
             bounds,

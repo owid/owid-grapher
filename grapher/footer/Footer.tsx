@@ -2,53 +2,50 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
-
 import { TextWrap } from "grapher/text/TextWrap"
-import { Grapher } from "grapher/core/Grapher"
 import { Bounds } from "grapher/utils/Bounds"
 import { getRelativeMouse } from "grapher/utils/Util"
-import { Tooltip } from "../tooltip/Tooltip"
+import { Tooltip } from "grapher/tooltip/Tooltip"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { FooterOptionsProvider } from "./FooterOptionsProvider"
 
-interface SourcesFooterProps {
-    grapher: Grapher
+@observer
+export class Footer extends React.Component<{
+    options: FooterOptionsProvider
     maxWidth: number
-}
-
-export class SourcesFooter {
-    props: SourcesFooterProps
-    constructor(props: SourcesFooterProps) {
-        this.props = props
-    }
-
-    @computed get maxWidth() {
+}> {
+    @computed private get maxWidth() {
         return this.props.maxWidth
     }
 
-    @computed get sourcesText(): string {
-        const sourcesLine = this.props.grapher.sourcesLine
+    @computed private get options() {
+        return this.props.options
+    }
+
+    @computed private get sourcesText() {
+        const sourcesLine = this.options.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
-    @computed get noteText(): string {
-        return this.props.grapher.note ? `Note: ${this.props.grapher.note}` : ""
+    @computed private get noteText() {
+        return this.options.note ? `Note: ${this.options.note}` : ""
     }
 
-    @computed get ccSvg(): string {
-        if (this.props.grapher.hasOWIDLogo) {
+    @computed private get ccSvg() {
+        if (this.options.hasOWIDLogo)
             return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
-        } else {
-            return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
-        }
+
+        return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
 
-    @computed get finalUrl(): string {
-        const originUrl = this.props.grapher.originUrlWithProtocol
+    @computed private get finalUrl() {
+        const originUrl = this.options.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
-    @computed get finalUrlText(): string | undefined {
-        const originUrl = this.props.grapher.originUrlWithProtocol
+    @computed private get finalUrlText() {
+        const originUrl = this.options.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
@@ -59,81 +56,76 @@ export class SourcesFooter {
                 "OurWorldInData.org"
             )
             if (
-                this.props.grapher.isNativeEmbed ||
+                this.options.isNativeEmbed ||
                 Bounds.forText(finalUrlText, { fontSize: this.fontSize })
                     .width >
                     0.7 * this.maxWidth
             )
                 return undefined
-            else return finalUrlText
-        } else {
-            return undefined
+            return finalUrlText
         }
+        return undefined
     }
 
-    @computed private get licenseSvg(): string {
-        const { finalUrl, finalUrlText } = this
-        if (finalUrlText) {
-            let licenseSvg = `*data-entry* • ${this.ccSvg}`
-            licenseSvg = licenseSvg.replace(
-                /\*data-entry\*/,
-                "<a target='_blank' style='fill: #777;' href='" +
-                    finalUrl +
-                    "'>" +
-                    finalUrlText +
-                    "</a>"
-            )
-            return licenseSvg
-        } else {
-            return this.ccSvg
-        }
+    @computed private get licenseSvg() {
+        const { finalUrl, finalUrlText, ccSvg } = this
+        if (!finalUrlText) return ccSvg
+
+        return `*data-entry* • ${ccSvg}`.replace(
+            /\*data-entry\*/,
+            "<a target='_blank' style='fill: #777;' href='" +
+                finalUrl +
+                "'>" +
+                finalUrlText +
+                "</a>"
+        )
     }
 
-    @computed get fontSize() {
-        return 0.7 * this.props.grapher.baseFontSize
+    @computed private get fontSize() {
+        return 0.7 * (this.options.baseFontSize ?? BASE_FONT_SIZE)
     }
 
-    @computed get sources() {
+    @computed private get sources() {
         const { maxWidth, fontSize, sourcesText } = this
         return new TextWrap({
-            maxWidth: maxWidth,
-            fontSize: fontSize,
+            maxWidth,
+            fontSize,
             text: sourcesText,
             linkifyText: true,
         })
     }
 
-    @computed get note() {
+    @computed private get note() {
         const { maxWidth, fontSize, noteText } = this
         return new TextWrap({
-            maxWidth: maxWidth,
-            fontSize: fontSize,
+            maxWidth,
+            fontSize,
             text: noteText,
             linkifyText: true,
         })
     }
 
-    @computed get license() {
+    @computed private get license() {
         const { maxWidth, fontSize, licenseSvg } = this
         return new TextWrap({
             maxWidth: maxWidth * 3,
-            fontSize: fontSize,
+            fontSize,
             text: licenseSvg,
             rawHtml: true,
         })
     }
 
     // Put the license stuff to the side if there's room
-    @computed get isCompact() {
+    @computed private get isCompact() {
         return this.maxWidth - this.sources.width - 5 > this.license.width
     }
 
-    @computed get paraMargin() {
+    @computed private get paraMargin() {
         return 2
     }
 
-    @computed get height(): number {
-        if (this.props.grapher.isMediaCard) return 0
+    @computed get height() {
+        if (this.options.isMediaCard) return 0
 
         const { sources, note, license, isCompact, paraMargin } = this
         return (
@@ -143,31 +135,13 @@ export class SourcesFooter {
         )
     }
 
-    @action.bound onSourcesClick() {
-        this.props.grapher.currentTab = "sources"
+    @action.bound private onSourcesClick() {
+        this.options.currentTab = "sources"
     }
 
-    render(targetX: number, targetY: number) {
-        if (this.props.grapher.isMediaCard) return null
+    renderStatic(targetX: number, targetY: number) {
+        if (this.options.isMediaCard) return null
 
-        return (
-            <SourcesFooterView
-                footer={this}
-                targetX={targetX}
-                targetY={targetY}
-            />
-        )
-    }
-}
-
-@observer
-class SourcesFooterView extends React.Component<{
-    footer: SourcesFooter
-    targetX: number
-    targetY: number
-}> {
-    render() {
-        const { targetX, targetY } = this.props
         const {
             sources,
             note,
@@ -176,7 +150,7 @@ class SourcesFooterView extends React.Component<{
             isCompact,
             paraMargin,
             onSourcesClick,
-        } = this.props.footer
+        } = this
 
         return (
             <g className="SourcesFooter" style={{ fill: "#777" }}>
@@ -203,17 +177,11 @@ class SourcesFooterView extends React.Component<{
             </g>
         )
     }
-}
 
-@observer
-export class SourcesFooterHTML extends React.Component<{
-    grapher: Grapher
-    footer: SourcesFooter
-}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref tooltipTarget?: { x: number; y: number }
 
-    @action.bound onMouseMove(e: MouseEvent) {
+    @action.bound private onMouseMove(e: MouseEvent) {
         const cc = this.base.current!.querySelector(".cclogo")
         if (cc && cc.matches(":hover")) {
             const div = this.base.current as HTMLDivElement
@@ -231,23 +199,22 @@ export class SourcesFooterHTML extends React.Component<{
     }
 
     render() {
-        const { footer } = this.props
         const { tooltipTarget } = this
 
         const license = (
             <div
                 className="license"
                 style={{
-                    fontSize: footer.license.fontSize,
-                    lineHeight: footer.sources.lineHeight,
+                    fontSize: this.license.fontSize,
+                    lineHeight: this.sources.lineHeight,
                 }}
             >
-                {footer.finalUrlText && (
-                    <a href={footer.finalUrl} target="_blank">
-                        {footer.finalUrlText} •{" "}
+                {this.finalUrlText && (
+                    <a href={this.finalUrl} target="_blank">
+                        {this.finalUrlText} •{" "}
                     </a>
                 )}
-                {this.props.grapher.hasOWIDLogo ? (
+                {this.options.hasOWIDLogo ? (
                     <a
                         className="cclogo"
                         href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
@@ -266,28 +233,26 @@ export class SourcesFooterHTML extends React.Component<{
         return (
             <footer
                 className={
-                    "SourcesFooterHTML" + (footer.isCompact ? " compact" : "")
+                    "SourcesFooterHTML" + (this.isCompact ? " compact" : "")
                 }
                 ref={this.base}
                 style={{ color: "#777" }}
             >
-                {footer.isCompact && license}
+                {this.isCompact && license}
                 <p
-                    style={footer.sources.htmlStyle}
+                    style={this.sources.htmlStyle}
                     className="clickable"
-                    onClick={footer.onSourcesClick}
+                    onClick={this.onSourcesClick}
                 >
-                    {footer.sources.renderHTML()}
+                    {this.sources.renderHTML()}
                 </p>
-                {footer.note && (
-                    <p style={footer.note.htmlStyle}>
-                        {footer.note.renderHTML()}
-                    </p>
+                {this.note && (
+                    <p style={this.note.htmlStyle}>{this.note.renderHTML()}</p>
                 )}
-                {!footer.isCompact && license}
+                {!this.isCompact && license}
                 {tooltipTarget && (
                     <Tooltip
-                        tooltipProvider={this.props.grapher}
+                        tooltipProvider={this.options}
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}
                         style={{

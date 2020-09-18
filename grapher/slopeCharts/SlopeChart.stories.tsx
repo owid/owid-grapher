@@ -17,7 +17,6 @@ const table = SynthesizeOwidTable({
 
 export const Default = () => {
     const options: SlopeChartOptionsProvider = {
-        baseFontSize: 12,
         entityType: "Country",
         addCountryMode: "add-country",
         table,

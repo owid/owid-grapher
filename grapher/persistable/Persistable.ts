@@ -7,7 +7,6 @@ export interface Persistable {
 }
 
 // Todo: see if there's a better way to do this with Mobx
-// Note: this does not recurse! If we need that should be easy to add, but we didn't need it yet.
 export function objectWithPersistablesToObject<T>(objWithPersistables: T): T {
     const obj = toJS(objWithPersistables) as any
     Object.keys(obj).forEach((key) => {
