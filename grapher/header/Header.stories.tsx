@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { Header } from "./Header"
 import { HeaderOptionsProvider } from "./HeaderOptionsProvider"
 
@@ -21,5 +19,5 @@ const options: HeaderOptionsProvider = {
 }
 
 export const Default = (args: any) => {
-    return <Header maxWidth={args.maxWidth} options={options} />
+    return <Header maxWidth={args.maxWidth ?? 400} options={options} />
 }

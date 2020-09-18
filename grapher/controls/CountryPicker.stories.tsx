@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { CountryPicker } from "grapher/controls/CountryPicker"
 import { OwidTable } from "owidTable/OwidTable"
 import { observable, action } from "mobx"

@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 
 export default {

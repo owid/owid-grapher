@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { Footer } from "grapher/footer/Footer"
 import { FooterOptionsProvider } from "./FooterOptionsProvider"
 
@@ -22,5 +20,5 @@ const options: FooterOptionsProvider = {
 }
 
 export const Default = (args: any) => {
-    return <Footer maxWidth={args.maxWidth} options={options} />
+    return <Footer maxWidth={args.maxWidth ?? 400} options={options} />
 }

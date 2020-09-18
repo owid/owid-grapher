@@ -27,7 +27,7 @@ export const SingleExplorerWithKeyboardShortcuts = () => {
 
 export const MultipleExplorers = () => {
     return (
-        <>
+        <div>
             <CovidExplorer
                 data={covidSampleRows}
                 params={new CovidQueryParams("")}
@@ -40,7 +40,7 @@ export const MultipleExplorers = () => {
                 covidChartAndVariableMeta={EMPTY_DUMMY_META}
                 updated="2020-05-09T18:59:31"
             />
-        </>
+        </div>
     )
 }
 

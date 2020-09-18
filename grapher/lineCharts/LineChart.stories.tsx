@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { LineChart } from "grapher/lineCharts/LineChart"
 import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import { basicGdpGrapher } from "grapher/test/samples"

@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { FacetChart } from "./FacetChart"
 import { basicGdpGrapher, basicScatterGrapher } from "grapher/test/samples"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
@@ -25,7 +23,7 @@ export default {
 }
 
 export const Default = (args: any) => {
-    const chartType: ChartTypeName = args.chartTypeName
+    const chartType: ChartTypeName = args.chartTypeName || "LineChart"
     const grapher = chartType.includes("Scatter")
         ? basicScatterGrapher()
         : basicGdpGrapher()

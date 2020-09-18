@@ -1,7 +1,6 @@
 import * as React from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
-
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
 import { basicGdpGrapher } from "grapher/test/samples"
@@ -12,10 +11,9 @@ class GrapherViewStory extends React.Component {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref bounds?: Bounds
 
-    @action.bound calcBounds() {
-        this.bounds = Bounds.fromRect(
-            this.base.current!.getBoundingClientRect()
-        )
+    @action.bound private calcBounds() {
+        if (!this.base.current) return
+        this.bounds = Bounds.fromRect(this.base.current.getBoundingClientRect())
     }
 
     componentDidMount() {

@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { SlopeChart } from "./SlopeChart"
 import { Bounds } from "grapher/utils/Bounds"
 import { SynthesizeOwidTable } from "owidTable/OwidTable"

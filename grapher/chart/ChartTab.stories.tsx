@@ -1,6 +1,4 @@
 import * as React from "react"
-import "site/client/owid.scss"
-import "grapher/core/grapher.scss"
 import { basicGdpGrapher } from "grapher/test/samples"
 import { GrapherView } from "grapher/core/GrapherView"
 import { ChartTab } from "./ChartTab"
