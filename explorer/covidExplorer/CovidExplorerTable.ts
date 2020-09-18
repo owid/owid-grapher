@@ -105,7 +105,6 @@ export class CovidExplorerTable {
         this.addAnnotationColumns()
     }
 
-    private static colOwidVarIdGuid = 90210
     private static makeSpec(slug: string): ColumnSpec {
         let spec = {
             slug,
@@ -119,7 +118,6 @@ export class CovidExplorerTable {
         if (metricSpec) spec = Object.assign({}, spec, metricSpec)
 
         const basicSpec = {
-            owidVariableId: CovidExplorerTable.colOwidVarIdGuid++,
             unit: "", // todo: add %
             description: "",
             coverage: "",
@@ -196,9 +194,6 @@ export class CovidExplorerTable {
                 slug: "continent",
             },
         }
-        Object.keys(this.columnSpecs).forEach((key) => {
-            this.columnSpecs[key].owidVariableId = (sourceVariables as any)[key]
-        })
 
         // Todo: move to the grapher specs?
         const ptrDisplay = this.columnSpecs.positive_test_rate.display
@@ -267,26 +262,6 @@ export class CovidExplorerTable {
         return filtered.concat(continentRows, euRows)
     }
 
-    private static buildCovidVariableId(params: CovidQueryParams): number {
-        const arbitraryStartingPrefix = 1145
-        const names: MetricKey = {
-            tests: 0,
-            cases: 1,
-            deaths: 2,
-            positive_test_rate: 3,
-            case_fatality_rate: 4,
-            tests_per_case: 5,
-        }
-        const parts = [
-            arbitraryStartingPrefix,
-            names[params.metricName],
-            intervalOptions.indexOf(params.interval),
-            params.perCapitaAdjustment,
-            params.smoothing,
-        ]
-        return parseInt(parts.join(""))
-    }
-
     buildColumnSpec(params: CovidQueryParams): ColumnSpec {
         const name = params.metricName
         const perCapita = params.perCapitaAdjustment
@@ -295,7 +270,6 @@ export class CovidExplorerTable {
 
         const spec = cloneDeep(this.columnSpecs[name]) as ColumnSpec
         spec.slug = buildColumnSlug(name, perCapita, interval, rollingAverage)
-        spec.owidVariableId = CovidExplorerTable.buildCovidVariableId(params)
 
         const messages: { [index: number]: string } = {
             1: "",
@@ -438,7 +412,7 @@ export class CovidExplorerTable {
         )
     }
 
-    initAndGetShortTermPositivityRateVarId() {
+    initAndGetShortTermPositivityRateSlug() {
         // We init this column for the epi line colors on ScatterPlots
         const params = new CovidQueryParams("")
         params.smoothing = 7
@@ -446,7 +420,7 @@ export class CovidExplorerTable {
         params.interval = "smoothed"
         params.positiveTestRate = true
         const spec = this.initTestRateColumn(params.toConstrainedParams())
-        return spec.owidVariableId!
+        return spec.slug
     }
 
     initTestRateColumn(params: CovidConstrainedQueryParams) {
@@ -555,7 +529,6 @@ export class CovidExplorerTable {
             this.addDaysSinceColumn(
                 option.slug,
                 option.sourceSlug,
-                option.owidVariableId,
                 option.threshold,
                 option.name
             )
@@ -565,14 +538,12 @@ export class CovidExplorerTable {
     addDaysSinceColumn(
         slug: string,
         sourceColumnSlug: string,
-        id: number,
         threshold: number,
         title: string
     ) {
         const spec: ComputedColumnSpec = {
             ...this.columnSpecs.days_since,
             name: title,
-            owidVariableId: id,
             slug,
             fn: (row) => {
                 if (row.entityName !== currentCountry) {

@@ -743,7 +743,7 @@ export class CovidExplorer extends React.Component<{
 
         // Init column for epi color strategy if needed
         if (params.colorStrategy === "ptr")
-            this.shortTermPositivityRateVarId = this.covidExplorerTable.initAndGetShortTermPositivityRateVarId()
+            this.shortTermPositivityRateSlug = this.covidExplorerTable.initAndGetShortTermPositivityRateSlug()
 
         const grapher = this.grapher
         grapher.title = this.chartTitle
@@ -829,7 +829,7 @@ export class CovidExplorer extends React.Component<{
         Object.assign(map, this.sourceChart?.map || this.defaultMapConfig)
 
         map.time = undefined
-        map.columnSlug = this.yColumn.spec.owidVariableId?.toString()
+        map.columnSlug = this.yColumn.slug
 
         // Preserve region
         if (region) map.projection = region
@@ -1121,7 +1121,8 @@ export class CovidExplorer extends React.Component<{
         yColumn.spec.name = this.chartTitle // todo: cleanup
         return {
             property: "y",
-            variableId: yColumn.spec.owidVariableId!,
+            slug: yColumn.slug,
+            variableId: 0,
         }
     }
 
@@ -1129,7 +1130,8 @@ export class CovidExplorer extends React.Component<{
         const xColumn = this.xColumn!
         return {
             property: "x",
-            variableId: xColumn.spec.owidVariableId!,
+            slug: xColumn.slug,
+            variableId: 0,
         }
     }
 
@@ -1148,21 +1150,23 @@ export class CovidExplorer extends React.Component<{
     @computed private get sizeDimension(): ChartDimensionInterface {
         return {
             property: "size",
-            variableId: this.sizeColumn!.spec.owidVariableId!,
+            slug: this.sizeColumn?.slug,
+            variableId: 0,
         }
     }
 
-    private shortTermPositivityRateVarId: number = 0
+    private shortTermPositivityRateSlug: string = ""
     @computed private get colorDimension(): ChartDimensionInterface {
-        const variableId =
+        const slug =
             this.constrainedParams.colorStrategy === "continents"
-                ? 123
-                : this.shortTermPositivityRateVarId
+                ? "continents"
+                : this.shortTermPositivityRateSlug
 
         // todo: tolerance 10
         return {
             property: "color",
-            variableId,
+            slug,
+            variableId: 0,
         }
     }
 
@@ -1203,7 +1207,7 @@ export class CovidExplorer extends React.Component<{
 
     private defaultMapConfig() {
         return {
-            variableId: 123,
+            columnSlug: "continents",
             timeTolerance: 7,
             projection: "World",
             colorScale: {

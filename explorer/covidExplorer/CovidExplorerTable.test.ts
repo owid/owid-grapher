@@ -51,7 +51,6 @@ describe("build covid column", () => {
         const slug = dataTable.addDaysSinceColumn(
             "daysSince",
             "totalCasesSmoothed",
-            123,
             5,
             "Some title"
         )
@@ -177,7 +176,7 @@ describe("do not include unselected groups in aligned charts", () => {
 
 describe("column specs", () => {
     const dataTable = new CovidExplorerTable(new OwidTable([]), [])
-    it("computes unique variable ids", () => {
+    it("computes unique slugs", () => {
         expect(
             uniq(
                 [
@@ -192,7 +191,7 @@ describe("column specs", () => {
                     (queryStr) =>
                         dataTable.buildColumnSpec(
                             new CovidQueryParams(queryStr)
-                        ).owidVariableId
+                        ).slug
                 )
             ).length
         ).toEqual(6)
