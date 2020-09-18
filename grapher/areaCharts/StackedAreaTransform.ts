@@ -48,6 +48,7 @@ export class StackedAreaTransform extends ChartTransform {
             const seriesByKey = new Map<EntityName, StackedAreaSeries>()
 
             const { column } = dimension
+            const { isProjection } = column
 
             for (let i = 0; i < column.times.length; i++) {
                 const year = column.times[i]
@@ -66,7 +67,7 @@ export class StackedAreaTransform extends ChartTransform {
                     series = {
                         values: [],
                         entityName,
-                        isProjection: dimension.isProjection,
+                        isProjection,
                         color: "#fff", // tmp
                     }
                     seriesByKey.set(entityName, series)
@@ -196,7 +197,7 @@ export class StackedAreaTransform extends ChartTransform {
         axis.tickFormatFn = grapher.isRelativeMode
             ? (v: number) => formatValue(v, { unit: "%" })
             : yDimensionFirst
-            ? yDimensionFirst.formatValueShortFn
+            ? yDimensionFirst.column.formatValueShort
             : identity
         return axis
     }
@@ -266,8 +267,8 @@ export class StackedAreaTransform extends ChartTransform {
         if (this.grapher.isRelativeMode) return formatValue(v, { unit: "%" })
 
         const tickFormat = this.yDimensionFirst
-            ? this.yDimensionFirst.formatValueShortFn
+            ? this.yDimensionFirst.column.formatValueShort
             : identity
-        return tickFormat(v, { noTrailingZeroes: false })
+        return tickFormat(v) // todo: restore { noTrailingZeroes: false }
     }
 }

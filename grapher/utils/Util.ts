@@ -491,7 +491,7 @@ export function sign(n: number) {
 }
 
 // Removes all undefineds from an object.
-export function trimObject(obj: any) {
+export function trimObject(obj: any = {}) {
     const clone: any = {}
     Object.keys(obj).forEach((key) => {
         const val = obj[key]

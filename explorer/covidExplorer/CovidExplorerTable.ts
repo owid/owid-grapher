@@ -120,10 +120,10 @@ export class CovidExplorerTable {
 
         const basicSpec = {
             owidVariableId: CovidExplorerTable.colOwidVarIdGuid++,
-            unit: "",
+            unit: "", // todo: add %
             description: "",
             coverage: "",
-            display: { includeInTable: false },
+            display: { includeInTable: false, tolerance: 1 },
             datasetName: "",
             source: {
                 id: 1,

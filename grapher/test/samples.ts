@@ -5,7 +5,7 @@ import { Grapher } from "grapher/core/Grapher"
 export function basicGdpGrapher() {
     const grapher = new Grapher({
         manuallyProvideData: true,
-        dimensions: [{ variableId: 99, property: "y" }],
+        dimensions: [{ slug: "gdp", property: "y", variableId: 1 }],
     })
     const table = grapher.table
     const rows = parseDelimited(`entityName,year,gdp,entityId,population
@@ -25,8 +25,6 @@ Germany,2003,120,1,256`) as any
         row.population = parseInt(row.population)
     })
     table.cloneAndAddRowsAndDetectColumns(rows)
-    table.columnsBySlug.get("gdp")!.spec.owidVariableId = 99
-    table.columnsBySlug.get("population")!.spec.owidVariableId = 100
     table.setSelectedEntities(["France", "Germany"])
     return grapher
 }
@@ -38,6 +36,6 @@ export const basicScatterGrapher = () => {
     grapher.yAxis.max = 500
     grapher.xAxis.min = 0
     grapher.xAxis.max = 500
-    grapher.addDimension({ variableId: 100, property: "x" })
+    grapher.addDimension({ slug: "population", property: "x", variableId: 2 })
     return grapher
 }

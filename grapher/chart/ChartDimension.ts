@@ -1,23 +1,20 @@
+// Todo: remove this.
+// Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
+
 import { observable, computed } from "mobx"
-import {
-    formatValue,
-    isString,
-    formatDay,
-    formatYear,
-    trimObject,
-} from "grapher/utils/Util"
-import {
-    TickFormattingOptions,
-    DimensionProperty,
-    Time,
-} from "grapher/core/GrapherConstants"
+import { trimObject } from "grapher/utils/Util"
+import { DimensionProperty, Time } from "grapher/core/GrapherConstants"
 import { LoadingColumn, OwidTable } from "owidTable/OwidTable"
 
 import {
     LegacyVariableDisplayConfigInterface,
     LegacyVariableDisplayConfig,
 } from "owidTable/LegacyVariableCode"
-import { OwidSource, LegacyVariableId } from "owidTable/OwidTableConstants"
+import {
+    OwidSource,
+    LegacyVariableId,
+    ColumnSlug,
+} from "owidTable/OwidTableConstants"
 import {
     Persistable,
     deleteRuntimeAndUnchangedProps,
@@ -32,9 +29,10 @@ export interface SourceWithDimension {
 
 export interface ChartDimensionInterface {
     property: DimensionProperty
-    variableId: LegacyVariableId
     targetTime?: Time
     display?: LegacyVariableDisplayConfigInterface
+    variableId: LegacyVariableId
+    slug?: ColumnSlug
 }
 
 // A chart "dimension" represents a binding between a chart
@@ -79,9 +77,12 @@ export class ChartDimension
         )
     }
 
+    // Do not persist yet, until we migrate off VariableIds
+    @observable slug?: ColumnSlug
+
     @computed get column() {
         return (
-            this.table.columnsByOwidVarId.get(this.variableId) ||
+            this.table.columnsBySlug.get(this.columnSlug) ||
             new LoadingColumn(this.table, {
                 slug: this.variableId?.toString() || "loading",
             })
@@ -89,121 +90,6 @@ export class ChartDimension
     }
 
     @computed get columnSlug() {
-        return this.variableId.toString()
-    }
-
-    @computed get isLoaded() {
-        return this.table.columnsByOwidVarId.has(this.variableId)
-    }
-
-    @computed get displayName() {
-        return this.display.name ?? this.columnDisplay.name ?? this.column.name
-    }
-
-    @computed private get columnDisplay() {
-        return this.column.display
-    }
-
-    @computed get includeInTable() {
-        return (
-            this.property !== "color" &&
-            (this.columnDisplay.includeInTable ?? true)
-        )
-    }
-
-    @computed get unit() {
-        return this.display.unit ?? this.columnDisplay.unit ?? this.column.unit
-    }
-
-    // Full name of the variable with associated unit information, used for data export
-    @computed get fullNameWithUnit() {
-        return `${this.displayName}${this.unit ? ` (${this.unit})` : ""}`
-    }
-
-    @computed get isProjection() {
-        return !!(this.display.isProjection ?? this.columnDisplay.isProjection)
-    }
-
-    @computed get tolerance() {
-        return (
-            this.display.tolerance ??
-            this.columnDisplay.tolerance ??
-            (this.property === "color" ? Infinity : 0)
-        )
-    }
-
-    @computed get numDecimalPlaces() {
-        return (
-            this.display.numDecimalPlaces ??
-            this.columnDisplay.numDecimalPlaces ??
-            2
-        )
-    }
-
-    @computed get shortUnit() {
-        const { unit } = this
-        const shortUnit =
-            this.display.shortUnit ??
-            this.columnDisplay.shortUnit ??
-            (this.column.spec.shortUnit || undefined)
-
-        if (shortUnit !== undefined) return shortUnit
-
-        if (!unit) return ""
-
-        if (unit.length < 3) return unit
-
-        if (new Set(["$", "£", "€", "%"]).has(unit[0])) return unit[0]
-
-        return ""
-    }
-
-    @computed get formatValueShortFn(): (
-        value: number | string,
-        options?: TickFormattingOptions
-    ) => string {
-        const { shortUnit, numDecimalPlaces } = this
-        return (value, options) =>
-            isString(value)
-                ? value
-                : formatValue(value, {
-                      unit: shortUnit,
-                      numDecimalPlaces,
-                      ...options,
-                  })
-    }
-
-    @computed get formatValueLongFn(): (
-        value: number | string,
-        options?: TickFormattingOptions
-    ) => string {
-        const { unit, numDecimalPlaces } = this
-        return (value, options) =>
-            isString(value)
-                ? value
-                : formatValue(value, {
-                      unit,
-                      numDecimalPlaces,
-                      ...options,
-                  })
-    }
-
-    @computed get formatTimeFn(): (
-        time: Time,
-        options?: { format?: string }
-    ) => string {
-        return this.column.isDailyMeasurement
-            ? (day: Time, options?) => formatDay(day, options)
-            : formatYear
-    }
-
-    // todo: remove unitConversionFactor concept? use computed columns instead?
-    // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
-    @computed get unitConversionFactor() {
-        return (
-            this.display.conversionFactor ??
-            this.columnDisplay.conversionFactor ??
-            1
-        )
+        return this.slug ?? this.variableId.toString()
     }
 }

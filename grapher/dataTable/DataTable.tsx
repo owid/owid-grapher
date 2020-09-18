@@ -22,6 +22,7 @@ import {
     SingleValueKey,
     Value,
 } from "./DataTableTransform"
+import { AbstractColumn } from "owidTable/OwidTable"
 
 interface DataTableProps {
     grapher: Grapher
@@ -195,10 +196,15 @@ export class DataTable extends React.Component<DataTableProps> {
     private get dimensionHeaders() {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
+            const actualColumn = dim.actualColumn
+            const unit =
+                actualColumn.unit === "%" ? "percent" : dim.actualColumn.unit
             const dimensionHeaderText = (
                 <React.Fragment>
-                    <span className="name">{upperFirst(dim.name)}</span>
-                    <span className="unit">{dim.unit}</span>
+                    <span className="name">
+                        {upperFirst(actualColumn.displayName)}
+                    </span>
+                    <span className="unit">{unit}</span>
                 </React.Fragment>
             )
 
@@ -216,7 +222,7 @@ export class DataTable extends React.Component<DataTableProps> {
                 dataType: "numeric" as const,
             }
 
-            return <ColumnHeader key={dim.key} {...props} />
+            return <ColumnHeader key={actualColumn.slug} {...props} />
         })
     }
 
@@ -226,7 +232,7 @@ export class DataTable extends React.Component<DataTableProps> {
             dim.columns.map((column) => {
                 const headerText =
                     column.targetTimeMode === TargetTimeMode.point
-                        ? dim.formatTime(column.targetTime!)
+                        ? dim.actualColumn.formatTime(column.targetTime!)
                         : columnNameByType[column.key]
                 return (
                     <ColumnHeader
@@ -264,7 +270,7 @@ export class DataTable extends React.Component<DataTableProps> {
         column: DataTableColumn,
         dv: DimensionValue | undefined,
         sorted: boolean,
-        formatTime: (num: number, options?: { format?: string }) => string
+        actualColumn: AbstractColumn
     ) {
         if (dv === undefined || !(column.key in dv))
             return <td key={key} className="dimension" />
@@ -296,12 +302,10 @@ export class DataTable extends React.Component<DataTableProps> {
             >
                 {shouldShowClosestTimeNotice &&
                     makeClosestTimeNotice(
-                        formatTime(column.targetTime!),
-                        formatTime(value.time!, {
-                            format: "MMM D",
-                        })
+                        actualColumn.formatTime(column.targetTime!),
+                        actualColumn.formatTime(value.time!) // todo: add back format: "MMM D",
                     )}
-                {value.formattedValue}
+                {value.displayValue}
                 {value.time !== undefined &&
                     column.targetTimeMode === TargetTimeMode.range && (
                         <span className="range-time"> in {value.time}</span>
@@ -336,7 +340,7 @@ export class DataTable extends React.Component<DataTableProps> {
                             dv,
                             sort.dimIndex === dimIndex &&
                                 sort.columnKey === column.key,
-                            dimension.formatTime
+                            dimension.actualColumn
                         )
                     })
                 })}

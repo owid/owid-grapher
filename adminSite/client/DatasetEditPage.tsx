@@ -109,7 +109,7 @@ class VariableEditRow extends React.Component<{
 
     @action.bound grapherIsReady(grapher: Grapher) {
         // XXX refactor this with EditorBasicTab
-        if (!lodash.isEmpty(grapher.mapTransform.choroplethData)) return
+        if (!grapher.mappableData.length) return
 
         grapher.tab = "chart"
         grapher.hasMapTab = false

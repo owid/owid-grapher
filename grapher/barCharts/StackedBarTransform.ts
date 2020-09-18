@@ -48,7 +48,7 @@ export class StackedBarTransform extends ChartTransform {
     @computed get tickFormatFn(): (d: number) => string {
         const { primaryDimension } = this
         return primaryDimension
-            ? primaryDimension.formatValueShortFn
+            ? primaryDimension.column.formatValueShort
             : (d: number) => `${d}`
     }
 
@@ -56,7 +56,7 @@ export class StackedBarTransform extends ChartTransform {
         const { primaryDimension, yTickFormatFn } = this
 
         return primaryDimension
-            ? primaryDimension.formatValueLongFn
+            ? primaryDimension.column.formatValueLong
             : yTickFormatFn
     }
 
@@ -89,7 +89,9 @@ export class StackedBarTransform extends ChartTransform {
     @computed get yTickFormatFn() {
         const { yDimensionFirst } = this
 
-        return yDimensionFirst ? yDimensionFirst.formatValueShortFn : identity
+        return yDimensionFirst
+            ? yDimensionFirst.column.formatValueShort
+            : identity
     }
 
     @computed get yAxis() {
@@ -199,29 +201,16 @@ export class StackedBarTransform extends ChartTransform {
 
     @computed get colorScale() {
         const that = this
+        const colorColumn = this.colorDimension?.column
         return new ColorScale({
             get config() {
                 return that.grapher.colorScale
             },
-            get defaultBaseColorScheme() {
-                return "stackedAreaDefault"
-            },
-            get sortedNumericValues() {
-                return that.colorDimension?.column.sortedNumericValues ?? []
-            },
+            defaultBaseColorScheme: "stackedAreaDefault",
             get categoricalValues() {
                 return uniq(that.groupedData.map((d) => d.entityName)).reverse()
             },
-            get hasNoDataBin() {
-                return false
-            },
-            get formatNumericValueFn() {
-                return that.colorDimension?.formatValueShortFn ?? identity
-            },
-            get formatCategoricalValueFn() {
-                return (key: EntityName) =>
-                    that.grapher.table.getLabelForEntityName(key)
-            },
+            hasNoDataBin: false,
         })
     }
 

@@ -30,9 +30,15 @@ import {
     last,
     getRandomNumberGenerator,
     range,
+    sampleSize,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
-import { CellValue, EPOCH_DATE, Time } from "grapher/core/GrapherConstants"
+import {
+    CellValue,
+    EPOCH_DATE,
+    TickFormattingOptions,
+    Time,
+} from "grapher/core/GrapherConstants"
 import {
     ColumnTypeNames,
     Year,
@@ -150,7 +156,18 @@ export abstract class AbstractColumn {
     }
 
     @computed get unit() {
-        return this.spec.unit || ""
+        return this.spec.unit || this.display?.unit || ""
+    }
+
+    // todo: migrate from unitConversionFactor to computed columns instead. then delete this.
+    // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
+    @computed get unitConversionFactor() {
+        return this.display.conversionFactor ?? 1
+    }
+
+    @computed get tolerance() {
+        return this.display.tolerance ?? 0
+        // (this.property === "color" ? Infinity : 0) ... todo: figure out where color was being used
     }
 
     @computed get display() {
@@ -167,15 +184,19 @@ export abstract class AbstractColumn {
             : undefined
     }
 
-    formatValue(value: any): string {
+    formatValue(value: any) {
         return anyToString(value)
     }
 
-    formatValueForMobile(value: any): string {
+    formatValueForMobile(value: any) {
         return this.formatValue(value)
     }
 
-    formatValueShort(value: any) {
+    formatValueShort(value: any, options?: TickFormattingOptions) {
+        return this.formatValue(value)
+    }
+
+    formatValueLong(value: any) {
         return this.formatValue(value)
     }
 
@@ -198,7 +219,7 @@ export abstract class AbstractColumn {
     }
 
     // A method for formatting for CSV
-    formatForCsv(value: any): string {
+    formatForCsv(value: any) {
         return csvEscape(this.formatValue(value))
     }
 
@@ -244,8 +265,12 @@ export abstract class AbstractColumn {
         return this.spec.name ?? this.spec.slug
     }
 
+    @computed get displayName() {
+        return this.display?.name ?? this.name ?? ""
+    }
+
     // todo: is the isString necessary?
-    @computed get sortedUniqNonEmptyStringVals(): string[] {
+    @computed get sortedUniqNonEmptyStringVals() {
         return Array.from(
             new Set(this.values.filter(isString).filter((i) => i))
         ).sort()
@@ -253,6 +278,10 @@ export abstract class AbstractColumn {
 
     @computed get slug() {
         return this.spec.slug
+    }
+
+    @computed get isProjection() {
+        return !!this.display?.isProjection
     }
 
     // todo: remove
@@ -300,8 +329,20 @@ export abstract class AbstractColumn {
         return this.timesUniq.length > 1
     }
 
+    @computed get endTimelineTime() {
+        return this.maxTime
+    }
+
+    @computed get timelineTimes() {
+        return this.timesUniq
+    }
+
     @computed get maxTime() {
         return last(this.timesUniq)!
+    }
+
+    formatTime(time: Time) {
+        return this.isDailyMeasurement ? formatDay(time) : formatYear(time)
     }
 
     @computed get minTime() {
@@ -417,10 +458,19 @@ class BooleanColumn extends AbstractColumn {}
 class FilterColumn extends BooleanColumn {}
 class SelectionColumn extends BooleanColumn {}
 export class NumericColumn extends AbstractColumn {
-    formatValueShort(value: any) {
+    formatValueShort(value: number, options?: TickFormattingOptions) {
         const numDecimalPlaces = this.numDecimalPlaces
         return formatValue(value, {
             unit: this.shortUnit,
+            numDecimalPlaces,
+            ...options,
+        })
+    }
+
+    formatValueLong(value: number) {
+        const { unit, numDecimalPlaces } = this
+        return formatValue(value, {
+            unit,
             numDecimalPlaces,
         })
     }
@@ -762,6 +812,11 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return isSelectedFn
             ? this.rows.filter((row) => !isSelectedFn(row))
             : this.rows
+    }
+
+    // todo: remove?
+    getLabelForEntityName(entityName: string) {
+        return entityName
     }
 
     @computed get unselectedEntityNames() {
@@ -1126,10 +1181,6 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return "red"
     }
 
-    getLabelForEntityName(entityName: string) {
-        return entityName
-    }
-
     @action.bound toggleSelection(entityName: EntityName) {
         if (this.isEntitySelected(entityName)) this.deselectEntity(entityName)
         else this.selectEntity(entityName)
@@ -1376,7 +1427,7 @@ export class OwidTable extends AbstractTable<OwidRow> {
 }
 
 interface SynthOptions {
-    countries: string[]
+    countryCount: number
     timeRange: Range
     columnSpecs: ColumnSpec[]
 }
@@ -1384,7 +1435,7 @@ interface SynthOptions {
 // Generate a fake table for testing
 export const SynthesizeTable = (options?: Partial<SynthOptions>) => {
     const finalOptions = {
-        countries: ["Iceland", "France"],
+        countryCount: 2,
         timeRange: [1950, 2020],
         columnSpecs: [
             { slug: "Population", type: "Population", range: [1e6, 1e8] },
@@ -1392,13 +1443,27 @@ export const SynthesizeTable = (options?: Partial<SynthOptions>) => {
         ] as ColumnSpec[],
         ...options,
     }
-    const { countries, columnSpecs, timeRange } = finalOptions
+    const { countryCount, columnSpecs, timeRange } = finalOptions
     const colSlugs = ["entityName", "entityCode", "entityId", "year"].concat(
         columnSpecs.map((col) => col.slug!)
     )
 
     const generators = columnSpecs.map((col, index) =>
         getRandomNumberGenerator(col.range![0], col.range![1], index)
+    )
+
+    const countries = sampleSize(
+        [
+            "Germany",
+            "France",
+            "Iceland",
+            "Australia",
+            "China",
+            "Nigeria",
+            "Brazil",
+            "Canada",
+        ],
+        countryCount
     )
 
     const rows = countries.map((country, index) =>

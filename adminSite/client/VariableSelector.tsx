@@ -378,7 +378,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
 
     @action.bound private initChosenVariables() {
         this.chosenVariables = this.props.slot.dimensionsWithData.map((d) => ({
-            name: d.displayName,
+            name: d.column.displayName,
             id: d.variableId,
             datasetName: "",
         }))

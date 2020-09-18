@@ -269,26 +269,17 @@ export class SlopeChart extends React.Component<{
     }
 
     @computed get colorScale() {
-        const that = this
+        const colorColumn = this.colorColumn
         return new ColorScale({
+            column: this.colorColumn,
             get config() {
                 return {} as any // that.grapher.colorScale
             },
-            get defaultBaseColorScheme() {
-                return "continents"
-            },
-            get sortedNumericValues() {
-                return that.colorColumn?.sortedNumericValues ?? []
-            },
+            defaultBaseColorScheme: "continents",
             get categoricalValues() {
-                return that.colorColumn?.sortedUniqNonEmptyStringVals ?? []
+                return colorColumn?.sortedUniqNonEmptyStringVals ?? []
             },
-            get hasNoDataBin() {
-                return false
-            },
-            get formatNumericValueFn() {
-                return that.colorColumn?.formatValueShort ?? identity
-            },
+            hasNoDataBin: false,
         })
     }
 

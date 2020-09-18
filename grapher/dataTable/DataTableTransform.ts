@@ -19,6 +19,7 @@ import {
     TimeBoundValue,
 } from "grapher/utils/TimeBounds"
 import { ChartTransform } from "grapher/chart/ChartTransform"
+import { AbstractColumn } from "owidTable/OwidTable"
 
 export enum TargetTimeMode {
     point = "point",
@@ -37,9 +38,13 @@ interface DimensionColumn {
     targetTimeMode?: TargetTimeMode
 }
 
+export interface DataTableColumn extends DimensionColumn {
+    sortable: boolean
+}
+
 export interface Value {
     value?: string | number
-    formattedValue?: string
+    displayValue?: string
     time?: Time
 }
 
@@ -72,27 +77,16 @@ export function isSingleValue(value: DimensionValue): value is SingleValue {
 export type DimensionValue = SingleValue | RangeValue
 export type ColumnKey = SingleValueKey | RangeValueKey
 
-// Data table types
-interface Sortable {
+export interface DataTableDimension {
+    columns: DataTableColumn[]
+    actualColumn: AbstractColumn
     sortable: boolean
 }
 
-export interface DataTableDimension extends Sortable {
-    key: number
-    name: string
-    unit?: string
-    columns: DataTableColumn[]
-    formatTime: (num: Time, options?: { format?: string }) => string
-}
-
-export type DataTableColumn = DimensionColumn & Sortable
 export interface DataTableRow {
     entity: string
     dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
 }
-
-// Utilities
-const getHeaderUnit = (unit: string) => (unit !== "%" ? unit : "percent")
 
 export class DataTableTransform extends ChartTransform {
     grapher: Grapher
@@ -102,17 +96,17 @@ export class DataTableTransform extends ChartTransform {
         this.grapher = grapher
     }
 
-    @computed private get loadedWithData(): boolean {
+    @computed private get loadedWithData() {
         return this.dimensions.length > 0
     }
 
-    private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE: number = 0.5
+    private readonly AUTO_SELECTION_THRESHOLD_PERCENTAGE = 0.5
 
     /**
      * If the user or the editor hasn't specified a start, auto-select a start time
      *  where AUTO_SELECTION_THRESHOLD_PERCENTAGE of the entities have values.
      */
-    @computed get autoSelectedStartTime(): number | undefined {
+    @computed get autoSelectedStartTime() {
         let autoSelectedStartTime: number | undefined = undefined
 
         if (
@@ -161,7 +155,11 @@ export class DataTableTransform extends ChartTransform {
     @computed get dimensions() {
         return this.grapher.multiMetricTableMode
             ? this.grapher.dataTableOnlyDimensions
-            : this.grapher.filledDimensions.filter((dim) => dim.includeInTable)
+            : this.grapher.filledDimensions.filter(
+                  (dim) =>
+                      dim.property !== "color" &&
+                      (dim.column.display.includeInTable ?? true)
+              )
     }
 
     @computed get entities() {
@@ -171,7 +169,7 @@ export class DataTableTransform extends ChartTransform {
     }
 
     // TODO move this logic to chart
-    @computed get targetTimeMode(): TargetTimeMode {
+    @computed get targetTimeMode() {
         const { grapher } = this
         if (
             (grapher.isLineChart && !grapher.lineChartTransform.isSingleTime) ||
@@ -185,10 +183,9 @@ export class DataTableTransform extends ChartTransform {
         return TargetTimeMode.point
     }
 
-    @computed get initialTimelineStartTimeSpecified(): boolean {
+    @computed get initialTimelineStartTimeSpecified() {
         const initialMinTime = this.grapher.configOnLoad.minTime
-        if (initialMinTime) return !isUnboundedLeft(initialMinTime)
-        return false
+        return initialMinTime ? !isUnboundedLeft(initialMinTime) : false
     }
 
     @computed get targetTimes(): [Time] | [Time, Time] {
@@ -208,17 +205,17 @@ export class DataTableTransform extends ChartTransform {
     }
 
     formatValue(
-        dimension: ChartDimension,
+        column: AbstractColumn,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
-    ): string | undefined {
-        if (value === undefined) return value
-        return dimension.formatValueShortFn(value, {
-            numberPrefixes: false,
-            noTrailingZeroes: false,
-            unit: dimension.shortUnit,
-            ...formattingOverrides,
-        })
+    ) {
+        return value === undefined
+            ? value
+            : column.formatValueShort(value, {
+                  numberPrefixes: false,
+                  noTrailingZeroes: false,
+                  ...formattingOverrides,
+              })
     }
 
     @computed get dimensionsWithValues(): Dimension[] {
@@ -251,7 +248,7 @@ export class DataTableTransform extends ChartTransform {
                     : valuesByEntityAtTimes(
                           column.valueByEntityNameAndTime,
                           targetTimes,
-                          dimension.tolerance
+                          column.tolerance
                       )
 
             const isRange = targetTimes.length === 2
@@ -288,17 +285,14 @@ export class DataTableTransform extends ChartTransform {
                     const result: RangeValue = {
                         start: {
                             ...start,
-                            formattedValue: this.formatValue(
-                                dimension,
+                            displayValue: this.formatValue(
+                                column,
                                 start?.value
                             ),
                         },
                         end: {
                             ...end,
-                            formattedValue: this.formatValue(
-                                dimension,
-                                end?.value
-                            ),
+                            displayValue: this.formatValue(column, end?.value),
                         },
                         delta: undefined,
                         deltaRatio: undefined,
@@ -316,26 +310,22 @@ export class DataTableTransform extends ChartTransform {
 
                         result.delta = {
                             value: deltaValue,
-                            formattedValue: this.formatValue(
-                                dimension,
-                                deltaValue,
-                                {
-                                    showPlus: true,
-                                    unit:
-                                        dimension.shortUnit === "%"
-                                            ? "pp"
-                                            : dimension.shortUnit,
-                                }
-                            ),
+                            displayValue: this.formatValue(column, deltaValue, {
+                                showPlus: true,
+                                unit:
+                                    column.shortUnit === "%"
+                                        ? "pp"
+                                        : column.shortUnit,
+                            }),
                         }
 
                         result.deltaRatio = {
                             value: deltaRatioValue,
-                            formattedValue:
+                            displayValue:
                                 isFinite(deltaRatioValue) &&
                                 !isNaN(deltaRatioValue)
                                     ? this.formatValue(
-                                          dimension,
+                                          column,
                                           deltaRatioValue * 100,
                                           {
                                               unit: "%",
@@ -354,8 +344,8 @@ export class DataTableTransform extends ChartTransform {
                         single: { ...dv },
                     }
                     if (dv !== undefined)
-                        result.single!.formattedValue = this.formatValue(
-                            dimension,
+                        result.single!.displayValue = this.formatValue(
+                            column,
                             dv.value
                         )
                     return result
@@ -372,9 +362,6 @@ export class DataTableTransform extends ChartTransform {
 
     @computed get displayDimensions(): DataTableDimension[] {
         return this.dimensionsWithValues.map((d) => ({
-            key: d.dimension.variableId,
-            name: d.dimension.displayName || d.dimension.column.name || "",
-            unit: getHeaderUnit(d.dimension.unit),
             // A top-level header is only sortable if it has a single nested column, because
             // in that case the nested column is not rendered.
             sortable: d.columns.length === 1,
@@ -384,7 +371,7 @@ export class DataTableTransform extends ChartTransform {
                 // is not sortable.
                 sortable: true,
             })),
-            formatTime: d.dimension.formatTimeFn,
+            actualColumn: d.dimension.column,
         }))
     }
 

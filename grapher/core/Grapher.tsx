@@ -25,6 +25,9 @@ import {
     slugify,
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
+    isMobile,
+    extend,
+    trimObject,
 } from "grapher/utils/Util"
 import {
     ChartTypes,
@@ -47,7 +50,6 @@ import {
     SourceWithDimension,
     ChartDimensionInterface,
 } from "grapher/chart/ChartDimension"
-import { MapTransform } from "grapher/mapCharts/MapTransform"
 import {
     GrapherQueryParams,
     GrapherUrl,
@@ -102,6 +104,8 @@ import {
 } from "grapher/persistable/Persistable"
 import { TimeViz } from "grapher/timeline/TimelineController"
 import { EntityId, EntityName } from "owidTable/OwidTableConstants"
+import { ColorScale } from "grapher/color/ColorScale"
+import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 
 declare const window: any
 
@@ -464,6 +468,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         this._receiveLegacyData(json)
     }
 
+    // todo: migrate existing graphers and remove
     @action.bound applyLegacyUnitConversionFactors() {
         const table = this.table
         table.columnsAsArray
@@ -485,6 +490,16 @@ export class Grapher extends GrapherDefaults implements TimeViz {
             })
     }
 
+    // todo: migrate existing graphers and remove
+    @action.bound private applyLegacyChartDimensionDisplaySettings() {
+        this.filledDimensions.forEach((dimension) => {
+            dimension.column.spec.display = extend(
+                trimObject(dimension.column.spec.display),
+                trimObject(dimension.display)
+            )
+        })
+    }
+
     @action.bound private _receiveLegacyData(
         json: LegacyVariablesAndEntityKey
     ) {
@@ -492,6 +507,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         table.loadFromLegacy(json)
 
         this.applyLegacyUnitConversionFactors()
+        this.applyLegacyChartDimensionDisplaySettings()
 
         if (this.selectedEntityIds.length)
             table.setSelectedEntitiesByEntityId(this.selectedEntityIds)
@@ -562,17 +578,17 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.loadingDimensions.length === 0
     }
 
-    @computed get primaryVariableId() {
-        const yDimension = this.dimensions.find((d) => d.property === "y")
-        return yDimension ? yDimension.variableId : undefined
+    @computed get primaryColumnSlug() {
+        return this.dimensions.find((d) => d.property === "y")?.columnSlug
     }
 
-    @computed get primaryColumnSlug() {
-        return this.primaryVariableId?.toString()
+    @computed get primaryColumn() {
+        return this.table.columnsBySlug.get(this.primaryColumnSlug || "")
     }
 
     @computed private get loadingDimensions() {
-        return this.dimensions.filter((dim) => !dim.isLoaded)
+        const cols = this.table.columnsByOwidVarId
+        return this.dimensions.filter((dim) => !cols.has(dim.variableId))
     }
 
     url: GrapherUrl
@@ -581,9 +597,10 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return window.self !== window.top
     }
 
+    // todo: have the concept of an active table? active column? activeTimelineColumn? activeTimelineTable?
     // todo: remove ifs
     @computed get times(): Time[] {
-        if (this.tab === "map") return this.mapTransform.timelineTimes
+        if (this.tab === "map") return this.mapColumn?.timelineTimes || []
         return this.activeTransform?.timelineTimes || this.table.allTimes
     }
 
@@ -595,7 +612,8 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                 this.dataTableTransform.autoSelectedStartTime ??
                 this.timeDomain[0]
             )
-        else if (activeTab === "map") return this.mapTransform.endTimelineTime // todo: always use endTimelineTime for maps?
+        else if (activeTab === "map")
+            return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
         return (
             this.activeTransform?.startTimelineTime ||
             this.table.minTime ||
@@ -624,7 +642,8 @@ export class Grapher extends GrapherDefaults implements TimeViz {
             return this.multiMetricTableMode
                 ? this.dataTableTransform.startTimelineTime
                 : this.timeDomain[1]
-        else if (activeTab === "map") return this.mapTransform.endTimelineTime
+        else if (activeTab === "map")
+            return this.mapColumn?.endTimelineTime || 2000
         return (
             this.activeTransform?.endTimelineTime || this.table.maxTime || 2000
         )
@@ -908,11 +927,21 @@ export class Grapher extends GrapherDefaults implements TimeViz {
                 (this.isLineChart &&
                     this.lineChartTransform.isSingleTime &&
                     this.lineChartTransform.hasTimeline) ||
-                (this.primaryTab === "map" && this.mapTransform.hasTimeline))
+                (this.primaryTab === "map" && this.mapHasTimeline))
         )
             text += this.timeTitleSuffix
 
         return text.trim()
+    }
+
+    @computed get mapHasTimeline() {
+        return !this.map.hideTimeline && this.mapColumn?.hasMultipleTimes
+    }
+
+    @computed get mapColumn() {
+        return this.table.columnsBySlug.get(
+            this.map.columnSlug || this.primaryColumnSlug || ""
+        )!
     }
 
     @computed get yColumnSlug() {
@@ -1026,16 +1055,23 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @computed private get defaultTitle() {
         const { primaryDimensions } = this
         if (this.isScatter)
-            return this.axisDimensions.map((d) => d.displayName).join(" vs. ")
-        else if (
+            return this.axisDimensions
+                .map((d) => d.column.displayName)
+                .join(" vs. ")
+
+        if (
             primaryDimensions.length > 1 &&
             uniq(primaryDimensions.map((d) => d.column.datasetName)).length ===
                 1
         )
             return primaryDimensions[0].column.datasetName!
-        else if (primaryDimensions.length === 2)
-            return primaryDimensions.map((d) => d.displayName).join(" and ")
-        else return primaryDimensions.map((d) => d.displayName).join(", ")
+
+        if (primaryDimensions.length === 2)
+            return primaryDimensions
+                .map((d) => d.column.displayName)
+                .join(" and ")
+
+        return primaryDimensions.map((d) => d.column.displayName).join(", ")
     }
 
     @computed get displayTitle() {
@@ -1085,9 +1121,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @computed get stackedBarTransform() {
         return new StackedBarTransform(this)
     }
-    @computed get mapTransform() {
-        return new MapTransform(this)
-    }
     @computed get dataTableTransform() {
         return new DataTableTransform(this)
     }
@@ -1129,8 +1162,20 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         )
     }
 
+    @computed get mapConfig() {
+        return this.map
+    }
+
     @computed get cacheTag() {
         return this.version.toString()
+    }
+
+    @computed get mapIsClickable() {
+        return (
+            this.hasChartTab &&
+            (this.isLineChart || this.isScatter) &&
+            !isMobile()
+        )
     }
 
     // NB: The timeline scatterplot in relative mode calculates changes relative
@@ -1145,5 +1190,14 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     @computed get canToggleRelativeMode(): boolean {
         return !this.hideRelativeToggle
+    }
+
+    // Filter data to what can be display on the map (across all times)
+    @computed get mappableData() {
+        return (
+            this.mapColumn?.owidRows.filter((row) =>
+                isOnTheMap(row.entityName)
+            ) ?? []
+        )
     }
 }

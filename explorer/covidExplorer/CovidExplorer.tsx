@@ -25,7 +25,6 @@ import {
     next,
     previous,
     startCase,
-    flatten,
 } from "grapher/utils/Util"
 import {
     ControlOption,
@@ -41,7 +40,6 @@ import {
     getLeastUsedColor,
     CovidExplorerTable,
     fetchCovidChartAndVariableMeta,
-    buildColumnSlug,
     perCapitaDivisorByMetric,
 } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
@@ -74,10 +72,7 @@ import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
-import {
-    ChartDimension,
-    ChartDimensionInterface,
-} from "grapher/chart/ChartDimension"
+import { ChartDimensionInterface } from "grapher/chart/ChartDimension"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
@@ -780,10 +775,8 @@ export class CovidExplorer extends React.Component<{
         grapher.setDimensionsFromConfigs(this.dimensionSpecs)
 
         // multimetric table
-        if (this.constrainedParams.tableMetrics) {
+        if (this.constrainedParams.tableMetrics)
             this._generateDataTableColumnsInTable()
-            this._addDataTableOnlyDimensionsToChart()
-        }
 
         covidExplorerTable.table.setSelectedEntities(this.selectedEntityNames)
 
@@ -1095,68 +1088,6 @@ export class CovidExplorer extends React.Component<{
             : undefined
     }
 
-    private _buildDataTableOnlyDimensionSpec = (
-        metric: MetricKind,
-        interval: IntervalOption
-    ) => {
-        const colSlug = buildColumnSlug(
-            metric,
-            this.constrainedParams.perCapita && isCountMetric(metric)
-                ? perCapitaDivisorByMetric(metric)
-                : 1,
-            interval,
-            intervalSpecs[interval].smoothing
-        )
-
-        const column = this.grapher.table.columnsBySlug.get(colSlug)
-
-        if (!column) throw Error(`${colSlug} does not exist!`)
-        return {
-            property: "table",
-            variableId: column?.spec.owidVariableId,
-            display: {
-                tolerance: 2,
-                name:
-                    metricLabels[metric] +
-                    (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
-                unit: intervalSpecs[interval].label,
-                shortUnit:
-                    (interval === "weeklyChange" ||
-                        interval === "biweeklyChange") &&
-                    "%",
-                tableDisplay: column?.display.tableDisplay,
-            },
-        } as ChartDimensionInterface
-    }
-
-    @computed
-    private get dataTableOnlyDimensions(): ChartDimensionInterface[] {
-        const params = this.constrainedParams
-        return flatten(
-            params.tableMetrics?.map((metric) => {
-                const specs = [
-                    this._buildDataTableOnlyDimensionSpec(metric, "total"),
-                ]
-
-                if (
-                    isCountMetric(metric) &&
-                    params.interval !== "total" &&
-                    intervalsAvailableByMetric.get(metric)?.has(params.interval)
-                ) {
-                    // add intervals column
-                    specs.push(
-                        this._buildDataTableOnlyDimensionSpec(
-                            metric,
-                            params.interval
-                        )
-                    )
-                }
-
-                return specs
-            })
-        )
-    }
-
     @action private _generateDataTableColumnsInTable() {
         const params = this.constrainedParams
         const { covidExplorerTable } = this
@@ -1185,29 +1116,12 @@ export class CovidExplorer extends React.Component<{
         })
     }
 
-    @action private _addDataTableOnlyDimensionsToChart() {
-        this.grapher.dataTableOnlyDimensions = this.dataTableOnlyDimensions.map(
-            (dimSpec) => new ChartDimension(dimSpec, this.grapher.table)
-        )
-    }
-
     @computed private get yDimension(): ChartDimensionInterface {
         const yColumn = this.yColumn
-        const unit = this.constrainedParams.isWeeklyOrBiweeklyChange
-            ? "%"
-            : undefined
-
+        yColumn.spec.name = this.chartTitle // todo: cleanup
         return {
             property: "y",
             variableId: yColumn.spec.owidVariableId!,
-            display: {
-                // Allow ± 1 day difference in data plotted on bar charts
-                // This is what we use for charts on the Grapher too
-                tolerance: 1,
-                unit,
-                name: this.chartTitle,
-                tableDisplay: yColumn.display.tableDisplay,
-            },
         }
     }
 
@@ -1216,10 +1130,6 @@ export class CovidExplorer extends React.Component<{
         return {
             property: "x",
             variableId: xColumn.spec.owidVariableId!,
-            display: {
-                name: xColumn.spec.name,
-                tableDisplay: xColumn.display.tableDisplay,
-            },
         }
     }
 
@@ -1249,12 +1159,10 @@ export class CovidExplorer extends React.Component<{
                 ? 123
                 : this.shortTermPositivityRateVarId
 
+        // todo: tolerance 10
         return {
             property: "color",
             variableId,
-            display: {
-                tolerance: 10,
-            },
         }
     }
 

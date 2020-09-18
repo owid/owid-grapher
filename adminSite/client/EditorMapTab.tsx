@@ -3,7 +3,6 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { isEmpty } from "grapher/utils/Util"
-import { MapTransform } from "grapher/mapCharts/MapTransform"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
 
 import { ChartEditor } from "./ChartEditor"
@@ -16,20 +15,24 @@ import {
 } from "./Forms"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { LegacyVariableId } from "owidTable/OwidTableConstants"
+import { MapConfig } from "grapher/mapCharts/MapConfig"
+import { ChartDimension } from "grapher/chart/ChartDimension"
 
 @observer
-class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
+class VariableSection extends React.Component<{
+    mapConfig: MapConfig
+    filledDimensions: ChartDimension[]
+}> {
     @action.bound onVariableId(variableId: LegacyVariableId) {
-        this.props.mapTransform.props.columnSlug = variableId.toString()
+        this.props.mapConfig.columnSlug = variableId.toString()
     }
 
     @action.bound onProjection(projection: string | undefined) {
-        this.props.mapTransform.props.projection = projection as MapProjection
+        this.props.mapConfig.projection = projection as MapProjection
     }
 
     render() {
-        const { mapTransform } = this.props
-        const { filledDimensions } = mapTransform.grapher
+        const { mapConfig, filledDimensions } = this.props
 
         if (isEmpty(filledDimensions))
             return (
@@ -62,17 +65,19 @@ class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
                 <NumericSelectField
                     label="Variable"
                     value={
-                        mapTransform.columnSlug
-                            ? parseInt(mapTransform.columnSlug)
+                        mapConfig.columnSlug
+                            ? parseInt(mapConfig.columnSlug)
                             : undefined
                     }
                     options={filledDimensions.map((d) => d.variableId)}
-                    optionLabels={filledDimensions.map((d) => d.displayName)}
+                    optionLabels={filledDimensions.map(
+                        (d) => d.column.displayName
+                    )}
                     onValue={this.onVariableId}
                 />
                 <SelectField
                     label="Region"
-                    value={mapTransform.props.projection}
+                    value={mapConfig.projection}
                     options={projections}
                     optionLabels={labels}
                     onValue={this.onProjection}
@@ -83,37 +88,37 @@ class VariableSection extends React.Component<{ mapTransform: MapTransform }> {
 }
 
 @observer
-class TimelineSection extends React.Component<{ mapTransform: MapTransform }> {
+class TimelineSection extends React.Component<{ mapConfig: MapConfig }> {
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.props.mapTransform.props.hideTimeline = value || undefined
+        this.props.mapConfig.hideTimeline = value || undefined
     }
 
     @action.bound setMapTime(time: number | undefined) {
-        this.props.mapTransform.props.time = time
+        this.props.mapConfig.time = time
     }
 
     @action.bound onTolerance(tolerance: number | undefined) {
-        this.props.mapTransform.props.timeTolerance = tolerance
+        this.props.mapConfig.timeTolerance = tolerance
     }
 
     render() {
-        const { mapTransform } = this.props
+        const { mapConfig } = this.props
         return (
             <Section name="Timeline">
                 <NumberField
                     label="Target year"
-                    value={mapTransform.props.time}
+                    value={mapConfig.time}
                     onValue={this.setMapTime}
                     allowNegative
                 />
                 <Toggle
                     label="Hide timeline"
-                    value={!!mapTransform.props.hideTimeline}
+                    value={!!mapConfig.hideTimeline}
                     onValue={this.onToggleHideTimeline}
                 />
                 <NumberField
                     label="Tolerance of data"
-                    value={mapTransform.props.timeTolerance}
+                    value={mapConfig.timeTolerance}
                     onValue={this.onTolerance}
                     helpText="Specify a range of years from which to pull data. For example, if the map shows 1990 and tolerance is set to 1, then data from 1989 or 1991 will be shown if no data is available for 1990."
                 />
@@ -123,22 +128,22 @@ class TimelineSection extends React.Component<{ mapTransform: MapTransform }> {
 }
 
 @observer
-class TooltipSection extends React.Component<{ mapTransform: MapTransform }> {
+class TooltipSection extends React.Component<{ mapConfig: MapConfig }> {
     @action.bound onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
-        this.props.mapTransform.props.tooltipUseCustomLabels = tooltipUseCustomLabels
+        this.props.mapConfig.tooltipUseCustomLabels = tooltipUseCustomLabels
             ? true
             : undefined
     }
 
     render() {
-        const { mapTransform } = this.props
+        const { mapConfig } = this.props
         return (
             <Section name="Tooltip">
                 <Toggle
                     label={
                         "Show custom label in the tooltip, instead of the numeric value"
                     }
-                    value={!!mapTransform.props.tooltipUseCustomLabels}
+                    value={!!mapConfig.tooltipUseCustomLabels}
                     onValue={this.onTooltipUseCustomLabels}
                 />
             </Section>
@@ -148,30 +153,37 @@ class TooltipSection extends React.Component<{ mapTransform: MapTransform }> {
 
 @observer
 export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
-    @computed get chart() {
+    @computed get grapher() {
         return this.props.editor.grapher
-    }
-    @computed get mapTransform() {
-        return this.chart.mapTransform
     }
 
     render() {
-        const { mapTransform } = this
+        const { grapher } = this
+        const mapConfig = grapher.map
+
+        const colorScale = {} as any // todo:
+
+        const isReady =
+            !!mapConfig.columnSlug &&
+            grapher.table.columnsBySlug.has(mapConfig.columnSlug)
 
         return (
             <div className="EditorMapTab tab-pane">
-                <VariableSection mapTransform={mapTransform} />
-                {mapTransform.isReady && (
+                <VariableSection
+                    mapConfig={mapConfig}
+                    filledDimensions={grapher.filledDimensions}
+                />
+                {isReady && (
                     <React.Fragment>
-                        <TimelineSection mapTransform={mapTransform} />
+                        <TimelineSection mapConfig={mapConfig} />
                         <EditorColorScaleSection
-                            scale={mapTransform.colorScale}
+                            scale={colorScale}
                             features={{
                                 visualScaling: true,
                                 legendDescription: false,
                             }}
                         />
-                        <TooltipSection mapTransform={mapTransform} />
+                        <TooltipSection mapConfig={mapConfig} />
                     </React.Fragment>
                 )}
             </div>

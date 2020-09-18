@@ -132,64 +132,52 @@ describe(DataTable, () => {
     })
 
     describe("when the table doesn't have data for all rows", () => {
-        let view: ShallowWrapper
-        beforeAll(() => {
-            const grapher = new Grapher(
-                {
-                    hasMapTab: true,
-                    tab: "map",
-                    map: {
-                        timeTolerance: 5,
+        const grapher = new Grapher(
+            {
+                dimensions: [
+                    {
+                        variableId: 3512,
+                        property: "y",
+                        display: {
+                            name: "",
+                            unit: "% of children under 5",
+                            tolerance: 5,
+                            isProjection: false,
+                        },
                     },
-                    dimensions: [
-                        {
-                            variableId: 3512,
-                            property: "y",
-                            display: {
-                                name: "",
-                                unit: "% of children under 5",
-                                tolerance: 5,
-                                isProjection: false,
-                            },
+                ],
+                owidDataset: {
+                    variables: {
+                        "3512": {
+                            years: [2000, 2001, 2010, 2010],
+                            entities: [207, 33, 15, 207],
+                            values: [4, 22, 20, 34],
+                            id: 3512,
+                            shortUnit: "%",
                         },
-                    ],
-                    owidDataset: {
-                        variables: {
-                            "3512": {
-                                years: [2000, 2010, 2010],
-                                entities: [207, 15, 207],
-                                values: [4, 20, 34],
-                                id: 3512,
-                                shortUnit: "%",
-                            },
-                        },
-                        entityKey: {
-                            "15": { name: "Afghanistan", id: 15, code: "AFG" },
-                            "207": { name: "Iceland", id: 207, code: "ISL" },
-                        },
+                    },
+                    entityKey: {
+                        "15": { name: "Afghanistan", id: 15, code: "AFG" },
+                        "207": { name: "Iceland", id: 207, code: "ISL" },
+                        "33": { name: "France", id: 33, code: "FRA" },
                     },
                 },
-                {
-                    queryStr: "?time=2002",
-                }
-            )
-            view = shallow(<DataTable grapher={grapher} />)
-        })
+            },
+            {
+                queryStr: "?time=2002",
+            }
+        )
+        const view: ShallowWrapper = shallow(<DataTable grapher={grapher} />)
 
         it("renders no value when data is not available for years within the tolerance", () => {
-            const cell = view.find("tbody .dimension").at(0).first()
-            expect(cell.text()).toBe("")
+            expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
         })
 
-        // todo: reenable
-        // it("renders a tolerance notice when data is not from targetYear", () => {
-        //     expect(view.find(".closest-time-notice-icon").text()).toContain(
-        //         "2000"
-        //     )
-        //     expect(view.find(".closest-time-notice-tippy").text()).toContain(
-        //         "2000"
-        //     )
-        // })
+        it("renders a tolerance notice when data is not from targetYear", () => {
+            expect(view.find(".closest-time-notice-icon").text()).toContain(
+                "2000"
+            )
+        })
     })
 
     describe("when you try to hide countries", () => {

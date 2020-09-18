@@ -66,7 +66,7 @@ export class DiscreteBarTransform extends ChartTransform {
     ) => string {
         const { primaryDimensions } = this
         return primaryDimensions[0]
-            ? primaryDimensions[0].formatValueShortFn
+            ? primaryDimensions[0].column.formatValueShort
             : (d: number) => `${d}`
     }
 
@@ -86,8 +86,8 @@ export class DiscreteBarTransform extends ChartTransform {
         } = {}
 
         filledDimensions.forEach((dimension) => {
-            const { tolerance } = dimension
             const { column } = dimension
+            const { tolerance } = column
 
             for (let i = 0; i < column.times.length; i++) {
                 const year = column.times[i]
@@ -114,7 +114,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     year: year,
                     label: getLabelForEntityName(entityName),
                     color: "#2E5778",
-                    formatValue: dimension.formatValueShortFn,
+                    formatValue: dimension.column.formatValueShort,
                 }
 
                 dataByEntityName[entityName] = datum
@@ -211,7 +211,7 @@ export class DiscreteBarTransform extends ChartTransform {
                     year,
                     label: getLabelForEntityName(entityName),
                     color: "#2E5778",
-                    formatValue: dimension.formatValueShortFn,
+                    formatValue: dimension.column.formatValueShort,
                 }
 
                 allData.push(datum)

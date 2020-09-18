@@ -188,7 +188,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                                 <SparkBarTimeSeriesValue
                                     className="highlighted"
                                     value={formatInt(accessor(d))}
-                                    formattedDate={formatDate(d.date)}
+                                    displayDate={formatDate(d.date)}
                                 />
                             ) : undefined
                         }
@@ -199,7 +199,7 @@ const totalGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                         <SparkBarTimeSeriesValue
                             className="current"
                             value={`${formatInt(accessor(datum.latest))} total`}
-                            formattedDate={formatDate(datum.latest.date)}
+                            displayDate={formatDate(datum.latest.date)}
                             latest={true}
                         />
                     )}
@@ -231,7 +231,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                                     value={formatInt(accessor(d), "", {
                                         showPlus: true,
                                     })}
-                                    formattedDate={d && formatDate(d.date)}
+                                    displayDate={d && formatDate(d.date)}
                                 />
                             ) : undefined
                         }
@@ -244,7 +244,7 @@ const newGenerator = (accessor: IntAccessor, noun: NounGenerator) => (
                             value={`${formatInt(accessor(datum.latest), "", {
                                 showPlus: true,
                             })} new`}
-                            formattedDate={formatDate(datum.latest.date)}
+                            displayDate={formatDate(datum.latest.date)}
                             latest={true}
                         />
                     )}

@@ -200,19 +200,15 @@ export async function countryProfilePage(countrySlug: string) {
             const table = new OwidTable([], spec)
             const dim = new ChartDimension(firstDimension, table)
 
-            const formatValueShort = dim.formatValueShortFn
-
             let value: string | number
             value = parseFloat(latestValue.value)
-            if (isNaN(value)) {
-                value = latestValue.value
-            } else if (variable.display.conversionFactor) {
+            if (isNaN(value)) value = latestValue.value
+            else if (variable.display.conversionFactor)
                 value *= variable.display.conversionFactor
-            }
 
             indicators.push({
                 year: latestValue.year,
-                value: formatValueShort(value),
+                value: dim.column.formatValueShort(value),
                 name: grapher.title as string,
                 slug: `/grapher/${grapher.slug}?tab=chart&country=${country.code}`,
                 variantName: grapher.variantName,

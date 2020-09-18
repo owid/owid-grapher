@@ -8,7 +8,8 @@ interface NumericBinProps {
     max: number
     label?: string
     color: string
-    format: (v: number) => string
+    displayMin: string
+    displayMax: string
 }
 
 export class NumericBin {
@@ -27,14 +28,10 @@ export class NumericBin {
         return this.props.color
     }
     get minText() {
-        const str = this.props.format(this.props.min)
-        if (this.props.isOpenLeft) return `<${str}`
-        else return str
+        return (this.props.isOpenLeft ? `<` : "") + this.props.displayMin
     }
     get maxText() {
-        const str = this.props.format(this.props.max)
-        if (this.props.isOpenRight) return `>${str}`
-        else return str
+        return (this.props.isOpenRight ? `>` : "") + this.props.displayMax
     }
     get label() {
         return this.props.label
@@ -46,21 +43,19 @@ export class NumericBin {
         return false
     }
 
-    contains(value: string | number | undefined): boolean {
-        if (value === undefined) {
-            return false
-        } else if (this.props.isOpenLeft) {
-            return value <= this.max
-        } else if (this.props.isOpenRight) {
-            return value > this.min
-        } else if (this.props.isFirst) {
-            return value >= this.min && value <= this.max
-        } else {
-            return value > this.min && value <= this.max
-        }
+    contains(value: string | number | undefined) {
+        if (value === undefined) return false
+
+        if (this.props.isOpenLeft) return value <= this.max
+
+        if (this.props.isOpenRight) return value > this.min
+
+        if (this.props.isFirst) return value >= this.min && value <= this.max
+
+        return value > this.min && value <= this.max
     }
 
-    equals(other: ColorScaleBin): boolean {
+    equals(other: ColorScaleBin) {
         return (
             other instanceof NumericBin &&
             this.min === other.min &&
@@ -103,14 +98,14 @@ export class CategoricalBin {
         return this.props.label || this.props.value
     }
 
-    contains(value: string | number | undefined): boolean {
+    contains(value: string | number | undefined) {
         return (
             (value === undefined && this.props.value === "No data") ||
             (value !== undefined && value === this.props.value)
         )
     }
 
-    equals(other: ColorScaleBin): boolean {
+    equals(other: ColorScaleBin) {
         return (
             other instanceof CategoricalBin &&
             this.props.index === other.props.index

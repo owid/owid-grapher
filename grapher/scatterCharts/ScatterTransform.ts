@@ -38,33 +38,21 @@ import { EntityName } from "owidTable/OwidTableConstants"
 export class ScatterTransform extends ChartTransform {
     @computed get colorScale() {
         const that = this
+        const colorColumn = this.colorDimension?.column
         return new ColorScale({
             get config() {
                 return that.grapher.colorScale
             },
-            get defaultBaseColorScheme() {
-                return "continents"
-            },
-            get sortedNumericValues() {
-                return that.colorDimension?.column.sortedNumericValues ?? []
-            },
+            defaultBaseColorScheme: "continents",
+            defaultNoDataColor: "#959595",
             get categoricalValues() {
-                return (
-                    that.colorDimension?.column.sortedUniqNonEmptyStringVals ??
-                    []
-                )
+                return colorColumn?.sortedUniqNonEmptyStringVals ?? []
             },
             get hasNoDataBin() {
                 return !!(
-                    that.colorDimension &&
+                    colorColumn &&
                     that.allPoints.some((point) => point.color === undefined)
                 )
-            },
-            get defaultNoDataColor() {
-                return "#959595"
-            },
-            get formatNumericValueFn() {
-                return that.colorDimension?.formatValueShortFn ?? identity
             },
         })
     }
@@ -263,8 +251,9 @@ export class ScatterTransform extends ChartTransform {
         >
     ) {
         const { timesToCalculate, xOverrideTime } = this
+        const { column } = dimension
         const tolerance =
-            dimension.property === "size" ? Infinity : dimension.tolerance
+            dimension.property === "size" ? Infinity : column.tolerance
 
         // Now go through each entity + timeline year and use a binary search to find the closest
         // matching data year within tolerance
@@ -414,7 +403,7 @@ export class ScatterTransform extends ChartTransform {
     @computed private get yAxisLabel() {
         return (
             this.grapher.yAxis.label ||
-            (this.yDimension && this.yDimension.displayName) ||
+            this.yDimension?.column.displayName ||
             ""
         )
     }
@@ -428,7 +417,8 @@ export class ScatterTransform extends ChartTransform {
 
         const axis = grapher.yAxis.toVerticalAxis()
         axis.tickFormatFn =
-            (yDimension && yDimension.formatValueShortFn) || axis.tickFormatFn
+            (yDimension && yDimension.column.formatValueShort) ||
+            axis.tickFormatFn
 
         const label = this.yAxisLabel
 
@@ -458,7 +448,7 @@ export class ScatterTransform extends ChartTransform {
     }
 
     @computed private get xAxisLabelBase() {
-        const xDimName = this.xDimension && this.xDimension.displayName
+        const xDimName = this.xDimension?.column.displayName
         if (this.xOverrideTime !== undefined)
             return `${xDimName} in ${this.xOverrideTime}`
         return xDimName
@@ -487,7 +477,7 @@ export class ScatterTransform extends ChartTransform {
             const label = xAxis.label || xAxisLabelBase
             if (label) axis.label = label
             axis.tickFormatFn =
-                (xDimension && xDimension.formatValueShortFn) ||
+                (xDimension && xDimension.column.formatValueShort) ||
                 axis.tickFormatFn
         }
 
@@ -497,21 +487,21 @@ export class ScatterTransform extends ChartTransform {
     @computed get yFormatTooltip(): (d: number) => string {
         return this.grapher.isRelativeMode || !this.yDimension
             ? this.yAxis.tickFormatFn
-            : this.yDimension.formatValueLongFn
+            : this.yDimension.column.formatValueLong
     }
 
     @computed get xFormatTooltip(): (d: number) => string {
         return this.grapher.isRelativeMode || !this.xDimension
             ? this.xAxis.tickFormatFn
-            : this.xDimension.formatValueLongFn
+            : this.xDimension.column.formatValueLong
     }
 
     @computed get yFormatYear(): (year: number) => string {
-        return this.yDimension ? this.yDimension.formatTimeFn : formatYear
+        return this.yDimension ? this.yDimension.column.formatTime : formatYear
     }
 
     @computed get xFormatYear(): (year: number) => string {
-        return this.xDimension ? this.xDimension.formatTimeFn : formatYear
+        return this.xDimension ? this.xDimension.column.formatTime : formatYear
     }
 
     // todo: add unit tests

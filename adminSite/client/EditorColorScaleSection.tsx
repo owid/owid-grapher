@@ -244,7 +244,7 @@ class ColorSchemeEditor extends React.Component<{
             <div>
                 <EditableList className="ColorSchemeEditor">
                     {scale.legendData.map((bin, index) => {
-                        if (bin instanceof NumericBin) {
+                        if (bin instanceof NumericBin)
                             return (
                                 <NumericBinView
                                     key={index}
@@ -253,15 +253,14 @@ class ColorSchemeEditor extends React.Component<{
                                     index={index}
                                 />
                             )
-                        } else {
-                            return (
-                                <CategoricalBinView
-                                    key={index}
-                                    scale={scale}
-                                    bin={bin}
-                                />
-                            )
-                        }
+
+                        return (
+                            <CategoricalBinView
+                                key={index}
+                                scale={scale}
+                                bin={bin}
+                            />
+                        )
                     })}
                 </EditableList>
             </div>

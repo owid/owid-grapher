@@ -40,9 +40,9 @@ export class SourcesTab extends React.Component<{
         const maxYear = max(column.times)
         let timespan = ""
         if (minYear !== undefined && maxYear !== undefined)
-            timespan = `${dimension.formatTimeFn(
+            timespan = `${dimension.column.formatTime(
                 minYear
-            )} – ${dimension.formatTimeFn(maxYear)}`
+            )} – ${dimension.column.formatTime(maxYear)}`
 
         return (
             <div key={source.id} className="datasource-wrapper">
@@ -78,10 +78,10 @@ export class SourcesTab extends React.Component<{
                                 <td>{timespan}</td>
                             </tr>
                         ) : null}
-                        {dimension.unitConversionFactor !== 1 ? (
+                        {dimension.column.unitConversionFactor !== 1 ? (
                             <tr>
                                 <td>Unit conversion factor for chart</td>
-                                <td>{dimension.unitConversionFactor}</td>
+                                <td>{dimension.column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
                         {source.dataPublishedBy ? (

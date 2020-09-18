@@ -478,8 +478,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
 
         if (grapher.currentTab === "table") return true
 
-        if (grapher.currentTab === "map")
-            return grapher.mapTransform.hasTimeline
+        if (grapher.currentTab === "map") return grapher.mapHasTimeline
 
         if (grapher.currentTab !== "chart") return false
 

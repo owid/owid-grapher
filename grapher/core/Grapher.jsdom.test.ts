@@ -25,4 +25,39 @@ describe(Grapher, () => {
     it("does not preserve defaults in the object", () => {
         expect(new Grapher({ tab: "chart" }).toObject()).toEqual({})
     })
+
+    it("can apply legacy chart dimension settings", () => {
+        const unit = "% of children under 5"
+        const name = "Some display name"
+        const grapher = new Grapher({
+            dimensions: [
+                {
+                    variableId: 3512,
+                    property: "y",
+                    display: {
+                        unit,
+                    },
+                },
+            ],
+            owidDataset: {
+                variables: {
+                    "3512": {
+                        years: [2000, 2010, 2010],
+                        entities: [207, 15, 207],
+                        values: [4, 20, 34],
+                        id: 3512,
+                        display: {
+                            name,
+                        },
+                    },
+                },
+                entityKey: {
+                    "15": { name: "Afghanistan", id: 15, code: "AFG" },
+                    "207": { name: "Iceland", id: 207, code: "ISL" },
+                },
+            },
+        })
+        expect(grapher.primaryColumn!.unit).toEqual(unit)
+        expect(grapher.primaryColumn!.displayName).toEqual(name)
+    })
 })

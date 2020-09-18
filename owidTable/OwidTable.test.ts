@@ -51,6 +51,9 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
                 description: "Prevalence of...",
                 sourceId: 2174,
                 shortUnit: "%",
+                display: {
+                    name: "Some Display Name",
+                },
                 source: {
                     id: 2174,
                     name:
@@ -90,6 +93,10 @@ describe("from legacy", () => {
             "Year",
             name,
         ])
+
+        expect(table.columnsByOwidVarId.get(3512)?.displayName).toBe(
+            "Some Display Name"
+        )
     })
 
     it("can apply legacy unit conversion factors", () => {

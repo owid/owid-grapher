@@ -76,8 +76,8 @@ export class LineChartTransform extends ChartTransform {
 
         filledDimensions.forEach((dimension) => {
             const seriesByKey = new Map<EntityName, LineChartSeries>()
-            const { column, isProjection } = dimension
-            const { values } = column
+            const { column } = dimension
+            const { values, isProjection } = column
 
             for (let i = 0; i < column.times.length; i++) {
                 const time = column.times[i]
@@ -231,7 +231,9 @@ export class LineChartTransform extends ChartTransform {
             (d) => d.property === "y"
         )
 
-        return yDimensionFirst ? yDimensionFirst.formatValueShortFn : identity
+        return yDimensionFirst
+            ? yDimensionFirst.column.formatValueShort
+            : identity
     }
 
     @computed get yAxis() {

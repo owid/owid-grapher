@@ -70,6 +70,7 @@ export class DimensionCard extends React.Component<{
     render() {
         const { dimension, editor } = this.props
         const { grapher } = editor
+        const { column } = dimension
 
         return (
             <EditableListItem className="DimensionCard">
@@ -96,7 +97,7 @@ export class DimensionCard extends React.Component<{
                             className="dimensionLink"
                             target="_blank"
                         >
-                            {dimension.column.name}
+                            {column.name}
                         </Link>
                     </div>
                     <div>
@@ -124,33 +125,33 @@ export class DimensionCard extends React.Component<{
                             label="Display name"
                             field="name"
                             store={dimension.display}
-                            auto={dimension.displayName}
+                            auto={column.displayName}
                         />
                         <BindAutoString
                             label="Unit of measurement"
                             field="unit"
                             store={dimension.display}
-                            auto={dimension.unit}
-                            helpText={`Original database unit: ${dimension.column.unit}`}
+                            auto={column.unit}
+                            helpText={`Original database unit: ${column.unit}`}
                         />
                         <BindAutoString
                             label="Short (axis) unit"
                             field="shortUnit"
                             store={dimension.display}
-                            auto={dimension.shortUnit}
+                            auto={column.shortUnit}
                         />
                         <BindAutoFloat
                             label="Number of decimal places"
                             field="numDecimalPlaces"
                             store={dimension.display}
-                            auto={dimension.numDecimalPlaces}
+                            auto={column.numDecimalPlaces}
                             helpText={`A negative number here will round integers`}
                         />
                         <BindAutoFloat
                             label="Unit conversion factor"
                             field="conversionFactor"
                             store={dimension.display}
-                            auto={dimension.unitConversionFactor}
+                            auto={column.unitConversionFactor}
                             helpText={`Multiply all values by this amount`}
                         />
                         {this.tableDisplaySettings}
@@ -160,13 +161,13 @@ export class DimensionCard extends React.Component<{
                             <BindAutoFloat
                                 field="tolerance"
                                 store={dimension.display}
-                                auto={dimension.tolerance}
+                                auto={column.tolerance}
                             />
                         )}
                         {grapher.isLineChart && (
                             <Toggle
                                 label="Is projection"
-                                value={dimension.isProjection}
+                                value={column.isProjection}
                                 onValue={this.onIsProjection}
                             />
                         )}
