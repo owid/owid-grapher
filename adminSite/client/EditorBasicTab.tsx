@@ -64,11 +64,11 @@ class DimensionSlotView extends React.Component<{
 
         if (this.dispose) this.dispose()
         this.dispose = reaction(
-            () => grapher.type && grapher.primaryDimensions,
+            () => grapher.type && grapher.primaryColumns,
             () => {
                 if (grapher.isScatter || grapher.isSlopeChart) {
                     table.clearSelection()
-                } else if (grapher.primaryDimensions.length > 1) {
+                } else if (grapher.primaryColumns.length > 1) {
                     const entity = availableEntityNameSet.has("World")
                         ? "World"
                         : sample(availableEntityNames)

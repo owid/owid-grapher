@@ -56,7 +56,6 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
 import { StackedBarTransform } from "grapher/barCharts/StackedBarTransform"
-import { DiscreteBarTransform } from "grapher/barCharts/DiscreteBarTransform"
 import { StackedAreaTransform } from "grapher/areaCharts/StackedAreaTransform"
 import { LineChartTransform } from "grapher/lineCharts/LineChartTransform"
 import { ScatterTransform } from "grapher/scatterCharts/ScatterTransform"
@@ -104,8 +103,8 @@ import {
 } from "grapher/persistable/Persistable"
 import { TimeViz } from "grapher/timeline/TimelineController"
 import { EntityId, EntityName } from "owidTable/OwidTableConstants"
-import { ColorScale } from "grapher/color/ColorScale"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 
 declare const window: any
 
@@ -186,12 +185,15 @@ const legacyConfigToConfig = (
     return newConfig
 }
 
-export class Grapher extends GrapherDefaults implements TimeViz {
+export class Grapher
+    extends GrapherDefaults
+    implements TimeViz, ChartOptionsProvider {
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
     analytics: Readonly<Analytics> = new Analytics(ENV)
-    isEditor: Readonly<boolean> = (window as any).isEditor === true
+    isEditor: Readonly<boolean> =
+        typeof window !== "undefined" && (window as any).isEditor === true
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     configOnLoad: Readonly<GrapherInterface>
@@ -439,13 +441,17 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         this._receiveLegacyData(json)
     }
 
+    isAdmin() {
+        return typeof window !== "undefined" && window.amdin
+    }
+
     @action.bound private async downloadLegacyDataFromOwidVariableIds() {
         if (this.variableIds.length === 0)
             // No data to download
             return
 
         try {
-            if (window.admin) {
+            if (this.isAdmin()) {
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
@@ -582,8 +588,10 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         return this.dimensions.find((d) => d.property === "y")?.columnSlug
     }
 
-    @computed get primaryColumn() {
-        return this.table.columnsBySlug.get(this.primaryColumnSlug || "")
+    @computed get primaryColumns() {
+        return this.filledDimensions
+            .filter((dim) => dim.property === "y")
+            .map((dim) => dim.column)
     }
 
     @computed private get loadingDimensions() {
@@ -882,10 +890,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         )
     }
 
-    @computed get primaryDimensions() {
-        return this.filledDimensions.filter((dim) => dim.property === "y")
-    }
-
     @computed get displaySlug() {
         return this.slug ?? slugify(this.displayTitle)
     }
@@ -939,9 +943,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed get mapColumn() {
-        return this.table.columnsBySlug.get(
-            this.map.columnSlug || this.primaryColumnSlug || ""
-        )!
+        return this.map.columnSlug
+            ? this.table.columnsBySlug.get(this.map.columnSlug)!
+            : this.primaryColumns[0]!
     }
 
     @computed get yColumnSlug() {
@@ -986,7 +990,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed get isSingleVariable() {
-        return this.primaryDimensions.length === 1
+        return this.primaryColumns.length === 1
     }
 
     @computed get sourcesLine() {
@@ -1053,25 +1057,22 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     @computed private get defaultTitle() {
-        const { primaryDimensions } = this
+        const { primaryColumns } = this
         if (this.isScatter)
             return this.axisDimensions
                 .map((d) => d.column.displayName)
                 .join(" vs. ")
 
         if (
-            primaryDimensions.length > 1 &&
-            uniq(primaryDimensions.map((d) => d.column.datasetName)).length ===
-                1
+            primaryColumns.length > 1 &&
+            uniq(primaryColumns.map((col) => col.datasetName)).length === 1
         )
-            return primaryDimensions[0].column.datasetName!
+            return primaryColumns[0].datasetName!
 
-        if (primaryDimensions.length === 2)
-            return primaryDimensions
-                .map((d) => d.column.displayName)
-                .join(" and ")
+        if (primaryColumns.length === 2)
+            return primaryColumns.map((col) => col.displayName).join(" and ")
 
-        return primaryDimensions.map((d) => d.column.displayName).join(", ")
+        return primaryColumns.map((col) => col.displayName).join(", ")
     }
 
     @computed get displayTitle() {
@@ -1115,9 +1116,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     @computed get stackedAreaTransform() {
         return new StackedAreaTransform(this)
     }
-    @computed get discreteBarTransform() {
-        return new DiscreteBarTransform(this)
-    }
     @computed get stackedBarTransform() {
         return new StackedBarTransform(this)
     }
@@ -1136,7 +1134,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         else if (this.isScatter || this.isTimeScatter)
             return this.scatterTransform
         else if (this.isStackedArea) return this.stackedAreaTransform
-        else if (this.isDiscreteBar) return this.discreteBarTransform
         else if (this.isStackedBar) return this.stackedBarTransform
 
         return undefined

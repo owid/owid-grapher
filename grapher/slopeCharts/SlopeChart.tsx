@@ -1,12 +1,5 @@
 import * as React from "react"
-import {
-    intersection,
-    without,
-    uniq,
-    isEmpty,
-    identity,
-    last,
-} from "grapher/utils/Util"
+import { intersection, without, uniq, isEmpty, last } from "grapher/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"

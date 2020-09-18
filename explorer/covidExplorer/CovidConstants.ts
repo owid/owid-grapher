@@ -1,5 +1,6 @@
 import { ColumnTypeNames } from "owidTable/OwidTableConstants"
 import { ColumnSpec } from "owidTable/OwidTable"
+import { Time } from "grapher/core/GrapherConstants"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"
@@ -250,6 +251,7 @@ export interface CovidGrapherRow extends ParsedCovidCsvRow {
     entityCode: string
     entityId: number
     day: number
+    time: Time
 }
 
 export declare type CovidCsvColumnSlug = keyof ParsedCovidCsvRow

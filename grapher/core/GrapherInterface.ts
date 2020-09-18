@@ -83,4 +83,5 @@ export interface GrapherInterface {
 
 export interface LegacyGrapherInterface extends GrapherInterface {
     selectedData?: EntitySelection[]
+    data: any
 }

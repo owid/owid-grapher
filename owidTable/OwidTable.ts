@@ -30,7 +30,8 @@ import {
     last,
     getRandomNumberGenerator,
     range,
-    sampleSize,
+    findClosestTimeIndex,
+    uniq,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import {
@@ -126,6 +127,7 @@ interface OwidRow extends Row {
     entityName: EntityName
     entityCode: EntityCode
     entityId: EntityId
+    time: Time
     year?: Year
     day?: Integer
     date?: string
@@ -247,6 +249,10 @@ export abstract class AbstractColumn {
 
     @computed get description() {
         return this.spec.description
+    }
+
+    @computed get isEmpty() {
+        return this.rowsWithValue.length > 0
     }
 
     @computed get datasetName() {
@@ -824,7 +830,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
     }
 
     @computed get selectedEntityNames() {
-        return this.selectedRows.map((row) => row.entityName)
+        return uniq(this.selectedRows.map((row) => row.entityName))
     }
 
     @computed get hasSelection() {
@@ -891,15 +897,22 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
     }
 
-    toDebugInfo() {
+    toDebugInfo(showRows = 5) {
+        const rowCount = this.rows.length
+        showRows = showRows > rowCount ? rowCount : showRows
         return `columns\n${this.columnsAsArray
             .map(
                 (col) =>
                     ` slug:${col.slug} type:${col.spec.type} name:${col.name}`
             )
-            .join("\n")}\ndata rows 0 - 5 of ${
-            this.rows.length
-        }\n ${this.toDelimited(undefined, 5, ",", "\n ")}`
+            .join(
+                "\n"
+            )}\ndata rows 0 - ${showRows} of ${rowCount}\n ${this.toDelimited(
+            undefined,
+            showRows,
+            ",",
+            "\n "
+        )}`
     }
 
     toDelimited(
@@ -1123,6 +1136,29 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return map
     }
 
+    // one datum per entityName. use the closest value to target year within tolerance.
+    // selected rows only. value from any primary column.
+    // getClosestRowForEachSelectedEntity(targetYear, tolerance)
+    // Make sure we use the closest value to the target year within tolerance (preferring later)
+    getClosestRowForEachSelectedEntity(targetTime: Time, tolerance: Integer) {
+        const rowMap = this.rowsByEntityName
+        const timeSlug = this.timeColumn?.slug
+        if (!timeSlug) return []
+        return this.selectedEntityNames
+            .map((name) => {
+                const rows = rowMap.get(name)
+                if (!rows) return null
+
+                const rowIndex = findClosestTimeIndex(
+                    rows.map((row) => row[timeSlug]) as number[],
+                    targetTime,
+                    tolerance
+                )
+                return rowIndex ? rows[rowIndex] : null
+            })
+            .filter((row) => row) as OwidRow[]
+    }
+
     // Clears and sets selected entities
     @action.bound setSelectedEntities(entityNames: EntityName[]) {
         this.initDefaultEntitySelectionColumn()
@@ -1135,6 +1171,12 @@ export class OwidTable extends AbstractTable<OwidRow> {
     @action.bound clearSelection() {
         this.selectedEntityNames.forEach((name) => {
             this.deselectEntity(name)
+        })
+    }
+
+    @action.bound selectAll() {
+        this.unselectedEntityNames.forEach((name) => {
+            this.selectEntity(name)
         })
     }
 
@@ -1368,8 +1410,10 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
             const newRows = values.map((value, index) => {
                 const entityName = entityNames[index]
-                const row: any = {
-                    [timeColumnName]: years[index],
+                const time = years[index]
+                const row: OwidRow = {
+                    [timeColumnName]: time,
+                    time,
                     [columnSlug]: value,
                     entityName,
                     entityId: entities[index],
@@ -1433,7 +1477,10 @@ interface SynthOptions {
 }
 
 // Generate a fake table for testing
-export const SynthesizeTable = (options?: Partial<SynthOptions>) => {
+export const SynthesizeOwidTable = (
+    options?: Partial<SynthOptions>,
+    seed = Date.now()
+) => {
     const finalOptions = {
         countryCount: 2,
         timeRange: [1950, 2020],
@@ -1448,33 +1495,33 @@ export const SynthesizeTable = (options?: Partial<SynthOptions>) => {
         columnSpecs.map((col) => col.slug!)
     )
 
-    const generators = columnSpecs.map((col, index) =>
-        getRandomNumberGenerator(col.range![0], col.range![1], index)
+    const valueGenerators = columnSpecs.map((col, index) =>
+        getRandomNumberGenerator(col.range![0], col.range![1], seed + index)
     )
 
-    const countries = sampleSize(
-        [
-            "Germany",
-            "France",
-            "Iceland",
-            "Australia",
-            "China",
-            "Nigeria",
-            "Brazil",
-            "Canada",
-        ],
-        countryCount
-    )
+    // todo: support N countries
+    const countries = [
+        "Germany",
+        "France",
+        "Iceland",
+        "Australia",
+        "China",
+        "Nigeria",
+        "Brazil",
+        "Canada",
+    ].slice(0, countryCount)
 
     const rows = countries.map((country, index) =>
         range(timeRange[0], timeRange[1])
             .map((year) =>
                 [
                     country,
-                    country.substr(3).toUpperCase(),
+                    country.substr(0, 3).toUpperCase(),
                     index,
                     year,
-                    ...columnSpecs.map((slug, index) => generators[index]()),
+                    ...columnSpecs.map((slug, index) =>
+                        valueGenerators[index]()
+                    ),
                 ].join(",")
             )
             .join("\n")

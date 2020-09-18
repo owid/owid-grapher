@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { Bounds } from "grapher/utils/Bounds"
-import { SynthesizeTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
 import { MapChartWithLegend } from "./MapChartWithLegend"
 
-const table = SynthesizeTable({ timeRange: [2000, 2010], countryCount: 5 })
+const table = SynthesizeOwidTable({ timeRange: [2000, 2010], countryCount: 5 })
 const options: MapChartOptionsProvider = {
     baseFontSize: 16,
     entityType: "Country",

@@ -580,23 +580,21 @@ export const getRandomNumberGenerator = (
     return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
 }
 
-export function findClosestTime(
+export function findClosestTimeIndex(
     times: Time[],
-    targetTime: number,
+    targetTime: Time,
     tolerance?: number
-): number | undefined {
-    if (isUnboundedLeft(targetTime)) return min(times)
-    if (isUnboundedRight(targetTime)) return max(times)
-    let closest: number | undefined
-    for (const time of times) {
+): Time | undefined {
+    let closest: Time | undefined
+    let closestIndex: number | undefined
+    for (const [index, time] of times.entries()) {
         const currentTimeDist = Math.abs(time - targetTime)
+        if (!currentTimeDist) return index // Found the winner, stop searching.
+        if (tolerance !== undefined && currentTimeDist > tolerance) continue
+
         const closestTimeDist = closest
             ? Math.abs(closest - targetTime)
             : Infinity
-
-        if (tolerance !== undefined && currentTimeDist > tolerance) {
-            continue
-        }
 
         if (
             closest === undefined ||
@@ -605,9 +603,21 @@ export function findClosestTime(
             (closestTimeDist === currentTimeDist && time > closest)
         ) {
             closest = time
+            closestIndex = index
         }
     }
-    return closest
+    return closestIndex
+}
+
+export function findClosestTime(
+    times: Time[],
+    targetTime: Time,
+    tolerance?: number
+): Time | undefined {
+    if (isUnboundedLeft(targetTime)) return min(times)
+    if (isUnboundedRight(targetTime)) return max(times)
+    const index = findClosestTimeIndex(times, targetTime, tolerance)
+    return index !== undefined ? times[index] : undefined
 }
 
 // _.mapValues() equivalent for ES6 Maps
@@ -750,7 +760,7 @@ const trimArray = (arr: any[]) => {
     return arr.slice(0, index + 1)
 }
 
-export const anyToString = (value: any) =>
+export const anyToString = (value: any): string =>
     value?.toString ? value.toString() : ""
 
 const trimEmptyColumns = (grid: Grid): Grid => grid.map(trimArray)

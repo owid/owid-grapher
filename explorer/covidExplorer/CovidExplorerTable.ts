@@ -39,7 +39,6 @@ import {
     MetricKind,
     SmoothingOption,
     IntervalOption,
-    intervalOptions,
     sourceVariables,
     testRateExcludeList,
     metricPickerColumnSpecs,
@@ -690,6 +689,7 @@ export class CovidExplorerTable {
         newRow.entityName = row.location
         newRow.entityCode = row.iso_code
         newRow.day = dateToYear(row.date)
+        newRow.time = newRow.day // todo: cleanup
         newRow.entityId = generateEntityId(row.location)
 
         if (newRow.location === "World") newRow.group_members = "All"

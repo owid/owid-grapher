@@ -36,7 +36,7 @@ export class MapTab extends React.Component<MapTabProps> {
         const { layout } = this
         return (
             <ChartLayoutView layout={this.layout}>
-                {grapher.isReady && grapher.mapColumn ? (
+                {grapher.isReady ? (
                     <MapChartWithLegend
                         containerElement={
                             this.props.grapherView.base.current ?? undefined

@@ -3,10 +3,12 @@ import { observable, toJS } from "mobx"
 import { Color } from "grapher/core/GrapherConstants"
 import { BinningStrategy } from "./BinningStrategies"
 import {
+    deleteRuntimeAndUnchangedProps,
+    objectWithPersistablesToObject,
     Persistable,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { extend } from "grapher/utils/Util"
+import { extend, trimObject } from "grapher/utils/Util"
 
 class ColorScaleConfigDefaults {
     // Color scheme
@@ -84,7 +86,9 @@ export class ColorScaleConfig
     }
 
     toObject() {
-        return toJS(this)
+        const obj = objectWithPersistablesToObject(this)
+        deleteRuntimeAndUnchangedProps(obj, new ColorScaleConfigDefaults())
+        return trimObject(obj)
     }
 
     constructor(obj?: Partial<ColorScaleConfig>) {

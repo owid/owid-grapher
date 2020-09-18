@@ -28,6 +28,7 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation,
     trimObject,
     getRandomNumberGenerator,
+    findClosestTimeIndex,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder, ScaleType } from "grapher/core/GrapherConstants"
@@ -42,6 +43,11 @@ describe(findClosestTime, () => {
             it("returns undefined", () => {
                 const years = [2010, 2015, 2017]
                 expect(findClosestTime(years, 2014, 0)).toEqual(undefined)
+            })
+
+            it("can also get the index", () => {
+                const years = [2010, 2015, 2017]
+                expect(findClosestTimeIndex(years, 2014, 1)).toEqual(1)
             })
         })
     })

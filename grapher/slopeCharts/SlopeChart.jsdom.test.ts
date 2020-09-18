@@ -2,10 +2,10 @@
 
 import { SlopeChart } from "./SlopeChart"
 import { Bounds } from "grapher/utils/Bounds"
-import { SynthesizeTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 
-const table = SynthesizeTable({ timeRange: [2000, 2010] })
+const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
 const options: SlopeChartOptionsProvider = {
     baseFontSize: 16,
     entityType: "Country",

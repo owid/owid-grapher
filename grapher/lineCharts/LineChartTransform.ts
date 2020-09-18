@@ -56,8 +56,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed private get annotationsMap() {
-        return this.grapher.primaryDimensions[0].column.annotationsColumn
-            ?.entityNameMap
+        return this.grapher.primaryColumns[0].annotationsColumn?.entityNameMap
     }
 
     @computed private get colorScheme() {

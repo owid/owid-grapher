@@ -1,6 +1,6 @@
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
-import { OwidTable } from "owidTable/OwidTable"
+import { AbstractColumn, OwidTable } from "owidTable/OwidTable"
 import { ColumnSlug } from "owidTable/OwidTableConstants"
 
 // NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
@@ -22,8 +22,11 @@ export interface ChartOptionsProvider {
     hideLegend?: boolean
     tooltip?: TooltipProps
     useTimelineDomains?: boolean
+    primaryColumns?: AbstractColumn[]
     yColumnSlug?: ColumnSlug
     xColumnSlug?: ColumnSlug
     sizeColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
+    baseColorScheme?: string
+    invertColorScheme?: boolean
 }

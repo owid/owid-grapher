@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { OwidTable, BasicTable } from "owidTable/OwidTable"
+import { OwidTable, BasicTable, SynthesizeOwidTable } from "owidTable/OwidTable"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 
 describe(OwidTable, () => {
@@ -16,6 +16,7 @@ describe(OwidTable, () => {
     const rows = [
         {
             year: 2020,
+            time: 2020,
             entityName: "United States",
             population: 3e8,
             entityId: 1,
@@ -108,6 +109,30 @@ describe("from legacy", () => {
             420,
             1260,
         ])
+    })
+})
+
+describe("can query the data", () => {
+    it("can do a query used by discrete bar", () => {
+        const table = SynthesizeOwidTable(
+            {
+                countryCount: 3,
+                timeRange: [2000, 2004],
+            },
+            10
+        )
+        expect(table.rowsByEntityName.size).toEqual(3)
+        expect(table.selectedEntityNames.length).toEqual(0)
+
+        table.selectAll()
+
+        expect(table.selectedEntityNames.length).toEqual(3)
+        expect(
+            table.getClosestRowForEachSelectedEntity(2004, 1).length
+        ).toEqual(3)
+        expect(
+            table.getClosestRowForEachSelectedEntity(2005, 1).length
+        ).toEqual(0)
     })
 })
 
@@ -281,6 +306,7 @@ describe("rolling averages", () => {
     const rows = [
         {
             year: 2020,
+            time: 2020,
             entityName: "United States",
             population: 3e8,
             entityId: 1,
@@ -289,6 +315,7 @@ describe("rolling averages", () => {
         },
         {
             year: 2020,
+            time: 2020,
             entityName: "World",
             population: 10e8,
             entityId: 12,
@@ -297,6 +324,7 @@ describe("rolling averages", () => {
         },
         {
             year: 2020,
+            time: 2020,
             entityName: "United States",
             population: 3e8,
             entityId: 1,

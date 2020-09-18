@@ -2,7 +2,10 @@ import { ScaleType } from "grapher/core/GrapherConstants"
 import { extend, trimObject } from "grapher/utils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
-import { Persistable } from "grapher/persistable/Persistable"
+import {
+    deleteRuntimeAndUnchangedProps,
+    Persistable,
+} from "grapher/persistable/Persistable"
 import { AxisConfigInterface } from "./AxisConfigInterface"
 
 // Todo: remove
@@ -34,7 +37,7 @@ export class AxisConfig
     }
 
     toObject(): AxisConfigInterface {
-        return trimObject({
+        const obj = trimObject({
             scaleType: this.scaleType,
             label: this.label ? this.label : undefined,
             min: this.min,
@@ -42,6 +45,10 @@ export class AxisConfig
             canChangeScaleType: this.canChangeScaleType,
             removePointsOutsideDomain: this.removePointsOutsideDomain,
         })
+
+        deleteRuntimeAndUnchangedProps(obj, new AxisConfigDefaults())
+
+        return obj
     }
 
     set container(containerOptions: AxisContainerInterface) {

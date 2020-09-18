@@ -3,7 +3,7 @@ import "site/client/owid.scss"
 import "grapher/core/grapher.scss"
 import { SlopeChart } from "./SlopeChart"
 import { Bounds } from "grapher/utils/Bounds"
-import { SynthesizeTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 
 export default {
@@ -11,7 +11,7 @@ export default {
     component: SlopeChart,
 }
 
-const table = SynthesizeTable({
+const table = SynthesizeOwidTable({
     timeRange: [1950, 2010],
 })
 
