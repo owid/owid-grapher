@@ -202,6 +202,10 @@ export abstract class AbstractColumn {
         return this.formatValue(value)
     }
 
+    formatForTick(value: any, options?: TickFormattingOptions) {
+        return this.formatValueShort(value, options)
+    }
+
     @computed get numDecimalPlaces() {
         return this.display.numDecimalPlaces ?? 2
     }

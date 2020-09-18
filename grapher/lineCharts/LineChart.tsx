@@ -413,9 +413,9 @@ export class LineChart extends React.Component<{
                                     >
                                         {!value
                                             ? "No data"
-                                            : transform.yAxis.tickFormatFn(
-                                                  value.y,
-                                                  { noTrailingZeroes: false }
+                                            : transform.yAxis.formatTick(
+                                                  value.y
+                                                  //  ,{ noTrailingZeroes: false } // todo: add back?
                                               )}
                                     </td>
                                 </tr>

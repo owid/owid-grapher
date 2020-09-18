@@ -1,6 +1,5 @@
 import { computed } from "mobx"
 import {
-    identity,
     cloneDeep,
     sortBy,
     max,
@@ -52,14 +51,6 @@ export class StackedBarTransform extends ChartTransform {
             : (d: number) => `${d}`
     }
 
-    @computed get yFormatTooltipFn(): (d: number) => string {
-        const { primaryDimension, yTickFormatFn } = this
-
-        return primaryDimension
-            ? primaryDimension.column.formatValueLong
-            : yTickFormatFn
-    }
-
     @computed get xDomainDefault(): [number, number] {
         return [this.startTimelineTime, this.endTimelineTime]
     }
@@ -69,7 +60,7 @@ export class StackedBarTransform extends ChartTransform {
         const { grapher, xDomainDefault } = this
         const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
-        axis.tickFormatFn = this.grapher.table.timeColumnFormatFunction
+        axis.column = this.grapher.table.timeColumn
         axis.hideGridlines = true
         axis.hideFractionalTicks = true
         return axis
@@ -82,24 +73,12 @@ export class StackedBarTransform extends ChartTransform {
         return [0, defaultTo(max(yValues), 100)]
     }
 
-    @computed get yDimensionFirst() {
-        return this.grapher.filledDimensions.find((d) => d.property === "y")
-    }
-
-    @computed get yTickFormatFn() {
-        const { yDimensionFirst } = this
-
-        return yDimensionFirst
-            ? yDimensionFirst.column.formatValueShort
-            : identity
-    }
-
     @computed get yAxis() {
-        const { grapher, yDomainDefault, yTickFormatFn } = this
+        const { grapher, yDomainDefault } = this
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
-        axis.tickFormatFn = yTickFormatFn
+        axis.column = this.grapher.primaryColumns[0]
         return axis
     }
 

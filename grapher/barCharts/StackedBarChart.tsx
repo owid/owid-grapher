@@ -267,7 +267,7 @@ export class StackedBarChart extends React.Component<{
         if (xPos === undefined) return
 
         const yPos = yAxis.place(hoverBar.yOffset + hoverBar.y)
-        const { yFormatTooltipFn } = this.transform
+        const { yColumn } = this.transform.grapher
 
         return (
             <Tooltip
@@ -295,7 +295,7 @@ export class StackedBarChart extends React.Component<{
                         fontSize: "0.8em",
                     }}
                 >
-                    <span>{yFormatTooltipFn(hoverBar.y)}</span>
+                    <span>{yColumn!.formatValueLong(hoverBar.y)}</span>
                     <br />
                     in
                     <br />
@@ -329,12 +329,12 @@ export class StackedBarChart extends React.Component<{
         const { xAxis } = dualAxis
 
         return xValues.map((x) => {
-            const text = xAxis.tickFormatFn(x)
+            const text = xAxis.formatTick(x)
             const xPos = mapXValueToOffset.get(x) as number
 
             const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
             return {
-                text: text,
+                text,
                 bounds: bounds.extend({
                     x: xPos + barWidth / 2 - bounds.width / 2,
                     y: dualAxis.innerBounds.bottom + 5,

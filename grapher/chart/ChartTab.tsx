@@ -150,16 +150,20 @@ export class ChartTab extends React.Component<{
         )
     }
 
-    private renderWithHTMLText() {
-        const { grapherView } = this.props
+    @computed get maxWidth() {
+        return this.paddedBounds.width
+    }
 
+    private renderWithHTMLText() {
+        const { grapherView, grapher } = this.props
+        const { maxWidth } = this
         return (
             <React.Fragment>
-                {this.header}
+                <Header maxWidth={maxWidth} options={grapher} />
                 <ControlsOverlayView grapherView={grapherView}>
                     <svg {...this.svgProps}>{this.renderChart()}</svg>
                 </ControlsOverlayView>
-                {this.footer}
+                <Footer maxWidth={maxWidth} options={grapher} />
             </React.Fragment>
         )
     }

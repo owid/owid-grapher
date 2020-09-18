@@ -959,6 +959,10 @@ export class Grapher
             : this.primaryColumns[0]!
     }
 
+    getColumnForProperty(property: DimensionProperty) {
+        return this.dimensions.find((dim) => dim.property === property)?.column
+    }
+
     @computed get yColumnSlug() {
         return this.dimensions
             .find((dim) => dim.property === "y")
@@ -966,7 +970,11 @@ export class Grapher
     }
 
     @computed get yColumn() {
-        return this.table.columnsBySlug.get(this.yColumnSlug || "")
+        return this.getColumnForProperty("y")
+    }
+
+    @computed get xColumn() {
+        return this.getColumnForProperty("x")
     }
 
     @computed private get timeTitleSuffix() {

@@ -18,6 +18,7 @@ import {
 import { Bounds } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
+import { AbstractColumn } from "owidTable/OwidTable"
 
 interface Tickmark {
     value: number
@@ -35,7 +36,7 @@ declare type TickFormatFunction = (
 abstract class AbstractAxis implements ScaleTypeConfig {
     protected options: AxisConfig
     @observable.ref domain: [number, number]
-    @observable tickFormatFn: TickFormatFunction = (d) => `${d}`
+    @observable column?: AbstractColumn
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
     @observable.struct range: [number, number] = [0, 0]
@@ -233,10 +234,10 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         return {}
     }
 
-    getFormattedTicks(): string[] {
-        const options = this.getTickFormattingOptions()
+    getFormattedTicks() {
+        // todo: pass in first or last?
         return this.getTickValues().map((tickmark) =>
-            this.tickFormatFn(tickmark.value, options)
+            this.formatTick(tickmark.value)
         )
     }
 
@@ -281,10 +282,12 @@ abstract class AbstractAxis implements ScaleTypeConfig {
 
     formatTick(tick: number, isFirstOrLastTick?: boolean) {
         const tickFormattingOptions = this.getTickFormattingOptions()
-        return this.tickFormatFn(tick, {
-            ...tickFormattingOptions,
-            isFirstOrLastTick,
-        })
+        return (
+            this.column?.formatForTick(tick, {
+                ...tickFormattingOptions,
+                isFirstOrLastTick,
+            }) ?? tick.toString()
+        )
     }
 
     // calculates coordinates for ticks, sorted by priority

@@ -119,13 +119,16 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const value = hoverPoint.value
 
-        const formatFunction = this.props.options.table.timeColumnFormatFunction
+        const table = this.props.options.table
 
         const year = value.time.span
-            ? `${formatFunction(value.time.span[0])} to ${formatFunction(
-                  value.time.span[1]
-              )}`
-            : formatFunction(value.time.y)
+            ? `${table.timeColumnFormatFunction(
+                  value.time.span[0]
+              )} to ${table.timeColumnFormatFunction(value.time.span[1])}`
+            : table.timeColumnFormatFunction(value.time.y)
+
+        const { grapher } = transform
+        const { yColumn, xColumn } = grapher
 
         return (
             <Tooltip
@@ -155,13 +158,13 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 >
                     <span>
                         {transform.yAxis.label}{" "}
-                        <strong>{transform.yFormatTooltip(value.y)}</strong>
+                        <strong>{yColumn!.formatValue(value.y)}</strong>
                     </span>
                     <br />
                     <span>
                         {transform.xAxis.label}{" "}
                         <strong>
-                            {transform.xFormatTooltip(value.x)}
+                            {xColumn!.formatValue(value.x)}
                             {!value.time.span && value.time.y !== value.time.x
                                 ? ` (data from ${value.time.x})`
                                 : ""}

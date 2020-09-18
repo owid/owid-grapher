@@ -30,6 +30,7 @@ import { ComparisonLine } from "./ComparisonLine"
 import { ScatterPlotOptionsProvider } from "./ScatterPlotOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { AbstractColumn } from "owidTable/OwidTable"
 
 @observer
 export class ScatterPlot extends React.Component<{
@@ -287,13 +288,16 @@ export class ScatterPlot extends React.Component<{
     }
 
     @computed private get scatterPointLabelFormatFunction() {
+        const { grapher } = this.transform
+        const { yColumn, xColumn } = grapher
+
         const scatterPointLabelFormatFunctions = {
             year: (scatterValue: ScatterValue) =>
                 this.options.table.timeColumnFormatFunction(scatterValue.year),
             y: (scatterValue: ScatterValue) =>
-                this.transform.yFormatTooltip(scatterValue.y),
+                yColumn!.formatValue(scatterValue.y),
             x: (scatterValue: ScatterValue) =>
-                this.transform.xFormatTooltip(scatterValue.x),
+                xColumn!.formatValue(scatterValue.x),
         }
 
         return scatterPointLabelFormatFunctions[
@@ -344,7 +348,6 @@ export class ScatterPlot extends React.Component<{
             )
 
         const {
-            transform,
             bounds,
             dualAxis,
             legend,
@@ -356,6 +359,8 @@ export class ScatterPlot extends React.Component<{
             comparisonLines,
             options,
         } = this
+
+        const { grapher } = this.transform
 
         return (
             <g className="ScatterPlot">
@@ -402,10 +407,8 @@ export class ScatterPlot extends React.Component<{
                 )}
                 {tooltipSeries && (
                     <ScatterTooltip
-                        formatY={transform.yFormatTooltip}
-                        formatX={transform.xFormatTooltip}
-                        formatYYear={transform.yFormatYear}
-                        formatXYear={transform.xFormatYear}
+                        yColumn={grapher.yColumn!}
+                        xColumn={grapher.xColumn!}
                         series={tooltipSeries}
                         maxWidth={sidebarWidth}
                         fontSize={this.baseFontSize}
@@ -424,10 +427,8 @@ export class ScatterPlot extends React.Component<{
 }
 
 interface ScatterTooltipProps {
-    formatY: (value: number) => string
-    formatX: (value: number) => string
-    formatYYear: (value: number) => string
-    formatXYear: (value: number) => string
+    yColumn: AbstractColumn
+    xColumn: AbstractColumn
     series: ScatterSeries
     maxWidth: number
     fontSize: number
@@ -438,17 +439,13 @@ interface ScatterTooltipProps {
 @observer
 class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueY(value: ScatterValue) {
-        return "Y Axis: " + this.props.formatY(value.y)
-        //        if (value.year != value.time.y)
-        //            s += " (data from " + value.time.y + ")"
-        // return s
+        return "Y Axis: " + this.props.yColumn.formatValue(value.y)
     }
 
     formatValueX(value: ScatterValue) {
-        let s = "X Axis: " + this.props.formatX(value.x)
-        const formatYear = this.props.formatXYear
+        let s = `X Axis: ${this.props.xColumn.formatValue(value.x)}`
         if (!value.time.span && value.time.y !== value.time.x)
-            s += ` (data from ${formatYear(value.time.x)})`
+            s += ` (data from ${this.props.xColumn.formatTime(value.time.x)})`
         return s
     }
 
@@ -475,7 +472,7 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         elements.push(heading)
         offset += heading.wrap.height + lineHeight
 
-        const { formatYYear } = this.props
+        const { yColumn } = this.props
 
         values.forEach((v) => {
             const year = {
@@ -485,10 +482,10 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                     maxWidth: maxWidth,
                     fontSize: 0.65 * fontSize,
                     text: v.time.span
-                        ? `${formatYYear(v.time.span[0])} to ${formatYYear(
-                              v.time.span[1]
-                          )}`
-                        : formatYYear(v.time.y),
+                        ? `${yColumn.formatTime(
+                              v.time.span[0]
+                          )} to ${yColumn.formatTime(v.time.span[1])}`
+                        : yColumn.formatTime(v.time.y),
                 }),
             }
             offset += year.wrap.height

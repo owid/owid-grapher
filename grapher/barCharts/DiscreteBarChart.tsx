@@ -163,7 +163,8 @@ export class DiscreteBarChart extends React.Component<{
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        axis.tickFormatFn = this.tickFormat
+        const primaryColumns = this.primaryColumns
+        axis.column = primaryColumns[0]
         axis.range = this.xRange
         axis.label = ""
         return axis
@@ -421,16 +422,6 @@ export class DiscreteBarChart extends React.Component<{
                     : "")
             )
         }
-    }
-
-    @computed get tickFormat(): (
-        d: number,
-        options?: TickFormattingOptions
-    ) => string {
-        const primaryColumns = this.primaryColumns
-        return primaryColumns[0]
-            ? primaryColumns[0].formatValueShort
-            : (d: number) => `${d}`
     }
 
     @computed get currentData() {

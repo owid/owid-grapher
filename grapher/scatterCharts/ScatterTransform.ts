@@ -11,14 +11,11 @@ import {
     lastOfNonEmptyArray,
     uniq,
     compact,
-    formatYear,
     flatten,
     defaultTo,
     first,
     last,
-    formatValue,
     domainExtent,
-    identity,
     minBy,
     sortNumeric,
     lowerCaseFirstLetterUnlessAbbreviation,
@@ -416,9 +413,7 @@ export class ScatterTransform extends ChartTransform {
         const { grapher, yDomainDefault, yDimension } = this
 
         const axis = grapher.yAxis.toVerticalAxis()
-        axis.tickFormatFn =
-            (yDimension && yDimension.column.formatValueShort) ||
-            axis.tickFormatFn
+        axis.column = yDimension?.column
 
         const label = this.yAxisLabel
 
@@ -432,7 +427,6 @@ export class ScatterTransform extends ChartTransform {
                     label
                 )}`
             }
-            axis.tickFormatFn = (v: number) => formatValue(v, { unit: "%" })
         } else {
             axis.updateDomainPreservingUserSettings(yDomainDefault)
             axis.label = label
@@ -460,6 +454,7 @@ export class ScatterTransform extends ChartTransform {
         const { xAxis } = grapher
 
         const axis = xAxis.toHorizontalAxis()
+        axis.column = xDimension?.column
 
         axis.scaleType = this.xScaleType
         if (grapher.isRelativeMode) {
@@ -471,37 +466,13 @@ export class ScatterTransform extends ChartTransform {
                     label
                 )}`
             }
-            axis.tickFormatFn = (v: number) => formatValue(v, { unit: "%" })
         } else {
             axis.updateDomainPreservingUserSettings(xDomainDefault)
             const label = xAxis.label || xAxisLabelBase
             if (label) axis.label = label
-            axis.tickFormatFn =
-                (xDimension && xDimension.column.formatValueShort) ||
-                axis.tickFormatFn
         }
 
         return axis
-    }
-
-    @computed get yFormatTooltip(): (d: number) => string {
-        return this.grapher.isRelativeMode || !this.yDimension
-            ? this.yAxis.tickFormatFn
-            : this.yDimension.column.formatValueLong
-    }
-
-    @computed get xFormatTooltip(): (d: number) => string {
-        return this.grapher.isRelativeMode || !this.xDimension
-            ? this.xAxis.tickFormatFn
-            : this.xDimension.column.formatValueLong
-    }
-
-    @computed get yFormatYear(): (year: number) => string {
-        return this.yDimension ? this.yDimension.column.formatTime : formatYear
-    }
-
-    @computed get xFormatYear(): (year: number) => string {
-        return this.xDimension ? this.xDimension.column.formatTime : formatYear
     }
 
     // todo: add unit tests

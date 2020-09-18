@@ -198,7 +198,7 @@ export class LineChartTransform extends ChartTransform {
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
-        axis.tickFormatFn = this.grapher.formatYearTickFunction
+        axis.column = this.grapher.table.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -221,22 +221,8 @@ export class LineChartTransform extends ChartTransform {
         ]
     }
 
-    @computed private get yTickFormat() {
-        if (this.grapher.isRelativeMode)
-            return (v: number) =>
-                (v > 0 ? "+" : "") + formatValue(v * 100, { unit: "%" })
-
-        const yDimensionFirst = this.grapher.filledDimensions.find(
-            (d) => d.property === "y"
-        )
-
-        return yDimensionFirst
-            ? yDimensionFirst.column.formatValueShort
-            : identity
-    }
-
     @computed get yAxis() {
-        const { grapher, yDomain, yTickFormat } = this
+        const { grapher, yDomain } = this
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomain)
         if (grapher.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
@@ -244,7 +230,7 @@ export class LineChartTransform extends ChartTransform {
             (val) => val.y % 1 === 0
         ) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
-        axis.tickFormatFn = yTickFormat
+        axis.column = grapher.primaryColumns[0]
         return axis
     }
 
