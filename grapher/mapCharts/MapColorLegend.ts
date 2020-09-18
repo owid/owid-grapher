@@ -41,7 +41,7 @@ export class MapNumericColorLegend {
     @computed get focusBracket() {
         return this.props.focusBracket
     }
-    @computed get numericBins(): NumericBin[] {
+    @computed get numericBins() {
         return this.props.legendData.filter(
             (l) => l instanceof NumericBin
         ) as NumericBin[]
@@ -247,7 +247,7 @@ export class MapCategoricalColorLegend {
         this.props = props
     }
 
-    @computed get markLines(): MarkLine[] {
+    @computed private get markLines() {
         const props = this.props,
             rectSize = 12 * props.scale,
             rectPadding = 5,
@@ -293,18 +293,17 @@ export class MapCategoricalColorLegend {
             xOffset += markWidth
         })
 
-        if (marks.length > 0) {
+        if (marks.length > 0)
             lines.push({ totalWidth: xOffset - markPadding, marks: marks })
-        }
 
         return lines
     }
 
-    @computed get width(): number {
+    @computed get width() {
         return max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
-    @computed get marks(): CategoricalMark[] {
+    @computed get marks() {
         const lines = this.markLines
 
         // Center each line
@@ -321,7 +320,7 @@ export class MapCategoricalColorLegend {
         return flatten(lines.map((l) => l.marks))
     }
 
-    @computed get height(): number {
+    @computed get height() {
         return max(this.marks.map((m) => m.y + m.rectSize)) as number
     }
 }
@@ -342,38 +341,37 @@ export class MapColorLegend {
         this.props = props
     }
 
-    @computed get numericLegendData(): ColorScaleBin[] {
+    @computed get numericLegendData() {
         if (
             this.hasCategorical ||
             !this.props.legendData.some(
                 (d) => (d as CategoricalBin).value === "No data" && !d.isHidden
             )
-        ) {
+        )
             return this.props.legendData.filter(
                 (l) => l instanceof NumericBin && !l.isHidden
             )
-        } else {
-            const bin = this.props.legendData.filter(
-                (l) =>
-                    (l instanceof NumericBin || l.value === "No data") &&
-                    !l.isHidden
-            )
-            return flatten([bin[bin.length - 1], bin.slice(0, -1)])
-        }
+
+        const bin = this.props.legendData.filter(
+            (l) =>
+                (l instanceof NumericBin || l.value === "No data") &&
+                !l.isHidden
+        )
+        return flatten([bin[bin.length - 1], bin.slice(0, -1)])
     }
-    @computed get hasNumeric(): boolean {
+    @computed get hasNumeric() {
         return this.numericLegendData.length > 1
     }
-    @computed get categoricalLegendData(): CategoricalBin[] {
+    @computed get categoricalLegendData() {
         return this.props.legendData.filter(
             (l) => l instanceof CategoricalBin && !l.isHidden
         ) as CategoricalBin[]
     }
-    @computed get hasCategorical(): boolean {
+    @computed get hasCategorical() {
         return this.categoricalLegendData.length > 1
     }
 
-    @computed get mainLabel(): TextWrap {
+    @computed get mainLabel() {
         return new TextWrap({
             maxWidth: this.props.bounds.width,
             fontSize: 0.7 * this.props.fontSize,
@@ -386,22 +384,26 @@ export class MapColorLegend {
         const { numericLegendData } = this
 
         if (focusBracket) return focusBracket
-        else if (focusValue)
+
+        if (focusValue)
             return numericLegendData.find((bin) => bin.contains(focusValue))
-        else return undefined
+
+        return undefined
     }
 
-    @computed get categoricalFocusBracket(): CategoricalBin | undefined {
+    @computed get categoricalFocusBracket() {
         const { focusBracket, focusValue } = this.props
         const { categoricalLegendData } = this
         if (focusBracket && focusBracket instanceof CategoricalBin)
             return focusBracket
-        else if (focusValue)
+
+        if (focusValue)
             return categoricalLegendData.find((bin) => bin.contains(focusValue))
-        else return undefined
+
+        return undefined
     }
 
-    @computed get categoryLegend(): MapCategoricalColorLegend | undefined {
+    @computed get categoryLegend() {
         const that = this
         return this.hasCategorical
             ? new MapCategoricalColorLegend({
@@ -421,11 +423,11 @@ export class MapColorLegend {
             : undefined
     }
 
-    @computed get categoryLegendHeight(): number {
+    @computed get categoryLegendHeight() {
         return this.categoryLegend ? this.categoryLegend.height + 5 : 0
     }
 
-    @computed get numericLegend(): MapNumericColorLegend | undefined {
+    @computed get numericLegend() {
         const that = this
         return this.hasNumeric
             ? new MapNumericColorLegend({
@@ -448,11 +450,11 @@ export class MapColorLegend {
             : undefined
     }
 
-    @computed get numericLegendHeight(): number {
+    @computed get numericLegendHeight() {
         return this.numericLegend ? this.numericLegend.height : 0
     }
 
-    @computed get height(): number {
+    @computed get height() {
         return (
             this.mainLabel.height +
             this.categoryLegendHeight +

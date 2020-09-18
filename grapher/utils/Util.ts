@@ -189,12 +189,6 @@ export function makeSafeForCSS(name: string) {
     })
 }
 
-// Transform OWID entity name to match map topology
-// Since we standardized the map topology, this is just a placeholder
-export function entityNameForMap(name: string) {
-    return name //return makeSafeForCSS(name.replace(/[ '&:\(\)\/]/g, "_"))
-}
-
 export function formatDay(
     dayAsYear: number,
     options?: { format?: string }

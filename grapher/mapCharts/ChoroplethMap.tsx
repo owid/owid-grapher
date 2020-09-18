@@ -17,19 +17,7 @@ import { MapTopology } from "./MapTopology"
 import { Vector2 } from "grapher/utils/Vector2"
 import { worldRegionByMapEntity } from "./WorldRegions"
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
-
-export interface ChoroplethDatum {
-    entity: string
-    time: number
-    value: number | string
-    color: string
-    highlightFillColor: string
-    isSelected?: boolean
-}
-
-export interface ChoroplethData {
-    [key: string]: ChoroplethDatum
-}
+import { ChoroplethData, ChoroplethDatum } from "./MapConstants"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin

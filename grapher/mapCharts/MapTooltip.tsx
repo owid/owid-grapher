@@ -1,7 +1,6 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ChoroplethDatum } from "./ChoroplethMap"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { takeWhile, last, first, isMobile } from "grapher/utils/Util"
 import {
@@ -10,23 +9,21 @@ import {
     SparkBarsProps,
 } from "grapher/sparkBars/SparkBars"
 import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
-import { Grapher } from "grapher/core/Grapher"
+import { ChoroplethDatum } from "./MapConstants"
+import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
+import { ColorScale } from "grapher/color/ColorScale"
 
 interface MapTooltipProps {
     inputTime?: number
-    mapToDataEntities: { [id: string]: string }
     tooltipDatum?: ChoroplethDatum
     tooltipTarget: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
-    grapher: Grapher
+    options: MapChartOptionsProvider
+    colorScale: ColorScale
 }
 
 @observer
 export class MapTooltip extends React.Component<MapTooltipProps> {
-    @computed get grapher() {
-        return this.props.grapher
-    }
-
     private sparkBarsDatumXAccessor = (d: SparkBarsDatum) => d.time
 
     @computed private get sparkBarsToDisplay() {
@@ -47,7 +44,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         if (!tooltipDatum) return []
 
         const sparkBarValues: SparkBarsDatum[] = []
-        this.grapher.mapTransform.dimension?.column.valueByEntityNameAndTime
+        this.props.options.mapColumn?.valueByEntityNameAndTime
             .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
@@ -76,24 +73,23 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         return lastVal ? this.sparkBarsDatumXAccessor(lastVal) : undefined
     }
 
+    @computed get colorScale() {
+        return this.props.colorScale
+    }
+
     @computed private get renderSparkBars() {
-        const { grapher } = this
-        return (
-            grapher.hasChartTab &&
-            (grapher.isLineChart ||
-                (grapher.isScatter && grapher.scatterTransform.hasTimeline))
-        )
+        return this.props.options.mapIsClickable
     }
 
     @computed private get darkestColorInColorScheme() {
-        const { colorScale } = this.grapher.mapTransform
+        const { colorScale } = this
         return colorScale.isColorSchemeInverted
             ? first(colorScale.baseColors)
             : last(colorScale.baseColors)
     }
 
     @computed private get barColor() {
-        const { colorScale } = this.grapher.mapTransform
+        const { colorScale } = this
         return colorScale.singleColorScale &&
             !colorScale.customNumericColorsActive
             ? this.darkestColorInColorScheme
@@ -104,22 +100,26 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         const {
             tooltipTarget,
             inputTime,
-            mapToDataEntities,
             tooltipDatum,
             isEntityClickable,
         } = this.props
 
-        const tooltipMessage = this.grapher.isScatter
-            ? "Click to select"
-            : "Click for change over time"
+        const tooltipMessage = "Click to select" // todo: used to be "Click for Change over Time" when on line charts
 
+        const timeColumn = this.props.options.table.timeColumn
         const { renderSparkBars, barColor } = this
-        const formatYearFn =
-            this.grapher.table.timeColumn?.formatValue ||
-            ((value: any) => value)
+
+        const displayTime = timeColumn
+            ? timeColumn.formatValue(inputTime)
+            : inputTime
+        const displayDatumTime =
+            timeColumn && tooltipDatum
+                ? timeColumn.formatValue(tooltipDatum.time)
+                : tooltipDatum?.time.toString() ?? ""
+
         return (
             <Tooltip
-                tooltipProvider={this.grapher}
+                tooltipProvider={this.props.options}
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}
@@ -136,7 +136,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                         fontSize: "1em",
                     }}
                 >
-                    {mapToDataEntities[tooltipTarget.featureId] ||
+                    {tooltipTarget.featureId ||
                         tooltipTarget.featureId.replace(/_/g, " ")}
                 </h3>
                 <div
@@ -165,12 +165,8 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                                 >
                                     <SparkBarTimeSeriesValue
                                         className="current"
-                                        value={this.grapher.mapTransform.formatTooltipValue(
-                                            tooltipDatum.value
-                                        )}
-                                        formattedDate={formatYearFn(
-                                            tooltipDatum.time as number
-                                        )}
+                                        value={tooltipDatum.displayValue}
+                                        displayDate={displayDatumTime}
                                         valueColor={
                                             renderSparkBars ? barColor : "black"
                                         }
@@ -179,7 +175,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
                             </div>
                         </div>
                     ) : (
-                        `No data for ${formatYearFn(inputTime as number)}`
+                        `No data for ${displayTime}`
                     )}
                 </div>
                 {isEntityClickable && (
