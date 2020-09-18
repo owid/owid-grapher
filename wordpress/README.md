@@ -2,50 +2,51 @@
 
 ## Stack
 
-- [Bedrock](https://roots.io/bedrock/): Wordpress stack
-- [Lando](https://lando.dev/): local development environment + DevOps
-- Custom theme
-- Custom plugin
+-   [Bedrock](https://roots.io/bedrock/): Wordpress stack
+-   [Lando](https://lando.dev/): local development environment + DevOps
+-   Custom theme
+-   Custom plugin
 
 ## Requirements
+
 A reasonably powerful machine with 20GB+ of available disk space.
 
 See https://docs.lando.dev/basics/installation.html#hardware-requirements
 
 ## Custom plugin
 
-- Extra REST API fields consumed by https://github.com/owid/owid-grapher.
-- Custom Gutenberg blocks
+-   Extra REST API fields consumed by https://github.com/owid/owid-grapher.
+-   Custom Gutenberg blocks
 
 ## Installation
 
-0. Install [Lando](https://lando.dev/) 
+0. Install [Lando](https://lando.dev/)
 
 _Docker comes packaged with the installer, which is the recommended way to install both._
 
 1. Clone
 
-   ```sh
-   $ git clone git@github.com:owid/owid-wordpress.git
-   ```
+    ```sh
+    $ git clone git@github.com:owid/owid-wordpress.git
+    ```
 
 2. Configure (no updates necessary at this point)
 
-   ```sh
-   $ cp .env.example .env
-   ```
+    ```sh
+    $ cp .env.example .env
+    ```
 
 3. Start & build
 
-   ```sh
-   $ lando start && lando build
-   ```
+    ```sh
+    $ lando start && lando build
+    ```
 
 4. Populate databases and retrieve Wordpress uploads
 
-   ```sh
-   $ lando refresh -c -u
-   ```
+    ```sh
+    $ lando refresh -c -u
+    ```
 
 ## File sharing
 
@@ -77,26 +78,26 @@ Below is the (current) list of Bedrock files grouped by the type of action to be
 
 #### Override
 
-- /config
-- /web/app/mu-plugins
-- /web/index.php
-- /web/wp-config.php
-- /phpcs.xml
-- /wp-cli.yml
+-   /config
+-   /web/app/mu-plugins
+-   /web/index.php
+-   /web/wp-config.php
+-   /phpcs.xml
+-   /wp-cli.yml
 
 #### Ignore
 
-- /CHANGELOG.md
-- /README.md
-- /web/app/plugins (should be empty)
-- /web/app/themes (should be empty)
-- /web/app/uploads (should be empty)
-- /composer.lock
+-   /CHANGELOG.md
+-   /README.md
+-   /web/app/plugins (should be empty)
+-   /web/app/themes (should be empty)
+-   /web/app/uploads (should be empty)
+-   /composer.lock
 
 #### Selectively update
 
-- /composer.json (keep versions pinned)
-- /LICENSE.md (change unlikely)
+-   /composer.json (keep versions pinned)
+-   /LICENSE.md (change unlikely)
 
 ### Wordpress, Wordpress plugins
 
