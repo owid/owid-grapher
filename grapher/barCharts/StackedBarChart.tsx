@@ -713,8 +713,7 @@ export class StackedBarChart
     @computed get marks() {
         const { groupedData } = this
 
-        if (!groupedData.length)
-            return []
+        if (!groupedData.length) return []
 
         const { startTimelineTime, endTimelineTime } = this.yColumn
 

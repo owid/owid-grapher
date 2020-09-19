@@ -1,20 +1,24 @@
 import * as React from "react"
-import { basicGdpGrapher } from "grapher/test/samples"
 import { DataTable } from "./DataTable"
+import { SynthesizeOwidTable } from "owidTable/OwidTable"
 
 export default {
     title: "DataTable",
     component: DataTable,
 }
 
+const table = SynthesizeOwidTable({ timeRange: [1950, 2010], countryCount: 7 })
+
+const options = {
+    table,
+}
+
 export const Default = () => {
-    const grapher = basicGdpGrapher()
-    return <DataTable grapher={grapher} />
+    return <DataTable options={options} />
 }
 
 export const WithTimeTolerance = () => {
-    const grapher = basicGdpGrapher()
-    grapher.timeDomain = [2009, 2017]
+    // grapher.timeDomain = [2009, 2017]
     // Todo: how can I get this to show a closest time popup?
-    return <DataTable grapher={grapher} />
+    return <DataTable options={options} />
 }

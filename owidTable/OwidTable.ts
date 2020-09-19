@@ -1063,6 +1063,10 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return map
     }
 
+    @computed get entityType() {
+        return "Country"
+    }
+
     @computed get availableEntityNames() {
         return Array.from(this.availableEntityNameSet)
     }

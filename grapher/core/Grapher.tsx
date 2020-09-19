@@ -11,7 +11,6 @@ import {
     when,
 } from "mobx"
 import { bind } from "decko"
-
 import {
     uniqWith,
     isEqual,
@@ -78,7 +77,6 @@ import {
     subscribeGrapherToGlobalEntitySelection,
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { countries } from "utils/countries"
-import { DataTableTransform } from "grapher/dataTable/DataTableTransform"
 import { getWindowQueryParams, strToQueryParams } from "utils/client/url"
 import { populationMap } from "owidTable/PopulationMap"
 import {
@@ -622,7 +620,7 @@ export class Grapher
         const activeTab = this.tab
         if (activeTab === "table")
             return (
-                this.dataTableTransform.autoSelectedStartTime ??
+                // todo: readd this behavior. this.dataTableTransform.autoSelectedStartTime ??
                 this.timeDomain[0]
             )
         else if (activeTab === "map")
@@ -651,12 +649,11 @@ export class Grapher
     // todo: remove ifs
     @computed get endTime(): Time {
         const activeTab = this.tab
-        if (activeTab === "table")
-            return this.multiMetricTableMode
-                ? this.dataTableTransform.startTimelineTime
-                : this.timeDomain[1]
-        else if (activeTab === "map")
-            return this.mapColumn?.endTimelineTime || 2000
+        // if (activeTab === "table")
+        //     return this.multiMetricTableMode
+        //         ? this.timeDomain[1] // todo: readd this.dataTableTransform.startTimelineTime
+        //         : this.timeDomain[1]
+        if (activeTab === "map") return this.mapColumn?.endTimelineTime || 2000
         return (
             this.activeTransform?.endTimelineTime || this.table.maxTime || 2000
         )
@@ -856,12 +853,6 @@ export class Grapher
         else if (this.isTimeScatter) return [yAxis, xAxis]
         else if (this.isSlopeChart) return [yAxis, size, color]
         return [yAxis]
-    }
-
-    @observable dataTableOnlyDimensions: ChartDimension[] = []
-
-    @computed get multiMetricTableMode() {
-        return this.dataTableOnlyDimensions.length > 0
     }
 
     @computed.struct get filledDimensions() {
@@ -1124,9 +1115,6 @@ export class Grapher
     @computed get scatterTransform() {
         return new ScatterTransform(this)
     }
-    @computed get dataTableTransform() {
-        return new DataTableTransform(this)
-    }
 
     @computed get activeColorScale() {
         return this.activeTransform?.colorScale
@@ -1134,10 +1122,8 @@ export class Grapher
 
     // WARNING: THIS WILL BE REMOVED!!!! DO NOT USE
     @computed private get activeTransform(): IChartTransform | undefined {
-        if (this.currentTab === "table") return this.dataTableTransform
-        else if (this.isLineChart) return this.lineChartTransform
-        else if (this.isScatter || this.isTimeScatter)
-            return this.scatterTransform
+        if (this.isLineChart) return this.lineChartTransform
+        if (this.isScatter || this.isTimeScatter) return this.scatterTransform
 
         return undefined
     }

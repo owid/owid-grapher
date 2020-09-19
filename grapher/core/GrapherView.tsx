@@ -10,7 +10,6 @@ import { Grapher } from "grapher/core/Grapher"
 import { ControlsFooterView } from "grapher/controls/Controls"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { ChartTab } from "grapher/chart/ChartTab"
-import { TableTab } from "grapher/dataTable/TableTab"
 import { SourcesTab } from "grapher/sourcesTab/SourcesTab"
 import { DownloadTab } from "grapher/downloadTab/DownloadTab"
 import {
@@ -31,6 +30,7 @@ import { FullStory } from "grapher/core/FullStory"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { DataTable } from "grapher/dataTable/DataTable"
 
 declare const window: any
 
@@ -271,7 +271,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             )
 
         if (grapher.primaryTab === "table")
-            return <TableTab bounds={tabBounds} grapher={grapher} />
+            return <DataTable bounds={tabBounds} options={grapher} />
 
         return undefined
     }
