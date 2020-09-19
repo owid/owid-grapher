@@ -26,7 +26,6 @@ import {
     GrapherViewContextInterface,
 } from "grapher/core/GrapherViewContext"
 import { TooltipView } from "grapher/tooltip/Tooltip"
-import { FullStory } from "grapher/core/FullStory"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
@@ -95,26 +94,6 @@ export class GrapherView
 
         render()
         window.addEventListener("resize", throttle(render))
-
-        FullStory.event("Loaded chart v2", {
-            chart_type_str: grapher.type,
-            chart_id_int: grapher.id,
-            slug_str: grapher.slug,
-            originUrl_str: grapher.originUrl,
-            addCountryMode_str: grapher.addCountryMode,
-            stackMode_str: grapher.stackMode,
-            hideLegend_bool: grapher.hideLegend,
-            hideRelativeToggle_bool: grapher.hideRelativeToggle,
-            hideTimeline_bool: grapher.hideTimeline,
-            hideConnectedScatterLines_bool: grapher.hideConnectedScatterLines,
-            compareEndPointsOnly_bool: grapher.compareEndPointsOnly,
-            entityType_str: grapher.entityType,
-            isEmbed_bool: grapher.isEmbed,
-            hasChartTab_bool: grapher.hasChartTab,
-            hasMapTab_bool: grapher.hasMapTab,
-            tab_str: grapher.currentTab,
-            totalSelectedEntities_int: grapher.table.selectedEntityNames.length,
-        })
 
         return view
     }

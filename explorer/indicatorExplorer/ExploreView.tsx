@@ -33,15 +33,6 @@ const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
     { type: ExploreModel.WorldMap, label: "Map", icon: faMap },
 ]
 
-// This component was modeled after GrapherView.
-//
-// TODO that GrapherView handles but this doesn't:
-// * re-render on window resize event (throttled)
-// * FullStory event logging on bootstrap
-// * error logging via Analytics.logEvent on componentDidCatch
-//
-// -@jasoncrawford 2 Dec 2019
-
 interface ExploreProps {
     bounds?: Bounds
     model: ExploreModel
