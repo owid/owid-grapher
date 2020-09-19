@@ -409,7 +409,7 @@ export class ScatterTransform extends ChartTransform {
         return this.domainDefault("y")
     }
 
-    @computed get yAxis() {
+    @computed get verticalAxis() {
         const { grapher, yDomainDefault, yDimension } = this
 
         const axis = grapher.yAxis.toVerticalAxis()
@@ -448,7 +448,7 @@ export class ScatterTransform extends ChartTransform {
         return xDimName
     }
 
-    @computed get xAxis() {
+    @computed get horizontalAxis() {
         const { xDomainDefault, xDimension, grapher, xAxisLabelBase } = this
 
         const { xAxis } = grapher

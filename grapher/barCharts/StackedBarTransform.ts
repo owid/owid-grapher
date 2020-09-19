@@ -56,7 +56,7 @@ export class StackedBarTransform extends ChartTransform {
     }
 
     // TODO: Make XAxis generic
-    @computed get xAxis() {
+    @computed get horizontalAxis() {
         const { grapher, xDomainDefault } = this
         const axis = grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(xDomainDefault)
@@ -73,7 +73,7 @@ export class StackedBarTransform extends ChartTransform {
         return [0, defaultTo(max(yValues), 100)]
     }
 
-    @computed get yAxis() {
+    @computed get verticalAxis() {
         const { grapher, yDomainDefault } = this
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)

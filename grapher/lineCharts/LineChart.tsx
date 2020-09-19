@@ -312,8 +312,11 @@ export class LineChart extends React.Component<{
         return (
             <Tooltip
                 tooltipProvider={this.options}
-                x={dualAxis.xAxis.place(hoverX)}
-                y={dualAxis.yAxis.rangeMin + dualAxis.yAxis.rangeSize / 2}
+                x={dualAxis.horizontalAxis.place(hoverX)}
+                y={
+                    dualAxis.verticalAxis.rangeMin +
+                    dualAxis.verticalAxis.rangeSize / 2
+                }
                 style={{ padding: "0.3em" }}
                 offsetX={5}
             >
@@ -413,7 +416,7 @@ export class LineChart extends React.Component<{
                                     >
                                         {!value
                                             ? "No data"
-                                            : transform.yAxis.formatTick(
+                                            : transform.verticalAxis.formatTick(
                                                   value.y
                                                   //  ,{ noTrailingZeroes: false } // todo: add back?
                                               )}
@@ -429,11 +432,11 @@ export class LineChart extends React.Component<{
 
     // todo: Refactor
     @computed private get dualAxis() {
-        const { xAxis, yAxis } = this.transform
+        const { horizontalAxis, verticalAxis } = this.transform
         return new DualAxis({
             bounds: this.bounds.padRight(this.legend ? this.legend.width : 20),
-            yAxis,
-            xAxis,
+            verticalAxis,
+            horizontalAxis,
         })
     }
 
@@ -508,7 +511,7 @@ export class LineChart extends React.Component<{
             renderUid,
             hoverX,
         } = this
-        const { xAxis, yAxis } = dualAxis
+        const { horizontalAxis, verticalAxis } = dualAxis
         const { groupedData } = transform
 
         const comparisonLines = options.comparisonLines || []
@@ -544,7 +547,7 @@ export class LineChart extends React.Component<{
                             x={bounds.right - legend.width}
                             legend={legend}
                             focusKeys={this.focusKeys}
-                            yAxis={dualAxis.yAxis}
+                            yAxis={dualAxis.verticalAxis}
                             onClick={this.onLegendClick}
                             options={options}
                             onMouseOver={this.onLegendMouseOver}
@@ -553,8 +556,8 @@ export class LineChart extends React.Component<{
                     )}
                     <Lines
                         dualAxis={dualAxis}
-                        xAxis={dualAxis.xAxis}
-                        yAxis={dualAxis.yAxis}
+                        xAxis={dualAxis.horizontalAxis}
+                        yAxis={dualAxis.verticalAxis}
                         data={groupedData}
                         onHover={this.onHover}
                         focusKeys={this.focusKeys}
@@ -571,18 +574,18 @@ export class LineChart extends React.Component<{
                                 return (
                                     <circle
                                         key={series.entityName}
-                                        cx={xAxis.place(value.x)}
-                                        cy={yAxis.place(value.y)}
+                                        cx={horizontalAxis.place(value.x)}
+                                        cy={verticalAxis.place(value.y)}
                                         r={4}
                                         fill={series.color}
                                     />
                                 )
                         })}
                         <line
-                            x1={xAxis.place(hoverX)}
-                            y1={yAxis.range[0]}
-                            x2={xAxis.place(hoverX)}
-                            y2={yAxis.range[1]}
+                            x1={horizontalAxis.place(hoverX)}
+                            y1={verticalAxis.range[0]}
+                            x2={horizontalAxis.place(hoverX)}
+                            y2={verticalAxis.range[1]}
                             stroke="rgba(180,180,180,.4)"
                         />
                     </g>

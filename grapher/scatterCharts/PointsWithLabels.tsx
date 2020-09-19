@@ -285,9 +285,9 @@ export class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     // Pre-transform data for rendering
     @computed private get initialRenderData(): ScatterRenderSeries[] {
         const { data, sizeScale, fontScale, colorScale, bounds } = this
-        const xAxis = this.props.dualAxis.xAxis.clone()
+        const xAxis = this.props.dualAxis.horizontalAxis.clone()
         xAxis.range = bounds.xRange()
-        const yAxis = this.props.dualAxis.yAxis.clone()
+        const yAxis = this.props.dualAxis.verticalAxis.clone()
         yAxis.range = this.bounds.yRange()
 
         return sortNumeric(

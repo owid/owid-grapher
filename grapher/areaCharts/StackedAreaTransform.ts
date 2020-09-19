@@ -166,7 +166,7 @@ export class StackedAreaTransform extends ChartTransform {
         return groupedData
     }
 
-    @computed get xAxis() {
+    @computed get horizontalAxis() {
         const { xDomainDefault } = this
         const grapher = this.grapher
         const axis = grapher.xAxis.toHorizontalAxis()
@@ -182,7 +182,7 @@ export class StackedAreaTransform extends ChartTransform {
         return [0, max(yValues) ?? 100]
     }
 
-    @computed get yAxis() {
+    @computed get verticalAxis() {
         const { yDimensionFirst } = this
         const { grapher, yDomainDefault } = this
 

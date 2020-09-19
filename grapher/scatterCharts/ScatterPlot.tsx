@@ -247,11 +247,11 @@ export class ScatterPlot extends React.Component<{
 
     // todo: Refactor
     @computed private get dualAxis() {
-        const { xAxis, yAxis } = this.transform
+        const { horizontalAxis, verticalAxis } = this.transform
         const axis = new DualAxis({
             bounds: this.bounds.padRight(this.sidebarWidth + 20),
-            xAxis,
-            yAxis,
+            horizontalAxis,
+            verticalAxis,
         })
 
         return axis

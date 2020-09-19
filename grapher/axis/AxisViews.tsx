@@ -46,16 +46,21 @@ export class VerticalAxisGridLines extends React.Component<{
 @observer
 export class HorizontalAxisGridLines extends React.Component<{
     horizontalAxis: HorizontalAxis
-    bounds: Bounds
+    bounds?: Bounds
 }> {
+    @computed get bounds() {
+        return this.props.bounds ?? new Bounds(0, 0, 200, 200)
+    }
+
     render() {
-        const { bounds, horizontalAxis } = this.props
-        const view = horizontalAxis.clone()
-        view.range = bounds.xRange()
+        const { horizontalAxis } = this.props
+        const { bounds } = this
+        const axis = horizontalAxis.clone()
+        axis.range = bounds.xRange()
 
         return (
             <g className={classNames("AxisGridLines", "verticalLines")}>
-                {view.getTickValues().map((t, i) => {
+                {axis.getTickValues().map((t, i) => {
                     const color = t.faint
                         ? "#eee"
                         : t.value === 0
@@ -65,9 +70,9 @@ export class HorizontalAxisGridLines extends React.Component<{
                     return (
                         <line
                             key={i}
-                            x1={view.place(t.value)}
+                            x1={axis.place(t.value)}
                             y1={bounds.bottom.toFixed(2)}
-                            x2={view.place(t.value)}
+                            x2={axis.place(t.value)}
                             y2={bounds.top.toFixed(2)}
                             stroke={color}
                             strokeDasharray={t.value !== 0 ? "3,2" : undefined}
@@ -82,7 +87,7 @@ export class HorizontalAxisGridLines extends React.Component<{
 interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
-    showTickMarks: boolean
+    showTickMarks?: boolean
     isInteractive?: boolean
 }
 
@@ -90,7 +95,7 @@ interface DualAxisViewProps {
 export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     render() {
         const { dualAxis, showTickMarks } = this.props
-        const { bounds, xAxis, yAxis, innerBounds } = dualAxis
+        const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
         const maxX = undefined // {grapherView.tabBounds.width} todo
 
@@ -100,24 +105,24 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                     maxX={maxX}
                     bounds={bounds}
                     axisPosition={innerBounds.bottom}
-                    axis={xAxis}
+                    axis={horizontalAxis}
                     showTickMarks={showTickMarks}
                     isInteractive={this.props.isInteractive}
                 />
                 <VerticalAxisComponent
                     bounds={bounds}
-                    verticalAxis={yAxis}
+                    verticalAxis={verticalAxis}
                     isInteractive={this.props.isInteractive}
                 />
-                {!yAxis.hideGridlines && (
+                {!verticalAxis.hideGridlines && (
                     <VerticalAxisGridLines
-                        verticalAxis={yAxis}
+                        verticalAxis={verticalAxis}
                         bounds={innerBounds}
                     />
                 )}
-                {!xAxis.hideGridlines && (
+                {!horizontalAxis.hideGridlines && (
                     <HorizontalAxisGridLines
-                        horizontalAxis={xAxis}
+                        horizontalAxis={horizontalAxis}
                         bounds={innerBounds}
                     />
                 )}

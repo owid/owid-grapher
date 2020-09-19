@@ -168,16 +168,16 @@ export class StackedBarChart extends React.Component<{
     // todo: Refactor
     @computed private get dualAxis() {
         const { bounds, transform, sidebarWidth } = this
-        const { xAxis, yAxis } = transform
+        const { horizontalAxis, verticalAxis } = transform
         return new DualAxis({
             bounds: bounds.padRight(sidebarWidth + 20),
-            xAxis,
-            yAxis,
+            horizontalAxis,
+            verticalAxis,
         })
     }
 
-    @computed private get yAxis() {
-        return this.dualAxis.yAxis
+    @computed private get verticalAxis() {
+        return this.dualAxis.verticalAxis
     }
 
     @computed get renderUid() {
@@ -260,13 +260,13 @@ export class StackedBarChart extends React.Component<{
     }
 
     @computed get tooltip() {
-        const { hoverBar, yAxis, mapXValueToOffset, barWidth } = this
+        const { hoverBar, verticalAxis, mapXValueToOffset, barWidth } = this
         if (hoverBar === undefined) return
 
         const xPos = mapXValueToOffset.get(hoverBar.x)
         if (xPos === undefined) return
 
-        const yPos = yAxis.place(hoverBar.yOffset + hoverBar.y)
+        const yPos = verticalAxis.place(hoverBar.yOffset + hoverBar.y)
         const { yColumn } = this.transform.grapher
 
         return (
@@ -326,10 +326,10 @@ export class StackedBarChart extends React.Component<{
     @computed private get tickPlacements() {
         const { mapXValueToOffset, barWidth, dualAxis } = this
         const { xValues } = this.transform
-        const { xAxis } = dualAxis
+        const { horizontalAxis } = dualAxis
 
         return xValues.map((x) => {
-            const text = xAxis.formatTick(x)
+            const text = horizontalAxis.formatTick(x)
             const xPos = mapXValueToOffset.get(x) as number
 
             const bounds = Bounds.forText(text, { fontSize: this.tickFontSize })
@@ -412,7 +412,7 @@ export class StackedBarChart extends React.Component<{
             dualAxis,
             renderUid,
             bounds,
-            yAxis,
+            verticalAxis,
             legend,
             sidebarWidth,
             activeColors,
@@ -449,11 +449,11 @@ export class StackedBarChart extends React.Component<{
                 />
                 <VerticalAxisComponent
                     bounds={bounds}
-                    verticalAxis={yAxis}
+                    verticalAxis={verticalAxis}
                     isInteractive={this.options.isInteractive}
                 />
                 <VerticalAxisGridLines
-                    verticalAxis={yAxis}
+                    verticalAxis={verticalAxis}
                     bounds={innerBounds}
                 />
 
@@ -513,7 +513,7 @@ export class StackedBarChart extends React.Component<{
                                             color={series.color}
                                             xOffset={xPos}
                                             opacity={barOpacity}
-                                            yAxis={yAxis}
+                                            yAxis={verticalAxis}
                                             onBarMouseOver={this.onBarMouseOver}
                                             onBarMouseLeave={
                                                 this.onBarMouseLeave

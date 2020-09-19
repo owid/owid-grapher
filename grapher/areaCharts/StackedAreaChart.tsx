@@ -69,7 +69,7 @@ class Areas extends React.Component<AreasProps> {
 
         if (dualAxis.innerBounds.contains(mouse)) {
             const closestPoint = minBy(data[0].values, (d) =>
-                Math.abs(dualAxis.xAxis.place(d.x) - mouse.x)
+                Math.abs(dualAxis.horizontalAxis.place(d.x) - mouse.x)
             )
             if (closestPoint) {
                 const index = data[0].values.indexOf(closestPoint)
@@ -98,15 +98,19 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get areas(): JSX.Element[] {
         const { dualAxis, data } = this.props
-        const { xAxis, yAxis } = dualAxis
-        const xBottomLeft = [xAxis.range[0], yAxis.range[0]]
-        const xBottomRight = [xAxis.range[1], yAxis.range[0]]
+        const { horizontalAxis, verticalAxis } = dualAxis
+        const xBottomLeft = [horizontalAxis.range[0], verticalAxis.range[0]]
+        const xBottomRight = [horizontalAxis.range[1], verticalAxis.range[0]]
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         let prevPoints = [xBottomLeft, xBottomRight]
         return data.map((series) => {
             const mainPoints = series.values.map(
-                (v) => [xAxis.place(v.x), yAxis.place(v.y)] as [number, number]
+                (v) =>
+                    [horizontalAxis.place(v.x), verticalAxis.place(v.y)] as [
+                        number,
+                        number
+                    ]
             )
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
             prevPoints = mainPoints
@@ -127,12 +131,16 @@ class Areas extends React.Component<AreasProps> {
 
     @computed private get borders(): JSX.Element[] {
         const { dualAxis, data } = this.props
-        const { xAxis, yAxis } = dualAxis
+        const { horizontalAxis, verticalAxis } = dualAxis
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         return data.map((series) => {
             const points = series.values.map(
-                (v) => [xAxis.place(v.x), yAxis.place(v.y)] as [number, number]
+                (v) =>
+                    [horizontalAxis.place(v.x), verticalAxis.place(v.y)] as [
+                        number,
+                        number
+                    ]
             )
 
             return (
@@ -157,7 +165,7 @@ class Areas extends React.Component<AreasProps> {
 
     render() {
         const { dualAxis, data } = this.props
-        const { xAxis, yAxis } = dualAxis
+        const { horizontalAxis, verticalAxis } = dualAxis
         const { hoverIndex } = this
 
         return (
@@ -172,10 +180,10 @@ class Areas extends React.Component<AreasProps> {
                 onTouchCancel={this.onCursorLeave}
             >
                 <rect
-                    x={xAxis.range[0]}
-                    y={yAxis.range[1]}
-                    width={xAxis.range[1] - xAxis.range[0]}
-                    height={yAxis.range[0] - yAxis.range[1]}
+                    x={horizontalAxis.range[0]}
+                    y={verticalAxis.range[1]}
+                    width={horizontalAxis.range[1] - horizontalAxis.range[0]}
+                    height={verticalAxis.range[0] - verticalAxis.range[1]}
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
@@ -187,10 +195,10 @@ class Areas extends React.Component<AreasProps> {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
                                     key={series.entityName}
-                                    cx={xAxis.place(
+                                    cx={horizontalAxis.place(
                                         series.values[hoverIndex].x
                                     )}
-                                    cy={yAxis.place(
+                                    cy={verticalAxis.place(
                                         series.values[hoverIndex].y
                                     )}
                                     r={2}
@@ -199,10 +207,14 @@ class Areas extends React.Component<AreasProps> {
                             )
                         })}
                         <line
-                            x1={xAxis.place(data[0].values[hoverIndex].x)}
-                            y1={yAxis.range[0]}
-                            x2={xAxis.place(data[0].values[hoverIndex].x)}
-                            y2={yAxis.range[1]}
+                            x1={horizontalAxis.place(
+                                data[0].values[hoverIndex].x
+                            )}
+                            y1={verticalAxis.range[0]}
+                            x2={horizontalAxis.place(
+                                data[0].values[hoverIndex].x
+                            )}
+                            y2={verticalAxis.range[1]}
                             stroke="rgba(180,180,180,.4)"
                         />
                     </g>
@@ -291,11 +303,11 @@ export class StackedAreaChart extends React.Component<{
 
     @computed private get dualAxis() {
         const { bounds, legend } = this
-        const { xAxis, yAxis } = this.transform
+        const { horizontalAxis, verticalAxis } = this.transform
         return new DualAxis({
             bounds: bounds.padRight(legend ? legend.width : 20),
-            xAxis,
-            yAxis,
+            horizontalAxis,
+            verticalAxis,
         })
     }
 
@@ -345,8 +357,11 @@ export class StackedAreaChart extends React.Component<{
         return (
             <Tooltip
                 tooltipProvider={this.props.options}
-                x={dualAxis.xAxis.place(refValue.x)}
-                y={dualAxis.yAxis.rangeMin + dualAxis.yAxis.rangeSize / 2}
+                x={dualAxis.horizontalAxis.place(refValue.x)}
+                y={
+                    dualAxis.verticalAxis.rangeMin +
+                    dualAxis.verticalAxis.rangeSize / 2
+                }
                 style={{ padding: "0.3em" }}
                 offsetX={5}
             >
@@ -494,7 +509,7 @@ export class StackedAreaChart extends React.Component<{
                         <LineLabelsComponent
                             legend={legend}
                             x={bounds.right - legend.width}
-                            yAxis={dualAxis.yAxis}
+                            yAxis={dualAxis.verticalAxis}
                             options={options}
                             focusKeys={this.focusKeys}
                             onClick={this.onLegendClick}

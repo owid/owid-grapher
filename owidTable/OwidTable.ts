@@ -39,6 +39,7 @@ import {
     EPOCH_DATE,
     TickFormattingOptions,
     Time,
+    Range,
 } from "grapher/core/GrapherConstants"
 import {
     ColumnTypeNames,
@@ -50,7 +51,6 @@ import {
     EntityName,
     LegacyVariableId,
     OwidSource,
-    Range,
 } from "./OwidTableConstants"
 
 export interface Row {

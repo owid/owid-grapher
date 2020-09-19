@@ -157,12 +157,12 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     }}
                 >
                     <span>
-                        {transform.yAxis.label}{" "}
+                        {transform.verticalAxis.label}{" "}
                         <strong>{yColumn!.formatValue(value.y)}</strong>
                     </span>
                     <br />
                     <span>
-                        {transform.xAxis.label}{" "}
+                        {transform.horizontalAxis.label}{" "}
                         <strong>
                             {xColumn!.formatValue(value.x)}
                             {!value.time.span && value.time.y !== value.time.x
@@ -503,11 +503,11 @@ export class TimeScatter extends React.Component<{
 
     // todo: Refactor
     @computed private get dualAxis() {
-        const { xAxis, yAxis } = this.transform
+        const { horizontalAxis, verticalAxis } = this.transform
         return new DualAxis({
             bounds: this.bounds,
-            xAxis,
-            yAxis,
+            horizontalAxis,
+            verticalAxis,
         })
     }
 
@@ -552,8 +552,8 @@ export class TimeScatter extends React.Component<{
                     hideLines={this.hideLines}
                     data={currentData}
                     bounds={dualAxis.innerBounds}
-                    xAxis={dualAxis.xAxis}
-                    yAxis={dualAxis.yAxis}
+                    xAxis={dualAxis.horizontalAxis}
+                    yAxis={dualAxis.verticalAxis}
                     sizeDomain={sizeDomain}
                     focusKeys={[]}
                     hoverKeys={[]}

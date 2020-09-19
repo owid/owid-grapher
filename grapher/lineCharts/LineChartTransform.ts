@@ -31,15 +31,15 @@ export class LineChartTransform extends ChartTransform {
 
     // Filter the data so it fits within the domains
     @computed get groupedData() {
-        const { xAxis } = this
+        const { horizontalAxis } = this
         const groupedData = cloneDeep(this.predomainData)
 
         for (const g of groupedData) {
             // The values can include non-numerical values, so we need to filter with isNaN()
             g.values = g.values.filter(
                 (d) =>
-                    d.x >= xAxis.domain[0] &&
-                    d.x <= xAxis.domain[1] &&
+                    d.x >= horizontalAxis.domain[0] &&
+                    d.x <= horizontalAxis.domain[1] &&
                     !isNaN(d.y)
             )
         }
@@ -190,7 +190,7 @@ export class LineChartTransform extends ChartTransform {
         })
     }
 
-    @computed get xAxis() {
+    @computed get horizontalAxis() {
         const axis = this.grapher.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             this.startTimelineTime,
@@ -221,7 +221,7 @@ export class LineChartTransform extends ChartTransform {
         ]
     }
 
-    @computed get yAxis() {
+    @computed get verticalAxis() {
         const { grapher, yDomain } = this
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomain)

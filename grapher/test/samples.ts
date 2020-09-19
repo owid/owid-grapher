@@ -22,6 +22,7 @@ Germany,2003,120,1,256`) as any
         row.entityId = parseInt(row.entityId)
         row.gdp = parseInt(row.gdp)
         row.year = parseInt(row.year)
+        row.time = parseInt(row.year)
         row.population = parseInt(row.population)
     })
     table.cloneAndAddRowsAndDetectColumns(rows)

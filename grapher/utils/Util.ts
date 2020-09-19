@@ -416,7 +416,7 @@ export const slugifySameCase = (str: string) =>
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids
 let n = 0
-export function guid(): number {
+export function guid() {
     n += 1
     return n
 }
@@ -434,7 +434,7 @@ export function pointsToPath(points: Array<[number, number]>) {
 // Based on https://stackoverflow.com/a/30245398/1983739
 // In case of tie returns higher value
 // todo: add unit tests
-export function sortedFindClosestIndex(array: number[], value: number): number {
+export function sortedFindClosestIndex(array: number[], value: number) {
     if (array.length === 0) return -1
 
     if (value < array[0]) return 0
@@ -460,8 +460,10 @@ export function sortedFindClosestIndex(array: number[], value: number): number {
     return array[lo] - value < value - array[hi] ? lo : hi
 }
 
-export function isMobile(): boolean {
-    return !!window?.navigator?.userAgent.toLowerCase().includes("mobi")
+export function isMobile() {
+    return typeof window === "undefined"
+        ? false
+        : !!window?.navigator?.userAgent.toLowerCase().includes("mobi")
 }
 
 export function isTouchDevice() {
@@ -474,13 +476,13 @@ export interface Json {
 }
 
 // Escape a function for storage in a csv cell
-export function csvEscape(value: any): string {
+export function csvEscape(value: any) {
     const valueStr = toString(value)
     if (valueStr.includes(",")) return `"${value.replace(/\"/g, '""')}"`
-    else return value
+    return value
 }
 
-export function urlToSlug(url: string): string {
+export function urlToSlug(url: string) {
     const urlobj = parseUrl(url)
     const slug = last(urlobj.pathname.split("/").filter((x) => x)) as string
     return slug
