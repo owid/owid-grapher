@@ -1,23 +1,41 @@
 import { Color } from "grapher/core/GrapherConstants"
 
-interface NumericBinProps {
+interface BinProps {
+    color: Color
+    label?: string
+}
+
+interface NumericBinProps extends BinProps {
     isFirst: boolean
     isOpenLeft: boolean
     isOpenRight: boolean
     min: number
     max: number
-    label?: string
-    color: string
     displayMin: string
     displayMax: string
 }
 
-export class NumericBin {
-    props: Readonly<NumericBinProps>
-    constructor(props: NumericBinProps) {
+interface CategoricalBinProps extends BinProps {
+    index: number
+    value: string
+    label: string
+    isHidden?: boolean
+}
+
+abstract class AbstractColorScaleBin<T extends BinProps> {
+    props: T
+    constructor(props: T) {
         this.props = props
     }
+    get color() {
+        return this.props.color
+    }
+    get label() {
+        return this.props.label
+    }
+}
 
+export class NumericBin extends AbstractColorScaleBin<NumericBinProps> {
     get min() {
         return this.props.min
     }
@@ -64,31 +82,12 @@ export class NumericBin {
     }
 }
 
-interface CategoricalBinProps {
-    index: number
-    value: string
-    color: Color
-    label: string
-    isHidden: boolean
-}
-
-export class CategoricalBin {
-    private props: Readonly<CategoricalBinProps>
-    constructor(props: CategoricalBinProps) {
-        this.props = props
-    }
-
+export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
     get index() {
         return this.props.index
     }
     get value() {
         return this.props.value
-    }
-    get color() {
-        return this.props.color
-    }
-    get label() {
-        return this.props.label
     }
     get isHidden() {
         return this.props.isHidden
@@ -113,4 +112,4 @@ export class CategoricalBin {
     }
 }
 
-export type ColorScaleBin = NumericBin | CategoricalBin
+export type ColorScaleBin = CategoricalBin | NumericBin

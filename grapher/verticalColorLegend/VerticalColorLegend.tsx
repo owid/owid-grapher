@@ -1,18 +1,23 @@
 import * as React from "react"
-import { sum, max, defaultTo } from "grapher/utils/Util"
+import { sum, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
+import { ColorScaleBin } from "grapher/color/ColorScaleBin"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
-interface ScatterColorLegendProps {
-    maxWidth: number
-    fontSize: number
-    colorables: {
-        key: string
-        label: string
-        color: string
-    }[]
+export interface VerticalColorLegendOptionsProvider {
+    maxLegendWidth?: number
+    fontSize?: number
+    colorBins: ColorScaleBin[]
     title?: string
+    onLegendMouseOver?: (color: string) => void
+    onLegendClick?: (color: string) => void
+    onLegendMouseLeave?: () => void
+    legendX?: number
+    legendY?: number
+    activeColors: string[]
+    focusColors?: string[]
 }
 
 interface LabelMark {
@@ -22,57 +27,56 @@ interface LabelMark {
     height: number
 }
 
-export class VerticalColorLegend {
-    props: ScatterColorLegendProps
-    constructor(props: ScatterColorLegendProps) {
-        this.props = props
+@observer
+export class VerticalColorLegend extends React.Component<{
+    options: VerticalColorLegendOptionsProvider
+}> {
+    @computed get options() {
+        return this.props.options
     }
 
-    @computed get fontSize(): number {
-        return 0.7 * this.props.fontSize
-    }
-    @computed get rectSize(): number {
-        return Math.round(this.props.fontSize / 2)
-    }
-    @computed get rectPadding(): number {
-        return 5
-    }
-    @computed get lineHeight(): number {
-        return 5
+    @computed private get maxLegendWidth() {
+        return this.options.maxLegendWidth ?? 100
     }
 
-    @computed get title(): TextWrap | undefined {
-        if (this.props.title) {
-            return new TextWrap({
-                maxWidth: this.props.maxWidth,
-                fontSize: 0.75 * this.props.fontSize,
-                fontWeight: 700,
-                text: this.props.title,
-            })
-        }
-        return
+    @computed private get fontSize() {
+        return 0.7 * (this.options.fontSize ?? BASE_FONT_SIZE)
+    }
+    @computed private get rectSize() {
+        return Math.round(this.fontSize / 2)
     }
 
-    @computed get titleHeight(): number {
-        if (this.title) {
-            return this.title.height + 5
-        }
-        return 0
+    private rectPadding = 5
+    private lineHeight = 5
+
+    @computed private get title() {
+        if (!this.options.title) return undefined
+        return new TextWrap({
+            maxWidth: this.maxLegendWidth,
+            fontSize: 0.75 * this.fontSize,
+            fontWeight: 700,
+            text: this.options.title,
+        })
     }
 
-    @computed get labelMarks(): LabelMark[] {
-        const { props, fontSize, rectSize, rectPadding } = this
+    @computed private get titleHeight() {
+        if (!this.title) return 0
+        return this.title.height + 5
+    }
 
-        return props.colorables
-            .map((c) => {
+    @computed private get labelMarks() {
+        const { options, fontSize, rectSize, rectPadding } = this
+
+        return options.colorBins
+            .map((bin) => {
                 const label = new TextWrap({
-                    maxWidth: props.maxWidth,
-                    fontSize: fontSize,
-                    text: c.label,
+                    maxWidth: this.maxLegendWidth,
+                    fontSize,
+                    text: bin.label || "",
                 })
                 return {
-                    label: label,
-                    color: c.color,
+                    label,
+                    color: bin.color,
                     width: rectSize + rectPadding + label.width,
                     height: Math.max(label.height, rectSize),
                 }
@@ -80,10 +84,10 @@ export class VerticalColorLegend {
             .filter((v) => !!v) as LabelMark[]
     }
 
-    @computed get width(): number {
+    @computed get width() {
         const widths = this.labelMarks.map((d) => d.width)
         if (this.title) widths.push(this.title.width)
-        return defaultTo(max(widths), 0)
+        return max(widths) ?? 0
     }
 
     @computed get height() {
@@ -93,32 +97,8 @@ export class VerticalColorLegend {
             this.lineHeight * this.labelMarks.length
         )
     }
-}
 
-interface ScatterColorLegendViewProps {
-    x: number
-    y: number
-    legend: VerticalColorLegend
-    activeColors: string[]
-    focusColors?: string[]
-    onMouseOver?: (color: string) => void
-    onClick?: (color: string) => void
-    onMouseLeave?: () => void
-}
-
-@observer
-export class ScatterColorLegendView extends React.Component<
-    ScatterColorLegendViewProps
-> {
     render() {
-        const { props } = this
-        const {
-            focusColors,
-            activeColors,
-            onMouseOver,
-            onMouseLeave,
-            onClick,
-        } = props
         const {
             title,
             titleHeight,
@@ -126,13 +106,24 @@ export class ScatterColorLegendView extends React.Component<
             rectSize,
             rectPadding,
             lineHeight,
-        } = props.legend
+            options,
+        } = this
+        const {
+            focusColors,
+            activeColors,
+            onLegendMouseOver,
+            onLegendMouseLeave,
+            onLegendClick,
+        } = options
+
+        const x = options.legendX ?? 0
+        const y = options.legendY ?? 0
 
         let markOffset = titleHeight
 
         return (
             <>
-                {title && title.render(props.x, props.y, { fontWeight: 700 })}
+                {title && title.render(x, y, { fontWeight: 700 })}
                 <g
                     className="ScatterColorLegend clickable"
                     style={{ cursor: "pointer" }}
@@ -141,12 +132,12 @@ export class ScatterColorLegendView extends React.Component<
                         const isActive = activeColors.includes(mark.color)
                         const isFocus =
                             focusColors?.includes(mark.color) ?? false
-                        const mouseOver = onMouseOver
-                            ? () => onMouseOver(mark.color)
+                        const mouseOver = onLegendMouseOver
+                            ? () => onLegendMouseOver(mark.color)
                             : undefined
-                        const mouseLeave = onMouseLeave || undefined
-                        const click = onClick
-                            ? () => onClick(mark.color)
+                        const mouseLeave = onLegendMouseLeave || undefined
+                        const click = onLegendClick
+                            ? () => onLegendClick(mark.color)
                             : undefined
 
                         const result = (
@@ -159,17 +150,17 @@ export class ScatterColorLegendView extends React.Component<
                                 fill={!isActive ? "#ccc" : undefined}
                             >
                                 <rect
-                                    x={props.x}
-                                    y={props.y + markOffset - lineHeight / 2}
+                                    x={x}
+                                    y={y + markOffset - lineHeight / 2}
                                     width={mark.width}
                                     height={mark.height + lineHeight}
                                     fill="#fff"
                                     opacity={0}
                                 />
                                 <rect
-                                    x={props.x}
+                                    x={x}
                                     y={
-                                        props.y +
+                                        y +
                                         markOffset +
                                         (mark.height - rectSize) / 2
                                     }
@@ -178,8 +169,8 @@ export class ScatterColorLegendView extends React.Component<
                                     fill={isActive ? mark.color : undefined}
                                 />
                                 {mark.label.render(
-                                    props.x + rectSize + rectPadding,
-                                    props.y + markOffset,
+                                    x + rectSize + rectPadding,
+                                    y + markOffset,
                                     isFocus
                                         ? { style: { fontWeight: "bold" } }
                                         : undefined

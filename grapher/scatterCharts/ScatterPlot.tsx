@@ -42,8 +42,8 @@ import {
 } from "./ConnectedScatterLegend"
 import {
     VerticalColorLegend,
-    ScatterColorLegendView,
-} from "./ScatterColorLegend"
+    VerticalColorLegendOptionsProvider,
+} from "grapher/verticalColorLegend/VerticalColorLegend"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
@@ -73,7 +73,10 @@ export class ScatterPlot
         bounds?: Bounds
         options: ScatterPlotOptionsProvider
     }>
-    implements ConnectedScatterLegendOptionsProvider, ChartInterface {
+    implements
+        ConnectedScatterLegendOptionsProvider,
+        ChartInterface,
+        VerticalColorLegendOptionsProvider {
     // currently hovered individual series key
     @observable hoverKey?: EntityName
     // currently hovered legend color
@@ -111,32 +114,6 @@ export class ScatterPlot
         return this.options.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get legend() {
-        const that = this
-        return new VerticalColorLegend({
-            get maxWidth() {
-                return that.sidebarMaxWidth
-            },
-            get fontSize() {
-                return that.fontSize
-            },
-            get colorables() {
-                return that.colorScale.legendData
-                    .filter((bin) => that.colorsInUse.includes(bin.color))
-                    .map((bin) => {
-                        return {
-                            key: bin.label ?? "",
-                            label: bin.label ?? "",
-                            color: bin.color,
-                        }
-                    })
-            },
-            get title() {
-                return that.colorScale.legendDescription
-            },
-        })
-    }
-
     @action.bound onLegendMouseOver(color: string) {
         this.hoverColor = color
     }
@@ -168,7 +145,7 @@ export class ScatterPlot
     }
 
     // Colors on the legend for which every matching group is focused
-    @computed private get focusColors() {
+    @computed get focusColors() {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
             const matchingKeys = this.marks
@@ -182,7 +159,7 @@ export class ScatterPlot
     }
 
     // All currently hovered group keys, combining the legend and the main UI
-    @computed private get hoverKeys() {
+    @computed get hoverKeys() {
         const { hoverColor, hoverKey } = this
 
         const hoverKeys =
@@ -261,9 +238,9 @@ export class ScatterPlot
         return Math.max(this.bounds.width * 0.1, 60)
     }
     @computed.struct get sidebarWidth() {
-        const { sidebarMinWidth, sidebarMaxWidth, legend } = this
+        const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
         return Math.max(
-            Math.min(legend.width, sidebarMaxWidth),
+            Math.min(legendDimensions.width, sidebarMaxWidth),
             sidebarMinWidth
         )
     }
@@ -349,6 +326,20 @@ export class ScatterPlot
         )
     }
 
+    @computed get colorBins() {
+        return this.colorScale.legendData.filter((bin) =>
+            this.colorsInUse.includes(bin.color)
+        )
+    }
+
+    @computed get title() {
+        return this.colorScale.legendDescription
+    }
+
+    @computed private get legendDimensions(): VerticalColorLegend {
+        return new VerticalColorLegend({ options: this })
+    }
+
     render() {
         if (this.failMessage)
             return (
@@ -362,14 +353,12 @@ export class ScatterPlot
         const {
             bounds,
             dualAxis,
-            legend,
-            focusColors,
-            activeColors,
             arrowLegend,
             sidebarWidth,
             tooltipSeries,
             comparisonLines,
             options,
+            legendDimensions,
         } = this
 
         return (
@@ -388,22 +377,13 @@ export class ScatterPlot
                         />
                     ))}
                 {this.points}
-                <ScatterColorLegendView
-                    legend={legend}
-                    x={bounds.right - sidebarWidth}
-                    y={bounds.top}
-                    onMouseOver={this.onLegendMouseOver}
-                    onMouseLeave={this.onLegendMouseLeave}
-                    onClick={this.onLegendClick}
-                    focusColors={focusColors}
-                    activeColors={activeColors}
-                />
+                <VerticalColorLegend options={this} />
                 {(arrowLegend || tooltipSeries) && (
                     <line
                         x1={bounds.right - sidebarWidth}
-                        y1={bounds.top + legend.height + 2}
+                        y1={bounds.top + legendDimensions.height + 2}
                         x2={bounds.right - 5}
-                        y2={bounds.top + legend.height + 2}
+                        y2={bounds.top + legendDimensions.height + 2}
                         stroke="#ccc"
                     />
                 )}
@@ -411,7 +391,7 @@ export class ScatterPlot
                     <g className="clickable" onClick={this.onToggleEndpoints}>
                         {arrowLegend.render(
                             bounds.right - sidebarWidth,
-                            bounds.top + legend.height + 11
+                            bounds.top + legendDimensions.height + 11
                         )}
                     </g>
                 )}
@@ -425,7 +405,7 @@ export class ScatterPlot
                         x={bounds.right - sidebarWidth}
                         y={
                             bounds.top +
-                            legend.height +
+                            legendDimensions.height +
                             11 +
                             (arrowLegend ? arrowLegend.height + 10 : 0)
                         }
@@ -433,6 +413,14 @@ export class ScatterPlot
                 )}
             </g>
         )
+    }
+
+    @computed get legendY() {
+        return this.bounds.top
+    }
+
+    @computed get legendX() {
+        return this.bounds.right - this.sidebarWidth
     }
 
     @computed get colorScale() {

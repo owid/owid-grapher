@@ -12,8 +12,8 @@ import {
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import {
     VerticalColorLegend,
-    ScatterColorLegendView,
-} from "grapher/scatterCharts/ScatterColorLegend"
+    VerticalColorLegendOptionsProvider,
+} from "grapher/verticalColorLegend/VerticalColorLegend"
 import { ColorScale } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE, Time } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -25,7 +25,7 @@ export class SlopeChart
         bounds?: Bounds
         options: ChartOptionsProvider
     }>
-    implements ChartInterface {
+    implements ChartInterface, VerticalColorLegendOptionsProvider {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
@@ -39,27 +39,18 @@ export class SlopeChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get legend(): VerticalColorLegend {
-        const that = this
-        return new VerticalColorLegend({
-            get maxWidth() {
-                return that.sidebarMaxWidth
-            },
-            get fontSize() {
-                return that.options.baseFontSize ?? BASE_FONT_SIZE
-            },
-            get colorables() {
-                return that.colorScale.legendData
-                    .filter((bin) => that.colorsInUse.includes(bin.color))
-                    .map((bin) => {
-                        return {
-                            key: bin.label ?? "",
-                            label: bin.label ?? "",
-                            color: bin.color,
-                        }
-                    })
-            },
-        })
+    @computed get fontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get colorBins() {
+        return this.colorScale.legendData.filter((bin) =>
+            this.colorsInUse.includes(bin.color)
+        )
+    }
+
+    @computed get maxLegendWidth() {
+        return this.sidebarMaxWidth
     }
 
     @action.bound onSlopeMouseOver(slopeProps: SlopeProps) {
@@ -186,12 +177,13 @@ export class SlopeChart
         return 100
     }
 
+    @computed private get legendWidth() {
+        return new VerticalColorLegend({ options: this }).width
+    }
+
     @computed.struct get sidebarWidth() {
-        const { sidebarMinWidth, sidebarMaxWidth, legend } = this
-        return Math.max(
-            Math.min(legend.width, sidebarMaxWidth),
-            sidebarMinWidth
-        )
+        const { sidebarMinWidth, sidebarMaxWidth, legendWidth } = this
+        return Math.max(Math.min(legendWidth, sidebarMaxWidth), sidebarMinWidth)
     }
 
     // correction is to account for the space taken by the legend
@@ -206,7 +198,7 @@ export class SlopeChart
     // verify the validity of data used to show legend
     // this is for backwards compatibility with charts that were added without legend
     // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
-    @computed get showLegend(): boolean {
+    @computed get showLegend() {
         const { colorsInUse } = this
         const { legendData } = this.colorScale
         return legendData.some((bin) => colorsInUse.includes(bin.color))
@@ -223,18 +215,7 @@ export class SlopeChart
             )
 
         const { options } = this.props
-        const {
-            bounds,
-            marks,
-            legend,
-            focusKeys,
-            hoverKeys,
-            focusColors,
-            activeColors,
-            sidebarWidth,
-            innerBounds,
-            showLegend,
-        } = this
+        const { marks, focusKeys, hoverKeys, innerBounds, showLegend } = this
 
         return (
             <g>
@@ -250,21 +231,20 @@ export class SlopeChart
                     onClick={this.onSlopeClick}
                 />
                 {showLegend ? (
-                    <ScatterColorLegendView
-                        legend={legend}
-                        x={bounds.right - sidebarWidth}
-                        y={bounds.top}
-                        onMouseOver={this.onLegendMouseOver}
-                        onMouseLeave={this.onLegendMouseLeave}
-                        onClick={this.onLegendClick}
-                        focusColors={focusColors}
-                        activeColors={activeColors}
-                    />
+                    <VerticalColorLegend options={this} />
                 ) : (
                     <div></div>
                 )}
             </g>
         )
+    }
+
+    @computed get legendY() {
+        return this.bounds.top
+    }
+
+    @computed get legendX(): number {
+        return this.bounds.right - this.sidebarWidth
     }
 
     @computed get failMessage() {

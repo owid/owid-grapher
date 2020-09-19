@@ -1,6 +1,6 @@
+import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import * as React from "react"
 import { ScatterPlot } from "./ScatterPlot"
-import { basicScatterGrapher } from "grapher/test/samples"
 
 export default {
     title: "ScatterPlot",
@@ -8,9 +8,14 @@ export default {
 }
 
 export const Default = () => {
+    const table = SynthesizeOwidTable()
+    const options = { table, yColumns: [table.get("GDP")!] }
+
+    table.selectAll()
+
     return (
         <svg width={640} height={480}>
-            <ScatterPlot options={basicScatterGrapher()} />
+            <ScatterPlot options={options} />
         </svg>
     )
 }

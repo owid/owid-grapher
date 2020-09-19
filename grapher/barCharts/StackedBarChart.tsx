@@ -24,8 +24,8 @@ import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { Text } from "grapher/text/Text"
 import {
     VerticalColorLegend,
-    ScatterColorLegendView,
-} from "grapher/scatterCharts/ScatterColorLegend"
+    VerticalColorLegendOptionsProvider,
+} from "grapher/verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
@@ -121,7 +121,7 @@ export class StackedBarChart
         bounds?: Bounds
         options: ChartOptionsProvider
     }>
-    implements ChartInterface {
+    implements ChartInterface, VerticalColorLegendOptionsProvider {
     base!: SVGGElement
     readonly minBarSpacing = 4
 
@@ -211,31 +211,22 @@ export class StackedBarChart
     }
 
     // Only show colors on legend that are actually in use
-    @computed get colorsInUse() {
+    @computed private get colorsInUse() {
         return uniq(this.marks.map((g) => g.color))
     }
 
-    @computed get legend(): VerticalColorLegend {
-        const that = this
-        return new VerticalColorLegend({
-            get maxWidth() {
-                return that.sidebarMaxWidth
-            },
-            get fontSize() {
-                return that.baseFontSize
-            },
-            get colorables() {
-                return that.colorScale.legendData
-                    .filter((bin) => that.colorsInUse.includes(bin.color))
-                    .map((bin) => {
-                        return {
-                            key: bin.label ?? "",
-                            label: bin.label ?? "",
-                            color: bin.color,
-                        }
-                    })
-            },
-        })
+    @computed get fontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get colorBins() {
+        return this.colorScale.legendData.filter((bin) =>
+            this.colorsInUse.includes(bin.color)
+        )
+    }
+
+    @computed get maxLegendWidth() {
+        return this.sidebarMaxWidth
     }
 
     @computed get sidebarMaxWidth() {
@@ -245,11 +236,15 @@ export class StackedBarChart
         return 100
     }
     @computed get sidebarWidth() {
-        const { sidebarMinWidth, sidebarMaxWidth, legend } = this
+        const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
         return Math.max(
-            Math.min(legend.width, sidebarMaxWidth),
+            Math.min(legendDimensions.width, sidebarMaxWidth),
             sidebarMinWidth
         )
+    }
+
+    @computed private get legendDimensions(): VerticalColorLegend {
+        return new VerticalColorLegend({ options: this })
     }
 
     @computed get tooltip() {
@@ -406,9 +401,6 @@ export class StackedBarChart
             renderUid,
             bounds,
             verticalAxis,
-            legend,
-            sidebarWidth,
-            activeColors,
             tooltip,
             barWidth,
             mapXValueToOffset,
@@ -520,18 +512,18 @@ export class StackedBarChart
                     })}
                 </g>
 
-                <ScatterColorLegendView
-                    legend={legend}
-                    x={bounds.right - sidebarWidth}
-                    y={bounds.top}
-                    onMouseOver={this.onLegendMouseOver}
-                    onMouseLeave={this.onLegendMouseLeave}
-                    onClick={this.onLegendClick}
-                    activeColors={activeColors}
-                />
+                <VerticalColorLegend options={this} />
                 {tooltip}
             </g>
         )
+    }
+
+    @computed get legendY() {
+        return this.bounds.top
+    }
+
+    @computed get legendX() {
+        return this.bounds.right - this.sidebarWidth
     }
 
     @computed get failMessage() {
