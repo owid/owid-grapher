@@ -471,13 +471,13 @@ export class GrapherView extends React.Component<GrapherViewProps> {
 
         if (grapher.isScatter || grapher.isTimeScatter)
             return grapher.scatterTransform.hasTimeline
-        if (grapher.isLineChart) return grapher.lineChartTransform.hasTimeline
+
         if (grapher.isSlopeChart) return grapher.yColumn?.hasMultipleTimes
 
-        return false
+        return grapher.hasTimeline
     }
 
-    @computed get hasInlineControls(): boolean {
+    @computed get hasInlineControls() {
         const grapher = this.grapher
         return (
             (grapher.currentTab === "chart" ||
@@ -485,17 +485,15 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             ((grapher.canAddData && !grapher.hasFloatingAddButton) ||
                 grapher.isScatter ||
                 grapher.canChangeEntity ||
-                (grapher.isStackedArea && grapher.canToggleRelativeMode) ||
-                (grapher.isLineChart &&
-                    grapher.lineChartTransform.canToggleRelativeMode))
+                (grapher.isStackedArea && grapher.canToggleRelativeMode))
         )
     }
 
-    @computed get hasSpace(): boolean {
+    @computed get hasSpace() {
         return this.renderWidth > 700
     }
 
-    @computed get hasRelatedQuestion(): boolean {
+    @computed get hasRelatedQuestion() {
         const { relatedQuestions } = this.props.grapher
         return (
             !!relatedQuestions &&

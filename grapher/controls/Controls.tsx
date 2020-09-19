@@ -310,8 +310,7 @@ export class ControlsFooterView extends React.Component<{
                     )}
 
                 {grapher.currentTab === "chart" &&
-                    grapher.isLineChart &&
-                    grapher.lineChartTransform.canToggleRelativeMode && (
+                    grapher.canToggleRelativeMode && (
                         <AbsRelToggle grapher={grapher} />
                     )}
             </div>

@@ -55,7 +55,6 @@ import {
     GrapherUrl,
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
-import { LineChartTransform } from "grapher/lineCharts/LineChartTransform"
 import { ScatterTransform } from "grapher/scatterCharts/ScatterTransform"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
@@ -924,14 +923,23 @@ export class Grapher
         if (
             this.isReady &&
             (!this.hideTitleAnnotation ||
-                (this.isLineChart &&
-                    this.lineChartTransform.isSingleTime &&
-                    this.lineChartTransform.hasTimeline) ||
+                (this.isLineChart && this.isSingleTime && this.hasTimeline) ||
                 (this.primaryTab === "map" && this.mapHasTimeline))
         )
             text += this.timeTitleSuffix
 
         return text.trim()
+    }
+
+    @computed get hasTimeline() {
+        return !this.hideTimeline && this.yColumn?.hasMultipleTimes
+    }
+
+    /**
+     * Whether the plotted data only contains a single year.
+     */
+    @computed get isSingleTime() {
+        return this.startTime === this.endTime
     }
 
     @computed get mapHasTimeline() {
@@ -1108,10 +1116,6 @@ export class Grapher
         return this.type === ChartTypes.StackedBar
     }
 
-    // WARNING: ALL OF THESE WILL BE REMOVED!!!! DO NOT USE
-    @computed get lineChartTransform() {
-        return new LineChartTransform(this)
-    }
     @computed get scatterTransform() {
         return new ScatterTransform(this)
     }
@@ -1122,7 +1126,6 @@ export class Grapher
 
     // WARNING: THIS WILL BE REMOVED!!!! DO NOT USE
     @computed private get activeTransform(): IChartTransform | undefined {
-        if (this.isLineChart) return this.lineChartTransform
         if (this.isScatter || this.isTimeScatter) return this.scatterTransform
 
         return undefined
@@ -1174,7 +1177,9 @@ export class Grapher
         this.stackMode = !this.isRelativeMode ? "relative" : "absolute"
     }
 
-    @computed get canToggleRelativeMode(): boolean {
+    @computed get canToggleRelativeMode() {
+        if (this.isLineChart)
+            return !this.hideRelativeToggle && !this.isSingleTime
         return !this.hideRelativeToggle
     }
 

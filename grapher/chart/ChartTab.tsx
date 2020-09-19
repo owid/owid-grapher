@@ -105,9 +105,7 @@ export class ChartTab extends React.Component<{
 
         // Switch to bar chart if a single year is selected
         const chartTypeName =
-            type === "LineChart" && options.lineChartTransform.isSingleTime
-                ? "DiscreteBar"
-                : type
+            type === "LineChart" && options.isSingleTime ? "DiscreteBar" : type
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
 

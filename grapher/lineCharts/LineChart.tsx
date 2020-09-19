@@ -7,33 +7,41 @@ import {
     makeSafeForCSS,
     pointsToPath,
     minBy,
+    min,
+    max,
+    isEmpty,
+    cloneDeep,
+    clone,
+    flatten,
+    last,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "grapher/axis/Axis"
 import { Vector2 } from "grapher/utils/Vector2"
-import { LineLabelsHelper, LineLabelsComponent } from "./LineLabels"
+import { LineLabelsHelper, LineLabelsComponent, LineLabel } from "./LineLabels"
 import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"
-import { LineChartTransform } from "./LineChartTransform"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
-import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, ScaleType, Time } from "grapher/core/GrapherConstants"
+import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
+import { AxisConfig } from "grapher/axis/AxisConfig"
+import { ChartInterface } from "grapher/chart/ChartInterface"
 
-export interface LineChartValue {
+interface LineChartValue {
     x: number
     y: number
     time: number
 }
 
-export interface LineChartSeries {
+interface LineChartSeries {
     entityName: string
     color: string
     values: LineChartValue[]
@@ -243,15 +251,13 @@ class Lines extends React.Component<LinesProps> {
     }
 }
 
-interface LineChartOptionsProvider extends ChartOptionsProvider {
-    lineChartTransform: LineChartTransform
-}
-
 @observer
-export class LineChart extends React.Component<{
-    bounds?: Bounds
-    options: LineChartOptionsProvider
-}> {
+export class LineChart
+    extends React.Component<{
+        bounds?: Bounds
+        options: ChartOptionsProvider
+    }>
+    implements ChartInterface {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @observable hoverX?: number
@@ -267,10 +273,6 @@ export class LineChart extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get transform() {
-        return this.options.lineChartTransform
-    }
-
     @computed get legend(): LineLabelsHelper | undefined {
         const that = this
         return new LineLabelsHelper({
@@ -281,7 +283,7 @@ export class LineChart extends React.Component<{
                 return that.options.baseFontSize ?? BASE_FONT_SIZE
             },
             get items() {
-                return that.transform.legendItems
+                return that.legendItems
             },
         })
     }
@@ -291,18 +293,16 @@ export class LineChart extends React.Component<{
     }
 
     @computed private get tooltip(): JSX.Element | undefined {
-        const { transform, hoverX, dualAxis } = this
+        const { hoverX, dualAxis } = this
 
         if (hoverX === undefined) return undefined
 
-        const sortedData = sortBy(transform.groupedData, (series) => {
+        const sortedData = sortBy(this.marks, (series) => {
             const value = series.values.find((v) => v.x === hoverX)
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = this.transform.grapher.table.timeColumnFormatFunction(
-            hoverX
-        )
+        const formatted = this.options.table.timeColumnFormatFunction(hoverX)
 
         return (
             <Tooltip
@@ -333,7 +333,7 @@ export class LineChart extends React.Component<{
                                 (v) => v.x === hoverX
                             )
 
-                            const annotation = this.transform.getAnnotationsForSeries(
+                            const annotation = this.getAnnotationsForSeries(
                                 series.entityName
                             )
 
@@ -411,7 +411,7 @@ export class LineChart extends React.Component<{
                                     >
                                         {!value
                                             ? "No data"
-                                            : transform.verticalAxis.formatTick(
+                                            : this.verticalAxis.formatTick(
                                                   value.y
                                                   //  ,{ noTrailingZeroes: false } // todo: add back?
                                               )}
@@ -427,7 +427,7 @@ export class LineChart extends React.Component<{
 
     // todo: Refactor
     @computed private get dualAxis() {
-        const { horizontalAxis, verticalAxis } = this.transform
+        const { horizontalAxis, verticalAxis } = this
         return new DualAxis({
             bounds: this.bounds.padRight(this.legend ? this.legend.width : 20),
             verticalAxis,
@@ -486,18 +486,17 @@ export class LineChart extends React.Component<{
     }
 
     render() {
-        if (this.transform.failMessage)
+        if (this.failMessage)
             return (
                 <NoDataOverlay
                     options={this.options}
                     bounds={this.props.bounds}
-                    message={this.transform.failMessage}
+                    message={this.failMessage}
                 />
             )
 
         const {
             options,
-            transform,
             bounds,
             legend,
             tooltip,
@@ -506,7 +505,7 @@ export class LineChart extends React.Component<{
             hoverX,
         } = this
         const { horizontalAxis, verticalAxis } = dualAxis
-        const { groupedData } = transform
+        const { marks } = this
 
         const comparisonLines = options.comparisonLines || []
 
@@ -524,7 +523,7 @@ export class LineChart extends React.Component<{
                     </clipPath>
                 </defs>
                 <DualAxisComponent
-                    isInteractive={this.transform.grapher.isInteractive}
+                    isInteractive={this.options.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />
@@ -552,14 +551,14 @@ export class LineChart extends React.Component<{
                         dualAxis={dualAxis}
                         xAxis={dualAxis.horizontalAxis}
                         yAxis={dualAxis.verticalAxis}
-                        data={groupedData}
+                        data={marks}
                         onHover={this.onHover}
                         focusKeys={this.focusKeys}
                     />
                 </g>
                 {hoverX !== undefined && (
                     <g className="hoverIndicator">
-                        {transform.groupedData.map((series) => {
+                        {this.marks.map((series) => {
                             const value = series.values.find(
                                 (v) => v.x === hoverX
                             )
@@ -588,5 +587,238 @@ export class LineChart extends React.Component<{
                 {tooltip}
             </g>
         )
+    }
+
+    @computed get failMessage() {
+        const { yColumns } = this.options
+        if (!yColumns?.length) return "Missing Y axis column"
+        else if (isEmpty(this.marks)) return "No matching data"
+        return ""
+    }
+
+    // Filter the data so it fits within the domains
+    @computed get marks() {
+        const { horizontalAxis } = this
+        const groupedData = cloneDeep(this.predomainData)
+
+        for (const g of groupedData) {
+            // The values can include non-numerical values, so we need to filter with isNaN()
+            g.values = g.values.filter(
+                (d) =>
+                    d.x >= horizontalAxis.domain[0] &&
+                    d.x <= horizontalAxis.domain[1] &&
+                    !isNaN(d.y)
+            )
+        }
+
+        return groupedData.filter((g) => g.values.length > 0)
+    }
+
+    @computed private get allValues() {
+        return flatten(this.predomainData.map((series) => series.values))
+    }
+
+    @computed private get filteredValues() {
+        return flatten(this.marks.map((series) => series.values))
+    }
+
+    @computed private get yColumn() {
+        return this.options.yColumns![0]!
+    }
+
+    @computed private get annotationsMap() {
+        return this.yColumn.annotationsColumn?.entityNameMap
+    }
+
+    @computed private get colorScheme() {
+        const colorScheme = ColorSchemes[this.options.baseColorScheme as string]
+        return colorScheme !== undefined
+            ? colorScheme
+            : (ColorSchemes["owid-distinct"] as ColorScheme)
+    }
+
+    @computed private get initialData() {
+        const { yColumns, yAxis, table } = this.options
+
+        const { selectedEntityNameSet, selectedEntityNames } = table
+
+        let chartData: LineChartSeries[] = []
+
+        if (!yColumns) return []
+
+        yColumns.forEach((column) => {
+            const seriesByKey = new Map<EntityName, LineChartSeries>()
+            const { values, isProjection } = column
+
+            for (let i = 0; i < column.times.length; i++) {
+                const time = column.times[i]
+                const value = parseFloat(values[i] as string)
+                const entityName = column.entityNames[i]
+                let series = seriesByKey.get(entityName)
+
+                // Not a selected key, don't add any data for it
+                if (!selectedEntityNameSet.has(entityName)) continue
+                // Can't have values <= 0 on log scale
+                if (value <= 0 && yAxis?.scaleType === ScaleType.log) continue
+
+                if (!series) {
+                    series = {
+                        values: [],
+                        entityName,
+                        isProjection,
+                        color: "#000", // tmp
+                    }
+                    seriesByKey.set(entityName, series)
+                }
+
+                series.values.push({ x: time, y: value, time })
+            }
+
+            chartData = chartData.concat([...Array.from(seriesByKey.values())])
+        })
+
+        this._addColorsToSeries(chartData)
+
+        // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
+        chartData = sortBy(chartData, (series) =>
+            selectedEntityNames.indexOf(series.entityName)
+        )
+
+        return chartData
+    }
+
+    private _addColorsToSeries(allSeries: LineChartSeries[]) {
+        // Color from lowest to highest
+        const sorted = sortBy(allSeries, (series) => last(series.values)!.y)
+
+        const colors = this.colorScheme.getColors(sorted.length)
+        if (this.options.invertColorScheme) colors.reverse()
+
+        const table = this.options.table
+
+        sorted.forEach((series, i) => {
+            series.color =
+                table.getColorForEntityName(series.entityName) || colors[i]
+        })
+    }
+
+    @computed get availableTimes(): Time[] {
+        return flatten(this.initialData.map((g) => g.values.map((d) => d.x)))
+    }
+
+    @computed get startTimelineTime() {
+        return this.yColumn.startTimelineTime
+    }
+
+    @computed get endTimelineTime() {
+        return this.yColumn.endTimelineTime
+    }
+
+    @computed get predomainData() {
+        if (!this.options.isRelativeMode) return this.initialData
+
+        return cloneDeep(this.initialData).map((series) => {
+            const startIndex = series.values.findIndex(
+                (value) => value.time >= this.startTimelineTime && value.y !== 0
+            )
+            if (startIndex < 0) {
+                series.values = []
+                return series
+            }
+
+            const relativeValues = series.values.slice(startIndex)
+            // Clone to avoid overwriting in next loop
+            const indexValue = clone(relativeValues[0])
+            series.values = relativeValues.map((value) => {
+                value.y = (value.y - indexValue.y) / Math.abs(indexValue.y)
+                return value
+            })
+
+            return series
+        })
+    }
+
+    getAnnotationsForSeries(entityName: EntityName) {
+        const annotationsMap = this.annotationsMap
+        const annos = annotationsMap?.get(entityName)
+        return annos ? Array.from(annos.values()).join(" & ") : undefined
+    }
+
+    // Order of the legend items on a line chart should visually correspond
+    // to the order of the lines as the approach the legend
+    @computed get legendItems(): LineLabel[] {
+        // If there are any projections, ignore non-projection legends
+        // Bit of a hack
+        let toShow = this.marks
+        if (toShow.some((g) => !!g.isProjection))
+            toShow = toShow.filter((g) => g.isProjection)
+
+        return toShow.map((series) => {
+            const lastValue = last(series.values)!.y
+            return {
+                color: series.color,
+                entityName: series.entityName,
+                // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
+                label: this.options.hideLegend
+                    ? ""
+                    : `${this.options.table.getLabelForEntityName(
+                          series.entityName
+                      )}`,
+                annotation: this.getAnnotationsForSeries(series.entityName),
+                yValue: lastValue,
+            }
+        })
+    }
+
+    @computed get xAxis() {
+        return this.options.xAxis ?? new AxisConfig()
+    }
+
+    @computed get yAxis() {
+        return this.options.yAxis ?? new AxisConfig()
+    }
+
+    @computed get horizontalAxis() {
+        const axis = this.xAxis.toHorizontalAxis()
+        axis.updateDomainPreservingUserSettings([
+            this.startTimelineTime,
+            this.endTimelineTime,
+        ])
+        axis.scaleType = ScaleType.linear
+        axis.scaleTypeOptions = [ScaleType.linear]
+        axis.column = this.options.table.timeColumn
+        axis.hideFractionalTicks = true
+        axis.hideGridlines = true
+        return axis
+    }
+
+    @computed private get yDomainDefault(): [number, number] {
+        const yValues = (this.options.useTimelineDomains
+            ? this.allValues
+            : this.filteredValues
+        ).map((v) => v.y)
+        return [min(yValues) ?? 0, max(yValues) ?? 100]
+    }
+
+    @computed private get yDomain(): [number, number] {
+        const { yDomainDefault } = this
+        const domain = this.yAxis.domain
+        return [
+            Math.min(domain[0], yDomainDefault[0]),
+            Math.max(domain[1], yDomainDefault[1]),
+        ]
+    }
+
+    @computed get verticalAxis() {
+        const { options, yDomain } = this
+        const axis = this.yAxis.toVerticalAxis()
+        axis.updateDomainPreservingUserSettings(yDomain)
+        if (options.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
+        axis.hideFractionalTicks = this.allValues.every(
+            (val) => val.y % 1 === 0
+        ) // all y axis points are integral, don't show fractional ticks in that case
+        axis.label = ""
+        axis.column = this.yColumn
+        return axis
     }
 }
