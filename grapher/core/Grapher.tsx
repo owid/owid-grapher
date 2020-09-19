@@ -951,8 +951,8 @@ export class Grapher
 
     @computed get mapColumn() {
         return this.map.columnSlug
-            ? this.table.columnsBySlug.get(this.map.columnSlug)!
-            : this.yColumns[0]!
+            ? this.table.get(this.map.columnSlug)!
+            : this.yColumn!
     }
 
     getColumnForProperty(property: DimensionProperty) {

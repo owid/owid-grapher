@@ -389,9 +389,7 @@ export class DiscreteBarChart
         if (!column.table.hasSelection)
             return `No selected ${this.options.entityType ?? "Country"}`
 
-        return column.isEmpty
-            ? `No matching data in column ${column.name}`
-            : undefined
+        return column.isEmpty ? `No matching data in column ${column.name}` : ""
     }
 
     @computed private get yColumns() {

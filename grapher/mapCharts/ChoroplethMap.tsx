@@ -17,7 +17,7 @@ import { MapTopology } from "./MapTopology"
 import { Vector2 } from "grapher/utils/Vector2"
 import { worldRegionByMapEntity } from "./WorldRegions"
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
-import { ChoroplethData, ChoroplethDatum } from "./MapConstants"
+import { ChoroplethMarks, ChoroplethMark } from "./MapConstants"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
@@ -27,14 +27,14 @@ declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 export interface MapEntity {
     id: string | number | undefined
     datum:
-        | ChoroplethDatum
+        | ChoroplethMark
         | {
               value: string
           }
 }
 
 interface ChoroplethMapProps {
-    choroplethData: ChoroplethData
+    choroplethData: ChoroplethMarks
     bounds: Bounds
     projection: MapProjection
     defaultFill: string
@@ -65,7 +65,7 @@ export class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         return this.props.bounds
     }
 
-    @computed.struct private get choroplethData(): ChoroplethData {
+    @computed.struct private get choroplethData(): ChoroplethMarks {
         return this.props.choroplethData
     }
 

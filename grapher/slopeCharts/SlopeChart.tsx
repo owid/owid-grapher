@@ -269,7 +269,7 @@ export class SlopeChart
     @computed get failMessage() {
         if (!this.yColumn) return "Missing Y column"
         else if (isEmpty(this.marks)) return "No matching data"
-        return undefined
+        return ""
     }
 
     @computed get colorScale() {

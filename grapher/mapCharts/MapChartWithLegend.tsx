@@ -17,7 +17,7 @@ import { easeCubic } from "d3-ease"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"
-import { ChoroplethData, MapDataValue } from "./MapConstants"
+import { ChoroplethMarks } from "./MapConstants"
 import { isOnTheMap } from "./EntitiesOnTheMap"
 import { EntityName } from "owidTable/OwidTableConstants"
 import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
@@ -46,6 +46,11 @@ export class MapChartWithLegend
 
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
+
+    @computed get failMessage() {
+        if (!this.options.mapColumn) return "Missing map column"
+        return ""
+    }
 
     base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
@@ -115,10 +120,10 @@ export class MapChartWithLegend
         this.mapConfig.projection = value
     }
 
-    // Get values for the current time, without any color info yet
-    @computed get valuesByEntity(): { [key: string]: MapDataValue } {
+    @computed get marks() {
         const { options, mapConfig } = this
         const column = options.mapColumn
+        if (!column) return {}
         const endTime = column.endTimelineTime
 
         if (endTime === undefined || !column) return {}
@@ -130,7 +135,7 @@ export class MapChartWithLegend
             isOnTheMap(name)
         )
 
-        const result: { [key: string]: MapDataValue } = {}
+        const marks: ChoroplethMarks = {}
         const selectedEntityNames = options.table.selectedEntityNameSet
 
         const customLabels = mapConfig.tooltipUseCustomLabels
@@ -145,35 +150,23 @@ export class MapChartWithLegend
             if (time === undefined) return
             const value = valueByTime.get(time)
             if (value === undefined) return
-            result[entity] = {
+
+            const color = this.colorScale.getColor(value)
+            if (!color) return
+
+            marks[entity] = {
                 entity,
                 displayValue:
                     customLabels[value as any] ?? column.formatValueLong(value),
                 time,
                 value,
                 isSelected: selectedEntityNames.has(entity),
+                color,
+                highlightFillColor: color,
             }
         })
 
-        return result
-    }
-
-    // Get the final data incorporating the binning colors
-    @computed get marks() {
-        const { valuesByEntity } = this
-        const choroplethData: ChoroplethData = {}
-
-        Object.entries(valuesByEntity).forEach(([entity, datum]) => {
-            const color = this.colorScale.getColor(datum.value)
-            if (color)
-                choroplethData[entity] = {
-                    ...datum,
-                    color,
-                    highlightFillColor: color,
-                }
-        })
-
-        return choroplethData
+        return marks
     }
 
     @computed get colorScale() {

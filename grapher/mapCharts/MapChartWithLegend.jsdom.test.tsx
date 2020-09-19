@@ -22,7 +22,6 @@ describe(MapChartWithLegend, () => {
 
     test("can create a new Map chart", () => {
         const chart = new MapChartWithLegend(ChartSampleOptions)
-        expect(Object.keys(chart.valuesByEntity).length).toEqual(5)
         expect(Object.keys(chart.marks).length).toEqual(5)
 
         const legends = chart.colorScale.legendData

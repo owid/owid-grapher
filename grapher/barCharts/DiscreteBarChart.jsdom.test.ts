@@ -25,7 +25,7 @@ describe(DiscreteBarChart, () => {
 
         expect(chart.failMessage).toBeTruthy()
         table.selectAll()
-        expect(chart.failMessage).toEqual(undefined)
+        expect(chart.failMessage).toEqual("")
         expect(chart.marks.length).toEqual(2)
     })
 })

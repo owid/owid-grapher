@@ -215,7 +215,7 @@ export interface LineLabelsOptionsProvider {
     canAddData?: boolean
     isSelectingData?: boolean
     showAddEntityControls?: boolean
-    entityType: string
+    entityType?: string
 }
 
 interface LineLabelsComponentProps {
@@ -498,7 +498,7 @@ export class LineLabelsComponent extends React.Component<
                     align="left"
                     verticalAlign={verticalAlign}
                     height={ADD_BUTTON_HEIGHT}
-                    label={`Add ${this.options.entityType}`}
+                    label={`Add ${this.options.entityType ?? "Country"}`}
                     onClick={this.onAddClick}
                 />
             </ControlsOverlay>

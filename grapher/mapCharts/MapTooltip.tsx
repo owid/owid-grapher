@@ -9,13 +9,13 @@ import {
     SparkBarsProps,
 } from "grapher/sparkBars/SparkBars"
 import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
-import { ChoroplethDatum } from "./MapConstants"
+import { ChoroplethMark } from "./MapConstants"
 import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
 import { ColorScale } from "grapher/color/ColorScale"
 
 interface MapTooltipProps {
     inputTime?: number
-    tooltipDatum?: ChoroplethDatum
+    tooltipDatum?: ChoroplethMark
     tooltipTarget: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
     options: MapChartOptionsProvider

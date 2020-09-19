@@ -82,10 +82,12 @@ export class ChartTab extends React.Component<{
         const options = this.props.grapher
         const type = options.type
         const innerBounds = this.innerBounds
+        const isMapTab = options.tab === "map"
 
-        if (!options.isReady) return <LoadingOverlay bounds={innerBounds} />
+        if (!options.isReady || (isMapTab && !options.mapColumn))
+            return <LoadingOverlay bounds={innerBounds} />
 
-        if (options.tab === "map")
+        if (isMapTab)
             return (
                 <MapChartWithLegend
                     containerElement={
