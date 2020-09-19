@@ -373,3 +373,7 @@ export class Bounds {
         return Math.sqrt(this.distanceToPointSq(p))
     }
 }
+
+// Since nearly all our components need a bounds, but most tests don't care about bounds, have a default bounds
+// to use so we don't have to create a bounds for every test.
+export const DEFAULT_BOUNDS = new Bounds(0, 0, 640, 480)

@@ -20,7 +20,7 @@ import {
     isTouchDevice,
     max,
 } from "grapher/utils/Util"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { EntitySelectorModal } from "grapher/controls/EntitySelectorModal"
 import {
     GrapherViewContext,
@@ -35,7 +35,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 declare const window: any
 
 interface GrapherViewProps {
-    bounds: Bounds
+    bounds?: Bounds
     grapher: Grapher
     isExport?: boolean
     isEditor?: boolean
@@ -136,15 +136,12 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         return isMobile()
     }
 
-    @computed private get containerBounds() {
-        return this.props.bounds
+    @computed private get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get isPortrait() {
-        return (
-            this.containerBounds.width < this.containerBounds.height &&
-            this.containerBounds.width < 850
-        )
+        return this.bounds.width < this.bounds.height && this.bounds.width < 850
     }
     @computed private get isLandscape() {
         return !this.isPortrait
@@ -163,7 +160,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             isEditor,
             isEmbed,
             isExport,
-            containerBounds,
+            bounds,
             authorWidth,
             authorHeight,
         } = this
@@ -173,21 +170,21 @@ export class GrapherView extends React.Component<GrapherViewProps> {
             return (
                 isEmbed ||
                 isExport ||
-                containerBounds.height < authorHeight ||
-                containerBounds.width < authorWidth
+                bounds.height < authorHeight ||
+                bounds.width < authorWidth
             )
     }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
     @computed private get paddedWidth(): number {
         return this.isPortrait
-            ? this.containerBounds.width * 0.95
-            : this.containerBounds.width * 0.95
+            ? this.bounds.width * 0.95
+            : this.bounds.width * 0.95
     }
     @computed private get paddedHeight(): number {
         return this.isPortrait
-            ? this.containerBounds.height * 0.95
-            : this.containerBounds.height * 0.95
+            ? this.bounds.height * 0.95
+            : this.bounds.height * 0.95
     }
     @computed private get scaleToFitIdeal(): number {
         return Math.min(
@@ -205,12 +202,12 @@ export class GrapherView extends React.Component<GrapherViewProps> {
     // These are the final render dimensions
     @computed private get renderWidth() {
         return this.fitBounds
-            ? this.containerBounds.width - (this.isExport ? 0 : 5)
+            ? this.bounds.width - (this.isExport ? 0 : 5)
             : this.idealWidth
     }
     @computed private get renderHeight() {
         return this.fitBounds
-            ? this.containerBounds.height - (this.isExport ? 0 : 5)
+            ? this.bounds.height - (this.isExport ? 0 : 5)
             : this.idealHeight
     }
 

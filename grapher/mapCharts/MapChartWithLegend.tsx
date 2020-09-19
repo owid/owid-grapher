@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -32,7 +32,7 @@ const PROJECTION_CHOOSER_HEIGHT = 22
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
 interface MapChartWithLegendProps {
-    bounds: Bounds
+    bounds?: Bounds
     options: MapChartOptionsProvider
     containerElement?: HTMLDivElement
 }
@@ -50,6 +50,10 @@ export class MapChartWithLegend
     @computed get failMessage() {
         if (!this.options.mapColumn) return "Missing map column"
         return ""
+    }
+
+    @computed get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     base: React.RefObject<SVGGElement> = React.createRef()
@@ -192,7 +196,7 @@ export class MapChartWithLegend
         const that = this
         return new MapColorLegend({
             get bounds() {
-                return that.props.bounds.padBottom(15)
+                return that.bounds.padBottom(15)
             },
             get legendData() {
                 return that.colorScale.legendData
@@ -234,7 +238,7 @@ export class MapChartWithLegend
     }
 
     @computed get projectionChooserBounds() {
-        const { bounds } = this.props
+        const { bounds } = this
         return new Bounds(
             bounds.width - PROJECTION_CHOOSER_WIDTH + 15 - 3,
             5,
@@ -264,7 +268,7 @@ export class MapChartWithLegend
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
-                    bounds={this.props.bounds.padBottom(mapLegend.height + 15)}
+                    bounds={this.bounds.padBottom(mapLegend.height + 15)}
                     choroplethData={marks}
                     projection={projection}
                     defaultFill={colorScale.noDataColor}

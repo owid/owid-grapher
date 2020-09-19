@@ -1,7 +1,7 @@
 import * as React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
@@ -17,7 +17,7 @@ export interface NoDataOverlayOptionsProvider {
 
 @observer
 export class NoDataOverlay extends React.Component<{
-    bounds: Bounds
+    bounds?: Bounds
     message?: string
     options: NoDataOverlayOptionsProvider
 }> {
@@ -25,8 +25,13 @@ export class NoDataOverlay extends React.Component<{
         this.props.options.isSelectingData = true
     }
 
+    @computed get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
     @computed private get message() {
-        const { bounds, message, options } = this.props
+        const { bounds } = this
+        const { message, options } = this.props
         const entityType = options.entityType
         return (
             <div

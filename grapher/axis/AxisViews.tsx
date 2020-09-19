@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
@@ -49,7 +49,7 @@ export class HorizontalAxisGridLines extends React.Component<{
     bounds?: Bounds
 }> {
     @computed get bounds() {
-        return this.props.bounds ?? new Bounds(0, 0, 200, 200)
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     render() {

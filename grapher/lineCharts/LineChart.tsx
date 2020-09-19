@@ -13,7 +13,7 @@ import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "grapher/axis/Axis"
 import { Vector2 } from "grapher/utils/Vector2"
@@ -117,7 +117,7 @@ class Lines extends React.Component<LinesProps> {
         this.props.onHover(hoverX)
     }
 
-    @action.bound private onCursorLeave(ev: MouseEvent | TouchEvent) {
+    @action.bound private onCursorLeave() {
         this.props.onHover(undefined)
     }
 
@@ -249,15 +249,10 @@ interface LineChartOptionsProvider extends ChartOptionsProvider {
 
 @observer
 export class LineChart extends React.Component<{
-    bounds: Bounds
+    bounds?: Bounds
     options: LineChartOptionsProvider
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
-
-    // Set default props
-    static defaultProps = {
-        bounds: new Bounds(0, 0, 640, 480),
-    }
 
     @observable hoverX?: number
     @action.bound onHover(hoverX: number | undefined) {
@@ -269,7 +264,7 @@ export class LineChart extends React.Component<{
     }
 
     @computed get bounds() {
-        return this.props.bounds
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed get transform() {
@@ -441,10 +436,9 @@ export class LineChart extends React.Component<{
     }
 
     @observable hoverKey?: string
-    @action.bound onLegendClick(key: EntityName) {
-        if (this.options.showAddEntityControls) {
+    @action.bound onLegendClick() {
+        if (this.options.showAddEntityControls)
             this.options.isSelectingData = true
-        }
     }
 
     @action.bound onLegendMouseOver(key: EntityName) {

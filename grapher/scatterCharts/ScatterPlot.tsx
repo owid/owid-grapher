@@ -11,7 +11,7 @@ import {
     flatten,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import {
     PointsWithLabels,
@@ -34,14 +34,9 @@ import { AbstractColumn } from "owidTable/OwidTable"
 
 @observer
 export class ScatterPlot extends React.Component<{
-    bounds: Bounds
+    bounds?: Bounds
     options: ScatterPlotOptionsProvider
 }> {
-    // Set default props
-    static defaultProps = {
-        bounds: new Bounds(0, 0, 640, 480),
-    }
-
     // currently hovered individual series key
     @observable hoverKey?: EntityName
     // currently hovered legend color
@@ -55,8 +50,8 @@ export class ScatterPlot extends React.Component<{
         return this.options.scatterTransform
     }
 
-    @computed.struct get bounds(): Bounds {
-        return this.props.bounds
+    @computed.struct get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @action.bound onSelectEntity(entityName: EntityName) {
@@ -65,7 +60,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     // Only want to show colors on legend that are actually on the chart right now
-    @computed get colorsInUse(): string[] {
+    @computed get colorsInUse() {
         return excludeUndefined(
             uniq(
                 this.transform.allPoints.map((point) =>
@@ -79,7 +74,7 @@ export class ScatterPlot extends React.Component<{
         return this.options.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get legend(): VerticalColorLegend {
+    @computed get legend() {
         const that = this
         return new VerticalColorLegend({
             get maxWidth() {
@@ -177,7 +172,7 @@ export class ScatterPlot extends React.Component<{
         return this.options.table.selectedEntityNames
     }
 
-    @computed private get arrowLegend(): ConnectedScatterLegend | undefined {
+    @computed private get arrowLegend() {
         const { transform } = this
         const { startTimelineTime, endTimelineTime } = transform
 
@@ -220,7 +215,7 @@ export class ScatterPlot extends React.Component<{
         if (this.hoverKey) this.onSelectEntity(this.hoverKey)
     }
 
-    @computed get tooltipSeries(): ScatterSeries | undefined {
+    @computed get tooltipSeries() {
         const { hoverKey, focusKeys, transform } = this
         if (hoverKey !== undefined)
             return transform.currentData.find((g) => g.entityName === hoverKey)
@@ -228,7 +223,7 @@ export class ScatterPlot extends React.Component<{
             return transform.currentData.find(
                 (g) => g.entityName === focusKeys[0]
             )
-        else return undefined
+        return undefined
     }
 
     @computed get sidebarMaxWidth() {
@@ -267,7 +262,7 @@ export class ScatterPlot extends React.Component<{
     }
 
     // Colors currently on the chart and not greyed out
-    @computed get activeColors(): string[] {
+    @computed get activeColors() {
         const { hoverKeys, focusKeys, transform } = this
         const activeKeys = hoverKeys.concat(focusKeys)
 
@@ -283,7 +278,7 @@ export class ScatterPlot extends React.Component<{
         return excludeUndefined(colorValues.map(transform.colorScale.getColor))
     }
 
-    @computed get hideLines(): boolean {
+    @computed get hideLines() {
         return !!this.options.hideConnectedScatterLines
     }
 

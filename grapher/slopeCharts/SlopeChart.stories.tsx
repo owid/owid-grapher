@@ -1,6 +1,5 @@
 import * as React from "react"
 import { SlopeChart } from "./SlopeChart"
-import { Bounds } from "grapher/utils/Bounds"
 import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 
@@ -21,7 +20,7 @@ export const Default = () => {
 
     return (
         <svg width={640} height={480}>
-            <SlopeChart options={options} bounds={new Bounds(0, 0, 800, 400)} />
+            <SlopeChart options={options} />
         </svg>
     )
 }

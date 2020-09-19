@@ -14,7 +14,7 @@ import {
     ScaleTypeConfig,
     Range,
 } from "grapher/core/GrapherConstants"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { AbstractColumn } from "owidTable/OwidTable"
@@ -456,7 +456,7 @@ export class VerticalAxis extends AbstractAxis {
 }
 
 interface DualAxisProps {
-    bounds: Bounds
+    bounds?: Bounds
     horizontalAxis: HorizontalAxis
     verticalAxis: VerticalAxis
 }
@@ -486,25 +486,25 @@ export class DualAxis {
     // We calculate an initial height from the range of the input bounds
     @computed private get horizontalAxisHeight() {
         const axis = this.props.horizontalAxis.clone()
-        axis.range = [0, this.props.bounds.width]
+        axis.range = [0, this.bounds.width]
         return axis.height
     }
 
     // We calculate an initial width from the range of the input bounds
     @computed private get verticalAxisWidth() {
         const axis = this.props.verticalAxis.clone()
-        axis.range = [0, this.props.bounds.height]
+        axis.range = [0, this.bounds.height]
         return axis.width
     }
 
     // Now we can determine the "true" inner bounds of the dual axis
     @computed get innerBounds() {
-        return this.props.bounds
+        return this.bounds
             .padBottom(this.horizontalAxisHeight)
             .padLeft(this.verticalAxisWidth)
     }
 
     @computed get bounds() {
-        return this.props.bounds
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 }

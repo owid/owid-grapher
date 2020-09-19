@@ -5,7 +5,6 @@ import { shallow, mount, ReactWrapper } from "enzyme"
 import { observe } from "mobx"
 import xhrMock from "xhr-mock"
 import { ExploreView } from "./ExploreView"
-import { Bounds } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
 import { ChartTypes } from "grapher/core/GrapherConstants"
 import { LineChart } from "grapher/lineCharts/LineChart"
@@ -21,8 +20,6 @@ import {
     mockIndicators,
     initXhrMock,
 } from "explorer/indicatorExplorer/apiMock"
-
-const bounds = new Bounds(0, 0, 800, 600)
 
 function getDefaultModel() {
     const model = new ExploreModel(new RootStore())
@@ -84,9 +81,7 @@ async function updateViewWhenReady(exploreView: ReactWrapper) {
 
 describe(ExploreView, () => {
     it("renders an empty chart", () => {
-        const view = shallow(
-            <ExploreView bounds={bounds} model={getEmptyModel()} />
-        )
+        const view = shallow(<ExploreView model={getEmptyModel()} />)
         expect(view.find(GrapherView)).toHaveLength(1)
     })
 
@@ -95,7 +90,7 @@ describe(ExploreView, () => {
         beforeAll(() => mockDataResponse())
 
         async function renderWithModel(model: ExploreModel) {
-            const view = mount(<ExploreView bounds={bounds} model={model} />)
+            const view = mount(<ExploreView model={model} />)
             await updateViewWhenReady(view)
             return view
         }
@@ -130,16 +125,12 @@ describe(ExploreView, () => {
         beforeAll(() => mockDataResponse())
 
         it("displays chart types", () => {
-            const view = mount(
-                <ExploreView bounds={bounds} model={getDefaultModel()} />
-            )
+            const view = mount(<ExploreView model={getDefaultModel()} />)
             expect(view.find(".chart-type-button")).toHaveLength(6)
         })
 
         it("defaults to line chart", async () => {
-            const view = mount(
-                <ExploreView bounds={bounds} model={getDefaultModel()} />
-            )
+            const view = mount(<ExploreView model={getDefaultModel()} />)
             await updateViewWhenReady(view)
             expect(view.find(LineChart)).toHaveLength(1)
         })
@@ -158,12 +149,7 @@ describe(ExploreView, () => {
                 const button = `.chart-type-button[data-type="${type.key}"]`
 
                 beforeAll(async () => {
-                    view = mount(
-                        <ExploreView
-                            bounds={bounds}
-                            model={getDefaultModel()}
-                        />
-                    )
+                    view = mount(<ExploreView model={getDefaultModel()} />)
                     await updateViewWhenReady(view)
                     view.find(button).simulate("click")
                 })
@@ -184,16 +170,12 @@ describe(ExploreView, () => {
         beforeAll(() => mockDataResponse())
 
         it("loads an empty chart with no indicator", () => {
-            const view = shallow(
-                <ExploreView bounds={bounds} model={getEmptyModel()} />
-            )
+            const view = shallow(<ExploreView model={getEmptyModel()} />)
             expect(view.find(GrapherView)).toHaveLength(1)
         })
 
         it("loads a chart with the initialized indicator", async () => {
-            const view = mount(
-                <ExploreView bounds={bounds} model={getDefaultModel()} />
-            )
+            const view = mount(<ExploreView model={getDefaultModel()} />)
             await updateViewWhenReady(view)
             expect(view.find(GrapherView)).toHaveLength(1)
             expect(view.find(".chart h1").text()).toContain(mockIndicator.title)
@@ -201,7 +183,7 @@ describe(ExploreView, () => {
 
         it("loads the indicator when the indicatorId is changed", async () => {
             const model = getEmptyModel()
-            const view = mount(<ExploreView bounds={bounds} model={model} />)
+            const view = mount(<ExploreView model={model} />)
             expect(view.find(GrapherView)).toHaveLength(1)
 
             model.setIndicatorId(mockIndicator.id)
@@ -211,9 +193,7 @@ describe(ExploreView, () => {
         })
 
         it("shows the loaded indicator in the dropdown", async () => {
-            const view = mount(
-                <ExploreView bounds={bounds} model={getDefaultModel()} />
-            )
+            const view = mount(<ExploreView model={getDefaultModel()} />)
             await updateViewWhenReady(view)
             expect(view.find(".indicator-dropdown").first().text()).toContain(
                 mockIndicator.title

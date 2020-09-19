@@ -2,7 +2,7 @@ import * as React from "react"
 import { intersection, without, uniq, isEmpty, last } from "grapher/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import {
     LabelledSlopes,
     SlopeChartSeries,
@@ -22,7 +22,7 @@ import { ChartInterface } from "grapher/chart/ChartInterface"
 @observer
 export class SlopeChart
     extends React.Component<{
-        bounds: Bounds
+        bounds?: Bounds
         options: SlopeChartOptionsProvider
     }>
     implements ChartInterface {
@@ -35,8 +35,8 @@ export class SlopeChart
         return this.props.options
     }
 
-    @computed.struct get bounds(): Bounds {
-        return this.props.bounds
+    @computed.struct get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed get legend(): VerticalColorLegend {
@@ -199,8 +199,8 @@ export class SlopeChart
         const { sidebarWidth, showLegend } = this
 
         return showLegend
-            ? this.props.bounds.padRight(sidebarWidth + 20)
-            : this.props.bounds
+            ? this.bounds.padRight(sidebarWidth + 20)
+            : this.bounds
     }
 
     // verify the validity of data used to show legend
@@ -222,8 +222,9 @@ export class SlopeChart
                 />
             )
 
-        const { bounds, options } = this.props
+        const { options } = this.props
         const {
+            bounds,
             marks,
             legend,
             focusKeys,

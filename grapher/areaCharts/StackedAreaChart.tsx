@@ -11,7 +11,7 @@ import {
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import {
@@ -230,7 +230,7 @@ interface StackedAreaChartOptionsProvider extends ChartOptionsProvider {
 
 @observer
 export class StackedAreaChart extends React.Component<{
-    bounds: Bounds
+    bounds?: Bounds
     options: StackedAreaChartOptionsProvider
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
@@ -240,8 +240,9 @@ export class StackedAreaChart extends React.Component<{
     }
 
     @computed get bounds() {
-        return this.props.bounds
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
+
     @computed private get transform() {
         return this.options.stackedAreaTransform
     }

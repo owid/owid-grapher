@@ -1,7 +1,6 @@
 #! /usr/bin/env yarn jest
 
 import { SlopeChart } from "./SlopeChart"
-import { Bounds } from "grapher/utils/Bounds"
 import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 
@@ -12,12 +11,8 @@ describe(SlopeChart, () => {
         yColumn: table.get("Population"),
     }
 
-    const SlopeChartSampleOptions = {
-        bounds: new Bounds(0, 0, 640, 480),
-        options,
-    }
     it("can create a new slope chart", () => {
-        const chart = new SlopeChart(SlopeChartSampleOptions)
+        const chart = new SlopeChart({ options })
         expect(chart.marks.length).toEqual(2)
     })
 })

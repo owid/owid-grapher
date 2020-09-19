@@ -3,11 +3,8 @@
 import { mount } from "enzyme"
 import React from "react"
 import { GrapherView } from "grapher/core/GrapherView"
-import { Bounds } from "grapher/utils/Bounds"
 import { MapTooltip } from "grapher/mapCharts/MapTooltip"
 import { Grapher } from "grapher/core/Grapher"
-
-const bounds = new Bounds(0, 0, 800, 600)
 
 const mockEvent = {
     clientX: 50,
@@ -54,7 +51,7 @@ const grapher = new Grapher(
     }
 )
 
-const grapherWrapper = mount(<GrapherView grapher={grapher} bounds={bounds} />)
+const grapherWrapper = mount(<GrapherView grapher={grapher} />)
 
 describe(MapTooltip, () => {
     test("map tooltip renders iff mouseenter", () => {

@@ -8,7 +8,7 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
 import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { GrapherView } from "grapher/core/GrapherView"
 import { ChartTypes } from "grapher/core/GrapherConstants"
 import { ExplorerViewContext } from "./ExplorerViewContext"
@@ -43,7 +43,7 @@ const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
 // -@jasoncrawford 2 Dec 2019
 
 interface ExploreProps {
-    bounds: Bounds
+    bounds?: Bounds
     model: ExploreModel
 }
 
@@ -80,7 +80,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     @computed get bounds() {
-        return this.props.bounds
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     get childContext() {

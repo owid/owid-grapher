@@ -6,7 +6,6 @@ import { shallow } from "enzyme"
 import React from "react"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { DualAxis } from "./Axis"
-import { Bounds } from "grapher/utils/Bounds"
 
 describe("basic tests", () => {
     it("can create horizontal axis", () => {
@@ -38,7 +37,6 @@ describe("basic tests", () => {
         }).toHorizontalAxis()
 
         const dualAxis = new DualAxis({
-            bounds: new Bounds(0, 0, 500, 500),
             verticalAxis,
             horizontalAxis,
         })

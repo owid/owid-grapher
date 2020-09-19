@@ -3,7 +3,7 @@ import { select } from "d3-selection"
 import { min, max, maxBy, orderBy, sortBy, uniq } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import {
     Color,
     ScaleType,
@@ -44,7 +44,7 @@ export interface DiscreteBarChartOptionsProvider extends ChartOptionsProvider {
 @observer
 export class DiscreteBarChart
     extends React.Component<{
-        bounds: Bounds
+        bounds?: Bounds
         options: DiscreteBarChartOptionsProvider
     }>
     implements ChartInterface {
@@ -53,8 +53,9 @@ export class DiscreteBarChart
     @computed private get options() {
         return this.props.options
     }
-    @computed.struct private get bounds() {
-        return this.props.bounds.padRight(10)
+
+    @computed private get bounds() {
+        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
     }
 
     @computed private get baseFontSize() {
