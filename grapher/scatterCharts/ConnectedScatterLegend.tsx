@@ -2,51 +2,52 @@ import * as React from "react"
 import { computed } from "mobx"
 import { Triangle } from "./Triangle"
 import { TextWrap } from "grapher/text/TextWrap"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
-interface ConnectedScatterLegendProps {
-    maxWidth: number
-    fontSize: number
-    startTime: string
-    endTime: string
-    endpointsOnly: boolean
+export interface ConnectedScatterLegendOptionsProvider {
+    maxLegendWidth: number
+    displayStartTime: string
+    displayEndTime: string
+    fontSize?: number
+    compareEndpointsOnly?: boolean
 }
 
 export class ConnectedScatterLegend {
-    props: ConnectedScatterLegendProps
-    constructor(props: ConnectedScatterLegendProps) {
-        this.props = props
+    options: ConnectedScatterLegendOptionsProvider
+    constructor(options: ConnectedScatterLegendOptionsProvider) {
+        this.options = options
     }
 
-    @computed get fontSize(): number {
-        return 0.7 * this.props.fontSize
+    @computed get fontSize() {
+        return 0.7 * (this.options.fontSize ?? BASE_FONT_SIZE)
     }
-    @computed get fontColor(): string {
+    @computed get fontColor() {
         return "#333"
     }
-    @computed get maxLabelWidth(): number {
-        return this.props.maxWidth / 3
+    @computed get maxLabelWidth() {
+        return this.options.maxLegendWidth / 3
     }
 
     @computed get startLabel() {
-        const { props, maxLabelWidth, fontSize } = this
+        const { options, maxLabelWidth, fontSize } = this
         return new TextWrap({
-            text: props.startTime,
-            fontSize: fontSize,
+            text: options.displayStartTime,
+            fontSize,
             maxWidth: maxLabelWidth,
         })
     }
 
     @computed get endLabel() {
-        const { props, maxLabelWidth, fontSize } = this
+        const { options, maxLabelWidth, fontSize } = this
         return new TextWrap({
-            text: props.endTime,
-            fontSize: fontSize,
+            text: options.displayEndTime,
+            fontSize,
             maxWidth: maxLabelWidth,
         })
     }
 
     @computed get width() {
-        return this.props.maxWidth
+        return this.options.maxLegendWidth
     }
 
     @computed get height() {
@@ -56,16 +57,16 @@ export class ConnectedScatterLegend {
     render(
         targetX: number,
         targetY: number,
-        options: React.SVGAttributes<SVGGElement> = {}
+        renderOptions: React.SVGAttributes<SVGGElement> = {}
     ) {
-        const { props, startLabel, endLabel, fontColor } = this
+        const { options, startLabel, endLabel, fontColor } = this
 
         const lineLeft = targetX + startLabel.width + 5
-        const lineRight = targetX + props.maxWidth - endLabel.width - 5
+        const lineRight = targetX + options.maxLegendWidth - endLabel.width - 5
         const lineY = targetY + this.height / 2 - 0.5
 
         return (
-            <g className="ConnectedScatterLegend" {...options}>
+            <g className="ConnectedScatterLegend" {...renderOptions}>
                 <rect
                     x={targetX}
                     y={targetY}
@@ -76,7 +77,7 @@ export class ConnectedScatterLegend {
                 />
                 {startLabel.render(targetX, targetY, { fill: fontColor })}
                 {endLabel.render(
-                    targetX + props.maxWidth - endLabel.width,
+                    targetX + options.maxLegendWidth - endLabel.width,
                     targetY,
                     { fill: fontColor }
                 )}
@@ -96,7 +97,7 @@ export class ConnectedScatterLegend {
                     stroke="#ccc"
                     strokeWidth={0.2}
                 />
-                {!props.endpointsOnly && (
+                {!options.compareEndpointsOnly && (
                     <React.Fragment>
                         <circle
                             cx={lineLeft + (lineRight - lineLeft) / 3}

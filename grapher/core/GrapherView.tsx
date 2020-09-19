@@ -469,11 +469,6 @@ export class GrapherView extends React.Component<GrapherViewProps> {
 
         if (grapher.currentTab !== "chart") return false
 
-        if (grapher.isScatter || grapher.isTimeScatter)
-            return grapher.scatterTransform.hasTimeline
-
-        if (grapher.isSlopeChart) return grapher.yColumn?.hasMultipleTimes
-
         return grapher.hasTimeline
     }
 

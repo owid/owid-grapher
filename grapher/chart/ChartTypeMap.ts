@@ -1,6 +1,5 @@
-import { ScatterPlot } from "grapher/scatterCharts/ScatterPlot"
+import { ScatterPlot, TimeScatter } from "grapher/scatterCharts/ScatterPlot"
 import { SlopeChart } from "grapher/slopeCharts/SlopeChart"
-import { TimeScatter } from "grapher/scatterCharts/TimeScatter"
 import { LineChart } from "grapher/lineCharts/LineChart"
 import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
 import { DiscreteBarChart } from "grapher/barCharts/DiscreteBarChart"

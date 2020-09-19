@@ -41,7 +41,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
     }
 
     @action.bound onXOverrideYear(value: number | undefined) {
-        this.props.grapher.scatterTransform.xOverrideTime = value
+        this.props.grapher.xOverrideTime = value
     }
 
     @action.bound onToggleHighlightToggle(value: boolean) {
@@ -54,8 +54,8 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
             this.props.grapher.highlightToggle = toJS(this.highlightToggle)
     }
 
-    @computed get excludedEntityChoices(): string[] {
-        return this.props.grapher.scatterTransform.getEntityNamesToShow()
+    @computed get excludedEntityChoices() {
+        return this.props.grapher.getEntityNamesToShow()
     }
 
     @action.bound onExcludeEntity(entity: string) {
@@ -116,7 +116,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                     />
                     <NumberField
                         label="Override X axis target year"
-                        value={grapher.scatterTransform.xOverrideTime}
+                        value={grapher.xOverrideTime}
                         onValue={debounce(this.onXOverrideYear, 300)}
                         allowNegative
                     />
@@ -145,23 +145,21 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                         onValue={(v) => v && this.onExcludeEntity(v)}
                         options={excludedEntityChoices}
                     />
-                    {grapher.scatterTransform.excludedEntityNames && (
+                    {grapher.excludedEntityNames && (
                         <ul className="excludedEntities">
-                            {grapher.scatterTransform.excludedEntityNames.map(
-                                (entity) => (
-                                    <li key={entity}>
-                                        <div
-                                            className="clickable"
-                                            onClick={() =>
-                                                this.onUnexcludeEntity(entity)
-                                            }
-                                        >
-                                            <FontAwesomeIcon icon={faMinus} />
-                                        </div>
-                                        {entity}
-                                    </li>
-                                )
-                            )}
+                            {grapher.excludedEntityNames.map((entity) => (
+                                <li key={entity}>
+                                    <div
+                                        className="clickable"
+                                        onClick={() =>
+                                            this.onUnexcludeEntity(entity)
+                                        }
+                                    >
+                                        <FontAwesomeIcon icon={faMinus} />
+                                    </div>
+                                    {entity}
+                                </li>
+                            ))}
                         </ul>
                     )}
                 </Section>

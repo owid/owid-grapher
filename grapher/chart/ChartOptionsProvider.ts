@@ -26,6 +26,9 @@ export interface ChartOptionsProvider {
     useTimelineDomains?: boolean
     baseColorScheme?: string
     invertColorScheme?: boolean
+    compareEndPointsOnly?: boolean
+    zoomToSelection?: boolean
+    matchingEntitiesOnly?: boolean
 
     colorScale?: ColorScaleConfigInterface
 

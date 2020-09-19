@@ -55,10 +55,8 @@ import {
     GrapherUrl,
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
-import { ScatterTransform } from "grapher/scatterCharts/ScatterTransform"
 import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
-import { IChartTransform } from "grapher/chart/ChartTransform"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
@@ -611,7 +609,7 @@ export class Grapher
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === "map") return this.mapColumn?.timelineTimes || []
-        return this.activeTransform?.timelineTimes || this.table.allTimes
+        return this.table.allTimes
     }
 
     // todo: remove ifs
@@ -624,11 +622,7 @@ export class Grapher
             )
         else if (activeTab === "map")
             return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
-        return (
-            this.activeTransform?.startTimelineTime ||
-            this.table.minTime ||
-            1900
-        )
+        return this.table.minTime || 1900
     }
 
     // todo: remove ifs
@@ -653,9 +647,7 @@ export class Grapher
         //         ? this.timeDomain[1] // todo: readd this.dataTableTransform.startTimelineTime
         //         : this.timeDomain[1]
         if (activeTab === "map") return this.mapColumn?.endTimelineTime || 2000
-        return (
-            this.activeTransform?.endTimelineTime || this.table.maxTime || 2000
-        )
+        return this.table.maxTime || 2000
     }
 
     @computed get isNativeEmbed() {
@@ -1116,19 +1108,53 @@ export class Grapher
         return this.type === ChartTypes.StackedBar
     }
 
-    @computed get scatterTransform() {
-        return new ScatterTransform(this)
-    }
-
     @computed get activeColorScale() {
-        return this.activeTransform?.colorScale
+        return this.colorScale as any // todo: restore
     }
 
-    // WARNING: THIS WILL BE REMOVED!!!! DO NOT USE
-    @computed private get activeTransform(): IChartTransform | undefined {
-        if (this.isScatter || this.isTimeScatter) return this.scatterTransform
+    @computed private get xDimension() {
+        return this.filledDimensions.find((d) => d.property === "x")
+    }
 
-        return undefined
+    // todo: remove. do this at table filter level
+    getEntityNamesToShow(filterBackgroundEntities?: boolean): EntityName[] {
+        return []
+        // let entityNames = filterBackgroundEntities
+        //     ? this.table.selectedEntityNames
+        //     : this.possibleEntityNames
+
+        // if (this.matchingEntitiesOnly && this.colorDimension)
+        //     entityNames = intersection(
+        //         entityNames,
+        //         this.colorDimension.column.entityNamesUniqArr
+        //     )
+
+        // if (this.excludedEntityNames)
+        //     entityNames = entityNames.filter(
+        //         (entity) => !this.excludedEntityNames.includes(entity)
+        //     )
+
+        // return entityNames
+    }
+
+    // todo: remove this. Should be done as a simple column transform at the data level.
+    // Possible to override the x axis dimension to target a special year
+    // In case you want to graph say, education in the past and democracy today https://ourworldindata.org/grapher/correlation-between-education-and-democracy
+    @computed get xOverrideTime() {
+        return this.xDimension && this.xDimension.targetTime
+    }
+
+    set xOverrideTime(value: number | undefined) {
+        this.xDimension!.targetTime = value
+    }
+
+    // todo: move to table
+    @computed get excludedEntityNames(): EntityName[] {
+        const entityIds = this.excludedEntities || []
+        const entityNameMap = this.table.entityIdToNameMap
+        return entityIds
+            .map((entityId) => entityNameMap.get(entityId)!)
+            .filter((d) => d)
     }
 
     @computed get idealBounds() {
