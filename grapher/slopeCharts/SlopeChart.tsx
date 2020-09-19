@@ -17,12 +17,15 @@ import {
 import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 import { ColorScale } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE, Time } from "grapher/core/GrapherConstants"
+import { ChartInterface } from "grapher/chart/ChartInterface"
 
 @observer
-export class SlopeChart extends React.Component<{
-    bounds: Bounds
-    options: SlopeChartOptionsProvider
-}> {
+export class SlopeChart
+    extends React.Component<{
+        bounds: Bounds
+        options: SlopeChartOptionsProvider
+    }>
+    implements ChartInterface {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
@@ -69,7 +72,11 @@ export class SlopeChart extends React.Component<{
 
     @action.bound onSlopeClick() {
         const { options, hoverKey } = this
-        if (options.addCountryMode === "disabled" || hoverKey === undefined) {
+        if (
+            options.addCountryMode === "disabled" ||
+            !options.addCountryMode ||
+            hoverKey === undefined
+        ) {
             return
         }
 
@@ -91,10 +98,14 @@ export class SlopeChart extends React.Component<{
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
         const { options, hoverColor } = this
-        if (options.addCountryMode === "disabled" || hoverColor === undefined)
+        if (
+            options.addCountryMode === "disabled" ||
+            !options.addCountryMode ||
+            hoverColor === undefined
+        )
             return
 
-        const keysToToggle = this.data
+        const keysToToggle = this.marks
             .filter((g) => g.color === hoverColor)
             .map((g) => g.entityName)
         const allKeysActive =
@@ -114,7 +125,7 @@ export class SlopeChart extends React.Component<{
     @computed get focusColors() {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
-            const matchingKeys = this.data
+            const matchingKeys = this.marks
                 .filter((g) => g.color === color)
                 .map((g) => g.entityName)
             return (
@@ -136,7 +147,7 @@ export class SlopeChart extends React.Component<{
             hoverColor === undefined
                 ? []
                 : uniq(
-                      this.data
+                      this.marks
                           .filter((g) => g.color === hoverColor)
                           .map((g) => g.entityName)
                   )
@@ -153,10 +164,10 @@ export class SlopeChart extends React.Component<{
 
         if (activeKeys.length === 0)
             // No hover or focus means they're all active by default
-            return uniq(this.data.map((g) => g.color))
+            return uniq(this.marks.map((g) => g.color))
 
         return uniq(
-            this.data
+            this.marks
                 .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
                 .map((g) => g.color)
         )
@@ -164,7 +175,7 @@ export class SlopeChart extends React.Component<{
 
     // Only show colors on legend that are actually in use
     @computed get colorsInUse() {
-        return uniq(this.data.map((g) => g.color))
+        return uniq(this.marks.map((g) => g.color))
     }
 
     @computed get sidebarMaxWidth() {
@@ -213,7 +224,7 @@ export class SlopeChart extends React.Component<{
 
         const { bounds, options } = this.props
         const {
-            data,
+            marks,
             legend,
             focusKeys,
             hoverKeys,
@@ -230,7 +241,7 @@ export class SlopeChart extends React.Component<{
                     options={options}
                     bounds={innerBounds}
                     yColumn={this.yColumn!}
-                    data={data}
+                    data={marks}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}
@@ -257,7 +268,7 @@ export class SlopeChart extends React.Component<{
 
     @computed get failMessage() {
         if (!this.yColumn) return "Missing Y column"
-        else if (isEmpty(this.data)) return "No matching data"
+        else if (isEmpty(this.marks)) return "No matching data"
         return undefined
     }
 
@@ -285,11 +296,11 @@ export class SlopeChart extends React.Component<{
     }
 
     @computed private get yColumn() {
-        return this.columns.get(this.options.yColumnSlug!)
+        return this.options.yColumn!
     }
 
     @computed private get colorColumn() {
-        return this.columns.get(this.options.colorColumnSlug!)
+        return this.options.colorColumn!
     }
 
     // helper method to directly get the associated color value given an Entity
@@ -315,7 +326,7 @@ export class SlopeChart extends React.Component<{
     // dimension data saves size a level deeper. eg: { Afghanistan => { 1990: 1, 2015: 10 }}
     // this returns that data in the form { Afghanistan => 1 }
     @computed private get sizeByEntity(): Map<string, any> {
-        const sizeCol = this.columns.get(this.options.sizeColumnSlug!)
+        const sizeCol = this.options.sizeColumn
         const sizeByEntity = new Map<string, any>()
 
         if (sizeCol)
@@ -329,7 +340,7 @@ export class SlopeChart extends React.Component<{
         return sizeByEntity
     }
 
-    @computed get data() {
+    @computed get marks() {
         const column = this.yColumn
         if (!column) return []
 

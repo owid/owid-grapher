@@ -57,7 +57,7 @@ describe(Grapher, () => {
                 },
             },
         })
-        const col = grapher.primaryColumns[0]!
+        const col = grapher.yColumns[0]!
         expect(col.unit).toEqual(unit)
         expect(col.displayName).toEqual(name)
     })

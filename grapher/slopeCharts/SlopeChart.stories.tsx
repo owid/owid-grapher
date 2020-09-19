@@ -9,16 +9,14 @@ export default {
     component: SlopeChart,
 }
 
-const table = SynthesizeOwidTable({
-    timeRange: [1950, 2010],
-})
-
 export const Default = () => {
+    const table = SynthesizeOwidTable({
+        timeRange: [1950, 2010],
+    })
+
     const options: SlopeChartOptionsProvider = {
-        entityType: "Country",
-        addCountryMode: "add-country",
         table,
-        yColumnSlug: "GDP",
+        yColumn: table.get("GDP"),
     }
 
     return (

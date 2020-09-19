@@ -78,7 +78,7 @@ export class StackedBarTransform extends ChartTransform {
         const axis = grapher.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
-        axis.column = this.grapher.primaryColumns[0]
+        axis.column = this.grapher.yColumns[0]
         return axis
     }
 

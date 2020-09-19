@@ -56,7 +56,7 @@ export class LineChartTransform extends ChartTransform {
     }
 
     @computed private get annotationsMap() {
-        return this.grapher.primaryColumns[0].annotationsColumn?.entityNameMap
+        return this.grapher.yColumns[0].annotationsColumn?.entityNameMap
     }
 
     @computed private get colorScheme() {
@@ -230,7 +230,7 @@ export class LineChartTransform extends ChartTransform {
             (val) => val.y % 1 === 0
         ) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
-        axis.column = grapher.primaryColumns[0]
+        axis.column = grapher.yColumns[0]
         return axis
     }
 

@@ -256,7 +256,7 @@ export abstract class AbstractColumn {
     }
 
     @computed get isEmpty() {
-        return this.rowsWithValue.length > 0
+        return this.rowsWithValue.length === 0
     }
 
     @computed get datasetName() {
@@ -618,6 +618,10 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
 
     @computed get rows() {
         return this._rows
+    }
+
+    get(columnSlug: ColumnSlug) {
+        return this.columnsBySlug.get(columnSlug)
     }
 
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".

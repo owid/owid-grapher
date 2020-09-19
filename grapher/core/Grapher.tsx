@@ -595,11 +595,7 @@ export class Grapher
         return this.loadingDimensions.length === 0
     }
 
-    @computed get primaryColumnSlug() {
-        return this.dimensions.find((d) => d.property === "y")?.columnSlug
-    }
-
-    @computed get primaryColumns() {
+    @computed get yColumns() {
         return this.filledDimensions
             .filter((dim) => dim.property === "y")
             .map((dim) => dim.column)
@@ -956,17 +952,11 @@ export class Grapher
     @computed get mapColumn() {
         return this.map.columnSlug
             ? this.table.columnsBySlug.get(this.map.columnSlug)!
-            : this.primaryColumns[0]!
+            : this.yColumns[0]!
     }
 
     getColumnForProperty(property: DimensionProperty) {
         return this.dimensions.find((dim) => dim.property === property)?.column
-    }
-
-    @computed get yColumnSlug() {
-        return this.dimensions
-            .find((dim) => dim.property === "y")
-            ?.variableId.toString()
     }
 
     @computed get yColumn() {
@@ -975,6 +965,10 @@ export class Grapher
 
     @computed get xColumn() {
         return this.getColumnForProperty("x")
+    }
+
+    @computed get sizeColumn() {
+        return this.getColumnForProperty("size")
     }
 
     @computed private get timeTitleSuffix() {
@@ -1009,7 +1003,7 @@ export class Grapher
     }
 
     @computed get isSingleVariable() {
-        return this.primaryColumns.length === 1
+        return this.yColumns.length === 1
     }
 
     @computed get sourcesLine() {
@@ -1076,22 +1070,22 @@ export class Grapher
     }
 
     @computed private get defaultTitle() {
-        const { primaryColumns } = this
+        const { yColumns } = this
         if (this.isScatter)
             return this.axisDimensions
                 .map((d) => d.column.displayName)
                 .join(" vs. ")
 
         if (
-            primaryColumns.length > 1 &&
-            uniq(primaryColumns.map((col) => col.datasetName)).length === 1
+            yColumns.length > 1 &&
+            uniq(yColumns.map((col) => col.datasetName)).length === 1
         )
-            return primaryColumns[0].datasetName!
+            return yColumns[0].datasetName!
 
-        if (primaryColumns.length === 2)
-            return primaryColumns.map((col) => col.displayName).join(" and ")
+        if (yColumns.length === 2)
+            return yColumns.map((col) => col.displayName).join(" and ")
 
-        return primaryColumns.map((col) => col.displayName).join(", ")
+        return yColumns.map((col) => col.displayName).join(", ")
     }
 
     @computed get displayTitle() {

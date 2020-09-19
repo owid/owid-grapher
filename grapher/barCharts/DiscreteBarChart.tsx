@@ -6,7 +6,6 @@ import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
 import {
     Color,
-    TickFormattingOptions,
     ScaleType,
     Time,
     BASE_FONT_SIZE,
@@ -22,6 +21,7 @@ import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
+import { ChartInterface } from "grapher/chart/ChartInterface"
 
 interface DiscreteBarDatum {
     entityName: EntityName
@@ -42,22 +42,19 @@ export interface DiscreteBarChartOptionsProvider extends ChartOptionsProvider {
 }
 
 @observer
-export class DiscreteBarChart extends React.Component<{
-    bounds: Bounds
-    options: DiscreteBarChartOptionsProvider
-}> {
+export class DiscreteBarChart
+    extends React.Component<{
+        bounds: Bounds
+        options: DiscreteBarChartOptionsProvider
+    }>
+    implements ChartInterface {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get options() {
+    @computed private get options() {
         return this.props.options
     }
     @computed.struct private get bounds() {
         return this.props.bounds.padRight(10)
-    }
-
-    @computed private get displayData() {
-        // Uses allData when the timeline handles are being dragged, and currentData otherwise
-        return this.options.useTimelineDomains ? this.allData : this.currentData
     }
 
     @computed private get baseFontSize() {
@@ -80,7 +77,7 @@ export class DiscreteBarChart extends React.Component<{
 
     // Account for the width of the legend
     @computed private get legendWidth() {
-        const labels = this.currentData.map((d) => d.label)
+        const labels = this.marks.map((d) => d.label)
         if (this.hasFloatingAddButton)
             labels.push(` + ${this.options.addButtonLabel ?? "Add data"}`)
 
@@ -89,56 +86,50 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed private get hasPositive() {
-        return this.displayData.some((d) => d.value >= 0)
+        return this.marks.some((d) => d.value >= 0)
     }
 
     @computed private get hasNegative() {
-        return this.displayData.some((d) => d.value < 0)
+        return this.marks.some((d) => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
-    @computed private get rightEndLabelWidth(): number {
-        if (this.hasPositive) {
-            const positiveLabels = this.displayData
-                .filter((d) => d.value >= 0)
-                .map((d) => this.barValueFormat(d))
-            const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
-            return Bounds.forText(longestPositiveLabel, this.valueLabelStyle)
-                .width
-        } else {
-            return 0
-        }
+    @computed private get rightEndLabelWidth() {
+        if (!this.hasPositive) return 0
+
+        const positiveLabels = this.marks
+            .filter((d) => d.value >= 0)
+            .map((d) => this.barValueFormat(d))
+        const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
+        return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
     }
 
     // The amount of space we need to allocate for bar end labels on the left
     // These are only present if there are negative values
     // We pad this a little so it doesn't run directly up against the bar labels themselves
-    @computed private get leftEndLabelWidth(): number {
-        if (this.hasNegative) {
-            const negativeLabels = this.displayData
-                .filter((d) => d.value < 0)
-                .map((d) => this.barValueFormat(d))
-            const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
-            return (
-                Bounds.forText(longestNegativeLabel, this.valueLabelStyle)
-                    .width + labelToTextPadding
-            )
-        } else {
-            return 0
-        }
+    @computed private get leftEndLabelWidth() {
+        if (!this.hasNegative) return 0
+
+        const negativeLabels = this.marks
+            .filter((d) => d.value < 0)
+            .map((d) => this.barValueFormat(d))
+        const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
+        return (
+            Bounds.forText(longestNegativeLabel, this.valueLabelStyle).width +
+            labelToTextPadding
+        )
     }
 
-    @computed private get x0(): number {
-        if (this.isLogScale) {
-            const minValue = min(this.allData.map((d) => d.value))
-            return minValue !== undefined ? Math.min(1, minValue) : 1
-        }
-        return 0
+    @computed private get x0() {
+        if (!this.isLogScale) return 0
+
+        const minValue = min(this.marks.map((d) => d.value))
+        return minValue !== undefined ? Math.min(1, minValue) : 1
     }
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        const allValues = this.displayData.map((d) => d.value)
+        const allValues = this.marks.map((d) => d.value)
 
         const minStart = this.x0
         return [
@@ -163,7 +154,7 @@ export class DiscreteBarChart extends React.Component<{
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        const primaryColumns = this.primaryColumns
+        const primaryColumns = this.yColumns
         axis.column = primaryColumns[0]
         axis.range = this.xRange
         axis.label = ""
@@ -187,8 +178,8 @@ export class DiscreteBarChart extends React.Component<{
     // Leave space for extra bar at bottom to show "Add country" button
     @computed private get totalBars() {
         return this.hasFloatingAddButton
-            ? this.currentData.length + 1
-            : this.currentData.length
+            ? this.marks.length + 1
+            : this.marks.length
     }
 
     @computed private get barHeight() {
@@ -200,8 +191,8 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed private get barPlacements() {
-        const { currentData, axis } = this
-        return currentData.map((d) => {
+        const { marks, axis } = this
+        return marks.map((d) => {
             const isNegative = d.value < 0
             const barX = isNegative ? axis.place(d.value) : axis.place(this.x0)
             const barWidth = isNegative
@@ -238,11 +229,11 @@ export class DiscreteBarChart extends React.Component<{
         this.animateBarWidth()
     }
 
-    @action.bound onAddClick() {
+    @action.bound private onAddClick() {
         this.options.isSelectingData = true
     }
 
-    get addEntityButton() {
+    private get addEntityButton() {
         if (!this.hasFloatingAddButton) return undefined
         const y =
             this.bounds.top +
@@ -261,7 +252,7 @@ export class DiscreteBarChart extends React.Component<{
                     align="right"
                     verticalAlign="middle"
                     height={this.barHeight}
-                    label={`Add ${this.options.entityType}`}
+                    label={`Add ${this.options.entityType ?? "Country"}`}
                     onClick={this.onAddClick}
                 />
             </ControlsOverlay>
@@ -279,7 +270,7 @@ export class DiscreteBarChart extends React.Component<{
             )
 
         const {
-            currentData,
+            marks,
             bounds,
             axis,
             innerBounds,
@@ -313,7 +304,7 @@ export class DiscreteBarChart extends React.Component<{
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                {currentData.map((d) => {
+                {marks.map((d) => {
                     const isNegative = d.value < 0
                     const barX = isNegative
                         ? axis.place(d.value)
@@ -391,23 +382,28 @@ export class DiscreteBarChart extends React.Component<{
     }
 
     @computed get failMessage() {
-        const column = this.primaryColumns[0]
+        const column = this.yColumns[0]
 
-        if (!column) return "Missing column"
+        if (!column) return "No column to chart"
 
-        return column.isEmpty ? "No matching data" : undefined
+        if (!column.table.hasSelection)
+            return `No selected ${this.options.entityType ?? "Country"}`
+
+        return column.isEmpty
+            ? `No matching data in column ${column.name}`
+            : undefined
     }
 
-    @computed get primaryColumns() {
-        return this.options.primaryColumns ? this.options.primaryColumns : []
-    }
-
-    @computed get availableTimes(): Time[] {
-        return this.primaryColumns[0]?.timesUniq || []
+    @computed private get yColumns() {
+        return this.options.yColumns
+            ? this.options.yColumns
+            : this.options.yColumn
+            ? [this.options.yColumn]
+            : []
     }
 
     @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
-        const column = this.primaryColumns[0]
+        const column = this.yColumns[0]
         const { endTimelineTime } = column
         const { table } = this.options
 
@@ -424,25 +420,21 @@ export class DiscreteBarChart extends React.Component<{
         }
     }
 
-    @computed get currentData() {
-        const { options, primaryColumns } = this
+    @computed get marks() {
+        const { options, yColumns } = this
         const { table } = options
-        const primaryColumn = primaryColumns[0]
-        if (!primaryColumn) return []
-        const targetTime = primaryColumn.endTimelineTime
+        const yColumn = yColumns[0]
         const { getColorForEntityName, getLabelForEntityName } = table
 
         const rows = table
             .getClosestRowForEachSelectedEntity(
-                targetTime,
-                primaryColumn.tolerance
+                yColumn.endTimelineTime,
+                yColumn.tolerance
             )
+            .filter((row) => !this.isLogScale || row[yColumn.slug] > 0)
             .map((row) => {
                 const { entityName, time } = row
-                const value = row[primaryColumn.slug]
-
-                if (this.isLogScale && value <= 0) return null
-
+                const value = row[yColumn.slug]
                 const datum: DiscreteBarDatum = {
                     entityName,
                     value,
@@ -452,7 +444,6 @@ export class DiscreteBarChart extends React.Component<{
                 }
                 return datum
             })
-            .filter((row) => row) as DiscreteBarDatum[]
 
         const sortedRows = sortBy(rows, (row) => row.value)
 
@@ -486,74 +477,7 @@ export class DiscreteBarChart extends React.Component<{
         return orderBy(sortedRows, ["value", "entityName"], ["desc", "asc"])
     }
 
-    private _filterArrayForLogScale(allData: DiscreteBarDatum[]) {
-        // It seems the approach we follow with log scales in the other charts is to filter out zero values.
-        // This is because, as d3 puts it: "a log scale domain must be strictly-positive or strictly-negative;
-        // the domain must not include or cross zero". We may want to update to d3 5.8 and explore switching to
-        // scaleSymlog which handles a wider domain.
-        return allData.filter((datum) => datum.value > 0)
-    }
-
     @computed private get isLogScale() {
         return this.yAxis.scaleType === ScaleType.log
-    }
-
-    @computed get allData() {
-        //if (!this.hasTimeline)
-        return this.currentData
-
-        // const { grapher } = this
-        // const {
-        //     selectedEntityNameSet,
-        //     getColorForEntityName,
-        //     getLabelForEntityName,
-        // } = grapher.table
-        // const filledDimensions = grapher.filledDimensions
-        // const allData: DiscreteBarDatum[] = []
-
-        // filledDimensions.forEach((dimension) => {
-        //     const { column } = dimension
-
-        //     for (let i = 0; i < column.times.length; i++) {
-        //         const year = column.times[i]
-        //         const entityName = column.entityNames[i]
-
-        //         if (!selectedEntityNameSet.has(entityName)) continue
-
-        //         const datum = {
-        //             entityName,
-        //             value: +column.values[i],
-        //             year,
-        //             label: getLabelForEntityName(entityName),
-        //             color: "#2E5778",
-        //         }
-
-        //         allData.push(datum)
-        //     }
-        // })
-
-        // const filteredData = this.isLogScale
-        //     ? this._filterArrayForLogScale(allData)
-        //     : allData
-
-        // const data = sortNumeric(filteredData, (d) => d.value)
-        // const colorScheme = grapher.baseColorScheme
-        //     ? ColorSchemes[grapher.baseColorScheme]
-        //     : undefined
-        // const uniqValues = sortedUniq(data.map((d) => d.value))
-        // const colors = colorScheme?.getColors(uniqValues.length) || []
-        // if (grapher.invertColorScheme) colors.reverse()
-
-        // const colorByValue = new Map<number, string>()
-        // uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
-
-        // data.forEach((d) => {
-        //     d.color =
-        //         getColorForEntityName(d.entityName) ||
-        //         colorByValue.get(d.value) ||
-        //         d.color
-        // })
-
-        // return sortNumeric(data, (d) => d.value, SortOrder.desc)
     }
 }

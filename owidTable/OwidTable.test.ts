@@ -128,6 +128,9 @@ describe("can query the data", () => {
 
         expect(table.selectedEntityNames.length).toEqual(3)
         expect(
+            table.getClosestRowForEachSelectedEntity(2003, 0).length
+        ).toEqual(3)
+        expect(
             table.getClosestRowForEachSelectedEntity(2004, 1).length
         ).toEqual(3)
         expect(
@@ -222,6 +225,7 @@ iceland,1`
         const csv = table.toDelimited()
         expect(csv).toEqual(`country,Population-in-2020
 iceland,1`)
+        expect(table.get("country")!.isEmpty).toBe(false)
     })
 })
 

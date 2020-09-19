@@ -24,6 +24,7 @@ import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
 import { MapConfig } from "./MapConfig"
 import { ColorScale } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { ChartInterface } from "grapher/chart/ChartInterface"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -37,9 +38,9 @@ interface MapChartWithLegendProps {
 }
 
 @observer
-export class MapChartWithLegend extends React.Component<
-    MapChartWithLegendProps
-> {
+export class MapChartWithLegend
+    extends React.Component<MapChartWithLegendProps>
+    implements ChartInterface {
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -48,7 +49,7 @@ export class MapChartWithLegend extends React.Component<
 
     base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
-        const datum = d.id === undefined ? undefined : this.choroplethData[d.id]
+        const datum = d.id === undefined ? undefined : this.marks[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
 
         const { containerElement } = this.props
@@ -158,7 +159,7 @@ export class MapChartWithLegend extends React.Component<
     }
 
     // Get the final data incorporating the binning colors
-    @computed get choroplethData() {
+    @computed get marks() {
         const { valuesByEntity } = this
         const choroplethData: ChoroplethData = {}
 
@@ -256,7 +257,7 @@ export class MapChartWithLegend extends React.Component<
             mapLegend,
             tooltipTarget,
             projectionChooserBounds,
-            choroplethData,
+            marks,
             colorScale,
             mapConfig,
         } = this
@@ -264,14 +265,14 @@ export class MapChartWithLegend extends React.Component<
         const { projection } = mapConfig
 
         const tooltipDatum = tooltipTarget
-            ? choroplethData[tooltipTarget.featureId]
+            ? marks[tooltipTarget.featureId]
             : undefined
 
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
                     bounds={this.props.bounds.padBottom(mapLegend.height + 15)}
-                    choroplethData={choroplethData}
+                    choroplethData={marks}
                     projection={projection}
                     defaultFill={colorScale.noDataColor}
                     onHover={this.onMapMouseOver}

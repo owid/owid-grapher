@@ -1,7 +1,6 @@
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { AbstractColumn, OwidTable } from "owidTable/OwidTable"
-import { ColumnSlug } from "owidTable/OwidTableConstants"
 
 // NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
 // our Options as an "Options Provider". To get or set any of the options, you then have to "dot in" to the options provider
@@ -10,7 +9,7 @@ import { ColumnSlug } from "owidTable/OwidTableConstants"
 export interface ChartOptionsProvider {
     baseFontSize?: number
     table: OwidTable // todo: abstract table?
-    entityType: string
+    entityType?: string
     showAddEntityControls?: boolean
     isSelectingData?: boolean
     canAddData?: boolean
@@ -22,11 +21,12 @@ export interface ChartOptionsProvider {
     hideLegend?: boolean
     tooltip?: TooltipProps
     useTimelineDomains?: boolean
-    primaryColumns?: AbstractColumn[]
-    yColumnSlug?: ColumnSlug
-    xColumnSlug?: ColumnSlug
-    sizeColumnSlug?: ColumnSlug
-    colorColumnSlug?: ColumnSlug
     baseColorScheme?: string
     invertColorScheme?: boolean
+
+    yColumn?: AbstractColumn
+    yColumns?: AbstractColumn[]
+    xColumn?: AbstractColumn
+    sizeColumn?: AbstractColumn
+    colorColumn?: AbstractColumn
 }

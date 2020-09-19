@@ -4,5 +4,5 @@ import { AddCountryMode } from "grapher/core/GrapherConstants"
 
 export interface SlopeChartOptionsProvider extends ChartOptionsProvider {
     yAxis?: AxisConfig // just pass interface?
-    addCountryMode: AddCountryMode
+    addCountryMode?: AddCountryMode
 }
