@@ -24,9 +24,9 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
 import { AbstractColumn } from "owidTable/OwidTable"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 
 export interface SlopeChartValue {
     x: number
@@ -272,7 +272,7 @@ class Slope extends React.Component<SlopeProps> {
 }
 
 interface LabelledSlopesProps {
-    options: SlopeChartOptionsProvider
+    options: ChartOptionsProvider
     yColumn: AbstractColumn
     bounds: Bounds
     data: SlopeChartSeries[]

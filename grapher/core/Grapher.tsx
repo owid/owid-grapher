@@ -57,7 +57,6 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
 import { StackedBarTransform } from "grapher/barCharts/StackedBarTransform"
-import { StackedAreaTransform } from "grapher/areaCharts/StackedAreaTransform"
 import { LineChartTransform } from "grapher/lineCharts/LineChartTransform"
 import { ScatterTransform } from "grapher/scatterCharts/ScatterTransform"
 import { GrapherView } from "grapher/core/GrapherView"
@@ -1126,9 +1125,6 @@ export class Grapher
     @computed get scatterTransform() {
         return new ScatterTransform(this)
     }
-    @computed get stackedAreaTransform() {
-        return new StackedAreaTransform(this)
-    }
     @computed get stackedBarTransform() {
         return new StackedBarTransform(this)
     }
@@ -1146,7 +1142,6 @@ export class Grapher
         else if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
             return this.scatterTransform
-        else if (this.isStackedArea) return this.stackedAreaTransform
         else if (this.isStackedBar) return this.stackedBarTransform
 
         return undefined
@@ -1190,7 +1185,7 @@ export class Grapher
 
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
-    @computed get isRelativeMode(): boolean {
+    @computed get isRelativeMode() {
         return this.stackMode === "relative"
     }
 

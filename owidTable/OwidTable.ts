@@ -339,6 +339,10 @@ export abstract class AbstractColumn {
         return this.timesUniq.length > 1
     }
 
+    @computed get startTimelineTime() {
+        return this.minTime
+    }
+
     @computed get endTimelineTime() {
         return this.maxTime
     }

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { SlopeChart } from "./SlopeChart"
 import { SynthesizeOwidTable } from "owidTable/OwidTable"
-import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 
 export default {
     title: "SlopeChart",
@@ -13,7 +13,7 @@ export const Default = () => {
         timeRange: [1950, 2010],
     })
 
-    const options: SlopeChartOptionsProvider = {
+    const options: ChartOptionsProvider = {
         table,
         yColumn: table.get("GDP"),
     }

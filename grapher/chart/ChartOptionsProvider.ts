@@ -1,3 +1,5 @@
+import { AxisConfig } from "grapher/axis/AxisConfig"
+import { AddCountryMode } from "grapher/core/GrapherConstants"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { AbstractColumn, OwidTable } from "owidTable/OwidTable"
@@ -23,6 +25,10 @@ export interface ChartOptionsProvider {
     useTimelineDomains?: boolean
     baseColorScheme?: string
     invertColorScheme?: boolean
+
+    yAxis?: AxisConfig // just pass interface?
+    xAxis?: AxisConfig // just pass interface?
+    addCountryMode?: AddCountryMode
 
     yColumn?: AbstractColumn
     yColumns?: AbstractColumn[]

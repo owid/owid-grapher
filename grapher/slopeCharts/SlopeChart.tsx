@@ -14,16 +14,16 @@ import {
     VerticalColorLegend,
     ScatterColorLegendView,
 } from "grapher/scatterCharts/ScatterColorLegend"
-import { SlopeChartOptionsProvider } from "./SlopeChartOptionsProvider"
 import { ColorScale } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE, Time } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 
 @observer
 export class SlopeChart
     extends React.Component<{
         bounds?: Bounds
-        options: SlopeChartOptionsProvider
+        options: ChartOptionsProvider
     }>
     implements ChartInterface {
     // currently hovered individual series key
