@@ -1,4 +1,5 @@
 import { AxisConfig } from "grapher/axis/AxisConfig"
+import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { AddCountryMode } from "grapher/core/GrapherConstants"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
@@ -25,6 +26,8 @@ export interface ChartOptionsProvider {
     useTimelineDomains?: boolean
     baseColorScheme?: string
     invertColorScheme?: boolean
+
+    colorScale?: ColorScaleConfigInterface
 
     yAxis?: AxisConfig // just pass interface?
     xAxis?: AxisConfig // just pass interface?

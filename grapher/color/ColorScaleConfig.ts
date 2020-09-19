@@ -1,4 +1,4 @@
-import { observable, toJS } from "mobx"
+import { observable } from "mobx"
 
 import { Color } from "grapher/core/GrapherConstants"
 import { BinningStrategy } from "./BinningStrategies"

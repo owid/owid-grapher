@@ -38,7 +38,6 @@ export interface DiscreteBarChartOptionsProvider extends ChartOptionsProvider {
     addButtonLabel?: string
     hasFloatingAddButton?: boolean
     showYearLabels?: boolean
-    yAxis?: AxisConfig // just pass interface?
 }
 
 @observer

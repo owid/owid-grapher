@@ -56,7 +56,6 @@ import {
     GrapherUrl,
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
-import { StackedBarTransform } from "grapher/barCharts/StackedBarTransform"
 import { LineChartTransform } from "grapher/lineCharts/LineChartTransform"
 import { ScatterTransform } from "grapher/scatterCharts/ScatterTransform"
 import { GrapherView } from "grapher/core/GrapherView"
@@ -1125,9 +1124,6 @@ export class Grapher
     @computed get scatterTransform() {
         return new ScatterTransform(this)
     }
-    @computed get stackedBarTransform() {
-        return new StackedBarTransform(this)
-    }
     @computed get dataTableTransform() {
         return new DataTableTransform(this)
     }
@@ -1142,7 +1138,6 @@ export class Grapher
         else if (this.isLineChart) return this.lineChartTransform
         else if (this.isScatter || this.isTimeScatter)
             return this.scatterTransform
-        else if (this.isStackedBar) return this.stackedBarTransform
 
         return undefined
     }
