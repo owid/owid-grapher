@@ -9,7 +9,7 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExcla
 import { Grapher } from "grapher/core/Grapher"
 import { ControlsFooterView } from "grapher/controls/Controls"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { ChartTab } from "grapher/chart/ChartTab"
+import { ChartTab, ChartTabOptionsProvider } from "grapher/chart/ChartTab"
 import { SourcesTab } from "grapher/sourcesTab/SourcesTab"
 import { DownloadTab } from "grapher/downloadTab/DownloadTab"
 import {
@@ -31,6 +31,7 @@ import { UrlBinder } from "grapher/utils/UrlBinder"
 import { GlobalEntitySelection } from "site/globalEntityControl/GlobalEntitySelection"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { DataTable } from "grapher/dataTable/DataTable"
+import { OverlayPadding } from "./GrapherConstants"
 
 declare const window: any
 
@@ -53,7 +54,9 @@ function isVisible(elm: HTMLElement | null) {
 }
 
 @observer
-export class GrapherView extends React.Component<GrapherViewProps> {
+export class GrapherView
+    extends React.Component<GrapherViewProps>
+    implements ChartTabOptionsProvider {
     static bootstrap({
         jsonConfig,
         containerNode,
@@ -155,7 +158,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
     }
 
     // If the available space is very small, we use all of the space given to us
-    @computed private get fitBounds(): boolean {
+    @computed private get fitBounds() {
         const {
             isEditor,
             isEmbed,
@@ -166,36 +169,36 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         } = this
 
         if (isEditor) return false
-        else
-            return (
-                isEmbed ||
-                isExport ||
-                bounds.height < authorHeight ||
-                bounds.width < authorWidth
-            )
+
+        return (
+            isEmbed ||
+            isExport ||
+            bounds.height < authorHeight ||
+            bounds.width < authorWidth
+        )
     }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
-    @computed private get paddedWidth(): number {
+    @computed private get paddedWidth() {
         return this.isPortrait
             ? this.bounds.width * 0.95
             : this.bounds.width * 0.95
     }
-    @computed private get paddedHeight(): number {
+    @computed private get paddedHeight() {
         return this.isPortrait
             ? this.bounds.height * 0.95
             : this.bounds.height * 0.95
     }
-    @computed private get scaleToFitIdeal(): number {
+    @computed private get scaleToFitIdeal() {
         return Math.min(
             this.paddedWidth / this.authorWidth,
             this.paddedHeight / this.authorHeight
         )
     }
-    @computed private get idealWidth(): number {
+    @computed private get idealWidth() {
         return this.authorWidth * this.scaleToFitIdeal
     }
-    @computed private get idealHeight(): number {
+    @computed private get idealHeight() {
         return this.authorHeight * this.scaleToFitIdeal
     }
 
@@ -223,10 +226,14 @@ export class GrapherView extends React.Component<GrapherViewProps> {
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @observable private hasBeenVisible: boolean = false
-    @observable private hasError: boolean = false
+    @computed get containerElement() {
+        return this.base.current || undefined
+    }
 
-    @computed private get classNames(): string {
+    @observable private hasBeenVisible = false
+    @observable private hasError = false
+
+    @computed private get classNames() {
         const classNames = [
             "chart",
             this.isExport && "export",
@@ -259,14 +266,14 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         }
     }
 
-    private renderPrimaryTab(): JSX.Element | undefined {
+    private renderPrimaryTab() {
         const { grapher, tabBounds } = this
         if (grapher.primaryTab === "chart" || grapher.primaryTab === "map")
             return (
                 <ChartTab
                     bounds={tabBounds}
                     grapher={this.grapher}
-                    grapherView={this}
+                    options={this}
                 />
             )
 
@@ -276,7 +283,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         return undefined
     }
 
-    private renderOverlayTab(bounds: Bounds): JSX.Element | undefined {
+    private renderOverlayTab(bounds: Bounds) {
         const { grapher } = this
         if (grapher.overlayTab === "sources")
             return (
@@ -294,7 +301,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
                     grapher={grapher}
                 />
             )
-        else return undefined
+        return undefined
     }
 
     private renderSVG() {
@@ -393,9 +400,8 @@ export class GrapherView extends React.Component<GrapherViewProps> {
 
     // Chart should only render SVG when it's on the screen
     @action.bound private checkVisibility() {
-        if (!this.hasBeenVisible && isVisible(this.base.current)) {
+        if (!this.hasBeenVisible && isVisible(this.base.current))
             this.hasBeenVisible = true
-        }
     }
 
     @action.bound private setBaseFontSize() {
@@ -438,14 +444,9 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         this.grapher.analytics.logChartError(error, info)
     }
 
-    @observable isShareMenuActive: boolean = false
+    @observable isShareMenuActive = false
 
-    @computed.struct get overlayPadding(): {
-        top: number
-        right: number
-        bottom: number
-        left: number
-    } {
+    @computed.struct get overlayPadding(): OverlayPadding {
         const overlays = Object.values(this.overlays)
         return {
             top: max(overlays.map((overlay) => overlay.props.paddingTop)) ?? 0,
@@ -498,7 +499,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         )
     }
 
-    @computed private get footerLines(): number {
+    @computed private get footerLines() {
         let numLines = 1
         if (this.hasTimeline) numLines += 1
         if (this.hasInlineControls) numLines += 1
@@ -507,7 +508,7 @@ export class GrapherView extends React.Component<GrapherViewProps> {
         return numLines
     }
 
-    @computed get footerHeight(): number {
+    @computed get footerHeight() {
         const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
         return (
             this.footerLines * footerRowHeight +

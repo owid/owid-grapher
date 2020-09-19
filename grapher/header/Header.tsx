@@ -19,6 +19,10 @@ export class Header extends React.Component<{
         return this.options.baseFontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get maxWidth() {
+        return this.props.maxWidth
+    }
+
     @computed private get titleText() {
         return this.options.currentTitle ?? ""
     }
@@ -27,7 +31,7 @@ export class Header extends React.Component<{
         return this.options.subtitle ?? ""
     }
 
-    @computed get logo(): Logo | undefined {
+    @computed get logo() {
         const { options } = this
         if (options.hideLogo) return undefined
 
@@ -46,8 +50,8 @@ export class Header extends React.Component<{
     }
 
     @computed get title() {
-        const { props, logoWidth } = this
-        const maxWidth = props.maxWidth - logoWidth - 20
+        const { logoWidth } = this
+        const maxWidth = this.maxWidth - logoWidth - 20
 
         // Try to fit the title into a single line if possible-- but not if it would make the text super small
         let title: TextWrap
@@ -76,8 +80,8 @@ export class Header extends React.Component<{
     @computed get subtitleWidth() {
         // If the subtitle is entirely below the logo, we can go underneath it
         return this.title.height > this.logoHeight
-            ? this.props.maxWidth
-            : this.props.maxWidth - this.logoWidth - 10
+            ? this.maxWidth
+            : this.maxWidth - this.logoWidth - 10
     }
 
     @computed get subtitle() {
@@ -107,8 +111,7 @@ export class Header extends React.Component<{
     }
 
     renderStatic(x: number, y: number) {
-        const { title, logo, subtitle, options } = this
-        const { maxWidth } = this.props
+        const { title, logo, subtitle, options, maxWidth } = this
 
         if (options.isMediaCard) return null
 

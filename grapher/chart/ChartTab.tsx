@@ -1,31 +1,69 @@
 // The ChartTab renders a Header and Footer as well as any chart, including the Map chart.
 
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Grapher } from "grapher/core/Grapher"
-import { GrapherView } from "grapher/core/GrapherView"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
 import { LoadingOverlay } from "grapher/loadingIndicator/LoadingOverlay"
 import { getChartComponent } from "./ChartTypeMap"
 import { MapChartWithLegend } from "grapher/mapCharts/MapChartWithLegend"
+import { OverlayPadding } from "grapher/core/GrapherConstants"
+import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
+
+export interface ChartTabOptionsProvider {
+    overlayPadding?: OverlayPadding
+    containerElement?: HTMLDivElement
+    overlays?: { [id: string]: ControlsOverlay }
+}
 
 @observer
 export class ChartTab extends React.Component<{
     grapher: Grapher
-    grapherView: GrapherView
-    bounds: Bounds
+    bounds?: Bounds
+    options?: ChartTabOptionsProvider
 }> {
     @computed private get paddedBounds() {
-        return this.props.bounds.pad(15)
+        return this.bounds.pad(15)
+    }
+
+    @computed private get overlayPadding() {
+        return (
+            this.options?.overlayPadding ?? {
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+            }
+        )
+    }
+
+    @computed private get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get options() {
+        return this.props.options
+    }
+
+    @computed private get grapher() {
+        return this.props.grapher
+    }
+
+    @computed private get containerElement() {
+        return this.options?.containerElement
+    }
+
+    @computed private get overlays() {
+        return this.options?.overlays || {}
     }
 
     @computed private get header() {
         const that = this
         return new Header({
-            options: this.props.grapher,
+            options: this.grapher,
             get maxWidth() {
                 return that.paddedBounds.width
             },
@@ -35,7 +73,7 @@ export class ChartTab extends React.Component<{
     @computed private get footer() {
         const that = this
         return new Footer({
-            options: this.props.grapher,
+            options: this.grapher,
             get maxWidth() {
                 return that.paddedBounds.width
             },
@@ -43,24 +81,22 @@ export class ChartTab extends React.Component<{
     }
 
     @computed private get isExporting() {
-        return !!this.props.grapher.isExporting
+        return !!this.grapher.isExporting
     }
 
     @computed private get svgWidth() {
-        if (this.isExporting) return this.props.bounds.width
+        if (this.isExporting) return this.bounds.width
 
-        const { overlayPadding } = this.props.grapherView
-        return (
-            this.props.bounds.width - overlayPadding.left - overlayPadding.right
-        )
+        const { overlayPadding } = this
+        return this.bounds.width - overlayPadding.left - overlayPadding.right
     }
 
     @computed private get svgHeight() {
-        if (this.isExporting) return this.props.bounds.height
+        if (this.isExporting) return this.bounds.height
 
-        const { overlayPadding } = this.props.grapherView
+        const { overlayPadding } = this
         return (
-            this.props.bounds.height -
+            this.bounds.height -
             this.header.height -
             this.footer.height -
             overlayPadding.top -
@@ -79,7 +115,7 @@ export class ChartTab extends React.Component<{
     }
 
     private renderChart() {
-        const options = this.props.grapher
+        const options = this.grapher
         const type = options.type
         const innerBounds = this.innerBounds
         const isMapTab = options.tab === "map"
@@ -90,9 +126,7 @@ export class ChartTab extends React.Component<{
         if (isMapTab)
             return (
                 <MapChartWithLegend
-                    containerElement={
-                        this.props.grapherView.base.current ?? undefined
-                    }
+                    containerElement={this.containerElement ?? undefined}
                     bounds={innerBounds}
                     options={options}
                 />
@@ -117,7 +151,7 @@ export class ChartTab extends React.Component<{
     @computed private get svgStyle() {
         return {
             fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.props.grapher.baseFontSize,
+            fontSize: this.grapher.baseFontSize,
             backgroundColor: "white",
             textRendering: "optimizeLegibility",
             WebkitFontSmoothing: "antialiased",
@@ -155,37 +189,9 @@ export class ChartTab extends React.Component<{
     }
 
     private renderWithHTMLText() {
-        const { grapherView, grapher } = this.props
-        const { maxWidth } = this
-        return (
-            <React.Fragment>
-                <Header maxWidth={maxWidth} options={grapher} />
-                <ControlsOverlayView grapherView={grapherView}>
-                    <svg {...this.svgProps}>{this.renderChart()}</svg>
-                </ControlsOverlayView>
-                <Footer maxWidth={maxWidth} options={grapher} />
-            </React.Fragment>
-        )
-    }
+        const { maxWidth, grapher } = this
+        const { overlayPadding } = this
 
-    render() {
-        return this.isExporting
-            ? this.renderWithSVGText()
-            : this.renderWithHTMLText()
-    }
-}
-
-@observer
-class ControlsOverlayView extends React.Component<{
-    grapherView: GrapherView
-    children: JSX.Element
-}> {
-    @action.bound onDataSelect() {
-        this.props.grapherView.grapher.isSelectingData = true
-    }
-
-    render() {
-        const { overlayPadding } = this.props.grapherView
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
@@ -206,19 +212,28 @@ class ControlsOverlayView extends React.Component<{
             width: "0px",
             height: "0px",
         }
+
         return (
-            <div style={containerStyle}>
-                {this.props.children}
-                <div className="ControlsOverlay" style={overlayStyle}>
-                    {Object.entries(this.props.grapherView.overlays).map(
-                        ([key, overlay]) => (
+            <React.Fragment>
+                <Header maxWidth={maxWidth} options={grapher} />
+                <div style={containerStyle}>
+                    <svg {...this.svgProps}>{this.renderChart()}</svg>
+                    <div className="ControlsOverlay" style={overlayStyle}>
+                        {Object.entries(this.overlays).map(([key, overlay]) => (
                             <React.Fragment key={key}>
                                 {overlay.props.children}
                             </React.Fragment>
-                        )
-                    )}
+                        ))}
+                    </div>
                 </div>
-            </div>
+                <Footer maxWidth={maxWidth} options={grapher} />
+            </React.Fragment>
         )
+    }
+
+    render() {
+        return this.isExporting
+            ? this.renderWithSVGText()
+            : this.renderWithHTMLText()
     }
 }

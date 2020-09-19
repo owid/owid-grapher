@@ -86,7 +86,7 @@ import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
 import { LogoOption } from "grapher/chart/Logos"
-import { AxisConfig } from "grapher/axis/AxisConfig"
+import { AxisConfig, FontSizeOptionsProvider } from "grapher/axis/AxisConfig"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { MapConfig } from "grapher/mapCharts/MapConfig"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
@@ -187,7 +187,8 @@ export class Grapher
         TimeViz,
         ChartOptionsProvider,
         FooterOptionsProvider,
-        HeaderOptionsProvider {
+        HeaderOptionsProvider,
+        FontSizeOptionsProvider {
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
@@ -198,6 +199,9 @@ export class Grapher
 
     configOnLoad: Readonly<GrapherInterface>
     @observable.ref table: OwidTable
+
+    @observable.ref xAxis = new AxisConfig(undefined, this)
+    @observable.ref yAxis = new AxisConfig(undefined, this)
 
     constructor(
         legacyConfig?: LegacyGrapherInterface | GrapherInterface,
@@ -216,8 +220,6 @@ export class Grapher
         this.updateFromObject(config)
         this.isEmbed = !!options.isEmbed
         this.isMediaCard = !!options.isMediaCard
-
-        this.initFontSizeInAxisContainers()
 
         if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
         else if (this.externalDataUrl)
@@ -703,16 +705,8 @@ export class Grapher
         this.disposers.forEach((dispose) => dispose())
     }
 
-    private initFontSizeInAxisContainers() {
-        // Todo: there is probably a cleaner way to pass fontSize in.
-        const that = this
-        const axisContainer = {
-            get fontSize() {
-                return that.baseFontSize
-            },
-        }
-        this.xAxis.container = axisContainer
-        this.yAxis.container = axisContainer
+    @computed get fontSize() {
+        return this.baseFontSize
     }
 
     updatePopulationFilter() {

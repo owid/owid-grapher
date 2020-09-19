@@ -1,4 +1,4 @@
-import { ScaleType } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, ScaleType } from "grapher/core/GrapherConstants"
 import { extend, trimObject } from "grapher/utils/Util"
 import { observable, computed } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
@@ -8,8 +8,7 @@ import {
 } from "grapher/persistable/Persistable"
 import { AxisConfigInterface } from "./AxisConfigInterface"
 
-// Todo: remove
-interface AxisContainerInterface {
+export interface FontSizeOptionsProvider {
     fontSize: number
 }
 
@@ -26,10 +25,16 @@ export class AxisConfig
     extends AxisConfigDefaults
     implements AxisConfigInterface, Persistable {
     // todo: test/refactor
-    constructor(props?: AxisConfigInterface) {
+    constructor(
+        props?: AxisConfigInterface,
+        fontSizeOptions?: FontSizeOptionsProvider
+    ) {
         super()
         this.updateFromObject(props)
+        this.fontSizeOptions = fontSizeOptions
     }
+
+    private fontSizeOptions?: FontSizeOptionsProvider
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface) {
@@ -51,16 +56,8 @@ export class AxisConfig
         return obj
     }
 
-    set container(containerOptions: AxisContainerInterface) {
-        this.containerOptions = containerOptions
-    }
-
-    @observable.ref private containerOptions: AxisContainerInterface = {
-        fontSize: 16,
-    }
-
     @computed get fontSize() {
-        return this.containerOptions.fontSize
+        return this.fontSizeOptions?.fontSize || BASE_FONT_SIZE
     }
 
     // A log scale domain cannot have values <= 0, so we

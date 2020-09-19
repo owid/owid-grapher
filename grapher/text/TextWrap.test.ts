@@ -7,11 +7,10 @@ const FONT_SIZE = 14
 
 describe(TextWrap, () => {
     describe("width()", () => {
-        function stringWidth(text: string): number {
-            return Bounds.forText(text, { fontSize: FONT_SIZE }).width
-        }
+        const stringWidth = (text: string) =>
+            Bounds.forText(text, { fontSize: FONT_SIZE }).width
 
-        function renderedWidth(text: string, raw?: true): number {
+        const renderedWidth = (text: string, raw?: true) => {
             const textwrap = new TextWrap({
                 maxWidth: Infinity,
                 fontSize: FONT_SIZE,
