@@ -19,6 +19,7 @@ import { Bounds } from "grapher/utils/Bounds"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { EntityName } from "owidTable/OwidTableConstants"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -54,7 +55,7 @@ interface PlacedLabel {
     totalLevels: number
 }
 
-function groupBounds(group: PlacedLabel[]): Bounds {
+function groupBounds(group: PlacedLabel[]) {
     const first = group[0]
     const last = group[group.length - 1]
     const height = last.bounds.bottom - first.bounds.top
@@ -72,75 +73,10 @@ function stackGroupVertically(group: PlacedLabel[], y: number) {
     return group
 }
 
-interface LineLabelsHelperProps {
-    items: LineLabel[]
-    maxWidth?: number
-    fontSize: number
-}
-
-// Todo: can we remove?
-export class LineLabelsHelper {
-    props: LineLabelsHelperProps
-
-    @computed private get fontSize(): number {
-        return 0.75 * this.props.fontSize
-    }
-    @computed get leftPadding(): number {
-        return 35
-    }
-    @computed private get maxWidth() {
-        return defaultTo(this.props.maxWidth, Infinity)
-    }
-
-    @computed.struct get marks(): SizedLabel[] {
-        const { fontSize, leftPadding, maxWidth } = this
-        const maxTextWidth = maxWidth - leftPadding
-        const maxAnnotationWidth = Math.min(maxTextWidth, 150)
-
-        return this.props.items.map((item) => {
-            const annotationTextWrap = item.annotation
-                ? new TextWrap({
-                      text: item.annotation,
-                      maxWidth: maxAnnotationWidth,
-                      fontSize: fontSize * 0.9,
-                  })
-                : undefined
-            const textWrap = new TextWrap({
-                text: item.label,
-                maxWidth: maxTextWidth,
-                fontSize,
-            })
-            return {
-                item,
-                textWrap,
-                annotationTextWrap,
-                width:
-                    leftPadding +
-                    Math.max(
-                        textWrap.width,
-                        annotationTextWrap ? annotationTextWrap.width : 0
-                    ),
-                height:
-                    textWrap.height +
-                    (annotationTextWrap ? annotationTextWrap.height : 0),
-            }
-        })
-    }
-
-    @computed get width(): number {
-        if (this.marks.length === 0) return 0
-        else return defaultTo(max(this.marks.map((d) => d.width)), 0)
-    }
-
-    constructor(props: LineLabelsHelperProps) {
-        this.props = props
-    }
-}
-
 @observer
-class PlacedMarkComponent extends React.Component<{
+class Label extends React.Component<{
     mark: PlacedLabel
-    legend: LineLabelsHelper
+    options: LineLegend
     isFocus?: boolean
     needsLines?: boolean
     onMouseOver: () => void
@@ -150,7 +86,7 @@ class PlacedMarkComponent extends React.Component<{
     render() {
         const {
             mark,
-            legend,
+            options,
             isFocus,
             needsLines,
             onMouseOver,
@@ -159,7 +95,7 @@ class PlacedMarkComponent extends React.Component<{
         } = this.props
         const x = mark.origBounds.x
         const markerX1 = x + MARKER_MARGIN
-        const markerX2 = x + legend.leftPadding - MARKER_MARGIN
+        const markerX2 = x + options.leftPadding - MARKER_MARGIN
         const step = (markerX2 - markerX1) / (mark.totalLevels + 1)
         const markerXMid = markerX1 + step + mark.level * step
         const lineColor = isFocus ? "#999" : "#eee"
@@ -210,55 +146,108 @@ class PlacedMarkComponent extends React.Component<{
     }
 }
 
-export interface LineLabelsOptionsProvider {
+export interface LineLegendOptionsProvider {
     areMarksClickable?: boolean
     canAddData?: boolean
     isSelectingData?: boolean
     showAddEntityControls?: boolean
     entityType?: string
-}
-
-interface LineLabelsComponentProps {
-    x: number
-    legend: LineLabelsHelper
-    yAxis: VerticalAxis
+    legendItems: LineLabel[]
+    maxLegendWidth?: number
+    fontSize?: number
+    onLegendMouseOver?: (key: EntityName) => void
+    onLegendClick?: (key: EntityName) => void
+    onLegendMouseLeave?: () => void
     focusKeys: EntityName[]
-    onMouseOver?: (key: EntityName) => void
-    onClick?: (key: EntityName) => void
-    onMouseLeave?: () => void
-    options: LineLabelsOptionsProvider
+    verticalAxis: VerticalAxis
+    legendX?: number
 }
 
 @observer
-export class LineLabelsComponent extends React.Component<
-    LineLabelsComponentProps
-> {
+export class LineLegend extends React.Component<{
+    options: LineLegendOptionsProvider
+}> {
+    @computed private get fontSize() {
+        return 0.75 * (this.options.fontSize ?? BASE_FONT_SIZE)
+    }
+    leftPadding = 35
+
+    @computed private get maxWidth() {
+        return this.options.maxLegendWidth ?? 300
+    }
+
+    @computed.struct get marks(): SizedLabel[] {
+        const { fontSize, leftPadding, maxWidth } = this
+        const maxTextWidth = maxWidth - leftPadding
+        const maxAnnotationWidth = Math.min(maxTextWidth, 150)
+
+        return this.options.legendItems.map((item) => {
+            const annotationTextWrap = item.annotation
+                ? new TextWrap({
+                      text: item.annotation,
+                      maxWidth: maxAnnotationWidth,
+                      fontSize: fontSize * 0.9,
+                  })
+                : undefined
+            const textWrap = new TextWrap({
+                text: item.label,
+                maxWidth: maxTextWidth,
+                fontSize,
+            })
+            return {
+                item,
+                textWrap,
+                annotationTextWrap,
+                width:
+                    leftPadding +
+                    Math.max(
+                        textWrap.width,
+                        annotationTextWrap ? annotationTextWrap.width : 0
+                    ),
+                height:
+                    textWrap.height +
+                    (annotationTextWrap ? annotationTextWrap.height : 0),
+            }
+        })
+    }
+
+    @computed get width() {
+        if (this.marks.length === 0) return 0
+        return max(this.marks.map((d) => d.width)) ?? 0
+    }
+
     @computed get onMouseOver(): any {
-        return defaultTo(this.props.onMouseOver, noop)
+        return this.options.onLegendMouseOver ?? noop
     }
     @computed get onMouseLeave(): any {
-        return defaultTo(this.props.onMouseLeave, noop)
+        return this.options.onLegendMouseLeave ?? noop
     }
     @computed get onClick(): any {
-        return defaultTo(this.props.onClick, noop)
+        return this.options.onLegendClick ?? noop
     }
 
     @computed get isFocusMode() {
-        return this.props.legend.marks.some((m) =>
-            this.props.focusKeys.includes(m.item.entityName)
+        return this.marks.some((m) =>
+            this.options.focusKeys.includes(m.item.entityName)
         )
+    }
+
+    @computed get legendX() {
+        return this.options.legendX ?? 0
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
     @computed private get initialMarks(): PlacedLabel[] {
-        const { legend, x, yAxis } = this.props
+        const { verticalAxis } = this.options
+        const { legendX } = this
 
         return sortBy(
-            legend.marks.map((mark) => {
+            this.marks.map((mark) => {
                 // place vertically centered at Y value
-                const initialY = yAxis.place(mark.item.yValue) - mark.height / 2
+                const initialY =
+                    verticalAxis.place(mark.item.yValue) - mark.height / 2
                 const origBounds = new Bounds(
-                    x,
+                    legendX,
                     initialY,
                     mark.width,
                     mark.height
@@ -266,10 +255,10 @@ export class LineLabelsComponent extends React.Component<
 
                 // ensure label doesn't go beyond the top or bottom of the chart
                 const y = Math.min(
-                    Math.max(initialY, yAxis.rangeMin),
-                    yAxis.rangeMax - mark.height
+                    Math.max(initialY, verticalAxis.rangeMin),
+                    verticalAxis.rangeMax - mark.height
                 )
-                const bounds = new Bounds(x, y, mark.width, mark.height)
+                const bounds = new Bounds(legendX, y, mark.width, mark.height)
 
                 return {
                     mark: mark,
@@ -284,12 +273,12 @@ export class LineLabelsComponent extends React.Component<
 
                 // Ensure list is sorted by the visual position in ascending order
             }),
-            (mark) => yAxis.place(mark.mark.item.yValue)
+            (mark) => verticalAxis.place(mark.mark.item.yValue)
         )
     }
 
     @computed get standardPlacement() {
-        const { yAxis } = this.props
+        const { verticalAxis } = this.options
 
         const groups: PlacedLabel[][] = cloneDeep(
             this.initialMarks
@@ -318,9 +307,12 @@ export class LineLabelsComponent extends React.Component<
                         overlapHeight *
                             (bottomGroup.length /
                                 (topGroup.length + bottomGroup.length))
-                    const overflowTop = Math.max(yAxis.rangeMin - targetY, 0)
+                    const overflowTop = Math.max(
+                        verticalAxis.rangeMin - targetY,
+                        0
+                    )
                     const overflowBottom = Math.max(
-                        targetY + newHeight - yAxis.rangeMax,
+                        targetY + newHeight - verticalAxis.rangeMax,
                         0
                     )
                     const newY = targetY + overflowTop - overflowBottom
@@ -365,9 +357,7 @@ export class LineLabelsComponent extends React.Component<
                 const m2 = marks[j]
                 const isOverlap =
                     !m1.isOverlap && m1.bounds.intersects(m2.bounds)
-                if (isOverlap) {
-                    m2.isOverlap = true
-                }
+                if (isOverlap) m2.isOverlap = true
             }
         }
         return marks
@@ -378,8 +368,8 @@ export class LineLabelsComponent extends React.Component<
             sumBy(this.initialMarks, (mark) => mark.bounds.height) +
             this.initialMarks.length * LEGEND_ITEM_MIN_SPACING
         const availableHeight = this.options.canAddData
-            ? this.props.yAxis.rangeSize - ADD_BUTTON_HEIGHT
-            : this.props.yAxis.rangeSize
+            ? this.options.verticalAxis.rangeSize - ADD_BUTTON_HEIGHT
+            : this.options.verticalAxis.rangeSize
 
         // Need to be careful here – the controls overlay will automatically add padding if
         // needed to fit the floating 'Add country' button, therefore decreasing the space
@@ -389,15 +379,14 @@ export class LineLabelsComponent extends React.Component<
         // padding, which then frees up space, causing the legend to render with
         // standardPlacement.
         // This is why we need to take into account the height of the 'Add country' button.
-        if (nonOverlappingMinHeight > availableHeight) {
+        if (nonOverlappingMinHeight > availableHeight)
             return this.overlappingPlacement
-        } else {
-            return this.standardPlacement
-        }
+
+        return this.standardPlacement
     }
 
     @computed private get backgroundMarks() {
-        const { focusKeys } = this.props
+        const { focusKeys } = this.options
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
@@ -407,7 +396,7 @@ export class LineLabelsComponent extends React.Component<
     }
 
     @computed private get focusMarks() {
-        const { focusKeys } = this.props
+        const { focusKeys } = this.options
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
@@ -424,16 +413,16 @@ export class LineLabelsComponent extends React.Component<
     }
 
     // Does this placement need line markers or is the position of the labels already clear?
-    @computed private get needsLines(): boolean {
+    @computed private get needsLines() {
         return this.placedMarks.some((mark) => mark.totalLevels > 1)
     }
 
     private renderBackground() {
         return this.backgroundMarks.map((mark) => (
-            <PlacedMarkComponent
+            <Label
                 key={mark.mark.item.entityName}
                 mark={mark}
-                legend={this.props.legend}
+                options={this}
                 needsLines={this.needsLines}
                 onMouseOver={() => this.onMouseOver(mark.mark.item.entityName)}
                 onClick={() => this.onClick(mark.mark.item.entityName)}
@@ -444,10 +433,10 @@ export class LineLabelsComponent extends React.Component<
     // All labels are focused by default, moved to background when mouseover of other label
     private renderFocus() {
         return this.focusMarks.map((mark) => (
-            <PlacedMarkComponent
+            <Label
                 key={mark.mark.item.entityName}
                 mark={mark}
-                legend={this.props.legend}
+                options={this}
                 isFocus={true}
                 needsLines={this.needsLines}
                 onMouseOver={() => this.onMouseOver(mark.mark.item.entityName)}
@@ -474,8 +463,8 @@ export class LineLabelsComponent extends React.Component<
         const verticalAlign = "bottom"
 
         const leftOffset = this.needsLines
-            ? this.props.legend.leftPadding
-            : this.props.legend.width > 70
+            ? this.leftPadding
+            : this.width > 70
             ? 21
             : 5
 
@@ -493,7 +482,7 @@ export class LineLabelsComponent extends React.Component<
         return (
             <ControlsOverlay id="add-country" paddingTop={paddingTop}>
                 <AddEntityButton
-                    x={this.props.x + leftOffset}
+                    x={this.legendX + leftOffset}
                     y={topMarkY}
                     align="left"
                     verticalAlign={verticalAlign}

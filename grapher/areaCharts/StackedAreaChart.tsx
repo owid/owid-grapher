@@ -26,10 +26,10 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import {
-    LineLabelsHelper,
     LineLabel,
-    LineLabelsComponent,
-} from "grapher/lineCharts/LineLabels"
+    LineLegend,
+    LineLegendOptionsProvider,
+} from "grapher/lineLegend/LineLegend"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { select } from "d3-selection"
@@ -241,7 +241,7 @@ export class StackedAreaChart
         bounds?: Bounds
         options: ChartOptionsProvider
     }>
-    implements ChartInterface {
+    implements ChartInterface, LineLegendOptionsProvider {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed private get options() {
@@ -277,21 +277,17 @@ export class StackedAreaChart
         return items
     }
 
-    @computed private get legend() {
-        if (this.options.hideLegend) return undefined
+    @computed get maxLegendWidth() {
+        return Math.min(150, this.bounds.width / 3)
+    }
 
-        const that = this
-        return new LineLabelsHelper({
-            get maxWidth() {
-                return Math.min(150, that.bounds.width / 3)
-            },
-            get fontSize() {
-                return that.options.baseFontSize ?? BASE_FONT_SIZE
-            },
-            get items() {
-                return that.legendItems
-            },
-        })
+    @computed get fontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get legendDimensions() {
+        if (this.options.hideLegend) return undefined
+        return new LineLegend({ options: this })
     }
 
     @observable hoverIndex?: number
@@ -306,10 +302,12 @@ export class StackedAreaChart
     }
 
     @computed private get dualAxis() {
-        const { bounds, legend } = this
-        const { horizontalAxis, verticalAxis } = this
+        const { bounds } = this
+        const { horizontalAxis, verticalAxis, legendDimensions } = this
         return new DualAxis({
-            bounds: bounds.padRight(legend ? legend.width : 20),
+            bounds: bounds.padRight(
+                legendDimensions ? legendDimensions.width : 20
+            ),
             horizontalAxis,
             verticalAxis,
         })
@@ -485,7 +483,10 @@ export class StackedAreaChart
                 />
             )
 
-        const { options, bounds, dualAxis, legend, renderUid, marks } = this
+        const { options, bounds, dualAxis, renderUid, marks } = this
+
+        const showLegend = !this.options.hideLegend
+
         return (
             <g ref={this.base} className="StackedArea">
                 <defs>
@@ -504,18 +505,7 @@ export class StackedAreaChart
                     showTickMarks={true}
                 />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
-                    {legend && (
-                        <LineLabelsComponent
-                            legend={legend}
-                            x={bounds.right - legend.width}
-                            yAxis={dualAxis.verticalAxis}
-                            options={options}
-                            focusKeys={this.focusKeys}
-                            onClick={this.onLegendClick}
-                            onMouseOver={this.onLegendMouseOver}
-                            onMouseLeave={this.onLegendMouseLeave}
-                        />
-                    )}
+                    {showLegend && <LineLegend options={this} />}
                     <Areas
                         dualAxis={dualAxis}
                         data={marks}
@@ -526,6 +516,12 @@ export class StackedAreaChart
                 {this.tooltip}
             </g>
         )
+    }
+
+    @computed get legendX(): number {
+        return this.legendDimensions
+            ? this.bounds.right - this.legendDimensions.width
+            : 0
     }
 
     @computed get failMessage() {

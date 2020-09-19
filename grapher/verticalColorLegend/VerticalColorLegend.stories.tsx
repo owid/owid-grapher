@@ -31,5 +31,9 @@ const options: VerticalColorLegendOptionsProvider = {
 }
 
 export const Default = () => {
-    return <VerticalColorLegend options={options} />
+    return (
+        <svg width={600} height={400}>
+            <VerticalColorLegend options={options} />
+        </svg>
+    )
 }

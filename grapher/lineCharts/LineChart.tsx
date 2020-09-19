@@ -23,7 +23,11 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "grapher/axis/Axis"
 import { Vector2 } from "grapher/utils/Vector2"
-import { LineLabelsHelper, LineLabelsComponent, LineLabel } from "./LineLabels"
+import {
+    LineLegend,
+    LineLabel,
+    LineLegendOptionsProvider,
+} from "grapher/lineLegend/LineLegend"
 import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
@@ -257,7 +261,7 @@ export class LineChart
         bounds?: Bounds
         options: ChartOptionsProvider
     }>
-    implements ChartInterface {
+    implements ChartInterface, LineLegendOptionsProvider {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @observable hoverX?: number
@@ -273,19 +277,8 @@ export class LineChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get legend(): LineLabelsHelper | undefined {
-        const that = this
-        return new LineLabelsHelper({
-            get maxWidth() {
-                return that.bounds.width / 3
-            },
-            get fontSize() {
-                return that.options.baseFontSize ?? BASE_FONT_SIZE
-            },
-            get items() {
-                return that.legendItems
-            },
-        })
+    @computed get maxLegendWidth() {
+        return this.bounds.width / 3
     }
 
     seriesIsBlur(series: LineChartSeries) {
@@ -429,7 +422,9 @@ export class LineChart
     @computed private get dualAxis() {
         const { horizontalAxis, verticalAxis } = this
         return new DualAxis({
-            bounds: this.bounds.padRight(this.legend ? this.legend.width : 20),
+            bounds: this.bounds.padRight(
+                this.legendDimensions ? this.legendDimensions.width : 20
+            ),
             verticalAxis,
             horizontalAxis,
         })
@@ -481,8 +476,20 @@ export class LineChart
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    @computed get renderUid(): number {
+    @computed get renderUid() {
         return guid()
+    }
+
+    @computed get fontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get legendX(): number {
+        return this.bounds.right - this.legendDimensions.width
+    }
+
+    @computed get legendDimensions() {
+        return new LineLegend({ options: this })
     }
 
     render() {
@@ -495,15 +502,7 @@ export class LineChart
                 />
             )
 
-        const {
-            options,
-            bounds,
-            legend,
-            tooltip,
-            dualAxis,
-            renderUid,
-            hoverX,
-        } = this
+        const { options, bounds, tooltip, dualAxis, renderUid, hoverX } = this
         const { horizontalAxis, verticalAxis } = dualAxis
         const { marks } = this
 
@@ -535,18 +534,7 @@ export class LineChart
                             comparisonLine={line}
                         />
                     ))}
-                    {legend && (
-                        <LineLabelsComponent
-                            x={bounds.right - legend.width}
-                            legend={legend}
-                            focusKeys={this.focusKeys}
-                            yAxis={dualAxis.verticalAxis}
-                            onClick={this.onLegendClick}
-                            options={options}
-                            onMouseOver={this.onLegendMouseOver}
-                            onMouseLeave={this.onLegendMouseLeave}
-                        />
-                    )}
+                    <LineLegend options={this} />
                     <Lines
                         dualAxis={dualAxis}
                         xAxis={dualAxis.horizontalAxis}
