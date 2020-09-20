@@ -137,6 +137,13 @@ describe("can query the data", () => {
             table.getClosestRowForEachSelectedEntity(2005, 1).length
         ).toEqual(0)
     })
+
+    it("is all integers", () => {
+        const table = BasicTable.fromDelimited(`gdp,perCapita
+123,123.1`)
+        expect(table.get("gdp")?.isAllIntegers).toBeTruthy()
+        expect(table.get("perCapita")?.isAllIntegers).toBeFalsy()
+    })
 })
 
 describe("annotations column", () => {

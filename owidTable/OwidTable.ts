@@ -167,9 +167,17 @@ export abstract class AbstractColumn {
         return this.display.conversionFactor ?? 1
     }
 
+    @computed get isAllIntegers() {
+        return this.values.every((val) => val % 1 === 0)
+    }
+
     @computed get tolerance() {
         return this.display.tolerance ?? 0
         // (this.property === "color" ? Infinity : 0) ... todo: figure out where color was being used
+    }
+
+    @computed get domain() {
+        return [this.minValue, this.maxValue]
     }
 
     @computed get display() {

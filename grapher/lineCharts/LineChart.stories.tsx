@@ -8,7 +8,7 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable()
+    const table = SynthesizeOwidTable({ timeRange: [2000, 2002] })
     const options = { table, yColumns: [table.get("GDP")!] }
     table.selectAll()
 

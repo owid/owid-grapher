@@ -7,11 +7,7 @@ import {
     makeSafeForCSS,
     pointsToPath,
     minBy,
-    min,
-    max,
-    isEmpty,
     cloneDeep,
-    clone,
     flatten,
     last,
 } from "grapher/utils/Util"
@@ -34,7 +30,12 @@ import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
-import { BASE_FONT_SIZE, ScaleType, Time } from "grapher/core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    ScaleType,
+    Time,
+    Range,
+} from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -582,34 +583,8 @@ export class LineChart
     @computed get failMessage() {
         const { yColumns } = this.options
         if (!yColumns?.length) return "Missing Y axis column"
-        else if (isEmpty(this.marks)) return "No matching data"
+        else if (!this.marks.length) return "No matching data"
         return ""
-    }
-
-    // Filter the data so it fits within the domains
-    @computed get marks() {
-        const { horizontalAxis } = this
-        const groupedData = cloneDeep(this.predomainData)
-
-        for (const g of groupedData) {
-            // The values can include non-numerical values, so we need to filter with isNaN()
-            g.values = g.values.filter(
-                (d) =>
-                    d.x >= horizontalAxis.domain[0] &&
-                    d.x <= horizontalAxis.domain[1] &&
-                    !isNaN(d.y)
-            )
-        }
-
-        return groupedData.filter((g) => g.values.length > 0)
-    }
-
-    @computed private get allValues() {
-        return flatten(this.predomainData.map((series) => series.values))
-    }
-
-    @computed private get filteredValues() {
-        return flatten(this.marks.map((series) => series.values))
     }
 
     @computed private get yColumn() {
@@ -627,45 +602,41 @@ export class LineChart
             : (ColorSchemes["owid-distinct"] as ColorScheme)
     }
 
-    @computed private get initialData() {
+    @computed get marks() {
         const { yColumns, yAxis, table } = this.options
-
-        const { selectedEntityNameSet, selectedEntityNames } = table
-
-        let chartData: LineChartSeries[] = []
-
+        const { selectedEntityNames } = table
         if (!yColumns) return []
 
-        yColumns.forEach((column) => {
-            const seriesByKey = new Map<EntityName, LineChartSeries>()
-            const { values, isProjection } = column
+        const isLog = yAxis?.scaleType === ScaleType.log
 
-            for (let i = 0; i < column.times.length; i++) {
-                const time = column.times[i]
-                const value = parseFloat(values[i] as string)
-                const entityName = column.entityNames[i]
-                let series = seriesByKey.get(entityName)
+        let chartData: LineChartSeries[] = flatten(
+            yColumns.map((column) => {
+                const seriesByKey = new Map<EntityName, LineChartSeries>()
+                const { isProjection } = column
 
-                // Not a selected key, don't add any data for it
-                if (!selectedEntityNameSet.has(entityName)) continue
-                // Can't have values <= 0 on log scale
-                if (value <= 0 && yAxis?.scaleType === ScaleType.log) continue
+                column.owidRows
+                    .filter((row) => !isLog || row.value > 0)
+                    .forEach((row) => {
+                        const { time, entityName, value } = row
 
-                if (!series) {
-                    series = {
-                        values: [],
-                        entityName,
-                        isProjection,
-                        color: "#000", // tmp
-                    }
-                    seriesByKey.set(entityName, series)
-                }
+                        if (!seriesByKey.has(entityName))
+                            seriesByKey.set(entityName, {
+                                values: [],
+                                entityName,
+                                isProjection,
+                                color: "#000", // tmp
+                            })
 
-                series.values.push({ x: time, y: value, time })
-            }
+                        seriesByKey
+                            .get(entityName)!
+                            .values.push({ x: time, y: value, time })
+                    })
 
-            chartData = chartData.concat([...Array.from(seriesByKey.values())])
-        })
+                return Array.from(seriesByKey.values())
+            })
+        )
+
+        console.log(chartData)
 
         this._addColorsToSeries(chartData)
 
@@ -674,7 +645,21 @@ export class LineChart
             selectedEntityNames.indexOf(series.entityName)
         )
 
-        return chartData
+        // Filter the data so it fits within the domains
+
+        const { horizontalAxis } = this
+
+        for (const g of chartData) {
+            // The values can include non-numerical values, so we need to filter with isNaN()
+            g.values = g.values.filter(
+                (d) =>
+                    d.x >= horizontalAxis.domain[0] &&
+                    d.x <= horizontalAxis.domain[1] &&
+                    !isNaN(d.y)
+            )
+        }
+
+        return chartData.filter((g) => g.values.length > 0)
     }
 
     private _addColorsToSeries(allSeries: LineChartSeries[]) {
@@ -692,41 +677,29 @@ export class LineChart
         })
     }
 
-    @computed get availableTimes(): Time[] {
-        return flatten(this.initialData.map((g) => g.values.map((d) => d.x)))
-    }
+    // @computed get predomainData() {
+    //     if (!this.options.isRelativeMode) return this.initialData
 
-    @computed get startTimelineTime() {
-        return this.yColumn.startTimelineTime
-    }
+    //     return cloneDeep(this.initialData).map((series) => {
+    //         const startIndex = series.values.findIndex(
+    //             (value) => value.time >= this.startTimelineTime && value.y !== 0
+    //         )
+    //         if (startIndex < 0) {
+    //             series.values = []
+    //             return series
+    //         }
 
-    @computed get endTimelineTime() {
-        return this.yColumn.endTimelineTime
-    }
+    //         const relativeValues = series.values.slice(startIndex)
+    //         // Clone to avoid overwriting in next loop
+    //         const indexValue = clone(relativeValues[0])
+    //         series.values = relativeValues.map((value) => {
+    //             value.y = (value.y - indexValue.y) / Math.abs(indexValue.y)
+    //             return value
+    //         })
 
-    @computed get predomainData() {
-        if (!this.options.isRelativeMode) return this.initialData
-
-        return cloneDeep(this.initialData).map((series) => {
-            const startIndex = series.values.findIndex(
-                (value) => value.time >= this.startTimelineTime && value.y !== 0
-            )
-            if (startIndex < 0) {
-                series.values = []
-                return series
-            }
-
-            const relativeValues = series.values.slice(startIndex)
-            // Clone to avoid overwriting in next loop
-            const indexValue = clone(relativeValues[0])
-            series.values = relativeValues.map((value) => {
-                value.y = (value.y - indexValue.y) / Math.abs(indexValue.y)
-                return value
-            })
-
-            return series
-        })
-    }
+    //         return series
+    //     })
+    // }
 
     getAnnotationsForSeries(entityName: EntityName) {
         const annotationsMap = this.annotationsMap
@@ -771,8 +744,8 @@ export class LineChart
     @computed get horizontalAxis() {
         const axis = this.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
-            this.startTimelineTime,
-            this.endTimelineTime,
+            this.yColumn.startTimelineTime,
+            this.yColumn.endTimelineTime,
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
@@ -782,20 +755,12 @@ export class LineChart
         return axis
     }
 
-    @computed private get yDomainDefault(): [number, number] {
-        const yValues = (this.options.useTimelineDomains
-            ? this.allValues
-            : this.filteredValues
-        ).map((v) => v.y)
-        return [min(yValues) ?? 0, max(yValues) ?? 100]
-    }
-
-    @computed private get yDomain(): [number, number] {
-        const { yDomainDefault } = this
+    @computed private get yDomain(): Range {
+        const yDomain = this.yColumn.domain
         const domain = this.yAxis.domain
         return [
-            Math.min(domain[0], yDomainDefault[0]),
-            Math.max(domain[1], yDomainDefault[1]),
+            Math.min(domain[0], yDomain[0]),
+            Math.max(domain[1], yDomain[1]),
         ]
     }
 
@@ -804,9 +769,7 @@ export class LineChart
         const axis = this.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomain)
         if (options.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
-        axis.hideFractionalTicks = this.allValues.every(
-            (val) => val.y % 1 === 0
-        ) // all y axis points are integral, don't show fractional ticks in that case
+        axis.hideFractionalTicks = this.yColumn.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
         axis.column = this.yColumn
         return axis
