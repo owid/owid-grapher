@@ -214,16 +214,18 @@ export class ChartTab extends React.Component<{
                 <div style={containerStyle}>
                     <svg {...this.svgProps}>{this.renderChart()}</svg>
                     <div className="ControlsOverlay" style={overlayStyle}>
-                        {Object.entries(this.overlays).map(([key, overlay]) => (
-                            <React.Fragment key={key}>
-                                {overlay.props.children}
-                            </React.Fragment>
-                        ))}
+                        {this.renderOverlays()}
                     </div>
                 </div>
                 <Footer maxWidth={maxWidth} options={options} />
             </>
         )
+    }
+
+    private renderOverlays() {
+        return Object.entries(this.overlays).map(([key, overlay]) => (
+            <React.Fragment key={key}>{overlay.props.children}</React.Fragment>
+        ))
     }
 
     render() {

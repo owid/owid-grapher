@@ -1,7 +1,8 @@
 import * as React from "react"
-import { FacetChart } from "./FacetChart"
-import { basicGdpGrapher, basicScatterGrapher } from "grapher/test/samples"
+import { CountryFacet, FacetChart } from "./FacetChart"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { Grapher } from "grapher/core/Grapher"
 
 export default {
     title: "FacetChart",
@@ -24,15 +25,21 @@ export default {
 
 export const Default = (args: any) => {
     const chartType: ChartTypeName = args.chartTypeName || "LineChart"
-    const grapher = chartType.includes("Scatter")
-        ? basicScatterGrapher()
-        : basicGdpGrapher()
+    const table = SynthesizeOwidTable()
+    const options = new Grapher({
+        table,
+        dimensions: [
+            { slug: "GDP", property: "y", variableId: 1 },
+            { slug: "Population", property: "x", variableId: 2 },
+        ],
+    })
+    table.selectAll()
 
     return (
         <FacetChart
             number={args.number}
             chartTypeName={chartType}
-            grapher={grapher}
+            options={options}
             width={args.width}
             height={args.height}
             padding={args.padding}
@@ -42,13 +49,20 @@ export const Default = (args: any) => {
 
 // One chart for France. One for Germany. One line for pop. One line for GDP.
 export const OneChartPerCountry = (args: any) => {
-    const grapher = basicGdpGrapher()
+    const table = SynthesizeOwidTable()
+    table.selectAll()
+    const options = new Grapher({
+        table,
+        dimensions: [
+            { slug: "GDP", property: "y", variableId: 1 },
+            { slug: "Population", property: "x", variableId: 2 },
+        ],
+    })
 
     return (
-        <FacetChart
-            number={2}
+        <CountryFacet
             chartTypeName="LineChart"
-            grapher={grapher}
+            options={options}
             width={args.width}
             height={args.height}
             padding={args.padding}

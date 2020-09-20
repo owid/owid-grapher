@@ -10,7 +10,6 @@ export default {
 export const Default = () => {
     const table = SynthesizeOwidTable()
     const options = { table, yColumns: [table.get("GDP")!] }
-
     table.selectAll()
 
     return (

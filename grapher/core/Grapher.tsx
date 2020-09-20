@@ -219,6 +219,7 @@ export interface GrapherProps extends GrapherInterface {
     globalEntitySelection?: GlobalEntitySelection
     isExport?: boolean
     bounds?: Bounds
+    table?: OwidTable
 }
 
 @observer
@@ -247,14 +248,21 @@ export class Grapher
     configOnLoad: Readonly<GrapherInterface>
     @observable.ref table: OwidTable
 
+    private legacyConfig?: Partial<LegacyGrapherInterface>
+
     constructor(props: GrapherProps = {}) {
         super(props!)
-        this.table = new OwidTable([])
+        this.table = props.table ?? new OwidTable([])
         const modernConfig = props ? legacyConfigToConfig(props) : props
+
+        this.legacyConfig = props
+
         this.updateFromObject(modernConfig)
         this.isMediaCard = !!props?.isMediaCard
 
-        if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
+        if (props.table) {
+            // do nothing, data is provided externally
+        } else if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
         else if (this.externalDataUrl)
             this.downloadLegacyDataFromUrl(this.externalDataUrl)
         else if (!this.manuallyProvideData)
@@ -323,6 +331,10 @@ export class Grapher
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
+
+        // todo: remove dimensions concept
+        if (this.legacyConfig?.dimensions)
+            obj.dimensions = this.legacyConfig.dimensions
 
         return obj
     }

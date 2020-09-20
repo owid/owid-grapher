@@ -35,7 +35,7 @@ export class ControlsOverlay extends React.Component<{
             this.context.grapher.overlays[this.props.id] = this
     }
 
-    @action.bound deleteOverlay() {
+    @action.bound private deleteOverlay() {
         // todo: remove context
         delete this.context?.grapher?.overlays[this.props.id]
     }

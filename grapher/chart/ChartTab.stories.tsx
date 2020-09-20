@@ -1,5 +1,6 @@
+import { Grapher, GrapherProps } from "grapher/core/Grapher"
+import { SynthesizeOwidTable } from "owidTable/OwidTable"
 import * as React from "react"
-import { basicGdpGrapher } from "grapher/test/samples"
 import { ChartTab } from "./ChartTab"
 
 export default {
@@ -7,10 +8,15 @@ export default {
     component: ChartTab,
 }
 
-export const Default = () => {
-    const grapher = basicGdpGrapher()
-    grapher.hasMapTab = true
-    grapher.tab = "map"
+const table = SynthesizeOwidTable()
+const props: GrapherProps = {
+    table,
+    hasMapTab: true,
+    dimensions: [{ slug: "Population", property: "y", variableId: 1 }],
+    tab: "map",
+    type: "LineChart",
+}
 
-    return <ChartTab options={grapher} />
+export const Default = () => {
+    return <ChartTab options={new Grapher(props)} />
 }

@@ -1055,6 +1055,13 @@ export class OwidTable extends AbstractTable<OwidRow> {
         return table
     }
 
+    clone() {
+        return new OwidTable(
+            this.rows,
+            this.columnsAsArray.map((col) => col.spec)
+        )
+    }
+
     @computed get columnsByOwidVarId() {
         const map = new Map<number, AbstractColumn>()
         Array.from(this.columns.values()).forEach((column, index) => {

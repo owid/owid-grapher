@@ -25,14 +25,14 @@ export class NoDataOverlay extends React.Component<{
         this.props.options.isSelectingData = true
     }
 
-    @computed get bounds() {
+    @computed private get bounds() {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get message() {
-        const { bounds } = this
+    @computed get message() {
         const { message, options } = this.props
         const entityType = options.entityType
+        const { bounds } = this
         return (
             <div
                 className="NoData"
@@ -63,10 +63,11 @@ export class NoDataOverlay extends React.Component<{
     }
 
     render() {
+        const message = this.message
         return this.props.options.standalone ? (
-            this.message
+            message
         ) : (
-            <ControlsOverlay id="no-data">{this.message}</ControlsOverlay>
+            <ControlsOverlay id="no-data">{message}</ControlsOverlay>
         )
     }
 }
