@@ -49,8 +49,7 @@ export const Default = (args: any) => {
 
 // One chart for France. One for Germany. One line for pop. One line for GDP.
 export const OneChartPerCountry = (args: any) => {
-    const table = SynthesizeOwidTable()
-    table.selectAll()
+    const table = SynthesizeOwidTable({ countryCount: 9 })
     const options = new Grapher({
         table,
         dimensions: [
@@ -58,10 +57,11 @@ export const OneChartPerCountry = (args: any) => {
             { slug: "Population", property: "x", variableId: 2 },
         ],
     })
+    const chartType: ChartTypeName = args.chartTypeName || "LineChart"
 
     return (
         <CountryFacet
-            chartTypeName="LineChart"
+            chartTypeName={chartType}
             options={options}
             width={args.width}
             height={args.height}

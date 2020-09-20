@@ -112,7 +112,7 @@ export class ColorScale {
     }
 
     @computed get sortedNumericValues() {
-        return this.options.column?.sortedNumericValues ?? []
+        return this.options.column?.sortedValues ?? []
     }
 
     @computed private get minPossibleValue() {
@@ -231,13 +231,13 @@ export class ColorScale {
         )
     }
 
-    @computed get legendData(): ColorScaleBin[] {
+    @computed get legendData() {
         // todo: turn comment into unit test
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
         //  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
-        const legendData = []
+        const legendData: ColorScaleBin[] = []
         const {
             bucketMaximums,
             baseColors,
@@ -324,8 +324,9 @@ export class ColorScale {
         return legendData
     }
 
-    @bind getColor(value: number | string | undefined): string | undefined {
-        if (value === undefined) return this.customCategoryColors[NO_DATA_LABEL]
-        return this.legendData.find((b) => b.contains(value))?.color
+    @bind getColor(value: number | string | undefined) {
+        return value === undefined
+            ? this.customCategoryColors[NO_DATA_LABEL]
+            : this.legendData.find((b) => b.contains(value))?.color
     }
 }

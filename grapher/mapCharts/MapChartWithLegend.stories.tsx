@@ -13,6 +13,7 @@ export const Default = () => {
         timeRange: [2000, 2010],
         countryCount: 5,
     })
+
     const options: MapChartOptionsProvider = {
         table,
         mapColumn: table.columnsBySlug.get("Population")!,

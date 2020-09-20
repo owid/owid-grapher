@@ -615,7 +615,7 @@ export class StackedBarChart
             for (let i = 0; i <= column.times.length; i += 1) {
                 const year = column.times[i]
                 const entityName = column.entityNames[i]
-                const value = +column.values[i]
+                const value = +column.parsedValues[i]
                 let series = seriesByKey.get(entityName)
 
                 // Not a selected key, don't add any data for it

@@ -580,7 +580,7 @@ export class ScatterPlot
                 { times: Time[]; values: (string | number)[] }
             >()
             const rows = column.rowsWithValue
-            column.values.forEach((value, index) => {
+            column.parsedValues.forEach((value, index) => {
                 const row = rows[index]
                 const time = row.year ?? row.day
                 const entityName = row.entityName

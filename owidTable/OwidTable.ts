@@ -168,7 +168,7 @@ export abstract class AbstractColumn {
     }
 
     @computed get isAllIntegers() {
-        return this.values.every((val) => val % 1 === 0)
+        return this.parsedValues.every((val) => val % 1 === 0)
     }
 
     @computed get tolerance() {
@@ -290,7 +290,7 @@ export abstract class AbstractColumn {
     // todo: is the isString necessary?
     @computed get sortedUniqNonEmptyStringVals() {
         return Array.from(
-            new Set(this.values.filter(isString).filter((i) => i))
+            new Set(this.rawValues.filter(isString).filter((i) => i))
         ).sort()
     }
 
@@ -322,7 +322,7 @@ export abstract class AbstractColumn {
     }
 
     @computed private get valuesAsSet() {
-        return new Set(this.values)
+        return new Set(this.parsedValues)
     }
 
     @computed private get allValuesAsSet() {
@@ -336,7 +336,7 @@ export abstract class AbstractColumn {
 
     // todo: remove
     @computed get times(): Time[] {
-        return this.rowsWithValue.map((row) => (row.year ?? row.day)!)
+        return this.rowsWithValue.map((row) => row.year ?? row.day!)
     }
 
     @computed get timesUniq() {
@@ -372,11 +372,11 @@ export abstract class AbstractColumn {
     }
 
     @computed get minValue() {
-        return this.sortedNumericValues[0]
+        return this.sortedValues[0]
     }
 
     @computed get maxValue() {
-        return last(this.sortedNumericValues)!
+        return last(this.sortedValues)!
     }
 
     @computed private get allValues() {
@@ -392,15 +392,17 @@ export abstract class AbstractColumn {
         )
     }
 
-    @computed get values() {
+    @computed protected get rawValues() {
         const slug = this.spec.slug
         return this.rowsWithValue.map((row) => row[slug])
     }
 
-    @computed get sortedNumericValues() {
-        return sortNumeric(
-            this.values.filter(isNumber).filter((v) => !isNaN(v))
-        )
+    @computed get parsedValues() {
+        return this.rawValues
+    }
+
+    @computed get sortedValues() {
+        return this.parsedValues.slice().sort()
     }
 
     @computed get owidRows() {
@@ -408,7 +410,7 @@ export abstract class AbstractColumn {
             return {
                 entityName: this.entityNames[index],
                 time: this.times[index],
-                value: this.values[index],
+                value: this.parsedValues[index],
             }
         })
     }
@@ -445,35 +447,6 @@ export class LoadingColumn extends AbstractColumn {} // Todo: remove. A placehol
 
 class AnyColumn extends AbstractColumn {}
 class StringColumn extends AbstractColumn {}
-abstract class TemporalColumn extends AbstractColumn {}
-
-class YearColumn extends TemporalColumn {
-    formatValue(value: number) {
-        // Include BCE
-        return formatYear(value)
-    }
-
-    formatForCsv(value: number) {
-        // Don't include BCE in CSV exports.
-        return anyToString(value)
-    }
-}
-
-class DateColumn extends TemporalColumn {
-    formatValue(value: number) {
-        return value === undefined ? "" : formatDay(value)
-    }
-
-    formatValueForMobile(value: number) {
-        return formatDay(value, { format: "MMM D, 'YY" })
-    }
-
-    formatForCsv(value: number) {
-        return value === undefined
-            ? ""
-            : formatDay(value, { format: "YYYY-MM-DD" })
-    }
-}
 
 class CategoricalColumn extends AbstractColumn {}
 class BooleanColumn extends AbstractColumn {}
@@ -496,7 +469,12 @@ export class NumericColumn extends AbstractColumn {
             numDecimalPlaces,
         })
     }
+
+    @computed get parsedValues() {
+        return this.rawValues.map(parseFloat)
+    }
 }
+
 class IntegerColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""
@@ -507,7 +485,46 @@ class IntegerColumn extends NumericColumn {
             shortNumberPrefixes: true,
         })
     }
+
+    @computed get parsedValues() {
+        return this.rawValues.map(parseInt)
+    }
 }
+
+abstract class TimeColumn extends AbstractColumn {
+    @computed get parsedValues() {
+        return this.rawValues.map(parseInt)
+    }
+}
+
+class YearColumn extends TimeColumn {
+    formatValue(value: number) {
+        // Include BCE
+        return formatYear(value)
+    }
+
+    formatForCsv(value: number) {
+        // Don't include BCE in CSV exports.
+        return anyToString(value)
+    }
+}
+
+class DateColumn extends TimeColumn {
+    formatValue(value: number) {
+        return value === undefined ? "" : formatDay(value)
+    }
+
+    formatValueForMobile(value: number) {
+        return formatDay(value, { format: "MMM D, 'YY" })
+    }
+
+    formatForCsv(value: number) {
+        return value === undefined
+            ? ""
+            : formatDay(value, { format: "YYYY-MM-DD" })
+    }
+}
+
 class CurrencyColumn extends NumericColumn {
     formatValue(value: number) {
         if (value === undefined) return ""
@@ -643,7 +660,7 @@ abstract class AbstractTable<ROW_TYPE extends Row> {
         // For now, return a day column first if present. But see note above about removing this method.
         const col =
             this.columnsAsArray.find((col) => col instanceof DateColumn) ||
-            this.columnsAsArray.find((col) => col instanceof TemporalColumn)
+            this.columnsAsArray.find((col) => col instanceof TimeColumn)
         return col
     }
 
@@ -1254,7 +1271,16 @@ export class OwidTable extends AbstractTable<OwidRow> {
 
     getColorForEntityName(entityName: string) {
         // Todo: restore Grapher keycolors functionality
-        return "red"
+        const colors = {
+            Africa: "#923E8B",
+            Antarctica: "#5887A1",
+            Asia: "#2D8587",
+            Europe: "#4C5C78",
+            "North America": "#E04E4B",
+            Oceania: "#A8633C",
+            "South America": "#932834",
+        }
+        return Object.values(colors)[entityName.charCodeAt(0) % 7]
     }
 
     @action.bound toggleSelection(entityName: EntityName) {
@@ -1543,6 +1569,8 @@ export const SynthesizeOwidTable = (
         "Nigeria",
         "Brazil",
         "Canada",
+        "Fiji",
+        "Japan",
     ].slice(0, countryCount)
 
     const rows = countries.map((country, index) =>

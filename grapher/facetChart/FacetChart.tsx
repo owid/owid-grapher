@@ -82,10 +82,10 @@ export class CountryFacet extends FacetChart {
     @computed protected get smallCharts() {
         const { rootTable, rootOptions } = this
         const { chartTypeName } = this.props
-        const count = rootTable.selectedEntityNames.length
+        const count = rootTable.availableEntityNames.length
         const boundsArr = this.bounds.split(count)
 
-        return rootTable.selectedEntityNames.map((name, index) => {
+        return rootTable.availableEntityNames.map((name, index) => {
             const table = rootTable.clone()
             table.selectEntity(name)
             const config = rootOptions.toObject()

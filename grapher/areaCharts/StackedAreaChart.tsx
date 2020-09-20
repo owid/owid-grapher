@@ -555,7 +555,7 @@ export class StackedAreaChart
 
             for (let i = 0; i < column.times.length; i++) {
                 const year = column.times[i]
-                const value = +column.values[i]
+                const value = +column.parsedValues[i]
                 const entityName = column.entityNames[i]
                 let series = seriesByKey.get(entityName)
 

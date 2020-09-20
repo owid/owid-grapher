@@ -104,7 +104,7 @@ describe("from legacy", () => {
         const varSet = getLegacyVarSet()
         const table = new OwidTable([]).loadFromLegacy(varSet)
         table.applyUnitConversionAndOverwriteLegacyColumn(100, 3512)
-        expect(table.columnsBySlug.get("3512")!.values).toEqual([
+        expect(table.columnsBySlug.get("3512")!.parsedValues).toEqual([
             550,
             420,
             1260,
@@ -177,6 +177,18 @@ usa,usa,1,322,2000,2`
     })
 })
 
+describe("can synth data", () => {
+    it("can synth numerics", () => {
+        const table = SynthesizeOwidTable({
+            timeRange: [2000, 2001],
+            countryCount: 1,
+        })
+
+        const row = table.get("GDP")!.owidRows[0]
+        expect(typeof row.value).toEqual("number")
+    })
+})
+
 describe("from csv", () => {
     const csv = `country,population
 iceland,1
@@ -196,21 +208,21 @@ canada,20`
     describe("filtering", () => {
         const col = table.columnsBySlug.get("country")!
         it("one filter works", () => {
-            expect(col.values[3]).toEqual("canada")
+            expect(col.parsedValues[3]).toEqual("canada")
             table.addFilterColumn(
                 "pop_filter",
                 (row) => parseInt(row.population) > 40
             )
-            expect(col?.values[0]).toEqual("france")
-            expect(col?.values[1]).toEqual("usa")
+            expect(col?.parsedValues[0]).toEqual("france")
+            expect(col?.parsedValues[1]).toEqual("usa")
         })
 
         it("multiple filters work", () => {
             table.addFilterColumn("name_filter", (row) =>
                 (row.country as string).startsWith("u")
             )
-            expect(col?.values[0]).toEqual("usa")
-            expect(col?.values[1]).toEqual(undefined)
+            expect(col?.parsedValues[0]).toEqual("usa")
+            expect(col?.parsedValues[1]).toEqual(undefined)
         })
 
         it("adding rows works with filters", () => {
@@ -218,8 +230,8 @@ canada,20`
                 { country: "ireland", population: "7" },
                 { country: "united kingdom", population: "60" },
             ])
-            expect(col?.values[0]).toEqual("usa")
-            expect(col?.values[1]).toEqual("united kingdom")
+            expect(col?.parsedValues[0]).toEqual("usa")
+            expect(col?.parsedValues[1]).toEqual("united kingdom")
         })
     })
 })
@@ -244,9 +256,9 @@ describe("immutability", () => {
             slug: "firstLetter",
             fn: (row) => row.country.length,
         })
-        expect(table.columnsBySlug.get("firstLetter")?.values.join("")).toEqual(
-            `37`
-        )
+        expect(
+            table.columnsBySlug.get("firstLetter")?.parsedValues.join("")
+        ).toEqual(`37`)
         expect((rows[0] as any).firstLetter).toEqual(undefined)
     })
 })

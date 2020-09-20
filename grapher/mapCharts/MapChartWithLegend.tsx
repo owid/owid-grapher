@@ -133,7 +133,6 @@ export class MapChartWithLegend
         if (endTime === undefined || !column) return {}
 
         const valueByEntityAndTime = column.valueByEntityNameAndTime
-
         const tolerance = mapConfig.timeTolerance ?? 0
         const entityNames = column.entityNamesUniqArr.filter((name) =>
             isOnTheMap(name)
@@ -185,7 +184,7 @@ export class MapChartWithLegend
             get categoricalValues() {
                 // return uniq(this.mappableData.values.filter(isString))
                 // return that.options.mapColumn.values || [] // todo: mappable data
-                return that.options.mapColumn.values.filter(isString)
+                return that.options.mapColumn.parsedValues.filter(isString)
             },
             hasNoDataBin: true,
             defaultBaseColorScheme: "BuGn",

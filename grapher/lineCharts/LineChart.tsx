@@ -7,7 +7,6 @@ import {
     makeSafeForCSS,
     pointsToPath,
     minBy,
-    cloneDeep,
     flatten,
     last,
 } from "grapher/utils/Util"
@@ -30,12 +29,7 @@ import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "owidTable/OwidTableConstants"
-import {
-    BASE_FONT_SIZE,
-    ScaleType,
-    Time,
-    Range,
-} from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, ScaleType, Range } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -102,7 +96,7 @@ class Lines extends React.Component<LinesProps> {
         }))
     }
 
-    @computed private get isFocusMode(): boolean {
+    @computed private get isFocusMode() {
         return this.renderData.some((d) => d.isFocus)
     }
 
@@ -218,14 +212,14 @@ class Lines extends React.Component<LinesProps> {
 
     componentWillUnmount() {
         const { container } = this
-        if (container) {
-            container.removeEventListener("mousemove", this.onCursorMove)
-            container.removeEventListener("mouseleave", this.onCursorLeave)
-            container.removeEventListener("touchstart", this.onCursorMove)
-            container.removeEventListener("touchmove", this.onCursorMove)
-            container.removeEventListener("touchend", this.onCursorLeave)
-            container.removeEventListener("touchcancel", this.onCursorLeave)
-        }
+        if (!container) return
+
+        container.removeEventListener("mousemove", this.onCursorMove)
+        container.removeEventListener("mouseleave", this.onCursorLeave)
+        container.removeEventListener("touchstart", this.onCursorMove)
+        container.removeEventListener("touchmove", this.onCursorMove)
+        container.removeEventListener("touchend", this.onCursorLeave)
+        container.removeEventListener("touchcancel", this.onCursorLeave)
     }
 
     render() {
@@ -286,7 +280,7 @@ export class LineChart
         return this.isFocusMode && !this.focusKeys.includes(series.entityName)
     }
 
-    @computed private get tooltip(): JSX.Element | undefined {
+    @computed private get tooltip() {
         const { hoverX, dualAxis } = this
 
         if (hoverX === undefined) return undefined
@@ -445,11 +439,11 @@ export class LineChart
         this.hoverKey = undefined
     }
 
-    @computed get focusKeys(): string[] {
+    @computed get focusKeys() {
         return this.hoverKey ? [this.hoverKey] : []
     }
 
-    @computed get isFocusMode(): boolean {
+    @computed get isFocusMode() {
         return this.focusKeys.length > 0
     }
 
@@ -489,7 +483,7 @@ export class LineChart
         return this.bounds.right - this.legendDimensions.width
     }
 
-    @computed get legendDimensions() {
+    @computed private get legendDimensions() {
         return new LineLegend({ options: this })
     }
 
@@ -604,8 +598,9 @@ export class LineChart
 
     @computed get marks() {
         const { yColumns, yAxis, table } = this.options
-        const { selectedEntityNames } = table
         if (!yColumns) return []
+
+        const { selectedEntityNames } = table
 
         const isLog = yAxis?.scaleType === ScaleType.log
 
@@ -616,6 +611,9 @@ export class LineChart
 
                 column.owidRows
                     .filter((row) => !isLog || row.value > 0)
+                    .filter((row) =>
+                        selectedEntityNames.includes(row.entityName)
+                    )
                     .forEach((row) => {
                         const { time, entityName, value } = row
 
@@ -636,8 +634,6 @@ export class LineChart
             })
         )
 
-        console.log(chartData)
-
         this._addColorsToSeries(chartData)
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
@@ -645,21 +641,23 @@ export class LineChart
             selectedEntityNames.indexOf(series.entityName)
         )
 
-        // Filter the data so it fits within the domains
+        return chartData
 
-        const { horizontalAxis } = this
+        // // Filter the data so it fits within the domains
 
-        for (const g of chartData) {
-            // The values can include non-numerical values, so we need to filter with isNaN()
-            g.values = g.values.filter(
-                (d) =>
-                    d.x >= horizontalAxis.domain[0] &&
-                    d.x <= horizontalAxis.domain[1] &&
-                    !isNaN(d.y)
-            )
-        }
+        // const { horizontalAxis } = this
 
-        return chartData.filter((g) => g.values.length > 0)
+        // for (const g of chartData) {
+        //     // The values can include non-numerical values, so we need to filter with isNaN()
+        //     g.values = g.values.filter(
+        //         (d) =>
+        //             d.x >= horizontalAxis.domain[0] &&
+        //             d.x <= horizontalAxis.domain[1] &&
+        //             !isNaN(d.y)
+        //     )
+        // }
+
+        // return chartData.filter((g) => g.values.length > 0)
     }
 
     private _addColorsToSeries(allSeries: LineChartSeries[]) {
