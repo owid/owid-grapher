@@ -48,7 +48,6 @@ export async function bakeAndSaveResultsFile(
     outDir: string = __dirname + "/bakedSvgs"
 ) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
-    // Todo: only bake published charts
     const { chartsBySlug } = await getChartsBySlug()
     const resultsPath = outDir + "/results.csv"
     fs.writeFileSync(resultsPath, header + "\n")

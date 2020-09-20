@@ -26,13 +26,16 @@ export async function getChartsAndRedirectsBySlug() {
     return chartsBySlug
 }
 
-export async function getChartsBySlug() {
+export async function getChartsBySlug(onlyPublished = true) {
     const chartsBySlug: Map<string, GrapherInterface> = new Map()
     const chartsById = new Map()
 
     const chartsQuery = db.query(`SELECT * FROM charts`)
     for (const row of await chartsQuery) {
         const chart = JSON.parse(row.config)
+
+        if (onlyPublished && !chart.isPublished) continue
+
         chart.id = row.id
         chartsBySlug.set(chart.slug, chart)
         chartsById.set(row.id, chart)
