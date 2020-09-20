@@ -78,7 +78,7 @@ describe(GrapherUrl, () => {
         expect(
             new Grapher({
                 xAxis: { scaleType: ScaleType.linear },
-            } as GrapherInterface).url.params.xScale
+            }).url.params.xScale
         ).toEqual(undefined)
     })
 
@@ -90,15 +90,13 @@ describe(GrapherUrl, () => {
     })
 
     describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {
-        const grapher = new Grapher(
-            {
-                xAxis: {
-                    scaleType: ScaleType.linear,
-                    canChangeScaleType: true,
-                },
+        const grapher = new Grapher({
+            xAxis: {
+                scaleType: ScaleType.linear,
+                canChangeScaleType: true,
             },
-            { queryStr: "scaleType=linear" }
-        )
+            queryStr: "scaleType=linear",
+        })
         expect(grapher.url.params.xScale).toEqual(undefined)
         grapher.url.dropUnchangedParams = false
         expect(grapher.url.params.xScale).toEqual(ScaleType.linear)

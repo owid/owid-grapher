@@ -27,6 +27,11 @@ import {
     isMobile,
     extend,
     trimObject,
+    max,
+    isVisible,
+    VNode,
+    throttle,
+    isTouchDevice,
 } from "grapher/utils/Util"
 import {
     ChartTypes,
@@ -42,8 +47,11 @@ import {
     RelatedQuestionsConfig,
     Time,
     BASE_FONT_SIZE,
+    OverlayPadding,
+    CookieKeys,
 } from "grapher/core/GrapherConstants"
 import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
+import * as Cookies from "js-cookie"
 import { OwidTable } from "owidTable/OwidTable"
 import {
     ChartDimension,
@@ -55,8 +63,7 @@ import {
     GrapherUrl,
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
-import { GrapherView } from "grapher/core/GrapherView"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
@@ -101,10 +108,47 @@ import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
 import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
+import { UrlBinder } from "grapher/utils/UrlBinder"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
+import { ControlsFooterView } from "grapher/controls/Controls"
+import { TooltipView } from "grapher/tooltip/Tooltip"
+import { EntitySelectorModal } from "grapher/controls/EntitySelectorModal"
+import {
+    DownloadTab,
+    DownloadTabOptionsProvider,
+} from "grapher/downloadTab/DownloadTab"
+import * as ReactDOM from "react-dom"
+import { observer } from "mobx-react"
+import "d3-transition"
+import {
+    ControlsOverlay,
+    GrapherContext,
+    GrapherContextInterface,
+} from "grapher/controls/ControlsOverlay"
+import { ChartTab, ChartTabOptionsProvider } from "grapher/chart/ChartTab"
+import {
+    SourcesTab,
+    SourcesTabOptionsProvider,
+} from "grapher/sourcesTab/SourcesTab"
+import { DataTable } from "grapher/dataTable/DataTable"
 
 declare const window: any
 
-class GrapherDefaults implements GrapherInterface {
+const legacyConfigToConfig = (
+    config: LegacyGrapherInterface | GrapherInterface
+): GrapherInterface => {
+    const legacyConfig = config as LegacyGrapherInterface
+    if (!legacyConfig.selectedData) return legacyConfig
+
+    const newConfig = legacyConfig as GrapherInterface
+    newConfig.selectedEntityIds = legacyConfig.selectedData.map(
+        (row) => row.entityId
+    )
+    return newConfig
+}
+
+class GrapherDefaults extends React.Component<GrapherProps> {
     @observable.ref type: ChartTypeName = "LineChart"
     @observable.ref isExplorable: boolean = false
     @observable.ref id?: number = undefined
@@ -166,21 +210,18 @@ class GrapherDefaults implements GrapherInterface {
     manuallyProvideData?: boolean = false // This will be removed.
 }
 
-const defaultObject = objectWithPersistablesToObject(new GrapherDefaults())
+const defaultObject = objectWithPersistablesToObject(new GrapherDefaults({}))
 
-const legacyConfigToConfig = (
-    config: LegacyGrapherInterface | GrapherInterface
-): GrapherInterface => {
-    const legacyConfig = config as LegacyGrapherInterface
-    if (!legacyConfig.selectedData) return legacyConfig
-
-    const newConfig = legacyConfig as GrapherInterface
-    newConfig.selectedEntityIds = legacyConfig.selectedData.map(
-        (row) => row.entityId
-    )
-    return newConfig
+export interface GrapherProps extends GrapherInterface {
+    isEmbed?: boolean
+    isMediaCard?: boolean
+    queryStr?: string
+    globalEntitySelection?: GlobalEntitySelection
+    isExport?: boolean
+    bounds?: Bounds
 }
 
+@observer
 export class Grapher
     extends GrapherDefaults
     implements
@@ -188,7 +229,13 @@ export class Grapher
         ChartOptionsProvider,
         FooterOptionsProvider,
         HeaderOptionsProvider,
-        FontSizeOptionsProvider {
+        FontSizeOptionsProvider,
+        ChartTabOptionsProvider,
+        SourcesTabOptionsProvider,
+        DownloadTabOptionsProvider {
+    @observable.ref xAxis = new AxisConfig(undefined, this)
+    @observable.ref yAxis = new AxisConfig(undefined, this)
+
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
@@ -200,26 +247,12 @@ export class Grapher
     configOnLoad: Readonly<GrapherInterface>
     @observable.ref table: OwidTable
 
-    @observable.ref xAxis = new AxisConfig(undefined, this)
-    @observable.ref yAxis = new AxisConfig(undefined, this)
-
-    constructor(
-        legacyConfig?: LegacyGrapherInterface | GrapherInterface,
-        options: {
-            isEmbed?: boolean
-            isMediaCard?: boolean
-            queryStr?: string
-            globalEntitySelection?: GlobalEntitySelection
-        } = {}
-    ) {
-        super()
+    constructor(props: GrapherProps = {}) {
+        super(props!)
         this.table = new OwidTable([])
-        const config = legacyConfig
-            ? legacyConfigToConfig(legacyConfig)
-            : legacyConfig
-        this.updateFromObject(config)
-        this.isEmbed = !!options.isEmbed
-        this.isMediaCard = !!options.isMediaCard
+        const modernConfig = props ? legacyConfigToConfig(props) : props
+        this.updateFromObject(modernConfig)
+        this.isMediaCard = !!props?.isMediaCard
 
         if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
         else if (this.externalDataUrl)
@@ -244,23 +277,23 @@ export class Grapher
             )
         )
 
-        this.url = new GrapherUrl(this, config, this.bakedGrapherURL)
+        this.url = new GrapherUrl(this, modernConfig, this.bakedGrapherURL)
 
-        if (options.queryStr !== undefined)
+        if (props.queryStr !== undefined)
             this.populateFromQueryParams(
                 legacyQueryParamsToCurrentQueryParams(
-                    strToQueryParams(options.queryStr)
+                    strToQueryParams(props.queryStr)
                 )
             )
 
         // The props after consuming the URL parameters, but before any user interaction
         this.configOnLoad = this.toObject()
 
-        if (options.globalEntitySelection) {
+        if (props.globalEntitySelection) {
             this.disposers.push(
                 subscribeGrapherToGlobalEntitySelection(
                     this,
-                    options.globalEntitySelection
+                    props.globalEntitySelection
                 )
             )
         }
@@ -278,6 +311,8 @@ export class Grapher
         delete obj.externalDataUrl
         delete obj.owidDataset
         delete obj.manuallyProvideData
+
+        delete (obj as any).props // Delete react props
 
         // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
         // in the Grapher Admin with an overlay tab open
@@ -399,7 +434,6 @@ export class Grapher
         this.timeDomain = getTimeDomainFromQueryString(time)
     }
 
-    @observable.ref isEmbed: boolean
     @observable.ref isMediaCard: boolean
     @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
@@ -443,8 +477,12 @@ export class Grapher
         this._receiveLegacyData(json)
     }
 
-    isAdmin() {
-        return typeof window !== "undefined" && window.amdin
+    @computed get isAdmin() {
+        if (typeof window === "undefined") return false
+
+        if (window.admin) return true
+
+        return !!Cookies.get(CookieKeys.isAdmin)
     }
 
     @action.bound private async downloadLegacyDataFromOwidVariableIds() {
@@ -453,7 +491,7 @@ export class Grapher
             return
 
         try {
-            if (this.isAdmin()) {
+            if (this.isAdmin) {
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
@@ -1162,13 +1200,12 @@ export class Grapher
     }
 
     @computed get staticSVG() {
-        return ReactDOMServer.renderToStaticMarkup(
-            <GrapherView
-                grapher={this}
-                isExport={true}
-                bounds={this.idealBounds}
-            />
-        )
+        const props = {
+            ...this.toObject(),
+            isExport: true,
+            bounds: this.idealBounds,
+        }
+        return ReactDOMServer.renderToStaticMarkup(<Grapher {...props} />)
     }
 
     @computed get mapConfig() {
@@ -1209,6 +1246,397 @@ export class Grapher
             this.mapColumn?.owidRows.filter((row) =>
                 isOnTheMap(row.entityName)
             ) ?? []
+        )
+    }
+
+    static bootstrap({
+        jsonConfig,
+        containerNode,
+        isEmbed,
+        queryStr,
+        globalEntitySelection,
+    }: {
+        jsonConfig: GrapherInterface
+        containerNode: HTMLElement
+        isEmbed?: true
+        queryStr?: string
+        globalEntitySelection?: GlobalEntitySelection
+    }) {
+        let view
+        function render() {
+            const props = {
+                ...jsonConfig,
+                isEmbed,
+                queryStr,
+                globalEntitySelection,
+                bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
+            }
+            view = ReactDOM.render(<Grapher {...props} />, containerNode)
+        }
+
+        render()
+        window.addEventListener("resize", throttle(render))
+        return view
+    }
+
+    @computed private get isExport() {
+        return this.props.isExport
+    }
+
+    @computed get isEmbed() {
+        return (
+            this.props.isEmbed ||
+            (!this.isExport && (window.self !== window.top || this.isEditor))
+        )
+    }
+
+    @computed get isMobile() {
+        return isMobile()
+    }
+
+    @computed private get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed private get isPortrait() {
+        return this.bounds.width < this.bounds.height && this.bounds.width < 850
+    }
+
+    @computed private get isLandscape() {
+        return !this.isPortrait
+    }
+
+    @computed private get authorWidth() {
+        return this.isPortrait ? 400 : 680
+    }
+    @computed private get authorHeight() {
+        return this.isPortrait ? 640 : 480
+    }
+
+    // If the available space is very small, we use all of the space given to us
+    @computed private get fitBounds() {
+        const {
+            isEditor,
+            isEmbed,
+            isExport,
+            bounds,
+            authorWidth,
+            authorHeight,
+        } = this
+
+        if (isEditor) return false
+
+        return (
+            isEmbed ||
+            isExport ||
+            bounds.height < authorHeight ||
+            bounds.width < authorWidth
+        )
+    }
+
+    // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
+    @computed private get paddedWidth() {
+        return this.isPortrait
+            ? this.bounds.width * 0.95
+            : this.bounds.width * 0.95
+    }
+    @computed private get paddedHeight() {
+        return this.isPortrait
+            ? this.bounds.height * 0.95
+            : this.bounds.height * 0.95
+    }
+    @computed private get scaleToFitIdeal() {
+        return Math.min(
+            this.paddedWidth / this.authorWidth,
+            this.paddedHeight / this.authorHeight
+        )
+    }
+    @computed private get idealWidth() {
+        return this.authorWidth * this.scaleToFitIdeal
+    }
+    @computed private get idealHeight() {
+        return this.authorHeight * this.scaleToFitIdeal
+    }
+
+    // These are the final render dimensions
+    @computed private get renderWidth() {
+        return this.fitBounds
+            ? this.bounds.width - (this.isExport ? 0 : 5)
+            : this.idealWidth
+    }
+    @computed private get renderHeight() {
+        return this.fitBounds
+            ? this.bounds.height - (this.isExport ? 0 : 5)
+            : this.idealHeight
+    }
+
+    @computed private get tabBounds() {
+        return new Bounds(0, 0, this.renderWidth, this.renderHeight).padBottom(
+            this.isExport ? 0 : this.footerHeight
+        )
+    }
+
+    @observable.shallow overlays: { [id: string]: ControlsOverlay } = {}
+
+    @observable.ref private popups: VNode[] = []
+
+    base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    @computed get containerElement() {
+        return this.base.current || undefined
+    }
+
+    @observable private hasBeenVisible = false
+    @observable private hasError = false
+
+    @computed private get classNames() {
+        const classNames = [
+            "chart",
+            this.isExport && "export",
+            this.isEditor && "editor",
+            this.isEmbed && "embed",
+            this.isPortrait && "portrait",
+            this.isLandscape && "landscape",
+            isTouchDevice() && "is-touch",
+        ]
+
+        return classNames.filter((n) => !!n).join(" ")
+    }
+
+    addPopup(vnode: VNode) {
+        this.popups = this.popups.concat([vnode])
+    }
+
+    removePopup(vnodeType: any) {
+        this.popups = this.popups.filter((d) => !(d.type === vnodeType))
+    }
+
+    get childContext(): GrapherContextInterface {
+        return {
+            grapher: this,
+            isStatic: !!this.isExport,
+            addPopup: this.addPopup.bind(this),
+            removePopup: this.removePopup.bind(this),
+        }
+    }
+
+    render() {
+        return (
+            <GrapherContext.Provider value={this.childContext}>
+                {this.renderMain()}
+            </GrapherContext.Provider>
+        )
+    }
+
+    private renderPrimaryTab() {
+        const { tabBounds } = this
+        if (this.primaryTab === "chart" || this.primaryTab === "map")
+            return <ChartTab bounds={tabBounds} options={this} />
+
+        if (this.primaryTab === "table")
+            return <DataTable bounds={tabBounds} options={this} />
+
+        return undefined
+    }
+
+    @computed get baseUrl() {
+        return this.url.baseUrl
+    }
+
+    @computed get queryString() {
+        return this.url.queryStr
+    }
+
+    private renderOverlayTab() {
+        const bounds = this.tabBounds
+        if (this.overlayTab === "sources")
+            return (
+                <SourcesTab key="sourcesTab" bounds={bounds} options={this} />
+            )
+        if (this.overlayTab === "download")
+            return (
+                <DownloadTab key="downloadTab" bounds={bounds} options={this} />
+            )
+        return undefined
+    }
+
+    private renderSVG() {
+        return this.renderPrimaryTab()
+    }
+
+    private renderReady() {
+        return (
+            <>
+                {this.hasBeenVisible && this.renderSVG()}
+                <ControlsFooterView grapher={this} />
+                {this.renderOverlayTab()}
+                {this.popups}
+                <TooltipView
+                    width={this.renderWidth}
+                    height={this.renderHeight}
+                    tooltipProvider={this}
+                />
+                {this.isSelectingData && (
+                    <EntitySelectorModal
+                        key="entitySelector"
+                        grapher={this}
+                        isMobile={this.isMobile}
+                        onDismiss={action(() => (this.isSelectingData = false))}
+                    />
+                )}
+            </>
+        )
+    }
+
+    private renderError() {
+        return (
+            <div
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    lineHeight: 1.5,
+                    padding: "3rem",
+                }}
+            >
+                <p style={{ color: "#cc0000", fontWeight: 700 }}>
+                    <FontAwesomeIcon icon={faExclamationTriangle} /> There was a
+                    problem loading this chart
+                </p>
+                <p>
+                    We have been notified of this error, please check back later
+                    whether it's been fixed. If the error persists, get in touch
+                    with us at{" "}
+                    <a
+                        href={`mailto:info@ourworldindata.org?subject=Broken chart on page ${window.location.href}`}
+                    >
+                        info@ourworldindata.org
+                    </a>
+                    .
+                </p>
+            </div>
+        )
+    }
+
+    private renderMain() {
+        // TODO how to handle errors in exports?
+        // TODO tidy this up
+        if (this.isExport) return this.renderSVG()
+
+        const { renderWidth, renderHeight } = this
+
+        const style = {
+            width: renderWidth,
+            height: renderHeight,
+            fontSize: this.baseFontSize,
+        }
+
+        return (
+            <div ref={this.base} className={this.classNames} style={style}>
+                {this.hasError ? this.renderError() : this.renderReady()}
+            </div>
+        )
+    }
+
+    // Chart should only render SVG when it's on the screen
+    @action.bound private checkVisibility() {
+        if (!this.hasBeenVisible && isVisible(this.base.current))
+            this.hasBeenVisible = true
+    }
+
+    @action.bound private setBaseFontSize() {
+        if (this.renderWidth <= 400) this.baseFontSize = 14
+        else if (this.renderWidth < 1080) this.baseFontSize = 16
+        else if (this.renderWidth >= 1080) this.baseFontSize = 18
+    }
+
+    // Binds chart properties to global window title and URL. This should only
+    // ever be invoked from top-level JavaScript.
+    bindToWindow() {
+        window.grapher = this
+        new UrlBinder().bindToWindow(this.url)
+        autorun(() => (document.title = this.currentTitle))
+    }
+
+    componentDidMount() {
+        window.addEventListener("scroll", this.checkVisibility)
+        this.setBaseFontSize()
+        this.checkVisibility()
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("scroll", this.checkVisibility)
+        this.dispose()
+    }
+
+    componentDidUpdate() {
+        this.setBaseFontSize()
+        this.checkVisibility()
+    }
+
+    componentDidCatch(error: any, info: any) {
+        this.hasError = true
+        this.analytics.logChartError(error, info)
+    }
+
+    @observable isShareMenuActive = false
+
+    @computed.struct get overlayPadding(): OverlayPadding {
+        const overlays = Object.values(this.overlays)
+        return {
+            top: max(overlays.map((overlay) => overlay.props.paddingTop)) ?? 0,
+            right:
+                max(overlays.map((overlay) => overlay.props.paddingRight)) ?? 0,
+            bottom:
+                max(overlays.map((overlay) => overlay.props.paddingBottom)) ??
+                0,
+            left:
+                max(overlays.map((overlay) => overlay.props.paddingLeft)) ?? 0,
+        }
+    }
+
+    @computed get hasInlineControls() {
+        return (
+            (this.currentTab === "chart" || this.currentTab === "table") &&
+            ((this.canAddData && !this.hasFloatingAddButton) ||
+                this.isScatter ||
+                this.canChangeEntity ||
+                (this.isStackedArea && this.canToggleRelativeMode))
+        )
+    }
+
+    @computed get hasSpace() {
+        return this.renderWidth > 700
+    }
+
+    @computed get hasRelatedQuestion() {
+        const { relatedQuestions } = this
+        return (
+            !!relatedQuestions &&
+            !!relatedQuestions.length &&
+            !!relatedQuestions[0].text &&
+            !!relatedQuestions[0].url
+        )
+    }
+
+    @computed private get footerLines() {
+        let numLines = 1
+        if (this.hasTimeline) numLines += 1
+        if (this.hasInlineControls) numLines += 1
+        if (this.hasSpace && this.hasInlineControls && numLines > 1)
+            numLines -= 1
+        return numLines
+    }
+
+    @computed get footerHeight() {
+        const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
+        return (
+            this.footerLines * footerRowHeight +
+            (this.hasRelatedQuestion ? 20 : 0)
         )
     }
 }

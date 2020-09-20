@@ -20,7 +20,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
     @computed get queryStr(): string | undefined {
         return splitURLintoPathAndQueryString(this.props.src).queryString
     }
-    @observable chart?: Grapher
+    @observable grapher?: Grapher
 
     async loadConfig() {
         const { configUrl } = this
@@ -33,7 +33,8 @@ export class EmbedChart extends React.Component<{ src: string }> {
         const html = await resp.text()
         const config = readConfigFromHTML(html)
         runInAction(() => {
-            this.chart = new Grapher(config, {
+            this.grapher = new Grapher({
+                ...config,
                 isEmbed: true,
                 queryStr: this.queryStr,
             })
@@ -50,8 +51,8 @@ export class EmbedChart extends React.Component<{ src: string }> {
     }
 
     render() {
-        return this.chart ? (
-            <GrapherFigureView grapher={this.chart} />
+        return this.grapher ? (
+            <GrapherFigureView grapher={this.grapher} />
         ) : (
             <figure data-grapher-src={this.props.src} />
         )

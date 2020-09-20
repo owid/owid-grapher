@@ -51,10 +51,11 @@ export async function bakeChartToImage(
 ) {
     // the type definition for url.query is wrong (bc we have query string parsing disabled),
     // so we have to explicitly cast it
-    const chart = new Grapher(
-        { ...jsonConfig, manuallyProvideData: true },
-        { queryStr }
-    )
+    const chart = new Grapher({
+        ...jsonConfig,
+        manuallyProvideData: true,
+        queryStr,
+    })
     chart.isExporting = true
     const { width, height } = chart.idealBounds
     const outPath = `${outDir}/${slug}${queryStr ? "-" + md5(queryStr) : ""}_v${

@@ -9,7 +9,6 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { CountryPicker } from "grapher/controls/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
-import { GrapherView } from "grapher/core/GrapherView"
 import { ExplorerQueryParams } from "./ExplorerProgram"
 import { throttle } from "grapher/utils/Util"
 
@@ -150,6 +149,16 @@ export class ExplorerShell extends React.Component<{
 
     onResizeThrottled?: () => void
 
+    private renderGrapherComponent() {
+        const grapherProps = {
+            ...this.props.grapher,
+            bounds: this.chartBounds,
+            isEmbed: true,
+        }
+
+        return <Grapher {...grapherProps} />
+    }
+
     render() {
         return (
             <>
@@ -178,13 +187,7 @@ export class ExplorerShell extends React.Component<{
                         className="CovidExplorerFigure"
                         ref={this.chartContainerRef}
                     >
-                        {this.chartBounds && (
-                            <GrapherView
-                                bounds={this.chartBounds}
-                                grapher={this.props.grapher}
-                                isEmbed={true}
-                            ></GrapherView>
-                        )}
+                        {this.chartBounds && this.renderGrapherComponent()}
                     </div>
                 </div>
             </>

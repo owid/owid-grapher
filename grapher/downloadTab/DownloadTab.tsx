@@ -2,27 +2,50 @@ import { isMobile } from "grapher/utils/Util"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
-import { Grapher } from "grapher/core/Grapher"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
+import { OwidTable } from "owidTable/OwidTable"
+
+export interface DownloadTabOptionsProvider {
+    idealBounds?: Bounds
+    staticSVG?: string
+    isExporting?: boolean
+    displaySlug: string
+    baseUrl?: string
+    queryString?: string
+    table?: OwidTable
+    externalCsvLink?: string
+}
 
 interface DownloadTabProps {
-    bounds: Bounds
-    grapher: Grapher
+    bounds?: Bounds
+    options: DownloadTabOptionsProvider
 }
 
 declare var Blob: any
 
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
+    @computed get idealBounds() {
+        return this.options.idealBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
     @computed get targetWidth() {
-        return this.props.grapher.idealBounds.width
+        return this.idealBounds.width
     }
     @computed get targetHeight() {
-        return this.props.grapher.idealBounds.height
+        return this.idealBounds.height
+    }
+
+    @computed get options() {
+        return this.props.options
     }
 
     @observable svgBlob?: Blob
@@ -59,11 +82,11 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
 
         const { targetWidth, targetHeight } = this
-        const { grapher } = this.props
+        const { options } = this
 
-        grapher.isExporting = true
-        const staticSVG = grapher.staticSVG
-        grapher.isExporting = false
+        options.isExporting = true
+        const staticSVG = options.staticSVG ?? ""
+        options.isExporting = false
 
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8",
@@ -111,10 +134,12 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed get fallbackPngUrl() {
-        return `${this.props.grapher.url.baseUrl}.png${this.props.grapher.url.queryStr}`
+        return `${this.options.baseUrl || ""}.png${
+            this.options.queryString || ""
+        }`
     }
     @computed get baseFilename() {
-        return this.props.grapher.displaySlug
+        return this.options.displaySlug
     }
     @computed get svgPreviewUrl() {
         return this.svgDataUri
@@ -130,7 +155,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed get isPortrait(): boolean {
-        return this.props.bounds.height > this.props.bounds.width
+        return this.bounds.height > this.bounds.width
     }
 
     @action.bound onPNGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
@@ -144,19 +169,16 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @action.bound onSVGDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
-        if (window.navigator.msSaveBlob) {
-            window.navigator.msSaveBlob(
-                this.svgBlob,
-                this.baseFilename + ".svg"
-            )
-            ev.preventDefault()
-        }
+        if (!window.navigator.msSaveBlob) return
+
+        window.navigator.msSaveBlob(this.svgBlob, this.baseFilename + ".svg")
+        ev.preventDefault()
     }
 
     onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
-        const grapher = this.props.grapher
-        const csvFilename = grapher.displaySlug + ".csv"
-        const csv = grapher.table.toView().toPrettyCsv()
+        const { options } = this
+        const csvFilename = options.displaySlug + ".csv"
+        const csv = options.table?.toView().toPrettyCsv() || ""
 
         // IE11 compatibility
         if (window.navigator.msSaveBlob) {
@@ -177,9 +199,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed private get csvButton() {
-        const grapher = this.props.grapher
-        const externalCsvLink = grapher.externalCsvLink
-        const csvFilename = grapher.displaySlug + ".csv"
+        const { options } = this
+        const externalCsvLink = options.externalCsvLink
+        const csvFilename = options.displaySlug + ".csv"
         const props = externalCsvLink
             ? {
                   href: externalCsvLink,
@@ -217,19 +239,17 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
             svgPreviewUrl,
             svgDownloadUrl,
             baseFilename,
+            bounds,
         } = this
 
         let previewWidth: number
         let previewHeight: number
         const boundScalar = 0.4
-        if (
-            props.bounds.width / props.bounds.height >
-            targetWidth / targetHeight
-        ) {
-            previewHeight = props.bounds.height * boundScalar
+        if (bounds.width / bounds.height > targetWidth / targetHeight) {
+            previewHeight = bounds.height * boundScalar
             previewWidth = (targetWidth / targetHeight) * previewHeight
         } else {
-            previewWidth = props.bounds.width * boundScalar
+            previewWidth = bounds.width * boundScalar
             previewHeight = (targetHeight / targetWidth) * previewWidth
         }
 
@@ -307,7 +327,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 className={classNames("DownloadTab", {
                     mobile: isMobile(),
                 })}
-                style={{ ...this.props.bounds.toCSS(), position: "absolute" }}
+                style={{ ...this.bounds.toCSS(), position: "absolute" }}
             >
                 {this.isReady ? (
                     this.renderReady()

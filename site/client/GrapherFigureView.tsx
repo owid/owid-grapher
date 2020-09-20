@@ -3,10 +3,9 @@ import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 
 import { Bounds } from "grapher/utils/Bounds"
-import { GrapherView } from "grapher/core/GrapherView"
 import { Grapher } from "grapher/core/Grapher"
 
-// Wrapper for GrapherView that uses css on figure element to determine the bounds
+// Wrapper for Grapher that uses css on figure element to determine the bounds
 @observer
 export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -28,14 +27,13 @@ export class GrapherFigureView extends React.Component<{ grapher: Grapher }> {
     }
 
     render() {
+        const props = {
+            ...this.props.grapher.toObject(),
+            bounds: this.bounds,
+        }
         return (
             <figure data-grapher-src ref={this.base}>
-                {this.bounds && (
-                    <GrapherView
-                        grapher={this.props.grapher}
-                        bounds={this.bounds}
-                    />
-                )}
+                {this.bounds && <Grapher {...props} />}
             </figure>
         )
     }

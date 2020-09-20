@@ -21,9 +21,8 @@ export interface ChartTabOptionsProvider {
 
 @observer
 export class ChartTab extends React.Component<{
-    grapher: Grapher
+    options: Grapher
     bounds?: Bounds
-    options?: ChartTabOptionsProvider
 }> {
     @computed private get paddedBounds() {
         return this.bounds.pad(15)
@@ -48,10 +47,6 @@ export class ChartTab extends React.Component<{
         return this.props.options
     }
 
-    @computed private get grapher() {
-        return this.props.grapher
-    }
-
     @computed private get containerElement() {
         return this.options?.containerElement
     }
@@ -63,7 +58,7 @@ export class ChartTab extends React.Component<{
     @computed private get header() {
         const that = this
         return new Header({
-            options: this.grapher,
+            options: this.options,
             get maxWidth() {
                 return that.paddedBounds.width
             },
@@ -73,7 +68,7 @@ export class ChartTab extends React.Component<{
     @computed private get footer() {
         const that = this
         return new Footer({
-            options: this.grapher,
+            options: this.options,
             get maxWidth() {
                 return that.paddedBounds.width
             },
@@ -81,7 +76,7 @@ export class ChartTab extends React.Component<{
     }
 
     @computed private get isExporting() {
-        return !!this.grapher.isExporting
+        return !!this.options.isExporting
     }
 
     @computed private get svgWidth() {
@@ -115,7 +110,7 @@ export class ChartTab extends React.Component<{
     }
 
     private renderChart() {
-        const options = this.grapher
+        const { options } = this
         const type = options.type
         const innerBounds = this.innerBounds
         const isMapTab = options.tab === "map"
@@ -151,7 +146,7 @@ export class ChartTab extends React.Component<{
     @computed private get svgStyle() {
         return {
             fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.grapher.baseFontSize,
+            fontSize: this.options.baseFontSize,
             backgroundColor: "white",
             textRendering: "optimizeLegibility",
             WebkitFontSmoothing: "antialiased",
@@ -189,7 +184,7 @@ export class ChartTab extends React.Component<{
     }
 
     private renderWithHTMLText() {
-        const { maxWidth, grapher } = this
+        const { maxWidth, options } = this
         const { overlayPadding } = this
 
         const containerStyle: React.CSSProperties = {
@@ -214,8 +209,8 @@ export class ChartTab extends React.Component<{
         }
 
         return (
-            <React.Fragment>
-                <Header maxWidth={maxWidth} options={grapher} />
+            <>
+                <Header maxWidth={maxWidth} options={options} />
                 <div style={containerStyle}>
                     <svg {...this.svgProps}>{this.renderChart()}</svg>
                     <div className="ControlsOverlay" style={overlayStyle}>
@@ -226,8 +221,8 @@ export class ChartTab extends React.Component<{
                         ))}
                     </div>
                 </div>
-                <Footer maxWidth={maxWidth} options={grapher} />
-            </React.Fragment>
+                <Footer maxWidth={maxWidth} options={options} />
+            </>
         )
     }
 

@@ -16,7 +16,6 @@ import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "stripe/DonateForm"
 import { getParent } from "./utils"
 import { GrapherPageUtils } from "site/client/GrapherPageUtils"
-import { GrapherView } from "grapher/core/GrapherView"
 import { ExploreView } from "explorer/indicatorExplorer/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
@@ -37,7 +36,6 @@ import { Grapher } from "grapher/core/Grapher"
 
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
-window.GrapherView = GrapherView
 window.Grapher = Grapher
 window.CovidExplorer = CovidExplorer
 window.SwitcherExplorer = SwitcherExplorer

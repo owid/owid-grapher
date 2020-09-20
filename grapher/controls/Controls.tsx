@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
-import { GrapherView } from "grapher/core/GrapherView"
 import {
     TimelineComponent,
     TimelineComponentProps,
@@ -152,18 +151,14 @@ class FilterSmallCountriesToggle extends React.Component<{
 
 @observer
 export class ControlsFooterView extends React.Component<{
-    grapherView: GrapherView
+    grapher: Grapher
 }> {
     @computed private get grapher() {
-        return this.grapherView.grapher
-    }
-
-    @computed private get grapherView() {
-        return this.props.grapherView
+        return this.props.grapher
     }
 
     @action.bound onShareMenu() {
-        this.grapherView.isShareMenuActive = !this.grapherView.isShareMenuActive
+        this.grapher.isShareMenuActive = !this.grapher.isShareMenuActive
     }
 
     @action.bound onDataSelect() {
@@ -318,11 +313,10 @@ export class ControlsFooterView extends React.Component<{
     }
 
     @computed private get timeline() {
-        if (!this.grapherView.hasTimeline) return null
-
         const grapher = this.grapher
 
-        if (!this.grapher.times.length) return null
+        if (!grapher.hasTimeline) return null
+        if (!grapher.times.length) return null
 
         const props: TimelineComponentProps = {
             target: grapher,
@@ -356,14 +350,14 @@ export class ControlsFooterView extends React.Component<{
     }
 
     render() {
-        const { grapher, grapherView } = this
+        const { grapher } = this
         const {
             isShareMenuActive,
             hasInlineControls,
             hasSpace,
             hasRelatedQuestion,
-        } = grapherView
-        const { relatedQuestions } = grapher
+            relatedQuestions,
+        } = grapher
 
         const inlineControlsElement = hasInlineControls && !hasSpace && (
             <div className="footerRowSingle">
@@ -383,11 +377,7 @@ export class ControlsFooterView extends React.Component<{
         )
 
         const shareMenuElement = isShareMenuActive && (
-            <ShareMenu
-                grapherView={grapherView}
-                grapher={grapher}
-                onDismiss={this.onShareMenu}
-            />
+            <ShareMenu grapher={grapher} onDismiss={this.onShareMenu} />
         )
 
         const relatedQuestionElement = relatedQuestions && hasRelatedQuestion && (
@@ -408,7 +398,7 @@ export class ControlsFooterView extends React.Component<{
         return (
             <div
                 className={"ControlsFooter"}
-                style={{ height: grapherView.footerHeight }}
+                style={{ height: grapher.footerHeight }}
             >
                 {this.timeline}
                 {inlineControlsElement}

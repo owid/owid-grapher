@@ -9,7 +9,6 @@ import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
 import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { GrapherView } from "grapher/core/GrapherView"
 import { ChartTypes } from "grapher/core/GrapherConstants"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
@@ -17,6 +16,7 @@ import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel, ExplorerChartType } from "./ExploreModel"
 import { DataTable } from "grapher/dataTable/DataTable"
 import { UrlBinder } from "grapher/utils/UrlBinder"
+import { Grapher } from "grapher/core/Grapher"
 
 interface ChartTypeButton {
     type: ExplorerChartType
@@ -119,13 +119,22 @@ export class ExploreView extends React.Component<ExploreProps> {
         )
     }
 
+    private renderGrapherComponent() {
+        const grapherProps = {
+            ...this.grapher.toObject(),
+            bounds: this.bounds,
+        }
+
+        return <Grapher {...grapherProps} />
+    }
+
     render() {
         return (
             <ExplorerViewContext.Provider value={this.childContext}>
                 <div>
                     {this.renderChartTypes()}
                     {this.renderIndicatorSwitching()}
-                    <GrapherView grapher={this.grapher} bounds={this.bounds} />
+                    {this.renderGrapherComponent()}
                 </div>
                 <div>
                     <DataTable options={this.grapher} />

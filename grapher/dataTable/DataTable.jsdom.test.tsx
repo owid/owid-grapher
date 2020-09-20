@@ -132,41 +132,38 @@ describe(DataTable, () => {
     })
 
     describe("when the table doesn't have data for all rows", () => {
-        const grapher = new Grapher(
-            {
-                dimensions: [
-                    {
-                        variableId: 3512,
-                        property: "y",
-                        display: {
-                            name: "",
-                            unit: "% of children under 5",
-                            tolerance: 5,
-                            isProjection: false,
-                        },
-                    },
-                ],
-                owidDataset: {
-                    variables: {
-                        "3512": {
-                            years: [2000, 2001, 2010, 2010],
-                            entities: [207, 33, 15, 207],
-                            values: [4, 22, 20, 34],
-                            id: 3512,
-                            shortUnit: "%",
-                        },
-                    },
-                    entityKey: {
-                        "15": { name: "Afghanistan", id: 15, code: "AFG" },
-                        "207": { name: "Iceland", id: 207, code: "ISL" },
-                        "33": { name: "France", id: 33, code: "FRA" },
+        const grapher = new Grapher({
+            dimensions: [
+                {
+                    variableId: 3512,
+                    property: "y",
+                    display: {
+                        name: "",
+                        unit: "% of children under 5",
+                        tolerance: 5,
+                        isProjection: false,
                     },
                 },
+            ],
+            owidDataset: {
+                variables: {
+                    "3512": {
+                        years: [2000, 2001, 2010, 2010],
+                        entities: [207, 33, 15, 207],
+                        values: [4, 22, 20, 34],
+                        id: 3512,
+                        shortUnit: "%",
+                    },
+                },
+                entityKey: {
+                    "15": { name: "Afghanistan", id: 15, code: "AFG" },
+                    "207": { name: "Iceland", id: 207, code: "ISL" },
+                    "33": { name: "France", id: 33, code: "FRA" },
+                },
             },
-            {
-                queryStr: "?time=2002",
-            }
-        )
+
+            queryStr: "?time=2002",
+        })
         const view: ShallowWrapper = shallow(<DataTable options={grapher} />)
 
         it("renders no value when data is not available for years within the tolerance", () => {

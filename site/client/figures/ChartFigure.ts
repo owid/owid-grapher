@@ -1,8 +1,8 @@
-import { GrapherView } from "grapher/core/GrapherView"
 import { excludeUndefined, fetchText } from "grapher/utils/Util"
 
 import { Figure, LoadProps } from "./Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
+import { Grapher } from "grapher/core/Grapher"
 
 /**
  * Given the HTML of a ChartPage, it extracts the chart's config as JSON
@@ -49,7 +49,7 @@ export class ChartFigure implements Figure {
             const html = await fetchText(this.props.configUrl)
             this.jsonConfig = readConfigFromHTML(html)
             this.container.classList.remove("grapherPreview")
-            GrapherView.bootstrap({
+            Grapher.bootstrap({
                 jsonConfig: this.jsonConfig,
                 containerNode: this.container,
                 isEmbed: true,

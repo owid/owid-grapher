@@ -17,7 +17,7 @@ import * as CollapsibleList from "grapher/controls/CollapsibleList/CollapsibleLi
 import * as CommandPalette from "grapher/controls/CommandPalette.stories"
 import * as CountryPicker from "grapher/controls/CountryPicker.stories"
 import * as ScaleSelector from "grapher/controls/ScaleSelector.stories"
-import * as GrapherView from "grapher/core/GrapherView.stories"
+import * as Grapher from "grapher/core/Grapher.stories"
 import * as DataTable from "grapher/dataTable/DataTable.stories"
 import * as FacetChart from "grapher/facetChart/FacetChart.stories"
 import * as Footer from "grapher/footer/Footer.stories"
@@ -51,7 +51,7 @@ runTests(CollapsibleList)
 runTests(CommandPalette)
 runTests(CountryPicker)
 runTests(ScaleSelector)
-runTests(GrapherView)
+runTests(Grapher)
 runTests(DataTable)
 runTests(FacetChart)
 runTests(Footer)

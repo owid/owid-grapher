@@ -2,29 +2,30 @@ import { min, max, linkify } from "grapher/utils/Util"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { SourceWithDimension } from "grapher/chart/ChartDimension"
-import { Grapher } from "grapher/core/Grapher"
-import * as Cookies from "js-cookie"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { CookieKeys } from "grapher/core/GrapherConstants"
 
-function formatText(s: string) {
-    return linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
+const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
+
+export interface SourcesTabOptionsProvider {
+    adminBaseUrl?: string
+    sourcesWithDimension: SourceWithDimension[]
+    isAdmin?: boolean
 }
 
 @observer
 export class SourcesTab extends React.Component<{
-    bounds: Bounds
-    grapher: Grapher
+    bounds?: Bounds
+    options: SourcesTabOptionsProvider
 }> {
     @computed private get bounds() {
-        return this.props.bounds
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get sourcesWithDimensions() {
-        return this.props.grapher.sourcesWithDimension
+    @computed private get options() {
+        return this.props.options
     }
 
     private renderSource(sourceWithDimension: SourceWithDimension) {
@@ -32,8 +33,8 @@ export class SourcesTab extends React.Component<{
         const dimension = sourceWithDimension.dimension
         const { column } = dimension
 
-        const editUrl = Cookies.get(CookieKeys.isAdmin)
-            ? `${this.props.grapher.adminBaseUrl}/admin/datasets/${column.datasetId}`
+        const editUrl = this.options.isAdmin
+            ? `${this.props.options.adminBaseUrl}/admin/datasets/${column.datasetId}`
             : undefined
 
         const minYear = min(column.times)
@@ -148,7 +149,7 @@ export class SourcesTab extends React.Component<{
                 <div>
                     <h2>Sources</h2>
                     <div>
-                        {this.sourcesWithDimensions.map((source) =>
+                        {this.options.sourcesWithDimension.map((source) =>
                             this.renderSource(source)
                         )}
                     </div>

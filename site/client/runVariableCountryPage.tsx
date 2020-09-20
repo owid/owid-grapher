@@ -34,7 +34,8 @@ class ClientVariableCountryPage extends React.Component<{
 
     dispose!: IReactionDisposer
     componentDidMount() {
-        this.grapher = new Grapher(this.grapherConfig as any, {
+        this.grapher = new Grapher({
+            ...this.grapherConfig,
             isEmbed: true,
         })
     }

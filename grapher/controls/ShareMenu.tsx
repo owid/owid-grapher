@@ -11,21 +11,17 @@ import { faCode } from "@fortawesome/free-solid-svg-icons/faCode"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
 import { faCopy } from "@fortawesome/free-solid-svg-icons/faCopy"
 import { faEdit } from "@fortawesome/free-solid-svg-icons/faEdit"
-import { GrapherView } from "grapher/core/GrapherView"
 import { CookieKeys } from "grapher/core/GrapherConstants"
 
 @observer
 class EmbedMenu extends React.Component<{
-    grapherView: GrapherView
+    grapher: Grapher
 }> {
     dismissable = true
 
     @action.bound onClickSomewhere() {
-        if (this.dismissable) {
-            this.props.grapherView.removePopup(EmbedMenu)
-        } else {
-            this.dismissable = true
-        }
+        if (this.dismissable) this.props.grapher.removePopup(EmbedMenu)
+        else this.dismissable = true
     }
 
     @action.bound onClick() {
@@ -41,7 +37,7 @@ class EmbedMenu extends React.Component<{
     }
 
     render() {
-        const url = this.props.grapherView.grapher.url.canonicalUrl
+        const url = this.props.grapher.url.canonicalUrl
         return (
             <div className="embedMenu" onClick={this.onClick}>
                 <h2>Embed</h2>
@@ -51,7 +47,7 @@ class EmbedMenu extends React.Component<{
                     onFocus={(evt) => evt.currentTarget.select()}
                     value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
-                {this.props.grapherView.grapher.embedExplorerCheckbox}
+                {this.props.grapher.embedExplorerCheckbox}
             </div>
         )
     }
@@ -59,7 +55,6 @@ class EmbedMenu extends React.Component<{
 
 interface ShareMenuProps {
     grapher: Grapher
-    grapherView: any
     onDismiss: () => void
 }
 
@@ -79,22 +74,22 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
-    @computed get title(): string {
+    @computed get title() {
         return this.props.grapher.currentTitle
     }
 
-    @computed get isDisabled(): boolean {
+    @computed get isDisabled() {
         return !this.props.grapher.slug
     }
 
-    @computed get editUrl(): string | undefined {
+    @computed get editUrl() {
         const { grapher } = this.props
         return Cookies.get(CookieKeys.isAdmin) || grapher.isDev
             ? `${grapher.adminBaseUrl}/admin/charts/${grapher.id}/edit`
             : undefined
     }
 
-    @computed get canonicalUrl(): string | undefined {
+    @computed get canonicalUrl() {
         return this.props.grapher.url.canonicalUrl
     }
 
@@ -119,39 +114,36 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @action.bound onEmbed() {
-        if (this.canonicalUrl) {
-            this.props.grapherView.addPopup(
-                <EmbedMenu
-                    key="EmbedMenu"
-                    grapherView={this.props.grapherView}
-                />
-            )
-            this.dismiss()
-        }
+        if (!this.canonicalUrl) return
+
+        this.props.grapher.addPopup(
+            <EmbedMenu key="EmbedMenu" grapher={this.props.grapher} />
+        )
+        this.dismiss()
     }
 
     @action.bound async onNavigatorShare() {
-        if (this.canonicalUrl && navigator.share) {
-            const shareData = {
-                title: this.title,
-                url: this.canonicalUrl,
-            }
+        if (!this.canonicalUrl || !navigator.share) return
 
-            try {
-                await navigator.share(shareData)
-            } catch (err) {
-                console.error("couldn't share using navigator.share", err)
-            }
+        const shareData = {
+            title: this.title,
+            url: this.canonicalUrl,
+        }
+
+        try {
+            await navigator.share(shareData)
+        } catch (err) {
+            console.error("couldn't share using navigator.share", err)
         }
     }
 
     @action.bound onCopy() {
-        if (this.canonicalUrl) {
-            if (copy(this.canonicalUrl)) this.setState({ copied: true })
-        }
+        if (!this.canonicalUrl) return
+
+        if (copy(this.canonicalUrl)) this.setState({ copied: true })
     }
 
-    @computed get twitterHref(): string {
+    @computed get twitterHref() {
         let href =
             "https://twitter.com/intent/tweet/?text=" +
             encodeURIComponent(this.title)
@@ -160,7 +152,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return href
     }
 
-    @computed get facebookHref(): string {
+    @computed get facebookHref() {
         let href =
             "https://www.facebook.com/dialog/share?app_id=1149943818390250&display=page"
         if (this.canonicalUrl)

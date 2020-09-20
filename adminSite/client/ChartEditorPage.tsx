@@ -10,8 +10,6 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
-
-import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
 import { capitalize } from "grapher/utils/Util"
 import { Grapher } from "grapher/core/Grapher"
@@ -224,6 +222,14 @@ export class ChartEditorPage extends React.Component<{
     renderReady(editor: ChartEditor) {
         const { grapher, availableTabs, previewMode } = editor
 
+        const grapherProps = {
+            ...grapher,
+            bounds:
+                previewMode === "mobile"
+                    ? new Bounds(0, 0, 360, 500)
+                    : new Bounds(0, 0, 800, 600),
+        }
+
         return (
             <React.Fragment>
                 {!editor.newChartId && (
@@ -296,16 +302,7 @@ export class ChartEditorPage extends React.Component<{
                                 `url(#${this.simulateVisionDeficiency.id})`,
                         }}
                     >
-                        {
-                            <GrapherView
-                                grapher={grapher}
-                                bounds={
-                                    previewMode === "mobile"
-                                        ? new Bounds(0, 0, 360, 500)
-                                        : new Bounds(0, 0, 800, 600)
-                                }
-                            />
-                        }
+                        {<Grapher {...grapherProps} />}
                     </figure>
                     <div>
                         <div

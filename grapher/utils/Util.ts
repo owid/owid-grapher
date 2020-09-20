@@ -404,6 +404,16 @@ export const relativeMinAndMax = (
     return [minChange, maxChange]
 }
 
+export function isVisible(elm: HTMLElement | null) {
+    if (!elm || !elm.getBoundingClientRect) return false
+    const rect = elm.getBoundingClientRect()
+    const viewHeight = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight
+    )
+    return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
+}
+
 // Take an arbitrary string and turn it into a nice url slug
 export const slugify = (str: string) => slugifySameCase(str.toLowerCase())
 export const slugifySameCase = (str: string) =>

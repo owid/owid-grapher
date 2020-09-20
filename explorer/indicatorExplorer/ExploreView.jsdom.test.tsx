@@ -5,7 +5,6 @@ import { shallow, mount, ReactWrapper } from "enzyme"
 import { observe } from "mobx"
 import xhrMock from "xhr-mock"
 import { ExploreView } from "./ExploreView"
-import { GrapherView } from "grapher/core/GrapherView"
 import { ChartTypes } from "grapher/core/GrapherConstants"
 import { LineChart } from "grapher/lineCharts/LineChart"
 import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
@@ -20,6 +19,7 @@ import {
     mockIndicators,
     initXhrMock,
 } from "explorer/indicatorExplorer/apiMock"
+import { Grapher } from "grapher/core/Grapher"
 
 function getDefaultModel() {
     const model = new ExploreModel(new RootStore())
@@ -64,9 +64,8 @@ function mockDataResponse() {
     })
 }
 
-async function whenReady(grapherView: GrapherView): Promise<void> {
+async function whenReady(grapher: Grapher): Promise<void> {
     return new Promise((resolve) => {
-        const grapher = grapherView.grapher
         observe(grapher, "isReady", () => {
             if (grapher.isReady) resolve()
         })
@@ -74,15 +73,15 @@ async function whenReady(grapherView: GrapherView): Promise<void> {
 }
 
 async function updateViewWhenReady(exploreView: ReactWrapper) {
-    const grapherView = exploreView.find(GrapherView).first()
-    await whenReady(grapherView.instance() as GrapherView)
+    const grapher = exploreView.find(Grapher).first()
+    await whenReady(grapher.instance() as Grapher)
     exploreView.update()
 }
 
 describe(ExploreView, () => {
     it("renders an empty chart", () => {
         const view = shallow(<ExploreView model={getEmptyModel()} />)
-        expect(view.find(GrapherView)).toHaveLength(1)
+        expect(view.find(Grapher)).toHaveLength(1)
     })
 
     describe("when you render with different model params", () => {
@@ -171,20 +170,20 @@ describe(ExploreView, () => {
 
         it("loads an empty chart with no indicator", () => {
             const view = shallow(<ExploreView model={getEmptyModel()} />)
-            expect(view.find(GrapherView)).toHaveLength(1)
+            expect(view.find(Grapher)).toHaveLength(1)
         })
 
         it("loads a chart with the initialized indicator", async () => {
             const view = mount(<ExploreView model={getDefaultModel()} />)
             await updateViewWhenReady(view)
-            expect(view.find(GrapherView)).toHaveLength(1)
+            expect(view.find(Grapher)).toHaveLength(1)
             expect(view.find(".chart h1").text()).toContain(mockIndicator.title)
         })
 
         it("loads the indicator when the indicatorId is changed", async () => {
             const model = getEmptyModel()
             const view = mount(<ExploreView model={model} />)
-            expect(view.find(GrapherView)).toHaveLength(1)
+            expect(view.find(Grapher)).toHaveLength(1)
 
             model.setIndicatorId(mockIndicator.id)
             await updateViewWhenReady(view)

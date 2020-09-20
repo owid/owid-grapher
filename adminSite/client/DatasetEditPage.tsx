@@ -35,6 +35,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faUpload } from "@fortawesome/free-solid-svg-icons/faUpload"
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 class VariableEditable {
     @observable name: string = ""
@@ -91,7 +92,7 @@ class VariableEditRow extends React.Component<{
         }
     }
 
-    @computed private get grapherConfig() {
+    @computed private get grapherConfig(): GrapherInterface {
         return {
             yAxis: { min: 0 },
             map: { variableId: this.props.variable.id },
@@ -104,7 +105,7 @@ class VariableEditRow extends React.Component<{
                     display: lodash.clone(this.newVariable.display),
                 },
             ],
-        }
+        } as any
     }
 
     @action.bound grapherIsReady(grapher: Grapher) {
@@ -145,9 +146,7 @@ class VariableEditRow extends React.Component<{
     dispose!: IReactionDisposer
     dispose2!: IReactionDisposer
     componentDidMount() {
-        this.grapher = new Grapher(this.grapherConfig as any, {
-            isEmbed: true,
-        })
+        this.grapher = new Grapher({ ...this.grapherConfig, isEmbed: true })
 
         this.dispose2 = when(
             () => this.grapher !== undefined && this.grapher.isReady,

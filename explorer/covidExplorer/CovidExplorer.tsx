@@ -1,7 +1,6 @@
 import React from "react"
 import classnames from "classnames"
 import ReactDOM from "react-dom"
-import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
@@ -521,17 +520,21 @@ export class CovidExplorer extends React.Component<{
                         className="CovidExplorerFigure"
                         ref={this.chartContainerRef}
                     >
-                        {this.chartBounds && (
-                            <GrapherView
-                                bounds={this.chartBounds}
-                                grapher={this.grapher}
-                                isEmbed={true}
-                            ></GrapherView>
-                        )}
+                        {this.chartBounds && this.renderGrapherComponent()}
                     </div>
                 </div>
             </>
         )
+    }
+
+    private renderGrapherComponent() {
+        const grapherProps = {
+            ...this.grapher,
+            bounds: this.chartBounds,
+            isEmbed: true,
+        }
+
+        return <Grapher {...grapherProps} />
     }
 
     get controlsToggleElement() {
@@ -1227,44 +1230,40 @@ export class CovidExplorer extends React.Component<{
             : ""
     }
 
-    @observable.ref grapher: Grapher = new Grapher(
-        {
-            slug: covidDashboardSlug,
-            type: this.constrainedParams.type,
-            isExplorable: false,
-            id: 4128,
-            version: 9,
-            title: "",
-            subtitle: "",
-            note: this.note,
-            hideTitleAnnotation: true,
-            xAxis: {
-                scaleType: ScaleType.linear,
-            },
-            yAxis: {
-                min: 0,
-                removePointsOutsideDomain: true,
-                scaleType: ScaleType.linear,
-                canChangeScaleType: true,
-                label: this.yAxisLabel,
-            },
-            dimensions: [],
-            scatterPointLabelStrategy: "y",
-            addCountryMode: "add-country",
-            stackMode: "absolute",
-            manuallyProvideData: true,
-            colorScale: this.colorScales.continents,
-            hideRelativeToggle: true,
-            hasChartTab: true,
-            hasMapTab: true,
-            tab: "chart",
-            isPublished: true,
-            map: this.defaultMapConfig as any,
+    @observable.ref grapher: Grapher = new Grapher({
+        slug: covidDashboardSlug,
+        type: this.constrainedParams.type,
+        isExplorable: false,
+        id: 4128,
+        version: 9,
+        title: "",
+        subtitle: "",
+        note: this.note,
+        hideTitleAnnotation: true,
+        xAxis: {
+            scaleType: ScaleType.linear,
         },
-        {
-            queryStr: this.props.queryStr,
-        }
-    )
+        yAxis: {
+            min: 0,
+            removePointsOutsideDomain: true,
+            scaleType: ScaleType.linear,
+            canChangeScaleType: true,
+            label: this.yAxisLabel,
+        },
+        dimensions: [],
+        scatterPointLabelStrategy: "y",
+        addCountryMode: "add-country",
+        stackMode: "absolute",
+        manuallyProvideData: true,
+        colorScale: this.colorScales.continents,
+        hideRelativeToggle: true,
+        hasChartTab: true,
+        hasMapTab: true,
+        tab: "chart",
+        isPublished: true,
+        map: this.defaultMapConfig as any,
+        queryStr: this.props.queryStr,
+    })
 }
 
 function isCountMetric(metric: MetricKind) {

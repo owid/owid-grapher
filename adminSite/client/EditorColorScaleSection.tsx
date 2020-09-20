@@ -479,7 +479,7 @@ class CategoricalBinView extends React.Component<{
                 />
                 <Toggle
                     label="Hide"
-                    value={bin.isHidden}
+                    value={!!bin.isHidden}
                     onValue={this.onToggleHidden}
                 />
             </EditableListItem>
