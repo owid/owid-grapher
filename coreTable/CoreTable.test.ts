@@ -51,9 +51,7 @@ describe("immutability", () => {
             slug: "firstLetter",
             fn: (row) => row.country.length,
         })
-        expect(
-            table.columnsBySlug.get("firstLetter")?.parsedValues.join("")
-        ).toEqual(`37`)
+        expect(table.get("firstLetter")?.parsedValues.join("")).toEqual(`37`)
         expect((rows[0] as any).firstLetter).toEqual(undefined)
     })
 })
@@ -75,7 +73,7 @@ canada,20`
     })
 
     describe("filtering", () => {
-        const col = table.columnsBySlug.get("country")!
+        const col = table.get("country")!
         it("one filter works", () => {
             expect(col.parsedValues[3]).toEqual("canada")
             table.addFilterColumn(
@@ -113,7 +111,7 @@ hi,1,,2001`
     const table = AnyTable.fromDelimited(csv)
 
     it("can get annotations for a row", () => {
-        const annotationsColumn = table.columnsBySlug.get("notes")
+        const annotationsColumn = table.get("notes")
         const entityNameMap = annotationsColumn!.entityNameMap
 
         expect(entityNameMap.size).toEqual(2)

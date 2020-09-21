@@ -88,7 +88,11 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     }
 
     get(columnSlug: ColumnSlug) {
-        return this.columnsBySlug.get(columnSlug)
+        return this.columns.get(columnSlug)
+    }
+
+    has(columnSlug: ColumnSlug) {
+        return this.columns.has(columnSlug)
     }
 
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
@@ -254,10 +258,6 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 fn: transformation(computeIntervalTotals),
             })
         )
-    }
-
-    @computed get columnsBySlug() {
-        return this.columns
     }
 
     @computed get columnsByName() {

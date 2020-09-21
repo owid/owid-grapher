@@ -81,7 +81,7 @@ export class ChartDimension
 
     @computed get column() {
         return (
-            this.table.columnsBySlug.get(this.columnSlug) ||
+            this.table.get(this.columnSlug) ||
             new LoadingColumn(this.table, {
                 slug: this.variableId?.toString() || "loading",
             })

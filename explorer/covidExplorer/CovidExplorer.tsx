@@ -1070,24 +1070,18 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get yColumn() {
-        return this.grapher.table.columnsBySlug.get(
-            this.constrainedParams.yColumnSlug
-        )!
+        return this.grapher.table.get(this.constrainedParams.yColumnSlug)!
     }
 
     @computed private get xColumn() {
         return this.constrainedParams.xColumnSlug
-            ? this.grapher.table.columnsBySlug.get(
-                  this.constrainedParams.xColumnSlug!
-              )!
+            ? this.grapher.table.get(this.constrainedParams.xColumnSlug!)!
             : undefined
     }
 
     @computed private get sizeColumn() {
         return this.constrainedParams.sizeColumn
-            ? this.grapher.table.columnsBySlug.get(
-                  this.constrainedParams.sizeColumn!
-              )!
+            ? this.grapher.table.get(this.constrainedParams.sizeColumn!)!
             : undefined
     }
 

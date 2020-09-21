@@ -257,7 +257,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     private defaultEntitySelectionSlug = "is_entity_selected"
     private initDefaultEntitySelectionColumn() {
-        if (!this.columnsBySlug.has(this.defaultEntitySelectionSlug))
+        if (!this.has(this.defaultEntitySelectionSlug))
             this.columns.set(
                 this.defaultEntitySelectionSlug,
                 new SelectionColumn(this, {
@@ -334,12 +334,10 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     entitiesWith(columnSlugs: string[]): Set<string> {
         if (!columnSlugs.length) return new Set()
         if (columnSlugs.length === 1)
-            return this.columnsBySlug.get(columnSlugs[0])!.entityNamesUniq
+            return this.get(columnSlugs[0])!.entityNamesUniq
 
         return intersectionOfSets<string>(
-            columnSlugs.map(
-                (slug) => this.columnsBySlug.get(slug)!.entityNamesUniq
-            )
+            columnSlugs.map((slug) => this.get(slug)!.entityNamesUniq)
         )
     }
 

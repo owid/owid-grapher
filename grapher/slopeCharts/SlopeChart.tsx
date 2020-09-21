@@ -272,10 +272,6 @@ export class SlopeChart
         return this.yColumn?.timesUniq || []
     }
 
-    @computed private get columns() {
-        return this.options.table.columnsBySlug
-    }
-
     @computed private get yColumn() {
         return this.options.yColumn!
     }

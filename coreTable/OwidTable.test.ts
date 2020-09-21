@@ -79,7 +79,7 @@ describe("from legacy", () => {
 
     it("can create a table and detect columns from legacy", () => {
         expect(table.rows.length).toEqual(3)
-        expect(Array.from(table.columnsBySlug.keys())).toEqual([
+        expect(table.columnSlugs).toEqual([
             "entityName",
             "entityId",
             "entityCode",
@@ -104,11 +104,7 @@ describe("from legacy", () => {
         const varSet = getLegacyVarSet()
         const table = new OwidTable([]).loadFromLegacy(varSet)
         table.applyUnitConversionAndOverwriteLegacyColumn(100, 3512)
-        expect(table.columnsBySlug.get("3512")!.parsedValues).toEqual([
-            550,
-            420,
-            1260,
-        ])
+        expect(table.get("3512")!.parsedValues).toEqual([550, 420, 1260])
     })
 })
 
@@ -170,7 +166,7 @@ describe("can get entities with all required columns", () => {
     const table = OwidTable.fromDelimited(basicTableCsv)
 
     it("gets entities only with values for that column", () => {
-        expect(table.columnsBySlug.get("pop")?.entityNamesUniq.size).toEqual(2)
+        expect(table.get("pop")?.entityNamesUniq.size).toEqual(2)
     })
 
     it("filters rows correctly", () => {
@@ -194,7 +190,7 @@ usa,us,23,`)
 
     it("can handle columns with commas", () => {
         const table = OwidTable.fromDelimited(basicTableCsv)
-        table.columnsBySlug.get("gdp")!.spec.name = "Gross, Domestic, Product"
+        table.get("gdp")!.spec.name = "Gross, Domestic, Product"
         expect(table.toView().toPrettyCsv())
             .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
 france,fr,23,4
@@ -251,8 +247,7 @@ describe("rolling averages", () => {
     // sortedUniqNonEmptyStringVals
     it("cam get values for color legend", () => {
         expect(
-            table.columnsBySlug.get("continent")?.sortedUniqNonEmptyStringVals
-                .length
+            table.get("continent")?.sortedUniqNonEmptyStringVals.length
         ).toEqual(1)
     })
 })

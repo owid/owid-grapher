@@ -164,8 +164,7 @@ export class EditorMapTab extends React.Component<{ editor: ChartEditor }> {
         const colorScale = {} as any // todo:
 
         const isReady =
-            !!mapConfig.columnSlug &&
-            grapher.table.columnsBySlug.has(mapConfig.columnSlug)
+            !!mapConfig.columnSlug && grapher.table.has(mapConfig.columnSlug)
 
         return (
             <div className="EditorMapTab tab-pane">

@@ -11,7 +11,7 @@ describe(MapChartWithLegend, () => {
     })
     const options: MapChartOptionsProvider = {
         table,
-        mapColumn: table.columnsBySlug.get("Population")!,
+        mapColumn: table.get("Population")!,
     }
 
     test("can create a new Map chart", () => {

@@ -310,7 +310,7 @@ export class CovidExplorerTable {
         const spec = this.buildColumnSpec(params)
 
         const table = this.table
-        if (table.columnsBySlug.has(spec.slug)) return spec
+        if (table.has(spec.slug)) return spec
 
         // The 7 day test smoothing is already calculated, so for now just reuse that instead of recalculating.
         const alreadySmoothed =
@@ -468,7 +468,7 @@ export class CovidExplorerTable {
 
     private groupFilterSlug = "group_filter"
     addGroupFilterColumn() {
-        if (!this.table.columnsBySlug.has(this.groupFilterSlug)) {
+        if (!this.table.has(this.groupFilterSlug)) {
             this.table.addFilterColumn(
                 this.groupFilterSlug,
                 (row, index, table) =>
@@ -486,7 +486,7 @@ export class CovidExplorerTable {
         const filterSlug = "filter_negatives_in_" + slugName
         if (filterSlug !== this.negativeFilterSlug)
             this.removeNegativeFilterColumn()
-        if (!this.table.columnsBySlug.has(filterSlug))
+        if (!this.table.has(filterSlug))
             this.table.addFilterColumn(
                 filterSlug,
                 (row) => !(row[slugName] < 0)
@@ -566,7 +566,7 @@ export class CovidExplorerTable {
 
     private addNewCasesSmoothedColumn(smoothing: SmoothingOption) {
         const slug = `new_cases_smoothed_${smoothing}day`
-        if (this.table.columnsBySlug.has(slug)) return slug
+        if (this.table.has(slug)) return slug
         this.table.addRollingAverageColumn(
             {
                 slug,
