@@ -16,3 +16,4 @@ tmp
 dist
 .queue
 .pending
+/wordpress
