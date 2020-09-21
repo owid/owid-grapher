@@ -18,7 +18,7 @@ import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { EntityName } from "owidTable/OwidTableConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 // Minimum vertical space between two legend items

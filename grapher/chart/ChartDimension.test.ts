@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { ChartDimension } from "./ChartDimension"
-import { OwidTable } from "owidTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
 
 describe(ChartDimension, () => {
     it("can serialize for saving", () => {

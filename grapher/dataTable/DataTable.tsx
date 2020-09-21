@@ -25,7 +25,8 @@ import {
 } from "grapher/utils/Util"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { Tippy } from "grapher/chart/Tippy"
-import { AbstractColumn, OwidTable } from "owidTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
+import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 
 interface DataTableState {
@@ -197,9 +198,9 @@ export class DataTable extends React.Component<{
     private get dimensionHeaders() {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
-            const actualColumn = dim.actualColumn
+            const actualColumn = dim.coreColumn
             const unit =
-                actualColumn.unit === "%" ? "percent" : dim.actualColumn.unit
+                actualColumn.unit === "%" ? "percent" : dim.coreColumn.unit
             const dimensionHeaderText = (
                 <React.Fragment>
                     <span className="name">
@@ -233,7 +234,7 @@ export class DataTable extends React.Component<{
             dim.columns.map((column) => {
                 const headerText =
                     column.targetTimeMode === TargetTimeMode.point
-                        ? dim.actualColumn.formatTime(column.targetTime!)
+                        ? dim.coreColumn.table.formatTime(column.targetTime!)
                         : columnNameByType[column.key]
                 return (
                     <ColumnHeader
@@ -271,7 +272,7 @@ export class DataTable extends React.Component<{
         column: DataTableColumn,
         dv: DimensionValue | undefined,
         sorted: boolean,
-        actualColumn: AbstractColumn
+        actualColumn: AbstractCoreColumn
     ) {
         if (dv === undefined || !(column.key in dv))
             return <td key={key} className="dimension" />
@@ -303,8 +304,8 @@ export class DataTable extends React.Component<{
             >
                 {shouldShowClosestTimeNotice &&
                     makeClosestTimeNotice(
-                        actualColumn.formatTime(column.targetTime!),
-                        actualColumn.formatTime(value.time!) // todo: add back format: "MMM D",
+                        actualColumn.table.formatTime(column.targetTime!),
+                        actualColumn.table.formatTime(value.time!) // todo: add back format: "MMM D",
                     )}
                 {value.displayValue}
                 {value.time !== undefined &&
@@ -341,7 +342,7 @@ export class DataTable extends React.Component<{
                             dv,
                             sort.dimIndex === dimIndex &&
                                 sort.columnKey === column.key,
-                            dimension.actualColumn
+                            dimension.coreColumn
                         )
                     })
                 })}
@@ -458,7 +459,7 @@ export class DataTable extends React.Component<{
     }
 
     formatValue(
-        column: AbstractColumn,
+        column: AbstractCoreColumn,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
     ) {
@@ -625,7 +626,7 @@ export class DataTable extends React.Component<{
                 // is not sortable.
                 sortable: true,
             })),
-            actualColumn: d.sourceColumn,
+            coreColumn: d.sourceColumn,
         }))
     }
 
@@ -711,7 +712,7 @@ enum TargetTimeMode {
 interface Dimension {
     columns: DimensionColumn[]
     valueByEntity: Map<string, DimensionValue>
-    sourceColumn: AbstractColumn
+    sourceColumn: AbstractCoreColumn
 }
 
 interface DimensionColumn {
@@ -761,7 +762,7 @@ type ColumnKey = SingleValueKey | RangeValueKey
 
 interface DataTableDimension {
     columns: DataTableColumn[]
-    actualColumn: AbstractColumn
+    coreColumn: AbstractCoreColumn
     sortable: boolean
 }
 

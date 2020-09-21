@@ -1,4 +1,4 @@
-import { EntityName } from "owidTable/OwidTableConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
 import { MapTopology } from "./MapTopology"
 
 let _cache: Set<string>

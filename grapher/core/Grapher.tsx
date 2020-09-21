@@ -50,9 +50,9 @@ import {
     OverlayPadding,
     CookieKeys,
 } from "grapher/core/GrapherConstants"
-import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
-import { OwidTable } from "owidTable/OwidTable"
+import { OwidColumnSpec, OwidTable } from "coreTable/OwidTable"
 import {
     ChartDimension,
     SourceWithDimension,
@@ -82,7 +82,7 @@ import {
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { countries } from "utils/countries"
 import { getWindowQueryParams, strToQueryParams } from "utils/client/url"
-import { populationMap } from "owidTable/PopulationMap"
+import { populationMap } from "coreTable/PopulationMap"
 import {
     GrapherInterface,
     LegacyGrapherInterface,
@@ -103,7 +103,7 @@ import {
     updatePersistables,
 } from "grapher/persistable/Persistable"
 import { TimeViz } from "grapher/timeline/TimelineController"
-import { EntityId, EntityName } from "owidTable/OwidTableConstants"
+import { EntityId, EntityName } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
@@ -534,7 +534,7 @@ export class Grapher
             .forEach((col) => {
                 table.applyUnitConversionAndOverwriteLegacyColumn(
                     col.display.conversionFactor!,
-                    col.spec.owidVariableId!
+                    (col.spec as OwidColumnSpec).owidVariableId!
                 )
             })
 
@@ -1071,7 +1071,10 @@ export class Grapher
                 column.name !== "Countries Continents" &&
                 column.name !== "Total population (Gapminder)"
             )
-                sources.push({ source: column.source!, dimension: dim })
+                sources.push({
+                    source: (column.spec as OwidColumnSpec).source!,
+                    dimension: dim,
+                })
         })
         return sources
     }
@@ -1111,9 +1114,11 @@ export class Grapher
 
         if (
             yColumns.length > 1 &&
-            uniq(yColumns.map((col) => col.datasetName)).length === 1
+            uniq(
+                yColumns.map((col) => (col.spec as OwidColumnSpec).datasetName)
+            ).length === 1
         )
-            return yColumns[0].datasetName!
+            return (yColumns[0].spec as OwidColumnSpec).datasetName!
 
         if (yColumns.length === 2)
             return yColumns.map((col) => col.displayName).join(" and ")

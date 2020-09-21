@@ -1,4 +1,4 @@
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import * as React from "react"
 import { ScatterPlot } from "./ScatterPlot"
 

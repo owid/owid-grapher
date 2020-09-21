@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Grapher, GrapherProps } from "./Grapher"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 
 export default {
     title: "Grapher",

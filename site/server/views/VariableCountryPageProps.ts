@@ -1,4 +1,4 @@
-import { LegacyVariableConfig } from "owidTable/LegacyVariableCode"
+import { LegacyVariableConfig } from "coreTable/LegacyVariableCode"
 
 export interface VariableCountryPageProps {
     country: {

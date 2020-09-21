@@ -6,6 +6,7 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { SourceWithDimension } from "grapher/chart/ChartDimension"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { OwidColumnSpec } from "coreTable/OwidTable"
 
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
@@ -32,18 +33,20 @@ export class SourcesTab extends React.Component<{
         const source = sourceWithDimension.source
         const dimension = sourceWithDimension.dimension
         const { column } = dimension
+        const { table } = column
+        const spec = column.spec as OwidColumnSpec
 
         const editUrl = this.options.isAdmin
-            ? `${this.props.options.adminBaseUrl}/admin/datasets/${column.datasetId}`
+            ? `${this.props.options.adminBaseUrl}/admin/datasets/${spec.datasetId}`
             : undefined
 
         const minYear = min(column.times)
         const maxYear = max(column.times)
         let timespan = ""
         if (minYear !== undefined && maxYear !== undefined)
-            timespan = `${dimension.column.formatTime(
+            timespan = `${table.timeColumn?.formatValue(
                 minYear
-            )} – ${dimension.column.formatTime(maxYear)}`
+            )} – ${table.timeColumn?.formatValue(maxYear)}`
 
         return (
             <div key={source.id} className="datasource-wrapper">
@@ -67,10 +70,10 @@ export class SourcesTab extends React.Component<{
                                 />
                             </tr>
                         ) : null}
-                        {column.coverage ? (
+                        {spec.coverage ? (
                             <tr>
                                 <td>Variable geographic coverage</td>
-                                <td>{column.coverage}</td>
+                                <td>{spec.coverage}</td>
                             </tr>
                         ) : null}
                         {timespan ? (
@@ -79,10 +82,10 @@ export class SourcesTab extends React.Component<{
                                 <td>{timespan}</td>
                             </tr>
                         ) : null}
-                        {dimension.column.unitConversionFactor !== 1 ? (
+                        {column.unitConversionFactor !== 1 ? (
                             <tr>
                                 <td>Unit conversion factor for chart</td>
-                                <td>{dimension.column.unitConversionFactor}</td>
+                                <td>{column.unitConversionFactor}</td>
                             </tr>
                         ) : null}
                         {source.dataPublishedBy ? (

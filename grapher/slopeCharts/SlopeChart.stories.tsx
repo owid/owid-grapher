@@ -1,6 +1,6 @@
 import * as React from "react"
 import { SlopeChart } from "./SlopeChart"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 
 export default {

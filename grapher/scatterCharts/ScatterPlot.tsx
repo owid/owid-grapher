@@ -47,7 +47,7 @@ import {
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
-import { EntityName } from "owidTable/OwidTableConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
 import {
     AddCountryMode,
     BASE_FONT_SIZE,
@@ -55,7 +55,7 @@ import {
     ScatterPointLabelStrategy,
     Time,
 } from "grapher/core/GrapherConstants"
-import { AbstractColumn } from "owidTable/OwidTable"
+import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { ColorScale } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
@@ -555,7 +555,7 @@ export class ScatterPlot
             this.xColumn,
             this.colorColumn,
             this.sizeColumn,
-        ].filter(identity) as AbstractColumn[]
+        ].filter(identity) as AbstractCoreColumn[]
     }
 
     // todo: move this sort of thing to OwidTable
@@ -611,7 +611,7 @@ export class ScatterPlot
     }
 
     private _useTolerance(
-        column: AbstractColumn,
+        column: AbstractCoreColumn,
         dataByEntityAndTime: Map<EntityName, Map<Time, ScatterValue>>,
         initialDataByEntity: Map<
             EntityName,
@@ -1026,8 +1026,8 @@ export class ScatterPlot
 }
 
 interface ScatterTooltipProps {
-    yColumn: AbstractColumn
-    xColumn: AbstractColumn
+    yColumn: AbstractCoreColumn
+    xColumn: AbstractCoreColumn
     series: ScatterSeries
     maxWidth: number
     fontSize: number
@@ -1044,7 +1044,9 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
     formatValueX(value: ScatterValue) {
         let s = `X Axis: ${this.props.xColumn.formatValue(value.x)}`
         if (!value.time.span && value.time.y !== value.time.x)
-            s += ` (data from ${this.props.xColumn.formatTime(value.time.x)})`
+            s += ` (data from ${this.props.xColumn.table.formatTime(
+                value.time.x
+            )})`
         return s
     }
 
@@ -1081,10 +1083,10 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
                     maxWidth: maxWidth,
                     fontSize: 0.65 * fontSize,
                     text: v.time.span
-                        ? `${yColumn.formatTime(
+                        ? `${yColumn.table.formatTime(
                               v.time.span[0]
-                          )} to ${yColumn.formatTime(v.time.span[1])}`
-                        : yColumn.formatTime(v.time.y),
+                          )} to ${yColumn.table.formatTime(v.time.span[1])}`
+                        : yColumn.table.formatTime(v.time.y),
                 }),
             }
             offset += year.wrap.height

@@ -17,17 +17,14 @@ import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"
 import {
     OwidTable,
-    ColumnSpec,
-    ComputedColumnSpec,
-    RowToValueMapper,
-    Row,
+    OwidColumnSpec,
     generateEntityId,
-} from "owidTable/OwidTable"
+} from "coreTable/OwidTable"
 import {
     ColumnTypeNames,
     EntityName,
     ColumnSlug,
-} from "owidTable/OwidTableConstants"
+} from "coreTable/CoreTableConstants"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
     ParsedCovidCsvRow,
@@ -43,6 +40,11 @@ import {
     testRateExcludeList,
     metricPickerColumnSpecs,
 } from "./CovidConstants"
+import {
+    ComputedColumnFn,
+    CoreRow,
+    HasComputedColumn,
+} from "coreTable/CoreTable"
 
 type MetricKey = {
     [K in MetricKind]: number
@@ -80,7 +82,7 @@ export const buildColumnSlug = (
 
 export class CovidExplorerTable {
     table: OwidTable
-    columnSpecs: { [name: string]: ColumnSpec } = {}
+    columnSpecs: { [name: string]: OwidColumnSpec } = {}
 
     constructor(
         table: OwidTable,
@@ -104,7 +106,7 @@ export class CovidExplorerTable {
         this.addAnnotationColumns()
     }
 
-    private static makeSpec(slug: string): ColumnSpec {
+    private static makeSpec(slug: string): OwidColumnSpec {
         let spec = {
             slug,
             type: stringColumnSlugs.has(slug)
@@ -155,7 +157,7 @@ export class CovidExplorerTable {
             },
             case_fatality_rate: {
                 ...owidVariableSpecs[sourceVariables.case_fatality_rate],
-                annotationsColumnSlug: "case_fatality_rate_annotations",
+                annotationsColumnSlug: "case_fatality_rate_annotations", // todo: readd annotations
                 isDailyMeasurement: true,
                 description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
             },
@@ -261,13 +263,13 @@ export class CovidExplorerTable {
         return filtered.concat(continentRows, euRows)
     }
 
-    buildColumnSpec(params: CovidQueryParams): ColumnSpec {
+    buildColumnSpec(params: CovidQueryParams): OwidColumnSpec {
         const name = params.metricName
         const perCapita = params.perCapitaAdjustment
         const interval = params.interval
         const rollingAverage = params.smoothing
 
-        const spec = cloneDeep(this.columnSpecs[name]) as ColumnSpec
+        const spec = cloneDeep(this.columnSpecs[name]) as OwidColumnSpec
         spec.slug = buildColumnSlug(name, perCapita, interval, rollingAverage)
 
         const messages: { [index: number]: string } = {
@@ -300,7 +302,7 @@ export class CovidExplorerTable {
 
     private initColumn(
         params: CovidConstrainedQueryParams,
-        rowFn: RowToValueMapper
+        rowFn: ComputedColumnFn
     ) {
         const columnName = params.metricName
         const perCapita = params.perCapitaAdjustment
@@ -320,7 +322,7 @@ export class CovidExplorerTable {
         // Per-capita transform done after rolling average to preserve precision.
         const perCapitaTransform =
             perCapita > 1
-                ? (fn: RowToValueMapper) => (row: Row, index?: number) => {
+                ? (fn: ComputedColumnFn) => (row: CoreRow, index?: number) => {
                       const value = fn(row, index)
                       if (value === undefined) return undefined
                       const pop = row.population
@@ -540,7 +542,7 @@ export class CovidExplorerTable {
         threshold: number,
         title: string
     ) {
-        const spec: ComputedColumnSpec = {
+        const spec: OwidColumnSpec & HasComputedColumn = {
             ...this.columnSpecs.days_since,
             name: title,
             slug,

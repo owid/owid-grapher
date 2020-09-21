@@ -1,9 +1,9 @@
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { AbstractColumn } from "owidTable/OwidTable"
+import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { MapConfig } from "./MapConfig"
 
 export interface MapChartOptionsProvider extends ChartOptionsProvider {
-    mapColumn: AbstractColumn
+    mapColumn: AbstractCoreColumn
     mapIsClickable?: boolean
     currentTab?: string // Used to switch to chart tab on map click
     mapConfig?: MapConfig

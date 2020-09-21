@@ -1,6 +1,6 @@
 import * as React from "react"
 import { DataTable } from "./DataTable"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 
 export default {
     title: "DataTable",

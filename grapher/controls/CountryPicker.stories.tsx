@@ -1,6 +1,6 @@
 import * as React from "react"
 import { CountryPicker } from "grapher/controls/CountryPicker"
-import { OwidTable } from "owidTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 

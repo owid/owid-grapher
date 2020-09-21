@@ -1,7 +1,8 @@
 import { observable } from "mobx"
 import { MapProjection } from "./MapProjections"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
-import { ColumnSlug, LegacyVariableId } from "owidTable/OwidTableConstants"
+import { ColumnSlug } from "coreTable/CoreTableConstants"
+import { LegacyVariableId } from "coreTable/LegacyVariableCode"
 import {
     Persistable,
     updatePersistables,

@@ -1,20 +1,5 @@
 export declare type Integer = number
-export declare type Year = Integer
-export declare type EntityName = string
-export declare type EntityCode = string
-export declare type EntityId = number
-export declare type LegacyVariableId = Integer
 export declare type ColumnSlug = string // let's be very restrictive on valid column names to start.
-
-export interface OwidSource {
-    id: number
-    name: string
-    dataPublishedBy: string
-    dataPublisherSource: string
-    link: string
-    retrievedDate: string
-    additionalInfo: string
-}
 
 export enum ColumnTypeNames {
     Numeric = "Numeric",
@@ -32,3 +17,9 @@ export enum ColumnTypeNames {
     Year = "Year",
     Date = "Date",
 }
+
+// todo: move below to GrapherConstants or OwidTable?
+export declare type Year = Integer
+export declare type EntityName = string
+export declare type EntityCode = string
+export declare type EntityId = number

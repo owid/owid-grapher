@@ -7,7 +7,7 @@ import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
-import { OwidTable } from "owidTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
 
 export interface DownloadTabOptionsProvider {
     idealBounds?: Bounds

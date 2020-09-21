@@ -1,5 +1,5 @@
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import * as React from "react"
 import { StackedAreaChart } from "./StackedAreaChart"
 

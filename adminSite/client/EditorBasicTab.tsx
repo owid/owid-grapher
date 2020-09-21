@@ -9,7 +9,7 @@ import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
-import { LegacyVariableId } from "owidTable/OwidTableConstants"
+import { LegacyVariableId } from "coreTable/LegacyVariableCode"
 
 @observer
 class DimensionSlotView extends React.Component<{

@@ -28,7 +28,8 @@ import { Analytics } from "grapher/core/Analytics"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { SortOrder } from "grapher/core/GrapherConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
-import { AbstractColumn, OwidTable, NumericColumn } from "owidTable/OwidTable"
+import { AbstractCoreColumn, NumericColumn } from "coreTable/CoreTable"
+import { OwidTable } from "coreTable/OwidTable"
 
 const toggleSort = (order: SortOrder): SortOrder =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc
@@ -152,7 +153,7 @@ export class CountryPicker extends React.Component<{
         )
     }
 
-    @computed get activePickerMetricColumn(): AbstractColumn {
+    @computed get activePickerMetricColumn(): AbstractCoreColumn {
         return this.availablePickerColumns.find(
             (col) => col.slug === this.metric
         )!

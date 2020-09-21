@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { LineChart } from "./LineChart"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 
 describe(LineChart, () => {
     const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })

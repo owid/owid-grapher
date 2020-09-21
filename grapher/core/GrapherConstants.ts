@@ -30,7 +30,8 @@ export type Integer = number
  */
 export type Time = Integer
 
-export type Range = [number, number]
+export type TimeRange = [Time, Time]
+export type ValueRange = [number, number]
 
 // A measurement value. Example: For "A GDP of 200" the CellValue is 200.
 export type CellValue = number | string

@@ -3,7 +3,7 @@ import {
     DiscreteBarChart,
     DiscreteBarChartOptionsProvider,
 } from "./DiscreteBarChart"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 
 export default {
     title: "DiscreteBarChart",

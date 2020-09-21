@@ -1,6 +1,6 @@
 import * as React from "react"
 import { MapChartWithLegend } from "./MapChartWithLegend"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
 
 export default {

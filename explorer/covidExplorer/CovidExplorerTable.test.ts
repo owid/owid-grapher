@@ -2,7 +2,8 @@
 
 import { getLeastUsedColor, CovidExplorerTable } from "./CovidExplorerTable"
 import { covidSampleRows } from "./CovidSampleRows"
-import { OwidTable, BasicTable } from "owidTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
+import { AnyTable } from "coreTable/CoreTable"
 import uniq from "lodash/uniq"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
@@ -66,7 +67,7 @@ describe("build covid column", () => {
             day: index,
         })
     }
-    const table = new BasicTable(rows)
+    const table = new AnyTable(rows)
     table.addRollingAverageColumn(
         { slug: "weeklyCases" },
         7,

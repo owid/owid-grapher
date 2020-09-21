@@ -1,5 +1,5 @@
-import { ColumnTypeNames } from "owidTable/OwidTableConstants"
-import { ColumnSpec } from "owidTable/OwidTable"
+import { ColumnTypeNames } from "coreTable/CoreTableConstants"
+import { OwidColumnSpec } from "coreTable/OwidTable"
 import { Time } from "grapher/core/GrapherConstants"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
@@ -257,7 +257,7 @@ export interface CovidGrapherRow extends ParsedCovidCsvRow {
 export declare type CovidCsvColumnSlug = keyof ParsedCovidCsvRow
 export const metricPickerColumnSpecs: Partial<Record<
     CovidCsvColumnSlug,
-    Partial<ColumnSpec>
+    Partial<OwidColumnSpec>
 >> = {
     location: { slug: "location", name: "Country name" },
     population: {

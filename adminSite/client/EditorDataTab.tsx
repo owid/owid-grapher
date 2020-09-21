@@ -15,7 +15,7 @@ import { ChartEditor } from "./ChartEditor"
 import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { EntityName } from "owidTable/OwidTableConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
 
 interface EntityItemProps extends EditableListItemProps {
     grapher: Grapher

@@ -29,7 +29,7 @@ import { getElementWithHalo } from "./Halos"
 import { SortOrder } from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { MultiColorPolyline } from "./MultiColorPolyline"
-import { EntityName } from "owidTable/OwidTableConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
 
 export interface ScatterSeries {
     color: string

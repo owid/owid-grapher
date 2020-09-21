@@ -1,7 +1,7 @@
 import * as React from "react"
 import { CountryFacet, FacetChart } from "./FacetChart"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { Grapher } from "grapher/core/Grapher"
 
 export default {

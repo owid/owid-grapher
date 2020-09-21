@@ -12,7 +12,7 @@ import { ChartDimension } from "grapher/chart/ChartDimension"
 import { Variable } from "db/model/Variable"
 import { SiteBaker } from "./SiteBaker"
 import { countries, getCountry } from "utils/countries"
-import { OwidTable } from "owidTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
 
 export async function countriesIndexPage() {
     return renderToHtmlPage(<CountriesIndexPage countries={countries} />)

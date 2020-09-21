@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { ScatterPlot } from "grapher/scatterCharts/ScatterPlot"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 
 describe(ScatterPlot, () => {
     const table = SynthesizeOwidTable({

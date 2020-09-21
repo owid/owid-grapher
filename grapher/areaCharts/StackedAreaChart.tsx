@@ -19,7 +19,12 @@ import {
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { scaleOrdinal } from "d3-scale"
-import { Time, BASE_FONT_SIZE, Range } from "grapher/core/GrapherConstants"
+import {
+    Time,
+    BASE_FONT_SIZE,
+    TimeRange,
+    ValueRange,
+} from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -36,7 +41,7 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { EntityName } from "owidTable/OwidTableConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 
@@ -687,7 +692,7 @@ export class StackedAreaChart
         return axis
     }
 
-    @computed private get yDomainDefault(): Range {
+    @computed private get yDomainDefault(): ValueRange {
         const yValues = this.allStackedValues.map((d) => d.y)
         return [0, max(yValues) ?? 100]
     }
@@ -725,7 +730,7 @@ export class StackedAreaChart
         return this.options.yColumns![0]
     }
 
-    @computed private get xDomainDefault(): Range {
+    @computed private get xDomainDefault(): ValueRange {
         const { startTimelineTime, endTimelineTime } = this.yColumn
         return [startTimelineTime, endTimelineTime]
     }

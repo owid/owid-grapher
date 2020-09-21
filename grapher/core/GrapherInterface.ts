@@ -10,14 +10,14 @@ import {
     Time,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
-import { LegacyVariablesAndEntityKey } from "owidTable/LegacyVariableCode"
+import { LegacyVariablesAndEntityKey } from "coreTable/LegacyVariableCode"
 import { TimeBound } from "grapher/utils/TimeBounds"
 import { ChartDimensionInterface } from "grapher/chart/ChartDimension"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
-import { EntityId, EntityName } from "owidTable/OwidTableConstants"
+import { EntityId, EntityName } from "coreTable/CoreTableConstants"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again

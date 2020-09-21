@@ -15,7 +15,7 @@ import { BindString, BindFloat, FieldsRow, Toggle } from "./Forms"
 import {
     LegacyVariableConfig,
     LegacyVariableDisplayConfig,
-} from "owidTable/LegacyVariableCode"
+} from "coreTable/LegacyVariableCode"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"

@@ -28,8 +28,12 @@ import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { EntityName } from "owidTable/OwidTableConstants"
-import { BASE_FONT_SIZE, ScaleType, Range } from "grapher/core/GrapherConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
+import {
+    BASE_FONT_SIZE,
+    ScaleType,
+    ValueRange,
+} from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -586,7 +590,12 @@ export class LineChart
     }
 
     @computed private get annotationsMap() {
-        return this.yColumn.annotationsColumn?.entityNameMap
+        return this.annotationsColumn?.entityNameMap
+    }
+
+    // todo: make work again
+    @computed private get annotationsColumn() {
+        return this.options.table.get("annotations")
     }
 
     @computed private get colorScheme() {
@@ -753,7 +762,7 @@ export class LineChart
         return axis
     }
 
-    @computed private get yDomain(): Range {
+    @computed private get yDomain(): ValueRange {
         const yDomain = this.yColumn.domain
         const domain = this.yAxis.domain
         return [

@@ -4,7 +4,7 @@ import {
     DiscreteBarChart,
     DiscreteBarChartOptionsProvider,
 } from "./DiscreteBarChart"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 
 describe(DiscreteBarChart, () => {
     const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })

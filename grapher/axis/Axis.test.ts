@@ -2,7 +2,7 @@
 
 import { HorizontalAxis } from "grapher/axis/Axis"
 import { ScaleType } from "grapher/core/GrapherConstants"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { AxisConfig } from "./AxisConfig"
 
 describe("basics", () => {

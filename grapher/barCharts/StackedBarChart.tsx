@@ -28,8 +28,12 @@ import {
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { EntityName } from "owidTable/OwidTableConstants"
-import { BASE_FONT_SIZE, Range } from "grapher/core/GrapherConstants"
+import { EntityName } from "coreTable/CoreTableConstants"
+import {
+    BASE_FONT_SIZE,
+    TimeRange,
+    ValueRange,
+} from "grapher/core/GrapherConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -546,7 +550,7 @@ export class StackedBarChart
         return yColumn ? yColumn.formatValueShort : (d: number) => `${d}`
     }
 
-    @computed get xDomainDefault(): Range {
+    @computed get xDomainDefault(): TimeRange {
         const { startTimelineTime, endTimelineTime } = this.yColumn
         return [startTimelineTime, endTimelineTime]
     }
@@ -562,7 +566,7 @@ export class StackedBarChart
         return axis
     }
 
-    @computed get yDomainDefault(): Range {
+    @computed get yDomainDefault(): ValueRange {
         const lastSeries = this.marks[this.marks.length - 1]
 
         const yValues = lastSeries.values.map((d) => d.yOffset + d.y)

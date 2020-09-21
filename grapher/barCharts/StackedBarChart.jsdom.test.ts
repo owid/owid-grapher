@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { StackedBarChart } from "./StackedBarChart"
 
 describe(StackedBarChart, () => {

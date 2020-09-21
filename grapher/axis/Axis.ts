@@ -12,12 +12,12 @@ import {
     TickFormattingOptions,
     ScaleType,
     ScaleTypeConfig,
-    Range,
+    ValueRange,
 } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
-import { AbstractColumn } from "owidTable/OwidTable"
+import { AbstractCoreColumn } from "coreTable/CoreTable"
 
 interface Tickmark {
     value: number
@@ -29,18 +29,18 @@ interface Tickmark {
 
 abstract class AbstractAxis implements ScaleTypeConfig {
     protected options: AxisConfig
-    @observable.ref domain: Range
-    @observable column?: AbstractColumn
+    @observable.ref domain: ValueRange
+    @observable column?: AbstractCoreColumn
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
-    @observable.struct range: Range = [0, 0]
+    @observable.struct range: ValueRange = [0, 0]
     @observable private _scaleType?: ScaleType
     @observable private _label?: string
     @observable private _scaleTypeOptions?: ScaleType[]
 
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
-    updateDomainPreservingUserSettings(domain: Range) {
+    updateDomainPreservingUserSettings(domain: ValueRange) {
         this.domain = [
             Math.min(this.domain[0], domain[0]),
             Math.max(this.domain[1], domain[1]),
@@ -93,10 +93,10 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     // todo: refactor. switch to a parent pattern?
     _update(parentAxis: AbstractAxis) {
         this.column = parentAxis.column
-        this.domain = parentAxis.domain.slice() as Range
+        this.domain = parentAxis.domain.slice() as ValueRange
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
         this.hideGridlines = parentAxis.hideGridlines
-        this.range = parentAxis.range.slice() as Range
+        this.range = parentAxis.range.slice() as ValueRange
         this._scaleType = parentAxis._scaleType
         this._label = parentAxis._label
         this._scaleTypeOptions = parentAxis._scaleTypeOptions?.slice()

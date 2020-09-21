@@ -1,5 +1,5 @@
 import { Grapher, GrapherProps } from "grapher/core/Grapher"
-import { SynthesizeOwidTable } from "owidTable/OwidTable"
+import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import * as React from "react"
 import { ChartTab } from "./ChartTab"
 

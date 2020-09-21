@@ -17,8 +17,8 @@ import { format } from "timeago.js"
 import {
     LegacyVariableDisplayConfigInterface,
     LegacyVariableDisplayConfig,
-} from "owidTable/LegacyVariableCode"
-import { OwidSource } from "owidTable/OwidTableConstants"
+    OwidSource,
+} from "coreTable/LegacyVariableCode"
 
 import { AdminLayout } from "./AdminLayout"
 import { Link } from "./Link"
