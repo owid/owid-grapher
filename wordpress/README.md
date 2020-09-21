@@ -15,7 +15,7 @@ See https://docs.lando.dev/basics/installation.html#hardware-requirements
 
 ## Custom plugin
 
--   Extra REST API fields consumed by https://github.com/owid/owid-grapher.
+-   Extra REST API fields
 -   Custom Gutenberg blocks
 
 ## Installation
@@ -24,25 +24,19 @@ See https://docs.lando.dev/basics/installation.html#hardware-requirements
 
 _Docker comes packaged with the installer, which is the recommended way to install both._
 
-1. Clone
-
-    ```sh
-    $ git clone git@github.com:owid/owid-wordpress.git
-    ```
-
-2. Configure (no updates necessary at this point)
+1. Configure (no updates necessary at this point)
 
     ```sh
     $ cp .env.example .env
     ```
 
-3. Start & build
+2. Start & build
 
     ```sh
     $ lando start && lando build
     ```
 
-4. Populate databases and retrieve Wordpress uploads
+3. Populate databases and retrieve Wordpress uploads
 
     ```sh
     $ lando refresh -c -u
