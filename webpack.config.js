@@ -35,6 +35,9 @@ module.exports = (env, argv) => {
             minimize: isProduction,
             minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()],
         },
+        performance: {
+            hints: false,
+        },
         output: {
             path: path.join(__dirname, "dist/webpack"),
             filename: "js/[name].js",

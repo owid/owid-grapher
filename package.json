@@ -10,7 +10,7 @@
         "dev-admin": "yarn tsnd adminSite/server/app.tsx",
         "tsnd:inspect": "ts-node-dev --inspect --transpileOnly --respawn --no-notify --no-deps -r tsconfig-paths/register -r source-map-support/register -r dotenv/config",
         "dev-admin:inspect": "yarn tsnd:inspect adminSite/server/app.tsx",
-        "dev-webpack": "webpack-dev-server -d",
+        "dev-webpack": "webpack serve --mode development --devtool cheap-module-source-map",
         "dev": "npm-run-all --race --parallel dev-admin dev-webpack",
         "dev-tmux": "tmex dev \"yarn tsn adminSite/server/app.tsx\" \"yarn dev-webpack\"",
         "typeorm": "yarn tsn node_modules/.bin/typeorm",
@@ -23,7 +23,7 @@
         "prettify-all": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "prettify-all:check": "yarn prettier --check \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml,php}\"",
         "typecheck": "tsc --noEmit",
-        "build": "rm -rf dist && ENV=production webpack -p --progress",
+        "build": "rm -rf dist && ENV=production webpack --mode production --progress",
         "test": "jest",
         "test-watch": "jest --watchAll",
         "test-single-process": "jest --maxWorkers=1",
@@ -41,8 +41,8 @@
         "deploy-queue": "yarn tsn deploy/watch.ts",
         "storybook": "start-storybook -p 6006",
         "build-storybook": "build-storybook -o .storybook/build",
-        "bundlewatch": "ENV=production webpack -p && bundlewatch --config .bundlewatch.config.json",
-        "bundlewatch-json": "ENV=production webpack -p --json > dist/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json",
+        "bundlewatch": "ENV=production webpack --mode production && bundlewatch --config .bundlewatch.config.json",
+        "bundlewatch-json": "ENV=production webpack --mode production --json > dist/webpack-bundle-stats.json && bundlewatch --config .bundlewatch.config.json",
         "live-commit": "yarn tsn deploy/liveCommit.ts"
     },
     "dependencies": {
@@ -211,7 +211,7 @@
         "url-parse": "^1.4.7",
         "url-slug": "^3.0.0-beta.1",
         "webpack": "5.0.0-rc.0",
-        "webpack-cli": "3.3.12",
+        "webpack-cli": "4.0.0-rc.0",
         "webpack-dev-server": "^3.11.0",
         "webpack-manifest-plugin": "3.0.0-rc.0",
         "xlsx": "^0.14.3"
