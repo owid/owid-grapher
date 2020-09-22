@@ -54,7 +54,10 @@ Config::define('WP_SITEURL', env('WP_SITEURL'));
  */
 Config::define('CONTENT_DIR', '/app');
 Config::define('WP_CONTENT_DIR', $webroot_dir . Config::get('CONTENT_DIR'));
-Config::define('WP_CONTENT_URL', Config::get('WP_HOME') . Config::get('CONTENT_DIR'));
+Config::define(
+    'WP_CONTENT_URL',
+    Config::get('WP_HOME') . Config::get('CONTENT_DIR')
+);
 
 /**
  * DB settings
@@ -73,7 +76,10 @@ if (env('DATABASE_URL')) {
     Config::define('DB_NAME', substr($dsn->path, 1));
     Config::define('DB_USER', $dsn->user);
     Config::define('DB_PASSWORD', isset($dsn->pass) ? $dsn->pass : null);
-    Config::define('DB_HOST', isset($dsn->port) ? "{$dsn->host}:{$dsn->port}" : $dsn->host);
+    Config::define(
+        'DB_HOST',
+        isset($dsn->port) ? "{$dsn->host}:{$dsn->port}" : $dsn->host
+    );
 }
 
 /**
@@ -110,7 +116,10 @@ ini_set('display_errors', '0');
  * Allow WordPress to detect HTTPS when used behind a reverse proxy or a load balancer
  * See https://codex.wordpress.org/Function_Reference/is_ssl#Notes
  */
-if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+if (
+    isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
+    $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'
+) {
     $_SERVER['HTTPS'] = 'on';
 }
 
