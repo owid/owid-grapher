@@ -1,0 +1,32 @@
+# Application
++ /web/app/plugins/owid/
+- /web/app/plugins/owid/build/
+- /web/app/plugins/owid/node_modules/
+- /web/app/plugins/*
+- /web/app/mu-plugins/*/
+- /web/app/uploads
+# Empty line
+
+# WordPress
+- /web/wp
+
+# Logs
+- *.log
+
+# Dotenv
+- /.env*
+# Empty line
+
+# Composer
+- /vendor
+
+# SQL dumps
+- /*.sql*
+
+# Development
+- /.lando*
+- /.vscode
+- /.git
+- /.gitignore
+- /.rsync-filter
+

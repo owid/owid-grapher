@@ -1,0 +1,24 @@
+# Application
+/web/app/plugins/*
+# Empty line
+# Empty line
+!/web/app/plugins/owid
+/web/app/mu-plugins/*/
+/web/app/uploads/*
+!/web/app/uploads/.gitkeep
+
+# WordPress
+/web/wp
+
+# Logs
+*.log
+
+# Dotenv
+/.env*
+!/.env.example
+
+# Composer
+/vendor
+
+# SQL dumps
+/*.sql*
