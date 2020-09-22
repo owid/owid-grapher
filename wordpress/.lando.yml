@@ -1,0 +1,58 @@
+name: our-world-in-data
+recipe: wordpress
+env_file:
+    - .env
+config:
+    webroot: web
+    via: nginx
+    xdebug: true
+    config:
+        vhosts: .lando/config/vhosts.conf
+excludes:
+    # prevent those from being synced back to the host
+    # (reduces CPU usage after installing large amount of deps)
+    - vendor
+    - web/app/plugins/owid/node_modules
+services:
+    appserver:
+        build_as_root:
+            - ln -sf /user/.ssh/config /var/www/.ssh/config
+    node:
+        type: node
+    database:
+        portforward: 3306
+        healthcheck:
+    database-grapher:
+        type: mysql
+        creds:
+            user: grapher
+            password: grapher
+            database: grapher
+        portforward: 3307
+        healthcheck:
+events:
+    pre-build:
+        # post-start:
+        - appserver: composer install
+        - node: cd web/app/plugins/owid && yarn
+tooling:
+    refresh:
+        description: Refreshes local content (--help for more information)
+        service: appserver
+        cmd: .lando/scripts/refresh.sh
+    build:
+        description: Installs dependencies and builds app
+        service: node
+        cmd: cd web/app/plugins/owid && yarn build
+    dev:
+        description: Starts development for OWID plugin
+        service: node
+        cmd: cd web/app/plugins/owid && yarn start
+    deploy:
+        description: Deploys app to target
+        service: appserver
+        cmd: .lando/scripts/deploy.sh
+    yarn:
+        description: enables 'lando yarn' # e.g. 'lando yarn start' within web/app/plugins/owid
+        service: node
+        cmd: yarn

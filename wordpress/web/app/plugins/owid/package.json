@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "description": "Custom behaviours and tools for ourworldindata.org's headless Wordpress",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "wp-scripts start src/plugins.js src/blocks.js",
+    "build": "wp-scripts build src/plugins.js src/blocks.js"
+  },
+  "author": "Matthieu Bergel <hello@matthieubergel.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "@wordpress/scripts": "12.1.1"
+  },
+  "dependencies": {
+    "markdown-it": "^11.0.0"
+  }
+}
