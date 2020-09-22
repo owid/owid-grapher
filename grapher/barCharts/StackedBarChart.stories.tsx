@@ -14,7 +14,7 @@ export const Default = () => {
 
     const options: ChartOptionsProvider = {
         table,
-        yColumn: table.get("Population"),
+        yColumns: [table.get("Population")!],
     }
 
     return (

@@ -98,8 +98,8 @@ export class DiscreteBarChart
         if (!this.hasPositive) return 0
 
         const positiveLabels = this.marks
-            .filter((d) => d.value >= 0)
-            .map((d) => this.barValueFormat(d))
+            .filter((mark) => mark.value >= 0)
+            .map((mark) => this.formatValue(mark))
         const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
         return Bounds.forText(longestPositiveLabel, this.valueLabelStyle).width
     }
@@ -112,7 +112,7 @@ export class DiscreteBarChart
 
         const negativeLabels = this.marks
             .filter((d) => d.value < 0)
-            .map((d) => this.barValueFormat(d))
+            .map((d) => this.formatValue(d))
         const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
         return (
             Bounds.forText(longestNegativeLabel, this.valueLabelStyle).width +
@@ -269,15 +269,7 @@ export class DiscreteBarChart
                 />
             )
 
-        const {
-            marks,
-            bounds,
-            axis,
-            innerBounds,
-            barHeight,
-            barSpacing,
-            barValueFormat,
-        } = this
+        const { marks, bounds, axis, innerBounds, barHeight, barSpacing } = this
 
         let yOffset = innerBounds.top + barHeight / 2
 
@@ -304,15 +296,15 @@ export class DiscreteBarChart
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                {marks.map((d) => {
-                    const isNegative = d.value < 0
+                {marks.map((datum) => {
+                    const isNegative = datum.value < 0
                     const barX = isNegative
-                        ? axis.place(d.value)
+                        ? axis.place(datum.value)
                         : axis.place(this.x0)
                     const barWidth = isNegative
                         ? axis.place(this.x0) - barX
-                        : axis.place(d.value) - barX
-                    const valueLabel = barValueFormat(d)
+                        : axis.place(datum.value) - barX
+                    const valueLabel = this.formatValue(datum)
                     const labelX = isNegative
                         ? barX -
                           Bounds.forText(valueLabel, this.valueLabelStyle)
@@ -325,7 +317,7 @@ export class DiscreteBarChart
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={d.entityName}
+                            key={datum.entityName}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                             style={{ transition: "transform 200ms ease" }}
@@ -339,7 +331,7 @@ export class DiscreteBarChart
                                 textAnchor="end"
                                 {...this.legendLabelStyle}
                             >
-                                {d.label}
+                                {datum.label}
                             </text>
                             <rect
                                 x={0}
@@ -349,7 +341,7 @@ export class DiscreteBarChart
                                 })`}
                                 width={barWidth}
                                 height={barHeight}
-                                fill={d.color}
+                                fill={datum.color}
                                 opacity={0.85}
                                 style={{ transition: "height 200ms ease" }}
                             />
@@ -357,7 +349,7 @@ export class DiscreteBarChart
                                 x={0}
                                 y={0}
                                 transform={`translate(${
-                                    axis.place(d.value) +
+                                    axis.place(datum.value) +
                                     (isNegative
                                         ? -labelToBarPadding
                                         : labelToBarPadding)
@@ -400,22 +392,20 @@ export class DiscreteBarChart
             : []
     }
 
-    @computed get barValueFormat(): (datum: DiscreteBarDatum) => string {
+    private formatValue(datum: DiscreteBarDatum) {
         const column = this.yColumns[0]
         const { endTimelineTime } = column
         const { table } = this.options
 
-        return (datum: DiscreteBarDatum) => {
-            const showYearLabels =
-                this.options.showYearLabels || datum.time !== endTimelineTime
-            const displayValue = column.formatValue(datum.value)
-            return (
-                displayValue +
-                (showYearLabels
-                    ? ` (${table.timeColumnFormatFunction(datum.time)})`
-                    : "")
-            )
-        }
+        const showYearLabels =
+            this.options.showYearLabels || datum.time !== endTimelineTime
+        const displayValue = column.formatValue(datum.value)
+        return (
+            displayValue +
+            (showYearLabels
+                ? ` (${table.timeColumnFormatFunction(datum.time)})`
+                : "")
+        )
     }
 
     @computed get marks() {
@@ -431,7 +421,8 @@ export class DiscreteBarChart
             )
             .filter((row) => !this.isLogScale || row[yColumn.slug] > 0)
             .map((row) => {
-                const { entityName, time } = row
+                const { entityName } = row
+                const time = row.time ?? row.year ?? row.day ?? row.date
                 const value = row[yColumn.slug]
                 const datum: DiscreteBarDatum = {
                     entityName,

@@ -37,6 +37,7 @@ import {
 import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 export interface StackedBarValue {
     x: number
@@ -695,7 +696,7 @@ export class StackedBarChart
     }
 
     @computed get colorScaleConfig() {
-        return this.options.colorScale!
+        return this.options.colorScale ?? new ColorScaleConfig()
     }
 
     defaultBaseColorScheme = "stackedAreaDefault"

@@ -7,7 +7,7 @@ export default {
 }
 
 const options: SourcesTabOptionsProvider = {
-    sourcesWithDimension: [],
+    columnsWithSources: [],
 }
 
 export const Default = () => {

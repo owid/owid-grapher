@@ -6,11 +6,9 @@ import { trimObject } from "grapher/utils/Util"
 import { DimensionProperty, Time } from "grapher/core/GrapherConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { LoadingColumn } from "coreTable/CoreTable"
-
 import {
     LegacyVariableDisplayConfigInterface,
     LegacyVariableDisplayConfig,
-    OwidSource,
     LegacyVariableId,
 } from "coreTable/LegacyVariableCode"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
@@ -20,11 +18,6 @@ import {
     objectWithPersistablesToObject,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-
-export interface SourceWithDimension {
-    source: OwidSource
-    dimension: ChartDimension
-}
 
 export interface ChartDimensionInterface {
     property: DimensionProperty

@@ -1062,28 +1062,20 @@ export class Grapher
         )
     }
 
-    @computed get sourcesWithDimension() {
-        const { filledDimensions } = this
-
-        const sources: SourceWithDimension[] = []
-        filledDimensions.forEach((dim) => {
-            const { column } = dim
-            // HACK (Mispy): Ignore the default color source on scatterplots.
+    @computed get columnsWithSources() {
+        return this.table.columnsAsArray.filter((column) => {
             if (
-                column.name !== "Countries Continents" &&
-                column.name !== "Total population (Gapminder)"
+                column.name === "Countries Continents" ||
+                column.name === "Total population (Gapminder)"
             )
-                sources.push({
-                    source: (column.spec as OwidColumnSpec).source!,
-                    dimension: dim,
-                })
+                return false
+            return !!(column.spec as OwidColumnSpec).source
         })
-        return sources
     }
 
     @computed private get defaultSourcesLine() {
-        let sourceNames = this.sourcesWithDimension.map(
-            (source) => source.source?.name || ""
+        let sourceNames = this.columnsWithSources.map(
+            (column) => (column.spec as OwidColumnSpec)?.source?.name || ""
         )
 
         // Shorten automatic source names for certain major sources

@@ -3,16 +3,16 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { SourceWithDimension } from "grapher/chart/ChartDimension"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidColumnSpec } from "coreTable/OwidTable"
+import { AbstractCoreColumn } from "coreTable/CoreTable"
 
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
 export interface SourcesTabOptionsProvider {
     adminBaseUrl?: string
-    sourcesWithDimension: SourceWithDimension[]
+    columnsWithSources: AbstractCoreColumn[]
     isAdmin?: boolean
 }
 
@@ -29,12 +29,10 @@ export class SourcesTab extends React.Component<{
         return this.props.options
     }
 
-    private renderSource(sourceWithDimension: SourceWithDimension) {
-        const source = sourceWithDimension.source
-        const dimension = sourceWithDimension.dimension
-        const { column } = dimension
-        const { table } = column
+    private renderSource(column: AbstractCoreColumn) {
         const spec = column.spec as OwidColumnSpec
+        const source = spec.source!
+        const { table } = column
 
         const editUrl = this.options.isAdmin
             ? `${this.props.options.adminBaseUrl}/admin/datasets/${spec.datasetId}`
@@ -49,7 +47,7 @@ export class SourcesTab extends React.Component<{
             )} – ${table.timeColumn?.formatValue(maxYear)}`
 
         return (
-            <div key={source.id} className="datasource-wrapper">
+            <div key={spec.slug} className="datasource-wrapper">
                 <h2>
                     {column.name}{" "}
                     {editUrl && (
@@ -152,7 +150,7 @@ export class SourcesTab extends React.Component<{
                 <div>
                     <h2>Sources</h2>
                     <div>
-                        {this.options.sourcesWithDimension.map((source) =>
+                        {this.options.columnsWithSources.map((source) =>
                             this.renderSource(source)
                         )}
                     </div>

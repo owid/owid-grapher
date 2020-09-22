@@ -20,6 +20,9 @@ describe(DiscreteBarChart, () => {
         expect(chart.failMessage).toBeTruthy()
         table.selectAll()
         expect(chart.failMessage).toEqual("")
-        expect(chart.marks.length).toEqual(2)
+
+        const marks = chart.marks
+        expect(marks.length).toEqual(2)
+        expect(marks[0].time).toBeTruthy()
     })
 })
