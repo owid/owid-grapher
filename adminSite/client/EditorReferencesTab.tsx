@@ -23,7 +23,7 @@ export class EditorReferencesTab extends React.Component<{
     }
 
     @action.bound appendRedirect(redirect: ChartRedirect) {
-        this.props.editor.props.redirects.push(redirect)
+        this.props.editor.options.redirects.push(redirect)
     }
 
     render() {

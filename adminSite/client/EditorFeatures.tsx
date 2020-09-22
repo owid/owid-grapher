@@ -82,6 +82,6 @@ export class EditorFeatures {
     }
 
     @computed get explorer() {
-        return this.editor.props.admin.settings.EXPLORER
+        return this.editor.options.admin.settings.EXPLORER
     }
 }

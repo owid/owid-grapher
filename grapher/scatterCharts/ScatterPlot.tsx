@@ -56,7 +56,7 @@ import {
     Time,
 } from "grapher/core/GrapherConstants"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
-import { ColorScale } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -76,7 +76,8 @@ export class ScatterPlot
     implements
         ConnectedScatterLegendOptionsProvider,
         ChartInterface,
-        VerticalColorLegendOptionsProvider {
+        VerticalColorLegendOptionsProvider,
+        ColorScaleOptionsProvider {
     // currently hovered individual series key
     @observable hoverKey?: EntityName
     // currently hovered legend color
@@ -424,24 +425,27 @@ export class ScatterPlot
     }
 
     @computed get colorScale() {
-        const that = this
+        return new ColorScale(this)
+    }
+
+    @computed get colorScaleConfig() {
+        return this.options.colorScale!
+    }
+
+    defaultBaseColorScheme = "continents"
+    defaultNoDataColor = "#959595"
+
+    @computed get hasNoDataBin() {
         const colorColumn = this.options.colorColumn
-        return new ColorScale({
-            get config() {
-                return that.options.colorScale!
-            },
-            defaultBaseColorScheme: "continents",
-            defaultNoDataColor: "#959595",
-            get categoricalValues() {
-                return colorColumn?.sortedUniqNonEmptyStringVals ?? []
-            },
-            get hasNoDataBin() {
-                return !!(
-                    colorColumn &&
-                    that.allPoints.some((point) => point.color === undefined)
-                )
-            },
-        })
+        return !!(
+            colorColumn &&
+            this.allPoints.some((point) => point.color === undefined)
+        )
+    }
+
+    @computed get categoricalValues() {
+        const colorColumn = this.options.colorColumn
+        return colorColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
     @computed get yAxis() {

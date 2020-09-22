@@ -21,13 +21,13 @@ import { AbstractCoreColumn } from "coreTable/CoreTable"
 
 const NO_DATA_LABEL = "No data"
 
-interface ColorScaleOptionsProvider {
-    config: ColorScaleConfigInterface
+export interface ColorScaleOptionsProvider {
+    colorScaleConfig: ColorScaleConfigInterface
     categoricalValues: string[]
     hasNoDataBin: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: string
-    column?: AbstractCoreColumn
+    colorScaleColumn?: AbstractCoreColumn
 }
 
 export class ColorScale {
@@ -39,7 +39,7 @@ export class ColorScale {
     // Config accessors
 
     @computed get config() {
-        return this.options.config
+        return this.options.colorScaleConfig
     }
 
     @computed get customNumericValues() {
@@ -97,8 +97,12 @@ export class ColorScale {
         return this.options.defaultNoDataColor ?? "#eee"
     }
 
+    @computed get colorScaleColumn() {
+        return this.options.colorScaleColumn
+    }
+
     @computed get formatCategoricalValue(): (v: string) => string {
-        return this.options.column?.table.getLabelForEntityName ?? identity
+        return this.colorScaleColumn?.table.getLabelForEntityName ?? identity
     }
 
     @computed get legendDescription() {
@@ -112,7 +116,7 @@ export class ColorScale {
     }
 
     @computed get sortedNumericValues() {
-        return this.options.column?.sortedValues ?? []
+        return this.colorScaleColumn?.sortedValues ?? []
     }
 
     @computed private get minPossibleValue() {
@@ -251,7 +255,6 @@ export class ColorScale {
             customNumericColors,
             customCategoryLabels,
             customHiddenCategories,
-            options,
         } = this
 
         // Numeric 'buckets' of color
@@ -264,9 +267,11 @@ export class ColorScale {
                 const label = customNumericLabels[i]
 
                 const displayMin =
-                    options.column?.formatValueShort(min) ?? min.toString()
+                    this.colorScaleColumn?.formatValueShort(min) ??
+                    min.toString()
                 const displayMax =
-                    options.column?.formatValueShort(max) ?? max.toString()
+                    this.colorScaleColumn?.formatValueShort(max) ??
+                    max.toString()
 
                 legendData.push(
                     new NumericBin({

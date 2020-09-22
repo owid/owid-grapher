@@ -31,7 +31,7 @@ import { isOnTheMap } from "./EntitiesOnTheMap"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
 import { MapConfig } from "./MapConfig"
-import { ColorScale } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
@@ -58,7 +58,8 @@ export class MapChartWithLegend
     implements
         ChartInterface,
         CategoricalColorLegendOptionsProvider,
-        NumericColorLegendOptionsProvider {
+        NumericColorLegendOptionsProvider,
+        ColorScaleOptionsProvider {
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -190,23 +191,25 @@ export class MapChartWithLegend
         return marks
     }
 
+    @computed get colorScaleColumn() {
+        return this.options.mapColumn
+    }
+
     @computed get colorScale() {
-        const that = this
-        return new ColorScale({
-            get column() {
-                return that.options.mapColumn
-            },
-            get config() {
-                return that.mapConfig.colorScale
-            },
-            get categoricalValues() {
-                // return uniq(this.mappableData.values.filter(isString))
-                // return that.options.mapColumn.values || [] // todo: mappable data
-                return that.options.mapColumn.parsedValues.filter(isString)
-            },
-            hasNoDataBin: true,
-            defaultBaseColorScheme: "BuGn",
-        })
+        return new ColorScale(this)
+    }
+
+    @computed get colorScaleConfig() {
+        return this.mapConfig.colorScale
+    }
+
+    defaultBaseColorScheme = "BuGn"
+    hasNoDataBin = true
+
+    @computed get categoricalValues() {
+        // return uniq(this.mappableData.values.filter(isString))
+        // return this.options.mapColumn.values || [] // todo: mappable data
+        return this.options.mapColumn.parsedValues.filter(isString)
     }
 
     componentDidMount() {

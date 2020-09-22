@@ -14,7 +14,7 @@ import {
     VerticalColorLegend,
     VerticalColorLegendOptionsProvider,
 } from "grapher/verticalColorLegend/VerticalColorLegend"
-import { ColorScale } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE, Time } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
@@ -25,7 +25,10 @@ export class SlopeChart
         bounds?: Bounds
         options: ChartOptionsProvider
     }>
-    implements ChartInterface, VerticalColorLegendOptionsProvider {
+    implements
+        ChartInterface,
+        VerticalColorLegendOptionsProvider,
+        ColorScaleOptionsProvider {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
@@ -254,18 +257,22 @@ export class SlopeChart
     }
 
     @computed get colorScale() {
-        const colorColumn = this.colorColumn
-        return new ColorScale({
-            column: this.colorColumn,
-            get config() {
-                return {} as any // that.grapher.colorScale
-            },
-            defaultBaseColorScheme: "continents",
-            get categoricalValues() {
-                return colorColumn?.sortedUniqNonEmptyStringVals ?? []
-            },
-            hasNoDataBin: false,
-        })
+        return new ColorScale(this)
+    }
+
+    @computed get colorScaleConfig() {
+        return {} as any // grapher.colorScale
+    }
+
+    @computed get colorScaleColumn() {
+        return this.colorColumn
+    }
+
+    defaultBaseColorScheme = "continents"
+    hasNoDataBin = false
+
+    @computed get categoricalValues() {
+        return this.colorColumn.sortedUniqNonEmptyStringVals ?? []
     }
 
     @computed get availableTimes(): Time[] {

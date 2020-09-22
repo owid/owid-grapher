@@ -66,7 +66,7 @@ export class EditorDatabase {
     }
 }
 
-interface ChartEditorProps {
+export interface ChartEditorOptionsProvider {
     admin: Admin
     grapher: Grapher
     database: EditorDatabase
@@ -76,7 +76,7 @@ interface ChartEditorProps {
 }
 
 export class ChartEditor {
-    props: ChartEditorProps
+    options: ChartEditorOptionsProvider
     // Whether the current chart state is saved or not
     @observable.ref currentRequest: Promise<any> | undefined
     @observable.ref tab: EditorTab = "basic"
@@ -88,8 +88,8 @@ export class ChartEditor {
     // so the page knows to update the url
     @observable.ref newChartId?: number
 
-    constructor(props: ChartEditorProps) {
-        this.props = props
+    constructor(props: { options: ChartEditorOptionsProvider }) {
+        this.options = props.options
         this.previewMode =
             localStorage.getItem("editorPreviewMode") === "desktop"
                 ? "desktop"
@@ -104,24 +104,24 @@ export class ChartEditor {
         return JSON.stringify(this.grapher.object) !== this.savedGrapherJson
     }
 
-    @computed get grapher(): Grapher {
-        return this.props.grapher
+    @computed get grapher() {
+        return this.options.grapher
     }
 
-    @computed get database(): EditorDatabase {
-        return this.props.database
+    @computed get database() {
+        return this.options.database
     }
 
-    @computed get logs(): Log[] {
-        return this.props.logs
+    @computed get logs() {
+        return this.options.logs
     }
 
-    @computed get references(): PostReference[] {
-        return this.props.references
+    @computed get references() {
+        return this.options.references
     }
 
-    @computed get redirects(): ChartRedirect[] {
-        return this.props.redirects
+    @computed get redirects() {
+        return this.options.redirects
     }
 
     @computed get availableTabs(): EditorTab[] {
@@ -144,7 +144,7 @@ export class ChartEditor {
 
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
-        const data = await this.props.admin.getJSON(
+        const data = await this.options.admin.getJSON(
             `/api/editorData/${namespace}.json`
         )
         runInAction(() =>
@@ -173,7 +173,7 @@ export class ChartEditor {
             ? "/api/charts"
             : `/api/charts/${grapher.id}`
 
-        const json = await this.props.admin.requestJSON(
+        const json = await this.options.admin.requestJSON(
             targetUrl,
             currentGrapherObject,
             isNewGrapher ? "POST" : "PUT"
@@ -204,14 +204,14 @@ export class ChartEditor {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
-        const json = await this.props.admin.requestJSON(
+        const json = await this.options.admin.requestJSON(
             "/api/charts",
             chartJson,
             "POST"
         )
         if (json.success)
             w.location.assign(
-                this.props.admin.url(`charts/${json.chartId}/edit`)
+                this.options.admin.url(`charts/${json.chartId}/edit`)
             )
     }
 

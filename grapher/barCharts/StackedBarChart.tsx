@@ -34,7 +34,7 @@ import {
     TimeRange,
     ValueRange,
 } from "grapher/core/GrapherConstants"
-import { ColorScale } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 
@@ -125,7 +125,10 @@ export class StackedBarChart
         bounds?: Bounds
         options: ChartOptionsProvider
     }>
-    implements ChartInterface, VerticalColorLegendOptionsProvider {
+    implements
+        ChartInterface,
+        VerticalColorLegendOptionsProvider,
+        ColorScaleOptionsProvider {
     base!: SVGGElement
     readonly minBarSpacing = 4
 
@@ -688,17 +691,18 @@ export class StackedBarChart
     }
 
     @computed get colorScale() {
-        const that = this
-        return new ColorScale({
-            get config() {
-                return that.options.colorScale!
-            },
-            defaultBaseColorScheme: "stackedAreaDefault",
-            get categoricalValues() {
-                return uniq(that.groupedData.map((d) => d.entityName)).reverse()
-            },
-            hasNoDataBin: false,
-        })
+        return new ColorScale(this)
+    }
+
+    @computed get colorScaleConfig() {
+        return this.options.colorScale!
+    }
+
+    defaultBaseColorScheme = "stackedAreaDefault"
+    hasNoDataBin = false
+
+    @computed get categoricalValues() {
+        return uniq(this.groupedData.map((d) => d.entityName)).reverse()
     }
 
     @computed private get yColumn() {

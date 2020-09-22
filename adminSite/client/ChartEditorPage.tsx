@@ -20,6 +20,7 @@ import {
     Log,
     PostReference,
     ChartRedirect,
+    ChartEditorOptionsProvider,
 } from "./ChartEditor"
 import { EditorBasicTab } from "./EditorBasicTab"
 import { EditorDataTab } from "./EditorDataTab"
@@ -78,16 +79,19 @@ class TabBinder extends React.Component<{ editor: ChartEditor }> {
 }
 
 @observer
-export class ChartEditorPage extends React.Component<{
-    grapherId?: number
-    newGrapherIndex?: number
-    grapherConfig?: any
-}> {
-    @observable.ref grapher?: Grapher
-    @observable.ref database?: EditorDatabase
-    @observable logs?: Log[]
-    @observable references?: PostReference[]
-    @observable redirects?: ChartRedirect[]
+export class ChartEditorPage
+    extends React.Component<{
+        grapherId?: number
+        newGrapherIndex?: number
+        grapherConfig?: any
+    }>
+    implements ChartEditorOptionsProvider {
+    @observable.ref grapher = new Grapher()
+    @observable.ref database = new EditorDatabase({})
+    @observable logs: Log[] = []
+    @observable references: PostReference[] = []
+    @observable redirects: ChartRedirect[] = []
+
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -100,13 +104,29 @@ export class ChartEditorPage extends React.Component<{
             grapherId === undefined
                 ? grapherConfig
                 : await admin.getJSON(`/api/charts/${grapherId}.config.json`)
-        runInAction(() => (this.grapher = new Grapher(json)))
+        this.setGrapher(json)
+    }
+
+    @observable private _isDbSet = false
+    @observable private _isGrapherSet = false
+    @computed get isReady() {
+        return this._isDbSet && this._isGrapherSet
+    }
+
+    @action.bound private setGrapher(json: any) {
+        this.grapher = new Grapher(json)
+        this._isGrapherSet = true
+    }
+
+    @action.bound private setDb(json: any) {
+        this.database = new EditorDatabase(json)
+        this._isDbSet = true
     }
 
     async fetchData() {
         const { admin } = this.context
         const json = await admin.getJSON(`/api/editorData/namespaces.json`)
-        runInAction(() => (this.database = new EditorDatabase(json)))
+        this.setDb(json)
     }
 
     async fetchLogs() {
@@ -141,35 +161,14 @@ export class ChartEditorPage extends React.Component<{
         runInAction(() => (this.redirects = json.redirects))
     }
 
-    @computed get editor(): ChartEditor | undefined {
-        if (this.grapher === undefined || this.database === undefined) {
-            return undefined
-        } else {
-            const that = this
-            const editor = new ChartEditor({
-                get admin() {
-                    return that.context.admin
-                },
-                get grapher() {
-                    return that.grapher as Grapher
-                },
-                get database() {
-                    return that.database as EditorDatabase
-                },
-                get logs() {
-                    return that.logs as Log[]
-                },
-                get references() {
-                    return that.references as PostReference[]
-                },
-                // Hack: Allow overriding redirects so that we can update it
-                // from the inner "add redirect" form
-                redirects: that.redirects || [],
-            })
+    @computed get admin() {
+        return this.context.admin
+    }
 
-            ;(window as any).editor = editor
-            return editor
-        }
+    @computed get editor() {
+        if (!this.isReady) return undefined
+
+        return new ChartEditor({ options: this })
     }
 
     @action.bound refresh() {
@@ -257,7 +256,8 @@ export class ChartEditorPage extends React.Component<{
                                         onClick={() => (editor.tab = tab)}
                                     >
                                         {capitalize(tab)}
-                                        {tab === "refs" && this.references
+                                        {tab === "refs" &&
+                                        this.references.length
                                             ? ` (${this.references.length})`
                                             : ""}
                                     </a>
