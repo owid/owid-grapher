@@ -13,7 +13,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 
 export async function getChartsAndRedirectsBySlug() {
-    const { chartsBySlug, chartsById } = await getChartsBySlug()
+    const { chartsBySlug, chartsById } = await getPublishedChartsBySlug()
 
     const redirectQuery = db.query(
         `SELECT slug, chart_id FROM chart_slug_redirects`
@@ -26,15 +26,15 @@ export async function getChartsAndRedirectsBySlug() {
     return chartsBySlug
 }
 
-export async function getChartsBySlug(onlyPublished = true) {
+export async function getPublishedChartsBySlug() {
     const chartsBySlug: Map<string, GrapherInterface> = new Map()
     const chartsById = new Map()
 
-    const chartsQuery = db.query(`SELECT * FROM charts`)
+    const chartsQuery = db.query(
+        `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
+    )
     for (const row of await chartsQuery) {
         const chart = JSON.parse(row.config)
-
-        if (onlyPublished && !chart.isPublished) continue
 
         chart.id = row.id
         chartsBySlug.set(chart.slug, chart)
