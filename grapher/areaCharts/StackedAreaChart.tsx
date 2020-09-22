@@ -19,12 +19,7 @@ import {
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { scaleOrdinal } from "d3-scale"
-import {
-    Time,
-    BASE_FONT_SIZE,
-    TimeRange,
-    ValueRange,
-} from "grapher/core/GrapherConstants"
+import { Time, BASE_FONT_SIZE, ValueRange } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -44,29 +39,11 @@ import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-
-export interface StackedAreaValue {
-    x: number
-    y: number
-    origY?: number
-    time: number
-    isFake?: true
-}
-
-export interface StackedAreaSeries {
-    entityName: EntityName
-    color: string
-    values: StackedAreaValue[]
-    classed?: string
-    isProjection?: boolean
-}
-
-interface AreasProps extends React.SVGAttributes<SVGGElement> {
-    dualAxis: DualAxis
-    data: StackedAreaSeries[]
-    focusKeys: EntityName[]
-    onHover: (hoverIndex: number | undefined) => void
-}
+import {
+    AreasProps,
+    StackedAreaSeries,
+    StackedAreaValue,
+} from "./StackedAreaChartConstants"
 
 const BLUR_COLOR = "#ddd"
 

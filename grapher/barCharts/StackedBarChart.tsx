@@ -19,7 +19,7 @@ import {
     AxisTickMarks,
     VerticalAxisGridLines,
 } from "grapher/axis/AxisViews"
-import { VerticalAxis, DualAxis } from "grapher/axis/Axis"
+import { DualAxis } from "grapher/axis/Axis"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { Text } from "grapher/text/Text"
 import {
@@ -38,32 +38,11 @@ import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
-
-export interface StackedBarValue {
-    x: number
-    y: number
-    yOffset: number
-    isFake: boolean
-    label: string
-}
-
-export interface StackedBarSeries {
-    entityName: EntityName
-    label: string
-    values: StackedBarValue[]
-    color: string
-}
-
-interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
-    bar: StackedBarValue
-    color: string
-    opacity: number
-    yAxis: VerticalAxis
-    xOffset: number
-    barWidth: number
-    onBarMouseOver: (bar: StackedBarValue) => void
-    onBarMouseLeave: () => void
-}
+import {
+    StackedBarSegmentProps,
+    StackedBarValue,
+    StackedBarSeries,
+} from "./StackedBarChartConstants"
 
 @observer
 class StackedBarSegment extends React.Component<StackedBarSegmentProps> {

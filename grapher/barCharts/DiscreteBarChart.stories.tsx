@@ -1,9 +1,7 @@
 import * as React from "react"
-import {
-    DiscreteBarChart,
-    DiscreteBarChartOptionsProvider,
-} from "./DiscreteBarChart"
+import { DiscreteBarChart } from "./DiscreteBarChart"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { DiscreteBarChartOptionsProvider } from "./DiscreteBarChartConstants"
 
 export default {
     title: "DiscreteBarChart",

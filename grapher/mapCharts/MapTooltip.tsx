@@ -9,8 +9,7 @@ import {
     SparkBarsProps,
 } from "grapher/sparkBars/SparkBars"
 import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
-import { ChoroplethMark } from "./MapConstants"
-import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
+import { MapChartOptionsProvider, ChoroplethMark } from "./MapChartConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 
 interface MapTooltipProps {

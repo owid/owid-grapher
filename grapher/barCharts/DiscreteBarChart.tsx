@@ -4,12 +4,7 @@ import { min, max, maxBy, orderBy, sortBy, uniq } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import {
-    Color,
-    ScaleType,
-    Time,
-    BASE_FONT_SIZE,
-} from "grapher/core/GrapherConstants"
+import { ScaleType, BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -17,28 +12,16 @@ import {
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { EntityName } from "coreTable/CoreTableConstants"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-
-interface DiscreteBarDatum {
-    entityName: EntityName
-    value: number
-    time: Time
-    label: string
-    color: Color
-}
+import {
+    DiscreteBarChartOptionsProvider,
+    DiscreteBarDatum,
+} from "./DiscreteBarChartConstants"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
-
-export interface DiscreteBarChartOptionsProvider extends ChartOptionsProvider {
-    addButtonLabel?: string
-    hasFloatingAddButton?: boolean
-    showYearLabels?: boolean
-}
 
 @observer
 export class DiscreteBarChart

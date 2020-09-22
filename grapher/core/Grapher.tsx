@@ -55,7 +55,6 @@ import * as Cookies from "js-cookie"
 import { OwidColumnSpec, OwidTable } from "coreTable/OwidTable"
 import {
     ChartDimension,
-    SourceWithDimension,
     ChartDimensionInterface,
 } from "grapher/chart/ChartDimension"
 import {
@@ -132,7 +131,8 @@ import {
     SourcesTabOptionsProvider,
 } from "grapher/sourcesTab/SourcesTab"
 import { DataTable } from "grapher/dataTable/DataTable"
-import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartOptionsProvider"
+import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartConstants"
+import { DiscreteBarChartOptionsProvider } from "grapher/barCharts/DiscreteBarChartConstants"
 
 declare const window: any
 
@@ -235,6 +235,7 @@ export class Grapher
         ChartTabOptionsProvider,
         SourcesTabOptionsProvider,
         DownloadTabOptionsProvider,
+        DiscreteBarChartOptionsProvider,
         MapChartOptionsProvider {
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)

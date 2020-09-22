@@ -11,7 +11,7 @@ import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
 import { StackedBarChart } from "grapher/barCharts/StackedBarChart"
 import { DiscreteBarChart } from "grapher/barCharts/DiscreteBarChart"
 import { SlopeChart } from "grapher/slopeCharts/SlopeChart"
-import { ChoroplethMap } from "grapher/mapCharts/ChoroplethMap"
+import { MapChartWithLegend } from "grapher/mapCharts/MapChartWithLegend"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel } from "explorer/indicatorExplorer/ExploreModel"
 import {
@@ -98,7 +98,7 @@ describe(ExploreView, () => {
             const model = getDefaultModel()
             model.setChartType("WorldMap")
             const view = await renderWithModel(model)
-            expect(view.find(ChoroplethMap)).toHaveLength(1)
+            expect(view.find(MapChartWithLegend)).toHaveLength(1)
         })
 
         // This test used to pass with the dummy config but broke when we
@@ -139,7 +139,7 @@ describe(ExploreView, () => {
             { key: ChartTypes.StackedBar, expectedView: StackedBarChart },
             { key: ChartTypes.DiscreteBar, expectedView: DiscreteBarChart },
             { key: ChartTypes.SlopeChart, expectedView: SlopeChart },
-            { key: "WorldMap", expectedView: ChoroplethMap },
+            { key: "WorldMap", expectedView: MapChartWithLegend },
         ]
 
         chartTypes.forEach((type) => {

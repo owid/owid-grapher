@@ -18,7 +18,7 @@ import {
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
 import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
-import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartOptionsProvider"
+import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartConstants"
 import { ChartOptionsProvider } from "./ChartOptionsProvider"
 
 export interface ChartTabOptionsProvider

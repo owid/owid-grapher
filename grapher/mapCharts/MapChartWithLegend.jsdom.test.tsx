@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
-import { MapChartOptionsProvider } from "./MapChartOptionsProvider"
+import { MapChartOptionsProvider } from "./MapChartConstants"
 import { MapChartWithLegend } from "./MapChartWithLegend"
 
 describe(MapChartWithLegend, () => {

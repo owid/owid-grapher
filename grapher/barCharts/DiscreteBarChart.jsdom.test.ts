@@ -1,10 +1,8 @@
 #! /usr/bin/env yarn jest
 
-import {
-    DiscreteBarChart,
-    DiscreteBarChartOptionsProvider,
-} from "./DiscreteBarChart"
+import { DiscreteBarChart } from "./DiscreteBarChart"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { DiscreteBarChartOptionsProvider } from "./DiscreteBarChartConstants"
 
 describe(DiscreteBarChart, () => {
     const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })

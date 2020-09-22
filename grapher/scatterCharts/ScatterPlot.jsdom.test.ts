@@ -6,7 +6,7 @@ import { SynthesizeOwidTable } from "coreTable/OwidTable"
 describe(ScatterPlot, () => {
     const table = SynthesizeOwidTable({
         timeRange: [2000, 2010],
-        countryCount: 5,
+        countryCount: 2,
     })
     const options = {
         table,
@@ -18,10 +18,10 @@ describe(ScatterPlot, () => {
         const chart = new ScatterPlot({ options })
         expect(chart.failMessage).toBeTruthy()
 
-        // table.selectAll()
-        // expect(chart.getEntityNamesToShow()).toEqual(["France", "Germany"])
-        // expect(chart.allPoints.length).toBeGreaterThan(5)
-        // expect(chart.availableTimes).toContain(2003)
+        table.selectAll()
+        expect(chart.getEntityNamesToShow()).toEqual(["Germany", "France"])
+        expect(chart.marks.length).toBeGreaterThan(5)
+        expect(chart.availableTimes).toContain(2003)
     })
 
     // it("can remove points outside domain", () => {

@@ -37,51 +37,20 @@ import {
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-
-interface LineChartValue {
-    x: number
-    y: number
-    time: number
-}
-
-interface LineChartSeries {
-    entityName: string
-    color: string
-    values: LineChartValue[]
-    classed?: string
-    isProjection?: boolean
-}
+import {
+    LinesProps,
+    LineHoverTarget,
+    LineRenderSeries,
+    LineChartValue,
+    LineChartSeries,
+} from "./LineChartConstants"
 
 const BLUR_COLOR = "#eee"
-
-interface LinesProps {
-    dualAxis: DualAxis
-    xAxis: HorizontalAxis
-    yAxis: VerticalAxis
-    data: LineChartSeries[]
-    focusKeys: EntityName[]
-    onHover: (hoverX: number | undefined) => void
-}
-
-interface LineRenderSeries {
-    entityName: string
-    displayKey: string
-    color: string
-    values: Vector2[]
-    isFocus: boolean
-    isProjection?: boolean
-}
-
-interface HoverTarget {
-    pos: Vector2
-    series: LineChartSeries
-    value: LineChartValue
-}
 
 @observer
 class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
-    @observable.ref private hover: HoverTarget | null = null
+    @observable.ref private hover: LineHoverTarget | null = null
 
     @computed private get renderData(): LineRenderSeries[] {
         const { data, xAxis, yAxis, focusKeys } = this.props
