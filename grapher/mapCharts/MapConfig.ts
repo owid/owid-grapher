@@ -29,7 +29,7 @@ export type MapConfigInterface = MapConfigDefaults
 
 interface MapConfigWithLegacyInterface extends MapConfigInterface {
     variableId?: LegacyVariableId
-    year?: number
+    targetYear?: number
 }
 
 export class MapConfig extends MapConfigDefaults implements Persistable {
@@ -39,7 +39,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             obj.columnSlug = obj.variableId.toString()
 
         // Migrate "targetYear" to "time"
-        if (obj.year) this.time = maxTimeFromJSON(obj.year)
+        if (obj.targetYear) this.time = maxTimeFromJSON(obj.targetYear)
 
         updatePersistables(this, obj)
     }

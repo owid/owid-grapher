@@ -48,11 +48,11 @@ export abstract class ChartTransform implements IChartTransform {
         return sortNumeric(uniq(filteredTimes))
     }
 
-    @computed private get minTimelineTime(): Time {
+    @computed get minTimelineTime(): Time {
         return first(this.timelineTimes) ?? 1900
     }
 
-    @computed private get maxTimelineTime(): Time {
+    @computed get maxTimelineTime(): Time {
         return last(this.timelineTimes) ?? 2000
     }
 

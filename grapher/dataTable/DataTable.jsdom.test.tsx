@@ -36,6 +36,9 @@ const childMortalityGrapher = (props: any = {}) =>
                 "207": { name: "Iceland", id: 207 },
             },
         },
+        map: {
+            time: 2019,
+        },
     })
 
 describe(DataTable, () => {
