@@ -13,7 +13,7 @@ import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 
 export async function getChartsAndRedirectsBySlug() {
-    const { chartsBySlug, chartsById } = await getChartsBySlug()
+    const { chartsBySlug, chartsById } = await getPublishedChartsBySlug()
 
     const redirectQuery = db.query(
         `SELECT slug, chart_id FROM chart_slug_redirects`
@@ -26,13 +26,16 @@ export async function getChartsAndRedirectsBySlug() {
     return chartsBySlug
 }
 
-export async function getChartsBySlug() {
+export async function getPublishedChartsBySlug() {
     const chartsBySlug: Map<string, GrapherInterface> = new Map()
     const chartsById = new Map()
 
-    const chartsQuery = db.query(`SELECT * FROM charts`)
+    const chartsQuery = db.query(
+        `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
+    )
     for (const row of await chartsQuery) {
         const chart = JSON.parse(row.config)
+
         chart.id = row.id
         chartsBySlug.set(chart.slug, chart)
         chartsById.set(row.id, chart)
@@ -49,8 +52,6 @@ export async function bakeChartToImage(
     overwriteExisting = false,
     verbose = true
 ) {
-    // the type definition for url.query is wrong (bc we have query string parsing disabled),
-    // so we have to explicitly cast it
     const chart = new Grapher(
         { ...jsonConfig, manuallyProvideData: true },
         { queryStr }

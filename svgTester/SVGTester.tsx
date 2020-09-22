@@ -5,7 +5,7 @@ import { BAKED_GRAPHER_URL } from "settings"
 import React from "react"
 import {
     bakeChartToImage,
-    getChartsBySlug,
+    getPublishedChartsBySlug,
 } from "site/server/bakeChartsToImages"
 
 const header = `bakeOrder,timeToBake,slug,chartType,md5`
@@ -48,8 +48,7 @@ export async function bakeAndSaveResultsFile(
     outDir: string = __dirname + "/bakedSvgs"
 ) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
-    // Todo: only bake published charts
-    const { chartsBySlug } = await getChartsBySlug()
+    const { chartsBySlug } = await getPublishedChartsBySlug()
     const resultsPath = outDir + "/results.csv"
     fs.writeFileSync(resultsPath, header + "\n")
     // eslint-disable-next-line no-console
