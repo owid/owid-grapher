@@ -52,8 +52,6 @@ export async function bakeChartToImage(
     overwriteExisting = false,
     verbose = true
 ) {
-    // the type definition for url.query is wrong (bc we have query string parsing disabled),
-    // so we have to explicitly cast it
     const chart = new Grapher(
         { ...jsonConfig, manuallyProvideData: true },
         { queryStr }
