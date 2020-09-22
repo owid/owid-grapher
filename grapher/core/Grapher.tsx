@@ -132,6 +132,7 @@ import {
     SourcesTabOptionsProvider,
 } from "grapher/sourcesTab/SourcesTab"
 import { DataTable } from "grapher/dataTable/DataTable"
+import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartOptionsProvider"
 
 declare const window: any
 
@@ -233,7 +234,8 @@ export class Grapher
         FontSizeOptionsProvider,
         ChartTabOptionsProvider,
         SourcesTabOptionsProvider,
-        DownloadTabOptionsProvider {
+        DownloadTabOptionsProvider,
+        MapChartOptionsProvider {
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
 
@@ -1387,7 +1389,7 @@ export class Grapher
             : this.idealHeight
     }
 
-    @computed private get tabBounds() {
+    @computed get tabBounds() {
         return new Bounds(0, 0, this.renderWidth, this.renderHeight).padBottom(
             this.isExport ? 0 : this.footerHeight
         )
@@ -1448,7 +1450,7 @@ export class Grapher
     private renderPrimaryTab() {
         const { tabBounds } = this
         if (this.primaryTab === "chart" || this.primaryTab === "map")
-            return <ChartTab bounds={tabBounds} options={this} />
+            return <ChartTab options={this} />
 
         if (this.primaryTab === "table")
             return <DataTable bounds={tabBounds} options={this} />

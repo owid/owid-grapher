@@ -12,10 +12,9 @@ import { FooterOptionsProvider } from "./FooterOptionsProvider"
 @observer
 export class Footer extends React.Component<{
     options: FooterOptionsProvider
-    maxWidth: number
 }> {
     @computed private get maxWidth() {
-        return this.props.maxWidth
+        return this.options.maxWidth ?? 500
     }
 
     @computed private get options() {
@@ -38,14 +37,18 @@ export class Footer extends React.Component<{
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
 
+    @computed private get originUrlWithProtocol() {
+        return this.options.originUrlWithProtocol ?? "http://localhost"
+    }
+
     @computed private get finalUrl() {
-        const originUrl = this.options.originUrlWithProtocol
+        const originUrl = this.originUrlWithProtocol
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }
 
     @computed private get finalUrlText() {
-        const originUrl = this.options.originUrlWithProtocol
+        const originUrl = this.originUrlWithProtocol
 
         // Make sure the link back to OWID is consistent
         // And don't show the full url if there isn't enough room
@@ -82,7 +85,7 @@ export class Footer extends React.Component<{
     }
 
     @computed private get fontSize() {
-        return 0.7 * (this.options.baseFontSize ?? BASE_FONT_SIZE)
+        return 0.7 * (this.options.fontSize ?? BASE_FONT_SIZE)
     }
 
     @computed private get sources() {

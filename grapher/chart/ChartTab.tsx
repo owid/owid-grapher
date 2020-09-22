@@ -1,31 +1,102 @@
 // The ChartTab renders a Header and Footer as well as any chart, including the Map chart.
-
+// NB: If you want to create a LineChart with a Header and Footer, probably better to do that directly and not through this class.
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { Grapher } from "grapher/core/Grapher"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
 import { LoadingOverlay } from "grapher/loadingIndicator/LoadingOverlay"
 import { getChartComponent } from "./ChartTypeMap"
 import { MapChartWithLegend } from "grapher/mapCharts/MapChartWithLegend"
-import { OverlayPadding } from "grapher/core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    ChartTypeName,
+    GrapherTabOption,
+    OverlayPadding,
+} from "grapher/core/GrapherConstants"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
+import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
+import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
+import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartOptionsProvider"
+import { ChartOptionsProvider } from "./ChartOptionsProvider"
 
-export interface ChartTabOptionsProvider {
+export interface ChartTabOptionsProvider
+    extends FooterOptionsProvider,
+        HeaderOptionsProvider,
+        ChartOptionsProvider,
+        MapChartOptionsProvider {
     overlayPadding?: OverlayPadding
     containerElement?: HTMLDivElement
     overlays?: { [id: string]: ControlsOverlay }
+    tabBounds?: Bounds
+    isExporting?: boolean
+    tab?: GrapherTabOption
+    type?: ChartTypeName
+    isSingleTime?: boolean // todo: remove?
+    isReady?: boolean
 }
 
 @observer
-export class ChartTab extends React.Component<{
-    options: Grapher
-    bounds?: Bounds
-}> {
+export class ChartTab
+    extends React.Component<{
+        options: ChartTabOptionsProvider
+    }>
+    implements FooterOptionsProvider, HeaderOptionsProvider {
+    @computed get fontSize() {
+        return this.options.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get currentTitle() {
+        return this.options.currentTitle ?? ""
+    }
+
+    @computed get subtitle() {
+        return this.options.subtitle ?? ""
+    }
+
+    @computed get hideLogo() {
+        return !!this.options.hideLogo
+    }
+
+    @computed get isNativeEmbed() {
+        return this.options.isNativeEmbed
+    }
+
+    @computed get isMediaCard() {
+        return this.options.isMediaCard
+    }
+
+    @computed get logo() {
+        return this.options.logo
+    }
+
+    @computed get canonicalUrl() {
+        return this.options.canonicalUrl
+    }
+
+    @computed get sourcesLine() {
+        return this.options.sourcesLine
+    }
+
+    @computed get note() {
+        return this.options.note
+    }
+
+    @computed get hasOWIDLogo() {
+        return this.options.hasOWIDLogo
+    }
+
+    @computed get originUrlWithProtocol() {
+        return this.options.originUrlWithProtocol
+    }
+
     @computed private get paddedBounds() {
         return this.bounds.pad(15)
+    }
+
+    @computed get maxWidth() {
+        return this.paddedBounds.width
     }
 
     @computed private get overlayPadding() {
@@ -40,7 +111,7 @@ export class ChartTab extends React.Component<{
     }
 
     @computed private get bounds() {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.options.tabBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get options() {
@@ -56,27 +127,15 @@ export class ChartTab extends React.Component<{
     }
 
     @computed private get header() {
-        const that = this
-        return new Header({
-            options: this.options,
-            get maxWidth() {
-                return that.paddedBounds.width
-            },
-        })
+        return new Header({ options: this })
     }
 
     @computed private get footer() {
-        const that = this
-        return new Footer({
-            options: this.options,
-            get maxWidth() {
-                return that.paddedBounds.width
-            },
-        })
+        return new Footer({ options: this })
     }
 
     @computed private get isExporting() {
-        return !!this.options.isExporting
+        return this.options.isExporting === true
     }
 
     @computed private get svgWidth() {
@@ -109,13 +168,17 @@ export class ChartTab extends React.Component<{
         return new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15)
     }
 
+    @computed private get isReady() {
+        return this.options.isReady !== false
+    }
+
     private renderChart() {
         const { options } = this
         const type = options.type
         const innerBounds = this.innerBounds
         const isMapTab = options.tab === "map"
 
-        if (!options.isReady || (isMapTab && !options.mapColumn))
+        if (!this.isReady || (isMapTab && !options.mapColumn))
             return <LoadingOverlay bounds={innerBounds} />
 
         if (isMapTab)
@@ -134,7 +197,9 @@ export class ChartTab extends React.Component<{
 
         // Switch to bar chart if a single year is selected
         const chartTypeName =
-            type === "LineChart" && options.isSingleTime ? "DiscreteBar" : type
+            type === "LineChart" && options.isSingleTime
+                ? "DiscreteBar"
+                : type || "LineChart"
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
 
@@ -146,7 +211,7 @@ export class ChartTab extends React.Component<{
     @computed private get svgStyle() {
         return {
             fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.options.baseFontSize,
+            fontSize: this.fontSize,
             backgroundColor: "white",
             textRendering: "optimizeLegibility",
             WebkitFontSmoothing: "antialiased",
@@ -179,12 +244,7 @@ export class ChartTab extends React.Component<{
         )
     }
 
-    @computed get maxWidth() {
-        return this.paddedBounds.width
-    }
-
     private renderWithHTMLText() {
-        const { maxWidth, options } = this
         const { overlayPadding } = this
 
         const containerStyle: React.CSSProperties = {
@@ -210,14 +270,14 @@ export class ChartTab extends React.Component<{
 
         return (
             <>
-                <Header maxWidth={maxWidth} options={options} />
+                <Header options={this} />
                 <div style={containerStyle}>
                     <svg {...this.svgProps}>{this.renderChart()}</svg>
                     <div className="ControlsOverlay" style={overlayStyle}>
                         {this.renderOverlays()}
                     </div>
                 </div>
-                <Footer maxWidth={maxWidth} options={options} />
+                <Footer options={this} />
             </>
         )
     }

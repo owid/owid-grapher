@@ -5,12 +5,6 @@ import { FooterOptionsProvider } from "./FooterOptionsProvider"
 export default {
     title: "Footer",
     component: Footer,
-    argTypes: {
-        maxWidth: {
-            control: { type: "range", min: 1, max: 2000 },
-            defaultValue: 400,
-        },
-    },
 }
 
 const options: FooterOptionsProvider = {
@@ -19,6 +13,4 @@ const options: FooterOptionsProvider = {
     sourcesLine: "These are my sources",
 }
 
-export const Default = (args: any) => {
-    return <Footer maxWidth={args.maxWidth ?? 400} options={options} />
-}
+export const Default = () => <Footer options={options} />

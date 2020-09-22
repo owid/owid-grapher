@@ -8,19 +8,18 @@ import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 @observer
 export class Header extends React.Component<{
-    maxWidth: number
     options: HeaderOptionsProvider
 }> {
     @computed private get options() {
         return this.props.options
     }
 
-    @computed private get baseFontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    @computed private get fontSize() {
+        return this.options.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get maxWidth() {
-        return this.props.maxWidth
+        return this.options.maxWidth ?? 500
     }
 
     @computed private get titleText() {
@@ -38,7 +37,7 @@ export class Header extends React.Component<{
         return new Logo({
             logo: options.logo as any,
             isLink: !options.isNativeEmbed,
-            fontSize: this.baseFontSize,
+            fontSize: this.fontSize,
         })
     }
 
@@ -59,7 +58,7 @@ export class Header extends React.Component<{
         while (true) {
             title = new TextWrap({
                 maxWidth,
-                fontSize: fontScale * this.baseFontSize,
+                fontSize: fontScale * this.fontSize,
                 text: this.titleText,
                 lineHeight: 1,
             })
@@ -69,7 +68,7 @@ export class Header extends React.Component<{
 
         return new TextWrap({
             maxWidth,
-            fontSize: fontScale * this.baseFontSize,
+            fontSize: fontScale * this.fontSize,
             text: this.titleText,
             lineHeight: 1,
         })
@@ -85,17 +84,10 @@ export class Header extends React.Component<{
     }
 
     @computed get subtitle() {
-        const that = this
         return new TextWrap({
-            get maxWidth() {
-                return that.subtitleWidth
-            },
-            get fontSize() {
-                return 0.8 * that.baseFontSize
-            },
-            get text() {
-                return that.subtitleText
-            },
+            maxWidth: this.subtitleWidth,
+            fontSize: 0.8 * this.fontSize,
+            text: this.subtitleText,
             lineHeight: 1.2,
             linkifyText: true,
         })

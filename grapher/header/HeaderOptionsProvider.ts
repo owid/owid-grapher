@@ -1,5 +1,5 @@
 export interface HeaderOptionsProvider {
-    baseFontSize?: number
+    fontSize?: number
     currentTitle?: string
     subtitle?: string
     hideLogo?: boolean
@@ -7,4 +7,5 @@ export interface HeaderOptionsProvider {
     isMediaCard?: boolean
     logo?: string
     canonicalUrl?: string
+    maxWidth?: number
 }
