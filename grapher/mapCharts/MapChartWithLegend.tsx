@@ -241,7 +241,7 @@ export class MapChartWithLegend
     }
 
     @computed get legendData() {
-        return this.colorScale.legendData
+        return this.colorScale.legendBins
     }
 
     @computed get equalSizeBins() {

@@ -88,7 +88,7 @@ class ColorLegendSection extends React.Component<{
                 )}
                 {scale.isManualBuckets && (
                     <EditableList>
-                        {scale.legendData.map((bin, index) => (
+                        {scale.legendBins.map((bin, index) => (
                             <BinLabelView
                                 key={index}
                                 scale={scale}
@@ -243,7 +243,7 @@ class ColorSchemeEditor extends React.Component<{
         return (
             <div>
                 <EditableList className="ColorSchemeEditor">
-                    {scale.legendData.map((bin, index) => {
+                    {scale.legendBins.map((bin, index) => {
                         if (bin instanceof NumericBin)
                             return (
                                 <NumericBinView

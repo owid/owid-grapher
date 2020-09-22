@@ -227,7 +227,7 @@ export class StackedBarChart
     }
 
     @computed get colorBins() {
-        return this.colorScale.legendData.filter((bin) =>
+        return this.colorScale.legendBins.filter((bin) =>
             this.colorsInUse.includes(bin.color)
         )
     }

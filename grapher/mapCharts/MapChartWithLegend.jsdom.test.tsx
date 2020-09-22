@@ -18,7 +18,7 @@ describe(MapChartWithLegend, () => {
         const chart = new MapChartWithLegend({ options })
         expect(Object.keys(chart.marks).length).toEqual(5)
 
-        const legends = chart.colorScale.legendData
+        const legends = chart.colorScale.legendBins
         expect(Object.keys(legends).length).toBeGreaterThan(1)
     })
 })

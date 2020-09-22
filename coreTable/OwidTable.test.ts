@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { OwidTable, SynthesizeOwidTable } from "coreTable/OwidTable"
+import { flatten } from "grapher/utils/Util"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 
 describe(OwidTable, () => {
@@ -132,6 +133,33 @@ describe("can query the data", () => {
         expect(
             table.getClosestRowForEachSelectedEntity(2005, 1).length
         ).toEqual(0)
+    })
+
+    const table = SynthesizeOwidTable({
+        timeRange: [2000, 2010],
+        countryCount: 5,
+    })
+
+    it("can parse values", () => {
+        const parsed = table.get("Population")!.parsedValues
+        expect(parsed.filter((item) => isNaN(item))).toEqual([])
+
+        table.get("Population")!.owidRows.forEach((row) => {
+            expect(typeof row.entityName).toBe("string")
+            expect(row.value).toBeGreaterThan(100)
+            expect(row.time).toBeGreaterThan(1999)
+        })
+    })
+
+    it("can group by entity and time", () => {
+        const timeValues = flatten(
+            Array.from(
+                table.get("Population")!.valueByEntityNameAndTime.values()
+            ).map((value) => Array.from(value.values()))
+        )
+
+        expect(timeValues.length).toEqual(50)
+        expect(timeValues.filter((value) => isNaN(value as number))).toEqual([])
     })
 })
 

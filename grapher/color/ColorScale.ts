@@ -235,62 +235,72 @@ export class ColorScale {
         )
     }
 
-    @computed get legendData() {
+    @computed private get numericLegendBins() {
+        const {
+            customNumericLabels,
+            minBinValue,
+            minPossibleValue,
+            maxPossibleValue,
+            customNumericColors,
+            bucketMaximums,
+            baseColors,
+        } = this
+
+        if (minPossibleValue === undefined || maxPossibleValue === undefined)
+            return []
+
+        let min = minBinValue
+
+        return bucketMaximums.map((max, index) => {
+            const baseColor = baseColors[index]
+            const color = customNumericColors[index] ?? baseColor
+            const label = customNumericLabels[index]
+
+            const displayMin =
+                this.colorScaleColumn?.formatValueShort(min) ?? min.toString()
+            const displayMax =
+                this.colorScaleColumn?.formatValueShort(max) ?? max.toString()
+
+            const currentMin = min
+            min = max
+            return new NumericBin({
+                isFirst: index === 0,
+                isOpenLeft: index === 0 && currentMin > minPossibleValue,
+                isOpenRight:
+                    index === bucketMaximums.length - 1 &&
+                    max < maxPossibleValue,
+                min: currentMin,
+                max,
+                color,
+                label,
+                displayMin,
+                displayMax,
+            })
+        })
+    }
+
+    @computed get legendBins() {
         // todo: turn comment into unit test
         // Will eventually produce something like this:
         // [{ min: 10, max: 20, minText: "10%", maxText: "20%", color: '#faeaef' },
         //  { min: 20, max: 30, minText: "20%", maxText: "30%", color: '#fefabc' },
         //  { value: 'Foobar', text: "Foobar Boop", color: '#bbbbbb'}]
-        const legendData: ColorScaleBin[] = []
+        return [
+            ...this.numericLegendBins,
+            ...this.categoricalLegendBins,
+        ] as ColorScaleBin[]
+    }
+
+    @computed private get categoricalLegendBins() {
         const {
             bucketMaximums,
             baseColors,
             hasNoDataBin,
             categoricalValues,
             customCategoryColors,
-            customNumericLabels,
-            minBinValue,
-            minPossibleValue,
-            maxPossibleValue,
-            customNumericColors,
             customCategoryLabels,
             customHiddenCategories,
         } = this
-
-        // Numeric 'buckets' of color
-        if (minPossibleValue !== undefined && maxPossibleValue !== undefined) {
-            let min = minBinValue
-            for (let i = 0; i < bucketMaximums.length; i++) {
-                const baseColor = baseColors[i]
-                const color = customNumericColors[i] ?? baseColor
-                const max = +(bucketMaximums[i] as number)
-                const label = customNumericLabels[i]
-
-                const displayMin =
-                    this.colorScaleColumn?.formatValueShort(min) ??
-                    min.toString()
-                const displayMax =
-                    this.colorScaleColumn?.formatValueShort(max) ??
-                    max.toString()
-
-                legendData.push(
-                    new NumericBin({
-                        isFirst: i === 0,
-                        isOpenLeft: i === 0 && min > minPossibleValue,
-                        isOpenRight:
-                            i === bucketMaximums.length - 1 &&
-                            max < maxPossibleValue,
-                        min,
-                        max,
-                        color,
-                        label,
-                        displayMin,
-                        displayMax,
-                    })
-                )
-                min = max
-            }
-        }
 
         let allCategoricalValues = categoricalValues
 
@@ -303,9 +313,7 @@ export class ColorScale {
             allCategoricalValues = [...allCategoricalValues, NO_DATA_LABEL]
         }
 
-        // Categorical values, each assigned a color
-        for (let index = 0; index < allCategoricalValues.length; index++) {
-            const value = allCategoricalValues[index]
+        return allCategoricalValues.map((value, index) => {
             const boundingOffset = isEmpty(bucketMaximums)
                 ? 0
                 : bucketMaximums.length - 1
@@ -315,23 +323,19 @@ export class ColorScale {
                 customCategoryLabels[value] ||
                 this.formatCategoricalValue(value)
 
-            legendData.push(
-                new CategoricalBin({
-                    index,
-                    value,
-                    color,
-                    label,
-                    isHidden: !!customHiddenCategories[value],
-                })
-            )
-        }
-
-        return legendData
+            return new CategoricalBin({
+                index,
+                value,
+                color,
+                label,
+                isHidden: !!customHiddenCategories[value],
+            })
+        })
     }
 
     @bind getColor(value: number | string | undefined) {
         return value === undefined
             ? this.customCategoryColors[NO_DATA_LABEL]
-            : this.legendData.find((b) => b.contains(value))?.color
+            : this.legendBins.find((bin) => bin.contains(value))?.color
     }
 }

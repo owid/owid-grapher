@@ -678,7 +678,7 @@ export abstract class AbstractCoreColumn {
 
     // todo: remove
     @computed get times(): Time[] {
-        return this.rowsWithValue.map((row) => row.year ?? row.day!)
+        return this.rowsWithValue.map((row) => parseInt(row.year ?? row.day!))
     }
 
     @computed get timesUniq() {
@@ -744,7 +744,7 @@ export abstract class AbstractCoreColumn {
     }
 
     @computed get owidRows() {
-        return this.times.map((time, index) => {
+        return this.rowsWithValue.map((row, index) => {
             return {
                 entityName: this.entityNames[index],
                 time: this.times[index],
@@ -753,6 +753,7 @@ export abstract class AbstractCoreColumn {
         })
     }
 
+    // todo: remove? at least should not be on CoreTable
     @computed get valueByEntityNameAndTime() {
         const valueByEntityNameAndTime = new Map<
             EntityName,
@@ -809,7 +810,7 @@ export class NumericColumn extends AbstractCoreColumn {
     }
 
     @computed get parsedValues() {
-        return this.rawValues.map(parseFloat)
+        return this.rawValues.map((value) => parseFloat(value))
     }
 }
 
@@ -825,13 +826,13 @@ class IntegerColumn extends NumericColumn {
     }
 
     @computed get parsedValues() {
-        return this.rawValues.map(parseInt)
+        return this.rawValues.map((value) => parseInt(value))
     }
 }
 
 abstract class TimeColumn extends AbstractCoreColumn {
     @computed get parsedValues() {
-        return this.rawValues.map(parseInt)
+        return this.rawValues.map((value) => parseInt(value))
     }
 }
 

@@ -47,7 +47,7 @@ export class SlopeChart
     }
 
     @computed get colorBins() {
-        return this.colorScale.legendData.filter((bin) =>
+        return this.colorScale.legendBins.filter((bin) =>
             this.colorsInUse.includes(bin.color)
         )
     }
@@ -203,8 +203,8 @@ export class SlopeChart
     // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
     @computed get showLegend() {
         const { colorsInUse } = this
-        const { legendData } = this.colorScale
-        return legendData.some((bin) => colorsInUse.includes(bin.color))
+        const { legendBins } = this.colorScale
+        return legendBins.some((bin) => colorsInUse.includes(bin.color))
     }
 
     render() {
@@ -272,7 +272,7 @@ export class SlopeChart
     hasNoDataBin = false
 
     @computed get categoricalValues() {
-        return this.colorColumn.sortedUniqNonEmptyStringVals ?? []
+        return this.colorColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
     @computed get availableTimes(): Time[] {

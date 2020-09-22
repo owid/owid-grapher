@@ -1,5 +1,4 @@
 import { observable } from "mobx"
-
 import { Color } from "grapher/core/GrapherConstants"
 import { BinningStrategy } from "./BinningStrategies"
 import {
