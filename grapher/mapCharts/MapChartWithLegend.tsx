@@ -8,9 +8,18 @@ import {
     MapBracket,
     MapEntity,
 } from "grapher/mapCharts/ChoroplethMap"
-import { MapColorLegend } from "grapher/mapCharts/MapColorLegend"
-import { MapColorLegendView } from "./MapColorLegendView"
-import { findClosestTime, getRelativeMouse, isString } from "grapher/utils/Util"
+import {
+    CategoricalColorLegend,
+    CategoricalColorLegendOptionsProvider,
+    NumericColorLegend,
+    NumericColorLegendOptionsProvider,
+} from "grapher/mapCharts/MapColorLegends"
+import {
+    findClosestTime,
+    flatten,
+    getRelativeMouse,
+    isString,
+} from "grapher/utils/Util"
 import { MapProjection } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
@@ -25,6 +34,12 @@ import { MapConfig } from "./MapConfig"
 import { ColorScale } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
+import {
+    CategoricalBin,
+    ColorScaleBin,
+    NumericBin,
+} from "grapher/color/ColorScaleBin"
+import { TextWrap } from "grapher/text/TextWrap"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -40,7 +55,10 @@ interface MapChartWithLegendProps {
 @observer
 export class MapChartWithLegend
     extends React.Component<MapChartWithLegendProps>
-    implements ChartInterface {
+    implements
+        ChartInterface,
+        CategoricalColorLegendOptionsProvider,
+        NumericColorLegendOptionsProvider {
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -108,8 +126,8 @@ export class MapChartWithLegend
         this.onLegendMouseLeave()
     }
 
-    @action.bound onLegendMouseOver(d: MapBracket) {
-        this.focusBracket = d
+    @action.bound onLegendMouseOver(bracket: MapBracket) {
+        this.focusBracket = bracket
     }
 
     @action.bound onLegendMouseLeave() {
@@ -191,33 +209,6 @@ export class MapChartWithLegend
         })
     }
 
-    @computed get mapLegend() {
-        const that = this
-        return new MapColorLegend({
-            get bounds() {
-                return that.bounds.padBottom(15)
-            },
-            get legendData() {
-                return that.colorScale.legendData
-            },
-            get equalSizeBins() {
-                return that.colorScale.config.equalSizeBins
-            },
-            get title() {
-                return ""
-            },
-            get focusBracket() {
-                return that.focusBracket
-            },
-            get focusValue() {
-                return that.focusEntity?.datum?.value
-            },
-            get fontSize() {
-                return that.options.baseFontSize ?? BASE_FONT_SIZE
-            },
-        })
-    }
-
     componentDidMount() {
         select(this.base.current)
             .selectAll("path")
@@ -246,11 +237,173 @@ export class MapChartWithLegend
         )
     }
 
+    @computed get legendData() {
+        return this.colorScale.legendData
+    }
+
+    @computed get equalSizeBins() {
+        return this.colorScale.config.equalSizeBins
+    }
+
+    @computed get legendTitle() {
+        return ""
+    }
+
+    @computed get focusValue() {
+        return this.focusEntity?.datum?.value
+    }
+
+    @computed get fontSize() {
+        return this.options.baseFontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed get numericLegendData() {
+        if (
+            this.hasCategorical ||
+            !this.legendData.some(
+                (d) => (d as CategoricalBin).value === "No data" && !d.isHidden
+            )
+        )
+            return this.legendData.filter(
+                (l) => l instanceof NumericBin && !l.isHidden
+            )
+
+        const bin = this.legendData.filter(
+            (l) =>
+                (l instanceof NumericBin || l.value === "No data") &&
+                !l.isHidden
+        )
+        return flatten([bin[bin.length - 1], bin.slice(0, -1)])
+    }
+
+    @computed get hasNumeric() {
+        return this.numericLegendData.length > 1
+    }
+
+    @computed get categoricalLegendData() {
+        return this.legendData.filter(
+            (l) => l instanceof CategoricalBin && !l.isHidden
+        ) as CategoricalBin[]
+    }
+
+    @computed get hasCategorical() {
+        return this.categoricalLegendData.length > 1
+    }
+
+    @computed get mainLegendLabel() {
+        return new TextWrap({
+            maxWidth: this.legendBounds.width,
+            fontSize: 0.7 * this.fontSize,
+            text: this.legendTitle,
+        })
+    }
+
+    @computed get numericFocusBracket(): ColorScaleBin | undefined {
+        const { focusBracket, focusValue } = this
+        const { numericLegendData } = this
+
+        if (focusBracket) return focusBracket
+
+        if (focusValue)
+            return numericLegendData.find((bin) => bin.contains(focusValue))
+
+        return undefined
+    }
+
+    @computed get categoricalFocusBracket() {
+        const { focusBracket, focusValue } = this
+        const { categoricalLegendData } = this
+        if (focusBracket && focusBracket instanceof CategoricalBin)
+            return focusBracket
+
+        if (focusValue)
+            return categoricalLegendData.find((bin) => bin.contains(focusValue))
+
+        return undefined
+    }
+
+    @computed get legendBounds() {
+        return this.bounds.padBottom(15)
+    }
+
+    @computed get legendWidth() {
+        return this.legendBounds.width * 0.8
+    }
+
+    @computed get legendHeight() {
+        return (
+            this.mainLegendLabel.height +
+            this.categoryLegendHeight +
+            this.numericLegendHeight +
+            10
+        )
+    }
+
+    @computed get numericLegendHeight() {
+        return 5
+    }
+
+    @computed get categoryLegendHeight() {
+        return 5
+    }
+
+    @computed get categoryLegend(): CategoricalColorLegend {
+        return new CategoricalColorLegend({ options: this })
+    }
+
+    @computed get numericLegend(): NumericColorLegend {
+        return new NumericColorLegend({ options: this })
+    }
+
+    @computed get legendX() {
+        const { bounds, numericLegend, categoryLegend } = this
+        if (numericLegend) return bounds.centerX - this.legendWidth / 2
+
+        if (categoryLegend) return bounds.centerX - categoryLegend!.width / 2
+        return 0
+    }
+
+    @computed get legendY() {
+        const {
+            bounds,
+            numericLegend,
+            categoryLegend,
+            mainLegendLabel,
+            categoryLegendHeight,
+        } = this
+        if (numericLegend)
+            return (
+                bounds.bottom -
+                mainLegendLabel.height -
+                categoryLegendHeight -
+                numericLegend!.height -
+                4
+            )
+
+        if (categoryLegend)
+            return bounds.bottom - mainLegendLabel.height - categoryLegendHeight
+        return 0
+    }
+
+    renderMapLegend() {
+        const { bounds, mainLegendLabel, numericLegend, categoryLegend } = this
+
+        return (
+            <g className="mapLegend">
+                {numericLegend && <NumericColorLegend options={this} />}
+                {categoryLegend && <CategoricalColorLegend options={this} />}
+                {mainLegendLabel.render(
+                    bounds.centerX - mainLegendLabel.width / 2,
+                    bounds.bottom - mainLegendLabel.height
+                )}
+            </g>
+        )
+    }
+
     render() {
         const {
             focusBracket,
             focusEntity,
-            mapLegend,
             tooltipTarget,
             projectionChooserBounds,
             marks,
@@ -267,7 +420,7 @@ export class MapChartWithLegend
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
-                    bounds={this.bounds.padBottom(mapLegend.height + 15)}
+                    bounds={this.bounds.padBottom(this.legendHeight + 15)}
                     choroplethData={marks}
                     projection={projection}
                     defaultFill={colorScale.noDataColor}
@@ -277,11 +430,7 @@ export class MapChartWithLegend
                     focusBracket={focusBracket}
                     focusEntity={focusEntity}
                 />
-                <MapColorLegendView
-                    legend={mapLegend}
-                    onMouseOver={this.onLegendMouseOver}
-                    onMouseLeave={this.onLegendMouseLeave}
-                />
+                {this.renderMapLegend()}
                 <ControlsOverlay id="projection-chooser">
                     <ProjectionChooser
                         bounds={projectionChooserBounds}
