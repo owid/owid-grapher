@@ -550,26 +550,26 @@ export class Grapher extends GrapherDefaults implements TimeViz {
 
     // todo: remove ifs
     set startTime(value: any) {
-        if (this.tab === "map") this.timeDomain = [value, value]
+        if (this.tab === "map") this.map.time = value
         else this.timeDomain = [value, this.timeDomain[1]]
     }
 
     // todo: remove ifs
     set endTime(value: any) {
         const activeTab = this.tab
-        if (activeTab === "map" || activeTab === "table")
-            this.timeDomain = [value, value]
+        if (activeTab === "map") this.map.time = value
+        if (activeTab === "table") this.timeDomain = [value, value]
         else this.timeDomain = [this.timeDomain[0], value]
     }
 
     // todo: remove ifs
     @computed get endTime() {
         const activeTab = this.tab
-        if (activeTab === "table")
+        if (activeTab === "map") return this.mapTransform.endTimelineTime
+        else if (activeTab === "table")
             return this.multiMetricTableMode
                 ? this.dataTableTransform.startTimelineTime
                 : this.timeDomain[1]
-        else if (activeTab === "map") return this.mapTransform.endTimelineTime
         return this.activeTransform.endTimelineTime!
     }
 

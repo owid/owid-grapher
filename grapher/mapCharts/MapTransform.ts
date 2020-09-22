@@ -15,6 +15,11 @@ import { MapTopology } from "./MapTopology"
 import { ChartTransform } from "grapher/chart/ChartTransform"
 import { ColorScale } from "grapher/color/ColorScale"
 import { Time } from "grapher/core/GrapherConstants"
+import {
+    isUnboundedLeft,
+    isUnboundedRight,
+    getClosestTime,
+} from "grapher/utils/TimeBounds"
 
 interface MapDataValue {
     entity: string
@@ -226,5 +231,22 @@ export class MapTransform extends ChartTransform {
                   else return customLabels[d] ?? formatValueLong(d)
               }
             : () => ""
+    }
+
+    @computed private get targetTimelineTime(): Time {
+        const time = this.props.time ?? 2000
+
+        if (isUnboundedLeft(time)) return this.minTimelineTime
+        else if (isUnboundedRight(time)) return this.maxTimelineTime
+
+        return getClosestTime(this.timelineTimes, time, this.minTimelineTime)
+    }
+
+    @computed get startTimelineTime(): Time {
+        return this.targetTimelineTime
+    }
+
+    @computed get endTimelineTime(): Time {
+        return this.targetTimelineTime
     }
 }
