@@ -9,6 +9,7 @@ import { BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
 import { bakeChartsToImages } from "site/server/bakeChartsToImages"
 import { log } from "utils/server/log"
+import { Chart } from "db/model/Chart"
 
 // Given a grapher url with query string, create a key to match export filenames
 export function grapherUrlToFilekey(grapherUrl: string) {
@@ -30,28 +31,9 @@ export interface GrapherExports {
     get: (grapherUrl: string) => ChartExportMeta | undefined
 }
 
-// Only considers published charts, because only in that case the mapping slug -> id is unique
-export async function mapSlugsToIds(): Promise<{ [slug: string]: number }> {
-    const redirects = await db.query(
-        `SELECT chart_id, slug FROM chart_slug_redirects`
-    )
-    const rows = await db.query(
-        `SELECT id, JSON_UNQUOTE(JSON_EXTRACT(config, "$.slug")) AS slug FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
-    )
-
-    const slugToId: { [slug: string]: number } = {}
-    for (const row of redirects) {
-        slugToId[row.slug] = row.chart_id
-    }
-    for (const row of rows) {
-        slugToId[row.slug] = row.id
-    }
-    return slugToId
-}
-
 export async function bakeGrapherUrls(urls: string[]) {
     const currentExports = await getGrapherExportsByUrl()
-    const slugToId = await mapSlugsToIds()
+    const slugToId = await Chart.mapSlugsToIds()
     const toBake = []
 
     // Check that we need to bake this url, and don't already have an export

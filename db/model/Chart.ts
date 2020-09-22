@@ -36,6 +36,7 @@ export class Chart extends BaseEntity {
 
     static table: string = "charts"
 
+    // Only considers published charts, because only in that case the mapping slug -> id is unique
     static async mapSlugsToIds(): Promise<{ [slug: string]: number }> {
         const redirects = await db.query(
             `SELECT chart_id, slug FROM chart_slug_redirects`
