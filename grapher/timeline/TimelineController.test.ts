@@ -54,8 +54,6 @@ describe(TimelineController, () => {
         }
 
         const controller = new TimelineController(subject)
-        expect(controller.getTimeFromDrag(1901.5)).toBe(1902)
-        expect(controller.getTimeFromDrag(3000)).toBe(2009)
         controller.dragHandleToTime("end", 1950)
         expect(subject.startTime).toEqual(1950)
         expect(subject.endTime).toEqual(2000)
