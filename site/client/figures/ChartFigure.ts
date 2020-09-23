@@ -3,14 +3,7 @@ import { excludeUndefined, fetchText } from "grapher/utils/Util"
 
 import { Figure, LoadProps } from "./Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
-
-/**
- * Given the HTML of a ChartPage, it extracts the chart's config as JSON
- */
-export function readConfigFromHTML(html: string): any {
-    const m = html.match(/jsonConfig\s*=\s*(\{.+\})/)
-    return m ? JSON.parse(m[1]) : undefined
-}
+import { deserializeEmbeddedObject } from "utils/server/serverUtil"
 
 interface ChartFigureProps {
     configUrl: string
@@ -47,7 +40,7 @@ export class ChartFigure implements Figure {
         if (!this._isLoaded) {
             this._isLoaded = true
             const html = await fetchText(this.props.configUrl)
-            this.jsonConfig = readConfigFromHTML(html)
+            this.jsonConfig = deserializeEmbeddedObject(html)
             this.container.classList.remove("grapherPreview")
             GrapherView.bootstrap({
                 jsonConfig: this.jsonConfig,
