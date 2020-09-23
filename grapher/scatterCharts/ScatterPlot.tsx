@@ -36,7 +36,7 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { scaleLinear } from "d3-scale"
-import { Vector2 } from "grapher/utils/Vector2"
+import { PointVector } from "grapher/utils/PointVector"
 import { Triangle } from "./Triangle"
 import { select } from "d3-selection"
 import { getElementWithHalo } from "./Halos"
@@ -1207,7 +1207,7 @@ class ScatterBackgroundLine extends React.Component<{
         const lastValue = last(group.values)
         if (firstValue === undefined || lastValue === undefined) return null
 
-        let rotation = Vector2.angle(group.offsetVector, Vector2.up)
+        let rotation = PointVector.angle(group.offsetVector, PointVector.up)
         if (group.offsetVector.x < 0) rotation = -rotation
 
         const opacity = 0.7
@@ -1324,7 +1324,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             ? colorScale.getColor(v.color)
                             : undefined
                     return {
-                        position: new Vector2(
+                        position: new PointVector(
                             Math.floor(xAxis.place(v.x)),
                             Math.floor(yAxis.place(v.y))
                         ),
@@ -1345,7 +1345,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     text: d.label,
                     midLabels: [],
                     allLabels: [],
-                    offsetVector: Vector2.zero,
+                    offsetVector: PointVector.zero,
                 }
             }),
             (d) => d.size,
@@ -1449,10 +1449,10 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 const potentialSpots = normals.map((n) => v.position.add(n))
                 pos = maxBy(potentialSpots, (p) => {
                     return (
-                        Vector2.distance(p, prevPos) +
-                        Vector2.distance(p, nextPos)
+                        PointVector.distance(p, prevPos) +
+                        PointVector.distance(p, nextPos)
                     )
-                }) as Vector2
+                }) as PointVector
             } else {
                 pos = v.position.subtract(nextSegment.normalize().times(5))
             }
@@ -1510,7 +1510,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
               (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
         const fontWeight = series.isForeground ? 700 : 400
 
-        let offsetVector = Vector2.up
+        let offsetVector = PointVector.up
         if (series.values.length > 1) {
             const prevValue = series.values[series.values.length - 2]
             const prevPos = prevValue.position
@@ -1682,7 +1682,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 if (series.values.length > 1)
                     return min(
                         series.values.slice(0, -1).map((d, i) => {
-                            return Vector2.distanceFromPointToLineSq(
+                            return PointVector.distanceFromPointToLineSq(
                                 mouse,
                                 d.position,
                                 series.values[i + 1].position
@@ -1692,7 +1692,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
                 return min(
                     series.values.map((v) =>
-                        Vector2.distanceSq(v.position, mouse)
+                        PointVector.distanceSq(v.position, mouse)
                     )
                 )
             })
@@ -1789,7 +1789,10 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 const firstValue = first(series.values)
                 const opacity = isSubtleForeground ? 0.9 : 1
                 const radius = strokeWidth / 2 + 1
-                let rotation = Vector2.angle(series.offsetVector, Vector2.up)
+                let rotation = PointVector.angle(
+                    series.offsetVector,
+                    PointVector.up
+                )
                 if (series.offsetVector.x < 0) rotation = -rotation
                 return (
                     <g key={series.displayKey} className={series.displayKey}>

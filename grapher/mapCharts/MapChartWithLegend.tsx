@@ -47,7 +47,7 @@ import {
 import { TextWrap } from "grapher/text/TextWrap"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
-import { Vector2 } from "grapher/utils/Vector2"
+import { PointVector } from "grapher/utils/PointVector"
 import { worldRegionByMapEntity } from "./WorldRegions"
 
 const PROJECTION_CHOOSER_WIDTH = 110
@@ -508,8 +508,8 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             const b = this.pathGen.bounds(d)
 
             const bounds = Bounds.fromCorners(
-                Vector2.fromArray(b[0]),
-                Vector2.fromArray(b[1])
+                new PointVector(...b[0]),
+                new PointVector(...b[1])
             )
 
             // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
@@ -518,7 +518,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     x: bounds.right - bounds.height,
                     width: bounds.height,
                 })
-            else return bounds
+            return bounds
         })
     }
 
@@ -682,8 +682,11 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
             ev
         )
 
-        const featuresWithDistance = featuresInProjection.map((d) => {
-            return { feature: d, distance: Vector2.distance(d.center, mouse) }
+        const featuresWithDistance = featuresInProjection.map((feature) => {
+            return {
+                feature,
+                distance: PointVector.distance(feature.center, mouse),
+            }
         })
 
         const feature = minBy(featuresWithDistance, (d) => d.distance)

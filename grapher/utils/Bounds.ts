@@ -1,5 +1,5 @@
 import { range } from "grapher/utils/Util"
-import { Vector2 } from "grapher/utils/Vector2"
+import { PointVector } from "grapher/utils/PointVector"
 import pixelWidth from "string-pixel-width"
 
 // Important utility class for all visualizations
@@ -15,7 +15,7 @@ export class Bounds {
         y: number
         width: number
         height: number
-    }): Bounds {
+    }) {
         const { x, y, width, height } = props
         return new Bounds(x, y, width, height)
     }
@@ -25,7 +25,7 @@ export class Bounds {
         y: number
         width: number
         height: number
-    }): Bounds {
+    }) {
         return this.fromProps(bbox)
     }
 
@@ -37,7 +37,7 @@ export class Bounds {
         return Bounds.fromRect(el.getBoundingClientRect())
     }
 
-    static fromCorners(p1: Vector2, p2: Vector2) {
+    static fromCorners(p1: PointVector, p2: PointVector) {
         const x1 = Math.min(p1.x, p2.x)
         const x2 = Math.max(p1.x, p2.x)
         const y1 = Math.min(p1.y, p2.y)
@@ -47,7 +47,7 @@ export class Bounds {
     }
 
     // Merge a collection of bounding boxes into a single encompassing Bounds
-    static merge(boundsList: Bounds[]): Bounds {
+    static merge(boundsList: Bounds[]) {
         let x1 = Infinity,
             y1 = Infinity,
             x2 = -Infinity,
@@ -58,7 +58,10 @@ export class Bounds {
             x2 = Math.max(x2, b.x + b.width)
             y2 = Math.max(y2, b.y + b.height)
         }
-        return Bounds.fromCorners(new Vector2(x1, y1), new Vector2(x2, y2))
+        return Bounds.fromCorners(
+            new PointVector(x1, y1),
+            new PointVector(x2, y2)
+        )
     }
 
     static getRightShiftForMiddleAlignedTextIfNeeded(
@@ -73,7 +76,7 @@ export class Bounds {
         return overflow < 0 ? Math.abs(overflow) : 0
     }
 
-    static empty(): Bounds {
+    static empty() {
         return new Bounds(0, 0, 0, 0)
     }
 
@@ -91,14 +94,14 @@ export class Bounds {
             fontWeight?: number
             fontFamily?: string
         } = {}
-    ): Bounds {
+    ) {
         // Collapse contiguous spaces into one
         str = str.replace(/ +/g, " ")
         const key = `${str}-${fontSize}`
         let bounds = this.textBoundsCache[key]
         if (bounds) {
             if (bounds.x === x && bounds.y === y - bounds.height) return bounds
-            else return bounds.extend({ x: x, y: y - bounds.height })
+            return bounds.extend({ x: x, y: y - bounds.height })
         }
 
         if (str === "") bounds = Bounds.empty()
@@ -128,45 +131,45 @@ export class Bounds {
         this.height = Math.max(height, 0)
     }
 
-    get left(): number {
+    get left() {
         return this.x
     }
-    get top(): number {
+    get top() {
         return this.y
     }
-    get right(): number {
+    get right() {
         return this.x + this.width
     }
-    get bottom(): number {
+    get bottom() {
         return this.y + this.height
     }
-    get centerX(): number {
+    get centerX() {
         return this.x + this.width / 2
     }
-    get centerY(): number {
+    get centerY() {
         return this.y + this.height / 2
     }
-    get centerPos(): Vector2 {
-        return new Vector2(this.centerX, this.centerY)
+    get centerPos() {
+        return new PointVector(this.centerX, this.centerY)
     }
-    get area(): number {
+    get area() {
         return this.width * this.height
     }
 
-    get topLeft(): Vector2 {
-        return new Vector2(this.left, this.top)
+    get topLeft() {
+        return new PointVector(this.left, this.top)
     }
-    get topRight(): Vector2 {
-        return new Vector2(this.right, this.top)
+    get topRight() {
+        return new PointVector(this.right, this.top)
     }
-    get bottomLeft(): Vector2 {
-        return new Vector2(this.left, this.bottom)
+    get bottomLeft() {
+        return new PointVector(this.left, this.bottom)
     }
-    get bottomRight(): Vector2 {
-        return new Vector2(this.right, this.bottom)
+    get bottomRight() {
+        return new PointVector(this.right, this.bottom)
     }
 
-    padLeft(amount: number): Bounds {
+    padLeft(amount: number) {
         return new Bounds(
             this.x + amount,
             this.y,
@@ -175,15 +178,15 @@ export class Bounds {
         )
     }
 
-    padRight(amount: number): Bounds {
+    padRight(amount: number) {
         return new Bounds(this.x, this.y, this.width - amount, this.height)
     }
 
-    padBottom(amount: number): Bounds {
+    padBottom(amount: number) {
         return new Bounds(this.x, this.y, this.width, this.height - amount)
     }
 
-    padTop(amount: number): Bounds {
+    padTop(amount: number) {
         return new Bounds(
             this.x,
             this.y + amount,
@@ -192,7 +195,7 @@ export class Bounds {
         )
     }
 
-    padWidth(amount: number): Bounds {
+    padWidth(amount: number) {
         return new Bounds(
             this.x + amount,
             this.y,
@@ -201,7 +204,7 @@ export class Bounds {
         )
     }
 
-    padHeight(amount: number): Bounds {
+    padHeight(amount: number) {
         return new Bounds(
             this.x,
             this.y + amount,
@@ -210,15 +213,15 @@ export class Bounds {
         )
     }
 
-    fromLeft(amount: number): Bounds {
+    fromLeft(amount: number) {
         return this.padRight(this.width - amount)
     }
 
-    fromBottom(amount: number): Bounds {
+    fromBottom(amount: number) {
         return this.padTop(this.height - amount)
     }
 
-    pad(amount: number): Bounds {
+    pad(amount: number) {
         return new Bounds(
             this.x + amount,
             this.y + amount,
@@ -227,16 +230,11 @@ export class Bounds {
         )
     }
 
-    extend(props: {
-        x?: number
-        y?: number
-        width?: number
-        height?: number
-    }): Bounds {
+    extend(props: { x?: number; y?: number; width?: number; height?: number }) {
         return Bounds.fromProps({ ...this, ...props })
     }
 
-    scale(scale: number): Bounds {
+    scale(scale: number) {
         return new Bounds(
             this.x * scale,
             this.y * scale,
@@ -245,7 +243,7 @@ export class Bounds {
         )
     }
 
-    intersects(otherBounds: Bounds): boolean {
+    intersects(otherBounds: Bounds) {
         const r1 = this
         const r2 = otherBounds
 
@@ -257,7 +255,7 @@ export class Bounds {
         )
     }
 
-    lines(): Vector2[][] {
+    lines(): PointVector[][] {
         return [
             [this.topLeft, this.topRight],
             [this.topRight, this.bottomRight],
@@ -266,14 +264,14 @@ export class Bounds {
         ]
     }
 
-    boundedPoint(p: Vector2): Vector2 {
-        return new Vector2(
+    boundedPoint(p: PointVector) {
+        return new PointVector(
             Math.max(Math.min(p.x, this.right), this.left),
             Math.max(Math.min(p.y, this.bottom), this.top)
         )
     }
 
-    containsPoint(x: number, y: number): boolean {
+    containsPoint(x: number, y: number) {
         return (
             x >= this.left &&
             x <= this.right &&
@@ -282,7 +280,7 @@ export class Bounds {
         )
     }
 
-    contains(p: Vector2) {
+    contains(p: PointVector) {
         return this.containsPoint(p.x, p.y)
     }
 
@@ -319,7 +317,7 @@ export class Bounds {
         return [this.left, this.right]
     }
 
-    split(pieces: number, padding = 0): Bounds[] {
+    split(pieces: number, padding = 0) {
         // Splits a rectangle into smaller rectangles.
         // The Facet Storybook has a visual demo of how this works.
         // I form the smallest possible square and then fill that up. This always goes left to right, top down.
@@ -361,7 +359,7 @@ export class Bounds {
 
     // Calculate squared distance between a given point and the closest border of the bounds
     // If the point is within the bounds, returns 0
-    private distanceToPointSq(p: Vector2) {
+    private distanceToPointSq(p: PointVector) {
         if (this.contains(p)) return 0
 
         const cx = Math.max(Math.min(p.x, this.x + this.width), this.x)
@@ -369,7 +367,7 @@ export class Bounds {
         return (p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy)
     }
 
-    distanceToPoint(p: Vector2) {
+    distanceToPoint(p: PointVector) {
         return Math.sqrt(this.distanceToPointSq(p))
     }
 }

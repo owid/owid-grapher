@@ -4,7 +4,6 @@ import {
     sum,
     guid,
     getRelativeMouse,
-    makeSafeForCSS,
     pointsToPath,
     minBy,
     flatten,
@@ -16,8 +15,8 @@ import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
-import { DualAxis, HorizontalAxis, VerticalAxis } from "grapher/axis/Axis"
-import { Vector2 } from "grapher/utils/Vector2"
+import { DualAxis } from "grapher/axis/Axis"
+import { PointVector } from "grapher/utils/PointVector"
 import {
     LineLegend,
     LineLabel,
@@ -37,59 +36,28 @@ import {
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-import {
-    LinesProps,
-    LineHoverTarget,
-    LineRenderSeries,
-    LineChartValue,
-    LineChartSeries,
-} from "./LineChartConstants"
+import { LinesProps, LineChartMark } from "./LineChartConstants"
 
 const BLUR_COLOR = "#eee"
 
 @observer
 class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
-    @observable.ref private hover: LineHoverTarget | null = null
 
-    @computed private get renderData(): LineRenderSeries[] {
-        const { data, xAxis, yAxis, focusKeys } = this.props
-        return data.map((series) => ({
-            entityName: series.entityName,
-            displayKey: `key-${makeSafeForCSS(series.entityName)}`,
-            color: series.color,
-            values: series.values.map((v) => {
-                return new Vector2(
-                    Math.round(xAxis.place(v.x)),
-                    Math.round(yAxis.place(v.y))
-                )
-            }),
-            isFocus: !focusKeys.length || focusKeys.includes(series.entityName),
-            isProjection: series.isProjection,
-        }))
-    }
-
-    @computed private get isFocusMode() {
-        return this.renderData.some((d) => d.isFocus)
-    }
-
-    @computed private get allValues(): LineChartValue[] {
-        const values = []
-        for (const series of this.props.data) {
-            values.push(...series.values)
-        }
-        return values
+    @computed private get allValues() {
+        return flatten(this.props.placedMarks.map((series) => series.points))
     }
 
     @action.bound private onCursorMove(ev: MouseEvent | TouchEvent) {
-        const { dualAxis, xAxis } = this.props
+        const { dualAxis } = this.props
+        const { horizontalAxis } = dualAxis
 
         const mouse = getRelativeMouse(this.base.current, ev)
 
         let hoverX
         if (dualAxis.innerBounds.contains(mouse)) {
-            const closestValue = minBy(this.allValues, (d) =>
-                Math.abs(xAxis.place(d.x) - mouse.x)
+            const closestValue = minBy(this.allValues, (point) =>
+                Math.abs(horizontalAxis.place(point.x) - mouse.x)
             )
             hoverX = closestValue?.x
         }
@@ -102,38 +70,52 @@ class Lines extends React.Component<LinesProps> {
     }
 
     @computed get bounds() {
-        const { xAxis, yAxis } = this.props
+        const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
-            new Vector2(xAxis.range[0], yAxis.range[0]),
-            new Vector2(xAxis.range[1], yAxis.range[1])
+            new PointVector(horizontalAxis.range[0], verticalAxis.range[0]),
+            new PointVector(horizontalAxis.range[1], verticalAxis.range[1])
         )
     }
 
-    @computed private get focusGroups() {
-        return this.renderData.filter((g) => g.isFocus)
+    @computed private get focusedLines() {
+        const { focusedEntities } = this.props
+        // If nothing is focused, everything is
+        if (!focusedEntities.length) return this.props.placedMarks
+        return this.props.placedMarks.filter((series) =>
+            focusedEntities.includes(series.entityName)
+        )
     }
 
-    @computed private get backgroundGroups() {
-        return this.renderData.filter((g) => !g.isFocus)
+    @computed private get backgroundLines() {
+        const { focusedEntities } = this.props
+        return this.props.placedMarks.filter(
+            (series) => !focusedEntities.includes(series.entityName)
+        )
     }
 
     // Don't display point markers if there are very many of them for performance reasons
     // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
-    @computed private get hasMarkers(): boolean {
-        return sum(this.renderData.map((g) => g.values.length)) < 500
+    @computed private get hasMarkers() {
+        return (
+            sum(
+                this.props.placedMarks.map(
+                    (series) => series.placedPoints.length
+                )
+            ) < 500
+        )
     }
 
     private renderFocusGroups() {
-        return this.focusGroups.map((series) => (
-            <g key={series.displayKey} className={series.displayKey}>
+        return this.focusedLines.map((series, index) => (
+            <g key={index}>
                 <path
                     stroke={series.color}
                     strokeLinecap="round"
                     d={pointsToPath(
-                        series.values.map((v) => [v.x, v.y]) as [
-                            number,
-                            number
-                        ][]
+                        series.placedPoints.map((value) => [
+                            value.x,
+                            value.y,
+                        ]) as [number, number][]
                     )}
                     fill="none"
                     strokeWidth={1.5}
@@ -141,8 +123,13 @@ class Lines extends React.Component<LinesProps> {
                 />
                 {this.hasMarkers && !series.isProjection && (
                     <g fill={series.color}>
-                        {series.values.map((v, i) => (
-                            <circle key={i} cx={v.x} cy={v.y} r={2} />
+                        {series.placedPoints.map((value, index) => (
+                            <circle
+                                key={index}
+                                cx={value.x}
+                                cy={value.y}
+                                r={2}
+                            />
                         ))}
                     </g>
                 )}
@@ -151,17 +138,17 @@ class Lines extends React.Component<LinesProps> {
     }
 
     private renderBackgroundGroups() {
-        return this.backgroundGroups.map((series) => (
-            <g key={series.displayKey} className={series.displayKey}>
+        return this.backgroundLines.map((series, index) => (
+            <g key={index}>
                 <path
                     key={series.entityName + "-line"}
                     strokeLinecap="round"
                     stroke="#ddd"
                     d={pointsToPath(
-                        series.values.map((v) => [v.x, v.y]) as [
-                            number,
-                            number
-                        ][]
+                        series.placedPoints.map((value) => [
+                            value.x,
+                            value.y,
+                        ]) as [number, number][]
                     )}
                     fill="none"
                     strokeWidth={1}
@@ -196,7 +183,7 @@ class Lines extends React.Component<LinesProps> {
     }
 
     render() {
-        const { hover, bounds } = this
+        const { bounds } = this
 
         return (
             <g ref={this.base} className="Lines">
@@ -210,14 +197,6 @@ class Lines extends React.Component<LinesProps> {
                 />
                 {this.renderBackgroundGroups()}
                 {this.renderFocusGroups()}
-                {hover && (
-                    <circle
-                        cx={hover.pos.x}
-                        cy={hover.pos.y}
-                        r={5}
-                        fill={hover.series.color}
-                    />
-                )}
             </g>
         )
     }
@@ -249,8 +228,11 @@ export class LineChart
         return this.bounds.width / 3
     }
 
-    seriesIsBlur(series: LineChartSeries) {
-        return this.isFocusMode && !this.focusKeys.includes(series.entityName)
+    seriesIsBlurred(series: LineChartMark) {
+        return (
+            this.isFocusMode &&
+            !this.focusedEntityNames.includes(series.entityName)
+        )
     }
 
     @computed private get tooltip() {
@@ -259,7 +241,7 @@ export class LineChart
         if (hoverX === undefined) return undefined
 
         const sortedData = sortBy(this.marks, (series) => {
-            const value = series.values.find((v) => v.x === hoverX)
+            const value = series.points.find((point) => point.x === hoverX)
             return value !== undefined ? -value.y : Infinity
         })
 
@@ -290,8 +272,8 @@ export class LineChart
                             </td>
                         </tr>
                         {sortedData.map((series) => {
-                            const value = series.values.find(
-                                (v) => v.x === hoverX
+                            const value = series.points.find(
+                                (point) => point.x === hoverX
                             )
 
                             const annotation = this.getAnnotationsForSeries(
@@ -305,21 +287,21 @@ export class LineChart
                             // Otherwise we want to entirely exclude the entity from the tooltip.
                             if (!value) {
                                 const [startX, endX] = extent(
-                                    series.values,
-                                    (v) => v.x
+                                    series.points,
+                                    (point) => point.x
                                 )
                                 if (
                                     startX === undefined ||
                                     endX === undefined ||
                                     startX > hoverX ||
                                     endX < hoverX
-                                ) {
+                                )
                                     return undefined
-                                }
                             }
 
                             const isBlur =
-                                this.seriesIsBlur(series) || value === undefined
+                                this.seriesIsBlurred(series) ||
+                                value === undefined
                             const textColor = isBlur ? "#ddd" : "#333"
                             const annotationColor = isBlur ? "#ddd" : "#999"
                             const circleColor = isBlur
@@ -398,26 +380,26 @@ export class LineChart
         })
     }
 
-    @observable hoverKey?: string
+    @observable hoveredEntityName?: EntityName
     @action.bound onLegendClick() {
         if (this.options.showAddEntityControls)
             this.options.isSelectingData = true
     }
 
-    @action.bound onLegendMouseOver(key: EntityName) {
-        this.hoverKey = key
+    @action.bound onLegendMouseOver(entityName: EntityName) {
+        this.hoveredEntityName = entityName
     }
 
     @action.bound onLegendMouseLeave() {
-        this.hoverKey = undefined
+        this.hoveredEntityName = undefined
     }
 
-    @computed get focusKeys() {
-        return this.hoverKey ? [this.hoverKey] : []
+    @computed get focusedEntityNames() {
+        return this.hoveredEntityName ? [this.hoveredEntityName] : []
     }
 
     @computed get isFocusMode() {
-        return this.focusKeys.length > 0
+        return this.focusedEntityNames.length > 0
     }
 
     animSelection?: d3.Selection<
@@ -507,30 +489,29 @@ export class LineChart
                     <LineLegend options={this} />
                     <Lines
                         dualAxis={dualAxis}
-                        xAxis={dualAxis.horizontalAxis}
-                        yAxis={dualAxis.verticalAxis}
-                        data={marks}
+                        placedMarks={this.placedMarks}
                         onHover={this.onHover}
-                        focusKeys={this.focusKeys}
+                        focusedEntities={this.focusedEntityNames}
                     />
                 </g>
                 {hoverX !== undefined && (
                     <g className="hoverIndicator">
                         {this.marks.map((series) => {
-                            const value = series.values.find(
-                                (v) => v.x === hoverX
+                            const value = series.points.find(
+                                (point) => point.x === hoverX
                             )
-                            if (!value || this.seriesIsBlur(series)) return null
-                            else
-                                return (
-                                    <circle
-                                        key={series.entityName}
-                                        cx={horizontalAxis.place(value.x)}
-                                        cy={verticalAxis.place(value.y)}
-                                        r={4}
-                                        fill={series.color}
-                                    />
-                                )
+                            if (!value || this.seriesIsBlurred(series))
+                                return null
+
+                            return (
+                                <circle
+                                    key={series.entityName}
+                                    cx={horizontalAxis.place(value.x)}
+                                    cy={verticalAxis.place(value.y)}
+                                    r={4}
+                                    fill={series.color}
+                                />
+                            )
                         })}
                         <line
                             x1={horizontalAxis.place(hoverX)}
@@ -550,7 +531,7 @@ export class LineChart
     @computed get failMessage() {
         const { yColumns } = this.options
         if (!yColumns?.length) return "Missing Y axis column"
-        else if (!this.marks.length) return "No matching data"
+        if (!this.marks.length) return "No matching data"
         return ""
     }
 
@@ -582,9 +563,9 @@ export class LineChart
 
         const isLog = yAxis?.scaleType === ScaleType.log
 
-        let chartData: LineChartSeries[] = flatten(
+        let chartData: LineChartMark[] = flatten(
             yColumns.map((column) => {
-                const seriesByKey = new Map<EntityName, LineChartSeries>()
+                const seriesByKey = new Map<EntityName, LineChartMark>()
                 const { isProjection } = column
 
                 column.owidRows
@@ -597,15 +578,15 @@ export class LineChart
 
                         if (!seriesByKey.has(entityName))
                             seriesByKey.set(entityName, {
-                                values: [],
+                                points: [],
                                 entityName,
                                 isProjection,
                                 color: "#000", // tmp
                             })
 
-                        seriesByKey
-                            .get(entityName)!
-                            .values.push({ x: time, y: value, time })
+                        const series = seriesByKey.get(entityName)!
+                        const point = { x: time, y: value }
+                        series.points.push(point)
                     })
 
                 return Array.from(seriesByKey.values())
@@ -638,9 +619,27 @@ export class LineChart
         // return chartData.filter((g) => g.values.length > 0)
     }
 
-    private _addColorsToSeries(allSeries: LineChartSeries[]) {
+    @computed get placedMarks() {
+        const { dualAxis } = this
+        const { horizontalAxis, verticalAxis } = dualAxis
+
+        return this.marks.map((mark) => {
+            return {
+                ...mark,
+                placedPoints: mark.points.map(
+                    (point) =>
+                        new PointVector(
+                            Math.round(horizontalAxis.place(point.x)),
+                            Math.round(verticalAxis.place(point.y))
+                        )
+                ),
+            }
+        })
+    }
+
+    private _addColorsToSeries(allSeries: LineChartMark[]) {
         // Color from lowest to highest
-        const sorted = sortBy(allSeries, (series) => last(series.values)!.y)
+        const sorted = sortBy(allSeries, (series) => last(series.points)!.y)
 
         const colors = this.colorScheme.getColors(sorted.length)
         if (this.options.invertColorScheme) colors.reverse()
@@ -693,7 +692,7 @@ export class LineChart
             toShow = toShow.filter((g) => g.isProjection)
 
         return toShow.map((series) => {
-            const lastValue = last(series.values)!.y
+            const lastValue = last(series.points)!.y
             return {
                 color: series.color,
                 entityName: series.entityName,

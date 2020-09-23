@@ -158,7 +158,7 @@ export interface LineLegendOptionsProvider {
     onLegendMouseOver?: (key: EntityName) => void
     onLegendClick?: (key: EntityName) => void
     onLegendMouseLeave?: () => void
-    focusKeys: EntityName[]
+    focusedEntityNames: EntityName[]
     verticalAxis: VerticalAxis
     legendX?: number
 }
@@ -228,7 +228,7 @@ export class LineLegend extends React.Component<{
 
     @computed get isFocusMode() {
         return this.marks.some((m) =>
-            this.options.focusKeys.includes(m.item.entityName)
+            this.options.focusedEntityNames.includes(m.item.entityName)
         )
     }
 
@@ -386,21 +386,21 @@ export class LineLegend extends React.Component<{
     }
 
     @computed private get backgroundMarks() {
-        const { focusKeys } = this.options
+        const { focusedEntityNames } = this.options
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
-                ? !focusKeys.includes(m.mark.item.entityName)
+                ? !focusedEntityNames.includes(m.mark.item.entityName)
                 : m.isOverlap
         )
     }
 
     @computed private get focusMarks() {
-        const { focusKeys } = this.options
+        const { focusedEntityNames } = this.options
         const { isFocusMode } = this
         return this.placedMarks.filter((m) =>
             isFocusMode
-                ? focusKeys.includes(m.mark.item.entityName)
+                ? focusedEntityNames.includes(m.mark.item.entityName)
                 : !m.isOverlap
         )
     }

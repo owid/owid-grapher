@@ -18,5 +18,7 @@ describe(LineChart, () => {
         table.selectAll()
         expect(chart.failMessage).toEqual("")
         expect(chart.marks.length).toEqual(2)
+        expect(chart.placedMarks.length).toEqual(2)
+        expect(chart.placedMarks[0].placedPoints[0].x).toBeGreaterThan(0)
     })
 })

@@ -114,7 +114,7 @@ import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
 
-import { Vector2 } from "./Vector2"
+import { PointVector } from "./PointVector"
 import {
     TickFormattingOptions,
     SortOrder,
@@ -168,11 +168,11 @@ export const getRelativeMouse = (
         svgPoint.x = clientX
         svgPoint.y = clientY
         const point = svgPoint.matrixTransform(node.getScreenCTM().inverse())
-        return new Vector2(point.x, point.y)
+        return new PointVector(point.x, point.y)
     }
 
     const rect = node.getBoundingClientRect()
-    return new Vector2(
+    return new PointVector(
         clientX - rect.left - node.clientLeft,
         clientY - rect.top - node.clientTop
     )

@@ -9,7 +9,7 @@ import {
     AddCountryMode,
 } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
-import { Vector2 } from "grapher/utils/Vector2"
+import { PointVector } from "grapher/utils/PointVector"
 
 export interface ScatterPlotOptionsProvider extends ChartOptionsProvider {
     hideConnectedScatterLines?: boolean
@@ -51,7 +51,7 @@ export interface ScatterValue {
 }
 
 export interface ScatterRenderValue {
-    position: Vector2
+    position: PointVector
     color: string
     size: number
     fontSize: number
@@ -72,7 +72,7 @@ export interface ScatterRenderSeries {
     isHover?: boolean
     isFocus?: boolean
     isForeground?: boolean
-    offsetVector: Vector2
+    offsetVector: PointVector
     startLabel?: ScatterLabel
     midLabels: ScatterLabel[]
     endLabel?: ScatterLabel

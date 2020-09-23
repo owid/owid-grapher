@@ -13,7 +13,6 @@ export interface StackedAreaSeries {
     entityName: EntityName
     color: string
     values: StackedAreaValue[]
-    classed?: string
     isProjection?: boolean
 }
 

@@ -21,7 +21,7 @@ const options: LineLegendOptionsProvider = {
         },
     ],
     legendX: 200,
-    focusKeys: [],
+    focusedEntityNames: [],
     verticalAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
 

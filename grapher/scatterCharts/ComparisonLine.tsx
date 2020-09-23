@@ -6,7 +6,7 @@ import { observer } from "mobx-react"
 import { DualAxis } from "grapher/axis/Axis"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Bounds } from "grapher/utils/Bounds"
-import { Vector2 } from "grapher/utils/Vector2"
+import { PointVector } from "grapher/utils/PointVector"
 import { getElementWithHalo } from "./Halos"
 
 export interface ComparisonLineConfig {
@@ -60,7 +60,7 @@ export class ComparisonLine extends React.Component<{
         const linePoints = controlData
             .map(
                 (d) =>
-                    new Vector2(
+                    new PointVector(
                         horizontalAxis.place(d[0]),
                         verticalAxis.place(d[1])
                     )

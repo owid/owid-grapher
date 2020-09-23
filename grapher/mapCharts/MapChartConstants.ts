@@ -1,6 +1,6 @@
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 import { Bounds } from "grapher/utils/Bounds"
-import { Vector2 } from "grapher/utils/Vector2"
+import { PointVector } from "grapher/utils/PointVector"
 import { MapProjection } from "./MapProjections"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
@@ -49,7 +49,7 @@ export interface RenderFeature {
     geo: GeoFeature
     path: string
     bounds: Bounds
-    center: Vector2
+    center: PointVector
 }
 
 export interface MapChartOptionsProvider extends ChartOptionsProvider {

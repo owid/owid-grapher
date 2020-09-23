@@ -303,18 +303,18 @@ export class StackedAreaChart
         this.hoverKey = undefined
     }
 
-    @computed get focusKeys() {
+    @computed get focusedEntityNames() {
         return this.hoverKey ? [this.hoverKey] : []
     }
 
     @computed get isFocusMode() {
-        return this.focusKeys.length > 0
+        return this.focusedEntityNames.length > 0
     }
 
     seriesIsBlur(series: StackedAreaSeries) {
         return (
-            this.focusKeys.length > 0 &&
-            !this.focusKeys.includes(series.entityName)
+            this.focusedEntityNames.length > 0 &&
+            !this.focusedEntityNames.includes(series.entityName)
         )
     }
 
@@ -491,7 +491,7 @@ export class StackedAreaChart
                     <Areas
                         dualAxis={dualAxis}
                         data={marks}
-                        focusKeys={this.focusKeys}
+                        focusKeys={this.focusedEntityNames}
                         onHover={this.onHover}
                     />
                 </g>
