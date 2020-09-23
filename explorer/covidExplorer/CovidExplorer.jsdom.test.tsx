@@ -5,7 +5,6 @@ import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { covidSampleRows } from "./CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import { MetricOptions } from "explorer/covidExplorer/CovidConstants"
 import { defaultTo } from "grapher/utils/Util"
 
 const dummyMeta = {

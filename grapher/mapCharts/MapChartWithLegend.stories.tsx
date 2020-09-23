@@ -11,7 +11,7 @@ export default {
 export const Default = () => {
     const table = SynthesizeOwidTable({
         timeRange: [2000, 2010],
-        countryCount: 5,
+        countryCount: 200,
     })
 
     const options: MapChartOptionsProvider = {
