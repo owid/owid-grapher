@@ -54,7 +54,7 @@ export class ExplorerShell extends React.Component<{
     @observable.ref chartBounds: Bounds | undefined = undefined
 
     // Todo: add better logic to maximize the size of the chart
-    private getChartBounds(): Bounds | undefined {
+    private getChartBounds() {
         const chartContainer = this.chartContainerRef.current
         if (!chartContainer) return undefined
         return new Bounds(
@@ -65,7 +65,7 @@ export class ExplorerShell extends React.Component<{
         )
     }
 
-    @observable isMobile: boolean = this._isMobile()
+    @observable isMobile = this._isMobile()
 
     @observable showMobileControlsPopup = false
 
@@ -100,22 +100,18 @@ export class ExplorerShell extends React.Component<{
         value?: boolean
     ) {
         const selectedEntities = this.props.params.selectedEntityNames
-        if (value) {
-            selectedEntities.add(entityName)
-        } else if (value === false) {
+        if (value) selectedEntities.add(entityName)
+        else if (value === false) selectedEntities.delete(entityName)
+        else if (selectedEntities.has(entityName))
             selectedEntities.delete(entityName)
-        } else if (selectedEntities.has(entityName)) {
-            selectedEntities.delete(entityName)
-        } else {
-            selectedEntities.add(entityName)
-        }
+        else selectedEntities.add(entityName)
     }
 
     @action.bound clearSelectionCommand() {
         this.props.params.selectedEntityNames.clear()
     }
 
-    @computed get selectedEntityNames(): string[] {
+    @computed get selectedEntityNames() {
         return Array.from(this.props.params.selectedEntityNames.values())
     }
 

@@ -2,7 +2,6 @@
 
 import { getLeastUsedColor, CovidExplorerTable } from "./CovidExplorerTable"
 import { covidSampleRows } from "./CovidSampleRows"
-import { OwidTable } from "coreTable/OwidTable"
 import { AnyTable } from "coreTable/CoreTable"
 import uniq from "lodash/uniq"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
@@ -16,10 +15,7 @@ describe("parse row", () => {
 
 describe("makeCountryOptions", () => {
     it("correctly computes options", () => {
-        const dataTable = new CovidExplorerTable(
-            new OwidTable([]),
-            covidSampleRows
-        )
+        const dataTable = new CovidExplorerTable(covidSampleRows)
         expect(dataTable.table.availableEntityNames[2]).toEqual("World")
     })
 })
@@ -35,7 +31,7 @@ describe("generateContinentRows", () => {
 })
 
 describe("build covid column", () => {
-    const dataTable = new CovidExplorerTable(new OwidTable([]), covidSampleRows)
+    const dataTable = new CovidExplorerTable(covidSampleRows)
     dataTable.table.addRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
         3,
@@ -99,7 +95,7 @@ describe("build covid column", () => {
 })
 
 describe("builds aligned tests column", () => {
-    const dataTable = new CovidExplorerTable(new OwidTable([]), covidSampleRows)
+    const dataTable = new CovidExplorerTable(covidSampleRows)
 
     it("it has testing data", () => {
         expect(dataTable.table.columnSlugs.includes("tests-daily")).toEqual(
@@ -137,10 +133,7 @@ describe("builds aligned tests column", () => {
         ).toEqual(true)
     })
 
-    const dataTable2 = new CovidExplorerTable(
-        new OwidTable([]),
-        covidSampleRows
-    )
+    const dataTable2 = new CovidExplorerTable(covidSampleRows)
     it("rows are immutable", () => {
         expect(
             dataTable2.table.columnSlugs.includes("tests-perThousand-daily")
@@ -161,7 +154,7 @@ describe(getLeastUsedColor, () => {
 })
 
 describe("do not include unselected groups in aligned charts", () => {
-    const dataTable = new CovidExplorerTable(new OwidTable([]), covidSampleRows)
+    const dataTable = new CovidExplorerTable(covidSampleRows)
     it("can filter rows without continent", () => {
         expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
         dataTable.addGroupFilterColumn()
@@ -176,7 +169,7 @@ describe("do not include unselected groups in aligned charts", () => {
 })
 
 describe("column specs", () => {
-    const dataTable = new CovidExplorerTable(new OwidTable([]), [])
+    const dataTable = new CovidExplorerTable([])
     it("computes unique slugs", () => {
         expect(
             uniq(

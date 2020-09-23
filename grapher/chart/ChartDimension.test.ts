@@ -8,7 +8,7 @@ describe(ChartDimension, () => {
         expect(
             new ChartDimension(
                 { property: "x", variableId: 1 },
-                new OwidTable([])
+                new OwidTable()
             ).toObject()
         ).toEqual({ property: "x", variableId: 1 })
     })

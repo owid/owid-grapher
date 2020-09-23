@@ -3,7 +3,6 @@ import {
     Integer,
     TickFormattingOptions,
     Time,
-    ValueRange,
 } from "grapher/core/GrapherConstants"
 import {
     formatYear,
@@ -49,38 +48,22 @@ export interface CoreColumnSpec {
 }
 
 export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
-    @observable.ref private _rows: ROW_TYPE[] = []
-    @observable protected columns: Map<
+    @observable.ref private _rows: ROW_TYPE[]
+    @observable protected _columns: Map<
         ColumnSlug,
         AbstractCoreColumn
     > = new Map()
 
     constructor(
-        rows: ROW_TYPE[],
+        rows: ROW_TYPE[] = [],
         columnSpecs:
             | MapOfColumnSpecs
             | CoreColumnSpec[]
-            | ObjectOfColumnSpecs = AbstractCoreTable.makeSpecsFromRows(rows),
-        cloneRows = true
+            | ObjectOfColumnSpecs = AbstractCoreTable.makeSpecsFromRows(rows)
     ) {
-        this.load(rows, columnSpecs, cloneRows)
-        // Todo: add warning if you provide Specs but not for all cols?
-    }
-
-    // Todo: remove? Generally do not call this method. Call the constructor instead. RAII style.
-    @action.bound protected load(
-        rows: ROW_TYPE[],
-        columnSpecs:
-            | MapOfColumnSpecs
-            | CoreColumnSpec[]
-            | ObjectOfColumnSpecs = AbstractCoreTable.makeSpecsFromRows(rows),
-        cloneRows = true
-    ) {
-        // Allow skipping of the clone for perf gains.
-        if (cloneRows) this.cloneAndSetRows(rows)
-        else this.setRowsWithoutCloning(rows)
+        this._rows = rows
         this.addSpecs(columnSpecs)
-        return this
+        // Todo: add warning if you provide Specs but not for all cols?
     }
 
     @computed get rows() {
@@ -88,11 +71,11 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     }
 
     get(columnSlug: ColumnSlug) {
-        return this.columns.get(columnSlug)
+        return this._columns.get(columnSlug)
     }
 
     has(columnSlug: ColumnSlug) {
-        return this.columns.has(columnSlug)
+        return this._columns.has(columnSlug)
     }
 
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
@@ -116,15 +99,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.timeColumnFormatFunction(value)
     }
 
-    // The name is explicit to warn that these rows may be modified by this class.
-    setRowsWithoutCloning(rows: ROW_TYPE[]) {
-        this._rows = rows
-    }
-
-    cloneAndSetRows(rows: ROW_TYPE[]) {
-        this._rows = cloneDeep(rows)
-    }
-
+    // Todo: make immutable? Return a new table?
     @action.bound addSpecs(
         columnSpecs: MapOfColumnSpecs | ObjectOfColumnSpecs | CoreColumnSpec[],
         overwriteExistingSpec = false
@@ -136,7 +111,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 Object.entries(columnSpecs as ObjectOfColumnSpecs)
             )
         const specs = columnSpecs as MapOfColumnSpecs
-        const cols = this.columns
+        const cols = this._columns
         Array.from(specs.keys()).forEach((slug) => {
             const spec = specs.get(slug)!
             const columnType =
@@ -174,11 +149,13 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return map
     }
 
+    // todo: make immutable? return a new table?
     @action.bound deleteColumnBySlug(slug: ColumnSlug) {
         this.rows.forEach((row) => delete row[slug])
-        this.columns.delete(slug)
+        this._columns.delete(slug)
     }
 
+    // todo: make immutable? return a new table?
     @action.bound addFilterColumn(
         slug: ColumnSlug,
         predicate: ComputedColumnFn
@@ -186,6 +163,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         this._addComputedColumn(new FilterColumn(this, { slug, fn: predicate }))
     }
 
+    // todo: make immutable? return a new table?
     @action.bound addSelectionColumn(
         slug: ColumnSlug,
         predicate: (row: CoreRow) => boolean
@@ -195,25 +173,29 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
+    // todo: make immutable? return a new table?
     private _addComputedColumn(column: AbstractCoreColumn) {
         const slug = column.spec.slug
-        this.columns.set(slug, column)
+        this._columns.set(slug, column)
         const fn = column.spec.fn!
         this.rows.forEach((row, index) => {
             ;(row as any)[slug] = fn(row, index, this)
         })
     }
 
+    // todo: make immutable? return a new table?
     @action.bound addStringColumnSpec(spec: CoreColumnSpec) {
-        this.columns.set(spec.slug, new StringColumn(this, spec))
+        this._columns.set(spec.slug, new StringColumn(this, spec))
         return this
     }
 
+    // todo: make immutable? return a new table?
     @action.bound addCategoricalColumnSpec(spec: CoreColumnSpec) {
-        this.columns.set(spec.slug, new CategoricalColumn(this, spec))
+        this._columns.set(spec.slug, new CategoricalColumn(this, spec))
         return this
     }
 
+    // todo: make immutable? return a new table?
     @action.bound addNumericComputedColumn(
         spec: CoreColumnSpec & HasComputedColumn
     ) {
@@ -221,6 +203,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this
     }
 
+    // todo: make immutable? return a new table?
     // todo: this won't work when adding rows dynamically
     @action.bound addRollingAverageColumn(
         spec: CoreColumnSpec,
@@ -262,14 +245,14 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     @computed get columnsByName() {
         const map = new Map<string, AbstractCoreColumn>()
-        this.columns.forEach((col) => {
+        this._columns.forEach((col) => {
             map.set(col.name, col)
         })
         return map
     }
 
     @computed get columnSlugs() {
-        return Array.from(this.columns.keys())
+        return Array.from(this._columns.keys())
     }
 
     @computed get numericColumnSlugs() {
@@ -356,7 +339,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     }
 
     @computed get columnsAsArray() {
-        return Array.from(this.columns.values())
+        return Array.from(this._columns.values())
     }
 
     // for debugging
@@ -406,6 +389,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return header + body
     }
 
+    // todo: make immutable? return a new table?
     @action.bound cloneAndAddRowsAndDetectColumns(rows: ROW_TYPE[]) {
         this._rows = this.rows.concat(cloneDeep(rows))
         this.addSpecs(AbstractCoreTable.makeSpecsFromRows(rows))

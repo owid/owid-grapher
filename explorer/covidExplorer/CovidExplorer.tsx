@@ -701,8 +701,8 @@ export class CovidExplorer extends React.Component<{
     get covidExplorerTable() {
         if (!this._covidExplorerTable) {
             this._covidExplorerTable = new CovidExplorerTable(
-                this.grapher.table,
                 this.props.data,
+                this.grapher,
                 this.props.covidChartAndVariableMeta.variables,
                 this.props.isExplorerPage
             )

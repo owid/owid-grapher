@@ -249,13 +249,26 @@ export class Grapher
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     configOnLoad: Readonly<GrapherInterface>
-    @observable.ref table: OwidTable
+    @observable.ref private rootTable: OwidTable
 
     private legacyConfig?: Partial<LegacyGrapherInterface>
 
+    @computed get table() {
+        return this.rootTable
+    }
+
+    set table(table: OwidTable) {
+        this.rootTable = table
+    }
+
+    @computed get timelineFilteredTable() {
+        // const this.timeDomain
+        return this.table
+    }
+
     constructor(props: GrapherProps = {}) {
         super(props!)
-        this.table = props.table ?? new OwidTable([])
+        this.rootTable = props.table ?? new OwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
         this.legacyConfig = props
@@ -564,8 +577,8 @@ export class Grapher
     @action.bound private _receiveLegacyData(
         json: LegacyVariablesAndEntityKey
     ) {
-        const { table } = this
-        table.loadFromLegacy(json)
+        const table = OwidTable.fromLegacy(json)
+        this.rootTable = table
 
         this.applyLegacyUnitConversionFactors()
         this.applyLegacyChartDimensionDisplaySettings()

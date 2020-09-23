@@ -46,10 +46,6 @@ import {
     HasComputedColumn,
 } from "coreTable/CoreTable"
 
-type MetricKey = {
-    [K in MetricKind]: number
-}
-
 interface AnnotationsRow {
     location: EntityName
     date: string
@@ -80,20 +76,24 @@ export const buildColumnSlug = (
         .filter((i) => i)
         .join("-")
 
+interface TableProvider {
+    table: OwidTable
+}
+
 export class CovidExplorerTable {
     table: OwidTable
     columnSpecs: { [name: string]: OwidColumnSpec } = {}
 
     constructor(
-        table: OwidTable,
         data: CovidGrapherRow[],
+        options?: TableProvider,
         owidVariableSpecs = {},
         isStandalonePage = false
     ) {
         this.initColumnSpecTemplates(owidVariableSpecs)
+        const rowData = isStandalonePage ? data : cloneDeep(data)
+        const table = new OwidTable(rowData)
         this.table = table
-        if (!isStandalonePage) this.table.cloneAndSetRows(data)
-        else this.table.setRowsWithoutCloning(data)
 
         // This simply looks at the first row of the Covid CSV, and generates a spec for each column found.
         // I assume that the first row contains a key/value pair for every column
@@ -101,9 +101,11 @@ export class CovidExplorerTable {
         const specs = Object.keys(firstRow).map((slug) =>
             CovidExplorerTable.makeSpec(slug)
         )
-        this.table.addSpecs(specs)
-        this.table.addCategoricalColumnSpec(this.columnSpecs.continents)
+        table.addSpecs(specs)
+        table.addCategoricalColumnSpec(this.columnSpecs.continents)
         this.addAnnotationColumns()
+
+        if (options) options.table = table // Set the new table on Grapher
     }
 
     private static makeSpec(slug: string): OwidColumnSpec {

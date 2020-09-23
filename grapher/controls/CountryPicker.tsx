@@ -78,7 +78,7 @@ export class CountryPicker extends React.Component<{
     // Set default props
     static defaultProps = {
         explorerSlug: "",
-        table: new OwidTable([]),
+        table: new OwidTable(),
         optionColorMap: {},
         toggleCountryCommand: () => {},
         clearSelectionCommand: () => {},

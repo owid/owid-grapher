@@ -66,6 +66,8 @@ interface OwidRow extends CoreRow {
     date?: string
 }
 
+const rowTime = (row: OwidRow) => row.time ?? row.year ?? row.day ?? row.date
+
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
@@ -91,6 +93,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return table
     }
 
+    // todo: make immutable? return a new table?
     clone() {
         return new OwidTable(
             this.rows,
@@ -100,7 +103,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     @computed get columnsByOwidVarId() {
         const map = new Map<number, AbstractCoreColumn>()
-        Array.from(this.columns.values()).forEach((column, index) => {
+        Array.from(this._columns.values()).forEach((column, index) => {
             map.set(
                 (column.spec as OwidColumnSpec).owidVariableId ?? index,
                 column
@@ -184,11 +187,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     @computed get hasDayColumn() {
-        return this.columns.has("day")
+        return this._columns.has("day")
     }
 
     @computed get dayColumn() {
-        return this.columns.get("day")
+        return this._columns.get("day")
     }
 
     @computed get rowsByEntityName() {
@@ -199,6 +202,16 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             map.get(name)!.push(row)
         })
         return map
+    }
+
+    // todo: speed up
+    filterByTime(start: Time, end: Time) {
+        return new OwidTable(
+            this.rows.filter((row) => {
+                const time = rowTime(row)
+                return time >= start && time <= end
+            })
+        )
     }
 
     // one datum per entityName. use the closest value to target year within tolerance.
@@ -224,6 +237,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             .filter((row) => row) as OwidRow[]
     }
 
+    // todo: make immutable? return a new table?
     // Clears and sets selected entities
     @action.bound setSelectedEntities(entityNames: EntityName[]) {
         this.initDefaultEntitySelectionColumn()
@@ -233,18 +247,21 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         })
     }
 
+    // todo: make immutable? return a new table?
     @action.bound clearSelection() {
         this.selectedEntityNames.forEach((name) => {
             this.deselectEntity(name)
         })
     }
 
+    // todo: make immutable? return a new table?
     @action.bound selectAll() {
         this.unselectedEntityNames.forEach((name) => {
             this.selectEntity(name)
         })
     }
 
+    // todo: make immutable? return a new table?
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
@@ -252,6 +269,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return codesInData
     }
 
+    // todo: make immutable? return a new table?
     @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {
         const map = this.entityIdToNameMap
         this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
@@ -260,7 +278,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     private defaultEntitySelectionSlug = "is_entity_selected"
     private initDefaultEntitySelectionColumn() {
         if (!this.has(this.defaultEntitySelectionSlug))
-            this.columns.set(
+            this._columns.set(
                 this.defaultEntitySelectionSlug,
                 new SelectionColumn(this, {
                     slug: this.defaultEntitySelectionSlug,
@@ -297,11 +315,13 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return Object.values(colors)[entityName.charCodeAt(0) % 7]
     }
 
+    // todo: make immutable? return a new table?
     @action.bound toggleSelection(entityName: EntityName) {
         if (this.isEntitySelected(entityName)) this.deselectEntity(entityName)
         else this.selectEntity(entityName)
     }
 
+    // todo: make immutable? return a new table?
     @action.bound selectEntity(entityName: EntityName) {
         this.initDefaultEntitySelectionColumn()
 
@@ -311,6 +331,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this
     }
 
+    // todo: make immutable? return a new table?
     @action.bound deselectEntity(entityName: EntityName) {
         this.rowsByEntityName
             .get(entityName)
@@ -320,7 +341,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     specToObject() {
         const output: any = {}
-        Array.from(this.columns.values()).forEach((col) => {
+        Array.from(this._columns.values()).forEach((col) => {
             output[col.slug] = col.spec
         })
         return output
@@ -512,6 +533,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         }
     }
 
+    // todo: make immutable? return a new table?
     // todo: move "unit conversions" to computed columns
     @action.bound applyUnitConversionAndOverwriteLegacyColumn(
         unitConversionFactor: number,
@@ -524,9 +546,9 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         })
     }
 
-    @action.bound loadFromLegacy(json: LegacyVariablesAndEntityKey) {
+    static fromLegacy(json: LegacyVariablesAndEntityKey) {
         const { rows, columnSpecs } = OwidTable.legacyVariablesToTabular(json)
-        return this.load(rows, columnSpecs, false)
+        return new OwidTable(rows, columnSpecs)
     }
 
     // todo: remove

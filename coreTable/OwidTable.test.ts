@@ -74,7 +74,7 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
 }
 
 describe("from legacy", () => {
-    const table = new OwidTable([]).loadFromLegacy(getLegacyVarSet())
+    const table = OwidTable.fromLegacy(getLegacyVarSet())
     const name =
         "Prevalence of wasting, weight for height (% of children under 5)"
 
@@ -103,7 +103,7 @@ describe("from legacy", () => {
 
     it("can apply legacy unit conversion factors", () => {
         const varSet = getLegacyVarSet()
-        const table = new OwidTable([]).loadFromLegacy(varSet)
+        const table = OwidTable.fromLegacy(varSet)
         table.applyUnitConversionAndOverwriteLegacyColumn(100, 3512)
         expect(table.get("3512")!.parsedValues).toEqual([550, 420, 1260])
     })
@@ -224,6 +224,20 @@ usa,us,23,`)
 france,fr,23,4
 iceland,ice,123,3
 usa,us,23,`)
+    })
+})
+
+describe("", () => {
+    it("can filter by time domain", () => {
+        const table = SynthesizeOwidTable({
+            countryCount: 2,
+            timeRange: [2000, 2005],
+        })
+
+        expect(table.rows.length).toBe(10)
+
+        const filtered = table.filterByTime(2000, 2003)
+        expect(filtered.rows.length).toBe(8)
     })
 })
 
