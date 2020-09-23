@@ -10,7 +10,7 @@ import {
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
-import { deserializeEmbeddedObject } from "utils/server/serverUtil"
+import { deserializeJSONFromHTML } from "utils/serializers"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
@@ -31,7 +31,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
         }
 
         const html = await resp.text()
-        const config = deserializeEmbeddedObject(html)
+        const config = deserializeJSONFromHTML(html)
         runInAction(() => {
             this.chart = new Grapher(config, {
                 isEmbed: true,
