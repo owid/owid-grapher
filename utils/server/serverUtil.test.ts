@@ -1,6 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { ExecError } from "utils/server/serverUtil"
+import {
+    ExecError,
+    serializeObjectForEmbedding,
+    deserializeEmbeddedObject,
+} from "utils/server/serverUtil"
 
 const { exec } = require("utils/server/serverUtil")
 
@@ -29,5 +33,24 @@ describe("exec()", () => {
         } finally {
             expect.assertions(4)
         }
+    })
+})
+
+describe("encode and decode json", () => {
+    it("should encode and decode an object correctly", async () => {
+        const cases = [0, { foo: "bar" }, 2, false, { test: { nesting: 2 } }]
+        cases.forEach((testCase) => {
+            expect(
+                deserializeEmbeddedObject(
+                    `<html>${serializeObjectForEmbedding(testCase)}</html>`
+                )
+            ).toEqual(testCase)
+        })
+
+        expect(
+            deserializeEmbeddedObject(
+                `<html>${serializeObjectForEmbedding(undefined)}</html>`
+            )
+        ).toEqual(undefined)
     })
 })

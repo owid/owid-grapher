@@ -14,6 +14,7 @@ import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
+import { serializeObjectForEmbedding } from "utils/server/serverUtil"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -33,25 +34,23 @@ export const GrapherPage = (props: {
         `${grapher.slug}.png?v=${grapher.version}`
     )
 
-    const script = `
-        var jsonConfig = ${JSON.stringify(grapher)};
-        var figure = document.getElementsByTagName("figure")[0];
-
-        try {
-            var view = window.Grapher.bootstrap({
-                jsonConfig: jsonConfig,
-                containerNode: figure,
-                queryStr: window.location.search
-            });
-            view.bindToWindow();
-        } catch (err) {
-            figure.innerHTML = "<img src=\\"/grapher/exports/${
-                grapher.slug
-            }.svg\\"/><p>Unable to load interactive visualization</p>";
-            figure.setAttribute("id", "fallback");
-            throw err;
-        }
-    `
+    const script = `const jsonConfig = ${serializeObjectForEmbedding(grapher)}
+const figure = document.getElementsByTagName("figure")[0];
+try {
+    const view = window.GrapherView.bootstrap({
+        jsonConfig: jsonConfig,
+        containerNode: figure,
+        queryStr: window.location.search
+    });
+    view.bindToWindow();
+} catch (err) {
+    figure.innerHTML = "<img src=\\"/grapher/exports/${
+        grapher.slug
+    }.svg\\"/><p>Unable to load interactive visualization</p>";
+    figure.setAttribute("id", "fallback");
+    throw err;
+}
+`
 
     const variableIds = lodash.uniq(
         grapher.dimensions!.map((d) => d.variableId)

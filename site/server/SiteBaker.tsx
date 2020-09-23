@@ -44,7 +44,7 @@ import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { grapherPageFromConfig } from "./grapherBaking"
 import { countries, getCountryDetectionRedirects } from "utils/countries"
-import { exec } from "utils/server/serverUtil"
+import { exec, deserializeEmbeddedObject } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
 import {
     covidDashboardSlug,
@@ -445,11 +445,8 @@ export class SiteBaker {
         try {
             // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
             const html = await fs.readFile(htmlPath, "utf8")
-            const match = html.match(/jsonConfig\s*=\s*(\{.+\})/)
-            if (match) {
-                const fileVersion = JSON.parse(match[1]).version
-                isSameVersion = grapher.version === fileVersion
-            }
+            const savedVersion = deserializeEmbeddedObject(html)
+            isSameVersion = savedVersion?.version === grapher.version
         } catch (err) {
             if (err.code !== "ENOENT") console.error(err)
         }
