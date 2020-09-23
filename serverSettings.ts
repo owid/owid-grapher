@@ -93,3 +93,5 @@ export const DEPLOY_QUEUE_FILE_PATH =
     process.env.DEPLOY_QUEUE_FILE_PATH || path.join(BASE_DIR, "./.queue")
 export const DEPLOY_PENDING_FILE_PATH =
     process.env.DEPLOY_PENDING_FILE_PATH || path.join(BASE_DIR, "./.pending")
+
+export const CLOUDFLARE_AUD = process.env.CLOUDFLARE_AUD || ""
