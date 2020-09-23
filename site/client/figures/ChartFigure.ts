@@ -2,7 +2,7 @@ import { excludeUndefined, fetchText } from "grapher/utils/Util"
 import { Figure, LoadProps } from "./Figure"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
 import { Grapher } from "grapher/core/Grapher"
-import { deserializeEmbeddedObject } from "utils/server/serverUtil"
+import { deserializeJSONFromHTML } from "utils/serializers"
 
 interface ChartFigureProps {
     configUrl: string
@@ -39,7 +39,7 @@ export class ChartFigure implements Figure {
         if (!this._isLoaded) {
             this._isLoaded = true
             const html = await fetchText(this.props.configUrl)
-            this.jsonConfig = deserializeEmbeddedObject(html)
+            this.jsonConfig = deserializeJSONFromHTML(html)
             this.container.classList.remove("grapherPreview")
             Grapher.bootstrap({
                 jsonConfig: this.jsonConfig,

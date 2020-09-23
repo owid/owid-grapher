@@ -44,7 +44,7 @@ import { Post } from "db/model/Post"
 import { bakeCountries } from "./countryProfiles"
 import { grapherPageFromConfig } from "./grapherBaking"
 import { countries, getCountryDetectionRedirects } from "utils/countries"
-import { exec, deserializeEmbeddedObject } from "utils/server/serverUtil"
+import { exec } from "utils/server/serverUtil"
 import { log } from "utils/server/log"
 import {
     covidDashboardSlug,
@@ -58,6 +58,7 @@ import {
     renderCovidExplorerPage,
 } from "explorer/admin/ExplorerBaker"
 import { renderExplorableIndicatorsJson } from "explorer/indicatorExplorer/IndicatorBaking"
+import { deserializeJSONFromHTML } from "utils/serializers"
 
 // Static site generator using Wordpress
 
@@ -445,7 +446,7 @@ export class SiteBaker {
         try {
             // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
             const html = await fs.readFile(htmlPath, "utf8")
-            const savedVersion = deserializeEmbeddedObject(html)
+            const savedVersion = deserializeJSONFromHTML(html)
             isSameVersion = savedVersion?.version === grapher.version
         } catch (err) {
             if (err.code !== "ENOENT") console.error(err)

@@ -14,7 +14,7 @@ import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { EmbedDetector } from "./EmbedDetector"
-import { serializeObjectForEmbedding } from "utils/server/serverUtil"
+import { serializeJSONForHTML } from "utils/serializers"
 
 export const GrapherPage = (props: {
     grapher: GrapherInterface
@@ -34,7 +34,7 @@ export const GrapherPage = (props: {
         `${grapher.slug}.png?v=${grapher.version}`
     )
 
-    const script = `const jsonConfig = ${serializeObjectForEmbedding(grapher)}
+    const script = `const jsonConfig = ${serializeJSONForHTML(grapher)}
 const figure = document.getElementsByTagName("figure")[0];
 try {
     const view = window.GrapherView.bootstrap({
