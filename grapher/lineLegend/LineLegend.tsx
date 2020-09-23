@@ -19,7 +19,7 @@ import { Bounds } from "grapher/utils/Bounds"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { EntityName } from "coreTable/CoreTableConstants"
-import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, Color } from "grapher/core/GrapherConstants"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -28,25 +28,23 @@ const MARKER_MARGIN = 4
 // Need a constant button height which we can use in positioning calculations
 const ADD_BUTTON_HEIGHT = 30
 
-export interface LineLabel {
+export interface LineLabelMark {
     entityName: EntityName
     label: string
-    color: string
+    color: Color
     yValue: number
     annotation?: string
     yRange?: [number, number]
 }
 
-interface SizedLabel {
-    item: LineLabel
+interface SizedMark extends LineLabelMark {
     textWrap: TextWrap
     annotationTextWrap?: TextWrap
     width: number
     height: number
 }
 
-interface PlacedLabel {
-    mark: SizedLabel
+interface PlacedMark extends SizedMark {
     origBounds: Bounds
     bounds: Bounds
     isOverlap: boolean
@@ -55,7 +53,7 @@ interface PlacedLabel {
     totalLevels: number
 }
 
-function groupBounds(group: PlacedLabel[]) {
+function groupBounds(group: PlacedMark[]) {
     const first = group[0]
     const last = group[group.length - 1]
     const height = last.bounds.bottom - first.bounds.top
@@ -63,7 +61,7 @@ function groupBounds(group: PlacedLabel[]) {
     return new Bounds(first.bounds.x, first.bounds.y, width, height)
 }
 
-function stackGroupVertically(group: PlacedLabel[], y: number) {
+function stackGroupVertically(group: PlacedMark[], y: number) {
     let currentY = y
     group.forEach((mark) => {
         mark.bounds = mark.bounds.extend({ y: currentY })
@@ -75,7 +73,7 @@ function stackGroupVertically(group: PlacedLabel[], y: number) {
 
 @observer
 class Label extends React.Component<{
-    mark: PlacedLabel
+    mark: PlacedMark
     options: LineLegend
     isFocus?: boolean
     needsLines?: boolean
@@ -99,7 +97,7 @@ class Label extends React.Component<{
         const step = (markerX2 - markerX1) / (mark.totalLevels + 1)
         const markerXMid = markerX1 + step + mark.level * step
         const lineColor = isFocus ? "#999" : "#eee"
-        const textColor = isFocus ? mark.mark.item.color : "#ddd"
+        const textColor = isFocus ? mark.color : "#ddd"
         const annotationColor = isFocus ? "#333" : "#ddd"
         return (
             <g
@@ -126,15 +124,15 @@ class Label extends React.Component<{
                     fill="#fff"
                     opacity={0}
                 />
-                {mark.mark.textWrap.render(
+                {mark.textWrap.render(
                     needsLines ? markerX2 + MARKER_MARGIN : markerX1,
                     mark.bounds.y,
                     { fill: textColor }
                 )}
-                {mark.mark.annotationTextWrap &&
-                    mark.mark.annotationTextWrap.render(
+                {mark.annotationTextWrap &&
+                    mark.annotationTextWrap.render(
                         needsLines ? markerX2 + MARKER_MARGIN : markerX1,
-                        mark.bounds.y + mark.mark.textWrap.height,
+                        mark.bounds.y + mark.textWrap.height,
                         {
                             fill: annotationColor,
                             className: "textAnnotation",
@@ -152,7 +150,7 @@ export interface LineLegendOptionsProvider {
     isSelectingData?: boolean
     showAddEntityControls?: boolean
     entityType?: string
-    legendItems: LineLabel[]
+    labelMarks: LineLabelMark[]
     maxLegendWidth?: number
     fontSize?: number
     onLegendMouseOver?: (key: EntityName) => void
@@ -176,26 +174,26 @@ export class LineLegend extends React.Component<{
         return this.options.maxLegendWidth ?? 300
     }
 
-    @computed.struct get marks(): SizedLabel[] {
+    @computed.struct get sizedLabels(): SizedMark[] {
         const { fontSize, leftPadding, maxWidth } = this
         const maxTextWidth = maxWidth - leftPadding
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
-        return this.options.legendItems.map((item) => {
-            const annotationTextWrap = item.annotation
+        return this.options.labelMarks.map((label) => {
+            const annotationTextWrap = label.annotation
                 ? new TextWrap({
-                      text: item.annotation,
+                      text: label.annotation,
                       maxWidth: maxAnnotationWidth,
                       fontSize: fontSize * 0.9,
                   })
                 : undefined
             const textWrap = new TextWrap({
-                text: item.label,
+                text: label.label,
                 maxWidth: maxTextWidth,
                 fontSize,
             })
             return {
-                item,
+                ...label,
                 textWrap,
                 annotationTextWrap,
                 width:
@@ -212,8 +210,8 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get width() {
-        if (this.marks.length === 0) return 0
-        return max(this.marks.map((d) => d.width)) ?? 0
+        if (this.sizedLabels.length === 0) return 0
+        return max(this.sizedLabels.map((d) => d.width)) ?? 0
     }
 
     @computed get onMouseOver(): any {
@@ -227,8 +225,8 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get isFocusMode() {
-        return this.marks.some((m) =>
-            this.options.focusedEntityNames.includes(m.item.entityName)
+        return this.sizedLabels.some((label) =>
+            this.options.focusedEntityNames.includes(label.entityName)
         )
     }
 
@@ -237,34 +235,34 @@ export class LineLegend extends React.Component<{
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
-    @computed private get initialMarks(): PlacedLabel[] {
+    @computed private get initialMarks(): PlacedMark[] {
         const { verticalAxis } = this.options
         const { legendX } = this
 
         return sortBy(
-            this.marks.map((mark) => {
+            this.sizedLabels.map((label) => {
                 // place vertically centered at Y value
                 const initialY =
-                    verticalAxis.place(mark.item.yValue) - mark.height / 2
+                    verticalAxis.place(label.yValue) - label.height / 2
                 const origBounds = new Bounds(
                     legendX,
                     initialY,
-                    mark.width,
-                    mark.height
+                    label.width,
+                    label.height
                 )
 
                 // ensure label doesn't go beyond the top or bottom of the chart
                 const y = Math.min(
                     Math.max(initialY, verticalAxis.rangeMin),
-                    verticalAxis.rangeMax - mark.height
+                    verticalAxis.rangeMax - label.height
                 )
-                const bounds = new Bounds(legendX, y, mark.width, mark.height)
+                const bounds = new Bounds(legendX, y, label.width, label.height)
 
                 return {
-                    mark: mark,
-                    y: y,
-                    origBounds: origBounds,
-                    bounds: bounds,
+                    ...label,
+                    y,
+                    origBounds,
+                    bounds,
                     isOverlap: false,
                     repositions: 0,
                     level: 0,
@@ -273,14 +271,14 @@ export class LineLegend extends React.Component<{
 
                 // Ensure list is sorted by the visual position in ascending order
             }),
-            (mark) => verticalAxis.place(mark.mark.item.yValue)
+            (label) => verticalAxis.place(label.yValue)
         )
     }
 
     @computed get standardPlacement() {
         const { verticalAxis } = this.options
 
-        const groups: PlacedLabel[][] = cloneDeep(
+        const groups: PlacedMark[][] = cloneDeep(
             this.initialMarks
         ).map((mark) => [mark])
 
@@ -388,20 +386,20 @@ export class LineLegend extends React.Component<{
     @computed private get backgroundMarks() {
         const { focusedEntityNames } = this.options
         const { isFocusMode } = this
-        return this.placedMarks.filter((m) =>
+        return this.placedMarks.filter((mark) =>
             isFocusMode
-                ? !focusedEntityNames.includes(m.mark.item.entityName)
-                : m.isOverlap
+                ? !focusedEntityNames.includes(mark.entityName)
+                : mark.isOverlap
         )
     }
 
     @computed private get focusMarks() {
         const { focusedEntityNames } = this.options
         const { isFocusMode } = this
-        return this.placedMarks.filter((m) =>
+        return this.placedMarks.filter((mark) =>
             isFocusMode
-                ? focusedEntityNames.includes(m.mark.item.entityName)
-                : !m.isOverlap
+                ? focusedEntityNames.includes(mark.entityName)
+                : !mark.isOverlap
         )
     }
 
@@ -420,12 +418,12 @@ export class LineLegend extends React.Component<{
     private renderBackground() {
         return this.backgroundMarks.map((mark) => (
             <Label
-                key={mark.mark.item.entityName}
+                key={mark.entityName}
                 mark={mark}
                 options={this}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(mark.mark.item.entityName)}
-                onClick={() => this.onClick(mark.mark.item.entityName)}
+                onMouseOver={() => this.onMouseOver(mark.entityName)}
+                onClick={() => this.onClick(mark.entityName)}
             />
         ))
     }
@@ -434,16 +432,14 @@ export class LineLegend extends React.Component<{
     private renderFocus() {
         return this.focusMarks.map((mark) => (
             <Label
-                key={mark.mark.item.entityName}
+                key={mark.entityName}
                 mark={mark}
                 options={this}
                 isFocus={true}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(mark.mark.item.entityName)}
-                onClick={() => this.onClick(mark.mark.item.entityName)}
-                onMouseLeave={() =>
-                    this.onMouseLeave(mark.mark.item.entityName)
-                }
+                onMouseOver={() => this.onMouseOver(mark.entityName)}
+                onClick={() => this.onClick(mark.entityName)}
+                onMouseLeave={() => this.onMouseLeave(mark.entityName)}
             />
         ))
     }

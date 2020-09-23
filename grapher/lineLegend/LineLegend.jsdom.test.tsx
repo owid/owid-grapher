@@ -4,7 +4,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { LineLegend, LineLegendOptionsProvider } from "./LineLegend"
 
 const options: LineLegendOptionsProvider = {
-    legendItems: [
+    labelMarks: [
         {
             entityName: "Canada",
             label: "Canada",
@@ -29,6 +29,6 @@ describe(LineLegend, () => {
     it("can create a new legend", () => {
         const legend = new LineLegend({ options })
 
-        expect(legend.marks.length).toEqual(2)
+        expect(legend.sizedLabels.length).toEqual(2)
     })
 })

@@ -26,7 +26,7 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import {
-    LineLabel,
+    LineLabelMark,
     LineLegend,
     LineLegendOptionsProvider,
 } from "grapher/lineLegend/LineLegend"
@@ -246,7 +246,7 @@ export class StackedAreaChart
         })
     }
 
-    @computed get legendItems(): LineLabel[] {
+    @computed get labelMarks(): LineLabelMark[] {
         const { midpoints } = this
         const items = this.marks
             .map((d, i) => ({
@@ -475,7 +475,7 @@ export class StackedAreaChart
                     <clipPath id={`boundsClip-${renderUid}`}>
                         <rect
                             x={dualAxis.innerBounds.x}
-                            y={0}
+                            y={bounds.y}
                             width={bounds.width}
                             height={bounds.height * 2}
                         ></rect>

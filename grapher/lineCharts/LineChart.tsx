@@ -19,7 +19,7 @@ import { DualAxis } from "grapher/axis/Axis"
 import { PointVector } from "grapher/utils/PointVector"
 import {
     LineLegend,
-    LineLabel,
+    LineLabelMark,
     LineLegendOptionsProvider,
 } from "grapher/lineLegend/LineLegend"
 import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
@@ -466,7 +466,7 @@ export class LineChart
                         {/* The tiny bit of extra space here is to ensure circles centered on the very edge are still fully visible */}
                         <rect
                             x={dualAxis.innerBounds.x - 10}
-                            y={0}
+                            y={bounds.y}
                             width={bounds.width + 10}
                             height={bounds.height * 2}
                         ></rect>
@@ -683,7 +683,7 @@ export class LineChart
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed get legendItems(): LineLabel[] {
+    @computed get labelMarks(): LineLabelMark[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let toShow = this.marks
