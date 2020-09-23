@@ -1,6 +1,5 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { readConfigFromHTML } from "site/client/figures/ChartFigure"
 import {
     computed,
     observable,
@@ -11,6 +10,7 @@ import {
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "./GrapherFigureView"
 import { splitURLintoPathAndQueryString } from "utils/client/url"
+import { deserializeEmbeddedObject } from "utils/server/serverUtil"
 
 @observer
 export class EmbedChart extends React.Component<{ src: string }> {
@@ -31,7 +31,7 @@ export class EmbedChart extends React.Component<{ src: string }> {
         }
 
         const html = await resp.text()
-        const config = readConfigFromHTML(html)
+        const config = deserializeEmbeddedObject(html)
         runInAction(() => {
             this.grapher = new Grapher({
                 ...config,
