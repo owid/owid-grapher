@@ -1,4 +1,4 @@
-import { range } from "grapher/utils/Util"
+import { makeGrid, range } from "grapher/utils/Util"
 import { PointVector } from "grapher/utils/PointVector"
 import pixelWidth from "string-pixel-width"
 
@@ -325,8 +325,7 @@ export class Bounds {
         // In the future we may want to position these bounds in custom ways, but this only does basic splitting for now.
         // NB: The off-by-one-pixel scenarios have NOT yet been unit tested. Karma points for the person who adds those tests and makes
         // any required adjustments.
-        const columns = Math.ceil(Math.sqrt(pieces))
-        const rows = Math.ceil(pieces / columns)
+        const { columns, rows } = makeGrid(pieces)
         const columnPadding = padding
         const rowPadding = padding
         const contentWidth = this.width - columnPadding * (columns - 1)

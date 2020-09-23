@@ -451,16 +451,16 @@ export class ScatterPlot
         return colorColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
-    @computed get yAxis() {
-        return this.options.yAxis ?? new AxisConfig()
+    @computed private get yAxis() {
+        return this.options.yAxis || new AxisConfig(undefined, this)
     }
 
-    @computed get xAxis() {
-        return this.options.xAxis ?? new AxisConfig()
+    @computed private get xAxis() {
+        return this.options.xAxis || new AxisConfig(undefined, this)
     }
 
     @computed private get yColumn() {
-        return this.options.yColumn
+        return this.options.yColumn ?? this.options.yColumns![0]
     }
 
     @computed private get xColumn() {

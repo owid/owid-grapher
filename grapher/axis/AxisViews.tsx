@@ -99,33 +99,45 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 
         const maxX = undefined // {grapher.tabBounds.width} todo
 
+        const verticalGridlines = verticalAxis.hideGridlines ? null : (
+            <VerticalAxisGridLines
+                verticalAxis={verticalAxis}
+                bounds={innerBounds}
+            />
+        )
+
+        const horizontalGridlines = horizontalAxis.hideGridlines ? null : (
+            <HorizontalAxisGridLines
+                horizontalAxis={horizontalAxis}
+                bounds={innerBounds}
+            />
+        )
+
+        const verticalAxisComponent = verticalAxis.hideAxis ? null : (
+            <VerticalAxisComponent
+                bounds={bounds}
+                verticalAxis={verticalAxis}
+                isInteractive={this.props.isInteractive}
+            />
+        )
+
+        const horizontalAxisComponent = horizontalAxis.hideAxis ? null : (
+            <HorizontalAxisComponent
+                maxX={maxX}
+                bounds={bounds}
+                axisPosition={innerBounds.bottom}
+                axis={horizontalAxis}
+                showTickMarks={showTickMarks}
+                isInteractive={this.props.isInteractive}
+            />
+        )
+
         return (
             <g className="DualAxisView">
-                <HorizontalAxisComponent
-                    maxX={maxX}
-                    bounds={bounds}
-                    axisPosition={innerBounds.bottom}
-                    axis={horizontalAxis}
-                    showTickMarks={showTickMarks}
-                    isInteractive={this.props.isInteractive}
-                />
-                <VerticalAxisComponent
-                    bounds={bounds}
-                    verticalAxis={verticalAxis}
-                    isInteractive={this.props.isInteractive}
-                />
-                {!verticalAxis.hideGridlines && (
-                    <VerticalAxisGridLines
-                        verticalAxis={verticalAxis}
-                        bounds={innerBounds}
-                    />
-                )}
-                {!horizontalAxis.hideGridlines && (
-                    <HorizontalAxisGridLines
-                        horizontalAxis={horizontalAxis}
-                        bounds={innerBounds}
-                    />
-                )}
+                {horizontalAxisComponent}
+                {verticalAxisComponent}
+                {verticalGridlines}
+                {horizontalGridlines}
             </g>
         )
     }

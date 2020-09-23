@@ -5,6 +5,7 @@ import { computed } from "mobx"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { getChartComponent } from "grapher/chart/ChartTypeMap"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { makeGrid } from "grapher/utils/Util"
 
 interface FacetChartProps {
     bounds?: Bounds
@@ -28,17 +29,25 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         const { rootTable, rootOptions } = this
         const { chartTypeName } = this.props
         const count = rootTable.availableEntityNames.length
-        const boundsArr = this.bounds.split(count)
+        const boundsArr = this.bounds.split(count, 20)
+        const { columns, rows } = makeGrid(count)
 
         return rootTable.availableEntityNames.map((name, index) => {
+            const bounds = boundsArr[index]
             const table = rootTable.clone()
+            const column = index % columns
+            const row = Math.floor(index / columns)
+            const hideXAxis = row < rows - 1
+            const hideYAxis = column > 0
             table.selectEntity(name)
-            const options = {
+            const options: ChartOptionsProvider = {
                 ...rootOptions,
                 table,
+                hideXAxis,
+                hideYAxis,
             }
             return {
-                bounds: boundsArr[index],
+                bounds,
                 chartTypeName,
                 options,
             } as SmallChart

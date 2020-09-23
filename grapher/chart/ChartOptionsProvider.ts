@@ -45,4 +45,7 @@ export interface ChartOptionsProvider {
 
     hidePoints?: boolean // for line options
     lineStrokeWidth?: number
+
+    hideXAxis?: boolean
+    hideYAxis?: boolean
 }

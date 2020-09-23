@@ -651,12 +651,12 @@ export class StackedAreaChart
         return groupedData
     }
 
-    @computed private get xAxis() {
-        return this.options.xAxis ?? new AxisConfig()
+    @computed private get yAxis() {
+        return this.options.yAxis || new AxisConfig(undefined, this)
     }
 
-    @computed private get yAxis() {
-        return this.options.yAxis ?? new AxisConfig()
+    @computed private get xAxis() {
+        return this.options.xAxis || new AxisConfig(undefined, this)
     }
 
     @computed private get horizontalAxis() {
@@ -704,7 +704,7 @@ export class StackedAreaChart
     }
 
     @computed private get yColumn() {
-        return this.options.yColumns![0]
+        return this.options.yColumn ?? this.options.yColumns![0]
     }
 
     @computed private get xDomainDefault(): ValueRange {

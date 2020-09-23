@@ -38,6 +38,15 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     @observable private _label?: string
     @observable private _scaleTypeOptions?: ScaleType[]
 
+    constructor(options: AxisConfig) {
+        this.options = options
+        this.domain = [options.domain[0], options.domain[1]]
+    }
+
+    @computed get hideAxis() {
+        return this.options.hideAxis
+    }
+
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
     updateDomainPreservingUserSettings(domain: ValueRange) {
@@ -50,11 +59,6 @@ abstract class AbstractAxis implements ScaleTypeConfig {
 
     @computed get fontSize() {
         return this.options.fontSize
-    }
-
-    constructor(options: AxisConfig) {
-        this.options = options
-        this.domain = [options.domain[0], options.domain[1]]
     }
 
     @computed get scaleType() {
@@ -487,14 +491,14 @@ export class DualAxis {
     @computed private get horizontalAxisHeight() {
         const axis = this.props.horizontalAxis.clone()
         axis.range = [0, this.bounds.width]
-        return axis.height
+        return axis.hideAxis ? 0 : axis.height
     }
 
     // We calculate an initial width from the range of the input bounds
     @computed private get verticalAxisWidth() {
         const axis = this.props.verticalAxis.clone()
         axis.range = [0, this.bounds.height]
-        return axis.width
+        return axis.hideAxis ? 0 : axis.width
     }
 
     // Now we can determine the "true" inner bounds of the dual axis

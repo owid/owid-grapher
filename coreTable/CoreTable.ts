@@ -44,7 +44,7 @@ export interface CoreColumnSpec {
     shortUnit?: string
     fn?: ComputedColumnFn
     type?: ColumnTypeNames
-    range?: ValueRange // A range of values to use when generating synthetic data for testing
+    generator?: (...params: any[]) => number // A function for generating synthetic data for testing
     display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
 }
 

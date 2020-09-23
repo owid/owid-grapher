@@ -611,6 +611,15 @@ const shuffleArray = (array: any[], seed = Date.now()) => {
     return clonedArr
 }
 
+export const makeGrid = (pieces: number) => {
+    const columns = Math.ceil(Math.sqrt(pieces))
+    const rows = Math.ceil(pieces / columns)
+    return {
+        columns,
+        rows,
+    }
+}
+
 export function findClosestTimeIndex(
     times: Time[],
     targetTime: Time,

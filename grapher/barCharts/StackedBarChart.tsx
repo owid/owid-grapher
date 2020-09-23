@@ -686,7 +686,7 @@ export class StackedBarChart
     }
 
     @computed private get yColumn() {
-        return this.options.yColumns![0]
+        return this.options.yColumn ?? this.options.yColumns![0]
     }
 
     // Apply time filtering and stacking

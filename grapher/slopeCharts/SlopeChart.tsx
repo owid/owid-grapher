@@ -304,7 +304,7 @@ export class SlopeChart
     }
 
     @computed private get yColumn() {
-        return this.options.yColumn!
+        return this.options.yColumn ?? this.options.yColumns![0]
     }
 
     @computed private get colorColumn() {

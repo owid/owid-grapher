@@ -3,13 +3,16 @@ import { CountryFacet } from "./FacetChart"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { Bounds } from "grapher/utils/Bounds"
 
 export default {
     title: "CountryFacet",
     component: CountryFacet,
     argTypes: {
         chartTypeName: { control: "select", defaultValue: "LineChart" },
-        countryCount: { control: "range", defaultValue: 4, min: 1, max: 200 },
+        countryCount: {
+            control: { type: "range", defaultValue: 4, min: 1, max: 200 },
+        },
     },
 }
 
@@ -23,9 +26,19 @@ export const Default = (args: any) => {
         yColumns: [table.get("GDP")!],
         xColumn: table.get("Population"),
         baseFontSize: 8,
+        lineStrokeWidth: 0.5,
+        hideLegend: true,
         hidePoints: true,
     }
     const chartType: ChartTypeName = args.chartTypeName || "LineChart"
 
-    return <CountryFacet chartTypeName={chartType} options={options} />
+    const bounds = new Bounds(0, 0, 1000, 500)
+
+    return (
+        <CountryFacet
+            bounds={bounds}
+            chartTypeName={chartType}
+            options={options}
+        />
+    )
 }

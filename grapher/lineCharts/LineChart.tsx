@@ -381,12 +381,16 @@ export class LineChart
         const { horizontalAxis, verticalAxis } = this
         return new DualAxis({
             bounds: this.bounds.padRight(
-                this.legendDimensions ? this.legendDimensions.width : 20
+                this.legendDimensions
+                    ? this.legendDimensions.width
+                    : this.defaultRightPadding
             ),
             verticalAxis,
             horizontalAxis,
         })
     }
+
+    defaultRightPadding = 1
 
     @observable hoveredEntityName?: EntityName
     @action.bound onLegendClick() {
@@ -443,11 +447,13 @@ export class LineChart
     }
 
     @computed get legendX(): number {
-        return this.bounds.right - this.legendDimensions.width
+        return this.bounds.right - (this.legendDimensions?.width || 0)
     }
 
     @computed private get legendDimensions() {
-        return new LineLegend({ options: this })
+        return this.options.hideLegend
+            ? undefined
+            : new LineLegend({ options: this })
     }
 
     render() {
@@ -545,7 +551,7 @@ export class LineChart
     }
 
     @computed private get yColumn() {
-        return this.options.yColumns![0]!
+        return this.options.yColumn ?? this.options.yColumns![0]
     }
 
     @computed private get annotationsMap() {
@@ -717,12 +723,16 @@ export class LineChart
         })
     }
 
-    @computed get yAxis() {
-        return this.options.yAxis || new AxisConfig(undefined, this)
+    @computed private get yAxis() {
+        const axis = this.options.yAxis || new AxisConfig(undefined, this)
+        axis.hideAxis = !!this.options.hideYAxis
+        return axis
     }
 
-    @computed get xAxis() {
-        return this.options.xAxis || new AxisConfig(undefined, this)
+    @computed private get xAxis() {
+        const axis = this.options.xAxis || new AxisConfig(undefined, this)
+        axis.hideAxis = !!this.options.hideXAxis
+        return axis
     }
 
     @computed get horizontalAxis() {

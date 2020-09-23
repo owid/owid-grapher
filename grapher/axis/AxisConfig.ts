@@ -35,6 +35,7 @@ export class AxisConfig
     }
 
     private fontSizeOptions?: FontSizeOptionsProvider
+    @observable hideAxis = false
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface) {

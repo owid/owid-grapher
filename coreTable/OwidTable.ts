@@ -558,18 +558,22 @@ export const SynthesizeOwidTable = (
         countryCount: 2,
         timeRange: [1950, 2020],
         columnSpecs: [
-            { slug: "Population", type: "Population", range: [1e6, 1e8] },
-            { slug: "GDP", type: "Currency", range: [1e6, 1e8] },
+            {
+                slug: "Population",
+                type: "Population",
+                generator: getRandomNumberGenerator(1e7, 1e9, seed),
+            },
+            {
+                slug: "GDP",
+                type: "Currency",
+                generator: getRandomNumberGenerator(1e10, 1e12, seed),
+            },
         ] as OwidColumnSpec[],
         ...options,
     }
     const { countryCount, columnSpecs, timeRange, countryNames } = finalOptions
     const colSlugs = ["entityName", "entityCode", "entityId", "year"].concat(
         columnSpecs.map((col) => col.slug!)
-    )
-
-    const valueGenerators = columnSpecs.map((col, index) =>
-        getRandomNumberGenerator(col.range![0], col.range![1], seed + index)
     )
 
     const entities = countryNames.length
@@ -586,9 +590,7 @@ export const SynthesizeOwidTable = (
                     country.code,
                     index,
                     year,
-                    ...columnSpecs.map((slug, index) =>
-                        valueGenerators[index]()
-                    ),
+                    ...columnSpecs.map((spec) => spec.generator!()),
                 ].join(",")
             )
             .join("\n")
