@@ -362,7 +362,7 @@ export class LineChart
                                     >
                                         {!value
                                             ? "No data"
-                                            : this.verticalAxis.formatTick(
+                                            : dualAxis.verticalAxis.formatTick(
                                                   value.y
                                                   //  ,{ noTrailingZeroes: false } // todo: add back?
                                               )}
@@ -374,20 +374,6 @@ export class LineChart
                 </table>
             </Tooltip>
         )
-    }
-
-    // todo: Refactor
-    @computed private get dualAxis() {
-        const { horizontalAxis, verticalAxis } = this
-        return new DualAxis({
-            bounds: this.bounds.padRight(
-                this.legendDimensions
-                    ? this.legendDimensions.width
-                    : this.defaultRightPadding
-            ),
-            verticalAxis,
-            horizontalAxis,
-        })
     }
 
     defaultRightPadding = 1
@@ -723,20 +709,28 @@ export class LineChart
         })
     }
 
-    @computed private get yAxis() {
-        const axis = this.options.yAxis || new AxisConfig(undefined, this)
-        axis.hideAxis = !!this.options.hideYAxis
-        return axis
+    // todo: Refactor
+    @computed private get dualAxis(): DualAxis {
+        return new DualAxis({
+            bounds: this.bounds.padRight(
+                this.legendDimensions
+                    ? this.legendDimensions.width
+                    : this.defaultRightPadding
+            ),
+            verticalAxis: this.verticalAxisPart,
+            horizontalAxis: this.horizontalAxisPart,
+        })
     }
 
-    @computed private get xAxis() {
-        const axis = this.options.xAxis || new AxisConfig(undefined, this)
-        axis.hideAxis = !!this.options.hideXAxis
-        return axis
+    @computed get verticalAxis() {
+        return this.dualAxis.verticalAxis
     }
 
-    @computed get horizontalAxis() {
-        const axis = this.xAxis.toHorizontalAxis()
+    @computed private get horizontalAxisPart() {
+        const xAxisConfig =
+            this.options.xAxis || new AxisConfig(undefined, this)
+        xAxisConfig.hideAxis = !!this.options.hideXAxis
+        const axis = xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             this.yColumn.startTimelineTime,
             this.yColumn.endTimelineTime,
@@ -749,19 +743,22 @@ export class LineChart
         return axis
     }
 
-    @computed private get yDomain(): ValueRange {
+    @computed private get verticalAxisPart() {
+        const { options } = this
+
+        const yAxisConfig =
+            this.options.yAxis || new AxisConfig(undefined, this)
+        yAxisConfig.hideAxis = !!this.options.hideYAxis
+
         const yDomain = this.yColumn.domain
-        const domain = this.yAxis.domain
-        return [
+        const domain = yAxisConfig.domain
+        const yDefaultDomain: ValueRange = [
             Math.min(domain[0], yDomain[0]),
             Math.max(domain[1], yDomain[1]),
         ]
-    }
 
-    @computed get verticalAxis() {
-        const { options, yDomain } = this
-        const axis = this.yAxis.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings(yDomain)
+        const axis = yAxisConfig.toVerticalAxis()
+        axis.updateDomainPreservingUserSettings(yDefaultDomain)
         if (options.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.yColumn.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
