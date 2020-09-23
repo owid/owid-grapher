@@ -446,7 +446,17 @@ export class SiteBaker {
             // If the chart is the same version, we can potentially skip baking the data and exports (which is by far the slowest part)
             const html = await fs.readFile(htmlPath, "utf8")
             const savedVersion = deserializeEmbeddedObject(html)
-            isSameVersion = savedVersion?.version === grapher.version
+            if (savedVersion) {
+                isSameVersion = savedVersion?.version === grapher.version
+            } else {
+                // TEMPORARY: remove else statement after first bake, since all charts should be
+                // converted to the new prettified embedding object.
+                const match = html.match(/jsonConfig\s*=\s*(\{.+\})/)
+                if (match) {
+                    const fileVersion = JSON.parse(match[1]).version
+                    isSameVersion = grapher.version === fileVersion
+                }
+            }
         } catch (err) {
             if (err.code !== "ENOENT") console.error(err)
         }
