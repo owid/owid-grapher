@@ -1,5 +1,6 @@
 #! /usr/bin/env yarn jest
 
+import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import { range } from "grapher/utils/Util"
 import { TimelineController, TimelineManager } from "./TimelineController"
 
@@ -52,9 +53,28 @@ it("can handle when an end handle is dragged past a start handle", () => {
     }
 
     const controller = new TimelineController(subject)
-    expect(controller.getTimeFromDrag(1901.5)).toBe(1902)
-    expect(controller.getTimeFromDrag(3000)).toBe(2009)
     controller.dragHandleToTime("end", 1950)
     expect(subject.startTime).toEqual(1950)
     expect(subject.endTime).toEqual(2000)
+})
+
+it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond end of timeline", () => {
+    const subject: TimelineManager = {
+        times: range(1900, 2010),
+        startTime: 2000,
+        endTime: 2005,
+        isPlaying: false,
+    }
+
+    const controller = new TimelineController(subject)
+
+    expect(controller.getTimeFromDrag(2009)).toBe(2009)
+    expect(controller.getTimeFromDrag(2009.1)).toBe(
+        TimeBoundValue.unboundedRight
+    )
+
+    expect(controller.getTimeFromDrag(1900)).toBe(1900)
+    expect(controller.getTimeFromDrag(1899.9)).toBe(
+        TimeBoundValue.unboundedLeft
+    )
 })

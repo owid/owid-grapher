@@ -1,4 +1,5 @@
 import { Time } from "grapher/core/GrapherConstants"
+import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import { findClosestTime, last } from "grapher/utils/Util"
 
 export interface TimelineManager {
@@ -138,6 +139,8 @@ export class TimelineController {
     }
 
     getTimeFromDrag(inputTime: Time) {
+        if (inputTime < this.minTime) return TimeBoundValue.unboundedLeft
+        if (inputTime > this.maxTime) return TimeBoundValue.unboundedRight
         return this.getClampedTime(
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
         )
