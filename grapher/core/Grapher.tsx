@@ -142,7 +142,7 @@ const legacyConfigToConfig = (
     const legacyConfig = config as LegacyGrapherInterface
     if (!legacyConfig.selectedData) return legacyConfig
 
-    const newConfig = legacyConfig as GrapherInterface
+    const newConfig = { ...legacyConfig } as GrapherInterface
     newConfig.selectedEntityIds = legacyConfig.selectedData.map(
         (row) => row.entityId
     )

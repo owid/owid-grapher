@@ -6,7 +6,6 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
-import { LoadingOverlay } from "grapher/loadingIndicator/LoadingOverlay"
 import { getChartComponent } from "./ChartTypeMap"
 import { MapChartWithLegend } from "grapher/mapCharts/MapChartWithLegend"
 import {
@@ -20,6 +19,7 @@ import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
 import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
 import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartConstants"
 import { ChartOptionsProvider } from "./ChartOptionsProvider"
+import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 
 export interface ChartTabOptionsProvider
     extends FooterOptionsProvider,
@@ -179,7 +179,7 @@ export class ChartTab
         const isMapTab = options.tab === "map"
 
         if (!this.isReady || (isMapTab && !options.mapColumn))
-            return <LoadingOverlay bounds={innerBounds} />
+            return <LoadingIndicator bounds={innerBounds} color="#333" />
 
         if (isMapTab)
             return (

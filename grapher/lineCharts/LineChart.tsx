@@ -456,7 +456,6 @@ export class LineChart
 
         const { options, bounds, tooltip, dualAxis, renderUid, hoverX } = this
         const { horizontalAxis, verticalAxis } = dualAxis
-        const { marks } = this
 
         const comparisonLines = options.comparisonLines || []
 
