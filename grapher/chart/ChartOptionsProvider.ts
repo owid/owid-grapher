@@ -42,4 +42,7 @@ export interface ChartOptionsProvider {
     xColumn?: AbstractCoreColumn
     sizeColumn?: AbstractCoreColumn
     colorColumn?: AbstractCoreColumn
+
+    hidePoints?: boolean // for line options
+    lineStrokeWidth?: number
 }

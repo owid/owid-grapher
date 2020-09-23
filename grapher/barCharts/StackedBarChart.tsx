@@ -557,11 +557,11 @@ export class StackedBarChart
     }
 
     @computed get yAxis() {
-        return this.options.yAxis || new AxisConfig()
+        return this.options.yAxis || new AxisConfig(undefined, this)
     }
 
     @computed get xAxis() {
-        return this.options.xAxis || new AxisConfig()
+        return this.options.xAxis || new AxisConfig(undefined, this)
     }
 
     @computed get verticalAxis() {

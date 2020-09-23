@@ -19,7 +19,7 @@ describe(ScatterPlot, () => {
         expect(chart.failMessage).toBeTruthy()
 
         table.selectAll()
-        expect(chart.getEntityNamesToShow()).toEqual(["Germany", "France"])
+        expect(chart.getEntityNamesToShow().length).toEqual(2)
         expect(chart.marks.length).toBeGreaterThan(5)
         expect(chart.availableTimes).toContain(2003)
     })

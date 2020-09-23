@@ -1,18 +1,16 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { computed } from "mobx"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { getChartComponent } from "grapher/chart/ChartTypeMap"
-import { Grapher } from "grapher/core/Grapher"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 
 interface FacetChartProps {
-    width: number
-    height: number
+    bounds?: Bounds
     number?: number
-    padding: number
     chartTypeName: ChartTypeName
-    options: Grapher
+    options: ChartOptionsProvider
 }
 
 // Facet by columnSlug. If the columnSlug is entityName than will do one chart per country. If it is an array of column slugs, then will do
@@ -21,34 +19,41 @@ interface FacetChartProps {
 interface SmallChart {
     bounds: Bounds
     chartTypeName: ChartTypeName
-    options: Grapher
+    options: ChartOptionsProvider
 }
 
 @observer
-export class FacetChart extends React.Component<FacetChartProps> {
+export class CountryFacet extends React.Component<FacetChartProps> {
     @computed protected get smallCharts() {
-        const { options, chartTypeName } = this.props
-        return this.bounds
-            .split(this.props.number || 1, this.props.padding)
-            .map((bounds) => {
-                return {
-                    bounds,
-                    chartTypeName,
-                    options,
-                } as SmallChart
-            })
+        const { rootTable, rootOptions } = this
+        const { chartTypeName } = this.props
+        const count = rootTable.availableEntityNames.length
+        const boundsArr = this.bounds.split(count)
+
+        return rootTable.availableEntityNames.map((name, index) => {
+            const table = rootTable.clone()
+            table.selectEntity(name)
+            const options = {
+                ...rootOptions,
+                table,
+            }
+            return {
+                bounds: boundsArr[index],
+                chartTypeName,
+                options,
+            } as SmallChart
+        })
     }
 
-    @computed get bounds() {
-        const { width, height } = this.props
-        return new Bounds(0, 0, width, height)
+    @computed protected get bounds() {
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get rootTable() {
+    @computed protected get rootTable() {
         return this.rootOptions.table
     }
 
-    @computed get rootOptions() {
+    @computed protected get rootOptions() {
         return this.props.options
     }
 
@@ -68,36 +73,11 @@ export class FacetChart extends React.Component<FacetChartProps> {
     }
 
     render() {
-        const { width, height } = this.props
+        const { width, height } = this.bounds
         return (
             <svg width={width} height={height}>
                 {this.renderSmallCharts()}
             </svg>
         )
-    }
-}
-
-@observer
-export class CountryFacet extends FacetChart {
-    @computed protected get smallCharts() {
-        const { rootTable, rootOptions } = this
-        const { chartTypeName } = this.props
-        const count = rootTable.availableEntityNames.length
-        const boundsArr = this.bounds.split(count)
-
-        return rootTable.availableEntityNames.map((name, index) => {
-            const table = rootTable.clone()
-            table.selectEntity(name)
-            const config = rootOptions.toObject()
-            const options = new Grapher({
-                ...config,
-                table,
-            })
-            return {
-                bounds: boundsArr[index],
-                chartTypeName,
-                options,
-            } as SmallChart
-        })
     }
 }

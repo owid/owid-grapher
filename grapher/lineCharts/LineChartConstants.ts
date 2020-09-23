@@ -1,5 +1,6 @@
 import { EntityName } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
+import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { Color } from "grapher/core/GrapherConstants"
 import { PointVector } from "grapher/utils/PointVector"
 
@@ -24,4 +25,11 @@ export interface LinesProps {
     placedMarks: PlacedLineChartMark[]
     focusedEntities: EntityName[]
     onHover: (hoverX: number | undefined) => void
+    hidePoints?: boolean
+    lineStrokeWidth?: number
+}
+
+export interface LineChartOptionsProvider extends ChartOptionsProvider {
+    hidePoints?: boolean
+    lineStrokeWidth?: number
 }

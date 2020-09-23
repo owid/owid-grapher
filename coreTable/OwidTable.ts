@@ -16,6 +16,7 @@ import {
     getRandomNumberGenerator,
     range,
     findClosestTimeIndex,
+    sampleFrom,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { EPOCH_DATE, Time, TimeRange } from "grapher/core/GrapherConstants"
@@ -36,6 +37,7 @@ import {
     CoreRow,
     SelectionColumn,
 } from "./CoreTable"
+import { countries } from "utils/countries"
 
 export interface OwidColumnSpec extends CoreColumnSpec {
     owidVariableId?: LegacyVariableId
@@ -541,6 +543,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
 interface SynthOptions {
     countryCount: number
+    countryNames: string[]
     timeRange: TimeRange
     columnSpecs: OwidColumnSpec[]
 }
@@ -551,6 +554,7 @@ export const SynthesizeOwidTable = (
     seed = Date.now()
 ) => {
     const finalOptions = {
+        countryNames: [],
         countryCount: 2,
         timeRange: [1950, 2020],
         columnSpecs: [
@@ -559,7 +563,7 @@ export const SynthesizeOwidTable = (
         ] as OwidColumnSpec[],
         ...options,
     }
-    const { countryCount, columnSpecs, timeRange } = finalOptions
+    const { countryCount, columnSpecs, timeRange, countryNames } = finalOptions
     const colSlugs = ["entityName", "entityCode", "entityId", "year"].concat(
         columnSpecs.map((col) => col.slug!)
     )
@@ -568,26 +572,18 @@ export const SynthesizeOwidTable = (
         getRandomNumberGenerator(col.range![0], col.range![1], seed + index)
     )
 
-    // todo: support N countries
-    const countries = [
-        "Germany",
-        "France",
-        "Iceland",
-        "Australia",
-        "China",
-        "Nigeria",
-        "Brazil",
-        "Canada",
-        "Fiji",
-        "Japan",
-    ].slice(0, countryCount)
+    const entities = countryNames.length
+        ? (countryNames as string[]).map((name) =>
+              countries.find((country) => country.name === name)
+          )
+        : sampleFrom(countries, countryCount, seed)
 
-    const rows = countries.map((country, index) =>
+    const rows = entities.map((country, index) =>
         range(timeRange[0], timeRange[1])
             .map((year) =>
                 [
-                    country,
-                    country.substr(0, 3).toUpperCase(),
+                    country.name,
+                    country.code,
                     index,
                     year,
                     ...columnSpecs.map((slug, index) =>

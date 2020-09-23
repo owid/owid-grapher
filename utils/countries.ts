@@ -1509,9 +1509,8 @@ export const countries: Country[] = allCountriesSortedByCode.filter(
     (country) => !country.filter
 )
 
-export const getCountry = (slug: string): Country | undefined => {
-    return countries.find((c) => c.slug === slug)
-}
+export const getCountry = (slug: string) =>
+    countries.find((c) => c.slug === slug)
 
 export const getCountryDetectionRedirects = () =>
     countries

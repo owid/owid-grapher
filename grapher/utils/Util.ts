@@ -122,6 +122,7 @@ import {
     ScaleType,
     EPOCH_DATE,
     Time,
+    Integer,
 } from "grapher/core/GrapherConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
@@ -584,12 +585,30 @@ export function stripHTML(html: string): string {
 // Math.rand doesn't have between nor seed. Lodash's Random doesn't take a seed, making it bad for testing.
 // So we have our own *very* psuedo-RNG.
 export const getRandomNumberGenerator = (
-    min = 0,
-    max = 1,
+    min: Integer = 0,
+    max: Integer = 100,
     seed = Date.now()
-) => () => {
+) => (): Integer => {
     const semiRand = Math.sin(seed++) * 10000
     return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
+}
+
+export const sampleFrom = (collection: any[], howMany: number, seed: number) =>
+    shuffleArray(collection, seed).slice(0, howMany)
+
+// A seeded array shuffle
+// https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+const shuffleArray = (array: any[], seed = Date.now()) => {
+    const rand = getRandomNumberGenerator(0, 100, seed)
+    const clonedArr = array.slice()
+    for (let index = clonedArr.length - 1; index > 0; index--) {
+        const replacerIndex = Math.floor((rand() / 100) * (index + 1))
+        ;[clonedArr[index], clonedArr[replacerIndex]] = [
+            clonedArr[replacerIndex],
+            clonedArr[index],
+        ]
+    }
+    return clonedArr
 }
 
 export function findClosestTimeIndex(

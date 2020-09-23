@@ -26,7 +26,6 @@ import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { extent } from "d3-array"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { EntityName } from "coreTable/CoreTableConstants"
 import {
     BASE_FONT_SIZE,
@@ -36,7 +35,11 @@ import {
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-import { LinesProps, LineChartMark } from "./LineChartConstants"
+import {
+    LinesProps,
+    LineChartMark,
+    LineChartOptionsProvider,
+} from "./LineChartConstants"
 
 const BLUR_COLOR = "#eee"
 
@@ -96,6 +99,7 @@ class Lines extends React.Component<LinesProps> {
     // Don't display point markers if there are very many of them for performance reasons
     // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
     @computed private get hasMarkers() {
+        if (this.props.hidePoints) return false
         return (
             sum(
                 this.props.placedMarks.map(
@@ -103,6 +107,10 @@ class Lines extends React.Component<LinesProps> {
                 )
             ) < 500
         )
+    }
+
+    @computed private get strokeWidth() {
+        return this.props.lineStrokeWidth ?? 1.5
     }
 
     private renderFocusGroups() {
@@ -118,7 +126,7 @@ class Lines extends React.Component<LinesProps> {
                         ]) as [number, number][]
                     )}
                     fill="none"
-                    strokeWidth={1.5}
+                    strokeWidth={this.strokeWidth}
                     strokeDasharray={series.isProjection ? "1,4" : undefined}
                 />
                 {this.hasMarkers && !series.isProjection && (
@@ -206,7 +214,7 @@ class Lines extends React.Component<LinesProps> {
 export class LineChart
     extends React.Component<{
         bounds?: Bounds
-        options: ChartOptionsProvider
+        options: LineChartOptionsProvider
     }>
     implements ChartInterface, LineLegendOptionsProvider {
     base: React.RefObject<SVGGElement> = React.createRef()
@@ -478,9 +486,9 @@ export class LineChart
                     showTickMarks={true}
                 />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
-                    {comparisonLines.map((line, i) => (
+                    {comparisonLines.map((line, index) => (
                         <ComparisonLine
-                            key={i}
+                            key={index}
                             dualAxis={dualAxis}
                             comparisonLine={line}
                         />
@@ -489,8 +497,10 @@ export class LineChart
                     <Lines
                         dualAxis={dualAxis}
                         placedMarks={this.placedMarks}
+                        hidePoints={this.options.hidePoints}
                         onHover={this.onHover}
                         focusedEntities={this.focusedEntityNames}
+                        lineStrokeWidth={this.options.lineStrokeWidth}
                     />
                 </g>
                 {hoverX !== undefined && (
@@ -707,12 +717,12 @@ export class LineChart
         })
     }
 
-    @computed get xAxis() {
-        return this.options.xAxis ?? new AxisConfig()
+    @computed get yAxis() {
+        return this.options.yAxis || new AxisConfig(undefined, this)
     }
 
-    @computed get yAxis() {
-        return this.options.yAxis ?? new AxisConfig()
+    @computed get xAxis() {
+        return this.options.xAxis || new AxisConfig(undefined, this)
     }
 
     @computed get horizontalAxis() {
