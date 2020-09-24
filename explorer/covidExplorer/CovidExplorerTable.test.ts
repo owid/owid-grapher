@@ -32,7 +32,7 @@ describe("generateContinentRows", () => {
 
 describe("build covid column", () => {
     const dataTable = new CovidExplorerTable(covidSampleRows)
-    dataTable.table.addRollingAverageColumn(
+    dataTable.addRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
         3,
         (row) => row.total_cases,
@@ -63,8 +63,9 @@ describe("build covid column", () => {
             day: index,
         })
     }
-    const table = new AnyTable(rows)
-    table.addRollingAverageColumn(
+
+    const dataTable2 = new CovidExplorerTable(rows as any)
+    dataTable2.addRollingAverageColumn(
         { slug: "weeklyCases" },
         7,
         (row) => row.cases,
@@ -74,20 +75,21 @@ describe("build covid column", () => {
     )
 
     it("correctly builds weekly average", () => {
-        expect(table.rows[3].weeklyCases).toEqual(70)
+        expect(dataTable2.table.rows[3].weeklyCases).toEqual(70)
     })
 
-    table.addRollingAverageColumn(
-        { slug: "weeklyChange" },
-        7,
-        (row) => row.cases,
-        "day",
-        "entityName",
-        7,
-        7
-    )
-
     it("correctly builds weekly change", () => {
+        dataTable2.addRollingAverageColumn(
+            { slug: "weeklyChange" },
+            7,
+            (row) => row.cases,
+            "day",
+            "entityName",
+            7,
+            7
+        )
+
+        const table = dataTable2.table
         expect(table.rows[3].weeklyChange).toEqual(undefined)
         expect(table.rows[8].weeklyChange).toEqual(0)
         expect(table.rows[21].weeklyChange).toEqual(100)
@@ -156,15 +158,15 @@ describe(getLeastUsedColor, () => {
 describe("do not include unselected groups in aligned charts", () => {
     const dataTable = new CovidExplorerTable(covidSampleRows)
     it("can filter rows without continent", () => {
-        expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
-        dataTable.addGroupFilterColumn()
-        expect(dataTable.table.unfilteredEntities.has("World")).toBeFalsy()
+        expect(dataTable.table.availableEntityNameSet.has("World")).toBeTruthy()
+        dataTable.applyFilters({} as any, "")
+        expect(dataTable.table.availableEntityNameSet.has("World")).toBeFalsy()
         dataTable.table.selectEntity("World")
-        expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
+        expect(dataTable.table.availableEntityNameSet.has("World")).toBeTruthy()
         dataTable.table.deselectEntity("World")
-        expect(dataTable.table.unfilteredEntities.has("World")).toBeFalsy()
+        expect(dataTable.table.availableEntityNameSet.has("World")).toBeFalsy()
         dataTable.table.setSelectedEntities(["World"])
-        expect(dataTable.table.unfilteredEntities.has("World")).toBeTruthy()
+        expect(dataTable.table.availableEntityNameSet.has("World")).toBeTruthy()
     })
 })
 

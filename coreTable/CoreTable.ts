@@ -12,18 +12,8 @@ import {
     formatValue,
     parseDelimited,
     slugifySameCase,
-    computeRollingAverage,
-    insertMissingValuePlaceholders,
 } from "grapher/utils/Util"
-import {
-    cloneDeep,
-    uniq,
-    sortBy,
-    isString,
-    last,
-    sortedUniq,
-    flatten,
-} from "lodash"
+import { sortBy, isString, last, sortedUniq } from "lodash"
 import { observable, action, computed } from "mobx"
 import { ColumnSlug, ColumnTypeNames, EntityName } from "./CoreTableConstants"
 import {
@@ -48,7 +38,7 @@ export interface CoreColumnSpec {
 }
 
 export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
-    @observable.ref private _rows: ROW_TYPE[]
+    @observable.ref protected _rows: ROW_TYPE[]
     @observable protected _columns: Map<
         ColumnSlug,
         AbstractCoreColumn
@@ -56,14 +46,39 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     constructor(
         rows: ROW_TYPE[] = [],
-        columnSpecs:
-            | MapOfColumnSpecs
-            | CoreColumnSpec[]
-            | ObjectOfColumnSpecs = AbstractCoreTable.makeSpecsFromRows(rows)
+        columnSpecs: CoreColumnSpec[] = AbstractCoreTable.makeSpecsFromRows(
+            rows
+        )
     ) {
         this._rows = rows
-        this.addSpecs(columnSpecs)
+        this.setColumns(columnSpecs)
         // Todo: add warning if you provide Specs but not for all cols?
+    }
+
+    // Todo: make immutable? Return a new table?
+    private setColumns(columnSpecs: CoreColumnSpec[]) {
+        const cols = this._columns
+        columnSpecs.forEach((spec) => {
+            const { slug, type } = spec
+            const columnType = (type && columnTypeMap[type]) || AnyColumn
+            cols.set(slug, new columnType(this, spec))
+        })
+
+        // Todo: clone rows before doing this, to ensure immutability.
+        // Set computeds
+        columnSpecs
+            .filter((spec) => spec.fn)
+            .forEach((spec) => {
+                const { fn, slug } = spec
+                this.rows.forEach((row, index) => {
+                    ;(row as any)[slug] = fn!(row, index, this)
+                })
+            })
+    }
+
+    // Todo: make immutable? Return a new table?
+    @action.bound addColumnSpecs(columnSpecs: CoreColumnSpec[]) {
+        this.setColumns(columnSpecs)
     }
 
     @computed get rows() {
@@ -99,29 +114,6 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.timeColumnFormatFunction(value)
     }
 
-    // Todo: make immutable? Return a new table?
-    @action.bound addSpecs(
-        columnSpecs: MapOfColumnSpecs | ObjectOfColumnSpecs | CoreColumnSpec[],
-        overwriteExistingSpec = false
-    ) {
-        if (Array.isArray(columnSpecs))
-            columnSpecs = new Map(columnSpecs.map((spec) => [spec.slug, spec]))
-        else if (!(columnSpecs instanceof Map))
-            columnSpecs = new Map(
-                Object.entries(columnSpecs as ObjectOfColumnSpecs)
-            )
-        const specs = columnSpecs as MapOfColumnSpecs
-        const cols = this._columns
-        Array.from(specs.keys()).forEach((slug) => {
-            const spec = specs.get(slug)!
-            const columnType =
-                (spec.type && columnTypeMap[spec.type]) || AnyColumn
-            // At the moment we do not overwrite existing columns
-            if (overwriteExistingSpec || !cols.has(slug))
-                cols.set(slug, new columnType(this, spec))
-        })
-    }
-
     static guessColumnSpec(slug: string) {
         if (slug === "day")
             return {
@@ -138,108 +130,23 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return { slug }
     }
 
-    static makeSpecsFromRows(rows: any[]): MapOfColumnSpecs {
-        const map = new Map()
+    static makeSpecsFromRows(rows: any[]) {
+        const map: ObjectOfColumnSpecs = {}
         // Todo: type detection
+        // todo: just sample a few rows?
         rows.forEach((row) => {
             Object.keys(row).forEach((slug) => {
-                map.set(slug, AbstractCoreTable.guessColumnSpec(slug))
+                map[slug] = AbstractCoreTable.guessColumnSpec(slug)
             })
         })
-        return map
+        return Object.values(map)
     }
 
-    // todo: make immutable? return a new table?
-    @action.bound deleteColumnBySlug(slug: ColumnSlug) {
-        this.rows.forEach((row) => delete row[slug])
-        this._columns.delete(slug)
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound addFilterColumn(
-        slug: ColumnSlug,
-        predicate: ComputedColumnFn
-    ) {
-        this._addComputedColumn(new FilterColumn(this, { slug, fn: predicate }))
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound addSelectionColumn(
-        slug: ColumnSlug,
-        predicate: (row: CoreRow) => boolean
-    ) {
-        this._addComputedColumn(
-            new SelectionColumn(this, { slug, fn: predicate })
-        )
-    }
-
-    // todo: make immutable? return a new table?
-    private _addComputedColumn(column: AbstractCoreColumn) {
-        const slug = column.spec.slug
-        this._columns.set(slug, column)
-        const fn = column.spec.fn!
-        this.rows.forEach((row, index) => {
-            ;(row as any)[slug] = fn(row, index, this)
-        })
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound addStringColumnSpec(spec: CoreColumnSpec) {
-        this._columns.set(spec.slug, new StringColumn(this, spec))
-        return this
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound addCategoricalColumnSpec(spec: CoreColumnSpec) {
-        this._columns.set(spec.slug, new CategoricalColumn(this, spec))
-        return this
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound addNumericComputedColumn(
-        spec: CoreColumnSpec & HasComputedColumn
-    ) {
-        this._addComputedColumn(new NumericColumn(this, spec))
-        return this
-    }
-
-    // todo: make immutable? return a new table?
-    // todo: this won't work when adding rows dynamically
-    @action.bound addRollingAverageColumn(
-        spec: CoreColumnSpec,
-        windowSize: Integer,
-        valueAccessor: (row: CoreRow) => any,
-        dateColName: ColumnSlug,
-        groupBy: ColumnSlug,
-        multiplier = 1,
-        intervalChange?: number,
-        transformation: (fn: ComputedColumnFn) => ComputedColumnFn = (fn) => (
-            row,
-            index
-        ) => fn(row, index)
-    ) {
-        const averages = computeRollingAveragesForEachGroup(
-            this.rows,
-            valueAccessor,
-            groupBy,
-            dateColName,
-            windowSize
-        )
-
-        const computeIntervalTotals: ComputedColumnFn = (row, index) => {
-            const val = averages[index!]
-            if (!intervalChange) return val ? val * multiplier : val
-            const previousValue = averages[index! - intervalChange]
-            return previousValue === undefined || previousValue === 0
-                ? undefined
-                : (100 * (val - previousValue)) / previousValue
-        }
-
-        this._addComputedColumn(
-            new NumericColumn(this, {
-                ...spec,
-                fn: transformation(computeIntervalTotals),
-            })
+    // todo: speed up
+    filterBy(predicate: (row: CoreRow) => boolean) {
+        return new AnyTable(
+            this.rows.filter(predicate),
+            this.columnsAsArray.map((col) => col.spec)
         )
     }
 
@@ -261,96 +168,42 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             .map((col) => col.slug)
     }
 
-    @computed get isSelectedFn() {
-        const selectionColumnSlugs = this.selectionColumnSlugs
-        return selectionColumnSlugs.length
-            ? (row: CoreRow) => selectionColumnSlugs.some((slug) => row[slug])
-            : undefined
-    }
+    @observable.ref protected selectedRows = new Set<CoreRow>()
 
     isSelected(row: CoreRow) {
-        return this.isSelectedFn && this.isSelectedFn(row)
+        return this.selectedRows.has(row)
     }
 
-    @computed get selectedRows() {
-        const isSelectedFn = this.isSelectedFn
-        return isSelectedFn ? this.rows.filter((row) => isSelectedFn(row)) : []
+    @action.bound selectRows(rows: CoreRow[]) {
+        rows.forEach((row) => {
+            this.selectedRows.add(row)
+        })
     }
 
-    @computed get unselectedRows() {
-        const isSelectedFn = this.isSelectedFn
-        return isSelectedFn
-            ? this.rows.filter((row) => !isSelectedFn(row))
-            : this.rows
+    @action.bound selectAll() {
+        this.selectRows(this.rows)
     }
 
-    // todo: remove?
-    getLabelForEntityName(entityName: string) {
-        return entityName
+    @action.bound deselectRows(rows: CoreRow[]) {
+        rows.forEach((row) => {
+            this.selectedRows.delete(row)
+        })
     }
 
-    @computed get unselectedEntityNames() {
-        return this.unselectedRows.map((row) => row.entityName)
-    }
-
-    @computed get selectedEntityNames() {
-        return uniq(this.selectedRows.map((row) => row.entityName))
+    @computed protected get unselectedRows() {
+        return this.rows.filter((row) => !this.selectedRows.has(row))
     }
 
     @computed get hasSelection() {
-        return this.selectedEntityNames.length
+        return this.selectedRows.size > 0
     }
 
-    // Currently only used for debugging
-    get filteredRows() {
-        const unfiltered = new Set(this.unfilteredRows)
-        return this.rows.filter((row) => !unfiltered.has(row))
-    }
-
-    @computed get unfilteredRows() {
-        const filterFn = this.combinedFilterFn
-        const res = this.filterColumns.length
-            ? this.rows.filter((row) => filterFn(row))
-            : this.rows
-
-        return res
-    }
-
-    // Todo: probably remove this and do derived tables instead.
-    @computed private get combinedFilterFn() {
-        const filterColumns = this.filterColumns.filter((col) => col.spec.fn)
-
-        return (row: CoreRow) => {
-            return filterColumns.every((col, index) => {
-                row[col.slug] = col.spec.fn!(row, index, this)
-                return row[col.slug]
-            })
-        }
-    }
-
-    @computed private get filterColumns() {
-        return this.columnsAsArray.filter((col) => col instanceof FilterColumn)
-    }
-
-    @computed private get selectionColumnSlugs() {
-        return this.columnsAsArray
-            .filter((col) => col instanceof SelectionColumn)
-            .map((col) => col.slug)
+    @action.bound clearSelection() {
+        this.selectedRows.clear()
     }
 
     @computed get columnsAsArray() {
         return Array.from(this._columns.values())
-    }
-
-    // for debugging
-    rowsWith(query: string) {
-        const slugs = this.columnSlugs
-        return this.rows.filter((row) =>
-            slugs
-                .map((slug) => `${slug} ${row[slug] ?? ""}`)
-                .join(" ")
-                .includes(query)
-        )
     }
 
     extract(slugs = this.columnSlugs) {
@@ -387,13 +240,6 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             .map((row) => row.join(delimiter))
             .join(rowDelimiter)
         return header + body
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound cloneAndAddRowsAndDetectColumns(rows: ROW_TYPE[]) {
-        this._rows = this.rows.concat(cloneDeep(rows))
-        this.addSpecs(AbstractCoreTable.makeSpecsFromRows(rows))
-        return this
     }
 
     // Get all the columns that only have 1 value
@@ -455,7 +301,9 @@ class TableView {
 }
 
 export declare type MapOfColumnSpecs = Map<ColumnSlug, CoreColumnSpec>
-declare type ObjectOfColumnSpecs = { [columnSlug: string]: CoreColumnSpec }
+export declare type ObjectOfColumnSpecs = {
+    [columnSlug: string]: CoreColumnSpec
+}
 
 // An AnyTable is a Table with 0 or more columns of any type.
 export class AnyTable extends AbstractCoreTable<CoreRow> {
@@ -703,13 +551,13 @@ export abstract class AbstractCoreColumn {
 
     @computed private get allValues() {
         const slug = this.spec.slug
-        return this.table.unfilteredRows.map((row) => row[slug])
+        return this.table.rows.map((row) => row[slug])
     }
 
     // Rows containing a value for this column
     @computed get rowsWithValue() {
         const slug = this.spec.slug
-        return this.table.unfilteredRows.filter(
+        return this.table.rows.filter(
             (row) => row[slug] !== undefined && row[slug] !== ""
         )
     }
@@ -773,8 +621,6 @@ class StringColumn extends AbstractCoreColumn {}
 
 class CategoricalColumn extends AbstractCoreColumn {}
 class BooleanColumn extends AbstractCoreColumn {}
-class FilterColumn extends BooleanColumn {}
-export class SelectionColumn extends BooleanColumn {}
 export class NumericColumn extends AbstractCoreColumn {
     formatValueShort(value: number, options?: TickFormattingOptions) {
         const numDecimalPlaces = this.numDecimalPlaces
@@ -913,40 +759,6 @@ class RatioColumn extends NumericColumn {
             numberPrefixes: true,
         })
     }
-}
-
-// Todo: replace with someone else's library
-const computeRollingAveragesForEachGroup = (
-    rows: CoreRow[],
-    valueAccessor: (row: CoreRow) => any,
-    groupColName: string,
-    dateColName: string,
-    rollingAverage: number
-) => {
-    const groups: number[][] = []
-    let currentGroup = rows[0][groupColName]
-    let currentRows: CoreRow[] = []
-    // Assumes items are sorted by entity
-    for (let i = 0; i <= rows.length; i++) {
-        const row = rows[i]
-        const groupName = row && row[groupColName]
-
-        if (currentGroup !== groupName) {
-            const averages = computeRollingAverage(
-                insertMissingValuePlaceholders(
-                    currentRows.map(valueAccessor),
-                    currentRows.map((row) => row[dateColName])
-                ),
-                rollingAverage
-            ).filter((value) => value !== null) as number[]
-            groups.push(averages)
-            if (!row) break
-            currentRows = []
-            currentGroup = groupName
-        }
-        currentRows.push(row)
-    }
-    return flatten(groups)
 }
 
 const columnTypeMap: { [key in ColumnTypeNames]: any } = {

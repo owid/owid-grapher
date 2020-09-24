@@ -18,6 +18,7 @@ import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { OwidTable } from "coreTable/OwidTable"
 
 const NO_DATA_LABEL = "No data"
 
@@ -28,6 +29,7 @@ export interface ColorScaleOptionsProvider {
     defaultNoDataColor?: string
     defaultBaseColorScheme?: string
     colorScaleColumn?: AbstractCoreColumn
+    table?: OwidTable
 }
 
 export class ColorScale {
@@ -102,7 +104,7 @@ export class ColorScale {
     }
 
     @computed get formatCategoricalValue(): (v: string) => string {
-        return this.colorScaleColumn?.table.getLabelForEntityName ?? identity
+        return this.options.table?.getLabelForEntityName ?? identity
     }
 
     @computed get legendDescription() {

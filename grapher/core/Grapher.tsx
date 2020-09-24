@@ -25,8 +25,6 @@ import {
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,
-    extend,
-    trimObject,
     max,
     isVisible,
     VNode,
@@ -50,12 +48,15 @@ import {
     OverlayPadding,
     CookieKeys,
 } from "grapher/core/GrapherConstants"
-import { LegacyVariablesAndEntityKey } from "coreTable/LegacyVariableCode"
+import {
+    LegacyChartDimensionInterface,
+    LegacyVariablesAndEntityKey,
+} from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
 import { OwidColumnSpec, OwidTable } from "coreTable/OwidTable"
 import {
     ChartDimension,
-    ChartDimensionInterface,
+    LegacyDimensionsOptionsProvider,
 } from "grapher/chart/ChartDimension"
 import {
     GrapherQueryParams,
@@ -236,6 +237,7 @@ export class Grapher
         SourcesTabOptionsProvider,
         DownloadTabOptionsProvider,
         DiscreteBarChartOptionsProvider,
+        LegacyDimensionsOptionsProvider,
         MapChartOptionsProvider {
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -249,22 +251,9 @@ export class Grapher
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     configOnLoad: Readonly<GrapherInterface>
-    @observable.ref private rootTable: OwidTable
+    @observable.ref rootTable: OwidTable
 
     private legacyConfig?: Partial<LegacyGrapherInterface>
-
-    @computed get table() {
-        return this.rootTable
-    }
-
-    set table(table: OwidTable) {
-        this.rootTable = table
-    }
-
-    @computed get timelineFilteredTable() {
-        // const this.timeDomain
-        return this.table
-    }
 
     constructor(props: GrapherProps = {}) {
         super(props!)
@@ -291,15 +280,6 @@ export class Grapher
                     }
                 )
             )
-
-        this.disposers.push(
-            reaction(
-                () => this.minPopulationFilter,
-                () => {
-                    this.updatePopulationFilter()
-                }
-            )
-        )
 
         this.url = new GrapherUrl(this, modernConfig, this.bakedGrapherURL)
 
@@ -459,7 +439,36 @@ export class Grapher
     }
 
     setTimeFromTimeQueryParam(time: string) {
-        this.timeDomain = getTimeDomainFromQueryString(time)
+        this.timelineFilter = getTimeDomainFromQueryString(time)
+    }
+
+    @computed get table() {
+        let table = this.rootTable
+        // todo: could make these separate memoized computeds to speed up
+        // todo: add cross filtering. 1 dimension at a time.
+        table = this.filterByPop(table)
+        table = this.filterByTime(table)
+
+        return table
+    }
+
+    set table(table: OwidTable) {
+        this.rootTable = table
+    }
+
+    private filterByPop(table: OwidTable) {
+        const minPop = this.minPopulationFilter
+        if (!minPop) return table
+        return table.filterBy((row) => {
+            const name = row.entityName
+            const pop = populationMap[name]
+            return !pop || table.isSelected(row) || pop >= minPop
+        })
+    }
+
+    private filterByTime(table: OwidTable) {
+        if (false) return table
+        return table.filterByTime(...this.timelineFilter)
     }
 
     @observable.ref isMediaCard: boolean
@@ -542,53 +551,17 @@ export class Grapher
         this._receiveLegacyData(json)
     }
 
-    // todo: migrate existing graphers and remove
-    @action.bound applyLegacyUnitConversionFactors() {
-        const table = this.table
-        table.columnsAsArray
-            .filter((col) => col.display.conversionFactor !== undefined)
-            .forEach((col) => {
-                table.applyUnitConversionAndOverwriteLegacyColumn(
-                    col.display.conversionFactor!,
-                    (col.spec as OwidColumnSpec).owidVariableId!
-                )
-            })
-
-        this.dimensions
-            .filter((dim) => dim.display?.conversionFactor !== undefined)
-            .forEach((dimension) => {
-                table.applyUnitConversionAndOverwriteLegacyColumn(
-                    dimension.display!.conversionFactor!,
-                    dimension.variableId
-                )
-            })
-    }
-
-    // todo: migrate existing graphers and remove
-    @action.bound private applyLegacyChartDimensionDisplaySettings() {
-        this.filledDimensions.forEach((dimension) => {
-            dimension.column.spec.display = extend(
-                trimObject(dimension.column.spec.display),
-                trimObject(dimension.display)
-            )
-        })
-    }
-
     @action.bound private _receiveLegacyData(
         json: LegacyVariablesAndEntityKey
     ) {
-        const table = OwidTable.fromLegacy(json)
+        const table = OwidTable.fromLegacy(json, this.dimensions)
         this.rootTable = table
-
-        this.applyLegacyUnitConversionFactors()
-        this.applyLegacyChartDimensionDisplaySettings()
 
         if (this.selectedEntityIds.length)
             table.setSelectedEntitiesByEntityId(this.selectedEntityIds)
         else if (this.selectedEntityNames.length)
             table.setSelectedEntities(this.selectedEntityNames)
         // Todo: load colors
-        this.updatePopulationFilter() // todo: remove
     }
 
     // todo: refactor
@@ -677,7 +650,8 @@ export class Grapher
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === "map") return this.mapColumn?.timelineTimes || []
-        return this.table.allTimes
+        // todo: filter out min times and end times?
+        return this.rootTable.allTimes
     }
 
     // todo: remove ifs
@@ -686,7 +660,7 @@ export class Grapher
         if (activeTab === "table")
             return (
                 // todo: readd this behavior. this.dataTableTransform.autoSelectedStartTime ??
-                this.timeDomain[0]
+                this.timelineFilter[0]
             )
         else if (activeTab === "map")
             return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
@@ -695,16 +669,16 @@ export class Grapher
 
     // todo: remove ifs
     set startTime(newValue: Time) {
-        if (this.tab === "map") this.timeDomain = [newValue, newValue]
-        else this.timeDomain = [newValue, this.timeDomain[1]]
+        if (this.tab === "map") this.timelineFilter = [newValue, newValue]
+        else this.timelineFilter = [newValue, this.timelineFilter[1]]
     }
 
     // todo: remove ifs
     set endTime(value: Time) {
         const activeTab = this.tab
         if (activeTab === "map" || activeTab === "table")
-            this.timeDomain = [value, value]
-        else this.timeDomain = [this.timeDomain[0], value]
+            this.timelineFilter = [value, value]
+        else this.timelineFilter = [this.timelineFilter[0], value]
     }
 
     // todo: remove ifs
@@ -775,18 +749,6 @@ export class Grapher
         return this.baseFontSize
     }
 
-    updatePopulationFilter() {
-        const slug = "pop_filter"
-        const minPop = this.minPopulationFilter
-        if (!minPop) this.table.deleteColumnBySlug(slug)
-        else
-            this.table.addFilterColumn(slug, (row, index, table) => {
-                const name = row.entityName
-                const pop = populationMap[name]
-                return !pop || pop >= minPop || table!.isSelected(row)
-            })
-    }
-
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing() {
@@ -815,7 +777,10 @@ export class Grapher
             if (!slot.allowMultiple)
                 validDimensions = uniqWith(
                     validDimensions,
-                    (a: ChartDimensionInterface, b: ChartDimensionInterface) =>
+                    (
+                        a: LegacyChartDimensionInterface,
+                        b: LegacyChartDimensionInterface
+                    ) =>
                         a.property === slot.property &&
                         a.property === b.property
                 )
@@ -849,9 +814,9 @@ export class Grapher
     @action.bound private revertDataTableSpecificState() {
         /** If the start year was autoselected in the DataTable, revert. */
         if (!this.userHasSetTimeline)
-            this.timeDomain = [
+            this.timelineFilter = [
                 this.configOnLoad.minTime ?? TimeBoundValue.unboundedLeft,
-                this.timeDomain[1],
+                this.timelineFilter[1],
             ]
 
         /** Revert the state of minPopulationFilter */
@@ -880,7 +845,7 @@ export class Grapher
         }
     }
 
-    @computed get timeDomain(): TimeBounds {
+    @computed get timelineFilter(): TimeBounds {
         return [
             // Handle `undefined` values in minTime/maxTime
             minTimeFromJSON(this.minTime),
@@ -888,7 +853,7 @@ export class Grapher
         ]
     }
 
-    set timeDomain(value: TimeBounds) {
+    set timelineFilter(value: TimeBounds) {
         this.minTime = value[0]
         this.maxTime = value[1]
     }
@@ -910,30 +875,30 @@ export class Grapher
         return this.isReady ? this.dimensions : []
     }
 
-    @action.bound addDimension(config: ChartDimensionInterface) {
-        this.dimensions.push(new ChartDimension(config, this.table))
+    @action.bound addDimension(config: LegacyChartDimensionInterface) {
+        this.dimensions.push(new ChartDimension(config, this))
     }
 
     @action.bound setDimensionsForProperty(
         property: DimensionProperty,
-        newConfigs: ChartDimensionInterface[]
+        newConfigs: LegacyChartDimensionInterface[]
     ) {
         let newDimensions: ChartDimension[] = []
         this.dimensionSlots.forEach((slot) => {
             if (slot.property === property)
                 newDimensions = newDimensions.concat(
-                    newConfigs.map(
-                        (config) => new ChartDimension(config, this.table)
-                    )
+                    newConfigs.map((config) => new ChartDimension(config, this))
                 )
             else newDimensions = newDimensions.concat(slot.dimensions)
         })
         this.dimensions = newDimensions
     }
 
-    @action.bound setDimensionsFromConfigs(configs: ChartDimensionInterface[]) {
+    @action.bound setDimensionsFromConfigs(
+        configs: LegacyChartDimensionInterface[]
+    ) {
         this.dimensions = configs.map(
-            (config) => new ChartDimension(config, this.table)
+            (config) => new ChartDimension(config, this)
         )
     }
 

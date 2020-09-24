@@ -17,6 +17,7 @@ import {
     range,
     findClosestTimeIndex,
     sampleFrom,
+    trimObject,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { EPOCH_DATE, Time, TimeRange } from "grapher/core/GrapherConstants"
@@ -35,9 +36,9 @@ import {
     MapOfColumnSpecs,
     CoreColumnSpec,
     CoreRow,
-    SelectionColumn,
 } from "./CoreTable"
 import { countries } from "utils/countries"
+import { ChartDimension } from "grapher/chart/ChartDimension"
 
 export interface OwidColumnSpec extends CoreColumnSpec {
     owidVariableId?: LegacyVariableId
@@ -72,7 +73,7 @@ const rowTime = (row: OwidRow) => row.time ?? row.year ?? row.day ?? row.date
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
 export class OwidTable extends AbstractCoreTable<OwidRow> {
-    static fromDelimited(csvOrTsv: string, specs?: OwidColumnSpec[]) {
+    static fromDelimited(csvOrTsv: string, specs: OwidColumnSpec[] = []) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
 
@@ -87,23 +88,22 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
                 )}'`
             )
 
-        const table = new OwidTable((parsed as any) as OwidRow[])
-        if (specs) table.addSpecs(specs, true)
-        table.addSpecs(OwidTable.requiredColumnSpecs, true)
-        return table
+        const rows = (parsed as any) as OwidRow[]
+
+        return new OwidTable(rows, [
+            ...Object.values(AbstractCoreTable.makeSpecsFromRows(rows)),
+            ...OwidTable.requiredColumnSpecs,
+            ...specs,
+        ])
     }
 
-    // todo: make immutable? return a new table?
     clone() {
-        return new OwidTable(
-            this.rows,
-            this.columnsAsArray.map((col) => col.spec)
-        )
+        return new OwidTable(this._rows, this.columnsAsArray)
     }
 
     @computed get columnsByOwidVarId() {
         const map = new Map<number, AbstractCoreColumn>()
-        Array.from(this._columns.values()).forEach((column, index) => {
+        this.columnsAsArray.forEach((column, index) => {
             map.set(
                 (column.spec as OwidColumnSpec).owidVariableId ?? index,
                 column
@@ -122,10 +122,6 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     @computed get availableEntityNameSet() {
         return new Set(this.rows.map((row) => row.entityName))
-    }
-
-    @computed get unfilteredEntities() {
-        return new Set(this.unfilteredRows.map((row) => row.entityName))
     }
 
     // todo: can we remove at some point?
@@ -187,11 +183,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     @computed get hasDayColumn() {
-        return this._columns.has("day")
+        return this.has("day")
     }
 
     @computed get dayColumn() {
-        return this._columns.get("day")
+        return this.get("day")
     }
 
     @computed get rowsByEntityName() {
@@ -206,12 +202,23 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // todo: speed up
     filterByTime(start: Time, end: Time) {
-        return new OwidTable(
-            this.rows.filter((row) => {
-                const time = rowTime(row)
-                return time >= start && time <= end
-            })
+        return this.filterBy((row) => {
+            const time = rowTime(row)
+            return time >= start && time <= end
+        })
+    }
+
+    // todo: speed up
+    // todo: how can we just use super method?
+    filterBy(predicate: (row: OwidRow) => boolean) {
+        const rows = this.rows.filter(predicate)
+        const table = new OwidTable(
+            rows,
+            this.columnsAsArray.map((col) => col.spec)
         )
+        // copy selection. todo: cleanup
+        table.selectedRows = new Set(rows.filter((row) => this.isSelected(row)))
+        return table
     }
 
     // one datum per entityName. use the closest value to target year within tolerance.
@@ -237,31 +244,12 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             .filter((row) => row) as OwidRow[]
     }
 
-    // todo: make immutable? return a new table?
     // Clears and sets selected entities
     @action.bound setSelectedEntities(entityNames: EntityName[]) {
-        this.initDefaultEntitySelectionColumn()
         const set = new Set(entityNames)
-        this.rows.forEach((row) => {
-            row[this.defaultEntitySelectionSlug] = set.has(row.entityName)
-        })
+        this.selectRows(this.rows.filter((row) => set.has(row.entityName)))
     }
 
-    // todo: make immutable? return a new table?
-    @action.bound clearSelection() {
-        this.selectedEntityNames.forEach((name) => {
-            this.deselectEntity(name)
-        })
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound selectAll() {
-        this.unselectedEntityNames.forEach((name) => {
-            this.selectEntity(name)
-        })
-    }
-
-    // todo: make immutable? return a new table?
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
@@ -269,36 +257,54 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return codesInData
     }
 
-    // todo: make immutable? return a new table?
     @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {
         const map = this.entityIdToNameMap
         this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
-    }
-
-    private defaultEntitySelectionSlug = "is_entity_selected"
-    private initDefaultEntitySelectionColumn() {
-        if (!this.has(this.defaultEntitySelectionSlug))
-            this._columns.set(
-                this.defaultEntitySelectionSlug,
-                new SelectionColumn(this, {
-                    slug: this.defaultEntitySelectionSlug,
-                })
-            )
     }
 
     isEntitySelected(entityName: EntityName) {
         return this.selectedEntityNameSet.has(entityName)
     }
 
+    // todo: remove?
+    getLabelForEntityName(entityName: string) {
+        return entityName
+    }
+
+    @computed get unselectedEntityNames() {
+        return this.unselectedRows.map((row) => row.entityName)
+    }
+
+    @computed get selectedEntityNames() {
+        return Array.from(this.selectedEntityNameSet)
+    }
+
     @computed get selectedEntityNameSet() {
-        return new Set(this.selectedEntityNames)
+        return new Set(
+            Array.from(this.selectedRows.values()).map((row) => row.entityName)
+        )
     }
 
     @computed get selectedEntityCodes() {
         const map = this.entityNameToCodeMap
-        return Array.from(this.selectedEntityNameSet)
+        return this.selectedEntityNames
             .map((name) => map.get(name))
             .filter((code) => code) as string[]
+    }
+
+    @action.bound toggleSelection(entityName: EntityName) {
+        if (this.isEntitySelected(entityName)) this.deselectEntity(entityName)
+        else this.selectEntity(entityName)
+    }
+
+    @action.bound selectEntity(entityName: EntityName) {
+        this.selectRows(this.rowsByEntityName.get(entityName) ?? [])
+        return this
+    }
+
+    @action.bound deselectEntity(entityName: EntityName) {
+        this.deselectRows(this.rowsByEntityName.get(entityName) ?? [])
+        return this
     }
 
     getColorForEntityName(entityName: string) {
@@ -315,33 +321,9 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return Object.values(colors)[entityName.charCodeAt(0) % 7]
     }
 
-    // todo: make immutable? return a new table?
-    @action.bound toggleSelection(entityName: EntityName) {
-        if (this.isEntitySelected(entityName)) this.deselectEntity(entityName)
-        else this.selectEntity(entityName)
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound selectEntity(entityName: EntityName) {
-        this.initDefaultEntitySelectionColumn()
-
-        this.rowsByEntityName
-            .get(entityName)
-            ?.forEach((row) => (row[this.defaultEntitySelectionSlug] = true))
-        return this
-    }
-
-    // todo: make immutable? return a new table?
-    @action.bound deselectEntity(entityName: EntityName) {
-        this.rowsByEntityName
-            .get(entityName)
-            ?.forEach((row) => delete row[this.defaultEntitySelectionSlug])
-        return this
-    }
-
     specToObject() {
         const output: any = {}
-        Array.from(this._columns.values()).forEach((col) => {
+        this.columnsAsArray.forEach((col) => {
             output[col.slug] = col.spec
         })
         return output
@@ -533,22 +515,44 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         }
     }
 
-    // todo: make immutable? return a new table?
-    // todo: move "unit conversions" to computed columns
-    @action.bound applyUnitConversionAndOverwriteLegacyColumn(
-        unitConversionFactor: number,
-        variableId: LegacyVariableId
+    // This takes both the Variables and Dimensions data and generates an OwidTable.
+    static fromLegacy(
+        json: LegacyVariablesAndEntityKey,
+        dimensions: ChartDimension[] = []
     ) {
-        const sourceColumn = this.columnsByOwidVarId.get(variableId)!
-        this.addNumericComputedColumn({
-            ...sourceColumn.spec,
-            fn: (row) => row[sourceColumn.slug] * unitConversionFactor,
-        })
-    }
-
-    static fromLegacy(json: LegacyVariablesAndEntityKey) {
         const { rows, columnSpecs } = OwidTable.legacyVariablesToTabular(json)
-        return new OwidTable(rows, columnSpecs)
+
+        // todo: when we ditch dimensions and just have computed columns things like conversion factor will be easy (just a computed column)
+        Array.from(columnSpecs.values())
+            .filter((col) => col.display?.conversionFactor !== undefined)
+            .forEach((col) => {
+                const { slug, display } = col
+                const unitConversionFactor = display!.conversionFactor!
+                rows.forEach((row) => {
+                    row[slug] = row[slug] * unitConversionFactor
+                })
+            })
+
+        dimensions
+            .filter((dim) => dim.display?.conversionFactor !== undefined)
+            .forEach((dimension) => {
+                const { display } = dimension
+                const slug = dimension.variableId
+                const unitConversionFactor = display!.conversionFactor!
+                rows.forEach((row) => {
+                    row[slug] = row[slug] * unitConversionFactor
+                })
+            })
+
+        dimensions.forEach((dim) => {
+            const colSpec = columnSpecs.get(dim.variableId.toString())!
+            colSpec.display = {
+                ...trimObject(colSpec.display),
+                ...trimObject(colSpec.display),
+            }
+        })
+
+        return new OwidTable(rows, Array.from(columnSpecs.values()))
     }
 
     // todo: remove

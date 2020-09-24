@@ -25,7 +25,7 @@ describe(ExploreModel, () => {
         })
 
         it("populates the chart params", () => {
-            expect(model.grapher.timeDomain).toEqual([1960, 2000])
+            expect(model.grapher.timelineFilter).toEqual([1960, 2000])
         })
     })
 

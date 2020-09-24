@@ -159,7 +159,7 @@ export class GrapherUrl implements ObservableUrl {
             grapher.minTime !== originalConfig.minTime ||
             grapher.maxTime !== originalConfig.maxTime
         ) {
-            const [minTime, maxTime] = grapher.timeDomain
+            const [minTime, maxTime] = grapher.timelineFilter
 
             const start = formatTimeURIComponent(minTime, formatAsDay)
 

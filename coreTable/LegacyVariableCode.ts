@@ -7,13 +7,22 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
 } from "grapher/persistable/Persistable"
-import { Integer } from "./CoreTableConstants"
+import { ColumnSlug, Integer } from "./CoreTableConstants"
+import { DimensionProperty, Time } from "grapher/core/GrapherConstants"
 
 export declare type LegacyVariableId = Integer
 
 class LegacyVariableTableDisplayConfig {
     @observable hideAbsoluteChange: boolean = false
     @observable hideRelativeChange: boolean = false
+}
+
+export interface LegacyChartDimensionInterface {
+    property: DimensionProperty
+    targetTime?: Time
+    display?: LegacyVariableDisplayConfigInterface
+    variableId: LegacyVariableId
+    slug?: ColumnSlug
 }
 
 class LegacyVariableDisplayConfigDefaults {

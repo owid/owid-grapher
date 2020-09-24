@@ -45,12 +45,13 @@ describe("parsing", () => {
 
 describe("immutability", () => {
     const rows = [{ country: "USA" }, { country: "Germany" }]
-    const table = new AnyTable(rows)
     it("does not modify rows", () => {
-        table.addNumericComputedColumn({
-            slug: "firstLetter",
-            fn: (row) => row.country.length,
-        })
+        const table = new AnyTable(rows, [
+            {
+                slug: "firstLetter",
+                fn: (row) => row.country.length,
+            },
+        ])
         expect(table.get("firstLetter")?.parsedValues.join("")).toEqual(`37`)
         expect((rows[0] as any).firstLetter).toEqual(undefined)
     })
@@ -74,31 +75,21 @@ canada,20`
 
     describe("filtering", () => {
         const col = table.get("country")!
+        const filtered = table.filterBy((row) => parseInt(row.population) > 40)
         it("one filter works", () => {
             expect(col.parsedValues[3]).toEqual("canada")
-            table.addFilterColumn(
-                "pop_filter",
-                (row) => parseInt(row.population) > 40
-            )
-            expect(col?.parsedValues[0]).toEqual("france")
-            expect(col?.parsedValues[1]).toEqual("usa")
+            const col2 = filtered.get("country")!
+            expect(col2.parsedValues[0]).toEqual("france")
+            expect(col2.parsedValues[1]).toEqual("usa")
         })
 
         it("multiple filters work", () => {
-            table.addFilterColumn("name_filter", (row) =>
+            const filtered2 = filtered.filterBy((row) =>
                 (row.country as string).startsWith("u")
             )
-            expect(col?.parsedValues[0]).toEqual("usa")
-            expect(col?.parsedValues[1]).toEqual(undefined)
-        })
-
-        it("adding rows works with filters", () => {
-            table.cloneAndAddRowsAndDetectColumns([
-                { country: "ireland", population: "7" },
-                { country: "united kingdom", population: "60" },
-            ])
-            expect(col?.parsedValues[0]).toEqual("usa")
-            expect(col?.parsedValues[1]).toEqual("united kingdom")
+            const col2 = filtered2.get("country")!
+            expect(col2.parsedValues[0]).toEqual("usa")
+            expect(col2.parsedValues[1]).toEqual(undefined)
         })
     })
 })

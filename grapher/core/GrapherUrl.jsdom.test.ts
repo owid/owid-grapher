@@ -186,7 +186,7 @@ describe(GrapherUrl, () => {
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
                     const grapher = fromQueryParams({ time: test.query })
-                    const [start, end] = grapher.timeDomain
+                    const [start, end] = grapher.timelineFilter
                     expect(start).toEqual(test.param[0])
                     expect(end).toEqual(test.param[1])
                 })
@@ -206,7 +206,7 @@ describe(GrapherUrl, () => {
                     { time: "" },
                     { minTime: 0, maxTime: 5 }
                 )
-                const [start, end] = grapher.timeDomain
+                const [start, end] = grapher.timelineFilter
                 expect(start).toEqual(0)
                 expect(end).toEqual(5)
             })
@@ -338,7 +338,7 @@ describe(GrapherUrl, () => {
                 it(`parse ${test.name}`, () => {
                     const grapher = getGrapher()
                     grapher.populateFromQueryParams({ time: test.query })
-                    const [start, end] = grapher.timeDomain
+                    const [start, end] = grapher.timelineFilter
                     expect(start).toEqual(test.param[0])
                     expect(end).toEqual(test.param[1])
                 })
@@ -386,7 +386,7 @@ describe(GrapherUrl, () => {
             for (const test of tests) {
                 it(`parse ${test.name}`, () => {
                     const grapher = fromQueryParams({ year: test.query })
-                    expect(grapher.timeDomain[1]).toEqual(test.param)
+                    expect(grapher.timelineFilter[1]).toEqual(test.param)
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
@@ -398,7 +398,7 @@ describe(GrapherUrl, () => {
 
             it("empty string doesn't change time", () => {
                 const grapher = fromQueryParams({ year: "", time: "2015" })
-                expect(grapher.timeDomain[1]).toEqual(2015)
+                expect(grapher.timelineFilter[1]).toEqual(2015)
             })
         })
 
@@ -442,7 +442,10 @@ describe(GrapherUrl, () => {
                             year: test.query,
                         })
                     )
-                    expect(grapher.timeDomain).toEqual([test.param, test.param])
+                    expect(grapher.timelineFilter).toEqual([
+                        test.param,
+                        test.param,
+                    ])
                 })
                 if (!test.irreversible) {
                     it(`encode ${test.name}`, () => {

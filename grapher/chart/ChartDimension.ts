@@ -7,7 +7,7 @@ import { DimensionProperty, Time } from "grapher/core/GrapherConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { LoadingColumn } from "coreTable/CoreTable"
 import {
-    LegacyVariableDisplayConfigInterface,
+    LegacyChartDimensionInterface,
     LegacyVariableDisplayConfig,
     LegacyVariableId,
 } from "coreTable/LegacyVariableCode"
@@ -15,21 +15,12 @@ import { ColumnSlug } from "coreTable/CoreTableConstants"
 import {
     Persistable,
     deleteRuntimeAndUnchangedProps,
-    objectWithPersistablesToObject,
     updatePersistables,
 } from "grapher/persistable/Persistable"
 
-export interface ChartDimensionInterface {
-    property: DimensionProperty
-    targetTime?: Time
-    display?: LegacyVariableDisplayConfigInterface
-    variableId: LegacyVariableId
-    slug?: ColumnSlug
-}
-
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
-class ChartDimensionDefaults implements ChartDimensionInterface {
+class ChartDimensionDefaults implements LegacyChartDimensionInterface {
     @observable property!: DimensionProperty
     @observable variableId!: LegacyVariableId
 
@@ -41,18 +32,30 @@ class ChartDimensionDefaults implements ChartDimensionInterface {
     @observable targetTime?: Time = undefined
 }
 
+// todo: remove when we remove dimensions
+export interface LegacyDimensionsOptionsProvider {
+    table: OwidTable
+}
+
 export class ChartDimension
     extends ChartDimensionDefaults
     implements Persistable {
-    @observable.ref private table: OwidTable
+    private options: LegacyDimensionsOptionsProvider
 
-    constructor(obj: ChartDimensionInterface, table: OwidTable) {
+    constructor(
+        obj: LegacyChartDimensionInterface,
+        options: LegacyDimensionsOptionsProvider
+    ) {
         super()
-        this.table = table
+        this.options = options
         if (obj) this.updateFromObject(obj)
     }
 
-    updateFromObject(obj: ChartDimensionInterface) {
+    @computed private get table() {
+        return this.options.table
+    }
+
+    updateFromObject(obj: LegacyChartDimensionInterface) {
         updatePersistables(this, obj)
 
         this.targetTime = obj.targetTime
@@ -60,10 +63,15 @@ export class ChartDimension
         this.property = obj.property
     }
 
-    toObject(): ChartDimensionInterface {
+    toObject(): LegacyChartDimensionInterface {
         return trimObject(
             deleteRuntimeAndUnchangedProps(
-                objectWithPersistablesToObject(this),
+                {
+                    property: this.property,
+                    variableId: this.variableId,
+                    display: this.display,
+                    targetTime: this.targetTime,
+                },
                 new ChartDimensionDefaults()
             )
         )

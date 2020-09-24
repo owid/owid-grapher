@@ -11,6 +11,8 @@ import {
     memoize,
     fetchText,
     fetchJSON,
+    computeRollingAverage,
+    insertMissingValuePlaceholders,
 } from "grapher/utils/Util"
 import moment from "moment"
 import { csv } from "d3-fetch"
@@ -24,6 +26,7 @@ import {
     ColumnTypeNames,
     EntityName,
     ColumnSlug,
+    Integer,
 } from "coreTable/CoreTableConstants"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
@@ -42,6 +45,7 @@ import {
 } from "./CovidConstants"
 import {
     ComputedColumnFn,
+    CoreColumnSpec,
     CoreRow,
     HasComputedColumn,
 } from "coreTable/CoreTable"
@@ -56,6 +60,40 @@ interface AnnotationsRow {
 const stringColumnSlugs = new Set(
     `iso_code location date tests_units continent`.split(" ")
 )
+
+// Todo: replace with someone else's library
+const computeRollingAveragesForEachGroup = (
+    rows: CoreRow[],
+    valueAccessor: (row: CoreRow) => any,
+    groupColName: string,
+    dateColName: string,
+    rollingAverage: number
+) => {
+    const groups: number[][] = []
+    let currentGroup = rows[0][groupColName]
+    let currentRows: CoreRow[] = []
+    // Assumes items are sorted by entity
+    for (let i = 0; i <= rows.length; i++) {
+        const row = rows[i]
+        const groupName = row && row[groupColName]
+
+        if (currentGroup !== groupName) {
+            const averages = computeRollingAverage(
+                insertMissingValuePlaceholders(
+                    currentRows.map(valueAccessor),
+                    currentRows.map((row) => row[dateColName])
+                ),
+                rollingAverage
+            ).filter((value) => value !== null) as number[]
+            groups.push(averages)
+            if (!row) break
+            currentRows = []
+            currentGroup = groupName
+        }
+        currentRows.push(row)
+    }
+    return flatten(groups)
+}
 
 export const buildColumnSlug = (
     name: MetricKind,
@@ -101,8 +139,8 @@ export class CovidExplorerTable {
         const specs = Object.keys(firstRow).map((slug) =>
             CovidExplorerTable.makeSpec(slug)
         )
-        table.addSpecs(specs)
-        table.addCategoricalColumnSpec(this.columnSpecs.continents)
+        specs.push(this.columnSpecs.continents)
+        table.addColumnSpecs(specs)
         this.addAnnotationColumns()
 
         if (options) options.table = table // Set the new table on Grapher
@@ -143,7 +181,9 @@ export class CovidExplorerTable {
 
     // Ideally we would just have 1 set of column specs. Currently however we have some hard coded here, some coming from the Grapher backend, and some
     // generated on the fly. These "template specs" are used to generate specs on the fly. Todo: cleanup.
-    private initColumnSpecTemplates(owidVariableSpecs: any) {
+    private initColumnSpecTemplates(owidVariableSpecs: {
+        [key: string]: OwidColumnSpec
+    }) {
         this.columnSpecs = {
             positive_test_rate: {
                 ...owidVariableSpecs[sourceVariables.positive_test_rate],
@@ -159,21 +199,21 @@ export class CovidExplorerTable {
             },
             case_fatality_rate: {
                 ...owidVariableSpecs[sourceVariables.case_fatality_rate],
-                annotationsColumnSlug: "case_fatality_rate_annotations", // todo: readd annotations
+                // annotationsColumnSlug: "case_fatality_rate_annotations", // todo: readd annotations as a propety like size or color
                 isDailyMeasurement: true,
                 description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
             },
             cases: {
                 ...owidVariableSpecs[sourceVariables.cases],
                 isDailyMeasurement: true,
-                annotationsColumnSlug: "cases_annotations",
+                // annotationsColumnSlug: "cases_annotations",
                 name: "Confirmed cases of COVID-19",
                 description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
             },
             deaths: {
                 ...owidVariableSpecs[sourceVariables.deaths],
                 isDailyMeasurement: true,
-                annotationsColumnSlug: "deaths_annotations",
+                // annotationsColumnSlug: "deaths_annotations",
                 name: "Confirmed deaths due to COVID-19",
                 description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
             },
@@ -182,7 +222,7 @@ export class CovidExplorerTable {
                 isDailyMeasurement: true,
                 description: "",
                 name: "tests",
-                annotationsColumnSlug: "tests_units",
+                // annotationsColumnSlug: "tests_units",
             },
             days_since: {
                 ...owidVariableSpecs[sourceVariables.days_since],
@@ -195,6 +235,7 @@ export class CovidExplorerTable {
                 description: "",
                 name: "continent",
                 slug: "continent",
+                type: ColumnTypeNames.Categorical,
             },
         }
 
@@ -216,13 +257,17 @@ export class CovidExplorerTable {
         const caseSlug = "cases_annotations"
         const deathSlug = "deaths_annotations"
         const cfrSlug = "case_fatality_rate_annotations"
-        this.table.addStringColumnSpec({ slug: caseSlug })
-        this.table.addStringColumnSpec({
-            slug: deathSlug,
-        })
-        this.table.addStringColumnSpec({
-            slug: cfrSlug,
-        })
+        this.table.addColumnSpecs([
+            { slug: caseSlug, type: ColumnTypeNames.String },
+            {
+                slug: deathSlug,
+                type: ColumnTypeNames.String,
+            },
+            {
+                slug: cfrSlug,
+                type: ColumnTypeNames.String,
+            },
+        ])
 
         const index = this.table.entityIndex
         const annotationRows = csvParse(covidAnnotations) as AnnotationsRow[]
@@ -339,7 +384,7 @@ export class CovidExplorerTable {
                 : undefined
 
         if (smoothing && !alreadySmoothed)
-            table.addRollingAverageColumn(
+            this.addRollingAverageColumn(
                 spec,
                 smoothing,
                 rowFn,
@@ -350,12 +395,70 @@ export class CovidExplorerTable {
                 perCapitaTransform
             )
         else {
-            table.addNumericComputedColumn({
-                ...spec,
-                fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn,
-            })
+            table.addColumnSpecs([
+                {
+                    ...spec,
+                    fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn,
+                },
+            ])
         }
         return spec
+    }
+
+    // todo: make immutable? return a new table?
+    // todo: this won't work when adding rows dynamically
+    addRollingAverageColumn(
+        spec: CoreColumnSpec,
+        windowSize: Integer,
+        valueAccessor: (row: CoreRow) => any,
+        dateColName: ColumnSlug,
+        groupBy: ColumnSlug,
+        multiplier = 1,
+        intervalChange?: number,
+        transformation: (fn: ComputedColumnFn) => ComputedColumnFn = (fn) => (
+            row,
+            index
+        ) => fn(row, index)
+    ) {
+        const table = this.table
+        const averages = computeRollingAveragesForEachGroup(
+            table.rows,
+            valueAccessor,
+            groupBy,
+            dateColName,
+            windowSize
+        )
+
+        const computeIntervalTotals: ComputedColumnFn = (row, index) => {
+            const val = averages[index!]
+            if (!intervalChange) return val ? val * multiplier : val
+            const previousValue = averages[index! - intervalChange]
+            return previousValue === undefined || previousValue === 0
+                ? undefined
+                : (100 * (val - previousValue)) / previousValue
+        }
+
+        table.addColumnSpecs([
+            {
+                ...spec,
+                fn: transformation(computeIntervalTotals),
+            },
+        ])
+    }
+
+    applyFilters(params: CovidConstrainedQueryParams, currentTab: string) {
+        if (
+            (params.casesMetric || params.deathsMetric) &&
+            !(params.interval === "total") &&
+            !params.intervalChange
+        )
+            this.table.filterBy((row) => !(row[params.yColumnSlug] < 0)) // todo: actually use this
+
+        // Do not show unselected groups on scatterplots
+        if (params.type === "ScatterPlot" && currentTab === "chart")
+            this.table.filterBy(
+                (row) => row.group_members || this.table!.isSelected(row)
+            ) // todo: actually use this
     }
 
     initTestingColumn(params: CovidConstrainedQueryParams) {
@@ -468,40 +571,6 @@ export class CovidExplorerTable {
         )
     }
 
-    private groupFilterSlug = "group_filter"
-    addGroupFilterColumn() {
-        if (!this.table.has(this.groupFilterSlug)) {
-            this.table.addFilterColumn(
-                this.groupFilterSlug,
-                (row, index, table) =>
-                    !row.group_members || table!.isSelected(row)
-            )
-        }
-    }
-
-    removeGroupFilterColumn() {
-        this.table.deleteColumnBySlug(this.groupFilterSlug)
-    }
-
-    private negativeFilterSlug: ColumnSlug = ""
-    addNegativeFilterColumn(slugName: ColumnSlug) {
-        const filterSlug = "filter_negatives_in_" + slugName
-        if (filterSlug !== this.negativeFilterSlug)
-            this.removeNegativeFilterColumn()
-        if (!this.table.has(filterSlug))
-            this.table.addFilterColumn(
-                filterSlug,
-                (row) => !(row[slugName] < 0)
-            )
-        this.negativeFilterSlug = filterSlug
-    }
-
-    removeNegativeFilterColumn() {
-        if (this.negativeFilterSlug)
-            this.table.deleteColumnBySlug(this.negativeFilterSlug)
-        this.negativeFilterSlug = ""
-    }
-
     initRequestedColumns(params: CovidConstrainedQueryParams) {
         if (params.casesMetric) this.initCasesColumn(params)
         if (params.deathsMetric) this.initDeathsColumn(params)
@@ -562,14 +631,14 @@ export class CovidExplorerTable {
 
         let currentCountry: number
         let countryExceededThresholdOnDay: number
-        this.table.addNumericComputedColumn(spec)
+        this.table.addColumnSpecs([spec])
         return slug
     }
 
     private addNewCasesSmoothedColumn(smoothing: SmoothingOption) {
         const slug = `new_cases_smoothed_${smoothing}day`
         if (this.table.has(slug)) return slug
-        this.table.addRollingAverageColumn(
+        this.addRollingAverageColumn(
             {
                 slug,
             },

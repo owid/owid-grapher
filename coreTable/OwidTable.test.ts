@@ -31,10 +31,12 @@ describe(OwidTable, () => {
     })
 
     it("a column can be added", () => {
-        table.addNumericComputedColumn({
-            slug: "populationInMillions",
-            fn: (row) => row.population / 1000000,
-        })
+        const table = new OwidTable(rows, [
+            {
+                slug: "populationInMillions",
+                fn: (row) => row.population / 1000000,
+            },
+        ])
         expect(table.rows[0].populationInMillions).toEqual(300)
     })
 })
@@ -103,8 +105,8 @@ describe("from legacy", () => {
 
     it("can apply legacy unit conversion factors", () => {
         const varSet = getLegacyVarSet()
+        varSet.variables[0].display!.conversionFactor = 100
         const table = OwidTable.fromLegacy(varSet)
-        table.applyUnitConversionAndOverwriteLegacyColumn(100, 3512)
         expect(table.get("3512")!.parsedValues).toEqual([550, 420, 1260])
     })
 })
@@ -276,10 +278,12 @@ describe("rolling averages", () => {
     it("a column can be added", () => {
         expect(table.rows.length).toEqual(rows.length)
         expect(Array.from(table.columnsByName.keys()).length).toEqual(colLength)
-        table.addNumericComputedColumn({
-            slug: "populationInMillions",
-            fn: (row) => row.population / 1000000,
-        })
+        table.addColumnSpecs([
+            {
+                slug: "populationInMillions",
+                fn: (row) => row.population / 1000000,
+            },
+        ])
         expect(table.rows[0].populationInMillions).toEqual(300)
         expect(Array.from(table.columnsByName.keys()).length).toEqual(
             colLength + 1

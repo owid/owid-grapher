@@ -71,11 +71,11 @@ import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
-import { ChartDimensionInterface } from "grapher/chart/ChartDimension"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
 import { ScaleType } from "grapher/core/GrapherConstants"
+import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -783,21 +783,7 @@ export class CovidExplorer extends React.Component<{
 
         covidExplorerTable.table.setSelectedEntities(this.selectedEntityNames)
 
-        if (
-            (params.casesMetric || params.deathsMetric) &&
-            !(params.interval === "total") &&
-            !params.intervalChange
-        )
-            covidExplorerTable.addNegativeFilterColumn(params.yColumnSlug)
-        else covidExplorerTable.removeNegativeFilterColumn()
-
-        // Do not show unselected groups on scatterplots
-        if (
-            params.type === "ScatterPlot" &&
-            this.grapher.currentTab === "chart"
-        )
-            covidExplorerTable.addGroupFilterColumn()
-        else covidExplorerTable.removeGroupFilterColumn()
+        covidExplorerTable.applyFilters(params, this.grapher.currentTab)
 
         this._updateMap()
         this._updateColorScale()
@@ -874,7 +860,7 @@ export class CovidExplorer extends React.Component<{
         props.tab = "chart"
         this.grapher.xAxis.scaleType = ScaleType.linear
         this.grapher.yAxis.scaleType = ScaleType.log
-        this.grapher.timeDomain = [
+        this.grapher.timelineFilter = [
             TimeBoundValue.unboundedLeft,
             TimeBoundValue.unboundedRight,
         ]
@@ -1113,7 +1099,7 @@ export class CovidExplorer extends React.Component<{
         })
     }
 
-    @computed private get yDimension(): ChartDimensionInterface {
+    @computed private get yDimension(): LegacyChartDimensionInterface {
         const yColumn = this.yColumn
         yColumn.spec.name = this.chartTitle // todo: cleanup
         return {
@@ -1123,7 +1109,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get xDimension(): ChartDimensionInterface {
+    @computed private get xDimension(): LegacyChartDimensionInterface {
         const xColumn = this.xColumn!
         return {
             property: "x",
@@ -1132,7 +1118,7 @@ export class CovidExplorer extends React.Component<{
         }
     }
 
-    @computed private get dimensionSpecs(): ChartDimensionInterface[] {
+    @computed private get dimensionSpecs(): LegacyChartDimensionInterface[] {
         if (this.constrainedParams.type !== "ScatterPlot")
             return [this.yDimension]
 
@@ -1144,7 +1130,7 @@ export class CovidExplorer extends React.Component<{
         return dimensions
     }
 
-    @computed private get sizeDimension(): ChartDimensionInterface {
+    @computed private get sizeDimension(): LegacyChartDimensionInterface {
         return {
             property: "size",
             slug: this.sizeColumn?.slug,
@@ -1153,7 +1139,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     private shortTermPositivityRateSlug: string = ""
-    @computed private get colorDimension(): ChartDimensionInterface {
+    @computed private get colorDimension(): LegacyChartDimensionInterface {
         const slug =
             this.constrainedParams.colorStrategy === "continents"
                 ? "continents"

@@ -729,7 +729,9 @@ export class LineChart
     @computed private get horizontalAxisPart() {
         const xAxisConfig =
             this.options.xAxis || new AxisConfig(undefined, this)
-        xAxisConfig.hideAxis = !!this.options.hideXAxis
+
+        if (this.options.hideXAxis) xAxisConfig.hideAxis = true
+
         const axis = xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             this.yColumn.startTimelineTime,
@@ -748,7 +750,8 @@ export class LineChart
 
         const yAxisConfig =
             this.options.yAxis || new AxisConfig(undefined, this)
-        yAxisConfig.hideAxis = !!this.options.hideYAxis
+
+        if (this.options.hideYAxis) yAxisConfig.hideAxis = true
 
         const yDomain = this.yColumn.domain
         const domain = yAxisConfig.domain

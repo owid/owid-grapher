@@ -111,7 +111,7 @@ describe(ExploreView, () => {
         // -@danielgavrilov 2019-12-12
         it.skip("applies the time params to the chart", async () => {
             const model = getDefaultModel()
-            model.grapher.timeDomain = [1960, 2005]
+            model.grapher.timelineFilter = [1960, 2005]
             const view = await renderWithModel(model)
             const style: any = view.find(".slider .interval").prop("style")
             expect(parseFloat(style.left)).toBeGreaterThan(0)

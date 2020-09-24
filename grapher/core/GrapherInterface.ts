@@ -10,9 +10,11 @@ import {
     Time,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
-import { LegacyVariablesAndEntityKey } from "coreTable/LegacyVariableCode"
+import {
+    LegacyChartDimensionInterface,
+    LegacyVariablesAndEntityKey,
+} from "coreTable/LegacyVariableCode"
 import { TimeBound } from "grapher/utils/TimeBounds"
-import { ChartDimensionInterface } from "grapher/chart/ChartDimension"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
@@ -40,7 +42,7 @@ export interface GrapherInterface {
     maxTime?: TimeBound
     timelineMinTime?: Time
     timelineMaxTime?: Time
-    dimensions?: ChartDimensionInterface[]
+    dimensions?: LegacyChartDimensionInterface[]
     addCountryMode?: AddCountryMode
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
