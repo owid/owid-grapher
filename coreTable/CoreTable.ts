@@ -45,15 +45,19 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     > = new Map()
     @observable.shallow protected selectedRows = new Set<CoreRow>()
 
+    protected parent?: AbstractCoreTable<ROW_TYPE>
+
     constructor(
         rows: ROW_TYPE[] = [],
         columnSpecs: CoreColumnSpec[] = AbstractCoreTable.makeSpecsFromRows(
             rows
-        )
+        ),
+        parentTable?: AbstractCoreTable<ROW_TYPE>
     ) {
         this._rows = rows
         this.setColumns(columnSpecs)
         // Todo: add warning if you provide Specs but not for all cols?
+        this.parent = parentTable
     }
 
     // Todo: make immutable? Return a new table?
@@ -143,11 +147,16 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return Object.values(map)
     }
 
+    get rootTable(): AnyTable {
+        return this.parent ? this.parent.rootTable : this
+    }
+
     // todo: speed up
-    filterBy(predicate: (row: CoreRow) => boolean) {
+    filterBy(predicate: (row: CoreRow) => boolean): AnyTable {
         return new AnyTable(
             this.rows.filter(predicate),
-            this.columnsAsArray.map((col) => col.spec)
+            this.columnsAsArray.map((col) => col.spec),
+            this
         )
     }
 

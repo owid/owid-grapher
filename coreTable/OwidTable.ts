@@ -18,6 +18,7 @@ import {
     findClosestTimeIndex,
     sampleFrom,
     trimObject,
+    sortedUniq,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { EPOCH_DATE, Time, TimeRange } from "grapher/core/GrapherConstants"
@@ -97,8 +98,9 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         ])
     }
 
+    // todo: rename
     clone() {
-        return new OwidTable(this._rows, this.columnsAsArray)
+        return new OwidTable(this._rows, this.columnsAsArray, this)
     }
 
     @computed get columnsByOwidVarId() {
@@ -179,7 +181,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     @computed get allTimes() {
-        return this.rows.filter((row) => row.year).map((row) => row.year!)
+        return this.rows.map(rowTime)
+    }
+
+    @computed get timelineTimes() {
+        return sortedUniq(this.allTimes)
     }
 
     @computed get hasDayColumn() {
@@ -200,6 +206,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return map
     }
 
+    // Todo: figure out correct inheritance method here
+    get rootTable(): OwidTable {
+        return this.parent ? (this.parent.rootTable as OwidTable) : this
+    }
+
     // todo: speed up
     filterByTime(start: Time, end: Time) {
         return this.filterBy((row) => {
@@ -210,10 +221,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // todo: speed up
     // todo: how can we just use super method?
-    filterBy(predicate: (row: OwidRow) => boolean) {
+    filterBy(predicate: (row: OwidRow) => boolean): OwidTable {
         return new OwidTable(
             this.rows.filter(predicate),
-            this.columnsAsArray.map((col) => col.spec)
+            this.columnsAsArray.map((col) => col.spec),
+            this
         )
     }
 

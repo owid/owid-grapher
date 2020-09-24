@@ -105,7 +105,7 @@ describe("from legacy", () => {
 
     it("can apply legacy unit conversion factors", () => {
         const varSet = getLegacyVarSet()
-        varSet.variables[0].display!.conversionFactor = 100
+        varSet.variables["3512"].display!.conversionFactor = 100
         const table = OwidTable.fromLegacy(varSet)
         expect(table.get("3512")!.parsedValues).toEqual([550, 420, 1260])
     })
@@ -238,8 +238,9 @@ describe("", () => {
 
         expect(table.rows.length).toBe(10)
 
-        const filtered = table.filterByTime(2000, 2003)
-        expect(filtered.rows.length).toBe(8)
+        expect(table.filterByTime(2000, 2003).rows.length).toBe(8)
+
+        expect(table.filterByTime(2000, 2000).rows.length).toBe(2)
     })
 })
 

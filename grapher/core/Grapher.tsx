@@ -251,7 +251,7 @@ export class Grapher
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     configOnLoad: Readonly<GrapherInterface>
-    @observable.ref rootTable: OwidTable
+    @observable.ref private rootTable: OwidTable
 
     private legacyConfig?: Partial<LegacyGrapherInterface>
 
@@ -648,7 +648,7 @@ export class Grapher
     @computed get times(): Time[] {
         if (this.tab === "map") return this.mapColumn?.timelineTimes || []
         // todo: filter out min times and end times?
-        return this.rootTable.allTimes
+        return this.rootTable.timelineTimes
     }
 
     // todo: remove ifs

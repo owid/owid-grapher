@@ -115,7 +115,7 @@ export class MapChartWithLegend
     }
 
     @computed get rootTable() {
-        return this.options.rootTable || this.table
+        return this.table.rootTable
     }
 
     // Determine if we can go to line chart by clicking on a given map entity
