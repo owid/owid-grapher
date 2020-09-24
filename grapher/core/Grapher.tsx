@@ -252,7 +252,7 @@ export class Grapher
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 
     configOnLoad: Readonly<GrapherInterface>
-    @observable.ref private rootTable: OwidTable
+    @observable.ref rootTable: OwidTable
 
     private legacyConfig?: Partial<LegacyGrapherInterface>
 
