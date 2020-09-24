@@ -66,7 +66,7 @@ export const addExplorerAdminRoutes = (app: Router) => {
     app.get(`/explorers/preview/:slug`, async (req, res) => {
         const code = await getExplorerCodeBySlug(req.params.slug)
         if (code === undefined) res.send(`File not found`)
-        res.send(await renderSwitcherExplorerPage(req.params.slug, code!))
+        else res.send(await renderSwitcherExplorerPage(req.params.slug, code))
     })
 }
 
