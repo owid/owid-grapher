@@ -32,15 +32,16 @@ export interface ScatterSeries {
     entityName: string
     label: string
     size: number
-    values: ScatterValue[]
+    points: SeriesPoint[]
     isScaleColor?: true
 }
 
-export interface ScatterValue {
+export interface SeriesPoint {
     x: number
     y: number
     size: number
     entityName?: EntityName
+    label: string
     color?: number | string
     year: number
     time: {
@@ -50,7 +51,7 @@ export interface ScatterValue {
     }
 }
 
-export interface ScatterRenderValue {
+export interface ScatterRenderPoint {
     position: PointVector
     color: string
     size: number
@@ -62,12 +63,14 @@ export interface ScatterRenderValue {
     }
 }
 
+export const ScatterLabelFontFamily = "Arial, sans-serif"
+
 export interface ScatterRenderSeries {
     entityName: EntityName
     displayKey: string
     color: string
     size: number
-    values: ScatterRenderValue[]
+    points: ScatterRenderPoint[]
     text: string
     isHover?: boolean
     isFocus?: boolean
@@ -103,6 +106,5 @@ export interface PointsWithLabelsProps {
     onMouseLeave: () => void
     onClick: () => void
     hideLines: boolean
-    formatLabel: (v: ScatterValue) => string
     noDataOverlayOptionsProvider: NoDataOverlayOptionsProvider
 }

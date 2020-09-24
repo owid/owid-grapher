@@ -16,11 +16,9 @@ describe(ScatterPlot, () => {
 
     it("can create a new chart", () => {
         const chart = new ScatterPlot({ options })
-        expect(chart.failMessage).toBeTruthy()
-
-        table.selectAll()
+        expect(chart.failMessage).toBeFalsy()
         expect(chart.getEntityNamesToShow().length).toEqual(2)
-        expect(chart.marks.length).toBeGreaterThan(5)
+        expect(chart.marks.length).toEqual(2)
         expect(chart.availableTimes).toContain(2003)
     })
 

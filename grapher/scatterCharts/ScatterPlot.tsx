@@ -16,21 +16,17 @@ import {
     groupBy,
     map,
     sortedFindClosestIndex,
-    firstOfNonEmptyArray,
-    lastOfNonEmptyArray,
     defaultTo,
     domainExtent,
     minBy,
     sortNumeric,
     lowerCaseFirstLetterUnlessAbbreviation,
-    cagr,
     relativeMinAndMax,
     identity,
     min,
     guid,
     getRelativeMouse,
     makeSafeForCSS,
-    maxBy,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -67,13 +63,21 @@ import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
     ScatterPlotOptionsProvider,
     ScatterSeries,
-    ScatterValue,
+    SeriesPoint,
     ScatterTooltipProps,
     ScatterRenderSeries,
     ScatterLabel,
-    ScatterRenderValue,
+    ScatterRenderPoint,
     PointsWithLabelsProps,
+    ScatterLabelFontFamily,
 } from "./ScatterPlotConstants"
+import {
+    labelPriority,
+    makeEndLabel,
+    makeMidLabels,
+    makeStartLabel,
+} from "./ScatterUtils"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 @observer
 export class ScatterPlot
@@ -280,31 +284,13 @@ export class ScatterPlot
             series = series.filter((g) => activeKeys.includes(g.entityName))
 
         const colorValues = uniq(
-            flatten(series.map((s) => s.values.map((p) => p.color)))
+            flatten(series.map((s) => s.points.map((p) => p.color)))
         )
         return excludeUndefined(colorValues.map(this.colorScale.getColor))
     }
 
     @computed get hideLines() {
         return !!this.options.hideConnectedScatterLines
-    }
-
-    @computed private get scatterPointLabelFormatFunction() {
-        const { options } = this
-        const { yColumn, xColumn } = options
-
-        const scatterPointLabelFormatFunctions = {
-            year: (scatterValue: ScatterValue) =>
-                this.table.timeColumnFormatFunction(scatterValue.year),
-            y: (scatterValue: ScatterValue) =>
-                yColumn!.formatValue(scatterValue.y),
-            x: (scatterValue: ScatterValue) =>
-                xColumn!.formatValue(scatterValue.x),
-        }
-
-        return scatterPointLabelFormatFunctions[
-            this.options.scatterPointLabelStrategy || "year"
-        ]
     }
 
     @computed private get points() {
@@ -325,7 +311,6 @@ export class ScatterPlot
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
-                formatLabel={this.scatterPointLabelFormatFunction}
             />
         )
     }
@@ -345,7 +330,8 @@ export class ScatterPlot
     }
 
     render() {
-        if (this.failMessage)
+        if (this.failMessage) {
+            console.log(this.failMessage)
             return (
                 <NoDataOverlay
                     options={this.options}
@@ -353,6 +339,7 @@ export class ScatterPlot
                     message={this.failMessage}
                 />
             )
+        }
 
         const {
             bounds,
@@ -432,7 +419,7 @@ export class ScatterPlot
     }
 
     @computed get colorScaleConfig() {
-        return this.options.colorScale!
+        return this.options.colorScale! || new ColorScaleConfig()
     }
 
     defaultBaseColorScheme = "continents"
@@ -464,7 +451,7 @@ export class ScatterPlot
     }
 
     @computed private get xColumn() {
-        return this.options.yColumn
+        return this.options.xColumn
     }
 
     @computed private get sizeColumn() {
@@ -571,13 +558,13 @@ export class ScatterPlot
     // If there's no timeline, this uses the same structure but only computes for a single year
     private getDataByEntityAndTime(
         entitiesToShow = this.getEntityNamesToShow()
-    ): Map<EntityName, Map<Time, ScatterValue>> {
+    ): Map<EntityName, Map<Time, SeriesPoint>> {
         const { columns } = this
         const validEntityLookup = keyBy(entitiesToShow)
 
         const dataByEntityAndTime = new Map<
             EntityName,
-            Map<Time, ScatterValue>
+            Map<Time, SeriesPoint>
         >()
 
         for (const column of columns) {
@@ -619,7 +606,7 @@ export class ScatterPlot
 
     private _useTolerance(
         column: AbstractCoreColumn,
-        dataByEntityAndTime: Map<EntityName, Map<Time, ScatterValue>>,
+        dataByEntityAndTime: Map<EntityName, Map<Time, SeriesPoint>>,
         initialDataByEntity: Map<
             EntityName,
             { times: Time[]; values: (string | number)[] }
@@ -635,7 +622,7 @@ export class ScatterPlot
         initialDataByEntity.forEach((byEntity, entityName) => {
             let dataByYear = dataByEntityAndTime.get(entityName)
             if (dataByYear === undefined) {
-                dataByYear = new Map<Time, ScatterValue>()
+                dataByYear = new Map<Time, SeriesPoint>()
                 dataByEntityAndTime.set(entityName, dataByYear)
             }
 
@@ -665,7 +652,7 @@ export class ScatterPlot
                         entityName,
                         year: outputYear,
                         time: {},
-                    } as ScatterValue
+                    } as SeriesPoint
                     dataByYear.set(outputYear, point)
                 }
 
@@ -694,7 +681,7 @@ export class ScatterPlot
     }
 
     private _removeUnwantedPoints(
-        dataByEntityAndTime: Map<EntityName, Map<Time, ScatterValue>>
+        dataByEntityAndTime: Map<EntityName, Map<Time, SeriesPoint>>
     ) {
         // The exclusion of points happens as a last step in order to avoid artefacts due to
         // the tolerance calculation. E.g. if we pre-filter the data based on the X and Y
@@ -718,7 +705,7 @@ export class ScatterPlot
     }
 
     @computed get allPoints() {
-        const allPoints: ScatterValue[] = []
+        const allPoints: SeriesPoint[] = []
         this.getDataByEntityAndTime().forEach((dataByTime) => {
             dataByTime.forEach((point) => {
                 allPoints.push(point)
@@ -733,7 +720,7 @@ export class ScatterPlot
     }
 
     @computed private get currentValues() {
-        return flatten(this.marks.map((g) => g.values))
+        return flatten(this.marks.map((g) => g.points))
     }
 
     // domains across the entire timeline
@@ -870,7 +857,7 @@ export class ScatterPlot
 
     // todo: add unit tests
     private _filterValues(
-        values: ScatterValue[],
+        values: SeriesPoint[],
         startTime: Time,
         endTime: Time,
         yScaleType: ScaleType,
@@ -884,24 +871,24 @@ export class ScatterPlot
         // NOTE: since groupBy() creates an object, the values may be reordered. we reorder a few lines below.
         values = map(
             groupBy(values, (v) => v.time.y),
-            (vals: ScatterValue[]) =>
+            (vals: SeriesPoint[]) =>
                 minBy(vals, (v) =>
                     v.year === startTime || v.year === endTime
                         ? -Infinity
                         : Math.abs(v.year - v.time.y)
-                ) as ScatterValue
+                ) as SeriesPoint
         )
 
         if (xOverrideTime === undefined) {
             // NOTE: since groupBy() creates an object, the values may be reordered
             values = map(
                 groupBy(values, (v) => v.time.x),
-                (vals: ScatterValue[]) =>
+                (vals: SeriesPoint[]) =>
                     minBy(vals, (v) =>
                         v.year === startTime || v.year === endTime
                             ? -Infinity
                             : Math.abs(v.year - v.time.x)
-                    ) as ScatterValue
+                    ) as SeriesPoint
             )
         }
 
@@ -923,26 +910,16 @@ export class ScatterPlot
         return this.options.table
     }
 
-    @computed get marks() {
-        const marks: ScatterSeries[] = []
-
-        return marks
-    }
-
     // todo: refactor/remove and/or add unit tests
-    @computed get marks2() {
-        const yColumn = this.options
+    @computed get marks() {
+        const { yColumn } = this
         if (!yColumn) return []
 
-        const {
-            xScaleType,
-            yScaleType,
-            compareEndPointsOnly,
-            xOverrideTime,
-            table,
-        } = this
-        const { isRelativeMode } = this.options
-        let currentData: ScatterSeries[] = []
+        const { table } = this
+        const { xColumn } = this.options
+
+        const seriesArr: ScatterSeries[] = []
+        const strat = this.options.scatterPointLabelStrategy
 
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndTime().forEach((dataByTime, entityName) => {
@@ -951,37 +928,44 @@ export class ScatterPlot
                 label: entityName,
                 color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
-                values: [],
+                points: [],
             } as ScatterSeries
 
             dataByTime.forEach((point) => {
-                //  if (year < startTimelineTime || year > endTimelineTime) return
-                group.values.push(point)
+                let label
+                if (strat === "year")
+                    label = table.timeColumnFormatFunction(point.time)
+                else if (strat === "x") label = xColumn!.formatValue(point.x)
+                else
+                    (label = yColumn!.formatValue(point.y)),
+                        group.points.push({ ...point, label })
             })
 
             // Use most recent size and color values
             // const lastPoint = last(group.values)
 
-            if (group.values.length) {
+            if (group.points.length) {
                 const keyColor = table.getColorForEntityName(entityName)
                 if (keyColor !== undefined) {
                     group.color = keyColor
                 } else if (this.colorColumn) {
-                    const colorValue = last(group.values.map((v) => v.color))
+                    const colorValue = last(group.points.map((v) => v.color))
                     const color = this.colorScale.getColor(colorValue)
                     if (color !== undefined) {
                         group.color = color
                         group.isScaleColor = true
                     }
                 }
-                const sizes = group.values.map((v) => v.size)
+                const sizes = group.points.map((v) => v.size)
                 group.size = defaultTo(
                     last(sizes.filter((s) => isNumber(s))),
                     0
                 )
-                currentData.push(group)
+                seriesArr.push(group)
             }
         })
+
+        return seriesArr
 
         // currentData.forEach((series) => {
         //     series.values = this._filterValues(
@@ -995,61 +979,63 @@ export class ScatterPlot
         //     )
         // })
 
-        currentData = currentData.filter((series) => {
-            // No point trying to render series with no valid points!
-            if (series.values.length === 0) return false
+        // currentData = currentData.filter((series) => {
+        //     // No point trying to render series with no valid points!
+        //     if (series.points.length === 0) return false
 
-            // // Hide lines which don't cover the full span
-            // if (this.hideLinesOutsideTolerance)
-            //     return (
-            //         firstOfNonEmptyArray(series.values).year ===
-            //             startTimelineTime &&
-            //         lastOfNonEmptyArray(series.values).year === endTimelineTime
-            //     )
+        //     // // Hide lines which don't cover the full span
+        //     // if (this.hideLinesOutsideTolerance)
+        //     //     return (
+        //     //         firstOfNonEmptyArray(series.values).year ===
+        //     //             startTimelineTime &&
+        //     //         lastOfNonEmptyArray(series.values).year === endTimelineTime
+        //     //     )
 
-            return true
-        })
+        //     return true
+        // })
 
-        if (compareEndPointsOnly) {
-            currentData.forEach((series) => {
-                const endPoints = [first(series.values), last(series.values)]
-                series.values = compact(uniq(endPoints))
-            })
-        }
+        // if (compareEndPointsOnly) {
+        //     currentData.forEach((series) => {
+        //         const endPoints = [first(series.points), last(series.points)]
+        //         series.points = compact(uniq(endPoints))
+        //     })
+        // }
 
-        if (isRelativeMode) {
-            currentData.forEach((series) => {
-                if (series.values.length === 0) return
-                const startValue = firstOfNonEmptyArray(series.values)
-                const endValue = lastOfNonEmptyArray(series.values)
-                series.values = [
-                    {
-                        x: cagr(startValue, endValue, "x"),
-                        y: cagr(startValue, endValue, "y"),
-                        size: endValue.size,
-                        year: endValue.year,
-                        color: endValue.color,
-                        time: {
-                            y: endValue.time.y,
-                            x: endValue.time.x,
-                            span: [startValue.time.y, endValue.time.y],
-                        },
-                    },
-                ]
-            })
-        }
+        // if (isRelativeMode) {
+        //     currentData.forEach((series) => {
+        //         if (series.points.length === 0) return
+        //         const startValue = firstOfNonEmptyArray(series.points)
+        //         const endValue = lastOfNonEmptyArray(series.points)
 
-        return currentData
+        //         series.points = [
+        //             {
+        //                 x: cagr(startValue, endValue, "x"),
+        //                 y: cagr(startValue, endValue, "y"),
+        //                 size: endValue.size,
+        //                 year: endValue.year,
+        //                 color: endValue.color,
+        //                 label: "s",
+        //                 time: {
+        //                     y: endValue.time.y,
+        //                     x: endValue.time.x,
+        //                     span: [startValue.time.y, endValue.time.y],
+        //                 },
+        //             },
+        //         ]
+        //     })
+        // }
+
+        return seriesArr
     }
 }
 
 @observer
 class ScatterTooltip extends React.Component<ScatterTooltipProps> {
-    formatValueY(value: ScatterValue) {
+    formatValueY(value: SeriesPoint) {
         return "Y Axis: " + this.props.yColumn.formatValue(value.y)
     }
 
-    formatValueX(value: ScatterValue) {
+    formatValueX(value: SeriesPoint) {
         let s = `X Axis: ${this.props.xColumn.formatValue(value.x)}`
         if (!value.time.span && value.time.y !== value.time.x)
             s += ` (data from ${this.props.xColumn.table.formatTime(
@@ -1062,8 +1048,8 @@ class ScatterTooltip extends React.Component<ScatterTooltipProps> {
         const { x, y, maxWidth, fontSize, series } = this.props
         const lineHeight = 5
 
-        const firstValue = first(series.values)
-        const lastValue = last(series.values)
+        const firstValue = first(series.points)
+        const lastValue = last(series.points)
         const values = compact(uniq([firstValue, lastValue]))
 
         const elements: Array<{ x: number; y: number; wrap: TextWrap }> = []
@@ -1148,7 +1134,7 @@ class ScatterGroupSingle extends React.Component<{
 }> {
     render() {
         const { group, isLayerMode, isConnected } = this.props
-        const value = first(group.values)
+        const value = first(group.points)
         if (value === undefined) return null
 
         const color = group.isFocus || !isLayerMode ? value.color : "#e2e2e2"
@@ -1194,7 +1180,7 @@ class ScatterBackgroundLine extends React.Component<{
     render() {
         const { group, isLayerMode, isConnected } = this.props
 
-        if (group.values.length === 1)
+        if (group.points.length === 1)
             return (
                 <ScatterGroupSingle
                     group={group}
@@ -1203,8 +1189,8 @@ class ScatterBackgroundLine extends React.Component<{
                 />
             )
 
-        const firstValue = first(group.values)
-        const lastValue = last(group.values)
+        const firstValue = first(group.points)
+        const lastValue = last(group.points)
         if (firstValue === undefined || lastValue === undefined) return null
 
         let rotation = PointVector.angle(group.offsetVector, PointVector.up)
@@ -1223,7 +1209,7 @@ class ScatterBackgroundLine extends React.Component<{
                     opacity={opacity}
                 />
                 <MultiColorPolyline
-                    points={group.values.map((v) => ({
+                    points={group.points.map((v) => ({
                         x: v.position.x,
                         y: v.position.y,
                         color: isLayerMode ? "#ccc" : v.color,
@@ -1254,7 +1240,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     @computed private get isConnected() {
-        return this.seriesArray.some((g) => g.values.length > 1)
+        return this.seriesArray.some((g) => g.points.length > 1)
     }
 
     @computed private get focusKeys() {
@@ -1282,7 +1268,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     @computed private get isSubtleForeground() {
         return (
             this.focusKeys.length > 1 &&
-            this.props.seriesArray.some((series) => series.values.length > 2)
+            this.props.seriesArray.some((series) => series.points.length > 2)
         )
     }
 
@@ -1301,8 +1287,6 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         return scaleLinear().range([10, 13]).domain(this.sizeScale.domain())
     }
 
-    labelFontFamily = "Arial, sans-serif"
-
     @computed private get hideLines() {
         return this.props.hideLines
     }
@@ -1316,33 +1300,33 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         yAxis.range = this.bounds.yRange()
 
         return sortNumeric(
-            seriesArray.map((d) => {
-                const values = d.values.map((v) => {
-                    const area = sizeScale(v.size || 4)
+            seriesArray.map((series) => {
+                const points = series.points.map((point) => {
+                    const area = sizeScale(point.size || 4)
                     const scaleColor =
                         colorScale !== undefined
-                            ? colorScale.getColor(v.color)
+                            ? colorScale.getColor(point.color)
                             : undefined
                     return {
                         position: new PointVector(
-                            Math.floor(xAxis.place(v.x)),
-                            Math.floor(yAxis.place(v.y))
+                            Math.floor(xAxis.place(point.x)),
+                            Math.floor(yAxis.place(point.y))
                         ),
-                        color: scaleColor ?? d.color,
+                        color: scaleColor ?? series.color,
                         size: Math.sqrt(area / Math.PI),
-                        fontSize: fontScale(d.size || 1),
-                        time: v.time,
-                        label: this.props.formatLabel(v),
+                        fontSize: fontScale(series.size || 1),
+                        time: point.time,
+                        label: point.label,
                     }
                 })
 
                 return {
-                    entityName: d.entityName,
-                    displayKey: "key-" + makeSafeForCSS(d.entityName),
-                    color: d.color,
-                    size: (last(values) as any).size,
-                    values: values,
-                    text: d.label,
+                    entityName: series.entityName,
+                    displayKey: "key-" + makeSafeForCSS(series.entityName),
+                    color: series.color,
+                    size: (last(points) as any).size,
+                    points,
+                    text: series.label,
                     midLabels: [],
                     allLabels: [],
                     offsetVector: PointVector.zero,
@@ -1351,207 +1335,6 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             (d) => d.size,
             SortOrder.desc
         )
-    }
-
-    private labelPriority(l: ScatterLabel) {
-        let priority = l.fontSize
-
-        if (l.series.isHover) priority += 10000
-        if (l.series.isFocus) priority += 1000
-        if (l.isEnd) priority += 100
-
-        return priority
-    }
-
-    // Create the start year label for a series
-    private makeStartLabel(
-        series: ScatterRenderSeries
-    ): ScatterLabel | undefined {
-        // No room to label the year if it's a single point
-        if (!series.isForeground || series.values.length <= 1) return undefined
-
-        const { labelFontFamily } = this
-        const fontSize = series.isForeground
-            ? this.isSubtleForeground
-                ? 8
-                : 9
-            : 7
-        const firstValue = series.values[0]
-        const nextValue = series.values[1]
-        const nextSegment = nextValue.position.subtract(firstValue.position)
-
-        const pos = firstValue.position.subtract(
-            nextSegment.normalize().times(5)
-        )
-        let bounds = Bounds.forText(firstValue.label, {
-            x: pos.x,
-            y: pos.y,
-            fontSize: fontSize,
-            fontFamily: labelFontFamily,
-        })
-        if (pos.x < firstValue.position.x)
-            bounds = new Bounds(
-                bounds.x - bounds.width + 2,
-                bounds.y,
-                bounds.width,
-                bounds.height
-            )
-        if (pos.y > firstValue.position.y)
-            bounds = new Bounds(
-                bounds.x,
-                bounds.y + bounds.height / 2,
-                bounds.width,
-                bounds.height
-            )
-
-        return {
-            text: firstValue.label,
-            fontSize,
-            fontWeight: 400,
-            color: firstValue.color,
-            bounds,
-            series,
-            isStart: true,
-        }
-    }
-
-    // Make labels for the points between start and end on a series
-    // Positioned using normals of the line segments
-    private makeMidLabels(series: ScatterRenderSeries): ScatterLabel[] {
-        if (
-            !series.isForeground ||
-            series.values.length <= 1 ||
-            (!series.isHover && this.isSubtleForeground)
-        )
-            return []
-
-        const fontSize = series.isForeground
-            ? this.isSubtleForeground
-                ? 8
-                : 9
-            : 7
-        const fontWeight = 400
-        const { labelFontFamily } = this
-
-        return series.values.slice(1, -1).map((v, i) => {
-            const prevPos = i > 0 && series.values[i - 1].position
-            const prevSegment = prevPos && v.position.subtract(prevPos)
-            const nextPos = series.values[i + 1].position
-            const nextSegment = nextPos.subtract(v.position)
-
-            let pos = v.position
-            if (prevPos && prevSegment) {
-                const normals = prevSegment
-                    .add(nextSegment)
-                    .normalize()
-                    .normals()
-                    .map((x) => x.times(5))
-                const potentialSpots = normals.map((n) => v.position.add(n))
-                pos = maxBy(potentialSpots, (p) => {
-                    return (
-                        PointVector.distance(p, prevPos) +
-                        PointVector.distance(p, nextPos)
-                    )
-                }) as PointVector
-            } else {
-                pos = v.position.subtract(nextSegment.normalize().times(5))
-            }
-
-            let bounds = Bounds.forText(v.label, {
-                x: pos.x,
-                y: pos.y,
-                fontSize: fontSize,
-                fontWeight: fontWeight,
-                fontFamily: labelFontFamily,
-            })
-            if (pos.x < v.position.x)
-                bounds = new Bounds(
-                    bounds.x - bounds.width + 2,
-                    bounds.y,
-                    bounds.width,
-                    bounds.height
-                )
-            if (pos.y > v.position.y)
-                bounds = new Bounds(
-                    bounds.x,
-                    bounds.y + bounds.height / 2,
-                    bounds.width,
-                    bounds.height
-                )
-
-            return {
-                text: v.label,
-                fontSize,
-                fontWeight,
-                color: v.color,
-                bounds,
-                series,
-                isMid: true,
-            }
-        })
-    }
-
-    // Make the end label (entity label) for a series. Will be pushed
-    // slightly out based on the direction of the series if multiple values
-    // are present
-    // This is also the one label in the case of a single point
-    private makeEndLabel(series: ScatterRenderSeries): ScatterLabel {
-        const { isSubtleForeground, labelFontFamily, hideLines } = this
-
-        const lastValue = last(series.values) as ScatterRenderValue
-        const lastPos = lastValue.position
-        const fontSize = hideLines
-            ? series.isForeground
-                ? this.isSubtleForeground
-                    ? 8
-                    : 9
-                : 7
-            : lastValue.fontSize *
-              (series.isForeground ? (isSubtleForeground ? 1.2 : 1.3) : 1.1)
-        const fontWeight = series.isForeground ? 700 : 400
-
-        let offsetVector = PointVector.up
-        if (series.values.length > 1) {
-            const prevValue = series.values[series.values.length - 2]
-            const prevPos = prevValue.position
-            offsetVector = lastPos.subtract(prevPos)
-        }
-        series.offsetVector = offsetVector
-
-        const labelPos = lastPos.add(
-            offsetVector
-                .normalize()
-                .times(series.values.length === 1 ? lastValue.size + 1 : 5)
-        )
-
-        let labelBounds = Bounds.forText(series.text, {
-            x: labelPos.x,
-            y: labelPos.y,
-            fontSize: fontSize,
-            fontFamily: labelFontFamily,
-        })
-
-        if (labelPos.x < lastPos.x)
-            labelBounds = labelBounds.extend({
-                x: labelBounds.x - labelBounds.width,
-            })
-        if (labelPos.y > lastPos.y)
-            labelBounds = labelBounds.extend({
-                y: labelBounds.y + labelBounds.height / 2,
-            })
-
-        return {
-            text:
-                hideLines && series.isForeground
-                    ? lastValue.label
-                    : series.text,
-            fontSize: fontSize,
-            fontWeight: fontWeight,
-            color: lastValue.color,
-            bounds: labelBounds,
-            series: series,
-            isEnd: true,
-        }
     }
 
     @computed private get renderData(): ScatterRenderSeries[] {
@@ -1566,9 +1349,13 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         }
 
         for (const series of renderData) {
-            series.startLabel = this.makeStartLabel(series)
-            series.midLabels = this.makeMidLabels(series)
-            series.endLabel = this.makeEndLabel(series)
+            series.startLabel = makeStartLabel(series, this.isSubtleForeground)
+            series.midLabels = makeMidLabels(series, this.isSubtleForeground)
+            series.endLabel = makeEndLabel(
+                series,
+                this.isSubtleForeground,
+                this.hideLines
+            )
             series.allLabels = [series.startLabel]
                 .concat(series.midLabels)
                 .concat([series.endLabel])
@@ -1583,7 +1370,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         const labelsByPriority = sortNumeric(
             labels,
-            (l) => this.labelPriority(l),
+            (l) => labelPriority(l),
             SortOrder.desc
         )
         if (this.focusKeys.length > 0)
@@ -1640,6 +1427,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         }
     }
 
+    // todo: move this to bounds class with a test
     private moveLabelsInsideChartBounds(
         labels: ScatterLabel[],
         bounds: Bounds
@@ -1679,19 +1467,19 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
             const mouse = getRelativeMouse(this.base.current, nativeEvent)
 
             const closestSeries = minBy(this.renderData, (series) => {
-                if (series.values.length > 1)
+                if (series.points.length > 1)
                     return min(
-                        series.values.slice(0, -1).map((d, i) => {
+                        series.points.slice(0, -1).map((d, i) => {
                             return PointVector.distanceFromPointToLineSq(
                                 mouse,
                                 d.position,
-                                series.values[i + 1].position
+                                series.points[i + 1].position
                             )
                         })
                     )
 
                 return min(
-                    series.values.map((v) =>
+                    series.points.map((v) =>
                         PointVector.distanceSq(v.position, mouse)
                     )
                 )
@@ -1773,12 +1561,12 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         const { foregroundGroups, isSubtleForeground, hideLines } = this
 
         return foregroundGroups.map((series) => {
-            const lastValue = last(series.values) as ScatterRenderValue
+            const lastValue = last(series.points) as ScatterRenderPoint
             const strokeWidth =
                 (series.isHover ? 3 : isSubtleForeground ? 1.5 : 2) +
                 lastValue.size * 0.05
 
-            if (series.values.length === 1) {
+            if (series.points.length === 1) {
                 return (
                     <ScatterGroupSingle
                         key={series.displayKey}
@@ -1786,7 +1574,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                     />
                 )
             } else {
-                const firstValue = first(series.values)
+                const firstValue = first(series.points)
                 const opacity = isSubtleForeground ? 0.9 : 1
                 const radius = strokeWidth / 2 + 1
                 let rotation = PointVector.angle(
@@ -1797,7 +1585,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 return (
                     <g key={series.displayKey} className={series.displayKey}>
                         <MultiColorPolyline
-                            points={series.values.map((v) => ({
+                            points={series.points.map((v) => ({
                                 x: v.position.x,
                                 y: v.position.y,
                                 color: hideLines ? "rgba(0,0,0,0)" : v.color,
@@ -1818,7 +1606,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                         )}
                         {series.isHover &&
                             !hideLines &&
-                            series.values
+                            series.points
                                 .slice(1, -1)
                                 .map((v, index) => (
                                     <circle
@@ -1847,7 +1635,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     }
 
     private renderForegroundLabels() {
-        const { foregroundGroups, labelFontFamily } = this
+        const { foregroundGroups } = this
         return foregroundGroups.map((series) => {
             return series.allLabels
                 .filter((l) => !l.isHidden)
@@ -1858,7 +1646,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                             x={l.bounds.x.toFixed(2)}
                             y={(l.bounds.y + l.bounds.height).toFixed(2)}
                             fontSize={l.fontSize}
-                            fontFamily={labelFontFamily}
+                            fontFamily={ScatterLabelFontFamily}
                             fontWeight={l.fontWeight}
                             fill={l.color}
                         >
@@ -1898,7 +1686,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
     render() {
         //Bounds.debug(flatten(map(this.renderData, d => map(d.labels, 'bounds'))))
 
-        const { bounds, renderData, renderUid, labelFontFamily } = this
+        const { bounds, renderData, renderUid } = this
         const clipBounds = bounds.pad(-10)
 
         if (isEmpty(renderData))
@@ -1917,7 +1705,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
                 onMouseMove={this.onMouseMove}
                 onMouseLeave={this.onMouseLeave}
                 onClick={this.onClick}
-                fontFamily={labelFontFamily}
+                fontFamily={ScatterLabelFontFamily}
             >
                 <rect
                     key="background"
