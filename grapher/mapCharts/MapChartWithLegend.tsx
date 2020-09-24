@@ -456,7 +456,6 @@ export class MapChartWithLegend
                 </ControlsOverlay>
                 {tooltipTarget && (
                     <MapTooltip
-                        inputTime={this.options.mapColumn.endTimelineTime}
                         tooltipDatum={tooltipDatum}
                         isEntityClickable={this.isEntityClickable(
                             tooltipTarget?.featureId

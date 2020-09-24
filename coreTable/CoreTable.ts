@@ -71,17 +71,21 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
         // Todo: clone rows before doing this, to ensure immutability.
         // Set computeds
-        columnSpecs
-            .filter((spec) => spec.fn)
-            .forEach((spec) => {
-                const { fn, slug } = spec
-                this.rows.forEach((row, index) => {
-                    ;(row as any)[slug] = fn!(row, index, this)
-                })
+        const computeds = columnSpecs.filter((spec) => spec.fn)
+
+        if (!computeds.length) return
+
+        // Clone rows
+        this._rows = this._rows.map((row, index) => {
+            const newRow: any = { ...row }
+            computeds.forEach((spec) => {
+                newRow[spec.slug] = spec.fn!(row, index, this)
             })
+            return newRow as ROW_TYPE
+        })
     }
 
-    // Todo: make immutable? Return a new table?
+    // Todo: REMOVE. make immutable. Return a new table.
     @action.bound addColumnSpecs(columnSpecs: CoreColumnSpec[]) {
         this.setColumns(columnSpecs)
     }
@@ -352,6 +356,9 @@ export interface HasComputedColumn {
     fn: ComputedColumnFn
 }
 
+// todo: remove
+const rowTime = (row: CoreRow) => row.time ?? row.year ?? row.day ?? row.date
+
 export abstract class AbstractCoreColumn {
     spec: CoreColumnSpec
     table: AbstractCoreTable<CoreRow>
@@ -518,7 +525,7 @@ export abstract class AbstractCoreColumn {
 
     // todo: remove
     @computed get times(): Time[] {
-        return this.rowsWithValue.map((row) => parseInt(row.year ?? row.day!))
+        return this.rowsWithValue.map((row) => rowTime(row))
     }
 
     @computed get timesUniq() {

@@ -545,8 +545,8 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         dimensions
             .filter((dim) => dim.display?.conversionFactor !== undefined)
             .forEach((dimension) => {
-                const { display } = dimension
-                const slug = dimension.variableId
+                const { display, variableId } = dimension
+                const slug = variableId.toString()
                 const unitConversionFactor = display!.conversionFactor!
                 rows.forEach((row) => {
                     row[slug] = row[slug] * unitConversionFactor
@@ -557,7 +557,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             const colSpec = columnSpecs.get(dim.variableId.toString())!
             colSpec.display = {
                 ...trimObject(colSpec.display),
-                ...trimObject(colSpec.display),
+                ...trimObject(dim.display),
             }
         })
 

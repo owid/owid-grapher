@@ -783,7 +783,12 @@ export class CovidExplorer extends React.Component<{
 
         covidExplorerTable.table.setSelectedEntities(this.selectedEntityNames)
 
-        covidExplorerTable.applyFilters(params, this.grapher.currentTab)
+        const shouldFilterGroups =
+            (params.casesMetric || params.deathsMetric) &&
+            !(params.interval === "total") &&
+            !params.intervalChange
+
+        if (shouldFilterGroups) covidExplorerTable.applyGroupFilter()
 
         this._updateMap()
         this._updateColorScale()

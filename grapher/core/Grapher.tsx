@@ -64,7 +64,7 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { TooltipProps } from "grapher/tooltip/TooltipProps"
+import { TooltipProps, TooltipProvider } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
@@ -238,6 +238,7 @@ export class Grapher
         DownloadTabOptionsProvider,
         DiscreteBarChartOptionsProvider,
         LegacyDimensionsOptionsProvider,
+        TooltipProvider,
         MapChartOptionsProvider {
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -465,7 +466,16 @@ export class Grapher
 
     private filterByTime(table: OwidTable) {
         if (false) return table
-        return table.filterByTime(...this.timelineFilter)
+        const [startTime, endTime] = this.timelineFilter
+        if (this.tab === "map") {
+            const tolerance = this.map.timeTolerance ?? 0
+            return table.filterByTime(
+                startTime - tolerance,
+                endTime + tolerance
+            )
+        }
+
+        return table.filterByTime(startTime, endTime)
     }
 
     @observable.ref isMediaCard: boolean

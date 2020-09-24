@@ -121,6 +121,7 @@ interface TableProvider {
 export class CovidExplorerTable {
     table: OwidTable
     columnSpecs: { [name: string]: OwidColumnSpec } = {}
+    private options?: TableProvider
 
     constructor(
         data: CovidGrapherRow[],
@@ -143,7 +144,10 @@ export class CovidExplorerTable {
         table.addColumnSpecs(specs)
         this.addAnnotationColumns()
 
-        if (options) options.table = table // Set the new table on Grapher
+        if (options) {
+            this.options = options
+            options.table = table // Set the new table on Grapher
+        }
     }
 
     private static makeSpec(slug: string): OwidColumnSpec {
@@ -446,19 +450,18 @@ export class CovidExplorerTable {
         ])
     }
 
-    applyFilters(params: CovidConstrainedQueryParams, currentTab: string) {
-        if (
-            (params.casesMetric || params.deathsMetric) &&
-            !(params.interval === "total") &&
-            !params.intervalChange
-        )
-            this.table.filterBy((row) => !(row[params.yColumnSlug] < 0)) // todo: actually use this
+    applyNegativesFilter(slug: ColumnSlug) {
+        this.table = this.table.filterBy((row) => !(row[slug] < 0))
 
-        // Do not show unselected groups on scatterplots
-        if (params.type === "ScatterPlot" && currentTab === "chart")
-            this.table.filterBy(
-                (row) => row.group_members || this.table!.isSelected(row)
-            ) // todo: actually use this
+        if (this.options) this.options.table = this.table // Set the new table on Grapher
+    }
+
+    applyGroupsFilter() {
+        this.table = this.table.filterBy(
+            (row) => !row.group_members || this.table!.isSelected(row)
+        )
+
+        if (this.options) this.options.table = this.table // Set the new table on Grapher
     }
 
     initTestingColumn(params: CovidConstrainedQueryParams) {

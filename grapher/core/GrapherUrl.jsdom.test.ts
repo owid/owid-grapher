@@ -20,11 +20,11 @@ const getGrapher = () =>
         ],
         owidDataset: {
             variables: {
-                "142708": {
+                "142609": {
                     years: [-1, 0, 1, 2],
                     entities: [1, 2, 1, 2],
                     values: [51, 52, 53, 54],
-                    id: 142708,
+                    id: 142609,
                     display: { zeroDay: "2020-01-21", yearIsDay: true },
                 },
             },

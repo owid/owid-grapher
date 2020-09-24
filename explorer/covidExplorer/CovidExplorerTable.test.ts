@@ -159,7 +159,7 @@ describe("do not include unselected groups in aligned charts", () => {
     const dataTable = new CovidExplorerTable(covidSampleRows)
     it("can filter rows without continent", () => {
         expect(dataTable.table.availableEntityNameSet.has("World")).toBeTruthy()
-        dataTable.applyFilters({} as any, "")
+        dataTable.applyGroupsFilter()
         expect(dataTable.table.availableEntityNameSet.has("World")).toBeFalsy()
         dataTable.table.selectEntity("World")
         expect(dataTable.table.availableEntityNameSet.has("World")).toBeTruthy()

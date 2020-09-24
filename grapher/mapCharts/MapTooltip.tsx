@@ -11,14 +11,14 @@ import {
 import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
 import { MapChartOptionsProvider, ChoroplethMark } from "./MapChartConstants"
 import { ColorScale } from "grapher/color/ColorScale"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 interface MapTooltipProps {
-    inputTime?: number
     tooltipDatum?: ChoroplethMark
-    tooltipTarget: { x: number; y: number; featureId: string }
+    tooltipTarget?: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
     options: MapChartOptionsProvider
-    colorScale: ColorScale
+    colorScale?: ColorScale
 }
 
 @observer
@@ -73,7 +73,14 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed get colorScale() {
-        return this.props.colorScale
+        return (
+            this.props.colorScale ??
+            new ColorScale({
+                hasNoDataBin: false,
+                categoricalValues: [],
+                colorScaleConfig: new ColorScaleConfig(),
+            })
+        )
     }
 
     @computed private get renderSparkBars() {
@@ -95,18 +102,27 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
             : undefined
     }
 
+    @computed private get tooltipTarget() {
+        return (
+            this.props.tooltipTarget ?? {
+                x: 0,
+                y: 0,
+                featureId: "Default Tooltip",
+            }
+        )
+    }
+
+    @computed private get inputTime() {
+        return this.props.options.mapColumn.endTimelineTime
+    }
+
     render() {
-        const {
-            tooltipTarget,
-            inputTime,
-            tooltipDatum,
-            isEntityClickable,
-        } = this.props
+        const { tooltipDatum, isEntityClickable } = this.props
 
         const tooltipMessage = "Click to select" // todo: used to be "Click for Change over Time" when on line charts
 
         const timeColumn = this.props.options.table.timeColumn
-        const { renderSparkBars, barColor } = this
+        const { renderSparkBars, barColor, tooltipTarget, inputTime } = this
 
         const displayTime = timeColumn
             ? timeColumn.formatValue(inputTime)
