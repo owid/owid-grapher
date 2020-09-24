@@ -955,7 +955,7 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
-        return !this.hideTimeline && this.yColumn?.hasMultipleTimes
+        return !this.hideTimeline && this.rootTable.timelineTimes.length > 1
     }
 
     /**

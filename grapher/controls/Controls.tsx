@@ -316,7 +316,6 @@ export class ControlsFooterView extends React.Component<{
         const grapher = this.grapher
 
         if (!grapher.hasTimeline) return null
-        if (!grapher.times.length) return null
 
         const props: TimelineComponentProps = {
             target: grapher,
