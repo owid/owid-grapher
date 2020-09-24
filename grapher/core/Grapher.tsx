@@ -449,11 +449,8 @@ export class Grapher
         table = this.filterByPop(table)
         table = this.filterByTime(table)
 
+        table.setSelectedEntities(this.rootTable.selectedEntityNames)
         return table
-    }
-
-    set table(table: OwidTable) {
-        this.rootTable = table
     }
 
     private filterByPop(table: OwidTable) {

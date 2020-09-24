@@ -211,14 +211,10 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     // todo: speed up
     // todo: how can we just use super method?
     filterBy(predicate: (row: OwidRow) => boolean) {
-        const rows = this.rows.filter(predicate)
-        const table = new OwidTable(
-            rows,
+        return new OwidTable(
+            this.rows.filter(predicate),
             this.columnsAsArray.map((col) => col.spec)
         )
-        // copy selection. todo: cleanup
-        table.selectedRows = new Set(rows.filter((row) => this.isSelected(row)))
-        return table
     }
 
     // one datum per entityName. use the closest value to target year within tolerance.
@@ -247,6 +243,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     // Clears and sets selected entities
     @action.bound setSelectedEntities(entityNames: EntityName[]) {
         const set = new Set(entityNames)
+        this.clearSelection()
         this.selectRows(this.rows.filter((row) => set.has(row.entityName)))
     }
 

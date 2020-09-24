@@ -13,6 +13,7 @@ import { AbstractCoreColumn } from "coreTable/CoreTable"
 export interface ChartOptionsProvider {
     baseFontSize?: number
     table: OwidTable // todo: abstract table?
+    rootTable?: OwidTable
     entityType?: string
     showAddEntityControls?: boolean
     isSelectingData?: boolean

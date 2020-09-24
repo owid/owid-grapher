@@ -114,6 +114,10 @@ export class MapChartWithLegend
         return this.options.table
     }
 
+    @computed get rootTable() {
+        return this.options.rootTable || this.table
+    }
+
     // Determine if we can go to line chart by clicking on a given map entity
     private isEntityClickable(entityName?: EntityName) {
         if (!this.options.mapIsClickable || !entityName) return false
@@ -126,9 +130,9 @@ export class MapChartWithLegend
         if (!this.isEntityClickable(entityName)) return
 
         if (!ev.shiftKey) {
-            this.table.setSelectedEntities([entityName])
+            this.rootTable.setSelectedEntities([entityName])
             this.options.currentTab = "chart"
-        } else this.table.toggleSelection(entityName)
+        } else this.rootTable.toggleSelection(entityName)
     }
 
     componentWillUnmount() {

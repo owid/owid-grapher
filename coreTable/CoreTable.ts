@@ -43,6 +43,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         ColumnSlug,
         AbstractCoreColumn
     > = new Map()
+    @observable.shallow protected selectedRows = new Set<CoreRow>()
 
     constructor(
         rows: ROW_TYPE[] = [],
@@ -167,8 +168,6 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             .filter((col) => col instanceof NumericColumn)
             .map((col) => col.slug)
     }
-
-    @observable.ref protected selectedRows = new Set<CoreRow>()
 
     isSelected(row: CoreRow) {
         return this.selectedRows.has(row)
