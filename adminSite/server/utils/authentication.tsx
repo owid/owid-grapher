@@ -68,7 +68,7 @@ export async function authCloudflareSSOMiddleware(
                 } else {
                     // Token not verified
                     console.log("Token not verified.")
-                    logOut(req, res)
+                    logOut(req, res, next)
                 }
             }
         )
@@ -77,7 +77,11 @@ export async function authCloudflareSSOMiddleware(
     }
 }
 
-export async function logOut(req: express.Request, res: express.Response) {
+export async function logOut(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+) {
     if (res.locals.user)
         await db.query(`DELETE FROM sessions WHERE session_key = ?`, [
             res.locals.session.id,
@@ -85,7 +89,7 @@ export async function logOut(req: express.Request, res: express.Response) {
 
     res.clearCookie("sessionid")
     res.clearCookie("CF_Authorization")
-    res.redirect("https://owid.cloudflareaccess.com/cdn-cgi/access/logout")
+    return res.redirect("/admin")
 }
 
 export async function authMiddleware(
