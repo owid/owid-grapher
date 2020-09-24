@@ -13,6 +13,9 @@ Plugin Name: Our World In Data
  *  https://developer.wordpress.org/block-editor/tutorials/metabox/meta-block-1-intro/
  */
 
+include 'src/authentication.php';
+
+// Gutenberg blocks
 include 'src/Summary/summary.php';
 include 'src/ProminentLink/prominent-link.php';
 include 'src/AdditionalInformation/additional-information.php';
