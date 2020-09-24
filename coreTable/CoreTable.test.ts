@@ -75,7 +75,10 @@ canada,20`
 
     describe("filtering", () => {
         const col = table.get("country")!
-        const filtered = table.filterBy((row) => parseInt(row.population) > 40)
+        const filtered = table.filterBy(
+            (row) => parseInt(row.population) > 40,
+            "Pop filter"
+        )
         it("one filter works", () => {
             expect(col.parsedValues[3]).toEqual("canada")
             const col2 = filtered.get("country")!
@@ -84,8 +87,9 @@ canada,20`
         })
 
         it("multiple filters work", () => {
-            const filtered2 = filtered.filterBy((row) =>
-                (row.country as string).startsWith("u")
+            const filtered2 = filtered.filterBy(
+                (row) => (row.country as string).startsWith("u"),
+                "Letter filter"
             )
             const col2 = filtered2.get("country")!
             expect(col2.parsedValues[0]).toEqual("usa")

@@ -137,8 +137,7 @@ export class DiscreteBarChart
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        const primaryColumns = this.yColumns
-        axis.column = primaryColumns[0]
+        axis.column = this.rootYColumn
         axis.range = this.xRange
         axis.label = ""
         return axis
@@ -357,7 +356,7 @@ export class DiscreteBarChart
     }
 
     @computed get failMessage() {
-        const column = this.yColumns[0]
+        const column = this.rootYColumn
 
         if (!column) return "No column to chart"
 
@@ -367,18 +366,10 @@ export class DiscreteBarChart
         return column.isEmpty ? `No matching data in column ${column.name}` : ""
     }
 
-    @computed private get yColumns() {
-        return this.options.yColumns
-            ? this.options.yColumns
-            : this.options.yColumn
-            ? [this.options.yColumn]
-            : []
-    }
-
     private formatValue(datum: DiscreteBarDatum) {
-        const column = this.yColumns[0]
+        const column = this.rootYColumn
         const { endTimelineTime } = column
-        const { table } = this.options
+        const { table } = this
 
         const showYearLabels =
             this.options.showYearLabels || datum.time !== endTimelineTime
@@ -391,44 +382,31 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get marks() {
-        const { options, yColumns } = this
-        const { table } = options
-        const yColumn = yColumns[0]
-        const { getColorForEntityName, getLabelForEntityName } = table
+    @computed get rootYColumn() {
+        return this.options.yColumns?.length
+            ? this.options.yColumns[0]
+            : this.options.yColumn!
+    }
 
-        const rows = table
-            .getClosestRowForEachSelectedEntity(
-                yColumn.endTimelineTime,
-                yColumn.tolerance
-            )
-            .filter((row) => !this.isLogScale || row[yColumn.slug] > 0)
-            .map((row) => {
-                const { entityName } = row
-                const time = row.time ?? row.year ?? row.day ?? row.date
-                const value = row[yColumn.slug]
-                const datum: DiscreteBarDatum = {
-                    entityName,
-                    value,
-                    time,
-                    label: getLabelForEntityName(entityName),
-                    color: "#2E5778",
-                }
-                return datum
-            })
+    @computed private get yColumn() {
+        return this.table.get(this.rootYColumn.slug)!
+    }
 
-        const sortedRows = sortBy(rows, (row) => row.value)
+    @computed get table() {
+        const { rootYColumn } = this
+        const slug = rootYColumn.slug
+        let table = this.options.table
+            .filterBySelectedOnly()
+            .filterByTargetTime(...rootYColumn.timeTarget)
 
-        // if (this.grapher.isLineChart) {
-        //     // If derived from line chart, use line chart colors
-        //     for (const key in dataByEntityName) {
-        //         const lineSeries = this.grapher.lineChartTransform.predomainData.find(
-        //             (series) => series.entityName === key
-        //         )
-        //         if (lineSeries) dataByEntityName[key].color = lineSeries.color
-        //     }
-        // } else {
-        const uniqValues = uniq(sortedRows.map((row) => row.value))
+        if (this.isLogScale) table = table.filterNegativesForLogScale(slug)
+        return table.sortBy([slug, "entityName"], ["desc", "asc"])
+    }
+
+    @computed private get valuesToColorsMap() {
+        const { options, yColumn } = this
+        // todo: Restore if derived from line chart, use line chart colors
+        const uniqValues = yColumn.timesUniq
         const colorScheme = options.baseColorScheme
             ? ColorSchemes[options.baseColorScheme]
             : undefined
@@ -439,14 +417,25 @@ export class DiscreteBarChart
         // Therefore, we create a map from all possible (unique) values to the corresponding color
         const colorByValue = new Map<number, string>()
         uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
+        return colorByValue
+    }
 
-        sortedRows.forEach((row) => {
-            row.color =
-                getColorForEntityName(row.entityName) ||
-                colorByValue.get(row.value) ||
-                row.color
+    @computed get marks() {
+        const { table, yColumn, valuesToColorsMap } = this
+        const { getColorForEntityName, getLabelForEntityName } = table
+
+        return yColumn.owidRows.map((row) => {
+            const { entityName } = row
+            const datum: DiscreteBarDatum = {
+                ...row,
+                label: getLabelForEntityName(entityName),
+                color:
+                    getColorForEntityName(row.entityName) ||
+                    valuesToColorsMap.get(row.value) ||
+                    "#2E5778",
+            }
+            return datum
         })
-        return orderBy(sortedRows, ["value", "entityName"], ["desc", "asc"])
     }
 
     @computed private get isLogScale() {

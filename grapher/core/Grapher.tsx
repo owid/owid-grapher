@@ -450,7 +450,6 @@ export class Grapher
         table = this.filterByPop(table)
         table = this.filterByTime(table)
 
-        table.setSelectedEntities(this.rootTable.selectedEntityNames)
         return table
     }
 
@@ -461,7 +460,7 @@ export class Grapher
             const name = row.entityName
             const pop = populationMap[name]
             return !pop || table.isSelected(row) || pop >= minPop
-        })
+        }, `Filter out countries with population less than ${minPop}`)
     }
 
     private filterByTime(table: OwidTable) {

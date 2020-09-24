@@ -229,7 +229,7 @@ usa,us,23,`)
     })
 })
 
-describe("", () => {
+describe("time filtering", () => {
     it("can filter by time domain", () => {
         const table = SynthesizeOwidTable({
             countryCount: 2,
@@ -241,6 +241,34 @@ describe("", () => {
         expect(table.filterByTime(2000, 2003).rows.length).toBe(8)
 
         expect(table.filterByTime(2000, 2000).rows.length).toBe(2)
+    })
+
+    it("can filter by time target", () => {
+        const table = SynthesizeOwidTable(
+            {
+                countryCount: 2,
+                timeRange: [2000, 2005],
+            },
+            1
+        )
+
+        expect(table.rows.length).toBe(10)
+        expect(table.filterByTargetTime(2010, 2).rows.length).toBe(0)
+        expect(table.filterByTargetTime(2010, 20).rows.length).toBe(2)
+
+        expect(
+            table
+                .selectEntity(table.availableEntityNames[0])
+                .filterBySelectedOnly()
+                .filterByTargetTime(2010, 20).rows.length
+        ).toBe(1)
+
+        const table2 = SynthesizeOwidTable({
+            countryCount: 1,
+            timeRange: [2000, 2001],
+        })
+
+        expect(table2.filterByTargetTime(2000, 1).rows.length).toBe(1)
     })
 })
 

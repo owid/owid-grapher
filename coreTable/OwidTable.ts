@@ -19,6 +19,7 @@ import {
     sampleFrom,
     trimObject,
     sortedUniq,
+    orderBy,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { EPOCH_DATE, Time, TimeRange } from "grapher/core/GrapherConstants"
@@ -68,7 +69,9 @@ interface OwidRow extends CoreRow {
     date?: string
 }
 
-const rowTime = (row: OwidRow) => row.time ?? row.year ?? row.day ?? row.date
+// todo: remove
+const rowTime = (row: CoreRow) =>
+    parseInt(row.time ?? row.year ?? row.day ?? row.date)
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -216,16 +219,61 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this.filterBy((row) => {
             const time = rowTime(row)
             return time >= start && time <= end
-        })
+        }, `Keep only rows with Time between ${start} - ${end}`)
     }
 
     // todo: speed up
     // todo: how can we just use super method?
-    filterBy(predicate: (row: OwidRow) => boolean): OwidTable {
+    filterBy(predicate: (row: OwidRow) => boolean, opName: string): OwidTable {
         return new OwidTable(
             this.rows.filter(predicate),
             this.columnsAsArray.map((col) => col.spec),
-            this
+            this,
+            opName
+        )
+    }
+
+    filterBySelectedOnly() {
+        return this.filterBy(
+            (row) => this.isSelected(row),
+            `Selected rows only`
+        )
+    }
+
+    filterNegativesForLogScale(columnSlug: ColumnSlug) {
+        return this.filterBy(
+            (row) => row[columnSlug] > 0,
+            `Remove rows if ${columnSlug} is <= 0 for log scale`
+        )
+    }
+
+    filterByTargetTime(targetTime: Time, tolerance: Integer) {
+        const timeSlug = this.timeColumn.slug
+        const entityNameToRows = this.rowsByEntityName
+        const matchingRows = new Set<OwidRow>()
+        this.availableEntityNames.forEach((entityName) => {
+            const rows = entityNameToRows.get(entityName) || []
+
+            const rowIndex = findClosestTimeIndex(
+                rows.map((row) => row[timeSlug]) as number[],
+                targetTime,
+                tolerance
+            )
+            if (rowIndex !== undefined) matchingRows.add(rows[rowIndex])
+        })
+
+        return this.filterBy(
+            (row) => matchingRows.has(row),
+            `Keep one row per entity closest to time ${targetTime} with tolerance ${tolerance}`
+        )
+    }
+
+    sortBy(slugs: ColumnSlug[], orders?: ("asc" | "desc")[]): OwidTable {
+        return new OwidTable(
+            orderBy(this.rows, slugs, orders),
+            this.columnsAsArray.map((col) => col.spec),
+            this,
+            `Sort by ${slugs.join(",")} ${orders?.join(",")}`
         )
     }
 

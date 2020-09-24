@@ -3,6 +3,7 @@ import {
     Integer,
     TickFormattingOptions,
     Time,
+    TimeTolerance,
 } from "grapher/core/GrapherConstants"
 import {
     formatYear,
@@ -16,6 +17,11 @@ import {
 import { sortBy, isString, last, sortedUniq } from "lodash"
 import { observable, action, computed } from "mobx"
 import { ColumnSlug, ColumnTypeNames, EntityName } from "./CoreTableConstants"
+import {
+    toAlignedTextTable,
+    toDelimited,
+    toMarkdownTable,
+} from "./CoreTablePrinters"
 import {
     LegacyVariableDisplayConfig,
     LegacyVariableDisplayConfigInterface,
@@ -46,18 +52,28 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     @observable.shallow protected selectedRows = new Set<CoreRow>()
 
     protected parent?: AbstractCoreTable<ROW_TYPE>
+    protected tableDescription?: string
 
     constructor(
         rows: ROW_TYPE[] = [],
         columnSpecs: CoreColumnSpec[] = AbstractCoreTable.makeSpecsFromRows(
             rows
         ),
-        parentTable?: AbstractCoreTable<ROW_TYPE>
+        parentTable?: AbstractCoreTable<ROW_TYPE>,
+        tableDescription?: string
     ) {
         this._rows = rows
         this.setColumns(columnSpecs)
         // Todo: add warning if you provide Specs but not for all cols?
         this.parent = parentTable
+
+        // Clone selection from parent
+        if (parentTable)
+            this.selectRows(
+                this.rows.filter((row) => parentTable.selectedRows.has(row))
+            )
+
+        this.tableDescription = tableDescription
     }
 
     // Todo: make immutable? Return a new table?
@@ -110,7 +126,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         const col =
             this.columnsAsArray.find((col) => col instanceof DateColumn) ||
             this.columnsAsArray.find((col) => col instanceof TimeColumn)
-        return col
+        return col!
     }
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
@@ -156,11 +172,12 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     }
 
     // todo: speed up
-    filterBy(predicate: (row: CoreRow) => boolean): AnyTable {
+    filterBy(predicate: (row: CoreRow) => boolean, opName: string): AnyTable {
         return new AnyTable(
             this.rows.filter(predicate),
             this.columnsAsArray.map((col) => col.spec),
-            this
+            this,
+            opName
         )
     }
 
@@ -222,36 +239,46 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
     }
 
-    toDebugInfo(showRows = 5) {
+    toDebugInfo(showRows = 10): string {
         const rowCount = this.rows.length
-        showRows = showRows > rowCount ? rowCount : showRows
-        return `columns\n${this.columnsAsArray
-            .map(
-                (col) =>
-                    ` slug:${col.slug} type:${col.spec.type} name:${col.name}`
-            )
-            .join(
-                "\n"
-            )}\ndata rows 0 - ${showRows} of ${rowCount}\n ${this.toDelimited(
-            undefined,
-            showRows,
-            ",",
-            "\n "
-        )}`
+        const showRowsClamped = showRows > rowCount ? rowCount : showRows
+        const parentDebugInfo = this.parent
+            ? this.parent.toDebugInfo(showRows) +
+              `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
+            : "# Root Table:\n"
+        const colTable = this.columnsAsArray.map((col) => {
+            return {
+                slug: col.slug,
+                type: col.spec.type,
+                name: col.name,
+            }
+        })
+        return [
+            parentDebugInfo,
+            `${this.columnsAsArray.length} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. \n`,
+            toAlignedTextTable(["slug", "type", "name"], colTable) + "\n\n",
+            toAlignedTextTable(
+                this.columnSlugs,
+                this.rows.slice(0, showRowsClamped)
+            ),
+        ].join("")
+    }
+
+    // Output a pretty table for consles
+    toAlignedTextTable() {
+        return toAlignedTextTable(this.columnSlugs, this.rows)
+    }
+
+    toMarkdownTable() {
+        return toMarkdownTable(this.columnSlugs, this.rows)
     }
 
     toDelimited(
-        slugs = this.columnSlugs,
-        rowLimit?: number,
-        delimiter = ",",
-        rowDelimiter = "\n"
+        delimiter: string = ",",
+        columnSlugs = this.columnSlugs,
+        rows = this.rows
     ) {
-        const header = slugs.join(delimiter) + rowDelimiter
-        const body = this.extract(slugs)
-            .slice(0, rowLimit)
-            .map((row) => row.join(delimiter))
-            .join(rowDelimiter)
-        return header + body
+        return toDelimited(delimiter, columnSlugs, rows)
     }
 
     // Get all the columns that only have 1 value
@@ -357,7 +384,8 @@ export interface HasComputedColumn {
 }
 
 // todo: remove
-const rowTime = (row: CoreRow) => row.time ?? row.year ?? row.day ?? row.date
+const rowTime = (row: CoreRow) =>
+    parseInt(row.time ?? row.year ?? row.day ?? row.date)
 
 export abstract class AbstractCoreColumn {
     spec: CoreColumnSpec
@@ -534,6 +562,10 @@ export abstract class AbstractCoreColumn {
 
     @computed get hasMultipleTimes() {
         return this.timesUniq.length > 1
+    }
+
+    @computed get timeTarget(): [Time, TimeTolerance] {
+        return [this.endTimelineTime, this.tolerance]
     }
 
     @computed get startTimelineTime() {

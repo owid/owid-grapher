@@ -29,6 +29,7 @@ export type Integer = number
  * cannot enforce this in TypeScript.
  */
 export type Time = Integer
+export type TimeTolerance = Integer
 
 export type TimeRange = [Time, Time]
 export type ValueRange = [number, number]

@@ -451,14 +451,18 @@ export class CovidExplorerTable {
     }
 
     applyNegativesFilter(slug: ColumnSlug) {
-        this.table = this.table.filterBy((row) => !(row[slug] < 0))
+        this.table = this.table.filterBy(
+            (row) => !(row[slug] < 0),
+            `Filter negative values for ${slug}`
+        )
 
         if (this.options) this.options.table = this.table // Set the new table on Grapher
     }
 
     applyGroupsFilter() {
         this.table = this.table.filterBy(
-            (row) => !row.group_members || this.table!.isSelected(row)
+            (row) => !row.group_members || this.table!.isSelected(row),
+            `Filter out regions`
         )
 
         if (this.options) this.options.table = this.table // Set the new table on Grapher

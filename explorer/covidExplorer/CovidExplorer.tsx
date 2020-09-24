@@ -788,7 +788,7 @@ export class CovidExplorer extends React.Component<{
             !(params.interval === "total") &&
             !params.intervalChange
 
-        if (shouldFilterGroups) covidExplorerTable.applyGroupFilter()
+        if (shouldFilterGroups) covidExplorerTable.applyGroupsFilter()
 
         this._updateMap()
         this._updateColorScale()
