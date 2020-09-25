@@ -6,6 +6,7 @@ import { BASE_FONT_SIZE, ChartTypeName } from "grapher/core/GrapherConstants"
 import { getChartComponent } from "grapher/chart/ChartTypeMap"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { makeGrid } from "grapher/utils/Util"
+import { getElementWithHalo } from "grapher/scatterCharts/Halos"
 
 interface FacetChartProps {
     bounds?: Bounds
@@ -108,7 +109,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         return this.props.options
     }
 
-    private renderSmallCharts() {
+    render() {
         const fontSize = getFontSize(
             this.smallCharts.length,
             this.rootOptions.baseFontSize
@@ -120,24 +121,15 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             const { bounds, title } = smallChart
             return (
                 <>
-                    {FacetTitle(title, bounds, fontSize, index)}
                     <ChartComponent
                         key={index}
                         bounds={bounds}
                         options={smallChart.options}
                     />
+                    {FacetTitle(title, bounds, fontSize, index)}
                 </>
             )
         })
-    }
-
-    render() {
-        const { width, height } = this.bounds
-        return (
-            <svg width={width} height={height}>
-                {this.renderSmallCharts()}
-            </svg>
-        )
     }
 }
 
@@ -146,15 +138,17 @@ const FacetTitle = (
     bounds: Bounds,
     fontSize: number,
     index: number
-) => (
-    <text
-        key={index}
-        x={bounds.left}
-        y={bounds.top}
-        fill={"grey"}
-        textAnchor="middle"
-        fontSize={fontSize}
-    >
-        {title}
-    </text>
-)
+) =>
+    getElementWithHalo(
+        `title${index}halo`,
+        <text
+            x={bounds.centerX}
+            y={bounds.top + fontSize}
+            fill={"black"}
+            textAnchor="middle"
+            fontSize={fontSize}
+        >
+            {title}
+        </text>,
+        { strokeWidth: ".2em" }
+    )
