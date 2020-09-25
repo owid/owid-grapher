@@ -1,6 +1,6 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { min, max, maxBy, orderBy, sortBy, uniq } from "grapher/utils/Util"
+import { min, max, maxBy } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -383,13 +383,11 @@ export class DiscreteBarChart
     }
 
     @computed get rootYColumn() {
-        return this.options.yColumns?.length
-            ? this.options.yColumns[0]
-            : this.options.yColumn!
+        return this.options.table.get(this.options.yColumnSlug)!
     }
 
     @computed private get yColumn() {
-        return this.table.get(this.rootYColumn.slug)!
+        return this.table.get(this.options.yColumnSlug)!
     }
 
     @computed get table() {

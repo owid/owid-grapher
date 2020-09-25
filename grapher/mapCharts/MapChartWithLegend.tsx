@@ -76,8 +76,12 @@ export class MapChartWithLegend
     @observable focusBracket?: MapBracket
 
     @computed get failMessage() {
-        if (!this.options.mapColumn) return "Missing map column"
+        if (!this.mapColumn) return "Missing map column"
         return ""
+    }
+
+    @computed get mapColumn() {
+        return this.table.get(this.options.mapColumnSlug)
     }
 
     @computed get bounds() {
@@ -157,8 +161,8 @@ export class MapChartWithLegend
     }
 
     @computed get marks() {
-        const { options, mapConfig } = this
-        const column = options.mapColumn
+        const { options, mapConfig, mapColumn } = this
+        const column = mapColumn
         if (!column) return {}
         const endTime = column.endTimelineTime
 
@@ -205,7 +209,7 @@ export class MapChartWithLegend
     }
 
     @computed get colorScaleColumn() {
-        return this.options.mapColumn
+        return this.mapColumn
     }
 
     @computed get colorScale() {
@@ -222,7 +226,7 @@ export class MapChartWithLegend
     @computed get categoricalValues() {
         // return uniq(this.mappableData.values.filter(isString))
         // return this.options.mapColumn.values || [] // todo: mappable data
-        return this.options.mapColumn.parsedValues.filter(isString)
+        return this.mapColumn!.parsedValues.filter(isString)
     }
 
     componentDidMount() {

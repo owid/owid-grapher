@@ -3,8 +3,8 @@ import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
 import { MapProjection } from "./MapProjections"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { MapConfig } from "./MapConfig"
+import { ColumnSlug } from "coreTable/CoreTableConstants"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
@@ -53,7 +53,7 @@ export interface RenderFeature {
 }
 
 export interface MapChartOptionsProvider extends ChartOptionsProvider {
-    mapColumn: AbstractCoreColumn
+    mapColumnSlug: ColumnSlug
     mapIsClickable?: boolean
     currentTab?: string // Used to switch to chart tab on map click
     mapConfig?: MapConfig

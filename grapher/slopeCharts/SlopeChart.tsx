@@ -304,11 +304,17 @@ export class SlopeChart
     }
 
     @computed private get yColumn() {
-        return this.options.yColumn ?? this.options.yColumns![0]
+        return this.table.get(
+            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+        )
     }
 
     @computed private get colorColumn() {
-        return this.options.colorColumn!
+        return this.table.get(this.options.colorColumnSlug)
+    }
+
+    @computed get table() {
+        return this.options.table
     }
 
     // helper method to directly get the associated color value given an Entity
@@ -330,11 +336,15 @@ export class SlopeChart
         return colorByEntity
     }
 
+    @computed private get sizeColumn() {
+        return this.table.get(this.options.sizeColumnSlug)
+    }
+
     // helper method to directly get the associated size value given an Entity
     // dimension data saves size a level deeper. eg: { Afghanistan => { 1990: 1, 2015: 10 }}
     // this returns that data in the form { Afghanistan => 1 }
     @computed private get sizeByEntity(): Map<string, any> {
-        const sizeCol = this.options.sizeColumn
+        const sizeCol = this.sizeColumn
         const sizeByEntity = new Map<string, any>()
 
         if (sizeCol)

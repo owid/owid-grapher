@@ -14,7 +14,7 @@ export const Default = () => {
 
     const options: DiscreteBarChartOptionsProvider = {
         table,
-        yColumn: table.get("Population"),
+        yColumnSlug: "Population",
     }
 
     return (

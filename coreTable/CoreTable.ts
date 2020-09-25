@@ -110,8 +110,10 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this._rows
     }
 
-    get(columnSlug: ColumnSlug) {
-        return this._columns.get(columnSlug)
+    get(columnSlug?: ColumnSlug) {
+        return columnSlug !== undefined
+            ? this._columns.get(columnSlug)
+            : undefined
     }
 
     has(columnSlug: ColumnSlug) {

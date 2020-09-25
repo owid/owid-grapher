@@ -507,8 +507,8 @@ export class StackedAreaChart
     }
 
     @computed get failMessage() {
-        const { yColumns } = this.options
-        if (!yColumns?.length) return "Missing Y axis columns"
+        const { yColumn } = this
+        if (!yColumn) return "Missing Y axis columns"
         else if (
             this.groupedData.length === 0 ||
             this.groupedData[0].values.length === 0
@@ -521,8 +521,7 @@ export class StackedAreaChart
     // Get the data for each stacked area series, cleaned to ensure every series
     // "lines up" i.e. has a data point for every year
     @computed private get groupedData() {
-        const { options } = this
-        const { table, yColumns } = options
+        const { options, yColumns, table } = this
         const { selectedEntityNameSet, selectedEntityNames } = table
 
         let groupedData: StackedAreaSeries[] = []
@@ -675,8 +674,8 @@ export class StackedAreaChart
     }
 
     @computed get verticalAxis() {
-        const { options, yDomainDefault } = this
-        const { yColumn, isRelativeMode } = options
+        const { options, yDomainDefault, yColumn } = this
+        const { isRelativeMode } = options
 
         const axis = this.yAxis.toVerticalAxis()
         if (isRelativeMode) axis.domain = [0, 100]
@@ -703,12 +702,24 @@ export class StackedAreaChart
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
+    @computed private get table() {
+        return this.options.table
+    }
+
     @computed private get yColumn() {
-        return this.options.yColumn ?? this.options.yColumns![0]
+        return this.table.get(
+            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+        )
+    }
+
+    @computed private get yColumns() {
+        return (this.options.yColumnSlugs || []).map(
+            (slug) => this.table.get(slug)!
+        )
     }
 
     @computed private get xDomainDefault(): ValueRange {
-        const { startTimelineTime, endTimelineTime } = this.yColumn
+        const { startTimelineTime, endTimelineTime } = this.yColumn!
         return [startTimelineTime, endTimelineTime]
     }
 
@@ -716,7 +727,7 @@ export class StackedAreaChart
     @computed get marks() {
         const { groupedData } = this
 
-        const { startTimelineTime, endTimelineTime } = this.yColumn
+        const { startTimelineTime, endTimelineTime } = this.yColumn!
 
         if (
             groupedData.some(
@@ -757,7 +768,7 @@ export class StackedAreaChart
     private formatYTick(v: number) {
         if (this.options.isRelativeMode) return formatValue(v, { unit: "%" })
 
-        const { yColumn } = this.options
+        const { yColumn } = this
 
         return yColumn ? yColumn.formatValueShort(v) : v // todo: restore { noTrailingZeroes: false }
     }

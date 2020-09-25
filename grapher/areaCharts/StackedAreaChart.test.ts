@@ -10,7 +10,7 @@ class MockOptions implements ChartOptionsProvider {
     table = SynthesizeOwidTable({
         timeRange: [1950, 2010],
     })
-    yColumns = [this.table.get("GDP")!]
+    yColumnSlugs = ["GDP"]
     yAxis = new AxisConfig({ min: 0, max: 200 })
     @observable isRelativeMode = false
 }

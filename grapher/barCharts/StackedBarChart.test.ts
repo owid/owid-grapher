@@ -8,7 +8,7 @@ describe(StackedBarChart, () => {
 
     const options = {
         table,
-        yColumns: [table.get("Population")!],
+        yColumnSlugs: ["Population"],
     }
 
     it("can create a chart", () => {

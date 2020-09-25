@@ -11,8 +11,8 @@ const table = SynthesizeOwidTable()
 table.selectAll()
 const options: ChartTabOptionsProvider = {
     table,
-    mapColumn: table.get("GDP")!,
-    yColumns: [table.get("GDP")!],
+    mapColumnSlug: "GDP",
+    yColumnSlug: "GDP",
     currentTitle: "This is the Title",
     subtitle: "A Subtitle",
     tab: "chart",

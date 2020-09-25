@@ -304,7 +304,7 @@ export class ScatterPlot
                 hideLines={hideLines}
                 seriesArray={marks}
                 dualAxis={dualAxis}
-                colorScale={this.options.colorColumn ? colorScale : undefined}
+                colorScale={this.colorColumn ? colorScale : undefined}
                 sizeDomain={sizeDomain}
                 focusKeys={focusKeys}
                 hoverKeys={hoverKeys}
@@ -313,6 +313,10 @@ export class ScatterPlot
                 onClick={this.onScatterClick}
             />
         )
+    }
+
+    @computed get colorColumn() {
+        return this.table.get(this.options.colorColumnSlug)
     }
 
     @computed get colorBins() {
@@ -388,8 +392,8 @@ export class ScatterPlot
                 )}
                 {tooltipSeries && (
                     <ScatterTooltip
-                        yColumn={options.yColumn!}
-                        xColumn={options.xColumn!}
+                        yColumn={this.yColumn!}
+                        xColumn={this.xColumn!}
                         series={tooltipSeries}
                         maxWidth={sidebarWidth}
                         fontSize={this.fontSize}
@@ -426,7 +430,7 @@ export class ScatterPlot
     defaultNoDataColor = "#959595"
 
     @computed get hasNoDataBin() {
-        const colorColumn = this.options.colorColumn
+        const colorColumn = this.colorColumn
         return !!(
             colorColumn &&
             this.allPoints.some((point) => point.color === undefined)
@@ -434,7 +438,7 @@ export class ScatterPlot
     }
 
     @computed get categoricalValues() {
-        const colorColumn = this.options.colorColumn
+        const colorColumn = this.colorColumn
         return colorColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
@@ -447,19 +451,17 @@ export class ScatterPlot
     }
 
     @computed private get yColumn() {
-        return this.options.yColumn ?? this.options.yColumns![0]
+        return this.table.get(
+            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+        )
     }
 
     @computed private get xColumn() {
-        return this.options.xColumn
+        return this.table.get(this.options.xColumnSlug)
     }
 
     @computed private get sizeColumn() {
-        return this.options.sizeColumn
-    }
-
-    @computed private get colorColumn() {
-        return this.options.colorColumn
+        return this.table.get(this.options.sizeColumnSlug)
     }
 
     @computed get failMessage() {
@@ -509,10 +511,10 @@ export class ScatterPlot
             ? this.table.selectedEntityNames
             : this.possibleEntityNames
 
-        if (this.options.matchingEntitiesOnly && this.options.colorColumn)
+        if (this.options.matchingEntitiesOnly && this.colorColumn)
             entityNames = intersection(
                 entityNames,
-                this.options.colorColumn.entityNamesUniqArr
+                this.colorColumn.entityNamesUniqArr
             )
 
         return entityNames
@@ -915,8 +917,7 @@ export class ScatterPlot
         const { yColumn } = this
         if (!yColumn) return []
 
-        const { table } = this
-        const { xColumn } = this.options
+        const { table, xColumn } = this
 
         const seriesArr: ScatterSeries[] = []
         const strat = this.options.scatterPointLabelStrategy

@@ -38,12 +38,16 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         }
     }
 
+    @computed private get mapColumn() {
+        return this.props.options.table.get(this.props.options.mapColumnSlug)
+    }
+
     @computed private get sparkBarsData() {
         const tooltipDatum = this.props.tooltipDatum
         if (!tooltipDatum) return []
 
         const sparkBarValues: SparkBarsDatum[] = []
-        this.props.options.mapColumn?.valueByEntityNameAndTime
+        this.mapColumn?.valueByEntityNameAndTime
             .get(tooltipDatum.entity)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
@@ -113,7 +117,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get inputTime() {
-        return this.props.options.mapColumn.endTimelineTime
+        return this.mapColumn!.endTimelineTime
     }
 
     render() {

@@ -5,6 +5,7 @@ import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { OwidTable } from "coreTable/OwidTable"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { ColumnSlug } from "coreTable/CoreTableConstants"
 
 // NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
 // our Options as an "Options Provider". To get or set any of the options, you then have to "dot in" to the options provider
@@ -37,11 +38,11 @@ export interface ChartOptionsProvider {
     xAxis?: AxisConfig // just pass interface?
     addCountryMode?: AddCountryMode
 
-    yColumn?: AbstractCoreColumn
-    yColumns?: AbstractCoreColumn[]
-    xColumn?: AbstractCoreColumn
-    sizeColumn?: AbstractCoreColumn
-    colorColumn?: AbstractCoreColumn
+    yColumnSlug?: ColumnSlug
+    yColumnSlugs?: ColumnSlug[]
+    xColumnSlug?: ColumnSlug
+    sizeColumnSlug?: ColumnSlug
+    colorColumnSlug?: ColumnSlug
 
     hidePoints?: boolean // for line options
     lineStrokeWidth?: number

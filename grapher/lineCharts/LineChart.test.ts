@@ -8,7 +8,7 @@ describe(LineChart, () => {
 
     const options = {
         table,
-        yColumns: [table.get("GDP")!],
+        yColumnSlugs: ["GDP"],
     }
 
     it("can create a new chart", () => {

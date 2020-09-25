@@ -16,7 +16,7 @@ export const Default = () => {
 
     const options: MapChartOptionsProvider = {
         table,
-        mapColumn: table.get("Population")!,
+        mapColumnSlug: "Population",
     }
 
     return (

@@ -970,25 +970,32 @@ export class Grapher
     }
 
     @computed get mapColumn() {
-        return this.map.columnSlug
-            ? this.table.get(this.map.columnSlug)!
-            : this.yColumn!
+        return this.table.get(this.mapColumnSlug)
+    }
+
+    @computed get mapColumnSlug() {
+        return (this.map.columnSlug || this.yColumnSlug)!
     }
 
     getColumnForProperty(property: DimensionProperty) {
         return this.dimensions.find((dim) => dim.property === property)?.column
     }
 
-    @computed get yColumn() {
-        return this.getColumnForProperty("y")
+    getSlugForProperty(property: DimensionProperty) {
+        return this.dimensions.find((dim) => dim.property === property)
+            ?.columnSlug
     }
 
-    @computed get xColumn() {
-        return this.getColumnForProperty("x")
+    @computed get yColumnSlug() {
+        return this.getSlugForProperty("y")
     }
 
-    @computed get sizeColumn() {
-        return this.getColumnForProperty("size")
+    @computed get xColumnSlug() {
+        return this.getSlugForProperty("x")
+    }
+
+    @computed get sizeColumnSlug() {
+        return this.getSlugForProperty("size")
     }
 
     @computed private get timeTitleSuffix() {

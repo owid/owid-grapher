@@ -220,14 +220,19 @@ export class StackedBarChart
     }
 
     @computed get tooltip() {
-        const { hoverBar, mapXValueToOffset, barWidth, dualAxis } = this
+        const {
+            hoverBar,
+            mapXValueToOffset,
+            barWidth,
+            dualAxis,
+            yColumn,
+        } = this
         if (hoverBar === undefined) return
 
         const xPos = mapXValueToOffset.get(hoverBar.x)
         if (xPos === undefined) return
 
         const yPos = dualAxis.verticalAxis.place(hoverBar.yOffset + hoverBar.y)
-        const yColumn = this.options.yColumns![0]
 
         return (
             <Tooltip
@@ -498,8 +503,8 @@ export class StackedBarChart
     }
 
     @computed get failMessage() {
-        const { yColumns } = this.options
-        if (!yColumns?.length) return "Missing variable"
+        const { yColumn } = this
+        if (!yColumn) return "Missing variable"
 
         if (!this.marks.length) return "No matching data"
         return ""
@@ -510,14 +515,20 @@ export class StackedBarChart
     }
 
     @computed get tickFormatFn(): (d: number) => string {
-        const { yColumn } = this.options
+        const { yColumn } = this
         return yColumn ? yColumn.formatValueShort : (d: number) => `${d}`
+    }
+
+    @computed private get yColumn() {
+        return this.table.get(
+            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+        )
     }
 
     // TODO: Make XAxis generic
     @computed get horizontalAxis() {
         const { options } = this
-        const { startTimelineTime, endTimelineTime } = this.options.yColumn!
+        const { startTimelineTime, endTimelineTime } = this.yColumn!
         const axis = this.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             startTimelineTime,
@@ -538,7 +549,6 @@ export class StackedBarChart
     }
 
     @computed get verticalAxis() {
-        const { options } = this
         const lastSeries = this.marks[this.marks.length - 1]
 
         const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
@@ -547,7 +557,7 @@ export class StackedBarChart
         const axis = this.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
-        axis.column = options.yColumn
+        axis.column = this.yColumn
         return axis
     }
 
@@ -571,7 +581,7 @@ export class StackedBarChart
     hasNoDataBin = false
 
     @computed get categoricalValues() {
-        return this.options.yColumns!.map((col) => col.displayName).reverse()
+        return this.yColumns.map((col) => col.displayName).reverse()
     }
 
     @computed get table() {
@@ -581,8 +591,8 @@ export class StackedBarChart
     }
 
     @computed private get yColumns() {
-        return (this.options.yColumns || []).map(
-            (col) => this.table.get(col.slug)!
+        return (this.options.yColumnSlugs || []).map(
+            (slug) => this.table.get(slug)!
         )
     }
 

@@ -530,14 +530,26 @@ export class LineChart
     }
 
     @computed get failMessage() {
-        const { yColumns } = this.options
-        if (!yColumns?.length) return "Missing Y axis column"
+        const { yColumn } = this
+        if (!yColumn) return "Missing Y axis column"
         if (!this.marks.length) return "No matching data"
         return ""
     }
 
     @computed private get yColumn() {
-        return this.options.yColumn ?? this.options.yColumns![0]
+        return this.table.get(
+            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+        )
+    }
+
+    @computed private get yColumns() {
+        return (this.options.yColumnSlugs || []).map(
+            (slug) => this.table.get(slug)!
+        )
+    }
+
+    @computed private get table() {
+        return this.options.table
     }
 
     @computed private get annotationsMap() {
@@ -557,8 +569,10 @@ export class LineChart
     }
 
     @computed get marks() {
-        const { yColumns, yAxis, table } = this.options
+        const { yColumns, table } = this
         if (!yColumns) return []
+
+        const { yAxis } = this.options
 
         const { selectedEntityNames } = table
 
@@ -734,8 +748,8 @@ export class LineChart
 
         const axis = xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
-            this.yColumn.startTimelineTime,
-            this.yColumn.endTimelineTime,
+            this.yColumn!.startTimelineTime,
+            this.yColumn!.endTimelineTime,
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
@@ -753,7 +767,7 @@ export class LineChart
 
         if (this.options.hideYAxis) yAxisConfig.hideAxis = true
 
-        const yDomain = this.yColumn.domain
+        const yDomain = this.yColumn!.domain
         const domain = yAxisConfig.domain
         const yDefaultDomain: ValueRange = [
             Math.min(domain[0], yDomain[0]),
@@ -763,7 +777,7 @@ export class LineChart
         const axis = yAxisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDefaultDomain)
         if (options.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
-        axis.hideFractionalTicks = this.yColumn.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
+        axis.hideFractionalTicks = this.yColumn!.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
         axis.column = this.yColumn
         return axis

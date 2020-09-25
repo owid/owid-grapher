@@ -10,8 +10,8 @@ describe(ScatterPlot, () => {
     })
     const options = {
         table,
-        yColumn: table.get("GDP"),
-        xColumn: table.get("Population"),
+        yColumnSlug: "GDP",
+        xColumnSlug: "Population",
     }
 
     it("can create a new chart", () => {

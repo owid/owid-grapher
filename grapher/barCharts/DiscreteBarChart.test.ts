@@ -9,7 +9,7 @@ describe(DiscreteBarChart, () => {
 
     const options: DiscreteBarChartOptionsProvider = {
         table,
-        yColumn: table.get("Population"),
+        yColumnSlug: "Population",
     }
 
     it("can create a new bar chart", () => {

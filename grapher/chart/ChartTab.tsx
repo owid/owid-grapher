@@ -178,7 +178,7 @@ export class ChartTab
         const innerBounds = this.innerBounds
         const isMapTab = options.tab === "map"
 
-        if (!this.isReady || (isMapTab && !options.mapColumn))
+        if (!this.isReady || (isMapTab && !options.mapColumnSlug))
             return <LoadingIndicator bounds={innerBounds} color="#333" />
 
         if (isMapTab)

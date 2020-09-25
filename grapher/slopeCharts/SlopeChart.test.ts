@@ -8,7 +8,7 @@ describe(SlopeChart, () => {
     const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
     const options: ChartOptionsProvider = {
         table,
-        yColumn: table.get("Population"),
+        yColumnSlug: "Population",
     }
 
     it("can create a new slope chart", () => {

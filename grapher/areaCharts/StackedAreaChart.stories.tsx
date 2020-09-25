@@ -17,7 +17,7 @@ export const Default = () => {
 
     const options: ChartOptionsProvider = {
         table,
-        yColumns: [table.get("GDP")!],
+        yColumnSlugs: ["GDP"],
     }
 
     return (

@@ -23,8 +23,8 @@ export const Default = (args: any) => {
     })
     const options: ChartOptionsProvider = {
         table,
-        yColumns: [table.get("GDP")!],
-        xColumn: table.get("Population"),
+        yColumnSlug: "GDP",
+        xColumnSlug: "Population",
         baseFontSize: 8,
         lineStrokeWidth: 0.5,
         hideLegend: true,
