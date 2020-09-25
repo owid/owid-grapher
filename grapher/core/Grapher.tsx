@@ -433,6 +433,7 @@ export class Grapher
                     const notFoundEntities = entityCodes.filter(
                         (code) => !matchedEntities.has(code)
                     )
+
                     if (notFoundEntities.length)
                         this.analytics.logEntitiesNotFoundError(
                             notFoundEntities
@@ -1065,14 +1066,14 @@ export class Grapher
 
         if (
             this.addCountryMode === EntitySelectionModes.SingleEntity &&
-            this.enableFaceting
+            this.faceting
         )
             return true
 
         return false
     }
 
-    @observable enableFaceting = true
+    @observable faceting = true
 
     @computed get canChangeEntity() {
         return (
@@ -1585,13 +1586,6 @@ export class Grapher
                 title: this.isPlaying ? `Pause` : `Play`,
                 category: "Timeline",
             },
-            {
-                combo: "f",
-                fn: () => this.toggleFacetCommand(),
-                title: this.faceting ? `Faceting off` : `Faceting On`,
-                category: "Chart",
-                disabled: !this.enableFaceting,
-            },
             // { // todo: add
             //     combo: "o",
             //     fn: () => this.updateFromObject(this.configOnLoad),
@@ -1600,12 +1594,6 @@ export class Grapher
             // },
         ]
     }
-
-    @action.bound toggleFacetCommand() {
-        this.faceting = !this.faceting
-    }
-
-    @observable faceting = false
 
     private renderError() {
         return (

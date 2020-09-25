@@ -11,6 +11,7 @@ import { MapChartWithLegend } from "grapher/mapCharts/MapChartWithLegend"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
+    EntitySelectionModes,
     GrapherTabOption,
     OverlayPadding,
 } from "grapher/core/GrapherConstants"
@@ -203,7 +204,11 @@ export class ChartTab
                 : type || "LineChart"
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
-        if (options.faceting)
+        if (
+            options.faceting &&
+            options.addCountryMode === EntitySelectionModes.SingleEntity &&
+            options.table.selectedEntityNames.length > 1
+        )
             return (
                 <CountryFacet
                     bounds={bounds}
