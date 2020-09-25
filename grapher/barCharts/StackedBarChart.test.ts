@@ -16,9 +16,8 @@ describe(StackedBarChart, () => {
         expect(chart.marks.length).toEqual(0)
         expect(chart.failMessage).toBeTruthy()
 
-        table.selectAll()
+        table.selectEntity(table.availableEntityNames[0])
         expect(chart.failMessage).toEqual("")
-
-        expect(chart.marks.length).toEqual(2)
+        expect(chart.marks.length).toEqual(10)
     })
 })

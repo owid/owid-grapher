@@ -3,27 +3,26 @@ import { VerticalAxis } from "grapher/axis/Axis"
 
 export interface StackedBarSegmentProps
     extends React.SVGAttributes<SVGGElement> {
-    bar: StackedBarValue
+    bar: StackedBarPoint
     color: string
     opacity: number
     yAxis: VerticalAxis
     xOffset: number
     barWidth: number
-    onBarMouseOver: (bar: StackedBarValue) => void
+    onBarMouseOver: (bar: StackedBarPoint) => void
     onBarMouseLeave: () => void
 }
 
-export interface StackedBarValue {
+export interface StackedBarPoint {
     x: number
     y: number
     yOffset: number
-    isFake: boolean
     label: string
 }
 
 export interface StackedBarSeries {
     entityName: EntityName
     label: string
-    values: StackedBarValue[]
+    points: StackedBarPoint[]
     color: string
 }

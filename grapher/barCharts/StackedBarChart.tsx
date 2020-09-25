@@ -3,16 +3,7 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import {
-    guid,
-    uniq,
-    makeSafeForCSS,
-    cloneDeep,
-    sortBy,
-    max,
-    defaultTo,
-    flatten,
-} from "grapher/utils/Util"
+import { guid, uniq, makeSafeForCSS, max, flatten } from "grapher/utils/Util"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import {
     VerticalAxisComponent,
@@ -28,21 +19,17 @@ import {
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { EntityName } from "coreTable/CoreTableConstants"
-import {
-    BASE_FONT_SIZE,
-    TimeRange,
-    ValueRange,
-} from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, TimeRange } from "grapher/core/GrapherConstants"
 import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import {
     StackedBarSegmentProps,
-    StackedBarValue,
+    StackedBarPoint,
     StackedBarSeries,
 } from "./StackedBarChartConstants"
+import { stackBars } from "./StackedBarChartUtils"
 
 @observer
 class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
@@ -115,7 +102,7 @@ export class StackedBarChart
     // currently hovered legend color
     @observable hoverColor?: string
     // current hovered individual bar
-    @observable hoverBar?: StackedBarValue
+    @observable hoverBar?: StackedBarPoint
 
     @computed get options() {
         return this.props.options
@@ -184,17 +171,15 @@ export class StackedBarChart
         const { hoverKeys } = this
         const activeKeys = hoverKeys.length > 0 ? hoverKeys : []
 
-        let colors = []
-        if (activeKeys.length === 0)
+        if (!activeKeys.length)
             // No hover means they're all active by default
-            colors = uniq(this.marks.map((g) => g.color))
-        else
-            colors = uniq(
-                this.marks
-                    .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
-                    .map((g) => g.color)
-            )
-        return colors
+            return uniq(this.marks.map((g) => g.color))
+
+        return uniq(
+            this.marks
+                .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
+                .map((g) => g.color)
+        )
     }
 
     // Only show colors on legend that are actually in use
@@ -235,14 +220,14 @@ export class StackedBarChart
     }
 
     @computed get tooltip() {
-        const { hoverBar, verticalAxis, mapXValueToOffset, barWidth } = this
+        const { hoverBar, mapXValueToOffset, barWidth, dualAxis } = this
         if (hoverBar === undefined) return
 
         const xPos = mapXValueToOffset.get(hoverBar.x)
         if (xPos === undefined) return
 
-        const yPos = verticalAxis.place(hoverBar.yOffset + hoverBar.y)
-        const { yColumn } = this.options
+        const yPos = dualAxis.verticalAxis.place(hoverBar.yOffset + hoverBar.y)
+        const yColumn = this.options.yColumns![0]
 
         return (
             <Tooltip
@@ -352,7 +337,7 @@ export class StackedBarChart
         //
     }
 
-    @action.bound onBarMouseOver(bar: StackedBarValue) {
+    @action.bound onBarMouseOver(bar: StackedBarPoint) {
         this.hoverBar = bar
     }
 
@@ -387,14 +372,13 @@ export class StackedBarChart
             dualAxis,
             renderUid,
             bounds,
-            verticalAxis,
             tooltip,
             barWidth,
             mapXValueToOffset,
             ticks,
         } = this
         const { marks } = this
-        const { innerBounds } = dualAxis
+        const { innerBounds, verticalAxis } = dualAxis
 
         const textColor = "#666"
 
@@ -454,8 +438,8 @@ export class StackedBarChart
                 </g>
 
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
-                    {marks.map((series) => {
-                        const isLegendHovered: boolean = this.hoverKeys.includes(
+                    {marks.map((series, index) => {
+                        const isLegendHovered = this.hoverKeys.includes(
                             series.entityName
                         )
                         const opacity =
@@ -465,13 +449,13 @@ export class StackedBarChart
 
                         return (
                             <g
-                                key={series.entityName}
+                                key={index}
                                 className={
                                     makeSafeForCSS(series.entityName) +
                                     "-segments"
                                 }
                             >
-                                {series.values.map((bar) => {
+                                {series.points.map((bar, index) => {
                                     const xPos = mapXValueToOffset.get(
                                         bar.x
                                     ) as number
@@ -480,7 +464,7 @@ export class StackedBarChart
 
                                     return (
                                         <StackedBarSegment
-                                            key={bar.x}
+                                            key={index}
                                             bar={bar}
                                             color={series.color}
                                             xOffset={xPos}
@@ -516,16 +500,13 @@ export class StackedBarChart
     @computed get failMessage() {
         const { yColumns } = this.options
         if (!yColumns?.length) return "Missing variable"
-        else if (
-            this.groupedData.length === 0 ||
-            this.groupedData[0].values.length === 0
-        )
-            return "No matching data"
+
+        if (!this.marks.length) return "No matching data"
         return ""
     }
 
-    @computed get barValueFormat(): (datum: StackedBarValue) => string {
-        return (datum: StackedBarValue) => datum.y.toString()
+    @computed get barValueFormat(): (datum: StackedBarPoint) => string {
+        return (datum: StackedBarPoint) => datum.y.toString()
     }
 
     @computed get tickFormatFn(): (d: number) => string {
@@ -533,27 +514,19 @@ export class StackedBarChart
         return yColumn ? yColumn.formatValueShort : (d: number) => `${d}`
     }
 
-    @computed get xDomainDefault(): TimeRange {
-        const { startTimelineTime, endTimelineTime } = this.yColumn
-        return [startTimelineTime, endTimelineTime]
-    }
-
     // TODO: Make XAxis generic
     @computed get horizontalAxis() {
-        const { options, xDomainDefault } = this
+        const { options } = this
+        const { startTimelineTime, endTimelineTime } = this.options.yColumn!
         const axis = this.xAxis.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(xDomainDefault)
+        axis.updateDomainPreservingUserSettings([
+            startTimelineTime,
+            endTimelineTime,
+        ])
         axis.column = options.table.timeColumn
         axis.hideGridlines = true
         axis.hideFractionalTicks = true
         return axis
-    }
-
-    @computed get yDomainDefault(): ValueRange {
-        const lastSeries = this.marks[this.marks.length - 1]
-
-        const yValues = lastSeries.values.map((d) => d.yOffset + d.y)
-        return [0, defaultTo(max(yValues), 100)]
     }
 
     @computed get yAxis() {
@@ -565,7 +538,12 @@ export class StackedBarChart
     }
 
     @computed get verticalAxis() {
-        const { options, yDomainDefault } = this
+        const { options } = this
+        const lastSeries = this.marks[this.marks.length - 1]
+
+        const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
+        const yDomainDefault: TimeRange = [0, max(yValues) ?? 100]
+
         const axis = this.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
@@ -573,101 +551,12 @@ export class StackedBarChart
         return axis
     }
 
-    @computed get allStackedValues() {
-        return flatten(this.marks.map((series) => series.values))
+    @computed private get allStackedValues() {
+        return flatten(this.marks.map((series) => series.points))
     }
 
-    @computed get xValues() {
+    @computed private get xValues() {
         return uniq(this.allStackedValues.map((bar) => bar.x))
-    }
-
-    @computed get groupedData() {
-        const { options } = this
-        const { table, yColumns } = options
-        const {
-            selectedEntityNameSet,
-            selectedEntityNames,
-            getLabelForEntityName,
-        } = table
-
-        if (!yColumns) return []
-
-        let groupedData: StackedBarSeries[] = []
-
-        const timelineTimes = yColumns[0].timelineTimes
-
-        yColumns.forEach((column) => {
-            const seriesByKey = new Map<EntityName, StackedBarSeries>()
-
-            for (let i = 0; i <= column.times.length; i += 1) {
-                const year = column.times[i]
-                const entityName = column.entityNames[i]
-                const value = +column.parsedValues[i]
-                let series = seriesByKey.get(entityName)
-
-                // Not a selected key, don't add any data for it
-                if (!selectedEntityNameSet.has(entityName)) continue
-                // Must be numeric
-                if (isNaN(value)) continue
-                // Stacked bar chart can't go negative!
-                if (value < 0) continue
-                // only consider years that are part of timeline to line up the bars
-                if (!timelineTimes.includes(year)) continue
-
-                if (!series) {
-                    series = {
-                        entityName,
-                        label: getLabelForEntityName(entityName),
-                        values: [],
-                        color: "#fff", // Temp
-                    }
-                    seriesByKey.set(entityName, series)
-                }
-                series.values.push({
-                    x: year,
-                    y: value,
-                    yOffset: 0,
-                    isFake: false,
-                    label: series.label,
-                })
-            }
-
-            groupedData = groupedData.concat([
-                ...Array.from(seriesByKey.values()),
-            ])
-        })
-
-        // Now ensure that every series has a value entry for every year in the data
-        groupedData.forEach((series) => {
-            let i = 0
-
-            while (i < timelineTimes.length) {
-                const value = series.values[i] as StackedBarValue | undefined
-                const expectedYear = timelineTimes[i]
-
-                if (value === undefined || value.x > timelineTimes[i]) {
-                    // console.log("series " + series.key + " needs fake bar for " + expectedYear)
-
-                    const fakeY = 0
-                    series.values.splice(i, 0, {
-                        x: expectedYear,
-                        y: fakeY,
-                        yOffset: 0,
-                        isFake: true,
-                        label: series.label,
-                    })
-                }
-                i += 1
-            }
-        })
-
-        // Preserve order
-        groupedData = sortBy(
-            groupedData,
-            (series) => -selectedEntityNames.indexOf(series.entityName)
-        )
-
-        return groupedData
     }
 
     @computed get colorScale() {
@@ -682,53 +571,56 @@ export class StackedBarChart
     hasNoDataBin = false
 
     @computed get categoricalValues() {
-        return uniq(this.groupedData.map((d) => d.entityName)).reverse()
+        return this.options.yColumns!.map((col) => col.displayName).reverse()
     }
 
-    @computed private get yColumn() {
-        return this.options.yColumn ?? this.options.yColumns![0]
+    @computed get table() {
+        let table = this.options.table
+        table = table.filterBySelectedOnly()
+        return table
     }
 
-    // Apply time filtering and stacking
+    @computed private get yColumns() {
+        return (this.options.yColumns || []).map(
+            (col) => this.table.get(col.slug)!
+        )
+    }
+
     @computed get marks() {
-        const { groupedData } = this
+        const { yColumns } = this
 
-        if (!groupedData.length) return []
-
-        const { startTimelineTime, endTimelineTime } = this.yColumn
-
-        const stackedData = cloneDeep(groupedData)
-
-        for (const series of stackedData) {
-            series.color = this.colorScale.getColor(series.entityName) ?? "#ddd"
-            series.values = series.values.filter(
-                (v) => v.x >= startTimelineTime && v.x <= endTimelineTime
-            )
-        }
-
-        // every subsequent series needs be stacked on top of previous series
-        for (let i = 1; i < stackedData.length; i++) {
-            for (let j = 0; j < stackedData[0].values.length; j++) {
-                stackedData[i].values[j].yOffset =
-                    stackedData[i - 1].values[j].y +
-                    stackedData[i - 1].values[j].yOffset
+        const seriesArr: StackedBarSeries[] = yColumns.map((col) => {
+            const points = col.owidRows.map((row) => {
+                return {
+                    x: row.time,
+                    y: row.value,
+                    yOffset: 0,
+                    label: col.displayName,
+                }
+            })
+            return {
+                entityName: col.displayName,
+                label: col.displayName,
+                points,
+                color: this.colorScale.getColor(col.displayName) ?? "#ddd", // temp
             }
-        }
+        })
+
+        stackBars(seriesArr)
+        if (!seriesArr.length) return []
 
         // if the total height of any stacked column is 0, remove it
         const keyIndicesToRemove: number[] = []
-        const lastSeries = stackedData[stackedData.length - 1]
-        lastSeries.values.forEach((bar, index) => {
-            if (bar.yOffset + bar.y === 0) {
-                keyIndicesToRemove.push(index)
-            }
+        const lastSeries = seriesArr[seriesArr.length - 1]
+        lastSeries.points.forEach((bar, index) => {
+            if (bar.yOffset + bar.y === 0) keyIndicesToRemove.push(index)
         })
         for (let i = keyIndicesToRemove.length - 1; i >= 0; i--) {
-            stackedData.forEach((series) => {
-                series.values.splice(keyIndicesToRemove[i], 1)
+            seriesArr.forEach((series) => {
+                series.points.splice(keyIndicesToRemove[i], 1)
             })
         }
 
-        return stackedData
+        return seriesArr
     }
 }
