@@ -7,4 +7,9 @@ addParameters({
     viewport: {
         viewports: INITIAL_VIEWPORTS,
     },
+    options: {
+        storySort: {
+            method: "alphabetical",
+        },
+    },
 })
