@@ -1,13 +1,14 @@
-import { StackedBarSeries } from "./StackedBarChartConstants"
+import { StackedAreaSeries } from "./StackedAreaChartConstants"
 
 // This method shift up the Y Values of a Series with Points.
-export const stackBars = (seriesArr: StackedBarSeries[]) => {
+// It assumes all series have the same number of points
+export const stackAreas = (seriesArr: StackedAreaSeries[]) => {
     seriesArr.forEach((series, seriesIndex) => {
         if (!seriesIndex) return // The first series does not need to be shifted
         series.points.forEach((point, pointIndex) => {
             const pointBelowThisOne =
                 seriesArr[seriesIndex - 1].points[pointIndex]
-            point.yOffset = pointBelowThisOne.y + pointBelowThisOne.yOffset
+            point.y += pointBelowThisOne.y
         })
     })
 }

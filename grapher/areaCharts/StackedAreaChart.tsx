@@ -42,8 +42,9 @@ import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
     AreasProps,
     StackedAreaSeries,
-    StackedAreaValue,
+    StackedAreaPoint,
 } from "./StackedAreaChartConstants"
+import { stackAreas } from "./StackedAreaChartUtils"
 
 const BLUR_COLOR = "#ddd"
 
@@ -56,16 +57,16 @@ class Areas extends React.Component<AreasProps> {
     @action.bound private onCursorMove(
         ev: React.MouseEvent<SVGGElement> | React.TouchEvent<SVGElement>
     ) {
-        const { dualAxis, data } = this.props
+        const { dualAxis, seriesArr } = this.props
 
         const mouse = getRelativeMouse(this.base.current, ev.nativeEvent)
 
         if (dualAxis.innerBounds.contains(mouse)) {
-            const closestPoint = minBy(data[0].values, (d) =>
+            const closestPoint = minBy(seriesArr[0].points, (d) =>
                 Math.abs(dualAxis.horizontalAxis.place(d.x) - mouse.x)
             )
             if (closestPoint) {
-                const index = data[0].values.indexOf(closestPoint)
+                const index = seriesArr[0].points.indexOf(closestPoint)
                 this.hoverIndex = index
             } else {
                 this.hoverIndex = undefined
@@ -84,21 +85,21 @@ class Areas extends React.Component<AreasProps> {
 
     private seriesIsBlur(series: StackedAreaSeries) {
         return (
-            this.props.focusKeys.length > 0 &&
-            !this.props.focusKeys.includes(series.entityName)
+            this.props.focusedEntities.length > 0 &&
+            !this.props.focusedEntities.includes(series.entityName)
         )
     }
 
     @computed private get areas(): JSX.Element[] {
-        const { dualAxis, data } = this.props
+        const { dualAxis, seriesArr } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
         const xBottomLeft = [horizontalAxis.range[0], verticalAxis.range[0]]
         const xBottomRight = [horizontalAxis.range[1], verticalAxis.range[0]]
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         let prevPoints = [xBottomLeft, xBottomRight]
-        return data.map((series) => {
-            const mainPoints = series.values.map(
+        return seriesArr.map((series) => {
+            const mainPoints = series.points.map(
                 (v) =>
                     [horizontalAxis.place(v.x), verticalAxis.place(v.y)] as [
                         number,
@@ -123,12 +124,12 @@ class Areas extends React.Component<AreasProps> {
     }
 
     @computed private get borders(): JSX.Element[] {
-        const { dualAxis, data } = this.props
+        const { dualAxis, seriesArr } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
 
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
-        return data.map((series) => {
-            const points = series.values.map(
+        return seriesArr.map((series) => {
+            const points = series.points.map(
                 (v) =>
                     [horizontalAxis.place(v.x), verticalAxis.place(v.y)] as [
                         number,
@@ -157,7 +158,7 @@ class Areas extends React.Component<AreasProps> {
     }
 
     render() {
-        const { dualAxis, data } = this.props
+        const { dualAxis, seriesArr } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
         const { hoverIndex } = this
 
@@ -184,15 +185,15 @@ class Areas extends React.Component<AreasProps> {
                 {this.borders}
                 {hoverIndex !== undefined && (
                     <g className="hoverIndicator">
-                        {data.map((series) => {
+                        {seriesArr.map((series) => {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
                                     key={series.entityName}
                                     cx={horizontalAxis.place(
-                                        series.values[hoverIndex].x
+                                        series.points[hoverIndex].x
                                     )}
                                     cy={verticalAxis.place(
-                                        series.values[hoverIndex].y
+                                        series.points[hoverIndex].y
                                     )}
                                     r={2}
                                     fill={series.color}
@@ -201,11 +202,11 @@ class Areas extends React.Component<AreasProps> {
                         })}
                         <line
                             x1={horizontalAxis.place(
-                                data[0].values[hoverIndex].x
+                                seriesArr[0].points[hoverIndex].x
                             )}
                             y1={verticalAxis.range[0]}
                             x2={horizontalAxis.place(
-                                data[0].values[hoverIndex].x
+                                seriesArr[0].points[hoverIndex].x
                             )}
                             y2={verticalAxis.range[1]}
                             stroke="rgba(180,180,180,.4)"
@@ -237,7 +238,7 @@ export class StackedAreaChart
     @computed get midpoints() {
         let prevY = 0
         return this.marks.map((series) => {
-            const lastValue = last(series.values)
+            const lastValue = last(series.points)
             if (lastValue) {
                 const middleY = prevY + (lastValue.y - prevY) / 2
                 prevY = lastValue.y
@@ -324,10 +325,10 @@ export class StackedAreaChart
         const { hoverIndex, dualAxis, options, marks } = this
 
         // Grab the first value to get the year from
-        const refValue = marks[0].values[hoverIndex]
+        const refValue = marks[0].points[hoverIndex]
 
         // If some data is missing, don't calculate a total
-        const someMissing = marks.some((g) => !!g.values[hoverIndex].isFake)
+        const someMissing = marks.some((g) => !!g.points[hoverIndex].isFake)
 
         const legendBlockStyle = {
             width: "10px",
@@ -360,7 +361,7 @@ export class StackedAreaChart
                             <td></td>
                         </tr>
                         {reverse(clone(marks)).map((series) => {
-                            const value = series.values[hoverIndex]
+                            const value = series.points[hoverIndex]
                             const isBlur = this.seriesIsBlur(series)
                             const textColor = isBlur ? "#ddd" : "#333"
                             const blockColor = isBlur
@@ -411,7 +412,7 @@ export class StackedAreaChart
                                     <span>
                                         <strong>
                                             {this.formatYTick(
-                                                marks[marks.length - 1].values[
+                                                marks[marks.length - 1].points[
                                                     hoverIndex
                                                 ].y
                                             )}
@@ -432,6 +433,7 @@ export class StackedAreaChart
         SVGGElement | null,
         unknown
     >
+
     componentDidMount() {
         // Fancy intro animation
 
@@ -445,6 +447,7 @@ export class StackedAreaChart
             .ease(easeLinear)
             .attr("width", this.bounds.width)
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+        ;(window as any).chart = this
     }
 
     componentWillUnmount() {
@@ -490,8 +493,8 @@ export class StackedAreaChart
                     {showLegend && <LineLegend options={this} />}
                     <Areas
                         dualAxis={dualAxis}
-                        data={marks}
-                        focusKeys={this.focusedEntityNames}
+                        seriesArr={marks}
+                        focusedEntities={this.focusedEntityNames}
                         onHover={this.onHover}
                     />
                 </g>
@@ -509,145 +512,10 @@ export class StackedAreaChart
     @computed get failMessage() {
         const { yColumn } = this
         if (!yColumn) return "Missing Y axis columns"
-        else if (
-            this.groupedData.length === 0 ||
-            this.groupedData[0].values.length === 0
-        )
-            return "No matching data"
+
+        if (!this.marks.length) return "No matching data"
 
         return ""
-    }
-
-    // Get the data for each stacked area series, cleaned to ensure every series
-    // "lines up" i.e. has a data point for every year
-    @computed private get groupedData() {
-        const { options, yColumns, table } = this
-        const { selectedEntityNameSet, selectedEntityNames } = table
-
-        let groupedData: StackedAreaSeries[] = []
-
-        if (!yColumns?.length) return []
-
-        // First, we populate the data as we would for a line chart (each series independently)
-        yColumns!.forEach((column) => {
-            const seriesByKey = new Map<EntityName, StackedAreaSeries>()
-
-            const { isProjection } = column
-
-            for (let i = 0; i < column.times.length; i++) {
-                const year = column.times[i]
-                const value = +column.parsedValues[i]
-                const entityName = column.entityNames[i]
-                let series = seriesByKey.get(entityName)
-
-                // Not a selected key, don't add any data for it
-                if (!selectedEntityNameSet.has(entityName)) continue
-                // Must be numeric
-                if (isNaN(value)) continue
-                // Stacked area chart can't go negative!
-                if (value < 0) continue
-
-                if (!series) {
-                    series = {
-                        values: [],
-                        entityName,
-                        isProjection,
-                        color: "#fff", // tmp
-                    }
-                    seriesByKey.set(entityName, series)
-                }
-
-                series.values.push({ x: year, y: value, time: year })
-            }
-
-            groupedData = groupedData.concat([
-                ...Array.from(seriesByKey.values()),
-            ])
-        })
-
-        // Now ensure that every series has a value entry for every year in the data
-        let allYears: number[] = []
-        groupedData.forEach((series) =>
-            allYears.push(...series.values.map((d) => d.x))
-        )
-        allYears = sortNumeric(uniq(allYears))
-
-        groupedData.forEach((series) => {
-            let i = 0
-            let isBeforeStart = true
-
-            while (i < allYears.length) {
-                const value = series.values[i] as StackedAreaValue | undefined
-                const expectedYear = allYears[i]
-
-                if (value === undefined || value.x > allYears[i]) {
-                    let fakeY = NaN
-
-                    if (!isBeforeStart && i < series.values.length) {
-                        // Missing data in the middle-- interpolate a value
-                        const prevValue = series.values[i - 1]
-                        const nextValue = series.values[i]
-                        fakeY = (nextValue.y + prevValue.y) / 2
-                    }
-
-                    series.values.splice(i, 0, {
-                        x: expectedYear,
-                        y: fakeY,
-                        time: expectedYear,
-                        isFake: true,
-                    })
-                } else {
-                    isBeforeStart = false
-                }
-                i += 1
-            }
-        })
-
-        // Strip years at start and end where we couldn't successfully interpolate
-        for (const firstSeries of groupedData.slice(0, 1)) {
-            for (let i = firstSeries.values.length - 1; i >= 0; i--) {
-                if (groupedData.some((series) => isNaN(series.values[i].y))) {
-                    for (const series of groupedData) {
-                        series.values.splice(i, 1)
-                    }
-                }
-            }
-        }
-
-        // Preserve order
-        groupedData = sortBy(
-            groupedData,
-            (series) => -selectedEntityNames.indexOf(series.entityName)
-        )
-
-        // Assign colors
-        const baseColors = this.colorScheme.getColors(groupedData.length)
-        if (options.invertColorScheme) baseColors.reverse()
-        const colorScale = scaleOrdinal(baseColors)
-        groupedData.forEach((series) => {
-            series.color =
-                table.getColorForEntityName(series.entityName) ||
-                colorScale(series.entityName)
-        })
-
-        // In relative mode, transform data to be a percentage of the total for that year
-        if (options.isRelativeMode) {
-            if (groupedData.length === 0) return []
-
-            for (let i = 0; i < groupedData[0].values.length; i++) {
-                const total = sum(
-                    groupedData.map((series) => series.values[i].y)
-                )
-                for (let j = 0; j < groupedData.length; j++) {
-                    groupedData[j].values[i].y =
-                        total === 0
-                            ? 0
-                            : (groupedData[j].values[i].y / total) * 100
-                }
-            }
-        }
-
-        return groupedData
     }
 
     @computed private get yAxis() {
@@ -659,9 +527,13 @@ export class StackedAreaChart
     }
 
     @computed private get horizontalAxis() {
-        const { xDomainDefault, options } = this
+        const { options } = this
+        const { startTimelineTime, endTimelineTime } = this.yColumn!
         const axis = this.xAxis.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(xDomainDefault)
+        axis.updateDomainPreservingUserSettings([
+            startTimelineTime,
+            endTimelineTime,
+        ])
         axis.column = options.table.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
@@ -691,7 +563,7 @@ export class StackedAreaChart
 
     @computed get availableTimes(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
-        return this.groupedData[0]?.values.map((v) => v.x) || []
+        return this.marks[0]?.points.map((v) => v.x) || []
     }
 
     @computed private get colorScheme() {
@@ -702,8 +574,10 @@ export class StackedAreaChart
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
-    @computed private get table() {
-        return this.options.table
+    @computed get table() {
+        let table = this.options.table
+        table = table.filterBySelectedOnly()
+        return table
     }
 
     @computed private get yColumn() {
@@ -713,56 +587,226 @@ export class StackedAreaChart
     }
 
     @computed private get yColumns() {
-        return (this.options.yColumnSlugs || []).map(
-            (slug) => this.table.get(slug)!
-        )
+        return this.options.yColumnSlugs
+            ? this.options.yColumnSlugs.map((slug) => this.table.get(slug)!)
+            : [this.yColumn!]
     }
 
-    @computed private get xDomainDefault(): ValueRange {
-        const { startTimelineTime, endTimelineTime } = this.yColumn!
-        return [startTimelineTime, endTimelineTime]
+    // // Apply time filtering and stacking
+    // @computed get marks() {
+    //     const { groupedData } = this
+
+    //     const { startTimelineTime, endTimelineTime } = this.yColumn!
+
+    //     if (
+    //         groupedData.some(
+    //             (series) =>
+    //                 series.points.length !== groupedData[0].points.length
+    //         )
+    //     )
+    //         throw new Error(
+    //             `Unexpected variation in stacked area chart series: ${groupedData.map(
+    //                 (series) => series.points.length
+    //             )}`
+    //         )
+
+    //     const stackedData = cloneDeep(groupedData)
+
+    //     for (const series of stackedData) {
+    //         series.points = series.points.filter(
+    //             (v) => v.x >= startTimelineTime && v.x <= endTimelineTime
+    //         )
+    //         for (const value of series.points) {
+    //             value.origY = value.y
+    //         }
+    //     }
+
+    //     for (let i = 1; i < stackedData.length; i++) {
+    //         for (let j = 0; j < stackedData[0].points.length; j++) {
+    //             stackedData[i].points[j].y += stackedData[i - 1].points[j].y
+    //         }
+    //     }
+
+    //     return stackedData
+    // }
+
+    @computed get colorScale() {
+        const baseColors = this.colorScheme.getColors(this.yColumns.length)
+        if (this.options.invertColorScheme) baseColors.reverse()
+        return scaleOrdinal(baseColors)
     }
 
-    // Apply time filtering and stacking
     @computed get marks() {
-        const { groupedData } = this
+        const { yColumns, table } = this
 
-        const { startTimelineTime, endTimelineTime } = this.yColumn!
+        const colorScale = this.colorScale
+        const seriesArr: StackedAreaSeries[] = yColumns
+            .slice()
+            .reverse()
+            .map((col) => {
+                const { isProjection } = col
+                const entityName = col.displayName
 
-        if (
-            groupedData.some(
-                (series) =>
-                    series.values.length !== groupedData[0].values.length
-            )
-        )
-            throw new Error(
-                `Unexpected variation in stacked area chart series: ${groupedData.map(
-                    (series) => series.values.length
-                )}`
-            )
+                const points = col.owidRows.map((row) => {
+                    return {
+                        x: row.time,
+                        y: row.value,
+                        time: row.time,
+                        origY: row.value,
+                    }
+                })
+                return {
+                    entityName,
+                    isProjection,
+                    label: entityName,
+                    points,
+                    color:
+                        // table.getColorForEntityName(entityName) || todo: readd custom colors.
+                        colorScale(entityName), // temp
+                }
+            })
 
-        const stackedData = cloneDeep(groupedData)
+        stackAreas(seriesArr)
 
-        for (const series of stackedData) {
-            series.values = series.values.filter(
-                (v) => v.x >= startTimelineTime && v.x <= endTimelineTime
-            )
-            for (const value of series.values) {
-                value.origY = value.y
-            }
-        }
-
-        for (let i = 1; i < stackedData.length; i++) {
-            for (let j = 0; j < stackedData[0].values.length; j++) {
-                stackedData[i].values[j].y += stackedData[i - 1].values[j].y
-            }
-        }
-
-        return stackedData
+        return seriesArr
     }
+
+    // color: this.colorScale.getColor(col.displayName) ?? "#ddd", // temp
+
+    // // Get the data for each stacked area series, cleaned to ensure every series
+    // // "lines up" i.e. has a data point for every year
+    // @computed private get groupedData() {
+    //     const { options, yColumns, table } = this
+    //     const { selectedEntityNameSet, selectedEntityNames } = table
+
+    //     let groupedData: StackedAreaSeries[] = []
+
+    //     if (!yColumns?.length) return []
+
+    //     // First, we populate the data as we would for a line chart (each series independently)
+    //     yColumns!.forEach((column) => {
+    //         const seriesByKey = new Map<EntityName, StackedAreaSeries>()
+
+    //         const { isProjection } = column
+
+    //         for (let i = 0; i < column.times.length; i++) {
+    //             const year = column.times[i]
+    //             const value = +column.parsedValues[i]
+    //             const entityName = column.entityNames[i]
+    //             let series = seriesByKey.get(entityName)
+
+    //             // Not a selected key, don't add any data for it
+    //             if (!selectedEntityNameSet.has(entityName)) continue
+    //             // Must be numeric
+    //             if (isNaN(value)) continue
+    //             // Stacked area chart can't go negative!
+    //             if (value < 0) continue
+
+    //             if (!series) {
+    //                 series = {
+    //                     points: [],
+    //                     entityName,
+    //                     isProjection,
+    //                     color: "#fff", // tmp
+    //                 }
+    //                 seriesByKey.set(entityName, series)
+    //             }
+
+    //             series.points.push({ x: year, y: value, time: year })
+    //         }
+
+    //         groupedData = groupedData.concat([
+    //             ...Array.from(seriesByKey.values()),
+    //         ])
+    //     })
+
+    //     // Now ensure that every series has a value entry for every year in the data
+    //     let allYears: number[] = []
+    //     groupedData.forEach((series) =>
+    //         allYears.push(...series.points.map((d) => d.x))
+    //     )
+    //     allYears = sortNumeric(uniq(allYears))
+
+    //     groupedData.forEach((series) => {
+    //         let i = 0
+    //         let isBeforeStart = true
+
+    //         while (i < allYears.length) {
+    //             const value = series.points[i] as StackedAreaPoint | undefined
+    //             const expectedYear = allYears[i]
+
+    //             if (value === undefined || value.x > allYears[i]) {
+    //                 let fakeY = NaN
+
+    //                 if (!isBeforeStart && i < series.points.length) {
+    //                     // Missing data in the middle-- interpolate a value
+    //                     const prevValue = series.points[i - 1]
+    //                     const nextValue = series.points[i]
+    //                     fakeY = (nextValue.y + prevValue.y) / 2
+    //                 }
+
+    //                 series.points.splice(i, 0, {
+    //                     x: expectedYear,
+    //                     y: fakeY,
+    //                     time: expectedYear,
+    //                     isFake: true,
+    //                 })
+    //             } else {
+    //                 isBeforeStart = false
+    //             }
+    //             i += 1
+    //         }
+    //     })
+
+    //     // Strip years at start and end where we couldn't successfully interpolate
+    //     for (const firstSeries of groupedData.slice(0, 1)) {
+    //         for (let i = firstSeries.points.length - 1; i >= 0; i--) {
+    //             if (groupedData.some((series) => isNaN(series.points[i].y))) {
+    //                 for (const series of groupedData) {
+    //                     series.points.splice(i, 1)
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     // Preserve order
+    //     groupedData = sortBy(
+    //         groupedData,
+    //         (series) => -selectedEntityNames.indexOf(series.entityName)
+    //     )
+
+    //     // Assign colors
+    //     const baseColors = this.colorScheme.getColors(groupedData.length)
+    //     if (options.invertColorScheme) baseColors.reverse()
+    //     const colorScale = scaleOrdinal(baseColors)
+    //     groupedData.forEach((series) => {
+    //         series.color =
+    //             table.getColorForEntityName(series.entityName) ||
+    //             colorScale(series.entityName)
+    //     })
+
+    //     // // In relative mode, transform data to be a percentage of the total for that year
+    //     // if (options.isRelativeMode) {
+    //     //     if (groupedData.length === 0) return []
+
+    //     //     for (let i = 0; i < groupedData[0].points.length; i++) {
+    //     //         const total = sum(
+    //     //             groupedData.map((series) => series.points[i].y)
+    //     //         )
+    //     //         for (let j = 0; j < groupedData.length; j++) {
+    //     //             groupedData[j].points[i].y =
+    //     //                 total === 0
+    //     //                     ? 0
+    //     //                     : (groupedData[j].points[i].y / total) * 100
+    //     //         }
+    //     //     }
+    //     // }
+
+    //     return groupedData
+    // }
 
     @computed private get allStackedValues() {
-        return flatten(this.marks.map((series) => series.values))
+        return flatten(this.marks.map((series) => series.points))
     }
 
     private formatYTick(v: number) {

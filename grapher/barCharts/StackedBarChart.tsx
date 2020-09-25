@@ -606,7 +606,7 @@ export class StackedBarChart
                     y: row.value,
                     yOffset: 0,
                     label: col.displayName,
-                }
+                } as StackedBarPoint
             })
             return {
                 entityName: col.displayName,

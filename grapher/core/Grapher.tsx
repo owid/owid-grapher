@@ -638,12 +638,6 @@ export class Grapher
         return this.loadingDimensions.length === 0
     }
 
-    @computed get yColumns() {
-        return this.filledDimensions
-            .filter((dim) => dim.property === "y")
-            .map((dim) => dim.column)
-    }
-
     @computed private get loadingDimensions() {
         const cols = this.table.columnsByOwidVarId
         return this.dimensions.filter((dim) => !cols.has(dim.variableId))
@@ -989,6 +983,18 @@ export class Grapher
             ?.columnSlug
     }
 
+    @computed get yColumns() {
+        return this.filledDimensions
+            .filter((dim) => dim.property === "y")
+            .map((dim) => dim.column)
+    }
+
+    @computed get yColumnSlugs() {
+        return this.dimensions
+            .filter((dim) => dim.property === "y")
+            .map((dim) => dim.columnSlug)
+    }
+
     @computed get yColumnSlug() {
         return this.getSlugForProperty("y")
     }
@@ -1033,7 +1039,7 @@ export class Grapher
     }
 
     @computed get isSingleVariable() {
-        return this.yColumns.length === 1
+        return this.yColumnSlugs.length === 1
     }
 
     @computed get sourcesLine() {

@@ -241,11 +241,11 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
     }
 
-    toDebugInfo(showRows = 10): string {
+    explain(showRows = 10): string {
         const rowCount = this.rows.length
         const showRowsClamped = showRows > rowCount ? rowCount : showRows
         const parentDebugInfo = this.parent
-            ? this.parent.toDebugInfo(showRows) +
+            ? this.parent.explain(showRows) +
               `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
             : "# Root Table:\n"
         const colTable = this.columnsAsArray.map((col) => {
