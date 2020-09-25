@@ -2,7 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { computed } from "mobx"
-import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, ChartTypeName } from "grapher/core/GrapherConstants"
 import { getChartComponent } from "grapher/chart/ChartTypeMap"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { makeGrid } from "grapher/utils/Util"
@@ -23,6 +23,16 @@ interface SmallChart {
     options: ChartOptionsProvider
 }
 
+// not sure if we want to do something more sophisticated
+const getFontSize = (count: number, baseFontSize: number, min = 8) => {
+    if (count === 2) return baseFontSize
+    if (count < 5) return baseFontSize - 2
+    if (count < 10) return baseFontSize - 4
+    if (count < 17) return baseFontSize - 6
+    if (count < 36) return baseFontSize - 8
+    return min
+}
+
 @observer
 export class CountryFacet extends React.Component<FacetChartProps> {
     @computed protected get smallCharts() {
@@ -39,24 +49,36 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             sizeColumnSlug,
         } = rootOptions
 
+        const baseFontSize = getFontSize(
+            count,
+            rootOptions.baseFontSize ?? BASE_FONT_SIZE
+        )
+
         return rootTable.selectedEntityNames.map((name, index) => {
             const bounds = boundsArr[index]
-            const table = rootTable.clone()
+            const table = rootTable.facet()
             const column = index % columns
             const row = Math.floor(index / columns)
             const hideXAxis = row < rows - 1
             const hideYAxis = column > 0
+            const hideLegend = !!(column !== columns - 1) // todo: only sho 1?
+            const hidePoints = true
             table.clearSelection()
             table.selectEntity(name)
+
+            const xAxis = undefined
+            const yAxis = undefined
 
             const options: ChartOptionsProvider = {
                 table,
                 hideXAxis,
                 hideYAxis,
-                baseFontSize: 8,
+                baseFontSize,
                 lineStrokeWidth: 0.5,
-                hideLegend: true,
-                hidePoints: true,
+                hideLegend,
+                hidePoints,
+                xAxis,
+                yAxis,
                 yColumnSlug,
                 xColumnSlug,
                 yColumnSlugs,

@@ -6,9 +6,8 @@ declare type keyboardCombo = string
 export interface Command {
     combo: keyboardCombo
     fn: () => any
-    title: string
-    category: string
-    disabled?: boolean
+    title?: string
+    category?: string
 }
 
 @observer
@@ -22,11 +21,11 @@ export class CommandPalette extends React.Component<{
         }
         let lastCat = ""
         const commands = this.props.commands
-            .filter((command) => !command.disabled)
+            .filter((command) => command.title && command.category)
             .map((command, index) => {
                 let cat = undefined
                 if (command.category !== lastCat) {
-                    lastCat = command.category
+                    lastCat = command.category!
                     cat = <div className="commandCategory">{lastCat}</div>
                 }
                 return (

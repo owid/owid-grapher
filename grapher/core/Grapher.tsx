@@ -31,6 +31,8 @@ import {
     throttle,
     isTouchDevice,
     next,
+    sampleFrom,
+    range,
 } from "grapher/utils/Util"
 import {
     ChartTypes,
@@ -1556,7 +1558,11 @@ export class Grapher
     }
 
     get keyboardShortcuts(): Command[] {
+        const nums = range(0, 10).map((num) => {
+            return { combo: `${num}`, fn: () => this.randomSelection(num) }
+        })
         return [
+            ...nums,
             {
                 combo: "t",
                 fn: () => this.toggleTabCommand(),
@@ -1586,6 +1592,7 @@ export class Grapher
                 title: this.isPlaying ? `Pause` : `Play`,
                 category: "Timeline",
             },
+
             // { // todo: add
             //     combo: "o",
             //     fn: () => this.updateFromObject(this.configOnLoad),
@@ -1593,6 +1600,18 @@ export class Grapher
             //     category: "Navigation",
             // },
         ]
+    }
+
+    @action.bound randomSelection(num: number) {
+        // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
+        const available = this.rootTable.availableEntityNames.length
+        this.rootTable.setSelectedEntities(
+            sampleFrom(
+                this.rootTable.availableEntityNames,
+                num || Math.floor(available / 2),
+                Date.now()
+            )
+        )
     }
 
     private renderError() {

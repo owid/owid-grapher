@@ -210,8 +210,8 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     // todo: rename
-    clone() {
-        return new OwidTable(this._rows, this.columnsAsArray, this, "Cloned")
+    facet() {
+        return new OwidTable(this._rows, this.specs, this, "Faceted")
     }
 
     // todo: speed up
@@ -227,7 +227,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     filterBy(predicate: (row: OwidRow) => boolean, opName: string): OwidTable {
         return new OwidTable(
             this.rows.filter(predicate),
-            this.columnsAsArray.map((col) => col.spec),
+            this.specs,
             this,
             opName
         )
@@ -271,7 +271,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     sortBy(slugs: ColumnSlug[], orders?: ("asc" | "desc")[]): OwidTable {
         return new OwidTable(
             orderBy(this.rows, slugs, orders),
-            this.columnsAsArray.map((col) => col.spec),
+            this.specs,
             this,
             `Sort by ${slugs.join(",")} ${orders?.join(",")}`
         )

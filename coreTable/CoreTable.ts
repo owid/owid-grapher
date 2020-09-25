@@ -177,10 +177,14 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     filterBy(predicate: (row: CoreRow) => boolean, opName: string): AnyTable {
         return new AnyTable(
             this.rows.filter(predicate),
-            this.columnsAsArray.map((col) => col.spec),
+            this.specs,
             this,
             opName
         )
+    }
+
+    @computed get specs() {
+        return this.columnsAsArray.map((col) => col.spec)
     }
 
     @computed get columnsByName() {

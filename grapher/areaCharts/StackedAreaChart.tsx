@@ -268,7 +268,7 @@ export class StackedAreaChart
         return this.options.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get legendDimensions() {
+    @computed get legendDimensions(): LineLegend | undefined {
         if (this.options.hideLegend) return undefined
         return new LineLegend({ options: this })
     }
@@ -286,13 +286,13 @@ export class StackedAreaChart
 
     @computed private get dualAxis() {
         const { bounds } = this
-        const { horizontalAxis, verticalAxis, legendDimensions } = this
+        const { horizontalAxisPart, verticalAxisPart, legendDimensions } = this
         return new DualAxis({
             bounds: bounds.padRight(
                 legendDimensions ? legendDimensions.width : 20
             ),
-            horizontalAxis,
-            verticalAxis,
+            horizontalAxis: horizontalAxisPart,
+            verticalAxis: verticalAxisPart,
         })
     }
 
@@ -518,18 +518,14 @@ export class StackedAreaChart
         return ""
     }
 
-    @computed private get yAxis() {
-        return this.options.yAxis || new AxisConfig(undefined, this)
-    }
-
-    @computed private get xAxis() {
-        return this.options.xAxis || new AxisConfig(undefined, this)
-    }
-
-    @computed private get horizontalAxis() {
+    @computed private get horizontalAxisPart() {
         const { options } = this
         const { startTimelineTime, endTimelineTime } = this.yColumn!
-        const axis = this.xAxis.toHorizontalAxis()
+        const xAxisConfig =
+            this.options.xAxis || new AxisConfig(undefined, this)
+        if (this.options.hideXAxis) xAxisConfig.hideAxis = true
+
+        const axis = xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             startTimelineTime,
             endTimelineTime,
@@ -540,22 +536,23 @@ export class StackedAreaChart
         return axis
     }
 
-    @computed private get yDomainDefault(): ValueRange {
-        const yValues = this.allStackedValues.map((d) => d.y)
-        return [0, max(yValues) ?? 100]
+    @computed get verticalAxis() {
+        return this.dualAxis.verticalAxis
     }
 
-    @computed get verticalAxis() {
-        const { options, yDomainDefault, yColumn } = this
+    @computed private get verticalAxisPart() {
+        const { options, yColumn } = this
         const { isRelativeMode } = options
 
-        const axis = this.yAxis.toVerticalAxis()
+        const yValues = this.allStackedValues.map((d) => d.y)
+        const yAxisConfig =
+            this.options.yAxis || new AxisConfig(undefined, this)
+
+        if (this.options.hideYAxis) yAxisConfig.hideAxis = true
+
+        const axis = yAxisConfig.toVerticalAxis()
         if (isRelativeMode) axis.domain = [0, 100]
-        else
-            axis.updateDomainPreservingUserSettings([
-                yDomainDefault[0],
-                yDomainDefault[1],
-            ]) // Stacked area chart must have its own y domain)
+        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
 
         axis.column = yColumn
         return axis
