@@ -1531,7 +1531,7 @@ export class Grapher
             {
                 combo: "?",
                 fn: () => this.toggleKeyboardHelpCommand(),
-                title: "Toggle Help",
+                title: `Toggle Help`,
                 category: "Navigation",
             },
             {
@@ -1540,19 +1540,21 @@ export class Grapher
                     this.rootTable.hasSelection
                         ? this.rootTable.clearSelection()
                         : this.rootTable.selectAll(),
-                title: "Select/Deselect all",
+                title: this.rootTable.hasSelection
+                    ? `Select None`
+                    : `Select All`,
                 category: "Selection",
             },
             {
                 combo: "p",
                 fn: () => this.togglePlayingCommand(),
-                title: "Play/Pause",
+                title: this.isPlaying ? `Pause` : `Play`,
                 category: "Timeline",
             },
             {
                 combo: "f",
                 fn: () => this.toggleFacetCommand(),
-                title: "Toggle Faceting",
+                title: this.faceting ? `Faceting off` : `Faceting On`,
                 category: "Chart",
             },
             // { // todo: add

@@ -9,7 +9,6 @@ import {
     sumBy,
     flatten,
     sign,
-    defaultTo,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -464,10 +463,8 @@ export class LineLegend extends React.Component<{
             ? 21
             : 5
 
-        const topMarkY = defaultTo(
-            min(this.placedMarks.map((mark) => mark.bounds.top)),
-            0
-        )
+        const topMarkY =
+            min(this.placedMarks.map((mark) => mark.bounds.top)) ?? 0
 
         const paddingTop = AddEntityButton.calcPaddingTop(
             topMarkY,

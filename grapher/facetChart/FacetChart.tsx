@@ -28,7 +28,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
     @computed protected get smallCharts() {
         const { rootTable, rootOptions } = this
         const { chartTypeName } = this.props
-        const count = rootTable.availableEntityNames.length
+        const count = rootTable.selectedEntityNames.length
         const boundsArr = this.bounds.split(count, 20)
         const { columns, rows } = makeGrid(count)
         const {
@@ -39,7 +39,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             sizeColumnSlug,
         } = rootOptions
 
-        return rootTable.availableEntityNames.map((name, index) => {
+        return rootTable.selectedEntityNames.map((name, index) => {
             const bounds = boundsArr[index]
             const table = rootTable.clone()
             const column = index % columns
