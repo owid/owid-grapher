@@ -1608,7 +1608,7 @@ export class Grapher
         this.rootTable.setSelectedEntities(
             sampleFrom(
                 this.rootTable.availableEntityNames,
-                num || Math.floor(available / 2),
+                num || Math.min(64, Math.floor(available / 2)),
                 Date.now()
             )
         )

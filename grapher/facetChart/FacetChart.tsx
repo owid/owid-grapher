@@ -21,10 +21,15 @@ interface SmallChart {
     bounds: Bounds
     chartTypeName: ChartTypeName
     options: ChartOptionsProvider
+    title: string
 }
 
 // not sure if we want to do something more sophisticated
-const getFontSize = (count: number, baseFontSize: number, min = 8) => {
+const getFontSize = (
+    count: number,
+    baseFontSize: number = BASE_FONT_SIZE,
+    min = 8
+) => {
     if (count === 2) return baseFontSize
     if (count < 5) return baseFontSize - 2
     if (count < 10) return baseFontSize - 4
@@ -49,10 +54,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             sizeColumnSlug,
         } = rootOptions
 
-        const baseFontSize = getFontSize(
-            count,
-            rootOptions.baseFontSize ?? BASE_FONT_SIZE
-        )
+        const baseFontSize = getFontSize(count, rootOptions.baseFontSize)
 
         return rootTable.selectedEntityNames.map((name, index) => {
             const bounds = boundsArr[index]
@@ -89,6 +91,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
                 bounds,
                 chartTypeName,
                 options,
+                title: name,
             } as SmallChart
         })
     }
@@ -106,16 +109,24 @@ export class CountryFacet extends React.Component<FacetChartProps> {
     }
 
     private renderSmallCharts() {
+        const fontSize = getFontSize(
+            this.smallCharts.length,
+            this.rootOptions.baseFontSize
+        )
         return this.smallCharts.map((smallChart, index: number) => {
             const ChartComponent = getChartComponent(
                 smallChart.chartTypeName
             ) as any // todo: how to type this?
+            const { bounds, title } = smallChart
             return (
-                <ChartComponent
-                    key={index}
-                    bounds={smallChart.bounds}
-                    options={smallChart.options}
-                />
+                <>
+                    {FacetTitle(title, bounds, fontSize, index)}
+                    <ChartComponent
+                        key={index}
+                        bounds={bounds}
+                        options={smallChart.options}
+                    />
+                </>
             )
         })
     }
@@ -129,3 +140,21 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         )
     }
 }
+
+const FacetTitle = (
+    title: string,
+    bounds: Bounds,
+    fontSize: number,
+    index: number
+) => (
+    <text
+        key={index}
+        x={bounds.left}
+        y={bounds.top}
+        fill={"grey"}
+        textAnchor="middle"
+        fontSize={fontSize}
+    >
+        {title}
+    </text>
+)
