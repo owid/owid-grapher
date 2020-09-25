@@ -17,7 +17,10 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalLinkAlt"
-import { HighlightToggleConfig } from "grapher/core/GrapherConstants"
+import {
+    GrapherTabOption,
+    HighlightToggleConfig,
+} from "grapher/core/GrapherConstants"
 import { ShareMenu } from "./ShareMenu"
 
 @observer
@@ -172,7 +175,7 @@ export class ControlsFooterView extends React.Component<{
                 <ul>
                     {grapher.availableTabs.map((tabName) => {
                         return (
-                            tabName !== "download" && (
+                            tabName !== GrapherTabOption.download && (
                                 <li
                                     key={tabName}
                                     className={
@@ -199,10 +202,14 @@ export class ControlsFooterView extends React.Component<{
                     <li
                         className={
                             "tab clickable icon download-tab-button" +
-                            (grapher.currentTab === "download" ? " active" : "")
+                            (grapher.currentTab === GrapherTabOption.download
+                                ? " active"
+                                : "")
                         }
                         data-track-note="chart-click-download"
-                        onClick={() => (grapher.currentTab = "download")}
+                        onClick={() =>
+                            (grapher.currentTab = GrapherTabOption.download)
+                        }
                         title="Download as .png or .svg"
                     >
                         <a>
@@ -239,7 +246,7 @@ export class ControlsFooterView extends React.Component<{
         const { grapher } = this
         return (
             <div className="extraControls">
-                {grapher.currentTab === "chart" &&
+                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.canAddData &&
                     !grapher.hasFloatingAddButton &&
                     !grapher.hideEntityControls && (
@@ -262,7 +269,7 @@ export class ControlsFooterView extends React.Component<{
                         </button>
                     )}
 
-                {grapher.currentTab === "chart" &&
+                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.canChangeEntity &&
                     !grapher.hideEntityControls && (
                         <button
@@ -275,7 +282,7 @@ export class ControlsFooterView extends React.Component<{
                         </button>
                     )}
 
-                {grapher.currentTab === "chart" &&
+                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.isScatter &&
                     grapher.highlightToggle && (
                         <HighlightToggle
@@ -283,28 +290,29 @@ export class ControlsFooterView extends React.Component<{
                             highlightToggle={grapher.highlightToggle}
                         />
                     )}
-                {grapher.currentTab === "chart" &&
+                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.isStackedArea &&
                     grapher.canToggleRelativeMode && (
                         <AbsRelToggle grapher={grapher} />
                     )}
-                {grapher.currentTab === "chart" &&
+                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.isScatter &&
                     grapher.canToggleRelativeMode && (
                         <AbsRelToggle grapher={grapher} />
                     )}
-                {grapher.currentTab === "chart" &&
+                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.isScatter &&
                     grapher.table.hasSelection && (
                         <ZoomToggle grapher={grapher} />
                     )}
 
-                {(grapher.currentTab === "table" || grapher.isScatter) &&
+                {(grapher.currentTab === GrapherTabOption.table ||
+                    grapher.isScatter) &&
                     grapher.hasCountriesSmallerThanFilterOption && (
                         <FilterSmallCountriesToggle grapher={grapher} />
                     )}
 
-                {grapher.currentTab === "chart" &&
+                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.canToggleRelativeMode && (
                         <AbsRelToggle grapher={grapher} />
                     )}

@@ -74,7 +74,14 @@ import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
-import { ScaleType } from "grapher/core/GrapherConstants"
+import {
+    DimensionProperty,
+    EntitySelectionModes,
+    GrapherTabOption,
+    ScaleType,
+    ScatterPointLabelStrategy,
+    StackModes,
+} from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 
 interface BootstrapProps {
@@ -862,7 +869,7 @@ export class CovidExplorer extends React.Component<{
     @action.bound playDefaultViewCommand() {
         // todo: Should  just be "coronaDefaultView"
         const props = this.grapher
-        props.tab = "chart"
+        props.tab = GrapherTabOption.chart
         this.grapher.xAxis.scaleType = ScaleType.linear
         this.grapher.yAxis.scaleType = ScaleType.log
         this.grapher.timelineFilter = [
@@ -977,7 +984,7 @@ export class CovidExplorer extends React.Component<{
     }
 
     @action.bound toggleDimensionColumnCommand(
-        axis: "y" | "x" | "size",
+        axis: DimensionProperty,
         backwards = false
     ) {
         const key = `${axis}Column`
@@ -1092,7 +1099,7 @@ export class CovidExplorer extends React.Component<{
         const yColumn = this.yColumn
         yColumn.spec.name = this.chartTitle // todo: cleanup
         return {
-            property: "y",
+            property: DimensionProperty.y,
             slug: yColumn.slug,
             variableId: 0,
         }
@@ -1101,7 +1108,7 @@ export class CovidExplorer extends React.Component<{
     @computed private get xDimension(): LegacyChartDimensionInterface {
         const xColumn = this.xColumn!
         return {
-            property: "x",
+            property: DimensionProperty.x,
             slug: xColumn.slug,
             variableId: 0,
         }
@@ -1121,7 +1128,7 @@ export class CovidExplorer extends React.Component<{
 
     @computed private get sizeDimension(): LegacyChartDimensionInterface {
         return {
-            property: "size",
+            property: DimensionProperty.size,
             slug: this.sizeColumn?.slug,
             variableId: 0,
         }
@@ -1136,7 +1143,7 @@ export class CovidExplorer extends React.Component<{
 
         // todo: tolerance 10
         return {
-            property: "color",
+            property: DimensionProperty.color,
             slug,
             variableId: 0,
         }
@@ -1220,15 +1227,15 @@ export class CovidExplorer extends React.Component<{
             label: this.yAxisLabel,
         },
         dimensions: [],
-        scatterPointLabelStrategy: "y",
-        addCountryMode: "add-country",
-        stackMode: "absolute",
+        scatterPointLabelStrategy: ScatterPointLabelStrategy.y,
+        addCountryMode: EntitySelectionModes.MultipleEntities,
+        stackMode: StackModes.absolute,
         manuallyProvideData: true,
         colorScale: this.colorScales.continents,
         hideRelativeToggle: true,
         hasChartTab: true,
         hasMapTab: true,
-        tab: "chart",
+        tab: GrapherTabOption.chart,
         isPublished: true,
         map: this.defaultMapConfig as any,
         queryStr: this.props.queryStr,

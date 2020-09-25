@@ -26,7 +26,12 @@ import { BindString, Toggle, BindFloat, FieldsRow, EditableTags } from "./Forms"
 import { ChartList, ChartListItem } from "./ChartList"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
-import { ChartTypes, EPOCH_DATE } from "grapher/core/GrapherConstants"
+import {
+    EntitySelectionModes,
+    ChartTypes,
+    EPOCH_DATE,
+    GrapherTabOption,
+} from "grapher/core/GrapherConstants"
 import { Tag } from "./TagBadge"
 import { VariableList, VariableListItem } from "./VariableList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
@@ -112,7 +117,7 @@ class VariableEditRow extends React.Component<{
         // XXX refactor this with EditorBasicTab
         if (!grapher.mappableData.length) return
 
-        grapher.tab = "chart"
+        grapher.tab = GrapherTabOption.chart
         grapher.hasMapTab = false
         const { table } = grapher
         const { availableEntityNames } = table
@@ -123,9 +128,9 @@ class VariableEditRow extends React.Component<{
                 ? "World"
                 : lodash.sample(availableEntityNames)
             table.selectEntity(entity!)
-            grapher.addCountryMode = "change-country"
+            grapher.addCountryMode = EntitySelectionModes.SingleEntity
         } else {
-            grapher.addCountryMode = "add-country"
+            grapher.addCountryMode = EntitySelectionModes.MultipleEntities
             if (grapher.filledDimensions[0].column.timesUniq.length === 1) {
                 grapher.type = ChartTypes.DiscreteBar
                 table.setSelectedEntities(

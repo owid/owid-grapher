@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { Grapher } from "grapher/core/Grapher"
+import { DimensionProperty, GrapherTabOption } from "./GrapherConstants"
 
 describe(Grapher, () => {
     it("regression fix: container options are not serialized", () => {
@@ -23,7 +24,9 @@ describe(Grapher, () => {
     })
 
     it("does not preserve defaults in the object", () => {
-        expect(new Grapher({ tab: "chart" }).toObject()).toEqual({})
+        expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual(
+            {}
+        )
     })
 
     it("can apply legacy chart dimension settings", () => {
@@ -33,7 +36,7 @@ describe(Grapher, () => {
             dimensions: [
                 {
                     variableId: 3512,
-                    property: "y",
+                    property: DimensionProperty.y,
                     display: {
                         unit,
                     },

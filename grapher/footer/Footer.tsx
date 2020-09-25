@@ -6,7 +6,7 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { Bounds } from "grapher/utils/Bounds"
 import { getRelativeMouse } from "grapher/utils/Util"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, GrapherTabOption } from "grapher/core/GrapherConstants"
 import { FooterOptionsProvider } from "./FooterOptionsProvider"
 
 @observer
@@ -139,7 +139,7 @@ export class Footer extends React.Component<{
     }
 
     @action.bound private onSourcesClick() {
-        this.options.currentTab = "sources"
+        this.options.currentTab = GrapherTabOption.sources
     }
 
     renderStatic(targetX: number, targetY: number) {

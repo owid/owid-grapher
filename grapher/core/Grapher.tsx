@@ -37,10 +37,10 @@ import {
     GrapherTabOption,
     TickFormattingOptions,
     ScaleType,
-    StackMode,
+    StackModes,
     DimensionProperty,
     ChartTypeName,
-    AddCountryMode,
+    EntitySelectionModes,
     HighlightToggleConfig,
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
@@ -167,9 +167,9 @@ class GrapherDefaults extends React.Component<GrapherProps> {
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
     @observable.ref timelineMaxTime?: Time = undefined
-    @observable.ref addCountryMode: AddCountryMode = "add-country"
+    @observable.ref addCountryMode = EntitySelectionModes.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
-    @observable.ref stackMode: StackMode = "absolute"
+    @observable.ref stackMode = StackModes.absolute
     @observable.ref hideLegend?: true = undefined
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -182,7 +182,7 @@ class GrapherDefaults extends React.Component<GrapherProps> {
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true
     @observable.ref hasMapTab: boolean = false
-    @observable.ref tab: GrapherTabOption = "chart"
+    @observable.ref tab = GrapherTabOption.chart
     @observable.ref overlay?: GrapherTabOption = undefined
     @observable.ref internalNotes: string = ""
     @observable.ref variantName?: string = undefined
@@ -376,7 +376,7 @@ export class Grapher
         }
 
         // Stack mode for bar and stacked area charts
-        this.stackMode = (params.stackMode ?? this.stackMode) as StackMode
+        this.stackMode = (params.stackMode ?? this.stackMode) as StackModes
 
         this.zoomToSelection =
             params.zoomToSelection === "true" ? true : this.zoomToSelection
@@ -416,7 +416,7 @@ export class Grapher
         if (
             this.manuallyProvideData ||
             !country ||
-            this.addCountryMode === "disabled"
+            this.addCountryMode === EntitySelectionModes.Disabled
         )
             return
         when(
@@ -469,7 +469,7 @@ export class Grapher
     private filterByTime(table: OwidTable) {
         if (false) return table
         const [startTime, endTime] = this.timelineFilter
-        if (this.tab === "map") {
+        if (this.tab === GrapherTabOption.map) {
             const tolerance = this.map.timeTolerance ?? 0
             return table.filterByTime(
                 startTime - tolerance,
@@ -652,7 +652,8 @@ export class Grapher
     // todo: have the concept of an active table? active column? activeTimelineColumn? activeTimelineTable?
     // todo: remove ifs
     @computed get times(): Time[] {
-        if (this.tab === "map") return this.mapColumn?.timelineTimes || []
+        if (this.tab === GrapherTabOption.map)
+            return this.mapColumn?.timelineTimes || []
         // todo: filter out min times and end times?
         return this.rootTable.timelineTimes
     }
@@ -660,26 +661,30 @@ export class Grapher
     // todo: remove ifs
     @computed get startTime(): Time {
         const activeTab = this.tab
-        if (activeTab === "table")
+        if (activeTab === GrapherTabOption.table)
             return (
                 // todo: readd this behavior. this.dataTableTransform.autoSelectedStartTime ??
                 this.timelineFilter[0]
             )
-        else if (activeTab === "map")
+        else if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
         return this.table.minTime || 1900
     }
 
     // todo: remove ifs
     set startTime(newValue: Time) {
-        if (this.tab === "map") this.timelineFilter = [newValue, newValue]
+        if (this.tab === GrapherTabOption.map)
+            this.timelineFilter = [newValue, newValue]
         else this.timelineFilter = [newValue, this.timelineFilter[1]]
     }
 
     // todo: remove ifs
     set endTime(value: Time) {
         const activeTab = this.tab
-        if (activeTab === "map" || activeTab === "table")
+        if (
+            activeTab === GrapherTabOption.map ||
+            activeTab === GrapherTabOption.table
+        )
             this.timelineFilter = [value, value]
         else this.timelineFilter = [this.timelineFilter[0], value]
     }
@@ -691,7 +696,8 @@ export class Grapher
         //     return this.multiMetricTableMode
         //         ? this.timeDomain[1] // todo: readd this.dataTableTransform.startTimelineTime
         //         : this.timeDomain[1]
-        if (activeTab === "map") return this.mapColumn?.endTimelineTime || 2000
+        if (activeTab === GrapherTabOption.map)
+            return this.mapColumn?.endTimelineTime || 2000
         return this.table.maxTime || 2000
     }
 
@@ -832,18 +838,28 @@ export class Grapher
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     set currentTab(value) {
-        if (this.tab === "chart")
+        if (this.tab === GrapherTabOption.chart)
             this.chartMinPopulationFilter = this.minPopulationFilter
-        if (this.tab === "table" && value !== "table")
+        if (
+            this.tab === GrapherTabOption.table &&
+            value !== GrapherTabOption.table
+        )
             this.revertDataTableSpecificState()
 
-        if (value === "chart" || value === "map" || value === "table") {
+        if (
+            value === GrapherTabOption.chart ||
+            value === GrapherTabOption.map ||
+            value === GrapherTabOption.table
+        ) {
             this.tab = value
             this.overlay = undefined
         } else {
             // table tab cannot be downloaded, so revert to default tab
-            if (value === "download" && this.tab === "table")
-                this.tab = this.configOnLoad.tab || "chart"
+            if (
+                value === GrapherTabOption.download &&
+                this.tab === GrapherTabOption.table
+            )
+                this.tab = this.configOnLoad.tab || GrapherTabOption.chart
             this.overlay = value
         }
     }
@@ -863,10 +879,10 @@ export class Grapher
 
     // Get the dimension slots appropriate for this type of chart
     @computed get dimensionSlots() {
-        const xAxis = new DimensionSlot(this, "x")
-        const yAxis = new DimensionSlot(this, "y")
-        const color = new DimensionSlot(this, "color")
-        const size = new DimensionSlot(this, "size")
+        const xAxis = new DimensionSlot(this, DimensionProperty.x)
+        const yAxis = new DimensionSlot(this, DimensionProperty.y)
+        const color = new DimensionSlot(this, DimensionProperty.color)
+        const size = new DimensionSlot(this, DimensionProperty.size)
 
         if (this.isScatter) return [yAxis, xAxis, size, color]
         else if (this.isTimeScatter) return [yAxis, xAxis]
@@ -911,11 +927,11 @@ export class Grapher
 
     @computed get availableTabs() {
         return [
-            this.hasChartTab && "chart",
-            this.hasMapTab && "map",
-            "table",
-            "sources",
-            "download",
+            this.hasChartTab && GrapherTabOption.chart,
+            this.hasMapTab && GrapherTabOption.map,
+            GrapherTabOption.table,
+            GrapherTabOption.sources,
+            GrapherTabOption.download,
         ].filter(identity) as GrapherTabOption[]
     }
 
@@ -924,8 +940,8 @@ export class Grapher
         const selectedEntityNames = this.table.selectedEntityNames
 
         if (
-            this.primaryTab === "chart" &&
-            this.addCountryMode !== "add-country" &&
+            this.primaryTab === GrapherTabOption.chart &&
+            this.addCountryMode !== EntitySelectionModes.MultipleEntities &&
             selectedEntityNames.length === 1 &&
             (!this.hideTitleAnnotation || this.canChangeEntity)
         ) {
@@ -944,7 +960,8 @@ export class Grapher
             this.isReady &&
             (!this.hideTitleAnnotation ||
                 (this.isLineChart && this.isSingleTime && this.hasTimeline) ||
-                (this.primaryTab === "map" && this.mapHasTimeline))
+                (this.primaryTab === GrapherTabOption.map &&
+                    this.mapHasTimeline))
         )
             text += this.timeTitleSuffix
 
@@ -985,26 +1002,26 @@ export class Grapher
 
     @computed get yColumns() {
         return this.filledDimensions
-            .filter((dim) => dim.property === "y")
+            .filter((dim) => dim.property === DimensionProperty.y)
             .map((dim) => dim.column)
     }
 
     @computed get yColumnSlugs() {
         return this.dimensions
-            .filter((dim) => dim.property === "y")
+            .filter((dim) => dim.property === DimensionProperty.y)
             .map((dim) => dim.columnSlug)
     }
 
     @computed get yColumnSlug() {
-        return this.getSlugForProperty("y")
+        return this.getSlugForProperty(DimensionProperty.y)
     }
 
     @computed get xColumnSlug() {
-        return this.getSlugForProperty("x")
+        return this.getSlugForProperty(DimensionProperty.x)
     }
 
     @computed get sizeColumnSlug() {
-        return this.getSlugForProperty("size")
+        return this.getSlugForProperty(DimensionProperty.size)
     }
 
     @computed private get timeTitleSuffix() {
@@ -1018,28 +1035,20 @@ export class Grapher
         return ", " + time
     }
 
-    @computed get isSingleEntity() {
-        return (
-            this.table.availableEntityNames.length === 1 ||
-            this.addCountryMode === "change-country"
-        )
-    }
-
     @computed get addButtonLabel() {
-        return `Add ${this.isSingleEntity ? "data" : this.entityType}`
+        const isSingleEntity =
+            this.table.availableEntityNames.length === 1 ||
+            this.addCountryMode === EntitySelectionModes.SingleEntity
+        return `Add ${isSingleEntity ? "data" : this.entityType}`
     }
 
     @computed get hasFloatingAddButton() {
         return (
-            this.primaryTab === "chart" &&
+            this.primaryTab === GrapherTabOption.chart &&
             !this.isExporting &&
             this.canAddData &&
             (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
         )
-    }
-
-    @computed get isSingleVariable() {
-        return this.yColumnSlugs.length === 1
     }
 
     @computed get sourcesLine() {
@@ -1049,16 +1058,26 @@ export class Grapher
     }
 
     @computed get canAddData() {
-        return (
-            this.addCountryMode === "add-country" &&
-            this.table.availableEntityNames.length > 1
+        if (this.table.availableEntityNames.length < 2) return false
+
+        if (this.addCountryMode === EntitySelectionModes.MultipleEntities)
+            return true
+
+        if (
+            this.addCountryMode === EntitySelectionModes.SingleEntity &&
+            this.enableFaceting
         )
+            return true
+
+        return false
     }
+
+    @observable enableFaceting = true
 
     @computed get canChangeEntity() {
         return (
             !this.isScatter &&
-            this.addCountryMode === "change-country" &&
+            this.addCountryMode === EntitySelectionModes.SingleEntity &&
             this.table.availableEntityNames.length > 1
         )
     }
@@ -1096,7 +1115,9 @@ export class Grapher
 
     @computed private get axisDimensions() {
         return this.filledDimensions.filter(
-            (dim) => dim.property === "y" || dim.property === "x"
+            (dim) =>
+                dim.property === DimensionProperty.y ||
+                dim.property === DimensionProperty.x
         )
     }
 
@@ -1157,7 +1178,9 @@ export class Grapher
     }
 
     @computed private get xDimension() {
-        return this.filledDimensions.find((d) => d.property === "x")
+        return this.filledDimensions.find(
+            (d) => d.property === DimensionProperty.x
+        )
     }
 
     // todo: remove. do this at table filter level
@@ -1208,7 +1231,7 @@ export class Grapher
     }
 
     @computed get hasYDimension() {
-        return this.dimensions.some((d) => d.property === "y")
+        return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
     @computed get staticSVG() {
@@ -1239,11 +1262,13 @@ export class Grapher
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode() {
-        return this.stackMode === "relative"
+        return this.stackMode === StackModes.relative
     }
 
     @action.bound toggleRelativeMode() {
-        this.stackMode = !this.isRelativeMode ? "relative" : "absolute"
+        this.stackMode = !this.isRelativeMode
+            ? StackModes.relative
+            : StackModes.absolute
     }
 
     @computed get canToggleRelativeMode() {
@@ -1444,10 +1469,13 @@ export class Grapher
 
     private renderPrimaryTab() {
         const { tabBounds } = this
-        if (this.primaryTab === "chart" || this.primaryTab === "map")
+        if (
+            this.primaryTab === GrapherTabOption.chart ||
+            this.primaryTab === GrapherTabOption.map
+        )
             return <ChartTab options={this} />
 
-        if (this.primaryTab === "table")
+        if (this.primaryTab === GrapherTabOption.table)
             return <DataTable bounds={tabBounds} options={this} />
 
         return undefined
@@ -1463,11 +1491,11 @@ export class Grapher
 
     private renderOverlayTab() {
         const bounds = this.tabBounds
-        if (this.overlayTab === "sources")
+        if (this.overlayTab === GrapherTabOption.sources)
             return (
                 <SourcesTab key="sourcesTab" bounds={bounds} options={this} />
             )
-        if (this.overlayTab === "download")
+        if (this.overlayTab === GrapherTabOption.download)
             return (
                 <DownloadTab key="downloadTab" bounds={bounds} options={this} />
             )
@@ -1562,6 +1590,7 @@ export class Grapher
                 fn: () => this.toggleFacetCommand(),
                 title: this.faceting ? `Faceting off` : `Faceting On`,
                 category: "Chart",
+                disabled: !this.enableFaceting,
             },
             // { // todo: add
             //     combo: "o",
@@ -1702,7 +1731,8 @@ export class Grapher
 
     @computed get hasInlineControls() {
         return (
-            (this.currentTab === "chart" || this.currentTab === "table") &&
+            (this.currentTab === GrapherTabOption.chart ||
+                this.currentTab === GrapherTabOption.table) &&
             ((this.canAddData && !this.hasFloatingAddButton) ||
                 this.isScatter ||
                 this.canChangeEntity ||

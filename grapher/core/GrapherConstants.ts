@@ -14,9 +14,18 @@ export enum CookieKeys {
     isAdmin = "isAdmin",
 }
 
-export type AddCountryMode = "add-country" | "change-country" | "disabled"
+// We currently have the notion of "modes", where you can either select 1 entity, or select multiple entities, or not change the selection at all.
+// Todo: can we remove?
+export enum EntitySelectionModes {
+    MultipleEntities = "add-country",
+    SingleEntity = "change-country",
+    Disabled = "disabled",
+}
 
-export type StackMode = "absolute" | "relative"
+export enum StackModes {
+    absolute = "absolute",
+    relative = "relative",
+}
 
 // todo: remove when we ditch Year and YearIsDay
 export const EPOCH_DATE = "2020-01-21"
@@ -44,12 +53,13 @@ export interface OverlayPadding {
     left: number
 }
 
-export type GrapherTabOption =
-    | "chart"
-    | "map"
-    | "sources"
-    | "download"
-    | "table"
+export enum GrapherTabOption {
+    chart = "chart",
+    map = "map",
+    sources = "sources",
+    download = "download",
+    table = "table",
+}
 
 export type Color = string
 
@@ -77,14 +87,24 @@ export interface RelatedQuestionsConfig {
 // When a user hovers over a connected series line in a ScatterPlot we show
 // a label for each point. By default that value will be from the "year" column
 // but by changing this option the column used for the x or y axis could be used instead.
-export declare type ScatterPointLabelStrategy = "year" | "x" | "y"
+export enum ScatterPointLabelStrategy {
+    year = "year",
+    x = "x",
+    y = "y",
+}
 
 export enum SortOrder {
     asc = "asc",
     desc = "desc",
 }
 
-export declare type DimensionProperty = "y" | "x" | "size" | "color" | "table"
+export enum DimensionProperty {
+    y = "y",
+    x = "x",
+    size = "size",
+    color = "color",
+    table = "table",
+}
 
 export interface TickFormattingOptions {
     numDecimalPlaces?: number

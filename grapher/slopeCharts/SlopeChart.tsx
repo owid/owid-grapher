@@ -23,7 +23,12 @@ import {
     VerticalColorLegendOptionsProvider,
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
-import { BASE_FONT_SIZE, Time, ScaleType } from "grapher/core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    Time,
+    ScaleType,
+    EntitySelectionModes,
+} from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
@@ -89,7 +94,7 @@ export class SlopeChart
     @action.bound onSlopeClick() {
         const { options, hoverKey } = this
         if (
-            options.addCountryMode === "disabled" ||
+            options.addCountryMode === EntitySelectionModes.Disabled ||
             !options.addCountryMode ||
             hoverKey === undefined
         ) {
@@ -115,7 +120,7 @@ export class SlopeChart
     @action.bound onLegendClick() {
         const { options, hoverColor } = this
         if (
-            options.addCountryMode === "disabled" ||
+            options.addCountryMode === EntitySelectionModes.Disabled ||
             !options.addCountryMode ||
             hoverColor === undefined
         )

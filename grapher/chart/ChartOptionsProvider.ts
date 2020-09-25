@@ -1,10 +1,9 @@
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
-import { AddCountryMode } from "grapher/core/GrapherConstants"
+import { EntitySelectionModes } from "grapher/core/GrapherConstants"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { OwidTable } from "coreTable/OwidTable"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
 
 // NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
@@ -36,7 +35,7 @@ export interface ChartOptionsProvider {
 
     yAxis?: AxisConfig // just pass interface?
     xAxis?: AxisConfig // just pass interface?
-    addCountryMode?: AddCountryMode
+    addCountryMode?: EntitySelectionModes
 
     yColumnSlug?: ColumnSlug
     yColumnSlugs?: ColumnSlug[]

@@ -58,20 +58,17 @@ export function subscribeGrapherToGlobalEntitySelection(
             globalSelection.selectedEntities,
         ],
         () => {
-            if (!grapher.canAddData && !grapher.canChangeEntity) {
+            if (!grapher.canAddData && !grapher.canChangeEntity)
                 // Chart doesn't support changing entities - do nothing
                 return
-            }
             const { mode, selectedEntities } = globalSelection
             // This implements "override" mode only!
             if (mode === GlobalEntitySelectionModes.override) {
-                if (selectedEntities.length > 0) {
+                if (selectedEntities.length > 0)
                     grapher.table.setSelectedEntitiesByCode(
                         selectedEntities.map((entity) => entity.code)
                     )
-                } else {
-                    grapher.table.clearSelection()
-                }
+                else grapher.table.clearSelection()
             }
         },
         { fireImmediately: true }

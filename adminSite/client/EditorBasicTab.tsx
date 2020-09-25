@@ -2,7 +2,12 @@ import * as React from "react"
 import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import { sample, sampleSize, startCase } from "grapher/utils/Util"
-import { ChartTypeName, ChartTypes } from "grapher/core/GrapherConstants"
+import {
+    EntitySelectionModes,
+    ChartTypeName,
+    ChartTypes,
+    DimensionProperty,
+} from "grapher/core/GrapherConstants"
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
@@ -73,14 +78,15 @@ class DimensionSlotView extends React.Component<{
                         ? "World"
                         : sample(availableEntityNames)
                     table.selectEntity(entity!)
-                    grapher.addCountryMode = "change-country"
+                    grapher.addCountryMode = EntitySelectionModes.SingleEntity
                 } else {
                     table.setSelectedEntities(
                         availableEntityNames.length > 10
                             ? sampleSize(availableEntityNames, 3)
                             : availableEntityNames
                     )
-                    grapher.addCountryMode = "add-country"
+                    grapher.addCountryMode =
+                        EntitySelectionModes.MultipleEntities
                 }
             }
         )
@@ -185,19 +191,23 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
         if (!grapher.isScatter && !grapher.isSlopeChart) return
 
         // Give scatterplots and slope charts a default color and size dimension if they don't have one
-        const hasColor = grapher.dimensions.find((d) => d.property === "color")
-        const hasSize = grapher.dimensions.find((d) => d.property === "size")
+        const hasColor = grapher.dimensions.find(
+            (d) => d.property === DimensionProperty.color
+        )
+        const hasSize = grapher.dimensions.find(
+            (d) => d.property === DimensionProperty.size
+        )
 
         if (!hasColor)
             grapher.addDimension({
                 variableId: 123,
-                property: "color",
+                property: DimensionProperty.color,
             })
 
         if (!hasSize)
             grapher.addDimension({
                 variableId: 72,
-                property: "size",
+                property: DimensionProperty.size,
             })
     }
 

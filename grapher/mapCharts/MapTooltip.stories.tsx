@@ -1,17 +1,21 @@
 import * as React from "react"
 import { MapTooltip } from "./MapTooltip"
 import { Grapher, GrapherProps } from "grapher/core/Grapher"
+import {
+    DimensionProperty,
+    GrapherTabOption,
+} from "grapher/core/GrapherConstants"
 
 const config: GrapherProps = {
     hasMapTab: true,
-    tab: "map",
+    tab: GrapherTabOption.map,
     map: {
         timeTolerance: 5,
     },
     dimensions: [
         {
             variableId: 3512,
-            property: "y",
+            property: DimensionProperty.y,
             display: {
                 name: "",
                 unit: "% of children under 5",

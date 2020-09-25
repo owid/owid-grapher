@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { Grapher } from "grapher/core/Grapher"
+import { DimensionProperty } from "grapher/core/GrapherConstants"
 
 describe("ChartConfig", () => {
     it("allows single-dimensional explorer charts", () => {
@@ -10,7 +11,9 @@ describe("ChartConfig", () => {
             manuallyProvideData: true,
             hasMapTab: false,
             isExplorable: true,
-            dimensions: [{ property: "y", variableId: 1, display: {} }],
+            dimensions: [
+                { property: DimensionProperty.y, variableId: 1, display: {} },
+            ],
         })
         expect(grapher.isExplorableConstrained).toBe(true)
     })
@@ -21,7 +24,9 @@ describe("ChartConfig", () => {
             hasChartTab: true,
             manuallyProvideData: true,
             isExplorable: true,
-            dimensions: [{ property: "y", variableId: 1, display: {} }],
+            dimensions: [
+                { property: DimensionProperty.y, variableId: 1, display: {} },
+            ],
         })
         expect(grapher.isExplorableConstrained).toBe(false)
     })
@@ -33,8 +38,8 @@ describe("ChartConfig", () => {
             isExplorable: true,
             manuallyProvideData: true,
             dimensions: [
-                { property: "y", variableId: 1, display: {} },
-                { property: "y", variableId: 2, display: {} },
+                { property: DimensionProperty.y, variableId: 1, display: {} },
+                { property: DimensionProperty.y, variableId: 2, display: {} },
             ],
         })
         expect(grapher.isExplorableConstrained).toBe(false)

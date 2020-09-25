@@ -10,7 +10,7 @@ export class DimensionSlot {
         this.property = property
     }
 
-    @computed get name(): string {
+    @computed get name() {
         const names = {
             y: this.grapher.isDiscreteBar ? "X axis" : "Y axis",
             x: "X axis",
@@ -22,9 +22,9 @@ export class DimensionSlot {
         return (names as any)[this.property] || ""
     }
 
-    @computed get allowMultiple(): boolean {
+    @computed get allowMultiple() {
         return (
-            this.property === "y" &&
+            this.property === DimensionProperty.y &&
             !(
                 this.grapher.isScatter ||
                 this.grapher.isTimeScatter ||
@@ -33,7 +33,7 @@ export class DimensionSlot {
         )
     }
 
-    @computed get isOptional(): boolean {
+    @computed get isOptional() {
         return this.allowMultiple
     }
 

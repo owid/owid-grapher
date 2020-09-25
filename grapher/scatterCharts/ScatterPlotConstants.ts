@@ -6,7 +6,7 @@ import { NoDataOverlayOptionsProvider } from "grapher/chart/NoDataOverlay"
 import { ColorScale } from "grapher/color/ColorScale"
 import {
     ScatterPointLabelStrategy,
-    AddCountryMode,
+    EntitySelectionModes,
 } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
@@ -14,7 +14,7 @@ import { PointVector } from "grapher/utils/PointVector"
 export interface ScatterPlotOptionsProvider extends ChartOptionsProvider {
     hideConnectedScatterLines?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
-    addCountryMode?: AddCountryMode
+    addCountryMode?: EntitySelectionModes
 }
 
 export interface ScatterTooltipProps {

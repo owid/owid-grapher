@@ -4,6 +4,7 @@ import * as React from "react"
 import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 import { DataTable } from "./DataTable"
 import { Grapher } from "grapher/core/Grapher"
+import { DimensionProperty } from "grapher/core/GrapherConstants"
 
 const childMortalityGrapher = (props: any = {}) =>
     new Grapher({
@@ -12,7 +13,7 @@ const childMortalityGrapher = (props: any = {}) =>
         dimensions: [
             {
                 variableId: 104402,
-                property: "y",
+                property: DimensionProperty.y,
             },
         ],
         ...props,
@@ -136,7 +137,7 @@ describe(DataTable, () => {
             dimensions: [
                 {
                     variableId: 3512,
-                    property: "y",
+                    property: DimensionProperty.y,
                     display: {
                         name: "",
                         unit: "% of children under 5",

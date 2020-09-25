@@ -1,4 +1,5 @@
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { GrapherTabOption } from "grapher/core/GrapherConstants"
 import * as React from "react"
 import { ChartTab, ChartTabOptionsProvider } from "./ChartTab"
 
@@ -15,7 +16,7 @@ const options: ChartTabOptionsProvider = {
     yColumnSlug: "GDP",
     currentTitle: "This is the Title",
     subtitle: "A Subtitle",
-    tab: "chart",
+    tab: GrapherTabOption.chart,
     note: "Here are some footer notes",
     type: "LineChart",
 }

@@ -21,7 +21,11 @@ import { GrapherFigureView } from "site/client/GrapherFigureView"
 import { ChartList, ChartListItem } from "./ChartList"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { Base64 } from "js-base64"
-import { EPOCH_DATE } from "grapher/core/GrapherConstants"
+import {
+    DimensionProperty,
+    EPOCH_DATE,
+    GrapherTabOption,
+} from "grapher/core/GrapherConstants"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 
 interface VariablePageData extends Omit<LegacyVariableConfig, "source"> {
@@ -283,11 +287,11 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
         return {
             yAxis: { min: 0 },
             map: { columnSlug: this.props.variable.id.toString() },
-            tab: "map",
+            tab: GrapherTabOption.map,
             hasMapTab: true,
             dimensions: [
                 {
-                    property: "y",
+                    property: DimensionProperty.y,
                     variableId: this.props.variable.id,
                     display: lodash.clone(this.newVariable.display),
                 },

@@ -41,6 +41,9 @@ import {
     BASE_FONT_SIZE,
     ScaleType,
     Time,
+    DimensionProperty,
+    EntitySelectionModes,
+    ScatterPointLabelStrategy,
 } from "grapher/core/GrapherConstants"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import { TextWrap } from "grapher/text/TextWrap"
@@ -105,7 +108,9 @@ export class ScatterPlot
 
     @computed private get canAddCountry() {
         const { addCountryMode } = this.options
-        return addCountryMode && addCountryMode !== "disabled"
+        return (
+            addCountryMode && addCountryMode !== EntitySelectionModes.Disabled
+        )
     }
 
     @action.bound onSelectEntity(entityName: EntityName) {
@@ -494,7 +499,7 @@ export class ScatterPlot
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
     @computed private get hideBackgroundEntities() {
-        return this.options.addCountryMode === "disabled"
+        return this.options.addCountryMode === EntitySelectionModes.Disabled
     }
 
     @computed private get possibleEntityNames(): EntityName[] {
@@ -664,21 +669,12 @@ export class ScatterPlot
         })
     }
 
-    @computed get propertyToColumnMap() {
-        const map = new Map()
-        map.set("x", this.xColumn)
-        map.set("y", this.yColumn)
-        map.set("size", this.sizeColumn)
-        map.set("color", this.colorColumn)
-        return map
-    }
-
     @computed get columnToPropertyMap() {
         const map = new Map()
-        map.set(this.xColumn, "x")
-        map.set(this.yColumn, "y")
-        map.set(this.sizeColumn, "size")
-        map.set(this.colorColumn, "color")
+        map.set(this.xColumn, DimensionProperty.x)
+        map.set(this.yColumn, DimensionProperty.y)
+        map.set(this.sizeColumn, DimensionProperty.size)
+        map.set(this.colorColumn, DimensionProperty.color)
         return map
     }
 
@@ -934,9 +930,10 @@ export class ScatterPlot
 
             dataByTime.forEach((point) => {
                 let label
-                if (strat === "year")
+                if (strat === ScatterPointLabelStrategy.year)
                     label = table.timeColumnFormatFunction(point.time)
-                else if (strat === "x") label = xColumn!.formatValue(point.x)
+                else if (strat === ScatterPointLabelStrategy.x)
+                    label = xColumn!.formatValue(point.x)
                 else
                     (label = yColumn!.formatValue(point.y)),
                         group.points.push({ ...point, label })

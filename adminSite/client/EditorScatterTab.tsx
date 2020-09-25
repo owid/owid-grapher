@@ -125,7 +125,7 @@ export class EditorScatterTab extends React.Component<{ grapher: Grapher }> {
                     <SelectField
                         value={grapher.scatterPointLabelStrategy}
                         onValue={this.onChangeScatterPointLabelStrategy}
-                        options={["year", "y", "x"]}
+                        options={Object.keys(ScatterPointLabelStrategy)}
                     />
                 </Section>
                 <Section name="Filtering">

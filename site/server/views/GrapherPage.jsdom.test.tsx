@@ -11,6 +11,7 @@ import { RelatedChart } from "site/client/blocks/RelatedCharts/RelatedCharts"
 
 import { ChartListItemVariant } from "./ChartListItemVariant"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
+import { DimensionProperty } from "grapher/core/GrapherConstants"
 
 const mockGrapher: GrapherInterface = {
     version: 5,
@@ -19,7 +20,7 @@ const mockGrapher: GrapherInterface = {
     dimensions: [
         {
             variableId: 3512,
-            property: "y",
+            property: DimensionProperty.y,
         },
     ],
 }

@@ -8,14 +8,14 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
 import { Grapher } from "grapher/core/Grapher"
-import { ScaleType } from "./GrapherConstants"
+import { DimensionProperty, ScaleType } from "./GrapherConstants"
 
 const getGrapher = () =>
     new Grapher({
         dimensions: [
             {
                 variableId: 142609,
-                property: "y",
+                property: DimensionProperty.y,
             },
         ],
         owidDataset: {

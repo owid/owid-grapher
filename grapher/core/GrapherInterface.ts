@@ -1,11 +1,11 @@
 import {
     ChartTypeName,
-    StackMode,
+    StackModes,
     GrapherTabOption,
     ScatterPointLabelStrategy,
     HighlightToggleConfig,
     RelatedQuestionsConfig,
-    AddCountryMode,
+    EntitySelectionModes,
     EntitySelection,
     Time,
 } from "./GrapherConstants"
@@ -43,10 +43,10 @@ export interface GrapherInterface {
     timelineMinTime?: Time
     timelineMaxTime?: Time
     dimensions?: LegacyChartDimensionInterface[]
-    addCountryMode?: AddCountryMode
+    addCountryMode?: EntitySelectionModes
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
-    stackMode?: StackMode
+    stackMode?: StackModes
     hideLegend?: true
     logo?: LogoOption
     hideLogo?: boolean
