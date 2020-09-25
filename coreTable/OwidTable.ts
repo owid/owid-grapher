@@ -101,11 +101,6 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         ])
     }
 
-    // todo: rename
-    clone() {
-        return new OwidTable(this._rows, this.columnsAsArray, this)
-    }
-
     @computed get columnsByOwidVarId() {
         const map = new Map<number, AbstractCoreColumn>()
         this.columnsAsArray.forEach((column, index) => {
@@ -212,6 +207,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     // Todo: figure out correct inheritance method here
     get rootTable(): OwidTable {
         return this.parent ? (this.parent.rootTable as OwidTable) : this
+    }
+
+    // todo: rename
+    clone() {
+        return new OwidTable(this._rows, this.columnsAsArray, this, "Cloned")
     }
 
     // todo: speed up

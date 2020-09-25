@@ -543,13 +543,9 @@ export class LineChart
     }
 
     @computed private get yColumns() {
-        return (this.options.yColumnSlugs || []).map(
-            (slug) => this.table.get(slug)!
-        )
-    }
-
-    @computed private get table() {
-        return this.options.table
+        return this.options.yColumnSlugs
+            ? this.options.yColumnSlugs.map((slug) => this.table.get(slug)!)
+            : [this.yColumn!]
     }
 
     @computed private get annotationsMap() {
@@ -568,52 +564,71 @@ export class LineChart
             : (ColorSchemes["owid-distinct"] as ColorScheme)
     }
 
+    @computed get table() {
+        const table = this.options.table.filterBySelectedOnly()
+
+        return table
+    }
+
     @computed get marks() {
-        const { yColumns, table } = this
-        if (!yColumns) return []
-
+        const { yColumns } = this
         const { yAxis } = this.options
-
-        const { selectedEntityNames } = table
 
         const isLog = yAxis?.scaleType === ScaleType.log
 
-        let chartData: LineChartMark[] = flatten(
-            yColumns.map((column) => {
-                const seriesByKey = new Map<EntityName, LineChartMark>()
-                const { isProjection } = column
-
-                column.owidRows
-                    .filter((row) => !isLog || row.value > 0)
-                    .filter((row) =>
-                        selectedEntityNames.includes(row.entityName)
-                    )
-                    .forEach((row) => {
-                        const { time, entityName, value } = row
-
-                        if (!seriesByKey.has(entityName))
-                            seriesByKey.set(entityName, {
-                                points: [],
-                                entityName,
-                                isProjection,
-                                color: "#000", // tmp
-                            })
-
-                        const series = seriesByKey.get(entityName)!
-                        const point = { x: time, y: value }
-                        series.points.push(point)
-                    })
-
-                return Array.from(seriesByKey.values())
+        const chartData: LineChartMark[] = flatten(
+            yColumns.map((col) => {
+                const { isProjection } = col
+                const map = col.owidRowsByEntityName
+                return Array.from(map.keys()).map((entityName) => {
+                    return {
+                        // todo: add log filter
+                        points: map.get(entityName)!.map((row) => {
+                            return {
+                                x: row.time,
+                                y: row.value,
+                            }
+                        }),
+                        entityName,
+                        isProjection,
+                        color: "#000", // tmp
+                    }
+                })
             })
         )
+
+        // let chartData: LineChartMark[] = flatten(
+        //     yColumns.map((column) => {
+        //         const seriesByKey = new Map<EntityName, LineChartMark>()
+        //         const { isProjection } = column
+
+        //         column.owidRows
+        //             .filter((row) => !isLog || row.value > 0)
+        //             .forEach((row) => {
+        //                 const { time, entityName, value } = row
+
+        //                 if (!seriesByKey.has(entityName))
+        //                     seriesByKey.set(entityName, {
+        //                         points: [],
+        //                         entityName,
+        //                         isProjection,
+        //                         color: "#000", // tmp
+        //                     })
+
+        //                 const series = seriesByKey.get(entityName)!
+        //                 series.points.push({ x: time, y: value })
+        //             })
+
+        //         return Array.from(seriesByKey.values())
+        //     })
+        // )
 
         this._addColorsToSeries(chartData)
 
         // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
-        chartData = sortBy(chartData, (series) =>
-            selectedEntityNames.indexOf(series.entityName)
-        )
+        // chartData = sortBy(chartData, (series) =>
+        //     selectedEntityNames.indexOf(series.entityName)
+        // )
 
         return chartData
 

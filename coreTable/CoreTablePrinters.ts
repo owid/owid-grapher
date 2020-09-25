@@ -4,8 +4,8 @@ type CellFormatter = (str: string, rowIndex: number, colIndex: number) => any
 export const toAlignedTextTable = (
     header: string[],
     rows: any[],
-    maxCharactersPerColumn: number = 120,
-    alignRight = true
+    alignRight = true,
+    maxCharactersPerColumn: number = 20
 ) => {
     // Set initial column widths
     const widths = header.map((col) =>
@@ -28,10 +28,10 @@ export const toAlignedTextTable = (
         })
     })
 
-    const cellFn = (cellText: string, row: number, col: number) => {
+    const cellFn = (cellText = "", row: number, col: number) => {
         const width = widths[col]
         // Strip newlines in fixedWidth output
-        const cellValue = cellText.toString().replace(/\n/g, "\\n")
+        const cellValue = cellText?.toString().replace(/\n/g, "\\n") || ""
         const cellLength = cellValue.length
         if (cellLength > width) return cellValue.substr(0, width - 3) + "..."
 

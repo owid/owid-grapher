@@ -873,18 +873,6 @@ export class CovidExplorer extends React.Component<{
         this.renderControlsThenUpdateChart()
     }
 
-    @action.bound toggleTabCommand() {
-        this.grapher.tab = next(["chart", "map", "table"], this.grapher.tab)
-    }
-
-    @action.bound toggleKeyboardHelpCommand() {
-        const element = document.getElementsByClassName(
-            "CommandPalette"
-        )[0] as HTMLElement
-        element.style.display =
-            element.style.display === "none" ? "block" : "none"
-    }
-
     get keyboardShortcuts(): Command[] {
         return [
             {
@@ -907,13 +895,13 @@ export class CovidExplorer extends React.Component<{
             },
             {
                 combo: "t",
-                fn: () => this.toggleTabCommand(),
+                fn: () => this.grapher.toggleTabCommand(),
                 title: "Toggle tab",
                 category: "Navigation",
             },
             {
                 combo: "?",
-                fn: () => this.toggleKeyboardHelpCommand(),
+                fn: () => this.grapher.toggleKeyboardHelpCommand(),
                 title: "Toggle Help",
                 category: "Navigation",
             },
@@ -952,7 +940,7 @@ export class CovidExplorer extends React.Component<{
             },
             {
                 combo: "p",
-                fn: () => this.togglePlayingCommand(),
+                fn: () => this.grapher.togglePlayingCommand(),
                 title: "Play/Pause",
                 category: "Timeline",
             },
@@ -986,10 +974,6 @@ export class CovidExplorer extends React.Component<{
         this.grapher.minPopulationFilter =
             this.grapher.minPopulationFilter === 2e9 ? undefined : 2e9
         this.renderControlsThenUpdateChart()
-    }
-
-    @action.bound togglePlayingCommand() {
-        this.grapher.isPlaying = !this.grapher.isPlaying
     }
 
     @action.bound toggleDimensionColumnCommand(

@@ -13,8 +13,8 @@ al,1214,green`
         const result = toAlignedTextTable(
             Object.keys(rows[0]),
             rows,
-            100,
-            false
+            false,
+            100
         )
         expect(result).toEqual(`name score color
 bob  12    red  

@@ -30,6 +30,7 @@ import {
     VNode,
     throttle,
     isTouchDevice,
+    next,
 } from "grapher/utils/Util"
 import {
     ChartTypes,
@@ -134,6 +135,7 @@ import {
 import { DataTable } from "grapher/dataTable/DataTable"
 import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartConstants"
 import { DiscreteBarChartOptionsProvider } from "grapher/barCharts/DiscreteBarChartConstants"
+import { Command, CommandPalette } from "grapher/controls/CommandPalette"
 
 declare const window: any
 
@@ -222,6 +224,7 @@ export interface GrapherProps extends GrapherInterface {
     isExport?: boolean
     bounds?: Bounds
     table?: OwidTable
+    keyboardShortcuts?: boolean
 }
 
 @observer
@@ -1267,9 +1270,11 @@ export class Grapher
     }) {
         let view
         function render() {
+            const keyboardShortcuts = !isEmbed
             const props = {
                 ...jsonConfig,
                 isEmbed,
+                keyboardShortcuts,
                 queryStr,
                 globalEntitySelection,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
@@ -1479,6 +1484,7 @@ export class Grapher
                     height={this.renderHeight}
                     tooltipProvider={this}
                 />
+                {this.renderKeyboardShortcuts()}
                 {this.isSelectingData && (
                     <EntitySelectorModal
                         key="entitySelector"
@@ -1490,6 +1496,79 @@ export class Grapher
             </>
         )
     }
+
+    private renderKeyboardShortcuts() {
+        if (!this.props.keyboardShortcuts) return null
+        return (
+            <CommandPalette commands={this.keyboardShortcuts} display="none" />
+        )
+    }
+
+    @action.bound toggleTabCommand() {
+        this.tab = next(this.availableTabs, this.tab)
+    }
+
+    @action.bound toggleKeyboardHelpCommand() {
+        const element = document.getElementsByClassName(
+            "CommandPalette"
+        )[0] as HTMLElement
+        element.style.display =
+            element.style.display === "none" ? "block" : "none"
+    }
+
+    @action.bound togglePlayingCommand() {
+        this.isPlaying = !this.isPlaying
+    }
+
+    get keyboardShortcuts(): Command[] {
+        return [
+            {
+                combo: "t",
+                fn: () => this.toggleTabCommand(),
+                title: "Toggle tab",
+                category: "Navigation",
+            },
+            {
+                combo: "?",
+                fn: () => this.toggleKeyboardHelpCommand(),
+                title: "Toggle Help",
+                category: "Navigation",
+            },
+            {
+                combo: "a",
+                fn: () =>
+                    this.rootTable.hasSelection
+                        ? this.rootTable.clearSelection()
+                        : this.rootTable.selectAll(),
+                title: "Select/Deselect all",
+                category: "Selection",
+            },
+            {
+                combo: "p",
+                fn: () => this.togglePlayingCommand(),
+                title: "Play/Pause",
+                category: "Timeline",
+            },
+            {
+                combo: "f",
+                fn: () => this.toggleFacetCommand(),
+                title: "Toggle Faceting",
+                category: "Chart",
+            },
+            // { // todo: add
+            //     combo: "o",
+            //     fn: () => this.updateFromObject(this.configOnLoad),
+            //     title: "Restore original",
+            //     category: "Navigation",
+            // },
+        ]
+    }
+
+    @action.bound toggleFacetCommand() {
+        this.faceting = !this.faceting
+    }
+
+    @observable faceting = false
 
     private renderError() {
         return (
@@ -1569,6 +1648,17 @@ export class Grapher
         window.addEventListener("scroll", this.checkVisibility)
         this.setBaseFontSize()
         this.checkVisibility()
+
+        if (this.props.keyboardShortcuts)
+            this.keyboardShortcuts.forEach((shortcut) => {
+                Mousetrap.bind(shortcut.combo, () => {
+                    shortcut.fn()
+                    this.analytics.logKeyboardShortcut(
+                        shortcut.title,
+                        shortcut.combo
+                    )
+                })
+            })
     }
 
     componentWillUnmount() {

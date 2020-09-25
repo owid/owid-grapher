@@ -261,7 +261,9 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             toAlignedTextTable(["slug", "type", "name"], colTable) + "\n\n",
             toAlignedTextTable(
                 this.columnSlugs,
-                this.rows.slice(0, showRowsClamped)
+                this.rows.slice(0, showRowsClamped),
+                undefined,
+                10
             ),
         ].join("")
     }
@@ -632,6 +634,15 @@ export abstract class AbstractCoreColumn {
                 value: this.parsedValues[index],
             }
         })
+    }
+
+    @computed get owidRowsByEntityName() {
+        const map = new Map<EntityName, CoreRow[]>()
+        this.owidRows.forEach((row) => {
+            if (!map.has(row.entityName)) map.set(row.entityName, [])
+            map.get(row.entityName)!.push(row)
+        })
+        return map
     }
 
     // todo: remove? at least should not be on CoreTable

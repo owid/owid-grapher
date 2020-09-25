@@ -20,6 +20,7 @@ import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
 import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartConstants"
 import { ChartOptionsProvider } from "./ChartOptionsProvider"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
+import { CountryFacet } from "grapher/facetChart/FacetChart"
 
 export interface ChartTabOptionsProvider
     extends FooterOptionsProvider,
@@ -202,6 +203,14 @@ export class ChartTab
                 : type || "LineChart"
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
+        if (options.faceting)
+            return (
+                <CountryFacet
+                    bounds={bounds}
+                    chartTypeName={chartTypeName}
+                    options={options}
+                />
+            )
 
         return ChartType ? (
             <ChartType bounds={bounds} options={options} />

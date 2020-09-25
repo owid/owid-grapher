@@ -49,4 +49,6 @@ export interface ChartOptionsProvider {
 
     hideXAxis?: boolean
     hideYAxis?: boolean
+
+    faceting?: boolean // todo: make a strategy? a column prop? etc
 }

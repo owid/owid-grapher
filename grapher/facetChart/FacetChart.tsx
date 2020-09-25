@@ -31,6 +31,13 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         const count = rootTable.availableEntityNames.length
         const boundsArr = this.bounds.split(count, 20)
         const { columns, rows } = makeGrid(count)
+        const {
+            yColumnSlug,
+            xColumnSlug,
+            yColumnSlugs,
+            colorColumnSlug,
+            sizeColumnSlug,
+        } = rootOptions
 
         return rootTable.availableEntityNames.map((name, index) => {
             const bounds = boundsArr[index]
@@ -39,12 +46,22 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             const row = Math.floor(index / columns)
             const hideXAxis = row < rows - 1
             const hideYAxis = column > 0
+            table.clearSelection()
             table.selectEntity(name)
+
             const options: ChartOptionsProvider = {
-                ...rootOptions,
                 table,
                 hideXAxis,
                 hideYAxis,
+                baseFontSize: 8,
+                lineStrokeWidth: 0.5,
+                hideLegend: true,
+                hidePoints: true,
+                yColumnSlug,
+                xColumnSlug,
+                yColumnSlugs,
+                colorColumnSlug,
+                sizeColumnSlug,
             }
             return {
                 bounds,
