@@ -29,6 +29,7 @@
         "test-single-process": "jest --maxWorkers=1",
         "test-compact": "jest 2>&1 | grep 'FAIL'",
         "coverage": "jest --coverage=true --coverageProvider=v8 && open coverage/lcov-report/index.html",
+        "coverage:ci": "jest --coverage=true --coverageProvider=v8",
         "test-leaks": "yarn test --detectLeaks",
         "cypress:open": "yarn cypress open --project .",
         "testcheck": "./deploy/testcheck.sh",

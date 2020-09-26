@@ -1,6 +1,6 @@
-name: Build and deploy Storybook
+name: Auto-deploy to GitHub Pages
 
-# Builds and deploys Storybook to owid.github.io.
+# Builds and deploys Storybook and a Jest coverage report to owid.github.io.
 # Most stuff in here is handled by https://github.com/marketplace/actions/deploy-to-github-pages
 
 on:
@@ -8,7 +8,7 @@ on:
         branches:
             - master
 jobs:
-    build-deploy-storybook:
+    build-deploy-storybook-coverage:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout 🛎️
@@ -50,20 +50,43 @@ jobs:
             - name: Install dependencies
               run: yarn --frozen-lockfile
 
-            - name: Build 🔧
+            # Note: running these two build steps subsequently means that if either `build-storybook` or `coverage` fails,
+            # neither of them is deployed :(
+            # Let's hope this doesn't happen too often
+
+            - name: Build Storybook 🔧
               run: yarn build-storybook
 
-            - name: Deploy 🚀
-              uses: JamesIves/github-pages-deploy-action@3.5.9
+            - name: Generate Jest coverage report 🃏
+              run: yarn coverage:ci
+
+            # We're using two subsequent deploys instead of making them parallel because `github-pages-deploy-action`
+            # force-pushes, and if we have two deploys running at the same time that might lead to missing update situations.
+
+            - name: Deploy Storybook 🚀
+              uses: JamesIves/github-pages-deploy-action@3.6.1
               with:
                   ACCESS_TOKEN: ${{ secrets.STORYBOOK_DEPLOY_ACCESS_TOKEN }}
                   BRANCH: master
                   FOLDER: .storybook/build
-                  CLEAN: true # Automatically remove deleted files from the deploy branch
                   REPOSITORY_NAME: owid/owid.github.io
                   TARGET_FOLDER: stories
                   COMMIT_MESSAGE: |-
                       🤖 update Storybook
+                      owid/owid-grapher@${{ github.sha }}
+                  GIT_CONFIG_NAME: owidbot
+                  GIT_CONFIG_EMAIL: tech@ourworldindata.org
+
+            - name: Deploy Coverage Report 🚀
+              uses: JamesIves/github-pages-deploy-action@3.6.1
+              with:
+                  ACCESS_TOKEN: ${{ secrets.STORYBOOK_DEPLOY_ACCESS_TOKEN }}
+                  BRANCH: master
+                  FOLDER: coverage/lcov-report
+                  REPOSITORY_NAME: owid/owid.github.io
+                  TARGET_FOLDER: coverage
+                  COMMIT_MESSAGE: |-
+                      🤖 update coverage report
                       owid/owid-grapher@${{ github.sha }}
                   GIT_CONFIG_NAME: owidbot
                   GIT_CONFIG_EMAIL: tech@ourworldindata.org
