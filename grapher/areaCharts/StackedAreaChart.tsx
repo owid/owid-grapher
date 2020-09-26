@@ -627,15 +627,6 @@ export class StackedAreaChart
     //         }
     //     }
 
-    //     for (let i = 1; i < stackedData.length; i++) {
-    //         for (let j = 0; j < stackedData[0].points.length; j++) {
-    //             stackedData[i].points[j].y += stackedData[i - 1].points[j].y
-    //         }
-    //     }
-
-    //     return stackedData
-    // }
-
     @computed get colorScale() {
         const baseColors = this.colorScheme.getColors(this.yColumns.length)
         if (this.options.invertColorScheme) baseColors.reverse()
@@ -677,55 +668,8 @@ export class StackedAreaChart
         return seriesArr
     }
 
-    // color: this.colorScale.getColor(col.displayName) ?? "#ddd", // temp
-
     // // Get the data for each stacked area series, cleaned to ensure every series
     // // "lines up" i.e. has a data point for every year
-    // @computed private get groupedData() {
-    //     const { options, yColumns, table } = this
-    //     const { selectedEntityNameSet, selectedEntityNames } = table
-
-    //     let groupedData: StackedAreaSeries[] = []
-
-    //     if (!yColumns?.length) return []
-
-    //     // First, we populate the data as we would for a line chart (each series independently)
-    //     yColumns!.forEach((column) => {
-    //         const seriesByKey = new Map<EntityName, StackedAreaSeries>()
-
-    //         const { isProjection } = column
-
-    //         for (let i = 0; i < column.times.length; i++) {
-    //             const year = column.times[i]
-    //             const value = +column.parsedValues[i]
-    //             const entityName = column.entityNames[i]
-    //             let series = seriesByKey.get(entityName)
-
-    //             // Not a selected key, don't add any data for it
-    //             if (!selectedEntityNameSet.has(entityName)) continue
-    //             // Must be numeric
-    //             if (isNaN(value)) continue
-    //             // Stacked area chart can't go negative!
-    //             if (value < 0) continue
-
-    //             if (!series) {
-    //                 series = {
-    //                     points: [],
-    //                     entityName,
-    //                     isProjection,
-    //                     color: "#fff", // tmp
-    //                 }
-    //                 seriesByKey.set(entityName, series)
-    //             }
-
-    //             series.points.push({ x: year, y: value, time: year })
-    //         }
-
-    //         groupedData = groupedData.concat([
-    //             ...Array.from(seriesByKey.values()),
-    //         ])
-    //     })
-
     //     // Now ensure that every series has a value entry for every year in the data
     //     let allYears: number[] = []
     //     groupedData.forEach((series) =>
@@ -774,24 +718,6 @@ export class StackedAreaChart
     //             }
     //         }
     //     }
-
-    //     // Preserve order
-    //     groupedData = sortBy(
-    //         groupedData,
-    //         (series) => -selectedEntityNames.indexOf(series.entityName)
-    //     )
-
-    //     // Assign colors
-    //     const baseColors = this.colorScheme.getColors(groupedData.length)
-    //     if (options.invertColorScheme) baseColors.reverse()
-    //     const colorScale = scaleOrdinal(baseColors)
-    //     groupedData.forEach((series) => {
-    //         series.color =
-    //             table.getColorForEntityName(series.entityName) ||
-    //             colorScale(series.entityName)
-    //     })
-
-    //     return groupedData
     // }
 
     @computed private get allStackedValues() {
