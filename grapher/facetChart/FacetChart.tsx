@@ -53,6 +53,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             yColumnSlugs,
             colorColumnSlug,
             sizeColumnSlug,
+            isRelativeMode,
         } = rootOptions
 
         const baseFontSize = getFontSize(count, rootOptions.baseFontSize)
@@ -87,6 +88,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
                 yColumnSlugs,
                 colorColumnSlug,
                 sizeColumnSlug,
+                isRelativeMode,
             }
             return {
                 bounds,

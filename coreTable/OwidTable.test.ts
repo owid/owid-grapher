@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
-
 import { OwidTable, SynthesizeOwidTable } from "coreTable/OwidTable"
-import { flatten } from "grapher/utils/Util"
+import { flatten, getRandomNumberGenerator } from "grapher/utils/Util"
+import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 
 describe(OwidTable, () => {
@@ -325,4 +325,31 @@ describe("rolling averages", () => {
             table.get("continent")?.sortedUniqNonEmptyStringVals.length
         ).toEqual(1)
     })
+})
+
+describe("relative mode", () => {
+    // 2 columns. 2 countries. 2 years
+    const generator = getRandomNumberGenerator(500, 1000, 2)
+    let table = SynthesizeOwidTable({
+        countryCount: 2,
+        timeRange: [2000, 2002],
+        columnSpecs: [
+            {
+                slug: "Agriculture",
+                type: ColumnTypeNames.Currency,
+                generator,
+            },
+            {
+                slug: "Services",
+                type: ColumnTypeNames.Currency,
+                generator,
+            },
+        ],
+    })
+
+    let firstRow = table.rows[0]
+    expect(firstRow.Agriculture).toBeGreaterThan(400)
+    table = table.toRelatives(["Agriculture", "Services"])
+    firstRow = table.rows[0]
+    expect(Math.round(firstRow.Agriculture + firstRow.Services)).toEqual(100)
 })

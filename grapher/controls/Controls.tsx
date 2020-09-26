@@ -291,16 +291,6 @@ export class ControlsFooterView extends React.Component<{
                         />
                     )}
                 {grapher.currentTab === GrapherTabOption.chart &&
-                    grapher.isStackedArea &&
-                    grapher.canToggleRelativeMode && (
-                        <AbsRelToggle grapher={grapher} />
-                    )}
-                {grapher.currentTab === GrapherTabOption.chart &&
-                    grapher.isScatter &&
-                    grapher.canToggleRelativeMode && (
-                        <AbsRelToggle grapher={grapher} />
-                    )}
-                {grapher.currentTab === GrapherTabOption.chart &&
                     grapher.isScatter &&
                     grapher.table.hasSelection && (
                         <ZoomToggle grapher={grapher} />

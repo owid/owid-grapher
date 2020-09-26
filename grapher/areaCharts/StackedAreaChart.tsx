@@ -541,8 +541,7 @@ export class StackedAreaChart
     }
 
     @computed private get verticalAxisPart() {
-        const { options, yColumn } = this
-        const { isRelativeMode } = options
+        const { yColumn } = this
 
         const yValues = this.allStackedValues.map((d) => d.y)
         const yAxisConfig =
@@ -551,8 +550,7 @@ export class StackedAreaChart
         if (this.options.hideYAxis) yAxisConfig.hideAxis = true
 
         const axis = yAxisConfig.toVerticalAxis()
-        if (isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
+        axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
 
         axis.column = yColumn
         return axis
@@ -574,6 +572,9 @@ export class StackedAreaChart
     @computed get table() {
         let table = this.options.table
         table = table.filterBySelectedOnly()
+
+        if (this.options.isRelativeMode)
+            table = table.toRelatives(this.yColumnSlugs)
         return table
     }
 
@@ -581,6 +582,14 @@ export class StackedAreaChart
         return this.table.get(
             this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
         )
+    }
+
+    @computed private get yColumnSlugs() {
+        return this.options.yColumnSlugs
+            ? this.options.yColumnSlugs
+            : this.options.yColumnSlug
+            ? [this.options.yColumnSlug]
+            : []
     }
 
     @computed private get yColumns() {
@@ -782,23 +791,6 @@ export class StackedAreaChart
     //             colorScale(series.entityName)
     //     })
 
-    //     // // In relative mode, transform data to be a percentage of the total for that year
-    //     // if (options.isRelativeMode) {
-    //     //     if (groupedData.length === 0) return []
-
-    //     //     for (let i = 0; i < groupedData[0].points.length; i++) {
-    //     //         const total = sum(
-    //     //             groupedData.map((series) => series.points[i].y)
-    //     //         )
-    //     //         for (let j = 0; j < groupedData.length; j++) {
-    //     //             groupedData[j].points[i].y =
-    //     //                 total === 0
-    //     //                     ? 0
-    //     //                     : (groupedData[j].points[i].y / total) * 100
-    //     //         }
-    //     //     }
-    //     // }
-
     //     return groupedData
     // }
 
@@ -807,10 +799,7 @@ export class StackedAreaChart
     }
 
     private formatYTick(v: number) {
-        if (this.options.isRelativeMode) return formatValue(v, { unit: "%" })
-
         const { yColumn } = this
-
         return yColumn ? yColumn.formatValueShort(v) : v // todo: restore { noTrailingZeroes: false }
     }
 }

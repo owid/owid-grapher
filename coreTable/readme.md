@@ -2,6 +2,8 @@
 
 This is our core tabular data structure class which parses JSON or delimited data and makes it available for charts. This class performs core transformations like filtering, grouping, etc.
 
+Tables are immutable, so all transformations generate a new lightweight table. Changes made to a parent table flow down to child tables.
+
 CoreTable is a generic class operating on generic tabular structures.
 
 OwidTable is a subset of CoreTable, with the distinction that every OwidTable has an entity (aka country) column, a time integer ( year, day, quarter, etc) column, and one or more any columns ("values"). OwidTable also includes additional meta data like Source info, needed by our charts.
@@ -30,4 +32,3 @@ Another alternative is to use someone else's package. Most commerical web data s
 -   Because our clients are reactive, we are using Mobx in this library. No reason that needs to be a hard dependency here if we remove that.
 -   At some point we may want to look into integrating with Apache Arrow JS (https://github.com/apache/arrow/tree/master/js).
 -   Similarly for speed we may want to look into integrating/learning from CrossFilter (https://github.com/crossfilter/crossfilter).
--   Currently tables are mutated, but we likely want to switch to an immutable functional pattern for transforms.

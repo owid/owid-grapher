@@ -1698,7 +1698,7 @@ export class Grapher
                 Mousetrap.bind(shortcut.combo, () => {
                     shortcut.fn()
                     this.analytics.logKeyboardShortcut(
-                        shortcut.title,
+                        shortcut.title || "",
                         shortcut.combo
                     )
                 })

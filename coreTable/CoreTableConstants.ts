@@ -8,6 +8,7 @@ export enum ColumnTypeNames {
     Boolean = "Boolean",
     Currency = "Currency",
     Percentage = "Percentage",
+    RelativePercentage = "RelativePercentage",
     DecimalPercentage = "DecimalPercentage",
     Integer = "Integer",
     Population = "Population",

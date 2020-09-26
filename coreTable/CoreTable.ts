@@ -85,10 +85,10 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             cols.set(slug, new columnType(this, spec))
         })
 
-        // Todo: clone rows before doing this, to ensure immutability.
+        this.parseRows()
+
         // Set computeds
         const computeds = columnSpecs.filter((spec) => spec.fn)
-
         if (!computeds.length) return
 
         // Clone rows
@@ -99,6 +99,29 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             })
             return newRow as ROW_TYPE
         })
+    }
+
+    // todo: check perf.
+    private parseRows() {
+        const colsToParse = this.columnsToParse()
+        if (!colsToParse.length) return
+        this._rows = this._rows.map((row) => {
+            const newRow: any = { ...row }
+            colsToParse.forEach((col) => {
+                newRow[col.slug] = col.parse(row[col.slug])
+            })
+            return newRow as ROW_TYPE
+        })
+    }
+
+    // For now just examine the first row, and if anything bad is found, reparse that column
+    private columnsToParse() {
+        const firstRow = this._rows[0]
+        if (!firstRow) return []
+
+        return this.columnsAsArray.filter(
+            (col) => !col.isParsed(firstRow[col.slug])
+        )
     }
 
     // Todo: REMOVE. make immutable. Return a new table.
@@ -404,6 +427,14 @@ export abstract class AbstractCoreColumn {
         this.spec = spec
     }
 
+    isParsed(val: any) {
+        return true
+    }
+
+    parse(val: any) {
+        return val
+    }
+
     @computed get unit() {
         return this.spec.unit || this.display?.unit || ""
     }
@@ -515,7 +546,7 @@ export abstract class AbstractCoreColumn {
     // todo: is the isString necessary?
     @computed get sortedUniqNonEmptyStringVals() {
         return Array.from(
-            new Set(this.rawValues.filter(isString).filter((i) => i))
+            new Set(this.parsedValues.filter(isString).filter((i) => i))
         ).sort()
     }
 
@@ -617,13 +648,9 @@ export abstract class AbstractCoreColumn {
         )
     }
 
-    @computed protected get rawValues() {
+    @computed get parsedValues() {
         const slug = this.spec.slug
         return this.rowsWithValue.map((row) => row[slug])
-    }
-
-    @computed get parsedValues() {
-        return this.rawValues
     }
 
     @computed get sortedValues() {
@@ -681,10 +708,26 @@ export abstract class AbstractCoreColumn {
 export class LoadingColumn extends AbstractCoreColumn {} // Todo: remove. A placeholder for now. Represents a column that has not loaded yet
 
 class AnyColumn extends AbstractCoreColumn {}
-class StringColumn extends AbstractCoreColumn {}
+class StringColumn extends AbstractCoreColumn {
+    isParsed(val: any) {
+        return typeof val === "string"
+    }
+
+    parse(val: any) {
+        return val?.toString() || ""
+    }
+}
 
 class CategoricalColumn extends AbstractCoreColumn {}
-class BooleanColumn extends AbstractCoreColumn {}
+class BooleanColumn extends AbstractCoreColumn {
+    isParsed(val: any) {
+        return typeof val === "boolean"
+    }
+
+    parse(val: any) {
+        return !!val
+    }
+}
 export class NumericColumn extends AbstractCoreColumn {
     formatValueShort(value: number, options?: TickFormattingOptions) {
         const numDecimalPlaces = this.numDecimalPlaces
@@ -703,8 +746,12 @@ export class NumericColumn extends AbstractCoreColumn {
         })
     }
 
-    @computed get parsedValues() {
-        return this.rawValues.map((value) => parseFloat(value))
+    isParsed(val: any) {
+        return typeof val === "number"
+    }
+
+    parse(val: any) {
+        return parseFloat(val)
     }
 }
 
@@ -719,14 +766,24 @@ class IntegerColumn extends NumericColumn {
         })
     }
 
-    @computed get parsedValues() {
-        return this.rawValues.map((value) => parseInt(value))
+    // todo: check if it's an int?
+    isParsed(val: any) {
+        return typeof val === "number"
+    }
+
+    parse(val: any) {
+        return parseInt(val)
     }
 }
 
 abstract class TimeColumn extends AbstractCoreColumn {
-    @computed get parsedValues() {
-        return this.rawValues.map((value) => parseInt(value))
+    // todo: check if it's an int?
+    isParsed(val: any) {
+        return typeof val === "number"
+    }
+
+    parse(val: any) {
+        return parseInt(val)
     }
 }
 
@@ -781,6 +838,11 @@ class PercentageColumn extends NumericColumn {
         })
     }
 }
+
+// Same as %, but indicates it's part of a group of columns that add up to 100%.
+// Might not need this.
+class RelativePercentageColumn extends PercentageColumn {}
+
 // Expectes 50% to be .5
 class DecimalPercentageColumn extends NumericColumn {
     formatValue(value: number) {
@@ -834,6 +896,7 @@ const columnTypeMap: { [key in ColumnTypeNames]: any } = {
     Boolean: BooleanColumn,
     Currency: CurrencyColumn,
     Percentage: PercentageColumn,
+    RelativePercentage: RelativePercentageColumn,
     Integer: IntegerColumn,
     DecimalPercentage: DecimalPercentageColumn,
     Population: PopulationColumn,

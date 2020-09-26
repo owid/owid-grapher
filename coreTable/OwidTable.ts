@@ -20,6 +20,7 @@ import {
     trimObject,
     sortedUniq,
     orderBy,
+    sum,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { EPOCH_DATE, Time, TimeRange } from "grapher/core/GrapherConstants"
@@ -265,6 +266,31 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this.filterBy(
             (row) => matchingRows.has(row),
             `Keep one row per entity closest to time ${targetTime} with tolerance ${tolerance}`
+        )
+    }
+
+    toRelatives(columnSlugs: ColumnSlug[]) {
+        const newSpecs = this.specs.map((spec) => {
+            if (columnSlugs.includes(spec.slug))
+                return { ...spec, type: ColumnTypeNames.RelativePercentage }
+            return spec
+        })
+        return new OwidTable(
+            this.rows.map((row) => {
+                const newRow = {
+                    ...row,
+                }
+                const total = sum(columnSlugs.map((slug) => row[slug]))
+                columnSlugs.forEach((slug) => {
+                    newRow[slug] = (100 * row[slug]) / total
+                })
+                return newRow
+            }),
+            newSpecs,
+            this,
+            `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
+                ","
+            )} `
         )
     }
 
