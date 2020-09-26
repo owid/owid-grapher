@@ -859,7 +859,7 @@ export class CovidExplorer extends React.Component<{
                 Mousetrap.bind(shortcut.combo, () => {
                     shortcut.fn()
                     this.grapher.analytics.logKeyboardShortcut(
-                        shortcut.title,
+                        shortcut.title ?? "",
                         shortcut.combo
                     )
                 })
