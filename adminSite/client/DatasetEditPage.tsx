@@ -11,7 +11,7 @@ import {
 } from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
-import filenamify from "filenamify" // browser-only export from `filenamify`, without requiring `path` polyfills
+import filenamify from "filenamify"
 import { format } from "timeago.js"
 
 import {
