@@ -11,7 +11,7 @@ import {
 } from "mobx"
 import * as lodash from "lodash"
 import { Prompt, Redirect } from "react-router-dom"
-import sanitizeFilename from "sanitize-filename"
+import filenamify from "filenamify" // browser-only export from `filenamify`, without requiring `path` polyfills
 import { format } from "timeago.js"
 
 import {
@@ -464,7 +464,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
         return `https://github.com/${
             this.context.admin.settings.GITHUB_USERNAME
         }/owid-datasets/tree/master/datasets/${encodeURIComponent(
-            sanitizeFilename(this.props.dataset.name)
+            filenamify(this.props.dataset.name)
         )}`
     }
 

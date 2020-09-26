@@ -1,11 +1,6 @@
 import * as path from "path"
 import * as fs from "fs-extra"
-import {
-    JsonError,
-    sanitizeFilename,
-    exec,
-    execFormatted,
-} from "utils/server/serverUtil"
+import { JsonError, execFormatted, filenamify } from "utils/server/serverUtil"
 import { Dataset } from "db/model/Dataset"
 import { Source } from "db/model/Source"
 import { GIT_DATASETS_DIR, TMP_DIR } from "serverSettings"
@@ -63,7 +58,7 @@ export async function syncDatasetToGitRepo(
     const { oldDatasetName, commitName, commitEmail, commitOnly } = options
 
     const oldDatasetFilename = oldDatasetName
-        ? sanitizeFilename(oldDatasetName)
+        ? filenamify(oldDatasetName)
         : undefined
 
     const datasetRepo = options.transaction

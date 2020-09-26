@@ -1,7 +1,7 @@
 // Misc non-SPA views
 import { Request, Response, Router } from "express"
 import rateLimit from "express-rate-limit"
-import sanitizeFilename from "sanitize-filename"
+import filenamify from "filenamify"
 import * as React from "react"
 import { getConnection } from "typeorm"
 
@@ -206,7 +206,7 @@ adminRouter.get("/datasets/:datasetId.csv", async (req, res) => {
     const datasetName = (
         await db.get(`SELECT name FROM datasets WHERE id=?`, [datasetId])
     ).name
-    res.attachment(sanitizeFilename(datasetName) + ".csv")
+    res.attachment(filenamify(datasetName) + ".csv")
 
     return Dataset.writeCSV(datasetId, res)
 })
