@@ -30,7 +30,7 @@ interface Tickmark {
 abstract class AbstractAxis implements ScaleTypeConfig {
     protected options: AxisConfig
     @observable.ref domain: ValueRange
-    @observable column?: AbstractCoreColumn
+    @observable formatColumn?: AbstractCoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
     @observable.struct range: ValueRange = [0, 0]
@@ -96,7 +96,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
 
     // todo: refactor. switch to a parent pattern?
     _update(parentAxis: AbstractAxis) {
-        this.column = parentAxis.column
+        this.formatColumn = parentAxis.formatColumn
         this.domain = parentAxis.domain.slice() as ValueRange
         this.hideFractionalTicks = parentAxis.hideFractionalTicks
         this.hideGridlines = parentAxis.hideGridlines
@@ -294,7 +294,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     formatTick(tick: number, isFirstOrLastTick?: boolean) {
         const tickFormattingOptions = this.getTickFormattingOptions()
         return (
-            this.column?.formatForTick(tick, {
+            this.formatColumn?.formatForTick(tick, {
                 ...tickFormattingOptions,
                 isFirstOrLastTick,
             }) ?? tick.toString()

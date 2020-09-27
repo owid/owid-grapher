@@ -530,7 +530,7 @@ export class StackedAreaChart
             startTimelineTime,
             endTimelineTime,
         ])
-        axis.column = options.table.timeColumn
+        axis.formatColumn = options.table.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -552,7 +552,7 @@ export class StackedAreaChart
         const axis = yAxisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
 
-        axis.column = yColumn
+        axis.formatColumn = yColumn
         return axis
     }
 

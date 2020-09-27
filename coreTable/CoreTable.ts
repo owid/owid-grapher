@@ -13,6 +13,8 @@ import {
     formatValue,
     parseDelimited,
     slugifySameCase,
+    min,
+    max,
 } from "grapher/utils/Util"
 import { sortBy, isString, last, sortedUniq } from "lodash"
 import { observable, action, computed } from "mobx"
@@ -43,6 +45,34 @@ export interface CoreColumnSpec {
     display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
 }
 
+// Since authors are uploading data at runtime, and errors in runtime data are extremely common,
+// it may be helpful to parse those invalid values into specific types, to provide better error messages
+// and perhaps in the future suggested autocorrections or workarounds. Or this could be a dumb idea.
+abstract class InvalidValueType {
+    value?: any
+    constructor(value?: any) {
+        this.value = value
+    }
+    toString() {
+        return this.constructor.name
+    }
+}
+class NaNButShouldBeNumber extends InvalidValueType {
+    toString() {
+        return this.constructor.name + `: '${this.value}'`
+    }
+}
+class UndefinedButShouldBeNumber extends InvalidValueType {}
+class NullButShouldBeNumber extends InvalidValueType {}
+class BlankButShouldBeNumber extends InvalidValueType {}
+class UndefinedButShouldBeString extends InvalidValueType {}
+class NullButShouldBeString extends InvalidValueType {}
+class NotAParseableNumberButShouldBeNumber extends InvalidValueType {
+    toString() {
+        return this.constructor.name + `: '${this.value}'`
+    }
+}
+
 export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     @observable.ref protected _rows: ROW_TYPE[]
     @observable protected _columns: Map<
@@ -53,6 +83,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     protected parent?: AbstractCoreTable<ROW_TYPE>
     protected tableDescription?: string
+    private _inputRows: ROW_TYPE[]
 
     constructor(
         rows: ROW_TYPE[] = [],
@@ -63,6 +94,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         tableDescription?: string
     ) {
         this._rows = rows
+        this._inputRows = rows // Save a reference to original rows for debugging.
         this.setColumns(columnSpecs)
         // Todo: add warning if you provide Specs but not for all cols?
         this.parent = parentTable
@@ -81,7 +113,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         const cols = this._columns
         columnSpecs.forEach((spec) => {
             const { slug, type } = spec
-            const columnType = (type && columnTypeMap[type]) || AnyColumn
+            const columnType = (type && columnTypeMap[type]) || StringColumn
             cols.set(slug, new columnType(this, spec))
         })
 
@@ -264,28 +296,58 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return Array.from(this._columns.values())
     }
 
+    cols(slugs: ColumnSlug[]) {
+        return slugs.map((slug) => this.get(slug)!)
+    }
+
+    // Get the min and max for multiple columns at once
+    domainFor(slugs: ColumnSlug[]) {
+        const cols = this.cols(slugs)
+        const mins = cols.map((col) => col.minValue)
+        const maxes = cols.map((col) => col.maxValue)
+        return [min(mins), max(maxes)]
+    }
+
     extract(slugs = this.columnSlugs) {
         return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
     }
 
-    explain(showRows = 10): string {
+    isRoot() {
+        return !this.parent
+    }
+
+    explainThis(showRows = 10): string {
         const rowCount = this.rows.length
         const showRowsClamped = showRows > rowCount ? rowCount : showRows
-        const parentDebugInfo = this.parent
-            ? this.parent.explain(showRows) +
-              `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
-            : "# Root Table:\n"
         const colTable = this.columnsAsArray.map((col) => {
             return {
                 slug: col.slug,
                 type: col.spec.type,
+                parsedType: col.parsedType,
                 name: col.name,
             }
         })
+
+        const originalRows = !this.isRoot()
+            ? `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
+            : `Input Data: \n\n ` +
+              toAlignedTextTable(
+                  AbstractCoreTable.makeSpecsFromRows(this._inputRows).map(
+                      (spec) => spec.slug
+                  ),
+                  this._inputRows.slice(0, showRows),
+                  undefined,
+                  10
+              ) +
+              "\n\n\n\n# Root Table:\n"
+
         return [
-            parentDebugInfo,
+            originalRows,
             `${this.columnsAsArray.length} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. \n`,
-            toAlignedTextTable(["slug", "type", "name"], colTable) + "\n\n",
+            toAlignedTextTable(
+                ["slug", "type", "parsedType", "name"],
+                colTable
+            ) + "\n\n",
             toAlignedTextTable(
                 this.columnSlugs,
                 this.rows.slice(0, showRowsClamped),
@@ -293,6 +355,13 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 10
             ),
         ].join("")
+    }
+
+    explain(showRows = 10): string {
+        return (
+            (this.parent ? this.parent.explain(showRows) : "") +
+            this.explainThis(showRows)
+        )
     }
 
     // Output a pretty table for consles
@@ -377,8 +446,11 @@ export declare type ObjectOfColumnSpecs = {
 
 // An AnyTable is a Table with 0 or more columns of any type.
 export class AnyTable extends AbstractCoreTable<CoreRow> {
-    static fromDelimited(csvOrTsv: string) {
-        return new AnyTable(this.standardizeSlugs(parseDelimited(csvOrTsv)))
+    static fromDelimited(csvOrTsv: string, specs?: CoreColumnSpec[]) {
+        return new AnyTable(
+            this.standardizeSlugs(parseDelimited(csvOrTsv)),
+            specs
+        )
     }
 
     private static standardizeSlugs(rows: CoreRow[]) {
@@ -427,8 +499,9 @@ export abstract class AbstractCoreColumn {
         this.spec = spec
     }
 
+    abstract parsedType: string
     isParsed(val: any) {
-        return true
+        return typeof val === this.parsedType
     }
 
     parse(val: any) {
@@ -628,11 +701,11 @@ export abstract class AbstractCoreColumn {
     }
 
     @computed get minValue() {
-        return this.sortedValues[0]
+        return this.valuesAscending[0]
     }
 
     @computed get maxValue() {
-        return last(this.sortedValues)!
+        return last(this.valuesAscending)!
     }
 
     @computed private get allValues() {
@@ -653,8 +726,8 @@ export abstract class AbstractCoreColumn {
         return this.rowsWithValue.map((row) => row[slug])
     }
 
-    @computed get sortedValues() {
-        return this.parsedValues.slice().sort()
+    @computed get valuesAscending() {
+        return sortBy(this.parsedValues)
     }
 
     @computed get owidRows() {
@@ -705,30 +778,32 @@ export abstract class AbstractCoreColumn {
     }
 }
 
-export class LoadingColumn extends AbstractCoreColumn {} // Todo: remove. A placeholder for now. Represents a column that has not loaded yet
+export class LoadingColumn extends AbstractCoreColumn {
+    parsedType = "string"
+} // Todo: remove. A placeholder for now. Represents a column that has not loaded yet
 
-class AnyColumn extends AbstractCoreColumn {}
 class StringColumn extends AbstractCoreColumn {
-    isParsed(val: any) {
-        return typeof val === "string"
-    }
+    parsedType = "string"
 
     parse(val: any) {
-        return val?.toString() || ""
+        if (val === null) return new NullButShouldBeString()
+        if (val === undefined) return new UndefinedButShouldBeString()
+        return val.toString() || ""
     }
 }
 
-class CategoricalColumn extends AbstractCoreColumn {}
+class CategoricalColumn extends AbstractCoreColumn {
+    parsedType = "string"
+}
 class BooleanColumn extends AbstractCoreColumn {
-    isParsed(val: any) {
-        return typeof val === "boolean"
-    }
+    parsedType = "boolean"
 
     parse(val: any) {
         return !!val
     }
 }
 export class NumericColumn extends AbstractCoreColumn {
+    parsedType = "number"
     formatValueShort(value: number, options?: TickFormattingOptions) {
         const numDecimalPlaces = this.numDecimalPlaces
         return formatValue(value, {
@@ -746,11 +821,20 @@ export class NumericColumn extends AbstractCoreColumn {
         })
     }
 
-    isParsed(val: any) {
-        return typeof val === "number"
+    parse(val: any): number | InvalidValueType {
+        if (val === null) return new NullButShouldBeNumber()
+        if (val === undefined) return new UndefinedButShouldBeNumber()
+        if (val === "") return new BlankButShouldBeNumber()
+        if (isNaN(val)) return new NaNButShouldBeNumber()
+
+        const res = this._parse(val)
+
+        if (isNaN(res)) return new NotAParseableNumberButShouldBeNumber(val)
+
+        return res
     }
 
-    parse(val: any) {
+    protected _parse(val: any) {
         return parseFloat(val)
     }
 }
@@ -766,21 +850,13 @@ class IntegerColumn extends NumericColumn {
         })
     }
 
-    // todo: check if it's an int?
-    isParsed(val: any) {
-        return typeof val === "number"
-    }
-
-    parse(val: any) {
+    protected _parse(val: any) {
         return parseInt(val)
     }
 }
 
 abstract class TimeColumn extends AbstractCoreColumn {
-    // todo: check if it's an int?
-    isParsed(val: any) {
-        return typeof val === "number"
-    }
+    parsedType = "number"
 
     parse(val: any) {
         return parseInt(val)
@@ -836,6 +912,10 @@ class PercentageColumn extends NumericColumn {
             numberPrefixes: false,
             unit: "%",
         })
+    }
+
+    formatValueShort(value: any) {
+        return this.formatValue(value)
     }
 }
 

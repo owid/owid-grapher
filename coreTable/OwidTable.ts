@@ -241,6 +241,16 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
     }
 
+    filterByFullColumnsOnly(slugs: ColumnSlug[]) {
+        return this.filterBy(
+            (row) =>
+                slugs.every(
+                    (slug) => row[slug] !== null && row[slug] !== undefined
+                ),
+            `Dropping rows missing a value for any of ${slugs.join(",")}`
+        )
+    }
+
     filterNegativesForLogScale(columnSlug: ColumnSlug) {
         return this.filterBy(
             (row) => row[columnSlug] > 0,
@@ -289,6 +299,36 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             newSpecs,
             this,
             `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
+                ","
+            )} `
+        )
+    }
+
+    toTimeRelatives(startTime: Time, columnSlugs: ColumnSlug[]) {
+        const newSpecs = this.specs.map((spec) => {
+            if (columnSlugs.includes(spec.slug))
+                return { ...spec, type: ColumnTypeNames.Percentage }
+            return spec
+        })
+        return new OwidTable(
+            this.rows.map((row) => {
+                const newRow = {
+                    ...row,
+                }
+                columnSlugs.forEach((slug) => {
+                    const comparisonValue = this.get(slug)!
+                        .valueByEntityNameAndTime.get(row.entityName)
+                        ?.get(startTime)
+                    newRow[slug] =
+                        typeof comparisonValue === "number"
+                            ? -100 + (100 * row[slug]) / comparisonValue
+                            : undefined
+                })
+                return newRow
+            }),
+            newSpecs,
+            this,
+            `Transformed columns from absolute values to % of time ${startTime} for columns ${columnSlugs.join(
                 ","
             )} `
         )
@@ -606,25 +646,28 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         const { rows, columnSpecs } = OwidTable.legacyVariablesToTabular(json)
 
         // todo: when we ditch dimensions and just have computed columns things like conversion factor will be easy (just a computed column)
+        const convertValues = (
+            slug: ColumnSlug,
+            unitConversionFactor: number
+        ) => {
+            rows.forEach((row) => {
+                const value = row[slug]
+                if (value !== undefined && value !== null)
+                    row[slug] = value * unitConversionFactor
+            })
+        }
         Array.from(columnSpecs.values())
             .filter((col) => col.display?.conversionFactor !== undefined)
             .forEach((col) => {
                 const { slug, display } = col
-                const unitConversionFactor = display!.conversionFactor!
-                rows.forEach((row) => {
-                    row[slug] = row[slug] * unitConversionFactor
-                })
+                convertValues(slug, display!.conversionFactor!)
             })
 
         dimensions
             .filter((dim) => dim.display?.conversionFactor !== undefined)
             .forEach((dimension) => {
                 const { display, variableId } = dimension
-                const slug = variableId.toString()
-                const unitConversionFactor = display!.conversionFactor!
-                rows.forEach((row) => {
-                    row[slug] = row[slug] * unitConversionFactor
-                })
+                convertValues(variableId.toString(), display!.conversionFactor!)
             })
 
         dimensions.forEach((dim) => {

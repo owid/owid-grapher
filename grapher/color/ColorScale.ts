@@ -118,7 +118,7 @@ export class ColorScale {
     }
 
     @computed get sortedNumericValues() {
-        return this.colorScaleColumn?.sortedValues ?? []
+        return this.colorScaleColumn?.valuesAscending ?? []
     }
 
     @computed private get minPossibleValue() {

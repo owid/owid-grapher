@@ -565,20 +565,33 @@ export class LineChart
     }
 
     @computed get table() {
-        const table = this.options.table.filterBySelectedOnly()
+        let table = this.options.table.filterBySelectedOnly()
 
+        table = table.filterByFullColumnsOnly(this.yColumnSlugs) // TODO: instead of this, just filter indvidaul points.
+
+        if (this.options.isRelativeMode)
+            table = table.toTimeRelatives(
+                this.options.table.minTime!,
+                this.yColumnSlugs
+            )
+        ;(window as any).table2 = table
         return table
+    }
+
+    @computed private get yColumnSlugs() {
+        return this.options.yColumnSlugs
+            ? this.options.yColumnSlugs
+            : this.options.yColumnSlug
+            ? [this.options.yColumnSlug]
+            : []
     }
 
     @computed get marks() {
         const { yColumns } = this
-        const { yAxis } = this.options
-
-        const isLog = yAxis?.scaleType === ScaleType.log
-
         const chartData: LineChartMark[] = flatten(
             yColumns.map((col) => {
                 const { isProjection } = col
+                const displayName = col.displayName
                 const map = col.owidRowsByEntityName
                 return Array.from(map.keys()).map((entityName) => {
                     return {
@@ -589,7 +602,7 @@ export class LineChart
                                 y: row.value,
                             }
                         }),
-                        entityName,
+                        entityName: displayName,
                         isProjection,
                         color: "#000", // tmp
                     }
@@ -768,7 +781,7 @@ export class LineChart
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
-        axis.column = this.options.table.timeColumn
+        axis.formatColumn = this.options.table.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -782,7 +795,7 @@ export class LineChart
 
         if (this.options.hideYAxis) yAxisConfig.hideAxis = true
 
-        const yDomain = this.yColumn!.domain
+        const yDomain = this.table.domainFor(this.yColumnSlugs)
         const domain = yAxisConfig.domain
         const yDefaultDomain: ValueRange = [
             Math.min(domain[0], yDomain[0]),
@@ -794,7 +807,7 @@ export class LineChart
         if (options.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.yColumn!.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
-        axis.column = this.yColumn
+        axis.formatColumn = this.yColumn
         return axis
     }
 }

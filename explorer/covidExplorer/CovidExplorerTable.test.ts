@@ -2,7 +2,6 @@
 
 import { getLeastUsedColor, CovidExplorerTable } from "./CovidExplorerTable"
 import { covidSampleRows } from "./CovidSampleRows"
-import { AnyTable } from "coreTable/CoreTable"
 import uniq from "lodash/uniq"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"

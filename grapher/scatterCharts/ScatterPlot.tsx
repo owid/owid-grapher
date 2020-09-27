@@ -791,7 +791,7 @@ export class ScatterPlot
         const { options, yDomainDefault } = this
 
         const axis = this.yAxis.toVerticalAxis()
-        axis.column = this.yColumn
+        axis.formatColumn = this.yColumn
 
         const label = this.yAxisLabel
 
@@ -832,7 +832,7 @@ export class ScatterPlot
         const { xAxis } = this
 
         const axis = xAxis.toHorizontalAxis()
-        axis.column = this.xColumn
+        axis.formatColumn = this.xColumn
 
         axis.scaleType = this.xScaleType
         if (options.isRelativeMode) {

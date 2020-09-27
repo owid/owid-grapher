@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { AnyTable } from "./CoreTable"
+import { ColumnTypeNames } from "./CoreTableConstants"
 
 describe("toDelimited", () => {
     const csv = `country,Population in 2020
@@ -40,6 +41,23 @@ describe("parsing", () => {
 123,123.1`)
         expect(table.get("gdp")?.isAllIntegers).toBeTruthy()
         expect(table.get("perCapita")?.isAllIntegers).toBeFalsy()
+    })
+})
+
+describe("domain", () => {
+    it("across columns", () => {
+        const table = AnyTable.fromDelimited(
+            `gdp,perCapita
+0,123.1
+12,300
+20,40`,
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "perCapita", type: ColumnTypeNames.Numeric },
+            ]
+        )
+        const domainFor = table.domainFor(["gdp", "perCapita"])
+        expect(domainFor).toEqual([0, 300])
     })
 })
 

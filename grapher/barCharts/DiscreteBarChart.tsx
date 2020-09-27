@@ -137,7 +137,7 @@ export class DiscreteBarChart
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        axis.column = this.rootYColumn
+        axis.formatColumn = this.rootYColumn
         axis.range = this.xRange
         axis.label = ""
         return axis

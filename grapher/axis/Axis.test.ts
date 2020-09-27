@@ -28,7 +28,7 @@ describe("basics", () => {
         })
         const table = SynthesizeOwidTable()
         const axis = new HorizontalAxis(axisConfig)
-        axis.column = table.get("GDP")
+        axis.formatColumn = table.get("GDP")
         axis.clone()
 
         const ticks = axis.getTickValues()

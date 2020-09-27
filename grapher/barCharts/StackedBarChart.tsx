@@ -534,7 +534,7 @@ export class StackedBarChart
             startTimelineTime,
             endTimelineTime,
         ])
-        axis.column = options.table.timeColumn
+        axis.formatColumn = options.table.timeColumn
         axis.hideGridlines = true
         axis.hideFractionalTicks = true
         return axis
@@ -557,7 +557,7 @@ export class StackedBarChart
         const axis = this.yAxis.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
-        axis.column = this.yColumn
+        axis.formatColumn = this.yColumn
         return axis
     }
 
