@@ -75,10 +75,7 @@ class NotAParseableNumberButShouldBeNumber extends InvalidValueType {
 
 export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     @observable.ref protected _rows: ROW_TYPE[]
-    @observable protected _columns: Map<
-        ColumnSlug,
-        AbstractCoreColumn
-    > = new Map()
+    @observable protected _columns: Map<ColumnSlug, AbstractCoreColumn>
     @observable.shallow protected selectedRows = new Set<CoreRow>()
 
     protected parent?: AbstractCoreTable<ROW_TYPE>
@@ -95,56 +92,40 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     ) {
         this._rows = rows
         this._inputRows = rows // Save a reference to original rows for debugging.
-        this.setColumns(columnSpecs)
+
+        this._columns = new Map()
         // Todo: add warning if you provide Specs but not for all cols?
-        this.parent = parentTable
-
-        // Clone selection from parent
-        if (parentTable)
-            this.selectRows(
-                this.rows.filter((row) => parentTable.selectedRows.has(row))
-            )
-
-        this.tableDescription = tableDescription
-    }
-
-    // Todo: make immutable? Return a new table?
-    private setColumns(columnSpecs: CoreColumnSpec[]) {
-        const cols = this._columns
         columnSpecs.forEach((spec) => {
             const { slug, type } = spec
             const columnType = (type && columnTypeMap[type]) || StringColumn
-            cols.set(slug, new columnType(this, spec))
+            this._columns.set(slug, new columnType(this, spec))
         })
 
-        this.parseRows()
+        this.parent = parentTable
+        this.tableDescription = tableDescription
 
-        // Set computeds
-        const computeds = columnSpecs.filter((spec) => spec.fn)
-        if (!computeds.length) return
-
-        // Clone rows
-        this._rows = this._rows.map((row, index) => {
-            const newRow: any = { ...row }
-            computeds.forEach((spec) => {
-                newRow[spec.slug] = spec.fn!(row, index, this)
-            })
-            return newRow as ROW_TYPE
-        })
-    }
-
-    // todo: check perf.
-    private parseRows() {
         const colsToParse = this.columnsToParse()
-        if (!colsToParse.length) return
-        this._rows = this._rows.map((row) => {
-            const newRow: any = { ...row }
-            colsToParse.forEach((col) => {
-                newRow[col.slug] = col.parse(row[col.slug])
+        const computeds = columnSpecs.filter((spec) => spec.fn)
+
+        // Clone and parse rows if necessary
+        if (colsToParse.length || computeds.length)
+            this._rows = this._rows.map((row, index) => {
+                const newRow: any = { ...row }
+                colsToParse.forEach((col) => {
+                    newRow[col.slug] = col.parse(row[col.slug])
+                })
+                computeds.forEach((spec) => {
+                    newRow[spec.slug] = spec.fn!(row, index, this)
+                })
+                return newRow as ROW_TYPE
             })
-            return newRow as ROW_TYPE
-        })
+
+        // Pass selection strategy down from parent
+        if (parentTable) this.copySelectionFrom(parentTable)
     }
+
+    // todo
+    copySelectionFrom(table: any) {}
 
     // For now just examine the first row, and if anything bad is found, reparse that column
     private columnsToParse() {
@@ -156,9 +137,13 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
-    // Todo: REMOVE. make immutable. Return a new table.
-    @action.bound addColumnSpecs(columnSpecs: CoreColumnSpec[]) {
-        this.setColumns(columnSpecs)
+    addColumns(columns: CoreColumnSpec[]): AnyTable {
+        return new AnyTable(
+            this.rows,
+            this.specs.concat(columns),
+            this,
+            `Added new columns ${columns.map((spec) => spec.slug)}`
+        )
     }
 
     @computed get rows() {
@@ -343,7 +328,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
         return [
             originalRows,
-            `${this.columnsAsArray.length} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. \n`,
+            `${this.columnsAsArray.length} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. ${this.selectedRows.size} selected. \n`,
             toAlignedTextTable(
                 ["slug", "type", "parsedType", "name"],
                 colTable
@@ -923,6 +908,12 @@ class PercentageColumn extends NumericColumn {
 // Might not need this.
 class RelativePercentageColumn extends PercentageColumn {}
 
+class PercentChangeOverTimeColumn extends PercentageColumn {
+    formatValue(value: number) {
+        return "+" + super.formatValue(value)
+    }
+}
+
 // Expectes 50% to be .5
 class DecimalPercentageColumn extends NumericColumn {
     formatValue(value: number) {
@@ -982,5 +973,6 @@ const columnTypeMap: { [key in ColumnTypeNames]: any } = {
     Population: PopulationColumn,
     PopulationDensity: PopulationDensityColumn,
     Age: AgeColumn,
+    PercentChangeOverTime: PercentChangeOverTimeColumn,
     Ratio: RatioColumn,
 }

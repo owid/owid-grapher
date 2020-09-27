@@ -573,6 +573,7 @@ export class Grapher
             table.setSelectedEntitiesByEntityId(this.selectedEntityIds)
         else if (this.selectedEntityNames.length)
             table.setSelectedEntities(this.selectedEntityNames)
+
         // Todo: load colors
     }
 

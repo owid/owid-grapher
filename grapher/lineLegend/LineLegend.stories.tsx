@@ -28,21 +28,21 @@ const collidingNumber = 50
 const options: LineLegendOptionsProvider = {
     labelMarks: [
         {
-            entityName: "Canada",
+            lineName: "Canada",
             label: "Canada",
             color: "red",
             yValue: collidingNumber,
             annotation: "A country in North America",
         },
         {
-            entityName: "USA",
+            lineName: "USA",
             label: "USA",
             color: "blue",
             yValue: collidingNumber,
             annotation: "In between",
         },
         {
-            entityName: "Mexico",
+            lineName: "Mexico",
             label: "Mexico",
             color: "green",
             yValue: 20,
@@ -50,7 +50,7 @@ const options: LineLegendOptionsProvider = {
         },
     ],
     legendX: 200,
-    focusedEntityNames: [],
+    focusedLineNames: [],
     verticalAxis: dualAxis.verticalAxis,
 }
 

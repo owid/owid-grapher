@@ -123,3 +123,5 @@ export interface EntitySelection {
     index: number // Which dimension the entity is from
     color?: Color
 }
+
+export type LineName = string

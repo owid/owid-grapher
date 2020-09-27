@@ -141,7 +141,7 @@ export class CovidExplorerTable {
             CovidExplorerTable.makeSpec(slug)
         )
         specs.push(this.columnSpecs.continents)
-        table.addColumnSpecs(specs)
+        table.addColumns(specs)
         this.addAnnotationColumns()
 
         if (options) {
@@ -261,7 +261,7 @@ export class CovidExplorerTable {
         const caseSlug = "cases_annotations"
         const deathSlug = "deaths_annotations"
         const cfrSlug = "case_fatality_rate_annotations"
-        this.table.addColumnSpecs([
+        this.table.addColumns([
             { slug: caseSlug, type: ColumnTypeNames.String },
             {
                 slug: deathSlug,
@@ -399,7 +399,7 @@ export class CovidExplorerTable {
                 perCapitaTransform
             )
         else {
-            table.addColumnSpecs([
+            table.addColumns([
                 {
                     ...spec,
                     fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn,
@@ -442,7 +442,7 @@ export class CovidExplorerTable {
                 : (100 * (val - previousValue)) / previousValue
         }
 
-        table.addColumnSpecs([
+        table.addColumns([
             {
                 ...spec,
                 fn: transformation(computeIntervalTotals),
@@ -638,7 +638,7 @@ export class CovidExplorerTable {
 
         let currentCountry: number
         let countryExceededThresholdOnDay: number
-        this.table.addColumnSpecs([spec])
+        this.table.addColumns([spec])
         return slug
     }
 

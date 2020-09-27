@@ -13,6 +13,7 @@ export enum ColumnTypeNames {
     Integer = "Integer",
     Population = "Population",
     PopulationDensity = "PopulationDensity",
+    PercentChangeOverTime = "PercentChangeOverTime",
     Age = "Age",
     Ratio = "Ratio",
     Year = "Year",

@@ -6,14 +6,14 @@ import { LineLegend, LineLegendOptionsProvider } from "./LineLegend"
 const options: LineLegendOptionsProvider = {
     labelMarks: [
         {
-            entityName: "Canada",
+            lineName: "Canada",
             label: "Canada",
             color: "red",
             yValue: 50,
             annotation: "A country in North America",
         },
         {
-            entityName: "Mexico",
+            lineName: "Mexico",
             label: "Mexico",
             color: "green",
             yValue: 20,
@@ -21,7 +21,7 @@ const options: LineLegendOptionsProvider = {
         },
     ],
     legendX: 200,
-    focusedEntityNames: [],
+    focusedLineNames: [],
     verticalAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
 

@@ -252,7 +252,7 @@ export class StackedAreaChart
         const items = this.marks
             .map((d, i) => ({
                 color: d.color,
-                entityName: d.entityName,
+                lineName: d.entityName,
                 label: this.options.table.getLabelForEntityName(d.entityName),
                 yValue: midpoints[i],
             }))
@@ -304,18 +304,18 @@ export class StackedAreaChart
         this.hoverKey = undefined
     }
 
-    @computed get focusedEntityNames() {
+    @computed get focusedLineNames() {
         return this.hoverKey ? [this.hoverKey] : []
     }
 
     @computed get isFocusMode() {
-        return this.focusedEntityNames.length > 0
+        return this.focusedLineNames.length > 0
     }
 
     seriesIsBlur(series: StackedAreaSeries) {
         return (
-            this.focusedEntityNames.length > 0 &&
-            !this.focusedEntityNames.includes(series.entityName)
+            this.focusedLineNames.length > 0 &&
+            !this.focusedLineNames.includes(series.entityName)
         )
     }
 
@@ -494,7 +494,7 @@ export class StackedAreaChart
                     <Areas
                         dualAxis={dualAxis}
                         seriesArr={marks}
-                        focusedEntities={this.focusedEntityNames}
+                        focusedEntities={this.focusedLineNames}
                         onHover={this.onHover}
                     />
                 </g>

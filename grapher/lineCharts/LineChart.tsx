@@ -29,6 +29,7 @@ import { extent } from "d3-array"
 import { EntityName } from "coreTable/CoreTableConstants"
 import {
     BASE_FONT_SIZE,
+    LineName,
     ScaleType,
     ValueRange,
 } from "grapher/core/GrapherConstants"
@@ -40,6 +41,7 @@ import {
     LineChartMark,
     LineChartOptionsProvider,
 } from "./LineChartConstants"
+import { PlainObjectToNewEntityTransformer } from "typeorm/query-builder/transformer/PlainObjectToNewEntityTransformer"
 
 const BLUR_COLOR = "#eee"
 
@@ -81,18 +83,18 @@ class Lines extends React.Component<LinesProps> {
     }
 
     @computed private get focusedLines() {
-        const { focusedEntities } = this.props
+        const { focusedLineNames } = this.props
         // If nothing is focused, everything is
-        if (!focusedEntities.length) return this.props.placedMarks
+        if (!focusedLineNames.length) return this.props.placedMarks
         return this.props.placedMarks.filter((series) =>
-            focusedEntities.includes(series.entityName)
+            focusedLineNames.includes(series.lineName)
         )
     }
 
     @computed private get backgroundLines() {
-        const { focusedEntities } = this.props
+        const { focusedLineNames } = this.props
         return this.props.placedMarks.filter(
-            (series) => !focusedEntities.includes(series.entityName)
+            (series) => !focusedLineNames.includes(series.lineName)
         )
     }
 
@@ -149,7 +151,7 @@ class Lines extends React.Component<LinesProps> {
         return this.backgroundLines.map((series, index) => (
             <g key={index}>
                 <path
-                    key={series.entityName + "-line"}
+                    key={series.lineName + "-line"}
                     strokeLinecap="round"
                     stroke="#ddd"
                     d={pointsToPath(
@@ -238,8 +240,7 @@ export class LineChart
 
     seriesIsBlurred(series: LineChartMark) {
         return (
-            this.isFocusMode &&
-            !this.focusedEntityNames.includes(series.entityName)
+            this.isFocusMode && !this.focusedLineNames.includes(series.lineName)
         )
     }
 
@@ -285,7 +286,7 @@ export class LineChart
                             )
 
                             const annotation = this.getAnnotationsForSeries(
-                                series.entityName
+                                series.lineName
                             )
 
                             // It sometimes happens that data is missing for some years for a particular
@@ -317,7 +318,7 @@ export class LineChart
                                 : series.color
                             return (
                                 <tr
-                                    key={series.entityName}
+                                    key={series.lineName}
                                     style={{ color: textColor }}
                                 >
                                     <td>
@@ -339,7 +340,7 @@ export class LineChart
                                         }}
                                     >
                                         {this.options.table.getLabelForEntityName(
-                                            series.entityName
+                                            series.lineName
                                         )}
                                         {annotation && (
                                             <span
@@ -378,26 +379,26 @@ export class LineChart
 
     defaultRightPadding = 1
 
-    @observable hoveredEntityName?: EntityName
+    @observable hoveredLineName?: LineName
     @action.bound onLegendClick() {
         if (this.options.showAddEntityControls)
             this.options.isSelectingData = true
     }
 
-    @action.bound onLegendMouseOver(entityName: EntityName) {
-        this.hoveredEntityName = entityName
+    @action.bound onLegendMouseOver(lineName: LineName) {
+        this.hoveredLineName = lineName
     }
 
     @action.bound onLegendMouseLeave() {
-        this.hoveredEntityName = undefined
+        this.hoveredLineName = undefined
     }
 
-    @computed get focusedEntityNames() {
-        return this.hoveredEntityName ? [this.hoveredEntityName] : []
+    @computed get focusedLineNames() {
+        return this.hoveredLineName ? [this.hoveredLineName] : []
     }
 
     @computed get isFocusMode() {
-        return this.focusedEntityNames.length > 0
+        return this.focusedLineNames.length > 0
     }
 
     animSelection?: d3.Selection<
@@ -491,7 +492,7 @@ export class LineChart
                         placedMarks={this.placedMarks}
                         hidePoints={this.options.hidePoints}
                         onHover={this.onHover}
-                        focusedEntities={this.focusedEntityNames}
+                        focusedLineNames={this.focusedLineNames}
                         lineStrokeWidth={this.options.lineStrokeWidth}
                     />
                 </g>
@@ -506,7 +507,7 @@ export class LineChart
 
                             return (
                                 <circle
-                                    key={series.entityName}
+                                    key={series.lineName}
                                     cx={horizontalAxis.place(value.x)}
                                     cy={verticalAxis.place(value.y)}
                                     r={4}
@@ -591,9 +592,10 @@ export class LineChart
         const chartData: LineChartMark[] = flatten(
             yColumns.map((col) => {
                 const { isProjection } = col
-                const displayName = col.displayName
                 const map = col.owidRowsByEntityName
                 return Array.from(map.keys()).map((entityName) => {
+                    const lineName =
+                        yColumns.length > 1 ? col.displayName : entityName
                     return {
                         // todo: add log filter
                         points: map.get(entityName)!.map((row) => {
@@ -602,7 +604,7 @@ export class LineChart
                                 y: row.value,
                             }
                         }),
-                        entityName: displayName,
+                        lineName,
                         isProjection,
                         color: "#000", // tmp
                     }
@@ -610,56 +612,8 @@ export class LineChart
             })
         )
 
-        // let chartData: LineChartMark[] = flatten(
-        //     yColumns.map((column) => {
-        //         const seriesByKey = new Map<EntityName, LineChartMark>()
-        //         const { isProjection } = column
-
-        //         column.owidRows
-        //             .filter((row) => !isLog || row.value > 0)
-        //             .forEach((row) => {
-        //                 const { time, entityName, value } = row
-
-        //                 if (!seriesByKey.has(entityName))
-        //                     seriesByKey.set(entityName, {
-        //                         points: [],
-        //                         entityName,
-        //                         isProjection,
-        //                         color: "#000", // tmp
-        //                     })
-
-        //                 const series = seriesByKey.get(entityName)!
-        //                 series.points.push({ x: time, y: value })
-        //             })
-
-        //         return Array.from(seriesByKey.values())
-        //     })
-        // )
-
         this._addColorsToSeries(chartData)
-
-        // Preserve the original ordering for render. Note for line charts, the series order only affects the visual stacking order on overlaps.
-        // chartData = sortBy(chartData, (series) =>
-        //     selectedEntityNames.indexOf(series.entityName)
-        // )
-
         return chartData
-
-        // // Filter the data so it fits within the domains
-
-        // const { horizontalAxis } = this
-
-        // for (const g of chartData) {
-        //     // The values can include non-numerical values, so we need to filter with isNaN()
-        //     g.values = g.values.filter(
-        //         (d) =>
-        //             d.x >= horizontalAxis.domain[0] &&
-        //             d.x <= horizontalAxis.domain[1] &&
-        //             !isNaN(d.y)
-        //     )
-        // }
-
-        // return chartData.filter((g) => g.values.length > 0)
     }
 
     @computed get placedMarks() {
@@ -691,33 +645,9 @@ export class LineChart
 
         sorted.forEach((series, i) => {
             series.color =
-                table.getColorForEntityName(series.entityName) || colors[i]
+                table.getColorForEntityName(series.lineName) || colors[i]
         })
     }
-
-    // @computed get predomainData() {
-    //     if (!this.options.isRelativeMode) return this.initialData
-
-    //     return cloneDeep(this.initialData).map((series) => {
-    //         const startIndex = series.values.findIndex(
-    //             (value) => value.time >= this.startTimelineTime && value.y !== 0
-    //         )
-    //         if (startIndex < 0) {
-    //             series.values = []
-    //             return series
-    //         }
-
-    //         const relativeValues = series.values.slice(startIndex)
-    //         // Clone to avoid overwriting in next loop
-    //         const indexValue = clone(relativeValues[0])
-    //         series.values = relativeValues.map((value) => {
-    //             value.y = (value.y - indexValue.y) / Math.abs(indexValue.y)
-    //             return value
-    //         })
-
-    //         return series
-    //     })
-    // }
 
     getAnnotationsForSeries(entityName: EntityName) {
         const annotationsMap = this.annotationsMap
@@ -738,14 +668,12 @@ export class LineChart
             const lastValue = last(series.points)!.y
             return {
                 color: series.color,
-                entityName: series.entityName,
+                lineName: series.lineName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
                 label: this.options.hideLegend
                     ? ""
-                    : `${this.options.table.getLabelForEntityName(
-                          series.entityName
-                      )}`,
-                annotation: this.getAnnotationsForSeries(series.entityName),
+                    : `${this.table.getLabelForEntityName(series.lineName)}`,
+                annotation: this.getAnnotationsForSeries(series.lineName),
                 yValue: lastValue,
             }
         })

@@ -210,6 +210,10 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this.parent ? (this.parent.rootTable as OwidTable) : this
     }
 
+    copySelectionFrom(table: OwidTable) {
+        this.setSelectedEntities(table.selectedEntityNames)
+    }
+
     // todo: rename
     facet() {
         return new OwidTable(this._rows, this.specs, this, "Faceted")
@@ -307,7 +311,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     toTimeRelatives(startTime: Time, columnSlugs: ColumnSlug[]) {
         const newSpecs = this.specs.map((spec) => {
             if (columnSlugs.includes(spec.slug))
-                return { ...spec, type: ColumnTypeNames.Percentage }
+                return { ...spec, type: ColumnTypeNames.PercentChangeOverTime }
             return spec
         })
         return new OwidTable(
