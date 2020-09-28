@@ -141,44 +141,38 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
         id: 4027,
         slugs: ["total-confirmed-cases-of-covid-19-per-million-people"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&casesMetric=true&totalFreq=true&perCapita=true&smoothing=0&country=GBR~USA~ESP~ITA~BRA~IND~KOR&pickerMetric=location&pickerSort=asc",
+            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&casesMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
-
     {
         id: 4028,
         slugs: ["new-covid-cases-per-million"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&casesMetric=true&dailyFreq=true&perCapita=true&smoothing=0&country=GBR~USA~ESP~ITA~BRA~IND~KOR&pickerMetric=location&pickerSort=asc",
+            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&casesMetric=true&interval=daily&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
-
     {
         id: 4029,
         slugs: ["total-covid-deaths-per-million"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&deathsMetric=true&totalFreq=true&perCapita=true&smoothing=0&country=GBR~USA~ESP~ITA~BRA~IND~KOR&pickerMetric=location&pickerSort=asc",
+            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&deathsMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
-
     {
         id: 4030,
         slugs: ["new-covid-deaths-per-million"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&deathsMetric=true&dailyFreq=true&perCapita=true&smoothing=0&country=GBR~USA~ESP~ITA~BRA~IND~KOR&pickerMetric=location&pickerSort=asc",
+            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&deathsMetric=true&interval=daily&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
-
     {
         id: 4110,
         slugs: ["daily-covid-deaths-per-million-7-day-average"],
         explorerQueryStr:
             "https://ourworldindata.org/coronavirus-data-explorer?zoomToSelection=true&minPopulationFilter=1000000&deathsMetric=true&dailyFreq=true&perCapita=true&smoothing=7&country=USA~GBR~ITA~DEU~KOR~ZAF~BRA&pickerMetric=location&pickerSort=asc",
     },
-
     {
         id: 4225,
         slugs: ["daily-new-confirmed-cases-of-covid-19-tests-per-case"],
         explorerQueryStr:
             "https://ourworldindata.org/coronavirus-data-explorer?yScale=log&zoomToSelection=true&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
     },
-
     {
         id: 4236,
         slugs: [
