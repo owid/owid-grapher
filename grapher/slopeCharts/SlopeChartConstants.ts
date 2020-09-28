@@ -1,6 +1,6 @@
 import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { EntityName } from "coreTable/CoreTableConstants"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { TextWrap } from "grapher/text/TextWrap"
 import { Bounds } from "grapher/utils/Bounds"
@@ -43,7 +43,7 @@ export interface SlopeProps {
 }
 
 export interface LabelledSlopesProps {
-    options: ChartOptionsProvider
+    manager: ChartManager
     yColumn: AbstractCoreColumn
     bounds: Bounds
     data: SlopeChartSeries[]

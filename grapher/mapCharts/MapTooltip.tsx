@@ -9,7 +9,7 @@ import {
     SparkBarsProps,
 } from "grapher/sparkBars/SparkBars"
 import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
-import { MapChartOptionsProvider, ChoroplethMark } from "./MapChartConstants"
+import { MapChartManager, ChoroplethMark } from "./MapChartConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
@@ -17,7 +17,7 @@ interface MapTooltipProps {
     tooltipDatum?: ChoroplethMark
     tooltipTarget?: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
-    options: MapChartOptionsProvider
+    manager: MapChartManager
     colorScale?: ColorScale
 }
 
@@ -39,7 +39,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get mapColumn() {
-        return this.props.options.table.get(this.props.options.mapColumnSlug)
+        return this.props.manager.table.get(this.props.manager.mapColumnSlug)
     }
 
     @computed private get sparkBarsData() {
@@ -88,7 +88,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get renderSparkBars() {
-        return this.props.options.mapIsClickable
+        return this.props.manager.mapIsClickable
     }
 
     @computed private get darkestColorInColorScheme() {
@@ -125,7 +125,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         const tooltipMessage = "Click to select" // todo: used to be "Click for Change over Time" when on line charts
 
-        const timeColumn = this.props.options.table.timeColumn
+        const timeColumn = this.props.manager.table.timeColumn
         const { renderSparkBars, barColor, tooltipTarget, inputTime } = this
 
         const displayTime = timeColumn
@@ -138,7 +138,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         return (
             <Tooltip
-                tooltipProvider={this.props.options}
+                tooltipManager={this.props.manager}
                 key="mapTooltip"
                 x={tooltipTarget.x}
                 y={tooltipTarget.y}

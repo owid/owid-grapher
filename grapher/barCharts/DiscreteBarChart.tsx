@@ -16,7 +16,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
-    DiscreteBarChartOptionsProvider,
+    DiscreteBarChartManager,
     DiscreteBarDatum,
 } from "./DiscreteBarChartConstants"
 
@@ -27,13 +27,13 @@ const labelToBarPadding = 5
 export class DiscreteBarChart
     extends React.Component<{
         bounds?: Bounds
-        options: DiscreteBarChartOptionsProvider
+        manager: DiscreteBarChartManager
     }>
     implements ChartInterface {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed private get options() {
-        return this.props.options
+    @computed private get manager() {
+        return this.props.manager
     }
 
     @computed private get bounds() {
@@ -41,7 +41,7 @@ export class DiscreteBarChart
     }
 
     @computed private get baseFontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get legendLabelStyle() {
@@ -62,7 +62,7 @@ export class DiscreteBarChart
     @computed private get legendWidth() {
         const labels = this.marks.map((d) => d.label)
         if (this.hasFloatingAddButton)
-            labels.push(` + ${this.options.addButtonLabel ?? "Add data"}`)
+            labels.push(` + ${this.manager.addButtonLabel ?? "Add data"}`)
 
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
@@ -129,7 +129,7 @@ export class DiscreteBarChart
     }
 
     @computed private get yAxis() {
-        return this.options.yAxis || new AxisConfig()
+        return this.manager.yAxis || new AxisConfig()
     }
 
     @computed private get axis() {
@@ -152,8 +152,8 @@ export class DiscreteBarChart
 
     @computed private get hasFloatingAddButton() {
         return (
-            this.options.hasFloatingAddButton &&
-            this.options.showAddEntityControls
+            this.manager.hasFloatingAddButton &&
+            this.manager.showAddEntityControls
         )
     }
 
@@ -212,7 +212,7 @@ export class DiscreteBarChart
     }
 
     @action.bound private onAddClick() {
-        this.options.isSelectingData = true
+        this.manager.isSelectingData = true
     }
 
     private get addEntityButton() {
@@ -234,7 +234,7 @@ export class DiscreteBarChart
                     align="right"
                     verticalAlign="middle"
                     height={this.barHeight}
-                    label={`Add ${this.options.entityType ?? "Country"}`}
+                    label={`Add ${this.manager.entityType ?? "Country"}`}
                     onClick={this.onAddClick}
                 />
             </ControlsOverlay>
@@ -245,7 +245,7 @@ export class DiscreteBarChart
         if (this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.options}
+                    manager={this.manager}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />
@@ -270,7 +270,7 @@ export class DiscreteBarChart
                 <HorizontalAxisComponent
                     maxX={maxX}
                     bounds={bounds}
-                    isInteractive={this.options.isInteractive}
+                    isInteractive={this.manager.isInteractive}
                     axis={axis}
                     axisPosition={innerBounds.bottom}
                 />
@@ -361,7 +361,7 @@ export class DiscreteBarChart
         if (!column) return "No column to chart"
 
         if (!column.table.hasSelection)
-            return `No selected ${this.options.entityType ?? "Country"}`
+            return `No selected ${this.manager.entityType ?? "Country"}`
 
         return column.isEmpty ? `No matching data in column ${column.name}` : ""
     }
@@ -372,7 +372,7 @@ export class DiscreteBarChart
         const { table } = this
 
         const showYearLabels =
-            this.options.showYearLabels || datum.time !== endTimelineTime
+            this.manager.showYearLabels || datum.time !== endTimelineTime
         const displayValue = column.formatValue(datum.value)
         return (
             displayValue +
@@ -383,17 +383,17 @@ export class DiscreteBarChart
     }
 
     @computed get rootYColumn() {
-        return this.options.table.get(this.options.yColumnSlug)!
+        return this.manager.table.get(this.manager.yColumnSlug)!
     }
 
     @computed private get yColumn() {
-        return this.table.get(this.options.yColumnSlug)!
+        return this.table.get(this.manager.yColumnSlug)!
     }
 
     @computed get table() {
         const { rootYColumn } = this
         const slug = rootYColumn.slug
-        let table = this.options.table
+        let table = this.manager.table
             .filterBySelectedOnly()
             .filterByTargetTime(...rootYColumn.timeTarget)
 
@@ -402,14 +402,14 @@ export class DiscreteBarChart
     }
 
     @computed private get valuesToColorsMap() {
-        const { options, yColumn } = this
+        const { manager, yColumn } = this
         // todo: Restore if derived from line chart, use line chart colors
         const uniqValues = yColumn.timesUniq
-        const colorScheme = options.baseColorScheme
-            ? ColorSchemes[options.baseColorScheme]
+        const colorScheme = manager.baseColorScheme
+            ? ColorSchemes[manager.baseColorScheme]
             : undefined
         const colors = colorScheme?.getColors(uniqValues.length) || []
-        if (options.invertColorScheme) colors.reverse()
+        if (manager.invertColorScheme) colors.reverse()
 
         // We want to display same values using the same color, e.g. two values of 100 get the same shade of green
         // Therefore, we create a map from all possible (unique) values to the corresponding color

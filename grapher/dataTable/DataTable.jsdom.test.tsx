@@ -44,7 +44,7 @@ describe(DataTable, () => {
         let view: ReactWrapper
         beforeAll(() => {
             const grapher = childMortalityGrapher()
-            view = mount(<DataTable options={grapher} />)
+            view = mount(<DataTable manager={grapher} />)
         })
 
         it("renders a table", () => {
@@ -99,7 +99,7 @@ describe(DataTable, () => {
                 minTime: 1990,
                 maxTime: 2017,
             })
-            view = mount(<DataTable options={grapher} />)
+            view = mount(<DataTable manager={grapher} />)
         })
 
         it("header is split into two rows", () => {
@@ -165,7 +165,7 @@ describe(DataTable, () => {
 
             queryStr: "?time=2002",
         })
-        const view: ShallowWrapper = shallow(<DataTable options={grapher} />)
+        const view: ShallowWrapper = shallow(<DataTable manager={grapher} />)
 
         it("renders no value when data is not available for years within the tolerance", () => {
             expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
@@ -183,7 +183,7 @@ describe(DataTable, () => {
         let view: ShallowWrapper
         beforeAll(() => {
             grapher = childMortalityGrapher()
-            view = shallow(<DataTable options={grapher} />)
+            view = shallow(<DataTable manager={grapher} />)
         })
 
         it("initially renders small countries", () => {

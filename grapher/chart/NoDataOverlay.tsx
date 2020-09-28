@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 
-export interface NoDataOverlayOptionsProvider {
+export interface NoDataOverlayManager {
     canChangeEntity?: boolean
     canAddData?: boolean
     isSelectingData?: boolean
@@ -19,10 +19,10 @@ export interface NoDataOverlayOptionsProvider {
 export class NoDataOverlay extends React.Component<{
     bounds?: Bounds
     message?: string
-    options: NoDataOverlayOptionsProvider
+    manager: NoDataOverlayManager
 }> {
     @action.bound private onDataSelect() {
-        this.props.options.isSelectingData = true
+        this.props.manager.isSelectingData = true
     }
 
     @computed private get bounds() {
@@ -30,8 +30,8 @@ export class NoDataOverlay extends React.Component<{
     }
 
     @computed get message() {
-        const { message, options } = this.props
-        const entityType = options.entityType
+        const { message, manager } = this.props
+        const entityType = manager.entityType
         const { bounds } = this
         return (
             <div
@@ -46,12 +46,12 @@ export class NoDataOverlay extends React.Component<{
             >
                 <p className="message">{message || "No available data"}</p>
                 <div className="actions">
-                    {options.canAddData && (
+                    {manager.canAddData && (
                         <button className="action" onClick={this.onDataSelect}>
                             <FontAwesomeIcon icon={faPlus} /> Add {entityType}
                         </button>
                     )}
-                    {options.canChangeEntity && (
+                    {manager.canChangeEntity && (
                         <button className="action" onClick={this.onDataSelect}>
                             <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
                             {entityType}
@@ -64,7 +64,7 @@ export class NoDataOverlay extends React.Component<{
 
     render() {
         const message = this.message
-        return this.props.options.standalone ? (
+        return this.props.manager.standalone ? (
             message
         ) : (
             <ControlsOverlay id="no-data">{message}</ControlsOverlay>

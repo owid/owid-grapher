@@ -316,7 +316,7 @@ export class ControlsFooterView extends React.Component<{
         if (!grapher.hasTimeline) return null
 
         const props: TimelineComponentProps = {
-            target: grapher,
+            manager: grapher,
             onPlay: () => {
                 grapher.analytics.logChartTimelinePlay(grapher.slug)
             },

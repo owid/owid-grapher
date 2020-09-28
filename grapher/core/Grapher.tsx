@@ -59,7 +59,7 @@ import * as Cookies from "js-cookie"
 import { OwidColumnSpec, OwidTable } from "coreTable/OwidTable"
 import {
     ChartDimension,
-    LegacyDimensionsOptionsProvider,
+    LegacyDimensionsManager,
 } from "grapher/chart/ChartDimension"
 import {
     GrapherQueryParams,
@@ -67,7 +67,7 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "./GrapherUrl"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { TooltipProps, TooltipProvider } from "grapher/tooltip/TooltipProps"
+import { TooltipProps, TooltipManager } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
     minTimeFromJSON,
@@ -96,7 +96,7 @@ import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
 import { LogoOption } from "grapher/chart/Logos"
-import { AxisConfig, FontSizeOptionsProvider } from "grapher/axis/AxisConfig"
+import { AxisConfig, FontSizeManager } from "grapher/axis/AxisConfig"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { MapConfig } from "grapher/mapCharts/MapConfig"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
@@ -105,12 +105,12 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { TimeViz } from "grapher/timeline/TimelineController"
+import { TimelineManager } from "grapher/timeline/TimelineController"
 import { EntityId, EntityName } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
-import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
+import { FooterManager } from "grapher/footer/FooterManager"
+import { HeaderManager } from "grapher/header/HeaderManager"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
@@ -119,7 +119,7 @@ import { TooltipView } from "grapher/tooltip/Tooltip"
 import { EntitySelectorModal } from "grapher/controls/EntitySelectorModal"
 import {
     DownloadTab,
-    DownloadTabOptionsProvider,
+    DownloadTabManager,
 } from "grapher/downloadTab/DownloadTab"
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
@@ -129,14 +129,11 @@ import {
     GrapherContext,
     GrapherContextInterface,
 } from "grapher/controls/ControlsOverlay"
-import { ChartTab, ChartTabOptionsProvider } from "grapher/chart/ChartTab"
-import {
-    SourcesTab,
-    SourcesTabOptionsProvider,
-} from "grapher/sourcesTab/SourcesTab"
+import { ChartTab, ChartTabManager } from "grapher/chart/ChartTab"
+import { SourcesTab, SourcesTabManager } from "grapher/sourcesTab/SourcesTab"
 import { DataTable } from "grapher/dataTable/DataTable"
-import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartConstants"
-import { DiscreteBarChartOptionsProvider } from "grapher/barCharts/DiscreteBarChartConstants"
+import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
+import { DiscreteBarChartManager } from "grapher/barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "grapher/controls/CommandPalette"
 
 declare const window: any
@@ -233,18 +230,18 @@ export interface GrapherProps extends GrapherInterface {
 export class Grapher
     extends GrapherDefaults
     implements
-        TimeViz,
-        ChartOptionsProvider,
-        FooterOptionsProvider,
-        HeaderOptionsProvider,
-        FontSizeOptionsProvider,
-        ChartTabOptionsProvider,
-        SourcesTabOptionsProvider,
-        DownloadTabOptionsProvider,
-        DiscreteBarChartOptionsProvider,
-        LegacyDimensionsOptionsProvider,
-        TooltipProvider,
-        MapChartOptionsProvider {
+        TimelineManager,
+        ChartManager,
+        FooterManager,
+        HeaderManager,
+        FontSizeManager,
+        ChartTabManager,
+        SourcesTabManager,
+        DownloadTabManager,
+        DiscreteBarChartManager,
+        LegacyDimensionsManager,
+        TooltipManager,
+        MapChartManager {
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
 
@@ -1477,10 +1474,10 @@ export class Grapher
             this.primaryTab === GrapherTabOption.chart ||
             this.primaryTab === GrapherTabOption.map
         )
-            return <ChartTab options={this} />
+            return <ChartTab manager={this} />
 
         if (this.primaryTab === GrapherTabOption.table)
-            return <DataTable bounds={tabBounds} options={this} />
+            return <DataTable bounds={tabBounds} manager={this} />
 
         return undefined
     }
@@ -1497,11 +1494,11 @@ export class Grapher
         const bounds = this.tabBounds
         if (this.overlayTab === GrapherTabOption.sources)
             return (
-                <SourcesTab key="sourcesTab" bounds={bounds} options={this} />
+                <SourcesTab key="sourcesTab" bounds={bounds} manager={this} />
             )
         if (this.overlayTab === GrapherTabOption.download)
             return (
-                <DownloadTab key="downloadTab" bounds={bounds} options={this} />
+                <DownloadTab key="downloadTab" bounds={bounds} manager={this} />
             )
         return undefined
     }

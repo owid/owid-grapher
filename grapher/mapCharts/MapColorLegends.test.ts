@@ -17,7 +17,7 @@ describe(NumericColorLegend, () => {
         })
 
         const legend = new NumericColorLegend({
-            options: { numericLegendData: [bin] },
+            manager: { numericLegendData: [bin] },
         })
         expect(legend.height).toBeGreaterThan(0)
     })
@@ -33,7 +33,7 @@ describe(CategoricalColorLegend, () => {
         })
 
         const legend = new CategoricalColorLegend({
-            options: { categoricalLegendData: [bin] },
+            manager: { categoricalLegendData: [bin] },
         })
         expect(legend.height).toBeGreaterThan(0)
     })

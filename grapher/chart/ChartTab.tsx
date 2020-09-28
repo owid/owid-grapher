@@ -16,18 +16,18 @@ import {
     OverlayPadding,
 } from "grapher/core/GrapherConstants"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
-import { FooterOptionsProvider } from "grapher/footer/FooterOptionsProvider"
-import { HeaderOptionsProvider } from "grapher/header/HeaderOptionsProvider"
-import { MapChartOptionsProvider } from "grapher/mapCharts/MapChartConstants"
-import { ChartOptionsProvider } from "./ChartOptionsProvider"
+import { FooterManager } from "grapher/footer/FooterManager"
+import { HeaderManager } from "grapher/header/HeaderManager"
+import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
+import { ChartManager } from "./ChartManager"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { CountryFacet } from "grapher/facetChart/FacetChart"
 
-export interface ChartTabOptionsProvider
-    extends FooterOptionsProvider,
-        HeaderOptionsProvider,
-        ChartOptionsProvider,
-        MapChartOptionsProvider {
+export interface ChartTabManager
+    extends FooterManager,
+        HeaderManager,
+        ChartManager,
+        MapChartManager {
     overlayPadding?: OverlayPadding
     containerElement?: HTMLDivElement
     overlays?: { [id: string]: ControlsOverlay }
@@ -42,55 +42,55 @@ export interface ChartTabOptionsProvider
 @observer
 export class ChartTab
     extends React.Component<{
-        options: ChartTabOptionsProvider
+        manager: ChartTabManager
     }>
-    implements FooterOptionsProvider, HeaderOptionsProvider {
+    implements FooterManager, HeaderManager {
     @computed get fontSize() {
-        return this.options.fontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get currentTitle() {
-        return this.options.currentTitle ?? ""
+        return this.manager.currentTitle ?? ""
     }
 
     @computed get subtitle() {
-        return this.options.subtitle ?? ""
+        return this.manager.subtitle ?? ""
     }
 
     @computed get hideLogo() {
-        return !!this.options.hideLogo
+        return !!this.manager.hideLogo
     }
 
     @computed get isNativeEmbed() {
-        return this.options.isNativeEmbed
+        return this.manager.isNativeEmbed
     }
 
     @computed get isMediaCard() {
-        return this.options.isMediaCard
+        return this.manager.isMediaCard
     }
 
     @computed get logo() {
-        return this.options.logo
+        return this.manager.logo
     }
 
     @computed get canonicalUrl() {
-        return this.options.canonicalUrl
+        return this.manager.canonicalUrl
     }
 
     @computed get sourcesLine() {
-        return this.options.sourcesLine
+        return this.manager.sourcesLine
     }
 
     @computed get note() {
-        return this.options.note
+        return this.manager.note
     }
 
     @computed get hasOWIDLogo() {
-        return this.options.hasOWIDLogo
+        return this.manager.hasOWIDLogo
     }
 
     @computed get originUrlWithProtocol() {
-        return this.options.originUrlWithProtocol
+        return this.manager.originUrlWithProtocol
     }
 
     @computed private get paddedBounds() {
@@ -103,7 +103,7 @@ export class ChartTab
 
     @computed private get overlayPadding() {
         return (
-            this.options?.overlayPadding ?? {
+            this.manager?.overlayPadding ?? {
                 top: 0,
                 left: 0,
                 right: 0,
@@ -113,31 +113,31 @@ export class ChartTab
     }
 
     @computed private get bounds() {
-        return this.options.tabBounds ?? DEFAULT_BOUNDS
+        return this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get options() {
-        return this.props.options
+    @computed private get manager() {
+        return this.props.manager
     }
 
     @computed private get containerElement() {
-        return this.options?.containerElement
+        return this.manager?.containerElement
     }
 
     @computed private get overlays() {
-        return this.options?.overlays || {}
+        return this.manager?.overlays || {}
     }
 
     @computed private get header() {
-        return new Header({ options: this })
+        return new Header({ manager: this })
     }
 
     @computed private get footer() {
-        return new Footer({ options: this })
+        return new Footer({ manager: this })
     }
 
     @computed private get isExporting() {
-        return this.options.isExporting === true
+        return this.manager.isExporting === true
     }
 
     @computed private get svgWidth() {
@@ -171,16 +171,16 @@ export class ChartTab
     }
 
     @computed private get isReady() {
-        return this.options.isReady !== false
+        return this.manager.isReady !== false
     }
 
     private renderChart() {
-        const { options } = this
-        const type = options.type
+        const { manager } = this
+        const type = manager.type
         const innerBounds = this.innerBounds
-        const isMapTab = options.tab === GrapherTabOption.map
+        const isMapTab = manager.tab === GrapherTabOption.map
 
-        if (!this.isReady || (isMapTab && !options.mapColumnSlug))
+        if (!this.isReady || (isMapTab && !manager.mapColumnSlug))
             return <LoadingIndicator bounds={innerBounds} color="#333" />
 
         if (isMapTab)
@@ -188,7 +188,7 @@ export class ChartTab
                 <MapChartWithLegend
                     containerElement={this.containerElement ?? undefined}
                     bounds={innerBounds}
-                    options={options}
+                    manager={manager}
                 />
             )
 
@@ -199,40 +199,40 @@ export class ChartTab
 
         // Switch to bar chart if a single year is selected
         const chartTypeName =
-            type === "LineChart" && options.isSingleTime
+            type === "LineChart" && manager.isSingleTime
                 ? "DiscreteBar"
                 : type || "LineChart"
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
         if (
-            options.faceting &&
-            options.addCountryMode === EntitySelectionModes.SingleEntity &&
-            options.table.selectedEntityNames.length > 1
+            manager.faceting &&
+            manager.addCountryMode === EntitySelectionModes.SingleEntity &&
+            manager.table.selectedEntityNames.length > 1
         )
             return (
                 <CountryFacet
                     bounds={bounds}
                     chartTypeName={chartTypeName}
-                    options={options}
+                    manager={manager}
                 />
             )
         else if (
-            options.faceting &&
-            options.addCountryMode === EntitySelectionModes.MultipleEntities &&
-            options.yColumnSlugs &&
-            options.yColumnSlugs.length > 1 &&
-            options.table.selectedEntityNames.length > 1
+            manager.faceting &&
+            manager.addCountryMode === EntitySelectionModes.MultipleEntities &&
+            manager.yColumnSlugs &&
+            manager.yColumnSlugs.length > 1 &&
+            manager.table.selectedEntityNames.length > 1
         )
             return (
                 <CountryFacet
                     bounds={bounds}
                     chartTypeName={chartTypeName}
-                    options={options}
+                    manager={manager}
                 />
             )
 
         return ChartType ? (
-            <ChartType bounds={bounds} options={options} />
+            <ChartType bounds={bounds} manager={manager} />
         ) : null
     }
 
@@ -298,14 +298,14 @@ export class ChartTab
 
         return (
             <>
-                <Header options={this} />
+                <Header manager={this} />
                 <div style={containerStyle}>
                     <svg {...this.svgProps}>{this.renderChart()}</svg>
                     <div className="ControlsOverlay" style={overlayStyle}>
                         {this.renderOverlays()}
                     </div>
                 </div>
-                <Footer options={this} />
+                <Footer manager={this} />
             </>
         )
     }

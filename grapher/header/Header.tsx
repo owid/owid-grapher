@@ -3,40 +3,40 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "grapher/chart/Logos"
-import { HeaderOptionsProvider } from "./HeaderOptionsProvider"
+import { HeaderManager } from "./HeaderManager"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 @observer
 export class Header extends React.Component<{
-    options: HeaderOptionsProvider
+    manager: HeaderManager
 }> {
-    @computed private get options() {
-        return this.props.options
+    @computed private get manager() {
+        return this.props.manager
     }
 
     @computed private get fontSize() {
-        return this.options.fontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get maxWidth() {
-        return this.options.maxWidth ?? 500
+        return this.manager.maxWidth ?? 500
     }
 
     @computed private get titleText() {
-        return this.options.currentTitle ?? ""
+        return this.manager.currentTitle ?? ""
     }
 
     @computed private get subtitleText() {
-        return this.options.subtitle ?? ""
+        return this.manager.subtitle ?? ""
     }
 
     @computed get logo() {
-        const { options } = this
-        if (options.hideLogo) return undefined
+        const { manager } = this
+        if (manager.hideLogo) return undefined
 
         return new Logo({
-            logo: options.logo as any,
-            isLink: !options.isNativeEmbed,
+            logo: manager.logo as any,
+            isLink: !manager.isNativeEmbed,
             fontSize: this.fontSize,
         })
     }
@@ -94,7 +94,7 @@ export class Header extends React.Component<{
     }
 
     @computed get height() {
-        if (this.options.isMediaCard) return 0
+        if (this.manager.isMediaCard) return 0
 
         return Math.max(
             this.title.height + this.subtitle.height + this.titleMarginBottom,
@@ -103,9 +103,9 @@ export class Header extends React.Component<{
     }
 
     renderStatic(x: number, y: number) {
-        const { title, logo, subtitle, options, maxWidth } = this
+        const { title, logo, subtitle, manager, maxWidth } = this
 
-        if (options.isMediaCard) return null
+        if (manager.isMediaCard) return null
 
         return (
             <g className="HeaderView">
@@ -113,7 +113,7 @@ export class Header extends React.Component<{
                     logo.height > 0 &&
                     logo.renderSVG(x + maxWidth - logo.width, y)}
                 <a
-                    href={options.canonicalUrl}
+                    href={manager.canonicalUrl}
                     style={{
                         fontFamily:
                             '"Playfair Display", Georgia, "Times New Roman", serif',
@@ -130,7 +130,7 @@ export class Header extends React.Component<{
     }
 
     render() {
-        const { options } = this
+        const { manager } = this
 
         const titleStyle = {
             ...this.title.htmlStyle,
@@ -146,7 +146,7 @@ export class Header extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {this.logo && this.logo.renderHTML()}
-                <a href={options.canonicalUrl} target="_blank">
+                <a href={manager.canonicalUrl} target="_blank">
                     <h1 style={titleStyle}>{this.title.renderHTML()}</h1>
                 </a>
                 <p style={subtitleStyle}>{this.subtitle.renderHTML()}</p>

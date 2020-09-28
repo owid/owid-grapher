@@ -66,7 +66,7 @@ export class EditorDatabase {
     }
 }
 
-export interface ChartEditorOptionsProvider {
+export interface ChartEditorManager {
     admin: Admin
     grapher: Grapher
     database: EditorDatabase
@@ -76,7 +76,7 @@ export interface ChartEditorOptionsProvider {
 }
 
 export class ChartEditor {
-    options: ChartEditorOptionsProvider
+    manager: ChartEditorManager
     // Whether the current chart state is saved or not
     @observable.ref currentRequest: Promise<any> | undefined
     @observable.ref tab: EditorTab = "basic"
@@ -88,8 +88,8 @@ export class ChartEditor {
     // so the page knows to update the url
     @observable.ref newChartId?: number
 
-    constructor(props: { options: ChartEditorOptionsProvider }) {
-        this.options = props.options
+    constructor(props: { manager: ChartEditorManager }) {
+        this.manager = props.manager
         this.previewMode =
             localStorage.getItem("editorPreviewMode") === "desktop"
                 ? "desktop"
@@ -105,23 +105,23 @@ export class ChartEditor {
     }
 
     @computed get grapher() {
-        return this.options.grapher
+        return this.manager.grapher
     }
 
     @computed get database() {
-        return this.options.database
+        return this.manager.database
     }
 
     @computed get logs() {
-        return this.options.logs
+        return this.manager.logs
     }
 
     @computed get references() {
-        return this.options.references
+        return this.manager.references
     }
 
     @computed get redirects() {
-        return this.options.redirects
+        return this.manager.redirects
     }
 
     @computed get availableTabs(): EditorTab[] {
@@ -144,7 +144,7 @@ export class ChartEditor {
 
     // Load index of datasets and variables for the given namespace
     async loadNamespace(namespace: string) {
-        const data = await this.options.admin.getJSON(
+        const data = await this.manager.admin.getJSON(
             `/api/editorData/${namespace}.json`
         )
         runInAction(() =>
@@ -173,7 +173,7 @@ export class ChartEditor {
             ? "/api/charts"
             : `/api/charts/${grapher.id}`
 
-        const json = await this.options.admin.requestJSON(
+        const json = await this.manager.admin.requestJSON(
             targetUrl,
             currentGrapherObject,
             isNewGrapher ? "POST" : "PUT"
@@ -204,14 +204,14 @@ export class ChartEditor {
         // Need to open intermediary tab before AJAX to avoid popup blockers
         const w = window.open("/", "_blank") as Window
 
-        const json = await this.options.admin.requestJSON(
+        const json = await this.manager.admin.requestJSON(
             "/api/charts",
             chartJson,
             "POST"
         )
         if (json.success)
             w.location.assign(
-                this.options.admin.url(`charts/${json.chartId}/edit`)
+                this.manager.admin.url(`charts/${json.chartId}/edit`)
             )
     }
 

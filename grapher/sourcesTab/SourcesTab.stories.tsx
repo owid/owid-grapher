@@ -1,15 +1,15 @@
 import * as React from "react"
-import { SourcesTab, SourcesTabOptionsProvider } from "./SourcesTab"
+import { SourcesTab, SourcesTabManager } from "./SourcesTab"
 
 export default {
     title: "SourcesTab",
     component: SourcesTab,
 }
 
-const options: SourcesTabOptionsProvider = {
+const manager: SourcesTabManager = {
     columnsWithSources: [],
 }
 
 export const Default = () => {
-    return <SourcesTab options={options} />
+    return <SourcesTab manager={manager} />
 }

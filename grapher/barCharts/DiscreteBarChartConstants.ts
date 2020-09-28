@@ -1,5 +1,5 @@
 import { EntityName } from "coreTable/CoreTableConstants"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { Time, Color } from "grapher/core/GrapherConstants"
 
 export interface DiscreteBarDatum {
@@ -10,7 +10,7 @@ export interface DiscreteBarDatum {
     color: Color
 }
 
-export interface DiscreteBarChartOptionsProvider extends ChartOptionsProvider {
+export interface DiscreteBarChartManager extends ChartManager {
     addButtonLabel?: string
     hasFloatingAddButton?: boolean
     showYearLabels?: boolean

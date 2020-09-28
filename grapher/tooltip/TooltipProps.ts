@@ -1,5 +1,5 @@
 // We can't pass the property directly because we need it to be observable.
-export interface TooltipProvider {
+export interface TooltipManager {
     tooltip?: TooltipProps
 }
 
@@ -11,5 +11,5 @@ export interface TooltipProps {
     offsetYDirection?: "upward" | "downward"
     style?: React.CSSProperties
     children?: React.ReactNode
-    tooltipProvider: TooltipProvider
+    tooltipManager: TooltipManager
 }

@@ -6,13 +6,13 @@ import { StackedBarChart } from "./StackedBarChart"
 describe(StackedBarChart, () => {
     const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
 
-    const options = {
+    const manager = {
         table,
         yColumnSlugs: ["Population"],
     }
 
     it("can create a chart", () => {
-        const chart = new StackedBarChart({ options })
+        const chart = new StackedBarChart({ manager })
         expect(chart.marks.length).toEqual(0)
         expect(chart.failMessage).toBeTruthy()
 

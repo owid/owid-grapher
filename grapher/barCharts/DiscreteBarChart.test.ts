@@ -2,18 +2,18 @@
 
 import { DiscreteBarChart } from "./DiscreteBarChart"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
-import { DiscreteBarChartOptionsProvider } from "./DiscreteBarChartConstants"
+import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
 describe(DiscreteBarChart, () => {
     const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
 
-    const options: DiscreteBarChartOptionsProvider = {
+    const manager: DiscreteBarChartManager = {
         table,
         yColumnSlug: "Population",
     }
 
     it("can create a new bar chart", () => {
-        const chart = new DiscreteBarChart({ options })
+        const chart = new DiscreteBarChart({ manager })
 
         expect(chart.failMessage).toBeTruthy()
         table.selectAll()

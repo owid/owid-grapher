@@ -7,10 +7,10 @@ import { OwidTable } from "coreTable/OwidTable"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
 
 // NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
-// our Options as an "Options Provider". To get or set any of the options, you then have to "dot in" to the options provider
+// our Options as a "Manager". To get or set any of the options, you then have to "dot in" to the manager
 // instance. By "dotting in" Mobx will track the reads or trigger actions on writes. You can still also just create plain
 // vanilla JS options objects to easily make static charts (without reactivity).
-export interface ChartOptionsProvider {
+export interface ChartManager {
     baseFontSize?: number
     table: OwidTable // todo: abstract table?
     entityType?: string

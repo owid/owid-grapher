@@ -10,7 +10,7 @@ import { AbstractCoreColumn } from "coreTable/CoreTable"
 
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
-export interface SourcesTabOptionsProvider {
+export interface SourcesTabManager {
     adminBaseUrl?: string
     columnsWithSources: AbstractCoreColumn[]
     isAdmin?: boolean
@@ -19,14 +19,14 @@ export interface SourcesTabOptionsProvider {
 @observer
 export class SourcesTab extends React.Component<{
     bounds?: Bounds
-    options: SourcesTabOptionsProvider
+    manager: SourcesTabManager
 }> {
     @computed private get bounds() {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed private get options() {
-        return this.props.options
+    @computed private get manager() {
+        return this.props.manager
     }
 
     private renderSource(column: AbstractCoreColumn) {
@@ -34,8 +34,8 @@ export class SourcesTab extends React.Component<{
         const source = spec.source!
         const { table } = column
 
-        const editUrl = this.options.isAdmin
-            ? `${this.props.options.adminBaseUrl}/admin/datasets/${spec.datasetId}`
+        const editUrl = this.manager.isAdmin
+            ? `${this.props.manager.adminBaseUrl}/admin/datasets/${spec.datasetId}`
             : undefined
 
         const minYear = min(column.times)
@@ -150,7 +150,7 @@ export class SourcesTab extends React.Component<{
                 <div>
                     <h2>Sources</h2>
                     <div>
-                        {this.options.columnsWithSources.map((source) =>
+                        {this.manager.columnsWithSources.map((source) =>
                             this.renderSource(source)
                         )}
                     </div>

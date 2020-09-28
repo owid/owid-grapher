@@ -1,4 +1,4 @@
-export interface HeaderOptionsProvider {
+export interface HeaderManager {
     fontSize?: number
     currentTitle?: string
     subtitle?: string

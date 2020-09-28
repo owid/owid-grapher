@@ -1,5 +1,5 @@
 import { DualAxis } from "grapher/axis/Axis"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { Color, LineName } from "grapher/core/GrapherConstants"
 import { PointVector } from "grapher/utils/PointVector"
 
@@ -28,7 +28,7 @@ export interface LinesProps {
     lineStrokeWidth?: number
 }
 
-export interface LineChartOptionsProvider extends ChartOptionsProvider {
+export interface LineChartManager extends ChartManager {
     hidePoints?: boolean
     lineStrokeWidth?: number
 }

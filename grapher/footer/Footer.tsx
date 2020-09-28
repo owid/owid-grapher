@@ -7,38 +7,38 @@ import { Bounds } from "grapher/utils/Bounds"
 import { getRelativeMouse } from "grapher/utils/Util"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { BASE_FONT_SIZE, GrapherTabOption } from "grapher/core/GrapherConstants"
-import { FooterOptionsProvider } from "./FooterOptionsProvider"
+import { FooterManager } from "./FooterManager"
 
 @observer
 export class Footer extends React.Component<{
-    options: FooterOptionsProvider
+    manager: FooterManager
 }> {
     @computed private get maxWidth() {
-        return this.options.maxWidth ?? 500
+        return this.manager.maxWidth ?? 500
     }
 
-    @computed private get options() {
-        return this.props.options
+    @computed private get manager() {
+        return this.props.manager
     }
 
     @computed private get sourcesText() {
-        const sourcesLine = this.options.sourcesLine
+        const sourcesLine = this.manager.sourcesLine
         return sourcesLine ? `Source: ${sourcesLine}` : ""
     }
 
     @computed private get noteText() {
-        return this.options.note ? `Note: ${this.options.note}` : ""
+        return this.manager.note ? `Note: ${this.manager.note}` : ""
     }
 
     @computed private get ccSvg() {
-        if (this.options.hasOWIDLogo)
+        if (this.manager.hasOWIDLogo)
             return `<a style="fill: #777;" class="cclogo" href="http://creativecommons.org/licenses/by/4.0/deed.en_US" target="_blank">CC BY</a>`
 
         return `<a href="https://ourworldindata.org" target="_blank">Powered by ourworldindata.org</a>`
     }
 
     @computed private get originUrlWithProtocol() {
-        return this.options.originUrlWithProtocol ?? "http://localhost"
+        return this.manager.originUrlWithProtocol ?? "http://localhost"
     }
 
     @computed private get finalUrl() {
@@ -59,7 +59,7 @@ export class Footer extends React.Component<{
                 "OurWorldInData.org"
             )
             if (
-                this.options.isNativeEmbed ||
+                this.manager.isNativeEmbed ||
                 Bounds.forText(finalUrlText, { fontSize: this.fontSize })
                     .width >
                     0.7 * this.maxWidth
@@ -85,7 +85,7 @@ export class Footer extends React.Component<{
     }
 
     @computed private get fontSize() {
-        return 0.7 * (this.options.fontSize ?? BASE_FONT_SIZE)
+        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
 
     @computed private get sources() {
@@ -128,7 +128,7 @@ export class Footer extends React.Component<{
     }
 
     @computed get height() {
-        if (this.options.isMediaCard) return 0
+        if (this.manager.isMediaCard) return 0
 
         const { sources, note, license, isCompact, paraMargin } = this
         return (
@@ -139,11 +139,11 @@ export class Footer extends React.Component<{
     }
 
     @action.bound private onSourcesClick() {
-        this.options.currentTab = GrapherTabOption.sources
+        this.manager.currentTab = GrapherTabOption.sources
     }
 
     renderStatic(targetX: number, targetY: number) {
-        if (this.options.isMediaCard) return null
+        if (this.manager.isMediaCard) return null
 
         const {
             sources,
@@ -217,7 +217,7 @@ export class Footer extends React.Component<{
                         {this.finalUrlText} •{" "}
                     </a>
                 )}
-                {this.options.hasOWIDLogo ? (
+                {this.manager.hasOWIDLogo ? (
                     <a
                         className="cclogo"
                         href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
@@ -255,7 +255,7 @@ export class Footer extends React.Component<{
                 {!this.isCompact && license}
                 {tooltipTarget && (
                     <Tooltip
-                        tooltipProvider={this.options}
+                        tooltipManager={this.manager}
                         x={tooltipTarget.x}
                         y={tooltipTarget.y}
                         style={{

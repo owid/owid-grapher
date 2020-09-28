@@ -2,7 +2,7 @@ import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
 import { MapProjection } from "./MapProjections"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
 
@@ -52,7 +52,7 @@ export interface RenderFeature {
     center: PointVector
 }
 
-export interface MapChartOptionsProvider extends ChartOptionsProvider {
+export interface MapChartManager extends ChartManager {
     mapColumnSlug: ColumnSlug
     mapIsClickable?: boolean
     currentTab?: string // Used to switch to chart tab on map click

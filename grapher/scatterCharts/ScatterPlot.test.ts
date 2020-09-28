@@ -8,14 +8,14 @@ describe(ScatterPlot, () => {
         timeRange: [2000, 2010],
         countryCount: 2,
     })
-    const options = {
+    const manager = {
         table,
         yColumnSlug: "GDP",
         xColumnSlug: "Population",
     }
 
     it("can create a new chart", () => {
-        const chart = new ScatterPlot({ options })
+        const chart = new ScatterPlot({ manager })
         expect(chart.failMessage).toBeFalsy()
         expect(chart.getEntityNamesToShow().length).toEqual(2)
         expect(chart.marks.length).toEqual(2)

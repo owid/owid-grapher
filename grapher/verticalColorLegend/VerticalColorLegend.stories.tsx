@@ -2,7 +2,7 @@ import { CategoricalBin } from "grapher/color/ColorScaleBin"
 import * as React from "react"
 import {
     VerticalColorLegend,
-    VerticalColorLegendOptionsProvider,
+    VerticalColorLegendManager,
 } from "./VerticalColorLegend"
 
 export default {
@@ -10,7 +10,7 @@ export default {
     component: VerticalColorLegend,
 }
 
-const options: VerticalColorLegendOptionsProvider = {
+const manager: VerticalColorLegendManager = {
     maxLegendWidth: 500,
     title: "Legend Title",
     colorBins: [
@@ -33,7 +33,7 @@ const options: VerticalColorLegendOptionsProvider = {
 export const Default = () => {
     return (
         <svg width={600} height={400}>
-            <VerticalColorLegend options={options} />
+            <VerticalColorLegend manager={manager} />
         </svg>
     )
 }

@@ -9,7 +9,7 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import classNames from "classnames"
 import { OwidTable } from "coreTable/OwidTable"
 
-export interface DownloadTabOptionsProvider {
+export interface DownloadTabManager {
     idealBounds?: Bounds
     staticSVG?: string
     isExporting?: boolean
@@ -22,7 +22,7 @@ export interface DownloadTabOptionsProvider {
 
 interface DownloadTabProps {
     bounds?: Bounds
-    options: DownloadTabOptionsProvider
+    manager: DownloadTabManager
 }
 
 declare var Blob: any
@@ -30,7 +30,7 @@ declare var Blob: any
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
     @computed get idealBounds() {
-        return this.options.idealBounds ?? DEFAULT_BOUNDS
+        return this.manager.idealBounds ?? DEFAULT_BOUNDS
     }
 
     @computed get bounds() {
@@ -44,8 +44,8 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         return this.idealBounds.height
     }
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @observable svgBlob?: Blob
@@ -82,11 +82,11 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         }
 
         const { targetWidth, targetHeight } = this
-        const { options } = this
+        const { manager } = this
 
-        options.isExporting = true
-        const staticSVG = options.staticSVG ?? ""
-        options.isExporting = false
+        manager.isExporting = true
+        const staticSVG = manager.staticSVG ?? ""
+        manager.isExporting = false
 
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8",
@@ -134,12 +134,12 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed get fallbackPngUrl() {
-        return `${this.options.baseUrl || ""}.png${
-            this.options.queryString || ""
+        return `${this.manager.baseUrl || ""}.png${
+            this.manager.queryString || ""
         }`
     }
     @computed get baseFilename() {
-        return this.options.displaySlug
+        return this.manager.displaySlug
     }
     @computed get svgPreviewUrl() {
         return this.svgDataUri
@@ -176,9 +176,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
-        const { options } = this
-        const csvFilename = options.displaySlug + ".csv"
-        const csv = options.table?.toView().toPrettyCsv() || ""
+        const { manager } = this
+        const csvFilename = manager.displaySlug + ".csv"
+        const csv = manager.table?.toView().toPrettyCsv() || ""
 
         // IE11 compatibility
         if (window.navigator.msSaveBlob) {
@@ -199,9 +199,9 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed private get csvButton() {
-        const { options } = this
-        const externalCsvLink = options.externalCsvLink
-        const csvFilename = options.displaySlug + ".csv"
+        const { manager } = this
+        const externalCsvLink = manager.externalCsvLink
+        const csvFilename = manager.displaySlug + ".csv"
         const props = externalCsvLink
             ? {
                   href: externalCsvLink,

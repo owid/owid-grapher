@@ -84,6 +84,6 @@ export class EditorFeatures {
     }
 
     @computed get explorer() {
-        return this.editor.options.admin.settings.EXPLORER
+        return this.editor.manager.admin.settings.EXPLORER
     }
 }

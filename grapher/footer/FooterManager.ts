@@ -1,6 +1,6 @@
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 
-export interface FooterOptionsProvider {
+export interface FooterManager {
     fontSize?: number
     sourcesLine?: string
     note?: string

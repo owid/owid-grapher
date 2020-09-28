@@ -6,7 +6,7 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
-export interface VerticalColorLegendOptionsProvider {
+export interface VerticalColorLegendManager {
     maxLegendWidth?: number
     fontSize?: number
     colorBins: ColorScaleBin[]
@@ -29,18 +29,18 @@ interface LabelMark {
 
 @observer
 export class VerticalColorLegend extends React.Component<{
-    options: VerticalColorLegendOptionsProvider
+    manager: VerticalColorLegendManager
 }> {
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed private get maxLegendWidth() {
-        return this.options.maxLegendWidth ?? 100
+        return this.manager.maxLegendWidth ?? 100
     }
 
     @computed private get fontSize() {
-        return 0.7 * (this.options.fontSize ?? BASE_FONT_SIZE)
+        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
     @computed private get rectSize() {
         return Math.round(this.fontSize / 2)
@@ -50,12 +50,12 @@ export class VerticalColorLegend extends React.Component<{
     private lineHeight = 5
 
     @computed private get title() {
-        if (!this.options.title) return undefined
+        if (!this.manager.title) return undefined
         return new TextWrap({
             maxWidth: this.maxLegendWidth,
             fontSize: 0.75 * this.fontSize,
             fontWeight: 700,
-            text: this.options.title,
+            text: this.manager.title,
         })
     }
 
@@ -65,9 +65,9 @@ export class VerticalColorLegend extends React.Component<{
     }
 
     @computed private get labelMarks() {
-        const { options, fontSize, rectSize, rectPadding } = this
+        const { manager, fontSize, rectSize, rectPadding } = this
 
-        return options.colorBins
+        return manager.colorBins
             .map((bin) => {
                 const label = new TextWrap({
                     maxWidth: this.maxLegendWidth,
@@ -106,7 +106,7 @@ export class VerticalColorLegend extends React.Component<{
             rectSize,
             rectPadding,
             lineHeight,
-            options,
+            manager,
         } = this
         const {
             focusColors,
@@ -114,10 +114,10 @@ export class VerticalColorLegend extends React.Component<{
             onLegendMouseOver,
             onLegendMouseLeave,
             onLegendClick,
-        } = options
+        } = manager
 
-        const x = options.legendX ?? 0
-        const y = options.legendY ?? 0
+        const x = manager.legendX ?? 0
+        const y = manager.legendY ?? 0
 
         let markOffset = titleHeight
 

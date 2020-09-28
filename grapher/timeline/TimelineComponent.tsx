@@ -9,12 +9,12 @@ import { faPause } from "@fortawesome/free-solid-svg-icons/faPause"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
-import { TimelineController, TimeViz } from "./TimelineController"
+import { TimelineController, TimelineManager } from "./TimelineController"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 export interface TimelineComponentProps {
-    target: TimeViz
+    manager: TimelineManager
     disablePlay?: boolean
     formatTimeFn?: (value: any) => any
     onPlay?: () => void
@@ -33,10 +33,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @computed private get subject() {
-        return this.props.target
+        return this.props.manager
     }
 
-    private controller = new TimelineController(this.props.target)
+    private controller = new TimelineController(this.props.manager)
 
     private get sliderBounds() {
         return this.slider
@@ -83,7 +83,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         isStartMarker: boolean,
         isEndMarker: boolean
     ) {
-        const { startTime, endTime } = this.props.target
+        const { startTime, endTime } = this.props.manager
 
         if (startTime === endTime && (isStartMarker || isEndMarker))
             return "both"

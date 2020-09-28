@@ -1,7 +1,7 @@
 import * as React from "react"
 import { SlopeChart } from "./SlopeChart"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 
 export default {
     title: "SlopeChart",
@@ -13,14 +13,14 @@ export const Default = () => {
         timeRange: [1950, 2010],
     })
 
-    const options: ChartOptionsProvider = {
+    const manager: ChartManager = {
         table,
         yColumnSlug: "GDP",
     }
 
     return (
         <svg width={640} height={480}>
-            <SlopeChart options={options} />
+            <SlopeChart manager={manager} />
         </svg>
     )
 }

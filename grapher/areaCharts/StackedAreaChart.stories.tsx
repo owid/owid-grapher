@@ -1,4 +1,4 @@
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import * as React from "react"
 import { StackedAreaChart } from "./StackedAreaChart"
@@ -15,14 +15,14 @@ export const Default = () => {
 
     table.selectAll()
 
-    const options: ChartOptionsProvider = {
+    const manager: ChartManager = {
         table,
         yColumnSlugs: ["GDP"],
     }
 
     return (
         <svg width={640} height={480}>
-            <StackedAreaChart options={options} />
+            <StackedAreaChart manager={manager} />
         </svg>
     )
 }

@@ -4,7 +4,7 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { computed } from "mobx"
 import { BASE_FONT_SIZE, ChartTypeName } from "grapher/core/GrapherConstants"
 import { getChartComponent } from "grapher/chart/ChartTypeMap"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { makeGrid } from "grapher/utils/Util"
 import { getElementWithHalo } from "grapher/scatterCharts/Halos"
 
@@ -12,7 +12,7 @@ interface FacetChartProps {
     bounds?: Bounds
     number?: number
     chartTypeName: ChartTypeName
-    options: ChartOptionsProvider
+    manager: ChartManager
 }
 
 // Facet by columnSlug. If the columnSlug is entityName than will do one chart per country. If it is an array of column slugs, then will do
@@ -21,7 +21,7 @@ interface FacetChartProps {
 interface SmallChart {
     bounds: Bounds
     chartTypeName: ChartTypeName
-    options: ChartOptionsProvider
+    manager: ChartManager
     title: string
 }
 
@@ -78,7 +78,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             const xAxis = undefined
             const yAxis = undefined
 
-            const options: ChartOptionsProvider = {
+            const manager: ChartManager = {
                 table,
                 hideXAxis,
                 hideYAxis,
@@ -98,7 +98,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
             return {
                 bounds,
                 chartTypeName,
-                options,
+                manager,
                 title: name,
             } as SmallChart
         })
@@ -113,7 +113,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
     }
 
     @computed protected get rootOptions() {
-        return this.props.options
+        return this.props.manager
     }
 
     render() {
@@ -131,7 +131,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
                     <ChartComponent
                         key={index}
                         bounds={bounds}
-                        options={smallChart.options}
+                        manager={smallChart.manager}
                     />
                     {FacetTitle(title, bounds, fontSize, index)}
                 </>

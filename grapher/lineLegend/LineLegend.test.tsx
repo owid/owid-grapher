@@ -1,9 +1,9 @@
 #! /usr/bin/env yarn jest
 
 import { AxisConfig } from "grapher/axis/AxisConfig"
-import { LineLegend, LineLegendOptionsProvider } from "./LineLegend"
+import { LineLegend, LineLegendManager } from "./LineLegend"
 
-const options: LineLegendOptionsProvider = {
+const manager: LineLegendManager = {
     labelMarks: [
         {
             lineName: "Canada",
@@ -27,7 +27,7 @@ const options: LineLegendOptionsProvider = {
 
 describe(LineLegend, () => {
     it("can create a new legend", () => {
-        const legend = new LineLegend({ options })
+        const legend = new LineLegend({ manager })
 
         expect(legend.sizedLabels.length).toEqual(2)
     })

@@ -20,9 +20,9 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import {
     VerticalColorLegend,
-    VerticalColorLegendOptionsProvider,
+    VerticalColorLegendManager,
 } from "grapher/verticalColorLegend/VerticalColorLegend"
-import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import {
     BASE_FONT_SIZE,
     Time,
@@ -30,7 +30,7 @@ import {
     EntitySelectionModes,
 } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { scaleLinear, scaleLog, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { extent } from "d3-array"
 import { select } from "d3-selection"
@@ -50,19 +50,16 @@ import {
 export class SlopeChart
     extends React.Component<{
         bounds?: Bounds
-        options: ChartOptionsProvider
+        manager: ChartManager
     }>
-    implements
-        ChartInterface,
-        VerticalColorLegendOptionsProvider,
-        ColorScaleOptionsProvider {
+    implements ChartInterface, VerticalColorLegendManager, ColorScaleManager {
     // currently hovered individual series key
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed.struct get bounds() {
@@ -70,7 +67,7 @@ export class SlopeChart
     }
 
     @computed get fontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get colorBins() {
@@ -92,16 +89,16 @@ export class SlopeChart
     }
 
     @action.bound onSlopeClick() {
-        const { options, hoverKey } = this
+        const { manager, hoverKey } = this
         if (
-            options.addCountryMode === EntitySelectionModes.Disabled ||
-            !options.addCountryMode ||
+            manager.addCountryMode === EntitySelectionModes.Disabled ||
+            !manager.addCountryMode ||
             hoverKey === undefined
         ) {
             return
         }
 
-        this.options.table.toggleSelection(hoverKey)
+        this.manager.table.toggleSelection(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -113,15 +110,15 @@ export class SlopeChart
     }
 
     @computed private get selectedKeys() {
-        return this.options.table.selectedEntityNames
+        return this.manager.table.selectedEntityNames
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { options, hoverColor } = this
+        const { manager, hoverColor } = this
         if (
-            options.addCountryMode === EntitySelectionModes.Disabled ||
-            !options.addCountryMode ||
+            manager.addCountryMode === EntitySelectionModes.Disabled ||
+            !manager.addCountryMode ||
             hoverColor === undefined
         )
             return
@@ -133,11 +130,11 @@ export class SlopeChart
             intersection(keysToToggle, this.selectedKeys).length ===
             keysToToggle.length
         if (allKeysActive)
-            this.options.table.setSelectedEntities(
+            this.manager.table.setSelectedEntities(
                 without(this.selectedKeys, ...keysToToggle)
             )
         else
-            this.options.table.setSelectedEntities(
+            this.manager.table.setSelectedEntities(
                 this.selectedKeys.concat(keysToToggle)
             )
     }
@@ -208,7 +205,7 @@ export class SlopeChart
     }
 
     @computed private get legendWidth() {
-        return new VerticalColorLegend({ options: this }).width
+        return new VerticalColorLegend({ manager: this }).width
     }
 
     @computed.struct get sidebarWidth() {
@@ -238,17 +235,17 @@ export class SlopeChart
         if (this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.options}
+                    manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.failMessage}
                 />
             )
 
-        const { options } = this.props
+        const { manager } = this.props
         const { marks, focusKeys, hoverKeys, innerBounds, showLegend } = this
 
         const legend = showLegend ? (
-            <VerticalColorLegend options={this} />
+            <VerticalColorLegend manager={this} />
         ) : (
             <div></div>
         )
@@ -256,7 +253,7 @@ export class SlopeChart
         return (
             <g>
                 <LabelledSlopes
-                    options={options}
+                    manager={manager}
                     bounds={innerBounds}
                     yColumn={this.yColumn!}
                     data={marks}
@@ -310,16 +307,16 @@ export class SlopeChart
 
     @computed private get yColumn() {
         return this.table.get(
-            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
         )
     }
 
     @computed private get colorColumn() {
-        return this.table.get(this.options.colorColumnSlug)
+        return this.table.get(this.manager.colorColumnSlug)
     }
 
     @computed get table() {
-        return this.options.table
+        return this.manager.table
     }
 
     // helper method to directly get the associated color value given an Entity
@@ -342,7 +339,7 @@ export class SlopeChart
     }
 
     @computed private get sizeColumn() {
-        return this.table.get(this.options.sizeColumnSlug)
+        return this.table.get(this.manager.sizeColumnSlug)
     }
 
     // helper method to directly get the associated size value given an Entity
@@ -370,7 +367,7 @@ export class SlopeChart
         const { colorByEntity, sizeByEntity } = this
         const { minTime, maxTime } = column
 
-        const table = this.options.table
+        const table = this.manager.table
 
         return column.entityNamesUniqArr
             .map((entityName) => {
@@ -614,8 +611,8 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         return this.props.yColumn
     }
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed get bounds() {
@@ -658,7 +655,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed private get yScaleType() {
-        return this.options.yAxis?.scaleType || ScaleType.linear
+        return this.manager.yAxis?.scaleType || ScaleType.linear
     }
 
     @computed private get yDomainDefault(): [number, number] {
@@ -673,7 +670,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed private get yDomain(): [number, number] {
-        const domain = this.options.yAxis?.domain || [Infinity, -Infinity]
+        const domain = this.manager.yAxis?.domain || [Infinity, -Infinity]
         const domainDefault = this.yDomainDefault
         return [
             Math.min(domain[0], domainDefault[0]),
@@ -747,7 +744,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             const [y1, y2] = [yScale(v1.y), yScale(v2.y)]
             const fontSize =
                 (isPortrait ? 0.6 : 0.65) *
-                (this.options.baseFontSize ?? BASE_FONT_SIZE)
+                (this.manager.baseFontSize ?? BASE_FONT_SIZE)
             const leftValueStr = this.formatValueFn(v1.y)
             const rightValueStr = this.formatValueFn(v2.y)
             const leftValueWidth = Bounds.forText(leftValueStr, {
@@ -982,9 +979,9 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed get controls() {
-        const { yAxis } = this.options
+        const { yAxis } = this.manager
         const showScaleSelector =
-            this.options.isInteractive && yAxis?.canChangeScaleType
+            this.manager.isInteractive && yAxis?.canChangeScaleType
         if (!showScaleSelector) return undefined
         return (
             <ControlsOverlay id="slope-scale-selector" paddingTop={20}>
@@ -1003,7 +1000,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     render() {
         const yTickFormat = this.formatValueFn
-        const baseFontSize = this.options.baseFontSize ?? BASE_FONT_SIZE
+        const baseFontSize = this.manager.baseFontSize ?? BASE_FONT_SIZE
         const yScaleType = this.yScaleType
         const {
             bounds,
@@ -1016,7 +1013,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
         if (isEmpty(slopeData))
             return (
-                <NoDataOverlay options={this.props.options} bounds={bounds} />
+                <NoDataOverlay manager={this.props.manager} bounds={bounds} />
             )
 
         const { x1, x2 } = slopeData[0]

@@ -53,19 +53,19 @@ class SingleYearSubject extends Subject {
 export const Default = () => {
     const subject = new Subject()
     subject.startTime = 1900
-    return <TimelineComponent target={subject} />
+    return <TimelineComponent manager={subject} />
 }
 
 export const StartPartialRange = () => {
-    return <TimelineComponent target={new Subject()} />
+    return <TimelineComponent manager={new Subject()} />
 }
 
 export const OneYearAtATime = () => {
     const subject = new SingleYearSubject()
-    return <TimelineComponent target={subject} />
+    return <TimelineComponent manager={subject} />
 }
 
 export const DisablePlayButton = () => {
     const subject = new Subject()
-    return <TimelineComponent target={subject} disablePlay={true} />
+    return <TimelineComponent manager={subject} disablePlay={true} />
 }

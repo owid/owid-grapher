@@ -1,15 +1,15 @@
 import * as React from "react"
 import { Header } from "./Header"
-import { HeaderOptionsProvider } from "./HeaderOptionsProvider"
+import { HeaderManager } from "./HeaderManager"
 
 export default {
     title: "Header",
     component: Header,
 }
 
-const options: HeaderOptionsProvider = {
+const manager: HeaderManager = {
     currentTitle: "Hello world",
     subtitle: "This is my chart subtitle",
 }
 
-export const Default = () => <Header options={options} />
+export const Default = () => <Header manager={manager} />

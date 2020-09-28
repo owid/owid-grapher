@@ -73,7 +73,7 @@ function stackGroupVertically(group: PlacedMark[], y: number) {
 @observer
 class Label extends React.Component<{
     mark: PlacedMark
-    options: LineLegend
+    manager: LineLegend
     isFocus?: boolean
     needsLines?: boolean
     onMouseOver: () => void
@@ -83,7 +83,7 @@ class Label extends React.Component<{
     render() {
         const {
             mark,
-            options,
+            manager,
             isFocus,
             needsLines,
             onMouseOver,
@@ -92,7 +92,7 @@ class Label extends React.Component<{
         } = this.props
         const x = mark.origBounds.x
         const markerX1 = x + MARKER_MARGIN
-        const markerX2 = x + options.leftPadding - MARKER_MARGIN
+        const markerX2 = x + manager.leftPadding - MARKER_MARGIN
         const step = (markerX2 - markerX1) / (mark.totalLevels + 1)
         const markerXMid = markerX1 + step + mark.level * step
         const lineColor = isFocus ? "#999" : "#eee"
@@ -143,7 +143,7 @@ class Label extends React.Component<{
     }
 }
 
-export interface LineLegendOptionsProvider {
+export interface LineLegendManager {
     areMarksClickable?: boolean
     canAddData?: boolean
     isSelectingData?: boolean
@@ -162,15 +162,15 @@ export interface LineLegendOptionsProvider {
 
 @observer
 export class LineLegend extends React.Component<{
-    options: LineLegendOptionsProvider
+    manager: LineLegendManager
 }> {
     @computed private get fontSize() {
-        return 0.75 * (this.options.fontSize ?? BASE_FONT_SIZE)
+        return 0.75 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
     leftPadding = 35
 
     @computed private get maxWidth() {
-        return this.options.maxLegendWidth ?? 300
+        return this.manager.maxLegendWidth ?? 300
     }
 
     @computed.struct get sizedLabels(): SizedMark[] {
@@ -178,7 +178,7 @@ export class LineLegend extends React.Component<{
         const maxTextWidth = maxWidth - leftPadding
         const maxAnnotationWidth = Math.min(maxTextWidth, 150)
 
-        return this.options.labelMarks.map((label) => {
+        return this.manager.labelMarks.map((label) => {
             const annotationTextWrap = label.annotation
                 ? new TextWrap({
                       text: label.annotation,
@@ -214,28 +214,28 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get onMouseOver(): any {
-        return this.options.onLegendMouseOver ?? noop
+        return this.manager.onLegendMouseOver ?? noop
     }
     @computed get onMouseLeave(): any {
-        return this.options.onLegendMouseLeave ?? noop
+        return this.manager.onLegendMouseLeave ?? noop
     }
     @computed get onClick(): any {
-        return this.options.onLegendClick ?? noop
+        return this.manager.onLegendClick ?? noop
     }
 
     @computed get isFocusMode() {
         return this.sizedLabels.some((label) =>
-            this.options.focusedLineNames.includes(label.lineName)
+            this.manager.focusedLineNames.includes(label.lineName)
         )
     }
 
     @computed get legendX() {
-        return this.options.legendX ?? 0
+        return this.manager.legendX ?? 0
     }
 
     // Naive initial placement of each mark at the target height, before collision detection
     @computed private get initialMarks(): PlacedMark[] {
-        const { verticalAxis } = this.options
+        const { verticalAxis } = this.manager
         const { legendX } = this
 
         return sortBy(
@@ -275,7 +275,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed get standardPlacement() {
-        const { verticalAxis } = this.options
+        const { verticalAxis } = this.manager
 
         const groups: PlacedMark[][] = cloneDeep(
             this.initialMarks
@@ -364,9 +364,9 @@ export class LineLegend extends React.Component<{
         const nonOverlappingMinHeight =
             sumBy(this.initialMarks, (mark) => mark.bounds.height) +
             this.initialMarks.length * LEGEND_ITEM_MIN_SPACING
-        const availableHeight = this.options.canAddData
-            ? this.options.verticalAxis.rangeSize - ADD_BUTTON_HEIGHT
-            : this.options.verticalAxis.rangeSize
+        const availableHeight = this.manager.canAddData
+            ? this.manager.verticalAxis.rangeSize - ADD_BUTTON_HEIGHT
+            : this.manager.verticalAxis.rangeSize
 
         // Need to be careful here – the controls overlay will automatically add padding if
         // needed to fit the floating 'Add country' button, therefore decreasing the space
@@ -383,7 +383,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed private get backgroundMarks() {
-        const { focusedLineNames } = this.options
+        const { focusedLineNames } = this.manager
         const { isFocusMode } = this
         return this.placedMarks.filter((mark) =>
             isFocusMode
@@ -393,7 +393,7 @@ export class LineLegend extends React.Component<{
     }
 
     @computed private get focusMarks() {
-        const { focusedLineNames } = this.options
+        const { focusedLineNames } = this.manager
         const { isFocusMode } = this
         return this.placedMarks.filter((mark) =>
             isFocusMode
@@ -419,7 +419,7 @@ export class LineLegend extends React.Component<{
             <Label
                 key={mark.lineName}
                 mark={mark}
-                options={this}
+                manager={this}
                 needsLines={this.needsLines}
                 onMouseOver={() => this.onMouseOver(mark.lineName)}
                 onClick={() => this.onClick(mark.lineName)}
@@ -433,7 +433,7 @@ export class LineLegend extends React.Component<{
             <Label
                 key={mark.lineName}
                 mark={mark}
-                options={this}
+                manager={this}
                 isFocus={true}
                 needsLines={this.needsLines}
                 onMouseOver={() => this.onMouseOver(mark.lineName)}
@@ -445,15 +445,15 @@ export class LineLegend extends React.Component<{
 
     @action.bound onAddClick() {
         // Do this for mobx
-        this.options.isSelectingData = true
+        this.manager.isSelectingData = true
     }
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     get addEntityButton() {
-        if (!this.options.showAddEntityControls) return undefined
+        if (!this.manager.showAddEntityControls) return undefined
 
         const verticalAlign = "bottom"
 
@@ -480,7 +480,7 @@ export class LineLegend extends React.Component<{
                     align="left"
                     verticalAlign={verticalAlign}
                     height={ADD_BUTTON_HEIGHT}
-                    label={`Add ${this.options.entityType ?? "Country"}`}
+                    label={`Add ${this.manager.entityType ?? "Country"}`}
                     onClick={this.onAddClick}
                 />
             </ControlsOverlay>
@@ -492,7 +492,7 @@ export class LineLegend extends React.Component<{
             <g
                 className="LineLabels"
                 style={{
-                    cursor: this.options.areMarksClickable
+                    cursor: this.manager.areMarksClickable
                         ? "pointer"
                         : "default",
                 }}

@@ -49,22 +49,22 @@ import { MultiColorPolyline } from "./MultiColorPolyline"
 import { TextWrap } from "grapher/text/TextWrap"
 import {
     ConnectedScatterLegend,
-    ConnectedScatterLegendOptionsProvider,
+    ConnectedScatterLegendManager,
 } from "./ConnectedScatterLegend"
 import {
     VerticalColorLegend,
-    VerticalColorLegendOptionsProvider,
+    VerticalColorLegendManager,
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
-import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
-    ScatterPlotOptionsProvider,
+    ScatterPlotManager,
     ScatterSeries,
     SeriesPoint,
     ScatterTooltipProps,
@@ -86,20 +86,20 @@ import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 export class ScatterPlot
     extends React.Component<{
         bounds?: Bounds
-        options: ScatterPlotOptionsProvider
+        manager: ScatterPlotManager
     }>
     implements
-        ConnectedScatterLegendOptionsProvider,
+        ConnectedScatterLegendManager,
         ChartInterface,
-        VerticalColorLegendOptionsProvider,
-        ColorScaleOptionsProvider {
+        VerticalColorLegendManager,
+        ColorScaleManager {
     // currently hovered individual series key
     @observable hoverKey?: EntityName
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed.struct get bounds() {
@@ -107,7 +107,7 @@ export class ScatterPlot
     }
 
     @computed private get canAddCountry() {
-        const { addCountryMode } = this.options
+        const { addCountryMode } = this.manager
         return (
             addCountryMode && addCountryMode !== EntitySelectionModes.Disabled
         )
@@ -129,7 +129,7 @@ export class ScatterPlot
     }
 
     @computed get fontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -216,7 +216,7 @@ export class ScatterPlot
     @computed private get arrowLegend() {
         if (
             this.displayStartTime === this.displayEndTime ||
-            this.options.isRelativeMode
+            this.manager.isRelativeMode
         )
             return undefined
 
@@ -271,7 +271,7 @@ export class ScatterPlot
     }
 
     @computed private get comparisonLines() {
-        return this.options.comparisonLines
+        return this.manager.comparisonLines
     }
 
     @action.bound onToggleEndpoints() {
@@ -295,17 +295,17 @@ export class ScatterPlot
     }
 
     @computed get hideLines() {
-        return !!this.options.hideConnectedScatterLines
+        return !!this.manager.hideConnectedScatterLines
     }
 
     @computed private get points() {
-        const { dualAxis, focusKeys, hoverKeys, hideLines, options } = this
+        const { dualAxis, focusKeys, hoverKeys, hideLines, manager } = this
 
         const { marks, sizeDomain, colorScale } = this
 
         return (
             <PointsWithLabels
-                noDataOverlayOptionsProvider={options}
+                noDataOverlayManager={manager}
                 hideLines={hideLines}
                 seriesArray={marks}
                 dualAxis={dualAxis}
@@ -321,7 +321,7 @@ export class ScatterPlot
     }
 
     @computed get colorColumn() {
-        return this.table.get(this.options.colorColumnSlug)
+        return this.table.get(this.manager.colorColumnSlug)
     }
 
     @computed get colorBins() {
@@ -335,7 +335,7 @@ export class ScatterPlot
     }
 
     @computed private get legendDimensions(): VerticalColorLegend {
-        return new VerticalColorLegend({ options: this })
+        return new VerticalColorLegend({ manager: this })
     }
 
     render() {
@@ -343,7 +343,7 @@ export class ScatterPlot
             console.log(this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.options}
+                    manager={this.manager}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />
@@ -357,14 +357,14 @@ export class ScatterPlot
             sidebarWidth,
             tooltipSeries,
             comparisonLines,
-            options,
+            manager,
             legendDimensions,
         } = this
 
         return (
             <g className="ScatterPlot">
                 <DualAxisComponent
-                    isInteractive={options.isInteractive}
+                    isInteractive={manager.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={false}
                 />
@@ -377,7 +377,7 @@ export class ScatterPlot
                         />
                     ))}
                 {this.points}
-                <VerticalColorLegend options={this} />
+                <VerticalColorLegend manager={this} />
                 {(arrowLegend || tooltipSeries) && (
                     <line
                         x1={bounds.right - sidebarWidth}
@@ -428,7 +428,7 @@ export class ScatterPlot
     }
 
     @computed get colorScaleConfig() {
-        return this.options.colorScale! || new ColorScaleConfig()
+        return this.manager.colorScale! || new ColorScaleConfig()
     }
 
     defaultBaseColorScheme = "continents"
@@ -448,25 +448,25 @@ export class ScatterPlot
     }
 
     @computed private get yAxis() {
-        return this.options.yAxis || new AxisConfig(undefined, this)
+        return this.manager.yAxis || new AxisConfig(undefined, this)
     }
 
     @computed private get xAxis() {
-        return this.options.xAxis || new AxisConfig(undefined, this)
+        return this.manager.xAxis || new AxisConfig(undefined, this)
     }
 
     @computed private get yColumn() {
         return this.table.get(
-            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
         )
     }
 
     @computed private get xColumn() {
-        return this.table.get(this.options.xColumnSlug)
+        return this.table.get(this.manager.xColumnSlug)
     }
 
     @computed private get sizeColumn() {
-        return this.table.get(this.options.sizeColumnSlug)
+        return this.table.get(this.manager.sizeColumnSlug)
     }
 
     @computed get failMessage() {
@@ -499,7 +499,7 @@ export class ScatterPlot
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
     @computed private get hideBackgroundEntities() {
-        return this.options.addCountryMode === EntitySelectionModes.Disabled
+        return this.manager.addCountryMode === EntitySelectionModes.Disabled
     }
 
     @computed private get possibleEntityNames(): EntityName[] {
@@ -516,7 +516,7 @@ export class ScatterPlot
             ? this.table.selectedEntityNames
             : this.possibleEntityNames
 
-        if (this.options.matchingEntitiesOnly && this.colorColumn)
+        if (this.manager.matchingEntitiesOnly && this.colorColumn)
             entityNames = intersection(
                 entityNames,
                 this.colorColumn.entityNamesUniqArr
@@ -543,11 +543,11 @@ export class ScatterPlot
     }
 
     @computed get compareEndPointsOnly() {
-        return !!this.options.compareEndPointsOnly
+        return !!this.manager.compareEndPointsOnly
     }
 
     set compareEndPointsOnly(value: boolean) {
-        this.options.compareEndPointsOnly = value || undefined
+        this.manager.compareEndPointsOnly = value || undefined
     }
 
     @computed private get columns() {
@@ -724,17 +724,17 @@ export class ScatterPlot
     // domains across the entire timeline
     private domainDefault(property: "x" | "y"): [number, number] {
         const scaleType = property === "x" ? this.xScaleType : this.yScaleType
-        if (!this.options.useTimelineDomains) {
+        if (!this.manager.useTimelineDomains) {
             return domainExtent(
                 this.pointsForAxisDomains.map((d) => d[property]),
                 scaleType,
-                this.options.zoomToSelection && this.selectedPoints.length
+                this.manager.zoomToSelection && this.selectedPoints.length
                     ? 1.1
                     : 1
             )
         }
 
-        if (this.options.isRelativeMode)
+        if (this.manager.isRelativeMode)
             return relativeMinAndMax(this.allPoints, property)
 
         return domainExtent(
@@ -757,7 +757,7 @@ export class ScatterPlot
     @computed private get pointsForAxisDomains() {
         if (
             !this.table.selectedEntityNames.length ||
-            !this.options.zoomToSelection
+            !this.manager.zoomToSelection
         )
             return this.currentValues
 
@@ -774,7 +774,7 @@ export class ScatterPlot
     }
 
     @computed private get yScaleType() {
-        return this.options.isRelativeMode
+        return this.manager.isRelativeMode
             ? ScaleType.linear
             : this.yAxis.scaleType || ScaleType.linear
     }
@@ -788,7 +788,7 @@ export class ScatterPlot
     }
 
     @computed get verticalAxis() {
-        const { options, yDomainDefault } = this
+        const { manager, yDomainDefault } = this
 
         const axis = this.yAxis.toVerticalAxis()
         axis.formatColumn = this.yColumn
@@ -797,7 +797,7 @@ export class ScatterPlot
 
         axis.scaleType = this.yScaleType
 
-        if (options.isRelativeMode) {
+        if (manager.isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = yDomainDefault // Overwrite user's min/max
             if (label && label.length > 1) {
@@ -814,7 +814,7 @@ export class ScatterPlot
     }
 
     @computed private get xScaleType() {
-        return this.options.isRelativeMode
+        return this.manager.isRelativeMode
             ? ScaleType.linear
             : this.xAxis.scaleType || ScaleType.linear
     }
@@ -827,7 +827,7 @@ export class ScatterPlot
     }
 
     @computed get horizontalAxis() {
-        const { xDomainDefault, options, xAxisLabelBase } = this
+        const { xDomainDefault, manager, xAxisLabelBase } = this
 
         const { xAxis } = this
 
@@ -835,7 +835,7 @@ export class ScatterPlot
         axis.formatColumn = this.xColumn
 
         axis.scaleType = this.xScaleType
-        if (options.isRelativeMode) {
+        if (manager.isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = xDomainDefault // Overwrite user's min/max
             const label = xAxis.label || xAxisLabelBase
@@ -905,7 +905,7 @@ export class ScatterPlot
     }
 
     @computed get table() {
-        return this.options.table
+        return this.manager.table
     }
 
     // todo: refactor/remove and/or add unit tests
@@ -916,7 +916,7 @@ export class ScatterPlot
         const { table, xColumn } = this
 
         const seriesArr: ScatterSeries[] = []
-        const strat = this.options.scatterPointLabelStrategy
+        const strat = this.manager.scatterPointLabelStrategy
 
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndTime().forEach((dataByTime, entityName) => {
@@ -1690,7 +1690,7 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
         if (isEmpty(renderData))
             return (
                 <NoDataOverlay
-                    options={this.props.noDataOverlayOptionsProvider}
+                    manager={this.props.noDataOverlayManager}
                     bounds={bounds}
                 />
             )

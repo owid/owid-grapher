@@ -4,9 +4,9 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
     CategoricalColorLegend,
-    CategoricalColorLegendOptionsProvider,
+    CategoricalColorLegendManager,
     NumericColorLegend,
-    NumericColorLegendOptionsProvider,
+    NumericColorLegendManager,
 } from "grapher/mapCharts/MapColorLegends"
 import {
     findClosestTime,
@@ -29,14 +29,14 @@ import { EntityName } from "coreTable/CoreTableConstants"
 import {
     GeoFeature,
     MapBracket,
-    MapChartOptionsProvider,
+    MapChartManager,
     MapEntity,
     ChoroplethMapProps,
     RenderFeature,
     ChoroplethMarks,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
@@ -57,7 +57,7 @@ const PROJECTION_CHOOSER_HEIGHT = 22
 
 interface MapChartWithLegendProps {
     bounds?: Bounds
-    options: MapChartOptionsProvider
+    manager: MapChartManager
     containerElement?: HTMLDivElement
 }
 
@@ -66,9 +66,9 @@ export class MapChartWithLegend
     extends React.Component<MapChartWithLegendProps>
     implements
         ChartInterface,
-        CategoricalColorLegendOptionsProvider,
-        NumericColorLegendOptionsProvider,
-        ColorScaleOptionsProvider {
+        CategoricalColorLegendManager,
+        NumericColorLegendManager,
+        ColorScaleManager {
     @observable.ref tooltip: React.ReactNode | null = null
     @observable tooltipTarget?: { x: number; y: number; featureId: string }
 
@@ -81,7 +81,7 @@ export class MapChartWithLegend
     }
 
     @computed get mapColumn() {
-        return this.table.get(this.options.mapColumnSlug)
+        return this.table.get(this.manager.mapColumnSlug)
     }
 
     @computed get bounds() {
@@ -110,12 +110,12 @@ export class MapChartWithLegend
         this.tooltipTarget = undefined
     }
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed get table() {
-        return this.options.table
+        return this.manager.table
     }
 
     @computed get rootTable() {
@@ -124,7 +124,7 @@ export class MapChartWithLegend
 
     // Determine if we can go to line chart by clicking on a given map entity
     private isEntityClickable(entityName?: EntityName) {
-        if (!this.options.mapIsClickable || !entityName) return false
+        if (!this.manager.mapIsClickable || !entityName) return false
 
         return this.table.availableEntityNameSet.has(entityName)
     }
@@ -135,7 +135,7 @@ export class MapChartWithLegend
 
         if (!ev.shiftKey) {
             this.rootTable.setSelectedEntities([entityName])
-            this.options.currentTab = "chart"
+            this.manager.currentTab = "chart"
         } else this.rootTable.toggleSelection(entityName)
     }
 
@@ -153,7 +153,7 @@ export class MapChartWithLegend
     }
 
     @computed get mapConfig() {
-        return this.options.mapConfig || new MapConfig()
+        return this.manager.mapConfig || new MapConfig()
     }
 
     @action.bound onProjectionChange(value: MapProjection) {
@@ -161,7 +161,7 @@ export class MapChartWithLegend
     }
 
     @computed get marks() {
-        const { options, mapConfig, mapColumn } = this
+        const { manager, mapConfig, mapColumn } = this
         const column = mapColumn
         if (!column) return {}
         const endTime = column.endTimelineTime
@@ -175,7 +175,7 @@ export class MapChartWithLegend
         )
 
         const marks: ChoroplethMarks = {}
-        const selectedEntityNames = options.table.selectedEntityNameSet
+        const selectedEntityNames = manager.table.selectedEntityNameSet
 
         const customLabels = mapConfig.tooltipUseCustomLabels
             ? this.colorScale.customNumericLabels
@@ -274,7 +274,7 @@ export class MapChartWithLegend
     }
 
     @computed get fontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get numericLegendData() {
@@ -368,11 +368,11 @@ export class MapChartWithLegend
     }
 
     @computed get categoryLegend(): CategoricalColorLegend {
-        return new CategoricalColorLegend({ options: this })
+        return new CategoricalColorLegend({ manager: this })
     }
 
     @computed get numericLegend(): NumericColorLegend {
-        return new NumericColorLegend({ options: this })
+        return new NumericColorLegend({ manager: this })
     }
 
     @computed get legendX() {
@@ -410,8 +410,8 @@ export class MapChartWithLegend
 
         return (
             <g className="mapLegend">
-                {numericLegend && <NumericColorLegend options={this} />}
-                {categoryLegend && <CategoricalColorLegend options={this} />}
+                {numericLegend && <NumericColorLegend manager={this} />}
+                {categoryLegend && <CategoricalColorLegend manager={this} />}
                 {mainLegendLabel.render(
                     bounds.centerX - mainLegendLabel.width / 2,
                     bounds.bottom - mainLegendLabel.height
@@ -465,7 +465,7 @@ export class MapChartWithLegend
                             tooltipTarget?.featureId
                         )}
                         tooltipTarget={tooltipTarget}
-                        options={this.options}
+                        manager={this.manager}
                         colorScale={this.colorScale}
                     />
                 )}

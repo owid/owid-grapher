@@ -2,11 +2,11 @@ import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
-import { TooltipProps, TooltipProvider } from "./TooltipProps"
+import { TooltipProps, TooltipManager } from "./TooltipProps"
 
 @observer
 export class TooltipView extends React.Component<{
-    tooltipProvider: TooltipProvider
+    tooltipProvider: TooltipManager
     width: number
     height: number
 }> {
@@ -89,11 +89,11 @@ export class Tooltip extends React.Component<TooltipProps> {
     }
 
     @action.bound private connectTooltipToContainer() {
-        this.props.tooltipProvider.tooltip = this.props
+        this.props.tooltipManager.tooltip = this.props
     }
 
     @action.bound private removeToolTipFromContainer() {
-        this.props.tooltipProvider.tooltip = undefined
+        this.props.tooltipManager.tooltip = undefined
     }
 
     componentDidUpdate() {

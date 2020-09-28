@@ -15,12 +15,12 @@ import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { Text } from "grapher/text/Text"
 import {
     VerticalColorLegend,
-    VerticalColorLegendOptionsProvider,
+    VerticalColorLegendManager,
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { BASE_FONT_SIZE, TimeRange } from "grapher/core/GrapherConstants"
-import { ColorScale, ColorScaleOptionsProvider } from "grapher/color/ColorScale"
+import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
@@ -90,12 +90,9 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 export class StackedBarChart
     extends React.Component<{
         bounds?: Bounds
-        options: ChartOptionsProvider
+        manager: ChartManager
     }>
-    implements
-        ChartInterface,
-        VerticalColorLegendOptionsProvider,
-        ColorScaleOptionsProvider {
+    implements ChartInterface, VerticalColorLegendManager, ColorScaleManager {
     base!: SVGGElement
     readonly minBarSpacing = 4
 
@@ -104,15 +101,15 @@ export class StackedBarChart
     // current hovered individual bar
     @observable hoverBar?: StackedBarPoint
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
     @computed get bounds() {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get baseFontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get tickFontSize() {
@@ -188,7 +185,7 @@ export class StackedBarChart
     }
 
     @computed get fontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get colorBins() {
@@ -216,7 +213,7 @@ export class StackedBarChart
     }
 
     @computed private get legendDimensions(): VerticalColorLegend {
-        return new VerticalColorLegend({ options: this })
+        return new VerticalColorLegend({ manager: this })
     }
 
     @computed get tooltip() {
@@ -236,7 +233,7 @@ export class StackedBarChart
 
         return (
             <Tooltip
-                tooltipProvider={this.props.options}
+                tooltipManager={this.props.manager}
                 x={xPos + barWidth}
                 y={yPos}
                 style={{ textAlign: "center" }}
@@ -265,7 +262,7 @@ export class StackedBarChart
                     in
                     <br />
                     <span>
-                        {this.options.table.timeColumnFormatFunction(
+                        {this.manager.table.timeColumnFormatFunction(
                             hoverBar.x
                         )}
                     </span>
@@ -367,7 +364,7 @@ export class StackedBarChart
         if (this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.options}
+                    manager={this.manager}
                     bounds={this.bounds}
                     message={this.failMessage}
                 />
@@ -411,7 +408,7 @@ export class StackedBarChart
                 <VerticalAxisComponent
                     bounds={bounds}
                     verticalAxis={verticalAxis}
-                    isInteractive={this.options.isInteractive}
+                    isInteractive={this.manager.isInteractive}
                 />
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}
@@ -488,7 +485,7 @@ export class StackedBarChart
                     })}
                 </g>
 
-                <VerticalColorLegend options={this} />
+                <VerticalColorLegend manager={this} />
                 {tooltip}
             </g>
         )
@@ -521,31 +518,31 @@ export class StackedBarChart
 
     @computed private get yColumn() {
         return this.table.get(
-            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
         )
     }
 
     // TODO: Make XAxis generic
     @computed get horizontalAxis() {
-        const { options } = this
+        const { manager } = this
         const { startTimelineTime, endTimelineTime } = this.yColumn!
         const axis = this.xAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             startTimelineTime,
             endTimelineTime,
         ])
-        axis.formatColumn = options.table.timeColumn
+        axis.formatColumn = manager.table.timeColumn
         axis.hideGridlines = true
         axis.hideFractionalTicks = true
         return axis
     }
 
     @computed get yAxis() {
-        return this.options.yAxis || new AxisConfig(undefined, this)
+        return this.manager.yAxis || new AxisConfig(undefined, this)
     }
 
     @computed get xAxis() {
-        return this.options.xAxis || new AxisConfig(undefined, this)
+        return this.manager.xAxis || new AxisConfig(undefined, this)
     }
 
     @computed get verticalAxis() {
@@ -574,7 +571,7 @@ export class StackedBarChart
     }
 
     @computed get colorScaleConfig() {
-        return this.options.colorScale ?? new ColorScaleConfig()
+        return this.manager.colorScale ?? new ColorScaleConfig()
     }
 
     defaultBaseColorScheme = "stackedAreaDefault"
@@ -585,13 +582,13 @@ export class StackedBarChart
     }
 
     @computed get table() {
-        let table = this.options.table
+        let table = this.manager.table
         table = table.filterBySelectedOnly()
         return table
     }
 
     @computed private get yColumns() {
-        return (this.options.yColumnSlugs || []).map(
+        return (this.manager.yColumnSlugs || []).map(
             (slug) => this.table.get(slug)!
         )
     }

@@ -61,13 +61,13 @@ function inverseSortOrder(order: SortOrder): SortOrder {
     return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 }
 
-interface DataTableOptionsProvider {
+interface DataTableManager {
     table: OwidTable
 }
 
 @observer
 export class DataTable extends React.Component<{
-    options: DataTableOptionsProvider
+    manager: DataTableManager
     bounds?: Bounds
 }> {
     @observable private storedState: DataTableState = {
@@ -107,11 +107,11 @@ export class DataTable extends React.Component<{
     }
 
     @computed get table() {
-        return this.options.table
+        return this.manager.table
     }
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed private get entityType() {

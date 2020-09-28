@@ -7,5 +7,5 @@ export default {
 }
 
 export const Default = () => {
-    return <DownloadTab options={{ displaySlug: "some-graph" }} />
+    return <DownloadTab manager={{ displaySlug: "some-graph" }} />
 }

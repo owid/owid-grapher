@@ -33,26 +33,26 @@ class ChartDimensionDefaults implements LegacyChartDimensionInterface {
 }
 
 // todo: remove when we remove dimensions
-export interface LegacyDimensionsOptionsProvider {
+export interface LegacyDimensionsManager {
     table: OwidTable
 }
 
 export class ChartDimension
     extends ChartDimensionDefaults
     implements Persistable {
-    private options: LegacyDimensionsOptionsProvider
+    private manager: LegacyDimensionsManager
 
     constructor(
         obj: LegacyChartDimensionInterface,
-        options: LegacyDimensionsOptionsProvider
+        manager: LegacyDimensionsManager
     ) {
         super()
-        this.options = options
+        this.manager = manager
         if (obj) this.updateFromObject(obj)
     }
 
     @computed private get table() {
-        return this.options.table
+        return this.manager.table
     }
 
     updateFromObject(obj: LegacyChartDimensionInterface) {

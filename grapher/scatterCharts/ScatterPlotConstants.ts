@@ -1,8 +1,8 @@
 import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
-import { NoDataOverlayOptionsProvider } from "grapher/chart/NoDataOverlay"
+import { ChartManager } from "grapher/chart/ChartManager"
+import { NoDataOverlayManager } from "grapher/chart/NoDataOverlay"
 import { ColorScale } from "grapher/color/ColorScale"
 import {
     ScatterPointLabelStrategy,
@@ -11,7 +11,7 @@ import {
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
 
-export interface ScatterPlotOptionsProvider extends ChartOptionsProvider {
+export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
     addCountryMode?: EntitySelectionModes
@@ -106,5 +106,5 @@ export interface PointsWithLabelsProps {
     onMouseLeave: () => void
     onClick: () => void
     hideLines: boolean
-    noDataOverlayOptionsProvider: NoDataOverlayOptionsProvider
+    noDataOverlayManager: NoDataOverlayManager
 }

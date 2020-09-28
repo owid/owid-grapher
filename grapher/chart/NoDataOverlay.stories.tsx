@@ -11,7 +11,7 @@ export const Default = () => {
         <div className="chart" style={{ width: 640, height: 480 }}>
             <NoDataOverlay
                 message="You have no data, but this is only a test"
-                options={{
+                manager={{
                     canChangeEntity: true,
                     canAddData: true,
                     isSelectingData: false,

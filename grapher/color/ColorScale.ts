@@ -22,7 +22,7 @@ import { OwidTable } from "coreTable/OwidTable"
 
 const NO_DATA_LABEL = "No data"
 
-export interface ColorScaleOptionsProvider {
+export interface ColorScaleManager {
     colorScaleConfig: ColorScaleConfigInterface
     categoricalValues: string[]
     hasNoDataBin: boolean
@@ -33,15 +33,15 @@ export interface ColorScaleOptionsProvider {
 }
 
 export class ColorScale {
-    private options: Readonly<ColorScaleOptionsProvider>
-    constructor(options: ColorScaleOptionsProvider) {
-        this.options = options
+    private manager: Readonly<ColorScaleManager>
+    constructor(manager: ColorScaleManager) {
+        this.manager = manager
     }
 
     // Config accessors
 
     @computed get config() {
-        return this.options.colorScaleConfig
+        return this.manager.colorScaleConfig
     }
 
     @computed get customNumericValues() {
@@ -86,7 +86,7 @@ export class ColorScale {
     @computed get baseColorScheme() {
         return (
             this.config.baseColorScheme ??
-            this.options.defaultBaseColorScheme ??
+            this.manager.defaultBaseColorScheme ??
             "BuGn"
         )
     }
@@ -96,15 +96,15 @@ export class ColorScale {
     }
 
     @computed private get defaultNoDataColor() {
-        return this.options.defaultNoDataColor ?? "#eee"
+        return this.manager.defaultNoDataColor ?? "#eee"
     }
 
     @computed get colorScaleColumn() {
-        return this.options.colorScaleColumn
+        return this.manager.colorScaleColumn
     }
 
     @computed get formatCategoricalValue(): (v: string) => string {
-        return this.options.table?.getLabelForEntityName ?? identity
+        return this.manager.table?.getLabelForEntityName ?? identity
     }
 
     @computed get legendDescription() {
@@ -114,7 +114,7 @@ export class ColorScale {
     // Transforms
 
     @computed private get hasNoDataBin() {
-        return this.options.hasNoDataBin
+        return this.manager.hasNoDataBin
     }
 
     @computed get sortedNumericValues() {
@@ -130,7 +130,7 @@ export class ColorScale {
     }
 
     @computed private get categoricalValues() {
-        return this.options.categoricalValues
+        return this.manager.categoricalValues
     }
 
     @computed private get colorScheme() {

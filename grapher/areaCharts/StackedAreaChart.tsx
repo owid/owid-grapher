@@ -28,14 +28,14 @@ import { DualAxis } from "grapher/axis/Axis"
 import {
     LineLabelMark,
     LineLegend,
-    LineLegendOptionsProvider,
+    LineLegendManager,
 } from "grapher/lineLegend/LineLegend"
 import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -222,13 +222,13 @@ class Areas extends React.Component<AreasProps> {
 export class StackedAreaChart
     extends React.Component<{
         bounds?: Bounds
-        options: ChartOptionsProvider
+        manager: ChartManager
     }>
-    implements ChartInterface, LineLegendOptionsProvider {
+    implements ChartInterface, LineLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed private get options() {
-        return this.props.options
+    @computed private get manager() {
+        return this.props.manager
     }
 
     @computed get bounds() {
@@ -253,7 +253,7 @@ export class StackedAreaChart
             .map((d, i) => ({
                 color: d.color,
                 lineName: d.entityName,
-                label: this.options.table.getLabelForEntityName(d.entityName),
+                label: this.manager.table.getLabelForEntityName(d.entityName),
                 yValue: midpoints[i],
             }))
             .reverse()
@@ -265,12 +265,12 @@ export class StackedAreaChart
     }
 
     @computed get fontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get legendDimensions(): LineLegend | undefined {
-        if (this.options.hideLegend) return undefined
-        return new LineLegend({ options: this })
+        if (this.manager.hideLegend) return undefined
+        return new LineLegend({ manager: this })
     }
 
     @observable hoverIndex?: number
@@ -280,8 +280,8 @@ export class StackedAreaChart
 
     @observable hoverKey?: string
     @action.bound onLegendClick() {
-        if (this.options.showAddEntityControls)
-            this.options.isSelectingData = true
+        if (this.manager.showAddEntityControls)
+            this.manager.isSelectingData = true
     }
 
     @computed private get dualAxis() {
@@ -322,7 +322,7 @@ export class StackedAreaChart
     @computed private get tooltip() {
         if (this.hoverIndex === undefined) return undefined
 
-        const { hoverIndex, dualAxis, options, marks } = this
+        const { hoverIndex, dualAxis, manager, marks } = this
 
         // Grab the first value to get the year from
         const refValue = marks[0].points[hoverIndex]
@@ -339,7 +339,7 @@ export class StackedAreaChart
 
         return (
             <Tooltip
-                tooltipProvider={this.props.options}
+                tooltipManager={this.props.manager}
                 x={dualAxis.horizontalAxis.place(refValue.x)}
                 y={
                     dualAxis.verticalAxis.rangeMin +
@@ -353,7 +353,7 @@ export class StackedAreaChart
                         <tr>
                             <td>
                                 <strong>
-                                    {this.options.table.timeColumnFormatFunction(
+                                    {this.manager.table.timeColumnFormatFunction(
                                         refValue.x
                                     )}
                                 </strong>
@@ -384,7 +384,7 @@ export class StackedAreaChart
                                                 backgroundColor: blockColor,
                                             }}
                                         />{" "}
-                                        {options.table.getLabelForEntityName(
+                                        {manager.table.getLabelForEntityName(
                                             series.entityName
                                         )}
                                     </td>
@@ -462,15 +462,15 @@ export class StackedAreaChart
         if (this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.options}
+                    manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.failMessage}
                 />
             )
 
-        const { options, bounds, dualAxis, renderUid, marks } = this
+        const { manager, bounds, dualAxis, renderUid, marks } = this
 
-        const showLegend = !this.options.hideLegend
+        const showLegend = !this.manager.hideLegend
 
         return (
             <g ref={this.base} className="StackedArea">
@@ -485,12 +485,12 @@ export class StackedAreaChart
                     </clipPath>
                 </defs>
                 <DualAxisComponent
-                    isInteractive={options.isInteractive}
+                    isInteractive={manager.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
-                    {showLegend && <LineLegend options={this} />}
+                    {showLegend && <LineLegend manager={this} />}
                     <Areas
                         dualAxis={dualAxis}
                         seriesArr={marks}
@@ -519,18 +519,18 @@ export class StackedAreaChart
     }
 
     @computed private get horizontalAxisPart() {
-        const { options } = this
+        const { manager } = this
         const { startTimelineTime, endTimelineTime } = this.yColumn!
         const xAxisConfig =
-            this.options.xAxis || new AxisConfig(undefined, this)
-        if (this.options.hideXAxis) xAxisConfig.hideAxis = true
+            this.manager.xAxis || new AxisConfig(undefined, this)
+        if (this.manager.hideXAxis) xAxisConfig.hideAxis = true
 
         const axis = xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             startTimelineTime,
             endTimelineTime,
         ])
-        axis.formatColumn = options.table.timeColumn
+        axis.formatColumn = manager.table.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
@@ -545,9 +545,9 @@ export class StackedAreaChart
 
         const yValues = this.allStackedValues.map((d) => d.y)
         const yAxisConfig =
-            this.options.yAxis || new AxisConfig(undefined, this)
+            this.manager.yAxis || new AxisConfig(undefined, this)
 
-        if (this.options.hideYAxis) yAxisConfig.hideAxis = true
+        if (this.manager.hideYAxis) yAxisConfig.hideAxis = true
 
         const axis = yAxisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
@@ -563,38 +563,38 @@ export class StackedAreaChart
 
     @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-        const colorScheme = ColorSchemes[this.options.baseColorScheme as string]
+        const colorScheme = ColorSchemes[this.manager.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
     @computed get table() {
-        let table = this.options.table
+        let table = this.manager.table
         table = table.filterBySelectedOnly()
 
-        if (this.options.isRelativeMode)
+        if (this.manager.isRelativeMode)
             table = table.toRelatives(this.yColumnSlugs)
         return table
     }
 
     @computed private get yColumn() {
         return this.table.get(
-            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
         )
     }
 
     @computed private get yColumnSlugs() {
-        return this.options.yColumnSlugs
-            ? this.options.yColumnSlugs
-            : this.options.yColumnSlug
-            ? [this.options.yColumnSlug]
+        return this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs
+            : this.manager.yColumnSlug
+            ? [this.manager.yColumnSlug]
             : []
     }
 
     @computed private get yColumns() {
-        return this.options.yColumnSlugs
-            ? this.options.yColumnSlugs.map((slug) => this.table.get(slug)!)
+        return this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs.map((slug) => this.table.get(slug)!)
             : [this.yColumn!]
     }
 
@@ -629,7 +629,7 @@ export class StackedAreaChart
 
     @computed get colorScale() {
         const baseColors = this.colorScheme.getColors(this.yColumns.length)
-        if (this.options.invertColorScheme) baseColors.reverse()
+        if (this.manager.invertColorScheme) baseColors.reverse()
         return scaleOrdinal(baseColors)
     }
 

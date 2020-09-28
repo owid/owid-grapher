@@ -2,11 +2,11 @@
 
 import { StackedAreaChart } from "./StackedAreaChart"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 
-class MockOptions implements ChartOptionsProvider {
+class MockManager implements ChartManager {
     table = SynthesizeOwidTable({
         timeRange: [1950, 2010],
     })
@@ -17,23 +17,23 @@ class MockOptions implements ChartOptionsProvider {
 
 describe(StackedAreaChart, () => {
     it("can create a basic chart", () => {
-        const options = new MockOptions()
-        const chart = new StackedAreaChart({ options })
+        const manager = new MockManager()
+        const chart = new StackedAreaChart({ manager })
 
         expect(chart.failMessage).toBeTruthy()
 
-        options.table.selectAll()
+        manager.table.selectAll()
 
         expect(chart.failMessage).toEqual("")
     })
 
     it("can create a chart and toggle relative mode", () => {
-        const options = new MockOptions()
-        const chart = new StackedAreaChart({ options })
+        const manager = new MockManager()
+        const chart = new StackedAreaChart({ manager })
 
         expect(chart.verticalAxis.domain[1]).toBeGreaterThan(100)
 
-        options.isRelativeMode = true
+        manager.isRelativeMode = true
         expect(chart.verticalAxis.domain).toEqual([0, 100])
     })
 })

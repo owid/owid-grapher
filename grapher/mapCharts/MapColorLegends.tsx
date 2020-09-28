@@ -52,7 +52,7 @@ interface MarkLine {
     marks: CategoricalMark[]
 }
 
-interface ColorLegendOptionsProvider {
+interface ColorLegendManager {
     fontSize?: number
     legendX?: number
     legendY?: number
@@ -61,16 +61,14 @@ interface ColorLegendOptionsProvider {
     onLegendMouseLeave?: () => void
 }
 
-export interface CategoricalColorLegendOptionsProvider
-    extends ColorLegendOptionsProvider {
+export interface CategoricalColorLegendManager extends ColorLegendManager {
     scale?: number
     categoricalLegendData: CategoricalBin[]
     categoricalFocusBracket?: CategoricalBin
     onLegendMouseOver?: (d: CategoricalBin) => void
 }
 
-export interface NumericColorLegendOptionsProvider
-    extends ColorLegendOptionsProvider {
+export interface NumericColorLegendManager extends ColorLegendManager {
     numericLegendData: ColorScaleBin[]
     numericFocusBracket?: ColorScaleBin
     equalSizeBins?: true
@@ -79,36 +77,36 @@ export interface NumericColorLegendOptionsProvider
 
 @observer
 export class NumericColorLegend extends React.Component<{
-    options: NumericColorLegendOptionsProvider
+    manager: NumericColorLegendManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed get legendX() {
-        return this.options.legendX ?? 0
+        return this.manager.legendX ?? 0
     }
 
     @computed get legendY() {
-        return this.options.legendY ?? 0
+        return this.manager.legendY ?? 0
     }
 
     @computed get legendWidth() {
-        return this.options.legendWidth ?? 200
+        return this.manager.legendWidth ?? 200
     }
 
     @computed get legendHeight() {
-        return this.options.legendHeight ?? 200
+        return this.manager.legendHeight ?? 200
     }
 
     @computed get fontSize() {
-        return this.options.fontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get numericBins() {
-        return this.options.numericLegendData.filter(
+        return this.manager.numericLegendData.filter(
             (bin) => bin instanceof NumericBin
         ) as NumericBin[]
     }
@@ -136,7 +134,7 @@ export class NumericColorLegend extends React.Component<{
         return this.rectHeight * 1.5
     }
     @computed get totalCategoricalWidth() {
-        const { numericLegendData } = this.options
+        const { numericLegendData } = this.manager
         const { categoryBinWidth, categoryBinMargin } = this
         const widths = numericLegendData.map((bin) =>
             bin instanceof CategoricalBin
@@ -151,7 +149,7 @@ export class NumericColorLegend extends React.Component<{
 
     @computed get positionedBins() {
         const {
-            options,
+            manager,
             rangeSize,
             categoryBinWidth,
             categoryBinMargin,
@@ -160,11 +158,11 @@ export class NumericColorLegend extends React.Component<{
         } = this
         let xOffset = 0
 
-        return options.numericLegendData.map((bin) => {
+        return manager.numericLegendData.map((bin) => {
             let width = categoryBinWidth
             let margin = categoryBinMargin
             if (bin instanceof NumericBin) {
-                if (options.equalSizeBins)
+                if (manager.equalSizeBins)
                     width = availableNumericWidth / numericBins.length
                 else
                     width =
@@ -287,8 +285,8 @@ export class NumericColorLegend extends React.Component<{
     }
 
     @action.bound onMouseMove(ev: MouseEvent | TouchEvent) {
-        const { options, base, positionedBins } = this
-        const { numericFocusBracket } = options
+        const { manager, base, positionedBins } = this
+        const { numericFocusBracket } = manager
         const mouse = getRelativeMouse(base.current, ev)
 
         // We implement onMouseMove and onMouseLeave in a custom way, without attaching them to
@@ -300,8 +298,8 @@ export class NumericColorLegend extends React.Component<{
 
         // If outside legend bounds, trigger onMouseLeave if there is an existing bin in focus.
         if (!this.bounds.contains(mouse)) {
-            if (numericFocusBracket && options.onLegendMouseLeave)
-                return options.onLegendMouseLeave()
+            if (numericFocusBracket && manager.onLegendMouseLeave)
+                return manager.onLegendMouseLeave()
             return
         }
 
@@ -315,8 +313,8 @@ export class NumericColorLegend extends React.Component<{
                 newFocusBracket = d.bin
         })
 
-        if (newFocusBracket && options.onLegendMouseOver)
-            options.onLegendMouseOver(newFocusBracket)
+        if (newFocusBracket && manager.onLegendMouseOver)
+            manager.onLegendMouseOver(newFocusBracket)
     }
 
     componentDidMount() {
@@ -337,13 +335,13 @@ export class NumericColorLegend extends React.Component<{
 
     render() {
         const {
-            options,
+            manager,
             numericLabels,
             rectHeight,
             positionedBins,
             height,
         } = this
-        const { numericFocusBracket } = options
+        const { numericFocusBracket } = manager
         //Bounds.debug([this.bounds])
 
         const borderColor = "#333"
@@ -410,34 +408,34 @@ export class NumericColorLegend extends React.Component<{
 
 @observer
 export class CategoricalColorLegend extends React.Component<{
-    options: CategoricalColorLegendOptionsProvider
+    manager: CategoricalColorLegendManager
 }> {
-    @computed get options() {
-        return this.props.options
+    @computed get manager() {
+        return this.props.manager
     }
 
     @computed get legendX() {
-        return this.options.legendX ?? 0
+        return this.manager.legendX ?? 0
     }
 
     @computed get legendY() {
-        return this.options.legendY ?? 0
+        return this.manager.legendY ?? 0
     }
 
     @computed get legendWidth() {
-        return this.options.legendWidth ?? 200
+        return this.manager.legendWidth ?? 200
     }
 
     @computed get legendHeight() {
-        return this.options.legendHeight ?? 200
+        return this.manager.legendHeight ?? 200
     }
 
     @computed get fontSize() {
-        return this.options.fontSize ?? BASE_FONT_SIZE
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed private get markLines() {
-        const options = this.options
+        const options = this.manager
         const scale = options.scale ?? 1
         const rectSize = 12 * scale
         const rectPadding = 5
@@ -515,8 +513,8 @@ export class CategoricalColorLegend extends React.Component<{
     }
 
     render() {
-        const { options, marks } = this
-        const { categoricalFocusBracket } = options
+        const { manager, marks } = this
+        const { categoricalFocusBracket } = manager
 
         return (
             <g className="mapLegend">
@@ -530,13 +528,13 @@ export class CategoricalColorLegend extends React.Component<{
                             <g
                                 key={i}
                                 onMouseOver={() =>
-                                    options.onLegendMouseOver
-                                        ? options.onLegendMouseOver(mark.bin)
+                                    manager.onLegendMouseOver
+                                        ? manager.onLegendMouseOver(mark.bin)
                                         : undefined
                                 }
                                 onMouseLeave={() =>
-                                    options.onLegendMouseLeave
-                                        ? options.onLegendMouseLeave()
+                                    manager.onLegendMouseLeave
+                                        ? manager.onLegendMouseLeave()
                                         : undefined
                                 }
                             >

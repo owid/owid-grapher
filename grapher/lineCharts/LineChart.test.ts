@@ -6,13 +6,13 @@ import { SynthesizeOwidTable } from "coreTable/OwidTable"
 describe(LineChart, () => {
     const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
 
-    const options = {
+    const manager = {
         table,
         yColumnSlugs: ["GDP"],
     }
 
     it("can create a new chart", () => {
-        const chart = new LineChart({ options })
+        const chart = new LineChart({ manager })
 
         expect(chart.failMessage).toBeTruthy()
         table.selectAll()

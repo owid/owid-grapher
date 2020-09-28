@@ -1,7 +1,7 @@
 import { DualAxis } from "grapher/axis/Axis"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import * as React from "react"
-import { LineLegend, LineLegendOptionsProvider } from "./LineLegend"
+import { LineLegend, LineLegendManager } from "./LineLegend"
 
 export default {
     title: "LineLegend",
@@ -25,7 +25,7 @@ const dualAxis = new DualAxis({
 
 const collidingNumber = 50
 
-const options: LineLegendOptionsProvider = {
+const manager: LineLegendManager = {
     labelMarks: [
         {
             lineName: "Canada",
@@ -57,7 +57,7 @@ const options: LineLegendOptionsProvider = {
 export const Default = () => {
     return (
         <svg width={600} height={400}>
-            <LineLegend options={options} />
+            <LineLegend manager={manager} />
         </svg>
     )
 }

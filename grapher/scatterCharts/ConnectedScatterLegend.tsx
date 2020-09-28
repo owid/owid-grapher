@@ -4,7 +4,7 @@ import { Triangle } from "./Triangle"
 import { TextWrap } from "grapher/text/TextWrap"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
-export interface ConnectedScatterLegendOptionsProvider {
+export interface ConnectedScatterLegendManager {
     maxLegendWidth: number
     displayStartTime: string
     displayEndTime: string
@@ -13,41 +13,41 @@ export interface ConnectedScatterLegendOptionsProvider {
 }
 
 export class ConnectedScatterLegend {
-    options: ConnectedScatterLegendOptionsProvider
-    constructor(options: ConnectedScatterLegendOptionsProvider) {
-        this.options = options
+    manager: ConnectedScatterLegendManager
+    constructor(manager: ConnectedScatterLegendManager) {
+        this.manager = manager
     }
 
     @computed get fontSize() {
-        return 0.7 * (this.options.fontSize ?? BASE_FONT_SIZE)
+        return 0.7 * (this.manager.fontSize ?? BASE_FONT_SIZE)
     }
     @computed get fontColor() {
         return "#333"
     }
     @computed get maxLabelWidth() {
-        return this.options.maxLegendWidth / 3
+        return this.manager.maxLegendWidth / 3
     }
 
     @computed get startLabel() {
-        const { options, maxLabelWidth, fontSize } = this
+        const { manager, maxLabelWidth, fontSize } = this
         return new TextWrap({
-            text: options.displayStartTime,
+            text: manager.displayStartTime,
             fontSize,
             maxWidth: maxLabelWidth,
         })
     }
 
     @computed get endLabel() {
-        const { options, maxLabelWidth, fontSize } = this
+        const { manager, maxLabelWidth, fontSize } = this
         return new TextWrap({
-            text: options.displayEndTime,
+            text: manager.displayEndTime,
             fontSize,
             maxWidth: maxLabelWidth,
         })
     }
 
     @computed get width() {
-        return this.options.maxLegendWidth
+        return this.manager.maxLegendWidth
     }
 
     @computed get height() {
@@ -59,10 +59,10 @@ export class ConnectedScatterLegend {
         targetY: number,
         renderOptions: React.SVGAttributes<SVGGElement> = {}
     ) {
-        const { options, startLabel, endLabel, fontColor } = this
+        const { manager, startLabel, endLabel, fontColor } = this
 
         const lineLeft = targetX + startLabel.width + 5
-        const lineRight = targetX + options.maxLegendWidth - endLabel.width - 5
+        const lineRight = targetX + manager.maxLegendWidth - endLabel.width - 5
         const lineY = targetY + this.height / 2 - 0.5
 
         return (
@@ -77,7 +77,7 @@ export class ConnectedScatterLegend {
                 />
                 {startLabel.render(targetX, targetY, { fill: fontColor })}
                 {endLabel.render(
-                    targetX + options.maxLegendWidth - endLabel.width,
+                    targetX + manager.maxLegendWidth - endLabel.width,
                     targetY,
                     { fill: fontColor }
                 )}
@@ -97,7 +97,7 @@ export class ConnectedScatterLegend {
                     stroke="#ccc"
                     strokeWidth={0.2}
                 />
-                {!options.compareEndpointsOnly && (
+                {!manager.compareEndpointsOnly && (
                     <React.Fragment>
                         <circle
                             cx={lineLeft + (lineRight - lineLeft) / 3}

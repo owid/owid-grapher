@@ -1,7 +1,7 @@
 import * as React from "react"
 import { MapChartWithLegend } from "./MapChartWithLegend"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
-import { MapChartOptionsProvider } from "./MapChartConstants"
+import { MapChartManager } from "./MapChartConstants"
 
 export default {
     title: "MapChartWithLegend",
@@ -14,14 +14,14 @@ export const Default = () => {
         countryCount: 200,
     })
 
-    const options: MapChartOptionsProvider = {
+    const manager: MapChartManager = {
         table,
         mapColumnSlug: "Population",
     }
 
     return (
         <svg width={640} height={480}>
-            <MapChartWithLegend options={options} />
+            <MapChartWithLegend manager={manager} />
         </svg>
     )
 }

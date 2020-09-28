@@ -2,7 +2,7 @@ import * as React from "react"
 import { CountryFacet } from "./FacetChart"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
-import { ChartOptionsProvider } from "grapher/chart/ChartOptionsProvider"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { Bounds } from "grapher/utils/Bounds"
 
 export default {
@@ -21,7 +21,7 @@ export const Default = (args: any) => {
     const table = SynthesizeOwidTable({
         countryCount: (args.countryCount ?? 4) || 1,
     })
-    const options: ChartOptionsProvider = {
+    const manager: ChartManager = {
         table,
         yColumnSlug: "GDP",
         xColumnSlug: "Population",
@@ -38,7 +38,7 @@ export const Default = (args: any) => {
         <CountryFacet
             bounds={bounds}
             chartTypeName={chartType}
-            options={options}
+            manager={manager}
         />
     )
 }

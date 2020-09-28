@@ -8,7 +8,7 @@ import {
 } from "grapher/persistable/Persistable"
 import { AxisConfigInterface } from "./AxisConfigInterface"
 
-export interface FontSizeOptionsProvider {
+export interface FontSizeManager {
     fontSize: number
 }
 
@@ -27,14 +27,14 @@ export class AxisConfig
     // todo: test/refactor
     constructor(
         props?: AxisConfigInterface,
-        fontSizeOptions?: FontSizeOptionsProvider
+        fontSizeOptions?: FontSizeManager
     ) {
         super()
         this.updateFromObject(props)
         this.fontSizeOptions = fontSizeOptions
     }
 
-    private fontSizeOptions?: FontSizeOptionsProvider
+    private fontSizeOptions?: FontSizeManager
     @observable hideAxis = false
 
     // todo: test/refactor

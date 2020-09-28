@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { range } from "grapher/utils/Util"
-import { TimelineController, TimeViz } from "./TimelineController"
+import { TimelineController, TimelineManager } from "./TimelineController"
 
 describe(TimelineController, () => {
     it("can play a timeline", async () => {
-        const subject: TimeViz = {
+        const subject: TimelineManager = {
             times: range(2000, 2010),
             startTime: 2000,
             endTime: 2005,
@@ -45,7 +45,7 @@ describe(TimelineController, () => {
     })
 
     it("can handle when an end handle is dragged past a start handle", () => {
-        const subject: TimeViz = {
+        const subject: TimelineManager = {
             times: range(1900, 2010),
             startTime: 2000,
             endTime: 2005,

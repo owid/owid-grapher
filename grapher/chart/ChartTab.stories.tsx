@@ -1,7 +1,7 @@
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { GrapherTabOption } from "grapher/core/GrapherConstants"
 import * as React from "react"
-import { ChartTab, ChartTabOptionsProvider } from "./ChartTab"
+import { ChartTab, ChartTabManager } from "./ChartTab"
 
 export default {
     title: "ChartTab",
@@ -10,7 +10,7 @@ export default {
 
 const table = SynthesizeOwidTable()
 table.selectAll()
-const options: ChartTabOptionsProvider = {
+const manager: ChartTabManager = {
     table,
     mapColumnSlug: "GDP",
     yColumnSlug: "GDP",
@@ -22,5 +22,5 @@ const options: ChartTabOptionsProvider = {
 }
 
 export const Default = () => {
-    return <ChartTab options={options} />
+    return <ChartTab manager={manager} />
 }

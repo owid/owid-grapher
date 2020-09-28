@@ -20,7 +20,7 @@ import { PointVector } from "grapher/utils/PointVector"
 import {
     LineLegend,
     LineLabelMark,
-    LineLegendOptionsProvider,
+    LineLegendManager,
 } from "grapher/lineLegend/LineLegend"
 import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
@@ -39,9 +39,8 @@ import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
     LinesProps,
     LineChartMark,
-    LineChartOptionsProvider,
+    LineChartManager,
 } from "./LineChartConstants"
-import { PlainObjectToNewEntityTransformer } from "typeorm/query-builder/transformer/PlainObjectToNewEntityTransformer"
 
 const BLUR_COLOR = "#eee"
 
@@ -216,9 +215,9 @@ class Lines extends React.Component<LinesProps> {
 export class LineChart
     extends React.Component<{
         bounds?: Bounds
-        options: LineChartOptionsProvider
+        manager: LineChartManager
     }>
-    implements ChartInterface, LineLegendOptionsProvider {
+    implements ChartInterface, LineLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @observable hoverX?: number
@@ -226,8 +225,8 @@ export class LineChart
         this.hoverX = hoverX
     }
 
-    @computed private get options() {
-        return this.props.options
+    @computed private get manager() {
+        return this.props.manager
     }
 
     @computed get bounds() {
@@ -254,11 +253,11 @@ export class LineChart
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = this.options.table.timeColumnFormatFunction(hoverX)
+        const formatted = this.manager.table.timeColumnFormatFunction(hoverX)
 
         return (
             <Tooltip
-                tooltipProvider={this.options}
+                tooltipManager={this.manager}
                 x={dualAxis.horizontalAxis.place(hoverX)}
                 y={
                     dualAxis.verticalAxis.rangeMin +
@@ -339,7 +338,7 @@ export class LineChart
                                             fontSize: "0.9em",
                                         }}
                                     >
-                                        {this.options.table.getLabelForEntityName(
+                                        {this.manager.table.getLabelForEntityName(
                                             series.lineName
                                         )}
                                         {annotation && (
@@ -381,8 +380,8 @@ export class LineChart
 
     @observable hoveredLineName?: LineName
     @action.bound onLegendClick() {
-        if (this.options.showAddEntityControls)
-            this.options.isSelectingData = true
+        if (this.manager.showAddEntityControls)
+            this.manager.isSelectingData = true
     }
 
     @action.bound onLegendMouseOver(lineName: LineName) {
@@ -430,7 +429,7 @@ export class LineChart
     }
 
     @computed get fontSize() {
-        return this.options.baseFontSize ?? BASE_FONT_SIZE
+        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get legendX(): number {
@@ -438,9 +437,9 @@ export class LineChart
     }
 
     @computed private get legendDimensions() {
-        return this.options.hideLegend
+        return this.manager.hideLegend
             ? undefined
-            : new LineLegend({ options: this })
+            : new LineLegend({ manager: this })
     }
 
     render() {
@@ -448,17 +447,17 @@ export class LineChart
             console.log(this.failMessage)
             return (
                 <NoDataOverlay
-                    options={this.options}
+                    manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.failMessage}
                 />
             )
         }
 
-        const { options, bounds, tooltip, dualAxis, renderUid, hoverX } = this
+        const { manager, bounds, tooltip, dualAxis, renderUid, hoverX } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        const comparisonLines = options.comparisonLines || []
+        const comparisonLines = manager.comparisonLines || []
 
         return (
             <g ref={this.base} className="LineChart">
@@ -474,7 +473,7 @@ export class LineChart
                     </clipPath>
                 </defs>
                 <DualAxisComponent
-                    isInteractive={this.options.isInteractive}
+                    isInteractive={this.manager.isInteractive}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />
@@ -486,14 +485,14 @@ export class LineChart
                             comparisonLine={line}
                         />
                     ))}
-                    <LineLegend options={this} />
+                    <LineLegend manager={this} />
                     <Lines
                         dualAxis={dualAxis}
                         placedMarks={this.placedMarks}
-                        hidePoints={this.options.hidePoints}
+                        hidePoints={this.manager.hidePoints}
                         onHover={this.onHover}
                         focusedLineNames={this.focusedLineNames}
-                        lineStrokeWidth={this.options.lineStrokeWidth}
+                        lineStrokeWidth={this.manager.lineStrokeWidth}
                     />
                 </g>
                 {hoverX !== undefined && (
@@ -539,13 +538,13 @@ export class LineChart
 
     @computed private get yColumn() {
         return this.table.get(
-            this.options.yColumnSlug ?? this.options.yColumnSlugs![0]
+            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
         )
     }
 
     @computed private get yColumns() {
-        return this.options.yColumnSlugs
-            ? this.options.yColumnSlugs.map((slug) => this.table.get(slug)!)
+        return this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs.map((slug) => this.table.get(slug)!)
             : [this.yColumn!]
     }
 
@@ -555,24 +554,24 @@ export class LineChart
 
     // todo: make work again
     @computed private get annotationsColumn() {
-        return this.options.table.get("annotations")
+        return this.manager.table.get("annotations")
     }
 
     @computed private get colorScheme() {
-        const colorScheme = ColorSchemes[this.options.baseColorScheme as string]
+        const colorScheme = ColorSchemes[this.manager.baseColorScheme as string]
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["owid-distinct"] as ColorScheme)
     }
 
     @computed get table() {
-        let table = this.options.table.filterBySelectedOnly()
+        let table = this.manager.table.filterBySelectedOnly()
 
         table = table.filterByFullColumnsOnly(this.yColumnSlugs) // TODO: instead of this, just filter indvidaul points.
 
-        if (this.options.isRelativeMode)
+        if (this.manager.isRelativeMode)
             table = table.toTimeRelatives(
-                this.options.table.minTime!,
+                this.manager.table.minTime!,
                 this.yColumnSlugs
             )
         ;(window as any).table2 = table
@@ -580,10 +579,10 @@ export class LineChart
     }
 
     @computed private get yColumnSlugs() {
-        return this.options.yColumnSlugs
-            ? this.options.yColumnSlugs
-            : this.options.yColumnSlug
-            ? [this.options.yColumnSlug]
+        return this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs
+            : this.manager.yColumnSlug
+            ? [this.manager.yColumnSlug]
             : []
     }
 
@@ -642,9 +641,9 @@ export class LineChart
         const sorted = sortBy(allSeries, (series) => last(series.points)!.y)
 
         const colors = this.colorScheme.getColors(sorted.length)
-        if (this.options.invertColorScheme) colors.reverse()
+        if (this.manager.invertColorScheme) colors.reverse()
 
-        const table = this.options.table
+        const table = this.manager.table
 
         sorted.forEach((series, i) => {
             series.color =
@@ -673,7 +672,7 @@ export class LineChart
                 color: series.color,
                 lineName: series.lineName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: this.options.hideLegend
+                label: this.manager.hideLegend
                     ? ""
                     : `${this.table.getLabelForEntityName(series.lineName)}`,
                 annotation: this.getAnnotationsForSeries(series.lineName),
@@ -701,9 +700,9 @@ export class LineChart
 
     @computed private get horizontalAxisPart() {
         const xAxisConfig =
-            this.options.xAxis || new AxisConfig(undefined, this)
+            this.manager.xAxis || new AxisConfig(undefined, this)
 
-        if (this.options.hideXAxis) xAxisConfig.hideAxis = true
+        if (this.manager.hideXAxis) xAxisConfig.hideAxis = true
 
         const axis = xAxisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
@@ -712,19 +711,19 @@ export class LineChart
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
-        axis.formatColumn = this.options.table.timeColumn
+        axis.formatColumn = this.manager.table.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis
     }
 
     @computed private get verticalAxisPart() {
-        const { options } = this
+        const { manager } = this
 
         const yAxisConfig =
-            this.options.yAxis || new AxisConfig(undefined, this)
+            this.manager.yAxis || new AxisConfig(undefined, this)
 
-        if (this.options.hideYAxis) yAxisConfig.hideAxis = true
+        if (this.manager.hideYAxis) yAxisConfig.hideAxis = true
 
         const yDomain = this.table.domainFor(this.yColumnSlugs)
         const domain = yAxisConfig.domain
@@ -735,7 +734,7 @@ export class LineChart
 
         const axis = yAxisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDefaultDomain)
-        if (options.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
+        if (manager.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.yColumn!.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
         axis.formatColumn = this.yColumn

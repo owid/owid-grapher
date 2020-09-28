@@ -20,7 +20,7 @@ import {
     Log,
     PostReference,
     ChartRedirect,
-    ChartEditorOptionsProvider,
+    ChartEditorManager,
 } from "./ChartEditor"
 import { EditorBasicTab } from "./EditorBasicTab"
 import { EditorDataTab } from "./EditorDataTab"
@@ -85,7 +85,7 @@ export class ChartEditorPage
         newGrapherIndex?: number
         grapherConfig?: any
     }>
-    implements ChartEditorOptionsProvider {
+    implements ChartEditorManager {
     @observable.ref grapher = new Grapher()
     @observable.ref database = new EditorDatabase({})
     @observable logs: Log[] = []
@@ -168,7 +168,7 @@ export class ChartEditorPage
     @computed get editor() {
         if (!this.isReady) return undefined
 
-        return new ChartEditor({ options: this })
+        return new ChartEditor({ manager: this })
     }
 
     @action.bound refresh() {

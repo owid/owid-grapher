@@ -14,11 +14,11 @@ const options = {
 }
 
 export const Default = () => {
-    return <DataTable options={options} />
+    return <DataTable manager={options} />
 }
 
 export const WithTimeTolerance = () => {
     // grapher.timeDomain = [2009, 2017]
     // Todo: how can I get this to show a closest time popup?
-    return <DataTable options={options} />
+    return <DataTable manager={options} />
 }

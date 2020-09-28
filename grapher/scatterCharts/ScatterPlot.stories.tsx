@@ -19,7 +19,7 @@ export const Default = () => {
 
     return (
         <svg width={640} height={480}>
-            <ScatterPlot options={options} />
+            <ScatterPlot manager={options} />
         </svg>
     )
 }

@@ -1,7 +1,7 @@
 import { Time } from "grapher/core/GrapherConstants"
 import { findClosestTime, last } from "grapher/utils/Util"
 
-export interface TimeViz {
+export interface TimelineManager {
     isPlaying: boolean
     times: Time[]
     startTime: Time
@@ -16,10 +16,13 @@ interface TimelineControllerOptions {
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
-    private target: TimeViz
+    private target: TimelineManager
     private options: TimelineControllerOptions
 
-    constructor(target: TimeViz, options: TimelineControllerOptions = {}) {
+    constructor(
+        target: TimelineManager,
+        options: TimelineControllerOptions = {}
+    ) {
         this.target = target
         this.options = options
     }

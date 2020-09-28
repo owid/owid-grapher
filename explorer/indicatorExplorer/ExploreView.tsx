@@ -137,7 +137,7 @@ export class ExploreView extends React.Component<ExploreProps> {
                     {this.renderGrapherComponent()}
                 </div>
                 <div>
-                    <DataTable options={this.grapher} />
+                    <DataTable manager={this.grapher} />
                 </div>
             </ExplorerViewContext.Provider>
         )
