@@ -27,14 +27,14 @@ export class AxisConfig
     // todo: test/refactor
     constructor(
         props?: AxisConfigInterface,
-        fontSizeOptions?: FontSizeManager
+        fontSizeManager?: FontSizeManager
     ) {
         super()
         this.updateFromObject(props)
-        this.fontSizeOptions = fontSizeOptions
+        this.fontSizeManager = fontSizeManager
     }
 
-    private fontSizeOptions?: FontSizeManager
+    private fontSizeManager?: FontSizeManager
     @observable hideAxis = false
 
     // todo: test/refactor
@@ -58,7 +58,7 @@ export class AxisConfig
     }
 
     @computed get fontSize() {
-        return this.fontSizeOptions?.fontSize || BASE_FONT_SIZE
+        return this.fontSizeManager?.fontSize || BASE_FONT_SIZE
     }
 
     // A log scale domain cannot have values <= 0, so we

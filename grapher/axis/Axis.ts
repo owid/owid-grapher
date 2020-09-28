@@ -28,7 +28,7 @@ interface Tickmark {
 }
 
 abstract class AbstractAxis implements ScaleTypeConfig {
-    protected options: AxisConfig
+    protected config: AxisConfig
     @observable.ref domain: ValueRange
     @observable formatColumn?: AbstractCoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
@@ -38,13 +38,13 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     @observable private _label?: string
     @observable private _scaleTypeOptions?: ScaleType[]
 
-    constructor(options: AxisConfig) {
-        this.options = options
-        this.domain = [options.domain[0], options.domain[1]]
+    constructor(config: AxisConfig) {
+        this.config = config
+        this.domain = [config.domain[0], config.domain[1]]
     }
 
     @computed get hideAxis() {
-        return this.options.hideAxis
+        return this.config.hideAxis
     }
 
     // This will change the min unless the user's min setting is less
@@ -58,11 +58,11 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     }
 
     @computed get fontSize() {
-        return this.options.fontSize
+        return this.config.fontSize
     }
 
     @computed get scaleType() {
-        return this._scaleType ?? (this.options.scaleType || ScaleType.linear)
+        return this._scaleType ?? (this.config.scaleType || ScaleType.linear)
     }
 
     set scaleType(value: ScaleType) {
@@ -71,11 +71,11 @@ abstract class AbstractAxis implements ScaleTypeConfig {
 
     // Call this to update the user's setting and change the URL
     @action.bound updateChartScaleType(value: ScaleType) {
-        this.options.scaleType = value
+        this.config.scaleType = value
     }
 
     @computed get label() {
-        return this._label ?? this.options.label
+        return this._label ?? this.config.label
     }
 
     set label(value: string) {
@@ -85,7 +85,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     @computed get scaleTypeOptions() {
         return this._scaleTypeOptions
             ? this._scaleTypeOptions
-            : this.options.canChangeScaleType
+            : this.config.canChangeScaleType
             ? [ScaleType.linear, ScaleType.log]
             : [this.scaleType]
     }
@@ -350,7 +350,7 @@ const labelPadding = 5
 export class HorizontalAxis extends AbstractAxis {
     // todo: test/refactor
     clone() {
-        return new HorizontalAxis(this.options)._update(this)
+        return new HorizontalAxis(this.config)._update(this)
     }
 
     @computed get labelOffset() {
@@ -425,7 +425,7 @@ export class VerticalAxis extends AbstractAxis {
 
     // todo: test/refactor
     clone() {
-        return new VerticalAxis(this.options)._update(this)
+        return new VerticalAxis(this.config)._update(this)
     }
 
     @computed get labelOffset() {

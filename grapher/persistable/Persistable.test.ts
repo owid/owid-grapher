@@ -75,50 +75,48 @@ class Character
     }
 }
 
-describe("basics", () => {
-    it("can serialize empty persistables", () => {
-        const game = new GameBoyGame()
-        expect(game.toObject()).toEqual({})
-    })
+it("can serialize empty persistables", () => {
+    const game = new GameBoyGame()
+    expect(game.toObject()).toEqual({})
+})
 
-    it("can serialize persistables and update them", () => {
-        const game = new GameBoyGame({ title: "SurfTime" })
-        expect(game.toObject()).toEqual({ title: "SurfTime" })
+it("can serialize persistables and update them", () => {
+    const game = new GameBoyGame({ title: "SurfTime" })
+    expect(game.toObject()).toEqual({ title: "SurfTime" })
 
-        game.updateFromObject({ title: "SurfTimePro" })
-        expect(game.toObject()).toEqual({ title: "SurfTimePro" })
-    })
+    game.updateFromObject({ title: "SurfTimePro" })
+    expect(game.toObject()).toEqual({ title: "SurfTimePro" })
+})
 
-    it("does not serialize runtime props", () => {
-        const game = new GameBoyGame({ title: "SurfTime" })
-        expect((game.toObject() as any).someRuntimeProp).toEqual(undefined)
-    })
+it("does not serialize runtime props", () => {
+    const game = new GameBoyGame({ title: "SurfTime" })
+    expect((game.toObject() as any).someRuntimeProp).toEqual(undefined)
+})
 
-    it("can serialize nested persistables", () => {
-        const game = new GameBoyGame({
-            title: "SurfTime",
-            characters: [{ country: "USA", name: "Jill Doe" }],
-            mainCharacter: { country: "CAN", name: "Jane Doe" },
-        })
-        expect(game.mainCharacter instanceof Character).toEqual(true)
+it("can serialize nested persistables", () => {
+    const game = new GameBoyGame({
+        title: "SurfTime",
+        characters: [{ country: "USA", name: "Jill Doe" }],
+        mainCharacter: { country: "CAN", name: "Jane Doe" },
     })
+    expect(game.mainCharacter instanceof Character).toEqual(true)
+})
 
-    it("handles missing values", () => {
-        expect(objectWithPersistablesToObject({})).toEqual({})
-        expect(objectWithPersistablesToObject({ foo: undefined })).toEqual({
-            foo: undefined,
-        })
+it("handles missing values", () => {
+    expect(objectWithPersistablesToObject({})).toEqual({})
+    expect(objectWithPersistablesToObject({ foo: undefined })).toEqual({
+        foo: undefined,
     })
+})
 
-    it("can handle an array of persistables", () => {
-        const game = new GameBoyGame({
-            title: "SurfTime",
-            relatedGames: [new GameBoyGame({ title: "TestGame" })],
-        })
-        game.updateFromObject({
-            title: "SurfTime2",
-            relatedGames: [{ title: "TestGame2" }],
-        })
-        expect(game.relatedGames![0].players).toEqual(2)
+it("can handle an array of persistables", () => {
+    const game = new GameBoyGame({
+        title: "SurfTime",
+        relatedGames: [new GameBoyGame({ title: "TestGame" })],
     })
+    game.updateFromObject({
+        title: "SurfTime2",
+        relatedGames: [{ title: "TestGame2" }],
+    })
+    expect(game.relatedGames![0].players).toEqual(2)
 })

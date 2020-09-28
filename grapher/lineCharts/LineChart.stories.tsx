@@ -12,12 +12,12 @@ export const Default = () => {
         timeRange: [2000, 2010],
         countryCount: 5,
     })
-    const options = { table, yColumnSlugs: ["GDP"] }
+    const manager = { table, yColumnSlugs: ["GDP"] }
     table.selectAll()
 
     return (
         <svg width={640} height={480}>
-            <LineChart manager={options} />
+            <LineChart manager={manager} />
         </svg>
     )
 }

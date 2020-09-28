@@ -7,41 +7,39 @@ import React from "react"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { DualAxis } from "./Axis"
 
-describe("basic tests", () => {
-    it("can create horizontal axis", () => {
-        const axisConfig = new AxisConfig({
-            scaleType: ScaleType.linear,
-            min: 0,
-            max: 100,
-        })
-
-        const view = shallow(
-            <HorizontalAxisGridLines
-                horizontalAxis={axisConfig.toHorizontalAxis()}
-            />
-        )
-        expect(view).toBeTruthy()
+it("can create horizontal axis", () => {
+    const axisConfig = new AxisConfig({
+        scaleType: ScaleType.linear,
+        min: 0,
+        max: 100,
     })
 
-    it("can render a dual axis", () => {
-        const verticalAxis = new AxisConfig({
-            scaleType: ScaleType.linear,
-            min: 0,
-            max: 100,
-        }).toVerticalAxis()
+    const view = shallow(
+        <HorizontalAxisGridLines
+            horizontalAxis={axisConfig.toHorizontalAxis()}
+        />
+    )
+    expect(view).toBeTruthy()
+})
 
-        const horizontalAxis = new AxisConfig({
-            scaleType: ScaleType.linear,
-            min: 0,
-            max: 100,
-        }).toHorizontalAxis()
+it("can render a dual axis", () => {
+    const verticalAxis = new AxisConfig({
+        scaleType: ScaleType.linear,
+        min: 0,
+        max: 100,
+    }).toVerticalAxis()
 
-        const dualAxis = new DualAxis({
-            verticalAxis,
-            horizontalAxis,
-        })
+    const horizontalAxis = new AxisConfig({
+        scaleType: ScaleType.linear,
+        min: 0,
+        max: 100,
+    }).toHorizontalAxis()
 
-        const view = shallow(<DualAxisComponent dualAxis={dualAxis} />)
-        expect(view).toBeTruthy()
+    const dualAxis = new DualAxis({
+        verticalAxis,
+        horizontalAxis,
     })
+
+    const view = shallow(<DualAxisComponent dualAxis={dualAxis} />)
+    expect(view).toBeTruthy()
 })

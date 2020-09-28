@@ -114,18 +114,18 @@ export const buildColumnSlug = (
         .filter((i) => i)
         .join("-")
 
-interface TableProvider {
+interface TableManager {
     rootTable: OwidTable
 }
 
 export class CovidExplorerTable {
     table: OwidTable
     columnSpecs: { [name: string]: OwidColumnSpec } = {}
-    private options?: TableProvider
+    private manager?: TableManager
 
     constructor(
         data: CovidGrapherRow[],
-        options?: TableProvider,
+        manager?: TableManager,
         owidVariableSpecs = {},
         isStandalonePage = false
     ) {
@@ -144,9 +144,9 @@ export class CovidExplorerTable {
         table.addColumns(specs)
         this.addAnnotationColumns()
 
-        if (options) {
-            this.options = options
-            options.rootTable = table // Set the new table on Grapher
+        if (manager) {
+            this.manager = manager
+            manager.rootTable = table // Set the new table on Grapher
         }
     }
 
@@ -456,7 +456,7 @@ export class CovidExplorerTable {
             `Filter negative values for ${slug}`
         )
 
-        if (this.options) this.options.rootTable = this.table // Set the new table on Grapher
+        if (this.manager) this.manager.rootTable = this.table // Set the new table on Grapher
     }
 
     applyGroupsFilter() {
@@ -465,7 +465,7 @@ export class CovidExplorerTable {
             `Filter out regions`
         )
 
-        if (this.options) this.options.rootTable = this.table // Set the new table on Grapher
+        if (this.manager) this.manager.rootTable = this.table // Set the new table on Grapher
     }
 
     initTestingColumn(params: CovidConstrainedQueryParams) {

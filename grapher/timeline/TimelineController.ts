@@ -16,20 +16,20 @@ interface TimelineControllerOptions {
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
-    private target: TimelineManager
+    private manager: TimelineManager
     private options: TimelineControllerOptions
 
     constructor(
-        target: TimelineManager,
+        manager: TimelineManager,
         options: TimelineControllerOptions = {}
     ) {
-        this.target = target
+        this.manager = manager
         this.options = options
     }
 
     private get timesAsc() {
         // Note: assumes times is sorted in asc
-        return this.target.times
+        return this.manager.times
     }
 
     get minTime() {
@@ -42,24 +42,25 @@ export class TimelineController {
 
     get startTimeProgress() {
         return (
-            (this.target.startTime - this.minTime) /
+            (this.manager.startTime - this.minTime) /
             (this.maxTime - this.minTime)
         )
     }
 
     snapTimes() {
-        const { startTime, endTime } = this.target
+        const { startTime, endTime } = this.manager
         if (startTime === endTime) return
 
         if (endTime - startTime > 1) return
 
         // if handles within 1 time of each other, snap to closest time.
-        this.target.startTime = this.target.endTime
+        this.manager.startTime = this.manager.endTime
     }
 
     get endTimeProgress() {
         return (
-            (this.target.endTime - this.minTime) / (this.maxTime - this.minTime)
+            (this.manager.endTime - this.minTime) /
+            (this.maxTime - this.minTime)
         )
     }
 
@@ -76,19 +77,19 @@ export class TimelineController {
     }
 
     private isAtEnd() {
-        return this.target.endTime === this.maxTime
+        return this.manager.endTime === this.maxTime
     }
 
     private resetToBeginning() {
         const beginning =
-            this.target.endTime !== this.target.startTime
-                ? this.target.startTime
+            this.manager.endTime !== this.manager.startTime
+                ? this.manager.startTime
                 : this.minTime
-        this.target.endTime = beginning
+        this.manager.endTime = beginning
     }
 
     async play(numberOfTicks?: number) {
-        this.target.isPlaying = true
+        this.manager.isPlaying = true
 
         if (this.isAtEnd()) this.resetToBeginning()
 
@@ -96,8 +97,8 @@ export class TimelineController {
 
         // Keep and return a tickCount for easier testability
         let tickCount = 0
-        while (this.target.isPlaying) {
-            const nextTime = this.getNextTime(this.target.endTime)
+        while (this.manager.isPlaying) {
+            const nextTime = this.getNextTime(this.manager.endTime)
             if (!this.rangeMode) this.updateStartTime(nextTime)
             this.updateEndTime(nextTime)
             tickCount++
@@ -112,27 +113,27 @@ export class TimelineController {
     }
 
     private stop() {
-        this.target.isPlaying = false
+        this.manager.isPlaying = false
     }
 
     private pause() {
-        this.target.isPlaying = false
+        this.manager.isPlaying = false
     }
 
     async togglePlay() {
-        if (this.target.isPlaying) this.pause()
+        if (this.manager.isPlaying) this.pause()
         else await this.play()
     }
 
     private dragOffsets: [number, number] = [0, 0]
 
     setDragOffsets(inputTime: number) {
-        const { target } = this
+        const { manager } = this
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
         this.dragOffsets = [
-            target.startTime - closestTime,
-            target.endTime - closestTime,
+            manager.startTime - closestTime,
+            manager.endTime - closestTime,
         ]
     }
 
@@ -166,23 +167,23 @@ export class TimelineController {
     }
 
     dragHandleToTime(handle: "start" | "end" | "both", inputTime: number) {
-        const { target } = this
+        const { manager } = this
 
         const time = this.getTimeFromDrag(inputTime)
 
         const constrainedHandle =
-            handle === "start" && time > target.endTime
+            handle === "start" && time > manager.endTime
                 ? "end"
-                : handle === "end" && time < target.startTime
+                : handle === "end" && time < manager.startTime
                 ? "start"
                 : handle
 
         if (constrainedHandle !== handle) {
-            if (handle === "start") this.updateStartTime(target.endTime)
-            else this.updateEndTime(target.startTime)
+            if (handle === "start") this.updateStartTime(manager.endTime)
+            else this.updateEndTime(manager.startTime)
         }
 
-        if (target.isPlaying && !this.rangeMode) {
+        if (manager.isPlaying && !this.rangeMode) {
             this.updateStartTime(time)
             this.updateEndTime(time)
         } else if (handle === "both") this.dragRangeToTime(inputTime)
@@ -193,11 +194,11 @@ export class TimelineController {
     }
 
     private updateStartTime(time: Time) {
-        this.target.startTime = time
+        this.manager.startTime = time
     }
 
     private updateEndTime(time: Time) {
-        this.target.endTime = time
+        this.manager.endTime = time
     }
 
     resetStartToMin() {

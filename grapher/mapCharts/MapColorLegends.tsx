@@ -435,8 +435,8 @@ export class CategoricalColorLegend extends React.Component<{
     }
 
     @computed private get markLines() {
-        const options = this.manager
-        const scale = options.scale ?? 1
+        const manager = this.manager
+        const scale = manager.scale ?? 1
         const rectSize = 12 * scale
         const rectPadding = 5
         const markPadding = 5
@@ -446,7 +446,7 @@ export class CategoricalColorLegend extends React.Component<{
         let marks: CategoricalMark[] = []
         let xOffset = 0
         let yOffset = 0
-        options.categoricalLegendData.forEach((bin) => {
+        manager.categoricalLegendData.forEach((bin) => {
             const labelBounds = Bounds.forText(bin.text, { fontSize })
             const markWidth =
                 rectSize + rectPadding + labelBounds.width + markPadding

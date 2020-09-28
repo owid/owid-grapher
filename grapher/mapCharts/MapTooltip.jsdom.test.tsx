@@ -52,22 +52,20 @@ const config: GrapherProps = {
 
 const grapherWrapper = mount(<Grapher {...config} />)
 
-describe(MapTooltip, () => {
-    test("map tooltip renders iff mouseenter", () => {
-        expect(grapherWrapper.find(".map-tooltip")).toHaveLength(0)
+test("map tooltip renders iff mouseenter", () => {
+    expect(grapherWrapper.find(".map-tooltip")).toHaveLength(0)
 
-        const grapherWrapperWithHover = grapherWrapper
-            .find("path")
-            .findWhere((node) => node.key() === "Iceland")
-            .simulate("mouseenter", mockEvent)
-            .update()
+    const grapherWrapperWithHover = grapherWrapper
+        .find("path")
+        .findWhere((node) => node.key() === "Iceland")
+        .simulate("mouseenter", mockEvent)
+        .update()
 
-        expect(grapherWrapperWithHover.find(".map-tooltip")).toHaveLength(1)
+    expect(grapherWrapperWithHover.find(".map-tooltip")).toHaveLength(1)
 
-        const tooltipWrapper = grapherWrapperWithHover.find(".map-tooltip")
-        expect(tooltipWrapper.find(".bar")).toHaveLength(20)
-        expect(tooltipWrapper.find(".count").text()).toEqual(
-            "34% of children under 5 "
-        )
-    })
+    const tooltipWrapper = grapherWrapperWithHover.find(".map-tooltip")
+    expect(tooltipWrapper.find(".bar")).toHaveLength(20)
+    expect(tooltipWrapper.find(".count").text()).toEqual(
+        "34% of children under 5 "
+    )
 })

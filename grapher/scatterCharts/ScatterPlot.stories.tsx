@@ -9,7 +9,7 @@ export default {
 
 export const Default = () => {
     const table = SynthesizeOwidTable()
-    const options = {
+    const manager = {
         table,
         yColumnSlugs: ["GDP"],
         xColumnSlug: "Population",
@@ -19,7 +19,7 @@ export const Default = () => {
 
     return (
         <svg width={640} height={480}>
-            <ScatterPlot manager={options} />
+            <ScatterPlot manager={manager} />
         </svg>
     )
 }

@@ -4,23 +4,21 @@ import { DiscreteBarChart } from "./DiscreteBarChart"
 import { SynthesizeOwidTable } from "coreTable/OwidTable"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
-describe(DiscreteBarChart, () => {
-    const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
+const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
 
-    const manager: DiscreteBarChartManager = {
-        table,
-        yColumnSlug: "Population",
-    }
+const manager: DiscreteBarChartManager = {
+    table,
+    yColumnSlug: "Population",
+}
 
-    it("can create a new bar chart", () => {
-        const chart = new DiscreteBarChart({ manager })
+it("can create a new bar chart", () => {
+    const chart = new DiscreteBarChart({ manager })
 
-        expect(chart.failMessage).toBeTruthy()
-        table.selectAll()
-        expect(chart.failMessage).toEqual("")
+    expect(chart.failMessage).toBeTruthy()
+    table.selectAll()
+    expect(chart.failMessage).toEqual("")
 
-        const marks = chart.marks
-        expect(marks.length).toEqual(2)
-        expect(marks[0].time).toBeTruthy()
-    })
+    const marks = chart.marks
+    expect(marks.length).toEqual(2)
+    expect(marks[0].time).toBeTruthy()
 })

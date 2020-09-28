@@ -25,10 +25,8 @@ const manager: LineLegendManager = {
     verticalAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
 
-describe(LineLegend, () => {
-    it("can create a new legend", () => {
-        const legend = new LineLegend({ manager })
+it("can create a new legend", () => {
+    const legend = new LineLegend({ manager })
 
-        expect(legend.sizedLabels.length).toEqual(2)
-    })
+    expect(legend.sizedLabels.length).toEqual(2)
 })

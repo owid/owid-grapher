@@ -8,18 +8,12 @@ import {
     getRelativeMouse,
     makeSafeForCSS,
     minBy,
-    sortBy,
-    cloneDeep,
-    sum,
     flatten,
-    sortNumeric,
-    uniq,
     max,
-    formatValue,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { scaleOrdinal } from "d3-scale"
-import { Time, BASE_FONT_SIZE, ValueRange } from "grapher/core/GrapherConstants"
+import { Time, BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -39,11 +33,7 @@ import { ChartManager } from "grapher/chart/ChartManager"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
-import {
-    AreasProps,
-    StackedAreaSeries,
-    StackedAreaPoint,
-} from "./StackedAreaChartConstants"
+import { AreasProps, StackedAreaSeries } from "./StackedAreaChartConstants"
 import { stackAreas } from "./StackedAreaChartUtils"
 
 const BLUR_COLOR = "#ddd"
@@ -598,35 +588,6 @@ export class StackedAreaChart
             : [this.yColumn!]
     }
 
-    // // Apply time filtering and stacking
-    // @computed get marks() {
-    //     const { groupedData } = this
-
-    //     const { startTimelineTime, endTimelineTime } = this.yColumn!
-
-    //     if (
-    //         groupedData.some(
-    //             (series) =>
-    //                 series.points.length !== groupedData[0].points.length
-    //         )
-    //     )
-    //         throw new Error(
-    //             `Unexpected variation in stacked area chart series: ${groupedData.map(
-    //                 (series) => series.points.length
-    //             )}`
-    //         )
-
-    //     const stackedData = cloneDeep(groupedData)
-
-    //     for (const series of stackedData) {
-    //         series.points = series.points.filter(
-    //             (v) => v.x >= startTimelineTime && v.x <= endTimelineTime
-    //         )
-    //         for (const value of series.points) {
-    //             value.origY = value.y
-    //         }
-    //     }
-
     @computed get colorScale() {
         const baseColors = this.colorScheme.getColors(this.yColumns.length)
         if (this.manager.invertColorScheme) baseColors.reverse()
@@ -634,7 +595,7 @@ export class StackedAreaChart
     }
 
     @computed get marks() {
-        const { yColumns, table } = this
+        const { yColumns } = this
 
         const colorScale = this.colorScale
         const seriesArr: StackedAreaSeries[] = yColumns

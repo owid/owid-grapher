@@ -15,25 +15,23 @@ class MockManager implements ChartManager {
     @observable isRelativeMode = false
 }
 
-describe(StackedAreaChart, () => {
-    it("can create a basic chart", () => {
-        const manager = new MockManager()
-        const chart = new StackedAreaChart({ manager })
+it("can create a basic chart", () => {
+    const manager = new MockManager()
+    const chart = new StackedAreaChart({ manager })
 
-        expect(chart.failMessage).toBeTruthy()
+    expect(chart.failMessage).toBeTruthy()
 
-        manager.table.selectAll()
+    manager.table.selectAll()
 
-        expect(chart.failMessage).toEqual("")
-    })
+    expect(chart.failMessage).toEqual("")
+})
 
-    it("can create a chart and toggle relative mode", () => {
-        const manager = new MockManager()
-        const chart = new StackedAreaChart({ manager })
+it("can create a chart and toggle relative mode", () => {
+    const manager = new MockManager()
+    const chart = new StackedAreaChart({ manager })
 
-        expect(chart.verticalAxis.domain[1]).toBeGreaterThan(100)
+    expect(chart.verticalAxis.domain[1]).toBeGreaterThan(100)
 
-        manager.isRelativeMode = true
-        expect(chart.verticalAxis.domain).toEqual([0, 100])
-    })
+    manager.isRelativeMode = true
+    expect(chart.verticalAxis.domain).toEqual([0, 100])
 })
