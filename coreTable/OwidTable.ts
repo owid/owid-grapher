@@ -709,22 +709,11 @@ export const SynthesizeOwidTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now()
 ) => {
-    const finalOptions = {
+    const finalOptions: SynthOptions = {
         countryNames: [],
         countryCount: 2,
         timeRange: [1950, 2020],
-        columnSpecs: [
-            {
-                slug: "Population",
-                type: "Population",
-                generator: getRandomNumberGenerator(1e7, 1e9, seed),
-            },
-            {
-                slug: "GDP",
-                type: "Currency",
-                generator: getRandomNumberGenerator(1e10, 1e12, seed),
-            },
-        ] as OwidColumnSpec[],
+        columnSpecs: [],
         ...options,
     }
     const { countryCount, columnSpecs, timeRange, countryNames } = finalOptions
@@ -759,3 +748,49 @@ export const SynthesizeOwidTable = (
 
     return table
 }
+
+export const SynthesizeGDPTable = (
+    options?: Partial<SynthOptions>,
+    seed = Date.now()
+) =>
+    SynthesizeOwidTable(
+        {
+            columnSpecs: [
+                {
+                    slug: "Population",
+                    type: ColumnTypeNames.Population,
+                    generator: getRandomNumberGenerator(1e7, 1e9, seed),
+                },
+                {
+                    slug: "GDP",
+                    type: ColumnTypeNames.Currency,
+                    generator: getRandomNumberGenerator(1e10, 1e12, seed),
+                },
+            ],
+            ...options,
+        },
+        seed
+    )
+
+export const SynthesizeFruitTable = (
+    options?: Partial<SynthOptions>,
+    seed = Date.now()
+) =>
+    SynthesizeOwidTable(
+        {
+            columnSpecs: [
+                {
+                    slug: "Fruit",
+                    type: ColumnTypeNames.Numeric,
+                    generator: getRandomNumberGenerator(500, 1000, seed),
+                },
+                {
+                    slug: "Vegetables",
+                    type: ColumnTypeNames.Numeric,
+                    generator: getRandomNumberGenerator(500, 1000, seed),
+                },
+            ],
+            ...options,
+        },
+        seed
+    )

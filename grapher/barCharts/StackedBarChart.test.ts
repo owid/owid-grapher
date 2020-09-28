@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {
-    const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 
     const manager = {
         table,

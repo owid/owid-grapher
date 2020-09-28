@@ -1,4 +1,4 @@
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import * as React from "react"
 import { ScatterPlot } from "./ScatterPlot"
 
@@ -8,7 +8,7 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable()
+    const table = SynthesizeGDPTable()
     const manager = {
         table,
         yColumnSlugs: ["GDP"],

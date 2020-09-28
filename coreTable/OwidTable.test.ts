@@ -1,5 +1,10 @@
 #! /usr/bin/env yarn jest
-import { OwidTable, SynthesizeOwidTable } from "coreTable/OwidTable"
+import {
+    OwidTable,
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+    SynthesizeOwidTable,
+} from "coreTable/OwidTable"
 import { flatten, getRandomNumberGenerator } from "grapher/utils/Util"
 import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
@@ -113,7 +118,7 @@ describe("from legacy", () => {
 
 describe("can query the data", () => {
     it("can do a query used by discrete bar", () => {
-        const table = SynthesizeOwidTable(
+        const table = SynthesizeGDPTable(
             {
                 countryCount: 3,
                 timeRange: [2000, 2004],
@@ -137,7 +142,7 @@ describe("can query the data", () => {
         ).toEqual(0)
     })
 
-    const table = SynthesizeOwidTable({
+    const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
         countryCount: 5,
     })
@@ -177,7 +182,7 @@ usa,usa,1,322,2000,2`
 
 describe("can synth data", () => {
     it("can synth numerics", () => {
-        const table = SynthesizeOwidTable({
+        const table = SynthesizeGDPTable({
             timeRange: [2000, 2001],
             countryCount: 1,
         })
@@ -231,7 +236,7 @@ usa,us,23,`)
 
 describe("time filtering", () => {
     it("can filter by time domain", () => {
-        const table = SynthesizeOwidTable({
+        const table = SynthesizeGDPTable({
             countryCount: 2,
             timeRange: [2000, 2005],
         })
@@ -244,7 +249,7 @@ describe("time filtering", () => {
     })
 
     it("can filter by time target", () => {
-        const table = SynthesizeOwidTable(
+        const table = SynthesizeGDPTable(
             {
                 countryCount: 2,
                 timeRange: [2000, 2005],
@@ -263,7 +268,7 @@ describe("time filtering", () => {
                 .filterByTargetTime(2010, 20).rows.length
         ).toBe(1)
 
-        const table2 = SynthesizeOwidTable({
+        const table2 = SynthesizeGDPTable({
             countryCount: 1,
             timeRange: [2000, 2001],
         })
@@ -329,27 +334,14 @@ describe("rolling averages", () => {
 
 describe("relative mode", () => {
     // 2 columns. 2 countries. 2 years
-    const generator = getRandomNumberGenerator(500, 1000, 2)
-    let table = SynthesizeOwidTable({
+    let table = SynthesizeFruitTable({
         countryCount: 2,
         timeRange: [2000, 2002],
-        columnSpecs: [
-            {
-                slug: "Agriculture",
-                type: ColumnTypeNames.Currency,
-                generator,
-            },
-            {
-                slug: "Services",
-                type: ColumnTypeNames.Currency,
-                generator,
-            },
-        ],
     })
 
     let firstRow = table.rows[0]
-    expect(firstRow.Agriculture).toBeGreaterThan(400)
-    table = table.toRelatives(["Agriculture", "Services"])
+    expect(firstRow.Fruit).toBeGreaterThan(400)
+    table = table.toRelatives(["Fruit", "Vegetables"])
     firstRow = table.rows[0]
-    expect(Math.round(firstRow.Agriculture + firstRow.Services)).toEqual(100)
+    expect(Math.round(firstRow.Fruit + firstRow.Vegetables)).toEqual(100)
 })

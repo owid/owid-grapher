@@ -1,6 +1,6 @@
 import * as React from "react"
 import { DiscreteBarChart } from "./DiscreteBarChart"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
 export default {
@@ -9,7 +9,7 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
     table.selectAll()
 
     const manager: DiscreteBarChartManager = {

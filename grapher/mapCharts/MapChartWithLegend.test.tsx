@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { MapChartManager } from "./MapChartConstants"
 import { MapChartWithLegend } from "./MapChartWithLegend"
 
-const table = SynthesizeOwidTable({
+const table = SynthesizeGDPTable({
     timeRange: [2000, 2010],
     countryNames: ["France", "Germany"],
 })

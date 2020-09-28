@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { StackedBarChart } from "./StackedBarChart"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
 export default {
     title: "StackedBarChart",
@@ -9,7 +9,7 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
     table.selectAll()
 
     const manager: ChartManager = {

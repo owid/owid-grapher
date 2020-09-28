@@ -1,4 +1,4 @@
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { GrapherTabOption } from "grapher/core/GrapherConstants"
 import * as React from "react"
 import { ChartTab, ChartTabManager } from "./ChartTab"
@@ -8,7 +8,7 @@ export default {
     component: ChartTab,
 }
 
-const table = SynthesizeOwidTable()
+const table = SynthesizeGDPTable()
 table.selectAll()
 const manager: ChartTabManager = {
     table,

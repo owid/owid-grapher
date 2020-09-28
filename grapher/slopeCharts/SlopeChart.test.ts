@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 
 import { SlopeChart } from "./SlopeChart"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { ChartManager } from "grapher/chart/ChartManager"
 
-const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
+const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 const manager: ChartManager = {
     table,
     yColumnSlug: "Population",

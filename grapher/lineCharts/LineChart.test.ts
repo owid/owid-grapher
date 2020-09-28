@@ -1,9 +1,9 @@
 #! /usr/bin/env yarn jest
 
 import { LineChart } from "./LineChart"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
-const table = SynthesizeOwidTable({ timeRange: [2000, 2010] })
+const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 
 const manager = {
     table,

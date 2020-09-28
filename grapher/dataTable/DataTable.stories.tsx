@@ -1,13 +1,13 @@
 import * as React from "react"
 import { DataTable } from "./DataTable"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
 export default {
     title: "DataTable",
     component: DataTable,
 }
 
-const table = SynthesizeOwidTable({ timeRange: [1950, 2010], countryCount: 7 })
+const table = SynthesizeGDPTable({ timeRange: [1950, 2010], countryCount: 7 })
 
 const options = {
     table,

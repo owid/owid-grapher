@@ -1,5 +1,5 @@
 import { ChartManager } from "grapher/chart/ChartManager"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeFruitTable, SynthesizeGDPTable } from "coreTable/OwidTable"
 import * as React from "react"
 import { StackedAreaChart } from "./StackedAreaChart"
 
@@ -9,16 +9,31 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable({
-        timeRange: [1950, 2010],
-    })
-
-    table.selectAll()
-
     const manager: ChartManager = {
-        table,
+        table: SynthesizeGDPTable({
+            timeRange: [1950, 2010],
+        }),
         yColumnSlugs: ["GDP"],
     }
+
+    manager.table.selectAll()
+
+    return (
+        <svg width={640} height={480}>
+            <StackedAreaChart manager={manager} />
+        </svg>
+    )
+}
+
+export const RelativeMode = () => {
+    const manager: ChartManager = {
+        table: SynthesizeFruitTable({
+            timeRange: [1950, 2000],
+        }),
+        yColumnSlugs: ["Fruit", "Vegetables"],
+    }
+
+    manager.table.selectAll()
 
     return (
         <svg width={640} height={480}>

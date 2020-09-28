@@ -1,7 +1,7 @@
 import * as React from "react"
 import { CountryFacet } from "./FacetChart"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { Bounds } from "grapher/utils/Bounds"
 
@@ -18,7 +18,7 @@ export default {
 
 // One chart for France. One for Germany. One line for pop. One line for GDP.
 export const Default = (args: any) => {
-    const table = SynthesizeOwidTable({
+    const table = SynthesizeGDPTable({
         countryCount: (args.countryCount ?? 4) || 1,
     })
     const manager: ChartManager = {

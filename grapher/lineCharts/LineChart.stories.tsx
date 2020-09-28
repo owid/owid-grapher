@@ -1,6 +1,6 @@
 import * as React from "react"
 import { LineChart } from "grapher/lineCharts/LineChart"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
 export default {
     title: "LineChart",
@@ -8,7 +8,7 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable({
+    const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
         countryCount: 5,
     })

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Grapher, GrapherProps } from "./Grapher"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { DimensionProperty } from "./GrapherConstants"
 
 export default {
@@ -8,7 +8,7 @@ export default {
     component: Grapher,
 }
 
-const table = SynthesizeOwidTable()
+const table = SynthesizeGDPTable()
 
 const props: GrapherProps = {
     table,

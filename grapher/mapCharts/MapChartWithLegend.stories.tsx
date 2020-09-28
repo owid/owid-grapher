@@ -1,6 +1,6 @@
 import * as React from "react"
 import { MapChartWithLegend } from "./MapChartWithLegend"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { MapChartManager } from "./MapChartConstants"
 
 export default {
@@ -9,7 +9,7 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable({
+    const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
         countryCount: 200,
     })

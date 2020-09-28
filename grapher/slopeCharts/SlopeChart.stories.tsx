@@ -1,6 +1,6 @@
 import * as React from "react"
 import { SlopeChart } from "./SlopeChart"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { ChartManager } from "grapher/chart/ChartManager"
 
 export default {
@@ -9,7 +9,7 @@ export default {
 }
 
 export const Default = () => {
-    const table = SynthesizeOwidTable({
+    const table = SynthesizeGDPTable({
         timeRange: [1950, 2010],
     })
 

@@ -1,9 +1,9 @@
 #! /usr/bin/env yarn jest
 
 import { ScatterPlot } from "grapher/scatterCharts/ScatterPlot"
-import { SynthesizeOwidTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
-const table = SynthesizeOwidTable({
+const table = SynthesizeGDPTable({
     timeRange: [2000, 2010],
     countryCount: 2,
 })
