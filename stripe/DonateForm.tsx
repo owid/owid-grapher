@@ -11,6 +11,18 @@ import stripe from "./stripe"
 
 type Interval = "once" | "monthly"
 
+enum CurrencyCode {
+    USD = "USD",
+    GBP = "GBP",
+    EUR = "EUR",
+}
+
+const currencySymbolByCode: Record<CurrencyCode, string> = {
+    [CurrencyCode.USD]: "$",
+    [CurrencyCode.GBP]: "£",
+    [CurrencyCode.EUR]: "€",
+}
+
 const ONETIME_DONATION_AMOUNTS = [10, 50, 100, 500, 1000]
 const MONTHLY_DONATION_AMOUNTS = [5, 10, 20, 50, 100]
 
@@ -19,6 +31,12 @@ const MONTHLY_DEFAULT_INDEX = 1
 
 const MIN_DONATION = 1
 const MAX_DONATION = 100000
+
+const SUPPORTED_CURRENCY_CODES = [
+    CurrencyCode.USD,
+    CurrencyCode.GBP,
+    CurrencyCode.EUR,
+]
 
 @observer
 export class DonateForm extends React.Component {
@@ -32,6 +50,7 @@ export class DonateForm extends React.Component {
     @observable errorMessage?: string
     @observable isSubmitting: boolean = false
     @observable isLoading: boolean = true
+    @observable currencyCode: CurrencyCode = CurrencyCode.USD
 
     captchaInstance?: Recaptcha | null
     @observable.ref captchaPromiseHandlers?: {
@@ -74,6 +93,10 @@ export class DonateForm extends React.Component {
         this.errorMessage = message
     }
 
+    @action.bound setCurrency(currency: CurrencyCode) {
+        this.currencyCode = currency
+    }
+
     @computed get amount(): number | undefined {
         return this.isCustom
             ? parseFloat(this.customAmount || "")
@@ -84,6 +107,10 @@ export class DonateForm extends React.Component {
         return this.interval === "monthly"
             ? MONTHLY_DONATION_AMOUNTS
             : ONETIME_DONATION_AMOUNTS
+    }
+
+    @computed get currencySymbol(): string {
+        return currencySymbolByCode[this.currencyCode]
     }
 
     async submitDonation(): Promise<void> {
@@ -107,6 +134,7 @@ export class DonateForm extends React.Component {
             body: JSON.stringify({
                 name: this.name,
                 showOnList: this.showOnList,
+                currency: this.currencyCode,
                 amount: Math.floor(this.amount * 100),
                 interval: this.interval,
                 successUrl: `${BAKED_BASE_URL}/donate/thank-you`,
@@ -199,9 +227,30 @@ export class DonateForm extends React.Component {
                     </div>
                 </fieldset>
 
+                <fieldset className="donate-form-currency">
+                    <legend>
+                        <h3>Currency</h3>
+                    </legend>
+                    <div className="owid-radios">
+                        {SUPPORTED_CURRENCY_CODES.map((code) => (
+                            <div key={code} className="owid-radio">
+                                <input
+                                    type="radio"
+                                    id={code}
+                                    value={code}
+                                    name="currency"
+                                    onChange={() => this.setCurrency(code)}
+                                    checked={this.currencyCode === code}
+                                />
+                                <label htmlFor={code}>{code}</label>
+                            </div>
+                        ))}
+                    </div>
+                </fieldset>
+
                 <fieldset className="donate-form-amount">
                     <legend>
-                        <h3>Amount (USD)</h3>
+                        <h3>Amount</h3>
                     </legend>
                     <div className="radios">
                         {this.intervalAmounts.map((amount) => (
@@ -220,7 +269,8 @@ export class DonateForm extends React.Component {
                                     }
                                 />
                                 <label htmlFor={`amount-${amount}`}>
-                                    ${amount}
+                                    {this.currencySymbol}
+                                    {amount}
                                 </label>
                             </div>
                         ))}
@@ -235,7 +285,7 @@ export class DonateForm extends React.Component {
                                 }
                             />
                             <label htmlFor="custom">
-                                $
+                                {this.currencySymbol}
                                 <input
                                     type="text"
                                     placeholder="Other"
@@ -312,7 +362,8 @@ export class DonateForm extends React.Component {
                     })}
                     disabled={this.isLoading}
                 >
-                    Donate {this.amount ? `$${this.amount} USD` : ""}{" "}
+                    Donate{" "}
+                    {this.amount ? `${this.currencySymbol}${this.amount}` : ""}{" "}
                     {this.interval === "monthly" ? "per month" : ""}
                 </button>
 
