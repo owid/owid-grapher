@@ -1606,6 +1606,7 @@ export class Grapher
     @action.bound randomSelection(num: number) {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
         const available = this.rootTable.availableEntityNames.length
+        this.hasError = false
         this.rootTable.setSelectedEntities(
             sampleFrom(
                 this.rootTable.availableEntityNames,

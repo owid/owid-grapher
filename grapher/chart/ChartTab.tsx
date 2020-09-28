@@ -216,6 +216,20 @@ export class ChartTab
                     options={options}
                 />
             )
+        else if (
+            options.faceting &&
+            options.addCountryMode === EntitySelectionModes.MultipleEntities &&
+            options.yColumnSlugs &&
+            options.yColumnSlugs.length > 1 &&
+            options.table.selectedEntityNames.length > 1
+        )
+            return (
+                <CountryFacet
+                    bounds={bounds}
+                    chartTypeName={chartTypeName}
+                    options={options}
+                />
+            )
 
         return ChartType ? (
             <ChartType bounds={bounds} options={options} />

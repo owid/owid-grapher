@@ -45,7 +45,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         const { rootTable, rootOptions } = this
         const { chartTypeName } = this.props
         const count = rootTable.selectedEntityNames.length
-        const boundsArr = this.bounds.split(count, 20)
+        const boundsArr = this.bounds.split(count, 40)
         const { columns, rows } = makeGrid(count)
         const {
             yColumnSlug,
@@ -57,6 +57,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         } = rootOptions
 
         const baseFontSize = getFontSize(count, rootOptions.baseFontSize)
+        const lineStrokeWidth = count > 16 ? 1 : undefined
 
         return rootTable.selectedEntityNames.map((name, index) => {
             const bounds = boundsArr[index]
@@ -78,7 +79,7 @@ export class CountryFacet extends React.Component<FacetChartProps> {
                 hideXAxis,
                 hideYAxis,
                 baseFontSize,
-                lineStrokeWidth: 0.5,
+                lineStrokeWidth,
                 hideLegend,
                 hidePoints,
                 xAxis,

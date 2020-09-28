@@ -328,15 +328,17 @@ export class Bounds {
         const { columns, rows } = makeGrid(pieces)
         const columnPadding = padding
         const rowPadding = padding
-        const contentWidth = this.width - columnPadding * (columns - 1)
-        const contentHeight = this.height - rowPadding * (rows - 1)
+        const contentWidth = this.width - columnPadding * (columns + 1)
+        const contentHeight = this.height - rowPadding * (rows + 1)
         const boxWidth = Math.floor(contentWidth / columns)
         const boxHeight = Math.floor(contentHeight / rows)
         return range(0, pieces).map(
             (index: number) =>
                 new Bounds(
-                    (index % columns) * (boxWidth + columnPadding),
-                    Math.floor(index / columns) * (boxHeight + rowPadding),
+                    columnPadding +
+                        (index % columns) * (boxWidth + columnPadding),
+                    rowPadding +
+                        Math.floor(index / columns) * (boxHeight + rowPadding),
                     boxWidth,
                     boxHeight
                 )

@@ -598,12 +598,15 @@ export class LineChart
                         yColumns.length > 1 ? col.displayName : entityName
                     return {
                         // todo: add log filter
-                        points: map.get(entityName)!.map((row) => {
-                            return {
-                                x: row.time,
-                                y: row.value,
-                            }
-                        }),
+                        points: map
+                            .get(entityName)!
+                            .filter((row) => typeof row.value === "number") // todo: move somewhere else?
+                            .map((row) => {
+                                return {
+                                    x: row.time,
+                                    y: row.value,
+                                }
+                            }),
                         lineName,
                         isProjection,
                         color: "#000", // tmp
@@ -645,7 +648,7 @@ export class LineChart
 
         sorted.forEach((series, i) => {
             series.color =
-                table.getColorForEntityName(series.lineName) || colors[i]
+                colors[i] || table.getColorForEntityName(series.lineName)
         })
     }
 
