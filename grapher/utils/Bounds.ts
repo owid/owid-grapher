@@ -317,7 +317,7 @@ export class Bounds {
         return [this.left, this.right]
     }
 
-    split(pieces: number, padding = 0) {
+    split(pieces: number, padding: SplitBoundsPadding = {}) {
         // Splits a rectangle into smaller rectangles.
         // The Facet Storybook has a visual demo of how this works.
         // I form the smallest possible square and then fill that up. This always goes left to right, top down.
@@ -325,19 +325,20 @@ export class Bounds {
         // In the future we may want to position these bounds in custom ways, but this only does basic splitting for now.
         // NB: The off-by-one-pixel scenarios have NOT yet been unit tested. Karma points for the person who adds those tests and makes
         // any required adjustments.
+        const { columnPadding = 0, rowPadding = 0, outerPadding = 0 } = padding
         const { columns, rows } = makeGrid(pieces)
-        const columnPadding = padding
-        const rowPadding = padding
-        const contentWidth = this.width - columnPadding * (columns + 1)
-        const contentHeight = this.height - rowPadding * (rows + 1)
+        const contentWidth =
+            this.width - columnPadding * (columns - 1) - outerPadding * 2
+        const contentHeight =
+            this.height - rowPadding * (rows - 1) - outerPadding * 2
         const boxWidth = Math.floor(contentWidth / columns)
         const boxHeight = Math.floor(contentHeight / rows)
         return range(0, pieces).map(
             (index: number) =>
                 new Bounds(
-                    columnPadding +
+                    outerPadding +
                         (index % columns) * (boxWidth + columnPadding),
-                    rowPadding +
+                    outerPadding +
                         Math.floor(index / columns) * (boxHeight + rowPadding),
                     boxWidth,
                     boxHeight
@@ -371,6 +372,12 @@ export class Bounds {
     distanceToPoint(p: PointVector) {
         return Math.sqrt(this.distanceToPointSq(p))
     }
+}
+
+interface SplitBoundsPadding {
+    columnPadding?: number
+    rowPadding?: number
+    outerPadding?: number
 }
 
 // Since nearly all our components need a bounds, but most tests don't care about bounds, have a default bounds

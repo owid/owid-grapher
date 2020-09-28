@@ -45,7 +45,11 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         const { rootTable, rootOptions } = this
         const { chartTypeName } = this.props
         const count = rootTable.selectedEntityNames.length
-        const boundsArr = this.bounds.split(count, 40)
+        const boundsArr = this.bounds.split(count, {
+            rowPadding: 40,
+            columnPadding: 40,
+            outerPadding: 20,
+        })
         const { columns, rows } = makeGrid(count)
         const {
             yColumnSlug,
