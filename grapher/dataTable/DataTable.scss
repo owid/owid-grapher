@@ -1,3 +1,9 @@
+$cell-border: 1px solid rgba(0, 0, 0, 0.08);
+
+.tableTab {
+    border-bottom: $cell-border;
+}
+
 .tableTab .data-table {
     th {
         position: sticky;
@@ -35,8 +41,9 @@
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    th {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    thead tr:last-child th,
+    th.entity {
+        border-bottom: $cell-border;
     }
 
     tr th:first-child,
@@ -76,7 +83,6 @@
         background-color: white;
     }
 
-    th.sorted,
     th.sortable:hover {
         background-color: rgb(245, 245, 245);
     }
@@ -85,8 +91,17 @@
     td {
         padding-left: 15px;
         padding-right: 15px;
-        border-right: 1px solid rgba(0, 0, 0, 0.08);
         vertical-align: text-top;
+    }
+
+    th.subdimension {
+        border-right: $cell-border;
+    }
+
+    th.subdimension:first-child,
+    th.dimension.sortable,
+    tbody td:nth-child(2) {
+        border-left: $cell-border;
     }
 
     th:last-child,
@@ -109,18 +124,11 @@
     }
 
     tbody tr:nth-child(2n) td {
-        background-color: rgb(250, 250, 250);
-    }
-    tbody tr:nth-child(2n) td.sorted {
-        background-color: rgb(246, 246, 246);
+        background-color: rgba(250, 250, 250);
     }
 
-    td.sorted {
-        background-color: rgb(250, 250, 250);
-    }
-
-    tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.035);
+    tbody tr:hover td {
+        background-color: rgba(245, 245, 245);
     }
 
     .entity {
