@@ -160,45 +160,46 @@ export class MapChartWithLegend
     }
 
     @computed get marks() {
-        const { manager, mapConfig, mapColumn } = this
-        const column = mapColumn
-        if (!column) return {}
-        const endTime = column.endTimelineTime
+        const { mapConfig, mapColumn, table } = this
+        if (!mapColumn) return {}
+        const endTime = mapColumn.endTimelineTime
+        if (endTime === undefined) return {}
 
-        if (endTime === undefined || !column) return {}
-
-        const valueByEntityAndTime = column.valueByEntityNameAndTime
+        const valueByEntityAndTime = mapColumn.valueByEntityNameAndTime
         const tolerance = mapConfig.timeTolerance ?? 0
-        const entityNames = column.entityNamesUniqArr.filter((name) =>
+        const countriesOnTheMap = mapColumn.entityNamesUniqArr.filter((name) =>
             isOnTheMap(name)
         )
 
         const marks: ChoroplethMarks = {}
-        const selectedEntityNames = manager.table.selectedEntityNameSet
 
         const customLabels = mapConfig.tooltipUseCustomLabels
             ? this.colorScale.customNumericLabels
             : []
 
-        entityNames.forEach((entity) => {
+        countriesOnTheMap.forEach((entity) => {
             const valueByTime = valueByEntityAndTime.get(entity)
             if (!valueByTime) return
-            const times = Array.from(valueByTime.keys())
-            const time = findClosestTime(times, endTime, tolerance)
+            const time = findClosestTime(
+                Array.from(valueByTime.keys()),
+                endTime,
+                tolerance
+            )
             if (time === undefined) return
             const value = valueByTime.get(time)
             if (value === undefined) return
 
-            const color = this.colorScale.getColor(value)
+            const color = this.colorScale.getColor(value) || "red" // todo: color fix
             if (!color) return
 
             marks[entity] = {
                 entity,
                 displayValue:
-                    customLabels[value as any] ?? column.formatValueLong(value),
+                    customLabels[value as any] ??
+                    mapColumn.formatValueLong(value),
                 time,
                 value,
-                isSelected: selectedEntityNames.has(entity),
+                isSelected: table.isEntitySelected(entity),
                 color,
                 highlightFillColor: color,
             }
