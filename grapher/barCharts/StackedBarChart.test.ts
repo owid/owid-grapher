@@ -12,10 +12,9 @@ it("can create a chart", () => {
     }
 
     const chart = new StackedBarChart({ manager })
-    expect(chart.marks.length).toEqual(0)
     expect(chart.failMessage).toBeTruthy()
 
-    table.selectEntity(table.availableEntityNames[0])
+    table.selectSample(1)
     expect(chart.failMessage).toEqual("")
-    expect(chart.marks.length).toEqual(10)
+    expect(chart.marks[0].points.length).toEqual(10)
 })

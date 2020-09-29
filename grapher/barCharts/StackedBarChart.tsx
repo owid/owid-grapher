@@ -93,7 +93,7 @@ export class StackedBarChart
         manager: ChartManager
     }>
     implements ChartInterface, VerticalColorLegendManager, ColorScaleManager {
-    base!: SVGGElement
+    base!: SVGSVGElement
     readonly minBarSpacing = 4
 
     // currently hovered legend color
@@ -349,7 +349,6 @@ export class StackedBarChart
 
     componentDidMount() {
         // Fancy intro animation
-
         const base = select(this.base)
         base.selectAll("clipPath > rect")
             .attr("width", 0)
@@ -385,7 +384,11 @@ export class StackedBarChart
         const textColor = "#666"
 
         return (
-            <g className="StackedBarChart">
+            <svg
+                className="StackedBarChart"
+                width={bounds.width}
+                height={bounds.height}
+            >
                 <defs>
                     <clipPath id={`boundsClip-${renderUid}`}>
                         <rect
@@ -487,7 +490,7 @@ export class StackedBarChart
 
                 <VerticalColorLegend manager={this} />
                 {tooltip}
-            </g>
+            </svg>
         )
     }
 
@@ -504,6 +507,8 @@ export class StackedBarChart
         if (!yColumn) return "Missing variable"
 
         if (!this.marks.length) return "No matching data"
+
+        if (!this.allStackedValues.length) return "No matching points"
         return ""
     }
 
