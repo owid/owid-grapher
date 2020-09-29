@@ -444,8 +444,7 @@ export class LineChart
     }
 
     render() {
-        if (this.failMessage) {
-            console.log(this.failMessage)
+        if (this.failMessage)
             return (
                 <NoDataOverlay
                     manager={this.manager}
@@ -453,7 +452,6 @@ export class LineChart
                     message={this.failMessage}
                 />
             )
-        }
 
         const { manager, bounds, tooltip, dualAxis, renderUid, hoverX } = this
         const { horizontalAxis, verticalAxis } = dualAxis

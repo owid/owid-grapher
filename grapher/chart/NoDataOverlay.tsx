@@ -2,7 +2,6 @@ import * as React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
@@ -29,45 +28,41 @@ export class NoDataOverlay extends React.Component<{
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed get message() {
+    render() {
         const { message, manager } = this.props
         const entityType = manager.entityType
         const { bounds } = this
         return (
-            <div
-                className="NoData"
-                style={{
-                    position: "absolute",
-                    top: bounds.top,
-                    left: bounds.left,
-                    width: bounds.width,
-                    height: bounds.height,
-                }}
+            <foreignObject
+                x={bounds.left}
+                y={bounds.top}
+                width={bounds.width}
+                height={bounds.height}
             >
-                <p className="message">{message || "No available data"}</p>
-                <div className="actions">
-                    {manager.canAddData && (
-                        <button className="action" onClick={this.onDataSelect}>
-                            <FontAwesomeIcon icon={faPlus} /> Add {entityType}
-                        </button>
-                    )}
-                    {manager.canChangeEntity && (
-                        <button className="action" onClick={this.onDataSelect}>
-                            <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                            {entityType}
-                        </button>
-                    )}
+                <div className="NoData">
+                    <p className="message">{message || "No available data"}</p>
+                    <div className="actions">
+                        {manager.canAddData && (
+                            <button
+                                className="action"
+                                onClick={this.onDataSelect}
+                            >
+                                <FontAwesomeIcon icon={faPlus} /> Add{" "}
+                                {entityType}
+                            </button>
+                        )}
+                        {manager.canChangeEntity && (
+                            <button
+                                className="action"
+                                onClick={this.onDataSelect}
+                            >
+                                <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                                {entityType}
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
-        )
-    }
-
-    render() {
-        const message = this.message
-        return this.props.manager.standalone ? (
-            message
-        ) : (
-            <ControlsOverlay id="no-data">{message}</ControlsOverlay>
+            </foreignObject>
         )
     }
 }

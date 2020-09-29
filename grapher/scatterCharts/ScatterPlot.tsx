@@ -339,8 +339,7 @@ export class ScatterPlot
     }
 
     render() {
-        if (this.failMessage) {
-            console.log(this.failMessage)
+        if (this.failMessage)
             return (
                 <NoDataOverlay
                     manager={this.manager}
@@ -348,7 +347,6 @@ export class ScatterPlot
                     message={this.failMessage}
                 />
             )
-        }
 
         const {
             bounds,

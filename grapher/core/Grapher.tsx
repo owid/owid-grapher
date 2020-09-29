@@ -637,6 +637,7 @@ export class Grapher
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady() {
         return this.loadingDimensions.length === 0
+        return this.dimensions.length > 0 && this.loadingDimensions.length === 0
     }
 
     @computed private get loadingDimensions() {
