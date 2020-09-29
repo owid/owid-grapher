@@ -7,6 +7,7 @@ use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Lcobucci\JWT\ValidationData;
 
+const CLOUDFLARE_COOKIE_NAME = "CF_Authorization";
 /*
  * Attempts to find a valid user within the JWT, after verifying and validating
  * it.
@@ -16,7 +17,7 @@ use Lcobucci\JWT\ValidationData;
  */
 function auth_cloudflare_sso($user, $username, $password)
 {
-    $jwt_cookie = $_COOKIE["CF_Authorization"] ?? null;
+    $jwt_cookie = $_COOKIE[CLOUDFLARE_COOKIE_NAME] ?? null;
     if (!$jwt_cookie) {
         // No errors logged here as this can be a legitimate situation, e.g.
         // when working locally.
@@ -84,6 +85,34 @@ add_action('login_init', function () {
         // This prevents clearing the auth cookies we just set, which
         // would lead to an infinite redirection loop.
         $_REQUEST['reauth'] = 0;
-        wp_redirect(get_admin_url());
+        wp_redirect(admin_url());
     }
 });
+
+add_action('wp_logout', function () {
+    // This is just some standard browser cleanup. It does not log out of
+    // Cloudflare. When WP attempts to log out, auth_cloudflare_sso() will try
+    // to log back in. If the JWT stored in the cookie is still valid, then the
+    // user will be redirected to the admin (even though the logout button was
+    // clicked). This is why a short token validity is required.
+    unset($_COOKIE[CLOUDFLARE_COOKIE_NAME]);
+    setcookie(CLOUDFLARE_COOKIE_NAME, "", time() - 3600, '/');
+});
+
+/*
+ * Since the logout URL is identical to the login URL (plus an ?action=logout
+ * query parameter), it is protected by Cloudflare. Logging out then prompts the
+ * user to log in, which we don't want. This filter changes the logout URL to
+ * point it to a custom page, where the logout is performed.
+ * custom page.
+ */
+add_filter(
+    'logout_url',
+    function () {
+        $logout_url = wp_nonce_url(plugins_url('logout.php', __FILE__), 'log-out');
+        return $logout_url;
+    },
+    10,
+    0
+
+);
