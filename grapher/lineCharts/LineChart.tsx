@@ -575,7 +575,6 @@ export class LineChart
                 this.manager.table.minTime!,
                 this.yColumnSlugs
             )
-        ;(window as any).table2 = table
         return table
     }
 

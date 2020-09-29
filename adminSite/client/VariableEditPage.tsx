@@ -302,7 +302,6 @@ class VariableEditor extends React.Component<{ variable: VariablePageData }> {
     dispose!: IReactionDisposer
     componentDidMount() {
         this.grapher = new Grapher(this.grapherConfig)
-        ;(window as any).grapher = this.grapher
 
         this.dispose = autorun(() => {
             if (this.grapher && this.grapherConfig) {

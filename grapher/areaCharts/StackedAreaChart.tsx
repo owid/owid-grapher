@@ -438,7 +438,6 @@ export class StackedAreaChart
             .ease(easeLinear)
             .attr("width", this.bounds.width)
             .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-        ;(window as any).chart = this
     }
 
     componentWillUnmount() {
