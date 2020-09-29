@@ -17,7 +17,7 @@ import {
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
+import { NoDataModal } from "grapher/chart/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,
@@ -37,7 +37,6 @@ import { select } from "d3-selection"
 import { Text } from "grapher/text/Text"
 import { TextWrap } from "grapher/text/TextWrap"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import {
     LabelledSlopesProps,
     SlopeAxisProps,
@@ -234,7 +233,7 @@ export class SlopeChart
     render() {
         if (this.failMessage)
             return (
-                <NoDataOverlay
+                <NoDataModal
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.failMessage}
@@ -984,13 +983,13 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             this.manager.isInteractive && yAxis?.canChangeScaleType
         if (!showScaleSelector) return undefined
         return (
-            <ControlsOverlay id="slope-scale-selector" paddingTop={20}>
+            <foreignObject id="slope-scale-selector" paddingTop={20}>
                 <ScaleSelector
                     x={this.bounds.x}
                     y={this.bounds.y - 35}
                     scaleTypeConfig={yAxis!.toVerticalAxis()}
                 />
-            </ControlsOverlay>
+            </foreignObject>
         )
     }
 
@@ -1012,9 +1011,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         } = this
 
         if (isEmpty(slopeData))
-            return (
-                <NoDataOverlay manager={this.props.manager} bounds={bounds} />
-            )
+            return <NoDataModal manager={this.props.manager} bounds={bounds} />
 
         const { x1, x2 } = slopeData[0]
         const [y1, y2] = yScale.range()

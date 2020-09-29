@@ -23,6 +23,7 @@ const common = {
 }
 
 module.exports = {
+    testTimeout: 1000,
     projects: [
         {
             ...common,

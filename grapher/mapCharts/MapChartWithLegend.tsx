@@ -21,7 +21,6 @@ import {
 import { MapProjection, MapProjections } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"
 import { isOnTheMap } from "./EntitiesOnTheMap"
@@ -451,13 +450,13 @@ export class MapChartWithLegend
                     focusEntity={focusEntity}
                 />
                 {this.renderMapLegend()}
-                <ControlsOverlay id="projection-chooser">
+                <foreignObject id="projection-chooser">
                     <ProjectionChooser
                         bounds={projectionChooserBounds}
                         value={projection}
                         onChange={this.onProjectionChange}
                     />
-                </ControlsOverlay>
+                </foreignObject>
                 {tooltipTarget && (
                     <MapTooltip
                         tooltipDatum={tooltipDatum}

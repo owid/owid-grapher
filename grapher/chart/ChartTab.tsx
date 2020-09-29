@@ -13,9 +13,7 @@ import {
     ChartTypeName,
     EntitySelectionModes,
     GrapherTabOption,
-    OverlayPadding,
 } from "grapher/core/GrapherConstants"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { FooterManager } from "grapher/footer/FooterManager"
 import { HeaderManager } from "grapher/header/HeaderManager"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
@@ -28,9 +26,7 @@ export interface ChartTabManager
         HeaderManager,
         ChartManager,
         MapChartManager {
-    overlayPadding?: OverlayPadding
     containerElement?: HTMLDivElement
-    overlays?: { [id: string]: ControlsOverlay }
     tabBounds?: Bounds
     isExporting?: boolean
     tab?: GrapherTabOption
@@ -101,17 +97,6 @@ export class ChartTab
         return this.paddedBounds.width
     }
 
-    @computed private get overlayPadding() {
-        return (
-            this.manager?.overlayPadding ?? {
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-            }
-        )
-    }
-
     @computed private get bounds() {
         return this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
@@ -122,10 +107,6 @@ export class ChartTab
 
     @computed private get containerElement() {
         return this.manager?.containerElement
-    }
-
-    @computed private get overlays() {
-        return this.manager?.overlays || {}
     }
 
     @computed private get header() {
@@ -143,22 +124,13 @@ export class ChartTab
     @computed private get svgWidth() {
         if (this.isExporting) return this.bounds.width
 
-        const { overlayPadding } = this
-        return this.bounds.width - overlayPadding.left - overlayPadding.right
+        return this.bounds.width
     }
 
     @computed private get svgHeight() {
         if (this.isExporting) return this.bounds.height
 
-        const { overlayPadding } = this
-        return (
-            this.bounds.height -
-            this.header.height -
-            this.footer.height -
-            overlayPadding.top -
-            overlayPadding.bottom -
-            25
-        )
+        return this.bounds.height - this.header.height - this.footer.height - 25
     }
 
     @computed private get innerBounds() {
@@ -273,27 +245,9 @@ export class ChartTab
     }
 
     private renderWithHTMLText() {
-        const { overlayPadding } = this
-
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
-            paddingTop: `${overlayPadding.top}px`,
-            paddingRight: `${overlayPadding.right}px`,
-            paddingBottom: `${overlayPadding.bottom}px`,
-            paddingLeft: `${overlayPadding.left}px`,
-        }
-        const overlayStyle: React.CSSProperties = {
-            position: "absolute",
-            // Overlays should be positioned relative to the same origin
-            // as the <svg>
-            top: `${overlayPadding.top}px`,
-            left: `${overlayPadding.left}px`,
-            // Create 0px element to avoid capturing events.
-            // Can achieve the same with `pointer-events: none`, but then control
-            // has to override `pointer-events` to capture events.
-            width: "0px",
-            height: "0px",
         }
 
         return (
@@ -301,19 +255,10 @@ export class ChartTab
                 <Header manager={this} />
                 <div style={containerStyle}>
                     <svg {...this.svgProps}>{this.renderChart()}</svg>
-                    <div className="ControlsOverlay" style={overlayStyle}>
-                        {this.renderOverlays()}
-                    </div>
                 </div>
                 <Footer manager={this} />
             </>
         )
-    }
-
-    private renderOverlays() {
-        return Object.entries(this.overlays).map(([key, overlay]) => (
-            <React.Fragment key={key}>{overlay.props.children}</React.Fragment>
-        ))
     }
 
     render() {

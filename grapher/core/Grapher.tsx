@@ -25,7 +25,6 @@ import {
     identity,
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,
-    max,
     isVisible,
     VNode,
     throttle,
@@ -48,7 +47,6 @@ import {
     RelatedQuestionsConfig,
     Time,
     BASE_FONT_SIZE,
-    OverlayPadding,
     CookieKeys,
 } from "grapher/core/GrapherConstants"
 import {
@@ -124,11 +122,6 @@ import {
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import {
-    ControlsOverlay,
-    GrapherContext,
-    GrapherContextInterface,
-} from "grapher/controls/ControlsOverlay"
 import { ChartTab, ChartTabManager } from "grapher/chart/ChartTab"
 import { SourcesTab, SourcesTabManager } from "grapher/sourcesTab/SourcesTab"
 import { DataTable } from "grapher/dataTable/DataTable"
@@ -1417,8 +1410,6 @@ export class Grapher
         )
     }
 
-    @observable.shallow overlays: { [id: string]: ControlsOverlay } = {}
-
     @observable.ref private popups: VNode[] = []
 
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -1450,23 +1441,6 @@ export class Grapher
 
     removePopup(vnodeType: any) {
         this.popups = this.popups.filter((d) => !(d.type === vnodeType))
-    }
-
-    get childContext(): GrapherContextInterface {
-        return {
-            grapher: this,
-            isStatic: !!this.isExport,
-            addPopup: this.addPopup.bind(this),
-            removePopup: this.removePopup.bind(this),
-        }
-    }
-
-    render() {
-        return (
-            <GrapherContext.Provider value={this.childContext}>
-                {this.renderMain()}
-            </GrapherContext.Provider>
-        )
     }
 
     private renderPrimaryTab() {
@@ -1648,7 +1622,7 @@ export class Grapher
         )
     }
 
-    private renderMain() {
+    render() {
         // TODO how to handle errors in exports?
         // TODO tidy this up
         if (this.isExport) return this.renderSVG()
@@ -1721,20 +1695,6 @@ export class Grapher
     }
 
     @observable isShareMenuActive = false
-
-    @computed.struct get overlayPadding(): OverlayPadding {
-        const overlays = Object.values(this.overlays)
-        return {
-            top: max(overlays.map((overlay) => overlay.props.paddingTop)) ?? 0,
-            right:
-                max(overlays.map((overlay) => overlay.props.paddingRight)) ?? 0,
-            bottom:
-                max(overlays.map((overlay) => overlay.props.paddingBottom)) ??
-                0,
-            left:
-                max(overlays.map((overlay) => overlay.props.paddingLeft)) ?? 0,
-        }
-    }
 
     @computed get hasInlineControls() {
         return (

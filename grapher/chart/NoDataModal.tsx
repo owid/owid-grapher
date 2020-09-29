@@ -6,19 +6,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
 
-export interface NoDataOverlayManager {
+export interface NoDataModalManager {
     canChangeEntity?: boolean
     canAddData?: boolean
     isSelectingData?: boolean
     entityType?: string
-    standalone?: boolean // Until we remove ControlsOverlay have this option to render it for testing
 }
 
 @observer
-export class NoDataOverlay extends React.Component<{
+export class NoDataModal extends React.Component<{
     bounds?: Bounds
     message?: string
-    manager: NoDataOverlayManager
+    manager: NoDataModalManager
 }> {
     @action.bound private onDataSelect() {
         this.props.manager.isSelectingData = true

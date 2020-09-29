@@ -11,7 +11,7 @@ import {
     VerticalAxisGridLines,
 } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
-import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
+import { NoDataModal } from "grapher/chart/NoDataModal"
 import { Text } from "grapher/text/Text"
 import {
     VerticalColorLegend,
@@ -362,7 +362,7 @@ export class StackedBarChart
     render() {
         if (this.failMessage)
             return (
-                <NoDataOverlay
+                <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.failMessage}

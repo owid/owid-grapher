@@ -24,7 +24,7 @@ import {
 } from "grapher/lineLegend/LineLegend"
 import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
+import { NoDataModal } from "grapher/chart/NoDataModal"
 import { extent } from "d3-array"
 import { EntityName } from "coreTable/CoreTableConstants"
 import {
@@ -446,7 +446,7 @@ export class LineChart
     render() {
         if (this.failMessage)
             return (
-                <NoDataOverlay
+                <NoDataModal
                     manager={this.manager}
                     bounds={this.props.bounds}
                     message={this.failMessage}

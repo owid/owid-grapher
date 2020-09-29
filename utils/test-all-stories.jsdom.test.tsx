@@ -12,7 +12,7 @@ import * as CovidExplorer from "explorer/covidExplorer/CovidExplorer.stories"
 import * as StackedAreaChart from "grapher/areaCharts/StackedAreaChart.stories"
 import * as DiscreteBarChart from "grapher/barCharts/DiscreteBarChart.stories"
 import * as ChartTab from "grapher/chart/ChartTab.stories"
-import * as NoDataOverlay from "grapher/chart/NoDataOverlay.stories"
+import * as NoDataModal from "grapher/chart/NoDataModal.stories"
 import * as CollapsibleList from "grapher/controls/CollapsibleList/CollapsibleList.stories"
 import * as CommandPalette from "grapher/controls/CommandPalette.stories"
 import * as CountryPicker from "grapher/controls/CountryPicker.stories"
@@ -46,7 +46,7 @@ runTests(CovidExplorer)
 runTests(StackedAreaChart)
 runTests(DiscreteBarChart)
 runTests(ChartTab)
-runTests(NoDataOverlay)
+runTests(NoDataModal)
 runTests(CollapsibleList)
 runTests(CommandPalette)
 runTests(CountryPicker)

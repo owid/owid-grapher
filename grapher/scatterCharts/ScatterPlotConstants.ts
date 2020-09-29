@@ -2,7 +2,7 @@ import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { NoDataOverlayManager } from "grapher/chart/NoDataOverlay"
+import { NoDataModalManager } from "grapher/chart/NoDataModal"
 import { ColorScale } from "grapher/color/ColorScale"
 import {
     ScatterPointLabelStrategy,
@@ -106,5 +106,5 @@ export interface PointsWithLabelsProps {
     onMouseLeave: () => void
     onClick: () => void
     hideLines: boolean
-    noDataOverlayManager: NoDataOverlayManager
+    noDataModalManager: NoDataModalManager
 }

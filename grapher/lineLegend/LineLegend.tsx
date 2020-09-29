@@ -16,7 +16,6 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { EntityName } from "coreTable/CoreTableConstants"
 import {
     BASE_FONT_SIZE,
@@ -477,7 +476,7 @@ export class LineLegend extends React.Component<{
         )
 
         return (
-            <ControlsOverlay id="add-country" paddingTop={paddingTop}>
+            <foreignObject id="add-country" paddingTop={paddingTop}>
                 <AddEntityButton
                     x={this.legendX + leftOffset}
                     y={topMarkY}
@@ -487,7 +486,7 @@ export class LineLegend extends React.Component<{
                     label={`Add ${this.manager.entityType ?? "Country"}`}
                     onClick={this.onAddClick}
                 />
-            </ControlsOverlay>
+            </foreignObject>
         )
     }
 

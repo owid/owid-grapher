@@ -30,7 +30,7 @@ import {
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
+import { NoDataModal } from "grapher/chart/NoDataModal"
 import { scaleLinear } from "d3-scale"
 import { PointVector } from "grapher/utils/PointVector"
 import { Triangle } from "./Triangle"
@@ -305,7 +305,7 @@ export class ScatterPlot
 
         return (
             <PointsWithLabels
-                noDataOverlayManager={manager}
+                noDataModalManager={manager}
                 hideLines={hideLines}
                 seriesArray={marks}
                 dualAxis={dualAxis}
@@ -341,7 +341,7 @@ export class ScatterPlot
     render() {
         if (this.failMessage)
             return (
-                <NoDataOverlay
+                <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.failMessage}
@@ -1687,8 +1687,8 @@ class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
 
         if (isEmpty(renderData))
             return (
-                <NoDataOverlay
-                    manager={this.props.noDataOverlayManager}
+                <NoDataModal
+                    manager={this.props.noDataModalManager}
                     bounds={bounds}
                 />
             )

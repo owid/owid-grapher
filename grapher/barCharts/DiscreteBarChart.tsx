@@ -9,8 +9,7 @@ import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
 } from "grapher/axis/AxisViews"
-import { NoDataOverlay } from "grapher/chart/NoDataOverlay"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
+import { NoDataModal } from "grapher/chart/NoDataModal"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
@@ -227,7 +226,7 @@ export class DiscreteBarChart
             this.barHeight
         )
         return (
-            <ControlsOverlay id="add-country" paddingTop={paddingTop}>
+            <foreignObject id="add-country" paddingTop={paddingTop}>
                 <AddEntityButton
                     x={this.bounds.left + this.legendWidth}
                     y={y}
@@ -237,14 +236,14 @@ export class DiscreteBarChart
                     label={`Add ${this.manager.entityType ?? "Country"}`}
                     onClick={this.onAddClick}
                 />
-            </ControlsOverlay>
+            </foreignObject>
         )
     }
 
     render() {
         if (this.failMessage)
             return (
-                <NoDataOverlay
+                <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
                     message={this.failMessage}

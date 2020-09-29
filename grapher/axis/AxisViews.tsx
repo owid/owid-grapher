@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 
 @observer
@@ -155,13 +154,13 @@ export class VerticalAxisComponent extends React.Component<{
             this.props.isInteractive && verticalAxis.scaleTypeOptions.length > 1
         if (!showControls) return undefined
         return (
-            <ControlsOverlay id="vertical-scale-selector" paddingTop={18}>
+            <foreignObject id="vertical-scale-selector" paddingTop={18}>
                 <ScaleSelector
                     x={bounds.left}
                     y={bounds.top - 34}
                     scaleTypeConfig={verticalAxis}
                 />
-            </ControlsOverlay>
+            </foreignObject>
         )
     }
 
@@ -212,14 +211,14 @@ export class HorizontalAxisComponent extends React.Component<{
         if (!showControls) return undefined
 
         return (
-            <ControlsOverlay id="horizontal-scale-selector" paddingBottom={10}>
+            <foreignObject id="horizontal-scale-selector" paddingBottom={10}>
                 <ScaleSelector
                     maxX={maxX}
                     x={bounds.right}
                     y={bounds.bottom}
                     scaleTypeConfig={axis}
                 />
-            </ControlsOverlay>
+            </foreignObject>
         )
     }
 

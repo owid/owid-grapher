@@ -46,13 +46,6 @@ export type ValueRange = [number, number]
 // A measurement value. Example: For "A GDP of 200" the CellValue is 200.
 export type CellValue = number | string
 
-export interface OverlayPadding {
-    top: number
-    right: number
-    bottom: number
-    left: number
-}
-
 export enum GrapherTabOption {
     chart = "chart",
     map = "map",
