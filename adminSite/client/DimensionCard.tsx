@@ -51,14 +51,14 @@ export class DimensionCard extends React.Component<{
                 Table:
                 <Toggle
                     label="Hide absolute change column"
-                    value={tableDisplay.hideAbsoluteChange}
+                    value={!!tableDisplay.hideAbsoluteChange}
                     onValue={(value) =>
                         (tableDisplay.hideAbsoluteChange = value)
                     }
                 />
                 <Toggle
                     label="Hide relative change column"
-                    value={tableDisplay.hideRelativeChange}
+                    value={!!tableDisplay.hideRelativeChange}
                     onValue={(value) =>
                         (tableDisplay.hideRelativeChange = value)
                     }

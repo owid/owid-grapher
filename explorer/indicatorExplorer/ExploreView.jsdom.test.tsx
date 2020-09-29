@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import { observe } from "mobx"
 import xhrMock from "xhr-mock"
 import { ExploreView } from "./ExploreView"
 import { ChartTypes } from "grapher/core/GrapherConstants"
@@ -64,17 +63,9 @@ function mockDataResponse() {
     })
 }
 
-async function whenReady(grapher: Grapher): Promise<void> {
-    return new Promise((resolve) => {
-        observe(grapher, "isReady", () => {
-            if (grapher.isReady) resolve()
-        })
-    })
-}
-
 async function updateViewWhenReady(exploreView: ReactWrapper) {
-    const grapher = exploreView.find(Grapher).first()
-    await whenReady(grapher.instance() as Grapher)
+    const grapher = exploreView.find(Grapher).first().instance() as Grapher
+    await grapher.whenReady()
     exploreView.update()
 }
 

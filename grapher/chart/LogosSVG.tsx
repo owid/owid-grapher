@@ -1,4 +1,4 @@
-export const OWID_LOGO_SVG = `<svg width="210" height="120" viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+export const OWID_LOGO_SVG = `<svg className="owidLog" width="210" height="120" viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0)">
   <path d="M0 0h210v107.89H0V0z" fill="#002147" />
   <path
@@ -12,7 +12,7 @@ export const OWID_LOGO_SVG = `<svg width="210" height="120" viewBox="0 0 210 120
 </defs>
 </svg>`
 
-export const CORE_LOGO_SVG = `<svg width="102" height="37" viewBox="0 0 102 37" fill="none" xmlns="http://www.w3.org/2000/svg">
+export const CORE_LOGO_SVG = `<svg className="coreLogo" width="102" height="37" viewBox="0 0 102 37" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M47 0H0v37h47V0z" fill="#EA4148" />
 <path
   d="M3.78 11.85c0-3.55 2.67-5.6 5.68-5.6a4.63 4.63 0 013.09 1.1l-1.7 2.36c-.31-.32-.74-.5-1.18-.52-1.36 0-2.16 1.03-2.16 2.66 0 1.62.89 2.65 2.03 2.65a2.93 2.93 0 001.7-.69l1.4 2.4a5.29 5.29 0 01-3.52 1.24c-3 0-5.34-2.05-5.34-5.6z"
@@ -39,7 +39,7 @@ export const CORE_LOGO_SVG = `<svg width="102" height="37" viewBox="0 0 102 37" 
 <path fill="#D42B21" d="M48 32.65h54V37H48z" />
 </svg>`
 
-export const GV_LOGO_SVG = `<svg width="420" height="350" viewBox="0 0 420 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+export const GV_LOGO_SVG = `<svg className="gvLogo" width="420" height="350" viewBox="0 0 420 350" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0)">
   <path fill="#fff" d="M0 0h420v350H0z" />
   <path d="M0 0h420v214H0V0z" fill="#002147" />

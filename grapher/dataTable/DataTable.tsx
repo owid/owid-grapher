@@ -365,21 +365,16 @@ export class DataTable extends React.Component<{
 
         return (
             <div
-                className="tableTab"
-                style={{ ...bounds.toCSS(), position: "absolute" }}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    overflow: "auto",
+                }}
             >
-                <div
-                    style={{
-                        width: "100%",
-                        height: "100%",
-                        overflow: "auto",
-                    }}
-                >
-                    <table className="data-table">
-                        <thead>{this.headerRow}</thead>
-                        <tbody>{this.valueRows}</tbody>
-                    </table>
-                </div>
+                <table className="data-table">
+                    <thead>{this.headerRow}</thead>
+                    <tbody>{this.valueRows}</tbody>
+                </table>
             </div>
         )
     }

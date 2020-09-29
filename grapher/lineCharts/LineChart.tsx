@@ -218,7 +218,7 @@ export class LineChart
         manager: LineChartManager
     }>
     implements ChartInterface, LineLegendManager {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGSVGElement> = React.createRef()
 
     @observable hoverX?: number
     @action.bound onHover(hoverX: number | undefined) {
@@ -459,7 +459,12 @@ export class LineChart
         const comparisonLines = manager.comparisonLines || []
 
         return (
-            <g ref={this.base} className="LineChart">
+            <svg
+                ref={this.base}
+                className="LineChart"
+                width={this.bounds.width}
+                height={this.bounds.height}
+            >
                 <defs>
                     <clipPath id={`boundsClip-${renderUid}`}>
                         {/* The tiny bit of extra space here is to ensure circles centered on the very edge are still fully visible */}
@@ -524,7 +529,7 @@ export class LineChart
                 )}
 
                 {tooltip}
-            </g>
+            </svg>
         )
     }
 

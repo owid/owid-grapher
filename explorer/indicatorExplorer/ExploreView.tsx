@@ -112,7 +112,7 @@ export class ExploreView extends React.Component<ExploreProps> {
             <div className="indicator-bar">
                 <IndicatorDropdown
                     placeholder="Select variable"
-                    onChangeId={(id) => (this.model.indicatorId = id)}
+                    onChangeId={(id) => this.model.setIndicatorId(id)}
                     indicatorEntry={this.model.indicatorEntry}
                 />
             </div>
@@ -125,9 +125,7 @@ export class ExploreView extends React.Component<ExploreProps> {
             bounds: this.bounds,
         }
 
-        console.log(grapherProps)
-
-        return <Grapher {...grapherProps} />
+        return <Grapher {...grapherProps} key={Math.random()} />
     }
 
     render() {

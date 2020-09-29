@@ -18,9 +18,5 @@ export const Default = () => {
         yColumnSlug: "GDP",
     }
 
-    return (
-        <svg width={640} height={480}>
-            <SlopeChart manager={manager} />
-        </svg>
-    )
+    return <SlopeChart manager={manager} />
 }

@@ -360,7 +360,11 @@ export class ScatterPlot
         } = this
 
         return (
-            <g className="ScatterPlot">
+            <svg
+                className="ScatterPlot"
+                width={this.bounds.width}
+                height={this.bounds.height}
+            >
                 <DualAxisComponent
                     isInteractive={manager.isInteractive}
                     dualAxis={dualAxis}
@@ -409,7 +413,7 @@ export class ScatterPlot
                         }
                     />
                 )}
-            </g>
+            </svg>
         )
     }
 

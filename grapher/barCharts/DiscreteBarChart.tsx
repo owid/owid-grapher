@@ -29,7 +29,7 @@ export class DiscreteBarChart
         manager: DiscreteBarChartManager
     }>
     implements ChartInterface {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGSVGElement> = React.createRef()
 
     @computed private get manager() {
         return this.props.manager
@@ -257,7 +257,12 @@ export class DiscreteBarChart
         const maxX = bounds.width + 40 // This is only used to shift the ScaleSelector left if it exceeds the container. Hard coded for now but could be improved
 
         return (
-            <g ref={this.base} className="DiscreteBarChart">
+            <svg
+                width={this.bounds.width}
+                height={this.bounds.height}
+                ref={this.base}
+                className="DiscreteBarChart"
+            >
                 <rect
                     x={bounds.left}
                     y={bounds.top}
@@ -350,7 +355,7 @@ export class DiscreteBarChart
                     return result
                 })}
                 {this.addEntityButton}
-            </g>
+            </svg>
         )
     }
 

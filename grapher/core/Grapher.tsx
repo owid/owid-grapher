@@ -9,6 +9,7 @@ import {
     reaction,
     IReactionDisposer,
     when,
+    observe,
 } from "mobx"
 import { bind } from "decko"
 import {
@@ -629,13 +630,20 @@ export class Grapher
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady() {
-        return this.loadingDimensions.length === 0
         return this.dimensions.length > 0 && this.loadingDimensions.length === 0
     }
 
+    async whenReady() {
+        return new Promise((resolve) => {
+            if (this.isReady) return resolve()
+            observe(this, "isReady", () => {
+                if (this.isReady) resolve()
+            })
+        })
+    }
+
     @computed private get loadingDimensions() {
-        const cols = this.table.columnsByOwidVarId
-        return this.dimensions.filter((dim) => !cols.has(dim.variableId))
+        return this.dimensions.filter((dim) => !this.table.has(dim.columnSlug))
     }
 
     url: GrapherUrl
@@ -1452,7 +1460,14 @@ export class Grapher
             return <ChartTab manager={this} />
 
         if (this.primaryTab === GrapherTabOption.table)
-            return <DataTable bounds={tabBounds} manager={this} />
+            return (
+                <div
+                    className="tableTab"
+                    style={{ ...tabBounds.toCSS(), position: "absolute" }}
+                >
+                    <DataTable bounds={tabBounds} manager={this} />
+                </div>
+            )
 
         return undefined
     }

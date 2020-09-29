@@ -87,7 +87,7 @@ export class MapChartWithLegend
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGSVGElement> = React.createRef()
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
         const datum = d.id === undefined ? undefined : this.marks[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
@@ -437,7 +437,12 @@ export class MapChartWithLegend
             : undefined
 
         return (
-            <g ref={this.base} className="mapTab">
+            <svg
+                width={this.bounds.width}
+                height={this.bounds.height}
+                ref={this.base}
+                className="mapTab"
+            >
                 <ChoroplethMap
                     bounds={this.bounds.padBottom(this.legendHeight + 15)}
                     choroplethData={marks}
@@ -468,7 +473,7 @@ export class MapChartWithLegend
                         colorScale={this.colorScale}
                     />
                 )}
-            </g>
+            </svg>
         )
     }
 }

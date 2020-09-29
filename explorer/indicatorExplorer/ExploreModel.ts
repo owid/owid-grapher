@@ -104,11 +104,9 @@ export class ExploreModel {
             : (this.chartType as ChartTypeName)
     }
 
-    @computed get indicatorEntry(): StoreEntry<Indicator> | null {
-        if (this.indicatorId) {
-            const indicatorEntry = this.store.indicators.get(this.indicatorId)
-            return indicatorEntry
-        }
-        return null
+    @computed get indicatorEntry() {
+        return this.indicatorId
+            ? this.store.indicators.get(this.indicatorId)
+            : null
     }
 }

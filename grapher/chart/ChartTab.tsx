@@ -152,7 +152,7 @@ export class ChartTab
         const innerBounds = this.innerBounds
         const isMapTab = manager.tab === GrapherTabOption.map
 
-        if (!this.isReady || (isMapTab && !manager.mapColumnSlug))
+        if (!this.isReady)
             return <LoadingIndicator bounds={innerBounds} color="#333" />
 
         if (isMapTab)
@@ -233,7 +233,7 @@ export class ChartTab
         const { paddedBounds } = this
 
         return (
-            <svg {...this.svgProps}>
+            <svg className="chartTabForSvg" {...this.svgProps}>
                 {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
                 {this.footer.renderStatic(
@@ -254,7 +254,9 @@ export class ChartTab
             <>
                 <Header manager={this} />
                 <div style={containerStyle}>
-                    <svg {...this.svgProps}>{this.renderChart()}</svg>
+                    <svg className="chartTabForInteractive" {...this.svgProps}>
+                        {this.renderChart()}
+                    </svg>
                 </div>
                 <Footer manager={this} />
             </>

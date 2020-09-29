@@ -35,7 +35,6 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { AreasProps, StackedAreaSeries } from "./StackedAreaChartConstants"
 import { stackAreas } from "./StackedAreaChartUtils"
-import { faTshirt } from "@fortawesome/free-solid-svg-icons"
 
 const BLUR_COLOR = "#ddd"
 

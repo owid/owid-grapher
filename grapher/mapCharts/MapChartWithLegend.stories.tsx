@@ -19,9 +19,5 @@ export const Default = () => {
         mapColumnSlug: "Population",
     }
 
-    return (
-        <svg width={640} height={480}>
-            <MapChartWithLegend manager={manager} />
-        </svg>
-    )
+    return <MapChartWithLegend manager={manager} />
 }

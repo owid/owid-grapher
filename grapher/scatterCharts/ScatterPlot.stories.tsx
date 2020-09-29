@@ -17,9 +17,5 @@ export const Default = () => {
 
     table.selectAll()
 
-    return (
-        <svg width={640} height={480}>
-            <ScatterPlot manager={manager} />
-        </svg>
-    )
+    return <ScatterPlot manager={manager} />
 }
