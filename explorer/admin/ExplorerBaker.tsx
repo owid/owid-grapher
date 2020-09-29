@@ -183,7 +183,6 @@ const CovidExplorerPage = (props: CovidExplorerPageProps) => {
     var props = {
         containerNode: document.getElementById("explorerContainer"),
         queryStr: window.location.search,
-        isExplorerPage: true,
         isEmbed: window != window.top,
         bindToWindow: true
     };

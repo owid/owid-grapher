@@ -124,29 +124,18 @@ export class CovidExplorerTable {
     private manager?: TableManager
 
     constructor(
-        data: CovidGrapherRow[],
+        rowData: CovidGrapherRow[],
         manager?: TableManager,
-        owidVariableSpecs = {},
-        isStandalonePage = false
+        owidVariableSpecs = {}
     ) {
         this.initColumnSpecTemplates(owidVariableSpecs)
-        const rowData = isStandalonePage ? data : cloneDeep(data)
-        const table = new OwidTable(rowData)
-        this.table = table
+        this.table = new OwidTable(rowData)
 
-        // This simply looks at the first row of the Covid CSV, and generates a spec for each column found.
-        // I assume that the first row contains a key/value pair for every column
-        const firstRow = data[0] || {}
-        const specs = Object.keys(firstRow).map((slug) =>
-            CovidExplorerTable.makeSpec(slug)
-        )
-        specs.push(this.columnSpecs.continents)
-        table.addColumns(specs)
         this.addAnnotationColumns()
 
         if (manager) {
             this.manager = manager
-            manager.rootTable = table // Set the new table on Grapher
+            manager.rootTable = this.table // Set the new table on Grapher
         }
     }
 
@@ -261,7 +250,7 @@ export class CovidExplorerTable {
         const caseSlug = "cases_annotations"
         const deathSlug = "deaths_annotations"
         const cfrSlug = "case_fatality_rate_annotations"
-        this.table.addColumns([
+        this.table = this.table.addColumns([
             { slug: caseSlug, type: ColumnTypeNames.String },
             {
                 slug: deathSlug,
@@ -399,7 +388,7 @@ export class CovidExplorerTable {
                 perCapitaTransform
             )
         else {
-            table.addColumns([
+            this.table = table.addColumns([
                 {
                     ...spec,
                     fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn,
@@ -442,7 +431,7 @@ export class CovidExplorerTable {
                 : (100 * (val - previousValue)) / previousValue
         }
 
-        table.addColumns([
+        this.table = table.addColumns([
             {
                 ...spec,
                 fn: transformation(computeIntervalTotals),
@@ -638,7 +627,7 @@ export class CovidExplorerTable {
 
         let currentCountry: number
         let countryExceededThresholdOnDay: number
-        this.table.addColumns([spec])
+        this.table = this.table.addColumns([spec])
         return slug
     }
 

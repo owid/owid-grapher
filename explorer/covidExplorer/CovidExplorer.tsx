@@ -89,7 +89,6 @@ interface BootstrapProps {
     isEmbed?: boolean
     queryStr?: string
     globalEntitySelection?: GlobalEntitySelection
-    isExplorerPage?: boolean
     bindToWindow?: boolean
 }
 
@@ -104,7 +103,6 @@ export class CovidExplorer extends React.Component<{
     updated: string
     queryStr?: string
     isEmbed?: boolean
-    isExplorerPage?: boolean
     globalEntitySelection?: GlobalEntitySelection
     enableKeyboardShortcuts?: boolean
     bindToWindow?: boolean
@@ -128,7 +126,6 @@ export class CovidExplorer extends React.Component<{
                 covidChartAndVariableMeta={covidMeta}
                 queryStr={queryStr}
                 isEmbed={props.isEmbed}
-                isExplorerPage={props.isExplorerPage}
                 globalEntitySelection={props.globalEntitySelection}
                 enableKeyboardShortcuts={true}
                 bindToWindow={props.bindToWindow}
@@ -710,8 +707,7 @@ export class CovidExplorer extends React.Component<{
             this._covidExplorerTable = new CovidExplorerTable(
                 this.props.data,
                 this.grapher,
-                this.props.covidChartAndVariableMeta.variables,
-                this.props.isExplorerPage
+                this.props.covidChartAndVariableMeta.variables
             )
         }
         return this._covidExplorerTable
@@ -784,6 +780,11 @@ export class CovidExplorer extends React.Component<{
 
         grapher.setDimensionsFromConfigs(this.dimensionSpecs)
 
+        const shouldFilterNegatives =
+            (params.casesMetric || params.deathsMetric) &&
+            !(params.interval === "total") &&
+            !params.intervalChange
+
         // multimetric table
         if (this.constrainedParams.tableMetrics)
             this._generateDataTableColumnsInTable()
@@ -795,6 +796,8 @@ export class CovidExplorer extends React.Component<{
             !(params.interval === "total") &&
             !params.intervalChange
 
+        if (shouldFilterNegatives)
+            covidExplorerTable.applyNegativesFilter(params.yColumnSlug)
         if (shouldFilterGroups) covidExplorerTable.applyGroupsFilter()
 
         this._updateMap()

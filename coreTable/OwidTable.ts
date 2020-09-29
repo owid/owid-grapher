@@ -480,6 +480,16 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this
     }
 
+    // todo: how do I make this generic and on CoreTable?
+    addColumns(columns: CoreColumnSpec[]): OwidTable {
+        return new OwidTable(
+            this.rows,
+            this.specs.concat(columns),
+            this,
+            `Added new columns ${columns.map((spec) => spec.slug)}`
+        )
+    }
+
     getColorForEntityName(entityName: string) {
         // Todo: restore Grapher keycolors functionality
         const colors = {

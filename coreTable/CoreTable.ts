@@ -137,15 +137,6 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
-    addColumns(columns: CoreColumnSpec[]): AnyTable {
-        return new AnyTable(
-            this.rows,
-            this.specs.concat(columns),
-            this,
-            `Added new columns ${columns.map((spec) => spec.slug)}`
-        )
-    }
-
     @computed get rows() {
         return this._rows
     }
@@ -181,19 +172,27 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.timeColumnFormatFunction(value)
     }
 
-    static guessColumnSpec(slug: string) {
+    static guessColumnSpec(slug: string, row: any) {
         if (slug === "day")
             return {
                 slug: "day",
                 type: ColumnTypeNames.Date,
                 name: "Date",
             }
-        else if (slug === "year")
+
+        if (slug === "year")
             return {
                 slug: "year",
                 type: ColumnTypeNames.Year,
                 name: "Year",
             }
+
+        if (typeof row[slug] === "number")
+            return {
+                slug,
+                type: ColumnTypeNames.Numeric,
+            }
+
         return { slug }
     }
 
@@ -203,7 +202,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         // todo: just sample a few rows?
         rows.forEach((row) => {
             Object.keys(row).forEach((slug) => {
-                map[slug] = AbstractCoreTable.guessColumnSpec(slug)
+                map[slug] = AbstractCoreTable.guessColumnSpec(slug, row)
             })
         })
         return Object.values(map)
