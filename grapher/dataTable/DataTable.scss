@@ -8,7 +8,6 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     th {
         position: sticky;
         z-index: 10;
-        height: 51px;
         white-space: nowrap;
 
         &.dimension,
@@ -21,7 +20,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         &.subdimension {
-            top: 51px;
+            top: 50px;
         }
     }
 
@@ -34,6 +33,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
 .data-table {
     font-size: 0.9375rem;
+    line-height: 16px;
     border: none;
     background: white;
     width: 100%;
@@ -59,12 +59,12 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     thead tr:first-child th {
         padding-top: 10px;
         padding-bottom: 8px;
-        vertical-align: text-top;
     }
 
     th {
         padding-top: 8px;
         padding-bottom: 8px;
+        vertical-align: bottom;
     }
 
     tr:first-child td {
@@ -91,17 +91,33 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
     td {
         padding-left: 15px;
         padding-right: 15px;
-        vertical-align: text-top;
+    }
+
+    th.dimension {
+        text-align: center;
     }
 
     th.subdimension {
         border-right: $cell-border;
     }
 
-    th.subdimension:first-child,
-    th.dimension.sortable,
-    tbody td:nth-child(2) {
+    .deltaColumn {
+        min-width: 145px;
+    }
+
+    th.entity,
+    td.entity {
+        border-right: $cell-border;
+    }
+
+    tr > .dimension-start ~ .dimension-start,
+    tr > th.dimension ~ th.dimension,
+    tr > th.dimStart ~ th.dimStart {
         border-left: $cell-border;
+    }
+
+    th.lastSubdimension {
+        border-right: none;
     }
 
     th:last-child,
