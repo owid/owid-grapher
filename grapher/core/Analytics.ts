@@ -19,36 +19,45 @@ export class Analytics {
     logChartError(error: any, info: any) {
         this.logToAmplitude("CHART_ERROR", { error, info })
         this.logToGA("Errors", "Chart")
+        this.logToSA("Errors :: Chart")
     }
 
     logExploreError(error: any, info: any) {
         this.logToAmplitude("EXPLORE_ERROR", { error, info })
         this.logToGA("Errors", "Explore")
+        this.logToSA("Errors :: Explore")
     }
 
     logEntitiesNotFoundError(entities: string[]) {
         this.logToAmplitude("ENTITIES_NOT_FOUND", { entities })
         this.logToGA("Errors", "ENTITIES_NOT_FOUND", JSON.stringify(entities))
+        this.logToSA(
+            `Errors :: ENTITIES_NOT_FOUND :: ${JSON.stringify(entities)}`
+        )
     }
 
     logChartTimelinePlay(slug?: string) {
         this.logToAmplitude("CHART_TIMELINE_PLAY")
         this.logToGA("Chart", "TimelinePlay", slug)
+        this.logToSA(`Chart :: TimelinePlay :: ${slug}`)
     }
 
     logPageNotFound(url: string) {
         this.logToAmplitude("NOT_FOUND", { href: url })
         this.logToGA("Errors", "NotFound", url)
+        this.logToSA(`Errors :: NotFound :: ${url}`)
     }
 
     logChartsPageSearchQuery(query: string) {
         this.logToAmplitude("Charts Page Filter", { query })
         this.logToGA("ChartsPage", "Filter", query)
+        this.logToSA(`ChartsPage :: Filter :: ${query}`)
     }
 
     logGlobalEntityControl(action: "open" | "change" | "close", note?: string) {
         this.logToAmplitude("GLOBAL_ENTITY_CONTROL", { action, note })
         this.logToGA("GlobalEntityControl", action, note)
+        this.logToSA(`GlobalEntityControl :: ${action} :: ${note}`)
     }
 
     logCountrySelectorEvent(
@@ -68,12 +77,16 @@ export class Analytics {
             action,
             note
         )
+        this.logToSA(
+            `${countryPickerName}DataExplorerCountrySelector :: ${action} :: ${note}`
+        )
     }
 
     logCovidCountryProfileSearch(country: string) {
         const key = "COVID_COUNTRY_PROFILE_SEARCH"
         this.logToAmplitude(key, { country })
         this.logToGA(key, country)
+        this.logToSA(`${key} :: ${country}`)
     }
 
     logSiteClick(text: string, href?: string, note?: string) {
@@ -83,10 +96,12 @@ export class Analytics {
             note,
         })
         this.logToGA("SiteClick", note || "unknown-category", text)
+        this.logToSA(`SiteClick :: ${note || "unknown-category"} :: ${text}`)
     }
 
     logKeyboardShortcut(shortcut: string, combo: string) {
         this.logToGA("KeyboardShortcut", shortcut, combo)
+        this.logToSA(`KeyboardShortcut :: ${shortcut} :: ${combo}`)
     }
 
     logPageLoad() {
@@ -149,5 +164,15 @@ export class Analytics {
                 if (tracker) tracker.send(event as any)
             })
         }
+    }
+
+    private logToSA(eventLabel: string) {
+        if (DEBUG && this.isDev) {
+            // eslint-disable-next-line no-console
+            console.log("Analytics.logToSA", name, eventLabel)
+        }
+        if (!window.sa_event) return
+
+        window.sa_event(eventLabel)
     }
 }
