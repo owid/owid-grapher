@@ -35,6 +35,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { AreasProps, StackedAreaSeries } from "./StackedAreaChartConstants"
 import { stackAreas } from "./StackedAreaChartUtils"
+import { faTshirt } from "@fortawesome/free-solid-svg-icons"
 
 const BLUR_COLOR = "#ddd"
 
@@ -75,8 +76,8 @@ class Areas extends React.Component<AreasProps> {
 
     private seriesIsBlur(series: StackedAreaSeries) {
         return (
-            this.props.focusedEntities.length > 0 &&
-            !this.props.focusedEntities.includes(series.entityName)
+            this.props.focusedSeriesNames.length > 0 &&
+            !this.props.focusedSeriesNames.includes(series.seriesName)
         )
     }
 
@@ -101,8 +102,8 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={makeSafeForCSS(series.entityName) + "-area"}
-                    key={series.entityName + "-area"}
+                    className={makeSafeForCSS(series.seriesName) + "-area"}
+                    key={series.seriesName + "-area"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     fill={this.seriesIsBlur(series) ? BLUR_COLOR : series.color}
@@ -129,8 +130,8 @@ class Areas extends React.Component<AreasProps> {
 
             return (
                 <path
-                    className={makeSafeForCSS(series.entityName) + "-border"}
-                    key={series.entityName + "-border"}
+                    className={makeSafeForCSS(series.seriesName) + "-border"}
+                    key={series.seriesName + "-border"}
                     strokeLinecap="round"
                     d={pointsToPath(points)}
                     stroke={rgb(
@@ -178,7 +179,7 @@ class Areas extends React.Component<AreasProps> {
                         {seriesArr.map((series) => {
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
-                                    key={series.entityName}
+                                    key={series.seriesName}
                                     cx={horizontalAxis.place(
                                         series.points[hoverIndex].x
                                     )}
@@ -215,7 +216,7 @@ export class StackedAreaChart
         manager: ChartManager
     }>
     implements ChartInterface, LineLegendManager {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGSVGElement> = React.createRef()
 
     @computed private get manager() {
         return this.props.manager
@@ -242,8 +243,8 @@ export class StackedAreaChart
         const items = this.marks
             .map((d, i) => ({
                 color: d.color,
-                lineName: d.entityName,
-                label: this.manager.table.getLabelForEntityName(d.entityName),
+                seriesName: d.seriesName,
+                label: this.manager.table.getLabelForEntityName(d.seriesName),
                 yValue: midpoints[i],
             }))
             .reverse()
@@ -294,18 +295,18 @@ export class StackedAreaChart
         this.hoverKey = undefined
     }
 
-    @computed get focusedLineNames() {
+    @computed get focusedSeriesNames() {
         return this.hoverKey ? [this.hoverKey] : []
     }
 
     @computed get isFocusMode() {
-        return this.focusedLineNames.length > 0
+        return this.focusedSeriesNames.length > 0
     }
 
     seriesIsBlur(series: StackedAreaSeries) {
         return (
-            this.focusedLineNames.length > 0 &&
-            !this.focusedLineNames.includes(series.entityName)
+            this.focusedSeriesNames.length > 0 &&
+            !this.focusedSeriesNames.includes(series.seriesName)
         )
     }
 
@@ -359,7 +360,7 @@ export class StackedAreaChart
                                 : series.color
                             return (
                                 <tr
-                                    key={series.entityName}
+                                    key={series.seriesName}
                                     style={{ color: textColor }}
                                 >
                                     <td
@@ -375,7 +376,7 @@ export class StackedAreaChart
                                             }}
                                         />{" "}
                                         {manager.table.getLabelForEntityName(
-                                            series.entityName
+                                            series.seriesName
                                         )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
@@ -463,7 +464,12 @@ export class StackedAreaChart
         const showLegend = !this.manager.hideLegend
 
         return (
-            <g ref={this.base} className="StackedArea">
+            <svg
+                ref={this.base}
+                className="StackedArea"
+                width={this.bounds.width}
+                height={this.bounds.height}
+            >
                 <defs>
                     <clipPath id={`boundsClip-${renderUid}`}>
                         <rect
@@ -484,12 +490,12 @@ export class StackedAreaChart
                     <Areas
                         dualAxis={dualAxis}
                         seriesArr={marks}
-                        focusedEntities={this.focusedLineNames}
+                        focusedSeriesNames={this.focusedSeriesNames}
                         onHover={this.onHover}
                     />
                 </g>
                 {this.tooltip}
-            </g>
+            </svg>
         )
     }
 
@@ -540,7 +546,10 @@ export class StackedAreaChart
         if (this.manager.hideYAxis) yAxisConfig.hideAxis = true
 
         const axis = yAxisConfig.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
+
+        // Use user settings for axis, unless relative mode
+        if (this.manager.isRelativeMode) axis.domain = [0, 100]
+        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
 
         axis.formatColumn = yColumn
         return axis
@@ -564,7 +573,13 @@ export class StackedAreaChart
         table = table.filterBySelectedOnly()
 
         if (this.manager.isRelativeMode)
-            table = table.toRelatives(this.yColumnSlugs)
+            table = this.isStackedEntities
+                ? table.toPercentageFromEachEntityForEachTime(
+                      this.yColumnSlugs[0]
+                  )
+                : table.toPercentageFromEachColumnForEachEntityAndTime(
+                      this.yColumnSlugs
+                  )
         return table
     }
 
@@ -589,22 +604,37 @@ export class StackedAreaChart
     }
 
     @computed get colorScale() {
-        const baseColors = this.colorScheme.getColors(this.yColumns.length)
+        const seriesCount = this.isStackedEntities
+            ? this.table.selectedEntityNames.length
+            : this.yColumns.length
+        const baseColors = this.colorScheme.getColors(seriesCount)
         if (this.manager.invertColorScheme) baseColors.reverse()
         return scaleOrdinal(baseColors)
     }
 
+    // It seems we have 2 types of StackedAreas. If only 1 column, we stack
+    // the entities, and have one series per entity. If 2+ columns, we stack the columns
+    // and have 1 series per column.
+    @computed private get isStackedEntities() {
+        return this.yColumnSlugs.length === 1
+    }
+
     @computed get marks() {
+        const rawSeries = this.isStackedEntities
+            ? this.entitiesAsSeries
+            : this.columnsAsSeries
+
+        rawSeries.reverse()
+        stackAreas(rawSeries)
+        return rawSeries
+    }
+
+    @computed private get columnsAsSeries() {
         const { yColumns } = this
-
-        const colorScale = this.colorScale
-        const seriesArr: StackedAreaSeries[] = yColumns
-            .slice()
-            .reverse()
-            .map((col) => {
+        return yColumns.map(
+            (col): StackedAreaSeries => {
                 const { isProjection } = col
-                const entityName = col.displayName
-
+                const seriesName = col.displayName
                 const points = col.owidRows.map((row) => {
                     return {
                         x: row.time,
@@ -614,19 +644,43 @@ export class StackedAreaChart
                     }
                 })
                 return {
-                    entityName,
+                    seriesName,
                     isProjection,
-                    label: entityName,
                     points,
                     color:
                         // table.getColorForEntityName(entityName) || todo: readd custom colors.
-                        colorScale(entityName), // temp
+                        this.colorScale(seriesName), // temp
                 }
-            })
+            }
+        )
+    }
 
-        stackAreas(seriesArr)
-
-        return seriesArr
+    @computed private get entitiesAsSeries() {
+        const yColumn = this.yColumn!
+        return Array.from(yColumn.owidRowsByEntityName.keys()).map(
+            (entityName: EntityName): StackedAreaSeries => {
+                const { isProjection } = yColumn
+                const seriesName = entityName
+                const points = yColumn.owidRowsByEntityName
+                    .get(entityName)!
+                    .map((row) => {
+                        return {
+                            x: row.time,
+                            y: row.value,
+                            time: row.time,
+                            origY: row.value,
+                        }
+                    })
+                return {
+                    seriesName,
+                    isProjection,
+                    points,
+                    color:
+                        // table.getColorForEntityName(entityName) || todo: readd custom colors.
+                        this.colorScale(seriesName), // temp
+                }
+            }
+        )
     }
 
     // // Get the data for each stacked area series, cleaned to ensure every series

@@ -1,6 +1,5 @@
-import { EntityName } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
-import { Color, Time } from "grapher/core/GrapherConstants"
+import { Color, SeriesName, Time } from "grapher/core/GrapherConstants"
 
 export interface StackedAreaPoint {
     x: number
@@ -11,7 +10,7 @@ export interface StackedAreaPoint {
 }
 
 export interface StackedAreaSeries {
-    entityName: EntityName
+    seriesName: SeriesName
     color: Color
     points: StackedAreaPoint[]
     isProjection?: boolean
@@ -20,6 +19,6 @@ export interface StackedAreaSeries {
 export interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     seriesArr: StackedAreaSeries[]
-    focusedEntities: EntityName[]
+    focusedSeriesNames: SeriesName[]
     onHover: (hoverIndex: number | undefined) => void
 }

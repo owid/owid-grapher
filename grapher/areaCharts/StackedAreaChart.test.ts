@@ -23,9 +23,10 @@ it("can create a basic chart", () => {
     expect(chart.failMessage).toEqual("")
 })
 
-it("can create a chart and toggle relative mode", () => {
+it("use author axis settings unless relative mode", () => {
     const manager = new MockManager()
     const chart = new StackedAreaChart({ manager })
+    manager.table.selectSample(3)
     expect(chart.verticalAxis.domain[1]).toBeGreaterThan(100)
     manager.isRelativeMode = true
     expect(chart.verticalAxis.domain).toEqual([0, 100])

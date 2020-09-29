@@ -8,36 +8,40 @@ export default {
     component: StackedAreaChart,
 }
 
-export const Default = () => {
-    const manager: ChartManager = {
-        table: SynthesizeGDPTable({
-            timeRange: [1950, 2010],
-        }),
-        yColumnSlugs: ["GDP"],
-    }
+const entitiesChart: ChartManager = {
+    table: SynthesizeGDPTable({
+        countryCount: 10,
+        timeRange: [1950, 2010],
+    }),
+    yColumnSlugs: ["GDP"],
+}
+entitiesChart.table.selectSample(5)
 
-    manager.table.selectAll()
-
-    return (
-        <svg width={640} height={480}>
-            <StackedAreaChart manager={manager} />
-        </svg>
-    )
+export const EntitiesAsSeries = () => {
+    entitiesChart.isRelativeMode = false
+    return <StackedAreaChart manager={entitiesChart} />
 }
 
-export const RelativeMode = () => {
-    const manager: ChartManager = {
-        table: SynthesizeFruitTable({
-            timeRange: [1950, 2000],
-        }),
-        yColumnSlugs: ["Fruit", "Vegetables"],
-    }
+export const EntitiesAsSeriesRelative = () => {
+    entitiesChart.isRelativeMode = true
+    return <StackedAreaChart manager={entitiesChart} />
+}
 
-    manager.table.selectAll()
+const columnsChart: ChartManager = {
+    table: SynthesizeFruitTable({
+        timeRange: [1950, 2000],
+    }),
+    yColumnSlugs: ["Fruit", "Vegetables"],
+}
 
-    return (
-        <svg width={640} height={480}>
-            <StackedAreaChart manager={manager} />
-        </svg>
-    )
+columnsChart.table.selectSample(1)
+
+export const ColumnsAsSeries = () => {
+    columnsChart.isRelativeMode = false
+    return <StackedAreaChart manager={columnsChart} />
+}
+
+export const ColumnsAsSeriesRelative = () => {
+    columnsChart.isRelativeMode = true
+    return <StackedAreaChart manager={columnsChart} />
 }

@@ -18,7 +18,11 @@ import { Bounds } from "grapher/utils/Bounds"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { ControlsOverlay } from "grapher/controls/ControlsOverlay"
 import { EntityName } from "coreTable/CoreTableConstants"
-import { BASE_FONT_SIZE, Color, LineName } from "grapher/core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    Color,
+    SeriesName,
+} from "grapher/core/GrapherConstants"
 
 // Minimum vertical space between two legend items
 const LEGEND_ITEM_MIN_SPACING = 2
@@ -28,7 +32,7 @@ const MARKER_MARGIN = 4
 const ADD_BUTTON_HEIGHT = 30
 
 export interface LineLabelMark {
-    lineName: LineName
+    seriesName: SeriesName
     label: string
     color: Color
     yValue: number
@@ -155,7 +159,7 @@ export interface LineLegendManager {
     onLegendMouseOver?: (key: EntityName) => void
     onLegendClick?: (key: EntityName) => void
     onLegendMouseLeave?: () => void
-    focusedLineNames: EntityName[]
+    focusedSeriesNames: EntityName[]
     verticalAxis: VerticalAxis
     legendX?: number
 }
@@ -225,7 +229,7 @@ export class LineLegend extends React.Component<{
 
     @computed get isFocusMode() {
         return this.sizedLabels.some((label) =>
-            this.manager.focusedLineNames.includes(label.lineName)
+            this.manager.focusedSeriesNames.includes(label.seriesName)
         )
     }
 
@@ -383,21 +387,21 @@ export class LineLegend extends React.Component<{
     }
 
     @computed private get backgroundMarks() {
-        const { focusedLineNames } = this.manager
+        const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedMarks.filter((mark) =>
             isFocusMode
-                ? !focusedLineNames.includes(mark.lineName)
+                ? !focusedSeriesNames.includes(mark.seriesName)
                 : mark.isOverlap
         )
     }
 
     @computed private get focusMarks() {
-        const { focusedLineNames } = this.manager
+        const { focusedSeriesNames } = this.manager
         const { isFocusMode } = this
         return this.placedMarks.filter((mark) =>
             isFocusMode
-                ? focusedLineNames.includes(mark.lineName)
+                ? focusedSeriesNames.includes(mark.seriesName)
                 : !mark.isOverlap
         )
     }
@@ -417,12 +421,12 @@ export class LineLegend extends React.Component<{
     private renderBackground() {
         return this.backgroundMarks.map((mark) => (
             <Label
-                key={mark.lineName}
+                key={mark.seriesName}
                 mark={mark}
                 manager={this}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(mark.lineName)}
-                onClick={() => this.onClick(mark.lineName)}
+                onMouseOver={() => this.onMouseOver(mark.seriesName)}
+                onClick={() => this.onClick(mark.seriesName)}
             />
         ))
     }
@@ -431,14 +435,14 @@ export class LineLegend extends React.Component<{
     private renderFocus() {
         return this.focusMarks.map((mark) => (
             <Label
-                key={mark.lineName}
+                key={mark.seriesName}
                 mark={mark}
                 manager={this}
                 isFocus={true}
                 needsLines={this.needsLines}
-                onMouseOver={() => this.onMouseOver(mark.lineName)}
-                onClick={() => this.onClick(mark.lineName)}
-                onMouseLeave={() => this.onMouseLeave(mark.lineName)}
+                onMouseOver={() => this.onMouseOver(mark.seriesName)}
+                onClick={() => this.onClick(mark.seriesName)}
+                onMouseLeave={() => this.onMouseLeave(mark.seriesName)}
             />
         ))
     }

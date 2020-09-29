@@ -124,4 +124,4 @@ export interface EntitySelection {
     color?: Color
 }
 
-export type LineName = string
+export type SeriesName = string

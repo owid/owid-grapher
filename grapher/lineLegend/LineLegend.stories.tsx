@@ -28,21 +28,21 @@ const collidingNumber = 50
 const manager: LineLegendManager = {
     labelMarks: [
         {
-            lineName: "Canada",
+            seriesName: "Canada",
             label: "Canada",
             color: "red",
             yValue: collidingNumber,
             annotation: "A country in North America",
         },
         {
-            lineName: "USA",
+            seriesName: "USA",
             label: "USA",
             color: "blue",
             yValue: collidingNumber,
             annotation: "In between",
         },
         {
-            lineName: "Mexico",
+            seriesName: "Mexico",
             label: "Mexico",
             color: "green",
             yValue: 20,
@@ -50,7 +50,7 @@ const manager: LineLegendManager = {
         },
     ],
     legendX: 200,
-    focusedLineNames: [],
+    focusedSeriesNames: [],
     verticalAxis: dualAxis.verticalAxis,
 }
 

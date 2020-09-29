@@ -1,6 +1,6 @@
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { Color, LineName } from "grapher/core/GrapherConstants"
+import { Color, SeriesName } from "grapher/core/GrapherConstants"
 import { PointVector } from "grapher/utils/PointVector"
 
 interface LinePoint {
@@ -9,7 +9,7 @@ interface LinePoint {
 }
 
 export interface LineChartMark {
-    lineName: LineName
+    seriesName: SeriesName
     color: Color
     isProjection?: boolean
     points: LinePoint[]
@@ -22,7 +22,7 @@ export interface PlacedLineChartMark extends LineChartMark {
 export interface LinesProps {
     dualAxis: DualAxis
     placedMarks: PlacedLineChartMark[]
-    focusedLineNames: LineName[]
+    focusedSeriesNames: SeriesName[]
     onHover: (hoverX: number | undefined) => void
     hidePoints?: boolean
     lineStrokeWidth?: number

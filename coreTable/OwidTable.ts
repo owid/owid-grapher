@@ -196,11 +196,19 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     @computed get rowsByEntityName() {
-        const map = new Map<EntityName, OwidRow[]>()
+        return this.rowsBy<EntityName>("entityName")
+    }
+
+    @computed get rowsByTime() {
+        return this.rowsBy<Time>(this.timeColumn.slug)
+    }
+
+    private rowsBy<T>(property: string) {
+        const map = new Map<T, OwidRow[]>()
         this.rows.forEach((row) => {
-            const name = row.entityName
-            if (!map.has(name)) map.set(name, [])
-            map.get(name)!.push(row)
+            const key = row[property]
+            if (!map.has(key)) map.set(key, [])
+            map.get(key)!.push(row)
         })
         return map
     }
@@ -283,7 +291,36 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
     }
 
-    toRelatives(columnSlugs: ColumnSlug[]) {
+    // Shows how much each entity contributed to the given column for each time period
+    toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
+        const newSpecs = this.specs.map((spec) => {
+            if (columnSlug === spec.slug)
+                return { ...spec, type: ColumnTypeNames.Percentage }
+            return spec
+        })
+        const rowsForYear = this.rowsByTime
+        const timeColumnSlug = this.timeColumn.slug
+        return new OwidTable(
+            this.rows.map((row) => {
+                const newRow = {
+                    ...row,
+                }
+                const total = sum(
+                    rowsForYear
+                        .get(row[timeColumnSlug])!
+                        .map((row) => row[columnSlug])
+                )
+                newRow[columnSlug] = (100 * row[columnSlug]) / total
+                return newRow
+            }),
+            newSpecs,
+            this,
+            `Transformed ${columnSlug} column to be % contribution of each entity for that time`
+        )
+    }
+
+    // If you want to see how much each column contributed to that entity for that year, use this.
+    toPercentageFromEachColumnForEachEntityAndTime(columnSlugs: ColumnSlug[]) {
         const newSpecs = this.specs.map((spec) => {
             if (columnSlugs.includes(spec.slug))
                 return { ...spec, type: ColumnTypeNames.RelativePercentage }
@@ -308,7 +345,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
     }
 
-    toTimeRelatives(startTime: Time, columnSlugs: ColumnSlug[]) {
+    // If you wanted to build a table showing something like GDP growth relative to 1950, use this.
+    toTotalGrowthForEachColumnComparedToStartTime(
+        startTime: Time,
+        columnSlugs: ColumnSlug[]
+    ) {
         const newSpecs = this.specs.map((spec) => {
             if (columnSlugs.includes(spec.slug))
                 return { ...spec, type: ColumnTypeNames.PercentChangeOverTime }
@@ -427,6 +468,11 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     @action.bound selectEntity(entityName: EntityName) {
         this.selectRows(this.rowsByEntityName.get(entityName) ?? [])
         return this
+    }
+
+    // Mainly for testing
+    @action.bound selectSample(howMany = 1) {
+        this.setSelectedEntities(this.availableEntityNames.slice(0, howMany))
     }
 
     @action.bound deselectEntity(entityName: EntityName) {
@@ -764,7 +810,7 @@ export const SynthesizeGDPTable = (
                 {
                     slug: "GDP",
                     type: ColumnTypeNames.Currency,
-                    generator: getRandomNumberGenerator(1e10, 1e12, seed),
+                    generator: getRandomNumberGenerator(1e9, 1e12, seed),
                 },
             ],
             ...options,

@@ -6,14 +6,14 @@ import { LineLegend, LineLegendManager } from "./LineLegend"
 const manager: LineLegendManager = {
     labelMarks: [
         {
-            lineName: "Canada",
+            seriesName: "Canada",
             label: "Canada",
             color: "red",
             yValue: 50,
             annotation: "A country in North America",
         },
         {
-            lineName: "Mexico",
+            seriesName: "Mexico",
             label: "Mexico",
             color: "green",
             yValue: 20,
@@ -21,7 +21,7 @@ const manager: LineLegendManager = {
         },
     ],
     legendX: 200,
-    focusedLineNames: [],
+    focusedSeriesNames: [],
     verticalAxis: new AxisConfig({ min: 0, max: 100 }).toVerticalAxis(),
 }
 

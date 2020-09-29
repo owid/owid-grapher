@@ -341,7 +341,10 @@ describe("relative mode", () => {
 
     let firstRow = table.rows[0]
     expect(firstRow.Fruit).toBeGreaterThan(400)
-    table = table.toRelatives(["Fruit", "Vegetables"])
+    table = table.toPercentageFromEachColumnForEachEntityAndTime([
+        "Fruit",
+        "Vegetables",
+    ])
     firstRow = table.rows[0]
     expect(Math.round(firstRow.Fruit + firstRow.Vegetables)).toEqual(100)
 })
