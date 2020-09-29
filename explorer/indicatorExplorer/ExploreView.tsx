@@ -125,6 +125,8 @@ export class ExploreView extends React.Component<ExploreProps> {
             bounds: this.bounds,
         }
 
+        console.log(grapherProps)
+
         return <Grapher {...grapherProps} />
     }
 

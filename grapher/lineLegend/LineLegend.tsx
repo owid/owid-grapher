@@ -476,7 +476,7 @@ export class LineLegend extends React.Component<{
         )
 
         return (
-            <foreignObject id="add-country" paddingTop={paddingTop}>
+            <foreignObject id="add-country" y={paddingTop}>
                 <AddEntityButton
                     x={this.legendX + leftOffset}
                     y={topMarkY}

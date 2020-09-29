@@ -226,7 +226,7 @@ export class DiscreteBarChart
             this.barHeight
         )
         return (
-            <foreignObject id="add-country" paddingTop={paddingTop}>
+            <foreignObject id="add-country" y={paddingTop}>
                 <AddEntityButton
                     x={this.bounds.left + this.legendWidth}
                     y={y}

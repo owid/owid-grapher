@@ -154,7 +154,7 @@ export class VerticalAxisComponent extends React.Component<{
             this.props.isInteractive && verticalAxis.scaleTypeOptions.length > 1
         if (!showControls) return undefined
         return (
-            <foreignObject id="vertical-scale-selector" paddingTop={18}>
+            <foreignObject id="vertical-scale-selector" y={18}>
                 <ScaleSelector
                     x={bounds.left}
                     y={bounds.top - 34}
@@ -211,7 +211,7 @@ export class HorizontalAxisComponent extends React.Component<{
         if (!showControls) return undefined
 
         return (
-            <foreignObject id="horizontal-scale-selector" paddingBottom={10}>
+            <foreignObject id="horizontal-scale-selector" y={10}>
                 <ScaleSelector
                     maxX={maxX}
                     x={bounds.right}

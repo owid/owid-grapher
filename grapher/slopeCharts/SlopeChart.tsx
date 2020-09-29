@@ -983,7 +983,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             this.manager.isInteractive && yAxis?.canChangeScaleType
         if (!showScaleSelector) return undefined
         return (
-            <foreignObject id="slope-scale-selector" paddingTop={20}>
+            <foreignObject id="slope-scale-selector" y={20}>
                 <ScaleSelector
                     x={this.bounds.x}
                     y={this.bounds.y - 35}
