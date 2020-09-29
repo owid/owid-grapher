@@ -6,11 +6,9 @@ import { bind } from "decko"
 import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import Select from "react-select"
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch } from "@fortawesome/free-solid-svg-icons/faSearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-
 import { FuzzySearch } from "grapher/controls/FuzzySearch"
 import {
     partition,
@@ -24,12 +22,12 @@ import {
 } from "grapher/utils/Util"
 import { VerticalScrollContainer } from "grapher/controls/VerticalScrollContainer"
 import { Analytics } from "grapher/core/Analytics"
-
 import { SortIcon } from "grapher/controls/SortIcon"
 import { SortOrder } from "grapher/core/GrapherConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import { AbstractCoreColumn, NumericColumn } from "coreTable/CoreTable"
 import { OwidTable } from "coreTable/OwidTable"
+import { retryAfter } from "mathjax-full/js/util/Retries"
 
 const toggleSort = (order: SortOrder): SortOrder =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc
@@ -65,10 +63,6 @@ export class CountryPicker extends React.Component<{
     optionColorMap: {
         [key: string]: string | undefined
     }
-    toggleCountryCommand: (countryName: string, value?: boolean) => void
-    clearSelectionCommand: () => void
-    availableEntities: string[]
-    selectedEntities: string[]
     userState: MetricState
     isDropdownMenu?: boolean
     countriesMustHaveColumns: string[]
@@ -80,12 +74,8 @@ export class CountryPicker extends React.Component<{
         explorerSlug: "",
         table: new OwidTable(),
         optionColorMap: {},
-        toggleCountryCommand: () => {},
-        clearSelectionCommand: () => {},
         userState: {},
         isDropdownMenu: false,
-        availableEntities: [],
-        selectedEntities: [],
         countriesMustHaveColumns: [],
         pickerColumnSlugs: new Set(),
     }
@@ -114,7 +104,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @action.bound private selectCountryName(name: string, checked?: boolean) {
-        this.props.toggleCountryCommand(name, checked)
+        this.table.toggleSelection(name)
         // Clear search input
         this.searchInput = ""
         this.props.analytics?.logCountrySelectorEvent(
@@ -136,7 +126,7 @@ export class CountryPicker extends React.Component<{
     }
 
     @computed get availablePickerColumns() {
-        return this.props.table.columnsAsArray.filter((col) =>
+        return this.table.columnsAsArray.filter((col) =>
             this.props.pickerColumnSlugs.has(col.slug)
         )
     }
@@ -161,16 +151,14 @@ export class CountryPicker extends React.Component<{
 
     @computed get availableCountriesForCurrentView() {
         if (!this.props.countriesMustHaveColumns.length)
-            return this.props.table.availableEntityNameSet
-        return this.props.table.entitiesWith(
-            this.props.countriesMustHaveColumns
-        )
+            return this.table.availableEntityNameSet
+        return this.table.entitiesWith(this.props.countriesMustHaveColumns)
     }
 
     @computed
     private get optionsWithMetricValue(): CountryOptionWithMetricValue[] {
         const col = this.activePickerMetricColumn
-        return this.props.availableEntities.map((name) => {
+        return this.table.availableEntityNames.map((name) => {
             const plotValue = col?.getLatestValueForEntity(name)
             const formattedValue = col?.formatValue(plotValue)
             return {
@@ -181,8 +169,12 @@ export class CountryPicker extends React.Component<{
         })
     }
 
+    @computed get table() {
+        return this.props.table
+    }
+
     @bind private isSelected(option: CountryOptionWithMetricValue) {
-        return this.props.selectedEntities.includes(option.name)
+        return this.table.selectedEntityNames.includes(option.name)
     }
 
     @computed private get fuzzy(): FuzzySearch<CountryOptionWithMetricValue> {
@@ -463,7 +455,7 @@ export class CountryPicker extends React.Component<{
 
     render() {
         const countries = this.searchResults
-        const selectedCountries = this.props.selectedEntities
+        const selectedCountries = this.table.selectedEntityNames
         const availableCountries = this.availableCountriesForCurrentView
 
         const selectedDebugMessage = `${selectedCountries.length} selected. ${availableCountries.size} available. ${this.optionsWithMetricValue.length} options total.`
@@ -557,7 +549,7 @@ export class CountryPicker extends React.Component<{
                                     title={selectedDebugMessage}
                                     className="ClearSelectionButton"
                                     data-track-note={`${this.props.explorerSlug}-clear-selection`}
-                                    onClick={this.props.clearSelectionCommand}
+                                    onClick={() => this.table.clearSelection()}
                                 >
                                     <FontAwesomeIcon icon={faTimes} /> Clear
                                     selection

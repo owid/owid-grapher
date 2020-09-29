@@ -46,11 +46,7 @@ france,3,fra,,400`)
             <CountryPickerHolder>
                 <CountryPicker
                     table={this.table}
-                    availableEntities={this.table.availableEntityNames}
-                    selectedEntities={this.selected}
                     countriesMustHaveColumns={["pop", "gdp"]}
-                    clearSelectionCommand={this.clearSelection}
-                    toggleCountryCommand={this.toggleSelection}
                 />
             </CountryPickerHolder>
         )

@@ -238,7 +238,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     // todo: speed up
     // todo: how can we just use super method?
     filterBy(predicate: (row: OwidRow) => boolean, opName: string): OwidTable {
-        return new OwidTable(
+        return new (this.constructor as any)(
             this.rows.filter(predicate),
             this.specs,
             this,
@@ -481,8 +481,8 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     // todo: how do I make this generic and on CoreTable?
-    addColumns(columns: CoreColumnSpec[]): OwidTable {
-        return new OwidTable(
+    withColumns(columns: CoreColumnSpec[]): OwidTable {
+        return new (this.constructor as any)(
             this.rows,
             this.specs.concat(columns),
             this,

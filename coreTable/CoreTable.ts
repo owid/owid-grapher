@@ -238,6 +238,10 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return Array.from(this._columns.keys())
     }
 
+    @computed get lastColumnSlug() {
+        return last(this.columnSlugs)!
+    }
+
     @computed get numericColumnSlugs() {
         return this.columnsAsArray
             .filter((col) => col instanceof NumericColumn)

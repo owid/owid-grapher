@@ -87,10 +87,6 @@ export class ExplorerShell extends React.Component<{
                 explorerSlug={this.props.explorerSlug}
                 table={this.props.grapher.table}
                 isDropdownMenu={this.isMobile}
-                availableEntities={this.props.availableEntities}
-                selectedEntities={this.selectedEntityNames}
-                clearSelectionCommand={this.clearSelectionCommand}
-                toggleCountryCommand={this.toggleSelectedEntityCommand}
             ></CountryPicker>
         )
     }
@@ -105,10 +101,6 @@ export class ExplorerShell extends React.Component<{
         else if (selectedEntities.has(entityName))
             selectedEntities.delete(entityName)
         else selectedEntities.add(entityName)
-    }
-
-    @action.bound clearSelectionCommand() {
-        this.props.params.selectedEntityNames.clear()
     }
 
     @computed get selectedEntityNames() {

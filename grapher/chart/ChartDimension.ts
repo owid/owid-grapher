@@ -56,7 +56,7 @@ export class ChartDimension
     }
 
     updateFromObject(obj: LegacyChartDimensionInterface) {
-        updatePersistables(this, obj)
+        if (obj.display) updatePersistables(this, { display: obj.display })
 
         this.targetTime = obj.targetTime
         this.variableId = obj.variableId

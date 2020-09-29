@@ -162,21 +162,6 @@ export class CovidExplorer extends React.Component<{
         HTMLDivElement
     > = React.createRef()
 
-    @action.bound clearSelectionCommand() {
-        this.props.params.selectedCountryCodes.clear()
-        this.selectionChangeFromBuilder = true
-        this.renderControlsThenUpdateChart()
-    }
-
-    @action.bound selectAllCommand() {
-        const codeMap = this.grapher.table.entityNameToCodeMap
-        this.grapher.table.availableEntityNames.forEach((option) =>
-            this.props.params.selectedCountryCodes.add(codeMap.get(option)!)
-        )
-        this.selectionChangeFromBuilder = true
-        this.renderControlsThenUpdateChart()
-    }
-
     private get metricPicker() {
         const options: ControlOption[] = [
             {
@@ -359,28 +344,6 @@ export class CovidExplorer extends React.Component<{
         )
     }
 
-    @action.bound toggleSelectedCountry(code: string, value?: boolean) {
-        if (value) {
-            this.props.params.selectedCountryCodes.add(code)
-        } else if (value === false) {
-            this.props.params.selectedCountryCodes.delete(code)
-        } else if (this.props.params.selectedCountryCodes.has(code)) {
-            this.props.params.selectedCountryCodes.delete(code)
-        } else {
-            this.props.params.selectedCountryCodes.add(code)
-        }
-    }
-
-    @action.bound toggleSelectedCountryCommand(
-        countryName: string,
-        value?: boolean
-    ) {
-        const codeMap = this.grapher.table.entityNameToCodeMap
-        this.toggleSelectedCountry(codeMap.get(countryName)!, value)
-        this.selectionChangeFromBuilder = true
-        this.renderControlsThenUpdateChart()
-    }
-
     @computed get howLongAgo() {
         return moment.utc(this.props.updated).fromNow()
     }
@@ -435,20 +398,14 @@ export class CovidExplorer extends React.Component<{
         return (
             <CountryPicker
                 explorerSlug="Covid"
-                table={this.grapher.table}
+                table={this.table}
                 pickerColumnSlugs={
                     new Set(Object.keys(metricPickerColumnSpecs))
                 }
                 isDropdownMenu={this.isMobile}
                 optionColorMap={this.countryNameToColorMap}
-                selectedEntities={this.selectedEntityNames}
-                availableEntities={
-                    this.covidExplorerTable.table.availableEntityNames
-                }
                 userState={this.props.params}
                 countriesMustHaveColumns={this.activeColumnSlugs}
-                clearSelectionCommand={this.clearSelectionCommand}
-                toggleCountryCommand={this.toggleSelectedCountryCommand}
             ></CountryPicker>
         )
     }
@@ -692,36 +649,25 @@ export class CovidExplorer extends React.Component<{
         return this._countryNameToColorMapCache
     }
 
-    private selectionChangeFromBuilder = false
     private renderControlsThenUpdateChart() {
         // Updating the chart may take a second so render the Data Explorer controls immediately then the chart.
         setTimeout(() => {
-            this.selectionChangeFromBuilder = true
             this._updateChart()
         }, 1)
     }
 
-    private _covidExplorerTable?: CovidExplorerTable
-    get covidExplorerTable() {
-        if (!this._covidExplorerTable) {
-            this._covidExplorerTable = new CovidExplorerTable(
-                this.props.data,
-                this.grapher,
-                this.props.covidChartAndVariableMeta.variables
-            )
+    private _rootTable?: CovidExplorerTable
+    get rootTable() {
+        if (!this._rootTable) {
+            const table = new CovidExplorerTable(this.props.data)
+            table.owidVariableSpecs = this.props.covidChartAndVariableMeta.variables
+            this._rootTable = table.withAnnotationColumns()
         }
-        return this._covidExplorerTable
+        return this._rootTable
     }
 
     componentWillMount() {
-        this.covidExplorerTable // init table.
-    }
-
-    @computed get selectedEntityNames(): string[] {
-        const entityCodeMap = this.grapher.table.entityCodeToNameMap
-        return Array.from(this.props.params.selectedCountryCodes.values())
-            .map((code) => entityCodeMap.get(code))
-            .filter((i) => i) as string[]
+        this.rootTable // init table.
     }
 
     @computed get canDoLogScale() {
@@ -737,20 +683,45 @@ export class CovidExplorer extends React.Component<{
 
     private switchBackToLog = false
 
+    @computed get table() {
+        const params = this.constrainedParams
+        const { rootTable } = this
+
+        let table = rootTable
+
+        // Init column for epi color strategy if needed
+        if (params.colorStrategy === "ptr") {
+            table = table.withShortTermPositivityRate()
+            this.shortTermPositivityRateSlug = table.lastColumnSlug
+        }
+
+        table = table.withRequestedColumns(params)
+
+        const shouldFilterNegatives =
+            (params.casesMetric || params.deathsMetric) &&
+            !(params.interval === "total") &&
+            !params.intervalChange
+
+        const shouldFilterGroups =
+            (params.casesMetric || params.deathsMetric) &&
+            !(params.interval === "total") &&
+            !params.intervalChange
+
+        if (shouldFilterNegatives)
+            table = table.filterNegatives(params.yColumnSlug)
+        if (shouldFilterGroups) table = rootTable.filterGroups()
+
+        table.setSelectedEntitiesByCode(Array.from(params.selectedCountryCodes)) // why 2?
+
+        return table
+    }
+
     // We can't create a new chart object with every radio change because the Chart component itself
     // maintains state (for example, which tab is currently active). Temporary workaround is just to
     // manually update the chart when the chart builderselections change.
     // todo: cleanup
     @action.bound private _updateChart() {
         const params = this.constrainedParams
-        const { covidExplorerTable } = this
-
-        covidExplorerTable.initRequestedColumns(params)
-
-        // Init column for epi color strategy if needed
-        if (params.colorStrategy === "ptr")
-            this.shortTermPositivityRateSlug = this.covidExplorerTable.initAndGetShortTermPositivityRateSlug()
-
         const grapher = this.grapher
         grapher.title = this.chartTitle
         grapher.subtitle = this.subtitle
@@ -776,40 +747,20 @@ export class CovidExplorer extends React.Component<{
             }
         }
 
-        grapher.yAxis.min = params.intervalChange ? undefined : 0
-
-        grapher.setDimensionsFromConfigs(this.dimensionSpecs)
-
-        const shouldFilterNegatives =
-            (params.casesMetric || params.deathsMetric) &&
-            !(params.interval === "total") &&
-            !params.intervalChange
+        grapher.rootTable = this.table
 
         // multimetric table
         if (this.constrainedParams.tableMetrics)
             this._generateDataTableColumnsInTable()
 
-        covidExplorerTable.table.setSelectedEntities(this.selectedEntityNames)
-
-        const shouldFilterGroups =
-            (params.casesMetric || params.deathsMetric) &&
-            !(params.interval === "total") &&
-            !params.intervalChange
-
-        if (shouldFilterNegatives)
-            covidExplorerTable.applyNegativesFilter(params.yColumnSlug)
-        if (shouldFilterGroups) covidExplorerTable.applyGroupsFilter()
+        grapher.yAxis.min = params.intervalChange ? undefined : 0
+        grapher.setDimensionsFromConfigs(this.dimensionSpecs)
 
         this._updateMap()
         this._updateColorScale()
 
         grapher.id = this.sourceChartId
-
-        grapher.table.setSelectedEntitiesByCode(
-            Array.from(params.selectedCountryCodes)
-        )
-
-        this.grapher.url.externallyProvidedParams = this.props.params.toQueryParams
+        grapher.url.externallyProvidedParams = this.props.params.toQueryParams
     }
 
     private _updateColorScale() {
@@ -918,9 +869,9 @@ export class CovidExplorer extends React.Component<{
             {
                 combo: "a",
                 fn: () =>
-                    this.grapher.table.hasSelection
-                        ? this.clearSelectionCommand()
-                        : this.selectAllCommand(),
+                    this.rootTable.hasSelection
+                        ? this.rootTable.clearSelection()
+                        : this.rootTable.selectAll(),
                 title: "Select/Deselect all",
                 category: "Selection",
             },
@@ -993,10 +944,7 @@ export class CovidExplorer extends React.Component<{
         const key = `${axis}Column`
         const params = this.props.params as any
         const fn = backwards ? previous : next
-        params[key] = fn(
-            this.covidExplorerTable.table.numericColumnSlugs,
-            params[key]
-        )
+        params[key] = fn(this.rootTable.numericColumnSlugs, params[key])
         this.renderControlsThenUpdateChart()
     }
 
@@ -1055,24 +1003,24 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get yColumn() {
-        return this.grapher.table.get(this.constrainedParams.yColumnSlug)!
+        return this.table.get(this.constrainedParams.yColumnSlug)!
     }
 
     @computed private get xColumn() {
         return this.constrainedParams.xColumnSlug
-            ? this.grapher.table.get(this.constrainedParams.xColumnSlug!)!
+            ? this.table.get(this.constrainedParams.xColumnSlug!)!
             : undefined
     }
 
     @computed private get sizeColumn() {
         return this.constrainedParams.sizeColumn
-            ? this.grapher.table.get(this.constrainedParams.sizeColumn!)!
+            ? this.table.get(this.constrainedParams.sizeColumn!)!
             : undefined
     }
 
     @action private _generateDataTableColumnsInTable() {
         const params = this.constrainedParams
-        const { covidExplorerTable } = this
+        const { rootTable } = this
 
         const dataTableParams = new CovidConstrainedQueryParams("")
 
@@ -1083,7 +1031,7 @@ export class CovidExplorer extends React.Component<{
             dataTableParams.perCapita = false
             if (isCountMetric(metric)) {
                 dataTableParams.perCapita = params.perCapita
-                covidExplorerTable.initRequestedColumns(dataTableParams)
+                rootTable.withRequestedColumns(dataTableParams)
                 if (
                     params.interval !== "total" &&
                     intervalsAvailableByMetric.get(metric)?.has(params.interval)
@@ -1094,7 +1042,7 @@ export class CovidExplorer extends React.Component<{
                 }
             }
 
-            covidExplorerTable.initRequestedColumns(dataTableParams)
+            rootTable.withRequestedColumns(dataTableParams)
         })
     }
 

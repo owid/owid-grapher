@@ -13,8 +13,8 @@ import { DimensionProperty, Time } from "grapher/core/GrapherConstants"
 export declare type LegacyVariableId = Integer
 
 class LegacyVariableTableDisplayConfig {
-    @observable hideAbsoluteChange: boolean = false
-    @observable hideRelativeChange: boolean = false
+    @observable hideAbsoluteChange?: boolean
+    @observable hideRelativeChange?: boolean
 }
 
 export interface LegacyChartDimensionInterface {
