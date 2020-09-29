@@ -16,7 +16,8 @@
         "baseUrl": ".",
         "plugins": [],
         "keyofStringsOnly": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "typeRoots": ["./types", "./node_modules/@types"]
     },
-    "exclude": ["node_modules", "bakedSite"]
+    "exclude": ["types", "node_modules", "bakedSite"]
 }
