@@ -112,7 +112,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
     tr > .dimension-start ~ .dimension-start,
     tr > th.dimension ~ th.dimension,
-    tr > th.dimStart ~ th.dimStart {
+    tr > th.firstSubdimension ~ th.firstSubdimension {
         border-left: $cell-border;
     }
 

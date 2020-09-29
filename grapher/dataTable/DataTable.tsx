@@ -387,7 +387,7 @@ function ColumnHeader(props: {
             className={classnames(colType, {
                 sortable,
                 sorted: sortedCol,
-                dimStart: subdimensionType === "start",
+                firstSubdimension: subdimensionType === "start",
                 lastSubdimension,
             })}
             rowSpan={props.rowSpan ?? 1}
