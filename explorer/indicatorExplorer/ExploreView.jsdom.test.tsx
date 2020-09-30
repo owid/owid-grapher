@@ -10,7 +10,7 @@ import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
 import { StackedBarChart } from "grapher/barCharts/StackedBarChart"
 import { DiscreteBarChart } from "grapher/barCharts/DiscreteBarChart"
 import { SlopeChart } from "grapher/slopeCharts/SlopeChart"
-import { MapChartWithLegend } from "grapher/mapCharts/MapChartWithLegend"
+import { MapChart } from "grapher/mapCharts/MapChart"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 import { ExploreModel } from "explorer/indicatorExplorer/ExploreModel"
 import {
@@ -88,7 +88,7 @@ describe("when you render with different model params", () => {
         const model = getDefaultModel()
         model.setChartType("WorldMap")
         const view = await renderWithModel(model)
-        expect(view.find(MapChartWithLegend)).toHaveLength(1)
+        expect(view.find(MapChart)).toHaveLength(1)
     })
 
     // This test used to pass with the dummy config but broke when we
@@ -129,7 +129,7 @@ describe("chart types", () => {
         { key: ChartTypes.StackedBar, expectedView: StackedBarChart },
         { key: ChartTypes.DiscreteBar, expectedView: DiscreteBarChart },
         { key: ChartTypes.SlopeChart, expectedView: SlopeChart },
-        { key: "WorldMap", expectedView: MapChartWithLegend },
+        { key: "WorldMap", expectedView: MapChart },
     ]
 
     chartTypes.forEach((type) => {

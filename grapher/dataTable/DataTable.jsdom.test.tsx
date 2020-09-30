@@ -5,39 +5,7 @@ import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 import { DataTable } from "./DataTable"
 import { Grapher } from "grapher/core/Grapher"
 import { DimensionProperty } from "grapher/core/GrapherConstants"
-
-const childMortalityGrapher = (props: any = {}) =>
-    new Grapher({
-        hasMapTab: true,
-        tab: "map",
-        dimensions: [
-            {
-                variableId: 104402,
-                property: DimensionProperty.y,
-            },
-        ],
-        ...props,
-        owidDataset: {
-            variables: {
-                "104402": {
-                    years: [1950, 1950, 2005, 2005, 2019, 2019],
-                    entities: [15, 207, 15, 207, 15, 207],
-                    values: [224.45, 333.68, 295.59, 246.12, 215.59, 226.12],
-                    id: 104402,
-                    display: {
-                        name: "Child mortality",
-                        unit: "%",
-                        shortUnit: "%",
-                        conversionFactor: 0.1,
-                    },
-                },
-            },
-            entityKey: {
-                "15": { name: "Afghanistan", id: 15 },
-                "207": { name: "Iceland", id: 207 },
-            },
-        },
-    })
+import { childMortalityGrapher } from "./DataTable.sample"
 
 describe("when you render a table", () => {
     let view: ReactWrapper
@@ -95,9 +63,10 @@ describe("when you select a range of years", () => {
         const grapher = childMortalityGrapher({
             type: "LineChart",
             tab: "chart",
-            minTime: 1990,
-            maxTime: 2017,
         })
+        grapher.startTime = 1950
+        grapher.endTime = 2019
+
         view = mount(<DataTable manager={grapher} />)
     })
 
@@ -112,7 +81,7 @@ describe("when you select a range of years", () => {
 
     it("renders start values", () => {
         const cell = view.find("tbody .dimension-start").first()
-        expect(cell.text()).toBe("29.56% in 2005")
+        expect(cell.text()).toBe("22.45% in 1950")
     })
 
     it("renders end values", () => {
@@ -122,12 +91,12 @@ describe("when you select a range of years", () => {
 
     it("renders absolute change values", () => {
         const cell = view.find("tbody .dimension-delta").first()
-        expect(cell.text()).toBe("-8.00 pp")
+        expect(cell.text()).toBe("-0.89 pp")
     })
 
     it("renders relative change values", () => {
         const cell = view.find("tbody .dimension-deltaRatio").first()
-        expect(cell.text()).toBe("-27%")
+        expect(cell.text()).toBe("-4%")
     })
 })
 
@@ -140,7 +109,7 @@ describe("when the table doesn't have data for all rows", () => {
                 display: {
                     name: "",
                     unit: "% of children under 5",
-                    tolerance: 5,
+                    tolerance: 1,
                     isProjection: false,
                 },
             },
@@ -161,11 +130,12 @@ describe("when the table doesn't have data for all rows", () => {
                 "33": { name: "France", id: 33, code: "FRA" },
             },
         },
-
-        queryStr: "?time=2002",
     })
+    grapher.startTime = 2000
+    grapher.endTime = 2000
     const view: ShallowWrapper = shallow(<DataTable manager={grapher} />)
 
+    // Todo: added stories for these. Need to fix these tests.
     it("renders no value when data is not available for years within the tolerance", () => {
         expect(view.find("tbody .dimension").at(0).first().text()).toBe("")
     })
@@ -187,6 +157,7 @@ describe("when you try to hide countries", () => {
         expect(view.find("tbody tr")).toHaveLength(2)
     })
 
+    // Todo: this one should be easy to fix, we just need to decide where we want filtering to happen
     it("renders no small countries after filter is added", () => {
         grapher.toggleMinPopulationFilter()
         expect(view.find("tbody tr")).toHaveLength(1)

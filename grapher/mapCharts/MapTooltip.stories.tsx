@@ -1,7 +1,7 @@
 import * as React from "react"
 import { MapTooltip } from "./MapTooltip"
 import { Grapher } from "grapher/core/Grapher"
-import { legacyMapGrapher } from "./LegacyMap.sample"
+import { legacyMapGrapher } from "./MapChart.sample"
 
 export default {
     title: "MapTooltip",

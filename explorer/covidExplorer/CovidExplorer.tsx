@@ -666,6 +666,11 @@ export class CovidExplorer extends React.Component<{
         return this._rootTable
     }
 
+    private _computedTable?: CovidExplorerTable
+    private get computedTable() {
+        return this._computedTable ? this._computedTable! : this._rootTable!
+    }
+
     componentWillMount() {
         this.rootTable // init table.
     }
@@ -685,9 +690,9 @@ export class CovidExplorer extends React.Component<{
 
     @computed get table() {
         const params = this.constrainedParams
-        const { rootTable } = this
+        const { computedTable } = this
 
-        let table = rootTable
+        let table = computedTable
 
         // Init column for epi color strategy if needed
         if (params.colorStrategy === "ptr") {
@@ -709,10 +714,11 @@ export class CovidExplorer extends React.Component<{
 
         if (shouldFilterNegatives)
             table = table.filterNegatives(params.yColumnSlug)
-        if (shouldFilterGroups) table = rootTable.filterGroups()
+        if (shouldFilterGroups) table = table.filterGroups()
 
         table.setSelectedEntitiesByCode(Array.from(params.selectedCountryCodes)) // why 2?
 
+        this._computedTable = table
         return table
     }
 
@@ -1003,7 +1009,10 @@ export class CovidExplorer extends React.Component<{
     }
 
     @computed private get yColumn() {
-        return this.table.get(this.constrainedParams.yColumnSlug)!
+        const slug = this.constrainedParams.yColumnSlug
+        const col = this.table.get(slug)!
+        if (!col) debugger
+        return col
     }
 
     @computed private get xColumn() {

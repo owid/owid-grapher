@@ -4,6 +4,7 @@ import {
     LegacyEntityMeta,
     LegacyVariablesAndEntityKey,
     LegacyVariableId,
+    LegacyVariableDisplayConfigInterface,
 } from "./LegacyVariableCode"
 import {
     groupBy,
@@ -42,6 +43,7 @@ import {
 } from "./CoreTable"
 import { countries } from "utils/countries"
 import { ChartDimension } from "grapher/chart/ChartDimension"
+import { populationMap } from "./PopulationMap"
 
 export interface OwidColumnSpec extends CoreColumnSpec {
     owidVariableId?: LegacyVariableId
@@ -95,11 +97,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
         const rows = (parsed as any) as OwidRow[]
 
-        return new OwidTable(rows, [
-            ...Object.values(AbstractCoreTable.makeSpecsFromRows(rows)),
-            ...OwidTable.requiredColumnSpecs,
-            ...specs,
-        ])
+        return new OwidTable(rows, [...OwidTable.requiredColumnSpecs, ...specs])
     }
 
     @computed get columnsByOwidVarId() {
@@ -233,6 +231,22 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             const time = rowTime(row)
             return time >= start && time <= end
         }, `Keep only rows with Time between ${start} - ${end}`)
+    }
+
+    withoutRows(rows: OwidRow[]) {
+        const set = new Set(rows)
+        return this.filterBy(
+            (row) => !set.has(row),
+            `Dropping ${rows.length} rows`
+        )
+    }
+
+    filterByPopulation(minPop: number) {
+        return this.filterBy((row) => {
+            const name = row.entityName
+            const pop = populationMap[name]
+            return !pop || this.isSelected(row) || pop >= minPop
+        }, `Filter out countries with population less than ${minPop}`)
     }
 
     // todo: speed up
@@ -807,7 +821,8 @@ export const SynthesizeOwidTable = (
 
 export const SynthesizeGDPTable = (
     options?: Partial<SynthOptions>,
-    seed = Date.now()
+    seed = Date.now(),
+    display?: LegacyVariableDisplayConfigInterface
 ) =>
     SynthesizeOwidTable(
         {
@@ -816,11 +831,13 @@ export const SynthesizeGDPTable = (
                     slug: "Population",
                     type: ColumnTypeNames.Population,
                     generator: getRandomNumberGenerator(1e7, 1e9, seed),
+                    display,
                 },
                 {
                     slug: "GDP",
                     type: ColumnTypeNames.Currency,
                     generator: getRandomNumberGenerator(1e9, 1e12, seed),
+                    display,
                 },
             ],
             ...options,

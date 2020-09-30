@@ -6,6 +6,7 @@ import { covidSampleRows } from "./CovidSampleRows"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
 import { defaultTo } from "grapher/utils/Util"
+import { MetricOptions } from "./CovidConstants"
 
 const dummyMeta = {
     charts: {},
@@ -31,6 +32,7 @@ describe(CovidExplorer, () => {
         expect(headerText).toContain("Data Explorer")
     })
 })
+
 class ExplorerDataTableTest {
     params: CovidQueryParams
     view: ReactWrapper
@@ -75,131 +77,131 @@ class ExplorerDataTableTest {
 }
 
 // Todo: add these back but via Column Specs, not dimension specs.
-// describe("When you try to create a multimetric Data Explorer", () => {
-//     let dataTableTester: ExplorerDataTableTest
-//     beforeAll(() => {
-//         dataTableTester = new ExplorerDataTableTest()
-//     })
+describe("When you try to create a multimetric Data Explorer", () => {
+    let dataTableTester: ExplorerDataTableTest
+    beforeAll(() => {
+        dataTableTester = new ExplorerDataTableTest()
+    })
 
-//     it("renders a table", () => {
-//         expect(dataTableTester.view.find("table")).toHaveLength(1)
-//     })
+    it("renders a table", () => {
+        expect(dataTableTester.view.find("table")).toHaveLength(1)
+    })
 
-//     it("renders correct table headers", () => {
-//         expect(dataTableTester.headers).toEqual([
-//             "Confirmed cases",
-//             "Confirmed deaths",
-//             "Tests",
-//             "Tests per confirmed case",
-//             "Case fatality rate",
-//             "Share of positive tests",
-//         ])
-//     })
+    it("renders correct table headers", () => {
+        expect(dataTableTester.headers).toEqual([
+            "Confirmed cases",
+            "Confirmed deaths",
+            "Tests",
+            "Tests per confirmed case",
+            "Case fatality rate",
+            "Share of positive tests",
+        ])
+    })
 
-//     const SECOND_ROW = [
-//         "United States",
-//         "1.20 million",
-//         "71,078",
-//         "May 5 7.54 million",
-//         "May 5 6",
-//         "5.9",
-//         "May 5 0.2",
-//     ]
+    const SECOND_ROW = [
+        "United States",
+        "1.20 million",
+        "71,078",
+        "May 5 7.54 million",
+        "May 5 6",
+        "5.9",
+        "May 5 0.2",
+    ]
 
-//     it("renders correct table rows", () => {
-//         expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
-//     })
+    it("renders correct table rows", () => {
+        expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
+    })
 
-//     describe("when you have fewer metrics", () => {
-//         let dataTableTester: ExplorerDataTableTest
-//         beforeAll(() => {
-//             const explorerParams = new CovidQueryParams(
-//                 "?tab=table&tableMetrics=cases~deaths~tests_per_case"
-//             )
-//             dataTableTester = new ExplorerDataTableTest(explorerParams)
-//         })
+    describe("when you have fewer metrics", () => {
+        let dataTableTester: ExplorerDataTableTest
+        beforeAll(() => {
+            const explorerParams = new CovidQueryParams(
+                "?tab=table&tableMetrics=cases~deaths~tests_per_case"
+            )
+            dataTableTester = new ExplorerDataTableTest(explorerParams)
+        })
 
-//         test("table headers show only the metrics you select", () => {
-//             expect(dataTableTester.headers).toEqual([
-//                 "Confirmed cases",
-//                 "Confirmed deaths",
-//                 "Tests per confirmed case",
-//             ])
-//         })
-//     })
+        test("table headers show only the metrics you select", () => {
+            expect(dataTableTester.headers).toEqual([
+                "Confirmed cases",
+                "Confirmed deaths",
+                "Tests per confirmed case",
+            ])
+        })
+    })
 
-//     describe("It doesn't change when", () => {
-//         it("explorer metrics change", () => {
-//             MetricOptions.forEach((metric) => {
-//                 const params = ExplorerDataTableTest.defaultParams
-//                 params.setMetric(metric)
-//                 const dataTableTester = new ExplorerDataTableTest(params)
-//                 expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
-//             })
-//         })
+    describe("It doesn't change when", () => {
+        it("explorer metrics change", () => {
+            MetricOptions.forEach((metric) => {
+                const params = ExplorerDataTableTest.defaultParams
+                params.setMetric(metric)
+                const dataTableTester = new ExplorerDataTableTest(params)
+                expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
+            })
+        })
 
-//         it("'align outbreaks' is enabled", () => {
-//             const params = ExplorerDataTableTest.defaultParams
-//             params.aligned = true
-//             const dataTableTester = new ExplorerDataTableTest(params)
-//             expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
-//         })
-//     })
+        it("'align outbreaks' is enabled", () => {
+            const params = ExplorerDataTableTest.defaultParams
+            params.aligned = true
+            const dataTableTester = new ExplorerDataTableTest(params)
+            expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
+        })
+    })
 
-//     describe("It changes when", () => {
-//         test("'per capita' is enabled", () => {
-//             const params = ExplorerDataTableTest.defaultParams
-//             params.perCapita = true
-//             const dataTableTester = new ExplorerDataTableTest(params)
+    describe("It changes when", () => {
+        test("'per capita' is enabled", () => {
+            const params = ExplorerDataTableTest.defaultParams
+            params.perCapita = true
+            const dataTableTester = new ExplorerDataTableTest(params)
 
-//             expect(dataTableTester.bodyRow(1)).toEqual([
-//                 "United States",
-//                 "602.24 million",
-//                 "35.54 million",
-//                 "May 5 3.77 million",
-//                 "May 5 6",
-//                 "5.9",
-//                 "May 5 0.2",
-//             ])
-//         })
+            expect(dataTableTester.bodyRow(1)).toEqual([
+                "United States",
+                "602.24 million",
+                "35.54 million",
+                "May 5 3.77 million",
+                "May 5 6",
+                "5.9",
+                "May 5 0.2",
+            ])
+        })
 
-//         describe("interval is changed", () => {
-//             test("interval is set to daily", () => {
-//                 const params = ExplorerDataTableTest.defaultParams
-//                 params.interval = "daily"
-//                 const dataTableTester = new ExplorerDataTableTest(params)
+        describe("interval is changed", () => {
+            test("interval is set to daily", () => {
+                const params = ExplorerDataTableTest.defaultParams
+                params.interval = "daily"
+                const dataTableTester = new ExplorerDataTableTest(params)
 
-//                 expect(dataTableTester.bodyRow(1)).toEqual([
-//                     "United States",
-//                     "1.20 million",
-//                     "23,841",
-//                     "71,078",
-//                     "2,144",
-//                     "May 5 7.54 million",
-//                     "May 5 258,954",
-//                     "May 5 6",
-//                     "5.9",
-//                     "May 5 0.2",
-//                 ])
-//             })
+                expect(dataTableTester.bodyRow(1)).toEqual([
+                    "United States",
+                    "1.20 million",
+                    "23,841",
+                    "71,078",
+                    "2,144",
+                    "May 5 7.54 million",
+                    "May 5 258,954",
+                    "May 5 6",
+                    "5.9",
+                    "May 5 0.2",
+                ])
+            })
 
-//             test("interval is set to weekly change", () => {
-//                 const params = ExplorerDataTableTest.defaultParams
-//                 params.interval = "weekly"
-//                 const dataTableTester = new ExplorerDataTableTest(params)
+            test("interval is set to weekly change", () => {
+                const params = ExplorerDataTableTest.defaultParams
+                params.interval = "weekly"
+                const dataTableTester = new ExplorerDataTableTest(params)
 
-//                 expect(dataTableTester.bodyRow(1)).toEqual([
-//                     "United States",
-//                     "1.20 million",
-//                     "162,519.0",
-//                     "71,078",
-//                     "11,886.0",
-//                     "May 5 7.54 million",
-//                     "May 5 6",
-//                     "5.9",
-//                     "May 5 0.2",
-//                 ])
-//             })
-//         })
-//     })
-// })
+                expect(dataTableTester.bodyRow(1)).toEqual([
+                    "United States",
+                    "1.20 million",
+                    "162,519.0",
+                    "71,078",
+                    "11,886.0",
+                    "May 5 7.54 million",
+                    "May 5 6",
+                    "5.9",
+                    "May 5 0.2",
+                ])
+            })
+        })
+    })
+})

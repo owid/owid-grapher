@@ -2,34 +2,43 @@ type CellFormatter = (str: string, rowIndex: number, colIndex: number) => any
 
 // Output a pretty table for consles
 export const toAlignedTextTable = (
-    header: string[],
+    headerSlugs: string[],
     rows: any[],
     alignRight = true,
-    maxCharactersPerColumn: number = 20
+    maxCharactersPerColumn = 20,
+    maxCharactersPerLine = 120
 ) => {
     // Set initial column widths
-    const widths = header.map((col) =>
-        col.length > maxCharactersPerColumn
+    const colWidths = headerSlugs.map((slug) =>
+        slug.length > maxCharactersPerColumn
             ? maxCharactersPerColumn
-            : col.length
+            : slug.length
     )
 
     // Expand column widths if needed
     rows.forEach((row) => {
-        header.forEach((slug, index) => {
+        headerSlugs.forEach((slug, index) => {
             const cellValue = row[slug]
             if (!cellValue) return
             const length = cellValue.toString().length
-            if (length > widths[index])
-                widths[index] =
+            if (length > colWidths[index])
+                colWidths[index] =
                     length > maxCharactersPerColumn
                         ? maxCharactersPerColumn
                         : length
         })
     })
 
+    // Drop columns if they exceed the max line width
+    let runningWidth = 0
+    const finalHeaderSlugs = headerSlugs.filter((slug, index) => {
+        runningWidth = runningWidth + colWidths[index]
+        if (runningWidth <= maxCharactersPerLine) return true
+        return false
+    })
+
     const cellFn = (cellText = "", row: number, col: number) => {
-        const width = widths[col]
+        const width = colWidths[col]
         // Strip newlines in fixedWidth output
         const cellValue = cellText?.toString().replace(/\n/g, "\\n") || ""
         const cellLength = cellValue.length
@@ -38,7 +47,11 @@ export const toAlignedTextTable = (
         const padding = " ".repeat(width - cellLength)
         return alignRight ? padding + cellValue : cellValue + padding
     }
-    return toDelimited(" ", header, rows, cellFn)
+    return (
+        (finalHeaderSlugs.length !== headerSlugs.length
+            ? `Showing ${finalHeaderSlugs.length} of ${headerSlugs.length} columns\n`
+            : "") + toDelimited(" ", finalHeaderSlugs, rows, cellFn)
+    )
 }
 
 export const toMarkdownTable = (

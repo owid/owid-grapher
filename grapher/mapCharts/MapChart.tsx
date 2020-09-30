@@ -54,15 +54,15 @@ const PROJECTION_CHOOSER_HEIGHT = 22
 
 // TODO refactor to use transform pattern, bit too much info for a pure component
 
-interface MapChartWithLegendProps {
+interface MapChartProps {
     bounds?: Bounds
     manager: MapChartManager
     containerElement?: HTMLDivElement
 }
 
 @observer
-export class MapChartWithLegend
-    extends React.Component<MapChartWithLegendProps>
+export class MapChart
+    extends React.Component<MapChartProps>
     implements
         ChartInterface,
         CategoricalColorLegendManager,

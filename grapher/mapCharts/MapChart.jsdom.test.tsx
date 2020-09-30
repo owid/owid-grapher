@@ -2,9 +2,9 @@
 
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { Grapher } from "grapher/core/Grapher"
-import { legacyMapGrapher } from "./LegacyMap.sample"
+import { legacyMapGrapher } from "./MapChart.sample"
 import { MapChartManager } from "./MapChartConstants"
-import { MapChartWithLegend } from "./MapChartWithLegend"
+import { MapChart } from "./MapChart"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2010],
@@ -16,7 +16,7 @@ const manager: MapChartManager = {
 }
 
 test("can create a new Map chart", () => {
-    const chart = new MapChartWithLegend({ manager })
+    const chart = new MapChart({ manager })
     expect(Object.keys(chart.marks).length).toEqual(2)
 
     const legends = chart.colorScale.legendBins
@@ -36,7 +36,7 @@ it("times work with a map chart", () => {
 
 it("can change time and see more points", () => {
     const manager = new Grapher(legacyMapGrapher)
-    const chart = new MapChartWithLegend({ manager })
+    const chart = new MapChart({ manager })
 
     expect(Object.keys(chart.marks).length).toEqual(1)
     manager.endTime = 2010

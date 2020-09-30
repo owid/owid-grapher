@@ -84,9 +84,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     constructor(
         rows: ROW_TYPE[] = [],
-        columnSpecs: CoreColumnSpec[] = AbstractCoreTable.makeSpecsFromRows(
-            rows
-        ),
+        columnSpecs: CoreColumnSpec[] = [],
         parentTable?: AbstractCoreTable<ROW_TYPE>,
         tableDescription?: string
     ) {
@@ -94,11 +92,25 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         this._inputRows = rows // Save a reference to original rows for debugging.
 
         this._columns = new Map()
-        // Todo: add warning if you provide Specs but not for all cols?
         columnSpecs.forEach((spec) => {
             const { slug, type } = spec
             const columnType = (type && columnTypeMap[type]) || StringColumn
             this._columns.set(slug, new columnType(this, spec))
+        })
+
+        const slugsWithoutSpecs = rows[0]
+            ? Object.keys(rows[0]).filter((slug) => !this.has(slug))
+            : []
+        slugsWithoutSpecs.forEach((slug) => {
+            const firstRowWithValue = rows.find(
+                (row) => row[slug] !== undefined && row[slug] !== null
+            )
+            const spec = AbstractCoreTable.guessColumnSpec(
+                slug,
+                firstRowWithValue
+            )
+            const columnType = columnTypeMap[spec.type!]
+            this._columns.set(spec.slug, new columnType(this, spec))
         })
 
         this.parent = parentTable
@@ -193,19 +205,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 type: ColumnTypeNames.Numeric,
             }
 
-        return { slug }
-    }
-
-    static makeSpecsFromRows(rows: any[]) {
-        const map: ObjectOfColumnSpecs = {}
-        // Todo: type detection
-        // todo: just sample a few rows?
-        rows.forEach((row) => {
-            Object.keys(row).forEach((slug) => {
-                map[slug] = AbstractCoreTable.guessColumnSpec(slug, row)
-            })
-        })
-        return Object.values(map)
+        return { slug, type: ColumnTypeNames.String }
     }
 
     get rootTable(): AnyTable {
@@ -318,11 +318,9 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
         const originalRows = !this.isRoot()
             ? `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
-            : `Input Data: \n\n ` +
+            : `Input Data: ${this._inputRows.length} Rows \n\n` +
               toAlignedTextTable(
-                  AbstractCoreTable.makeSpecsFromRows(this._inputRows).map(
-                      (spec) => spec.slug
-                  ),
+                  Object.keys(this._inputRows[0]),
                   this._inputRows.slice(0, showRows),
                   undefined,
                   10
@@ -666,6 +664,10 @@ export abstract class AbstractCoreColumn {
 
     @computed get timeTarget(): [Time, TimeTolerance] {
         return [this.endTimelineTime, this.tolerance]
+    }
+
+    @computed get targetTimes(): [Time, Time] {
+        return [this.startTimelineTime, this.endTimelineTime]
     }
 
     @computed get startTimelineTime() {

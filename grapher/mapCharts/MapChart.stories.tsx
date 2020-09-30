@@ -1,11 +1,11 @@
 import * as React from "react"
-import { MapChartWithLegend } from "./MapChartWithLegend"
+import { MapChart } from "./MapChart"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { MapChartManager } from "./MapChartConstants"
 
 export default {
-    title: "MapChartWithLegend",
-    component: MapChartWithLegend,
+    title: "MapChart",
+    component: MapChart,
 }
 
 export const Default = () => {
@@ -19,5 +19,5 @@ export const Default = () => {
         mapColumnSlug: "Population",
     }
 
-    return <MapChartWithLegend manager={manager} />
+    return <MapChart manager={manager} />
 }

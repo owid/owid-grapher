@@ -7,7 +7,7 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
 import { getChartComponent } from "./ChartTypeMap"
-import { MapChartWithLegend } from "grapher/mapCharts/MapChartWithLegend"
+import { MapChart } from "grapher/mapCharts/MapChart"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
@@ -157,7 +157,7 @@ export class ChartTab
 
         if (isMapTab)
             return (
-                <MapChartWithLegend
+                <MapChart
                     containerElement={this.containerElement ?? undefined}
                     bounds={innerBounds}
                     manager={manager}

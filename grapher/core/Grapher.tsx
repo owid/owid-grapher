@@ -444,20 +444,12 @@ export class Grapher
         let table = this.rootTable
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
-        table = this.filterByPop(table)
+        table = this.minPopulationFilter
+            ? table.filterByPopulation(this.minPopulationFilter)
+            : table
         table = this.filterByTime(table)
 
         return table
-    }
-
-    private filterByPop(table: OwidTable) {
-        const minPop = this.minPopulationFilter
-        if (!minPop) return table
-        return table.filterBy((row) => {
-            const name = row.entityName
-            const pop = populationMap[name]
-            return !pop || table.isSelected(row) || pop >= minPop
-        }, `Filter out countries with population less than ${minPop}`)
     }
 
     private filterByTime(table: OwidTable) {

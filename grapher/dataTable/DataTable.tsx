@@ -61,8 +61,10 @@ function inverseSortOrder(order: SortOrder): SortOrder {
     return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 }
 
-interface DataTableManager {
+export interface DataTableManager {
     table: OwidTable
+    endTime?: Time
+    startTime?: Time
 }
 
 @observer
@@ -439,17 +441,33 @@ export class DataTable extends React.Component<{
         return this.table.columnsAsArray
     }
 
-    @computed get columnsToShow() {
+    @computed private get columnsToShow() {
+        const skips = new Set([
+            "entityId",
+            "entityName",
+            "year",
+            "time",
+            "day",
+            "entityCode",
+        ])
         return this.columns.filter(
             (column) =>
+                !skips.has(column.slug) &&
                 //  dim.property !== "color" &&
-                column.display.includeInTable ?? true
+                (column.display.includeInTable ?? true)
         )
     }
 
+    @computed private get columnSlugsToShow() {
+        return this.columnsToShow.map((col) => col.slug)
+    }
+
     @computed get entities() {
+        const tableForEntities = this.table.rootTable
         return union(
-            ...this.columnsToShow.map((column) => column.entityNamesUniqArr)
+            ...this.columnSlugsToShow.map(
+                (slug) => tableForEntities.get(slug)!.entityNamesUniqArr
+            )
         )
     }
 
@@ -467,9 +485,17 @@ export class DataTable extends React.Component<{
               })
     }
 
+    @computed get targetTimes() {
+        const { startTime, endTime } = this.manager
+        if (startTime === undefined || endTime === undefined) return undefined
+
+        if (startTime !== endTime) return [startTime, endTime]
+        return [endTime]
+    }
+
     @computed get columnsWithValues(): Dimension[] {
         return this.columnsToShow.map((sourceColumn) => {
-            const targetTimes = [sourceColumn.maxTime]
+            const targetTimes = this.targetTimes ?? [sourceColumn.maxTime]
 
             const targetTimeMode =
                 targetTimes.length < 2

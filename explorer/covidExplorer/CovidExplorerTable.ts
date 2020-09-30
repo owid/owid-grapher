@@ -70,6 +70,7 @@ const computeRollingAveragesForEachGroup = (
     rollingAverage: number
 ) => {
     const groups: number[][] = []
+    if (!rows[0]) return []
     let currentGroup = rows[0][groupColName]
     let currentRows: CoreRow[] = []
     // Assumes items are sorted by entity

@@ -3,7 +3,7 @@
 import { mount } from "enzyme"
 import React from "react"
 import { Grapher } from "grapher/core/Grapher"
-import { legacyMapGrapher } from "./LegacyMap.sample"
+import { legacyMapGrapher } from "./MapChart.sample"
 
 const grapherWrapper = mount(<Grapher {...legacyMapGrapher} />)
 

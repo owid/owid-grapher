@@ -93,6 +93,7 @@ describe("from legacy", () => {
             "entityCode",
             "year",
             "3512",
+            "time", // todo: what is the best design here?
         ])
 
         expect(Array.from(table.columnsByName.keys())).toEqual([
@@ -101,6 +102,7 @@ describe("from legacy", () => {
             "Code",
             "Year",
             name,
+            "time",
         ])
 
         expect(table.columnsByOwidVarId.get(3512)?.displayName).toBe(
