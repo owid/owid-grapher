@@ -1,6 +1,9 @@
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
-import { EntitySelectionModes } from "grapher/core/GrapherConstants"
+import {
+    EntitySelectionModes,
+    SeriesStrategy,
+} from "grapher/core/GrapherConstants"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { OwidTable } from "coreTable/OwidTable"
@@ -50,4 +53,6 @@ export interface ChartManager {
     hideYAxis?: boolean
 
     faceting?: boolean // todo: make a strategy? a column prop? etc
+
+    seriesStrategy?: SeriesStrategy
 }

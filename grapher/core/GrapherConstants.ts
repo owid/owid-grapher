@@ -43,6 +43,16 @@ export type TimeTolerance = Integer
 export type TimeRange = [Time, Time]
 export type ValueRange = [number, number]
 
+export enum FacetStrategy {
+    country = "country", // One chart for each country
+    column = "column", // One chart for each Y column
+}
+
+export enum SeriesStrategy {
+    column = "column", // One line per column
+    entity = "entity", // One line per entity
+}
+
 // A measurement value. Example: For "A GDP of 200" the CellValue is 200.
 export type CellValue = number | string
 

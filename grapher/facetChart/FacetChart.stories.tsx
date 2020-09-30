@@ -1,5 +1,5 @@
 import * as React from "react"
-import { CountryFacet } from "./FacetChart"
+import { FacetChart } from "./FacetChart"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { ChartManager } from "grapher/chart/ChartManager"
@@ -7,7 +7,7 @@ import { Bounds } from "grapher/utils/Bounds"
 
 export default {
     title: "CountryFacet",
-    component: CountryFacet,
+    component: FacetChart,
     argTypes: {
         chartTypeName: { control: "select", defaultValue: "LineChart" },
         countryCount: {
@@ -38,7 +38,7 @@ export const Default = (args: any) => {
 
     return (
         <svg width={bounds.width} height={bounds.height}>
-            <CountryFacet
+            <FacetChart
                 bounds={bounds}
                 chartTypeName={chartType}
                 manager={manager}

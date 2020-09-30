@@ -12,6 +12,7 @@ import {
     BASE_FONT_SIZE,
     ChartTypeName,
     EntitySelectionModes,
+    FacetStrategy,
     GrapherTabOption,
 } from "grapher/core/GrapherConstants"
 import { FooterManager } from "grapher/footer/FooterManager"
@@ -19,7 +20,7 @@ import { HeaderManager } from "grapher/header/HeaderManager"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
 import { ChartManager } from "./ChartManager"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { CountryFacet } from "grapher/facetChart/FacetChart"
+import { FacetChart } from "grapher/facetChart/FacetChart"
 
 export interface ChartTabManager
     extends FooterManager,
@@ -182,10 +183,11 @@ export class ChartTab
             manager.table.selectedEntityNames.length > 1
         )
             return (
-                <CountryFacet
+                <FacetChart
                     bounds={bounds}
                     chartTypeName={chartTypeName}
                     manager={manager}
+                    strategy={FacetStrategy.column}
                 />
             )
         else if (
@@ -196,10 +198,11 @@ export class ChartTab
             manager.table.selectedEntityNames.length > 1
         )
             return (
-                <CountryFacet
+                <FacetChart
                     bounds={bounds}
                     chartTypeName={chartTypeName}
                     manager={manager}
+                    strategy={FacetStrategy.column}
                 />
             )
 

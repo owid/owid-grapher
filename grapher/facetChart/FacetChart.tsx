@@ -2,17 +2,25 @@ import React from "react"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { computed } from "mobx"
-import { BASE_FONT_SIZE, ChartTypeName } from "grapher/core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    ChartTypeName,
+    FacetStrategy,
+    SeriesStrategy,
+} from "grapher/core/GrapherConstants"
 import { getChartComponent } from "grapher/chart/ChartTypeMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { makeGrid } from "grapher/utils/Util"
 import { getElementWithHalo } from "grapher/scatterCharts/Halos"
+import { OwidTable } from "coreTable/OwidTable"
+import { ColumnSlug } from "coreTable/CoreTableConstants"
 
 interface FacetChartProps {
     bounds?: Bounds
     number?: number
     chartTypeName: ChartTypeName
     manager: ChartManager
+    strategy?: FacetStrategy
 }
 
 // Facet by columnSlug. If the columnSlug is entityName than will do one chart per country. If it is an array of column slugs, then will do
@@ -39,12 +47,17 @@ const getFontSize = (
     return min
 }
 
+interface Facet {
+    name: string
+    manager: Partial<ChartManager>
+}
+
 @observer
-export class CountryFacet extends React.Component<FacetChartProps> {
+export class FacetChart extends React.Component<FacetChartProps> {
     @computed protected get smallCharts() {
-        const { rootTable, rootOptions } = this
+        const { rootOptions, facets } = this
         const { chartTypeName } = this.props
-        const count = rootTable.selectedEntityNames.length
+        const count = facets.length
         const boundsArr = this.bounds.split(count, {
             rowPadding: 40,
             columnPadding: 40,
@@ -63,17 +76,16 @@ export class CountryFacet extends React.Component<FacetChartProps> {
         const baseFontSize = getFontSize(count, rootOptions.baseFontSize)
         const lineStrokeWidth = count > 16 ? 1 : undefined
 
-        return rootTable.selectedEntityNames.map((name, index) => {
+        const table = this.rootTable
+
+        return facets.map((facet, index) => {
             const bounds = boundsArr[index]
-            const table = rootTable.facet()
             const column = index % columns
             const row = Math.floor(index / columns)
             const hideXAxis = row < rows - 1
             const hideYAxis = column > 0
             const hideLegend = !!(column !== columns - 1) // todo: only sho 1?
             const hidePoints = true
-            table.clearSelection()
-            table.selectEntity(name)
 
             const xAxis = undefined
             const yAxis = undefined
@@ -94,14 +106,48 @@ export class CountryFacet extends React.Component<FacetChartProps> {
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
+                ...facet.manager,
             }
             return {
                 bounds,
                 chartTypeName,
                 manager,
-                title: name,
+                title: facet.name,
             } as SmallChart
         })
+    }
+
+    @computed private get countryFacets(): Facet[] {
+        return this.rootTable.selectedEntityNames.map((name) => {
+            const table = this.rootTable.facet()
+            table.setSelectedEntities([name])
+            return { name, manager: { table } }
+        })
+    }
+
+    @computed private get yColumns() {
+        const slugs = this.rootOptions.yColumnSlugs || []
+        return slugs.map((slug) => this.rootTable.get(slug))
+    }
+
+    @computed private get columnFacets(): Facet[] {
+        const { yColumns } = this
+        return yColumns.map((col) => {
+            const name = col!.displayName
+            return {
+                name,
+                manager: {
+                    yColumnSlug: col?.slug,
+                    seriesStrategy: SeriesStrategy.entity,
+                },
+            }
+        })
+    }
+
+    @computed private get facets() {
+        return this.props.strategy === FacetStrategy.column
+            ? this.columnFacets
+            : this.countryFacets
     }
 
     @computed protected get bounds() {
