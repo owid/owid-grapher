@@ -10,7 +10,7 @@ use Lcobucci\JWT\ValidationData;
 const CLOUDFLARE_COOKIE_NAME = "CF_Authorization";
 /*
  * Attempts to find a valid user within the JWT, after verifying and validating
- * it.
+ * it. If successful, the user is automatically signed in, through SSO.
  *
  * Errors happening during the authorization flow are silently logged. The
  * standard log-in form is then displayed as a fallback.
@@ -18,6 +18,8 @@ const CLOUDFLARE_COOKIE_NAME = "CF_Authorization";
 function auth_cloudflare_sso($user, $username, $password)
 {
     $jwt_cookie = $_COOKIE[CLOUDFLARE_COOKIE_NAME] ?? null;
+    // If the cookie is present, it means that route is being protected by
+    // Cloudflare Access.
     if (!$jwt_cookie) {
         // No errors logged here as this can be a legitimate situation, e.g.
         // when working locally.
