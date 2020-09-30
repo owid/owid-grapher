@@ -278,6 +278,10 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.selectedRows.size > 0
     }
 
+    @computed get hasMultipleSelection() {
+        return this.selectedRows.size > 1
+    }
+
     @action.bound clearSelection() {
         this.selectedRows.clear()
         return this

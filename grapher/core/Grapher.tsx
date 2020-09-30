@@ -964,7 +964,7 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
-        return !this.hideTimeline && this.rootTable.timelineTimes.length > 1
+        return !this.hideTimeline && this.rootTable.hasMultipleTimelineTimes
     }
 
     /**
@@ -1067,13 +1067,11 @@ export class Grapher
         return false
     }
 
-    @observable facetStrategy?: FacetStrategy = FacetStrategy.country
-
     @computed get canChangeEntity() {
         return (
             !this.isScatter &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.table.availableEntityNames.length > 1
+            this.table.hasMultipleAvailableEntities
         )
     }
 
@@ -1124,7 +1122,7 @@ export class Grapher
                 .join(" vs. ")
 
         if (
-            yColumns.length > 1 &&
+            this.hasMultipleYColumns &&
             uniq(
                 yColumns.map((col) => (col.spec as OwidColumnSpec).datasetName)
             ).length === 1
@@ -1574,12 +1572,8 @@ export class Grapher
             },
             {
                 combo: "f",
-                fn: () =>
-                    (this.facetStrategy = next(
-                        [...Object.keys(FacetStrategy), undefined],
-                        this.facetStrategy
-                    ) as FacetStrategy),
-                title: `Faceting is ${this.facetStrategy ?? "off"}`,
+                fn: () => this.toggleFacetStrategy(),
+                title: `Faceting ${this.facetStrategy ?? "off"}`,
                 category: "Display",
             },
 
@@ -1590,6 +1584,61 @@ export class Grapher
             //     category: "Navigation",
             // },
         ]
+    }
+
+    @action.bound private toggleFacetStrategy() {
+        this._facetStrategy = next(
+            this.availableFacetStrategies,
+            this._facetStrategy
+        )
+    }
+
+    @observable private _facetStrategy?: FacetStrategy
+
+    @computed private get hasMultipleYColumns() {
+        return this.yColumnSlugs.length > 1
+    }
+
+    @computed private get availableFacetStrategies() {
+        const strategies: (FacetStrategy | undefined)[] = [undefined]
+
+        if (this.hasMultipleYColumns) {
+            strategies.push(FacetStrategy.column)
+            if (this.rootTable.hasMultipleAvailableEntities)
+                strategies.push(FacetStrategy.columnWithMap)
+        }
+
+        if (this.rootTable.hasMultipleAvailableEntities) {
+            strategies.push(FacetStrategy.country)
+            strategies.push(FacetStrategy.countryWithMap)
+        }
+
+        return strategies
+    }
+
+    @computed get facetStrategy() {
+        if (
+            this._facetStrategy &&
+            this.availableFacetStrategies.includes(this._facetStrategy)
+        )
+            return this._facetStrategy
+
+        // Auto facet on SingleEntity charts with multiple selected entities
+        if (
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.table.hasMultipleSelection
+        )
+            return FacetStrategy.country
+
+        // Auto facet when multiple slugs and multiple entities selected. todo: not sure if this is correct.
+        if (
+            this.addCountryMode === EntitySelectionMode.MultipleEntities &&
+            this.hasMultipleYColumns &&
+            this.table.hasMultipleSelection
+        )
+            return FacetStrategy.column
+
+        return undefined
     }
 
     @action.bound randomSelection(num: number) {

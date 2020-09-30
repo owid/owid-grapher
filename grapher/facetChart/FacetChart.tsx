@@ -144,26 +144,24 @@ export class FacetChart extends React.Component<FacetChartProps> {
     }
 
     @computed private get columnMapFacets(): Facet[] {
-        const { yColumns } = this
-        return [
-            ...this.columnFacets,
-            ...yColumns.map((col) => {
-                return {
-                    chartTypeName: ChartTypeName.WorldMap,
-                    name: col!.displayName,
-                    manager: {
-                        yColumnSlug: col!.slug,
-                    },
-                }
-            }),
-        ]
+        return this.yColumns.map((col) => {
+            return {
+                chartTypeName: ChartTypeName.WorldMap,
+                name: col!.displayName,
+                manager: {
+                    yColumnSlug: col!.slug,
+                },
+            }
+        })
     }
 
     @computed private get facets() {
         const { strategy } = this.props
         if (strategy === FacetStrategy.column) return this.columnFacets
         if (strategy === FacetStrategy.columnWithMap)
-            return this.columnMapFacets
+            return [...this.columnFacets, ...this.columnMapFacets]
+        if (strategy === FacetStrategy.countryWithMap)
+            return [...this.countryFacets, ...this.columnMapFacets]
         return this.countryFacets
     }
 

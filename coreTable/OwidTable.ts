@@ -119,6 +119,14 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return Array.from(this.availableEntityNameSet)
     }
 
+    @computed get hasMultipleAvailableEntities() {
+        return this.availableEntityNames.length > 1
+    }
+
+    @computed get hasMultipleTimelineTimes() {
+        return this.timelineTimes.length > 1
+    }
+
     @computed get availableEntityNameSet() {
         return new Set(this.rows.map((row) => row.entityName))
     }

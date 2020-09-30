@@ -178,25 +178,7 @@ export class ChartTab
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
 
-        let facetStrategy = manager.facetStrategy
-
-        if (
-            !facetStrategy &&
-            manager.addCountryMode === EntitySelectionMode.MultipleEntities &&
-            manager.yColumnSlugs &&
-            manager.yColumnSlugs.length > 1 &&
-            manager.table.selectedEntityNames.length > 1
-        )
-            facetStrategy = FacetStrategy.column
-
-        if (
-            !facetStrategy &&
-            manager.facetStrategy &&
-            manager.addCountryMode === EntitySelectionMode.SingleEntity &&
-            manager.table.selectedEntityNames.length > 1
-        )
-            facetStrategy = FacetStrategy.country
-
+        const facetStrategy = manager.facetStrategy
         if (facetStrategy)
             return (
                 <FacetChart
