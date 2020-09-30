@@ -37,14 +37,18 @@ function auth_cloudflare_sso($user, $username, $password)
     // Verify the JWT
     $certsUrl = "https://owid.cloudflareaccess.com/cdn-cgi/access/certs";
     $response = file_get_contents($certsUrl);
-    if (!$response) {
-        error_log("No public key downloaded, token verification aborted.");
+    $certs = json_decode($response);
+    $publicCert = $certs->public_cert->cert;
+    if (empty($publicCert)) {
+        error_log(
+            "Missing public certificate from Cloudflare."
+        );
         return;
     }
-    $certs = json_decode($response);
-    $publicCert = new Key($certs->public_cert->cert);
+
+    $key = new Key($publicCert);
     $signer = new Sha256();
-    if (!$token->verify($signer, $publicCert)) {
+    if (!$token->verify($signer, $key)) {
         error_log("Token verification failed.");
         return;
     }
