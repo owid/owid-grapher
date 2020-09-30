@@ -13,7 +13,7 @@ const CLOUDFLARE_COOKIE_NAME = "CF_Authorization";
  * it. If successful, the user is automatically signed in, through SSO.
  *
  * Errors happening during the authorization flow are silently logged. The
- * standard log-in form is then displayed as a fallback.
+ * standard login form is then displayed as a fallback.
  */
 function auth_cloudflare_sso($user, $username, $password)
 {
@@ -42,9 +42,7 @@ function auth_cloudflare_sso($user, $username, $password)
     $certs = json_decode($response);
     $publicCert = $certs->public_cert->cert;
     if (empty($publicCert)) {
-        error_log(
-            "Missing public certificate from Cloudflare."
-        );
+        error_log("Missing public certificate from Cloudflare.");
         return;
     }
 
@@ -70,7 +68,7 @@ function auth_cloudflare_sso($user, $username, $password)
     $user = get_user_by('email', $token->getClaim('email'));
     if (!$user) {
         // This error will be shown to the user. We won't show the fallback
-        // log-in form here as attempting to log in with the same user will
+        // login form here as attempting to log in with the same user will
         // trigger a similar error (since the user does not exist).
         wp_die('User not found. Please contact an administrator.');
     }
@@ -115,10 +113,12 @@ add_action('wp_logout', function () {
 add_filter(
     'logout_url',
     function () {
-        $logout_url = wp_nonce_url(plugins_url('logout.php', __FILE__), 'log-out');
+        $logout_url = wp_nonce_url(
+            plugins_url('logout.php', __FILE__),
+            'log-out'
+        );
         return $logout_url;
     },
     10,
     0
-
 );
