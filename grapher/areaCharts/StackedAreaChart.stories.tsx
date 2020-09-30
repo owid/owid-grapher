@@ -19,12 +19,20 @@ entitiesChart.table.selectSample(5)
 
 export const EntitiesAsSeries = () => {
     entitiesChart.isRelativeMode = false
-    return <StackedAreaChart manager={entitiesChart} />
+    return (
+        <svg width={600} height={600}>
+            <StackedAreaChart manager={entitiesChart} />
+        </svg>
+    )
 }
 
 export const EntitiesAsSeriesRelative = () => {
     entitiesChart.isRelativeMode = true
-    return <StackedAreaChart manager={entitiesChart} />
+    return (
+        <svg width={600} height={600}>
+            <StackedAreaChart manager={entitiesChart} />
+        </svg>
+    )
 }
 
 const columnsChart: ChartManager = {
@@ -38,10 +46,18 @@ columnsChart.table.selectSample(1)
 
 export const ColumnsAsSeries = () => {
     columnsChart.isRelativeMode = false
-    return <StackedAreaChart manager={columnsChart} />
+    return (
+        <svg width={600} height={600}>
+            <StackedAreaChart manager={columnsChart} />
+        </svg>
+    )
 }
 
 export const ColumnsAsSeriesRelative = () => {
     columnsChart.isRelativeMode = true
-    return <StackedAreaChart manager={columnsChart} />
+    return (
+        <svg width={600} height={600}>
+            <StackedAreaChart manager={columnsChart} />
+        </svg>
+    )
 }

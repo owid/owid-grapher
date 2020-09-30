@@ -87,7 +87,7 @@ export class MapChart
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    base: React.RefObject<SVGSVGElement> = React.createRef()
+    base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
         const datum = d.id === undefined ? undefined : this.marks[d.id]
         this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
@@ -367,15 +367,19 @@ export class MapChart
         return 5
     }
 
-    @computed get categoryLegend(): CategoricalColorLegend {
-        return new CategoricalColorLegend({ manager: this })
+    @computed get categoryLegend() {
+        return this.categoricalLegendData.length > 1
+            ? new CategoricalColorLegend({ manager: this })
+            : undefined
     }
 
-    @computed get numericLegend(): NumericColorLegend {
-        return new NumericColorLegend({ manager: this })
+    @computed get numericLegend() {
+        return this.numericLegendData.length > 1
+            ? new NumericColorLegend({ manager: this })
+            : undefined
     }
 
-    @computed get legendX() {
+    @computed get legendX(): number {
         const { bounds, numericLegend, categoryLegend } = this
         if (numericLegend) return bounds.centerX - this.legendWidth / 2
 
@@ -383,7 +387,7 @@ export class MapChart
         return 0
     }
 
-    @computed get legendY() {
+    @computed get legendY(): number {
         const {
             bounds,
             numericLegend,
@@ -438,12 +442,7 @@ export class MapChart
             : undefined
 
         return (
-            <svg
-                width={this.bounds.width}
-                height={this.bounds.height}
-                ref={this.base}
-                className="mapTab"
-            >
+            <g ref={this.base} className="mapTab">
                 <ChoroplethMap
                     bounds={this.bounds.padBottom(this.legendHeight + 15)}
                     choroplethData={marks}
@@ -474,7 +473,7 @@ export class MapChart
                         colorScale={this.colorScale}
                     />
                 )}
-            </svg>
+            </g>
         )
     }
 }

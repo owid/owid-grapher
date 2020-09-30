@@ -215,7 +215,7 @@ export class StackedAreaChart
         manager: ChartManager
     }>
     implements ChartInterface, LineLegendManager {
-    base: React.RefObject<SVGSVGElement> = React.createRef()
+    base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed private get manager() {
         return this.props.manager
@@ -462,12 +462,7 @@ export class StackedAreaChart
         const showLegend = !this.manager.hideLegend
 
         return (
-            <svg
-                ref={this.base}
-                className="StackedArea"
-                width={this.bounds.width}
-                height={this.bounds.height}
-            >
+            <g ref={this.base} className="StackedArea">
                 <defs>
                     <clipPath id={`boundsClip-${renderUid}`}>
                         <rect
@@ -493,7 +488,7 @@ export class StackedAreaChart
                     />
                 </g>
                 {this.tooltip}
-            </svg>
+            </g>
         )
     }
 

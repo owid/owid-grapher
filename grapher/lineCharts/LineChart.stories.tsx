@@ -15,5 +15,9 @@ export const Default = () => {
     const manager = { table, yColumnSlugs: ["GDP"] }
     table.selectAll()
 
-    return <LineChart manager={manager} />
+    return (
+        <svg width={600} height={600}>
+            <LineChart manager={manager} />
+        </svg>
+    )
 }

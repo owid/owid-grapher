@@ -32,13 +32,17 @@ export const Default = (args: any) => {
     }
     const chartType: ChartTypeName = args.chartTypeName || "LineChart"
 
+    table.selectAll()
+
     const bounds = new Bounds(0, 0, 1000, 500)
 
     return (
-        <CountryFacet
-            bounds={bounds}
-            chartTypeName={chartType}
-            manager={manager}
-        />
+        <svg width={bounds.width} height={bounds.height}>
+            <CountryFacet
+                bounds={bounds}
+                chartTypeName={chartType}
+                manager={manager}
+            />
+        </svg>
     )
 }

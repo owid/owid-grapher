@@ -17,5 +17,9 @@ export const Default = () => {
         yColumnSlug: "Population",
     }
 
-    return <DiscreteBarChart manager={manager} />
+    return (
+        <svg width={600} height={600}>
+            <DiscreteBarChart manager={manager} />
+        </svg>
+    )
 }

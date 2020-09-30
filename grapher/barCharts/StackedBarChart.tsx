@@ -93,7 +93,7 @@ export class StackedBarChart
         manager: ChartManager
     }>
     implements ChartInterface, VerticalColorLegendManager, ColorScaleManager {
-    base!: SVGSVGElement
+    base!: SVGGElement
     readonly minBarSpacing = 4
 
     // currently hovered legend color
@@ -384,7 +384,7 @@ export class StackedBarChart
         const textColor = "#666"
 
         return (
-            <svg
+            <g
                 className="StackedBarChart"
                 width={bounds.width}
                 height={bounds.height}
@@ -490,7 +490,7 @@ export class StackedBarChart
 
                 <VerticalColorLegend manager={this} />
                 {tooltip}
-            </svg>
+            </g>
         )
     }
 

@@ -17,5 +17,9 @@ export const Default = () => {
         yColumnSlugs: ["Population"],
     }
 
-    return <StackedBarChart manager={manager} />
+    return (
+        <svg width={600} height={600}>
+            <StackedBarChart manager={manager} />
+        </svg>
+    )
 }

@@ -250,11 +250,7 @@ export class SlopeChart
         )
 
         return (
-            <svg
-                width={this.bounds.width}
-                height={this.bounds.height}
-                className="slopeChart"
-            >
+            <g className="slopeChart">
                 <LabelledSlopes
                     manager={manager}
                     bounds={innerBounds}
@@ -267,7 +263,7 @@ export class SlopeChart
                     onClick={this.onSlopeClick}
                 />
                 {legend}
-            </svg>
+            </g>
         )
     }
 
