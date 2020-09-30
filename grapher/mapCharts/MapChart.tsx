@@ -80,7 +80,11 @@ export class MapChart
     }
 
     @computed get mapColumn() {
-        return this.table.get(this.manager.mapColumnSlug)
+        return this.table.get(
+            this.manager.mapColumnSlug ||
+                this.manager.yColumnSlug ||
+                this.manager.yColumnSlugs![0]
+        )
     }
 
     @computed get bounds() {

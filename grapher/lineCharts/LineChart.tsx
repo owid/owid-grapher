@@ -31,7 +31,8 @@ import {
     BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
-    ValueRange,, SeriesStrategy
+    ValueRange,
+    SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
@@ -585,7 +586,12 @@ export class LineChart
     }
 
     @computed get seriesStrategy() {
-        return this.manager.seriesStrategy || (this.yColumns.length > 1 ? SeriesStrategy.column : SeriesStrategy.entity)
+        return (
+            this.manager.seriesStrategy ||
+            (this.yColumns.length > 1
+                ? SeriesStrategy.column
+                : SeriesStrategy.entity)
+        )
     }
 
     @computed get marks() {
@@ -595,7 +601,10 @@ export class LineChart
                 const { isProjection } = col
                 const map = col.owidRowsByEntityName
                 return Array.from(map.keys()).map((entityName) => {
-                    const seriesName = this.seriesStrategy === SeriesStrategy.column ? col.displayName : entityName
+                    const seriesName =
+                        this.seriesStrategy === SeriesStrategy.column
+                            ? col.displayName
+                            : entityName
                     return {
                         // todo: add log filter
                         points: map

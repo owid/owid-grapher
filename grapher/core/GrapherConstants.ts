@@ -6,6 +6,7 @@ export enum ChartTypes {
     DiscreteBar = "DiscreteBar",
     SlopeChart = "SlopeChart",
     StackedBar = "StackedBar",
+    WorldMap = "WorldMap",
 }
 
 export type ChartTypeName = keyof typeof ChartTypes

@@ -5,6 +5,7 @@ import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
 import { DiscreteBarChart } from "grapher/barCharts/DiscreteBarChart"
 import { StackedBarChart } from "grapher/barCharts/StackedBarChart"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { MapChart } from "grapher/mapCharts/MapChart"
 
 export const getChartComponent = (type: ChartTypeName) => {
     if (type === "DiscreteBar") return DiscreteBarChart
@@ -14,5 +15,6 @@ export const getChartComponent = (type: ChartTypeName) => {
     if (type === "StackedBar") return StackedBarChart
     if (type === "ScatterPlot") return ScatterPlot
     if (type === "TimeScatter") return TimeScatter
+    if (type === "WorldMap") return MapChart
     return null
 }

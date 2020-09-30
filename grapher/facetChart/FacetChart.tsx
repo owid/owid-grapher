@@ -12,8 +12,6 @@ import { getChartComponent } from "grapher/chart/ChartTypeMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { makeGrid } from "grapher/utils/Util"
 import { getElementWithHalo } from "grapher/scatterCharts/Halos"
-import { OwidTable } from "coreTable/OwidTable"
-import { ColumnSlug } from "coreTable/CoreTableConstants"
 
 interface FacetChartProps {
     bounds?: Bounds
