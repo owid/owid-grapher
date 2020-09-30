@@ -1,6 +1,9 @@
 # owid-grapher
 
-[![Build Status](https://travis-ci.org/owid/owid-grapher.svg?branch=master)](https://travis-ci.org/owid/owid-grapher) [![Netlify Status](https://api.netlify.com/api/v1/badges/4ab2047d-8fa1-4f00-b91d-cb3dcd0df113/deploy-status)](https://app.netlify.com/sites/owid/deploys) [![Test coverage](https://owid.github.io/badges/coverage.svg)](https://owid.github.io/coverage/)
+[![Build Status](https://travis-ci.org/owid/owid-grapher.svg?branch=master)](https://travis-ci.org/owid/owid-grapher)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4ab2047d-8fa1-4f00-b91d-cb3dcd0df113/deploy-status)](https://app.netlify.com/sites/owid/deploys)
+[![Test coverage](https://owid.github.io/badges/coverage.svg)](https://owid.github.io/coverage/)
+[![Storybook](https://raw.githubusercontent.com/storybookjs/brand/master/badge/badge-storybook.svg)](https://owid.github.io/stories/)
 
 This is the project we use at the University of Oxford to create embeddable visualizations for [Our World in Data](https://ourworldindata.org). It's not currently designed for immediate reuse as a full library, but you are very welcome to adapt any of our code or to send pull requests.
 
