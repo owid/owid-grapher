@@ -95,6 +95,10 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
 
     th.dimension {
         text-align: center;
+
+        > div {
+            min-height: 32px;
+        }
     }
 
     th.subdimension {
