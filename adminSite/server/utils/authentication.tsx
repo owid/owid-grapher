@@ -24,57 +24,62 @@ interface Session {
     expiryDate: Date
 }
 
+const CLOUDFLARE_COOKIE_NAME = "CF_Authorization"
+
+/*
+ * See authentication.php for detailed descriptions.
+ */
 export async function authCloudflareSSOMiddleware(
     req: express.Request,
     res: express.Response,
     next: express.NextFunction
 ) {
-    // Get token stored in the CF_Authorization cookie
-    const jwt = req.cookies["CF_Authorization"]
+    const jwt = req.cookies[CLOUDFLARE_COOKIE_NAME]
+    if (!jwt) return next()
 
-    // If the cookie is present, it means that route is being protected by
-    // Cloudflare Access. We try and validate the JWT it contains to sign-in the
-    // user automatically, through SSO.
-    if (jwt !== undefined) {
-        // Get the Cloudflare public key
-        const certsUrl =
-            "https://owid.cloudflareaccess.com/cdn-cgi/access/certs"
-        const response = await fetch(certsUrl)
-        const certs = await response.json()
-        const publicCert = certs.public_cert.cert
-        const audTag = CLOUDFLARE_AUD
-
-        // Verify the JWT token
-        verify(
-            jwt,
-            publicCert,
-            { audience: audTag, algorithms: ["RS256"] },
-            async (err: any, payload: any) => {
-                if (!err) {
-                    console.log("Token successfully verified.")
-                    const user = await User.findOne({ email: payload.email })
-                    // If ok then authenticate as the user stored in the token
-                    if (user) {
-                        const { id: sessionId } = await logInAsUser(user)
-                        res.cookie("sessionid", sessionId, {
-                            httpOnly: true,
-                            sameSite: "lax",
-                            secure: ENV === "production",
-                        })
-                        return res.redirect("/admin")
-                    } else {
-                        return next("User not found.")
-                    }
-                } else {
-                    // Token not verified
-                    console.log("Token not verified.")
-                    logOut(req, res, next)
-                }
-            }
+    const audTag = CLOUDFLARE_AUD
+    if (!audTag) {
+        console.error(
+            "Missing or empty audience tag. Please add CLOUDFLARE_AUD key in .env."
         )
-    } else {
         return next()
     }
+
+    // Get the Cloudflare public key
+    const certsUrl = "https://owid.cloudflareaccess.com/cdn-cgi/access/certs"
+    const response = await fetch(certsUrl)
+    const certs = await response.json()
+    const publicCert = certs.public_cert.cert
+    if (!publicCert) {
+        console.error("Missing public certificate from Cloudflare.")
+        return next()
+    }
+    // Verify the JWT token
+    verify(
+        jwt,
+        publicCert,
+        { audience: audTag, algorithms: ["RS256"] },
+        async (err: any, payload: any) => {
+            if (err) {
+                // Authorization token invalid: verification failed, token expired or wrong audience.
+                console.error(err)
+                return next()
+            }
+            const user = await User.findOne({ email: payload.email })
+            if (!user) {
+                return next("User not found. Please contact an administrator.")
+            }
+
+            // Authenticate as the user stored in the token
+            const { id: sessionId } = await logInAsUser(user)
+            res.cookie("sessionid", sessionId, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: ENV === "production",
+            })
+            return res.redirect("/admin")
+        }
+    )
 }
 
 export async function logOut(
@@ -88,7 +93,7 @@ export async function logOut(
         ])
 
     res.clearCookie("sessionid")
-    res.clearCookie("CF_Authorization")
+    res.clearCookie(CLOUDFLARE_COOKIE_NAME)
     return res.redirect("/admin")
 }
 
