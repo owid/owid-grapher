@@ -116,6 +116,10 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         border-left: $cell-border;
     }
 
+    th.firstSubdimension div {
+        min-width: 56px;
+    }
+
     th.lastSubdimension {
         border-right: none;
     }
