@@ -60,6 +60,11 @@ jobs:
             - name: Generate Jest coverage report 🃏
               run: yarn coverage:ci
 
+            - name: Generate coverage badge 🔖
+              run: |
+                  mkdir -p badges
+                  yarn lcov-badge -o badges/coverage.svg coverage/lcov.info
+
             # We're using two subsequent deploys instead of making them parallel because `github-pages-deploy-action`
             # force-pushes, and if we have two deploys running at the same time that might lead to missing update situations.
 
@@ -87,6 +92,20 @@ jobs:
                   TARGET_FOLDER: coverage
                   COMMIT_MESSAGE: |-
                       🤖 update coverage report
+                      owid/owid-grapher@${{ github.sha }}
+                  GIT_CONFIG_NAME: owidbot
+                  GIT_CONFIG_EMAIL: tech@ourworldindata.org
+
+            - name: Deploy Badges 🚀
+              uses: JamesIves/github-pages-deploy-action@3.6.1
+              with:
+                  ACCESS_TOKEN: ${{ secrets.STORYBOOK_DEPLOY_ACCESS_TOKEN }}
+                  BRANCH: master
+                  FOLDER: badges
+                  REPOSITORY_NAME: owid/owid.github.io
+                  TARGET_FOLDER: badges
+                  COMMIT_MESSAGE: |-
+                      🤖 update badges
                       owid/owid-grapher@${{ github.sha }}
                   GIT_CONFIG_NAME: owidbot
                   GIT_CONFIG_EMAIL: tech@ourworldindata.org
