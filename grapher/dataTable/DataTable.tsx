@@ -388,6 +388,7 @@ function ColumnHeader(props: {
                 sortable,
                 sorted: sortedCol,
                 firstSubdimension: subdimensionType === "start",
+                endSubdimension: subdimensionType === "end",
                 lastSubdimension,
             })}
             rowSpan={props.rowSpan ?? 1}

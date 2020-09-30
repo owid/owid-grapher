@@ -20,7 +20,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         &.subdimension {
-            top: 50px;
+            top: 53px;
         }
     }
 
@@ -97,7 +97,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         text-align: center;
 
         > div {
-            min-height: 32px;
+            min-height: 35px;
         }
     }
 
@@ -120,7 +120,8 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         border-left: $cell-border;
     }
 
-    th.firstSubdimension div {
+    th.firstSubdimension div,
+    th.endSubdimension div {
         min-width: 56px;
     }
 
@@ -171,6 +172,7 @@ $cell-border: 1px solid rgba(0, 0, 0, 0.08);
         .unit {
             font-weight: 700;
             opacity: 0.5;
+            padding-bottom: 3px;
         }
     }
 
