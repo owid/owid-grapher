@@ -22,6 +22,7 @@ module.exports = (env, argv) => {
             admin: "./adminSite/client/admin.entry.ts",
             owid: "./site/client/owid.entry.ts",
         },
+        target: "web",
         optimization: {
             splitChunks: {
                 cacheGroups: {

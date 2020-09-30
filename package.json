@@ -210,7 +210,7 @@
         "url-loader": "^4.1.0",
         "url-parse": "^1.4.7",
         "url-slug": "^3.0.0-beta.1",
-        "webpack": "5.0.0-rc.0",
+        "webpack": "5.0.0-rc.3",
         "webpack-cli": "4.0.0-rc.0",
         "webpack-dev-server": "^3.11.0",
         "webpack-manifest-plugin": "3.0.0-rc.0",
