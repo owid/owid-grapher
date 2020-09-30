@@ -48,6 +48,7 @@ const getFontSize = (
 interface Facet {
     name: string
     manager: Partial<ChartManager>
+    chartTypeName?: ChartTypeName
 }
 
 @observer
@@ -108,7 +109,7 @@ export class FacetChart extends React.Component<FacetChartProps> {
             }
             return {
                 bounds,
-                chartTypeName,
+                chartTypeName: facet.chartTypeName ?? chartTypeName,
                 manager,
                 title: facet.name,
             } as SmallChart
@@ -142,10 +143,28 @@ export class FacetChart extends React.Component<FacetChartProps> {
         })
     }
 
+    @computed private get columnMapFacets(): Facet[] {
+        const { yColumns } = this
+        return [
+            ...this.columnFacets,
+            ...yColumns.map((col) => {
+                return {
+                    chartTypeName: ChartTypeName.WorldMap,
+                    name: col!.displayName,
+                    manager: {
+                        yColumnSlug: col!.slug,
+                    },
+                }
+            }),
+        ]
+    }
+
     @computed private get facets() {
-        return this.props.strategy === FacetStrategy.column
-            ? this.columnFacets
-            : this.countryFacets
+        const { strategy } = this.props
+        if (strategy === FacetStrategy.column) return this.columnFacets
+        if (strategy === FacetStrategy.columnWithMap)
+            return this.columnMapFacets
+        return this.countryFacets
     }
 
     @computed protected get bounds() {

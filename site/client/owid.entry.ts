@@ -31,7 +31,7 @@ import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
 import { runFootnotes } from "site/client/Footnote"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { ENV } from "settings"
-import { CookieKeys } from "grapher/core/GrapherConstants"
+import { CookieKey } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
 
 declare var window: any
@@ -66,7 +66,7 @@ document.querySelector("html")?.classList.add("js")
 if (
     document.cookie.includes("wordpress") ||
     document.cookie.includes("wp-settings") ||
-    document.cookie.includes(CookieKeys.isAdmin)
+    document.cookie.includes(CookieKey.isAdmin)
 ) {
     const adminbar = document.getElementById("wpadminbar")
     if (adminbar) adminbar.style.display = ""

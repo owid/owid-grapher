@@ -6,8 +6,8 @@ import {
 } from "utils/client/url"
 import {
     SortOrder,
-    ChartTypeName,
     ScaleType,
+    ChartTypeName,
 } from "grapher/core/GrapherConstants"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
@@ -239,8 +239,8 @@ export class CovidQueryParams {
         return this.chartType
             ? this.chartType
             : this.aligned
-            ? "ScatterPlot"
-            : "LineChart"
+            ? ChartTypeName.ScatterPlot
+            : ChartTypeName.LineChart
     }
 
     @computed get colorStrategy(): colorScaleOption {

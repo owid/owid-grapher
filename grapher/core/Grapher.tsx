@@ -35,20 +35,19 @@ import {
     range,
 } from "grapher/utils/Util"
 import {
-    ChartTypes,
+    ChartTypeName,
     GrapherTabOption,
     TickFormattingOptions,
     ScaleType,
-    StackModes,
+    StackMode,
     DimensionProperty,
-    ChartTypeName,
-    EntitySelectionModes,
+    EntitySelectionMode,
     HighlightToggleConfig,
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
     Time,
     BASE_FONT_SIZE,
-    CookieKeys,
+    CookieKey,
 } from "grapher/core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -146,7 +145,7 @@ const legacyConfigToConfig = (
 }
 
 class GrapherDefaults extends React.Component<GrapherProps> {
-    @observable.ref type: ChartTypeName = "LineChart"
+    @observable.ref type: ChartTypeName = ChartTypeName.LineChart
     @observable.ref isExplorable: boolean = false
     @observable.ref id?: number = undefined
     @observable.ref version: number = 1
@@ -160,9 +159,9 @@ class GrapherDefaults extends React.Component<GrapherProps> {
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
     @observable.ref timelineMaxTime?: Time = undefined
-    @observable.ref addCountryMode = EntitySelectionModes.MultipleEntities
+    @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
-    @observable.ref stackMode = StackModes.absolute
+    @observable.ref stackMode = StackMode.absolute
     @observable.ref hideLegend?: true = undefined
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
@@ -369,7 +368,7 @@ export class Grapher
         }
 
         // Stack mode for bar and stacked area charts
-        this.stackMode = (params.stackMode ?? this.stackMode) as StackModes
+        this.stackMode = (params.stackMode ?? this.stackMode) as StackMode
 
         this.zoomToSelection =
             params.zoomToSelection === "true" ? true : this.zoomToSelection
@@ -409,7 +408,7 @@ export class Grapher
         if (
             this.manuallyProvideData ||
             !country ||
-            this.addCountryMode === EntitySelectionModes.Disabled
+            this.addCountryMode === EntitySelectionMode.Disabled
         )
             return
         when(
@@ -514,7 +513,7 @@ export class Grapher
 
         if (window.admin) return true
 
-        return !!Cookies.get(CookieKeys.isAdmin)
+        return !!Cookies.get(CookieKey.isAdmin)
     }
 
     @action.bound private async downloadLegacyDataFromOwidVariableIds() {
@@ -936,7 +935,7 @@ export class Grapher
 
         if (
             this.primaryTab === GrapherTabOption.chart &&
-            this.addCountryMode !== EntitySelectionModes.MultipleEntities &&
+            this.addCountryMode !== EntitySelectionMode.MultipleEntities &&
             selectedEntityNames.length === 1 &&
             (!this.hideTitleAnnotation || this.canChangeEntity)
         ) {
@@ -1033,7 +1032,7 @@ export class Grapher
     @computed get addButtonLabel() {
         const isSingleEntity =
             this.table.availableEntityNames.length === 1 ||
-            this.addCountryMode === EntitySelectionModes.SingleEntity
+            this.addCountryMode === EntitySelectionMode.SingleEntity
         return `Add ${isSingleEntity ? "data" : this.entityType}`
     }
 
@@ -1055,11 +1054,11 @@ export class Grapher
     @computed get canAddData() {
         if (this.table.availableEntityNames.length < 2) return false
 
-        if (this.addCountryMode === EntitySelectionModes.MultipleEntities)
+        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
             return true
 
         if (
-            this.addCountryMode === EntitySelectionModes.SingleEntity &&
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.faceting
         )
             return true
@@ -1072,7 +1071,7 @@ export class Grapher
     @computed get canChangeEntity() {
         return (
             !this.isScatter &&
-            this.addCountryMode === EntitySelectionModes.SingleEntity &&
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
             this.table.availableEntityNames.length > 1
         )
     }
@@ -1147,25 +1146,25 @@ export class Grapher
     }
 
     @computed get isLineChart() {
-        return this.type === ChartTypes.LineChart
+        return this.type === ChartTypeName.LineChart
     }
     @computed get isScatter() {
-        return this.type === ChartTypes.ScatterPlot
+        return this.type === ChartTypeName.ScatterPlot
     }
     @computed get isTimeScatter() {
-        return this.type === ChartTypes.TimeScatter
+        return this.type === ChartTypeName.TimeScatter
     }
     @computed get isStackedArea() {
-        return this.type === ChartTypes.StackedArea
+        return this.type === ChartTypeName.StackedArea
     }
     @computed get isSlopeChart() {
-        return this.type === ChartTypes.SlopeChart
+        return this.type === ChartTypeName.SlopeChart
     }
     @computed get isDiscreteBar() {
-        return this.type === ChartTypes.DiscreteBar
+        return this.type === ChartTypeName.DiscreteBar
     }
     @computed get isStackedBar() {
-        return this.type === ChartTypes.StackedBar
+        return this.type === ChartTypeName.StackedBar
     }
 
     @computed get activeColorScale() {
@@ -1257,13 +1256,13 @@ export class Grapher
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode() {
-        return this.stackMode === StackModes.relative
+        return this.stackMode === StackMode.relative
     }
 
     @action.bound toggleRelativeMode() {
         this.stackMode = !this.isRelativeMode
-            ? StackModes.relative
-            : StackModes.absolute
+            ? StackMode.relative
+            : StackMode.absolute
     }
 
     @computed get canToggleRelativeMode() {

@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { ExploreModel } from "./ExploreModel"
-import { ChartTypes } from "grapher/core/GrapherConstants"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { RootStore } from "explorer/indicatorExplorer/Store"
 
 const store = new RootStore()
@@ -20,7 +20,7 @@ describe("when you give it a query string", () => {
     })
 
     it("populates the chart type", () => {
-        expect(model.chartType).toBe("WorldMap")
+        expect(model.chartType).toBe(ChartTypeName.WorldMap)
     })
 
     it("populates the chart params", () => {
@@ -31,11 +31,11 @@ describe("when you give it a query string", () => {
 describe("when you set an area type", () => {
     beforeAll(() => {
         model = new ExploreModel(store)
-        model.setChartType(ChartTypes.StackedArea)
+        model.setChartType(ChartTypeName.StackedArea)
     })
 
     it("updates the chart type to area", () => {
-        expect(model.grapher.type).toBe(ChartTypes.StackedArea)
+        expect(model.grapher.type).toBe(ChartTypeName.StackedArea)
     })
 
     it("has a chart tab", () => {
@@ -58,7 +58,7 @@ describe("when you set a map type", () => {
     })
 
     it("updates the chart type to line", () => {
-        expect(model.grapher.type).toBe(ChartTypes.LineChart)
+        expect(model.grapher.type).toBe(ChartTypeName.LineChart)
     })
 
     it("has a map tab", () => {

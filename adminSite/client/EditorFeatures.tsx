@@ -1,4 +1,4 @@
-import { EntitySelectionModes } from "grapher/core/GrapherConstants"
+import { EntitySelectionMode } from "grapher/core/GrapherConstants"
 import { computed } from "mobx"
 import { ChartEditor } from "./ChartEditor"
 
@@ -66,8 +66,8 @@ export class EditorFeatures {
         return (
             (!this.grapher.isScatter &&
                 this.grapher.addCountryMode ===
-                    EntitySelectionModes.MultipleEntities) ||
-            this.grapher.addCountryMode === EntitySelectionModes.SingleEntity
+                    EntitySelectionMode.MultipleEntities) ||
+            this.grapher.addCountryMode === EntitySelectionMode.SingleEntity
         )
     }
 

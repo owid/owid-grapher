@@ -6,7 +6,7 @@ import { NoDataModalManager } from "grapher/chart/NoDataModal"
 import { ColorScale } from "grapher/color/ColorScale"
 import {
     ScatterPointLabelStrategy,
-    EntitySelectionModes,
+    EntitySelectionMode,
 } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
@@ -14,7 +14,7 @@ import { PointVector } from "grapher/utils/PointVector"
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
-    addCountryMode?: EntitySelectionModes
+    addCountryMode?: EntitySelectionMode
 }
 
 export interface ScatterTooltipProps {

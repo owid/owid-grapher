@@ -16,7 +16,7 @@ import { faArrowsAltV } from "@fortawesome/free-solid-svg-icons/faArrowsAltV"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "coreTable/CoreTableConstants"
-import { EntitySelectionModes } from "grapher/core/GrapherConstants"
+import { EntitySelectionMode } from "grapher/core/GrapherConstants"
 
 interface EntityItemProps extends EditableListItemProps {
     grapher: Grapher
@@ -144,14 +144,14 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 className="form-check-input"
                                 type="radio"
                                 name="add-country-mode"
-                                value={EntitySelectionModes.MultipleEntities}
+                                value={EntitySelectionMode.MultipleEntities}
                                 checked={
                                     grapher.addCountryMode ===
-                                    EntitySelectionModes.MultipleEntities
+                                    EntitySelectionMode.MultipleEntities
                                 }
                                 onChange={() =>
                                     (grapher.addCountryMode =
-                                        EntitySelectionModes.MultipleEntities)
+                                        EntitySelectionMode.MultipleEntities)
                                 }
                             />
                             User can add and remove data
@@ -163,14 +163,14 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 className="form-check-input"
                                 type="radio"
                                 name="add-country-mode"
-                                value={EntitySelectionModes.SingleEntity}
+                                value={EntitySelectionMode.SingleEntity}
                                 checked={
                                     grapher.addCountryMode ===
-                                    EntitySelectionModes.SingleEntity
+                                    EntitySelectionMode.SingleEntity
                                 }
                                 onChange={() =>
                                     (grapher.addCountryMode =
-                                        EntitySelectionModes.SingleEntity)
+                                        EntitySelectionMode.SingleEntity)
                                 }
                             />
                             User can change entity
@@ -182,14 +182,14 @@ export class EditorDataTab extends React.Component<{ editor: ChartEditor }> {
                                 className="form-check-input"
                                 type="radio"
                                 name="add-country-mode"
-                                value={EntitySelectionModes.Disabled}
+                                value={EntitySelectionMode.Disabled}
                                 checked={
                                     grapher.addCountryMode ===
-                                    EntitySelectionModes.Disabled
+                                    EntitySelectionMode.Disabled
                                 }
                                 onChange={() =>
                                     (grapher.addCountryMode =
-                                        EntitySelectionModes.Disabled)
+                                        EntitySelectionMode.Disabled)
                                 }
                             />
                             User cannot change/add data

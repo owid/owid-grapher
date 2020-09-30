@@ -1,16 +1,10 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
-import {
-    ChartTypes,
-    ChartTypeName,
-    GrapherTabOption,
-} from "grapher/core/GrapherConstants"
+import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import { ExploreUrl } from "./ExploreUrl"
-import { RootStore, StoreEntry } from "./Store"
+import { RootStore } from "./Store"
 import { Indicator } from "./Indicator"
-
-export type ExplorerChartType = ChartTypeName | "WorldMap"
 
 function grapherConfigFromIndicator(
     indicator: Indicator
@@ -24,13 +18,13 @@ function grapherConfigFromIndicator(
 }
 
 export class ExploreModel {
-    static WorldMap: ExplorerChartType = "WorldMap"
-    static defaultChartType: ExplorerChartType = ChartTypes.LineChart
+    static WorldMap: ChartTypeName = ChartTypeName.WorldMap
+    static defaultChartType: ChartTypeName = ChartTypeName.LineChart
 
     // This is different from the chart's concept of chart type because it includes "WorldMap" as
     // an option, and doesn't include certain chart types we don't support right now, such as
     // scatter plots
-    @observable chartType: ExplorerChartType = ExploreModel.defaultChartType
+    @observable chartType: ChartTypeName = ExploreModel.defaultChartType
 
     @observable indicatorId?: number = undefined
 
@@ -43,7 +37,7 @@ export class ExploreModel {
         this.indicatorId = id
     }
 
-    @action.bound setChartType(chartType: ExplorerChartType) {
+    @action.bound setChartType(chartType: ChartTypeName) {
         this.chartType = chartType
         this.updateGrapherFromExplorer()
     }
@@ -100,7 +94,7 @@ export class ExploreModel {
     // chart (arbitrarily) to be a line chart, and set the tab to map.
     @computed get configChartType(): ChartTypeName {
         return this.isMap
-            ? ChartTypes.LineChart
+            ? ChartTypeName.LineChart
             : (this.chartType as ChartTypeName)
     }
 

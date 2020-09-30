@@ -4,7 +4,7 @@ import * as React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
 import xhrMock from "xhr-mock"
 import { ExploreView } from "./ExploreView"
-import { ChartTypes } from "grapher/core/GrapherConstants"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { LineChart } from "grapher/lineCharts/LineChart"
 import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
 import { StackedBarChart } from "grapher/barCharts/StackedBarChart"
@@ -86,7 +86,7 @@ describe("when you render with different model params", () => {
 
     it("applies the chart type", async () => {
         const model = getDefaultModel()
-        model.setChartType("WorldMap")
+        model.setChartType(ChartTypeName.WorldMap)
         const view = await renderWithModel(model)
         expect(view.find(MapChart)).toHaveLength(1)
     })
@@ -125,10 +125,10 @@ describe("chart types", () => {
     })
 
     const chartTypes = [
-        { key: ChartTypes.StackedArea, expectedView: StackedAreaChart },
-        { key: ChartTypes.StackedBar, expectedView: StackedBarChart },
-        { key: ChartTypes.DiscreteBar, expectedView: DiscreteBarChart },
-        { key: ChartTypes.SlopeChart, expectedView: SlopeChart },
+        { key: ChartTypeName.StackedArea, expectedView: StackedAreaChart },
+        { key: ChartTypeName.StackedBar, expectedView: StackedBarChart },
+        { key: ChartTypeName.DiscreteBar, expectedView: DiscreteBarChart },
+        { key: ChartTypeName.SlopeChart, expectedView: SlopeChart },
         { key: "WorldMap", expectedView: MapChart },
     ]
 

@@ -2,6 +2,7 @@ import * as React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { childMortalityGrapher } from "./DataTable.sample"
+import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
 
 export default {
     title: "DataTable",
@@ -78,8 +79,8 @@ export const FromLegacy = () => {
 
 export const FromLegacyWithTimeRange = () => {
     const grapher = childMortalityGrapher({
-        type: "LineChart",
-        tab: "chart",
+        type: ChartTypeName.LineChart,
+        tab: GrapherTabOption.chart,
     })
     grapher.startTime = 1950
     grapher.endTime = 2019

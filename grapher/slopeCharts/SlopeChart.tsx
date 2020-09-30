@@ -27,7 +27,7 @@ import {
     BASE_FONT_SIZE,
     Time,
     ScaleType,
-    EntitySelectionModes,
+    EntitySelectionMode,
 } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ChartManager } from "grapher/chart/ChartManager"
@@ -90,7 +90,7 @@ export class SlopeChart
     @action.bound onSlopeClick() {
         const { manager, hoverKey } = this
         if (
-            manager.addCountryMode === EntitySelectionModes.Disabled ||
+            manager.addCountryMode === EntitySelectionMode.Disabled ||
             !manager.addCountryMode ||
             hoverKey === undefined
         ) {
@@ -116,7 +116,7 @@ export class SlopeChart
     @action.bound onLegendClick() {
         const { manager, hoverColor } = this
         if (
-            manager.addCountryMode === EntitySelectionModes.Disabled ||
+            manager.addCountryMode === EntitySelectionMode.Disabled ||
             !manager.addCountryMode ||
             hoverColor === undefined
         )

@@ -9,27 +9,27 @@ import { faChartBar } from "@fortawesome/free-solid-svg-icons/faChartBar"
 import { faChartArea } from "@fortawesome/free-solid-svg-icons/faChartArea"
 import { faMap } from "@fortawesome/free-solid-svg-icons/faMap"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { ChartTypes } from "grapher/core/GrapherConstants"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { ExplorerViewContext } from "./ExplorerViewContext"
 import { IndicatorDropdown } from "./IndicatorDropdown"
 import { RootStore } from "explorer/indicatorExplorer/Store"
-import { ExploreModel, ExplorerChartType } from "./ExploreModel"
+import { ExploreModel } from "./ExploreModel"
 import { DataTable } from "grapher/dataTable/DataTable"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { Grapher } from "grapher/core/Grapher"
 
 interface ChartTypeButton {
-    type: ExplorerChartType
+    type: ChartTypeName
     label: string
     icon: IconDefinition
 }
 
 const CHART_TYPE_BUTTONS: ChartTypeButton[] = [
-    { type: ChartTypes.LineChart, label: "Line", icon: faChartLine },
-    { type: ChartTypes.StackedArea, label: "Area", icon: faChartArea },
-    { type: ChartTypes.StackedBar, label: "Stacked", icon: faChartBar },
-    { type: ChartTypes.DiscreteBar, label: "Bar", icon: faChartBar },
-    { type: ChartTypes.SlopeChart, label: "Slope", icon: faChartLine },
+    { type: ChartTypeName.LineChart, label: "Line", icon: faChartLine },
+    { type: ChartTypeName.StackedArea, label: "Area", icon: faChartArea },
+    { type: ChartTypeName.StackedBar, label: "Stacked", icon: faChartBar },
+    { type: ChartTypeName.DiscreteBar, label: "Bar", icon: faChartBar },
+    { type: ChartTypeName.SlopeChart, label: "Slope", icon: faChartLine },
     { type: ExploreModel.WorldMap, label: "Map", icon: faMap },
 ]
 

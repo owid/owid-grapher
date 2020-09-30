@@ -1,4 +1,4 @@
-export enum ChartTypes {
+export enum ChartTypeName {
     LineChart = "LineChart",
     ScatterPlot = "ScatterPlot",
     TimeScatter = "TimeScatter",
@@ -9,21 +9,19 @@ export enum ChartTypes {
     WorldMap = "WorldMap",
 }
 
-export type ChartTypeName = keyof typeof ChartTypes
-
-export enum CookieKeys {
+export enum CookieKey {
     isAdmin = "isAdmin",
 }
 
 // We currently have the notion of "modes", where you can either select 1 entity, or select multiple entities, or not change the selection at all.
 // Todo: can we remove?
-export enum EntitySelectionModes {
+export enum EntitySelectionMode {
     MultipleEntities = "add-country",
     SingleEntity = "change-country",
     Disabled = "disabled",
 }
 
-export enum StackModes {
+export enum StackMode {
     absolute = "absolute",
     relative = "relative",
 }
@@ -47,6 +45,7 @@ export type ValueRange = [number, number]
 export enum FacetStrategy {
     country = "country", // One chart for each country
     column = "column", // One chart for each Y column
+    columnWithMap = "columnWithMap", // One chart and one map for each Y column
 }
 
 export enum SeriesStrategy {

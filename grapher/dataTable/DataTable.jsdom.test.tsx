@@ -4,7 +4,11 @@ import * as React from "react"
 import { shallow, ShallowWrapper, mount, ReactWrapper } from "enzyme"
 import { DataTable } from "./DataTable"
 import { Grapher } from "grapher/core/Grapher"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
+import {
+    ChartTypeName,
+    DimensionProperty,
+    GrapherTabOption,
+} from "grapher/core/GrapherConstants"
 import { childMortalityGrapher } from "./DataTable.sample"
 
 describe("when you render a table", () => {
@@ -61,8 +65,8 @@ describe("when you select a range of years", () => {
     let view: ReactWrapper
     beforeAll(() => {
         const grapher = childMortalityGrapher({
-            type: "LineChart",
-            tab: "chart",
+            type: ChartTypeName.LineChart,
+            tab: GrapherTabOption.chart,
         })
         grapher.startTime = 1950
         grapher.endTime = 2019

@@ -30,7 +30,8 @@ export const Default = (args: any) => {
         hideLegend: true,
         hidePoints: true,
     }
-    const chartType: ChartTypeName = args.chartTypeName || "LineChart"
+    const chartType: ChartTypeName =
+        args.chartTypeName || ChartTypeName.LineChart
 
     table.selectAll()
 

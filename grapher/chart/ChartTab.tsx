@@ -11,7 +11,7 @@ import { MapChart } from "grapher/mapCharts/MapChart"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
-    EntitySelectionModes,
+    EntitySelectionMode,
     FacetStrategy,
     GrapherTabOption,
 } from "grapher/core/GrapherConstants"
@@ -172,14 +172,14 @@ export class ChartTab
 
         // Switch to bar chart if a single year is selected
         const chartTypeName =
-            type === "LineChart" && manager.isSingleTime
-                ? "DiscreteBar"
-                : type || "LineChart"
+            type === ChartTypeName.LineChart && manager.isSingleTime
+                ? ChartTypeName.DiscreteBar
+                : type || ChartTypeName.LineChart
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
         if (
             manager.faceting &&
-            manager.addCountryMode === EntitySelectionModes.SingleEntity &&
+            manager.addCountryMode === EntitySelectionMode.SingleEntity &&
             manager.table.selectedEntityNames.length > 1
         )
             return (
@@ -192,7 +192,7 @@ export class ChartTab
             )
         else if (
             manager.faceting &&
-            manager.addCountryMode === EntitySelectionModes.MultipleEntities &&
+            manager.addCountryMode === EntitySelectionMode.MultipleEntities &&
             manager.yColumnSlugs &&
             manager.yColumnSlugs.length > 1 &&
             manager.table.selectedEntityNames.length > 1

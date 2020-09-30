@@ -42,7 +42,7 @@ import {
     ScaleType,
     Time,
     DimensionProperty,
-    EntitySelectionModes,
+    EntitySelectionMode,
     ScatterPointLabelStrategy,
 } from "grapher/core/GrapherConstants"
 import { MultiColorPolyline } from "./MultiColorPolyline"
@@ -108,9 +108,7 @@ export class ScatterPlot
 
     @computed private get canAddCountry() {
         const { addCountryMode } = this.manager
-        return (
-            addCountryMode && addCountryMode !== EntitySelectionModes.Disabled
-        )
+        return addCountryMode && addCountryMode !== EntitySelectionMode.Disabled
     }
 
     @action.bound onSelectEntity(entityName: EntityName) {
@@ -497,7 +495,7 @@ export class ScatterPlot
     // Unlike other charts, the scatterplot shows all available data by default, and the selection
     // is just for emphasis. But this behavior can be disabled.
     @computed private get hideBackgroundEntities() {
-        return this.manager.addCountryMode === EntitySelectionModes.Disabled
+        return this.manager.addCountryMode === EntitySelectionMode.Disabled
     }
 
     @computed private get possibleEntityNames(): EntityName[] {

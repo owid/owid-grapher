@@ -1,7 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { Grapher } from "grapher/core/Grapher"
-import { DimensionProperty, GrapherTabOption } from "./GrapherConstants"
+import {
+    ChartTypeName,
+    DimensionProperty,
+    GrapherTabOption,
+} from "./GrapherConstants"
 
 it("regression fix: container options are not serialized", () => {
     const grapher = new Grapher({ xAxis: { min: 1 } })
@@ -14,7 +18,7 @@ it("can get dimension slots", () => {
     const grapher = new Grapher()
     expect(grapher.dimensionSlots.length).toBe(1)
 
-    grapher.type = "ScatterPlot"
+    grapher.type = ChartTypeName.ScatterPlot
     expect(grapher.dimensionSlots.length).toBe(4)
 })
 

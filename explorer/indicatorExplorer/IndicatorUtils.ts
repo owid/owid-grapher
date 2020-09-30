@@ -3,8 +3,8 @@ import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { EXPLORER } from "settings"
 
 export const EXPLORABLE_CHART_TYPES: ChartTypeName[] = [
-    "LineChart",
-    "DiscreteBar",
+    ChartTypeName.LineChart,
+    ChartTypeName.DiscreteBar,
 ]
 
 // *****************************************************************************

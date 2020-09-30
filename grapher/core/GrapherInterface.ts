@@ -1,13 +1,13 @@
 import {
-    ChartTypeName,
-    StackModes,
+    StackMode,
     GrapherTabOption,
     ScatterPointLabelStrategy,
     HighlightToggleConfig,
     RelatedQuestionsConfig,
-    EntitySelectionModes,
+    EntitySelectionMode,
     EntitySelection,
     Time,
+    ChartTypeName,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 import {
@@ -43,10 +43,10 @@ export interface GrapherInterface {
     timelineMinTime?: Time
     timelineMaxTime?: Time
     dimensions?: LegacyChartDimensionInterface[]
-    addCountryMode?: EntitySelectionModes
+    addCountryMode?: EntitySelectionMode
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
-    stackMode?: StackModes
+    stackMode?: StackMode
     hideLegend?: true
     logo?: LogoOption
     hideLogo?: boolean

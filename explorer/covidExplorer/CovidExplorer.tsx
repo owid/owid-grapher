@@ -76,11 +76,11 @@ import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
 import {
     DimensionProperty,
-    EntitySelectionModes,
+    EntitySelectionMode,
     GrapherTabOption,
     ScaleType,
     ScatterPointLabelStrategy,
-    StackModes,
+    StackMode,
 } from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 
@@ -1188,8 +1188,8 @@ export class CovidExplorer extends React.Component<{
         },
         dimensions: [],
         scatterPointLabelStrategy: ScatterPointLabelStrategy.y,
-        addCountryMode: EntitySelectionModes.MultipleEntities,
-        stackMode: StackModes.absolute,
+        addCountryMode: EntitySelectionMode.MultipleEntities,
+        stackMode: StackMode.absolute,
         manuallyProvideData: true,
         colorScale: this.colorScales.continents,
         hideRelativeToggle: true,

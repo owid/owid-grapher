@@ -10,7 +10,7 @@ import { bind } from "decko"
 import { EditableTags } from "./Forms"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext"
 import { BAKED_GRAPHER_URL } from "settings"
-import { ChartTypeName, ChartTypes } from "grapher/core/GrapherConstants"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { startCase } from "grapher/utils/Util"
 
 export interface ChartListItem {
@@ -33,8 +33,8 @@ export interface ChartListItem {
 }
 
 function showChartType(chart: ChartListItem) {
-    const displayType = ChartTypes[chart.type]
-        ? startCase(ChartTypes[chart.type])
+    const displayType = ChartTypeName[chart.type]
+        ? startCase(ChartTypeName[chart.type])
         : "Unknown"
 
     if (chart.tab === "map") {

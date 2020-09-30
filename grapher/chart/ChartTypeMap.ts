@@ -8,13 +8,13 @@ import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { MapChart } from "grapher/mapCharts/MapChart"
 
 export const getChartComponent = (type: ChartTypeName) => {
-    if (type === "DiscreteBar") return DiscreteBarChart
-    if (type === "LineChart") return LineChart
-    if (type === "SlopeChart") return SlopeChart
-    if (type === "StackedArea") return StackedAreaChart
-    if (type === "StackedBar") return StackedBarChart
-    if (type === "ScatterPlot") return ScatterPlot
-    if (type === "TimeScatter") return TimeScatter
-    if (type === "WorldMap") return MapChart
+    if (type === ChartTypeName.DiscreteBar) return DiscreteBarChart
+    if (type === ChartTypeName.LineChart) return LineChart
+    if (type === ChartTypeName.SlopeChart) return SlopeChart
+    if (type === ChartTypeName.StackedArea) return StackedAreaChart
+    if (type === ChartTypeName.StackedBar) return StackedBarChart
+    if (type === ChartTypeName.ScatterPlot) return ScatterPlot
+    if (type === ChartTypeName.TimeScatter) return TimeScatter
+    if (type === ChartTypeName.WorldMap) return MapChart
     return null
 }

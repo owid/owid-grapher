@@ -1,7 +1,7 @@
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import {
-    EntitySelectionModes,
+    EntitySelectionMode,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
@@ -38,7 +38,7 @@ export interface ChartManager {
 
     yAxis?: AxisConfig // just pass interface?
     xAxis?: AxisConfig // just pass interface?
-    addCountryMode?: EntitySelectionModes
+    addCountryMode?: EntitySelectionMode
 
     yColumnSlug?: ColumnSlug
     yColumnSlugs?: ColumnSlug[]

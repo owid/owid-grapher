@@ -3,9 +3,8 @@ import { observable, action, reaction, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
 import { sample, sampleSize, startCase } from "grapher/utils/Util"
 import {
-    EntitySelectionModes,
+    EntitySelectionMode,
     ChartTypeName,
-    ChartTypes,
     DimensionProperty,
 } from "grapher/core/GrapherConstants"
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
@@ -78,7 +77,7 @@ class DimensionSlotView extends React.Component<{
                         ? "World"
                         : sample(availableEntityNames)
                     table.selectEntity(entity!)
-                    grapher.addCountryMode = EntitySelectionModes.SingleEntity
+                    grapher.addCountryMode = EntitySelectionMode.SingleEntity
                 } else {
                     table.setSelectedEntities(
                         availableEntityNames.length > 10
@@ -86,7 +85,7 @@ class DimensionSlotView extends React.Component<{
                             : availableEntityNames
                     )
                     grapher.addCountryMode =
-                        EntitySelectionModes.MultipleEntities
+                        EntitySelectionMode.MultipleEntities
                 }
             }
         )
@@ -214,7 +213,7 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
     render() {
         const { editor } = this.props
         const { grapher } = editor
-        const chartTypes = Object.keys(ChartTypes)
+        const chartTypes = Object.keys(ChartTypeName)
 
         return (
             <div className="EditorBasicTab">

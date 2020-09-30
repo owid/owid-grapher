@@ -27,8 +27,8 @@ import { ChartList, ChartListItem } from "./ChartList"
 import { Grapher } from "grapher/core/Grapher"
 import { GrapherFigureView } from "site/client/GrapherFigureView"
 import {
-    EntitySelectionModes,
-    ChartTypes,
+    EntitySelectionMode,
+    ChartTypeName,
     EPOCH_DATE,
     GrapherTabOption,
 } from "grapher/core/GrapherConstants"
@@ -128,11 +128,11 @@ class VariableEditRow extends React.Component<{
                 ? "World"
                 : lodash.sample(availableEntityNames)
             table.selectEntity(entity!)
-            grapher.addCountryMode = EntitySelectionModes.SingleEntity
+            grapher.addCountryMode = EntitySelectionMode.SingleEntity
         } else {
-            grapher.addCountryMode = EntitySelectionModes.MultipleEntities
+            grapher.addCountryMode = EntitySelectionMode.MultipleEntities
             if (grapher.filledDimensions[0].column.timesUniq.length === 1) {
-                grapher.type = ChartTypes.DiscreteBar
+                grapher.type = ChartTypeName.DiscreteBar
                 table.setSelectedEntities(
                     availableEntityNames.length > 15
                         ? lodash.sampleSize(availableEntityNames, 8)

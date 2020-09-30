@@ -1,5 +1,5 @@
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
-import { GrapherTabOption } from "grapher/core/GrapherConstants"
+import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
 import * as React from "react"
 import { ChartTab, ChartTabManager } from "./ChartTab"
 
@@ -18,7 +18,7 @@ const manager: ChartTabManager = {
     subtitle: "A Subtitle",
     tab: GrapherTabOption.chart,
     note: "Here are some footer notes",
-    type: "LineChart",
+    type: ChartTypeName.LineChart,
 }
 
 export const Default = () => {

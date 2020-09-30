@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Grapher, GrapherProps } from "./Grapher"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
-import { DimensionProperty } from "./GrapherConstants"
+import { ChartTypeName, DimensionProperty } from "./GrapherConstants"
 
 export default {
     title: "Grapher",
@@ -14,7 +14,7 @@ const props: GrapherProps = {
     table,
     hasMapTab: true,
     dimensions: [{ slug: "GDP", property: DimensionProperty.y, variableId: 1 }],
-    type: "LineChart",
+    type: ChartTypeName.LineChart,
 }
 
 table.selectAll()

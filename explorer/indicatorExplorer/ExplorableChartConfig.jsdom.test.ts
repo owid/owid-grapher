@@ -1,11 +1,11 @@
 #! /usr/bin/env yarn jest
 
 import { Grapher } from "grapher/core/Grapher"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
+import { ChartTypeName, DimensionProperty } from "grapher/core/GrapherConstants"
 
 it("allows single-dimensional explorer charts", () => {
     const grapher = new Grapher({
-        type: "LineChart",
+        type: ChartTypeName.LineChart,
         hasChartTab: false,
         manuallyProvideData: true,
         hasMapTab: false,
@@ -19,7 +19,7 @@ it("allows single-dimensional explorer charts", () => {
 
 it("does not allow explorable scatter plots", () => {
     const grapher = new Grapher({
-        type: "ScatterPlot",
+        type: ChartTypeName.ScatterPlot,
         hasChartTab: true,
         manuallyProvideData: true,
         isExplorable: true,
@@ -32,7 +32,7 @@ it("does not allow explorable scatter plots", () => {
 
 it("does not allow multi-dimensional charts", () => {
     const grapher = new Grapher({
-        type: "LineChart",
+        type: ChartTypeName.LineChart,
         hasChartTab: true,
         isExplorable: true,
         manuallyProvideData: true,

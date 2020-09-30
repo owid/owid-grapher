@@ -1,10 +1,11 @@
 import { computed, action } from "mobx"
 
 import { ObservableUrl } from "grapher/utils/UrlBinder"
-import { ExploreModel, ExplorerChartType } from "./ExploreModel"
+import { ExploreModel } from "./ExploreModel"
 import { GrapherUrl, GrapherQueryParams } from "grapher/core/GrapherUrl"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { omit } from "grapher/utils/Util"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
 
 type ExploreQueryParams = Omit<GrapherQueryParams, "tab"> & {
     type?: string
@@ -51,7 +52,7 @@ export class ExploreUrl implements ObservableUrl {
 
         const chartType = params.type
         if (chartType) {
-            model.setChartType(chartType as ExplorerChartType)
+            model.setChartType(chartType as ChartTypeName)
         }
 
         if (params.indicator) {

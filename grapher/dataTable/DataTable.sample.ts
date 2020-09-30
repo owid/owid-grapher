@@ -1,10 +1,14 @@
 import { Grapher } from "grapher/core/Grapher"
-import { DimensionProperty } from "grapher/core/GrapherConstants"
+import {
+    DimensionProperty,
+    GrapherTabOption,
+} from "grapher/core/GrapherConstants"
+import { GrapherInterface } from "grapher/core/GrapherInterface"
 
-export const childMortalityGrapher = (props: any = {}) =>
+export const childMortalityGrapher = (props: Partial<GrapherInterface> = {}) =>
     new Grapher({
         hasMapTab: true,
-        tab: "map",
+        tab: GrapherTabOption.map,
         dimensions: [
             {
                 variableId: 104402,
@@ -28,8 +32,8 @@ export const childMortalityGrapher = (props: any = {}) =>
                 },
             },
             entityKey: {
-                "15": { name: "Afghanistan", id: 15 },
-                "207": { name: "Iceland", id: 207 },
+                "15": { name: "Afghanistan", id: 15, code: "AFG" },
+                "207": { name: "Iceland", id: 207, code: "ICE" },
             },
         },
     })
