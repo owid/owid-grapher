@@ -4,6 +4,7 @@ import {
     TickFormattingOptions,
     Time,
     TimeTolerance,
+    ValueRange,
 } from "grapher/core/GrapherConstants"
 import {
     formatYear,
@@ -292,7 +293,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     }
 
     // Get the min and max for multiple columns at once
-    domainFor(slugs: ColumnSlug[]) {
+    domainFor(slugs: ColumnSlug[]): ValueRange {
         const cols = this.cols(slugs)
         const mins = cols.map((col) => col.minValue)
         const maxes = cols.map((col) => col.maxValue)

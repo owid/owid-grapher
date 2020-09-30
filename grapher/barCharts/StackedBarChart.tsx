@@ -531,7 +531,8 @@ export class StackedBarChart
     @computed get horizontalAxis() {
         const { manager } = this
         const { startTimelineTime, endTimelineTime } = this.yColumn!
-        const axis = this.xAxis.toHorizontalAxis()
+        const axisConfig = this.manager.xAxis || new AxisConfig(undefined, this)
+        const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             startTimelineTime,
             endTimelineTime,
@@ -542,21 +543,12 @@ export class StackedBarChart
         return axis
     }
 
-    @computed get yAxis() {
-        return this.manager.yAxis || new AxisConfig(undefined, this)
-    }
-
-    @computed get xAxis() {
-        return this.manager.xAxis || new AxisConfig(undefined, this)
-    }
-
     @computed get verticalAxis() {
         const lastSeries = this.marks[this.marks.length - 1]
-
         const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
         const yDomainDefault: TimeRange = [0, max(yValues) ?? 100]
-
-        const axis = this.yAxis.toVerticalAxis()
+        const axisConfig = this.manager.yAxis || new AxisConfig(undefined, this)
+        const axis = axisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
         axis.formatColumn = this.yColumn

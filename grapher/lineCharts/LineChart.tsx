@@ -709,12 +709,10 @@ export class LineChart
     }
 
     @computed private get horizontalAxisPart() {
-        const xAxisConfig =
-            this.manager.xAxis || new AxisConfig(undefined, this)
-
-        if (this.manager.hideXAxis) xAxisConfig.hideAxis = true
-
-        const axis = xAxisConfig.toHorizontalAxis()
+        const axisConfig =
+            this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
+        if (this.manager.hideXAxis) axisConfig.hideAxis = true
+        const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             this.yColumn!.startTimelineTime,
             this.yColumn!.endTimelineTime,
@@ -729,21 +727,16 @@ export class LineChart
 
     @computed private get verticalAxisPart() {
         const { manager } = this
-
-        const yAxisConfig =
-            this.manager.yAxis || new AxisConfig(undefined, this)
-
-        if (this.manager.hideYAxis) yAxisConfig.hideAxis = true
-
+        const axisConfig =
+            this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
+        if (this.manager.hideYAxis) axisConfig.hideAxis = true
         const yDomain = this.table.domainFor(this.yColumnSlugs)
-        const domain = yAxisConfig.domain
-        const yDefaultDomain: ValueRange = [
+        const domain = axisConfig.domain
+        const axis = axisConfig.toVerticalAxis()
+        axis.updateDomainPreservingUserSettings([
             Math.min(domain[0], yDomain[0]),
             Math.max(domain[1], yDomain[1]),
-        ]
-
-        const axis = yAxisConfig.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings(yDefaultDomain)
+        ])
         if (manager.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
         axis.hideFractionalTicks = this.yColumn!.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""

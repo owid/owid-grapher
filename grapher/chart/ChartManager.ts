@@ -9,6 +9,7 @@ import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { OwidTable } from "coreTable/OwidTable"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
+import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 
 // NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
 // our Options as a "Manager". To get or set any of the options, you then have to "dot in" to the manager
@@ -37,8 +38,11 @@ export interface ChartManager {
 
     colorScale?: ColorScaleConfigInterface
 
-    yAxis?: AxisConfig // just pass interface?
-    xAxis?: AxisConfig // just pass interface?
+    yAxis?: AxisConfig // Remove? Just pass interfaces?
+    xAxis?: AxisConfig
+    yAxisConfig?: AxisConfigInterface
+    xAxisConfig?: AxisConfigInterface
+
     addCountryMode?: EntitySelectionMode
 
     yColumnSlug?: ColumnSlug

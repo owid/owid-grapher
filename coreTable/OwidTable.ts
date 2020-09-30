@@ -232,9 +232,13 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this.setSelectedEntities(table.selectedEntityNames)
     }
 
-    // todo: rename
-    facet() {
-        return new OwidTable(this._rows, this.specs, this, "Faceted")
+    filterByEntityName(name: EntityName) {
+        return new OwidTable(
+            this.rowsByEntityName.get(name) || [],
+            this.specs,
+            this,
+            `Filter out all entities except '${name}'`
+        )
     }
 
     // todo: speed up

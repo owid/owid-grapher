@@ -1578,7 +1578,13 @@ export class Grapher
                 combo: "f",
                 fn: () => this.toggleFacetStrategy(),
                 title: `Faceting ${this.facetStrategy ?? "off"}`,
-                category: "Display",
+                category: "Chart",
+            },
+            {
+                combo: "l",
+                fn: () => this.toggleYScaleTypeCommand(),
+                title: "Toggle Y log/linear",
+                category: "Chart",
             },
 
             // { // todo: add
@@ -1588,6 +1594,13 @@ export class Grapher
             //     category: "Navigation",
             // },
         ]
+    }
+
+    @action.bound toggleYScaleTypeCommand() {
+        this.yAxis.scaleType = next(
+            [ScaleType.linear, ScaleType.log],
+            this.yAxis.scaleType
+        )
     }
 
     @action.bound private toggleFacetStrategy() {
@@ -1651,14 +1664,11 @@ export class Grapher
 
     @action.bound randomSelection(num: number) {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
-        const available = this.rootTable.availableEntityNames.length
         this.hasError = false
+        const currentSelection = this.rootTable.selectedEntityNames.length
+        const newNum = num ? num : currentSelection ? currentSelection * 2 : 10
         this.rootTable.setSelectedEntities(
-            sampleFrom(
-                this.rootTable.availableEntityNames,
-                num || Math.min(64, Math.floor(available / 2)),
-                Date.now()
-            )
+            sampleFrom(this.rootTable.availableEntityNames, newNum, Date.now())
         )
     }
 

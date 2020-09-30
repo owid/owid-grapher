@@ -895,7 +895,7 @@ export class CovidExplorer extends React.Component<{
             },
             {
                 combo: "l",
-                fn: () => this.toggleYScaleTypeCommand(),
+                fn: () => this.grapher.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
                 category: "Chart",
             },
@@ -912,13 +912,6 @@ export class CovidExplorer extends React.Component<{
                 category: "Timeline",
             },
         ]
-    }
-
-    @action.bound toggleYScaleTypeCommand() {
-        this.grapher.yAxis.scaleType = next(
-            [ScaleType.linear, ScaleType.log],
-            this.grapher.yAxis.scaleType
-        )
     }
 
     @action.bound toggleTimelineCommand() {

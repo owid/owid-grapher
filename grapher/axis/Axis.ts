@@ -47,6 +47,7 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         return this.config.hideAxis
     }
 
+    // This will expand the domain but never shrink.
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
     updateDomainPreservingUserSettings(domain: ValueRange) {

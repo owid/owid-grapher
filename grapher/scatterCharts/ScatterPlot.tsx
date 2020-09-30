@@ -443,11 +443,11 @@ export class ScatterPlot
         return colorColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
-    @computed private get yAxis() {
+    @computed private get yAxisConfig() {
         return this.manager.yAxis || new AxisConfig(undefined, this)
     }
 
-    @computed private get xAxis() {
+    @computed private get xAxisConfig() {
         return this.manager.xAxis || new AxisConfig(undefined, this)
     }
 
@@ -682,17 +682,17 @@ export class ScatterPlot
         // domains before creating the points, the tolerance may lead to different X-Y
         // values being joined.
         // -@danielgavrilov, 2020-04-29
-        const { yAxis, xAxis } = this
+        const { yAxisConfig, xAxisConfig } = this
         dataByEntityAndTime.forEach((dataByTime) => {
             dataByTime.forEach((point, time) => {
                 // Exclude any points with data for only one axis
                 if (!has(point, "x") || !has(point, "y"))
                     dataByTime.delete(time)
                 // Exclude points that go beyond min/max of X axis
-                else if (xAxis.shouldRemovePoint(point.x))
+                else if (xAxisConfig.shouldRemovePoint(point.x))
                     dataByTime.delete(time)
                 // Exclude points that go beyond min/max of Y axis
-                else if (yAxis.shouldRemovePoint(point.y))
+                else if (yAxisConfig.shouldRemovePoint(point.y))
                     dataByTime.delete(time)
             })
         })
@@ -772,11 +772,7 @@ export class ScatterPlot
     @computed private get yScaleType() {
         return this.manager.isRelativeMode
             ? ScaleType.linear
-            : this.yAxis.scaleType || ScaleType.linear
-    }
-
-    @computed private get yAxisLabel() {
-        return this.yAxis.label || this.yColumn?.displayName || ""
+            : this.yAxisConfig.scaleType || ScaleType.linear
     }
 
     @computed private get yDomainDefault() {
@@ -785,12 +781,11 @@ export class ScatterPlot
 
     @computed get verticalAxis() {
         const { manager, yDomainDefault } = this
+        const axisConfig = this.yAxisConfig
 
-        const axis = this.yAxis.toVerticalAxis()
+        const axis = axisConfig.toVerticalAxis()
         axis.formatColumn = this.yColumn
-
-        const label = this.yAxisLabel
-
+        const label = axisConfig.label || this.yColumn?.displayName || ""
         axis.scaleType = this.yScaleType
 
         if (manager.isRelativeMode) {
@@ -812,7 +807,7 @@ export class ScatterPlot
     @computed private get xScaleType() {
         return this.manager.isRelativeMode
             ? ScaleType.linear
-            : this.xAxis.scaleType || ScaleType.linear
+            : this.xAxisConfig.scaleType || ScaleType.linear
     }
 
     @computed private get xAxisLabelBase() {
@@ -824,17 +819,14 @@ export class ScatterPlot
 
     @computed get horizontalAxis() {
         const { xDomainDefault, manager, xAxisLabelBase } = this
-
-        const { xAxis } = this
-
-        const axis = xAxis.toHorizontalAxis()
+        const { xAxisConfig } = this
+        const axis = xAxisConfig.toHorizontalAxis()
         axis.formatColumn = this.xColumn
-
         axis.scaleType = this.xScaleType
         if (manager.isRelativeMode) {
             axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = xDomainDefault // Overwrite user's min/max
-            const label = xAxis.label || xAxisLabelBase
+            const label = xAxisConfig.label || xAxisLabelBase
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
                     label
@@ -842,10 +834,9 @@ export class ScatterPlot
             }
         } else {
             axis.updateDomainPreservingUserSettings(xDomainDefault)
-            const label = xAxis.label || xAxisLabelBase
+            const label = xAxisConfig.label || xAxisLabelBase
             if (label) axis.label = label
         }
-
         return axis
     }
 

@@ -45,6 +45,22 @@ const getFontSize = (
     return min
 }
 
+const getChartPadding = (count: number) => {
+    if (count > 9) {
+        return {
+            rowPadding: 20,
+            columnPadding: 20,
+            outerPadding: 20,
+        }
+    }
+
+    return {
+        rowPadding: 40,
+        columnPadding: 40,
+        outerPadding: 20,
+    }
+}
+
 interface Facet {
     name: string
     manager: Partial<ChartManager>
@@ -54,14 +70,11 @@ interface Facet {
 @observer
 export class FacetChart extends React.Component<FacetChartProps> {
     @computed protected get smallCharts() {
-        const { rootOptions, facets } = this
+        const { manager, facets } = this
         const { chartTypeName } = this.props
         const count = facets.length
-        const boundsArr = this.bounds.split(count, {
-            rowPadding: 40,
-            columnPadding: 40,
-            outerPadding: 20,
-        })
+
+        const boundsArr = this.bounds.split(count, getChartPadding(count))
         const { columns, rows } = makeGrid(count)
         const {
             yColumnSlug,
@@ -70,9 +83,9 @@ export class FacetChart extends React.Component<FacetChartProps> {
             colorColumnSlug,
             sizeColumnSlug,
             isRelativeMode,
-        } = rootOptions
+        } = manager
 
-        const baseFontSize = getFontSize(count, rootOptions.baseFontSize)
+        const baseFontSize = getFontSize(count, manager.baseFontSize)
         const lineStrokeWidth = count > 16 ? 1 : undefined
 
         const table = this.rootTable
@@ -85,9 +98,8 @@ export class FacetChart extends React.Component<FacetChartProps> {
             const hideYAxis = false // column > 0
             const hideLegend = !!(column !== columns - 1) // todo: only sho 1?
             const hidePoints = true
-
-            const xAxis = undefined
-            const yAxis = undefined
+            const xAxisConfig = undefined
+            const yAxisConfig = undefined
 
             const manager: ChartManager = {
                 table,
@@ -97,8 +109,8 @@ export class FacetChart extends React.Component<FacetChartProps> {
                 lineStrokeWidth,
                 hideLegend,
                 hidePoints,
-                xAxis,
-                yAxis,
+                xAxisConfig,
+                yAxisConfig,
                 yColumnSlug,
                 xColumnSlug,
                 yColumnSlugs,
@@ -117,16 +129,39 @@ export class FacetChart extends React.Component<FacetChartProps> {
     }
 
     @computed private get countryFacets(): Facet[] {
-        return this.rootTable.selectedEntityNames.map((name) => {
-            const table = this.rootTable.facet()
-            table.setSelectedEntities([name])
-            return { name, manager: { table } }
-        })
-    }
+        const table = this.rootTable.filterBySelectedOnly()
+        const yDomain = table.domainFor(this.yColumnSlugs)
+        const scaleType = this.manager.yAxis?.scaleType
+        const sameYAxis = true
+        const yAxisConfig = sameYAxis
+            ? {
+                  max: yDomain[1],
+                  min: yDomain[0],
+                  scaleType,
+              }
+            : undefined
+        const sameXAxis = true
+        const xAxisConfig = sameXAxis
+            ? {
+                  max: table.maxTime,
+                  min: table.minTime,
+                  scaleType,
+              }
+            : undefined
 
-    @computed private get yColumns() {
-        const slugs = this.rootOptions.yColumnSlugs || []
-        return slugs.map((slug) => this.rootTable.get(slug))
+        return this.rootTable.selectedEntityNames.map((name) => {
+            return {
+                name,
+                manager: {
+                    table: this.rootTable
+                        .filterByEntityName(name)
+                        .selectEntity(name),
+                    hideLegend: true,
+                    yAxisConfig,
+                    xAxisConfig,
+                },
+            }
+        })
     }
 
     @computed private get columnFacets(): Facet[] {
@@ -155,6 +190,14 @@ export class FacetChart extends React.Component<FacetChartProps> {
         })
     }
 
+    @computed private get yColumns() {
+        return this.yColumnSlugs.map((slug) => this.rootTable.get(slug))
+    }
+
+    @computed private get yColumnSlugs() {
+        return this.manager.yColumnSlugs || []
+    }
+
     @computed private get facets() {
         const { strategy } = this.props
         if (strategy === FacetStrategy.column) return this.columnFacets
@@ -170,17 +213,17 @@ export class FacetChart extends React.Component<FacetChartProps> {
     }
 
     @computed protected get rootTable() {
-        return this.rootOptions.table
+        return this.manager.table
     }
 
-    @computed protected get rootOptions() {
+    @computed protected get manager() {
         return this.props.manager
     }
 
     render() {
         const fontSize = getFontSize(
             this.smallCharts.length,
-            this.rootOptions.baseFontSize
+            this.manager.baseFontSize
         )
         return this.smallCharts.map((smallChart, index: number) => {
             const ChartComponent = getChartComponent(

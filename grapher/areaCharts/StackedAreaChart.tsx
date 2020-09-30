@@ -510,11 +510,9 @@ export class StackedAreaChart
     @computed private get horizontalAxisPart() {
         const { manager } = this
         const { startTimelineTime, endTimelineTime } = this.yColumn!
-        const xAxisConfig =
-            this.manager.xAxis || new AxisConfig(undefined, this)
-        if (this.manager.hideXAxis) xAxisConfig.hideAxis = true
-
-        const axis = xAxisConfig.toHorizontalAxis()
+        const axisConfig = this.manager.xAxis || new AxisConfig(undefined, this)
+        if (this.manager.hideXAxis) axisConfig.hideAxis = true
+        const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
             startTimelineTime,
             endTimelineTime,
@@ -531,19 +529,13 @@ export class StackedAreaChart
 
     @computed private get verticalAxisPart() {
         const { yColumn } = this
-
         const yValues = this.allStackedValues.map((d) => d.y)
-        const yAxisConfig =
-            this.manager.yAxis || new AxisConfig(undefined, this)
-
-        if (this.manager.hideYAxis) yAxisConfig.hideAxis = true
-
-        const axis = yAxisConfig.toVerticalAxis()
-
+        const axisConfig = this.manager.yAxis || new AxisConfig(undefined, this)
+        if (this.manager.hideYAxis) axisConfig.hideAxis = true
+        const axis = axisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
         if (this.manager.isRelativeMode) axis.domain = [0, 100]
         else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
-
         axis.formatColumn = yColumn
         return axis
     }
