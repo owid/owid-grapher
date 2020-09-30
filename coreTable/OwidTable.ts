@@ -217,7 +217,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     copySelectionFrom(table: OwidTable) {
-        this.setSelectedEntities(table.selectedEntityNames)
+        return this.setSelectedEntities(table.selectedEntityNames)
     }
 
     // todo: rename
@@ -429,9 +429,12 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     @action.bound setSelectedEntities(entityNames: EntityName[]) {
         const set = new Set(entityNames)
         this.clearSelection()
-        this.selectRows(this.rows.filter((row) => set.has(row.entityName)))
+        return this.selectRows(
+            this.rows.filter((row) => set.has(row.entityName))
+        )
     }
 
+    // todo: change return type?
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
@@ -441,7 +444,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {
         const map = this.entityIdToNameMap
-        this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
+        return this.setSelectedEntities(entityIds.map((id) => map.get(id)!))
     }
 
     isEntitySelected(entityName: EntityName) {
@@ -475,8 +478,9 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     @action.bound toggleSelection(entityName: EntityName) {
-        if (this.isEntitySelected(entityName)) this.deselectEntity(entityName)
-        else this.selectEntity(entityName)
+        return this.isEntitySelected(entityName)
+            ? this.deselectEntity(entityName)
+            : this.selectEntity(entityName)
     }
 
     @action.bound selectEntity(entityName: EntityName) {
@@ -486,12 +490,13 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // Mainly for testing
     @action.bound selectSample(howMany = 1) {
-        this.setSelectedEntities(this.availableEntityNames.slice(0, howMany))
+        return this.setSelectedEntities(
+            this.availableEntityNames.slice(0, howMany)
+        )
     }
 
     @action.bound deselectEntity(entityName: EntityName) {
-        this.deselectRows(this.rowsByEntityName.get(entityName) ?? [])
-        return this
+        return this.deselectRows(this.rowsByEntityName.get(entityName) ?? [])
     }
 
     // todo: how do I make this generic and on CoreTable?

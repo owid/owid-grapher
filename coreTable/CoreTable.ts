@@ -256,16 +256,18 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         rows.forEach((row) => {
             this.selectedRows.add(row)
         })
+        return this
     }
 
     @action.bound selectAll() {
-        this.selectRows(this.rows)
+        return this.selectRows(this.rows)
     }
 
     @action.bound deselectRows(rows: CoreRow[]) {
         rows.forEach((row) => {
             this.selectedRows.delete(row)
         })
+        return this
     }
 
     @computed protected get unselectedRows() {
@@ -278,6 +280,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     @action.bound clearSelection() {
         this.selectedRows.clear()
+        return this
     }
 
     @computed get columnsAsArray() {
