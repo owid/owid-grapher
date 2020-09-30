@@ -6,3 +6,7 @@ package.json
 covidChartAndVariableMeta.json
 .storybook/build
 coverage
+wordpress/vendor
+wordpress/web/wp
+wordpress/web/app/plugins
+wordpress/web/app/plugins/owid
