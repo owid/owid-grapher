@@ -48,6 +48,7 @@ import {
     Time,
     BASE_FONT_SIZE,
     CookieKey,
+    FacetStrategy,
 } from "grapher/core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
@@ -1059,14 +1060,14 @@ export class Grapher
 
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.faceting
+            this.facetStrategy
         )
             return true
 
         return false
     }
 
-    @observable faceting = true
+    @observable facetStrategy?: FacetStrategy = FacetStrategy.country
 
     @computed get canChangeEntity() {
         return (
@@ -1570,6 +1571,16 @@ export class Grapher
                 fn: () => this.togglePlayingCommand(),
                 title: this.isPlaying ? `Pause` : `Play`,
                 category: "Timeline",
+            },
+            {
+                combo: "f",
+                fn: () =>
+                    (this.facetStrategy = next(
+                        [...Object.keys(FacetStrategy), undefined],
+                        this.facetStrategy
+                    ) as FacetStrategy),
+                title: `Faceting is ${this.facetStrategy ?? "off"}`,
+                category: "Display",
             },
 
             // { // todo: add

@@ -2,6 +2,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import {
     EntitySelectionMode,
+    FacetStrategy,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
@@ -52,7 +53,7 @@ export interface ChartManager {
     hideXAxis?: boolean
     hideYAxis?: boolean
 
-    faceting?: boolean // todo: make a strategy? a column prop? etc
+    facetStrategy?: FacetStrategy // todo: make a strategy? a column prop? etc
 
     seriesStrategy?: SeriesStrategy
 }

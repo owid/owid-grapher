@@ -166,7 +166,7 @@ export class ChartTab
             )
 
         const bounds =
-            type === "SlopeChart"
+            type === ChartTypeName.SlopeChart
                 ? innerBounds.padTop(20)
                 : innerBounds.padTop(20).padBottom(15)
 
@@ -177,32 +177,33 @@ export class ChartTab
                 : type || ChartTypeName.LineChart
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
+
+        let facetStrategy = manager.facetStrategy
+
         if (
-            manager.faceting &&
-            manager.addCountryMode === EntitySelectionMode.SingleEntity &&
-            manager.table.selectedEntityNames.length > 1
-        )
-            return (
-                <FacetChart
-                    bounds={bounds}
-                    chartTypeName={chartTypeName}
-                    manager={manager}
-                    strategy={FacetStrategy.column}
-                />
-            )
-        else if (
-            manager.faceting &&
+            !facetStrategy &&
             manager.addCountryMode === EntitySelectionMode.MultipleEntities &&
             manager.yColumnSlugs &&
             manager.yColumnSlugs.length > 1 &&
             manager.table.selectedEntityNames.length > 1
         )
+            facetStrategy = FacetStrategy.column
+
+        if (
+            !facetStrategy &&
+            manager.facetStrategy &&
+            manager.addCountryMode === EntitySelectionMode.SingleEntity &&
+            manager.table.selectedEntityNames.length > 1
+        )
+            facetStrategy = FacetStrategy.country
+
+        if (facetStrategy)
             return (
                 <FacetChart
                     bounds={bounds}
                     chartTypeName={chartTypeName}
                     manager={manager}
-                    strategy={FacetStrategy.column}
+                    strategy={facetStrategy}
                 />
             )
 
