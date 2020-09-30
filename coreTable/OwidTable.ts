@@ -123,6 +123,10 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this.availableEntityNames.length > 1
     }
 
+    @computed get hasMultipleEntitiesSelected() {
+        return this.selectedEntityNames.length > 1
+    }
+
     @computed get hasMultipleTimelineTimes() {
         return this.timelineTimes.length > 1
     }

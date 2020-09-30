@@ -81,8 +81,8 @@ export class FacetChart extends React.Component<FacetChartProps> {
             const bounds = boundsArr[index]
             const column = index % columns
             const row = Math.floor(index / columns)
-            const hideXAxis = row < rows - 1
-            const hideYAxis = column > 0
+            const hideXAxis = false // row < rows - 1
+            const hideYAxis = false // column > 0
             const hideLegend = !!(column !== columns - 1) // todo: only sho 1?
             const hidePoints = true
 

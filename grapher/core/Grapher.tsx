@@ -1279,6 +1279,10 @@ export class Grapher
         )
     }
 
+    @computed private get hasMultipleCountriesOnTheMap() {
+        return this.mappableData.length > 1
+    }
+
     static bootstrap({
         jsonConfig,
         containerNode,
@@ -1604,13 +1608,17 @@ export class Grapher
 
         if (this.hasMultipleYColumns) {
             strategies.push(FacetStrategy.column)
-            if (this.rootTable.hasMultipleAvailableEntities)
+            if (
+                this.table.hasMultipleAvailableEntities &&
+                this.hasMultipleCountriesOnTheMap
+            )
                 strategies.push(FacetStrategy.columnWithMap)
         }
 
-        if (this.rootTable.hasMultipleAvailableEntities) {
+        if (this.table.hasMultipleEntitiesSelected) {
             strategies.push(FacetStrategy.country)
-            strategies.push(FacetStrategy.countryWithMap)
+            if (this.hasMultipleCountriesOnTheMap)
+                strategies.push(FacetStrategy.countryWithMap)
         }
 
         return strategies
@@ -1626,7 +1634,7 @@ export class Grapher
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.table.hasMultipleSelection
+            this.table.hasMultipleEntitiesSelected
         )
             return FacetStrategy.country
 
@@ -1634,7 +1642,7 @@ export class Grapher
         if (
             this.addCountryMode === EntitySelectionMode.MultipleEntities &&
             this.hasMultipleYColumns &&
-            this.table.hasMultipleSelection
+            this.table.hasMultipleEntitiesSelected
         )
             return FacetStrategy.column
 
