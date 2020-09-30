@@ -510,7 +510,8 @@ export class StackedAreaChart
     @computed private get horizontalAxisPart() {
         const { manager } = this
         const { startTimelineTime, endTimelineTime } = this.yColumn!
-        const axisConfig = this.manager.xAxis || new AxisConfig(undefined, this)
+        const axisConfig =
+            this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
         if (this.manager.hideXAxis) axisConfig.hideAxis = true
         const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
@@ -530,7 +531,8 @@ export class StackedAreaChart
     @computed private get verticalAxisPart() {
         const { yColumn } = this
         const yValues = this.allStackedValues.map((d) => d.y)
-        const axisConfig = this.manager.yAxis || new AxisConfig(undefined, this)
+        const axisConfig =
+            this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
         if (this.manager.hideYAxis) axisConfig.hideAxis = true
         const axis = axisConfig.toVerticalAxis()
         // Use user settings for axis, unless relative mode
