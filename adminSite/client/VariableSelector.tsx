@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash"
-import { groupBy, isString, sortBy, defaultTo } from "grapher/utils/Util"
+import { groupBy, isString, sortBy, defaultTo, first } from "grapher/utils/Util"
 import {
     computed,
     action,
@@ -10,8 +10,11 @@ import {
     IReactionDisposer,
 } from "mobx"
 import { observer } from "mobx-react"
+import Select, { ValueType } from "react-select"
+
+import { asArray } from "utils/client/react-select"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
-import { SelectField, TextField, FieldsRow, Toggle, Modal } from "./Forms"
+import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
 import fuzzysort from "fuzzysort"
 import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
 import { LegacyVariableId } from "owidTable/OwidTableConstants"
@@ -52,7 +55,7 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     @computed get currentNamespace() {
         return defaultTo(
             this.chosenNamespace,
-            this.database.namespaces.find((n) => n.name === "owid") as Namespace
+            this.database.namespaces.find((n) => n.name === "owid")!
         )
     }
 
@@ -129,6 +132,31 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         return this.searchResultRows.length
     }
 
+    formatNamespaceLabel(namespace: Namespace) {
+        const { name, description, isArchived } = namespace
+        return (
+            <span className={isArchived ? "muted-option" : ""}>
+                {description ? `${description} — ` : null}
+                {name}
+                {isArchived && <span className="badge">Archived</span>}
+            </span>
+        )
+    }
+
+    filterNamespace(option: any, input: string) {
+        return input
+            .split(" ")
+            .map((word) => word.toLowerCase())
+            .map((word) => {
+                const namespace = option.data as Namespace
+                return (
+                    namespace.name.toLowerCase().includes(word) ||
+                    namespace.description?.toLowerCase().includes(word)
+                )
+            })
+            .every((v) => v)
+    }
+
     render() {
         const { slot } = this.props
         const { database } = this.props.editor
@@ -137,8 +165,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             searchInput,
             chosenVariables,
             datasetsByName,
-        } = this
-        const {
             rowHeight,
             rowOffset,
             numVisibleRows,
@@ -155,12 +181,6 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
             } else return text
         }
 
-        const getOptionLabel = (namespace: Namespace) => {
-            if (namespace.description)
-                return `${namespace.description} — ${namespace.name}`
-            else return namespace.name
-        }
-
         return (
             <Modal onClose={this.onDismiss} className="VariableSelector">
                 <div className="modal-header">
@@ -172,17 +192,23 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
                     <div>
                         <div className="searchResults">
                             <FieldsRow>
-                                <SelectField
-                                    label="Database"
-                                    options={database.namespaces.map(
-                                        (n) => n.name
-                                    )}
-                                    optionLabels={database.namespaces.map(
-                                        getOptionLabel
-                                    )}
-                                    value={currentNamespace.name}
-                                    onValue={this.onNamespace}
-                                />
+                                <div className="form-group">
+                                    <label>Database</label>
+                                    <Select
+                                        options={database.namespaces}
+                                        formatOptionLabel={
+                                            this.formatNamespaceLabel
+                                        }
+                                        getOptionValue={(v) => v.name}
+                                        onChange={this.onNamespace}
+                                        value={currentNamespace}
+                                        filterOption={this.filterNamespace}
+                                        components={{
+                                            IndicatorSeparator: null,
+                                        }}
+                                        menuPlacement="bottom"
+                                    />
+                                </div>
                                 <TextField
                                     placeholder="Search..."
                                     value={searchInput}
@@ -321,10 +347,9 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         this.rowOffset = rowOffset
     }
 
-    @action.bound onNamespace(namespace: string | undefined) {
-        this.chosenNamespace = this.database.namespaces.find(
-            (n) => n.name === namespace
-        )
+    @action.bound onNamespace(selected: ValueType<Namespace>) {
+        const value = first(asArray(selected))
+        if (value) this.chosenNamespace = value
     }
 
     @action.bound onSearchInput(input: string) {
