@@ -99,6 +99,21 @@ it("can detect all integers", () => {
     expect(table.get("perCapita")?.isAllIntegers).toBeFalsy()
 })
 
+it("can format a value", () => {
+    const table = AnyTable.fromDelimited(
+        `growthRate
+123`,
+        [
+            {
+                slug: "growthRate",
+                display: { unit: "%" },
+                type: ColumnTypeNames.Numeric,
+            },
+        ]
+    )
+    expect(table.get("growthRate")?.formatValueShort(20)).toEqual("20%")
+})
+
 it("can get the domain across all columns", () => {
     const table = AnyTable.fromDelimited(
         `gdp,perCapita

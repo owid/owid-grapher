@@ -1,6 +1,7 @@
 import {
     CellValue,
     Integer,
+    SortOrder,
     TickFormattingOptions,
     Time,
     TimeTolerance,
@@ -559,7 +560,8 @@ export abstract class AbstractCoreColumn {
             this.display.shortUnit ?? this.spec.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
 
-        const { unit } = this
+        const unit = this.display?.unit || this.spec.unit || ""
+
         if (!unit) return ""
 
         if (unit.length < 3) return unit
