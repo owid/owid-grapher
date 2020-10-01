@@ -7,17 +7,52 @@ export default {
     component: LineChart,
 }
 
-export const Default = () => {
+export const SingleColumnMultiCountry = () => {
+    const table = SynthesizeGDPTable().selectAll()
+    return (
+        <div>
+            <svg width={600} height={600}>
+                <LineChart manager={{ table, yColumnSlugs: ["GDP"] }} />
+            </svg>
+            <div>With missing data:</div>
+            <svg width={600} height={600}>
+                <LineChart
+                    manager={{
+                        table: table.dropRandomRows(50),
+                        yColumnSlugs: ["GDP"],
+                    }}
+                />
+            </svg>
+        </div>
+    )
+}
+
+export const WithPointsHidden = () => {
     const table = SynthesizeGDPTable({
-        timeRange: [2000, 2010],
-        entityCount: 5,
-    })
-    const manager = { table, yColumnSlugs: ["GDP"] }
-    table.selectAll()
+        entityCount: 6,
+        timeRange: [1900, 2000],
+    }).selectAll()
+    return (
+        <div>
+            <svg width={600} height={600}>
+                <LineChart manager={{ table, yColumnSlugs: ["GDP"] }} />
+            </svg>
+        </div>
+    )
+}
+
+export const MultiColumnSingleCountry = () => {
+    const table = SynthesizeGDPTable().selectSample(1)
 
     return (
-        <svg width={600} height={600}>
-            <LineChart manager={manager} />
-        </svg>
+        <div>
+            <svg width={600} height={600}>
+                <LineChart manager={{ table }} />
+            </svg>
+            <div>With missing data:</div>
+            <svg width={600} height={600}>
+                <LineChart manager={{ table: table.dropRandomRows(100) }} />
+            </svg>
+        </div>
     )
 }

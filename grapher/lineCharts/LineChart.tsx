@@ -530,22 +530,14 @@ export class LineChart
     }
 
     @computed get failMessage() {
-        const { yColumn } = this
-        if (!yColumn) return "Missing Y axis column"
+        const { yColumnSlugs } = this
+        if (!yColumnSlugs.length) return "Missing Y axis column"
         if (!this.marks.length) return "No matching data"
         return ""
     }
 
-    @computed private get yColumn() {
-        return this.table.get(
-            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
-        )
-    }
-
     @computed private get yColumns() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs.map((slug) => this.table.get(slug)!)
-            : [this.yColumn!]
+        return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
     }
 
     @computed private get annotationsMap() {
@@ -582,7 +574,7 @@ export class LineChart
             ? this.manager.yColumnSlugs
             : this.manager.yColumnSlug
             ? [this.manager.yColumnSlug]
-            : []
+            : this.manager.table.numericColumnSlugs
     }
 
     @computed get seriesStrategy() {
@@ -713,9 +705,10 @@ export class LineChart
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
         if (this.manager.hideXAxis) axisConfig.hideAxis = true
         const axis = axisConfig.toHorizontalAxis()
+        const yColumn = this.yColumns[0]
         axis.updateDomainPreservingUserSettings([
-            this.yColumn!.startTimelineTime,
-            this.yColumn!.endTimelineTime,
+            yColumn.startTimelineTime,
+            yColumn.endTimelineTime,
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
@@ -730,6 +723,7 @@ export class LineChart
         const axisConfig =
             this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
         if (this.manager.hideYAxis) axisConfig.hideAxis = true
+        const yColumn = this.yColumns[0]
         const yDomain = this.table.domainFor(this.yColumnSlugs)
         const domain = axisConfig.domain
         const axis = axisConfig.toVerticalAxis()
@@ -738,9 +732,9 @@ export class LineChart
             Math.max(domain[1], yDomain[1]),
         ])
         if (manager.isRelativeMode) axis.scaleTypeOptions = [ScaleType.linear]
-        axis.hideFractionalTicks = this.yColumn!.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
+        axis.hideFractionalTicks = yColumn.isAllIntegers // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
-        axis.formatColumn = this.yColumn
+        axis.formatColumn = yColumn
         return axis
     }
 }
