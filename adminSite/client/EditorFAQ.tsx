@@ -17,6 +17,7 @@ export class EditorFAQ extends React.Component<{ onClose: () => void }> {
                         See this{" "}
                         <a
                             target="_blank"
+                            rel="noopener"
                             href="https://ourworldindata.org/how-to-our-world-in-data-guide/#owid-grapher"
                         >
                             more in depth guide

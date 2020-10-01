@@ -88,7 +88,14 @@ export class Logo {
         if (this.props.isLink || !this.spec.url) {
             return <div {...props} />
         } else {
-            return <a {...props} href={this.spec.url} target="_blank" />
+            return (
+                <a
+                    {...props}
+                    href={this.spec.url}
+                    target="_blank"
+                    rel="noopener"
+                />
+            )
         }
     }
 }

@@ -222,11 +222,16 @@ export class Footer extends React.Component<{
                         className="cclogo"
                         href="http://creativecommons.org/licenses/by/4.0/deed.en_US"
                         target="_blank"
+                        rel="noopener"
                     >
                         CC BY
                     </a>
                 ) : (
-                    <a href="https://ourworldindata.org" target="_blank">
+                    <a
+                        href="https://ourworldindata.org"
+                        target="_blank"
+                        rel="noopener"
+                    >
                         Powered by ourworldindata.org
                     </a>
                 )}
