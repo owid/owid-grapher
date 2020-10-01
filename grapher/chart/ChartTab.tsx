@@ -11,8 +11,6 @@ import { MapChart } from "grapher/mapCharts/MapChart"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
-    EntitySelectionMode,
-    FacetStrategy,
     GrapherTabOption,
 } from "grapher/core/GrapherConstants"
 import { FooterManager } from "grapher/footer/FooterManager"

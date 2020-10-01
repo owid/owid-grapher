@@ -961,6 +961,7 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
+        if (this.isStackedBar) return false
         return !this.hideTimeline && this.rootTable.hasMultipleTimelineTimes
     }
 

@@ -77,7 +77,8 @@ export enum OwidTableSlugs {
 }
 
 // This is a row with the additional columns specific to our OWID data model
-interface OwidRow extends CoreRow {
+// todo: don't export?
+export interface OwidRow extends CoreRow {
     entityName: EntityName
     entityCode: EntityCode
     entityId: EntityId
@@ -272,6 +273,17 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
     }
 
+    // for testing. Preserves ordering.
+    dropRandomRows(dropHowMany = 1, seed = Date.now()) {
+        const indexesToDrop = new Set(
+            sampleFrom(range(0, this.rows.length), dropHowMany, seed)
+        )
+        return this.filterBy(
+            (row, index) => !indexesToDrop.has(index),
+            `Dropping a random ${dropHowMany} rows`
+        )
+    }
+
     filterByPopulation(minPop: number) {
         return this.filterBy((row) => {
             const name = row.entityName
@@ -282,7 +294,10 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // todo: speed up
     // todo: how can we just use super method?
-    filterBy(predicate: (row: OwidRow) => boolean, opName: string): OwidTable {
+    filterBy(
+        predicate: (row: OwidRow, index: number) => boolean,
+        opName: string
+    ): OwidTable {
         return super.filterBy(predicate as any, opName) as OwidTable
     }
 
@@ -498,7 +513,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     @computed get selectedEntityNameSet() {
-        return new Set(
+        return new Set<EntityName>(
             Array.from(this.selectedRows.values()).map((row) => row.entityName)
         )
     }

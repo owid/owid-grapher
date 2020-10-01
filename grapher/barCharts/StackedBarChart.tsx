@@ -19,7 +19,11 @@ import {
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { BASE_FONT_SIZE, TimeRange } from "grapher/core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    SeriesStrategy,
+    TimeRange,
+} from "grapher/core/GrapherConstants"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -30,6 +34,7 @@ import {
     StackedBarSeries,
 } from "./StackedBarChartConstants"
 import { stackBars } from "./StackedBarChartUtils"
+import { OwidRow } from "coreTable/OwidTable"
 
 @observer
 class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
@@ -158,7 +163,7 @@ export class StackedBarChart
                 : uniq(
                       this.marks
                           .filter((g) => g.color === hoverColor)
-                          .map((g) => g.entityName)
+                          .map((g) => g.seriesName)
                   )
 
         return hoverKeys
@@ -174,7 +179,7 @@ export class StackedBarChart
 
         return uniq(
             this.marks
-                .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
+                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
                 .map((g) => g.color)
         )
     }
@@ -445,7 +450,7 @@ export class StackedBarChart
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
                     {marks.map((series, index) => {
                         const isLegendHovered = this.hoverKeys.includes(
-                            series.entityName
+                            series.seriesName
                         )
                         const opacity =
                             isLegendHovered || this.hoverKeys.length === 0
@@ -456,7 +461,7 @@ export class StackedBarChart
                             <g
                                 key={index}
                                 className={
-                                    makeSafeForCSS(series.entityName) +
+                                    makeSafeForCSS(series.seriesName) +
                                     "-segments"
                                 }
                             >
@@ -575,7 +580,7 @@ export class StackedBarChart
     hasNoDataBin = false
 
     @computed get categoricalValues() {
-        return this.yColumns.map((col) => col.displayName).reverse()
+        return this.rawSeries.map((series) => series.seriesName).reverse()
     }
 
     @computed get table() {
@@ -590,41 +595,72 @@ export class StackedBarChart
         )
     }
 
-    @computed get marks() {
-        const { yColumns } = this
+    @computed private get seriesStrategy() {
+        return (
+            this.manager.seriesStrategy ||
+            (this.yColumns.length > 1 || !this.table.hasMultipleEntitiesSelected
+                ? SeriesStrategy.column
+                : SeriesStrategy.entity)
+        )
+    }
 
-        const seriesArr: StackedBarSeries[] = yColumns.map((col) => {
-            const points = col.owidRows.map((row) => {
-                return {
-                    x: row.time,
-                    y: row.value,
-                    yOffset: 0,
-                    label: col.displayName,
-                } as StackedBarPoint
-            })
+    @computed private get columnsAsSeries() {
+        return this.yColumns.map((col) => {
             return {
-                entityName: col.displayName,
-                label: col.displayName,
-                points,
-                color: this.colorScale.getColor(col.displayName) ?? "#ddd", // temp
+                seriesName: col.displayName,
+                rows: (col.owidRows as any) as OwidRow[], // todo: cleanup typings
+            }
+        })
+    }
+
+    @computed private get entitiesAsSeries() {
+        const rowsByEntityName = this.table.rowsByEntityName
+        return this.table.selectedEntityNames.map((seriesName) => {
+            return {
+                seriesName,
+                rows: rowsByEntityName.get(seriesName) || [],
+            }
+        })
+    }
+
+    @computed private get rawSeries() {
+        return this.seriesStrategy === SeriesStrategy.column
+            ? this.columnsAsSeries
+            : this.entitiesAsSeries
+    }
+
+    // Do Stacked Bars always operate on YColumns? No.
+    @computed get marks() {
+        const { rawSeries } = this
+
+        // todo: clean up this slug stuff
+        const valueColumnSlug =
+            this.seriesStrategy === SeriesStrategy.column
+                ? "value"
+                : this.yColumn!.slug
+        const timeColumnSlug =
+            this.seriesStrategy === SeriesStrategy.column
+                ? "time"
+                : this.table.timeColumn.slug
+
+        const seriesArr: StackedBarSeries[] = rawSeries.map((series) => {
+            const { seriesName, rows } = series
+            return {
+                seriesName,
+                label: seriesName,
+                points: rows.map((row) => {
+                    return {
+                        x: row[timeColumnSlug],
+                        y: row[valueColumnSlug],
+                        yOffset: 0,
+                        label: seriesName,
+                    } as StackedBarPoint
+                }),
+                color: this.colorScale.getColor(seriesName) ?? "#ddd", // temp
             }
         })
 
         stackBars(seriesArr)
-        if (!seriesArr.length) return []
-
-        // if the total height of any stacked column is 0, remove it
-        const keyIndicesToRemove: number[] = []
-        const lastSeries = seriesArr[seriesArr.length - 1]
-        lastSeries.points.forEach((bar, index) => {
-            if (bar.yOffset + bar.y === 0) keyIndicesToRemove.push(index)
-        })
-        for (let i = keyIndicesToRemove.length - 1; i >= 0; i--) {
-            seriesArr.forEach((series) => {
-                series.points.splice(keyIndicesToRemove[i], 1)
-            })
-        }
-
         return seriesArr
     }
 }

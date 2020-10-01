@@ -108,18 +108,25 @@ class ColorsSection extends React.Component<{
     scale: ColorScale
 }> {
     @action.bound onColorScheme(selected: ColorSchemeOption) {
-        const { scale } = this.props
+        const { config } = this
 
-        if (selected.value === "custom") {
-            scale.config.customNumericColorsActive = true
-        } else {
-            scale.config.baseColorScheme = selected.value
-            scale.config.customNumericColorsActive = undefined
+        if (selected.value === "custom") config.customNumericColorsActive = true
+        else {
+            config.baseColorScheme = selected.value
+            config.customNumericColorsActive = undefined
         }
     }
 
     @action.bound onInvert(invert: boolean) {
-        this.props.scale.config.colorSchemeInvert = invert || undefined
+        this.config.colorSchemeInvert = invert || undefined
+    }
+
+    @computed get scale() {
+        return this.props.scale
+    }
+
+    @computed get config() {
+        return this.scale.config
     }
 
     @action.bound onBinningStrategy(
@@ -128,13 +135,11 @@ class ColorsSection extends React.Component<{
             value: BinningStrategy
         }>
     ) {
-        this.props.scale.config.binningStrategy = asArray(
-            binningStrategy
-        )[0].value
+        this.config.binningStrategy = asArray(binningStrategy)[0].value
     }
 
     @computed get currentColorScheme() {
-        const { scale } = this.props
+        const { scale } = this
         return scale.customNumericColorsActive
             ? "custom"
             : scale.baseColorScheme
@@ -151,7 +156,7 @@ class ColorsSection extends React.Component<{
         // no custom bin values are specified in the config.
         // Authors can still get into manual mode by selecting an
         // automatic binning strategy and editing the bins.
-        if (!this.props.scale.config.customNumericValues.length) {
+        if (!this.config.customNumericValues.length) {
             return options.filter(
                 ({ value }) => value !== BinningStrategy.manual
             )
@@ -161,12 +166,12 @@ class ColorsSection extends React.Component<{
 
     @computed get currentBinningStrategyOption() {
         return this.binningStrategyOptions.find(
-            (option) => option.value === this.props.scale.config.binningStrategy
+            (option) => option.value === this.config.binningStrategy
         )
     }
 
     render() {
-        const { scale } = this.props
+        const { scale, config } = this
 
         return (
             <Section name="Color scale">
@@ -176,9 +181,7 @@ class ColorsSection extends React.Component<{
                         <ColorSchemeDropdown
                             value={this.currentColorScheme}
                             onChange={this.onColorScheme}
-                            invertedColorScheme={
-                                !!scale.config.colorSchemeInvert
-                            }
+                            invertedColorScheme={!!config.colorSchemeInvert}
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,
@@ -193,7 +196,7 @@ class ColorsSection extends React.Component<{
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={scale.config.colorSchemeInvert || false}
+                        value={config.colorSchemeInvert || false}
                         onValue={this.onInvert}
                     />
                 </FieldsRow>
@@ -215,14 +218,14 @@ class ColorsSection extends React.Component<{
                 <FieldsRow>
                     <BindAutoFloat
                         field="customNumericMinValue"
-                        store={scale.config}
+                        store={config}
                         label="Minimum value"
                         auto={scale.autoMinBinValue}
                     />
                     {!scale.isManualBuckets && (
                         <BindAutoFloat
                             field="binningStrategyBinCount"
-                            store={scale.config}
+                            store={config}
                             label="Target number of bins"
                             auto={scale.numAutoBins}
                         />

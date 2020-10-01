@@ -30,38 +30,47 @@ it("does not preserve defaults in the object", () => {
     expect(new Grapher({ tab: GrapherTabOption.chart }).toObject()).toEqual({})
 })
 
-it("can apply legacy chart dimension settings", () => {
-    const unit = "% of children under 5"
-    const name = "Some display name"
-    const grapher = new Grapher({
-        dimensions: [
-            {
-                variableId: 3512,
-                property: DimensionProperty.y,
-                display: {
-                    unit,
-                },
-            },
-        ],
-        owidDataset: {
-            variables: {
-                "3512": {
-                    years: [2000, 2010, 2010],
-                    entities: [207, 15, 207],
-                    values: [4, 20, 34],
-                    id: 3512,
-                    display: {
-                        name,
-                    },
-                },
-            },
-            entityKey: {
-                "15": { name: "Afghanistan", id: 15, code: "AFG" },
-                "207": { name: "Iceland", id: 207, code: "ISL" },
+const unit = "% of children under 5"
+const name = "Some display name"
+const legacyConfig = {
+    dimensions: [
+        {
+            variableId: 3512,
+            property: DimensionProperty.y,
+            display: {
+                unit,
             },
         },
-    })
+    ],
+    owidDataset: {
+        variables: {
+            "3512": {
+                years: [2000, 2010, 2010],
+                entities: [207, 15, 207],
+                values: [4, 20, 34],
+                id: 3512,
+                display: {
+                    name,
+                },
+            },
+        },
+        entityKey: {
+            "15": { name: "Afghanistan", id: 15, code: "AFG" },
+            "207": { name: "Iceland", id: 207, code: "ISL" },
+        },
+    },
+}
+
+it("can apply legacy chart dimension settings", () => {
+    const grapher = new Grapher(legacyConfig)
     const col = grapher.yColumns[0]!
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
+})
+
+it("stackedbars should not have timelines", () => {
+    const grapher = new Grapher(legacyConfig)
+    expect(grapher.hasTimeline).toBeTruthy()
+    grapher.type = ChartTypeName.StackedBar
+    expect(grapher.hasTimeline).toBeFalsy()
 })

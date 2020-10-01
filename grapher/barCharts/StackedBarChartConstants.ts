@@ -1,5 +1,5 @@
-import { EntityName } from "coreTable/CoreTableConstants"
 import { VerticalAxis } from "grapher/axis/Axis"
+import { SeriesName } from "grapher/core/GrapherConstants"
 
 export interface StackedBarSegmentProps
     extends React.SVGAttributes<SVGGElement> {
@@ -21,7 +21,7 @@ export interface StackedBarPoint {
 }
 
 export interface StackedBarSeries {
-    entityName: EntityName
+    seriesName: SeriesName
     label: string
     points: StackedBarPoint[]
     color: string
