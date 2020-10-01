@@ -3,47 +3,35 @@ import {
     OwidTable,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-    SynthesizeOwidTable,
 } from "coreTable/OwidTable"
-import { flatten, getRandomNumberGenerator } from "grapher/utils/Util"
-import { ColumnTypeNames } from "./CoreTableConstants"
+import { flatten } from "grapher/utils/Util"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 
-describe(OwidTable, () => {
-    // Scenarios
-    // create: rows|noRows & noSpec|fullSpec|partialSpec|incorrectSpec?
-    //  add: rows
-    //  add: spec
-    //  add: spec with rowGen
-    //  add: partialSpec
-    //  add partialSpec with rowGen
-    //  change spec?
+const sampleRows = [
+    {
+        year: 2020,
+        time: 2020,
+        entityName: "United States",
+        population: 3e8,
+        entityId: 1,
+        entityCode: "USA",
+    },
+]
 
-    const rows = [
+it("can create a table and detect columns", () => {
+    const table = new OwidTable(sampleRows)
+    expect(table.rows.length).toEqual(1)
+    expect(Array.from(table.columnsByName.keys()).length).toEqual(6)
+})
+
+it("can create a new table by adding a column", () => {
+    const table = new OwidTable(sampleRows, [
         {
-            year: 2020,
-            time: 2020,
-            entityName: "United States",
-            population: 3e8,
-            entityId: 1,
-            entityCode: "USA",
+            slug: "populationInMillions",
+            fn: (row) => row.population / 1000000,
         },
-    ]
-    const table = new OwidTable(rows)
-    it("can create a table and detect columns", () => {
-        expect(table.rows.length).toEqual(1)
-        expect(Array.from(table.columnsByName.keys()).length).toEqual(6)
-    })
-
-    it("a column can be added", () => {
-        const table = new OwidTable(rows, [
-            {
-                slug: "populationInMillions",
-                fn: (row) => row.population / 1000000,
-            },
-        ])
-        expect(table.rows[0].populationInMillions).toEqual(300)
-    })
+    ])
+    expect(table.rows[0].populationInMillions).toEqual(300)
 })
 
 const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
@@ -80,7 +68,7 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
     } as any
 }
 
-describe("from legacy", () => {
+describe("creating a table from legacy", () => {
     const table = OwidTable.fromLegacy(getLegacyVarSet())
     const name =
         "Prevalence of wasting, weight for height (% of children under 5)"
@@ -118,80 +106,72 @@ describe("from legacy", () => {
     })
 })
 
-describe("can query the data", () => {
-    it("can do a query used by discrete bar", () => {
-        const table = SynthesizeGDPTable(
-            {
-                countryCount: 3,
-                timeRange: [2000, 2004],
-            },
-            10
-        )
-        expect(table.rowsByEntityName.size).toEqual(3)
-        expect(table.selectedEntityNames.length).toEqual(0)
+it("can perfrom queries needed by discrete bar", () => {
+    const table = SynthesizeGDPTable(
+        {
+            countryCount: 3,
+            timeRange: [2000, 2004],
+        },
+        10
+    )
+    expect(table.rowsByEntityName.size).toEqual(3)
+    expect(table.selectedEntityNames.length).toEqual(0)
 
-        table.selectAll()
+    table.selectAll()
 
-        expect(table.selectedEntityNames.length).toEqual(3)
-        expect(
-            table.getClosestRowForEachSelectedEntity(2003, 0).length
-        ).toEqual(3)
-        expect(
-            table.getClosestRowForEachSelectedEntity(2004, 1).length
-        ).toEqual(3)
-        expect(
-            table.getClosestRowForEachSelectedEntity(2005, 1).length
-        ).toEqual(0)
+    expect(table.selectedEntityNames.length).toEqual(3)
+    expect(table.getClosestRowForEachSelectedEntity(2003, 0).length).toEqual(3)
+    expect(table.getClosestRowForEachSelectedEntity(2004, 1).length).toEqual(3)
+    expect(table.getClosestRowForEachSelectedEntity(2005, 1).length).toEqual(0)
+})
+
+it("can parse data to Javascript data structures", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2010],
     })
 
+    const parsed = table.get("Population")!.parsedValues
+    expect(parsed.filter((item) => isNaN(item))).toEqual([])
+
+    table.get("Population")!.owidRows.forEach((row) => {
+        expect(typeof row.entityName).toBe("string")
+        expect(row.value).toBeGreaterThan(100)
+        expect(row.time).toBeGreaterThan(1999)
+    })
+})
+
+it("can group data by entity and time", () => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
         countryCount: 5,
     })
 
-    it("can parse values", () => {
-        const parsed = table.get("Population")!.parsedValues
-        expect(parsed.filter((item) => isNaN(item))).toEqual([])
+    const timeValues = flatten(
+        Array.from(
+            table.get("Population")!.valueByEntityNameAndTime.values()
+        ).map((value) => Array.from(value.values()))
+    )
 
-        table.get("Population")!.owidRows.forEach((row) => {
-            expect(typeof row.entityName).toBe("string")
-            expect(row.value).toBeGreaterThan(100)
-            expect(row.time).toBeGreaterThan(1999)
-        })
-    })
-
-    it("can group by entity and time", () => {
-        const timeValues = flatten(
-            Array.from(
-                table.get("Population")!.valueByEntityNameAndTime.values()
-            ).map((value) => Array.from(value.values()))
-        )
-
-        expect(timeValues.length).toEqual(50)
-        expect(timeValues.filter((value) => isNaN(value as number))).toEqual([])
-    })
+    expect(timeValues.length).toEqual(50)
+    expect(timeValues.filter((value) => isNaN(value as number))).toEqual([])
 })
 
-describe("when it has both a day and year column, prefer the day column", () => {
+it("prefers a day column when both year and day are in the chart", () => {
     const csv = `entityName,entityCode,entityId,pop,year,day
 usa,usa,1,322,2000,2`
 
     const table = OwidTable.fromDelimited(csv)
-    it("prefers a day column when both year and day are in the chart", () => {
-        expect(table.timeColumn!.slug).toBe("day")
-    })
+    expect(table.timeColumn!.slug).toBe("day")
 })
 
-describe("can synth data", () => {
-    it("can synth numerics", () => {
-        const table = SynthesizeGDPTable({
-            timeRange: [2000, 2001],
-            countryCount: 1,
-        })
-
-        const row = table.get("GDP")!.owidRows[0]
-        expect(typeof row.value).toEqual("number")
+it("can synth numerics", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2001],
+        countryCount: 1,
     })
+
+    const row = table.get("GDP")!.owidRows[0]
+    expect(typeof row.value).toEqual("number")
 })
 
 const basicTableCsv = `entityName,entityCode,entityId,gdp,pop
@@ -199,41 +179,29 @@ iceland,ice,1,123,3
 usa,us,2,23,
 france,fr,3,23,4`
 
-describe("can get entities with all required columns", () => {
+it("can get entities with required columns", () => {
     const table = OwidTable.fromDelimited(basicTableCsv)
-
-    it("gets entities only with values for that column", () => {
-        expect(table.get("pop")?.entityNamesUniq.size).toEqual(2)
-    })
-
-    it("filters rows correctly", () => {
-        expect(table.entitiesWith(["gdp"]).size).toEqual(3)
-    })
-
-    it("filters rows correctly", () => {
-        expect(table.entitiesWith(["gdp"]).size).toEqual(3)
-        expect(table.entitiesWith(["gdp", "pop"]).size).toEqual(2)
-    })
+    expect(table.get("pop")?.entityNamesUniq.size).toEqual(2)
+    expect(table.entitiesWith(["gdp"]).size).toEqual(3)
+    expect(table.entitiesWith(["gdp", "pop"]).size).toEqual(2)
 })
 
-describe("csv export", () => {
-    it("can export a clean csv", () => {
-        const table = OwidTable.fromDelimited(basicTableCsv)
-        expect(table.toView().toPrettyCsv()).toEqual(`Entity,Code,gdp,pop
+it("can export a clean csv", () => {
+    const table = OwidTable.fromDelimited(basicTableCsv)
+    expect(table.toPrettyCsv()).toEqual(`Entity,Code,gdp,pop
 france,fr,23,4
 iceland,ice,123,3
 usa,us,23,`)
-    })
+})
 
-    it("can handle columns with commas", () => {
-        const table = OwidTable.fromDelimited(basicTableCsv)
-        table.get("gdp")!.spec.name = "Gross, Domestic, Product"
-        expect(table.toView().toPrettyCsv())
-            .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
+it("can handle columns with commas", () => {
+    const table = OwidTable.fromDelimited(basicTableCsv)
+    table.get("gdp")!.spec.name = "Gross, Domestic, Product"
+    expect(table.toPrettyCsv())
+        .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
 france,fr,23,4
 iceland,ice,123,3
 usa,us,23,`)
-    })
 })
 
 describe("time filtering", () => {
@@ -244,9 +212,7 @@ describe("time filtering", () => {
         })
 
         expect(table.rows.length).toBe(10)
-
         expect(table.filterByTime(2000, 2003).rows.length).toBe(8)
-
         expect(table.filterByTime(2000, 2000).rows.length).toBe(2)
     })
 
@@ -327,7 +293,7 @@ describe("rolling averages", () => {
     })
 
     // sortedUniqNonEmptyStringVals
-    it("cam get values for color legend", () => {
+    it("can get values for color legend", () => {
         expect(
             table.get("continent")?.sortedUniqNonEmptyStringVals.length
         ).toEqual(1)

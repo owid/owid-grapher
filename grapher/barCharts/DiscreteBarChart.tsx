@@ -22,6 +22,8 @@ import {
 const labelToTextPadding = 10
 const labelToBarPadding = 5
 
+const DEFAULT_BAR_COLOR = "#2E5778"
+
 @observer
 export class DiscreteBarChart
     extends React.Component<{
@@ -429,7 +431,7 @@ export class DiscreteBarChart
                 color:
                     getColorForEntityName(row.entityName) ||
                     valuesToColorsMap.get(row.value) ||
-                    "#2E5778",
+                    DEFAULT_BAR_COLOR,
             }
             return datum
         })

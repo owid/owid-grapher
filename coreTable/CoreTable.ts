@@ -16,8 +16,12 @@ import {
     slugifySameCase,
     min,
     max,
+    sortBy,
+    isString,
+    last,
+    sortedUniq,
+    orderBy,
 } from "grapher/utils/Util"
-import { sortBy, isString, last, sortedUniq } from "lodash"
 import { observable, action, computed } from "mobx"
 import { ColumnSlug, ColumnTypeNames, EntityName } from "./CoreTableConstants"
 import {
@@ -215,11 +219,20 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     // todo: speed up
     filterBy(predicate: (row: CoreRow) => boolean, opName: string): AnyTable {
-        return new AnyTable(
+        return new (this.constructor as any)(
             this.rows.filter(predicate),
             this.specs,
             this,
             opName
+        )
+    }
+
+    sortBy(slugs: ColumnSlug[], orders?: ("asc" | "desc")[]): AnyTable {
+        return new (this.constructor as any)(
+            orderBy(this.rows, slugs, orders),
+            this.specs,
+            this,
+            `Sort by ${slugs.join(",")} ${orders?.join(",")}`
         )
     }
 
@@ -371,61 +384,53 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return toDelimited(delimiter, columnSlugs, rows)
     }
 
-    // Get all the columns that only have 1 value
-    constantColumns() {
-        return this.columnsAsArray.filter((col) => col.isConstant)
-    }
-
-    toView(): TableView {
-        return new TableView(this)
-    }
-}
-
-// A mutable Table class without observables for simple table ops. Likely will merge with the main Table class.
-class TableView {
-    private parentTable: AbstractCoreTable<any>
-    private rows: CoreRow[]
-    private columns: AbstractCoreColumn[]
-    constructor(parentTable: AbstractCoreTable<any>) {
-        this.parentTable = parentTable
-        this.rows = parentTable.rows.slice(0)
-        this.columns = parentTable.columnsAsArray.slice(0)
-    }
-
-    private sortBy(columnSlug: ColumnSlug) {
-        this.rows = sortBy(this.rows, columnSlug)
-        return this
-    }
-
-    private deleteColumns(columnSlugs: ColumnSlug[]) {
-        const deleteThese = new Set(columnSlugs)
-        this.columns = this.columns.filter((col) => !deleteThese.has(col.slug))
-        return this
-    }
-
-    private toCsvWithColumnNames() {
+    toCsvWithColumnNames() {
         const delimiter = ","
         const header =
-            this.columns.map((col) => csvEscape(col.name)).join(delimiter) +
-            "\n"
+            this.columnsAsArray
+                .map((col) => csvEscape(col.name))
+                .join(delimiter) + "\n"
         const body = this.rows
             .map((row) =>
-                this.columns.map((col) => col.formatForCsv(row[col.slug]) ?? "")
+                this.columnsAsArray.map(
+                    (col) => col.formatForCsv(row[col.slug]) ?? ""
+                )
             )
             .map((row) => row.join(delimiter))
             .join("\n")
         return header + body
     }
 
-    // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
-    toPrettyCsv() {
-        const dropCols = this.parentTable
-            .constantColumns()
-            .map((col) => col.slug)
-        dropCols.push("entityId")
-        return this.deleteColumns(dropCols)
-            .sortBy("entityName")
-            .toCsvWithColumnNames()
+    // Get all the columns that only have 1 value
+    constantColumns() {
+        return this.columnsAsArray.filter((col) => col.isConstant)
+    }
+
+    withoutConstantColumns(): AnyTable {
+        const slugs = this.constantColumns().map((col) => col.slug)
+        return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
+    }
+
+    withoutColumns(slugs: ColumnSlug[], message?: string): AnyTable {
+        const columnsToDrop = new Set(slugs)
+        const specs = this.columnsAsArray
+            .filter((col) => !columnsToDrop.has(col.slug))
+            .map((col) => col.spec)
+        return new (this.constructor as any)(
+            this.rows.map((row) => {
+                // todo: speed up?
+                const newRow = {
+                    ...row,
+                }
+                slugs.forEach((slug) => {
+                    delete newRow[slug]
+                })
+                return newRow
+            }),
+            specs,
+            this,
+            message ?? `Dropped columns '${slugs}'`
+        )
     }
 }
 

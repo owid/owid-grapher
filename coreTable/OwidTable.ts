@@ -20,8 +20,8 @@ import {
     sampleFrom,
     trimObject,
     sortedUniq,
-    orderBy,
     sum,
+    csvEscape,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { EPOCH_DATE, Time, TimeRange } from "grapher/core/GrapherConstants"
@@ -267,13 +267,8 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // todo: speed up
     // todo: how can we just use super method?
-    filterBy(predicate: (row: OwidRow) => boolean, opName: string): OwidTable {
-        return new (this.constructor as any)(
-            this.rows.filter(predicate),
-            this.specs,
-            this,
-            opName
-        )
+    filterBy(predicate: (row: OwidRow) => boolean, opName: string) {
+        return super.filterBy(predicate as any, opName) as OwidTable
     }
 
     filterBySelectedOnly() {
@@ -410,12 +405,15 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     sortBy(slugs: ColumnSlug[], orders?: ("asc" | "desc")[]): OwidTable {
-        return new OwidTable(
-            orderBy(this.rows, slugs, orders),
-            this.specs,
-            this,
-            `Sort by ${slugs.join(",")} ${orders?.join(",")}`
-        )
+        return super.sortBy(slugs, orders) as OwidTable
+    }
+
+    // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
+    toPrettyCsv() {
+        return this.withoutConstantColumns()
+            .withoutColumns(["entityId"])
+            .sortBy(["entityName"])
+            .toCsvWithColumnNames()
     }
 
     // one datum per entityName. use the closest value to target year within tolerance.
