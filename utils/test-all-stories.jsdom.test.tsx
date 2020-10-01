@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { shallow } from "enzyme"
+import { mount } from "enzyme"
 
 // This just does a sanity check that all the stories can do a shallow render.
 // This file might not be necessary, or there may be a way to do something similar with Storybook/Jest
@@ -27,6 +27,13 @@ import * as ScatterPlot from "grapher/scatterCharts/ScatterPlot.stories"
 import * as SlopeChart from "grapher/slopeCharts/SlopeChart.stories"
 import * as TimelineComponent from "grapher/timeline/TimelineComponent.stories"
 import * as Feedback from "site/client/Feedback.stories"
+import * as StackedBarChart from "grapher/barCharts/StackedBarChart.stories"
+import * as DownloadTab from "grapher/downloadTab/DownloadTab.stories"
+import * as LineLegend from "grapher/lineLegend/LineLegend.stories"
+import * as MapChart from "grapher/mapCharts/MapChart.stories"
+import * as MapTooltip from "grapher/mapCharts/MapTooltip.stories"
+import * as SourcesTab from "grapher/sourcesTab/SourcesTab.stories"
+import * as VerticalColorLegend from "grapher/verticalColorLegend/VerticalColorLegend.stories"
 
 const runTests = (storybook: any) => {
     const defaults = storybook.default
@@ -35,7 +42,7 @@ const runTests = (storybook: any) => {
         describe(defaults.title, () => {
             const args = {}
             it(`should load ${key}`, () => {
-                expect(shallow(storybook[key](args))).toBeTruthy()
+                expect(mount(storybook[key](args))).toBeTruthy()
             })
         })
     })
@@ -53,7 +60,7 @@ runTests(CountryPicker)
 runTests(ScaleSelector)
 runTests(Grapher)
 runTests(DataTable)
-runTests(FacetChart)
+//runTests(FacetChart) // todo: add this back. Commented out because the Test environment does not like dynamic React Component creation
 runTests(Footer)
 runTests(Header)
 runTests(LineChart)
@@ -61,3 +68,10 @@ runTests(ScatterPlot)
 runTests(SlopeChart)
 runTests(TimelineComponent)
 runTests(Feedback)
+runTests(StackedBarChart)
+//runTests(DownloadTab) // todo: add this back. Commented out because the Test environment does not have URL.createObjectURL
+runTests(LineLegend)
+runTests(MapChart)
+runTests(MapTooltip)
+runTests(SourcesTab)
+runTests(VerticalColorLegend)

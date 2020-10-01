@@ -2,7 +2,7 @@ import * as React from "react"
 import { FacetChart } from "./FacetChart"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { Bounds } from "grapher/utils/Bounds"
-import { ChartTypeName, FacetStrategy } from "grapher/core/GrapherConstants"
+import { FacetStrategy } from "grapher/core/GrapherConstants"
 
 export default {
     title: "FacetChart",
