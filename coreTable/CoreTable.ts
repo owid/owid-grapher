@@ -794,6 +794,9 @@ class StringColumn extends AbstractCoreColumn {
 class CategoricalColumn extends AbstractCoreColumn {
     parsedType = "string"
 }
+class ColorColumn extends CategoricalColumn {
+    parsedType = "string"
+}
 class BooleanColumn extends AbstractCoreColumn {
     parsedType = "boolean"
 
@@ -989,4 +992,5 @@ const columnTypeMap: { [key in ColumnTypeNames]: any } = {
     Age: AgeColumn,
     PercentChangeOverTime: PercentChangeOverTimeColumn,
     Ratio: RatioColumn,
+    Color: ColorColumn,
 }

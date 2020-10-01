@@ -69,7 +69,9 @@ const getLegacyVarSet = (): LegacyVariablesAndEntityKey => {
 }
 
 describe("creating a table from legacy", () => {
-    const table = OwidTable.fromLegacy(getLegacyVarSet())
+    const table = OwidTable.fromLegacy(getLegacyVarSet(), {
+        selectedData: [{ entityId: 45, index: 0, color: "blue" }],
+    })
     const name =
         "Prevalence of wasting, weight for height (% of children under 5)"
 
@@ -79,6 +81,7 @@ describe("creating a table from legacy", () => {
             "entityName",
             "entityId",
             "entityCode",
+            "entityColor",
             "year",
             "3512",
             "time", // todo: what is the best design here?
@@ -88,6 +91,7 @@ describe("creating a table from legacy", () => {
             "Entity",
             "entityId",
             "Code",
+            "entityColor",
             "Year",
             name,
             "time",
@@ -101,8 +105,24 @@ describe("creating a table from legacy", () => {
     it("can apply legacy unit conversion factors", () => {
         const varSet = getLegacyVarSet()
         varSet.variables["3512"].display!.conversionFactor = 100
-        const table = OwidTable.fromLegacy(varSet)
-        expect(table.get("3512")!.parsedValues).toEqual([550, 420, 1260])
+        expect(OwidTable.fromLegacy(varSet).get("3512")!.parsedValues).toEqual([
+            550,
+            420,
+            1260,
+        ])
+    })
+
+    it("can apply legacy selection colors", () => {
+        expect(table.getColorForEntityName("Cape Verde")).toBe("blue")
+        expect(table.getColorForEntityName("Kiribati")).toBe(undefined)
+    })
+
+    it("can export legacy to CSV", () => {
+        const expected = `Entity,Code,Year,"Prevalence of wasting, weight for height (% of children under 5)"
+Cape Verde,CPV,1985,4.2
+Kiribati,KIR,1985,12.6
+Papua New Guinea,PNG,1983,5.5`
+        expect(table.toPrettyCsv()).toEqual(expected)
     })
 })
 

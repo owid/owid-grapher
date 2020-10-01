@@ -250,14 +250,14 @@ export class Grapher
     configOnLoad: Readonly<GrapherInterface>
     @observable.ref rootTable: OwidTable
 
-    private legacyConfig?: Partial<LegacyGrapherInterface>
+    private legacyConfigAsAuthored?: Partial<LegacyGrapherInterface>
 
     constructor(props: GrapherProps = {}) {
         super(props!)
         this.rootTable = props.table ?? new OwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
-        this.legacyConfig = props
+        this.legacyConfigAsAuthored = props
 
         this.updateFromObject(modernConfig)
         this.isMediaCard = !!props?.isMediaCard
@@ -326,8 +326,8 @@ export class Grapher
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
         // todo: remove dimensions concept
-        if (this.legacyConfig?.dimensions)
-            obj.dimensions = this.legacyConfig.dimensions
+        if (this.legacyConfigAsAuthored?.dimensions)
+            obj.dimensions = this.legacyConfigAsAuthored.dimensions
 
         return obj
     }
@@ -549,15 +549,12 @@ export class Grapher
     @action.bound private _receiveLegacyData(
         json: LegacyVariablesAndEntityKey
     ) {
-        const table = OwidTable.fromLegacy(json, this.dimensions)
-        this.rootTable = table
+        this.rootTable = OwidTable.fromLegacy(json, this.legacyConfigAsAuthored)
 
         if (this.selectedEntityIds.length)
-            table.setSelectedEntitiesByEntityId(this.selectedEntityIds)
+            this.rootTable.setSelectedEntitiesByEntityId(this.selectedEntityIds)
         else if (this.selectedEntityNames.length)
-            table.setSelectedEntities(this.selectedEntityNames)
-
-        // Todo: load colors
+            this.rootTable.setSelectedEntities(this.selectedEntityNames)
     }
 
     // todo: refactor

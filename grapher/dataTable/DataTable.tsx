@@ -25,7 +25,7 @@ import {
 } from "grapher/utils/Util"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { Tippy } from "grapher/chart/Tippy"
-import { OwidTable } from "coreTable/OwidTable"
+import { OwidTable, OwidTableSlugs } from "coreTable/OwidTable"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 
@@ -442,14 +442,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get columnsToShow() {
-        const skips = new Set([
-            "entityId",
-            "entityName",
-            "year",
-            "time",
-            "day",
-            "entityCode",
-        ])
+        const skips = new Set(Object.keys(OwidTableSlugs))
         return this.columns.filter(
             (column) =>
                 !skips.has(column.slug) &&

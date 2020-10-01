@@ -21,10 +21,14 @@ import {
     trimObject,
     sortedUniq,
     sum,
-    csvEscape,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
-import { EPOCH_DATE, Time, TimeRange } from "grapher/core/GrapherConstants"
+import {
+    Color,
+    EPOCH_DATE,
+    Time,
+    TimeRange,
+} from "grapher/core/GrapherConstants"
 import {
     ColumnTypeNames,
     Year,
@@ -42,8 +46,8 @@ import {
     CoreRow,
 } from "./CoreTable"
 import { countries } from "utils/countries"
-import { ChartDimension } from "grapher/chart/ChartDimension"
 import { populationMap } from "./PopulationMap"
+import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 
 export interface OwidColumnSpec extends CoreColumnSpec {
     owidVariableId?: LegacyVariableId
@@ -59,6 +63,16 @@ export const generateEntityId = (entityName: string) => {
     if (!globalEntityIds.has(entityName))
         globalEntityIds.set(entityName, globalEntityIds.size)
     return globalEntityIds.get(entityName)
+}
+
+export enum OwidTableSlugs {
+    entityName = "entityName",
+    entityColor = "entityColor",
+    entityId = "entityId",
+    entityCode = "entityCode",
+    time = "time",
+    day = "day",
+    year = "year",
 }
 
 // This is a row with the additional columns specific to our OWID data model
@@ -198,15 +212,15 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     @computed get hasDayColumn() {
-        return this.has("day")
+        return this.has(OwidTableSlugs.day)
     }
 
     @computed get dayColumn() {
-        return this.get("day")
+        return this.get(OwidTableSlugs.day)
     }
 
     @computed get rowsByEntityName() {
-        return this.rowsBy<EntityName>("entityName")
+        return this.rowsBy<EntityName>(OwidTableSlugs.entityName)
     }
 
     @computed get rowsByTime() {
@@ -267,7 +281,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // todo: speed up
     // todo: how can we just use super method?
-    filterBy(predicate: (row: OwidRow) => boolean, opName: string) {
+    filterBy(predicate: (row: OwidRow) => boolean, opName: string): OwidTable {
         return super.filterBy(predicate as any, opName) as OwidTable
     }
 
@@ -411,8 +425,12 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
     toPrettyCsv() {
         return this.withoutConstantColumns()
-            .withoutColumns(["entityId"])
-            .sortBy(["entityName"])
+            .withoutColumns([
+                OwidTableSlugs.entityId,
+                OwidTableSlugs.time,
+                OwidTableSlugs.entityColor,
+            ])
+            .sortBy([OwidTableSlugs.entityName])
             .toCsvWithColumnNames()
     }
 
@@ -524,17 +542,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     getColorForEntityName(entityName: string) {
-        // Todo: restore Grapher keycolors functionality
-        const colors = {
-            Africa: "#923E8B",
-            Antarctica: "#5887A1",
-            Asia: "#2D8587",
-            Europe: "#4C5C78",
-            "North America": "#E04E4B",
-            Oceania: "#A8633C",
-            "South America": "#932834",
-        }
-        return Object.values(colors)[entityName.charCodeAt(0) % 7]
+        return this.get("entityColor")?.getLatestValueForEntity(entityName)
     }
 
     specToObject() {
@@ -615,21 +623,24 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     static requiredColumnSpecs: OwidColumnSpec[] = [
         {
             name: "Entity",
-            slug: "entityName",
+            slug: OwidTableSlugs.entityName,
             type: ColumnTypeNames.Categorical,
         },
         {
-            slug: "entityId",
+            slug: OwidTableSlugs.entityId,
             type: ColumnTypeNames.Categorical,
         },
         {
             name: "Code",
-            slug: "entityCode",
+            slug: OwidTableSlugs.entityCode,
             type: ColumnTypeNames.Categorical,
         },
     ]
 
-    static legacyVariablesToTabular(json: LegacyVariablesAndEntityKey) {
+    static legacyVariablesToTabular(
+        json: LegacyVariablesAndEntityKey,
+        colorMap = new Map<EntityId, Color>()
+    ) {
         let rows: OwidRow[] = []
         const entityMetaById: { [id: string]: LegacyEntityMeta } =
             json.entityKey
@@ -637,6 +648,16 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         OwidTable.requiredColumnSpecs.forEach((spec) => {
             columnSpecs.set(spec.slug, spec)
         })
+
+        const colorColumnSlug =
+            colorMap.size > 0 ? OwidTableSlugs.entityColor : undefined
+        if (colorColumnSlug) {
+            columnSpecs.set(colorColumnSlug, {
+                slug: colorColumnSlug,
+                type: ColumnTypeNames.Color,
+                name: colorColumnSlug,
+            })
+        }
 
         for (const key in json.variables) {
             const variable = json.variables[key]
@@ -649,13 +670,13 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             const columnSpec = OwidTable.columnSpecFromLegacyVariable(variable)
             const columnSlug = columnSpec.slug
             columnSpec.isDailyMeasurement
-                ? columnSpecs.set("day", {
-                      slug: "day",
+                ? columnSpecs.set(OwidTableSlugs.day, {
+                      slug: OwidTableSlugs.day,
                       type: ColumnTypeNames.Date,
                       name: "Date",
                   })
-                : columnSpecs.set("year", {
-                      slug: "year",
+                : columnSpecs.set(OwidTableSlugs.year, {
+                      slug: OwidTableSlugs.year,
                       type: ColumnTypeNames.Year,
                       name: "Year",
                   })
@@ -679,8 +700,8 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             }
 
             const timeColumnName = columnSpec.isDailyMeasurement
-                ? "day"
-                : "year"
+                ? OwidTableSlugs.day
+                : OwidTableSlugs.year
 
             // Todo: remove
             const display = variable.display
@@ -700,17 +721,23 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
             const newRows = values.map((value, index) => {
                 const entityName = entityNames[index]
+                const entityId = entities[index]
                 const time = years[index]
                 const row: OwidRow = {
                     [timeColumnName]: time,
                     time,
                     [columnSlug]: value,
                     entityName,
-                    entityId: entities[index],
+                    entityId,
                     entityCode: entityCodes[index],
                 }
                 if (annotationsColumnSlug)
                     row[annotationsColumnSlug] = annotationMap.get(entityName)
+
+                if (colorColumnSlug) {
+                    const color = colorMap.get(entityId)
+                    if (color) row[colorColumnSlug] = color
+                }
                 return row
             })
             rows = rows.concat(newRows)
@@ -726,7 +753,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
 
         return {
-            rows: sortBy(joinedRows, ["year", "day"]),
+            rows: sortBy(joinedRows, [OwidTableSlugs.year, OwidTableSlugs.day]),
             columnSpecs,
         }
     }
@@ -734,9 +761,21 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     // This takes both the Variables and Dimensions data and generates an OwidTable.
     static fromLegacy(
         json: LegacyVariablesAndEntityKey,
-        dimensions: ChartDimension[] = []
+        grapherConfig: Partial<LegacyGrapherInterface> = {}
     ) {
-        const { rows, columnSpecs } = OwidTable.legacyVariablesToTabular(json)
+        const colorMap = new Map<EntityId, Color>()
+        grapherConfig.selectedData
+            ?.filter((item) => item.entityId && item.color)
+            .forEach((item) => {
+                colorMap.set(item.entityId, item.color!)
+            })
+
+        const { rows, columnSpecs } = OwidTable.legacyVariablesToTabular(
+            json,
+            colorMap
+        )
+
+        const dimensions = grapherConfig.dimensions || []
 
         // todo: when we ditch dimensions and just have computed columns things like conversion factor will be easy (just a computed column)
         const convertValues = (
@@ -806,9 +845,12 @@ export const SynthesizeOwidTable = (
         ...options,
     }
     const { countryCount, columnSpecs, timeRange, countryNames } = finalOptions
-    const colSlugs = ["entityName", "entityCode", "entityId", "year"].concat(
-        columnSpecs.map((col) => col.slug!)
-    )
+    const colSlugs = ([
+        OwidTableSlugs.entityName,
+        OwidTableSlugs.entityCode,
+        OwidTableSlugs.entityId,
+        OwidTableSlugs.year,
+    ] as ColumnSlug[]).concat(columnSpecs.map((col) => col.slug!))
 
     const entities = countryNames.length
         ? (countryNames as string[]).map((name) =>

@@ -18,6 +18,7 @@ export enum ColumnTypeNames {
     Ratio = "Ratio",
     Year = "Year",
     Date = "Date",
+    Color = "Color",
 }
 
 // todo: move below to GrapherConstants or OwidTable?

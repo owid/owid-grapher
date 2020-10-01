@@ -421,7 +421,7 @@ export class DiscreteBarChart
 
     @computed get marks() {
         const { table, yColumn, valuesToColorsMap } = this
-        const { getColorForEntityName, getLabelForEntityName } = table
+        const { getLabelForEntityName } = table
 
         return yColumn.owidRows.map((row) => {
             const { entityName } = row
@@ -429,7 +429,7 @@ export class DiscreteBarChart
                 ...row,
                 label: getLabelForEntityName(entityName),
                 color:
-                    getColorForEntityName(row.entityName) ||
+                    table.getColorForEntityName(row.entityName) ||
                     valuesToColorsMap.get(row.value) ||
                     DEFAULT_BAR_COLOR,
             }
