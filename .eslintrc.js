@@ -50,7 +50,7 @@ module.exports = {
         "prefer-const": ["warn", { destructuring: "all" }],
         "react/display-name": "off",
         "react/jsx-key": "warn",
-        "react/jsx-no-target-blank": "off",
+        "react/jsx-no-target-blank": ["warn", { allowReferrer: true }],
         "react/no-render-return-value": "off",
         "react/no-unescaped-entities": "off",
         "react/prop-types": "off",
