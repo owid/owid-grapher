@@ -227,7 +227,7 @@ export class StackedBarChart
             mapXValueToOffset,
             barWidth,
             dualAxis,
-            yColumn,
+            yColumns,
         } = this
         if (hoverBar === undefined) return
 
@@ -262,7 +262,7 @@ export class StackedBarChart
                         fontSize: "0.8em",
                     }}
                 >
-                    <span>{yColumn!.formatValueLong(hoverBar.y)}</span>
+                    <span>{yColumns[0].formatValueLong(hoverBar.y)}</span>
                     <br />
                     in
                     <br />
@@ -508,8 +508,8 @@ export class StackedBarChart
     }
 
     @computed get failMessage() {
-        const { yColumn } = this
-        if (!yColumn) return "Missing variable"
+        const { yColumnSlugs } = this
+        if (!yColumnSlugs.length) return "Missing variable"
 
         if (!this.marks.length) return "No matching data"
 
@@ -522,20 +522,14 @@ export class StackedBarChart
     }
 
     @computed get tickFormatFn(): (d: number) => string {
-        const { yColumn } = this
+        const yColumn = this.yColumns[0]
         return yColumn ? yColumn.formatValueShort : (d: number) => `${d}`
-    }
-
-    @computed private get yColumn() {
-        return this.table.get(
-            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
-        )
     }
 
     // TODO: Make XAxis generic
     @computed get horizontalAxis() {
         const { manager } = this
-        const { startTimelineTime, endTimelineTime } = this.yColumn!
+        const { startTimelineTime, endTimelineTime } = this.yColumns[0]
         const axisConfig = this.manager.xAxis || new AxisConfig(undefined, this)
         const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings([
@@ -556,7 +550,7 @@ export class StackedBarChart
         const axis = axisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(yDomainDefault)
         axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
-        axis.formatColumn = this.yColumn
+        axis.formatColumn = this.yColumns[0]
         return axis
     }
 
@@ -590,9 +584,15 @@ export class StackedBarChart
     }
 
     @computed private get yColumns() {
-        return (this.manager.yColumnSlugs || []).map(
-            (slug) => this.table.get(slug)!
-        )
+        return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
+    }
+
+    @computed private get yColumnSlugs() {
+        return this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs
+            : this.manager.yColumnSlug
+            ? [this.manager.yColumnSlug]
+            : this.manager.table.numericColumnSlugs
     }
 
     @computed private get seriesStrategy() {
@@ -637,7 +637,7 @@ export class StackedBarChart
         const valueColumnSlug =
             this.seriesStrategy === SeriesStrategy.column
                 ? "value"
-                : this.yColumn!.slug
+                : this.yColumns[0].slug
         const timeColumnSlug =
             this.seriesStrategy === SeriesStrategy.column
                 ? "time"

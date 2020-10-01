@@ -9,14 +9,9 @@ export default {
 
 export const ColumnsAsSeries = () => {
     const table = SynthesizeFruitTable().selectSample(1)
-    const manager = {
-        table,
-        yColumnSlugs: table.numericColumnSlugs, // todo: why not just have each chartType detect yColumns automatically like this?
-    }
-
     return (
         <svg width={600} height={600}>
-            <StackedBarChart manager={manager} />
+            <StackedBarChart manager={{ table }} />
         </svg>
     )
 }

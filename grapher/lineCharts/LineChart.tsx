@@ -540,6 +540,14 @@ export class LineChart
         return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
     }
 
+    @computed private get yColumnSlugs() {
+        return this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs
+            : this.manager.yColumnSlug
+            ? [this.manager.yColumnSlug]
+            : this.manager.table.numericColumnSlugs
+    }
+
     @computed private get annotationsMap() {
         return this.annotationsColumn?.entityNameMap
     }
@@ -567,14 +575,6 @@ export class LineChart
                 this.yColumnSlugs
             )
         return table
-    }
-
-    @computed private get yColumnSlugs() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs
-            : this.manager.yColumnSlug
-            ? [this.manager.yColumnSlug]
-            : this.manager.table.numericColumnSlugs
     }
 
     @computed get seriesStrategy() {

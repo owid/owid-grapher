@@ -1,12 +1,11 @@
 import * as React from "react"
 import { FacetChart } from "./FacetChart"
-import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
-import { ChartManager } from "grapher/chart/ChartManager"
 import { Bounds } from "grapher/utils/Bounds"
+import { ChartTypeName, FacetStrategy } from "grapher/core/GrapherConstants"
 
 export default {
-    title: "CountryFacet",
+    title: "FacetChart",
     component: FacetChart,
     argTypes: {
         chartTypeName: { control: "select", defaultValue: "LineChart" },
@@ -16,33 +15,56 @@ export default {
     },
 }
 
-// One chart for France. One for Germany. One line for pop. One line for GDP.
-export const Default = (args: any) => {
-    const table = SynthesizeGDPTable({
-        entityCount: (args.countryCount ?? 4) || 1,
-    })
-    const manager: ChartManager = {
-        table,
-        yColumnSlug: "GDP",
-        xColumnSlug: "Population",
-        baseFontSize: 8,
-        lineStrokeWidth: 0.5,
-        hideLegend: true,
-        hidePoints: true,
-    }
-    const chartType: ChartTypeName =
-        args.chartTypeName || ChartTypeName.LineChart
+const bounds = new Bounds(0, 0, 1000, 500)
 
-    table.selectAll()
-
-    const bounds = new Bounds(0, 0, 1000, 500)
-
+export const OneMetricOneCountryPerChart = (args: any) => {
     return (
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
-                chartTypeName={chartType}
-                manager={manager}
+                chartTypeName={args.chartTypeName}
+                manager={{
+                    table: SynthesizeGDPTable({
+                        entityCount: (args.countryCount ?? 4) || 1,
+                    }).selectAll(),
+                    yColumnSlug: "GDP",
+                    xColumnSlug: "Population",
+                }}
+            />
+        </svg>
+    )
+}
+
+export const MultipleMetricsOneCountryPerChart = (args: any) => {
+    return (
+        <svg width={bounds.width} height={bounds.height}>
+            <FacetChart
+                bounds={bounds}
+                chartTypeName={args.chartTypeName}
+                manager={{
+                    table: SynthesizeGDPTable({
+                        entityCount: (args.countryCount ?? 4) || 1,
+                    }).selectAll(),
+                }}
+            />
+        </svg>
+    )
+}
+
+export const OneChartPerMetric = (args: any) => {
+    const table = SynthesizeGDPTable({
+        entityCount: (args.countryCount ?? 2) || 1,
+    }).selectAll()
+    return (
+        <svg width={bounds.width} height={bounds.height}>
+            <FacetChart
+                bounds={bounds}
+                chartTypeName={args.chartTypeName}
+                manager={{
+                    facetStrategy: FacetStrategy.column,
+                    yColumnSlugs: table.numericColumnSlugs,
+                    table,
+                }}
             />
         </svg>
     )

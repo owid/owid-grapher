@@ -18,7 +18,6 @@ interface FacetChartProps {
     number?: number
     chartTypeName: ChartTypeName
     manager: ChartManager
-    strategy?: FacetStrategy
 }
 
 // Facet by columnSlug. If the columnSlug is entityName than will do one chart per country. If it is an array of column slugs, then will do
@@ -71,7 +70,7 @@ interface Facet {
 export class FacetChart extends React.Component<FacetChartProps> {
     @computed protected get smallCharts() {
         const { manager, facets } = this
-        const { chartTypeName } = this.props
+        const { chartTypeName } = this.props ?? ChartTypeName.LineChart
         const count = facets.length
 
         const boundsArr = this.bounds.split(count, getChartPadding(count))
@@ -167,11 +166,11 @@ export class FacetChart extends React.Component<FacetChartProps> {
     @computed private get columnFacets(): Facet[] {
         const { yColumns } = this
         return yColumns.map((col) => {
-            const name = col!.displayName
+            const name = col.displayName
             return {
                 name,
                 manager: {
-                    yColumnSlug: col?.slug,
+                    yColumnSlug: col.slug,
                     seriesStrategy: SeriesStrategy.entity,
                 },
             }
@@ -182,16 +181,16 @@ export class FacetChart extends React.Component<FacetChartProps> {
         return this.yColumns.map((col) => {
             return {
                 chartTypeName: ChartTypeName.WorldMap,
-                name: col!.displayName,
+                name: col.displayName,
                 manager: {
-                    yColumnSlug: col!.slug,
+                    yColumnSlug: col.slug,
                 },
             }
         })
     }
 
     @computed private get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.rootTable.get(slug))
+        return this.yColumnSlugs.map((slug) => this.rootTable.get(slug)!)
     }
 
     @computed private get yColumnSlugs() {
@@ -199,11 +198,11 @@ export class FacetChart extends React.Component<FacetChartProps> {
     }
 
     @computed private get facets() {
-        const { strategy } = this.props
-        if (strategy === FacetStrategy.column) return this.columnFacets
-        if (strategy === FacetStrategy.columnWithMap)
+        const { facetStrategy } = this.manager
+        if (facetStrategy === FacetStrategy.column) return this.columnFacets
+        if (facetStrategy === FacetStrategy.columnWithMap)
             return [...this.columnFacets, ...this.columnMapFacets]
-        if (strategy === FacetStrategy.countryWithMap)
+        if (facetStrategy === FacetStrategy.countryWithMap)
             return [...this.countryFacets, ...this.columnMapFacets]
         return this.countryFacets
     }

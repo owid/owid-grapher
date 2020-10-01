@@ -176,14 +176,12 @@ export class ChartTab
 
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
 
-        const facetStrategy = manager.facetStrategy
-        if (facetStrategy)
+        if (manager.facetStrategy)
             return (
                 <FacetChart
                     bounds={bounds}
                     chartTypeName={chartTypeName}
                     manager={manager}
-                    strategy={facetStrategy}
                 />
             )
 

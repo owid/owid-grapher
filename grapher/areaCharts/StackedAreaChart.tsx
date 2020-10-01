@@ -13,7 +13,11 @@ import {
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { scaleOrdinal } from "d3-scale"
-import { Time, BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import {
+    Time,
+    BASE_FONT_SIZE,
+    SeriesStrategy,
+} from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -499,8 +503,7 @@ export class StackedAreaChart
     }
 
     @computed get failMessage() {
-        const { yColumn } = this
-        if (!yColumn) return "Missing Y axis columns"
+        if (!this.yColumns.length) return "Missing Y axis columns"
 
         if (!this.marks.length) return "No matching data"
 
@@ -509,7 +512,8 @@ export class StackedAreaChart
 
     @computed private get horizontalAxisPart() {
         const { manager } = this
-        const { startTimelineTime, endTimelineTime } = this.yColumn!
+        const yColumn = this.yColumns[0]
+        const { startTimelineTime, endTimelineTime } = yColumn
         const axisConfig =
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
         if (this.manager.hideXAxis) axisConfig.hideAxis = true
@@ -529,7 +533,7 @@ export class StackedAreaChart
     }
 
     @computed private get verticalAxisPart() {
-        const { yColumn } = this
+        const yColumn = this.yColumns[0]
         const yValues = this.allStackedValues.map((d) => d.y)
         const axisConfig =
             this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
@@ -560,20 +564,19 @@ export class StackedAreaChart
         table = table.filterBySelectedOnly()
 
         if (this.manager.isRelativeMode)
-            table = this.isStackedEntities
-                ? table.toPercentageFromEachEntityForEachTime(
-                      this.yColumnSlugs[0]
-                  )
-                : table.toPercentageFromEachColumnForEachEntityAndTime(
-                      this.yColumnSlugs
-                  )
+            table =
+                this.seriesStrategy === SeriesStrategy.entity
+                    ? table.toPercentageFromEachEntityForEachTime(
+                          this.yColumnSlugs[0]
+                      )
+                    : table.toPercentageFromEachColumnForEachEntityAndTime(
+                          this.yColumnSlugs
+                      )
         return table
     }
 
-    @computed private get yColumn() {
-        return this.table.get(
-            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
-        )
+    @computed private get yColumns() {
+        return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
     }
 
     @computed private get yColumnSlugs() {
@@ -581,19 +584,14 @@ export class StackedAreaChart
             ? this.manager.yColumnSlugs
             : this.manager.yColumnSlug
             ? [this.manager.yColumnSlug]
-            : []
-    }
-
-    @computed private get yColumns() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs.map((slug) => this.table.get(slug)!)
-            : [this.yColumn!]
+            : this.manager.table.numericColumnSlugs
     }
 
     @computed get colorScale() {
-        const seriesCount = this.isStackedEntities
-            ? this.table.selectedEntityNames.length
-            : this.yColumns.length
+        const seriesCount =
+            this.seriesStrategy === SeriesStrategy.entity
+                ? this.table.selectedEntityNames.length
+                : this.yColumns.length
         const baseColors = this.colorScheme.getColors(seriesCount)
         if (this.manager.invertColorScheme) baseColors.reverse()
         return scaleOrdinal(baseColors)
@@ -602,20 +600,27 @@ export class StackedAreaChart
     // It seems we have 2 types of StackedAreas. If only 1 column, we stack
     // the entities, and have one series per entity. If 2+ columns, we stack the columns
     // and have 1 series per column.
-    @computed private get isStackedEntities() {
-        return this.yColumnSlugs.length === 1
+    @computed get seriesStrategy() {
+        return (
+            this.manager.seriesStrategy ||
+            (this.yColumnSlugs.length > 1
+                ? SeriesStrategy.column
+                : SeriesStrategy.entity)
+        )
     }
 
     @computed get marks() {
-        const rawSeries = this.isStackedEntities
-            ? this.entitiesAsSeries
-            : this.columnsAsSeries
+        const rawSeries =
+            this.seriesStrategy === SeriesStrategy.entity
+                ? this.entitiesAsSeries
+                : this.columnsAsSeries
 
         rawSeries.reverse()
         stackAreas(rawSeries)
         return rawSeries
     }
 
+    // todo: these cna be simplified. see stackedbar
     @computed private get columnsAsSeries() {
         const { yColumns } = this
         return yColumns.map(
@@ -643,7 +648,7 @@ export class StackedAreaChart
     }
 
     @computed private get entitiesAsSeries() {
-        const yColumn = this.yColumn!
+        const yColumn = this.yColumns[0]
         return Array.from(yColumn.owidRowsByEntityName.keys()).map(
             (entityName: EntityName): StackedAreaSeries => {
                 const { isProjection } = yColumn
@@ -727,7 +732,7 @@ export class StackedAreaChart
     }
 
     private formatYTick(v: number) {
-        const { yColumn } = this
+        const yColumn = this.yColumns[0]
         return yColumn ? yColumn.formatValueShort(v) : v // todo: restore { noTrailingZeroes: false }
     }
 }
