@@ -234,7 +234,7 @@ export class DataTable extends React.Component<{
     private get dimensionSubheaders() {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) =>
-            dim.columns.map((column) => {
+            dim.columns.map((column, i) => {
                 const headerText =
                     column.targetTimeMode === TargetTimeMode.point
                         ? dim.coreTableColumn.table.formatTime(
@@ -254,6 +254,8 @@ export class DataTable extends React.Component<{
                         headerText={headerText}
                         colType="subdimension"
                         dataType="numeric"
+                        subdimensionType={column.key}
+                        lastSubdimension={i === dim.columns.length - 1}
                     />
                 )
             })
@@ -667,32 +669,51 @@ function ColumnHeader(props: {
     headerText: React.ReactFragment
     colType: "entity" | "dimension" | "subdimension"
     dataType: "text" | "numeric"
+    subdimensionType?: ColumnKey
+    lastSubdimension?: boolean
 }) {
-    const { sortable, sortedCol, colType } = props
+    const {
+        sortable,
+        sortedCol,
+        colType,
+        subdimensionType,
+        lastSubdimension,
+    } = props
     return (
         <th
             className={classnames(colType, {
-                sortable: sortable,
+                sortable,
                 sorted: sortedCol,
+                firstSubdimension: subdimensionType === "start",
+                endSubdimension: subdimensionType === "end",
+                lastSubdimension,
             })}
             rowSpan={props.rowSpan ?? 1}
             colSpan={props.colSpan ?? 1}
             onClick={props.onClick}
         >
-            {props.headerText}
-            {sortable && (
-                <SortIcon
-                    type={props.dataType}
-                    isActiveIcon={sortedCol}
-                    order={
-                        sortedCol
-                            ? props.sortOrder
-                            : colType === "entity"
-                            ? SortOrder.asc
-                            : SortOrder.desc
-                    }
-                />
-            )}
+            <div
+                className={classnames({
+                    deltaColumn:
+                        subdimensionType === "delta" ||
+                        subdimensionType === "deltaRatio",
+                })}
+            >
+                {props.headerText}
+                {sortable && (
+                    <SortIcon
+                        type={props.dataType}
+                        isActiveIcon={sortedCol}
+                        order={
+                            sortedCol
+                                ? props.sortOrder
+                                : colType === "entity"
+                                ? SortOrder.asc
+                                : SortOrder.desc
+                        }
+                    />
+                )}
+            </div>
         </th>
     )
 }

@@ -1,17 +1,21 @@
+$cell-border: 1px solid rgba(0, 0, 0, 0.08);
+
 .tableTab {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 5px;
     background: rgba(255, 255, 255, 0.95);
     text-align: center;
+}
+
+.tableTab {
+    border-bottom: $cell-border;
 }
 
 .tableTab .data-table {
     th {
         position: sticky;
         z-index: 10;
-        height: 51px;
         white-space: nowrap;
 
         &.dimension,
@@ -24,7 +28,7 @@
         }
 
         &.subdimension {
-            top: 51px;
+            top: 53px;
         }
     }
 
@@ -37,6 +41,7 @@
 
 .data-table {
     font-size: 0.9375rem;
+    line-height: 16px;
     border: none;
     background: white;
     width: 100%;
@@ -44,8 +49,9 @@
     box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
         rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
 
-    th {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    thead tr:last-child th,
+    th.entity {
+        border-bottom: $cell-border;
     }
 
     tr th:first-child,
@@ -61,12 +67,12 @@
     thead tr:first-child th {
         padding-top: 10px;
         padding-bottom: 8px;
-        vertical-align: text-top;
     }
 
     th {
         padding-top: 8px;
         padding-bottom: 8px;
+        vertical-align: bottom;
     }
 
     tr:first-child td {
@@ -85,7 +91,6 @@
         background-color: white;
     }
 
-    th.sorted,
     th.sortable:hover {
         background-color: rgb(245, 245, 245);
     }
@@ -94,8 +99,42 @@
     td {
         padding-left: 15px;
         padding-right: 15px;
-        border-right: 1px solid rgba(0, 0, 0, 0.08);
-        vertical-align: text-top;
+    }
+
+    th.dimension {
+        text-align: center;
+
+        > div {
+            min-height: 35px;
+        }
+    }
+
+    th.subdimension {
+        border-right: $cell-border;
+    }
+
+    .deltaColumn {
+        min-width: 145px;
+    }
+
+    th.entity,
+    td.entity {
+        border-right: $cell-border;
+    }
+
+    tr > .dimension-start ~ .dimension-start,
+    tr > th.dimension ~ th.dimension,
+    tr > th.firstSubdimension ~ th.firstSubdimension {
+        border-left: $cell-border;
+    }
+
+    th.firstSubdimension div,
+    th.endSubdimension div {
+        min-width: 56px;
+    }
+
+    th.lastSubdimension {
+        border-right: none;
     }
 
     th:last-child,
@@ -118,18 +157,11 @@
     }
 
     tbody tr:nth-child(2n) td {
-        background-color: rgb(250, 250, 250);
-    }
-    tbody tr:nth-child(2n) td.sorted {
-        background-color: rgb(246, 246, 246);
+        background-color: rgba(247, 247, 247);
     }
 
-    td.sorted {
-        background-color: rgb(250, 250, 250);
-    }
-
-    tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.035);
+    tbody tr:hover td {
+        background-color: rgba(241, 241, 241);
     }
 
     .entity {
@@ -148,6 +180,7 @@
         .unit {
             font-weight: 700;
             opacity: 0.5;
+            padding-bottom: 3px;
         }
     }
 
