@@ -230,6 +230,7 @@ export class ControlsFooterView extends React.Component<{
                                 href={grapher.url.canonicalUrl}
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
+                                rel="noopener"
                             >
                                 <FontAwesomeIcon icon={faExpand} />
                             </a>

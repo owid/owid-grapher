@@ -143,6 +143,7 @@ class HeaderView extends React.Component<{
                             '"Playfair Display", Georgia, "Times New Roman", serif',
                     }}
                     target="_blank"
+                    rel="noopener"
                 >
                     {title.render(props.x, props.y, { fill: "#555" })}
                 </a>
@@ -178,7 +179,11 @@ export class HeaderHTML extends React.Component<{
         return (
             <div className="HeaderHTML">
                 {header.logo && header.logo.renderHTML()}
-                <a href={grapher.url.canonicalUrl} target="_blank">
+                <a
+                    href={grapher.url.canonicalUrl}
+                    target="_blank"
+                    rel="noopener"
+                >
                     <h1 style={titleStyle}>{header.title.renderHTML()}</h1>
                 </a>
                 <p style={subtitleStyle}>{header.subtitle.renderHTML()}</p>

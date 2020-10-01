@@ -49,7 +49,7 @@ export class SourcesTab extends React.Component<{
                 <h2>
                     {column.name}{" "}
                     {editUrl && (
-                        <a href={editUrl} target="_blank">
+                        <a href={editUrl} target="_blank" rel="noopener">
                             <FontAwesomeIcon icon={faPencilAlt} />
                         </a>
                     )}

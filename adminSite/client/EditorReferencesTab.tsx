@@ -42,13 +42,18 @@ export class EditorReferencesTab extends React.Component<{
                                         key={post.id}
                                         className="list-group-item"
                                     >
-                                        <a href={post.url} target="_blank">
+                                        <a
+                                            href={post.url}
+                                            target="_blank"
+                                            rel="noopener"
+                                        >
                                             <strong>{post.title}</strong>
                                         </a>{" "}
                                         (
                                         <a
                                             href={`https://owid.cloud/wp/wp-admin/post.php?post=${post.id}&action=edit`}
                                             target="_blank"
+                                            rel="noopener"
                                         >
                                             Edit
                                         </a>
@@ -78,6 +83,7 @@ export class EditorReferencesTab extends React.Component<{
                                         <a
                                             href={`${BAKED_GRAPHER_URL}/${redirect.slug}`}
                                             target="_blank"
+                                            rel="noopener"
                                         >
                                             <strong>{redirect.slug}</strong>
                                         </a>
