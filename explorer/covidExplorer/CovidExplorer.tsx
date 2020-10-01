@@ -656,23 +656,13 @@ export class CovidExplorer extends React.Component<{
         }, 1)
     }
 
-    private _rootTable?: CovidExplorerTable
-    get rootTable() {
-        if (!this._rootTable) {
-            const table = new CovidExplorerTable(this.props.data)
-            table.owidVariableSpecs = this.props.covidChartAndVariableMeta.variables
-            this._rootTable = table.withAnnotationColumns()
-        }
-        return this._rootTable
-    }
+    private rootTable = new CovidExplorerTable(this.props.data)
+        .setOwidVariableSpecs(this.props.covidChartAndVariableMeta.variables)
+        .withAnnotationColumns()
 
     private _computedTable?: CovidExplorerTable
     private get computedTable() {
-        return this._computedTable ? this._computedTable! : this._rootTable!
-    }
-
-    componentWillMount() {
-        this.rootTable // init table.
+        return this._computedTable ? this._computedTable! : this.rootTable
     }
 
     @computed get canDoLogScale() {

@@ -120,6 +120,15 @@ export class CovidExplorerTable extends OwidTable {
         [key: string]: OwidColumnSpec
     } = {}
 
+    setOwidVariableSpecs(
+        specs: {
+            [key: string]: OwidColumnSpec
+        } = {}
+    ) {
+        this.owidVariableSpecs = specs
+        return this
+    }
+
     // Ideally we would just have 1 set of column specs. Currently however we have some hard coded here, some coming from the Grapher backend, and some
     // generated on the fly. These "template specs" are used to generate specs on the fly. Todo: cleanup.
     @computed get columnSpecTemplates(): { [name: string]: OwidColumnSpec } {
