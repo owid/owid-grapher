@@ -62,7 +62,7 @@ const mockVariable = {
 function mockDataResponse() {
     mockIndicators()
 
-    xhrMock.get(new RegExp(`\/grapher\/data\/variables\/104402\.json`), {
+    xhrMock.get(/\/grapher\/data\/variables\/104402\.json/, {
         body: JSON.stringify(mockVariable),
     })
 }
