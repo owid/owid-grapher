@@ -12,7 +12,7 @@ import {
     renderToHtmlPage,
     JsonError,
 } from "utils/server/serverUtil"
-import { tryLogin } from "./utils/authentication"
+import { logInWithCredentials, logOut } from "./utils/authentication"
 import { LoginPage } from "./pages/LoginPage"
 import { RegisterPage } from "./pages/RegisterPage"
 import { Dataset } from "db/model/Dataset"
@@ -79,7 +79,10 @@ adminRouter.post(
     )),
     async (req, res) => {
         try {
-            const session = await tryLogin(req.body.username, req.body.password)
+            const session = await logInWithCredentials(
+                req.body.username,
+                req.body.password
+            )
             res.cookie("sessionid", session.id, {
                 httpOnly: true,
                 sameSite: "lax",
@@ -99,14 +102,7 @@ adminRouter.post(
     }
 )
 
-adminRouter.get("/logout", async (req, res) => {
-    if (res.locals.user)
-        await db.query(`DELETE FROM sessions WHERE session_key = ?`, [
-            res.locals.session.id,
-        ])
-
-    res.redirect("/admin")
-})
+adminRouter.get("/logout", logOut)
 
 adminRouter.get(
     "/register",
@@ -191,7 +187,7 @@ adminRouter.post(
                 await manager.remove(invite)
             })
 
-            await tryLogin(req.body.email, req.body.password)
+            await logInWithCredentials(req.body.email, req.body.password)
             res.redirect("/admin")
         } catch (err) {
             res.status(tryInt(err.code, 500))
