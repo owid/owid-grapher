@@ -141,37 +141,37 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
         id: 4027,
         slugs: ["total-confirmed-cases-of-covid-19-per-million-people"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&casesMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
+            "tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&casesMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
     {
         id: 4028,
         slugs: ["new-covid-cases-per-million"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&casesMetric=true&interval=daily&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
+            "tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&casesMetric=true&interval=daily&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
     {
         id: 4029,
         slugs: ["total-covid-deaths-per-million"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&deathsMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
+            "tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&deathsMetric=true&interval=total&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
     {
         id: 4030,
         slugs: ["new-covid-deaths-per-million"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&deathsMetric=true&interval=daily&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
+            "tab=map&zoomToSelection=true&country=GBR~USA~ESP~ITA~BRA~IND~KOR&region=World&deathsMetric=true&interval=daily&perCapita=true&smoothing=0&pickerMetric=location&pickerSort=asc",
     },
     {
         id: 4110,
         slugs: ["daily-covid-deaths-per-million-7-day-average"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?zoomToSelection=true&minPopulationFilter=1000000&deathsMetric=true&dailyFreq=true&perCapita=true&smoothing=7&country=USA~GBR~ITA~DEU~KOR~ZAF~BRA&pickerMetric=location&pickerSort=asc",
+            "zoomToSelection=true&minPopulationFilter=1000000&deathsMetric=true&dailyFreq=true&perCapita=true&smoothing=7&country=USA~GBR~ITA~DEU~KOR~ZAF~BRA&pickerMetric=location&pickerSort=asc",
     },
     {
         id: 4225,
         slugs: ["daily-new-confirmed-cases-of-covid-19-tests-per-case"],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?yScale=log&zoomToSelection=true&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
+            "yScale=log&zoomToSelection=true&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
     },
     {
         id: 4236,
@@ -179,7 +179,7 @@ export const chartExplorerRedirects: ChartExplorerRedirect[] = [
             "daily-new-confirmed-cases-of-covid-19-per-million-tests-per-case",
         ],
         explorerQueryStr:
-            "https://ourworldindata.org/coronavirus-data-explorer?yScale=log&zoomToSelection=true&minPopulationFilter=1000000&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
+            "yScale=log&zoomToSelection=true&minPopulationFilter=1000000&time=2020-02-22..latest&country=&region=World&casesMetric=true&interval=smoothed&aligned=true&perCapita=true&smoothing=7&pickerMetric=total_deaths&pickerSort=desc",
     },
 ].map((redirect) => ({
     ...redirect,
