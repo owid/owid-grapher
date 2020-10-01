@@ -144,7 +144,7 @@ class EntitySelectorMulti extends React.Component<{
                                                         )
                                                     }
                                                 />{" "}
-                                                {name.label}
+                                                {name}
                                             </label>
                                         </li>
                                     )
