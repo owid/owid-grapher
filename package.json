@@ -35,7 +35,6 @@
         "deploy": "./deploy/deploy.sh",
         "deploy:wordpress": "./wordpress/scripts/deploy.sh",
         "refresh": "cd wordpress && lando refresh",
-        "refresh:staging": "./deploy/refresh-staging.sh",
         "serve": "yarn tsn adminSite/server/app.tsx",
         "bake": "yarn tsn deploy/bakeSite.ts",
         "post-update": "yarn tsn db/postUpdatedHook.ts",
