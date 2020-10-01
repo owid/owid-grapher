@@ -213,7 +213,7 @@ export class Footer extends React.Component<{
                 }}
             >
                 {this.finalUrlText && (
-                    <a href={this.finalUrl} target="_blank">
+                    <a href={this.finalUrl} target="_blank" rel="noopener">
                         {this.finalUrlText} •{" "}
                     </a>
                 )}

@@ -531,6 +531,7 @@ class DatasetEditor extends React.Component<{ dataset: DatasetPageData }> {
                             href={this.gitHistoryUrl}
                             target="_blank"
                             className="btn btn-secondary"
+                            rel="noopener"
                         >
                             <FontAwesomeIcon icon={faGithub} /> View on GitHub
                         </a>

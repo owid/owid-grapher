@@ -119,6 +119,7 @@ export class Header extends React.Component<{
                             '"Playfair Display", Georgia, "Times New Roman", serif',
                     }}
                     target="_blank"
+                    rel="noopener"
                 >
                     {title.render(x, y, { fill: "#555" })}
                 </a>
