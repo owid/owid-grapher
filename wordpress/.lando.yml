@@ -37,9 +37,9 @@ events:
         - node: cd web/app/plugins/owid && yarn
 tooling:
     refresh:
-        description: Refreshes local content (--help for more information)
+        description: Refreshes dev content (--help for more information)
         service: appserver
-        cmd: .lando/scripts/refresh.sh
+        cmd: .lando/scripts/refresh-dev.sh
     build:
         description: Installs dependencies and builds app
         service: node
