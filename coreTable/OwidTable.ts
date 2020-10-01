@@ -26,6 +26,7 @@ import { computed, action } from "mobx"
 import {
     Color,
     EPOCH_DATE,
+    SortOrder,
     Time,
     TimeRange,
 } from "grapher/core/GrapherConstants"
@@ -418,7 +419,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: ("asc" | "desc")[]): OwidTable {
+    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): OwidTable {
         return super.sortBy(slugs, orders) as OwidTable
     }
 

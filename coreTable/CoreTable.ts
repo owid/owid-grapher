@@ -227,7 +227,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: ("asc" | "desc")[]): AnyTable {
+    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): AnyTable {
         return new (this.constructor as any)(
             orderBy(this.rows, slugs, orders),
             this.specs,

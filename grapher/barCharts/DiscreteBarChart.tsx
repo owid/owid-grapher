@@ -4,7 +4,11 @@ import { min, max, maxBy } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { ScaleType, BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import {
+    ScaleType,
+    BASE_FONT_SIZE,
+    SortOrder,
+} from "grapher/core/GrapherConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -18,6 +22,7 @@ import {
     DiscreteBarChartManager,
     DiscreteBarDatum,
 } from "./DiscreteBarChartConstants"
+import { OwidTableSlugs } from "coreTable/OwidTable"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -374,7 +379,7 @@ export class DiscreteBarChart
 
         const showYearLabels =
             this.manager.showYearLabels || datum.time !== endTimelineTime
-        const displayValue = column.formatValue(datum.value)
+        const displayValue = column.formatValueShort(datum.value)
         return (
             displayValue +
             (showYearLabels
@@ -399,7 +404,10 @@ export class DiscreteBarChart
             .filterByTargetTime(...rootYColumn.timeTarget)
 
         if (this.isLogScale) table = table.filterNegativesForLogScale(slug)
-        return table.sortBy([slug, "entityName"], ["desc", "asc"])
+        return table.sortBy(
+            [slug, OwidTableSlugs.entityName],
+            [SortOrder.desc, SortOrder.asc]
+        )
     }
 
     @computed private get valuesToColorsMap() {
