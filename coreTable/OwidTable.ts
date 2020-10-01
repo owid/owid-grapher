@@ -827,25 +827,24 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 }
 
 interface SynthOptions {
-    countryCount: number
-    countryNames: string[]
+    entityCount: number
+    entityNames: string[]
     timeRange: TimeRange
     columnSpecs: OwidColumnSpec[]
 }
 
-// Generate a fake table for testing
 export const SynthesizeOwidTable = (
     options?: Partial<SynthOptions>,
     seed = Date.now()
 ) => {
     const finalOptions: SynthOptions = {
-        countryNames: [],
-        countryCount: 2,
+        entityNames: [],
+        entityCount: 2,
         timeRange: [1950, 2020],
         columnSpecs: [],
         ...options,
     }
-    const { countryCount, columnSpecs, timeRange, countryNames } = finalOptions
+    const { entityCount, columnSpecs, timeRange, entityNames } = finalOptions
     const colSlugs = ([
         OwidTableSlugs.entityName,
         OwidTableSlugs.entityCode,
@@ -853,18 +852,21 @@ export const SynthesizeOwidTable = (
         OwidTableSlugs.year,
     ] as ColumnSlug[]).concat(columnSpecs.map((col) => col.slug!))
 
-    const entities = countryNames.length
-        ? (countryNames as string[]).map((name) =>
-              countries.find((country) => country.name === name)
-          )
-        : sampleFrom(countries, countryCount, seed)
+    const entities = entityNames.length
+        ? entityNames.map((name) => {
+              return {
+                  name,
+                  code: name.substr(0, 3).toUpperCase(),
+              }
+          })
+        : sampleFrom(countries, entityCount, seed)
 
-    const rows = entities.map((country, index) =>
+    const rows = entities.map((entity, index) =>
         range(timeRange[0], timeRange[1])
             .map((year) =>
                 [
-                    country.name,
-                    country.code,
+                    entity.name,
+                    entity.code,
                     index,
                     year,
                     ...columnSpecs.map((spec) => spec.generator!()),
@@ -873,13 +875,30 @@ export const SynthesizeOwidTable = (
             .join("\n")
     )
 
-    const table = OwidTable.fromDelimited(
+    return OwidTable.fromDelimited(
         `${colSlugs.join(",")}\n${rows.join("\n")}`,
         columnSpecs
     )
-
-    return table
 }
+
+export const SynthesizeNonCountryTable = (
+    options?: Partial<SynthOptions>,
+    seed = Date.now()
+) =>
+    SynthesizeOwidTable(
+        {
+            entityNames: ["Fire", "Earthquake", "Tornado"],
+            columnSpecs: [
+                {
+                    slug: "Disasters",
+                    type: ColumnTypeNames.Integer,
+                    generator: getRandomNumberGenerator(0, 20, seed),
+                },
+            ],
+            ...options,
+        },
+        seed
+    )
 
 export const SynthesizeGDPTable = (
     options?: Partial<SynthOptions>,

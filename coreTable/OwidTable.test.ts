@@ -129,7 +129,7 @@ Papua New Guinea,PNG,1983,5.5`
 it("can perfrom queries needed by discrete bar", () => {
     const table = SynthesizeGDPTable(
         {
-            countryCount: 3,
+            entityCount: 3,
             timeRange: [2000, 2004],
         },
         10
@@ -163,7 +163,7 @@ it("can parse data to Javascript data structures", () => {
 it("can group data by entity and time", () => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
-        countryCount: 5,
+        entityCount: 5,
     })
 
     const timeValues = flatten(
@@ -187,7 +187,7 @@ usa,usa,1,322,2000,2`
 it("can synth numerics", () => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2001],
-        countryCount: 1,
+        entityCount: 1,
     })
 
     const row = table.get("GDP")!.owidRows[0]
@@ -227,7 +227,7 @@ usa,us,23,`)
 describe("time filtering", () => {
     it("can filter by time domain", () => {
         const table = SynthesizeGDPTable({
-            countryCount: 2,
+            entityCount: 2,
             timeRange: [2000, 2005],
         })
 
@@ -239,7 +239,7 @@ describe("time filtering", () => {
     it("can filter by time target", () => {
         const table = SynthesizeGDPTable(
             {
-                countryCount: 2,
+                entityCount: 2,
                 timeRange: [2000, 2005],
             },
             1
@@ -257,7 +257,7 @@ describe("time filtering", () => {
         ).toBe(1)
 
         const table2 = SynthesizeGDPTable({
-            countryCount: 1,
+            entityCount: 1,
             timeRange: [2000, 2001],
         })
 
@@ -323,7 +323,7 @@ describe("rolling averages", () => {
 describe("relative mode", () => {
     // 2 columns. 2 countries. 2 years
     let table = SynthesizeFruitTable({
-        countryCount: 2,
+        entityCount: 2,
         timeRange: [2000, 2002],
     })
 

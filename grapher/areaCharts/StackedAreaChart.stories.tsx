@@ -10,7 +10,7 @@ export default {
 
 const entitiesChart: ChartManager = {
     table: SynthesizeGDPTable({
-        countryCount: 10,
+        entityCount: 10,
         timeRange: [1950, 2010],
     }),
     yColumnSlugs: ["GDP"],

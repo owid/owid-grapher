@@ -10,7 +10,7 @@ export default {
 export const Default = () => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
-        countryCount: 5,
+        entityCount: 5,
     })
     const manager = { table, yColumnSlugs: ["GDP"] }
     table.selectAll()

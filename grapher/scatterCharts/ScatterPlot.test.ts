@@ -5,7 +5,7 @@ import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2010],
-    countryCount: 2,
+    entityCount: 2,
 })
 const manager = {
     table,

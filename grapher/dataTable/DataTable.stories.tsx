@@ -11,7 +11,7 @@ export default {
 
 const table = SynthesizeGDPTable({
     timeRange: [1950, 2010],
-    countryCount: 7,
+    entityCount: 7,
 })
 
 export const Default = () => {
@@ -34,7 +34,7 @@ export const WithTolerance = () => {
     const table = SynthesizeGDPTable(
         {
             timeRange: [2010, 2020],
-            countryCount: 3,
+            entityCount: 3,
         },
         3,
         {

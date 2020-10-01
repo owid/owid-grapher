@@ -8,7 +8,7 @@ import { MapChart } from "./MapChart"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2010],
-    countryNames: ["France", "Germany"],
+    entityNames: ["France", "Germany"],
 })
 const manager: MapChartManager = {
     table,

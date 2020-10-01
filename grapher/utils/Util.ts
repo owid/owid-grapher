@@ -593,8 +593,11 @@ export const getRandomNumberGenerator = (
     return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
 }
 
-export const sampleFrom = (collection: any[], howMany: number, seed: number) =>
-    shuffleArray(collection, seed).slice(0, howMany)
+export const sampleFrom = <T>(
+    collection: T[],
+    howMany: number,
+    seed: number
+): T[] => shuffleArray(collection, seed).slice(0, howMany)
 
 // A seeded array shuffle
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array

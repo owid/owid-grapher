@@ -19,7 +19,7 @@ export default {
 // One chart for France. One for Germany. One line for pop. One line for GDP.
 export const Default = (args: any) => {
     const table = SynthesizeGDPTable({
-        countryCount: (args.countryCount ?? 4) || 1,
+        entityCount: (args.countryCount ?? 4) || 1,
     })
     const manager: ChartManager = {
         table,

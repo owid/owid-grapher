@@ -11,7 +11,7 @@ export default {
 export const Default = () => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2010],
-        countryCount: 200,
+        entityCount: 200,
     })
 
     const manager: MapChartManager = {
