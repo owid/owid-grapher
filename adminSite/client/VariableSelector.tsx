@@ -12,6 +12,9 @@ import {
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArchive } from "@fortawesome/free-solid-svg-icons/faArchive"
+
 import { asArray } from "utils/client/react-select"
 import { ChartEditor, Dataset, Namespace } from "./ChartEditor"
 import { TextField, FieldsRow, Toggle, Modal } from "./Forms"
@@ -136,6 +139,11 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
         const { name, description, isArchived } = namespace
         return (
             <span className={isArchived ? "muted-option" : ""}>
+                {isArchived && (
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faArchive} />
+                    </span>
+                )}
                 {description ? `${description} — ` : null}
                 {name}
                 {isArchived && <span className="badge">Archived</span>}
