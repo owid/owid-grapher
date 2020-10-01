@@ -133,9 +133,14 @@ export class VariableSelector extends React.Component<VariableSelectorProps> {
     }
 
     formatNamespaceLabel(namespace: Namespace) {
-        if (namespace.description)
-            return `${namespace.description} — ${namespace.name}`
-        else return namespace.name
+        const { name, description, isArchived } = namespace
+        return (
+            <span className={isArchived ? "muted-option" : ""}>
+                {description ? `${description} — ` : null}
+                {name}
+                {isArchived && <span className="badge">Archived</span>}
+            </span>
+        )
     }
 
     filterNamespace(option: any, input: string) {

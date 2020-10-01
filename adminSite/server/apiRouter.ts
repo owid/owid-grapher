@@ -357,11 +357,21 @@ apiRouter.get(
     "/editorData/namespaces.json",
     async (req: Request, res: Response) => {
         const rows = (await db.query(
-            `SELECT DISTINCT namespace AS name, namespaces.description FROM datasets JOIN namespaces ON namespaces.name = datasets.namespace`
-        )) as { name: string; description: string }[]
+            `SELECT DISTINCT
+                namespace AS name,
+                namespaces.description AS description,
+                namespaces.isArchived AS isArchived
+            FROM datasets
+            JOIN namespaces ON namespaces.name = datasets.namespace`
+        )) as { name: string; description?: string; isArchived: boolean }[]
 
         return {
-            namespaces: lodash.sortBy(rows, (row) => row.description),
+            namespaces: lodash
+                .sortBy(rows, (row) => row.description)
+                .map((namespace) => ({
+                    ...namespace,
+                    isArchived: !!namespace.isArchived,
+                })),
         }
     }
 )
