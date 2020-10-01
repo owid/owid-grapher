@@ -1,50 +1,20 @@
 #!/bin/bash -e
 
+################################################
+# Deploy from dev to staging targets or live #
+################################################
+
 USER="$(id -un)" # $USER empty in vscode terminal
-BRANCH="$(git rev-parse --abbrev-ref HEAD)" # use "git branch --show-current" when git updated
+BRANCH="$(git branch --show-current)"
+WORDPRESS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 PATH_OWID_PLUGIN="web/app/plugins/owid"
 ROOT="/home/owid"
 
-if [ "$1" == "staging" ]; then
+if [[ "$1" =~ ^(staging|hans|playfair|jefferson|nightingale|explorer|exemplars|tufte|roser)$ ]]; then
   HOST="owid-staging"
-  PREFIX="staging"
-
-elif [ "$1" == "explorer" ]; then
-  HOST="owid-staging"
-  PREFIX="explorer"
-
-elif [ "$1" == "hans" ]; then
-  HOST="owid-staging"
-  PREFIX="hans"
-
-elif [ "$1" == "playfair" ]; then
-  HOST="owid-staging"
-  PREFIX="playfair"
-
-elif [ "$1" == "nightingale" ]; then
- HOST="owid-staging"
- PREFIX="nightingale"
-
-elif [ "$1" == "jefferson" ]; then
-  HOST="owid-staging"
-  PREFIX="jefferson"
-
-elif [ "$1" == "exemplars" ]; then
- HOST="owid-staging"
- PREFIX="exemplars"
-
-elif [ "$1" == "tufte" ]; then
- HOST="owid-staging"
- PREFIX="tufte"
-
-elif [ "$1" == "roser" ]; then
- HOST="owid-staging"
- PREFIX="roser"
-
 elif [ "$1" == "live" ]; then
   HOST="owid-live"
-  PREFIX="live"
-  
+
   if [ "$BRANCH" != "master" ]; then
     echo "Please run from the master branch."
     exit 1
@@ -55,32 +25,32 @@ elif [ "$1" == "live" ]; then
   fi
 
   # Prompt for confirmation if deploying to live
-  read -p "Are you sure you want to deploy to '$PREFIX'? " -n 1 -r
+  read -p "Are you sure you want to deploy to '$1'? " -n 1 -r
 else
   echo "Please select either live or a valid test target."
   exit 1
 fi
 
 if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
-  NAME="$PREFIX-wordpress"
+  NAME="$1-wordpress"
   OLD_REPO_BACKUP="$ROOT/tmp/$NAME-old"
   SYNC_TARGET="$ROOT/tmp/$NAME-$USER"
   TMP_NEW="$ROOT/tmp/$NAME-$USER-tmp"
   FINAL_TARGET="$ROOT/$NAME"
-  FINAL_DATA="$ROOT/$PREFIX-data"
-  GRAPHER_DIR="$ROOT/$PREFIX"
+  FINAL_DATA="$ROOT/$1-data"
+  GRAPHER_DIR="$ROOT/$1"
 
   # Rsync the local repository to a temporary location on the server
   echo 'Uploading files...'
-  rsync -havz --progress --delete --delete-excluded --filter="merge .rsync-filter" ./ $HOST:$SYNC_TARGET
+  rsync -havz --progress --delete --delete-excluded --filter="merge $WORDPRESS_DIR/.rsync-filter" $WORDPRESS_DIR/ $HOST:$SYNC_TARGET
 
   echo 'Performing atomic copy...'
   ssh -t $HOST 'bash -e -s' <<EOF
-  
+
   # Ensure target directories exist
   mkdir -p $ROOT/tmp
   mkdir -p $FINAL_TARGET
-  
+
   # Remove any previous temporary repo
   rm -rf $TMP_NEW
 
@@ -94,7 +64,7 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [ "$1" != "live" ]; then
   cd $TMP_NEW/$PATH_OWID_PLUGIN
   yarn install
   yarn build
-  
+
   # Link in all the persistent stuff that needs to stay around between versions
   ln -s $FINAL_DATA/wordpress/.env $TMP_NEW/.env
   ln -s $FINAL_DATA/wordpress/uploads $TMP_NEW/web/app/uploads
