@@ -48,6 +48,7 @@ export interface ChartRedirect {
 export interface Namespace {
     name: string
     description?: string
+    isArchived: boolean
 }
 
 // This contains the dataset/variable metadata for the entire database

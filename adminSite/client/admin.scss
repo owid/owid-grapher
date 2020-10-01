@@ -344,6 +344,21 @@ body {
         margin-bottom: 0.4em;
         border: 1px solid #ccc;
     }
+
+    .muted-option {
+        opacity: 0.55;
+    }
+
+    .badge {
+        background-color: #999;
+        border-radius: 2px;
+        text-transform: uppercase;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 4px;
+        color: white;
+        margin-left: 4px;
+    }
 }
 
 .EditorDataTab {
