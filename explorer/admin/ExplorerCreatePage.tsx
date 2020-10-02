@@ -7,7 +7,7 @@ import {
 } from "adminSite/client/AdminAppContext"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
 import { HotTable } from "@handsontable/react"
-import { action, observable, computed, autorun } from "mobx"
+import { action, observable, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grid } from "grapher/utils/Util"
 import {
@@ -184,9 +184,9 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
                     </div>
                     <div style={{ height: "500px", overflow: "scroll" }}>
                         <SwitcherExplorer
-                            chartConfigs={this.chartConfigs}
-                            bindToWindow={false}
-                            program={this.program}
+                            chartConfigs={Object.values(this.chartConfigs)}
+                            explorerProgramCode={this.program.toString()}
+                            slug={this.program.slug}
                         />
                     </div>
                     <div>

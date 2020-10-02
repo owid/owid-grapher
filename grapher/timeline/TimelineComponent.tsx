@@ -28,7 +28,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     @observable private dragTarget?: "start" | "end" | "both"
 
-    @computed private get isDragging(): boolean {
+    @computed private get isDragging() {
         return !!this.dragTarget
     }
 
@@ -63,7 +63,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.showTooltips()
     }
 
-    @action private showTooltips() {
+    @action.bound private showTooltips() {
         this.hideStartTooltip.cancel()
         this.hideEndTooltip.cancel()
         this.startTooltipVisible = true

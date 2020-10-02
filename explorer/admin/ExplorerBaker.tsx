@@ -18,7 +18,7 @@ import {
     covidWpBlockId,
 } from "explorer/covidExplorer/CovidConstants"
 
-import { SwitcherBootstrapProps } from "explorer/client/SwitcherExplorer"
+import { SwitcherExplorerProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
 import { Router } from "express"
@@ -132,18 +132,22 @@ async function renderSwitcherExplorerPage(slug: string, code: string) {
         [program.requiredChartIds]
     )
 
-    const props: SwitcherBootstrapProps = {
+    const props: SwitcherExplorerProps = {
         bindToWindow: true,
         slug,
         explorerProgramCode: program.toString(),
         chartConfigs: chartConfigs.map((row) => {
             const config = JSON.parse(row.config)
-            config.id = row.id
+            config.id = row.id // Ensure each grapher has an id
             return config
         }),
     }
 
-    const script = `window.SwitcherExplorer.bootstrap(${JSON.stringify(props)})`
+    const script = `window.SwitcherExplorer.bootstrap(${JSON.stringify(
+        props,
+        null,
+        2
+    )})`
 
     const wpContent = program.wpBlockId
         ? await getBlockContent(program.wpBlockId)

@@ -268,24 +268,15 @@ export class Grapher
         else if (this.externalDataUrl)
             this.downloadLegacyDataFromUrl(this.externalDataUrl)
         else if (!this.manuallyProvideData)
-            this.disposers.push(
-                reaction(
-                    () => this.variableIds,
-                    this.downloadLegacyDataFromOwidVariableIds,
-                    {
-                        fireImmediately: true,
-                    }
-                )
-            )
+            this.downloadLegacyDataFromOwidVariableIds()
 
         this.url = new GrapherUrl(this, modernConfig, this.bakedGrapherURL)
 
-        if (props.queryStr !== undefined)
-            this.populateFromQueryParams(
-                legacyQueryParamsToCurrentQueryParams(
-                    strToQueryParams(props.queryStr)
-                )
-            )
+        this.queryParams = legacyQueryParamsToCurrentQueryParams(
+            strToQueryParams(props.queryStr || "")
+        )
+
+        if (this.queryParams) this.populateFromQueryParams(this.queryParams)
 
         // The props after consuming the URL parameters, but before any user interaction
         this.configOnLoad = this.toObject()
@@ -300,7 +291,11 @@ export class Grapher
         }
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()
+
+        if (typeof window !== "undefined") window.grapher = this
     }
+
+    private queryParams: GrapherQueryParams
 
     toObject() {
         const obj: GrapherInterface = objectWithPersistablesToObject(this)
@@ -404,36 +399,7 @@ export class Grapher
         const region = params.region
         if (region !== undefined) this.map.projection = region as MapProjection
 
-        // Selected countries -- we can't actually look these up until we have the data
-        const country = params.country
-        if (
-            this.manuallyProvideData ||
-            !country ||
-            this.addCountryMode === EntitySelectionMode.Disabled
-        )
-            return
-        when(
-            () => this.isReady,
-            () => {
-                runInAction(() => {
-                    const entityCodes = EntityUrlBuilder.queryParamToEntities(
-                        country
-                    )
-                    const matchedEntities = new Set(
-                        this.table.setSelectedEntitiesByCode(entityCodes)
-                    )
-
-                    const notFoundEntities = entityCodes.filter(
-                        (code) => !matchedEntities.has(code)
-                    )
-
-                    if (notFoundEntities.length)
-                        this.analytics.logEntitiesNotFoundError(
-                            notFoundEntities
-                        )
-                })
-            }
-        )
+        if (this.hasSelectionInUrl) this.setSelectionFromUrl()
     }
 
     setTimeFromTimeQueryParam(time: string) {
@@ -551,32 +517,36 @@ export class Grapher
     ) {
         this.rootTable = OwidTable.fromLegacy(json, this.legacyConfigAsAuthored)
 
-        if (this.selectedEntityIds.length)
+        if (this.hasSelectionInUrl) this.setSelectionFromUrl()
+        else if (this.selectedEntityIds.length)
             this.rootTable.setSelectedEntitiesByEntityId(this.selectedEntityIds)
         else if (this.selectedEntityNames.length)
             this.rootTable.setSelectedEntities(this.selectedEntityNames)
     }
 
-    // todo: refactor
-    @computed get selectedCountryNames() {
-        // Get the countries that are already selected
-        let countryCodes = EntityUrlBuilder.queryParamToEntities(
-            this.url?.params.country || ""
+    @computed get hasSelectionInUrl() {
+        return (
+            this.queryParams.country !== undefined &&
+            !this.manuallyProvideData &&
+            this.addCountryMode !== EntitySelectionMode.Disabled
         )
-        // Get the countries from the url
-        countryCodes = countryCodes.concat(
-            EntityUrlBuilder.queryParamToEntities(
-                getWindowQueryParams().country || ""
-            )
+    }
+
+    @action.bound private setSelectionFromUrl() {
+        const urlSelection = this.queryParams.country || ""
+        // Selected countries -- we can't actually look these up until we have the data
+
+        const entityCodes = EntityUrlBuilder.queryParamToEntities(urlSelection)
+        const matchedEntities = new Set(
+            this.rootTable.setSelectedEntitiesByCode(entityCodes)
         )
-        return new Set<string>(
-            countryCodes
-                .map((code) =>
-                    countries.find((country) => country.code === code)
-                )
-                .filter((i) => i)
-                .map((c) => c!.name)
+
+        const notFoundEntities = entityCodes.filter(
+            (code) => !matchedEntities.has(code)
         )
+
+        if (notFoundEntities.length)
+            this.analytics.logEntitiesNotFoundError(notFoundEntities)
     }
 
     @observable.ref private _baseFontSize = BASE_FONT_SIZE
@@ -593,28 +563,6 @@ export class Grapher
 
     set baseFontSize(val: number) {
         this._baseFontSize = val
-    }
-
-    @computed get formatYearTickFunction() {
-        return this.table.hasDayColumn
-            ? (day: number, options?: TickFormattingOptions) =>
-                  formatDay(
-                      day,
-                      options?.isFirstOrLastTick ? {} : { format: "MMM D" }
-                  )
-            : formatYear
-    }
-
-    @computed get sortedUniqueEntitiesAcrossDimensions() {
-        return sortBy(
-            uniq(
-                flatten(
-                    this.filledDimensions.map(
-                        (dim) => dim.column.entityNamesUniqArr
-                    )
-                )
-            )
-        )
     }
 
     // Ready to go iff we have retrieved data for every variable associated with the chart
@@ -701,7 +649,7 @@ export class Grapher
         return uniq(this.dimensions.map((d) => d.variableId))
     }
 
-    @computed get dataFileName() {
+    @computed private get dataFileName() {
         return `${this.variableIds.join("+")}.json?v=${
             this.isEditor ? undefined : this.cacheTag
         }`
@@ -753,6 +701,12 @@ export class Grapher
     // todo: can we remove this?
     // I believe these states can only occur during editing.
     @action.bound private ensureValidConfigWhenEditing() {
+        this.disposers.push(
+            reaction(
+                () => this.variableIds,
+                this.downloadLegacyDataFromOwidVariableIds
+            )
+        )
         const disposers = [
             autorun(() => {
                 if (!this.availableTabs.includes(this.tab))
@@ -1485,14 +1439,10 @@ export class Grapher
         return undefined
     }
 
-    private renderSVG() {
-        return this.renderPrimaryTab()
-    }
-
     private renderReady() {
         return (
             <>
-                {this.hasBeenVisible && this.renderSVG()}
+                {this.hasBeenVisible && this.renderPrimaryTab()}
                 <ControlsFooterView grapher={this} />
                 {this.renderOverlayTab()}
                 {this.popups}
@@ -1707,7 +1657,7 @@ export class Grapher
     render() {
         // TODO how to handle errors in exports?
         // TODO tidy this up
-        if (this.isExport) return this.renderSVG()
+        if (this.isExport) return this.renderPrimaryTab()
 
         const { renderWidth, renderHeight } = this
 
@@ -1739,7 +1689,6 @@ export class Grapher
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     bindToWindow() {
-        window.grapher = this
         new UrlBinder().bindToWindow(this.url)
         autorun(() => (document.title = this.currentTitle))
     }

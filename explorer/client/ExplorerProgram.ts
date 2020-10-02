@@ -43,18 +43,31 @@ export enum ProgramKeyword {
     wpBlockId = "wpBlockId",
 }
 
+export interface ExplorerManager {
+    chartId?: number
+    selectedRowIndex?: number
+}
+
 export class ExplorerProgram {
-    constructor(slug: string, tsv: string, queryString: string = "") {
+    constructor(
+        slug: string,
+        tsv: string,
+        queryString: string = "",
+        manager: ExplorerManager = {}
+    ) {
         this.lines = tsv.replace(/\r/g, "").split(this.nodeDelimiter)
         this.slug = slug
         queryString = queryString ? queryString : this.defaultView || ""
         this.switcherRuntime = new SwitcherRuntime(
             this.switcherCode || "",
-            queryString
+            queryString,
+            manager
         )
         this.queryString = queryString
+        this.manager = manager
     }
 
+    private manager: ExplorerManager
     slug: string
     queryString: string
     switcherRuntime: SwitcherRuntime
@@ -258,7 +271,12 @@ const removeColumnTypeInfo = (str: string) => {
 export class SwitcherRuntime {
     private parsed: any[]
     @observable private _settings: any = {}
-    constructor(delimited: string, queryString: string = "") {
+    constructor(
+        delimited: string,
+        queryString: string = "",
+        manager: ExplorerManager = {}
+    ) {
+        this.manager = manager
         this.columnTypes = extractColumnTypes(delimited)
         delimited = removeColumnTypeInfo(delimited)
         this.parsed = parseDelimited(delimited)
@@ -272,6 +290,8 @@ export class SwitcherRuntime {
             else this.setValue(name, queryParams[name])
         })
     }
+
+    private manager: ExplorerManager
 
     columnTypes: ControlType[]
 
@@ -300,6 +320,8 @@ export class SwitcherRuntime {
 
     @action.bound setValue(group: string, value: any) {
         this._settings[group] = value
+        this.manager.chartId = this.chartId
+        this.manager.selectedRowIndex = this.selectedRowIndex
     }
 
     @computed get columnNames() {

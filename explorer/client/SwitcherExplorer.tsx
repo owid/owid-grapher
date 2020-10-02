@@ -1,69 +1,51 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, when, reaction, computed } from "mobx"
+import { action, observable, computed, autorun } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
-import { uniq } from "grapher/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
-import { ExplorerProgram } from "./ExplorerProgram"
+import { ExplorerProgram, ExplorerManager } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
-declare type chartId = number
-
-export interface SwitcherBootstrapProps {
+export interface SwitcherExplorerProps {
     explorerProgramCode: string
     slug: string
-    chartConfigs: GrapherInterface[]
-    bindToWindow: boolean
+    chartConfigs?: GrapherInterface[]
+    bindToWindow?: boolean
+    queryString?: string
 }
 
 @observer
-export class SwitcherExplorer extends React.Component<{
-    chartConfigs: Map<chartId, GrapherInterface>
-    program: ExplorerProgram
-    bindToWindow: boolean
-}> {
-    static bootstrap(props: SwitcherBootstrapProps) {
-        const { chartConfigs, explorerProgramCode, bindToWindow, slug } = props
-        const containerId = "explorerContainer"
-        const containerNode = document.getElementById(containerId)
-        const program = new ExplorerProgram(
-            slug,
-            explorerProgramCode,
-            window.location.search
-        )
-        const chartConfigsMap: Map<number, GrapherInterface> = new Map()
-        chartConfigs.forEach((config) =>
-            chartConfigsMap.set(config.id!, config)
-        )
-
+export class SwitcherExplorer
+    extends React.Component<SwitcherExplorerProps>
+    implements ExplorerManager {
+    static bootstrap(props: SwitcherExplorerProps) {
         return ReactDOM.render(
             <SwitcherExplorer
-                program={program}
-                chartConfigs={chartConfigsMap}
-                bindToWindow={bindToWindow}
+                {...props}
+                queryString={window.location.search}
             />,
-            containerNode
+            document.getElementById("explorerContainer")
         )
     }
 
     private urlBinding?: UrlBinder
-    private lastId = 0
 
-    @observable availableEntities: string[] = []
-
-    private get switcherRuntime() {
-        return this.props.program.switcherRuntime
-    }
-
-    @observable private _grapher?: Grapher = this.setGrapher(
-        this.switcherRuntime.chartId
+    private explorerProgram = new ExplorerProgram(
+        this.props.slug,
+        this.props.explorerProgramCode,
+        this.props.queryString,
+        this
     )
+
+    @observable chartId: number = this.explorerProgram.switcherRuntime.chartId
+
+    @observable.ref private grapher = new Grapher()
 
     @observable hideControls = false
 
@@ -71,14 +53,28 @@ export class SwitcherExplorer extends React.Component<{
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
         params.country = EntityUrlBuilder.entitiesToQueryParam(
-            this._grapher?.table.selectedEntityNames || []
+            this.grapher.table.selectedEntityNames || []
         )
         return params as QueryParams
     }
 
-    private bindToWindow() {
-        const url = new ExtendedGrapherUrl(this._grapher!.url, [
-            this.switcherRuntime,
+    componentDidMount() {
+        autorun(() => this.switchGrapher(this.chartId))
+    }
+
+    @computed get chartConfigs() {
+        const arr = this.props.chartConfigs || []
+        const chartConfigsMap: Map<number, GrapherInterface> = new Map()
+        arr.forEach((config) => chartConfigsMap.set(config.id!, config))
+        return chartConfigsMap
+    }
+
+    @action.bound private switchGrapher(id: number) {
+        this.grapher = this.getGrapher(id, this.grapher)
+        if (!this.props.bindToWindow) return
+
+        const url = new ExtendedGrapherUrl(this.grapher.url, [
+            this.explorerProgram.switcherRuntime,
             this,
         ])
 
@@ -86,64 +82,43 @@ export class SwitcherExplorer extends React.Component<{
         else this.urlBinding = new UrlBinder()
 
         this.urlBinding.bindToWindow(url)
-        const win = window as any
-        win.switcherExplorer = this
+        ;(window as any).switcherExplorer = this
     }
 
-    componentDidMount() {
-        // todo: remove reaction (https://github.com/owid/owid-grapher/pull/631)
-        reaction(() => this.switcherRuntime.chartId, this.switchGrapher, {
-            fireImmediately: true,
-        })
-    }
+    private getGrapher(id: number, currentGrapher?: Grapher) {
+        const currentQueryParams = currentGrapher
+            ? currentGrapher.url.params
+            : strToQueryParams(this.props.queryString || "")
 
-    @action.bound private setGrapher(newId: number) {
-        const currentParams = this._grapher
-            ? this._grapher.url.params
-            : strToQueryParams(this.props.program.queryString)
+        const grapher = new Grapher(this.chartConfigs.get(id))
+        grapher.url.dropUnchangedParams = false
+        grapher.hideEntityControls = !this.hideControls && !this.isEmbed
+        grapher.populateFromQueryParams(currentQueryParams)
+        if (currentGrapher)
+            grapher.rootTable.setSelectedEntities(
+                currentGrapher.rootTable.selectedEntityNames
+            )
 
-        this._grapher = new Grapher(this.props.chartConfigs.get(newId))
-        this._grapher.url.dropUnchangedParams = false
-        this._grapher.hideEntityControls = !this.hideControls && !this.isEmbed
-        if (this.props.bindToWindow) this.bindToWindow()
-
-        this._grapher.populateFromQueryParams(currentParams)
-
-        // todo: remove when
-        when(
-            () => this._grapher!.isReady,
-            () => {
-                // Add any missing entities
-                this.availableEntities = uniq([
-                    ...this.availableEntities,
-                    ...this._grapher!.table.availableEntityNames,
-                ]).sort()
-            }
-        )
-
-        this.lastId = newId
-        return this._grapher
-    }
-
-    @action.bound private switchGrapher() {
-        const newId = this.switcherRuntime.chartId
-        if (newId === this.lastId) return
-        this.setGrapher(newId)
+        // todo: expand availableentities
+        return grapher
     }
 
     private get panels() {
-        return this.switcherRuntime.groups.map((group) => (
+        return this.explorerProgram.switcherRuntime.groups.map((group) => (
             <ExplorerControlPanel
                 key={group.title}
                 value={group.value}
                 title={group.title}
-                explorerSlug={this.props.program.slug}
+                explorerSlug={this.explorerProgram.slug}
                 name={group.title}
                 dropdownOptions={group.dropdownOptions}
                 options={group.options}
                 isCheckbox={group.isCheckbox}
                 onChange={(value) => {
-                    this.switcherRuntime.setValue(group.title, value)
+                    this.explorerProgram.switcherRuntime.setValue(
+                        group.title,
+                        value
+                    )
                 }}
             />
         ))
@@ -153,11 +128,13 @@ export class SwitcherExplorer extends React.Component<{
         return (
             <>
                 <div></div>
-                <div className="ExplorerTitle">{this.props.program.title}</div>
+                <div className="ExplorerTitle">
+                    {this.explorerProgram.title}
+                </div>
                 <div
                     className="ExplorerSubtitle"
                     dangerouslySetInnerHTML={{
-                        __html: this.props.program.subtitle || "",
+                        __html: this.explorerProgram.subtitle || "",
                     }}
                 ></div>
             </>
@@ -174,8 +151,8 @@ export class SwitcherExplorer extends React.Component<{
             <ExplorerShell
                 headerElement={this.header}
                 controlPanels={this.panels}
-                explorerSlug={this.props.program.slug}
-                grapher={this._grapher!}
+                explorerSlug={this.explorerProgram.slug}
+                grapher={this.grapher}
                 hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
             />

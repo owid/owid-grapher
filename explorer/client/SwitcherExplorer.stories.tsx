@@ -1,6 +1,5 @@
 import * as React from "react"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
-import { ExplorerProgram } from "explorer/client/ExplorerProgram"
 
 export default {
     title: "SwitcherExplorer",
@@ -43,13 +42,5 @@ switcher
 	4243	Methane	Production-based		Per capita
 	4224	Nitrous oxide	Production-based		Per country
 	4244	Nitrous oxide	Production-based		Per capita`
-    const configs = new Map()
-    const program = new ExplorerProgram("some-slug", code)
-    return (
-        <SwitcherExplorer
-            bindToWindow={false}
-            chartConfigs={configs}
-            program={program}
-        />
-    )
+    return <SwitcherExplorer slug={"some-slug"} explorerProgramCode={code} />
 }

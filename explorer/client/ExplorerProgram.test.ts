@@ -98,8 +98,7 @@ describe(SwitcherRuntime, () => {
                 `country,indicator
 usa,GDP
 usa,Life expectancy
-france,Life expectancy`,
-                ""
+france,Life expectancy`
             )
             expect(true).toBe(false)
         } catch (err) {
@@ -112,15 +111,14 @@ france,Life expectancy`,
             `chartId,country,indicator
 123,usa,
 32,usa,
-23,france,`,
-            ""
+23,france,`
         )
         expect(options.chartId).toEqual(123)
         expect(options.groups.length).toBeGreaterThan(0)
     })
 
     it("handles empty options", () => {
-        const options = new SwitcherRuntime(``, "")
+        const options = new SwitcherRuntime(``)
         expect(options.groups.length).toEqual(0)
     })
 
@@ -129,8 +127,7 @@ france,Life expectancy`,
             `chartId,Gas,Accounting
 488,CO₂,Production-based
 4331,CO₂,Consumption-based
-4147,GHGs,Production-based`,
-            ""
+4147,GHGs,Production-based`
         )
         options.setValue("Gas", "CO₂")
         options.setValue("Accounting", "Consumption-based")
