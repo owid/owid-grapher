@@ -148,7 +148,7 @@ export class ChartEditorPage
                 : await admin.getJSON(
                       `/api/charts/${grapherId}.references.json`
                   )
-        runInAction(() => (this.references = json.references))
+        runInAction(() => (this.references = json.references || []))
     }
 
     async fetchRedirects() {

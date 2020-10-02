@@ -65,6 +65,7 @@ export interface DataTableManager {
     table: OwidTable
     endTime?: Time
     startTime?: Time
+    minPopulationFilter?: number
 }
 
 @observer
@@ -200,9 +201,9 @@ export class DataTable extends React.Component<{
     private get dimensionHeaders() {
         const { sort } = this.tableState
         return this.displayDimensions.map((dim, dimIndex) => {
-            const actualColumn = dim.coreColumn
+            const actualColumn = dim.coreTableColumn
             const unit =
-                actualColumn.unit === "%" ? "percent" : dim.coreColumn.unit
+                actualColumn.unit === "%" ? "percent" : dim.coreTableColumn.unit
             const dimensionHeaderText = (
                 <React.Fragment>
                     <span className="name">
@@ -236,7 +237,9 @@ export class DataTable extends React.Component<{
             dim.columns.map((column) => {
                 const headerText =
                     column.targetTimeMode === TargetTimeMode.point
-                        ? dim.coreColumn.table.formatTime(column.targetTime!)
+                        ? dim.coreTableColumn.table.formatTime(
+                              column.targetTime!
+                          )
                         : columnNameByType[column.key]
                 return (
                     <ColumnHeader
@@ -344,7 +347,7 @@ export class DataTable extends React.Component<{
                             dv,
                             sort.dimIndex === dimIndex &&
                                 sort.columnKey === column.key,
-                            dimension.coreColumn
+                            dimension.coreTableColumn
                         )
                     })
                 })}
@@ -433,17 +436,13 @@ export class DataTable extends React.Component<{
 
     @computed get availableTimes() {
         return intersection(
-            flatten(this.columns.map((column) => column.timesUniq))
+            flatten(this.table.columnsAsArray.map((column) => column.timesUniq))
         )
-    }
-
-    @computed get columns() {
-        return this.table.columnsAsArray
     }
 
     @computed private get columnsToShow() {
         const skips = new Set(Object.keys(OwidTableSlugs))
-        return this.columns.filter(
+        return this.table.columnsAsArray.filter(
             (column) =>
                 !skips.has(column.slug) &&
                 //  dim.property !== "color" &&
@@ -456,7 +455,11 @@ export class DataTable extends React.Component<{
     }
 
     @computed get entities() {
-        const tableForEntities = this.table.rootTable
+        let tableForEntities = this.table.rootTable
+        if (this.manager.minPopulationFilter)
+            tableForEntities = tableForEntities.filterByPopulation(
+                this.manager.minPopulationFilter
+            )
         return union(
             ...this.columnSlugsToShow.map(
                 (slug) => tableForEntities.get(slug)?.entityNamesUniqArr || []
@@ -486,6 +489,7 @@ export class DataTable extends React.Component<{
         return [endTime]
     }
 
+    // todo: this function should be refactored. It's about 5x-10x too long. I'm currently getting an undefined value but it's very hard to figure out where.
     @computed get columnsWithValues(): Dimension[] {
         return this.columnsToShow.map((sourceColumn) => {
             const targetTimes = this.targetTimes ?? [sourceColumn.maxTime]
@@ -630,6 +634,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get displayDimensions(): DataTableDimension[] {
+        // Todo: for sorting etc, use CoreTable?
         return this.columnsWithValues.map((d) => ({
             // A top-level header is only sortable if it has a single nested column, because
             // in that case the nested column is not rendered.
@@ -640,7 +645,7 @@ export class DataTable extends React.Component<{
                 // is not sortable.
                 sortable: true,
             })),
-            coreColumn: d.sourceColumn,
+            coreTableColumn: d.sourceColumn,
         }))
     }
 
@@ -776,7 +781,7 @@ type ColumnKey = SingleValueKey | RangeValueKey
 
 interface DataTableDimension {
     columns: DataTableColumn[]
-    coreColumn: AbstractCoreColumn
+    coreTableColumn: AbstractCoreColumn
     sortable: boolean
 }
 

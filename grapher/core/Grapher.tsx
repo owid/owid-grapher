@@ -432,7 +432,7 @@ export class Grapher
 
     // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
     @computed get hasCountriesSmallerThanFilterOption() {
-        return this.table.availableEntityNames.some(
+        return this.rootTable.availableEntityNames.some(
             (entityName) =>
                 populationMap[entityName] &&
                 populationMap[entityName] < this.populationFilterOption
