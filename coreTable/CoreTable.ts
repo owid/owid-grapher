@@ -47,7 +47,8 @@ export interface CoreColumnSpec {
     shortUnit?: string
     fn?: ComputedColumnFn
     type?: ColumnTypeNames
-    generator?: (...params: any[]) => number // A function for generating synthetic data for testing
+    generator?: () => number // A function for generating synthetic data for testing
+    growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.
     display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
 }
 

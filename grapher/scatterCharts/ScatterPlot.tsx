@@ -16,7 +16,6 @@ import {
     groupBy,
     map,
     sortedFindClosestIndex,
-    defaultTo,
     domainExtent,
     minBy,
     sortNumeric,
@@ -444,21 +443,34 @@ export class ScatterPlot
     }
 
     @computed private get yAxisConfig() {
-        return this.manager.yAxis || new AxisConfig(undefined, this)
-    }
-
-    @computed private get xAxisConfig() {
-        return this.manager.xAxis || new AxisConfig(undefined, this)
-    }
-
-    @computed private get yColumn() {
-        return this.table.get(
-            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
+        return (
+            this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
         )
     }
 
+    @computed private get xAxisConfig() {
+        return (
+            this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
+        )
+    }
+
+    @computed private get yColumnSlug() {
+        const { yColumnSlug, yColumnSlugs, table } = this.manager
+        const ySlugs = yColumnSlugs || []
+        return yColumnSlug ?? ySlugs[0] ?? table.numericColumnSlugs[0]
+    }
+
+    @computed private get yColumn() {
+        return this.table.get(this.yColumnSlug)
+    }
+
+    @computed private get xColumnSlug() {
+        const { xColumnSlug, table } = this.manager
+        return xColumnSlug ?? table.numericColumnSlugs[1]
+    }
+
     @computed private get xColumn() {
-        return this.table.get(this.manager.xColumnSlug)
+        return this.table.get(this.xColumnSlug)
     }
 
     @computed private get sizeColumn() {
@@ -942,10 +954,7 @@ export class ScatterPlot
                     }
                 }
                 const sizes = group.points.map((v) => v.size)
-                group.size = defaultTo(
-                    last(sizes.filter((s) => isNumber(s))),
-                    0
-                )
+                group.size = last(sizes.filter((s) => isNumber(s))) ?? 0
                 seriesArr.push(group)
             }
         })

@@ -87,7 +87,7 @@ export class ComparisonLine extends React.Component<{
         const { linePath, renderUid, placedLabel } = this
 
         return (
-            <g>
+            <g className="comparisonLine">
                 <defs>
                     <clipPath id={`axisBounds-${renderUid}`}>
                         <rect

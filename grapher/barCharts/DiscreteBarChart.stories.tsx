@@ -12,8 +12,7 @@ export default {
 }
 
 export const Countries = () => {
-    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-    table.selectAll()
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] }).selectAll()
 
     const manager: DiscreteBarChartManager = {
         table,
@@ -28,8 +27,7 @@ export const Countries = () => {
 }
 
 export const Other = () => {
-    const table = SynthesizeNonCountryTable()
-    table.selectAll()
+    const table = SynthesizeNonCountryTable().selectAll()
     const manager: DiscreteBarChartManager = {
         table,
         yColumnSlug: "Disasters",

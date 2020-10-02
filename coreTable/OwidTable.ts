@@ -876,19 +876,20 @@ export const SynthesizeOwidTable = (
           })
         : sampleFrom(countries, entityCount, seed)
 
-    const rows = entities.map((entity, index) =>
-        range(timeRange[0], timeRange[1])
-            .map((year) =>
-                [
-                    entity.name,
-                    entity.code,
-                    index,
-                    year,
-                    ...columnSpecs.map((spec) => spec.generator!()),
-                ].join(",")
-            )
+    const rows = entities.map((entity, index) => {
+        let values = columnSpecs.map((spec) => spec.generator!())
+        return range(timeRange[0], timeRange[1])
+            .map((year) => {
+                values = columnSpecs.map(
+                    (spec, index) =>
+                        values[index] * (1 + spec.growthRateGenerator!() / 100)
+                )
+                return [entity.name, entity.code, index, year, ...values].join(
+                    ","
+                )
+            })
             .join("\n")
-    )
+    })
 
     return OwidTable.fromDelimited(
         `${colSlugs.join(",")}\n${rows.join("\n")}`,
@@ -905,15 +906,29 @@ export const SynthesizeNonCountryTable = (
             entityNames: ["Fire", "Earthquake", "Tornado"],
             columnSpecs: [
                 {
-                    slug: "Disasters",
+                    slug: SampleColumnSlugs.Disasters,
                     type: ColumnTypeNames.Integer,
                     generator: getRandomNumberGenerator(0, 20, seed),
+                    growthRateGenerator: getRandomNumberGenerator(
+                        -50,
+                        50,
+                        seed
+                    ),
                 },
             ],
             ...options,
         },
         seed
     )
+
+export enum SampleColumnSlugs {
+    Population = "Population",
+    GDP = "GDP",
+    LifeExpectancy = "LifeExpectancy",
+    Fruit = "Fruit",
+    Vegetables = "Vegetables",
+    Disasters = "Disasters",
+}
 
 export const SynthesizeGDPTable = (
     options?: Partial<SynthOptions>,
@@ -924,15 +939,28 @@ export const SynthesizeGDPTable = (
         {
             columnSpecs: [
                 {
-                    slug: "Population",
+                    slug: SampleColumnSlugs.Population,
                     type: ColumnTypeNames.Population,
                     generator: getRandomNumberGenerator(1e7, 1e9, seed),
+                    growthRateGenerator: getRandomNumberGenerator(-5, 5, seed),
                     display,
                 },
                 {
-                    slug: "GDP",
+                    slug: SampleColumnSlugs.GDP,
                     type: ColumnTypeNames.Currency,
                     generator: getRandomNumberGenerator(1e9, 1e12, seed),
+                    growthRateGenerator: getRandomNumberGenerator(
+                        -15,
+                        15,
+                        seed
+                    ),
+                    display,
+                },
+                {
+                    slug: SampleColumnSlugs.LifeExpectancy,
+                    type: ColumnTypeNames.Age,
+                    generator: getRandomNumberGenerator(60, 90, seed),
+                    growthRateGenerator: getRandomNumberGenerator(-2, 2, seed),
                     display,
                 },
             ],
@@ -949,14 +977,24 @@ export const SynthesizeFruitTable = (
         {
             columnSpecs: [
                 {
-                    slug: "Fruit",
+                    slug: SampleColumnSlugs.Fruit,
                     type: ColumnTypeNames.Numeric,
                     generator: getRandomNumberGenerator(500, 1000, seed),
+                    growthRateGenerator: getRandomNumberGenerator(
+                        -10,
+                        10,
+                        seed
+                    ),
                 },
                 {
-                    slug: "Vegetables",
+                    slug: SampleColumnSlugs.Vegetables,
                     type: ColumnTypeNames.Numeric,
-                    generator: getRandomNumberGenerator(500, 1000, seed),
+                    generator: getRandomNumberGenerator(400, 1000, seed),
+                    growthRateGenerator: getRandomNumberGenerator(
+                        -10,
+                        12,
+                        seed
+                    ),
                 },
             ],
             ...options,
