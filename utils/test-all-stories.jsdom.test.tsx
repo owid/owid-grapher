@@ -60,7 +60,7 @@ runTests(CountryPicker)
 runTests(ScaleSelector)
 runTests(Grapher)
 runTests(DataTable)
-//runTests(FacetChart) // todo: add this back. Commented out because the Test environment does not like dynamic React Component creation
+runTests(FacetChart)
 runTests(Footer)
 runTests(Header)
 runTests(LineChart)

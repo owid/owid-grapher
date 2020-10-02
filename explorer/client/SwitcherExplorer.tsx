@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, when, reaction, autorun } from "mobx"
+import { action, observable, when, reaction, computed } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 import { uniq } from "grapher/utils/Util"
@@ -10,7 +10,8 @@ import ReactDOM from "react-dom"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
-import { strToQueryParams } from "utils/client/url"
+import { QueryParams, strToQueryParams } from "utils/client/url"
+import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 declare type chartId = number
 
@@ -56,10 +57,6 @@ export class SwitcherExplorer extends React.Component<{
 
     @observable availableEntities: string[] = []
 
-    private get explorerRuntime() {
-        return this.props.program.explorerRuntime
-    }
-
     private get switcherRuntime() {
         return this.props.program.switcherRuntime
     }
@@ -68,10 +65,21 @@ export class SwitcherExplorer extends React.Component<{
         this.switcherRuntime.chartId
     )
 
+    @observable hideControls = false
+
+    @computed get toQueryParams(): QueryParams {
+        const params: any = {}
+        params.hideControls = this.hideControls ? true : undefined
+        params.country = EntityUrlBuilder.entitiesToQueryParam(
+            this._grapher?.table.selectedEntityNames || []
+        )
+        return params as QueryParams
+    }
+
     private bindToWindow() {
         const url = new ExtendedGrapherUrl(this._grapher!.url, [
             this.switcherRuntime,
-            this.explorerRuntime,
+            this,
         ])
 
         if (this.urlBinding) this.urlBinding.unbindFromWindow()
@@ -83,12 +91,7 @@ export class SwitcherExplorer extends React.Component<{
     }
 
     componentDidMount() {
-        autorun(() => {
-            this.explorerRuntime.selectedEntityNames.size // "Dot in" to create Mobx link.
-            this.updateGrapherSelection()
-        })
-
-        // todo: add disposer?
+        // todo: remove reaction (https://github.com/owid/owid-grapher/pull/631)
         reaction(() => this.switcherRuntime.chartId, this.switchGrapher, {
             fireImmediately: true,
         })
@@ -101,13 +104,12 @@ export class SwitcherExplorer extends React.Component<{
 
         this._grapher = new Grapher(this.props.chartConfigs.get(newId))
         this._grapher.url.dropUnchangedParams = false
-        this._grapher.hideEntityControls =
-            !this.explorerRuntime.hideControls && !this.isEmbed
+        this._grapher.hideEntityControls = !this.hideControls && !this.isEmbed
         if (this.props.bindToWindow) this.bindToWindow()
 
         this._grapher.populateFromQueryParams(currentParams)
 
-        // disposer?
+        // todo: remove when
         when(
             () => this._grapher!.isReady,
             () => {
@@ -116,8 +118,6 @@ export class SwitcherExplorer extends React.Component<{
                     ...this.availableEntities,
                     ...this._grapher!.table.availableEntityNames,
                 ]).sort()
-
-                this.updateGrapherSelection()
             }
         )
 
@@ -129,13 +129,6 @@ export class SwitcherExplorer extends React.Component<{
         const newId = this.switcherRuntime.chartId
         if (newId === this.lastId) return
         this.setGrapher(newId)
-    }
-
-    @action.bound private updateGrapherSelection() {
-        const table = this._grapher!.table
-        table.setSelectedEntities(
-            Array.from(this.explorerRuntime.selectedEntityNames)
-        )
     }
 
     private get panels() {
@@ -182,9 +175,8 @@ export class SwitcherExplorer extends React.Component<{
                 headerElement={this.header}
                 controlPanels={this.panels}
                 explorerSlug={this.props.program.slug}
-                availableEntities={this.availableEntities}
                 grapher={this._grapher!}
-                params={this.explorerRuntime}
+                hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
             />
         )

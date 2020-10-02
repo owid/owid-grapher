@@ -15,8 +15,7 @@ import { getElementWithHalo } from "grapher/scatterCharts/Halos"
 
 interface FacetChartProps {
     bounds?: Bounds
-    number?: number
-    chartTypeName: ChartTypeName
+    chartTypeName?: ChartTypeName
     manager: ChartManager
 }
 
@@ -28,6 +27,12 @@ interface SmallChart {
     chartTypeName: ChartTypeName
     manager: ChartManager
     title: string
+}
+
+interface Facet {
+    name: string
+    manager: Partial<ChartManager>
+    chartTypeName?: ChartTypeName
 }
 
 // not sure if we want to do something more sophisticated
@@ -60,17 +65,12 @@ const getChartPadding = (count: number) => {
     }
 }
 
-interface Facet {
-    name: string
-    manager: Partial<ChartManager>
-    chartTypeName?: ChartTypeName
-}
-
 @observer
 export class FacetChart extends React.Component<FacetChartProps> {
     @computed protected get smallCharts() {
         const { manager, facets } = this
-        const { chartTypeName } = this.props ?? ChartTypeName.LineChart
+        const chartTypeName =
+            this.props.chartTypeName ?? ChartTypeName.LineChart
         const count = facets.length
 
         const boundsArr = this.bounds.split(count, getChartPadding(count))
@@ -230,14 +230,13 @@ export class FacetChart extends React.Component<FacetChartProps> {
             ) as any // todo: how to type this?
             const { bounds, title } = smallChart
             return (
-                <>
+                <React.Fragment key={index}>
                     <ChartComponent
-                        key={index}
                         bounds={bounds}
                         manager={smallChart.manager}
                     />
                     {FacetTitle(title, bounds, fontSize, index)}
-                </>
+                </React.Fragment>
             )
         })
     }

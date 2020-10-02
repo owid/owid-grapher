@@ -13,7 +13,6 @@ import {
 import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
-import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"
@@ -53,14 +52,12 @@ export class ExplorerProgram {
             this.switcherCode || "",
             queryString
         )
-        this.explorerRuntime = new ExplorerQueryParams(queryString)
         this.queryString = queryString
     }
 
     slug: string
     queryString: string
     switcherRuntime: SwitcherRuntime
-    explorerRuntime: ExplorerQueryParams
 
     get filename() {
         return this.slug + explorerFileSuffix
@@ -418,31 +415,5 @@ export class SwitcherRuntime {
 
     toString() {
         return queryParamsToStr(this._settings)
-    }
-}
-
-export class ExplorerQueryParams {
-    @observable hideControls: boolean = false
-    @observable selectedEntityNames: Set<string> = new Set<string>()
-
-    constructor(queryString: string) {
-        const obj = strToQueryParams(queryString)
-        this.hideControls = obj.hideControls === "true"
-
-        if (obj.country) {
-            EntityUrlBuilder.queryParamToEntities(obj.country).forEach((code) =>
-                this.selectedEntityNames.add(code)
-            )
-        }
-    }
-
-    @computed get toQueryParams(): QueryParams {
-        const params: any = {}
-        params.hideControls = this.hideControls ? true : undefined
-        this.selectedEntityNames.size // Need to do a "dot" operation to get MobX to detect the read
-        params.country = EntityUrlBuilder.entitiesToQueryParam(
-            Array.from(this.selectedEntityNames)
-        )
-        return params as QueryParams
     }
 }

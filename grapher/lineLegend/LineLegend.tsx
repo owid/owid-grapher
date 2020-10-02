@@ -418,9 +418,9 @@ export class LineLegend extends React.Component<{
     }
 
     private renderBackground() {
-        return this.backgroundMarks.map((mark) => (
+        return this.backgroundMarks.map((mark, index) => (
             <Label
-                key={mark.seriesName}
+                key={`background-${index}-` + mark.seriesName}
                 mark={mark}
                 manager={this}
                 needsLines={this.needsLines}
@@ -432,9 +432,9 @@ export class LineLegend extends React.Component<{
 
     // All labels are focused by default, moved to background when mouseover of other label
     private renderFocus() {
-        return this.focusMarks.map((mark) => (
+        return this.focusMarks.map((mark, index) => (
             <Label
-                key={mark.seriesName}
+                key={`focus-${index}-` + mark.seriesName}
                 mark={mark}
                 manager={this}
                 isFocus={true}

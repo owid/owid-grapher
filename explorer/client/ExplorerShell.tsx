@@ -9,7 +9,6 @@ import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { CountryPicker } from "grapher/controls/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
-import { ExplorerQueryParams } from "./ExplorerProgram"
 import { throttle } from "grapher/utils/Util"
 
 // TODO: Migrate CovidExplorer to use this class as well
@@ -18,9 +17,8 @@ export class ExplorerShell extends React.Component<{
     explorerSlug: string
     controlPanels: JSX.Element[]
     grapher: Grapher
-    availableEntities: string[]
     headerElement: JSX.Element
-    params: ExplorerQueryParams
+    hideControls?: boolean
     isEmbed: boolean
 }> {
     get keyboardShortcuts(): Command[] {
@@ -28,7 +26,7 @@ export class ExplorerShell extends React.Component<{
     }
 
     @computed get showExplorerControls() {
-        return !this.props.params.hideControls || !this.props.isEmbed
+        return !this.props.hideControls || !this.props.isEmbed
     }
 
     @action.bound toggleMobileControls() {
@@ -89,22 +87,6 @@ export class ExplorerShell extends React.Component<{
                 isDropdownMenu={this.isMobile}
             ></CountryPicker>
         )
-    }
-
-    @action.bound toggleSelectedEntityCommand(
-        entityName: string,
-        value?: boolean
-    ) {
-        const selectedEntities = this.props.params.selectedEntityNames
-        if (value) selectedEntities.add(entityName)
-        else if (value === false) selectedEntities.delete(entityName)
-        else if (selectedEntities.has(entityName))
-            selectedEntities.delete(entityName)
-        else selectedEntities.add(entityName)
-    }
-
-    @computed get selectedEntityNames() {
-        return Array.from(this.props.params.selectedEntityNames.values())
     }
 
     get controlBar() {

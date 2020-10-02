@@ -459,7 +459,7 @@ export class DataTable extends React.Component<{
         const tableForEntities = this.table.rootTable
         return union(
             ...this.columnSlugsToShow.map(
-                (slug) => tableForEntities.get(slug)!.entityNamesUniqArr
+                (slug) => tableForEntities.get(slug)?.entityNamesUniqArr || []
             )
         )
     }
