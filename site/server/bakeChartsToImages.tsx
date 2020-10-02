@@ -51,13 +51,13 @@ export async function bakeChartToImage(
 ) {
     // the type definition for url.query is wrong (bc we have query string parsing disabled),
     // so we have to explicitly cast it
-    const chart = new Grapher({
+    const grapher = new Grapher({
         ...jsonConfig,
         manuallyProvideData: true,
         queryStr,
     })
-    chart.isExporting = true
-    const { width, height } = chart.idealBounds
+    grapher.isExporting = true
+    const { width, height } = grapher.idealBounds
     const outPath = `${outDir}/${slug}${queryStr ? "-" + md5(queryStr) : ""}_v${
         jsonConfig.version
     }_${width}x${height}.svg`
@@ -65,11 +65,11 @@ export async function bakeChartToImage(
 
     if (fs.existsSync(outPath) && !overwriteExisting) return
 
-    const variableIds = lodash.uniq(chart.dimensions.map((d) => d.variableId))
+    const variableIds = lodash.uniq(grapher.dimensions.map((d) => d.variableId))
     const vardata = await getVariableData(variableIds)
-    chart.receiveLegacyData(vardata)
+    grapher.receiveLegacyData(vardata)
 
-    let svgCode = chart.staticSVG
+    let svgCode = grapher.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
 
     fs.writeFile(outPath, svgCode)

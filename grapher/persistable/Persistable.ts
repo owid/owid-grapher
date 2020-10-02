@@ -7,11 +7,21 @@ export interface Persistable {
 }
 
 // Todo: see if there's a better way to do this with Mobx
-export function objectWithPersistablesToObject<T>(objWithPersistables: T): T {
+export function objectWithPersistablesToObject<T>(
+    objWithPersistables: T,
+    keysToSerialize: string[] = []
+): T {
     const obj = toJS(objWithPersistables) as any
+    const keysSet = new Set(keysToSerialize)
     Object.keys(obj).forEach((key) => {
         const val = (objWithPersistables as any)[key]
         const valIsPersistable = val && val.toObject
+
+        // Delete any keys we don't want to serialize, if a keep list is provided
+        if (keysToSerialize.length && !keysSet.has(key)) {
+            delete obj[key]
+            return
+        }
 
         // Val is persistable, call toObject
         if (valIsPersistable) obj[key] = val.toObject()

@@ -8,19 +8,14 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
-    when,
     observe,
 } from "mobx"
 import { bind } from "decko"
 import {
     uniqWith,
     isEqual,
-    formatDay,
-    formatYear,
     uniq,
     fetchJSON,
-    flatten,
-    sortBy,
     getErrorMessageRelatedQuestionUrl,
     slugify,
     identity,
@@ -37,7 +32,6 @@ import {
 import {
     ChartTypeName,
     GrapherTabOption,
-    TickFormattingOptions,
     ScaleType,
     StackMode,
     DimensionProperty,
@@ -82,11 +76,11 @@ import {
     GlobalEntitySelection,
     subscribeGrapherToGlobalEntitySelection,
 } from "site/globalEntityControl/GlobalEntitySelection"
-import { countries } from "utils/countries"
-import { getWindowQueryParams, strToQueryParams } from "utils/client/url"
+import { strToQueryParams } from "utils/client/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {
     GrapherInterface,
+    grapherKeysToSerialize,
     LegacyGrapherInterface,
 } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
@@ -145,7 +139,33 @@ const legacyConfigToConfig = (
     return newConfig
 }
 
-class GrapherDefaults extends React.Component<GrapherProps> {
+export interface GrapherProps extends GrapherInterface {
+    isEmbed?: boolean
+    isMediaCard?: boolean
+    queryStr?: string
+    globalEntitySelection?: GlobalEntitySelection
+    isExport?: boolean
+    bounds?: Bounds
+    table?: OwidTable
+    keyboardShortcuts?: boolean
+}
+
+@observer
+export class Grapher
+    extends React.Component<GrapherProps>
+    implements
+        TimelineManager,
+        ChartManager,
+        FooterManager,
+        HeaderManager,
+        FontSizeManager,
+        ChartTabManager,
+        SourcesTabManager,
+        DownloadTabManager,
+        DiscreteBarChartManager,
+        LegacyDimensionsManager,
+        TooltipManager,
+        MapChartManager {
     @observable.ref type: ChartTypeName = ChartTypeName.LineChart
     @observable.ref isExplorable: boolean = false
     @observable.ref id?: number = undefined
@@ -205,59 +225,28 @@ class GrapherDefaults extends React.Component<GrapherProps> {
     externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean = false // This will be removed.
-}
 
-const defaultObject = objectWithPersistablesToObject(new GrapherDefaults({}))
-
-export interface GrapherProps extends GrapherInterface {
-    isEmbed?: boolean
-    isMediaCard?: boolean
-    queryStr?: string
-    globalEntitySelection?: GlobalEntitySelection
-    isExport?: boolean
-    bounds?: Bounds
-    table?: OwidTable
-    keyboardShortcuts?: boolean
-}
-
-@observer
-export class Grapher
-    extends GrapherDefaults
-    implements
-        TimelineManager,
-        ChartManager,
-        FooterManager,
-        HeaderManager,
-        FontSizeManager,
-        ChartTabManager,
-        SourcesTabManager,
-        DownloadTabManager,
-        DiscreteBarChartManager,
-        LegacyDimensionsManager,
-        TooltipManager,
-        MapChartManager {
-    @observable.ref xAxis = new AxisConfig(undefined, this)
-    @observable.ref yAxis = new AxisConfig(undefined, this)
-
-    // TODO: Pass these 5 in as options, donn't get them as globals
-    isDev: Readonly<boolean> = ENV === "development"
-    adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
-    analytics: Readonly<Analytics> = new Analytics(ENV)
-    isEditor: Readonly<boolean> =
+    // TODO: Pass these 5 in as options, don't get them as globals.
+    isDev = ENV === "development"
+    adminBaseUrl = ADMIN_BASE_URL
+    analytics = new Analytics(ENV)
+    isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
+    bakedGrapherURL = BAKED_GRAPHER_URL
 
-    configOnLoad: Readonly<GrapherInterface>
     @observable.ref rootTable: OwidTable
 
-    private legacyConfigAsAuthored?: Partial<LegacyGrapherInterface>
+    private legacyConfigAsAuthored: Partial<LegacyGrapherInterface>
 
     constructor(props: GrapherProps = {}) {
         super(props!)
         this.rootTable = props.table ?? new OwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
-        this.legacyConfigAsAuthored = props
+        this.legacyConfigAsAuthored = props || {}
+        this.queryParams = legacyQueryParamsToCurrentQueryParams(
+            strToQueryParams(props.queryStr || "")
+        )
 
         this.updateFromObject(modernConfig)
         this.isMediaCard = !!props?.isMediaCard
@@ -272,14 +261,7 @@ export class Grapher
 
         this.url = new GrapherUrl(this, modernConfig, this.bakedGrapherURL)
 
-        this.queryParams = legacyQueryParamsToCurrentQueryParams(
-            strToQueryParams(props.queryStr || "")
-        )
-
         if (this.queryParams) this.populateFromQueryParams(this.queryParams)
-
-        // The props after consuming the URL parameters, but before any user interaction
-        this.configOnLoad = this.toObject()
 
         if (props.globalEntitySelection) {
             this.disposers.push(
@@ -298,21 +280,13 @@ export class Grapher
     private queryParams: GrapherQueryParams
 
     toObject() {
-        const obj: GrapherInterface = objectWithPersistablesToObject(this)
+        const obj: GrapherInterface = objectWithPersistablesToObject(
+            this,
+            grapherKeysToSerialize
+        )
 
         if (this.table.hasSelection)
             obj.selectedEntityNames = this.table.selectedEntityNames
-
-        // Never save the followingto the DB.
-        delete obj.externalDataUrl
-        delete obj.owidDataset
-        delete obj.manuallyProvideData
-
-        delete (obj as any).props // Delete react props
-
-        // Remove the overlay tab state (e.g. download or sources) in order to avoid saving charts
-        // in the Grapher Admin with an overlay tab open
-        delete obj.overlay
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -770,7 +744,8 @@ export class Grapher
         /** If the start year was autoselected in the DataTable, revert. */
         if (!this.userHasSetTimeline)
             this.timelineFilter = [
-                this.configOnLoad.minTime ?? TimeBoundValue.unboundedLeft,
+                this.legacyConfigAsAuthored.minTime ??
+                    TimeBoundValue.unboundedLeft,
                 this.timelineFilter[1],
             ]
 
@@ -805,7 +780,8 @@ export class Grapher
                 value === GrapherTabOption.download &&
                 this.tab === GrapherTabOption.table
             )
-                this.tab = this.configOnLoad.tab || GrapherTabOption.chart
+                this.tab =
+                    this.legacyConfigAsAuthored.tab || GrapherTabOption.chart
             this.overlay = value
         }
     }
@@ -1537,7 +1513,7 @@ export class Grapher
 
             // { // todo: add
             //     combo: "o",
-            //     fn: () => this.updateFromObject(this.configOnLoad),
+            //     fn: () => this.updateFromObject(this.legacyConfigAsAuthored),
             //     title: "Restore original",
             //     category: "Navigation",
             // },
@@ -1769,3 +1745,8 @@ export class Grapher
         )
     }
 }
+
+const defaultObject = objectWithPersistablesToObject(
+    new Grapher(),
+    grapherKeysToSerialize
+)

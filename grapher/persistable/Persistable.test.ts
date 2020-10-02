@@ -109,6 +109,14 @@ it("handles missing values", () => {
     })
 })
 
+it("can serialize only the desired properties", () => {
+    expect(objectWithPersistablesToObject({ foo: 1, bar: 2 }, ["foo"])).toEqual(
+        {
+            foo: 1,
+        }
+    )
+})
+
 it("can handle an array of persistables", () => {
     const game = new GameBoyGame({
         title: "SurfTime",

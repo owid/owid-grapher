@@ -8,7 +8,7 @@ import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
 import ReactDOM from "react-dom"
 import { UrlBinder } from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
-import { ExplorerProgram, ExplorerManager } from "./ExplorerProgram"
+import { ExplorerProgram } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 
@@ -21,9 +21,7 @@ export interface SwitcherExplorerProps {
 }
 
 @observer
-export class SwitcherExplorer
-    extends React.Component<SwitcherExplorerProps>
-    implements ExplorerManager {
+export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
     static bootstrap(props: SwitcherExplorerProps) {
         return ReactDOM.render(
             <SwitcherExplorer
@@ -39,11 +37,8 @@ export class SwitcherExplorer
     private explorerProgram = new ExplorerProgram(
         this.props.slug,
         this.props.explorerProgramCode,
-        this.props.queryString,
-        this
+        this.props.queryString
     )
-
-    @observable chartId: number = this.explorerProgram.switcherRuntime.chartId
 
     @observable.ref private grapher = new Grapher()
 
@@ -59,7 +54,9 @@ export class SwitcherExplorer
     }
 
     componentDidMount() {
-        autorun(() => this.switchGrapher(this.chartId))
+        autorun(() =>
+            this.switchGrapher(this.explorerProgram.switcherRuntime.chartId)
+        )
     }
 
     @computed get chartConfigs() {

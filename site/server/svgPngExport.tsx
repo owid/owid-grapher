@@ -30,10 +30,10 @@ export async function chartToSVG(
     jsonConfig: GrapherInterface,
     vardata: any
 ): Promise<string> {
-    const chart = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    chart.isExporting = true
-    chart.receiveLegacyData(vardata)
-    return chart.staticSVG
+    const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
+    grapher.isExporting = true
+    grapher.receiveLegacyData(vardata)
+    return grapher.staticSVG
 }
 
 export async function bakeImageExports(
@@ -42,21 +42,21 @@ export async function bakeImageExports(
     vardata: any,
     optimizeSvgs = false
 ) {
-    const chart = new Grapher({ ...jsonConfig, manuallyProvideData: true })
-    chart.isExporting = true
-    chart.receiveLegacyData(vardata)
-    const outPath = path.join(outDir, chart.slug as string)
+    const grapher = new Grapher({ ...jsonConfig, manuallyProvideData: true })
+    grapher.isExporting = true
+    grapher.receiveLegacyData(vardata)
+    const outPath = path.join(outDir, grapher.slug as string)
 
-    let svgCode = chart.staticSVG
+    let svgCode = grapher.staticSVG
     if (optimizeSvgs) svgCode = await optimizeSvg(svgCode)
 
     return Promise.all([
         fs
             .writeFile(`${outPath}.svg`, svgCode)
             .then(() => console.log(`${outPath}.svg`)),
-        sharp(Buffer.from(chart.staticSVG), { density: 144 })
+        sharp(Buffer.from(grapher.staticSVG), { density: 144 })
             .png()
-            .resize(chart.idealBounds.width, chart.idealBounds.height)
+            .resize(grapher.idealBounds.width, grapher.idealBounds.height)
             .flatten({ background: "#ffffff" })
             .toFile(`${outPath}.png`),
     ])
