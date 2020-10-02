@@ -1,12 +1,11 @@
 import { DualAxis } from "grapher/axis/Axis"
 import { Color, SeriesName, Time } from "grapher/core/GrapherConstants"
 
-export interface StackedAreaPoint {
+interface StackedAreaPoint {
     x: number
     y: number
     origY?: number
     time: Time
-    isFake?: true
 }
 
 export interface StackedAreaSeries {

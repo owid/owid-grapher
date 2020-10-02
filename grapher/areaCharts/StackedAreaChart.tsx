@@ -39,6 +39,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { AreasProps, StackedAreaSeries } from "./StackedAreaChartConstants"
 import { stackAreas } from "./StackedAreaChartUtils"
+import { OwidRow } from "coreTable/OwidTable"
 
 const BLUR_COLOR = "#ddd"
 
@@ -243,7 +244,7 @@ export class StackedAreaChart
 
     @computed get labelMarks(): LineLabelMark[] {
         const { midpoints } = this
-        const items = this.marks
+        return this.marks
             .map((d, i) => ({
                 color: d.color,
                 seriesName: d.seriesName,
@@ -251,7 +252,6 @@ export class StackedAreaChart
                 yValue: midpoints[i],
             }))
             .reverse()
-        return items
     }
 
     @computed get maxLegendWidth() {
@@ -322,7 +322,9 @@ export class StackedAreaChart
         const refValue = marks[0].points[hoverIndex]
 
         // If some data is missing, don't calculate a total
-        const someMissing = marks.some((g) => !!g.points[hoverIndex].isFake)
+        const someMissing = marks.some(
+            (g) => g.points[hoverIndex] === undefined
+        )
 
         const legendBlockStyle = {
             width: "10px",
@@ -383,7 +385,7 @@ export class StackedAreaChart
                                         )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
-                                        {value.isFake
+                                        {value.y === undefined
                                             ? "No data"
                                             : this.formatYTick(value.origY!)}
                                     </td>
@@ -610,71 +612,55 @@ export class StackedAreaChart
     }
 
     @computed get marks() {
-        const rawSeries =
-            this.seriesStrategy === SeriesStrategy.entity
-                ? this.entitiesAsSeries
-                : this.columnsAsSeries
+        const { rawSeries, table } = this
 
-        rawSeries.reverse()
-        stackAreas(rawSeries)
-        return rawSeries
-    }
+        // todo: clean up this slug stuff
+        const valueColumnSlug =
+            this.seriesStrategy === SeriesStrategy.column
+                ? "value"
+                : this.yColumns[0].slug
+        const timeColumnSlug =
+            this.seriesStrategy === SeriesStrategy.column
+                ? "time"
+                : this.table.timeColumn.slug
 
-    // todo: these cna be simplified. see stackedbar
-    @computed private get columnsAsSeries() {
-        const { yColumns } = this
-        return yColumns.map(
-            (col): StackedAreaSeries => {
-                const { isProjection } = col
-                const seriesName = col.displayName
-                const points = col.owidRows.map((row) => {
+        const marks = rawSeries.map((series) => {
+            const { isProjection, seriesName, rows } = series
+            return {
+                seriesName,
+                isProjection,
+                points: rows.map((row) => {
+                    const x = row[timeColumnSlug]
+                    const y = row[valueColumnSlug]
                     return {
-                        x: row.time,
-                        y: row.value,
-                        time: row.time,
-                        origY: row.value,
+                        x,
+                        y,
+                        time: x,
+                        origY: y,
                     }
-                })
-                return {
-                    seriesName,
-                    isProjection,
-                    points,
-                    color:
-                        // table.getColorForEntityName(entityName) || todo: readd custom colors.
-                        this.colorScale(seriesName), // temp
-                }
+                }),
+                color:
+                    table.getColorForEntityName(seriesName) ||
+                    this.colorScale(seriesName),
             }
-        )
+        })
+
+        if (this.seriesStrategy !== SeriesStrategy.entity) marks.reverse()
+        stackAreas(marks)
+        return marks
     }
 
-    @computed private get entitiesAsSeries() {
-        const yColumn = this.yColumns[0]
-        return Array.from(yColumn.owidRowsByEntityName.keys()).map(
-            (entityName: EntityName): StackedAreaSeries => {
-                const { isProjection } = yColumn
-                const seriesName = entityName
-                const points = yColumn.owidRowsByEntityName
-                    .get(entityName)!
-                    .map((row) => {
-                        return {
-                            x: row.time,
-                            y: row.value,
-                            time: row.time,
-                            origY: row.value,
-                        }
-                    })
-                return {
-                    seriesName,
-                    isProjection,
-                    points,
-                    color:
-                        // table.getColorForEntityName(entityName) || todo: readd custom colors.
-                        this.colorScale(seriesName), // temp
-                }
+    @computed private get columnsAsRawSeries() {
+        return this.yColumns.map((col) => {
+            return {
+                isProjection: col.isProjection,
+                seriesName: col.displayName,
+                rows: (col.owidRows as any) as OwidRow[], // todo: cleanup typings
             }
-        )
+        })
     }
 
+    // Todo: readd this behavior with tests. We need to support missing points. Probably do it at the table level
     // // Get the data for each stacked area series, cleaned to ensure every series
     // // "lines up" i.e. has a data point for every year
     //     // Now ensure that every series has a value entry for every year in the data
@@ -726,6 +712,23 @@ export class StackedAreaChart
     //         }
     //     }
     // }
+    @computed private get entitiesAsRawSeries() {
+        const rowsByEntityName = this.table.rowsByEntityName
+        const { isProjection } = this.yColumns[0]
+        return this.table.selectedEntityNames.map((seriesName) => {
+            return {
+                isProjection,
+                seriesName,
+                rows: rowsByEntityName.get(seriesName) || [],
+            }
+        })
+    }
+
+    @computed private get rawSeries() {
+        return this.seriesStrategy === SeriesStrategy.column
+            ? this.columnsAsRawSeries
+            : this.entitiesAsRawSeries
+    }
 
     @computed private get allStackedValues() {
         return flatten(this.marks.map((series) => series.points))

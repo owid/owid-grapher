@@ -891,7 +891,7 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
-        if (this.isStackedBar) return false
+        if (this.isStackedBar || this.isStackedArea) return false
         return !this.hideTimeline && this.rootTable.hasMultipleTimelineTimes
     }
 
@@ -1509,6 +1509,10 @@ export class Grapher
                 fn: () => this.toggleYScaleTypeCommand(),
                 title: "Toggle Y log/linear",
                 category: "Chart",
+            },
+            {
+                combo: "esc",
+                fn: () => (this.hasError = false),
             },
 
             // { // todo: add

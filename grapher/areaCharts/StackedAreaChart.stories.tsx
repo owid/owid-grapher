@@ -35,6 +35,21 @@ export const EntitiesAsSeriesRelative = () => {
     )
 }
 
+export const EntitiesAsSeriesWithMissingRows = () => {
+    const manager = {
+        table: SynthesizeGDPTable({ entityCount: 5 })
+            .selectAll()
+            .dropRandomRows(30),
+        yColumnSlugs: ["Population"],
+    }
+
+    return (
+        <svg width={600} height={600}>
+            <StackedAreaChart manager={manager} />
+        </svg>
+    )
+}
+
 const columnsChart: ChartManager = {
     table: SynthesizeFruitTable({
         timeRange: [1950, 2000],
