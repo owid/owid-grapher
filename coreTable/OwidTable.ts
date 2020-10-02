@@ -275,12 +275,20 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // for testing. Preserves ordering.
     dropRandomRows(dropHowMany = 1, seed = Date.now()) {
+        if (!dropHowMany) return this // todo: clone?
         const indexesToDrop = new Set(
             sampleFrom(range(0, this.rows.length), dropHowMany, seed)
         )
         return this.filterBy(
             (row, index) => !indexesToDrop.has(index),
             `Dropping a random ${dropHowMany} rows`
+        )
+    }
+
+    dropRandomPercent(dropHowMuch = 1, seed = Date.now()) {
+        return this.dropRandomRows(
+            Math.floor((dropHowMuch / 100) * this.rows.length),
+            seed
         )
     }
 
