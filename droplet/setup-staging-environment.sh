@@ -90,20 +90,15 @@ pm2 save
 pm2 start yarn --name NEW_NAME-deploy-queue --interpreter=/home/owid/.nvm/versions/node/v12.13.1/bin/node -- deploy-queue
 pm2 save
 
-## Make deployable from Owid-Wordpress. Update owid-wordpress/deploy.sh:
-# See: https://github.com/owid/owid-wordpress/pull/83
-# Add something like this:
-# elif [ "$1" == "NEW_NAME" ]; then
-#  HOST="owid-staging"
-#  PREFIX="NEW_NAME"
+## Make deployable.
+# Add NEW_NAME to the lists of staging targets:
+#
+# - Wordpress deploy:
+#   https://github.com/owid/owid-grapher/blob/6a6767db680aec820082bc11db4acf6917ccc4af/wordpress/scripts/deploy.sh#L13
+#
+# - Grapher deploy:
+#   https://github.com/owid/owid-grapher/blob/17197489c87ce527a967eb45d899324e193ad124/deploy/deploy.sh#L11
 
-## Make deployable from Owid-Grapher. Update owid-grapher/deploy.sh
-# See: https://github.com/owid/owid-grapher/commit/c85b31c7614ef60dd92d143ed28ba0ffb4656335
-# Something like this:
-# elif [ "$1" == "NEW_NAME" ]; then
-#  HOST="owid@165.22.127.239"
-#  ROOT="/home/owid"
-#  NAME="NEW_NAME"
 
 ## Update mysql DB:
 /home/owid/NEW_NAME-wordpress/scripts/refresh.sh -c -u
