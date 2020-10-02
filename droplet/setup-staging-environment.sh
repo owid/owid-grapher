@@ -1,9 +1,13 @@
-## This is the script to setup a new dev staging environment 
+## This is the script to setup a new dev staging environment
 ## Define Variables
 #  Do a find/replace for these variables, then most of this you can copy/paste into terminal and run.
 #  NEW_NAME someoneDataRelated
 #  NEW_PW somePassword
 #  NEW_NODE_PORT 4444
+
+## Add proxied CNAME DNS record to Cloudflare.
+# Proxying ("orange cloud") turns on Cloudflare Access for NEW_NAME.owid.cloud.
+# NEW_NAME.owid.cloud.	1	IN	CNAME	staging.owid.cloud.
 
 # Output commands to stdout as they execute
 set -x
