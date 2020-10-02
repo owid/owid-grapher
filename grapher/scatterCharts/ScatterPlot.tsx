@@ -3,9 +3,7 @@ import { observable, computed, action } from "mobx"
 import {
     intersection,
     without,
-    compact,
     uniq,
-    first,
     last,
     excludeUndefined,
     flatten,
@@ -22,21 +20,11 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation,
     relativeMinAndMax,
     identity,
-    min,
-    guid,
-    getRelativeMouse,
-    makeSafeForCSS,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { NoDataModal } from "grapher/chart/NoDataModal"
-import { scaleLinear } from "d3-scale"
-import { PointVector } from "grapher/utils/PointVector"
-import { Triangle } from "./Triangle"
-import { select } from "d3-selection"
-import { getElementWithHalo } from "./Halos"
 import {
-    SortOrder,
     BASE_FONT_SIZE,
     ScaleType,
     Time,
@@ -44,8 +32,6 @@ import {
     EntitySelectionMode,
     ScatterPointLabelStrategy,
 } from "grapher/core/GrapherConstants"
-import { MultiColorPolyline } from "./MultiColorPolyline"
-import { TextWrap } from "grapher/text/TextWrap"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
@@ -66,20 +52,10 @@ import {
     ScatterPlotManager,
     ScatterSeries,
     SeriesPoint,
-    ScatterTooltipProps,
-    ScatterRenderSeries,
-    ScatterLabel,
-    ScatterRenderPoint,
-    PointsWithLabelsProps,
-    ScatterLabelFontFamily,
 } from "./ScatterPlotConstants"
-import {
-    labelPriority,
-    makeEndLabel,
-    makeMidLabels,
-    makeStartLabel,
-} from "./ScatterUtils"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
+import { ScatterTooltip } from "./ScatterTooltip"
+import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 
 @observer
 export class ScatterPlot
@@ -93,7 +69,7 @@ export class ScatterPlot
         VerticalColorLegendManager,
         ColorScaleManager {
     // currently hovered individual series key
-    @observable hoverKey?: EntityName
+    @observable hoveredSeries?: EntityName
     // currently hovered legend color
     @observable hoverColor?: string
 
@@ -144,57 +120,57 @@ export class ScatterPlot
 
         const keysToToggle = this.marks
             .filter((g) => g.color === hoverColor)
-            .map((g) => g.entityName)
+            .map((g) => g.seriesName)
         const allKeysActive =
-            intersection(keysToToggle, this.selectedKeys).length ===
+            intersection(keysToToggle, this.selectedEntityNames).length ===
             keysToToggle.length
         if (allKeysActive)
             table.setSelectedEntities(
-                without(this.selectedKeys, ...keysToToggle)
+                without(this.selectedEntityNames, ...keysToToggle)
             )
         else
             table.setSelectedEntities(
-                uniq(this.selectedKeys.concat(keysToToggle))
+                uniq(this.selectedEntityNames.concat(keysToToggle))
             )
     }
 
-    // Colors on the legend for which every matching group is focused
+    // Colors on the legend for which every matching series is focused
     @computed get focusColors() {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
             const matchingKeys = this.marks
                 .filter((g) => g.color === color)
-                .map((g) => g.entityName)
+                .map((g) => g.seriesName)
             return (
-                intersection(matchingKeys, this.selectedKeys).length ===
+                intersection(matchingKeys, this.selectedEntityNames).length ===
                 matchingKeys.length
             )
         })
     }
 
-    // All currently hovered group keys, combining the legend and the main UI
-    @computed get hoverKeys() {
-        const { hoverColor, hoverKey } = this
+    // All currently hovered series keys, combining the legend and the main UI
+    @computed get hoveredSeriesNames() {
+        const { hoverColor, hoveredSeries } = this
 
-        const hoverKeys =
+        const hoveredSeriesNames =
             hoverColor === undefined
                 ? []
                 : uniq(
                       this.marks
                           .filter((g) => g.color === hoverColor)
-                          .map((g) => g.entityName)
+                          .map((g) => g.seriesName)
                   )
 
-        if (hoverKey !== undefined) hoverKeys.push(hoverKey)
+        if (hoveredSeries !== undefined) hoveredSeriesNames.push(hoveredSeries)
 
-        return hoverKeys
+        return hoveredSeriesNames
     }
 
-    @computed private get focusKeys() {
-        return this.selectedKeys
+    @computed private get focusedEntityNames() {
+        return this.selectedEntityNames
     }
 
-    @computed private get selectedKeys() {
+    @computed private get selectedEntityNames() {
         return this.table.selectedEntityNames
     }
 
@@ -221,23 +197,25 @@ export class ScatterPlot
     }
 
     @action.bound onScatterMouseOver(series: ScatterSeries) {
-        this.hoverKey = series.entityName
+        this.hoveredSeries = series.seriesName
     }
 
     @action.bound onScatterMouseLeave() {
-        this.hoverKey = undefined
+        this.hoveredSeries = undefined
     }
 
     @action.bound onScatterClick() {
-        if (this.hoverKey) this.onSelectEntity(this.hoverKey)
+        if (this.hoveredSeries) this.onSelectEntity(this.hoveredSeries)
     }
 
     @computed get tooltipSeries() {
-        const { hoverKey, focusKeys } = this
-        if (hoverKey !== undefined)
-            return this.marks.find((g) => g.entityName === hoverKey)
-        if (focusKeys && focusKeys.length === 1)
-            return this.marks.find((g) => g.entityName === focusKeys[0])
+        const { hoveredSeries, focusedEntityNames } = this
+        if (hoveredSeries !== undefined)
+            return this.marks.find((g) => g.seriesName === hoveredSeries)
+        if (focusedEntityNames && focusedEntityNames.length === 1)
+            return this.marks.find(
+                (g) => g.seriesName === focusedEntityNames[0]
+            )
         return undefined
     }
 
@@ -277,13 +255,13 @@ export class ScatterPlot
 
     // Colors currently on the chart and not greyed out
     @computed get activeColors() {
-        const { hoverKeys, focusKeys } = this
-        const activeKeys = hoverKeys.concat(focusKeys)
+        const { hoveredSeriesNames, focusedEntityNames } = this
+        const activeKeys = hoveredSeriesNames.concat(focusedEntityNames)
 
         let series = this.marks
 
         if (activeKeys.length)
-            series = series.filter((g) => activeKeys.includes(g.entityName))
+            series = series.filter((g) => activeKeys.includes(g.seriesName))
 
         const colorValues = uniq(
             flatten(series.map((s) => s.points.map((p) => p.color)))
@@ -296,20 +274,27 @@ export class ScatterPlot
     }
 
     @computed private get points() {
-        const { dualAxis, focusKeys, hoverKeys, hideLines, manager } = this
-
-        const { marks, sizeDomain, colorScale } = this
+        const {
+            dualAxis,
+            focusedEntityNames,
+            hoveredSeriesNames,
+            hideLines,
+            manager,
+            marks,
+            sizeDomain,
+            colorScale,
+        } = this
 
         return (
-            <PointsWithLabels
+            <ScatterPointsWithLabels
                 noDataModalManager={manager}
                 hideLines={hideLines}
                 seriesArray={marks}
                 dualAxis={dualAxis}
                 colorScale={this.colorColumn ? colorScale : undefined}
                 sizeDomain={sizeDomain}
-                focusKeys={focusKeys}
-                hoverKeys={hoverKeys}
+                focusedSeriesNames={focusedEntityNames}
+                hoveredSeriesNames={hoveredSeriesNames}
                 onMouseOver={this.onScatterMouseOver}
                 onMouseLeave={this.onScatterMouseLeave}
                 onClick={this.onScatterClick}
@@ -919,8 +904,8 @@ export class ScatterPlot
 
         // As needed, join the individual year data points together to create an "arrow chart"
         this.getDataByEntityAndTime().forEach((dataByTime, entityName) => {
-            const group = {
-                entityName,
+            const series = {
+                seriesName: entityName,
                 label: entityName,
                 color: "#932834", // Default color, used when no color dimension is present
                 size: 0,
@@ -935,27 +920,27 @@ export class ScatterPlot
                     label = xColumn!.formatValue(point.x)
                 else
                     (label = yColumn!.formatValue(point.y)),
-                        group.points.push({ ...point, label })
+                        series.points.push({ ...point, label })
             })
 
             // Use most recent size and color values
-            // const lastPoint = last(group.values)
+            // const lastPoint = last(series.values)
 
-            if (group.points.length) {
+            if (series.points.length) {
                 const keyColor = table.getColorForEntityName(entityName)
                 if (keyColor !== undefined) {
-                    group.color = keyColor
+                    series.color = keyColor
                 } else if (this.colorColumn) {
-                    const colorValue = last(group.points.map((v) => v.color))
+                    const colorValue = last(series.points.map((v) => v.color))
                     const color = this.colorScale.getColor(colorValue)
                     if (color !== undefined) {
-                        group.color = color
-                        group.isScaleColor = true
+                        series.color = color
+                        series.isScaleColor = true
                     }
                 }
-                const sizes = group.points.map((v) => v.size)
-                group.size = last(sizes.filter((s) => isNumber(s))) ?? 0
-                seriesArr.push(group)
+                const sizes = series.points.map((v) => v.size)
+                series.size = last(sizes.filter((s) => isNumber(s))) ?? 0
+                seriesArr.push(series)
             }
         })
 
@@ -1020,710 +1005,5 @@ export class ScatterPlot
         // }
 
         return seriesArr
-    }
-}
-
-@observer
-class ScatterTooltip extends React.Component<ScatterTooltipProps> {
-    formatValueY(value: SeriesPoint) {
-        return "Y Axis: " + this.props.yColumn.formatValue(value.y)
-    }
-
-    formatValueX(value: SeriesPoint) {
-        let s = `X Axis: ${this.props.xColumn.formatValue(value.x)}`
-        if (!value.time.span && value.time.y !== value.time.x)
-            s += ` (data from ${this.props.xColumn.table.formatTime(
-                value.time.x
-            )})`
-        return s
-    }
-
-    render() {
-        const { x, y, maxWidth, fontSize, series } = this.props
-        const lineHeight = 5
-
-        const firstValue = first(series.points)
-        const lastValue = last(series.points)
-        const values = compact(uniq([firstValue, lastValue]))
-
-        const elements: Array<{ x: number; y: number; wrap: TextWrap }> = []
-        let offset = 0
-
-        const heading = {
-            x: x,
-            y: y + offset,
-            wrap: new TextWrap({
-                maxWidth: maxWidth,
-                fontSize: 0.75 * fontSize,
-                text: series.label,
-            }),
-        }
-        elements.push(heading)
-        offset += heading.wrap.height + lineHeight
-
-        const { yColumn } = this.props
-
-        values.forEach((v) => {
-            const year = {
-                x: x,
-                y: y + offset,
-                wrap: new TextWrap({
-                    maxWidth: maxWidth,
-                    fontSize: 0.65 * fontSize,
-                    text: v.time.span
-                        ? `${yColumn.table.formatTime(
-                              v.time.span[0]
-                          )} to ${yColumn.table.formatTime(v.time.span[1])}`
-                        : yColumn.table.formatTime(v.time.y),
-                }),
-            }
-            offset += year.wrap.height
-            const line1 = {
-                x: x,
-                y: y + offset,
-                wrap: new TextWrap({
-                    maxWidth: maxWidth,
-                    fontSize: 0.55 * fontSize,
-                    text: this.formatValueY(v),
-                }),
-            }
-            offset += line1.wrap.height
-            const line2 = {
-                x: x,
-                y: y + offset,
-                wrap: new TextWrap({
-                    maxWidth: maxWidth,
-                    fontSize: 0.55 * fontSize,
-                    text: this.formatValueX(v),
-                }),
-            }
-            offset += line2.wrap.height + lineHeight
-            elements.push(...[year, line1, line2])
-        })
-
-        return (
-            <g className="scatterTooltip">
-                {elements.map((el, i) =>
-                    el.wrap.render(el.x, el.y, { key: i })
-                )}
-            </g>
-        )
-    }
-}
-
-// todo: readd
-@observer
-export class TimeScatter extends ScatterPlot {
-    constructor(props: any) {
-        super(props)
-    }
-}
-
-// When there's only a single point in a group (e.g. single year mode)
-@observer
-class ScatterGroupSingle extends React.Component<{
-    group: ScatterRenderSeries
-    isLayerMode?: boolean
-    isConnected?: boolean
-}> {
-    render() {
-        const { group, isLayerMode, isConnected } = this.props
-        const value = first(group.points)
-        if (value === undefined) return null
-
-        const color = group.isFocus || !isLayerMode ? value.color : "#e2e2e2"
-
-        const isLabelled = group.allLabels.some((label) => !label.isHidden)
-        const size =
-            !group.isFocus && isConnected ? 1 + value.size / 16 : value.size
-        const cx = value.position.x.toFixed(2)
-        const cy = value.position.y.toFixed(2)
-        const stroke = isLayerMode ? "#bbb" : isLabelled ? "#333" : "#666"
-
-        return (
-            <g key={group.displayKey} className={group.displayKey}>
-                {group.isFocus && (
-                    <circle
-                        cx={cx}
-                        cy={cy}
-                        fill="none"
-                        stroke={color}
-                        r={(size + 3).toFixed(2)}
-                    />
-                )}
-                <circle
-                    cx={cx}
-                    cy={cy}
-                    r={size.toFixed(2)}
-                    fill={color}
-                    opacity={0.8}
-                    stroke={stroke}
-                    strokeWidth={0.5}
-                />
-            </g>
-        )
-    }
-}
-
-@observer
-class ScatterBackgroundLine extends React.Component<{
-    group: ScatterRenderSeries
-    isLayerMode: boolean
-    isConnected: boolean
-}> {
-    render() {
-        const { group, isLayerMode, isConnected } = this.props
-
-        if (group.points.length === 1)
-            return (
-                <ScatterGroupSingle
-                    group={group}
-                    isLayerMode={isLayerMode}
-                    isConnected={isConnected}
-                />
-            )
-
-        const firstValue = first(group.points)
-        const lastValue = last(group.points)
-        if (firstValue === undefined || lastValue === undefined) return null
-
-        let rotation = PointVector.angle(group.offsetVector, PointVector.up)
-        if (group.offsetVector.x < 0) rotation = -rotation
-
-        const opacity = 0.7
-
-        return (
-            <g key={group.displayKey} className={group.displayKey}>
-                <circle
-                    cx={firstValue.position.x.toFixed(2)}
-                    cy={firstValue.position.y.toFixed(2)}
-                    r={(1 + firstValue.size / 25).toFixed(1)}
-                    fill={isLayerMode ? "#e2e2e2" : firstValue.color}
-                    stroke="none"
-                    opacity={opacity}
-                />
-                <MultiColorPolyline
-                    points={group.points.map((v) => ({
-                        x: v.position.x,
-                        y: v.position.y,
-                        color: isLayerMode ? "#ccc" : v.color,
-                    }))}
-                    strokeWidth={(0.3 + group.size / 16).toFixed(2)}
-                    opacity={opacity}
-                />
-                <Triangle
-                    transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
-                        2
-                    )}, ${lastValue.position.y.toFixed(2)})`}
-                    cx={lastValue.position.x}
-                    cy={lastValue.position.y}
-                    r={1.5 + lastValue.size / 16}
-                    fill={isLayerMode ? "#e2e2e2" : lastValue.color}
-                    opacity={opacity}
-                />
-            </g>
-        )
-    }
-}
-
-@observer
-class PointsWithLabels extends React.Component<PointsWithLabelsProps> {
-    base: React.RefObject<SVGGElement> = React.createRef()
-    @computed private get seriesArray() {
-        return this.props.seriesArray
-    }
-
-    @computed private get isConnected() {
-        return this.seriesArray.some((g) => g.points.length > 1)
-    }
-
-    @computed private get focusKeys() {
-        return intersection(
-            this.props.focusKeys || [],
-            this.seriesArray.map((g) => g.entityName)
-        )
-    }
-
-    @computed private get hoverKeys() {
-        return this.props.hoverKeys
-    }
-
-    // Layered mode occurs when any entity on the chart is hovered or focused
-    // Then, a special "foreground" set of entities is rendered over the background
-    @computed private get isLayerMode() {
-        return this.focusKeys.length > 0 || this.hoverKeys.length > 0
-    }
-
-    @computed private get bounds() {
-        return this.props.dualAxis.innerBounds
-    }
-
-    // When focusing multiple entities, we hide some information to declutter
-    @computed private get isSubtleForeground() {
-        return (
-            this.focusKeys.length > 1 &&
-            this.props.seriesArray.some((series) => series.points.length > 2)
-        )
-    }
-
-    @computed private get colorScale() {
-        return this.props.colorScale
-    }
-
-    @computed private get sizeScale() {
-        const sizeScale = scaleLinear()
-            .range([10, 1000])
-            .domain(this.props.sizeDomain)
-        return sizeScale
-    }
-
-    @computed private get fontScale(): (d: number) => number {
-        return scaleLinear().range([10, 13]).domain(this.sizeScale.domain())
-    }
-
-    @computed private get hideLines() {
-        return this.props.hideLines
-    }
-
-    // Pre-transform data for rendering
-    @computed private get initialRenderData(): ScatterRenderSeries[] {
-        const { seriesArray, sizeScale, fontScale, colorScale, bounds } = this
-        const xAxis = this.props.dualAxis.horizontalAxis.clone()
-        xAxis.range = bounds.xRange()
-        const yAxis = this.props.dualAxis.verticalAxis.clone()
-        yAxis.range = this.bounds.yRange()
-
-        return sortNumeric(
-            seriesArray.map((series) => {
-                const points = series.points.map((point) => {
-                    const area = sizeScale(point.size || 4)
-                    const scaleColor =
-                        colorScale !== undefined
-                            ? colorScale.getColor(point.color)
-                            : undefined
-                    return {
-                        position: new PointVector(
-                            Math.floor(xAxis.place(point.x)),
-                            Math.floor(yAxis.place(point.y))
-                        ),
-                        color: scaleColor ?? series.color,
-                        size: Math.sqrt(area / Math.PI),
-                        fontSize: fontScale(series.size || 1),
-                        time: point.time,
-                        label: point.label,
-                    }
-                })
-
-                return {
-                    entityName: series.entityName,
-                    displayKey: "key-" + makeSafeForCSS(series.entityName),
-                    color: series.color,
-                    size: (last(points) as any).size,
-                    points,
-                    text: series.label,
-                    midLabels: [],
-                    allLabels: [],
-                    offsetVector: PointVector.zero,
-                }
-            }),
-            (d) => d.size,
-            SortOrder.desc
-        )
-    }
-
-    @computed private get renderData(): ScatterRenderSeries[] {
-        // Draw the largest points first so that smaller ones can sit on top of them
-        const renderData = this.initialRenderData
-
-        for (const series of renderData) {
-            series.isHover = this.hoverKeys.includes(series.entityName)
-            series.isFocus = this.focusKeys.includes(series.entityName)
-            series.isForeground = series.isHover || series.isFocus
-            if (series.isHover) series.size += 1
-        }
-
-        for (const series of renderData) {
-            series.startLabel = makeStartLabel(series, this.isSubtleForeground)
-            series.midLabels = makeMidLabels(series, this.isSubtleForeground)
-            series.endLabel = makeEndLabel(
-                series,
-                this.isSubtleForeground,
-                this.hideLines
-            )
-            series.allLabels = [series.startLabel]
-                .concat(series.midLabels)
-                .concat([series.endLabel])
-                .filter((x) => x) as ScatterLabel[]
-        }
-
-        const labels = flatten(renderData.map((series) => series.allLabels))
-
-        // Ensure labels fit inside bounds
-        // Must do before collision detection since it'll change the positions
-        this.moveLabelsInsideChartBounds(labels, this.bounds)
-
-        const labelsByPriority = sortNumeric(
-            labels,
-            (l) => labelPriority(l),
-            SortOrder.desc
-        )
-        if (this.focusKeys.length > 0)
-            this.hideUnselectedLabels(labelsByPriority)
-
-        this.hideCollidingLabelsByPriority(labelsByPriority)
-
-        return renderData
-    }
-
-    private hideUnselectedLabels(labelsByPriority: ScatterLabel[]) {
-        labelsByPriority
-            .filter((label) => !label.series.isFocus && !label.series.isHover)
-            .forEach((label) => (label.isHidden = true))
-    }
-
-    private hideCollidingLabelsByPriority(labelsByPriority: ScatterLabel[]) {
-        for (let i = 0; i < labelsByPriority.length; i++) {
-            const higherPriorityLabel = labelsByPriority[i]
-            if (higherPriorityLabel.isHidden) continue
-
-            for (let j = i + 1; j < labelsByPriority.length; j++) {
-                const lowerPriorityLabel = labelsByPriority[j]
-                if (lowerPriorityLabel.isHidden) continue
-
-                const isHighlightedEndLabelOfEqualPriority =
-                    lowerPriorityLabel.isEnd &&
-                    (lowerPriorityLabel.series.isHover ||
-                        lowerPriorityLabel.series.isFocus) &&
-                    higherPriorityLabel.series.isHover ===
-                        lowerPriorityLabel.series.isHover &&
-                    higherPriorityLabel.series.isFocus ===
-                        lowerPriorityLabel.series.isFocus
-
-                if (
-                    isHighlightedEndLabelOfEqualPriority
-                        ? // For highlighted end labels of equal priority, we want to allow some
-                          // overlap – labels are still readable even if they overlap
-                          higherPriorityLabel.bounds
-                              .pad(6) // allow up to 6px of overlap
-                              .intersects(lowerPriorityLabel.bounds)
-                        : // For non-highlighted labels we want to leave more space between labels,
-                          // partly to have a less noisy chart, and partly to prevent readers from
-                          // thinking that "everything is labelled". In the past this has made
-                          // readers think that if a label doesn't exist, it isn't plotted on the
-                          // chart.
-                          higherPriorityLabel.bounds
-                              .pad(-6)
-                              .intersects(lowerPriorityLabel.bounds)
-                ) {
-                    lowerPriorityLabel.isHidden = true
-                }
-            }
-        }
-    }
-
-    // todo: move this to bounds class with a test
-    private moveLabelsInsideChartBounds(
-        labels: ScatterLabel[],
-        bounds: Bounds
-    ) {
-        for (const label of labels) {
-            if (label.bounds.left < bounds.left - 1)
-                label.bounds = label.bounds.extend({
-                    x: label.bounds.x + label.bounds.width,
-                })
-            else if (label.bounds.right > bounds.right + 1)
-                label.bounds = label.bounds.extend({
-                    x: label.bounds.x - label.bounds.width,
-                })
-
-            if (label.bounds.top < bounds.top - 1)
-                label.bounds = label.bounds.extend({ y: bounds.top })
-            else if (label.bounds.bottom > bounds.bottom + 1)
-                label.bounds = label.bounds.extend({
-                    y: bounds.bottom - label.bounds.height,
-                })
-        }
-    }
-
-    mouseFrame?: number
-    @action.bound onMouseLeave() {
-        if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
-
-        if (this.props.onMouseLeave) this.props.onMouseLeave()
-    }
-
-    @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>) {
-        if (this.mouseFrame !== undefined) cancelAnimationFrame(this.mouseFrame)
-
-        const nativeEvent = ev.nativeEvent
-
-        this.mouseFrame = requestAnimationFrame(() => {
-            const mouse = getRelativeMouse(this.base.current, nativeEvent)
-
-            const closestSeries = minBy(this.renderData, (series) => {
-                if (series.points.length > 1)
-                    return min(
-                        series.points.slice(0, -1).map((d, i) => {
-                            return PointVector.distanceFromPointToLineSq(
-                                mouse,
-                                d.position,
-                                series.points[i + 1].position
-                            )
-                        })
-                    )
-
-                return min(
-                    series.points.map((v) =>
-                        PointVector.distanceSq(v.position, mouse)
-                    )
-                )
-            })
-
-            if (closestSeries && this.props.onMouseOver) {
-                const datum = this.seriesArray.find(
-                    (d) => d.entityName === closestSeries.entityName
-                )
-                if (datum) this.props.onMouseOver(datum)
-            }
-        })
-    }
-
-    @action.bound onClick() {
-        if (this.props.onClick) this.props.onClick()
-    }
-
-    @computed get backgroundGroups() {
-        return this.renderData.filter((group) => !group.isForeground)
-    }
-
-    @computed get foregroundGroups() {
-        return this.renderData.filter((group) => !!group.isForeground)
-    }
-
-    private renderBackgroundGroups() {
-        const { backgroundGroups, isLayerMode, isConnected, hideLines } = this
-
-        return hideLines
-            ? []
-            : backgroundGroups.map((group) => (
-                  <ScatterBackgroundLine
-                      key={group.entityName}
-                      group={group}
-                      isLayerMode={isLayerMode}
-                      isConnected={isConnected}
-                  />
-              ))
-    }
-
-    private renderBackgroundLabels() {
-        const { backgroundGroups, isLayerMode } = this
-
-        return (
-            <g
-                className="backgroundLabels"
-                fill={!isLayerMode ? "#333" : "#aaa"}
-            >
-                {backgroundGroups.map((series) => {
-                    return series.allLabels
-                        .filter((l) => !l.isHidden)
-                        .map((l) =>
-                            getElementWithHalo(
-                                series.displayKey + "-endLabel",
-                                <text
-                                    x={l.bounds.x.toFixed(2)}
-                                    y={(l.bounds.y + l.bounds.height).toFixed(
-                                        2
-                                    )}
-                                    fontSize={l.fontSize.toFixed(2)}
-                                    fontWeight={l.fontWeight}
-                                    fill={isLayerMode ? "#aaa" : l.color}
-                                >
-                                    {l.text}
-                                </text>
-                            )
-                        )
-                })}
-            </g>
-        )
-    }
-
-    @computed get renderUid() {
-        return guid()
-    }
-
-    private renderForegroundGroups() {
-        const { foregroundGroups, isSubtleForeground, hideLines } = this
-
-        return foregroundGroups.map((series) => {
-            const lastValue = last(series.points) as ScatterRenderPoint
-            const strokeWidth =
-                (series.isHover ? 3 : isSubtleForeground ? 1.5 : 2) +
-                lastValue.size * 0.05
-
-            if (series.points.length === 1) {
-                return (
-                    <ScatterGroupSingle
-                        key={series.displayKey}
-                        group={series}
-                    />
-                )
-            } else {
-                const firstValue = first(series.points)
-                const opacity = isSubtleForeground ? 0.9 : 1
-                const radius = strokeWidth / 2 + 1
-                let rotation = PointVector.angle(
-                    series.offsetVector,
-                    PointVector.up
-                )
-                if (series.offsetVector.x < 0) rotation = -rotation
-                return (
-                    <g key={series.displayKey} className={series.displayKey}>
-                        <MultiColorPolyline
-                            points={series.points.map((v) => ({
-                                x: v.position.x,
-                                y: v.position.y,
-                                color: hideLines ? "rgba(0,0,0,0)" : v.color,
-                            }))}
-                            strokeWidth={strokeWidth}
-                            opacity={opacity}
-                        />
-                        {series.isFocus && !hideLines && firstValue && (
-                            <circle
-                                cx={firstValue.position.x.toFixed(2)}
-                                cy={firstValue.position.y.toFixed(2)}
-                                r={radius}
-                                fill={firstValue.color}
-                                opacity={opacity}
-                                stroke={firstValue.color}
-                                strokeOpacity={0.6}
-                            />
-                        )}
-                        {series.isHover &&
-                            !hideLines &&
-                            series.points
-                                .slice(1, -1)
-                                .map((v, index) => (
-                                    <circle
-                                        key={index}
-                                        cx={v.position.x}
-                                        cy={v.position.y}
-                                        r={radius}
-                                        fill={v.color}
-                                        stroke="none"
-                                    />
-                                ))}
-                        <Triangle
-                            transform={`rotate(${rotation}, ${lastValue.position.x.toFixed(
-                                2
-                            )}, ${lastValue.position.y.toFixed(2)})`}
-                            cx={lastValue.position.x}
-                            cy={lastValue.position.y}
-                            r={strokeWidth * 2}
-                            fill={lastValue.color}
-                            opacity={opacity}
-                        />
-                    </g>
-                )
-            }
-        })
-    }
-
-    private renderForegroundLabels() {
-        const { foregroundGroups } = this
-        return foregroundGroups.map((series) => {
-            return series.allLabels
-                .filter((l) => !l.isHidden)
-                .map((l, i) =>
-                    getElementWithHalo(
-                        `${series.displayKey}-label-${i}`,
-                        <text
-                            x={l.bounds.x.toFixed(2)}
-                            y={(l.bounds.y + l.bounds.height).toFixed(2)}
-                            fontSize={l.fontSize}
-                            fontFamily={ScatterLabelFontFamily}
-                            fontWeight={l.fontWeight}
-                            fill={l.color}
-                        >
-                            {l.text}
-                        </text>
-                    )
-                )
-        })
-    }
-
-    animSelection?: d3.Selection<
-        d3.BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
-    componentDidMount() {
-        const radiuses: string[] = []
-        this.animSelection = select(this.base.current).selectAll("circle")
-
-        this.animSelection
-            .each(function () {
-                const circle = this as SVGCircleElement
-                radiuses.push(circle.getAttribute("r") as string)
-                circle.setAttribute("r", "0")
-            })
-            .transition()
-            .duration(500)
-            .attr("r", (_, i) => radiuses[i])
-            .on("end", () => this.forceUpdate())
-    }
-
-    componentWillUnmount() {
-        if (this.animSelection) this.animSelection.interrupt()
-    }
-
-    render() {
-        //Bounds.debug(flatten(map(this.renderData, d => map(d.labels, 'bounds'))))
-
-        const { bounds, renderData, renderUid } = this
-        const clipBounds = bounds.pad(-10)
-
-        if (isEmpty(renderData))
-            return (
-                <NoDataModal
-                    manager={this.props.noDataModalManager}
-                    bounds={bounds}
-                />
-            )
-
-        return (
-            <g
-                ref={this.base}
-                className="PointsWithLabels clickable"
-                clipPath={`url(#scatterBounds-${renderUid})`}
-                onMouseMove={this.onMouseMove}
-                onMouseLeave={this.onMouseLeave}
-                onClick={this.onClick}
-                fontFamily={ScatterLabelFontFamily}
-            >
-                <rect
-                    key="background"
-                    x={bounds.x}
-                    y={bounds.y}
-                    width={bounds.width}
-                    height={bounds.height}
-                    fill="rgba(255,255,255,0)"
-                />
-                <defs>
-                    <clipPath id={`scatterBounds-${renderUid}`}>
-                        <rect
-                            x={clipBounds.x}
-                            y={clipBounds.y}
-                            width={clipBounds.width}
-                            height={clipBounds.height}
-                        />
-                    </clipPath>
-                </defs>
-                {this.renderBackgroundGroups()}
-                {this.renderBackgroundLabels()}
-                {this.renderForegroundGroups()}
-                {this.renderForegroundLabels()}
-            </g>
-        )
     }
 }

@@ -9,9 +9,8 @@ export default {
     component: ScatterPlot,
 }
 
-const table = SynthesizeGDPTable({ entityCount: 20 }).selectAll()
-
-const basicSetup: Partial<ScatterPlotManager> = {
+const basicSetup: ScatterPlotManager = {
+    table: SynthesizeGDPTable({ entityCount: 20 }).selectAll(),
     yColumnSlug: SampleColumnSlugs.GDP,
     xColumnSlug: SampleColumnSlugs.Population,
     yAxisConfig: {
@@ -23,8 +22,10 @@ const basicSetup: Partial<ScatterPlotManager> = {
 }
 
 const oneYear: ScatterPlotManager = {
-    table: table.filterByTargetTime(2000, 0),
     ...basicSetup,
+    table: SynthesizeGDPTable({ entityCount: 20 })
+        .selectAll()
+        .filterByTargetTime(2000, 0),
 }
 
 const oneYearWithSizeColumn = {
@@ -50,12 +51,15 @@ export const OneYearWithSizeColumn = () => {
     )
 }
 
-export const WithComparisonLines = () => {
+export const WithComparisonLinesAndSelection = () => {
     return (
         <svg width={600} height={600}>
             <ScatterPlot
                 manager={{
                     ...oneYearWithComparisons,
+                    table: SynthesizeGDPTable({ entityCount: 20 })
+                        .filterByTargetTime(2000, 0)
+                        .selectSample(5),
                 }}
             />
         </svg>
@@ -102,12 +106,7 @@ export const LogScales = () => {
 export const MultipleYearsWithConnectedLines = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot
-                manager={{
-                    ...basicSetup,
-                    table,
-                }}
-            />
+            <ScatterPlot manager={basicSetup} />
         </svg>
     )
 }
@@ -123,6 +122,38 @@ export const MultipleYearsWithConnectedLinesAndBackgroundLines = () => {
                     ),
                 }}
             />
+        </svg>
+    )
+}
+
+// TODO
+export const OneYearWithSizeAndColorColumn = () => {
+    return (
+        <svg width={600} height={600}>
+            <ScatterPlot
+                manager={{
+                    ...oneYearWithSizeColumn,
+                    colorColumnSlug: SampleColumnSlugs.LifeExpectancy,
+                }}
+            />
+        </svg>
+    )
+}
+
+// TODO
+export const AverageAnnualChange = () => {
+    return (
+        <svg width={600} height={600}>
+            <ScatterPlot manager={oneYear} />
+        </svg>
+    )
+}
+
+// TODO
+export const CustomColors = () => {
+    return (
+        <svg width={600} height={600}>
+            <ScatterPlot manager={oneYear} />
         </svg>
     )
 }

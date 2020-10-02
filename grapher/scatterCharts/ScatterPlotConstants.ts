@@ -7,6 +7,9 @@ import { ColorScale } from "grapher/color/ColorScale"
 import {
     ScatterPointLabelStrategy,
     EntitySelectionMode,
+    SeriesName,
+    Color,
+    Time,
 } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
@@ -28,8 +31,8 @@ export interface ScatterTooltipProps {
 }
 
 export interface ScatterSeries {
-    color: string
-    entityName: string
+    color: Color
+    seriesName: SeriesName
     label: string
     size: number
     points: SeriesPoint[]
@@ -43,7 +46,7 @@ export interface SeriesPoint {
     entityName?: EntityName
     label: string
     color?: number | string
-    year: number
+    year: Time
     time: {
         x: number
         y: number
@@ -66,7 +69,7 @@ export interface ScatterRenderPoint {
 export const ScatterLabelFontFamily = "Arial, sans-serif"
 
 export interface ScatterRenderSeries {
-    entityName: EntityName
+    seriesName: SeriesName
     displayKey: string
     color: string
     size: number
@@ -95,10 +98,10 @@ export interface ScatterLabel {
     isEnd?: boolean
 }
 
-export interface PointsWithLabelsProps {
+export interface ScatterPointsWithLabelsProps {
     seriesArray: ScatterSeries[]
-    hoverKeys: string[]
-    focusKeys: string[]
+    hoveredSeriesNames: SeriesName[]
+    focusedSeriesNames: SeriesName[]
     dualAxis: DualAxis
     colorScale?: ColorScale
     sizeDomain: [number, number]
