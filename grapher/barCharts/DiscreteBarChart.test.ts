@@ -18,7 +18,7 @@ it("can create a new bar chart", () => {
     table.selectAll()
     expect(chart.failMessage).toEqual("")
 
-    const marks = chart.marks
+    const marks = chart.series
     expect(marks.length).toEqual(2)
     expect(marks[0].time).toBeTruthy()
 })

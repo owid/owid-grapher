@@ -1,9 +1,8 @@
-import { EntityName } from "coreTable/CoreTableConstants"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { Time, Color } from "grapher/core/GrapherConstants"
+import { Time, Color, SeriesName } from "grapher/core/GrapherConstants"
 
 export interface DiscreteBarDatum {
-    entityName: EntityName
+    seriesName: SeriesName
     value: number
     time: Time
     label: string

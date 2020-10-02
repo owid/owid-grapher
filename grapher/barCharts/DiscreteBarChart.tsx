@@ -66,7 +66,7 @@ export class DiscreteBarChart
 
     // Account for the width of the legend
     @computed private get legendWidth() {
-        const labels = this.marks.map((d) => d.label)
+        const labels = this.series.map((d) => d.label)
         if (this.hasFloatingAddButton)
             labels.push(` + ${this.manager.addButtonLabel ?? "Add data"}`)
 
@@ -75,18 +75,18 @@ export class DiscreteBarChart
     }
 
     @computed private get hasPositive() {
-        return this.marks.some((d) => d.value >= 0)
+        return this.series.some((d) => d.value >= 0)
     }
 
     @computed private get hasNegative() {
-        return this.marks.some((d) => d.value < 0)
+        return this.series.some((d) => d.value < 0)
     }
 
     // The amount of space we need to allocate for bar end labels on the right
     @computed private get rightEndLabelWidth() {
         if (!this.hasPositive) return 0
 
-        const positiveLabels = this.marks
+        const positiveLabels = this.series
             .filter((mark) => mark.value >= 0)
             .map((mark) => this.formatValue(mark))
         const longestPositiveLabel = maxBy(positiveLabels, (l) => l.length)
@@ -99,7 +99,7 @@ export class DiscreteBarChart
     @computed private get leftEndLabelWidth() {
         if (!this.hasNegative) return 0
 
-        const negativeLabels = this.marks
+        const negativeLabels = this.series
             .filter((d) => d.value < 0)
             .map((d) => this.formatValue(d))
         const longestNegativeLabel = maxBy(negativeLabels, (l) => l.length)
@@ -112,13 +112,13 @@ export class DiscreteBarChart
     @computed private get x0() {
         if (!this.isLogScale) return 0
 
-        const minValue = min(this.marks.map((d) => d.value))
+        const minValue = min(this.series.map((d) => d.value))
         return minValue !== undefined ? Math.min(1, minValue) : 1
     }
 
     // Now we can work out the main x axis scale
     @computed private get xDomainDefault(): [number, number] {
-        const allValues = this.marks.map((d) => d.value)
+        const allValues = this.series.map((d) => d.value)
 
         const minStart = this.x0
         return [
@@ -166,8 +166,8 @@ export class DiscreteBarChart
     // Leave space for extra bar at bottom to show "Add country" button
     @computed private get totalBars() {
         return this.hasFloatingAddButton
-            ? this.marks.length + 1
-            : this.marks.length
+            ? this.series.length + 1
+            : this.series.length
     }
 
     @computed private get barHeight() {
@@ -179,8 +179,8 @@ export class DiscreteBarChart
     }
 
     @computed private get barPlacements() {
-        const { marks, axis } = this
-        return marks.map((d) => {
+        const { series, axis } = this
+        return series.map((d) => {
             const isNegative = d.value < 0
             const barX = isNegative ? axis.place(d.value) : axis.place(this.x0)
             const barWidth = isNegative
@@ -257,7 +257,14 @@ export class DiscreteBarChart
                 />
             )
 
-        const { marks, bounds, axis, innerBounds, barHeight, barSpacing } = this
+        const {
+            series,
+            bounds,
+            axis,
+            innerBounds,
+            barHeight,
+            barSpacing,
+        } = this
 
         let yOffset = innerBounds.top + barHeight / 2
 
@@ -284,7 +291,7 @@ export class DiscreteBarChart
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                {marks.map((datum) => {
+                {series.map((datum) => {
                     const isNegative = datum.value < 0
                     const barX = isNegative
                         ? axis.place(datum.value)
@@ -305,7 +312,7 @@ export class DiscreteBarChart
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={datum.entityName}
+                            key={datum.seriesName}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                             style={{ transition: "transform 200ms ease" }}
@@ -427,7 +434,7 @@ export class DiscreteBarChart
         return colorByValue
     }
 
-    @computed get marks() {
+    @computed get series() {
         const { table, yColumn, valuesToColorsMap } = this
         const { getLabelForEntityName } = table
 
@@ -435,6 +442,7 @@ export class DiscreteBarChart
             const { entityName } = row
             const datum: DiscreteBarDatum = {
                 ...row,
+                seriesName: entityName,
                 label: getLabelForEntityName(entityName),
                 color:
                     table.getColorForEntityName(row.entityName) ||

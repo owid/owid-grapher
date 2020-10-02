@@ -118,7 +118,7 @@ export class ScatterPlot
         const { hoverColor, table } = this
         if (!this.canAddCountry || hoverColor === undefined) return
 
-        const keysToToggle = this.marks
+        const keysToToggle = this.series
             .filter((g) => g.color === hoverColor)
             .map((g) => g.seriesName)
         const allKeysActive =
@@ -138,7 +138,7 @@ export class ScatterPlot
     @computed get focusColors() {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
-            const matchingKeys = this.marks
+            const matchingKeys = this.series
                 .filter((g) => g.color === color)
                 .map((g) => g.seriesName)
             return (
@@ -156,7 +156,7 @@ export class ScatterPlot
             hoverColor === undefined
                 ? []
                 : uniq(
-                      this.marks
+                      this.series
                           .filter((g) => g.color === hoverColor)
                           .map((g) => g.seriesName)
                   )
@@ -211,9 +211,9 @@ export class ScatterPlot
     @computed get tooltipSeries() {
         const { hoveredSeries, focusedEntityNames } = this
         if (hoveredSeries !== undefined)
-            return this.marks.find((g) => g.seriesName === hoveredSeries)
+            return this.series.find((g) => g.seriesName === hoveredSeries)
         if (focusedEntityNames && focusedEntityNames.length === 1)
-            return this.marks.find(
+            return this.series.find(
                 (g) => g.seriesName === focusedEntityNames[0]
             )
         return undefined
@@ -258,7 +258,7 @@ export class ScatterPlot
         const { hoveredSeriesNames, focusedEntityNames } = this
         const activeKeys = hoveredSeriesNames.concat(focusedEntityNames)
 
-        let series = this.marks
+        let series = this.series
 
         if (activeKeys.length)
             series = series.filter((g) => activeKeys.includes(g.seriesName))
@@ -280,7 +280,7 @@ export class ScatterPlot
             hoveredSeriesNames,
             hideLines,
             manager,
-            marks,
+            series,
             sizeDomain,
             colorScale,
         } = this
@@ -289,7 +289,7 @@ export class ScatterPlot
             <ScatterPointsWithLabels
                 noDataModalManager={manager}
                 hideLines={hideLines}
-                seriesArray={marks}
+                seriesArray={series}
                 dualAxis={dualAxis}
                 colorScale={this.colorColumn ? colorScale : undefined}
                 sizeDomain={sizeDomain}
@@ -473,7 +473,7 @@ export class ScatterPlot
         if (isEmpty(this.possibleDataTimes))
             return "No times with data for both X and Y"
 
-        if (isEmpty(this.marks)) return "No matching data"
+        if (isEmpty(this.series)) return "No matching data"
 
         return ""
     }
@@ -711,7 +711,7 @@ export class ScatterPlot
     }
 
     @computed private get currentValues() {
-        return flatten(this.marks.map((g) => g.points))
+        return flatten(this.series.map((g) => g.points))
     }
 
     // domains across the entire timeline
@@ -893,7 +893,7 @@ export class ScatterPlot
     }
 
     // todo: refactor/remove and/or add unit tests
-    @computed get marks() {
+    @computed get series() {
         const { yColumn } = this
         if (!yColumn) return []
 

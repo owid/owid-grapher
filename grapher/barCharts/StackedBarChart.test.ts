@@ -16,7 +16,7 @@ it("can create a chart", () => {
 
     table.selectSample(1)
     expect(chart.failMessage).toEqual("")
-    expect(chart.marks[0].points.length).toEqual(10)
+    expect(chart.series[0].points.length).toEqual(10)
 })
 
 describe("stackedbar chart with columns as series", () => {
@@ -29,9 +29,9 @@ describe("stackedbar chart with columns as series", () => {
     const chart = new StackedBarChart({ manager })
 
     it("render the legend items in the same stack order as the chart, bottom stack item on bottom of chart", () => {
-        expect(chart.marks.length).toEqual(2)
+        expect(chart.series.length).toEqual(2)
         expect(chart.categoricalValues).toEqual(yColumnSlugs.reverse())
-        expect(chart.marks[0].seriesName).toEqual("GDP")
+        expect(chart.series[0].seriesName).toEqual("GDP")
     })
 })
 
@@ -43,8 +43,8 @@ describe("stackedbar chart with entities as series", () => {
     const chart = new StackedBarChart({ manager })
 
     it("can render complete data correctly", () => {
-        expect(chart.marks.length).toEqual(5)
-        expect(chart.marks[0].points[0].y).toBeTruthy()
+        expect(chart.series.length).toEqual(5)
+        expect(chart.series[0].points[0].y).toBeTruthy()
     })
 
     it("can handle a missing row", () => {
@@ -55,7 +55,7 @@ describe("stackedbar chart with entities as series", () => {
             yColumnSlugs: ["Population"],
         }
         const chart = new StackedBarChart({ manager })
-        expect(chart.marks.length).toEqual(5)
-        expect(chart.marks[0].points[0].y).toBeTruthy()
+        expect(chart.series.length).toEqual(5)
+        expect(chart.series[0].points[0].y).toBeTruthy()
     })
 })

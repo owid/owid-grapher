@@ -80,7 +80,7 @@ export class SlopeChart
     }
 
     @action.bound onSlopeMouseOver(slopeProps: SlopeProps) {
-        this.hoverKey = slopeProps.entityName
+        this.hoverKey = slopeProps.seriesName
     }
 
     @action.bound onSlopeMouseLeave() {
@@ -122,9 +122,9 @@ export class SlopeChart
         )
             return
 
-        const keysToToggle = this.marks
+        const keysToToggle = this.series
             .filter((g) => g.color === hoverColor)
-            .map((g) => g.entityName)
+            .map((g) => g.seriesName)
         const allKeysActive =
             intersection(keysToToggle, this.selectedKeys).length ===
             keysToToggle.length
@@ -142,9 +142,9 @@ export class SlopeChart
     @computed get focusColors() {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
-            const matchingKeys = this.marks
+            const matchingKeys = this.series
                 .filter((g) => g.color === color)
-                .map((g) => g.entityName)
+                .map((g) => g.seriesName)
             return (
                 intersection(matchingKeys, this.selectedKeys).length ===
                 matchingKeys.length
@@ -164,9 +164,9 @@ export class SlopeChart
             hoverColor === undefined
                 ? []
                 : uniq(
-                      this.marks
+                      this.series
                           .filter((g) => g.color === hoverColor)
-                          .map((g) => g.entityName)
+                          .map((g) => g.seriesName)
                   )
 
         if (hoverKey !== undefined) hoverKeys.push(hoverKey)
@@ -181,18 +181,18 @@ export class SlopeChart
 
         if (activeKeys.length === 0)
             // No hover or focus means they're all active by default
-            return uniq(this.marks.map((g) => g.color))
+            return uniq(this.series.map((g) => g.color))
 
         return uniq(
-            this.marks
-                .filter((g) => activeKeys.indexOf(g.entityName) !== -1)
+            this.series
+                .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
                 .map((g) => g.color)
         )
     }
 
     // Only show colors on legend that are actually in use
     @computed get colorsInUse() {
-        return uniq(this.marks.map((g) => g.color))
+        return uniq(this.series.map((g) => g.color))
     }
 
     @computed get sidebarMaxWidth() {
@@ -241,7 +241,7 @@ export class SlopeChart
             )
 
         const { manager } = this.props
-        const { marks, focusKeys, hoverKeys, innerBounds, showLegend } = this
+        const { series, focusKeys, hoverKeys, innerBounds, showLegend } = this
 
         const legend = showLegend ? (
             <VerticalColorLegend manager={this} />
@@ -255,7 +255,7 @@ export class SlopeChart
                     manager={manager}
                     bounds={innerBounds}
                     yColumn={this.yColumn!}
-                    data={marks}
+                    data={series}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}
@@ -277,7 +277,7 @@ export class SlopeChart
 
     @computed get failMessage() {
         if (!this.yColumn) return "Missing Y column"
-        else if (isEmpty(this.marks)) return "No matching data"
+        else if (isEmpty(this.series)) return "No matching data"
         return ""
     }
 
@@ -359,7 +359,7 @@ export class SlopeChart
         return sizeByEntity
     }
 
-    @computed get marks() {
+    @computed get series() {
         const column = this.yColumn
         if (!column) return []
 
@@ -385,7 +385,7 @@ export class SlopeChart
                 })
 
                 return {
-                    entityName,
+                    seriesName: entityName,
                     label: entityName,
                     color:
                         table.getColorForEntityName(entityName) ||
@@ -621,14 +621,14 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get focusKeys() {
         return intersection(
             this.props.focusKeys || [],
-            this.data.map((g) => g.entityName)
+            this.data.map((g) => g.seriesName)
         )
     }
 
     @computed get hoverKeys() {
         return intersection(
             this.props.hoverKeys || [],
-            this.data.map((g) => g.entityName)
+            this.data.map((g) => g.seriesName)
         )
     }
 
@@ -777,7 +777,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 leftLabel,
                 rightLabel,
                 labelFontSize: fontSize,
-                entityName: series.entityName,
+                seriesName: series.seriesName,
                 isFocused: false,
                 isHovered: false,
                 hasLeftLabel: true,
@@ -844,8 +844,8 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         slopeData = slopeData.map((slope) => {
             return {
                 ...slope,
-                isFocused: focusKeys.includes(slope.entityName),
-                isHovered: hoverKeys.includes(slope.entityName),
+                isFocused: focusKeys.includes(slope.seriesName),
+                isHovered: hoverKeys.includes(slope.seriesName),
             }
         })
 
@@ -970,7 +970,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
         return groups.map((slope) => (
             <Slope
-                key={slope.entityName}
+                key={slope.seriesName}
                 {...slope}
                 isLayerMode={isLayerMode}
             />

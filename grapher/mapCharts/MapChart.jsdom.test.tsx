@@ -17,7 +17,7 @@ const manager: MapChartManager = {
 
 test("can create a new Map chart", () => {
     const chart = new MapChart({ manager })
-    expect(Object.keys(chart.marks).length).toEqual(2)
+    expect(Object.keys(chart.series).length).toEqual(2)
 
     const legends = chart.colorScale.legendBins
     expect(Object.keys(legends).length).toBeGreaterThan(1)
@@ -38,7 +38,7 @@ it("can change time and see more points", () => {
     const manager = new Grapher(legacyMapGrapher)
     const chart = new MapChart({ manager })
 
-    expect(Object.keys(chart.marks).length).toEqual(1)
+    expect(Object.keys(chart.series).length).toEqual(1)
     manager.endTime = 2010
-    expect(Object.keys(chart.marks).length).toEqual(2)
+    expect(Object.keys(chart.series).length).toEqual(2)
 })

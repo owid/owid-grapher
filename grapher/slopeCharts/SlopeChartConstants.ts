@@ -1,7 +1,6 @@
 import { AbstractCoreColumn } from "coreTable/CoreTable"
-import { EntityName } from "coreTable/CoreTableConstants"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { ScaleType } from "grapher/core/GrapherConstants"
+import { ScaleType, SeriesName } from "grapher/core/GrapherConstants"
 import { TextWrap } from "grapher/text/TextWrap"
 import { Bounds } from "grapher/utils/Bounds"
 
@@ -12,14 +11,14 @@ export interface SlopeChartValue {
 
 export interface SlopeChartSeries {
     label: string
-    entityName: EntityName
+    seriesName: SeriesName
     color: string
     size: number
     values: SlopeChartValue[]
 }
 
 export interface SlopeProps {
-    entityName: EntityName
+    seriesName: SeriesName
     isLayerMode: boolean
     x1: number
     y1: number

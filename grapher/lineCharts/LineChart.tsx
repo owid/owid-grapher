@@ -31,7 +31,6 @@ import {
     BASE_FONT_SIZE,
     SeriesName,
     ScaleType,
-    ValueRange,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
@@ -250,7 +249,7 @@ export class LineChart
 
         if (hoverX === undefined) return undefined
 
-        const sortedData = sortBy(this.marks, (series) => {
+        const sortedData = sortBy(this.series, (series) => {
             const value = series.points.find((point) => point.x === hoverX)
             return value !== undefined ? -value.y : Infinity
         })
@@ -497,7 +496,7 @@ export class LineChart
                 </g>
                 {hoverX !== undefined && (
                     <g className="hoverIndicator">
-                        {this.marks.map((series) => {
+                        {this.series.map((series) => {
                             const value = series.points.find(
                                 (point) => point.x === hoverX
                             )
@@ -532,7 +531,7 @@ export class LineChart
     @computed get failMessage() {
         const { yColumnSlugs } = this
         if (!yColumnSlugs.length) return "Missing Y axis column"
-        if (!this.marks.length) return "No matching data"
+        if (!this.series.length) return "No matching data"
         return ""
     }
 
@@ -586,7 +585,7 @@ export class LineChart
         )
     }
 
-    @computed get marks() {
+    @computed get series() {
         const { yColumns } = this
         const chartData: LineChartMark[] = flatten(
             yColumns.map((col) => {
@@ -624,7 +623,7 @@ export class LineChart
         const { dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        return this.marks.map((mark) => {
+        return this.series.map((mark) => {
             return {
                 ...mark,
                 placedPoints: mark.points.map(
@@ -664,7 +663,7 @@ export class LineChart
     @computed get labelMarks(): LineLabelMark[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
-        let toShow = this.marks
+        let toShow = this.series
         if (toShow.some((g) => !!g.isProjection))
             toShow = toShow.filter((g) => g.isProjection)
 

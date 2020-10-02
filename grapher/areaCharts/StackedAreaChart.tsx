@@ -232,7 +232,7 @@ export class StackedAreaChart
 
     @computed get midpoints() {
         let prevY = 0
-        return this.marks.map((series) => {
+        return this.series.map((series) => {
             const lastValue = last(series.points)
             if (lastValue) {
                 const middleY = prevY + (lastValue.y - prevY) / 2
@@ -244,7 +244,7 @@ export class StackedAreaChart
 
     @computed get labelMarks(): LineLabelMark[] {
         const { midpoints } = this
-        return this.marks
+        return this.series
             .map((d, i) => ({
                 color: d.color,
                 seriesName: d.seriesName,
@@ -316,13 +316,13 @@ export class StackedAreaChart
     @computed private get tooltip() {
         if (this.hoverIndex === undefined) return undefined
 
-        const { hoverIndex, dualAxis, manager, marks } = this
+        const { hoverIndex, dualAxis, manager, series } = this
 
         // Grab the first value to get the year from
-        const refValue = marks[0].points[hoverIndex]
+        const refValue = series[0].points[hoverIndex]
 
         // If some data is missing, don't calculate a total
-        const someMissing = marks.some(
+        const someMissing = series.some(
             (g) => g.points[hoverIndex] === undefined
         )
 
@@ -356,7 +356,7 @@ export class StackedAreaChart
                             </td>
                             <td></td>
                         </tr>
-                        {reverse(clone(marks)).map((series) => {
+                        {reverse(clone(series)).map((series) => {
                             const value = series.points[hoverIndex]
                             const isBlur = this.seriesIsBlur(series)
                             const textColor = isBlur ? "#ddd" : "#333"
@@ -408,9 +408,8 @@ export class StackedAreaChart
                                     <span>
                                         <strong>
                                             {this.formatYTick(
-                                                marks[marks.length - 1].points[
-                                                    hoverIndex
-                                                ].y
+                                                series[series.length - 1]
+                                                    .points[hoverIndex].y
                                             )}
                                         </strong>
                                     </span>
@@ -463,7 +462,7 @@ export class StackedAreaChart
                 />
             )
 
-        const { manager, bounds, dualAxis, renderUid, marks } = this
+        const { manager, bounds, dualAxis, renderUid, series } = this
 
         const showLegend = !this.manager.hideLegend
 
@@ -488,7 +487,7 @@ export class StackedAreaChart
                     {showLegend && <LineLegend manager={this} />}
                     <Areas
                         dualAxis={dualAxis}
-                        seriesArr={marks}
+                        seriesArr={series}
                         focusedSeriesNames={this.focusedSeriesNames}
                         onHover={this.onHover}
                     />
@@ -507,7 +506,7 @@ export class StackedAreaChart
     @computed get failMessage() {
         if (!this.yColumns.length) return "Missing Y axis columns"
 
-        if (!this.marks.length) return "No matching data"
+        if (!this.series.length) return "No matching data"
 
         return ""
     }
@@ -550,7 +549,7 @@ export class StackedAreaChart
 
     @computed get availableTimes(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
-        return this.marks[0]?.points.map((v) => v.x) || []
+        return this.series[0]?.points.map((v) => v.x) || []
     }
 
     @computed private get colorScheme() {
@@ -611,7 +610,7 @@ export class StackedAreaChart
         )
     }
 
-    @computed get marks() {
+    @computed get series() {
         const { rawSeries, table } = this
 
         // todo: clean up this slug stuff
@@ -731,7 +730,7 @@ export class StackedAreaChart
     }
 
     @computed private get allStackedValues() {
-        return flatten(this.marks.map((series) => series.points))
+        return flatten(this.series.map((series) => series.points))
     }
 
     private formatYTick(v: number) {

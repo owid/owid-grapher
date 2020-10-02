@@ -12,5 +12,5 @@ const manager: ChartManager = {
 
 it("can create a new slope chart", () => {
     const chart = new SlopeChart({ manager })
-    expect(chart.marks.length).toEqual(2)
+    expect(chart.series.length).toEqual(2)
 })

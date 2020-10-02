@@ -32,11 +32,11 @@ import {
     MapEntity,
     ChoroplethMapProps,
     RenderFeature,
-    ChoroplethMarks,
+    ChoroplethSeries,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
-import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
     CategoricalBin,
@@ -92,19 +92,25 @@ export class MapChart
     }
 
     base: React.RefObject<SVGGElement> = React.createRef()
-    @action.bound onMapMouseOver(d: GeoFeature, ev: React.MouseEvent) {
-        const datum = d.id === undefined ? undefined : this.marks[d.id]
-        this.focusEntity = { id: d.id, datum: datum || { value: "No data" } }
+    @action.bound onMapMouseOver(feature: GeoFeature, ev: React.MouseEvent) {
+        const datum =
+            feature.id === undefined
+                ? undefined
+                : this.seriesMap.get(feature.id as string)
+        this.focusEntity = {
+            id: feature.id,
+            datum: datum || { value: "No data" },
+        }
 
         const { containerElement } = this.props
         if (!containerElement) return
 
         const mouse = getRelativeMouse(containerElement, ev)
-        if (d.id !== undefined)
+        if (feature.id !== undefined)
             this.tooltipTarget = {
                 x: mouse.x,
                 y: mouse.y,
-                featureId: d.id as string,
+                featureId: feature.id as string,
             }
     }
 
@@ -163,11 +169,11 @@ export class MapChart
         this.mapConfig.projection = value
     }
 
-    @computed get marks() {
+    @computed get series(): ChoroplethSeries[] {
         const { mapConfig, mapColumn, table } = this
-        if (!mapColumn) return {}
+        if (!mapColumn) return []
         const endTime = mapColumn.endTimelineTime
-        if (endTime === undefined) return {}
+        if (endTime === undefined) return []
 
         const valueByEntityAndTime = mapColumn.valueByEntityNameAndTime
         const tolerance = mapConfig.timeTolerance ?? 0
@@ -175,41 +181,47 @@ export class MapChart
             isOnTheMap(name)
         )
 
-        const marks: ChoroplethMarks = {}
-
         const customLabels = mapConfig.tooltipUseCustomLabels
             ? this.colorScale.customNumericLabels
             : []
 
-        countriesOnTheMap.forEach((entity) => {
-            const valueByTime = valueByEntityAndTime.get(entity)
-            if (!valueByTime) return
-            const time = findClosestTime(
-                Array.from(valueByTime.keys()),
-                endTime,
-                tolerance
-            )
-            if (time === undefined) return
-            const value = valueByTime.get(time)
-            if (value === undefined) return
+        return countriesOnTheMap
+            .map((entityName) => {
+                const valueByTime = valueByEntityAndTime.get(entityName)
+                if (!valueByTime) return
+                const time = findClosestTime(
+                    Array.from(valueByTime.keys()),
+                    endTime,
+                    tolerance
+                )
+                if (time === undefined) return
+                const value = valueByTime.get(time)
+                if (value === undefined) return
 
-            const color = this.colorScale.getColor(value) || "red" // todo: color fix
-            if (!color) return
+                const color = this.colorScale.getColor(value) || "red" // todo: color fix
+                if (!color) return
 
-            marks[entity] = {
-                entity,
-                displayValue:
-                    customLabels[value as any] ??
-                    mapColumn.formatValueLong(value),
-                time,
-                value,
-                isSelected: table.isEntitySelected(entity),
-                color,
-                highlightFillColor: color,
-            }
+                return {
+                    seriesName: entityName,
+                    displayValue:
+                        customLabels[value as any] ??
+                        mapColumn.formatValueLong(value),
+                    time,
+                    value,
+                    isSelected: table.isEntitySelected(entityName),
+                    color,
+                    highlightFillColor: color,
+                }
+            })
+            .filter((i) => i) as ChoroplethSeries[]
+    }
+
+    @computed private get seriesMap() {
+        const map = new Map<SeriesName, ChoroplethSeries>()
+        this.series.forEach((series) => {
+            map.set(series.seriesName, series)
         })
-
-        return marks
+        return map
     }
 
     @computed get colorScaleColumn() {
@@ -434,7 +446,7 @@ export class MapChart
             focusEntity,
             tooltipTarget,
             projectionChooserBounds,
-            marks,
+            seriesMap,
             colorScale,
             mapConfig,
         } = this
@@ -442,14 +454,14 @@ export class MapChart
         const { projection } = mapConfig
 
         const tooltipDatum = tooltipTarget
-            ? marks[tooltipTarget.featureId]
+            ? seriesMap.get(tooltipTarget.featureId)
             : undefined
 
         return (
             <g ref={this.base} className="mapTab">
                 <ChoroplethMap
                     bounds={this.bounds.padBottom(this.legendHeight + 15)}
-                    choroplethData={marks}
+                    choroplethData={seriesMap}
                     projection={projection}
                     defaultFill={colorScale.noDataColor}
                     onHover={this.onMapMouseOver}
@@ -488,19 +500,19 @@ declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed private get uid(): number {
+    @computed private get uid() {
         return guid()
     }
 
-    @computed.struct private get bounds(): Bounds {
+    @computed.struct private get bounds() {
         return this.props.bounds
     }
 
-    @computed.struct private get choroplethData(): ChoroplethMarks {
+    @computed.struct private get choroplethData() {
         return this.props.choroplethData
     }
 
-    @computed.struct private get defaultFill(): string {
+    @computed.struct private get defaultFill() {
         return this.props.defaultFill
     }
 
@@ -538,7 +550,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     }
 
     // Combine bounding boxes to get the extents of the entire map
-    @computed private get mapBounds(): Bounds {
+    @computed private get mapBounds() {
         return Bounds.merge(this.geoBounds)
     }
 
@@ -546,14 +558,14 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
     @computed private get geoPaths() {
         const { geoFeatures, pathGen } = this
 
-        return geoFeatures.map((d) => {
-            const s = pathGen(d) as string
+        return geoFeatures.map((feature) => {
+            const s = pathGen(feature) as string
             const paths = s.split(/Z/).filter(identity)
 
             const newPaths = paths.map((path) => {
                 const points = path.split(/[MLZ]/).filter((f: any) => f)
-                const rounded = points.map((p) =>
-                    p
+                const rounded = points.map((point) =>
+                    point
                         .split(/,/)
                         .map((v) => parseFloat(v).toFixed(1))
                         .join(",")
@@ -567,12 +579,12 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Bundle GeoFeatures with the calculated info needed to render them
     @computed private get renderFeatures(): RenderFeature[] {
-        return this.geoFeatures.map((geo, i) => ({
+        return this.geoFeatures.map((geo, index) => ({
             id: geo.id as string,
             geo: geo,
-            path: this.geoPaths[i],
-            bounds: this.geoBounds[i],
-            center: this.geoBounds[i].centerPos,
+            path: this.geoPaths[index],
+            bounds: this.geoBounds[index],
+            center: this.geoBounds[index].centerPos,
         }))
     }
 
@@ -590,13 +602,13 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         if (focusEntity && focusEntity.id === id) return true
         else if (!focusBracket) return false
 
-        const datum = choroplethData[id] || null
+        const datum = choroplethData.get(id) || null
         if (focusBracket.contains(datum?.value)) return true
         else return false
     }
 
     private isSelected(id: string) {
-        return this.choroplethData[id].isSelected
+        return this.choroplethData.get(id)!.isSelected
     }
 
     // Viewport for each projection, defined by center and width+height in fractional coordinates
@@ -670,13 +682,13 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     @computed private get featuresWithNoData() {
         return this.featuresInProjection.filter(
-            (feature) => !this.choroplethData[feature.id]
+            (feature) => !this.choroplethData.has(feature.id)
         )
     }
 
     @computed private get featuresWithData() {
-        return this.featuresInProjection.filter(
-            (feature) => this.choroplethData[feature.id]
+        return this.featuresInProjection.filter((feature) =>
+            this.choroplethData.has(feature.id)
         )
     }
 
@@ -859,7 +871,9 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                 this.isSelected(feature.id)
                             const outOfFocusBracket =
                                 !!this.focusBracket && !isFocus
-                            const datum = choroplethData[feature.id as string]
+                            const datum = choroplethData.get(
+                                feature.id as string
+                            )
                             const stroke =
                                 isFocus || showSelectedStyle
                                     ? focusStrokeColor

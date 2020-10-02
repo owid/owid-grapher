@@ -161,7 +161,7 @@ export class StackedBarChart
             hoverColor === undefined
                 ? []
                 : uniq(
-                      this.marks
+                      this.series
                           .filter((g) => g.color === hoverColor)
                           .map((g) => g.seriesName)
                   )
@@ -175,10 +175,10 @@ export class StackedBarChart
 
         if (!activeKeys.length)
             // No hover means they're all active by default
-            return uniq(this.marks.map((g) => g.color))
+            return uniq(this.series.map((g) => g.color))
 
         return uniq(
-            this.marks
+            this.series
                 .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
                 .map((g) => g.color)
         )
@@ -186,7 +186,7 @@ export class StackedBarChart
 
     // Only show colors on legend that are actually in use
     @computed private get colorsInUse() {
-        return uniq(this.marks.map((g) => g.color))
+        return uniq(this.series.map((g) => g.color))
     }
 
     @computed get fontSize() {
@@ -383,7 +383,7 @@ export class StackedBarChart
             mapXValueToOffset,
             ticks,
         } = this
-        const { marks } = this
+        const { series } = this
         const { innerBounds, verticalAxis } = dualAxis
 
         const textColor = "#666"
@@ -448,7 +448,7 @@ export class StackedBarChart
                 </g>
 
                 <g clipPath={`url(#boundsClip-${renderUid})`}>
-                    {marks.map((series, index) => {
+                    {series.map((series, index) => {
                         const isLegendHovered = this.hoverKeys.includes(
                             series.seriesName
                         )
@@ -511,7 +511,7 @@ export class StackedBarChart
         const { yColumnSlugs } = this
         if (!yColumnSlugs.length) return "Missing variable"
 
-        if (!this.marks.length) return "No matching data"
+        if (!this.series.length) return "No matching data"
 
         if (!this.allStackedValues.length) return "No matching points"
         return ""
@@ -543,7 +543,7 @@ export class StackedBarChart
     }
 
     @computed get verticalAxis() {
-        const lastSeries = this.marks[this.marks.length - 1]
+        const lastSeries = this.series[this.series.length - 1]
         const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
         const yDomainDefault: TimeRange = [0, max(yValues) ?? 100]
         const axisConfig = this.manager.yAxis || new AxisConfig(undefined, this)
@@ -555,7 +555,7 @@ export class StackedBarChart
     }
 
     @computed private get allStackedValues() {
-        return flatten(this.marks.map((series) => series.points))
+        return flatten(this.series.map((series) => series.points))
     }
 
     @computed private get xValues() {
@@ -630,7 +630,7 @@ export class StackedBarChart
     }
 
     // Do Stacked Bars always operate on YColumns? No.
-    @computed get marks() {
+    @computed get series() {
         const { rawSeries } = this
 
         // todo: clean up this slug stuff

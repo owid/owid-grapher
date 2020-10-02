@@ -1,4 +1,10 @@
+import { SeriesName } from "grapher/core/GrapherConstants"
+
+interface ChartSeries {
+    seriesName: SeriesName
+}
+
 export interface ChartInterface {
-    marks: any[] | { [key: string]: any }
+    series: ChartSeries[]
     failMessage: string
 }

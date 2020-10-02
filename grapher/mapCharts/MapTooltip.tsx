@@ -9,12 +9,12 @@ import {
     SparkBarsProps,
 } from "grapher/sparkBars/SparkBars"
 import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
-import { MapChartManager, ChoroplethMark } from "./MapChartConstants"
+import { MapChartManager, ChoroplethSeries } from "./MapChartConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 interface MapTooltipProps {
-    tooltipDatum?: ChoroplethMark
+    tooltipDatum?: ChoroplethSeries
     tooltipTarget?: { x: number; y: number; featureId: string }
     isEntityClickable?: boolean
     manager: MapChartManager
@@ -48,7 +48,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         const sparkBarValues: SparkBarsDatum[] = []
         this.mapColumn?.valueByEntityNameAndTime
-            .get(tooltipDatum.entity)
+            .get(tooltipDatum.seriesName)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
                     time: key,

@@ -5,6 +5,7 @@ import { MapProjection } from "./MapProjections"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
+import { SeriesName } from "grapher/core/GrapherConstants"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
 export type MapBracket = ColorScaleBin
@@ -12,14 +13,14 @@ export type MapBracket = ColorScaleBin
 export interface MapEntity {
     id: string | number | undefined
     datum:
-        | ChoroplethMark
+        | ChoroplethSeries
         | {
               value: string
           }
 }
 
-export interface ChoroplethMark {
-    entity: string
+export interface ChoroplethSeries {
+    seriesName: SeriesName
     value: number | string
     displayValue: string
     time: number
@@ -28,12 +29,8 @@ export interface ChoroplethMark {
     highlightFillColor: string
 }
 
-export interface ChoroplethMarks {
-    [key: string]: ChoroplethMark
-}
-
 export interface ChoroplethMapProps {
-    choroplethData: ChoroplethMarks
+    choroplethData: Map<SeriesName, ChoroplethSeries>
     bounds: Bounds
     projection: MapProjection
     defaultFill: string
