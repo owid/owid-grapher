@@ -236,8 +236,7 @@ add_action('post_updated', __NAMESPACE__ . '\build_static', 10, 3);
  * From https://tablepress.org/extensions/remove-edit-link/
  */
 
- add_filter( 'tablepress_edit_link_below_table', '__return_false' );
-
+add_filter('tablepress_edit_link_below_table', '__return_false');
 
 /*
  * API fields
