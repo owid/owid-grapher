@@ -37,7 +37,7 @@ class EmbedMenu extends React.Component<{
     }
 
     render() {
-        const url = this.props.grapher.url.canonicalUrl
+        const url = this.props.grapher.canonicalUrl
         return (
             <div className="embedMenu" onClick={this.onClick}>
                 <h2>Embed</h2>
@@ -90,7 +90,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get canonicalUrl() {
-        return this.props.grapher.url.canonicalUrl
+        return this.props.grapher.canonicalUrl
     }
 
     @action.bound dismiss() {

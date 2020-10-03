@@ -2,7 +2,6 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { Grapher } from "grapher/core/Grapher"
-import { Command, CommandPalette } from "grapher/controls/CommandPalette"
 import { Bounds } from "grapher/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
@@ -17,16 +16,11 @@ import { OwidTable } from "coreTable/OwidTable"
 export class ExplorerShell extends React.Component<{
     explorerSlug: string
     controlPanels: JSX.Element[]
-    grapher: Grapher
     headerElement: JSX.Element
     hideControls?: boolean
     countryPickerTable: OwidTable
     isEmbed: boolean
 }> {
-    get keyboardShortcuts(): Command[] {
-        return []
-    }
-
     @computed get showExplorerControls() {
         return !this.props.hideControls || !this.props.isEmbed
     }
@@ -125,23 +119,11 @@ export class ExplorerShell extends React.Component<{
 
     onResizeThrottled?: () => void
 
-    private renderGrapherComponent() {
-        const grapherProps = {
-            ...this.props.grapher,
-            bounds: this.chartBounds,
-            isEmbed: true,
-        }
-
-        return <Grapher {...grapherProps} />
-    }
+    @observable.ref grapherRef: React.RefObject<Grapher> = React.createRef()
 
     render() {
         return (
             <>
-                <CommandPalette
-                    commands={this.keyboardShortcuts}
-                    display="none"
-                />
                 <div
                     className={classNames({
                         CovidExplorer: true,
@@ -163,7 +145,13 @@ export class ExplorerShell extends React.Component<{
                         className="CovidExplorerFigure"
                         ref={this.chartContainerRef}
                     >
-                        {this.chartBounds && this.renderGrapherComponent()}
+                        {this.chartBounds && (
+                            <Grapher
+                                bounds={this.chartBounds}
+                                isEmbed={true}
+                                ref={this.grapherRef}
+                            />
+                        )}
                     </div>
                 </div>
             </>

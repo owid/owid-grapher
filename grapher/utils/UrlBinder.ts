@@ -1,6 +1,6 @@
 // Static utilities to bind the global window URL to a ChartUrl object.
 
-import { reaction, IReactionDisposer } from "mobx"
+import { reaction, IReactionDisposer, computed } from "mobx"
 import {
     setWindowQueryStr,
     queryParamsToStr,
@@ -11,7 +11,7 @@ import { debounce } from "grapher/utils/Util"
 
 export interface ObservableUrl {
     params: QueryParams
-    debounceMode: boolean
+    debounceMode?: boolean
 }
 
 export class UrlBinder {
@@ -30,5 +30,25 @@ export class UrlBinder {
 
     unbindFromWindow() {
         this.disposer!()
+    }
+}
+
+export class MultipleUrlBinder implements ObservableUrl {
+    urls: ObservableUrl[]
+
+    constructor(urls: ObservableUrl[]) {
+        this.urls = urls
+    }
+
+    @computed get params() {
+        let obj: QueryParams = {}
+        this.urls.forEach((url) => {
+            obj = Object.assign(obj, url.params)
+        })
+        return obj
+    }
+
+    @computed get debounceMode(): boolean {
+        return this.urls.some((url) => url.debounceMode)
     }
 }

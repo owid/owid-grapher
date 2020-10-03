@@ -2,16 +2,19 @@ import React from "react"
 import { observer } from "mobx-react"
 import { action, observable, computed, autorun } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { Grapher } from "grapher/core/Grapher"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
-import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
 import ReactDOM from "react-dom"
-import { UrlBinder } from "grapher/utils/UrlBinder"
+import {
+    UrlBinder,
+    ObservableUrl,
+    MultipleUrlBinder,
+} from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
-import { QueryParams, strToQueryParams } from "utils/client/url"
+import { QueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { OwidTable } from "coreTable/OwidTable"
+import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -41,13 +44,12 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
         this.props.queryString
     )
 
-    @observable.ref private grapher = new Grapher()
-
     @observable hideControls = false
 
-    @computed get toQueryParams(): QueryParams {
+    @computed get params(): QueryParams {
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
+        if (!this.grapher) return params
         params.country = EntityUrlBuilder.entitiesToQueryParam(
             this.grapher.table.selectedEntityNames || []
         )
@@ -56,8 +58,11 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
 
     componentDidMount() {
         autorun(() =>
-            this.switchGrapher(this.explorerProgram.switcherRuntime.chartId)
+            this.switchGrapherConfig(
+                this.explorerProgram.switcherRuntime.chartId
+            )
         )
+        ;(window as any).switcherExplorer = this
     }
 
     @computed get chartConfigs() {
@@ -67,9 +72,6 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
         return chartConfigsMap
     }
 
-    @action.bound private switchGrapher(id: number) {
-        this.grapher = this.getGrapher(id, this.grapher)
-        if (!this.props.bindToWindow) return
     // The country picker can have entities not present in all charts
     @action.bound private async addEntityOptionsWhenReady() {
         if (!this.grapher) return
@@ -88,7 +90,32 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
         ) as OwidTable
     }
 
-        const url = new ExtendedGrapherUrl(this.grapher.url, [
+    @computed get grapher() {
+        return this.explorerRef.current?.grapherRef?.current
+    }
+
+    @action.bound private switchGrapherConfig(id: number) {
+        if (!this.grapher) return
+
+        const config: GrapherProgrammaticInterface = {
+            ...this.chartConfigs.get(id)!,
+            enableKeyboardShortcuts: true,
+            hideEntityControls: !this.hideControls && !this.isEmbed,
+            dropUnchangedUrlParams: false,
+            selectedEntityNames: this.countryPickerTable.selectedEntityNames,
+            queryStr: this.grapher
+                ? this.grapher.queryStr
+                : this.props.queryString,
+        }
+
+        console.log(config)
+        this.grapher.updateFromObject(config)
+        this.addEntityOptionsWhenReady()
+
+        if (!this.props.bindToWindow) return
+
+        const url = new MultipleUrlBinder([
+            this.grapher,
             this.explorerProgram.switcherRuntime,
             this,
         ])
@@ -97,25 +124,6 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
         else this.urlBinding = new UrlBinder()
 
         this.urlBinding.bindToWindow(url)
-        ;(window as any).switcherExplorer = this
-    }
-
-    private getGrapher(id: number, currentGrapher?: Grapher) {
-        const currentQueryParams = currentGrapher
-            ? currentGrapher.url.params
-            : strToQueryParams(this.props.queryString || "")
-
-        const grapher = new Grapher(this.chartConfigs.get(id))
-        grapher.url.dropUnchangedParams = false
-        grapher.hideEntityControls = !this.hideControls && !this.isEmbed
-        grapher.populateFromQueryParams(currentQueryParams)
-        if (currentGrapher)
-            grapher.rootTable.setSelectedEntities(
-                currentGrapher.rootTable.selectedEntityNames
-            )
-
-        // todo: expand availableentities
-        return grapher
     }
 
     @observable.ref countryPickerTable = new OwidTable()
@@ -163,16 +171,20 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
         return false
     }
 
+    @observable.ref explorerRef: React.RefObject<
+        ExplorerShell
+    > = React.createRef()
+
     render() {
         return (
             <ExplorerShell
                 headerElement={this.header}
                 controlPanels={this.panels}
                 explorerSlug={this.explorerProgram.slug}
-                grapher={this.grapher}
                 countryPickerTable={this.countryPickerTable}
                 hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
+                ref={this.explorerRef}
             />
         )
     }

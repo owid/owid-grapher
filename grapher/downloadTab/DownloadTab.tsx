@@ -15,7 +15,7 @@ export interface DownloadTabManager {
     isExporting?: boolean
     displaySlug: string
     baseUrl?: string
-    queryString?: string
+    queryStr?: string
     table?: OwidTable
     externalCsvLink?: string
 }
@@ -134,9 +134,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @computed get fallbackPngUrl() {
-        return `${this.manager.baseUrl || ""}.png${
-            this.manager.queryString || ""
-        }`
+        return `${this.manager.baseUrl || ""}.png${this.manager.queryStr || ""}`
     }
     @computed get baseFilename() {
         return this.manager.displaySlug
@@ -235,7 +233,6 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
 
     renderReady() {
         const {
-            props,
             targetWidth,
             targetHeight,
             pngPreviewUrl,

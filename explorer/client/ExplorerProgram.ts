@@ -13,6 +13,7 @@ import {
 import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
+import { ObservableUrl } from "grapher/utils/UrlBinder"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"
@@ -255,7 +256,7 @@ const removeColumnTypeInfo = (str: string) => {
 
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
-export class SwitcherRuntime {
+export class SwitcherRuntime implements ObservableUrl {
     private parsed: any[]
     @observable private _settings: any = {}
     constructor(delimited: string, queryString: string = "") {
@@ -279,7 +280,7 @@ export class SwitcherRuntime {
         return { ...this._settings }
     }
 
-    @computed get toQueryParams(): QueryParams {
+    @computed get params(): QueryParams {
         return this.toObject()
     }
 

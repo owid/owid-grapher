@@ -72,8 +72,11 @@ import * as Mousetrap from "mousetrap"
 import { CommandPalette, Command } from "grapher/controls/CommandPalette"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
-import { UrlBinder } from "grapher/utils/UrlBinder"
-import { ExtendedGrapherUrl } from "grapher/core/GrapherUrl"
+import {
+    MultipleUrlBinder,
+    ObservableUrl,
+    UrlBinder,
+} from "grapher/utils/UrlBinder"
 import {
     DimensionProperty,
     EntitySelectionMode,
@@ -83,6 +86,7 @@ import {
     StackMode,
 } from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
+import { QueryParams, queryParamsToStr } from "utils/client/url"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -93,20 +97,22 @@ interface BootstrapProps {
 }
 
 @observer
-export class CovidExplorer extends React.Component<{
-    data: CovidGrapherRow[]
-    params: CovidQueryParams
-    covidChartAndVariableMeta: {
-        charts: any
-        variables: any
-    }
-    updated: string
-    queryStr?: string
-    isEmbed?: boolean
-    globalEntitySelection?: GlobalEntitySelection
-    enableKeyboardShortcuts?: boolean
-    bindToWindow?: boolean
-}> {
+export class CovidExplorer
+    extends React.Component<{
+        data: CovidGrapherRow[]
+        params: CovidQueryParams
+        covidChartAndVariableMeta: {
+            charts: any
+            variables: any
+        }
+        updated: string
+        queryStr?: string
+        isEmbed?: boolean
+        globalEntitySelection?: GlobalEntitySelection
+        enableKeyboardShortcuts?: boolean
+        bindToWindow?: boolean
+    }>
+    implements ObservableUrl {
     static async bootstrap(props: BootstrapProps) {
         const [typedData, updated, covidMeta] = await Promise.all([
             fetchAndParseData(),
@@ -756,7 +762,9 @@ export class CovidExplorer extends React.Component<{
         this._updateColorScale()
 
         grapher.id = this.sourceChartId
-        grapher.url.externallyProvidedParams = this.props.params.toQueryParams
+        grapher.baseQueryString = queryParamsToStr(
+            this.props.params.toQueryParams
+        )
     }
 
     private _updateColorScale() {
@@ -791,7 +799,7 @@ export class CovidExplorer extends React.Component<{
         // Show 'Add country' & 'Select countries' controls if the explorer controls are hidden.
         this.grapher.hideEntityControls = this.showExplorerControls
         this.grapher.externalCsvLink = covidDataPath
-        this.grapher.url.externalBaseUrl = `${BAKED_BASE_URL}/${covidDashboardSlug}`
+        this.grapher.bakedGrapherURL = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this._updateChart()
 
         this.observeGlobalEntitySelection()
@@ -907,7 +915,7 @@ export class CovidExplorer extends React.Component<{
     @action.bound toggleTimelineCommand() {
         // Todo: add tests for this
         this.grapher.setTimeFromTimeQueryParam(
-            next(["latest", "earliest", ".."], this.grapher.url.timeParam!)
+            next(["latest", "earliest", ".."], this.grapher.timeParam!)
         )
         this.renderControlsThenUpdateChart()
     }
@@ -980,9 +988,13 @@ export class CovidExplorer extends React.Component<{
     }
 
     bindToWindow() {
-        new UrlBinder().bindToWindow(
-            new ExtendedGrapherUrl(this.grapher.url, [this.props.params])
-        )
+        const url = new MultipleUrlBinder([this.grapher, this])
+
+        new UrlBinder().bindToWindow(url)
+    }
+
+    @computed get params() {
+        return this.props.params.toQueryParams
     }
 
     disposers: (IReactionDisposer | Lambda)[] = []

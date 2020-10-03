@@ -1,10 +1,15 @@
 import { observable, computed, autorun, IReactionDisposer, action } from "mobx"
 import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
+import {
+    GrapherInterface,
+    GrapherQueryParams,
+} from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
-import { ExploreUrl } from "./ExploreUrl"
 import { RootStore } from "./Store"
 import { Indicator } from "./Indicator"
+import { ObservableUrl } from "grapher/utils/UrlBinder"
+import { QueryParams, strToQueryParams } from "utils/client/url"
+import { omit } from "grapher/utils/Util"
 
 function grapherConfigFromIndicator(
     indicator: Indicator
@@ -17,7 +22,7 @@ function grapherConfigFromIndicator(
     }
 }
 
-export class ExploreModel {
+export class ExploreModel implements ObservableUrl {
     static WorldMap: ChartTypeName = ChartTypeName.WorldMap
     static defaultChartType: ChartTypeName = ChartTypeName.LineChart
 
@@ -29,7 +34,6 @@ export class ExploreModel {
     @observable indicatorId?: number = undefined
 
     grapher: Grapher
-    url: ExploreUrl
     store: RootStore
     disposers: IReactionDisposer[] = []
 
@@ -54,7 +58,6 @@ export class ExploreModel {
     constructor(store: RootStore) {
         this.store = store
         this.grapher = new Grapher()
-        this.url = new ExploreUrl(this, this.grapher.url)
 
         // We need these updates in an autorun because the chart config objects aren't really meant
         // to be recreated all the time. They aren't pure value objects and have behaviors on
@@ -82,7 +85,8 @@ export class ExploreModel {
     }
 
     populateFromQueryStr(queryStr?: string) {
-        this.url.populateFromQueryStr(queryStr)
+        if (queryStr === undefined) return
+        this.populateFromQueryParams(strToQueryParams(queryStr))
     }
 
     @computed get isMap() {
@@ -103,4 +107,42 @@ export class ExploreModel {
             ? this.store.indicators.get(this.indicatorId)
             : null
     }
+
+    @computed get params(): QueryParams {
+        const params: ExploreQueryParams = omit(this.grapher.params, "tab")
+
+        params.type =
+            this.chartType === ExploreModel.defaultChartType
+                ? undefined
+                : this.chartType
+
+        params.indicator = this.indicatorId
+            ? this.indicatorId.toString()
+            : undefined
+
+        return params as QueryParams
+    }
+
+    @computed get debounceMode() {
+        return this.grapher.debounceMode
+    }
+
+    @action.bound populateFromQueryParams(params: ExploreQueryParams) {
+        const chartType = params.type
+        if (chartType) {
+            this.setChartType(chartType as ChartTypeName)
+        }
+
+        if (params.indicator) {
+            const id = parseInt(params.indicator)
+            this.setIndicatorId(isNaN(id) ? undefined : id)
+        }
+
+        this.grapher.populateFromQueryParams(params)
+    }
+}
+
+type ExploreQueryParams = Omit<GrapherQueryParams, "tab"> & {
+    type?: string
+    indicator?: string
 }

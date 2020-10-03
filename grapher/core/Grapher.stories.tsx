@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Grapher, GrapherProps } from "./Grapher"
+import { Grapher, GrapherProgrammaticInterface } from "./Grapher"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 import { ChartTypeName, DimensionProperty } from "./GrapherConstants"
 
@@ -10,7 +10,7 @@ export default {
 
 const table = SynthesizeGDPTable()
 
-const props: GrapherProps = {
+const props: GrapherProgrammaticInterface = {
     table,
     hasMapTab: true,
     dimensions: [{ slug: "GDP", property: DimensionProperty.y, variableId: 1 }],

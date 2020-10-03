@@ -1,6 +1,5 @@
 import * as fs from "fs"
-import { Grapher } from "grapher/core/Grapher"
-import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
+import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 
 // yarn tsn migrate.ts
 
@@ -15,9 +14,9 @@ const dbExport = fs.readFileSync(__dirname + "/raw-graphers.json", "utf8")
 const dbRows = JSON.parse(dbExport) as GrapherFromDb[]
 
 const graphers = dbRows.map((row) => {
-    const grapher = JSON.parse(row.config) as LegacyGrapherInterface
+    const grapher = JSON.parse(row.config) as GrapherProgrammaticInterface
     grapher.id = parseInt(row.id)
-    delete grapher.data
+    delete (grapher as any).data
     grapher.manuallyProvideData = true
 
     const g = new Grapher(grapher)

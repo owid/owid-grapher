@@ -10,16 +10,14 @@ import {
     ChartTypeName,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
-import {
-    LegacyChartDimensionInterface,
-    LegacyVariablesAndEntityKey,
-} from "coreTable/LegacyVariableCode"
+import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 import { TimeBound } from "grapher/utils/TimeBounds"
 import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/chart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
 import { EntityId, EntityName } from "coreTable/CoreTableConstants"
+import { omit } from "grapher/utils/Util"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -78,18 +76,30 @@ export interface GrapherInterface {
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
-
-    externalDataUrl?: string // This is temporarily used for testing legacy prod charts locally. Will be removed
-    owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
-    manuallyProvideData?: boolean // This will be removed.
-    hideEntityControls?: boolean
-    dropUnchangedUrlParams?: boolean
-    queryStr?: string
 }
 
 export interface LegacyGrapherInterface extends GrapherInterface {
     selectedData?: EntitySelection[]
     data: any
+}
+
+export interface GrapherQueryParams {
+    tab?: string
+    overlay?: string
+    stackMode?: string
+    zoomToSelection?: string
+    minPopulationFilter?: string
+    xScale?: string
+    yScale?: string
+    time?: string
+    region?: string
+    country?: string
+    shown?: string
+    endpointsOnly?: string
+}
+
+export interface LegacyGrapherQueryParams extends GrapherQueryParams {
+    year?: string
 }
 
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
@@ -146,3 +156,11 @@ export const grapherKeysToSerialize = [
     "comparisonLines",
     "relatedQuestions",
 ]
+
+export const legacyQueryParamsToCurrentQueryParams = (
+    params: LegacyGrapherQueryParams
+) => {
+    const obj = omit(params, "year") as GrapherQueryParams
+    if (params.year !== undefined) obj.time = obj.time ?? params.year
+    return obj
+}

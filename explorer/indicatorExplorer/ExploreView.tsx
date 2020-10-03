@@ -144,7 +144,7 @@ export class ExploreView extends React.Component<ExploreProps> {
     }
 
     bindToWindow() {
-        new UrlBinder().bindToWindow(this.model.url)
+        new UrlBinder().bindToWindow(this.model)
 
         // We ignore the disposer here, because this reaction lasts for the
         // lifetime of the window. -@jasoncrawford 2019-12-16

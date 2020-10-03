@@ -28,6 +28,7 @@ import {
     next,
     sampleFrom,
     range,
+    omit,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -54,11 +55,6 @@ import {
     ChartDimension,
     LegacyDimensionsManager,
 } from "grapher/chart/ChartDimension"
-import {
-    GrapherQueryParams,
-    GrapherUrl,
-    legacyQueryParamsToCurrentQueryParams,
-} from "./GrapherUrl"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TooltipProps, TooltipManager } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
@@ -71,17 +67,25 @@ import {
     TimeBound,
     minTimeToJSON,
     maxTimeToJSON,
+    formatTimeURIComponent,
 } from "grapher/utils/TimeBounds"
 import {
     GlobalEntitySelection,
     subscribeGrapherToGlobalEntitySelection,
 } from "site/globalEntityControl/GlobalEntitySelection"
-import { strToQueryParams } from "utils/client/url"
+import {
+    strToQueryParams,
+    queryParamsToStr,
+    QueryParams,
+} from "utils/client/url"
 import { populationMap } from "coreTable/PopulationMap"
 import {
     GrapherInterface,
     grapherKeysToSerialize,
+    GrapherQueryParams,
     LegacyGrapherInterface,
+    LegacyGrapherQueryParams,
+    legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
@@ -104,7 +108,7 @@ import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { FooterManager } from "grapher/footer/FooterManager"
 import { HeaderManager } from "grapher/header/HeaderManager"
-import { UrlBinder } from "grapher/utils/UrlBinder"
+import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
 import { ControlsFooterView } from "grapher/controls/Controls"
@@ -139,20 +143,27 @@ const legacyConfigToConfig = (
     return newConfig
 }
 
-export interface GrapherProps extends GrapherInterface {
-    isEmbed?: boolean
-    isMediaCard?: boolean
+// Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
+export interface GrapherProgrammaticInterface extends GrapherInterface {
+    externalDataUrl?: string // This is temporarily used for testing legacy prod charts locally. Will be removed
+    owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    manuallyProvideData?: boolean // This will be removed.
+    hideEntityControls?: boolean
+    dropUnchangedUrlParams?: boolean
     queryStr?: string
+    isEmbed?: boolean
+    enableKeyboardShortcuts?: boolean
+    isMediaCard?: boolean
     globalEntitySelection?: GlobalEntitySelection
     isExport?: boolean
     bounds?: Bounds
     table?: OwidTable
-    keyboardShortcuts?: boolean
+    bakedGrapherURL?: string
 }
 
 @observer
 export class Grapher
-    extends React.Component<GrapherProps>
+    extends React.Component<GrapherProgrammaticInterface>
     implements
         TimelineManager,
         ChartManager,
@@ -164,6 +175,7 @@ export class Grapher
         DownloadTabManager,
         DiscreteBarChartManager,
         LegacyDimensionsManager,
+        ObservableUrl,
         TooltipManager,
         MapChartManager {
     @observable.ref type: ChartTypeName = ChartTypeName.LineChart
@@ -225,7 +237,6 @@ export class Grapher
     externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean = false // This will be removed.
-    dropUnchangedUrlParams = true
 
     // TODO: Pass these 5 in as options, don't get them as globals.
     isDev = ENV === "development"
@@ -233,35 +244,25 @@ export class Grapher
     analytics = new Analytics(ENV)
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    bakedGrapherURL = BAKED_GRAPHER_URL
+    @observable bakedGrapherURL = BAKED_GRAPHER_URL
 
     @observable.ref rootTable: OwidTable
 
     private legacyConfigAsAuthored: Partial<LegacyGrapherInterface>
 
-    constructor(props: GrapherProps = {}) {
+    constructor(props: GrapherProgrammaticInterface = {}) {
         super(props!)
+        if (typeof window !== "undefined") window.grapher = this
+
         this.rootTable = props.table ?? new OwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
         this.legacyConfigAsAuthored = props || {}
         this.queryParams = legacyQueryParamsToCurrentQueryParams(
-            strToQueryParams(props.queryStr ?? modernConfig.queryStr ?? "")
+            strToQueryParams(props.queryStr ?? "")
         )
 
         this.updateFromObject(modernConfig)
-        this.isMediaCard = !!props?.isMediaCard
-
-        if (props.table) {
-            // do nothing, data is provided externally
-        } else if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
-        else if (this.externalDataUrl)
-            this.downloadLegacyDataFromUrl(this.externalDataUrl)
-        else if (!this.manuallyProvideData)
-            this.downloadLegacyDataFromOwidVariableIds()
-
-        this.url = new GrapherUrl(this, modernConfig, this.bakedGrapherURL)
-        this.url.dropUnchangedParams = this.dropUnchangedUrlParams
 
         if (this.queryParams) this.populateFromQueryParams(this.queryParams)
 
@@ -275,8 +276,6 @@ export class Grapher
         }
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()
-
-        if (typeof window !== "undefined") window.grapher = this
     }
 
     private queryParams: GrapherQueryParams
@@ -303,7 +302,7 @@ export class Grapher
         return obj
     }
 
-    @action.bound updateFromObject(obj?: GrapherInterface) {
+    @action.bound updateFromObject(obj?: GrapherProgrammaticInterface) {
         if (!obj) return
 
         updatePersistables(this, obj)
@@ -318,6 +317,14 @@ export class Grapher
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
             this.setDimensionsFromConfigs(obj.dimensions)
+
+        if (obj.table) {
+            // do nothing, data is provided externally
+        } else if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
+        else if (this.externalDataUrl)
+            this.downloadLegacyDataFromUrl(this.externalDataUrl)
+        else if (!this.manuallyProvideData)
+            this.downloadLegacyDataFromOwidVariableIds()
     }
 
     /**
@@ -408,7 +415,7 @@ export class Grapher
         return table.filterByTime(startTime, endTime)
     }
 
-    @observable.ref isMediaCard: boolean
+    @observable.ref isMediaCard = false
     @observable.ref isExporting?: boolean
     @observable.ref tooltip?: TooltipProps
     @observable isPlaying = false
@@ -527,10 +534,6 @@ export class Grapher
 
     @observable.ref private _baseFontSize = BASE_FONT_SIZE
 
-    @computed get canonicalUrl() {
-        return this.url.canonicalUrl
-    }
-
     @computed get baseFontSize() {
         if (this.isMediaCard) return 24
         else if (this.isExporting) return 18
@@ -558,8 +561,6 @@ export class Grapher
     @computed private get loadingDimensions() {
         return this.dimensions.filter((dim) => !this.table.has(dim.columnSlug))
     }
-
-    url: GrapherUrl
 
     @computed get isIframe() {
         return window.self !== window.top
@@ -1228,11 +1229,11 @@ export class Grapher
     }) {
         let view
         function render() {
-            const keyboardShortcuts = !isEmbed
-            const props = {
+            const enableKeyboardShortcuts = !isEmbed
+            const props: GrapherProgrammaticInterface = {
                 ...jsonConfig,
                 isEmbed,
-                keyboardShortcuts,
+                enableKeyboardShortcuts,
                 queryStr,
                 globalEntitySelection,
                 bounds: Bounds.fromRect(containerNode.getBoundingClientRect()),
@@ -1396,14 +1397,6 @@ export class Grapher
         return undefined
     }
 
-    @computed get baseUrl() {
-        return this.url.baseUrl
-    }
-
-    @computed get queryString() {
-        return this.url.queryStr
-    }
-
     private renderOverlayTab() {
         const bounds = this.tabBounds
         if (this.overlayTab === GrapherTabOption.sources)
@@ -1442,8 +1435,10 @@ export class Grapher
         )
     }
 
+    @observable private enableKeyboardShortcuts = false
+
     private renderKeyboardShortcuts() {
-        if (!this.props.keyboardShortcuts) return null
+        if (!this.enableKeyboardShortcuts) return null
         return (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         )
@@ -1671,7 +1666,7 @@ export class Grapher
     // Binds chart properties to global window title and URL. This should only
     // ever be invoked from top-level JavaScript.
     bindToWindow() {
-        new UrlBinder().bindToWindow(this.url)
+        new UrlBinder().bindToWindow(this)
         autorun(() => (document.title = this.currentTitle))
     }
 
@@ -1679,17 +1674,21 @@ export class Grapher
         window.addEventListener("scroll", this.checkVisibility)
         this.setBaseFontSize()
         this.checkVisibility()
+    }
 
-        if (this.props.keyboardShortcuts)
-            this.keyboardShortcuts.forEach((shortcut) => {
-                Mousetrap.bind(shortcut.combo, () => {
-                    shortcut.fn()
-                    this.analytics.logKeyboardShortcut(
-                        shortcut.title || "",
-                        shortcut.combo
-                    )
-                })
+    private _shortcutsOn = false
+    private bindKeyboardShortcuts() {
+        if (this._shortcutsOn) return
+        this.keyboardShortcuts.forEach((shortcut) => {
+            Mousetrap.bind(shortcut.combo, () => {
+                shortcut.fn()
+                this.analytics.logKeyboardShortcut(
+                    shortcut.title || "",
+                    shortcut.combo
+                )
             })
+        })
+        this._shortcutsOn = true
     }
 
     componentWillUnmount() {
@@ -1700,6 +1699,7 @@ export class Grapher
     componentDidUpdate() {
         this.setBaseFontSize()
         this.checkVisibility()
+        if (this.enableKeyboardShortcuts) this.bindKeyboardShortcuts()
     }
 
     componentDidCatch(error: any, info: any) {
@@ -1749,6 +1749,125 @@ export class Grapher
             this.footerLines * footerRowHeight +
             (this.hasRelatedQuestion ? 20 : 0)
         )
+    }
+
+    debounceMode: boolean = false
+
+    @computed.struct private get allParams() {
+        const params: GrapherQueryParams = {}
+        params.tab = this.tab
+        params.xScale = this.xAxis.scaleType
+        params.yScale = this.yAxis.scaleType
+        params.stackMode = this.stackMode
+        params.zoomToSelection = this.zoomToSelection ? "true" : undefined
+        params.minPopulationFilter = this.minPopulationFilter?.toString()
+        params.endpointsOnly = this.compareEndPointsOnly ? "1" : "0"
+        params.time = this.timeParam
+        params.country = this.countryParam
+        params.region = this.map.projection
+        return params
+    }
+
+    // If the user changes a param so that it matches the author's original param, we drop it.
+    // However, in the case of explorers, the user might switch graphers, and so we never want to drop
+    // params. This flag turns off dropping of params.
+    @observable dropUnchangedUrlParams = true
+
+    @computed get params() {
+        return (this.dropUnchangedUrlParams
+            ? this.changedParams
+            : this.allParams) as QueryParams
+    }
+
+    // Autocomputed url params to reflect difference between current grapher state
+    // and original config state
+    @computed.struct private get changedParams() {
+        const params = this.allParams
+        const originalConfig = this.legacyConfigAsAuthored
+
+        if (params.tab === originalConfig.tab) params.tab = undefined
+
+        if (params.xScale === originalConfig.xAxis?.scaleType)
+            params.xScale = undefined
+
+        if (params.yScale === originalConfig.yAxis?.scaleType)
+            params.yScale = undefined
+
+        if (params.stackMode === originalConfig.stackMode)
+            params.stackMode = undefined
+
+        if (this.zoomToSelection === originalConfig.zoomToSelection)
+            params.zoomToSelection = undefined
+
+        if (this.minPopulationFilter === originalConfig.minPopulationFilter)
+            params.minPopulationFilter = undefined
+
+        if (this.compareEndPointsOnly === originalConfig.compareEndPointsOnly)
+            params.endpointsOnly = undefined
+
+        if (
+            originalConfig.map &&
+            params.region === originalConfig.map.projection
+        )
+            params.region = undefined
+
+        return params
+    }
+
+    @computed get queryStr() {
+        return queryParamsToStr(this.params) + this.baseQueryString
+    }
+
+    // If you need to provide external query string params, like from an Explorer
+    @observable baseQueryString = ""
+
+    @computed get baseUrl() {
+        return this.isPublished
+            ? `${this.bakedGrapherURL}/${this.displaySlug}`
+            : undefined
+    }
+
+    // Get the full url representing the canonical location of this grapher state
+    @computed get canonicalUrl() {
+        return this.baseUrl ? this.baseUrl + this.queryStr : undefined
+    }
+
+    @computed get timeParam() {
+        const originalConfig = this.legacyConfigAsAuthored
+        const formatAsDay = this.table.hasDayColumn
+
+        if (
+            this.minTime !== originalConfig.minTime ||
+            this.maxTime !== originalConfig.maxTime
+        ) {
+            const [minTime, maxTime] = this.timelineFilter
+
+            const start = formatTimeURIComponent(minTime, formatAsDay)
+
+            if (minTime === maxTime) return start
+
+            const end = formatTimeURIComponent(maxTime, formatAsDay)
+            return `${start}..${end}`
+        }
+
+        if (this.map.time !== undefined)
+            return formatTimeURIComponent(this.map.time, formatAsDay)
+
+        return undefined
+    }
+
+    @computed private get countryParam() {
+        const originalConfig = this.legacyConfigAsAuthored
+        if (
+            this.isReady &&
+            JSON.stringify(this.selectedEntityNames) !==
+                JSON.stringify(originalConfig.selectedEntityNames)
+        )
+            return EntityUrlBuilder.entitiesToQueryParam(
+                this.table.selectedEntityCodes
+            )
+
+        return undefined
     }
 }
 

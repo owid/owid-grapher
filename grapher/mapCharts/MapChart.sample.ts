@@ -1,10 +1,10 @@
-import { GrapherProps } from "grapher/core/Grapher"
+import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import {
     GrapherTabOption,
     DimensionProperty,
 } from "grapher/core/GrapherConstants"
 
-export const legacyMapGrapher: GrapherProps = {
+export const legacyMapGrapher: GrapherProgrammaticInterface = {
     hasMapTab: true,
     tab: GrapherTabOption.map,
     map: {

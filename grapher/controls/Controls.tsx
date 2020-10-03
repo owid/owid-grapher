@@ -229,7 +229,7 @@ export class ControlsFooterView extends React.Component<{
                         <li className="clickable icon">
                             <a
                                 title="Open chart in new tab"
-                                href={grapher.url.canonicalUrl}
+                                href={grapher.canonicalUrl}
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
                             >
@@ -329,11 +329,11 @@ export class ControlsFooterView extends React.Component<{
                     : timeColumn.formatValue(value)
             },
             onStartPlayOrDrag: () => {
-                grapher.url.debounceMode = true
+                grapher.debounceMode = true
                 grapher.useTimelineDomains = true
             },
             onStopPlayOrDrag: () => {
-                grapher.url.debounceMode = false
+                grapher.debounceMode = false
                 grapher.useTimelineDomains = false
             },
             disablePlay: grapher.isSlopeChart,
