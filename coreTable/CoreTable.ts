@@ -408,6 +408,15 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
+    withRows(rows: CoreRow[]): AnyTable {
+        return new (this.constructor as any)(
+            [...this.rows, ...rows],
+            this.specs,
+            this,
+            `Added ${rows.length} new rows`
+        )
+    }
+
     withoutConstantColumns(): AnyTable {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)

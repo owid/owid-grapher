@@ -10,6 +10,7 @@ import { CountryPicker } from "grapher/controls/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
 import { throttle } from "grapher/utils/Util"
+import { OwidTable } from "coreTable/OwidTable"
 
 // TODO: Migrate CovidExplorer to use this class as well
 @observer
@@ -19,6 +20,7 @@ export class ExplorerShell extends React.Component<{
     grapher: Grapher
     headerElement: JSX.Element
     hideControls?: boolean
+    countryPickerTable: OwidTable
     isEmbed: boolean
 }> {
     get keyboardShortcuts(): Command[] {
@@ -79,11 +81,15 @@ export class ExplorerShell extends React.Component<{
         ) : undefined
     }
 
+    @computed get countryPickerTable() {
+        return this.props.countryPickerTable
+    }
+
     get countryPicker() {
         return (
             <CountryPicker
                 explorerSlug={this.props.explorerSlug}
-                table={this.props.grapher.table}
+                table={this.countryPickerTable}
                 isDropdownMenu={this.isMobile}
             ></CountryPicker>
         )

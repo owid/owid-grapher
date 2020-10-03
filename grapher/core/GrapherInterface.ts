@@ -35,9 +35,6 @@ export interface GrapherInterface {
     sourceDesc?: string
     note?: string
     hideTitleAnnotation?: true
-    externalDataUrl?: string
-    owidDataset?: LegacyVariablesAndEntityKey
-    manuallyProvideData?: boolean
     minTime?: TimeBound
     maxTime?: TimeBound
     timelineMinTime?: Time
@@ -81,6 +78,13 @@ export interface GrapherInterface {
     yAxis?: Partial<AxisConfigInterface>
     colorScale?: Partial<ColorScaleConfigInterface>
     map?: Partial<MapConfigInterface>
+
+    externalDataUrl?: string // This is temporarily used for testing legacy prod charts locally. Will be removed
+    owidDataset?: LegacyVariablesAndEntityKey // This is temporarily used for testing. Will be removed
+    manuallyProvideData?: boolean // This will be removed.
+    hideEntityControls?: boolean
+    dropUnchangedUrlParams?: boolean
+    queryStr?: string
 }
 
 export interface LegacyGrapherInterface extends GrapherInterface {

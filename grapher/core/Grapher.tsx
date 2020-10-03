@@ -225,6 +225,7 @@ export class Grapher
     externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
     manuallyProvideData?: boolean = false // This will be removed.
+    dropUnchangedUrlParams = true
 
     // TODO: Pass these 5 in as options, don't get them as globals.
     isDev = ENV === "development"
@@ -245,7 +246,7 @@ export class Grapher
 
         this.legacyConfigAsAuthored = props || {}
         this.queryParams = legacyQueryParamsToCurrentQueryParams(
-            strToQueryParams(props.queryStr || "")
+            strToQueryParams(props.queryStr ?? modernConfig.queryStr ?? "")
         )
 
         this.updateFromObject(modernConfig)
@@ -260,6 +261,7 @@ export class Grapher
             this.downloadLegacyDataFromOwidVariableIds()
 
         this.url = new GrapherUrl(this, modernConfig, this.bakedGrapherURL)
+        this.url.dropUnchangedParams = this.dropUnchangedUrlParams
 
         if (this.queryParams) this.populateFromQueryParams(this.queryParams)
 
@@ -492,10 +494,10 @@ export class Grapher
         this.rootTable = OwidTable.fromLegacy(json, this.legacyConfigAsAuthored)
 
         if (this.hasSelectionInUrl) this.setSelectionFromUrl()
-        else if (this.selectedEntityIds.length)
-            this.rootTable.setSelectedEntitiesByEntityId(this.selectedEntityIds)
         else if (this.selectedEntityNames.length)
             this.rootTable.setSelectedEntities(this.selectedEntityNames)
+        else if (this.selectedEntityIds.length)
+            this.rootTable.setSelectedEntitiesByEntityId(this.selectedEntityIds)
     }
 
     @computed get hasSelectionInUrl() {

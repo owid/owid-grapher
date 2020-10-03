@@ -11,6 +11,7 @@ import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
 import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
+import { OwidTable } from "coreTable/OwidTable"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -69,6 +70,23 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
     @action.bound private switchGrapher(id: number) {
         this.grapher = this.getGrapher(id, this.grapher)
         if (!this.props.bindToWindow) return
+    // The country picker can have entities not present in all charts
+    @action.bound private async addEntityOptionsWhenReady() {
+        if (!this.grapher) return
+        await this.grapher.whenReady()
+        const currentEntities = this.countryPickerTable.availableEntityNameSet
+        const newEntities = this.grapher.rootTable.availableEntityNameSet
+        const missingEntities = [...newEntities]
+            .filter((entityName) => !currentEntities.has(entityName))
+            .map((entityName) => {
+                return {
+                    entityName,
+                }
+            })
+        this.countryPickerTable = this.countryPickerTable.withRows(
+            missingEntities
+        ) as OwidTable
+    }
 
         const url = new ExtendedGrapherUrl(this.grapher.url, [
             this.explorerProgram.switcherRuntime,
@@ -99,6 +117,8 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
         // todo: expand availableentities
         return grapher
     }
+
+    @observable.ref countryPickerTable = new OwidTable()
 
     private get panels() {
         return this.explorerProgram.switcherRuntime.groups.map((group) => (
@@ -150,6 +170,7 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
                 controlPanels={this.panels}
                 explorerSlug={this.explorerProgram.slug}
                 grapher={this.grapher}
+                countryPickerTable={this.countryPickerTable}
                 hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
             />

@@ -18,6 +18,15 @@ it("a table can be made from csv", () => {
     ])
 })
 
+it("rows can be added without mutating the parent table", () => {
+    const table = AnyTable.fromDelimited(sampleCsv)
+    expect(table.rows.length).toEqual(4)
+    expect(
+        table.withRows([{ country: "Japan", population: 123 }]).rows.length
+    ).toBe(5)
+    expect(table.rows.length).toEqual(4)
+})
+
 it("input rows are never mutated", () => {
     const rows = [{ country: "USA" }, { country: "Germany" }]
     const table = new AnyTable(rows, [
