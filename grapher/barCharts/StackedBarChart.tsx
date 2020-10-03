@@ -3,14 +3,13 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import { guid, uniq, makeSafeForCSS, max, flatten } from "grapher/utils/Util"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { uniq, makeSafeForCSS } from "grapher/utils/Util"
+import { Bounds } from "grapher/utils/Bounds"
 import {
     VerticalAxisComponent,
     AxisTickMarks,
     VerticalAxisGridLines,
 } from "grapher/axis/AxisViews"
-import { DualAxis } from "grapher/axis/Axis"
 import { NoDataModal } from "grapher/chart/NoDataModal"
 import { Text } from "grapher/text/Text"
 import {
@@ -18,23 +17,26 @@ import {
     VerticalColorLegendManager,
 } from "grapher/verticalColorLegend/VerticalColorLegend"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { ChartManager } from "grapher/chart/ChartManager"
-import {
-    BASE_FONT_SIZE,
-    SeriesStrategy,
-    TimeRange,
-} from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
-import { AxisConfig } from "grapher/axis/AxisConfig"
-import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import {
-    StackedBarSegmentProps,
-    StackedBarPoint,
-    StackedBarSeries,
-} from "./StackedBarChartConstants"
-import { stackBars } from "./StackedBarChartUtils"
-import { OwidRow } from "coreTable/OwidTable"
+    AbstactStackedChart,
+    AbstactStackedChartProps,
+} from "./AbstractStackedChart"
+import { StackedPoint } from "./StackedConstants"
+import { VerticalAxis } from "grapher/axis/Axis"
+
+interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
+    bar: StackedPoint
+    color: string
+    opacity: number
+    yAxis: VerticalAxis
+    xOffset: number
+    barWidth: number
+    onBarMouseOver: (bar: StackedPoint) => void
+    onBarMouseLeave: () => void
+}
 
 @observer
 class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
@@ -44,21 +46,16 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @computed get yPos() {
         const { bar, yAxis } = this.props
-        return yAxis.place(bar.yOffset + bar.y)
+        return yAxis.place(bar.y + bar.yOffset)
     }
 
     @computed get barHeight() {
         const { bar, yAxis } = this.props
-        const { yPos } = this
-
-        return yAxis.place(bar.yOffset) - yPos
+        return yAxis.place(bar.yOffset) - this.yPos
     }
 
     @computed get trueOpacity() {
-        if (this.mouseOver) {
-            return 1
-        }
-        return this.props.opacity
+        return this.mouseOver ? 1 : this.props.opacity
     }
 
     @action.bound onBarMouseOver() {
@@ -93,25 +90,19 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
 @observer
 export class StackedBarChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: ChartManager
-    }>
-    implements ChartInterface, VerticalColorLegendManager, ColorScaleManager {
+    extends AbstactStackedChart
+    implements VerticalColorLegendManager, ColorScaleManager {
     base!: SVGGElement
     readonly minBarSpacing = 4
+
+    constructor(props: AbstactStackedChartProps) {
+        super(props)
+    }
 
     // currently hovered legend color
     @observable hoverColor?: string
     // current hovered individual bar
-    @observable hoverBar?: StackedBarPoint
-
-    @computed get manager() {
-        return this.props.manager
-    }
-    @computed get bounds() {
-        return this.props.bounds ?? DEFAULT_BOUNDS
-    }
+    @observable hoverBar?: StackedPoint
 
     @computed private get baseFontSize() {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
@@ -138,19 +129,8 @@ export class StackedBarChart
         return 0.75 * this.baseFontSize
     }
 
-    // todo: Refactor
-    @computed private get dualAxis() {
-        const { bounds, sidebarWidth } = this
-        const { horizontalAxis, verticalAxis } = this
-        return new DualAxis({
-            bounds: bounds.padRight(sidebarWidth + 20),
-            horizontalAxis,
-            verticalAxis,
-        })
-    }
-
-    @computed get renderUid() {
-        return guid()
+    @computed protected get paddingForLegend() {
+        return this.sidebarWidth + 20
     }
 
     // All currently hovered group keys, combining the legend and the main UI
@@ -187,10 +167,6 @@ export class StackedBarChart
     // Only show colors on legend that are actually in use
     @computed private get colorsInUse() {
         return uniq(this.series.map((g) => g.color))
-    }
-
-    @computed get fontSize() {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get colorBins() {
@@ -253,7 +229,8 @@ export class StackedBarChart
                         fontSize: "1em",
                     }}
                 >
-                    {hoverBar.label}
+                    {/* todo: add label back */}
+                    {/* {hoverBar.label} */}
                 </h3>
                 <p
                     style={{
@@ -340,11 +317,9 @@ export class StackedBarChart
         this.hoverColor = undefined
     }
 
-    @action.bound onLegendClick() {
-        //
-    }
+    @action.bound onLegendClick() {}
 
-    @action.bound onBarMouseOver(bar: StackedBarPoint) {
+    @action.bound onBarMouseOver(bar: StackedPoint) {
         this.hoverBar = bar
     }
 
@@ -507,63 +482,24 @@ export class StackedBarChart
         return this.bounds.right - this.sidebarWidth
     }
 
-    @computed get failMessage() {
-        const { yColumnSlugs } = this
-        if (!yColumnSlugs.length) return "Missing variable"
-
-        if (!this.series.length) return "No matching data"
-
-        if (!this.allStackedValues.length) return "No matching points"
-        return ""
-    }
-
-    @computed get barValueFormat(): (datum: StackedBarPoint) => string {
-        return (datum: StackedBarPoint) => datum.y.toString()
+    @computed get barValueFormat(): (datum: StackedPoint) => string {
+        return (datum: StackedPoint) => datum.y.toString()
     }
 
     @computed get tickFormatFn(): (d: number) => string {
         const yColumn = this.yColumns[0]
         return yColumn ? yColumn.formatValueShort : (d: number) => `${d}`
     }
-
-    // TODO: Make XAxis generic
-    @computed get horizontalAxis() {
-        const { manager } = this
-        const { startTimelineTime, endTimelineTime } = this.yColumns[0]
-        const axisConfig = this.manager.xAxis || new AxisConfig(undefined, this)
-        const axis = axisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings([
-            startTimelineTime,
-            endTimelineTime,
-        ])
-        axis.formatColumn = manager.table.timeColumn
-        axis.hideGridlines = true
-        axis.hideFractionalTicks = true
-        return axis
-    }
-
-    @computed get verticalAxis() {
-        const lastSeries = this.series[this.series.length - 1]
-        const yValues = lastSeries.points.map((d) => d.yOffset + d.y)
-        const yDomainDefault: TimeRange = [0, max(yValues) ?? 100]
-        const axisConfig = this.manager.yAxis || new AxisConfig(undefined, this)
-        const axis = axisConfig.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings(yDomainDefault)
-        axis.domain = [yDomainDefault[0], yDomainDefault[1]] // Stacked chart must have its own y domain
-        axis.formatColumn = this.yColumns[0]
-        return axis
-    }
-
-    @computed private get allStackedValues() {
-        return flatten(this.series.map((series) => series.points))
-    }
-
     @computed private get xValues() {
-        return uniq(this.allStackedValues.map((bar) => bar.x))
+        return uniq(this.allStackedPoints.map((bar) => bar.x))
     }
 
     @computed get colorScale() {
         return new ColorScale(this)
+    }
+
+    getColorForSeries(seriesName: SeriesName) {
+        return this.colorScale.getColor(seriesName) || "#ddd"
     }
 
     @computed get colorScaleConfig() {
@@ -575,92 +511,5 @@ export class StackedBarChart
 
     @computed get categoricalValues() {
         return this.rawSeries.map((series) => series.seriesName).reverse()
-    }
-
-    @computed get table() {
-        let table = this.manager.table
-        table = table.filterBySelectedOnly()
-        return table
-    }
-
-    @computed private get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
-    }
-
-    @computed private get yColumnSlugs() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs
-            : this.manager.yColumnSlug
-            ? [this.manager.yColumnSlug]
-            : this.manager.table.numericColumnSlugs
-    }
-
-    @computed private get seriesStrategy() {
-        return (
-            this.manager.seriesStrategy ||
-            (this.yColumns.length > 1 || !this.table.hasMultipleEntitiesSelected
-                ? SeriesStrategy.column
-                : SeriesStrategy.entity)
-        )
-    }
-
-    @computed private get columnsAsSeries() {
-        return this.yColumns.map((col) => {
-            return {
-                seriesName: col.displayName,
-                rows: (col.owidRows as any) as OwidRow[], // todo: cleanup typings
-            }
-        })
-    }
-
-    @computed private get entitiesAsSeries() {
-        const rowsByEntityName = this.table.rowsByEntityName
-        return this.table.selectedEntityNames.map((seriesName) => {
-            return {
-                seriesName,
-                rows: rowsByEntityName.get(seriesName) || [],
-            }
-        })
-    }
-
-    @computed private get rawSeries() {
-        return this.seriesStrategy === SeriesStrategy.column
-            ? this.columnsAsSeries
-            : this.entitiesAsSeries
-    }
-
-    // Do Stacked Bars always operate on YColumns? No.
-    @computed get series() {
-        const { rawSeries } = this
-
-        // todo: clean up this slug stuff
-        const valueColumnSlug =
-            this.seriesStrategy === SeriesStrategy.column
-                ? "value"
-                : this.yColumns[0].slug
-        const timeColumnSlug =
-            this.seriesStrategy === SeriesStrategy.column
-                ? "time"
-                : this.table.timeColumn.slug
-
-        const seriesArr: StackedBarSeries[] = rawSeries.map((series) => {
-            const { seriesName, rows } = series
-            return {
-                seriesName,
-                label: seriesName,
-                points: rows.map((row) => {
-                    return {
-                        x: row[timeColumnSlug],
-                        y: row[valueColumnSlug],
-                        yOffset: 0,
-                        label: seriesName,
-                    } as StackedBarPoint
-                }),
-                color: this.colorScale.getColor(seriesName) ?? "#ddd", // temp
-            }
-        })
-
-        stackBars(seriesArr)
-        return seriesArr
     }
 }

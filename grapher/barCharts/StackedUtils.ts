@@ -1,10 +1,10 @@
-import { StackedBarSeries } from "./StackedBarChartConstants"
+import { StackedSeries } from "./StackedConstants"
 
 // This method shift up the Y Values of a Series with Points.
-// Todo: unit test. Maybe generalize to work for other charts.
-export const stackBars = (seriesArr: StackedBarSeries[]) => {
+// todo: add unit tests
+export const stackSeries = (seriesArr: StackedSeries[]) => {
     // should be an easy one to speed up if necessary
-    const getPointForTime = (series: StackedBarSeries, time: number) =>
+    const getPointForTime = (series: StackedSeries, time: number) =>
         series.points.find((point) => point.x === time)
 
     seriesArr.forEach((series, seriesIndex) => {

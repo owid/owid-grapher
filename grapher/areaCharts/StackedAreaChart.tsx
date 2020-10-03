@@ -3,24 +3,16 @@ import {
     reverse,
     clone,
     last,
-    guid,
     pointsToPath,
     getRelativeMouse,
     makeSafeForCSS,
     minBy,
-    flatten,
-    max,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { scaleOrdinal } from "d3-scale"
-import {
-    Time,
-    BASE_FONT_SIZE,
-    SeriesStrategy,
-} from "grapher/core/GrapherConstants"
+import { Time, SeriesStrategy, SeriesName } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import {
@@ -33,13 +25,19 @@ import { Tooltip } from "grapher/tooltip/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import { ChartManager } from "grapher/chart/ChartManager"
 import { EntityName } from "coreTable/CoreTableConstants"
-import { AxisConfig } from "grapher/axis/AxisConfig"
-import { ChartInterface } from "grapher/chart/ChartInterface"
-import { AreasProps, StackedAreaSeries } from "./StackedAreaChartConstants"
-import { stackAreas } from "./StackedAreaChartUtils"
-import { OwidRow } from "coreTable/OwidTable"
+import {
+    AbstactStackedChart,
+    AbstactStackedChartProps,
+} from "grapher/barCharts/AbstractStackedChart"
+import { StackedSeries } from "grapher/barCharts/StackedConstants"
+
+interface AreasProps extends React.SVGAttributes<SVGGElement> {
+    dualAxis: DualAxis
+    seriesArr: StackedSeries[]
+    focusedSeriesNames: SeriesName[]
+    onHover: (hoverIndex: number | undefined) => void
+}
 
 const BLUR_COLOR = "#ddd"
 
@@ -78,7 +76,7 @@ class Areas extends React.Component<AreasProps> {
         this.props.onHover(this.hoverIndex)
     }
 
-    private seriesIsBlur(series: StackedAreaSeries) {
+    private seriesIsBlur(series: StackedSeries) {
         return (
             this.props.focusedSeriesNames.length > 0 &&
             !this.props.focusedSeriesNames.includes(series.seriesName)
@@ -95,11 +93,11 @@ class Areas extends React.Component<AreasProps> {
         let prevPoints = [xBottomLeft, xBottomRight]
         return seriesArr.map((series) => {
             const mainPoints = series.points.map(
-                (v) =>
-                    [horizontalAxis.place(v.x), verticalAxis.place(v.y)] as [
-                        number,
-                        number
-                    ]
+                (point) =>
+                    [
+                        horizontalAxis.place(point.x),
+                        verticalAxis.place(point.y + point.yOffset),
+                    ] as [number, number]
             )
             const points = mainPoints.concat(reverse(clone(prevPoints)) as any)
             prevPoints = mainPoints
@@ -125,11 +123,11 @@ class Areas extends React.Component<AreasProps> {
         // Stacked area chart stacks each series upon the previous series, so we must keep track of the last point set we used
         return seriesArr.map((series) => {
             const points = series.points.map(
-                (v) =>
-                    [horizontalAxis.place(v.x), verticalAxis.place(v.y)] as [
-                        number,
-                        number
-                    ]
+                (point) =>
+                    [
+                        horizontalAxis.place(point.x),
+                        verticalAxis.place(point.y + point.yOffset),
+                    ] as [number, number]
             )
 
             return (
@@ -181,14 +179,13 @@ class Areas extends React.Component<AreasProps> {
                 {hoverIndex !== undefined && (
                     <g className="hoverIndicator">
                         {seriesArr.map((series) => {
+                            const point = series.points[hoverIndex]
                             return this.seriesIsBlur(series) ? null : (
                                 <circle
                                     key={series.seriesName}
-                                    cx={horizontalAxis.place(
-                                        series.points[hoverIndex].x
-                                    )}
+                                    cx={horizontalAxis.place(point.x)}
                                     cy={verticalAxis.place(
-                                        series.points[hoverIndex].y
+                                        point.y + point.yOffset
                                     )}
                                     r={2}
                                     fill={series.color}
@@ -215,51 +212,47 @@ class Areas extends React.Component<AreasProps> {
 
 @observer
 export class StackedAreaChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: ChartManager
-    }>
-    implements ChartInterface, LineLegendManager {
+    extends AbstactStackedChart
+    implements LineLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @computed private get manager() {
-        return this.props.manager
+    constructor(props: AbstactStackedChartProps) {
+        super(props)
     }
 
-    @computed get bounds() {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+    @computed get verticalAxis() {
+        return this.dualAxis.verticalAxis
     }
 
     @computed get midpoints() {
         let prevY = 0
         return this.series.map((series) => {
             const lastValue = last(series.points)
-            if (lastValue) {
-                const middleY = prevY + (lastValue.y - prevY) / 2
-                prevY = lastValue.y
-                return middleY
-            } else return 0
+            if (!lastValue) return 0
+
+            const y = lastValue.y + lastValue.yOffset
+            const middleY = prevY + (y - prevY) / 2
+            prevY = y
+            return middleY
         })
     }
 
     @computed get labelMarks(): LineLabelMark[] {
         const { midpoints } = this
         return this.series
-            .map((d, i) => ({
-                color: d.color,
-                seriesName: d.seriesName,
-                label: this.manager.table.getLabelForEntityName(d.seriesName),
-                yValue: midpoints[i],
+            .map((series, index) => ({
+                color: series.color,
+                seriesName: series.seriesName,
+                label: this.manager.table.getLabelForEntityName(
+                    series.seriesName
+                ),
+                yValue: midpoints[index],
             }))
             .reverse()
     }
 
     @computed get maxLegendWidth() {
         return Math.min(150, this.bounds.width / 3)
-    }
-
-    @computed get fontSize() {
-        return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
     @computed get legendDimensions(): LineLegend | undefined {
@@ -278,16 +271,9 @@ export class StackedAreaChart
             this.manager.isSelectingData = true
     }
 
-    @computed private get dualAxis() {
-        const { bounds } = this
-        const { horizontalAxisPart, verticalAxisPart, legendDimensions } = this
-        return new DualAxis({
-            bounds: bounds.padRight(
-                legendDimensions ? legendDimensions.width : 20
-            ),
-            horizontalAxis: horizontalAxisPart,
-            verticalAxis: verticalAxisPart,
-        })
+    @computed protected get paddingForLegend() {
+        const { legendDimensions } = this
+        return legendDimensions ? legendDimensions.width : 20
     }
 
     @action.bound onLegendMouseOver(key: EntityName) {
@@ -306,7 +292,7 @@ export class StackedAreaChart
         return this.focusedSeriesNames.length > 0
     }
 
-    seriesIsBlur(series: StackedAreaSeries) {
+    seriesIsBlur(series: StackedSeries) {
         return (
             this.focusedSeriesNames.length > 0 &&
             !this.focusedSeriesNames.includes(series.seriesName)
@@ -387,7 +373,7 @@ export class StackedAreaChart
                                     <td style={{ textAlign: "right" }}>
                                         {value.y === undefined
                                             ? "No data"
-                                            : this.formatYTick(value.origY!)}
+                                            : this.formatYTick(value.y)}
                                     </td>
                                 </tr>
                             )
@@ -448,10 +434,6 @@ export class StackedAreaChart
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    @computed get renderUid() {
-        return guid()
-    }
-
     render() {
         if (this.failMessage)
             return (
@@ -503,52 +485,6 @@ export class StackedAreaChart
             : 0
     }
 
-    @computed get failMessage() {
-        if (!this.yColumns.length) return "Missing Y axis columns"
-
-        if (!this.series.length) return "No matching data"
-
-        if (!this.allStackedValues.length) return "No matching points"
-
-        return ""
-    }
-
-    @computed private get horizontalAxisPart() {
-        const { manager } = this
-        const yColumn = this.yColumns[0]
-        const { startTimelineTime, endTimelineTime } = yColumn
-        const axisConfig =
-            this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
-        if (this.manager.hideXAxis) axisConfig.hideAxis = true
-        const axis = axisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings([
-            startTimelineTime,
-            endTimelineTime,
-        ])
-        axis.formatColumn = manager.table.timeColumn
-        axis.hideFractionalTicks = true
-        axis.hideGridlines = true
-        return axis
-    }
-
-    @computed get verticalAxis() {
-        return this.dualAxis.verticalAxis
-    }
-
-    @computed private get verticalAxisPart() {
-        const yColumn = this.yColumns[0]
-        const yValues = this.allStackedValues.map((d) => d.y)
-        const axisConfig =
-            this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
-        if (this.manager.hideYAxis) axisConfig.hideAxis = true
-        const axis = axisConfig.toVerticalAxis()
-        // Use user settings for axis, unless relative mode
-        if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings([0, max(yValues) ?? 100]) // Stacked area chart must have its own y domain)
-        axis.formatColumn = yColumn
-        return axis
-    }
-
     @computed get availableTimes(): Time[] {
         // Since we've already aligned the data, the years of any series corresponds to the years of all of them
         return this.series[0]?.points.map((v) => v.x) || []
@@ -562,34 +498,6 @@ export class StackedAreaChart
             : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
     }
 
-    @computed get table() {
-        let table = this.manager.table
-        table = table.filterBySelectedOnly()
-
-        if (this.manager.isRelativeMode)
-            table =
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? table.toPercentageFromEachEntityForEachTime(
-                          this.yColumnSlugs[0]
-                      )
-                    : table.toPercentageFromEachColumnForEachEntityAndTime(
-                          this.yColumnSlugs
-                      )
-        return table
-    }
-
-    @computed private get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
-    }
-
-    @computed private get yColumnSlugs() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs
-            : this.manager.yColumnSlug
-            ? [this.manager.yColumnSlug]
-            : this.manager.table.numericColumnSlugs
-    }
-
     @computed get colorScale() {
         const seriesCount =
             this.seriesStrategy === SeriesStrategy.entity
@@ -600,65 +508,11 @@ export class StackedAreaChart
         return scaleOrdinal(baseColors)
     }
 
-    // It seems we have 2 types of StackedAreas. If only 1 column, we stack
-    // the entities, and have one series per entity. If 2+ columns, we stack the columns
-    // and have 1 series per column.
-    @computed get seriesStrategy() {
+    getColorForSeries(seriesName: SeriesName) {
         return (
-            this.manager.seriesStrategy ||
-            (this.yColumnSlugs.length > 1
-                ? SeriesStrategy.column
-                : SeriesStrategy.entity)
+            this.table.getColorForEntityName(seriesName) ||
+            this.colorScale(seriesName)
         )
-    }
-
-    @computed get series() {
-        const { rawSeries, table } = this
-
-        // todo: clean up this slug stuff
-        const valueColumnSlug =
-            this.seriesStrategy === SeriesStrategy.column
-                ? "value"
-                : this.yColumns[0].slug
-        const timeColumnSlug =
-            this.seriesStrategy === SeriesStrategy.column
-                ? "time"
-                : this.table.timeColumn.slug
-
-        const marks = rawSeries.map((series) => {
-            const { isProjection, seriesName, rows } = series
-            return {
-                seriesName,
-                isProjection,
-                points: rows.map((row) => {
-                    const x = row[timeColumnSlug]
-                    const y = row[valueColumnSlug]
-                    return {
-                        x,
-                        y,
-                        time: x,
-                        origY: y,
-                    }
-                }),
-                color:
-                    table.getColorForEntityName(seriesName) ||
-                    this.colorScale(seriesName),
-            }
-        })
-
-        if (this.seriesStrategy !== SeriesStrategy.entity) marks.reverse()
-        stackAreas(marks)
-        return marks
-    }
-
-    @computed private get columnsAsRawSeries() {
-        return this.yColumns.map((col) => {
-            return {
-                isProjection: col.isProjection,
-                seriesName: col.displayName,
-                rows: (col.owidRows as any) as OwidRow[], // todo: cleanup typings
-            }
-        })
     }
 
     // Todo: readd this behavior with tests. We need to support missing points. Probably do it at the table level
@@ -713,28 +567,6 @@ export class StackedAreaChart
     //         }
     //     }
     // }
-    @computed private get entitiesAsRawSeries() {
-        const rowsByEntityName = this.table.rowsByEntityName
-        const { isProjection } = this.yColumns[0]
-        return this.table.selectedEntityNames.map((seriesName) => {
-            return {
-                isProjection,
-                seriesName,
-                rows: rowsByEntityName.get(seriesName) || [],
-            }
-        })
-    }
-
-    @computed private get rawSeries() {
-        return this.seriesStrategy === SeriesStrategy.column
-            ? this.columnsAsRawSeries
-            : this.entitiesAsRawSeries
-    }
-
-    @computed private get allStackedValues() {
-        return flatten(this.series.map((series) => series.points))
-    }
-
     private formatYTick(v: number) {
         const yColumn = this.yColumns[0]
         return yColumn ? yColumn.formatValueShort(v) : v // todo: restore { noTrailingZeroes: false }
