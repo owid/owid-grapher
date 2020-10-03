@@ -258,15 +258,16 @@ export class Grapher
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
         this.legacyConfigAsAuthored = props || {}
-        this.queryParams = legacyQueryParamsToCurrentQueryParams(
-            strToQueryParams(props.queryStr ?? "")
-        )
 
         this.updateFromObject(modernConfig)
 
         if (!props.table) this.downloadData()
 
-        if (this.queryParams) this.populateFromQueryParams(this.queryParams)
+        this.populateFromQueryParams(
+            legacyQueryParamsToCurrentQueryParams(
+                strToQueryParams(props.queryStr ?? "")
+            )
+        )
 
         if (props.globalEntitySelection) {
             this.disposers.push(
@@ -279,8 +280,6 @@ export class Grapher
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()
     }
-
-    private queryParams: GrapherQueryParams
 
     toObject() {
         const obj: GrapherInterface = objectWithPersistablesToObject(
@@ -384,8 +383,15 @@ export class Grapher
         const region = params.region
         if (region !== undefined) this.map.projection = region as MapProjection
 
-        if (this.hasSelectionInUrl) this.setSelectionFromUrl()
+        if (params.country) {
+            // Selected countries -- we can't actually look these up until we have the data
+            this.selectedEntityCodes = EntityUrlBuilder.queryParamToEntities(
+                params.country
+            )
+        }
     }
+
+    @observable selectedEntityCodes: string[] = []
 
     setTimeFromTimeQueryParam(time: string) {
         this.timelineFilter = getTimeDomainFromQueryString(time)
@@ -502,36 +508,23 @@ export class Grapher
     ) {
         this.rootTable = OwidTable.fromLegacy(json, this.legacyConfigAsAuthored)
 
-        if (this.hasSelectionInUrl) this.setSelectionFromUrl()
-        else if (this.selectedEntityNames.length)
+        if (this.selectedEntityCodes.length) {
+            const matchedEntities = new Set(
+                this.rootTable.setSelectedEntitiesByCode(
+                    this.selectedEntityCodes
+                )
+            )
+
+            const notFoundEntities = this.selectedEntityCodes.filter(
+                (code) => !matchedEntities.has(code)
+            )
+
+            if (notFoundEntities.length)
+                this.analytics.logEntitiesNotFoundError(notFoundEntities)
+        } else if (this.selectedEntityNames.length)
             this.rootTable.setSelectedEntities(this.selectedEntityNames)
         else if (this.selectedEntityIds.length)
             this.rootTable.setSelectedEntitiesByEntityId(this.selectedEntityIds)
-    }
-
-    @computed get hasSelectionInUrl() {
-        return (
-            this.queryParams.country !== undefined &&
-            !this.manuallyProvideData &&
-            this.addCountryMode !== EntitySelectionMode.Disabled
-        )
-    }
-
-    @action.bound private setSelectionFromUrl() {
-        const urlSelection = this.queryParams.country || ""
-        // Selected countries -- we can't actually look these up until we have the data
-
-        const entityCodes = EntityUrlBuilder.queryParamToEntities(urlSelection)
-        const matchedEntities = new Set(
-            this.rootTable.setSelectedEntitiesByCode(entityCodes)
-        )
-
-        const notFoundEntities = entityCodes.filter(
-            (code) => !matchedEntities.has(code)
-        )
-
-        if (notFoundEntities.length)
-            this.analytics.logEntitiesNotFoundError(notFoundEntities)
     }
 
     @observable.ref private _baseFontSize = BASE_FONT_SIZE

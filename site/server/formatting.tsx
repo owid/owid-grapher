@@ -308,7 +308,7 @@ export async function formatWordpressPost(
         const $figure = $(
             ReactDOMServer.renderToStaticMarkup(
                 <figure data-explorer-src={src} className={cssClass}>
-                    <LoadingIndicator color="#333" />
+                    <LoadingIndicator />
                 </figure>
             )
         )

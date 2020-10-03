@@ -86,7 +86,7 @@ export const GrapherPage = (props: {
                 <SiteHeader />
                 <main>
                     <figure data-grapher-src={`/grapher/${grapher.slug}`}>
-                        <LoadingIndicator color="#333" />
+                        <LoadingIndicator />
                     </figure>
                     <noscript id="fallback">
                         <img

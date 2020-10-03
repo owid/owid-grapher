@@ -152,7 +152,11 @@ export class ChartTab
         const isMapTab = manager.tab === GrapherTabOption.map
 
         if (!this.isReady)
-            return <LoadingIndicator bounds={innerBounds} color="#333" />
+            return (
+                <foreignObject {...innerBounds.toProps()}>
+                    <LoadingIndicator />
+                </foreignObject>
+            )
 
         if (isMapTab)
             return (

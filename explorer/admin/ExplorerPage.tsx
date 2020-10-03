@@ -54,7 +54,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
                 <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
                 {subNav}
                 <main id="explorerContainer">
-                    <LoadingIndicator color="#333" />
+                    <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}
                 <SiteFooter />

@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun, when, observe } from "mobx"
+import { action, observable, computed, autorun, when } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
@@ -11,7 +11,7 @@ import {
 } from "grapher/utils/UrlBinder"
 import { ExplorerShell } from "./ExplorerShell"
 import { ExplorerProgram } from "./ExplorerProgram"
-import { QueryParams } from "utils/client/url"
+import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { OwidTable } from "coreTable/OwidTable"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
@@ -123,13 +123,15 @@ export class SwitcherExplorer
             hideEntityControls: !this.hideControls && !this.isEmbed,
             dropUnchangedUrlParams: false,
             selectedEntityNames: this.countryPickerTable.selectedEntityNames,
-            queryStr: this.grapher
-                ? this.grapher.queryStr
-                : this.props.queryString,
         }
+
+        const queryStr = this.grapher.id
+            ? this.grapher.queryStr
+            : this.explorerProgram.queryString
 
         this.grapher.updateFromObject(config)
         this.grapher.rootTable = new OwidTable()
+        this.grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         this.grapher.downloadData()
         this.addEntityOptionsWhenReady()
 
