@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, observable, computed, autorun } from "mobx"
+import { action, observable, computed, autorun, when, observe } from "mobx"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import ReactDOM from "react-dom"
@@ -25,7 +25,9 @@ export interface SwitcherExplorerProps {
 }
 
 @observer
-export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
+export class SwitcherExplorer
+    extends React.Component<SwitcherExplorerProps>
+    implements ObservableUrl {
     static bootstrap(props: SwitcherExplorerProps) {
         return ReactDOM.render(
             <SwitcherExplorer
@@ -54,15 +56,6 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
             this.grapher.table.selectedEntityNames || []
         )
         return params as QueryParams
-    }
-
-    componentDidMount() {
-        autorun(() =>
-            this.switchGrapherConfig(
-                this.explorerProgram.switcherRuntime.chartId
-            )
-        )
-        ;(window as any).switcherExplorer = this
     }
 
     @computed get chartConfigs() {
@@ -94,8 +87,35 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
         return this.explorerRef.current?.grapherRef?.current
     }
 
+    componentDidMount() {
+        autorun(() =>
+            this.switchGrapherConfig(
+                this.explorerProgram.switcherRuntime.chartId
+            )
+        )
+
+        when(
+            () => !!this.grapher,
+            () => {
+                this.switchGrapherConfig(
+                    this.explorerProgram.switcherRuntime.chartId
+                )
+            }
+        )
+
+        autorun(() => {
+            this.updateSelection(this.countryPickerTable.selectedEntityNames)
+        })
+        ;(window as any).switcherExplorer = this
+    }
+
+    @action.bound private updateSelection(entityNames: string[]) {
+        if (this.grapher)
+            this.grapher.rootTable.setSelectedEntities(entityNames)
+    }
+
     @action.bound private switchGrapherConfig(id: number) {
-        if (!this.grapher) return
+        if (!this.grapher || this.grapher.id === id) return
 
         const config: GrapherProgrammaticInterface = {
             ...this.chartConfigs.get(id)!,
@@ -108,8 +128,9 @@ export class SwitcherExplorer extends React.Component<SwitcherExplorerProps> {
                 : this.props.queryString,
         }
 
-        console.log(config)
         this.grapher.updateFromObject(config)
+        this.grapher.rootTable = new OwidTable()
+        this.grapher.downloadData()
         this.addEntityOptionsWhenReady()
 
         if (!this.props.bindToWindow) return

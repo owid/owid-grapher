@@ -27,7 +27,6 @@ import { SortOrder } from "grapher/core/GrapherConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
 import { AbstractCoreColumn, NumericColumn } from "coreTable/CoreTable"
 import { OwidTable } from "coreTable/OwidTable"
-import { retryAfter } from "mathjax-full/js/util/Retries"
 
 const toggleSort = (order: SortOrder): SortOrder =>
     order === SortOrder.desc ? SortOrder.asc : SortOrder.desc

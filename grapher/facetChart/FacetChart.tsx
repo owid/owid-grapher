@@ -148,6 +148,8 @@ export class FacetChart extends React.Component<FacetChartProps> {
               }
             : undefined
 
+        const hideLegend = this.manager.yColumnSlugs?.length === 1
+
         return this.rootTable.selectedEntityNames.map((name) => {
             return {
                 name,
@@ -155,7 +157,7 @@ export class FacetChart extends React.Component<FacetChartProps> {
                     table: this.rootTable
                         .filterByEntityName(name)
                         .selectEntity(name),
-                    hideLegend: true,
+                    hideLegend,
                     yAxisConfig,
                     xAxisConfig,
                 },

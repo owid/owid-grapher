@@ -264,6 +264,8 @@ export class Grapher
 
         this.updateFromObject(modernConfig)
 
+        if (!props.table) this.downloadData()
+
         if (this.queryParams) this.populateFromQueryParams(this.queryParams)
 
         if (props.globalEntitySelection) {
@@ -302,6 +304,14 @@ export class Grapher
         return obj
     }
 
+    @action.bound downloadData() {
+        if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
+        else if (this.externalDataUrl)
+            this.downloadLegacyDataFromUrl(this.externalDataUrl)
+        else if (!this.manuallyProvideData)
+            this.downloadLegacyDataFromOwidVariableIds()
+    }
+
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface) {
         if (!obj) return
 
@@ -317,14 +327,6 @@ export class Grapher
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
             this.setDimensionsFromConfigs(obj.dimensions)
-
-        if (obj.table) {
-            // do nothing, data is provided externally
-        } else if (this.owidDataset) this._receiveLegacyData(this.owidDataset)
-        else if (this.externalDataUrl)
-            this.downloadLegacyDataFromUrl(this.externalDataUrl)
-        else if (!this.manuallyProvideData)
-            this.downloadLegacyDataFromOwidVariableIds()
     }
 
     /**

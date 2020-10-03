@@ -508,6 +508,8 @@ export class StackedAreaChart
 
         if (!this.series.length) return "No matching data"
 
+        if (!this.allStackedValues.length) return "No matching points"
+
         return ""
     }
 

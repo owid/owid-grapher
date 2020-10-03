@@ -12,10 +12,9 @@ const entitiesChart: ChartManager = {
     table: SynthesizeGDPTable({
         entityCount: 10,
         timeRange: [1950, 2010],
-    }),
+    }).selectSample(5),
     yColumnSlugs: ["GDP"],
 }
-entitiesChart.table.selectSample(5)
 
 export const EntitiesAsSeries = () => {
     entitiesChart.isRelativeMode = false
@@ -51,13 +50,8 @@ export const EntitiesAsSeriesWithMissingRows = () => {
 }
 
 const columnsChart: ChartManager = {
-    table: SynthesizeFruitTable({
-        timeRange: [1950, 2000],
-    }),
-    yColumnSlugs: ["Fruit", "Vegetables"],
+    table: SynthesizeFruitTable().selectSample(1),
 }
-
-columnsChart.table.selectSample(1)
 
 export const ColumnsAsSeries = () => {
     columnsChart.isRelativeMode = false

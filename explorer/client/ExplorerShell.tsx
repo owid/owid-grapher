@@ -2,7 +2,7 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
 import { Grapher } from "grapher/core/Grapher"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import { CountryPicker } from "grapher/controls/CountryPicker"
@@ -31,7 +31,7 @@ export class ExplorerShell extends React.Component<{
 
     @action.bound onResize() {
         this.isMobile = this._isMobile()
-        this.chartBounds = this.getChartBounds()
+        this.chartBounds = this.getChartBounds() || this.chartBounds
     }
 
     private _isMobile() {
@@ -45,7 +45,7 @@ export class ExplorerShell extends React.Component<{
         HTMLDivElement
     > = React.createRef()
 
-    @observable.ref chartBounds: Bounds | undefined = undefined
+    @observable.ref chartBounds = DEFAULT_BOUNDS
 
     // Todo: add better logic to maximize the size of the chart
     private getChartBounds() {
@@ -145,13 +145,11 @@ export class ExplorerShell extends React.Component<{
                         className="CovidExplorerFigure"
                         ref={this.chartContainerRef}
                     >
-                        {this.chartBounds && (
-                            <Grapher
-                                bounds={this.chartBounds}
-                                isEmbed={true}
-                                ref={this.grapherRef}
-                            />
-                        )}
+                        <Grapher
+                            bounds={this.chartBounds}
+                            isEmbed={true}
+                            ref={this.grapherRef}
+                        />
                     </div>
                 </div>
             </>

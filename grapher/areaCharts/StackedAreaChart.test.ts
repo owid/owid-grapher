@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { StackedAreaChart } from "./StackedAreaChart"
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
+import { SynthesizeFruitTable, SynthesizeGDPTable } from "coreTable/OwidTable"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "grapher/axis/AxisConfig"
@@ -30,4 +30,11 @@ it("use author axis settings unless relative mode", () => {
     expect(chart.verticalAxis.domain[1]).toBeGreaterThan(100)
     manager.isRelativeMode = true
     expect(chart.verticalAxis.domain).toEqual([0, 100])
+})
+
+it("shows a failure message if there are columns but no series", () => {
+    const chart = new StackedAreaChart({
+        manager: { table: SynthesizeFruitTable() },
+    })
+    expect(chart.failMessage).toBeTruthy()
 })
