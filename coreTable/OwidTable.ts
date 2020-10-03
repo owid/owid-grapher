@@ -490,12 +490,24 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
     }
 
+    @action.bound addToSelection(entityNames: EntityName[]) {
+        const set = new Set(entityNames)
+        return this.selectRows(
+            this.rows.filter((row) => set.has(row.entityName))
+        )
+    }
+
     // todo: change return type?
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
         this.setSelectedEntities(codesInData.map((code) => map.get(code)!))
         return codesInData
+    }
+
+    getEntityNamesFromCodes(input: (EntityCode | EntityName)[]) {
+        const map = this.entityCodeToNameMap
+        return input.map((item) => map.get(item) || item)
     }
 
     @action.bound setSelectedEntitiesByEntityId(entityIds: EntityId[]) {

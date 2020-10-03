@@ -51,9 +51,8 @@ export class SwitcherExplorer
     @computed get params(): QueryParams {
         const params: any = {}
         params.hideControls = this.hideControls ? true : undefined
-        if (!this.grapher) return params
         params.country = EntityUrlBuilder.entitiesToQueryParam(
-            this.grapher.table.selectedEntityNames || []
+            this.countryPickerTable.selectedEntityNames
         )
         return params as QueryParams
     }
@@ -66,9 +65,14 @@ export class SwitcherExplorer
     }
 
     // The country picker can have entities not present in all charts
-    @action.bound private async addEntityOptionsWhenReady() {
+    @action.bound private async addEntityOptionsToPickerWhenReady() {
         if (!this.grapher) return
         await this.grapher.whenReady()
+        this.addEntityOptionsToPicker()
+    }
+
+    @action.bound private addEntityOptionsToPicker() {
+        if (!this.grapher) return
         const currentEntities = this.countryPickerTable.availableEntityNameSet
         const newEntities = this.grapher.rootTable.availableEntityNameSet
         const missingEntities = [...newEntities]
@@ -81,6 +85,9 @@ export class SwitcherExplorer
         this.countryPickerTable = this.countryPickerTable.withRows(
             missingEntities
         ) as OwidTable
+        this.countryPickerTable.addToSelection(
+            this.grapher.rootTable.selectedEntityNames
+        )
     }
 
     @computed get grapher() {
@@ -110,6 +117,7 @@ export class SwitcherExplorer
     }
 
     @action.bound private updateSelection(entityNames: string[]) {
+        if (!this.countryPickerTable.rows.length) return
         if (this.grapher)
             this.grapher.rootTable.setSelectedEntities(entityNames)
     }
@@ -122,9 +130,9 @@ export class SwitcherExplorer
             enableKeyboardShortcuts: true,
             hideEntityControls: !this.hideControls && !this.isEmbed,
             dropUnchangedUrlParams: false,
-            selectedEntityNames: this.countryPickerTable.selectedEntityNames,
         }
 
+        this.grapher.hasError = false
         const queryStr = this.grapher.id
             ? this.grapher.queryStr
             : this.explorerProgram.queryString
@@ -133,20 +141,22 @@ export class SwitcherExplorer
         this.grapher.rootTable = new OwidTable()
         this.grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         this.grapher.downloadData()
-        this.addEntityOptionsWhenReady()
+        this.addEntityOptionsToPickerWhenReady()
+        this.bindToWindow()
+    }
 
-        if (!this.props.bindToWindow) return
-
-        const url = new MultipleUrlBinder([
-            this.grapher,
-            this.explorerProgram.switcherRuntime,
-            this,
-        ])
+    bindToWindow() {
+        if (!this.props.bindToWindow || !this.grapher) return
 
         if (this.urlBinding) this.urlBinding.unbindFromWindow()
         else this.urlBinding = new UrlBinder()
-
-        this.urlBinding.bindToWindow(url)
+        this.urlBinding.bindToWindow(
+            new MultipleUrlBinder([
+                this.grapher,
+                this.explorerProgram.switcherRuntime,
+                this,
+            ])
+        )
     }
 
     @observable.ref countryPickerTable = new OwidTable()

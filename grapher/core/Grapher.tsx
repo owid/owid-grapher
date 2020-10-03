@@ -385,13 +385,13 @@ export class Grapher
 
         if (params.country) {
             // Selected countries -- we can't actually look these up until we have the data
-            this.selectedEntityCodes = EntityUrlBuilder.queryParamToEntities(
+            this.selectedEntitiesInQueryParam = EntityUrlBuilder.queryParamToEntities(
                 params.country
             )
         }
     }
 
-    @observable selectedEntityCodes: string[] = []
+    @observable private selectedEntitiesInQueryParam: string[] = []
 
     setTimeFromTimeQueryParam(time: string) {
         this.timelineFilter = getTimeDomainFromQueryString(time)
@@ -508,17 +508,15 @@ export class Grapher
     ) {
         this.rootTable = OwidTable.fromLegacy(json, this.legacyConfigAsAuthored)
 
-        if (this.selectedEntityCodes.length) {
-            const matchedEntities = new Set(
-                this.rootTable.setSelectedEntitiesByCode(
-                    this.selectedEntityCodes
-                )
+        if (this.selectedEntitiesInQueryParam.length) {
+            const entityNames = this.rootTable.getEntityNamesFromCodes(
+                this.selectedEntitiesInQueryParam
+            )
+            const notFoundEntities = entityNames.filter(
+                (name) => !this.rootTable.availableEntityNameSet.has(name)
             )
 
-            const notFoundEntities = this.selectedEntityCodes.filter(
-                (code) => !matchedEntities.has(code)
-            )
-
+            this.rootTable.setSelectedEntities(entityNames)
             if (notFoundEntities.length)
                 this.analytics.logEntitiesNotFoundError(notFoundEntities)
         } else if (this.selectedEntityNames.length)
@@ -1347,7 +1345,7 @@ export class Grapher
     }
 
     @observable private hasBeenVisible = false
-    @observable private hasError = false
+    @observable hasError = false
 
     @computed private get classNames() {
         const classNames = [
