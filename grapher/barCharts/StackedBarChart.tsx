@@ -510,6 +510,6 @@ export class StackedBarChart
     hasNoDataBin = false
 
     @computed get categoricalValues() {
-        return this.rawSeries.map((series) => series.seriesName)
+        return this.rawSeries.map((series) => series.seriesName).reverse()
     }
 }
