@@ -9,13 +9,14 @@ export default {
 }
 
 const props: GrapherProgrammaticInterface = {
-    table: SynthesizeGDPTable().selectSample(3),
+    table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
     hasMapTab: true,
+    enableKeyboardShortcuts: true,
     dimensions: [
         {
             slug: SampleColumnSlugs.GDP,
             property: DimensionProperty.y,
-            variableId: 1,
+            variableId: SampleColumnSlugs.GDP as any,
         },
     ],
 }

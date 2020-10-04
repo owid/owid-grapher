@@ -977,6 +977,7 @@ export const SynthesizeGDPTable = (
                 {
                     slug: SampleColumnSlugs.Population,
                     type: ColumnTypeNames.Population,
+                    source: SynthSource(SampleColumnSlugs.Population),
                     generator: getRandomNumberGenerator(1e7, 1e9, seed),
                     growthRateGenerator: getRandomNumberGenerator(-5, 5, seed),
                     display,
@@ -984,6 +985,7 @@ export const SynthesizeGDPTable = (
                 {
                     slug: SampleColumnSlugs.GDP,
                     type: ColumnTypeNames.Currency,
+                    source: SynthSource(SampleColumnSlugs.GDP),
                     generator: getRandomNumberGenerator(1e9, 1e12, seed),
                     growthRateGenerator: getRandomNumberGenerator(
                         -15,
@@ -995,6 +997,7 @@ export const SynthesizeGDPTable = (
                 {
                     slug: SampleColumnSlugs.LifeExpectancy,
                     type: ColumnTypeNames.Age,
+                    source: SynthSource(SampleColumnSlugs.LifeExpectancy),
                     generator: getRandomNumberGenerator(60, 90, seed),
                     growthRateGenerator: getRandomNumberGenerator(-2, 2, seed),
                     display,
@@ -1004,6 +1007,18 @@ export const SynthesizeGDPTable = (
         },
         seed
     )
+
+const SynthSource = (name: string) => {
+    return {
+        id: name.charCodeAt(0) + name.charCodeAt(1) + name.charCodeAt(2),
+        name: `${name} Almanac`,
+        dataPublishedBy: `${name} Synthetic Data Team`,
+        dataPublisherSource: `${name} Institute`,
+        link: "http://foo.example",
+        retrievedDate: "1/1/2000",
+        additionalInfo: `Downloaded via FTP`,
+    }
+}
 
 export const SynthesizeFruitTable = (
     options?: Partial<SynthOptions>,
@@ -1015,6 +1030,7 @@ export const SynthesizeFruitTable = (
                 {
                     slug: SampleColumnSlugs.Fruit,
                     type: ColumnTypeNames.Numeric,
+                    source: SynthSource(SampleColumnSlugs.Fruit),
                     generator: getRandomNumberGenerator(500, 1000, seed),
                     growthRateGenerator: getRandomNumberGenerator(
                         -10,
@@ -1025,6 +1041,7 @@ export const SynthesizeFruitTable = (
                 {
                     slug: SampleColumnSlugs.Vegetables,
                     type: ColumnTypeNames.Numeric,
+                    source: SynthSource(SampleColumnSlugs.Vegetables),
                     generator: getRandomNumberGenerator(400, 1000, seed),
                     growthRateGenerator: getRandomNumberGenerator(
                         -10,

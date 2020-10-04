@@ -1669,9 +1669,9 @@ export class Grapher
         this.checkVisibility()
     }
 
-    private _shortcutsOn = false
+    private _shortcutsBound = false
     private bindKeyboardShortcuts() {
-        if (this._shortcutsOn) return
+        if (this._shortcutsBound) return
         this.keyboardShortcuts.forEach((shortcut) => {
             Mousetrap.bind(shortcut.combo, () => {
                 shortcut.fn()
@@ -1679,12 +1679,22 @@ export class Grapher
                     shortcut.title || "",
                     shortcut.combo
                 )
+                return false
             })
         })
-        this._shortcutsOn = true
+        this._shortcutsBound = true
+    }
+
+    private unbindKeyboardShortcuts() {
+        if (!this._shortcutsBound) return
+        this.keyboardShortcuts.forEach((shortcut) => {
+            Mousetrap.unbind(shortcut.combo)
+        })
+        this._shortcutsBound = false
     }
 
     componentWillUnmount() {
+        this.unbindKeyboardShortcuts()
         window.removeEventListener("scroll", this.checkVisibility)
         this.dispose()
     }

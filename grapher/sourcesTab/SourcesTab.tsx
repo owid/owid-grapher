@@ -141,6 +141,10 @@ export class SourcesTab extends React.Component<{
 
     render() {
         const { bounds } = this
+        // todo: cleanup the Owidcolumn typings
+        const cols = this.manager.columnsWithSources.filter(
+            (col) => (col.spec as OwidColumnSpec).source
+        )
 
         return (
             <div
@@ -149,11 +153,7 @@ export class SourcesTab extends React.Component<{
             >
                 <div>
                     <h2>Sources</h2>
-                    <div>
-                        {this.manager.columnsWithSources.map((source) =>
-                            this.renderSource(source)
-                        )}
-                    </div>
+                    <div>{cols.map((col) => this.renderSource(col))}</div>
                 </div>
             </div>
         )
