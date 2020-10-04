@@ -134,37 +134,21 @@ export class AbstactStackedChart
 
     @computed private get columnsAsSeries() {
         return this.yColumns.map((col) => {
-            const points = col.owidRows.map((row) => {
-                return {
-                    x: row.time,
-                    y: row.value,
-                    yOffset: 0,
-                }
-            })
             return {
                 isProjection: col.isProjection,
                 seriesName: col.displayName,
-                points,
+                rows: col.owidRows,
             }
         })
     }
 
     @computed private get entitiesAsSeries() {
-        const { isProjection, slug } = this.yColumns[0]
-        const timeColumnSlug = this.table.timeColumn.slug
-        const rowsByEntityName = this.table.rowsByEntityName
+        const { isProjection, owidRowsByEntityName } = this.yColumns[0]
         return this.table.selectedEntityNames.map((seriesName) => {
-            const rows = rowsByEntityName.get(seriesName) || []
             return {
                 isProjection,
                 seriesName,
-                points: rows.map((row) => {
-                    return {
-                        x: row[timeColumnSlug],
-                        y: row[slug],
-                        yOffset: 0,
-                    }
-                }),
+                rows: owidRowsByEntityName.get(seriesName) || [],
             }
         })
     }
@@ -192,15 +176,23 @@ export class AbstactStackedChart
     }
 
     @computed get series() {
-        const seriesArr = this.rawSeries.map((series) => {
-            const { isProjection, seriesName, points } = series
-            return {
-                seriesName,
-                isProjection,
-                points,
-                color: this.getColorForSeries(seriesName),
-            } as StackedSeries
-        })
+        const seriesArr = this.rawSeries
+            .filter((series) => series.rows.length)
+            .map((series) => {
+                const { isProjection, seriesName, rows } = series
+                return {
+                    seriesName,
+                    isProjection,
+                    points: rows.map((row) => {
+                        return {
+                            x: row.time,
+                            y: row.value,
+                            yOffset: 0,
+                        }
+                    }),
+                    color: this.getColorForSeries(seriesName),
+                } as StackedSeries
+            })
 
         if (this.seriesStrategy !== SeriesStrategy.entity) seriesArr.reverse()
         return stackSeries(withFakePoints(seriesArr))

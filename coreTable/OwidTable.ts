@@ -23,6 +23,7 @@ import {
     sum,
     Grid,
     trimGrid,
+    getDropIndexes,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -47,6 +48,7 @@ import {
     MapOfColumnSpecs,
     CoreColumnSpec,
     CoreRow,
+    DroppedForTesting,
 } from "./CoreTable"
 import { countries } from "utils/countries"
 import { populationMap } from "./PopulationMap"
@@ -272,14 +274,41 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     // for testing. Preserves ordering.
-    dropRandomRows(dropHowMany = 1, seed = Date.now()) {
-        if (!dropHowMany) return this // todo: clone?
-        const indexesToDrop = new Set(
-            sampleFrom(range(0, this.numRows), dropHowMany, seed)
-        )
+    dropRandomRows(howMany = 1, seed = Date.now()) {
+        if (!howMany) return this // todo: clone?
+        const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
         return this.filterBy(
             (row, index) => !indexesToDrop.has(index),
-            `Dropping a random ${dropHowMany} rows`
+            `Dropping a random ${howMany} rows`
+        )
+    }
+
+    dropRandomCells(
+        howMany = 1,
+        columnSlugs: ColumnSlug[] = [],
+        seed = Date.now()
+    ) {
+        const specs = this.columnsAsArray.map((col) => {
+            const { spec } = col
+            if (!columnSlugs.includes(col.slug)) return spec
+            const indexesToDrop = getDropIndexes(
+                col.parsedValues.length,
+                howMany,
+                seed
+            )
+            return {
+                ...spec,
+                fn: (row: OwidRow, index: number) =>
+                    indexesToDrop.has(index)
+                        ? new DroppedForTesting()
+                        : row[col.slug],
+            }
+        })
+        return new (this.constructor as any)(
+            this.rows,
+            specs,
+            this,
+            `Dropped ${howMany} cells in ${columnSlugs}`
         )
     }
 

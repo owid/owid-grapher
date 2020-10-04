@@ -69,6 +69,7 @@ class NaNButShouldBeNumber extends InvalidValueType {
         return this.constructor.name + `: '${this.value}'`
     }
 }
+export class DroppedForTesting extends InvalidValueType {}
 class UndefinedButShouldBeNumber extends InvalidValueType {}
 class NullButShouldBeNumber extends InvalidValueType {}
 class BlankButShouldBeNumber extends InvalidValueType {}
@@ -197,6 +198,18 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     formatTime(value: any) {
         return this.timeColumnFormatFunction(value)
+    }
+
+    @computed private get columnsWithParseErrors() {
+        return this.columnsAsArray.filter((col) => col.numParseErrors)
+    }
+
+    @computed get numColumnsWithParseErrors() {
+        return this.columnsWithParseErrors.length
+    }
+
+    @computed get hasParseErrors() {
+        return this.numColumnsWithParseErrors
     }
 
     static guessColumnSpec(slug: string, row: any) {
@@ -626,8 +639,8 @@ export abstract class AbstractCoreColumn {
         const slug = this.slug
         this.rowsWithValue.forEach((row) => {
             const value = row[slug]
-            // For now the behavior is to not overwrite an existing value with a falsey one
-            if (value === undefined || value === "") return
+            // For now the behavior is to not overwrite an existing value with an empty one
+            if (value === "") return
 
             const indexVal = row[columnSlug]
             if (!map.has(indexVal)) !map.set(indexVal, new Set())
@@ -755,12 +768,28 @@ export abstract class AbstractCoreColumn {
         return this.table.rows.map((row) => row[slug])
     }
 
+    @computed private get rowsWithParseErrors() {
+        const slug = this.spec.slug
+        return this.table.rows.filter(
+            (row) => row[slug] instanceof InvalidValueType
+        )
+    }
+
+    @computed get numParseErrors() {
+        return this.rowsWithParseErrors.length
+    }
+
     // Rows containing a value for this column
     @computed get rowsWithValue() {
         const slug = this.spec.slug
         return this.table.rows.filter(
-            (row) => row[slug] !== undefined && row[slug] !== ""
+            (row) => !(row[slug] instanceof InvalidValueType)
         )
+    }
+
+    // Number of correctly parsed values
+    @computed get numValues() {
+        return this.rowsWithValue.length
     }
 
     @computed get parsedValues() {
@@ -922,7 +951,7 @@ class YearColumn extends TimeColumn {
 
 class DateColumn extends TimeColumn {
     formatValue(value: number) {
-        return value === undefined ? "" : formatDay(value)
+        return formatDay(value)
     }
 
     formatValueForMobile(value: number) {
@@ -930,15 +959,12 @@ class DateColumn extends TimeColumn {
     }
 
     formatForCsv(value: number) {
-        return value === undefined
-            ? ""
-            : formatDay(value, { format: "YYYY-MM-DD" })
+        return formatDay(value, { format: "YYYY-MM-DD" })
     }
 }
 
 class CurrencyColumn extends NumericColumn {
     formatValue(value: number) {
-        if (value === undefined) return ""
         return formatValue(value, {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
@@ -950,7 +976,6 @@ class CurrencyColumn extends NumericColumn {
 // Expects 50% to be 50
 class PercentageColumn extends NumericColumn {
     formatValue(value: number) {
-        if (value === undefined) return ""
         return formatValue(value, {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
@@ -977,7 +1002,6 @@ class PercentChangeOverTimeColumn extends PercentageColumn {
 // Expectes 50% to be .5
 class DecimalPercentageColumn extends NumericColumn {
     formatValue(value: number) {
-        if (value === undefined) return ""
         return formatValue(value * 100, {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
@@ -989,7 +1013,6 @@ class DecimalPercentageColumn extends NumericColumn {
 class PopulationColumn extends IntegerColumn {}
 class PopulationDensityColumn extends NumericColumn {
     formatValue(value: number) {
-        if (value === undefined) return ""
         return formatValue(value, {
             numDecimalPlaces: 0,
             noTrailingZeroes: false,
@@ -999,7 +1022,6 @@ class PopulationDensityColumn extends NumericColumn {
 }
 class AgeColumn extends NumericColumn {
     formatValue(value: number) {
-        if (value === undefined) return ""
         return formatValue(value, {
             numDecimalPlaces: 1,
             noTrailingZeroes: false,
@@ -1009,7 +1031,6 @@ class AgeColumn extends NumericColumn {
 }
 class RatioColumn extends NumericColumn {
     formatValue(value: number) {
-        if (value === undefined) return ""
         return formatValue(value, {
             numDecimalPlaces: 1,
             noTrailingZeroes: false,

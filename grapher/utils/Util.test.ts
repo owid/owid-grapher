@@ -30,6 +30,7 @@ import {
     getRandomNumberGenerator,
     findClosestTimeIndex,
     trimArray,
+    getDropIndexes,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder, ScaleType } from "grapher/core/GrapherConstants"
@@ -195,10 +196,19 @@ describe(computeRollingAverage, () => {
     })
 })
 
-describe(getRandomNumberGenerator, () => {
+describe("random functions", () => {
     it("can generate a repeatable sequence of random numbers between 1 and 100 given a seed", () => {
         const rand = getRandomNumberGenerator(1, 100, 123)
         expect([rand(), rand()]).toEqual([96, 13])
+    })
+
+    it("can get indexes of cell values to drop in an array", () => {
+        const drops = getDropIndexes(3, 2, 1)
+        expect(
+            [1, 2, 3].map((value, index) =>
+                drops.has(index) ? undefined : value
+            )
+        ).toEqual([undefined, undefined, 3])
     })
 })
 

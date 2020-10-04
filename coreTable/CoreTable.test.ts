@@ -152,3 +152,16 @@ hi,1,,2001`
     expect(entityNameMap.get("hi")).toContain("in millions")
     expect(entityNameMap.get("usa")).toContain("in hundreds of millions")
 })
+
+it("can get all defined values for a column", () => {
+    const table = new AnyTable(
+        [
+            { pop: undefined, year: 1999 },
+            { pop: 123, year: 2000 },
+        ],
+        [{ type: ColumnTypeNames.Numeric, slug: "pop" }]
+    )
+    expect(table.get("pop")?.numValues).toEqual(1)
+    expect(table.get("pop")?.numParseErrors).toEqual(1)
+    expect(table.numColumnsWithParseErrors).toEqual(1)
+})

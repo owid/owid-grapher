@@ -10,7 +10,7 @@ import {
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { scaleOrdinal } from "d3-scale"
-import { Time, SeriesStrategy, SeriesName } from "grapher/core/GrapherConstants"
+import { SeriesStrategy, SeriesName } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "grapher/axis/AxisViews"

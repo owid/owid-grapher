@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 import {
     OwidTable,
+    SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "coreTable/OwidTable"
@@ -175,6 +176,19 @@ it("can parse data to Javascript data structures", () => {
         expect(row.value).toBeGreaterThan(100)
         expect(row.time).toBeGreaterThan(1999)
     })
+})
+
+it("can drop random cells", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2010],
+        entityCount: 1,
+    })
+    expect(table.get(SampleColumnSlugs.GDP)!.rowsWithValue.length).toBe(10)
+    expect(
+        table
+            .dropRandomCells(7, [SampleColumnSlugs.GDP])
+            .get(SampleColumnSlugs.GDP)!.rowsWithValue.length
+    ).toBe(3)
 })
 
 it("can group data by entity and time", () => {

@@ -594,6 +594,13 @@ export const getRandomNumberGenerator = (
     return Math.floor(min + (max - min) * (semiRand - Math.floor(semiRand)))
 }
 
+// Returns a Set of random indexes to drop in an array, preserving the order of the array
+export const getDropIndexes = (
+    arrayLength: number,
+    howMany: number,
+    seed = Date.now()
+) => new Set(sampleFrom(range(0, arrayLength), howMany, seed))
+
 export const sampleFrom = <T>(
     collection: T[],
     howMany: number,

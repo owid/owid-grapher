@@ -53,14 +53,24 @@ const columnsChart: ChartManager = {
 
 export const ColumnsAsSeries = () => (
     <svg width={600} height={600}>
-        <StackedAreaChart
-            manager={{ ...columnsChart, isRelativeMode: false }}
-        />
+        <StackedAreaChart manager={columnsChart} />
     </svg>
 )
 
 export const ColumnsAsSeriesRelative = () => (
     <svg width={600} height={600}>
         <StackedAreaChart manager={{ ...columnsChart, isRelativeMode: true }} />
+    </svg>
+)
+
+export const ColumnsAsSeriesWithMissingCells = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            manager={{
+                table: SynthesizeFruitTable()
+                    .selectSample(1)
+                    .dropRandomCells(200, [SampleColumnSlugs.Fruit]),
+            }}
+        />
     </svg>
 )
