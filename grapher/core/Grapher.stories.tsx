@@ -1,22 +1,23 @@
 import * as React from "react"
 import { Grapher, GrapherProgrammaticInterface } from "./Grapher"
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
-import { ChartTypeName, DimensionProperty } from "./GrapherConstants"
+import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
+import { DimensionProperty } from "./GrapherConstants"
 
 export default {
     title: "Grapher",
     component: Grapher,
 }
 
-const table = SynthesizeGDPTable()
-
 const props: GrapherProgrammaticInterface = {
-    table,
+    table: SynthesizeGDPTable().selectSample(3),
     hasMapTab: true,
-    dimensions: [{ slug: "GDP", property: DimensionProperty.y, variableId: 1 }],
-    type: ChartTypeName.LineChart,
+    dimensions: [
+        {
+            slug: SampleColumnSlugs.GDP,
+            property: DimensionProperty.y,
+            variableId: 1,
+        },
+    ],
 }
-
-table.selectAll()
 
 export const Default = () => <Grapher {...props} />

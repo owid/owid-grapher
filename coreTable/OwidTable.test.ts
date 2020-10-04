@@ -20,8 +20,8 @@ const sampleRows = [
 
 it("can create a table and detect columns", () => {
     const table = new OwidTable(sampleRows)
-    expect(table.rows.length).toEqual(1)
-    expect(Array.from(table.columnsByName.keys()).length).toEqual(6)
+    expect(table.numRows).toEqual(1)
+    expect(table.numColumns).toEqual(6)
 })
 
 it("can load a table from an array of arrays", () => {
@@ -30,8 +30,8 @@ it("can load a table from an array of arrays", () => {
         Object.values(sampleRows[0]),
     ] as any[][]
     const table = OwidTable.fromMatrix(matrix)
-    expect(table.rows.length).toEqual(1)
-    expect(table.columnSlugs.length).toEqual(6)
+    expect(table.numRows).toEqual(1)
+    expect(table.numColumns).toEqual(6)
     expect(table.toMatrix()).toEqual(matrix)
 
     const tableTrim = OwidTable.fromMatrix([
@@ -93,7 +93,7 @@ describe("creating a table from legacy", () => {
         "Prevalence of wasting, weight for height (% of children under 5)"
 
     it("can create a table and detect columns from legacy", () => {
-        expect(table.rows.length).toEqual(3)
+        expect(table.numRows).toEqual(3)
         expect(table.columnSlugs).toEqual([
             "entityName",
             "entityId",
@@ -152,11 +152,11 @@ it("can perfrom queries needed by discrete bar", () => {
         10
     )
     expect(table.rowsByEntityName.size).toEqual(3)
-    expect(table.selectedEntityNames.length).toEqual(0)
+    expect(table.numSelectedEntities).toEqual(0)
 
     table.selectAll()
 
-    expect(table.selectedEntityNames.length).toEqual(3)
+    expect(table.numSelectedEntities).toEqual(3)
     expect(table.getClosestRowForEachSelectedEntity(2003, 0).length).toEqual(3)
     expect(table.getClosestRowForEachSelectedEntity(2004, 1).length).toEqual(3)
     expect(table.getClosestRowForEachSelectedEntity(2005, 1).length).toEqual(0)
@@ -248,9 +248,9 @@ describe("time filtering", () => {
             timeRange: [2000, 2005],
         })
 
-        expect(table.rows.length).toBe(10)
-        expect(table.filterByTime(2000, 2003).rows.length).toBe(8)
-        expect(table.filterByTime(2000, 2000).rows.length).toBe(2)
+        expect(table.numRows).toBe(10)
+        expect(table.filterByTime(2000, 2003).numRows).toBe(8)
+        expect(table.filterByTime(2000, 2000).numRows).toBe(2)
     })
 
     it("can filter by time target", () => {
@@ -262,15 +262,15 @@ describe("time filtering", () => {
             1
         )
 
-        expect(table.rows.length).toBe(10)
-        expect(table.filterByTargetTime(2010, 2).rows.length).toBe(0)
-        expect(table.filterByTargetTime(2010, 20).rows.length).toBe(2)
+        expect(table.numRows).toBe(10)
+        expect(table.filterByTargetTime(2010, 2).numRows).toBe(0)
+        expect(table.filterByTargetTime(2010, 20).numRows).toBe(2)
 
         expect(
             table
                 .selectEntity(table.availableEntityNames[0])
                 .filterBySelectedOnly()
-                .filterByTargetTime(2010, 20).rows.length
+                .filterByTargetTime(2010, 20).numRows
         ).toBe(1)
 
         const table2 = SynthesizeGDPTable({
@@ -278,7 +278,7 @@ describe("time filtering", () => {
             timeRange: [2000, 2001],
         })
 
-        expect(table2.filterByTargetTime(2000, 1).rows.length).toBe(1)
+        expect(table2.filterByTargetTime(2000, 1).numRows).toBe(1)
     })
 })
 
@@ -315,8 +315,8 @@ describe("rolling averages", () => {
     const colLength = Object.keys(rows[0]).length
     const table = new OwidTable(rows)
     it("a column can be added", () => {
-        expect(table.rows.length).toEqual(rows.length)
-        expect(Array.from(table.columnsByName.keys()).length).toEqual(colLength)
+        expect(table.numRows).toEqual(rows.length)
+        expect(table.numColumns).toEqual(colLength)
         const newTable = table.withColumns([
             {
                 slug: "populationInMillions",
@@ -324,9 +324,7 @@ describe("rolling averages", () => {
             },
         ])
         expect(newTable.rows[0].populationInMillions).toEqual(300)
-        expect(Array.from(newTable.columnsByName.keys()).length).toEqual(
-            colLength + 1
-        )
+        expect(newTable.numColumns).toEqual(colLength + 1)
     })
 
     // sortedUniqNonEmptyStringVals

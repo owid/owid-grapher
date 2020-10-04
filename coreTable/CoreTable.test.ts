@@ -11,7 +11,7 @@ canada,20`
 
 it("a table can be made from csv", () => {
     const table = AnyTable.fromDelimited(sampleCsv)
-    expect(table.rows.length).toEqual(4)
+    expect(table.numRows).toEqual(4)
     expect(Array.from(table.columnsByName.keys())).toEqual([
         "country",
         "population",
@@ -20,11 +20,11 @@ it("a table can be made from csv", () => {
 
 it("rows can be added without mutating the parent table", () => {
     const table = AnyTable.fromDelimited(sampleCsv)
-    expect(table.rows.length).toEqual(4)
+    expect(table.numRows).toEqual(4)
     expect(
-        table.withRows([{ country: "Japan", population: 123 }]).rows.length
+        table.withRows([{ country: "Japan", population: 123 }]).numRows
     ).toBe(5)
-    expect(table.rows.length).toEqual(4)
+    expect(table.numRows).toEqual(4)
 })
 
 it("input rows are never mutated", () => {

@@ -743,10 +743,7 @@ export class ScatterPlot
     }
 
     @computed private get pointsForAxisDomains() {
-        if (
-            !this.table.selectedEntityNames.length ||
-            !this.manager.zoomToSelection
-        )
+        if (!this.table.numSelectedEntities || !this.manager.zoomToSelection)
             return this.currentValues
 
         return this.selectedPoints.length

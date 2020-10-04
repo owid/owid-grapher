@@ -117,7 +117,7 @@ export class SwitcherExplorer
     }
 
     @action.bound private updateSelection(entityNames: string[]) {
-        if (!this.countryPickerTable.rows.length) return
+        if (!this.countryPickerTable.numRows) return
         if (this.grapher)
             this.grapher.rootTable.setSelectedEntities(entityNames)
     }

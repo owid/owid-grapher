@@ -137,12 +137,8 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return Array.from(this.availableEntityNameSet)
     }
 
-    @computed get hasMultipleAvailableEntities() {
-        return this.availableEntityNames.length > 1
-    }
-
-    @computed get hasMultipleEntitiesSelected() {
-        return this.selectedEntityNames.length > 1
+    @computed get numAvailableEntityNames() {
+        return this.availableEntityNames.length
     }
 
     @computed get hasMultipleTimelineTimes() {
@@ -279,7 +275,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     dropRandomRows(dropHowMany = 1, seed = Date.now()) {
         if (!dropHowMany) return this // todo: clone?
         const indexesToDrop = new Set(
-            sampleFrom(range(0, this.rows.length), dropHowMany, seed)
+            sampleFrom(range(0, this.numRows), dropHowMany, seed)
         )
         return this.filterBy(
             (row, index) => !indexesToDrop.has(index),
@@ -289,7 +285,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     dropRandomPercent(dropHowMuch = 1, seed = Date.now()) {
         return this.dropRandomRows(
-            Math.floor((dropHowMuch / 100) * this.rows.length),
+            Math.floor((dropHowMuch / 100) * this.numRows),
             seed
         )
     }
@@ -532,6 +528,10 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     @computed get selectedEntityNames() {
         return Array.from(this.selectedEntityNameSet)
+    }
+
+    @computed get numSelectedEntities() {
+        return this.selectedEntityNames.length
     }
 
     @computed get selectedEntityNameSet() {

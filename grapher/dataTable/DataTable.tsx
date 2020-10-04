@@ -90,7 +90,7 @@ export class DataTable extends React.Component<{
         }
 
         // If not sorted by entity, then make sure the index of the chosen column exists
-        dimIndex = Math.min(dimIndex, this.table.columnsAsArray.length - 1)
+        dimIndex = Math.min(dimIndex, this.table.numColumns - 1)
         if (dimIndex !== ENTITY_DIM_INDEX) {
             const availableColumns = this.columnsWithValues[
                 dimIndex

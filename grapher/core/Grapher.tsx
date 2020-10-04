@@ -956,7 +956,7 @@ export class Grapher
 
     @computed get addButtonLabel() {
         const isSingleEntity =
-            this.table.availableEntityNames.length === 1 ||
+            this.table.numAvailableEntityNames === 1 ||
             this.addCountryMode === EntitySelectionMode.SingleEntity
         return `Add ${isSingleEntity ? "data" : this.entityType}`
     }
@@ -977,7 +977,7 @@ export class Grapher
     }
 
     @computed get canAddData() {
-        if (this.table.availableEntityNames.length < 2) return false
+        if (this.table.numAvailableEntityNames < 2) return false
 
         if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
             return true
@@ -995,7 +995,7 @@ export class Grapher
         return (
             !this.isScatter &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.table.hasMultipleAvailableEntities
+            this.table.numAvailableEntityNames > 1
         )
     }
 
@@ -1540,13 +1540,13 @@ export class Grapher
         if (this.hasMultipleYColumns) {
             strategies.push(FacetStrategy.column)
             if (
-                this.table.hasMultipleAvailableEntities &&
+                this.table.numAvailableEntityNames > 1 &&
                 this.hasMultipleCountriesOnTheMap
             )
                 strategies.push(FacetStrategy.columnWithMap)
         }
 
-        if (this.table.hasMultipleEntitiesSelected) {
+        if (this.table.numSelectedEntities > 1) {
             strategies.push(FacetStrategy.country)
             if (this.hasMultipleCountriesOnTheMap)
                 strategies.push(FacetStrategy.countryWithMap)
@@ -1565,7 +1565,7 @@ export class Grapher
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.table.hasMultipleEntitiesSelected
+            this.table.numSelectedEntities > 1
         )
             return FacetStrategy.country
 
@@ -1573,7 +1573,7 @@ export class Grapher
         if (
             this.addCountryMode === EntitySelectionMode.MultipleEntities &&
             this.hasMultipleYColumns &&
-            this.table.hasMultipleEntitiesSelected
+            this.table.numSelectedEntities > 1
         )
             return FacetStrategy.column
 

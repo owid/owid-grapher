@@ -495,7 +495,7 @@ export class StackedAreaChart
     @computed get colorScale() {
         const seriesCount =
             this.seriesStrategy === SeriesStrategy.entity
-                ? this.table.selectedEntityNames.length
+                ? this.table.numSelectedEntities
                 : this.yColumns.length
         const baseColors = this.colorScheme.getColors(seriesCount)
         if (this.manager.invertColorScheme) baseColors.reverse()
