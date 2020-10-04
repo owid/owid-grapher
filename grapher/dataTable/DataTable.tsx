@@ -70,7 +70,7 @@ export interface DataTableManager {
 
 @observer
 export class DataTable extends React.Component<{
-    manager: DataTableManager
+    manager?: DataTableManager
     bounds?: Bounds
 }> {
     @observable private storedState: DataTableState = {
@@ -114,7 +114,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get manager() {
-        return this.props.manager
+        return this.props.manager || { table: new OwidTable() }
     }
 
     @computed private get entityType() {

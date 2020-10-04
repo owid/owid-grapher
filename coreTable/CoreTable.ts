@@ -369,16 +369,18 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             }
         })
 
-        const originalRows = !this.isRoot()
-            ? `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
-            : `Input Data: ${this._inputRows.length} Rows \n\n` +
-              toAlignedTextTable(
+        const inputTable = this._inputRows.length
+            ? toAlignedTextTable(
                   Object.keys(this._inputRows[0]),
                   this._inputRows.slice(0, showRows),
                   undefined,
                   10
-              ) +
-              "\n\n\n\n# Root Table:\n"
+              )
+            : ""
+
+        const originalRows = !this.isRoot()
+            ? `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
+            : `Input Data: ${this._inputRows.length} Rows \n\n${inputTable}\n\n\n\n# Root Table:\n`
 
         return [
             originalRows,

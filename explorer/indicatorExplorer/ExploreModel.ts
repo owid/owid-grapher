@@ -129,9 +129,7 @@ export class ExploreModel implements ObservableUrl {
 
     @action.bound populateFromQueryParams(params: ExploreQueryParams) {
         const chartType = params.type
-        if (chartType) {
-            this.setChartType(chartType as ChartTypeName)
-        }
+        if (chartType) this.setChartType(chartType as ChartTypeName)
 
         if (params.indicator) {
             const id = parseInt(params.indicator)
