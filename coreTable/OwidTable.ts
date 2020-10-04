@@ -116,7 +116,6 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
             )
 
         const rows = (parsed as any) as OwidRow[]
-
         return new OwidTable(rows, [...OwidTable.requiredColumnSpecs, ...specs])
     }
 

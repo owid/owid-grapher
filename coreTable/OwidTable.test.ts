@@ -6,6 +6,7 @@ import {
     SynthesizeGDPTable,
 } from "coreTable/OwidTable"
 import { flatten } from "grapher/utils/Util"
+import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
 
 const sampleRows = [
@@ -232,6 +233,7 @@ france,fr,3,23,4`
 
 it("can get entities with required columns", () => {
     const table = OwidTable.fromDelimited(basicTableCsv)
+    expect(table.get("pop")?.spec.type).toEqual(ColumnTypeNames.Numeric)
     expect(table.get("pop")?.entityNamesUniq.size).toEqual(2)
     expect(table.entitiesWith(["gdp"]).size).toEqual(3)
     expect(table.entitiesWith(["gdp", "pop"]).size).toEqual(2)

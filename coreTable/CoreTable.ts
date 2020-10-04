@@ -61,11 +61,14 @@ abstract class InvalidValueType {
         this.value = value
     }
     toString() {
+        return this.value
+    }
+    toErrorString() {
         return this.constructor.name
     }
 }
 class NaNButShouldBeNumber extends InvalidValueType {
-    toString() {
+    toErrorString() {
         return this.constructor.name + `: '${this.value}'`
     }
 }
@@ -76,7 +79,7 @@ class BlankButShouldBeNumber extends InvalidValueType {}
 class UndefinedButShouldBeString extends InvalidValueType {}
 class NullButShouldBeString extends InvalidValueType {}
 class NotAParseableNumberButShouldBeNumber extends InvalidValueType {
-    toString() {
+    toErrorString() {
         return this.constructor.name + `: '${this.value}'`
     }
 }
@@ -212,7 +215,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.numColumnsWithParseErrors
     }
 
-    static guessColumnSpec(slug: string, row: any) {
+    static guessColumnSpec(slug: string, sampleRow: any) {
         if (slug === "day")
             return {
                 slug: "day",
@@ -227,11 +230,21 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 name: "Year",
             }
 
-        if (typeof row[slug] === "number")
+        const value = sampleRow[slug]
+
+        if (typeof value === "number")
             return {
                 slug,
                 type: ColumnTypeNames.Numeric,
             }
+
+        if (typeof value === "string") {
+            if (value.match(/^\d+$/))
+                return {
+                    slug,
+                    type: ColumnTypeNames.Numeric,
+                }
+        }
 
         return { slug, type: ColumnTypeNames.String }
     }
