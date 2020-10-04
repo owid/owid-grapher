@@ -417,6 +417,25 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
+    limit(howMany: number) {
+        const rows = this.rows.slice(0, howMany)
+        return new (this.constructor as any)(
+            rows,
+            this.specs,
+            this,
+            `Kept the first ${rows.length} rows`
+        )
+    }
+
+    identity() {
+        return new (this.constructor as any)(
+            this.rows,
+            this.specs,
+            this,
+            `Cloned table`
+        )
+    }
+
     withoutConstantColumns(): AnyTable {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
@@ -442,6 +461,10 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             this,
             message ?? `Dropped columns '${slugs}'`
         )
+    }
+
+    toMatrix() {
+        return [this.columnSlugs, ...this.extract()]
     }
 }
 

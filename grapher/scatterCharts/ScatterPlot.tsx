@@ -705,11 +705,6 @@ export class ScatterPlot
         return allPoints
     }
 
-    // The selectable years that will end up on the timeline UI (if enabled)
-    @computed get availableTimes(): Time[] {
-        return this.allPoints.map((point) => point.year)
-    }
-
     @computed private get currentValues() {
         return flatten(this.series.map((g) => g.points))
     }

@@ -29,6 +29,7 @@ import {
     trimObject,
     getRandomNumberGenerator,
     findClosestTimeIndex,
+    trimArray,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
 import { SortOrder, ScaleType } from "grapher/core/GrapherConstants"
@@ -368,6 +369,12 @@ describe("jsTables", () => {
         expect(jsTableToDelimited(trimGrid(table!) as JsTable, " "))
             .toEqual(`gdp pop code
 123 345 usa`)
+    })
+
+    it("can trim an array", () => {
+        expect(trimArray([1, "2", "", null, undefined])).toEqual([1, "2"])
+        const test = [1, "2", "", null, undefined, 1]
+        expect(trimArray(test)).toEqual(test)
     })
 })
 

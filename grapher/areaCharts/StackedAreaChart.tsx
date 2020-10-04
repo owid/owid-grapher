@@ -25,7 +25,6 @@ import { Tooltip } from "grapher/tooltip/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
-import { EntityName } from "coreTable/CoreTableConstants"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
@@ -180,7 +179,8 @@ class Areas extends React.Component<AreasProps> {
                     <g className="hoverIndicator">
                         {seriesArr.map((series) => {
                             const point = series.points[hoverIndex]
-                            return this.seriesIsBlur(series) ? null : (
+                            return this.seriesIsBlur(series) ||
+                                point.fake ? null : (
                                 <circle
                                     key={series.seriesName}
                                     cx={horizontalAxis.place(point.x)}
@@ -260,12 +260,12 @@ export class StackedAreaChart
         return new LineLegend({ manager: this })
     }
 
-    @observable hoverIndex?: number
+    @observable hoveredPointIndex?: number
     @action.bound onHover(hoverIndex: number | undefined) {
-        this.hoverIndex = hoverIndex
+        this.hoveredPointIndex = hoverIndex
     }
 
-    @observable hoverKey?: string
+    @observable hoverSeriesName?: string
     @action.bound onLegendClick() {
         if (this.manager.showAddEntityControls)
             this.manager.isSelectingData = true
@@ -276,16 +276,16 @@ export class StackedAreaChart
         return legendDimensions ? legendDimensions.width : 20
     }
 
-    @action.bound onLegendMouseOver(key: EntityName) {
-        this.hoverKey = key
+    @action.bound onLegendMouseOver(seriesName: SeriesName) {
+        this.hoverSeriesName = seriesName
     }
 
     @action.bound onLegendMouseLeave() {
-        this.hoverKey = undefined
+        this.hoverSeriesName = undefined
     }
 
     @computed get focusedSeriesNames() {
-        return this.hoverKey ? [this.hoverKey] : []
+        return this.hoverSeriesName ? [this.hoverSeriesName] : []
     }
 
     @computed get isFocusMode() {
@@ -300,16 +300,16 @@ export class StackedAreaChart
     }
 
     @computed private get tooltip() {
-        if (this.hoverIndex === undefined) return undefined
+        if (this.hoveredPointIndex === undefined) return undefined
 
-        const { hoverIndex, dualAxis, manager, series } = this
+        const { hoveredPointIndex, dualAxis, manager, series } = this
 
         // Grab the first value to get the year from
-        const refValue = series[0].points[hoverIndex]
+        const bottomSeriesPoint = series[0].points[hoveredPointIndex]
 
         // If some data is missing, don't calculate a total
-        const someMissing = series.some(
-            (g) => g.points[hoverIndex] === undefined
+        const somePointsMissingForYear = series.some(
+            (series) => series.points[hoveredPointIndex].fake
         )
 
         const legendBlockStyle = {
@@ -322,7 +322,7 @@ export class StackedAreaChart
         return (
             <Tooltip
                 tooltipManager={this.props.manager}
-                x={dualAxis.horizontalAxis.place(refValue.x)}
+                x={dualAxis.horizontalAxis.place(bottomSeriesPoint.x)}
                 y={
                     dualAxis.verticalAxis.rangeMin +
                     dualAxis.verticalAxis.rangeSize / 2
@@ -336,14 +336,14 @@ export class StackedAreaChart
                             <td>
                                 <strong>
                                     {this.manager.table.timeColumnFormatFunction(
-                                        refValue.x
+                                        bottomSeriesPoint.x
                                     )}
                                 </strong>
                             </td>
                             <td></td>
                         </tr>
-                        {reverse(clone(series)).map((series) => {
-                            const value = series.points[hoverIndex]
+                        {series.map((series) => {
+                            const point = series.points[hoveredPointIndex]
                             const isBlur = this.seriesIsBlur(series)
                             const textColor = isBlur ? "#ddd" : "#333"
                             const blockColor = isBlur
@@ -371,15 +371,15 @@ export class StackedAreaChart
                                         )}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
-                                        {value.y === undefined
+                                        {!point.fake
                                             ? "No data"
-                                            : this.formatYTick(value.y)}
+                                            : this.formatYTick(point.y)}
                                     </td>
                                 </tr>
                             )
                         })}
                         {/* Total */}
-                        {!someMissing && (
+                        {!somePointsMissingForYear && (
                             <tr>
                                 <td style={{ fontSize: "0.9em" }}>
                                     <div
@@ -395,7 +395,7 @@ export class StackedAreaChart
                                         <strong>
                                             {this.formatYTick(
                                                 series[series.length - 1]
-                                                    .points[hoverIndex].y
+                                                    .points[hoveredPointIndex].y
                                             )}
                                         </strong>
                                     </span>
@@ -417,7 +417,6 @@ export class StackedAreaChart
 
     componentDidMount() {
         // Fancy intro animation
-
         this.animSelection = select(this.base.current)
             .selectAll("clipPath > rect")
             .attr("width", 0)
@@ -485,11 +484,6 @@ export class StackedAreaChart
             : 0
     }
 
-    @computed get availableTimes(): Time[] {
-        // Since we've already aligned the data, the years of any series corresponds to the years of all of them
-        return this.series[0]?.points.map((v) => v.x) || []
-    }
-
     @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
         const colorScheme = ColorSchemes[this.manager.baseColorScheme as string]
@@ -515,58 +509,6 @@ export class StackedAreaChart
         )
     }
 
-    // Todo: readd this behavior with tests. We need to support missing points. Probably do it at the table level
-    // // Get the data for each stacked area series, cleaned to ensure every series
-    // // "lines up" i.e. has a data point for every year
-    //     // Now ensure that every series has a value entry for every year in the data
-    //     let allYears: number[] = []
-    //     groupedData.forEach((series) =>
-    //         allYears.push(...series.points.map((d) => d.x))
-    //     )
-    //     allYears = sortNumeric(uniq(allYears))
-
-    //     groupedData.forEach((series) => {
-    //         let i = 0
-    //         let isBeforeStart = true
-
-    //         while (i < allYears.length) {
-    //             const value = series.points[i] as StackedAreaPoint | undefined
-    //             const expectedYear = allYears[i]
-
-    //             if (value === undefined || value.x > allYears[i]) {
-    //                 let fakeY = NaN
-
-    //                 if (!isBeforeStart && i < series.points.length) {
-    //                     // Missing data in the middle-- interpolate a value
-    //                     const prevValue = series.points[i - 1]
-    //                     const nextValue = series.points[i]
-    //                     fakeY = (nextValue.y + prevValue.y) / 2
-    //                 }
-
-    //                 series.points.splice(i, 0, {
-    //                     x: expectedYear,
-    //                     y: fakeY,
-    //                     time: expectedYear,
-    //                     isFake: true,
-    //                 })
-    //             } else {
-    //                 isBeforeStart = false
-    //             }
-    //             i += 1
-    //         }
-    //     })
-
-    //     // Strip years at start and end where we couldn't successfully interpolate
-    //     for (const firstSeries of groupedData.slice(0, 1)) {
-    //         for (let i = firstSeries.points.length - 1; i >= 0; i--) {
-    //             if (groupedData.some((series) => isNaN(series.points[i].y))) {
-    //                 for (const series of groupedData) {
-    //                     series.points.splice(i, 1)
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     private formatYTick(v: number) {
         const yColumn = this.yColumns[0]
         return yColumn ? yColumn.formatValueShort(v) : v // todo: restore { noTrailingZeroes: false }

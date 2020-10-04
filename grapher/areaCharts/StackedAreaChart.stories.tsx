@@ -1,5 +1,9 @@
 import { ChartManager } from "grapher/chart/ChartManager"
-import { SynthesizeFruitTable, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SampleColumnSlugs,
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTable"
 import * as React from "react"
 import { StackedAreaChart } from "./StackedAreaChart"
 
@@ -13,60 +17,50 @@ const entitiesChart: ChartManager = {
         entityCount: 10,
         timeRange: [1950, 2010],
     }).selectSample(5),
-    yColumnSlugs: ["GDP"],
+    yColumnSlugs: [SampleColumnSlugs.GDP],
 }
 
-export const EntitiesAsSeries = () => {
-    entitiesChart.isRelativeMode = false
-    return (
-        <svg width={600} height={600}>
-            <StackedAreaChart manager={entitiesChart} />
-        </svg>
-    )
-}
+export const EntitiesAsSeries = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            manager={{ ...entitiesChart, isRelativeMode: false }}
+        />
+    </svg>
+)
 
-export const EntitiesAsSeriesRelative = () => {
-    entitiesChart.isRelativeMode = true
-    return (
-        <svg width={600} height={600}>
-            <StackedAreaChart manager={entitiesChart} />
-        </svg>
-    )
-}
+export const EntitiesAsSeriesRelative = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            manager={{ ...entitiesChart, isRelativeMode: true }}
+        />
+    </svg>
+)
 
-export const EntitiesAsSeriesWithMissingRows = () => {
-    const manager = {
-        table: SynthesizeGDPTable({ entityCount: 5 })
-            .selectAll()
-            .dropRandomRows(30),
-        yColumnSlugs: ["Population"],
-    }
-
-    return (
-        <svg width={600} height={600}>
-            <StackedAreaChart manager={manager} />
-        </svg>
-    )
-}
+export const EntitiesAsSeriesWithMissingRows = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            manager={{
+                ...entitiesChart,
+                table: entitiesChart.table.dropRandomRows(30),
+            }}
+        />
+    </svg>
+)
 
 const columnsChart: ChartManager = {
     table: SynthesizeFruitTable().selectSample(1),
 }
 
-export const ColumnsAsSeries = () => {
-    columnsChart.isRelativeMode = false
-    return (
-        <svg width={600} height={600}>
-            <StackedAreaChart manager={columnsChart} />
-        </svg>
-    )
-}
+export const ColumnsAsSeries = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            manager={{ ...columnsChart, isRelativeMode: false }}
+        />
+    </svg>
+)
 
-export const ColumnsAsSeriesRelative = () => {
-    columnsChart.isRelativeMode = true
-    return (
-        <svg width={600} height={600}>
-            <StackedAreaChart manager={columnsChart} />
-        </svg>
-    )
-}
+export const ColumnsAsSeriesRelative = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart manager={{ ...columnsChart, isRelativeMode: true }} />
+    </svg>
+)

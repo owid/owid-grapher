@@ -5,7 +5,7 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin"
 module.exports = ({ config }: { config: any }) => {
     config.module.rules = config.module.rules.concat([
         {
-            test: /\.s?css$/,
+            test: /\.scss$/,
             use: [
                 MiniCssExtractPlugin.loader,
                 "css-loader?url=false",

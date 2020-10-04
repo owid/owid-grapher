@@ -18,7 +18,6 @@ it("can create a new chart", () => {
     expect(chart.failMessage).toBeFalsy()
     expect(chart.getEntityNamesToShow().length).toEqual(2)
     expect(chart.series.length).toEqual(2)
-    expect(chart.availableTimes).toContain(2003)
 })
 
 // it("can remove points outside domain", () => {

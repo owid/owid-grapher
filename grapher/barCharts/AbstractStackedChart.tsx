@@ -1,4 +1,3 @@
-import { OwidRow } from "coreTable/OwidTable"
 import { DualAxis } from "grapher/axis/Axis"
 import { AxisConfig, FontSizeManager } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -13,7 +12,7 @@ import { flatten, guid, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { stackSeries } from "./StackedUtils"
+import { stackSeries, withFakePoints } from "./StackedUtils"
 import { StackedSeries } from "./StackedConstants"
 
 export interface AbstactStackedChartProps {
@@ -135,22 +134,37 @@ export class AbstactStackedChart
 
     @computed private get columnsAsSeries() {
         return this.yColumns.map((col) => {
+            const points = col.owidRows.map((row) => {
+                return {
+                    x: row.time,
+                    y: row.value,
+                    yOffset: 0,
+                }
+            })
             return {
                 isProjection: col.isProjection,
                 seriesName: col.displayName,
-                rows: (col.owidRows as any) as OwidRow[], // todo: cleanup typings
+                points,
             }
         })
     }
 
     @computed private get entitiesAsSeries() {
+        const { isProjection, slug } = this.yColumns[0]
+        const timeColumnSlug = this.table.timeColumn.slug
         const rowsByEntityName = this.table.rowsByEntityName
-        const { isProjection } = this.yColumns[0]
         return this.table.selectedEntityNames.map((seriesName) => {
+            const rows = rowsByEntityName.get(seriesName) || []
             return {
                 isProjection,
                 seriesName,
-                rows: rowsByEntityName.get(seriesName) || [],
+                points: rows.map((row) => {
+                    return {
+                        x: row[timeColumnSlug],
+                        y: row[slug],
+                        yOffset: 0,
+                    }
+                }),
             }
         })
     }
@@ -178,38 +192,17 @@ export class AbstactStackedChart
     }
 
     @computed get series() {
-        const { rawSeries } = this
-
-        // todo: clean up this slug stuff
-        const valueColumnSlug =
-            this.seriesStrategy === SeriesStrategy.column
-                ? "value"
-                : this.yColumns[0].slug
-        const timeColumnSlug =
-            this.seriesStrategy === SeriesStrategy.column
-                ? "time"
-                : this.table.timeColumn.slug
-
-        const series = rawSeries.map((series) => {
-            const { isProjection, seriesName, rows } = series
+        const seriesArr = this.rawSeries.map((series) => {
+            const { isProjection, seriesName, points } = series
             return {
                 seriesName,
                 isProjection,
-                points: rows.map((row) => {
-                    const x = row[timeColumnSlug]
-                    const y = row[valueColumnSlug]
-                    return {
-                        x,
-                        y,
-                        yOffset: 0,
-                    }
-                }),
+                points,
                 color: this.getColorForSeries(seriesName),
             } as StackedSeries
         })
 
-        if (this.seriesStrategy !== SeriesStrategy.entity) series.reverse()
-        stackSeries(series)
-        return series
+        if (this.seriesStrategy !== SeriesStrategy.entity) seriesArr.reverse()
+        return stackSeries(withFakePoints(seriesArr))
     }
 }

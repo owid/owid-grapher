@@ -132,7 +132,8 @@ import { isObject } from "lodash"
 export type SVGElement = any
 export type VNode = any
 
-// A grid is a 2D matrix/array of arrays.
+// A grid is a 2D matrix/array of arrays. The first array is usually a header. It is the basic
+// structure used in HandsonTable
 export type Grid = any[][]
 
 // A JsTable is a type of Grid where the first row is an array of column names.
@@ -795,7 +796,7 @@ export const trimEmptyRows = (grid: Grid): Grid => {
     return trimAt === undefined ? grid : grid.slice(0, trimAt)
 }
 
-const trimArray = (arr: any[]) => {
+export const trimArray = (arr: any[]) => {
     let index: number
     for (index = arr.length - 1; index >= 0; index--) {
         if (!isCellEmpty(arr[index])) break

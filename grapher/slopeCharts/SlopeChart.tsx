@@ -300,10 +300,6 @@ export class SlopeChart
         return this.colorColumn?.sortedUniqNonEmptyStringVals ?? []
     }
 
-    @computed get availableTimes(): Time[] {
-        return this.yColumn?.timesUniq || []
-    }
-
     @computed private get yColumn() {
         return this.table.get(
             this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]

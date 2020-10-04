@@ -434,12 +434,6 @@ export class DataTable extends React.Component<{
         return autoSelectedStartTime
     }
 
-    @computed get availableTimes() {
-        return intersection(
-            flatten(this.table.columnsAsArray.map((column) => column.timesUniq))
-        )
-    }
-
     @computed private get columnsToShow() {
         const skips = new Set(Object.keys(OwidTableSlugs))
         return this.table.columnsAsArray.filter(

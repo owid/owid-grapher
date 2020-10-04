@@ -4,6 +4,7 @@ export interface StackedPoint {
     x: number
     y: number
     yOffset: number
+    fake?: boolean
 }
 
 export interface StackedSeries {

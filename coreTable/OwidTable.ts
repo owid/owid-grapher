@@ -21,6 +21,8 @@ import {
     trimObject,
     sortedUniq,
     sum,
+    Grid,
+    trimGrid,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -606,6 +608,19 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         )
     }
 
+    static fromMatrix(inputTable: Grid) {
+        const table = trimGrid(inputTable)
+        const header = table[0]
+        const rows = table.slice(1).map((row) => {
+            const newRow: any = {}
+            header.forEach((col, index) => {
+                newRow[col] = row[index]
+            })
+            return newRow as OwidRow
+        })
+        return new OwidTable(rows)
+    }
+
     private static annotationsToMap(annotations: string) {
         // Todo: let's delete this and switch to traditional columns
         const entityAnnotationsMap = new Map<string, string>()
@@ -900,9 +915,10 @@ export const SynthesizeOwidTable = (
         let values = columnSpecs.map((spec) => spec.generator!())
         return range(timeRange[0], timeRange[1])
             .map((year) => {
-                values = columnSpecs.map(
-                    (spec, index) =>
+                values = columnSpecs.map((spec, index) =>
+                    Math.round(
                         values[index] * (1 + spec.growthRateGenerator!() / 100)
+                    )
                 )
                 return [entity.name, entity.code, index, year, ...values].join(
                     ","

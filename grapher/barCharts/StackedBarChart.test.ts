@@ -30,7 +30,9 @@ describe("stackedbar chart with columns as series", () => {
 
     it("render the legend items in the same stack order as the chart, bottom stack item on bottom of chart", () => {
         expect(chart.series.length).toEqual(2)
-        expect(chart.categoricalValues).toEqual(yColumnSlugs.reverse())
+        expect(chart.categoricalValues).toEqual(
+            chart.series.map((series) => series.seriesName)
+        )
         expect(chart.series[0].seriesName).toEqual("GDP")
     })
 })
