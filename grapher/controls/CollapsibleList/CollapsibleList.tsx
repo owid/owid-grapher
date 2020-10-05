@@ -1,8 +1,10 @@
 import React, { ReactNode } from "react"
-import { observable, action, computed } from "mobx"
+import { observable, action } from "mobx"
 import { observer } from "mobx-react"
 import { throttle } from "grapher/utils/Util"
 import { Tippy } from "grapher/chart/Tippy"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCog } from "@fortawesome/free-solid-svg-icons/faCog"
 
 interface ListChild {
     index: number
@@ -20,15 +22,9 @@ export class CollapsibleList extends React.Component {
     private moreButtonWidth: number = 0
     private itemsWidths: number[] = []
 
-    @observable private visibleItems: ListChild[] = []
-    @observable private dropdownItems: ListChild[] = []
+    @observable private numItemsVisible?: number
 
-    constructor(props: any) {
-        super(props)
-        this.visibleItems = this.children
-    }
-
-    @computed private get children(): ListChild[] {
+    private get children(): ListChild[] {
         return (
             React.Children.map(this.props.children, (child, i) => {
                 return {
@@ -46,35 +42,51 @@ export class CollapsibleList extends React.Component {
 
     private calculateItemWidths() {
         this.outerContainerRef.current
-            ?.querySelectorAll(".list-item")
+            ?.querySelectorAll(".list-item.visible")
             .forEach((item) => this.itemsWidths.push(item.clientWidth))
     }
 
-    private get numItemsVisible() {
-        return numItemsVisible(
+    @action private updateNumItemsVisible() {
+        const numItemsVisibleWithoutMoreButton = numItemsVisible(
             this.itemsWidths,
-            this.outerContainerWidth,
-            this.moreButtonWidth
+            this.outerContainerWidth
         )
+
+        this.numItemsVisible =
+            numItemsVisibleWithoutMoreButton >= this.children.length
+                ? numItemsVisibleWithoutMoreButton
+                : numItemsVisible(
+                      this.itemsWidths,
+                      this.outerContainerWidth,
+                      this.moreButtonWidth
+                  )
     }
 
-    @action private updateItemPartition() {
-        this.visibleItems = this.children.slice(0, this.numItemsVisible)
-        this.dropdownItems = this.children.slice(this.numItemsVisible)
+    private get visibleItems() {
+        return this.children.slice(0, this.numItemsVisible)
+    }
+
+    private get dropdownItems() {
+        return this.numItemsVisible
+            ? this.children.slice(this.numItemsVisible)
+            : []
     }
 
     @action private onResize = throttle(() => {
-        this.updateOuterContainerWidth()
-        this.updateItemPartition()
+        this.updateItemVisibility()
     }, 100)
+
+    @action private updateItemVisibility() {
+        this.updateOuterContainerWidth()
+        this.updateNumItemsVisible()
+    }
 
     componentDidMount() {
         window.addEventListener("resize", this.onResize)
 
         this.moreButtonWidth = this.moreButtonRef.current?.clientWidth ?? 0
-        this.updateOuterContainerWidth()
         this.calculateItemWidths()
-        this.updateItemPartition()
+        this.updateItemVisibility()
     }
 
     componentWillUnmount() {
@@ -91,7 +103,7 @@ export class CollapsibleList extends React.Component {
                         </li>
                     ))}
                     <li
-                        className="list-item visible moreButton"
+                        className="list-item moreButton"
                         ref={this.moreButtonRef}
                         style={{
                             visibility: this.dropdownItems.length
@@ -122,8 +134,16 @@ export class MoreButton extends React.Component<{
     render() {
         const { options } = this.props
         return (
-            <Tippy content={options} interactive={true} trigger={"click"}>
-                <span>More</span>
+            <Tippy
+                content={options}
+                interactive={true}
+                trigger={"click"}
+                placement={"bottom"}
+            >
+                <span>
+                    <FontAwesomeIcon icon={faCog} />
+                    &nbsp;More
+                </span>
             </Tippy>
         )
     }
@@ -136,7 +156,7 @@ export class MoreButton extends React.Component<{
 export function numItemsVisible(
     itemWidths: number[],
     containerWidth: number,
-    startingWidth: number
+    startingWidth: number = 0
 ) {
     let total = startingWidth
     for (let i = 0; i < itemWidths.length; i++) {

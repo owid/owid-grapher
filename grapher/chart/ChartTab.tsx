@@ -19,6 +19,19 @@ import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
 import { ChartManager } from "./ChartManager"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FacetChart } from "grapher/facetChart/FacetChart"
+import { ControlsRow, ControlsRowHeight } from "grapher/controls/ControlsRow"
+import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
+import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+    ZoomToggle,
+    AbsRelToggle,
+    HighlightToggle,
+    FilterSmallCountriesToggle,
+} from "grapher/controls/Controls"
+import { ScaleSelector } from "grapher/controls/ScaleSelector"
+import { AddEntityButton } from "grapher/controls/AddEntityButton"
 
 export interface ChartTabManager
     extends FooterManager,
@@ -32,6 +45,11 @@ export interface ChartTabManager
     type?: ChartTypeName
     isSingleTime?: boolean // todo: remove?
     isReady?: boolean
+    showSmallCountriesFilterToggle?: boolean
+    showYScaleToggle?: boolean
+    showAddEntitiesToggle?: boolean
+    showZoomToggle?: boolean
+    showAbsRelToggle?: boolean
 }
 
 @observer
@@ -129,7 +147,13 @@ export class ChartTab
     @computed private get svgHeight() {
         if (this.isExporting) return this.bounds.height
 
-        return this.bounds.height - this.header.height - this.footer.height - 25
+        return (
+            this.bounds.height -
+            this.header.height -
+            (this.controls.length ? ControlsRowHeight : 0) -
+            -this.footer.height -
+            25
+        )
     }
 
     @computed private get innerBounds() {
@@ -169,8 +193,8 @@ export class ChartTab
 
         const bounds =
             type === ChartTypeName.SlopeChart
-                ? innerBounds.padTop(20)
-                : innerBounds.padTop(20).padBottom(15)
+                ? innerBounds.padTop(18)
+                : innerBounds.padTop(18).padBottom(15)
 
         // Switch to bar chart if a single year is selected
         const chartTypeName =
@@ -230,15 +254,129 @@ export class ChartTab
         )
     }
 
+    @computed get controls() {
+        const controls: JSX.Element[] = []
+        const manager = this.manager
+
+        if (!manager.isReady) return []
+
+        const onDataSelect = action(() => (manager.isSelectingData = true))
+
+        if (manager.showSmallCountriesFilterToggle)
+            controls.push(
+                <FilterSmallCountriesToggle
+                    key="FilterSmallCountriesToggle"
+                    grapher={manager}
+                />
+            )
+
+        if (manager.tab === "chart") {
+            const yAxis =
+                (manager.isStackedArea && manager.stackedAreaTransform.yAxis) ||
+                (manager.isStackedBar &&
+                    !manager.stackedBarTransform.failMessage &&
+                    manager.stackedBarTransform.yAxis) ||
+                (manager.isLineChart && manager.lineChartTransform.yAxis) ||
+                ((manager.isScatter || manager.isTimeScatter) &&
+                    manager.scatterTransform.yAxis) ||
+                (manager.isSlopeChart && manager.yAxis.toVerticalAxis())
+
+            yAxis &&
+                yAxis.scaleTypeOptions.length > 1 &&
+                controls.push(
+                    <ScaleSelector
+                        key="scaleSelector"
+                        scaleTypeConfig={yAxis}
+                        inline={true}
+                    />
+                )
+
+            manager.canAddData &&
+                !manager.hasFloatingAddButton &&
+                !manager.hideEntityControls &&
+                controls.push(
+                    <button
+                        type="button"
+                        onClick={() => onDataSelect()}
+                        key="grapher-select-entities"
+                        data-track-note="grapher-select-entities"
+                    >
+                        {manager.isScatter || manager.isSlopeChart ? (
+                            <span className="SelectEntitiesButton">
+                                <FontAwesomeIcon icon={faPencilAlt} />
+                                {`Select ${manager.entityTypePlural}`}
+                            </span>
+                        ) : (
+                            <span className="SelectEntitiesButton">
+                                <FontAwesomeIcon icon={faPlus} />{" "}
+                                {manager.addButtonLabel}
+                            </span>
+                        )}
+                    </button>
+                )
+
+            manager.canChangeEntity &&
+                !manager.hideEntityControls &&
+                controls.push(
+                    <button
+                        type="button"
+                        onClick={() => onDataSelect()}
+                        key="grapher-change-entities"
+                        data-track-note="grapher-change-entity"
+                        className="ChangeEntityButton"
+                    >
+                        <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                        {manager.entityType}
+                    </button>
+                )
+
+            manager.hasFloatingAddButton &&
+                manager.showAddEntityControls &&
+                controls.push(
+                    <AddEntityButton key="AddEntityButton" grapher={manager} />
+                )
+
+            manager.isScatter &&
+                manager.hasSelection &&
+                controls.push(<ZoomToggle key="ZoomToggle" grapher={manager} />)
+
+            const absRelToggle =
+                (manager.isStackedArea && manager.canToggleRelativeMode) ||
+                (manager.isScatter &&
+                    manager.scatterTransform.canToggleRelativeMode) ||
+                (manager.isLineChart &&
+                    manager.lineChartTransform.canToggleRelativeMode)
+            absRelToggle &&
+                controls.push(
+                    <AbsRelToggle key="AbsRelToggle" grapher={manager} />
+                )
+
+            manager.isScatter &&
+                manager.highlightToggle &&
+                controls.push(
+                    <HighlightToggle
+                        key="highlight-toggle"
+                        grapher={manager}
+                        highlightToggle={manager.highlightToggle}
+                    />
+                )
+        }
+
+        return controls
+    }
+
     private renderWithHTMLText() {
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
         }
 
+        const { controls } = this
+
         return (
             <>
                 <Header manager={this} />
+                {controls.length && <ControlsRow controls={controls} />}
                 <div style={containerStyle}>
                     <svg className="chartTabForInteractive" {...this.svgProps}>
                         {this.renderChart()}
