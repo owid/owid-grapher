@@ -453,6 +453,7 @@ export class CovidExplorer extends React.Component<{
                 countriesMustHaveColumns={this.activeColumnSlugs}
                 clearSelectionCommand={this.clearSelectionCommand}
                 toggleCountryCommand={this.toggleSelectedCountryCommand}
+                analytics={this.grapher.analytics}
             ></CountryPicker>
         )
     }

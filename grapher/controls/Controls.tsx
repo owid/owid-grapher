@@ -251,7 +251,7 @@ export class ControlsFooterView extends React.Component<{
         const props: TimelineComponentProps = {
             target: grapher,
             onPlay: () => {
-                grapher.analytics.logChartTimelinePlay(grapher.slug)
+                grapher.analytics.logGrapherTimelinePlay(grapher.slug)
             },
             formatTimeFn: (value: number) => {
                 const timeColumn = grapher.table.timeColumn

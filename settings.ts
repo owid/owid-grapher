@@ -26,6 +26,8 @@ export const ADMIN_BASE_URL: string =
 export const WORDPRESS_URL: string =
     process.env.WORDPRESS_URL || "https://owid.cloud"
 
+export const GRAPHER_VERSION: string = "1.0.0" // Ideally the Git hash
+
 // Settings for git export and version tracking of database
 export const GITHUB_USERNAME: string =
     process.env.GITHUB_USERNAME || "owid-test"

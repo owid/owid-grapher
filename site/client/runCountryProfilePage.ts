@@ -1,9 +1,8 @@
 import fuzzysort from "fuzzysort"
 import { keyBy } from "grapher/utils/Util"
 import { observable, computed, action, autorun } from "mobx"
-import { Analytics } from "grapher/core/Analytics"
 import { highlight as fuzzyHighlight } from "grapher/controls/FuzzySearch"
-import { ENV } from "settings"
+import { SiteAnalytics } from "./SiteAnalytics"
 interface ChartItem {
     title: string
     li: HTMLLIElement
@@ -66,7 +65,7 @@ class ChartFilter {
         this.strings = this.chartItems.map((c) => fuzzysort.prepare(c.title))
     }
 
-    analytics = new Analytics(ENV)
+    analytics = new SiteAnalytics()
 
     @action.bound logSearchQuery() {
         this.analytics.logChartsPageSearchQuery(this.query)

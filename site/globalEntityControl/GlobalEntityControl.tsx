@@ -28,8 +28,8 @@ import {
     GlobalEntitySelectionModes,
 } from "./GlobalEntitySelection"
 import { asArray } from "utils/client/react-select"
-import { Analytics } from "grapher/core/Analytics"
-import { ENV } from "settings"
+import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
+import { ENV, GRAPHER_VERSION } from "settings"
 
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
@@ -233,7 +233,7 @@ class GlobalEntityControl extends React.Component<GlobalEntityControlProps> {
         return optionGroups
     }
 
-    analytics = new Analytics(ENV)
+    analytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
 
     @action.bound private onChange(
         newEntities: ValueType<GlobalEntitySelectionEntity>

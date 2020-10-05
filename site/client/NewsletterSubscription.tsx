@@ -3,10 +3,9 @@ import { useState } from "react"
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons/faEnvelopeOpenText"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Analytics } from "grapher/core/Analytics"
-import { ENV } from "settings"
+import { SiteAnalytics } from "./SiteAnalytics"
 
-const analytics = new Analytics(ENV)
+const analytics = new SiteAnalytics()
 
 export enum NewsletterSubscriptionContext {
     Homepage = "homepage",
@@ -154,7 +153,6 @@ export const NewsletterSubscriptionForm = ({
                     onClick={() =>
                         analytics.logSiteClick(
                             `Subscribe [${context ?? "other-contexts"}]`,
-                            undefined,
                             "newsletter-subscribe"
                         )
                     }

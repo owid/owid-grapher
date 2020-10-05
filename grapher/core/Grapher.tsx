@@ -74,7 +74,12 @@ import { GrapherView } from "grapher/core/GrapherView"
 import { Bounds } from "grapher/utils/Bounds"
 import { IChartTransform } from "grapher/chart/ChartTransform"
 import { TooltipProps } from "grapher/chart/Tooltip"
-import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
+import {
+    BAKED_GRAPHER_URL,
+    ENV,
+    ADMIN_BASE_URL,
+    GRAPHER_VERSION,
+} from "settings"
 import {
     minTimeFromJSON,
     maxTimeFromJSON,
@@ -96,7 +101,7 @@ import { populationMap } from "owidTable/PopulationMap"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
-import { Analytics } from "./Analytics"
+import { GrapherAnalytics } from "./GrapherAnalytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
 import { LogoOption } from "grapher/chart/Logos"
@@ -180,7 +185,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     // TODO: Pass these 5 in as options, donn't get them as globals
     isDev: Readonly<boolean> = ENV === "development"
     adminBaseUrl: Readonly<string> = ADMIN_BASE_URL
-    analytics: Readonly<Analytics> = new Analytics(ENV)
+    analytics: GrapherAnalytics = new GrapherAnalytics(ENV, GRAPHER_VERSION)
     isEditor: Readonly<boolean> = (window as any).isEditor === true
     bakedGrapherURL: Readonly<string> = BAKED_GRAPHER_URL
 

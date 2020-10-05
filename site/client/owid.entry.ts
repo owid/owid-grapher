@@ -6,15 +6,12 @@ import "grapher/core/grapher.scss"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import SmoothScroll from "smooth-scroll"
-
-import { Analytics } from "grapher/core/Analytics"
 import { runChartsIndexPage } from "./runChartsIndexPage"
 import { runHeaderMenus } from "./SiteHeaderMenus"
 import { runSearchPage } from "./SearchPageMain"
 import { runNotFoundPage } from "./NotFoundPageMain"
 import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "stripe/DonateForm"
-import { getParent } from "./utils"
 import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 import { GrapherView } from "grapher/core/GrapherView"
 import { ExploreView } from "explorer/indicatorExplorer/ExploreView"
@@ -31,9 +28,9 @@ import { runGlobalEntityControl } from "site/globalEntityControl/GlobalEntityCon
 import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
 import { runFootnotes } from "site/client/Footnote"
 import { SwitcherExplorer } from "explorer/client/SwitcherExplorer"
-import { ENV } from "settings"
 import { CookieKeys } from "grapher/core/GrapherConstants"
 import { Grapher } from "grapher/core/Grapher"
+import { SiteAnalytics } from "./SiteAnalytics"
 
 declare var window: any
 window.GrapherPageUtils = GrapherPageUtils
@@ -60,7 +57,7 @@ window.runCovid = runCovid
 window.runGlobalEntityControl = runGlobalEntityControl
 window.runFootnotes = runFootnotes
 
-const analytics = new Analytics(ENV)
+const analytics = new SiteAnalytics()
 analytics.logPageLoad()
 
 document.querySelector("html")?.classList.add("js")
@@ -81,23 +78,4 @@ new SmoothScroll('a[href*="#"][data-smooth-scroll]', {
     popstate: false,
 })
 
-const dataTrackAttr = "data-track-note"
-
-document.addEventListener("click", async (ev) => {
-    const targetElement = ev.target as HTMLElement
-    const trackedElement = getParent(
-        targetElement,
-        (el: HTMLElement) => el.getAttribute(dataTrackAttr) !== null
-    )
-    if (trackedElement) {
-        // Note that browsers will cancel all pending requests once a user
-        // navigates away from a page. An earlier implementation had a
-        // timeout to send the event before navigating, but it broke
-        // CMD+CLICK for opening a new tab.
-        analytics.logSiteClick(
-            trackedElement.innerText,
-            trackedElement.getAttribute("href") || undefined,
-            trackedElement.getAttribute(dataTrackAttr) || undefined
-        )
-    }
-})
+analytics.startClickTracking()
