@@ -157,6 +157,17 @@ export class GrapherUrl implements ObservableUrl {
         const { grapher, originalConfig } = this
         const formatAsDay = grapher.table.hasDayColumn
 
+        if (grapher.tab === "map") {
+            if (
+                grapher.map.time !== undefined &&
+                grapher.map.time !== originalConfig.map?.time
+            ) {
+                return formatTimeURIComponent(grapher.map.time, formatAsDay)
+            } else {
+                return undefined
+            }
+        }
+
         if (
             grapher.minTime !== originalConfig.minTime ||
             grapher.maxTime !== originalConfig.maxTime
@@ -170,9 +181,6 @@ export class GrapherUrl implements ObservableUrl {
             const end = formatTimeURIComponent(maxTime, formatAsDay)
             return `${start}..${end}`
         }
-
-        if (grapher.map.time !== undefined)
-            return formatTimeURIComponent(grapher.map.time, formatAsDay)
 
         return undefined
     }
