@@ -1,7 +1,11 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { getQueryParams, getWindowQueryParams } from "utils/client/url"
+import {
+    getQueryParams,
+    getWindowQueryParams,
+    QueryParams,
+} from "utils/client/url"
 import {
     TimelineComponent,
     TimelineComponentManager,
@@ -24,9 +28,10 @@ import { OwidTable } from "coreTable/OwidTable"
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
     table: OwidTable
-    populateFromQueryParams: (obj: any) => void
+    populateFromQueryParams: (obj: QueryParams) => void
 }
 
+// Todo: Add tests and stories
 @observer
 export class HighlightToggle extends React.Component<{
     manager: HighlightToggleManager
@@ -43,15 +48,18 @@ export class HighlightToggle extends React.Component<{
     }
 
     @action.bound private onHighlightToggle(
-        e: React.FormEvent<HTMLInputElement>
+        event: React.FormEvent<HTMLInputElement>
     ) {
-        if (e.currentTarget.checked) {
-            const params = {
-                ...getWindowQueryParams(),
-                ...this.highlightParams,
-            }
-            this.manager.populateFromQueryParams(params)
-        } else this.manager.table.clearSelection()
+        if (!event.currentTarget.checked) {
+            this.manager.table.clearSelection()
+            return
+        }
+
+        const params = {
+            ...getWindowQueryParams(),
+            ...this.highlightParams,
+        }
+        this.manager.populateFromQueryParams(params)
     }
 
     private get isHighlightActive() {
@@ -79,7 +87,7 @@ export class HighlightToggle extends React.Component<{
 }
 
 export interface AbsRelToggleManager {
-    stackMode: StackMode
+    stackMode?: StackMode
     relativeToggleLabel?: string
 }
 

@@ -8,10 +8,8 @@ export default {
     component: ChartTab,
 }
 
-const table = SynthesizeGDPTable()
-table.selectAll()
 const manager: ChartTabManager = {
-    table,
+    table: SynthesizeGDPTable().selectAll(),
     mapColumnSlug: "GDP",
     yColumnSlug: "GDP",
     currentTitle: "This is the Title",
@@ -19,8 +17,7 @@ const manager: ChartTabManager = {
     tab: GrapherTabOption.chart,
     note: "Here are some footer notes",
     type: ChartTypeName.LineChart,
+    populateFromQueryParams: () => {},
 }
 
-export const Default = () => {
-    return <ChartTab manager={manager} />
-}
+export const LineChart = () => <ChartTab manager={manager} />
