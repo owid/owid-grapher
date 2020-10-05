@@ -402,6 +402,7 @@ describe(GrapherUrl, () => {
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
+                        tab: "map",
                         map: { time: test.param },
                     })
                     expect(params.time).toEqual(test.query)
@@ -460,6 +461,7 @@ describe(GrapherUrl, () => {
                     it(`encode ${test.name}`, () => {
                         const grapher = getGrapher()
                         grapher.updateFromObject({
+                            tab: "map",
                             map: { time: test.param },
                         })
                         const params = grapher.url.params
