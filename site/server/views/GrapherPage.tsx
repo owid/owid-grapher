@@ -37,7 +37,7 @@ export const GrapherPage = (props: {
     const script = `const jsonConfig = ${serializeJSONForHTML(grapher)}
 const figure = document.getElementsByTagName("figure")[0];
 try {
-    const view = window.GrapherView.bootstrap({
+    const view = window.Grapher.bootstrap({
         jsonConfig: jsonConfig,
         containerNode: figure,
         queryStr: window.location.search
