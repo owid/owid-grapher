@@ -14,7 +14,6 @@ import {
     HorizontalAxisGridLines,
 } from "grapher/axis/AxisViews"
 import { NoDataModal } from "grapher/chart/NoDataModal"
-import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -67,9 +66,6 @@ export class DiscreteBarChart
     // Account for the width of the legend
     @computed private get legendWidth() {
         const labels = this.series.map((d) => d.label)
-        if (this.hasFloatingAddButton)
-            labels.push(` + ${this.manager.addButtonLabel ?? "Add data"}`)
-
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
@@ -156,18 +152,9 @@ export class DiscreteBarChart
             .padRight(this.rightEndLabelWidth)
     }
 
-    @computed private get hasFloatingAddButton() {
-        return (
-            this.manager.hasFloatingAddButton &&
-            this.manager.showAddEntityControls
-        )
-    }
-
     // Leave space for extra bar at bottom to show "Add country" button
     @computed private get totalBars() {
-        return this.hasFloatingAddButton
-            ? this.series.length + 1
-            : this.series.length
+        return this.series.length
     }
 
     @computed private get barHeight() {
@@ -219,32 +206,6 @@ export class DiscreteBarChart
 
     @action.bound private onAddClick() {
         this.manager.isSelectingData = true
-    }
-
-    private get addEntityButton() {
-        if (!this.hasFloatingAddButton) return undefined
-        const y =
-            this.bounds.top +
-            (this.barHeight + this.barSpacing) * (this.totalBars - 1) +
-            this.barHeight / 2
-        const paddingTop = AddEntityButton.calcPaddingTop(
-            y,
-            "middle",
-            this.barHeight
-        )
-        return (
-            <foreignObject id="add-country" y={paddingTop}>
-                <AddEntityButton
-                    x={this.bounds.left + this.legendWidth}
-                    y={y}
-                    align="right"
-                    verticalAlign="middle"
-                    height={this.barHeight}
-                    label={`Add ${this.manager.entityType ?? "Country"}`}
-                    onClick={this.onAddClick}
-                />
-            </foreignObject>
-        )
     }
 
     render() {
@@ -363,7 +324,6 @@ export class DiscreteBarChart
 
                     return result
                 })}
-                {this.addEntityButton}
             </g>
         )
     }

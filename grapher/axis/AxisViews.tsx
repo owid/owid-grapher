@@ -116,7 +116,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             <VerticalAxisComponent
                 bounds={bounds}
                 verticalAxis={verticalAxis}
-                isInteractive={this.props.isInteractive}
             />
         )
 
@@ -146,24 +145,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 export class VerticalAxisComponent extends React.Component<{
     bounds: Bounds
     verticalAxis: VerticalAxis
-    isInteractive?: boolean
 }> {
-    @computed get controls() {
-        const { bounds, verticalAxis } = this.props
-        const showControls =
-            this.props.isInteractive && verticalAxis.scaleTypeOptions.length > 1
-        if (!showControls) return undefined
-        return (
-            <foreignObject id="vertical-scale-selector" y={18}>
-                <ScaleSelector
-                    x={bounds.left}
-                    y={bounds.top - 34}
-                    scaleTypeConfig={verticalAxis}
-                />
-            </foreignObject>
-        )
-    }
-
     render() {
         const { bounds, verticalAxis } = this.props
         const { ticks, labelTextWrap } = verticalAxis
@@ -190,7 +172,6 @@ export class VerticalAxisComponent extends React.Component<{
                         {verticalAxis.formatTick(tick)}
                     </text>
                 ))}
-                {this.controls}
             </g>
         )
     }

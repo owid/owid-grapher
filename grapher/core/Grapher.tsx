@@ -1712,17 +1712,6 @@ export class Grapher
 
     @observable isShareMenuActive = false
 
-    @computed get hasInlineControls() {
-        return (
-            (this.currentTab === GrapherTabOption.chart ||
-                this.currentTab === GrapherTabOption.table) &&
-            ((this.canAddData && !this.hasFloatingAddButton) ||
-                this.isScatter ||
-                this.canChangeEntity ||
-                (this.isStackedArea && this.canToggleRelativeMode))
-        )
-    }
-
     @computed get hasSpace() {
         return this.renderWidth > 700
     }
@@ -1738,12 +1727,7 @@ export class Grapher
     }
 
     @computed private get footerLines() {
-        let numLines = 1
-        if (this.hasTimeline) numLines += 1
-        if (this.hasInlineControls) numLines += 1
-        if (this.hasSpace && this.hasInlineControls && numLines > 1)
-            numLines -= 1
-        return numLines
+        return this.hasTimeline ? 2 : 1
     }
 
     @computed get footerHeight() {

@@ -391,7 +391,6 @@ export class StackedBarChart
                 <VerticalAxisComponent
                     bounds={bounds}
                     verticalAxis={verticalAxis}
-                    isInteractive={this.manager.isInteractive}
                 />
                 <VerticalAxisGridLines
                     verticalAxis={verticalAxis}

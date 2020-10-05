@@ -10,12 +10,11 @@ import {
     flatten,
     sign,
 } from "grapher/utils/Util"
-import { computed, action } from "mobx"
+import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
-import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { EntityName } from "coreTable/CoreTableConstants"
 import {
     BASE_FONT_SIZE,
@@ -446,48 +445,8 @@ export class LineLegend extends React.Component<{
         ))
     }
 
-    @action.bound onAddClick() {
-        // Do this for mobx
-        this.manager.isSelectingData = true
-    }
-
     @computed get manager() {
         return this.props.manager
-    }
-
-    get addEntityButton() {
-        if (!this.manager.showAddEntityControls) return undefined
-
-        const verticalAlign = "bottom"
-
-        const leftOffset = this.needsLines
-            ? this.leftPadding
-            : this.width > 70
-            ? 21
-            : 5
-
-        const topMarkY =
-            min(this.placedMarks.map((mark) => mark.bounds.top)) ?? 0
-
-        const paddingTop = AddEntityButton.calcPaddingTop(
-            topMarkY,
-            verticalAlign,
-            ADD_BUTTON_HEIGHT
-        )
-
-        return (
-            <foreignObject id="add-country" y={paddingTop}>
-                <AddEntityButton
-                    x={this.legendX + leftOffset}
-                    y={topMarkY}
-                    align="left"
-                    verticalAlign={verticalAlign}
-                    height={ADD_BUTTON_HEIGHT}
-                    label={`Add ${this.manager.entityType ?? "Country"}`}
-                    onClick={this.onAddClick}
-                />
-            </foreignObject>
-        )
     }
 
     render() {
@@ -502,7 +461,6 @@ export class LineLegend extends React.Component<{
             >
                 {this.renderBackground()}
                 {this.renderFocus()}
-                {this.addEntityButton}
             </g>
         )
     }

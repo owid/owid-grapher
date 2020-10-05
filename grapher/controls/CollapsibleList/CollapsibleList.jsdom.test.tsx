@@ -10,7 +10,7 @@ describe("when you render a collapsible list", () => {
         const view = shallow(
             <CollapsibleList>{collapsibleListSampleItems}</CollapsibleList>
         )
-        expect(view.find(".list-item.visible")).not.toHaveLength(0)
+        expect(view.find(".list-item")).not.toHaveLength(0)
     })
 })
 

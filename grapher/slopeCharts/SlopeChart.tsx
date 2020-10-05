@@ -36,7 +36,6 @@ import { extent } from "d3-array"
 import { select } from "d3-selection"
 import { Text } from "grapher/text/Text"
 import { TextWrap } from "grapher/text/TextWrap"
-import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import {
     LabelledSlopesProps,
     SlopeAxisProps,
@@ -973,22 +972,6 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         ))
     }
 
-    @computed get controls() {
-        const { yAxis } = this.manager
-        const showScaleSelector =
-            this.manager.isInteractive && yAxis?.canChangeScaleType
-        if (!showScaleSelector) return undefined
-        return (
-            <foreignObject id="slope-scale-selector" y={20}>
-                <ScaleSelector
-                    x={this.bounds.x}
-                    y={this.bounds.y - 35}
-                    scaleTypeConfig={yAxis!.toVerticalAxis()}
-                />
-            </foreignObject>
-        )
-    }
-
     @computed get formatValueFn() {
         return (val: any) => this.yColumn.formatValueShort(val)
     }
@@ -1067,7 +1050,6 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 )}
                 <line x1={x1} y1={y1} x2={x1} y2={y2} stroke="#333" />
                 <line x1={x2} y1={y1} x2={x2} y2={y2} stroke="#333" />
-                {this.controls}
                 <Text
                     x={x1}
                     y={y1 + 10}

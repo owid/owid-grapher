@@ -1,43 +1,35 @@
-/* ScaleSelector.jsx
- * ================
- *
- * Small toggle component for switching between log/linear (or any other) scale types.
- *
- * @project Our World In Data
- * @author  Jaiden Mispy
- * @created 2017-02-11
- */
-
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType, ScaleTypeConfig } from "grapher/core/GrapherConstants"
+import classNames from "classnames"
 
 interface ScaleSelectorOptions {
-    x: number
-    y: number
+    x?: number
+    y?: number
     maxX?: number // If set, the scale toggle will shift left if it exceeds this number
     scaleTypeConfig: ScaleTypeConfig
+    inline?: boolean
 }
 
 @observer
 export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
-    @computed get x(): number {
-        return this.props.x
+    @computed get x() {
+        return this.props.x ?? 0
     }
-    @computed get y(): number {
-        return this.props.y
+    @computed get y() {
+        return this.props.y ?? 0
     }
 
-    @computed get maxX(): number {
+    @computed get maxX() {
         return this.props.maxX || 0
     }
 
-    @computed get scaleTypeOptions(): ScaleType[] {
+    @computed get scaleTypeOptions() {
         return this.props.scaleTypeConfig.scaleTypeOptions
     }
 
-    @computed get scaleType(): ScaleType {
+    @computed get scaleType() {
         return this.props.scaleTypeConfig.scaleType
     }
 
@@ -72,10 +64,14 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
             top: y,
         }
         return (
-            <div
+            <span
                 onClick={onClick}
-                style={style as any}
-                className="clickable toggleSwitch"
+                style={this.props.inline ? {} : (style as any)}
+                className={classNames([
+                    "clickable",
+                    "toggleSwitch",
+                    { inline: this.props.inline },
+                ])}
             >
                 <span
                     data-track-note="chart-toggle-scale"
@@ -95,7 +91,7 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
                 >
                     Log
                 </span>
-            </div>
+            </span>
         )
     }
 }
