@@ -13,8 +13,7 @@ import { TimelineController, TimelineManager } from "./TimelineController"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
-export interface TimelineComponentProps {
-    manager: TimelineManager
+export interface TimelineComponentManager extends TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (value: any) => any
     onPlay?: () => void
@@ -23,7 +22,9 @@ export interface TimelineComponentProps {
 }
 
 @observer
-export class TimelineComponent extends React.Component<TimelineComponentProps> {
+export class TimelineComponent extends React.Component<{
+    manager: TimelineComponentManager
+}> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable private dragTarget?: "start" | "end" | "both"
@@ -32,7 +33,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return !!this.dragTarget
     }
 
-    @computed private get subject() {
+    @computed private get manager() {
         return this.props.manager
     }
 
@@ -71,7 +72,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         if (this.dragTarget === "start") this.lastUpdatedTooltip = "startMarker"
         if (this.dragTarget === "end") this.lastUpdatedTooltip = "endMarker"
-        if (this.subject.startTime > this.subject.endTime)
+        if (this.manager.startTime > this.manager.endTime)
             this.lastUpdatedTooltip =
                 this.lastUpdatedTooltip === "startMarker"
                     ? "endMarker"
@@ -124,7 +125,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @action.bound private onMouseUp() {
         this.dragTarget = undefined
 
-        if (this.subject.isPlaying) return
+        if (this.manager.isPlaying) return
 
         if (isMobile()) {
             if (this.startTooltipVisible) this.hideStartTooltip()
@@ -149,7 +150,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onMouseLeave() {
-        if (!this.subject.isPlaying && !this.isDragging) {
+        if (!this.manager.isPlaying && !this.isDragging) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
         }
@@ -170,7 +171,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @computed private get isPlayingOrDragging() {
-        return this.subject.isPlaying || this.isDragging
+        return this.manager.isPlaying || this.isDragging
     }
 
     componentDidMount() {
@@ -218,7 +219,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     private formatTime(time: number) {
-        return this.props.formatTimeFn ? this.props.formatTimeFn(time) : time
+        return this.manager.formatTimeFn
+            ? this.manager.formatTimeFn(time)
+            : time
     }
 
     private timelineEdgeMarker(markerType: "start" | "end") {
@@ -248,9 +251,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     render() {
-        const { subject, controller } = this
+        const { manager, controller } = this
         const { startTimeProgress, endTimeProgress } = controller
-        const { startTime, endTime } = subject
+        const { startTime, endTime } = manager
 
         return (
             <div
@@ -259,13 +262,13 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 onMouseOver={this.onMouseOver}
                 onMouseLeave={this.onMouseLeave}
             >
-                {!this.props.disablePlay && (
+                {!this.manager.disablePlay && (
                     <div
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={this.togglePlay}
                         className="play"
                     >
-                        {subject.isPlaying ? (
+                        {manager.isPlaying ? (
                             <FontAwesomeIcon icon={faPause} />
                         ) : (
                             <FontAwesomeIcon icon={faPlay} />

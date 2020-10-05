@@ -30,6 +30,8 @@ class Subject {
     @action.bound updateStartTime(num: number) {
         this._startTime = num
     }
+
+    @observable disablePlay = false
 }
 
 export default {
@@ -56,16 +58,16 @@ export const Default = () => {
     return <TimelineComponent manager={subject} />
 }
 
-export const StartPartialRange = () => {
-    return <TimelineComponent manager={new Subject()} />
-}
+export const StartPartialRange = () => (
+    <TimelineComponent manager={new Subject()} />
+)
 
-export const OneYearAtATime = () => {
-    const subject = new SingleYearSubject()
-    return <TimelineComponent manager={subject} />
-}
+export const OneYearAtATime = () => (
+    <TimelineComponent manager={new SingleYearSubject()} />
+)
 
 export const DisablePlayButton = () => {
     const subject = new Subject()
-    return <TimelineComponent manager={subject} disablePlay={true} />
+    subject.disablePlay = true
+    return <TimelineComponent manager={subject} />
 }

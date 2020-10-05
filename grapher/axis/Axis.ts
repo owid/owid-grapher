@@ -1,5 +1,5 @@
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed, action } from "mobx"
+import { observable, computed } from "mobx"
 import {
     rollingMap,
     min,
@@ -68,11 +68,6 @@ abstract class AbstractAxis implements ScaleTypeConfig {
 
     set scaleType(value: ScaleType) {
         this._scaleType = value
-    }
-
-    // Call this to update the user's setting and change the URL
-    @action.bound updateChartScaleType(value: ScaleType) {
-        this.config.scaleType = value
     }
 
     @computed get label() {

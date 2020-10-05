@@ -75,7 +75,6 @@ export enum ScaleType {
 export interface ScaleTypeConfig {
     scaleType: ScaleType
     scaleTypeOptions: ScaleType[]
-    updateChartScaleType: (scaleType: ScaleType) => void
 }
 
 export interface HighlightToggleConfig {

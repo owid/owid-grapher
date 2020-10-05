@@ -1,26 +1,32 @@
 import * as React from "react"
-import { ScaleSelector } from "grapher/controls/ScaleSelector"
+import {
+    ScaleSelector,
+    ScaleSelectorManager,
+} from "grapher/controls/ScaleSelector"
 import { ScaleType } from "grapher/core/GrapherConstants"
-import { observable, action } from "mobx"
+import { observable } from "mobx"
 
 export default {
     title: "ScaleSelector",
     component: ScaleSelector,
 }
 
-class ScaleConfig {
+class MockScaleSelectorManager implements ScaleSelectorManager {
     @observable scaleType = ScaleType.log
     @observable scaleTypeOptions = [ScaleType.log, ScaleType.linear]
-    @action.bound updateChartScaleType(value: ScaleType) {
-        this.scaleType = value
-    }
+    x = 0
+    y = 0
+    maxX?: number
 }
 
-export const Default = () => {
-    return <ScaleSelector x={0} y={0} scaleTypeConfig={new ScaleConfig()} />
-}
+export const Default = () => (
+    <ScaleSelector manager={new MockScaleSelectorManager()} />
+)
 
 export const StayInBounds = () => {
+    const manager = new MockScaleSelectorManager()
+    manager.x = 190
+    manager.maxX = 200
     return (
         <div
             style={{
@@ -30,12 +36,7 @@ export const StayInBounds = () => {
                 position: "relative",
             }}
         >
-            <ScaleSelector
-                x={190}
-                maxX={200}
-                y={0}
-                scaleTypeConfig={new ScaleConfig()}
-            />
+            <ScaleSelector manager={new MockScaleSelectorManager()} />
         </div>
     )
 }

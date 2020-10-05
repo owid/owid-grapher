@@ -1,14 +1,12 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { GrapherInterface } from "grapher/core/GrapherInterface"
-import { Grapher } from "grapher/core/Grapher"
 import { getQueryParams, getWindowQueryParams } from "utils/client/url"
 import {
     TimelineComponent,
-    TimelineComponentProps,
+    TimelineComponentManager,
 } from "grapher/timeline/TimelineComponent"
-import { formatValue, isMobile } from "grapher/utils/Util"
+import { formatValue } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { faShareAlt } from "@fortawesome/free-solid-svg-icons/faShareAlt"
@@ -17,36 +15,46 @@ import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons/faExternalL
 import {
     GrapherTabOption,
     HighlightToggleConfig,
+    RelatedQuestionsConfig,
+    StackMode,
 } from "grapher/core/GrapherConstants"
-import { ShareMenu } from "./ShareMenu"
+import { ShareMenu, ShareMenuManager } from "./ShareMenu"
+import { OwidTable } from "coreTable/OwidTable"
+
+export interface HighlightToggleManager {
+    highlightToggle?: HighlightToggleConfig
+    table: OwidTable
+    populateFromQueryParams: (obj: any) => void
+}
 
 @observer
 export class HighlightToggle extends React.Component<{
-    grapher: Grapher
-    highlightToggle: HighlightToggleConfig
+    manager: HighlightToggleManager
 }> {
-    @computed get grapher() {
-        return this.props.grapher
+    @computed private get manager() {
+        return this.props.manager
     }
-    @computed get highlight() {
-        return this.props.highlightToggle
-    }
-
-    @computed get highlightParams() {
-        return getQueryParams((this.highlight.paramStr || "").substring(1))
+    @computed private get highlight() {
+        return this.props.manager.highlightToggle
     }
 
-    @action.bound onHighlightToggle(e: React.FormEvent<HTMLInputElement>) {
+    @computed private get highlightParams() {
+        return getQueryParams((this.highlight?.paramStr || "").substring(1))
+    }
+
+    @action.bound private onHighlightToggle(
+        e: React.FormEvent<HTMLInputElement>
+    ) {
         if (e.currentTarget.checked) {
             const params = {
                 ...getWindowQueryParams(),
                 ...this.highlightParams,
             }
-            this.grapher.populateFromQueryParams(params)
-        } else this.grapher.table.clearSelection()
+            this.manager.populateFromQueryParams(params)
+        } else this.manager.table.clearSelection()
     }
 
-    get isHighlightActive() {
+    private get isHighlightActive() {
         const params = getWindowQueryParams()
         let isActive = true
         Object.keys(this.highlightParams).forEach((key) => {
@@ -64,31 +72,42 @@ export class HighlightToggle extends React.Component<{
                     checked={isHighlightActive}
                     onChange={this.onHighlightToggle}
                 />{" "}
-                &nbsp;{highlight.description}
+                &nbsp;{highlight?.description}
             </label>
         )
     }
 }
 
+export interface AbsRelToggleManager {
+    stackMode: StackMode
+    relativeToggleLabel?: string
+}
+
 @observer
-export class AbsRelToggle extends React.Component<{ grapher: Grapher }> {
+export class AbsRelToggle extends React.Component<{
+    manager: AbsRelToggleManager
+}> {
     @action.bound onToggle() {
-        this.props.grapher.toggleRelativeMode()
+        this.manager.stackMode = this.isRelativeMode
+            ? StackMode.absolute
+            : StackMode.relative
+    }
+
+    @computed get isRelativeMode() {
+        return this.manager.stackMode === StackMode.relative
+    }
+
+    @computed get manager() {
+        return this.props.manager
     }
 
     render() {
-        const { grapher } = this.props
-
-        let label = "Relative"
-        if (grapher.isScatter || grapher.isTimeScatter)
-            label = "Average annual change"
-        else if (grapher.isLineChart) label = "Relative change"
-
+        const label = this.manager.relativeToggleLabel ?? "Relative"
         return (
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={grapher.isRelativeMode}
+                    checked={this.isRelativeMode}
                     onChange={this.onToggle}
                     data-track-note="chart-abs-rel-toggle"
                 />{" "}
@@ -98,12 +117,16 @@ export class AbsRelToggle extends React.Component<{ grapher: Grapher }> {
     }
 }
 
+export interface ZoomToggleManager {
+    zoomToSelection?: boolean
+}
+
 @observer
 export class ZoomToggle extends React.Component<{
-    grapher: GrapherInterface
+    manager: ZoomToggleManager
 }> {
     @action.bound onToggle() {
-        this.props.grapher.zoomToSelection = this.props.grapher.zoomToSelection
+        this.props.manager.zoomToSelection = this.props.manager.zoomToSelection
             ? undefined
             : true
     }
@@ -114,7 +137,7 @@ export class ZoomToggle extends React.Component<{
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={this.props.grapher.zoomToSelection}
+                    checked={this.props.manager.zoomToSelection}
                     onChange={this.onToggle}
                     data-track-note="chart-zoom-to-selection"
                 />{" "}
@@ -124,23 +147,40 @@ export class ZoomToggle extends React.Component<{
     }
 }
 
+export interface SmallCountriesFilterManager {
+    populationFilterOption?: number
+    minPopulationFilter?: number
+}
+
 @observer
 export class FilterSmallCountriesToggle extends React.Component<{
-    grapher: Grapher
+    manager: SmallCountriesFilterManager
 }> {
+    @action.bound private onChange() {
+        this.manager.minPopulationFilter = this.manager.minPopulationFilter
+            ? undefined
+            : this.filterOption
+    }
+
+    @computed private get manager() {
+        return this.props.manager
+    }
+
+    @computed private get filterOption() {
+        return this.manager.populationFilterOption ?? 1e6
+    }
+
     render() {
         const label = `Hide countries < ${formatValue(
-            this.props.grapher.populationFilterOption,
+            this.filterOption,
             {}
         )} people`
         return (
             <label className="clickable">
                 <input
                     type="checkbox"
-                    checked={!!this.props.grapher.minPopulationFilter}
-                    onChange={() =>
-                        this.props.grapher.toggleMinPopulationFilter()
-                    }
+                    checked={!!this.manager.minPopulationFilter}
+                    onChange={this.onChange}
                     data-track-note="chart-filter-small-countries"
                 />{" "}
                 &nbsp;{label}
@@ -149,40 +189,59 @@ export class FilterSmallCountriesToggle extends React.Component<{
     }
 }
 
+export interface FooterControlsManager
+    extends ShareMenuManager,
+        TimelineComponentManager {
+    isShareMenuActive?: boolean
+    isSelectingData?: boolean
+    availableTabs?: GrapherTabOption[]
+    currentTab?: GrapherTabOption
+    isEmbed?: boolean
+    canonicalUrl?: string
+    hasTimeline?: boolean
+    hasRelatedQuestion?: boolean
+    relatedQuestions: RelatedQuestionsConfig[]
+    footerHeight?: number
+}
+
 @observer
-export class ControlsFooterView extends React.Component<{
-    grapher: Grapher
+export class FooterControls extends React.Component<{
+    manager: FooterControlsManager
 }> {
-    @computed private get grapher() {
-        return this.props.grapher
+    @computed private get manager() {
+        return this.props.manager
     }
 
     @action.bound onShareMenu() {
-        this.grapher.isShareMenuActive = !this.grapher.isShareMenuActive
+        this.manager.isShareMenuActive = !this.manager.isShareMenuActive
     }
 
     @action.bound onDataSelect() {
-        this.grapher.isSelectingData = true
+        this.manager.isSelectingData = true
+    }
+
+    @computed private get availableTabs() {
+        return this.manager.availableTabs || []
     }
 
     private _getTabsElement() {
-        const { grapher } = this
+        const { manager } = this
         return (
             <nav className="tabs">
                 <ul>
-                    {grapher.availableTabs.map((tabName) => {
+                    {this.availableTabs.map((tabName) => {
                         return (
                             tabName !== GrapherTabOption.download && (
                                 <li
                                     key={tabName}
                                     className={
                                         "tab clickable" +
-                                        (tabName === grapher.currentTab
+                                        (tabName === manager.currentTab
                                             ? " active"
                                             : "")
                                     }
                                     onClick={() =>
-                                        (grapher.currentTab = tabName)
+                                        (manager.currentTab = tabName)
                                     }
                                 >
                                     <a
@@ -199,13 +258,13 @@ export class ControlsFooterView extends React.Component<{
                     <li
                         className={
                             "tab clickable icon download-tab-button" +
-                            (grapher.currentTab === GrapherTabOption.download
+                            (manager.currentTab === GrapherTabOption.download
                                 ? " active"
                                 : "")
                         }
                         data-track-note="chart-click-download"
                         onClick={() =>
-                            (grapher.currentTab = GrapherTabOption.download)
+                            (manager.currentTab = GrapherTabOption.download)
                         }
                         title="Download as .png or .svg"
                     >
@@ -222,11 +281,11 @@ export class ControlsFooterView extends React.Component<{
                             <FontAwesomeIcon icon={faShareAlt} />
                         </a>
                     </li>
-                    {grapher.isEmbed && (
+                    {manager.isEmbed && (
                         <li className="clickable icon">
                             <a
                                 title="Open chart in new tab"
-                                href={grapher.canonicalUrl}
+                                href={manager.canonicalUrl}
                                 data-track-note="chart-click-newtab"
                                 target="_blank"
                             >
@@ -240,54 +299,29 @@ export class ControlsFooterView extends React.Component<{
     }
 
     @computed private get timeline() {
-        const grapher = this.grapher
-
-        if (!grapher.hasTimeline) return null
-
-        const props: TimelineComponentProps = {
-            manager: grapher,
-            onPlay: () => {
-                grapher.analytics.logChartTimelinePlay(grapher.slug)
-            },
-            formatTimeFn: (value: number) => {
-                const timeColumn = grapher.table.timeColumn
-                if (!timeColumn)
-                    return grapher.table.timeColumnFormatFunction(value)
-                return isMobile()
-                    ? timeColumn.formatValueForMobile(value)
-                    : timeColumn.formatValue(value)
-            },
-            onStartPlayOrDrag: () => {
-                grapher.debounceMode = true
-                grapher.useTimelineDomains = true
-            },
-            onStopPlayOrDrag: () => {
-                grapher.debounceMode = false
-                grapher.useTimelineDomains = false
-            },
-            disablePlay: grapher.isSlopeChart,
-        }
+        const manager = this.manager
+        if (!manager.hasTimeline) return null
 
         return (
             <div className="footerRowSingle">
-                <TimelineComponent {...props} />
+                <TimelineComponent manager={manager} />
             </div>
         )
     }
 
     render() {
-        const { grapher } = this
+        const { manager } = this
         const {
             isShareMenuActive,
             hasRelatedQuestion,
             relatedQuestions,
-        } = grapher
+        } = manager
         const tabsElement = (
             <div className="footerRowSingle">{this._getTabsElement()}</div>
         )
 
         const shareMenuElement = isShareMenuActive && (
-            <ShareMenu grapher={grapher} onDismiss={this.onShareMenu} />
+            <ShareMenu manager={manager} onDismiss={this.onShareMenu} />
         )
 
         const relatedQuestionElement = relatedQuestions && hasRelatedQuestion && (
@@ -308,7 +342,7 @@ export class ControlsFooterView extends React.Component<{
         return (
             <div
                 className={"ControlsFooter"}
-                style={{ height: grapher.footerHeight }}
+                style={{ height: manager.footerHeight ?? 1 }}
             >
                 {this.timeline}
                 {tabsElement}

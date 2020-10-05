@@ -3,47 +3,47 @@ import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType, ScaleTypeConfig } from "grapher/core/GrapherConstants"
 import classNames from "classnames"
+import { next } from "grapher/utils/Util"
 
-interface ScaleSelectorOptions {
+export interface ScaleSelectorManager extends ScaleTypeConfig {
     x?: number
     y?: number
     maxX?: number // If set, the scale toggle will shift left if it exceeds this number
-    scaleTypeConfig: ScaleTypeConfig
-    inline?: boolean
 }
 
 @observer
-export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
+export class ScaleSelector extends React.Component<{
+    manager: ScaleSelectorManager
+}> {
+    @computed get manager() {
+        return this.props.manager
+    }
+
+    @computed get inline() {
+        return this.manager.x === undefined || this.manager.y === undefined
+    }
+
     @computed get x() {
-        return this.props.x ?? 0
+        return this.manager.x ?? 0
     }
     @computed get y() {
-        return this.props.y ?? 0
+        return this.manager.y ?? 0
     }
 
     @computed get maxX() {
-        return this.props.maxX || 0
+        return this.manager.maxX || 0
     }
 
     @computed get scaleTypeOptions() {
-        return this.props.scaleTypeConfig.scaleTypeOptions
+        return this.manager.scaleTypeOptions
     }
 
     @computed get scaleType() {
-        return this.props.scaleTypeConfig.scaleType
+        return this.manager.scaleType
     }
 
     @action.bound onClick() {
-        const { scaleType, scaleTypeOptions } = this
-
-        let nextScaleTypeIndex = scaleTypeOptions.indexOf(scaleType) + 1
-        if (nextScaleTypeIndex >= scaleTypeOptions.length)
-            nextScaleTypeIndex = 0
-
-        const newValue = scaleTypeOptions[nextScaleTypeIndex]
-
-        if (this.props.scaleTypeConfig.updateChartScaleType)
-            this.props.scaleTypeConfig.updateChartScaleType(newValue)
+        this.manager.scaleType = next(this.scaleTypeOptions, this.scaleType)
     }
 
     private componentWidth = 95
@@ -66,11 +66,11 @@ export class ScaleSelector extends React.Component<ScaleSelectorOptions> {
         return (
             <span
                 onClick={onClick}
-                style={this.props.inline ? {} : (style as any)}
+                style={this.inline ? {} : (style as any)}
                 className={classNames([
                     "clickable",
                     "toggleSwitch",
-                    { inline: this.props.inline },
+                    { inline: this.inline },
                 ])}
             >
                 <span

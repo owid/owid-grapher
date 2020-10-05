@@ -84,7 +84,6 @@ import {
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-    LegacyGrapherQueryParams,
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
@@ -102,7 +101,6 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { TimelineManager } from "grapher/timeline/TimelineController"
 import { EntityId, EntityName } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
@@ -111,7 +109,12 @@ import { HeaderManager } from "grapher/header/HeaderManager"
 import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
-import { ControlsFooterView } from "grapher/controls/Controls"
+import {
+    AbsRelToggleManager,
+    FooterControls,
+    HighlightToggleManager,
+    SmallCountriesFilterManager,
+} from "grapher/controls/Controls"
 import { TooltipView } from "grapher/tooltip/Tooltip"
 import { EntitySelectorModal } from "grapher/controls/EntitySelectorModal"
 import {
@@ -127,6 +130,8 @@ import { DataTable } from "grapher/dataTable/DataTable"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
 import { DiscreteBarChartManager } from "grapher/barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "grapher/controls/CommandPalette"
+import { ShareMenuManager } from "grapher/controls/ShareMenu"
+import { TimelineComponentManager } from "grapher/timeline/TimelineComponent"
 
 declare const window: any
 
@@ -165,7 +170,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
 export class Grapher
     extends React.Component<GrapherProgrammaticInterface>
     implements
-        TimelineManager,
+        TimelineComponentManager,
         ChartManager,
         FooterManager,
         HeaderManager,
@@ -176,6 +181,10 @@ export class Grapher
         DiscreteBarChartManager,
         LegacyDimensionsManager,
         ObservableUrl,
+        ShareMenuManager,
+        SmallCountriesFilterManager,
+        HighlightToggleManager,
+        AbsRelToggleManager,
         TooltipManager,
         MapChartManager {
     @observable.ref type: ChartTypeName = ChartTypeName.LineChart
@@ -232,7 +241,7 @@ export class Grapher
     @observable selectedEntityIds: EntityId[] = []
     @observable excludedEntities?: number[] = undefined
     @observable comparisonLines: ComparisonLineConfig[] = [] // todo: Persistables?
-    @observable relatedQuestions?: RelatedQuestionsConfig[] // todo: Persistables?
+    @observable relatedQuestions: RelatedQuestionsConfig[] = [] // todo: Persistables?
 
     externalDataUrl?: string = undefined // This is temporarily used for testing legacy prod charts locally. Will be removed
     owidDataset?: LegacyVariablesAndEntityKey = undefined // This is temporarily used for testing. Will be removed
@@ -433,10 +442,10 @@ export class Grapher
         return !this.isExporting
     }
 
-    @action.bound toggleMinPopulationFilter() {
-        this.minPopulationFilter = this.minPopulationFilter
-            ? undefined
-            : this.populationFilterOption
+    @computed get editUrl() {
+        return Cookies.get(CookieKey.isAdmin) || this.isDev
+            ? `${this.adminBaseUrl}/admin/charts/${this.id}/edit`
+            : undefined
     }
 
     private populationFilterToggleOption = 1e6
@@ -649,12 +658,10 @@ export class Grapher
         )
     }
 
+    // todo: did this name get botched in a merge?
     @computed get hasFatalErrors() {
-        const { relatedQuestions } = this
-        return (
-            relatedQuestions?.some(
-                (question) => !!getErrorMessageRelatedQuestionUrl(question)
-            ) || false
+        return this.relatedQuestions.some(
+            (question) => !!getErrorMessageRelatedQuestionUrl(question)
         )
     }
 
@@ -1176,16 +1183,16 @@ export class Grapher
         )
     }
 
+    @computed get relativeToggleLabel() {
+        if (this.isScatter || this.isTimeScatter) return "Average annual change"
+        else if (this.isLineChart) return "Relative change"
+        return "Relative"
+    }
+
     // NB: The timeline scatterplot in relative mode calculates changes relative
     // to the lower bound year rather than creating an arrow chart
     @computed get isRelativeMode() {
         return this.stackMode === StackMode.relative
-    }
-
-    @action.bound toggleRelativeMode() {
-        this.stackMode = !this.isRelativeMode
-            ? StackMode.relative
-            : StackMode.absolute
     }
 
     @computed get canToggleRelativeMode() {
@@ -1361,6 +1368,7 @@ export class Grapher
         return classNames.filter((n) => !!n).join(" ")
     }
 
+    // todo: clean up this popup stuff
     addPopup(vnode: VNode) {
         this.popups = this.popups.concat([vnode])
     }
@@ -1407,7 +1415,7 @@ export class Grapher
         return (
             <>
                 {this.hasBeenVisible && this.renderPrimaryTab()}
-                <ControlsFooterView grapher={this} />
+                <FooterControls manager={this} />
                 {this.renderOverlayTab()}
                 {this.popups}
                 <TooltipView
@@ -1717,13 +1725,8 @@ export class Grapher
     }
 
     @computed get hasRelatedQuestion() {
-        const { relatedQuestions } = this
-        return (
-            !!relatedQuestions &&
-            !!relatedQuestions.length &&
-            !!relatedQuestions[0].text &&
-            !!relatedQuestions[0].url
-        )
+        const question = this.relatedQuestions[0]
+        return !!question && !!question.text && !!question.url
     }
 
     @computed private get footerLines() {
@@ -1855,6 +1858,32 @@ export class Grapher
             )
 
         return undefined
+    }
+
+    onPlay() {
+        this.analytics.logChartTimelinePlay(this.slug)
+    }
+
+    onStartPlayOrDrag() {
+        this.debounceMode = true
+        this.useTimelineDomains = true
+    }
+
+    onStopPlayOrDrag() {
+        this.debounceMode = false
+        this.useTimelineDomains = false
+    }
+
+    @computed get disablePlay() {
+        return this.isSlopeChart
+    }
+
+    formatTime(value: Time) {
+        const timeColumn = this.table.timeColumn
+        if (!timeColumn) return this.table.timeColumnFormatFunction(value)
+        return isMobile()
+            ? timeColumn.formatValueForMobile(value)
+            : timeColumn.formatValue(value)
     }
 }
 

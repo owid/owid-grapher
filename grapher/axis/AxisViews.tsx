@@ -191,14 +191,18 @@ export class HorizontalAxisComponent extends React.Component<{
             this.props.isInteractive && axis.scaleTypeOptions.length > 1
         if (!showControls) return undefined
 
+        // todo: move these properties to this class and pass this class down?
+        const scaleSelectorManager = {
+            scaleType: axis.scaleType,
+            scaleTypeOptions: axis.scaleTypeOptions,
+            maxX,
+            x: bounds.right,
+            y: bounds.bottom,
+        }
+
         return (
             <foreignObject id="horizontal-scale-selector" y={10}>
-                <ScaleSelector
-                    maxX={maxX}
-                    x={bounds.right}
-                    y={bounds.bottom}
-                    scaleTypeConfig={axis}
-                />
+                <ScaleSelector manager={scaleSelectorManager} />
             </foreignObject>
         )
     }

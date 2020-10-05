@@ -21,7 +21,6 @@ import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FacetChart } from "grapher/facetChart/FacetChart"
 import { ControlsRow, ControlsRowHeight } from "grapher/controls/ControlsRow"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -29,6 +28,9 @@ import {
     AbsRelToggle,
     HighlightToggle,
     FilterSmallCountriesToggle,
+    SmallCountriesFilterManager,
+    AbsRelToggleManager,
+    HighlightToggleManager,
 } from "grapher/controls/Controls"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
@@ -37,7 +39,10 @@ export interface ChartTabManager
     extends FooterManager,
         HeaderManager,
         ChartManager,
-        MapChartManager {
+        MapChartManager,
+        SmallCountriesFilterManager,
+        HighlightToggleManager,
+        AbsRelToggleManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     isExporting?: boolean
@@ -260,107 +265,56 @@ export class ChartTab
 
         if (!manager.isReady) return []
 
-        const onDataSelect = action(() => (manager.isSelectingData = true))
+        controls.push(
+            <FilterSmallCountriesToggle
+                key="FilterSmallCountriesToggle"
+                manager={manager}
+            />
+        )
 
-        if (manager.showSmallCountriesFilterToggle)
+        if (manager.yAxisConfig)
             controls.push(
-                <FilterSmallCountriesToggle
-                    key="FilterSmallCountriesToggle"
-                    grapher={manager}
+                <ScaleSelector
+                    key="scaleSelector"
+                    manager={manager.yAxis!.toVerticalAxis()}
                 />
             )
 
-        if (manager.tab === "chart") {
-            const yAxis =
-                (manager.isStackedArea && manager.stackedAreaTransform.yAxis) ||
-                (manager.isStackedBar &&
-                    !manager.stackedBarTransform.failMessage &&
-                    manager.stackedBarTransform.yAxis) ||
-                (manager.isLineChart && manager.lineChartTransform.yAxis) ||
-                ((manager.isScatter || manager.isTimeScatter) &&
-                    manager.scatterTransform.yAxis) ||
-                (manager.isSlopeChart && manager.yAxis.toVerticalAxis())
+        controls.push(
+            <button
+                type="button"
+                key="grapher-select-entities"
+                data-track-note="grapher-select-entities"
+            >
+                <span className="SelectEntitiesButton">
+                    <FontAwesomeIcon icon={faPlus} /> {"Add data"}
+                </span>
+            </button>
+        )
 
-            yAxis &&
-                yAxis.scaleTypeOptions.length > 1 &&
-                controls.push(
-                    <ScaleSelector
-                        key="scaleSelector"
-                        scaleTypeConfig={yAxis}
-                        inline={true}
-                    />
-                )
+        controls.push(
+            <button
+                type="button"
+                key="grapher-change-entities"
+                data-track-note="grapher-change-entity"
+                className="ChangeEntityButton"
+            >
+                <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                {manager.entityType}
+            </button>
+        )
 
-            manager.canAddData &&
-                !manager.hasFloatingAddButton &&
-                !manager.hideEntityControls &&
-                controls.push(
-                    <button
-                        type="button"
-                        onClick={() => onDataSelect()}
-                        key="grapher-select-entities"
-                        data-track-note="grapher-select-entities"
-                    >
-                        {manager.isScatter || manager.isSlopeChart ? (
-                            <span className="SelectEntitiesButton">
-                                <FontAwesomeIcon icon={faPencilAlt} />
-                                {`Select ${manager.entityTypePlural}`}
-                            </span>
-                        ) : (
-                            <span className="SelectEntitiesButton">
-                                <FontAwesomeIcon icon={faPlus} />{" "}
-                                {manager.addButtonLabel}
-                            </span>
-                        )}
-                    </button>
-                )
+        controls.push(
+            <AddEntityButton key="AddEntityButton" manager={manager} />
+        )
 
-            manager.canChangeEntity &&
-                !manager.hideEntityControls &&
-                controls.push(
-                    <button
-                        type="button"
-                        onClick={() => onDataSelect()}
-                        key="grapher-change-entities"
-                        data-track-note="grapher-change-entity"
-                        className="ChangeEntityButton"
-                    >
-                        <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                        {manager.entityType}
-                    </button>
-                )
+        controls.push(<ZoomToggle key="ZoomToggle" manager={manager} />)
 
-            manager.hasFloatingAddButton &&
-                manager.showAddEntityControls &&
-                controls.push(
-                    <AddEntityButton key="AddEntityButton" grapher={manager} />
-                )
+        controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
 
-            manager.isScatter &&
-                manager.hasSelection &&
-                controls.push(<ZoomToggle key="ZoomToggle" grapher={manager} />)
-
-            const absRelToggle =
-                (manager.isStackedArea && manager.canToggleRelativeMode) ||
-                (manager.isScatter &&
-                    manager.scatterTransform.canToggleRelativeMode) ||
-                (manager.isLineChart &&
-                    manager.lineChartTransform.canToggleRelativeMode)
-            absRelToggle &&
-                controls.push(
-                    <AbsRelToggle key="AbsRelToggle" grapher={manager} />
-                )
-
-            manager.isScatter &&
-                manager.highlightToggle &&
-                controls.push(
-                    <HighlightToggle
-                        key="highlight-toggle"
-                        grapher={manager}
-                        highlightToggle={manager.highlightToggle}
-                    />
-                )
-        }
+        controls.push(
+            <HighlightToggle key="highlight-toggle" manager={manager} />
+        )
 
         return controls
     }

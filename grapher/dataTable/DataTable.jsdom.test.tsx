@@ -163,7 +163,7 @@ describe("when you try to hide countries", () => {
     })
 
     it("renders no small countries after filter is added", () => {
-        grapher.toggleMinPopulationFilter()
+        grapher.minPopulationFilter = 1e6
         expect(view.find("tbody tr")).toHaveLength(1)
     })
 })

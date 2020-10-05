@@ -37,9 +37,6 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onAddRelatedQuestion() {
         const { grapher } = this.props.editor
-        if (!grapher.relatedQuestions) {
-            grapher.relatedQuestions = []
-        }
         grapher.relatedQuestions.push({
             text: "",
             url: "",
@@ -48,13 +45,7 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
 
     @action.bound onRemoveRelatedQuestion(idx: number) {
         const { grapher } = this.props.editor
-
-        if (grapher.relatedQuestions) {
-            grapher.relatedQuestions.splice(idx, 1)
-            if (grapher.relatedQuestions.length === 0) {
-                grapher.relatedQuestions = undefined
-            }
-        }
+        grapher.relatedQuestions.splice(idx, 1)
     }
 
     render() {
@@ -148,46 +139,45 @@ export class EditorTextTab extends React.Component<{ editor: ChartEditor }> {
                     />
                 </Section>
                 <Section name="Related">
-                    {relatedQuestions &&
-                        relatedQuestions.map(
-                            (question: RelatedQuestionsConfig, idx: number) => (
-                                <div key={idx}>
+                    {relatedQuestions.map(
+                        (question: RelatedQuestionsConfig, idx: number) => (
+                            <div key={idx}>
+                                <TextField
+                                    label="Related question"
+                                    value={question.text}
+                                    onValue={action((value: string) => {
+                                        question.text = value
+                                    })}
+                                    placeholder="e.g. How did countries respond to the pandemic?"
+                                    helpText="Short question promoting exploration of related content"
+                                    softCharacterLimit={50}
+                                />
+                                {question.text && (
                                     <TextField
-                                        label="Related question"
-                                        value={question.text}
+                                        label="URL"
+                                        value={question.url}
                                         onValue={action((value: string) => {
-                                            question.text = value
+                                            question.url = value
                                         })}
-                                        placeholder="e.g. How did countries respond to the pandemic?"
-                                        helpText="Short question promoting exploration of related content"
-                                        softCharacterLimit={50}
+                                        placeholder="e.g. https://ourworldindata.org/coronavirus"
+                                        helpText="Page or section of a page where the answer to the previous question can be found."
+                                        errorMessage={getErrorMessageRelatedQuestionUrl(
+                                            question
+                                        )}
                                     />
-                                    {question.text && (
-                                        <TextField
-                                            label="URL"
-                                            value={question.url}
-                                            onValue={action((value: string) => {
-                                                question.url = value
-                                            })}
-                                            placeholder="e.g. https://ourworldindata.org/coronavirus"
-                                            helpText="Page or section of a page where the answer to the previous question can be found."
-                                            errorMessage={getErrorMessageRelatedQuestionUrl(
-                                                question
-                                            )}
-                                        />
-                                    )}
-                                    <Button
-                                        onClick={() =>
-                                            this.onRemoveRelatedQuestion(idx)
-                                        }
-                                    >
-                                        <FontAwesomeIcon icon={faMinus} />{" "}
-                                        Remove related question
-                                    </Button>
-                                </div>
-                            )
-                        )}
-                    {(!relatedQuestions || !relatedQuestions.length) && (
+                                )}
+                                <Button
+                                    onClick={() =>
+                                        this.onRemoveRelatedQuestion(idx)
+                                    }
+                                >
+                                    <FontAwesomeIcon icon={faMinus} /> Remove
+                                    related question
+                                </Button>
+                            </div>
+                        )
+                    )}
+                    {!relatedQuestions.length && (
                         <Button onClick={this.onAddRelatedQuestion}>
                             <FontAwesomeIcon icon={faPlus} /> Add related
                             question
