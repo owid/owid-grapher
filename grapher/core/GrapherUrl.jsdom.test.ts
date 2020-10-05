@@ -228,6 +228,16 @@ describe(GrapherUrl, () => {
                 })
                 expect(grapher.url.params.time).toEqual(undefined)
             })
+
+            it("doesn't use map time if current tab isn't map", () => {
+                const grapher = new Grapher({
+                    tab: "chart",
+                    map: {
+                        time: 2017,
+                    },
+                })
+                expect(grapher.url.params.time).toEqual(undefined)
+            })
         })
 
         describe("with days", () => {
@@ -392,6 +402,7 @@ describe(GrapherUrl, () => {
                 })
                 it(`encode ${test.name}`, () => {
                     const params = toQueryParams({
+                        tab: "map",
                         map: { time: test.param },
                     })
                     expect(params.time).toEqual(test.query)
@@ -450,6 +461,7 @@ describe(GrapherUrl, () => {
                     it(`encode ${test.name}`, () => {
                         const grapher = getGrapher()
                         grapher.updateFromObject({
+                            tab: "map",
                             map: { time: test.param },
                         })
                         const params = grapher.url.params
