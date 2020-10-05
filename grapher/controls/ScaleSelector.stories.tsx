@@ -36,7 +36,7 @@ export const StayInBounds = () => {
                 position: "relative",
             }}
         >
-            <ScaleSelector manager={new MockScaleSelectorManager()} />
+            <ScaleSelector manager={manager} />
         </div>
     )
 }

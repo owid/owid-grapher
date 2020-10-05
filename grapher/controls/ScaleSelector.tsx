@@ -19,7 +19,7 @@ export class ScaleSelector extends React.Component<{
         return this.props.manager
     }
 
-    @computed get inline() {
+    @computed private get isInline() {
         return this.manager.x === undefined || this.manager.y === undefined
     }
 
@@ -57,20 +57,23 @@ export class ScaleSelector extends React.Component<{
     }
 
     render() {
-        const { x, y, onClick, scaleType } = this
+        const { x, y, scaleType } = this
 
-        const style = {
-            left: x - this.getLeftShiftIfNeeded(x),
-            top: y,
-        }
+        const style = this.isInline
+            ? {}
+            : {
+                  top: y,
+                  left: x - this.getLeftShiftIfNeeded(x),
+              }
+
         return (
             <span
-                onClick={onClick}
-                style={this.inline ? {} : (style as any)}
+                onClick={this.onClick}
+                style={style}
                 className={classNames([
                     "clickable",
                     "toggleSwitch",
-                    { inline: this.inline },
+                    { inline: this.isInline },
                 ])}
             >
                 <span
