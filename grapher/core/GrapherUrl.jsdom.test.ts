@@ -228,6 +228,16 @@ describe(GrapherUrl, () => {
                 })
                 expect(grapher.url.params.time).toEqual(undefined)
             })
+
+            it("doesn't use map time if current tab isn't map", () => {
+                const grapher = new Grapher({
+                    tab: "chart",
+                    map: {
+                        time: 2017,
+                    },
+                })
+                expect(grapher.url.params.time).toEqual(undefined)
+            })
         })
 
         describe("with days", () => {
