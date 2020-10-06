@@ -1482,13 +1482,10 @@ export class Grapher
     }
 
     @action.bound private toggleFacetStrategy() {
-        this._facetStrategy = next(
-            this.availableFacetStrategies,
-            this._facetStrategy
-        )
+        this.facet = next(this.availableFacetStrategies, this.facet)
     }
 
-    @observable private _facetStrategy?: FacetStrategy
+    @observable facet?: FacetStrategy
 
     @computed private get hasMultipleYColumns() {
         return this.yColumnSlugs.length > 1
@@ -1516,11 +1513,8 @@ export class Grapher
     }
 
     @computed get facetStrategy() {
-        if (
-            this._facetStrategy &&
-            this.availableFacetStrategies.includes(this._facetStrategy)
-        )
-            return this._facetStrategy
+        if (this.facet && this.availableFacetStrategies.includes(this.facet))
+            return this.facet
 
         // Auto facet on SingleEntity charts with multiple selected entities
         if (

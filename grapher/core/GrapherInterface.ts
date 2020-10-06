@@ -8,6 +8,7 @@ import {
     EntitySelection,
     Time,
     ChartTypeName,
+    FacetStrategy,
 } from "./GrapherConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
@@ -71,6 +72,7 @@ export interface GrapherInterface {
     excludedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityIds?: EntityId[]
+    facet?: FacetStrategy
 
     xAxis?: Partial<AxisConfigInterface>
     yAxis?: Partial<AxisConfigInterface>
