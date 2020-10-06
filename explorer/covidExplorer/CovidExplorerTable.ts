@@ -13,6 +13,7 @@ import {
     fetchJSON,
     computeRollingAverage,
     insertMissingValuePlaceholders,
+    max,
 } from "grapher/utils/Util"
 import moment from "moment"
 import { csv } from "d3-fetch"
@@ -247,18 +248,27 @@ export class CovidExplorerTable extends OwidTable {
 
     static async fetchAndParseData(): Promise<CovidGrapherRow[]> {
         const rawData = (await csv(covidDataPath)) as any
-        const filtered = rawData
+        const filtered: CovidGrapherRow[] = rawData
             .map(CovidExplorerTable.parseCovidRow)
             .filter((row: CovidGrapherRow) => row.location !== "International")
 
-        const continentRows = CovidExplorerTable.generateContinentRows(filtered)
+        const latestDate = max(filtered.map((row) => row.date))
+
+        const continentRows = CovidExplorerTable.generateContinentRows(
+            filtered
+        ).filter(
+            // Drop the last day in aggregates containing Spain & Sweden
+            (row) => !(row.date === latestDate && row.location === "Europe")
+        )
 
         const euRows = CovidExplorerTable.calculateRowsForGroup(
             filtered.filter((row: ParsedCovidCsvRow) =>
                 CovidExplorerTable.euCountries.has(row.location)
             ),
             "European Union"
-        )
+            // Drop the last day in aggregates containing Spain & Sweden
+        ).filter((row) => row.date !== latestDate)
+
         return filtered.concat(continentRows, euRows)
     }
 
