@@ -1875,6 +1875,7 @@ export class Grapher
     @computed get showSelectEntitiesButton() {
         return (
             !this.hideEntityControls &&
+            this.addCountryMode !== EntitySelectionMode.Disabled &&
             this.table.numAvailableEntityNames > 1 &&
             !this.showAddEntityButton &&
             !this.showChangeEntityButton
