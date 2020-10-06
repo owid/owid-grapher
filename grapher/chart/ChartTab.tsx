@@ -159,11 +159,13 @@ export class ChartTab
     @computed private get svgHeight() {
         if (this.isExporting) return this.bounds.height
 
+        const controlsHeight = this.controls.length ? ControlsRowHeight : 0
+
         return (
             this.bounds.height -
             this.header.height -
-            (this.controls.length ? ControlsRowHeight : 0) -
-            -this.footer.height -
+            controlsHeight -
+            this.footer.height -
             25
         )
     }
@@ -181,11 +183,15 @@ export class ChartTab
         return this.manager.isReady !== false
     }
 
+    // todo: should we remove this and not make a distinction between map and chart tabs?
+    @computed private get isMapTab() {
+        return this.manager.tab === GrapherTabOption.map
+    }
+
     private renderChart() {
         const { manager } = this
         const type = manager.type
         const innerBounds = this.innerBounds
-        const isMapTab = manager.tab === GrapherTabOption.map
 
         if (!this.isReady)
             return (
@@ -194,7 +200,7 @@ export class ChartTab
                 </foreignObject>
             )
 
-        if (isMapTab)
+        if (this.isMapTab)
             return (
                 <MapChart
                     containerElement={this.containerElement ?? undefined}
@@ -268,15 +274,10 @@ export class ChartTab
 
     @computed get controls() {
         const manager = this.manager
-        if (!manager.isReady) return []
+        // Todo: we don't yet show any controls on Maps, but seems like we would want to.
+        if (!manager.isReady || this.isMapTab) return []
+
         const controls: JSX.Element[] = []
-        if (manager.showSmallCountriesFilterToggle)
-            controls.push(
-                <FilterSmallCountriesToggle
-                    key="FilterSmallCountriesToggle"
-                    manager={manager}
-                />
-            )
 
         if (manager.showYScaleToggle)
             controls.push(
@@ -327,6 +328,14 @@ export class ChartTab
         if (manager.showHighlightToggle)
             controls.push(
                 <HighlightToggle key="highlight-toggle" manager={manager} />
+            )
+
+        if (manager.showSmallCountriesFilterToggle)
+            controls.push(
+                <FilterSmallCountriesToggle
+                    key="FilterSmallCountriesToggle"
+                    manager={manager}
+                />
             )
 
         return controls

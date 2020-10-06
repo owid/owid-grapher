@@ -1853,7 +1853,7 @@ export class Grapher
 
     @computed get showAbsRelToggle() {
         if (!this.canToggleRelativeMode) return false
-        return this.isStackedArea || (this.isScatter && this.isLineChart)
+        return this.isStackedArea || this.isScatter || this.isLineChart
     }
 
     @computed get showHighlightToggle() {
@@ -1875,6 +1875,7 @@ export class Grapher
     @computed get showSelectEntitiesButton() {
         return (
             !this.hideEntityControls &&
+            this.table.numAvailableEntityNames > 1 &&
             !this.showAddEntityButton &&
             !this.showChangeEntityButton
         )
