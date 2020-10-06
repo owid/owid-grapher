@@ -54,7 +54,7 @@ const manager: LineLegendManager = {
     verticalAxis: dualAxis.verticalAxis,
 }
 
-export const Default = () => {
+export const TestCollisionDetection = () => {
     return (
         <svg width={600} height={400}>
             <LineLegend manager={manager} />

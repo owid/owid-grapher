@@ -1,26 +1,32 @@
 import * as React from "react"
 import { SlopeChart } from "./SlopeChart"
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
-import { ChartManager } from "grapher/chart/ChartManager"
+import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
 
 export default {
     title: "SlopeChart",
     component: SlopeChart,
 }
 
+const table = SynthesizeGDPTable({ entityCount: 10 })
+
 export const Default = () => {
-    const table = SynthesizeGDPTable({
-        timeRange: [1950, 2010],
-    })
-
-    const manager: ChartManager = {
-        table,
-        yColumnSlug: "GDP",
-    }
-
     return (
         <svg width={600} height={600}>
-            <SlopeChart manager={manager} />
+            <SlopeChart manager={{ table }} />
+        </svg>
+    )
+}
+
+export const WithColorColumn = () => {
+    return (
+        <svg width={600} height={600}>
+            <SlopeChart
+                manager={{
+                    table,
+                    colorColumnSlug: SampleColumnSlugs.Population,
+                    yColumnSlug: SampleColumnSlugs.GDP,
+                }}
+            />
         </svg>
     )
 }

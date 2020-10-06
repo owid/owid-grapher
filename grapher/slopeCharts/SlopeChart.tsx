@@ -300,9 +300,15 @@ export class SlopeChart
     }
 
     @computed private get yColumn() {
-        return this.table.get(
-            this.manager.yColumnSlug ?? this.manager.yColumnSlugs![0]
-        )
+        return this.table.get(this.yColumnSlug)
+    }
+
+    @computed protected get yColumnSlug() {
+        return this.manager.yColumnSlug
+            ? this.manager.yColumnSlug
+            : this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs[0]
+            : this.manager.table.numericColumnSlugs[0]
     }
 
     @computed private get colorColumn() {

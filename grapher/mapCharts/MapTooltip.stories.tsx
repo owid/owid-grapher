@@ -9,4 +9,4 @@ export default {
 }
 
 // todo: refactor TooltipView stuff so we can decouple from Grapher
-export const Default = () => <Grapher {...legacyMapGrapher} />
+export const WithSparkChart = () => <Grapher {...legacyMapGrapher} />

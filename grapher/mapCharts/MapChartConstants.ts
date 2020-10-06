@@ -50,7 +50,7 @@ export interface RenderFeature {
 }
 
 export interface MapChartManager extends ChartManager {
-    mapColumnSlug: ColumnSlug
+    mapColumnSlug?: ColumnSlug
     mapIsClickable?: boolean
     currentTab?: string // Used to switch to chart tab on map click
     mapConfig?: MapConfig

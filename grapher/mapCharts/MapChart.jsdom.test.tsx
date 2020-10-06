@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
+import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
 import { Grapher } from "grapher/core/Grapher"
 import { legacyMapGrapher } from "./MapChart.sample"
 import { MapChartManager } from "./MapChartConstants"
@@ -12,7 +12,7 @@ const table = SynthesizeGDPTable({
 })
 const manager: MapChartManager = {
     table,
-    mapColumnSlug: "Population",
+    mapColumnSlug: SampleColumnSlugs.Population,
 }
 
 test("can create a new Map chart", () => {

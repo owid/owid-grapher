@@ -64,4 +64,4 @@ export const Empty = () => (
     </CountryPickerHolder>
 )
 
-export const Default = () => <CountryPickerIntegrated />
+export const WithChoices = () => <CountryPickerIntegrated />

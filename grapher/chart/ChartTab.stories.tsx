@@ -1,5 +1,9 @@
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
-import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
+import {
+    ChartTypeName,
+    GrapherTabOption,
+    SeriesStrategy,
+} from "grapher/core/GrapherConstants"
 import * as React from "react"
 import { ChartTab, ChartTabManager } from "./ChartTab"
 
@@ -8,16 +12,36 @@ export default {
     component: ChartTab,
 }
 
+const table = SynthesizeGDPTable({ entityCount: 5 }).selectAll()
+
 const manager: ChartTabManager = {
-    table: SynthesizeGDPTable().selectAll(),
-    mapColumnSlug: "GDP",
-    yColumnSlug: "GDP",
+    table,
     currentTitle: "This is the Title",
     subtitle: "A Subtitle",
-    tab: GrapherTabOption.chart,
     note: "Here are some footer notes",
-    type: ChartTypeName.LineChart,
     populateFromQueryParams: () => {},
 }
 
 export const LineChart = () => <ChartTab manager={manager} />
+
+export const MapChart = () => (
+    <ChartTab manager={{ ...manager, tab: GrapherTabOption.map }} />
+)
+export const StackedArea = () => (
+    <ChartTab
+        manager={{
+            ...manager,
+            type: ChartTypeName.StackedArea,
+            seriesStrategy: SeriesStrategy.entity,
+        }}
+    />
+)
+export const Scatter = () => (
+    <ChartTab
+        manager={{
+            ...manager,
+            type: ChartTypeName.ScatterPlot,
+            table: table.filterByTargetTime(1999, 0),
+        }}
+    />
+)

@@ -6,7 +6,7 @@ export default {
     component: CommandPalette,
 }
 
-export const Default = () => {
+export const WithCommands = () => {
     const demoCommands: Command[] = [
         {
             combo: "ctrl+o",
