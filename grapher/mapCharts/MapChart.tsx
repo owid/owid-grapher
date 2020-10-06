@@ -471,9 +471,15 @@ export class MapChart
                     focusEntity={focusEntity}
                 />
                 {this.renderMapLegend()}
-                <foreignObject id="projection-chooser">
+                <foreignObject
+                    id="projection-chooser"
+                    x={projectionChooserBounds.left}
+                    y={projectionChooserBounds.top}
+                    width={projectionChooserBounds.width}
+                    height={projectionChooserBounds.height}
+                    style={{ overflow: "visible" }}
+                >
                     <ProjectionChooser
-                        bounds={projectionChooserBounds}
                         value={projection}
                         onChange={this.onProjectionChange}
                     />

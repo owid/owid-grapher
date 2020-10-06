@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
 import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { first } from "grapher/utils/Util"
-import { Bounds } from "grapher/utils/Bounds"
 import { MapProjection } from "./MapProjections"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 
@@ -15,7 +14,6 @@ interface ProjectionChooserEntry {
 
 @observer
 export class ProjectionChooser extends React.Component<{
-    bounds: Bounds
     value: string
     onChange: (value: MapProjection) => void
 }> {
@@ -34,12 +32,10 @@ export class ProjectionChooser extends React.Component<{
     }
 
     render() {
-        const { bounds, value } = this.props
+        const { value } = this.props
 
         const style: React.CSSProperties = {
-            position: "absolute",
             fontSize: "0.75rem",
-            ...bounds.toCSS(),
         }
 
         return (
