@@ -146,10 +146,9 @@ class Label extends React.Component<{
 }
 
 export interface LineLegendManager {
-    areMarksClickable?: boolean
+    startSelectingWhenLineClicked?: boolean
     canAddData?: boolean
     isSelectingData?: boolean
-    showAddEntityControls?: boolean
     entityType?: string
     labelMarks: LineLabelMark[]
     maxLegendWidth?: number
@@ -454,7 +453,7 @@ export class LineLegend extends React.Component<{
             <g
                 className="LineLabels"
                 style={{
-                    cursor: this.manager.areMarksClickable
+                    cursor: this.manager.startSelectingWhenLineClicked
                         ? "pointer"
                         : "default",
                 }}

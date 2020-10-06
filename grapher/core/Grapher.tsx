@@ -28,7 +28,6 @@ import {
     next,
     sampleFrom,
     range,
-    omit,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -457,7 +456,7 @@ export class Grapher
     }
 
     // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
-    @computed get hasCountriesSmallerThanFilterOption() {
+    @computed private get hasCountriesSmallerThanFilterOption() {
         return this.rootTable.availableEntityNames.some(
             (entityName) =>
                 populationMap[entityName] &&
@@ -638,18 +637,6 @@ export class Grapher
         return `${this.bakedGrapherURL}/data/variables/${this.dataFileName}`
     }
 
-    @computed get showAddEntityControls() {
-        return !this.hideEntityControls && this.canAddData
-    }
-
-    @computed get areMarksClickable() {
-        return this.showAddEntityControls
-    }
-
-    // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
-    // allows you to still use add country "modes" without showing the buttons in order to prioritize
-    // another entity selector over the built in ones.
-    @observable hideEntityControls = false
     externalCsvLink = ""
 
     @computed get hasOWIDLogo() {
@@ -961,49 +948,10 @@ export class Grapher
         return ", " + time
     }
 
-    @computed get addButtonLabel() {
-        const isSingleEntity =
-            this.table.numAvailableEntityNames === 1 ||
-            this.addCountryMode === EntitySelectionMode.SingleEntity
-        return `Add ${isSingleEntity ? "data" : this.entityType}`
-    }
-
-    @computed get hasFloatingAddButton() {
-        return (
-            this.primaryTab === GrapherTabOption.chart &&
-            !this.isExporting &&
-            this.canAddData &&
-            (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
-        )
-    }
-
     @computed get sourcesLine() {
         return this.sourceDesc !== undefined
             ? this.sourceDesc
             : this.defaultSourcesLine
-    }
-
-    @computed get canAddData() {
-        if (this.table.numAvailableEntityNames < 2) return false
-
-        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
-            return true
-
-        if (
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.facetStrategy
-        )
-            return true
-
-        return false
-    }
-
-    @computed get canChangeEntity() {
-        return (
-            !this.isScatter &&
-            this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.table.numAvailableEntityNames > 1
-        )
     }
 
     @computed get columnsWithSources() {
@@ -1099,6 +1047,10 @@ export class Grapher
 
     @computed get activeColorScale() {
         return this.colorScale as any // todo: restore
+    }
+
+    @computed get supportsMultipleYColumns() {
+        return !(this.isScatter || this.isTimeScatter || this.isSlopeChart)
     }
 
     @computed private get xDimension() {
@@ -1886,6 +1838,77 @@ export class Grapher
             ? timeColumn.formatValueForMobile(value)
             : timeColumn.formatValue(value)
     }
+
+    @computed get showSmallCountriesFilterToggle() {
+        return this.isScatter && this.hasCountriesSmallerThanFilterOption
+    }
+
+    @computed get showYScaleToggle() {
+        return this.yAxis.canChangeScaleType
+    }
+
+    @computed get showZoomToggle() {
+        return this.isScatter && this.table.hasSelection
+    }
+
+    @computed get showAbsRelToggle() {
+        if (!this.canToggleRelativeMode) return false
+        return this.isStackedArea || (this.isScatter && this.isLineChart)
+    }
+
+    @computed get showHighlightToggle() {
+        return this.isScatter && !!this.highlightToggle
+    }
+
+    @computed get showChangeEntityButton() {
+        return !this.hideEntityControls && this.canChangeEntity
+    }
+
+    @computed get showAddEntityButton() {
+        return (
+            !this.hideEntityControls &&
+            this.canSelectMultipleEntities &&
+            (this.isLineChart || this.isStackedArea || this.isDiscreteBar)
+        )
+    }
+
+    @computed get showSelectEntitiesButton() {
+        return (
+            !this.hideEntityControls &&
+            !this.showAddEntityButton &&
+            !this.showChangeEntityButton
+        )
+    }
+
+    @computed get canSelectMultipleEntities() {
+        if (this.table.numAvailableEntityNames < 2) return false
+        if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
+            return true
+        if (
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.facetStrategy
+        )
+            return true
+
+        return false
+    }
+
+    @computed get canChangeEntity() {
+        return (
+            !this.isScatter &&
+            this.addCountryMode === EntitySelectionMode.SingleEntity &&
+            this.table.numAvailableEntityNames > 1
+        )
+    }
+
+    @computed get startSelectingWhenLineClicked() {
+        return this.showAddEntityButton
+    }
+
+    // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
+    // allows you to still use add country "modes" without showing the buttons in order to prioritize
+    // another entity selector over the built in ones.
+    @observable hideEntityControls = false
 }
 
 const defaultObject = objectWithPersistablesToObject(

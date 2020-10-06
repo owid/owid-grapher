@@ -381,7 +381,7 @@ export class LineChart
 
     @observable hoveredSeriesName?: SeriesName
     @action.bound onLegendClick() {
-        if (this.manager.showAddEntityControls)
+        if (this.manager.startSelectingWhenLineClicked)
             this.manager.isSelectingData = true
     }
 

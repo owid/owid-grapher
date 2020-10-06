@@ -18,12 +18,8 @@ import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 export interface ChartManager {
     baseFontSize?: number
     table: OwidTable // todo: abstract table?
-    entityType?: string
-    showAddEntityControls?: boolean
     isSelectingData?: boolean
-    canAddData?: boolean
-    areMarksClickable?: boolean // used by lineLabels
-    canChangeEntity?: boolean
+    startSelectingWhenLineClicked?: boolean // used by lineLabels
     isInteractive?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]

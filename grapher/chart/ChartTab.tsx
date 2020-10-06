@@ -19,10 +19,9 @@ import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
 import { ChartManager } from "./ChartManager"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FacetChart } from "grapher/facetChart/FacetChart"
-import { ControlsRow, ControlsRowHeight } from "grapher/controls/ControlsRow"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { CollapsibleList } from "grapher/controls/CollapsibleList/CollapsibleList"
 import {
     ZoomToggle,
     AbsRelToggle,
@@ -34,6 +33,7 @@ import {
 } from "grapher/controls/Controls"
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 
 export interface ChartTabManager
     extends FooterManager,
@@ -50,12 +50,19 @@ export interface ChartTabManager
     type?: ChartTypeName
     isSingleTime?: boolean // todo: remove?
     isReady?: boolean
+    entityType?: string
+    entityTypePlural?: string
     showSmallCountriesFilterToggle?: boolean
     showYScaleToggle?: boolean
-    showAddEntitiesToggle?: boolean
     showZoomToggle?: boolean
     showAbsRelToggle?: boolean
+    showHighlightToggle?: boolean
+    showChangeEntityButton?: boolean
+    showAddEntityButton?: boolean
+    showSelectEntitiesButton?: boolean
 }
+
+const ControlsRowHeight = 36
 
 @observer
 export class ChartTab
@@ -260,19 +267,18 @@ export class ChartTab
     }
 
     @computed get controls() {
-        const controls: JSX.Element[] = []
         const manager = this.manager
-
         if (!manager.isReady) return []
+        const controls: JSX.Element[] = []
+        if (manager.showSmallCountriesFilterToggle)
+            controls.push(
+                <FilterSmallCountriesToggle
+                    key="FilterSmallCountriesToggle"
+                    manager={manager}
+                />
+            )
 
-        controls.push(
-            <FilterSmallCountriesToggle
-                key="FilterSmallCountriesToggle"
-                manager={manager}
-            />
-        )
-
-        if (manager.yAxisConfig)
+        if (manager.showYScaleToggle)
             controls.push(
                 <ScaleSelector
                     key="scaleSelector"
@@ -280,43 +286,58 @@ export class ChartTab
                 />
             )
 
-        controls.push(
-            <button
-                type="button"
-                key="grapher-select-entities"
-                data-track-note="grapher-select-entities"
-            >
-                <span className="SelectEntitiesButton">
-                    <FontAwesomeIcon icon={faPlus} /> {"Add data"}
-                </span>
-            </button>
-        )
+        if (manager.showSelectEntitiesButton)
+            controls.push(
+                <button
+                    type="button"
+                    key="grapher-select-entities"
+                    data-track-note="grapher-select-entities"
+                >
+                    <span className="SelectEntitiesButton">
+                        <FontAwesomeIcon icon={faPencilAlt} />
+                        {`Select ${manager.entityTypePlural}`}
+                    </span>
+                </button>
+            )
 
-        controls.push(
-            <button
-                type="button"
-                key="grapher-change-entities"
-                data-track-note="grapher-change-entity"
-                className="ChangeEntityButton"
-            >
-                <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
-                {manager.entityType}
-            </button>
-        )
+        if (manager.showChangeEntityButton)
+            controls.push(
+                <button
+                    type="button"
+                    key="grapher-change-entities"
+                    data-track-note="grapher-change-entity"
+                    className="ChangeEntityButton"
+                >
+                    <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
+                    {manager.entityType}
+                </button>
+            )
 
-        controls.push(
-            <AddEntityButton key="AddEntityButton" manager={manager} />
-        )
+        if (manager.showAddEntityButton)
+            controls.push(
+                <AddEntityButton key="AddEntityButton" manager={manager} />
+            )
 
-        controls.push(<ZoomToggle key="ZoomToggle" manager={manager} />)
+        if (manager.showZoomToggle)
+            controls.push(<ZoomToggle key="ZoomToggle" manager={manager} />)
 
-        controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
+        if (manager.showAbsRelToggle)
+            controls.push(<AbsRelToggle key="AbsRelToggle" manager={manager} />)
 
-        controls.push(
-            <HighlightToggle key="highlight-toggle" manager={manager} />
-        )
+        if (manager.showHighlightToggle)
+            controls.push(
+                <HighlightToggle key="highlight-toggle" manager={manager} />
+            )
 
         return controls
+    }
+
+    renderControlsRow() {
+        return this.controls.length ? (
+            <div className="controlsRow">
+                <CollapsibleList>{this.controls}</CollapsibleList>
+            </div>
+        ) : null
     }
 
     private renderWithHTMLText() {
@@ -325,12 +346,10 @@ export class ChartTab
             clear: "both",
         }
 
-        const { controls } = this
-
         return (
             <>
                 <Header manager={this} />
-                {controls.length && <ControlsRow controls={controls} />}
+                {this.renderControlsRow()}
                 <div style={containerStyle}>
                     <svg className="chartTabForInteractive" {...this.svgProps}>
                         {this.renderChart()}

@@ -265,9 +265,9 @@ export class StackedAreaChart
         this.hoveredPointIndex = hoverIndex
     }
 
-    @observable hoverSeriesName?: string
+    @observable hoverSeriesName?: SeriesName
     @action.bound onLegendClick() {
-        if (this.manager.showAddEntityControls)
+        if (this.manager.startSelectingWhenLineClicked)
             this.manager.isSelectingData = true
     }
 

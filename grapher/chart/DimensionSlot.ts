@@ -25,11 +25,7 @@ export class DimensionSlot {
     @computed get allowMultiple() {
         return (
             this.property === DimensionProperty.y &&
-            !(
-                this.grapher.isScatter ||
-                this.grapher.isTimeScatter ||
-                this.grapher.isSlopeChart
-            )
+            this.grapher.supportsMultipleYColumns
         )
     }
 

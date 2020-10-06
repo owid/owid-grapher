@@ -10,7 +10,5 @@ export interface DiscreteBarDatum {
 }
 
 export interface DiscreteBarChartManager extends ChartManager {
-    addButtonLabel?: string
-    hasFloatingAddButton?: boolean
     showYearLabels?: boolean
 }

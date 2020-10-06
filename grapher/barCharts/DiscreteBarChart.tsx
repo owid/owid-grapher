@@ -333,8 +333,7 @@ export class DiscreteBarChart
 
         if (!column) return "No column to chart"
 
-        if (!column.table.hasSelection)
-            return `No selected ${this.manager.entityType ?? "Country"}`
+        if (!column.table.hasSelection) return `No data selected`
 
         return column.isEmpty ? `No matching data in column ${column.name}` : ""
     }

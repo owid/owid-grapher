@@ -58,7 +58,7 @@ export function subscribeGrapherToGlobalEntitySelection(
             globalSelection.selectedEntities,
         ],
         () => {
-            if (!grapher.canAddData && !grapher.canChangeEntity)
+            if (!grapher.canSelectMultipleEntities && !grapher.canChangeEntity)
                 // Chart doesn't support changing entities - do nothing
                 return
             const { mode, selectedEntities } = globalSelection
