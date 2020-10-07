@@ -17,8 +17,6 @@ import {
     es6mapValues,
     valuesByEntityWithinTimes,
     getStartEndValues,
-    intersection,
-    flatten,
     sortBy,
     countBy,
     union,
@@ -28,6 +26,7 @@ import { Tippy } from "grapher/chart/Tippy"
 import { OwidTable, OwidTableSlugs } from "coreTable/OwidTable"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { EntityName } from "coreTable/CoreTableConstants"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -57,9 +56,8 @@ const columnNameByType: Record<ColumnKey, string> = {
     deltaRatio: "Relative Change",
 }
 
-function inverseSortOrder(order: SortOrder): SortOrder {
-    return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
-}
+const inverseSortOrder = (order: SortOrder) =>
+    order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
 export interface DataTableManager {
     table: OwidTable
@@ -125,7 +123,7 @@ export class DataTable extends React.Component<{
         row: DataTableRow
     ) => number | string | undefined {
         const { dimIndex, columnKey, order } = this.tableState.sort
-        if (dimIndex === ENTITY_DIM_INDEX) return (row) => row.entity
+        if (dimIndex === ENTITY_DIM_INDEX) return (row) => row.entityName
 
         return (row) => {
             const dv = row.dimensionValues[dimIndex] as DimensionValue
@@ -151,11 +149,6 @@ export class DataTable extends React.Component<{
 
             return value
         }
-    }
-
-    @computed private get displayRowsSorted() {
-        const { order } = this.tableState.sort
-        return orderBy(this.displayRows, this.sortValueMapper, [order])
     }
 
     @computed private get hasSubheaders() {
@@ -329,7 +322,7 @@ export class DataTable extends React.Component<{
     ) {
         const { sort } = this.tableState
         return (
-            <tr key={row.entity}>
+            <tr key={row.entityName}>
                 <td
                     key="entity"
                     className={classnames({
@@ -337,7 +330,7 @@ export class DataTable extends React.Component<{
                         sorted: sort.dimIndex === ENTITY_DIM_INDEX,
                     })}
                 >
-                    {row.entity}
+                    {row.entityName}
                 </td>
                 {row.dimensionValues.map((dv, dimIndex) => {
                     const dimension = dimensions[dimIndex]
@@ -358,7 +351,7 @@ export class DataTable extends React.Component<{
     }
 
     private get valueRows() {
-        return this.displayRows.map((row) =>
+        return this.sortedRows.map((row) =>
             this.renderEntityRow(row, this.displayDimensions)
         )
     }
@@ -368,8 +361,6 @@ export class DataTable extends React.Component<{
     }
 
     render() {
-        const { bounds } = this
-
         return (
             <div
                 style={{
@@ -406,7 +397,7 @@ export class DataTable extends React.Component<{
         )
             return undefined
 
-        const numEntitiesInTable = this.entities.length
+        const numEntitiesInTable = this.entityNames.length
 
         this.columnsToShow.forEach((column) => {
             const numberOfEntitiesWithDataSortedByTime = sortBy(
@@ -450,7 +441,7 @@ export class DataTable extends React.Component<{
         return this.columnsToShow.map((col) => col.slug)
     }
 
-    @computed get entities() {
+    @computed private get entityNames() {
         let tableForEntities = this.table.rootTable
         if (this.manager.minPopulationFilter)
             tableForEntities = tableForEntities.filterByPopulation(
@@ -645,17 +636,20 @@ export class DataTable extends React.Component<{
         }))
     }
 
-    @computed get displayRows(): DataTableRow[] {
-        const rows = this.entities.map((entity) => {
-            const dimensionValues = this.columnsWithValues.map((d) =>
-                d.valueByEntity.get(entity)
-            )
+    @computed private get sortedRows() {
+        const { order } = this.tableState.sort
+        return orderBy(this.displayRows, this.sortValueMapper, [order])
+    }
+
+    @computed private get displayRows(): DataTableRow[] {
+        return this.entityNames.map((entityName) => {
             return {
-                entity,
-                dimensionValues,
+                entityName,
+                dimensionValues: this.columnsWithValues.map((d) =>
+                    d.valueByEntity.get(entityName)
+                ),
             }
         })
-        return rows
     }
 }
 
@@ -801,6 +795,6 @@ interface DataTableDimension {
 }
 
 interface DataTableRow {
-    entity: string
+    entityName: EntityName
     dimensionValues: (DimensionValue | undefined)[] // TODO make it not undefined
 }
