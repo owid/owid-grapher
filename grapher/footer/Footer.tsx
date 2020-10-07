@@ -14,7 +14,7 @@ export class Footer extends React.Component<{
     manager: FooterManager
 }> {
     @computed private get maxWidth() {
-        return this.manager.maxWidth ?? 500
+        return this.manager.maxFooterWidth ?? 500
     }
 
     @computed private get manager() {
@@ -145,23 +145,11 @@ export class Footer extends React.Component<{
     renderStatic(targetX: number, targetY: number) {
         if (this.manager.isMediaCard) return null
 
-        const {
-            sources,
-            note,
-            license,
-            maxWidth,
-            isCompact,
-            paraMargin,
-            onSourcesClick,
-        } = this
+        const { sources, note, license, maxWidth, isCompact, paraMargin } = this
 
         return (
             <g className="SourcesFooter" style={{ fill: "#777" }}>
-                <g
-                    className="clickable"
-                    onClick={onSourcesClick}
-                    style={{ fill: "#777" }}
-                >
+                <g style={{ fill: "#777" }}>
                     {sources.render(targetX, targetY)}
                 </g>
                 {note.render(targetX, targetY + sources.height + paraMargin)}

@@ -13,8 +13,6 @@ import {
     ChartTypeName,
     GrapherTabOption,
 } from "grapher/core/GrapherConstants"
-import { FooterManager } from "grapher/footer/FooterManager"
-import { HeaderManager } from "grapher/header/HeaderManager"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
 import { ChartManager } from "./ChartManager"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
@@ -36,15 +34,14 @@ import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 
 export interface ChartTabManager
-    extends FooterManager,
-        HeaderManager,
-        ChartManager,
+    extends ChartManager,
         MapChartManager,
         SmallCountriesFilterManager,
         HighlightToggleManager,
         AbsRelToggleManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
+    fontSize?: number
     isExporting?: boolean
     tab?: GrapherTabOption
     type?: ChartTypeName
@@ -65,65 +62,11 @@ export interface ChartTabManager
 const ControlsRowHeight = 36
 
 @observer
-export class ChartTab
-    extends React.Component<{
-        manager: ChartTabManager
-    }>
-    implements FooterManager, HeaderManager {
-    @computed get fontSize() {
-        return this.manager.fontSize ?? BASE_FONT_SIZE
-    }
-
-    @computed get currentTitle() {
-        return this.manager.currentTitle ?? ""
-    }
-
-    @computed get subtitle() {
-        return this.manager.subtitle ?? ""
-    }
-
-    @computed get hideLogo() {
-        return !!this.manager.hideLogo
-    }
-
-    @computed get isNativeEmbed() {
-        return this.manager.isNativeEmbed
-    }
-
-    @computed get isMediaCard() {
-        return this.manager.isMediaCard
-    }
-
-    @computed get logo() {
-        return this.manager.logo
-    }
-
-    @computed get canonicalUrl() {
-        return this.manager.canonicalUrl
-    }
-
-    @computed get sourcesLine() {
-        return this.manager.sourcesLine
-    }
-
-    @computed get note() {
-        return this.manager.note
-    }
-
-    @computed get hasOWIDLogo() {
-        return this.manager.hasOWIDLogo
-    }
-
-    @computed get originUrlWithProtocol() {
-        return this.manager.originUrlWithProtocol
-    }
-
+export class ChartTab extends React.Component<{
+    manager: ChartTabManager
+}> {
     @computed private get paddedBounds() {
         return this.bounds.pad(15)
-    }
-
-    @computed get maxWidth() {
-        return this.paddedBounds.width
     }
 
     @computed private get bounds() {
@@ -139,11 +82,11 @@ export class ChartTab
     }
 
     @computed private get header() {
-        return new Header({ manager: this })
+        return new Header({ manager: this.manager })
     }
 
     @computed private get footer() {
-        return new Footer({ manager: this })
+        return new Footer({ manager: this.manager })
     }
 
     @computed private get isExporting() {
@@ -179,10 +122,6 @@ export class ChartTab
         return new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15)
     }
 
-    @computed private get isReady() {
-        return this.manager.isReady !== false
-    }
-
     // todo: should we remove this and not make a distinction between map and chart tabs?
     @computed private get isMapTab() {
         return this.manager.tab === GrapherTabOption.map
@@ -193,7 +132,7 @@ export class ChartTab
         const type = manager.type
         const innerBounds = this.innerBounds
 
-        if (!this.isReady)
+        if (!this.manager.isReady)
             return (
                 <foreignObject {...innerBounds.toProps()}>
                     <LoadingIndicator />
@@ -239,7 +178,7 @@ export class ChartTab
     @computed private get svgStyle() {
         return {
             fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.fontSize,
+            fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
             backgroundColor: "white",
             textRendering: "optimizeLegibility",
             WebkitFontSmoothing: "antialiased",
@@ -357,14 +296,14 @@ export class ChartTab
 
         return (
             <>
-                <Header manager={this} />
+                <Header manager={this.manager} />
                 {this.renderControlsRow()}
                 <div style={containerStyle}>
                     <svg className="chartTabForInteractive" {...this.svgProps}>
                         {this.renderChart()}
                     </svg>
                 </div>
-                <Footer manager={this} />
+                <Footer manager={this.manager} />
             </>
         )
     }

@@ -10,5 +10,5 @@ export interface FooterManager {
     isMediaCard?: boolean
     currentTab?: string
     tooltip?: TooltipProps
-    maxWidth?: number
+    maxFooterWidth?: number
 }

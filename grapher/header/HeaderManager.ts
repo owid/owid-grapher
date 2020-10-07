@@ -7,5 +7,5 @@ export interface HeaderManager {
     isMediaCard?: boolean
     logo?: string
     canonicalUrl?: string
-    maxWidth?: number
+    maxHeaderWidth?: number
 }

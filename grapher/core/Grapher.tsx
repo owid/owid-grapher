@@ -49,7 +49,7 @@ import {
     LegacyVariablesAndEntityKey,
 } from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
-import { OwidColumnSpec, OwidTable } from "coreTable/OwidTable"
+import { OwidColumnSpec, OwidTable, SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
 import {
     ChartDimension,
     LegacyDimensionsManager,
@@ -748,31 +748,31 @@ export class Grapher
     }
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
-    set currentTab(value) {
+    set currentTab(desiredTab) {
         if (this.tab === GrapherTabOption.chart)
             this.chartMinPopulationFilter = this.minPopulationFilter
         if (
             this.tab === GrapherTabOption.table &&
-            value !== GrapherTabOption.table
+            desiredTab !== GrapherTabOption.table
         )
             this.revertDataTableSpecificState()
 
         if (
-            value === GrapherTabOption.chart ||
-            value === GrapherTabOption.map ||
-            value === GrapherTabOption.table
+            desiredTab === GrapherTabOption.chart ||
+            desiredTab === GrapherTabOption.map ||
+            desiredTab === GrapherTabOption.table
         ) {
-            this.tab = value
+            this.tab = desiredTab
             this.overlay = undefined
         } else {
             // table tab cannot be downloaded, so revert to default tab
             if (
-                value === GrapherTabOption.download &&
+                desiredTab === GrapherTabOption.download &&
                 this.tab === GrapherTabOption.table
             )
                 this.tab =
                     this.legacyConfigAsAuthored.tab || GrapherTabOption.chart
-            this.overlay = value
+            this.overlay = desiredTab
         }
     }
 
@@ -1905,9 +1905,34 @@ export class Grapher
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
     @observable hideEntityControls = false
+
+    @computed private get maxChartWidth() {
+        return this.tabBounds.pad(15).width
+    }
+
+    @computed get maxFooterWidth() {
+        return this.maxChartWidth
+    }
+
+    @computed get maxHeaderWidth() {
+        return this.maxChartWidth
+    }
 }
 
 const defaultObject = objectWithPersistablesToObject(
     new Grapher(),
     grapherKeysToSerialize
 )
+
+export const TestGrapherConfig = () => {
+    return {
+        table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
+        dimensions: [
+            {
+                slug: SampleColumnSlugs.GDP,
+                property: DimensionProperty.y,
+                variableId: SampleColumnSlugs.GDP as any,
+            },
+        ],
+    }
+}
