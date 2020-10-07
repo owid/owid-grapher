@@ -66,7 +66,10 @@ const ControlsRowHeight = 36
 interface CaptionedChartProps {
     manager: CaptionedChartManager
     bounds?: Bounds
+    maxWidth?: number
 }
+
+const CHART_BOTTOM_PADDING = 25 // todo: what is this?
 
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
@@ -79,22 +82,27 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get header() {
-        return new Header({ manager: this.manager })
+        return new Header({
+            manager: this.manager,
+            maxWidth: this.props.maxWidth,
+        })
     }
 
     @computed protected get footer() {
-        return new Footer({ manager: this.manager })
+        return new Footer({
+            manager: this.manager,
+            maxWidth: this.props.maxWidth,
+        })
     }
 
     @computed protected get chartHeight() {
         const controlsRowHeight = this.controls.length ? ControlsRowHeight : 0
-        const someRandomConstant = 25 // todo: what is this?
         return (
             this.bounds.height -
             this.header.height -
             controlsRowHeight -
             this.footer.height -
-            someRandomConstant
+            CHART_BOTTOM_PADDING
         )
     }
 
@@ -283,11 +291,16 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
+    // We add some padding around the SVG
+    @computed private get paddedBounds() {
+        return this.bounds.pad(15)
+    }
+
     // The bounds for the middle chart part
     @computed protected get boundsForChart() {
-        const bounds = this.bounds
+        const bounds = this.paddedBounds
             .padTop(this.header.height)
-            .padBottom(this.footer.height)
+            .padBottom(this.footer.height + CHART_BOTTOM_PADDING)
             .padTop(18) // todo: what is the 18 padding?
         if (this.manager.type === ChartTypeName.SlopeChart)
             return bounds.padBottom(15) // Todo: this should be in SlopeChart class.
@@ -295,7 +308,7 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     render() {
-        const bounds = this.bounds
+        const { bounds, paddedBounds } = this
         const { width, height } = bounds
 
         return (
@@ -305,11 +318,11 @@ export class StaticCaptionedChart extends CaptionedChart {
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
             >
-                {this.header.renderStatic(bounds.x, bounds.y)}
+                {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
                 {this.renderChart()}
                 {this.footer.renderStatic(
-                    bounds.x,
-                    bounds.bottom - this.footer.height
+                    paddedBounds.x,
+                    paddedBounds.bottom - this.footer.height
                 )}
             </svg>
         )

@@ -11,7 +11,7 @@ import { OwidTable } from "coreTable/OwidTable"
 
 export interface DownloadTabManager {
     idealBounds?: Bounds
-    toRuntimeStaticSvg: () => string
+    staticSVG: string
     displaySlug: string
     baseUrl?: string
     queryStr?: string
@@ -91,7 +91,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
     }
 
     @action.bound private createSvg() {
-        const staticSVG = this.manager.toRuntimeStaticSvg()
+        const staticSVG = this.manager.staticSVG
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8",
         })

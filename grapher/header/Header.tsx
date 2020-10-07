@@ -5,10 +5,12 @@ import { observer } from "mobx-react"
 import { Logo } from "grapher/captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 
 @observer
 export class Header extends React.Component<{
     manager: HeaderManager
+    maxWidth?: number
 }> {
     @computed private get manager() {
         return this.props.manager
@@ -19,7 +21,7 @@ export class Header extends React.Component<{
     }
 
     @computed private get maxWidth() {
-        return this.manager.tabBounds?.width ?? 500
+        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed private get titleText() {

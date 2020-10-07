@@ -1126,16 +1126,13 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    // This captures the user's current state for a WYSIWYG export
-    @action.bound toRuntimeStaticSvg() {
+    get staticSVG() {
         return ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart manager={this} />
-        )
-    }
-
-    @computed get staticSVG() {
-        return ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
+            <StaticCaptionedChart
+                manager={this}
+                bounds={this.idealBounds}
+                maxWidth={this.idealBounds.width - 30}
+            />
         )
     }
 

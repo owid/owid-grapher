@@ -3,7 +3,7 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import { TextWrap } from "grapher/text/TextWrap"
-import { Bounds } from "grapher/utils/Bounds"
+import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { getRelativeMouse } from "grapher/utils/Util"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { BASE_FONT_SIZE, GrapherTabOption } from "grapher/core/GrapherConstants"
@@ -12,9 +12,10 @@ import { FooterManager } from "./FooterManager"
 @observer
 export class Footer extends React.Component<{
     manager: FooterManager
+    maxWidth?: number
 }> {
     @computed private get maxWidth() {
-        return this.manager.tabBounds?.width ?? 500
+        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed private get manager() {
