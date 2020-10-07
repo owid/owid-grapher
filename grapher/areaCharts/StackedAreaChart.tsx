@@ -20,7 +20,7 @@ import {
     LineLegend,
     LineLegendManager,
 } from "grapher/lineLegend/LineLegend"
-import { NoDataModal } from "grapher/chart/NoDataModal"
+import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"

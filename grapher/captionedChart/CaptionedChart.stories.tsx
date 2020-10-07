@@ -6,16 +6,20 @@ import {
 } from "grapher/core/GrapherConstants"
 import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import * as React from "react"
-import { ChartTab, ChartTabManager, StaticChartTab } from "./ChartTab"
+import {
+    CaptionedChart,
+    CaptionedChartManager,
+    StaticCaptionedChart,
+} from "./CaptionedChart"
 
 export default {
-    title: "ChartTab",
-    component: ChartTab,
+    title: "CaptionedChart",
+    component: CaptionedChart,
 }
 
 const table = SynthesizeGDPTable({ entityCount: 5 }).selectAll()
 
-const manager: ChartTabManager = {
+const manager: CaptionedChartManager = {
     tabBounds: DEFAULT_BOUNDS,
     table,
     currentTitle: "This is the Title",
@@ -25,11 +29,11 @@ const manager: ChartTabManager = {
     isReady: true,
 }
 
-export const LineChart = () => <ChartTab manager={manager} />
+export const LineChart = () => <CaptionedChart manager={manager} />
 
 export const StaticLineChartForExport = () => {
     return (
-        <StaticChartTab
+        <StaticCaptionedChart
             manager={{
                 ...manager,
                 isStaticSvg: true,
@@ -39,10 +43,10 @@ export const StaticLineChartForExport = () => {
 }
 
 export const MapChart = () => (
-    <ChartTab manager={{ ...manager, tab: GrapherTabOption.map }} />
+    <CaptionedChart manager={{ ...manager, tab: GrapherTabOption.map }} />
 )
 export const StackedArea = () => (
-    <ChartTab
+    <CaptionedChart
         manager={{
             ...manager,
             type: ChartTypeName.StackedArea,
@@ -51,7 +55,7 @@ export const StackedArea = () => (
     />
 )
 export const Scatter = () => (
-    <ChartTab
+    <CaptionedChart
         manager={{
             ...manager,
             type: ChartTypeName.ScatterPlot,

@@ -11,10 +11,8 @@ import { OwidTable } from "coreTable/OwidTable"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 
-// NB: Traditionally you would simply have an "Options" class. However, in order to enable our "Reactivity" with Mobx, we term
-// our Options as a "Manager". To get or set any of the options, you then have to "dot in" to the manager
-// instance. By "dotting in" Mobx will track the reads or trigger actions on writes. You can still also just create plain
-// vanilla JS options objects to easily make static charts (without reactivity).
+// The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
+
 export interface ChartManager {
     baseFontSize?: number
     table: OwidTable // todo: abstract table?

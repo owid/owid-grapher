@@ -23,7 +23,7 @@ import {
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { NoDataModal } from "grapher/chart/NoDataModal"
+import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
     ScaleType,

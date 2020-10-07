@@ -1,5 +1,7 @@
 #! /usr/bin/env yarn jest
 
+// todo: remove this when we remove chartDimension
+
 import { ChartDimension } from "./ChartDimension"
 import { OwidTable } from "coreTable/OwidTable"
 import { DimensionProperty } from "grapher/core/GrapherConstants"

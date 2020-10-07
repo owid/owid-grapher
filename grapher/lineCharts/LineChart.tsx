@@ -24,7 +24,7 @@ import {
 } from "grapher/lineLegend/LineLegend"
 import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { NoDataModal } from "grapher/chart/NoDataModal"
+import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import { EntityName } from "coreTable/CoreTableConstants"
 import {

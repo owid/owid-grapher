@@ -13,7 +13,7 @@ import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
 } from "grapher/axis/AxisViews"
-import { NoDataModal } from "grapher/chart/NoDataModal"
+import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ChartInterface } from "grapher/chart/ChartInterface"

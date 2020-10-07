@@ -95,7 +95,7 @@ import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
-import { LogoOption } from "grapher/chart/Logos"
+import { LogoOption } from "grapher/captionedChart/Logos"
 import { AxisConfig, FontSizeManager } from "grapher/axis/AxisConfig"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { MapConfig } from "grapher/mapCharts/MapConfig"
@@ -126,11 +126,6 @@ import {
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import {
-    ChartTab,
-    ChartTabManager,
-    StaticChartTab,
-} from "grapher/chart/ChartTab"
 import { SourcesTab, SourcesTabManager } from "grapher/sourcesTab/SourcesTab"
 import { DataTable } from "grapher/dataTable/DataTable"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
@@ -138,6 +133,11 @@ import { DiscreteBarChartManager } from "grapher/barCharts/DiscreteBarChartConst
 import { Command, CommandPalette } from "grapher/controls/CommandPalette"
 import { ShareMenuManager } from "grapher/controls/ShareMenu"
 import { TimelineComponentManager } from "grapher/timeline/TimelineComponent"
+import {
+    CaptionedChart,
+    CaptionedChartManager,
+    StaticCaptionedChart,
+} from "grapher/captionedChart/CaptionedChart"
 
 declare const window: any
 
@@ -179,7 +179,7 @@ export class Grapher
         TimelineComponentManager,
         ChartManager,
         FontSizeManager,
-        ChartTabManager,
+        CaptionedChartManager,
         SourcesTabManager,
         DownloadTabManager,
         DiscreteBarChartManager,
@@ -1127,13 +1127,13 @@ export class Grapher
     // This captures the user's current state for a WYSIWYG export
     @action.bound toRuntimeStaticSvg() {
         return ReactDOMServer.renderToStaticMarkup(
-            <StaticChartTab manager={this} />
+            <StaticCaptionedChart manager={this} />
         )
     }
 
     @computed get staticSVG() {
         return ReactDOMServer.renderToStaticMarkup(
-            <StaticChartTab manager={this} bounds={this.idealBounds} />
+            <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
         )
     }
 
@@ -1333,7 +1333,7 @@ export class Grapher
             this.primaryTab === GrapherTabOption.chart ||
             this.primaryTab === GrapherTabOption.map
         )
-            return <ChartTab manager={this} />
+            return <CaptionedChart manager={this} />
 
         const { tabBounds } = this
         if (this.primaryTab === GrapherTabOption.table)

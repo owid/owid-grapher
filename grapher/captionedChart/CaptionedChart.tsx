@@ -1,19 +1,17 @@
-// The ChartTab renders a Header and Footer as well as any chart, including the Map chart.
-// NB: If you want to create a LineChart with a Header and Footer, probably better to do that directly and not through this class.
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
-import { getChartComponent } from "./ChartTypeMap"
+import { getChartComponent } from "grapher/chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
     GrapherTabOption,
 } from "grapher/core/GrapherConstants"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
-import { ChartManager } from "./ChartManager"
+import { ChartManager } from "grapher/chart/ChartManager"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
 import { FacetChart } from "grapher/facetChart/FacetChart"
 import { faExchangeAlt } from "@fortawesome/free-solid-svg-icons/faExchangeAlt"
@@ -34,7 +32,7 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "grapher/footer/FooterManager"
 import { HeaderManager } from "grapher/header/HeaderManager"
 
-export interface ChartTabManager
+export interface CaptionedChartManager
     extends ChartManager,
         MapChartManager,
         SmallCountriesFilterManager,
@@ -65,21 +63,13 @@ export interface ChartTabManager
 
 const ControlsRowHeight = 36
 
-interface ChartTabProps {
-    manager: ChartTabManager
+interface CaptionedChartProps {
+    manager: CaptionedChartManager
     bounds?: Bounds
 }
 
-/*
-This is our component that is like a chart sandwich:
-[Header]
-[Controls (optional)]
-[Chart (meat)]
-[Footer]
-*/
-
 @observer
-export class ChartTab extends React.Component<ChartTabProps> {
+export class CaptionedChart extends React.Component<CaptionedChartProps> {
     @computed protected get manager() {
         return this.props.manager
     }
@@ -291,8 +281,8 @@ export class ChartTab extends React.Component<ChartTabProps> {
 }
 
 @observer
-export class StaticChartTab extends ChartTab {
-    constructor(props: ChartTabProps) {
+export class StaticCaptionedChart extends CaptionedChart {
+    constructor(props: CaptionedChartProps) {
         super(props)
     }
 

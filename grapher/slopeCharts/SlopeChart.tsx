@@ -17,7 +17,7 @@ import {
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { NoDataModal } from "grapher/chart/NoDataModal"
+import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
     VerticalColorLegend,
     VerticalColorLegendManager,

@@ -10,7 +10,7 @@ import {
     AxisTickMarks,
     VerticalAxisGridLines,
 } from "grapher/axis/AxisViews"
-import { NoDataModal } from "grapher/chart/NoDataModal"
+import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { Text } from "grapher/text/Text"
 import {
     VerticalColorLegend,

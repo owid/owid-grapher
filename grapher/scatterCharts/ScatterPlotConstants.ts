@@ -2,7 +2,7 @@ import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { NoDataModalManager } from "grapher/chart/NoDataModal"
+import { NoDataModalManager } from "grapher/noDataModal/NoDataModal"
 import { ColorScale } from "grapher/color/ColorScale"
 import {
     ScatterPointLabelStrategy,

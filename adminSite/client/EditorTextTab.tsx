@@ -12,7 +12,7 @@ import {
     TextField,
     Button,
 } from "./Forms"
-import { LogoOption } from "grapher/chart/Logos"
+import { LogoOption } from "grapher/captionedChart/Logos"
 import slugify from "slugify"
 import { RelatedQuestionsConfig } from "grapher/core/GrapherConstants"
 import { getErrorMessageRelatedQuestionUrl } from "grapher/utils/Util"
