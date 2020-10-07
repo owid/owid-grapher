@@ -8,7 +8,7 @@ import * as db from "db/db"
 import { CLOUDFLARE_AUD, SECRET_KEY, SESSION_COOKIE_AGE } from "serverSettings"
 import { JsonError } from "utils/server/serverUtil"
 import fetch from "node-fetch"
-import { verify } from "jsonwebtoken"
+import { Secret, verify } from "jsonwebtoken"
 import { ENV } from "settings"
 
 export type CurrentUser = User
@@ -49,37 +49,51 @@ export async function authCloudflareSSOMiddleware(
     const certsUrl = "https://owid.cloudflareaccess.com/cdn-cgi/access/certs"
     const response = await fetch(certsUrl)
     const certs = await response.json()
-    const publicCert = certs.public_cert.cert
-    if (!publicCert) {
-        console.error("Missing public certificate from Cloudflare.")
+    const publicCerts = certs.public_certs
+    if (!publicCerts) {
+        console.error("Missing public certificates from Cloudflare.")
         return next()
     }
     // Verify the JWT token
-    verify(
-        jwt,
-        publicCert,
-        { audience: audTag, algorithms: ["RS256"] },
-        async (err: any, payload: any) => {
-            if (err) {
-                // Authorization token invalid: verification failed, token expired or wrong audience.
-                console.error(err)
-                return next()
-            }
-            const user = await User.findOne({ email: payload.email })
-            if (!user) {
-                return next("User not found. Please contact an administrator.")
-            }
-
-            // Authenticate as the user stored in the token
-            const { id: sessionId } = await logInAsUser(user)
-            res.cookie("sessionid", sessionId, {
-                httpOnly: true,
-                sameSite: "lax",
-                secure: ENV === "production",
+    let certVerificationErr
+    let payload: any
+    const verified = publicCerts.some((certObj: { cert: Secret }) => {
+        try {
+            payload = verify(jwt, certObj.cert, {
+                audience: audTag,
+                algorithms: ["RS256"],
             })
-            return res.redirect("/admin")
+            return true
+        } catch (err) {
+            certVerificationErr = err
         }
-    )
+        return false
+    })
+
+    if (!verified) {
+        // Authorization token invalid: verification failed, token expired or wrong audience.
+        console.error(certVerificationErr)
+        return next()
+    }
+
+    if (!payload.email) {
+        console.error("Missing email in JWT claims.")
+        return next
+    }
+
+    const user = await User.findOne({ email: payload.email })
+    if (!user) {
+        return next("User not found. Please contact an administrator.")
+    }
+
+    // Authenticate as the user stored in the token
+    const { id: sessionId } = await logInAsUser(user)
+    res.cookie("sessionid", sessionId, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: ENV === "production",
+    })
+    return res.redirect("/admin")
 }
 
 export async function logOut(

@@ -40,15 +40,22 @@ function auth_cloudflare_sso($user, $username, $password)
     $certsUrl = "https://owid.cloudflareaccess.com/cdn-cgi/access/certs";
     $response = file_get_contents($certsUrl);
     $certs = json_decode($response);
-    $publicCert = $certs->public_cert->cert;
-    if (empty($publicCert)) {
-        error_log("Missing public certificate from Cloudflare.");
+    $publicCerts = $certs->public_certs;
+    if (empty($publicCerts)) {
+        error_log("Missing public certificates from Cloudflare.");
         return;
     }
 
-    $key = new Key($publicCert);
     $signer = new Sha256();
-    if (!$token->verify($signer, $key)) {
+    $verified = false;
+    foreach ($publicCerts as $publicCert) {
+        $key = new Key($publicCert->cert);
+        if ($token->verify($signer, $key)) {
+            $verified = true;
+            break;
+        }
+    }
+    if (!$verified) {
         error_log("Token verification failed.");
         return;
     }
