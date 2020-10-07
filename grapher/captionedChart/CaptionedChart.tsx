@@ -86,13 +86,13 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return new Footer({ manager: this.manager })
     }
 
-    @computed protected get height() {
-        const controlsHeight = this.controls.length ? ControlsRowHeight : 0
+    @computed protected get chartHeight() {
+        const controlsRowHeight = this.controls.length ? ControlsRowHeight : 0
         const someRandomConstant = 25 // todo: what is this?
         return (
             this.bounds.height -
             this.header.height -
-            controlsHeight -
+            controlsRowHeight -
             this.footer.height -
             someRandomConstant
         )
@@ -107,13 +107,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
-    @computed protected get initialBounds() {
-        return new Bounds(0, 0, this.bounds.width, this.height).padWidth(15) // todo: why do we pad by 15?
-    }
-
     // The bounds for the middle chart part
-    @computed private get boundsForChart() {
-        const bounds = this.initialBounds.padTop(18) // todo: what is the 18 padding?
+    @computed protected get boundsForChart() {
+        // Todo: what is the 15 width padding?
+        const bounds = new Bounds(0, 0, this.bounds.width, this.chartHeight)
+            .padWidth(15)
+            .padTop(18) // todo: what is the 18 padding?
         if (this.manager.type === ChartTypeName.SlopeChart)
             return bounds.padBottom(15) // Todo: this should be in SlopeChart class.
         return bounds
@@ -233,6 +232,9 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     render() {
+        const { bounds, chartHeight } = this
+        const { width } = bounds
+
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
@@ -243,7 +245,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 <Header manager={this.manager} />
                 {this.renderControlsRow()}
                 <div style={containerStyle}>
-                    <svg {...this.svgProps}>
+                    <svg
+                        {...this.svgProps}
+                        width={width}
+                        height={chartHeight}
+                        viewBox={`0 0 ${width} ${chartHeight}`}
+                    >
                         {this.manager.isReady
                             ? this.renderChart()
                             : this.renderLoadingIndicator()}
@@ -254,28 +261,18 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         )
     }
 
-    @computed protected get width() {
-        return this.bounds.width
-    }
-
     @computed protected get svgProps() {
-        const { height, width } = this
-
-        const style = {
-            fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
-            backgroundColor: "white",
-            textRendering: "optimizeLegibility" as any,
-            WebkitFontSmoothing: "antialiased",
-        }
-
         return {
             xmlns: "http://www.w3.org/2000/svg",
             version: "1.1",
-            style,
-            width,
-            height,
-            viewBox: `0 0 ${width} ${height}`,
+            style: {
+                fontFamily:
+                    "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
+                backgroundColor: "white",
+                textRendering: "optimizeLegibility" as any,
+                WebkitFontSmoothing: "antialiased",
+            },
         }
     }
 }
@@ -286,20 +283,28 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
-    @computed protected get height() {
-        return this.bounds.height
-    }
-
-    @computed protected get initialBounds() {
-        return this.bounds
+    // The bounds for the middle chart part
+    @computed protected get boundsForChart() {
+        const bounds = this.bounds
             .padTop(this.header.height)
             .padBottom(this.footer.height)
+            .padTop(18) // todo: what is the 18 padding?
+        if (this.manager.type === ChartTypeName.SlopeChart)
+            return bounds.padBottom(15) // Todo: this should be in SlopeChart class.
+        return bounds
     }
 
     render() {
         const bounds = this.bounds
+        const { width, height } = bounds
+
         return (
-            <svg {...this.svgProps}>
+            <svg
+                {...this.svgProps}
+                width={width}
+                height={height}
+                viewBox={`0 0 ${width} ${height}`}
+            >
                 {this.header.renderStatic(bounds.x, bounds.y)}
                 {this.renderChart()}
                 {this.footer.renderStatic(

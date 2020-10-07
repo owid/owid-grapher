@@ -114,6 +114,7 @@ import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExcla
 import {
     AbsRelToggleManager,
     FooterControls,
+    FooterControlsManager,
     HighlightToggleManager,
     SmallCountriesFilterManager,
 } from "grapher/controls/Controls"
@@ -190,6 +191,7 @@ export class Grapher
         HighlightToggleManager,
         AbsRelToggleManager,
         TooltipManager,
+        FooterControlsManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref isExplorable = false
@@ -1290,8 +1292,8 @@ export class Grapher
     @computed get tabBounds() {
         const bounds = new Bounds(0, 0, this.renderWidth, this.renderHeight)
         return this.isExporting
-            ? bounds.padBottom(this.footerControlsHeight)
-            : bounds
+            ? bounds
+            : bounds.padBottom(this.footerControlsHeight)
     }
 
     @observable.ref private popups: VNode[] = []

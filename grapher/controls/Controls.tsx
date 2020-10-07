@@ -209,7 +209,7 @@ export interface FooterControlsManager
     hasTimeline?: boolean
     hasRelatedQuestion?: boolean
     relatedQuestions: RelatedQuestionsConfig[]
-    footerHeight?: number
+    footerControlsHeight?: number
 }
 
 @observer
@@ -347,7 +347,7 @@ export class FooterControls extends React.Component<{
         return (
             <div
                 className={"ControlsFooter"}
-                style={{ height: manager.footerHeight ?? 1 }}
+                style={{ height: manager.footerControlsHeight ?? 1 }}
             >
                 {this.timeline}
                 {tabsElement}
