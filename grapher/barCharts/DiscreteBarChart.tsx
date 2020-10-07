@@ -244,7 +244,7 @@ export class DiscreteBarChart
                 <HorizontalAxisComponent
                     maxX={maxX}
                     bounds={bounds}
-                    isInteractive={this.manager.isInteractive}
+                    isInteractive={!this.manager.isStaticSvg}
                     axis={axis}
                     axisPosition={innerBounds.bottom}
                 />

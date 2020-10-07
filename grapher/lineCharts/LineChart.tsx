@@ -408,11 +408,13 @@ export class LineChart
         unknown
     >
     componentDidMount() {
-        // Fancy intro animation
+        if (!this.manager.isStaticSvg) this.runFancyIntroAnimation()
+    }
 
-        const base = select(this.base.current)
-        this.animSelection = base.selectAll("clipPath > rect").attr("width", 0)
-
+    private runFancyIntroAnimation() {
+        this.animSelection = select(this.base.current)
+            .selectAll("clipPath > rect")
+            .attr("width", 0)
         this.animSelection
             .transition()
             .duration(800)
@@ -472,7 +474,7 @@ export class LineChart
                     </clipPath>
                 </defs>
                 <DualAxisComponent
-                    isInteractive={this.manager.isInteractive}
+                    isInteractive={!manager.isStaticSvg}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />
@@ -488,10 +490,10 @@ export class LineChart
                     <Lines
                         dualAxis={dualAxis}
                         placedMarks={this.placedMarks}
-                        hidePoints={this.manager.hidePoints}
+                        hidePoints={manager.hidePoints}
                         onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
-                        lineStrokeWidth={this.manager.lineStrokeWidth}
+                        lineStrokeWidth={manager.lineStrokeWidth}
                     />
                 </g>
                 {hoverX !== undefined && (

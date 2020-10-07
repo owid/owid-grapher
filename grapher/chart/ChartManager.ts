@@ -20,7 +20,7 @@ export interface ChartManager {
     table: OwidTable // todo: abstract table?
     isSelectingData?: boolean
     startSelectingWhenLineClicked?: boolean // used by lineLabels
-    isInteractive?: boolean
+    isStaticSvg?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     hideLegend?: boolean

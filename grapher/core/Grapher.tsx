@@ -108,8 +108,6 @@ import {
 import { EntityId, EntityName } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { FooterManager } from "grapher/footer/FooterManager"
-import { HeaderManager } from "grapher/header/HeaderManager"
 import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons/faExclamationTriangle"
@@ -128,7 +126,11 @@ import {
 import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
-import { ChartTab, ChartTabManager } from "grapher/chart/ChartTab"
+import {
+    ChartTab,
+    ChartTabManager,
+    StaticChartTab,
+} from "grapher/chart/ChartTab"
 import { SourcesTab, SourcesTabManager } from "grapher/sourcesTab/SourcesTab"
 import { DataTable } from "grapher/dataTable/DataTable"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
@@ -176,8 +178,6 @@ export class Grapher
     implements
         TimelineComponentManager,
         ChartManager,
-        FooterManager,
-        HeaderManager,
         FontSizeManager,
         ChartTabManager,
         SourcesTabManager,
@@ -191,15 +191,15 @@ export class Grapher
         AbsRelToggleManager,
         TooltipManager,
         MapChartManager {
-    @observable.ref type: ChartTypeName = ChartTypeName.LineChart
-    @observable.ref isExplorable: boolean = false
+    @observable.ref type = ChartTypeName.LineChart
+    @observable.ref isExplorable = false
     @observable.ref id?: number = undefined
-    @observable.ref version: number = 1
+    @observable.ref version = 1
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
-    @observable.ref subtitle: string = ""
+    @observable.ref subtitle = ""
     @observable.ref sourceDesc?: string = undefined
-    @observable.ref note: string = ""
+    @observable.ref note = ""
     @observable.ref hideTitleAnnotation?: true = undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
@@ -211,9 +211,9 @@ export class Grapher
     @observable.ref hideLegend?: true = undefined
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
-    @observable.ref hideRelativeToggle?: boolean = true
-    @observable.ref entityType: string = "country"
-    @observable.ref entityTypePlural: string = "countries"
+    @observable.ref hideRelativeToggle? = true
+    @observable.ref entityType = "country"
+    @observable.ref entityTypePlural = "countries"
     @observable.ref hideTimeline?: true = undefined
     @observable.ref zoomToSelection?: true = undefined
     @observable.ref minPopulationFilter?: number = undefined
@@ -222,9 +222,9 @@ export class Grapher
     @observable.ref hasMapTab: boolean = false
     @observable.ref tab = GrapherTabOption.chart
     @observable.ref overlay?: GrapherTabOption = undefined
-    @observable.ref internalNotes: string = ""
+    @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
-    @observable.ref originUrl: string = ""
+    @observable.ref originUrl = ""
     @observable.ref isPublished?: true = undefined
     @observable.ref baseColorScheme?: string = undefined
     @observable.ref invertColorScheme?: true = undefined
@@ -442,8 +442,8 @@ export class Grapher
     @observable isPlaying = false
     @observable.ref isSelectingData = false
 
-    @computed get isInteractive() {
-        return !this.isExporting
+    @computed get isStaticSvg() {
+        return this.isExporting
     }
 
     @computed get editUrl() {
@@ -1030,6 +1030,13 @@ export class Grapher
         return this.toObject()
     }
 
+    @computed get constrainedType() {
+        // Switch to bar chart if a single year is selected. Todo: do we want to do this?
+        return this.type === ChartTypeName.LineChart && this.isSingleTime
+            ? ChartTypeName.DiscreteBar
+            : this.type
+    }
+
     @computed get isLineChart() {
         return this.type === ChartTypeName.LineChart
     }
@@ -1117,14 +1124,16 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    // todo: we need this to be fast, and
+    // This captures the user's current state for a WYSIWYG export
+    @action.bound toRuntimeStaticSvg() {
+        return ReactDOMServer.renderToStaticMarkup(
+            <StaticChartTab manager={this} />
+        )
+    }
+
     @computed get staticSVG() {
         return ReactDOMServer.renderToStaticMarkup(
-            <ChartTab
-                manager={this}
-                isExporting={true}
-                bounds={this.idealBounds}
-            />
+            <StaticChartTab manager={this} bounds={this.idealBounds} />
         )
     }
 
@@ -1238,7 +1247,7 @@ export class Grapher
     }
 
     // If the available space is very small, we use all of the space given to us
-    @computed private get fitBounds() {
+    @computed private get useIdealBounds() {
         const {
             isEditor,
             isEmbed,
@@ -1248,56 +1257,41 @@ export class Grapher
             authorHeight,
         } = this
 
-        if (isEditor) return false
+        if (isEditor) return true
+        if (isEmbed) return false
+        if (isExporting) return false // If the user is using interactive version and then goes to export chart, use current bounds to maintain WSYIWYG
+        if (bounds.height < authorHeight || bounds.width < authorWidth)
+            return false
 
-        return (
-            isEmbed ||
-            isExporting ||
-            bounds.height < authorHeight ||
-            bounds.width < authorWidth
-        )
+        return true
     }
 
     // If we have a big screen to be in, we can define our own aspect ratio and sit in the center
-    @computed private get paddedWidth() {
-        return this.isPortrait
-            ? this.bounds.width * 0.95
-            : this.bounds.width * 0.95
-    }
-    @computed private get paddedHeight() {
-        return this.isPortrait
-            ? this.bounds.height * 0.95
-            : this.bounds.height * 0.95
-    }
     @computed private get scaleToFitIdeal() {
         return Math.min(
-            this.paddedWidth / this.authorWidth,
-            this.paddedHeight / this.authorHeight
+            (this.bounds.width * 0.95) / this.authorWidth,
+            (this.bounds.height * 0.95) / this.authorHeight
         )
-    }
-    @computed private get idealWidth() {
-        return this.authorWidth * this.scaleToFitIdeal
-    }
-    @computed private get idealHeight() {
-        return this.authorHeight * this.scaleToFitIdeal
     }
 
     // These are the final render dimensions
+    // Todo: add explanation around why isExporting removes 5 px
     @computed private get renderWidth() {
-        return this.fitBounds
-            ? this.bounds.width - (this.isExporting ? 0 : 5)
-            : this.idealWidth
+        return this.useIdealBounds
+            ? this.authorWidth * this.scaleToFitIdeal
+            : this.bounds.width - (this.isExporting ? 0 : 5)
     }
     @computed private get renderHeight() {
-        return this.fitBounds
-            ? this.bounds.height - (this.isExporting ? 0 : 5)
-            : this.idealHeight
+        return this.useIdealBounds
+            ? this.authorHeight * this.scaleToFitIdeal
+            : this.bounds.height - (this.isExporting ? 0 : 5)
     }
 
     @computed get tabBounds() {
-        return new Bounds(0, 0, this.renderWidth, this.renderHeight).padBottom(
-            this.isExporting ? 0 : this.footerHeight
-        )
+        const bounds = new Bounds(0, 0, this.renderWidth, this.renderHeight)
+        return this.isExporting
+            ? bounds.padBottom(this.footerControlsHeight)
+            : bounds
     }
 
     @observable.ref private popups: VNode[] = []
@@ -1343,6 +1337,7 @@ export class Grapher
 
         const { tabBounds } = this
         if (this.primaryTab === GrapherTabOption.table)
+            // todo: should this "Div" and styling just be in DataTable class?
             return (
                 <div
                     className="tableTab"
@@ -1610,9 +1605,10 @@ export class Grapher
     }
 
     @action.bound private setBaseFontSize() {
-        if (this.renderWidth <= 400) this.baseFontSize = 14
-        else if (this.renderWidth < 1080) this.baseFontSize = 16
-        else if (this.renderWidth >= 1080) this.baseFontSize = 18
+        const { renderWidth } = this
+        if (renderWidth <= 400) this.baseFontSize = 14
+        else if (renderWidth < 1080) this.baseFontSize = 16
+        else if (renderWidth >= 1080) this.baseFontSize = 18
     }
 
     // Binds chart properties to global window title and URL. This should only
@@ -1671,29 +1667,25 @@ export class Grapher
 
     @observable isShareMenuActive = false
 
-    @computed get hasSpace() {
-        return this.renderWidth > 700
-    }
-
     @computed get hasRelatedQuestion() {
         if (!this.relatedQuestions.length) return false
         const question = this.relatedQuestions[0]
         return !!question && !!question.text && !!question.url
     }
 
-    @computed private get footerLines() {
+    @computed private get footerControlsLines() {
         return this.hasTimeline ? 2 : 1
     }
 
-    @computed get footerHeight() {
+    @computed get footerControlsHeight() {
         const footerRowHeight = 32 // todo: cleanup. needs to keep in sync with grapher.scss' $footerRowHeight
         return (
-            this.footerLines * footerRowHeight +
+            this.footerControlsLines * footerRowHeight +
             (this.hasRelatedQuestion ? 20 : 0)
         )
     }
 
-    debounceMode: boolean = false
+    debounceMode = false
 
     @computed.struct private get allParams() {
         const params: GrapherQueryParams = {}
@@ -1910,25 +1902,6 @@ export class Grapher
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
     @observable hideEntityControls = false
-
-    @computed private get maxChartWidth() {
-        return this.tabBounds.pad(15).width
-    }
-
-    @computed get maxFooterWidth() {
-        return this.maxChartWidth
-    }
-
-    @computed get maxHeaderWidth() {
-        return this.maxChartWidth
-    }
-
-    @action.bound toStaticSvg() {
-        this.isExporting = true // Todo: cleanup this "isExporting" stuff. Add tests.
-        const staticSVG = this.staticSVG ?? ""
-        this.isExporting = false
-        return staticSVG
-    }
 }
 
 const defaultObject = objectWithPersistablesToObject(

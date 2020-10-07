@@ -14,7 +14,7 @@ export class Footer extends React.Component<{
     manager: FooterManager
 }> {
     @computed private get maxWidth() {
-        return this.manager.maxFooterWidth ?? 500
+        return this.manager.tabBounds?.width ?? 500
     }
 
     @computed private get manager() {

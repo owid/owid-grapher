@@ -344,7 +344,7 @@ export class ScatterPlot
         return (
             <g className="ScatterPlot">
                 <DualAxisComponent
-                    isInteractive={manager.isInteractive}
+                    isInteractive={!manager.isStaticSvg}
                     dualAxis={dualAxis}
                     showTickMarks={false}
                 />

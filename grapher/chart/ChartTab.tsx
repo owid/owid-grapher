@@ -7,7 +7,6 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
 import { getChartComponent } from "./ChartTypeMap"
-import { MapChart } from "grapher/mapCharts/MapChart"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
@@ -32,21 +31,26 @@ import {
 import { ScaleSelector } from "grapher/controls/ScaleSelector"
 import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
+import { FooterManager } from "grapher/footer/FooterManager"
+import { HeaderManager } from "grapher/header/HeaderManager"
 
 export interface ChartTabManager
     extends ChartManager,
         MapChartManager,
         SmallCountriesFilterManager,
         HighlightToggleManager,
-        AbsRelToggleManager {
+        AbsRelToggleManager,
+        FooterManager,
+        HeaderManager {
     containerElement?: HTMLDivElement
     tabBounds?: Bounds
     fontSize?: number
-    isExporting?: boolean
     tab?: GrapherTabOption
     type?: ChartTypeName
+    constrainedType?: ChartTypeName
     isSingleTime?: boolean // todo: remove?
     isReady?: boolean
+    isStaticSvg?: boolean
     entityType?: string
     entityTypePlural?: string
     showSmallCountriesFilterToggle?: boolean
@@ -61,21 +65,22 @@ export interface ChartTabManager
 
 const ControlsRowHeight = 36
 
-@observer
-export class ChartTab extends React.Component<{
+interface ChartTabProps {
     manager: ChartTabManager
     bounds?: Bounds
-    isExporting?: boolean
-}> {
-    @computed private get paddedBounds() {
-        return this.bounds.pad(15)
-    }
+}
 
-    @computed private get bounds() {
-        return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
-    }
+/*
+This is our component that is like a chart sandwich:
+[Header]
+[Controls (optional)]
+[Chart (meat)]
+[Footer]
+*/
 
-    @computed private get manager() {
+@observer
+export class ChartTab extends React.Component<ChartTabProps> {
+    @computed protected get manager() {
         return this.props.manager
     }
 
@@ -83,43 +88,24 @@ export class ChartTab extends React.Component<{
         return this.manager?.containerElement
     }
 
-    @computed private get header() {
+    @computed protected get header() {
         return new Header({ manager: this.manager })
     }
 
-    @computed private get footer() {
+    @computed protected get footer() {
         return new Footer({ manager: this.manager })
     }
 
-    @computed private get isExporting() {
-        return this.props.isExporting ?? this.manager.isExporting === true
-    }
-
-    @computed private get svgWidth() {
-        return this.bounds.width
-    }
-
-    @computed private get svgHeight() {
-        if (this.isExporting) return this.bounds.height
-
+    @computed protected get height() {
         const controlsHeight = this.controls.length ? ControlsRowHeight : 0
-
+        const someRandomConstant = 25 // todo: what is this?
         return (
             this.bounds.height -
             this.header.height -
             controlsHeight -
             this.footer.height -
-            25
+            someRandomConstant
         )
-    }
-
-    @computed private get innerBounds() {
-        if (this.isExporting)
-            return this.paddedBounds
-                .padTop(this.header.height)
-                .padBottom(this.footer.height)
-
-        return new Bounds(0, 0, this.svgWidth, this.svgHeight).padWidth(15)
     }
 
     // todo: should we remove this and not make a distinction between map and chart tabs?
@@ -127,41 +113,33 @@ export class ChartTab extends React.Component<{
         return this.manager.tab === GrapherTabOption.map
     }
 
-    private renderChart() {
+    @computed protected get bounds() {
+        return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed protected get initialBounds() {
+        return new Bounds(0, 0, this.bounds.width, this.height).padWidth(15) // todo: why do we pad by 15?
+    }
+
+    // The bounds for the middle chart part
+    @computed private get boundsForChart() {
+        const bounds = this.initialBounds.padTop(18) // todo: what is the 18 padding?
+        if (this.manager.type === ChartTypeName.SlopeChart)
+            return bounds.padBottom(15) // Todo: this should be in SlopeChart class.
+        return bounds
+    }
+
+    renderChart() {
         const { manager } = this
-        const type = manager.type
-        const innerBounds = this.innerBounds
+        const bounds = this.boundsForChart
 
-        if (!this.manager.isReady)
-            return (
-                <foreignObject {...innerBounds.toProps()}>
-                    <LoadingIndicator />
-                </foreignObject>
-            )
-
-        if (this.isMapTab)
-            return (
-                <MapChart
-                    containerElement={this.containerElement ?? undefined}
-                    bounds={innerBounds}
-                    manager={manager}
-                />
-            )
-
-        const bounds =
-            type === ChartTypeName.SlopeChart
-                ? innerBounds.padTop(18)
-                : innerBounds.padTop(18).padBottom(15)
-
-        // Switch to bar chart if a single year is selected
-        const chartTypeName =
-            type === ChartTypeName.LineChart && manager.isSingleTime
-                ? ChartTypeName.DiscreteBar
-                : type || ChartTypeName.LineChart
-
+        const chartTypeName = this.isMapTab
+            ? ChartTypeName.WorldMap
+            : manager.constrainedType || manager.type || ChartTypeName.LineChart
         const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
 
-        if (manager.facetStrategy)
+        // Todo: make FacetChart a chart type name?
+        if (!this.isMapTab && manager.facetStrategy)
             return (
                 <FacetChart
                     bounds={bounds}
@@ -171,7 +149,11 @@ export class ChartTab extends React.Component<{
             )
 
         return ChartType ? (
-            <ChartType bounds={bounds} manager={manager} />
+            <ChartType
+                bounds={bounds}
+                manager={manager}
+                containerElement={this.containerElement}
+            />
         ) : null
     }
 
@@ -244,7 +226,7 @@ export class ChartTab extends React.Component<{
         return controls
     }
 
-    renderControlsRow() {
+    private renderControlsRow() {
         return this.controls.length ? (
             <div className="controlsRow">
                 <CollapsibleList>{this.controls}</CollapsibleList>
@@ -252,7 +234,15 @@ export class ChartTab extends React.Component<{
         ) : null
     }
 
-    private renderInteractiveHTML() {
+    private renderLoadingIndicator() {
+        return (
+            <foreignObject {...this.boundsForChart.toProps()}>
+                <LoadingIndicator />
+            </foreignObject>
+        )
+    }
+
+    render() {
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
@@ -263,8 +253,10 @@ export class ChartTab extends React.Component<{
                 <Header manager={this.manager} />
                 {this.renderControlsRow()}
                 <div style={containerStyle}>
-                    <svg className="chartTabForInteractive" {...this.svgProps}>
-                        {this.renderChart()}
+                    <svg {...this.svgProps}>
+                        {this.manager.isReady
+                            ? this.renderChart()
+                            : this.renderLoadingIndicator()}
                     </svg>
                 </div>
                 <Footer manager={this.manager} />
@@ -272,46 +264,59 @@ export class ChartTab extends React.Component<{
         )
     }
 
-    @computed private get svgStyle() {
-        return {
+    @computed protected get width() {
+        return this.bounds.width
+    }
+
+    @computed protected get svgProps() {
+        const { height, width } = this
+
+        const style = {
             fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
             backgroundColor: "white",
-            textRendering: "optimizeLegibility",
+            textRendering: "optimizeLegibility" as any,
             WebkitFontSmoothing: "antialiased",
         }
-    }
 
-    @computed private get svgProps() {
-        const { svgWidth, svgHeight } = this
         return {
             xmlns: "http://www.w3.org/2000/svg",
             version: "1.1",
-            style: this.svgStyle as any,
-            width: svgWidth,
-            height: svgHeight,
-            viewBox: `0 0 ${svgWidth} ${svgHeight}`,
+            style,
+            width,
+            height,
+            viewBox: `0 0 ${width} ${height}`,
         }
     }
+}
 
-    private renderStaticSVG() {
-        const { paddedBounds } = this
+@observer
+export class StaticChartTab extends ChartTab {
+    constructor(props: ChartTabProps) {
+        super(props)
+    }
 
-        return (
-            <svg className="chartTabForSvg" {...this.svgProps}>
-                {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
-                {this.renderChart()}
-                {this.footer.renderStatic(
-                    paddedBounds.x,
-                    paddedBounds.bottom - this.footer.height
-                )}
-            </svg>
-        )
+    @computed protected get height() {
+        return this.bounds.height
+    }
+
+    @computed protected get initialBounds() {
+        return this.bounds
+            .padTop(this.header.height)
+            .padBottom(this.footer.height)
     }
 
     render() {
-        return this.isExporting
-            ? this.renderStaticSVG()
-            : this.renderInteractiveHTML()
+        const bounds = this.bounds
+        return (
+            <svg {...this.svgProps}>
+                {this.header.renderStatic(bounds.x, bounds.y)}
+                {this.renderChart()}
+                {this.footer.renderStatic(
+                    bounds.x,
+                    bounds.bottom - this.footer.height
+                )}
+            </svg>
+        )
     }
 }

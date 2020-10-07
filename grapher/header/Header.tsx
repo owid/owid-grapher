@@ -19,7 +19,7 @@ export class Header extends React.Component<{
     }
 
     @computed private get maxWidth() {
-        return this.manager.maxHeaderWidth ?? 500
+        return this.manager.tabBounds?.width ?? 500
     }
 
     @computed private get titleText() {

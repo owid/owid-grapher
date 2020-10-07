@@ -1,3 +1,5 @@
+import { Bounds } from "grapher/utils/Bounds"
+
 export interface HeaderManager {
     fontSize?: number
     currentTitle?: string
@@ -7,5 +9,5 @@ export interface HeaderManager {
     isMediaCard?: boolean
     logo?: string
     canonicalUrl?: string
-    maxHeaderWidth?: number
+    tabBounds?: Bounds
 }

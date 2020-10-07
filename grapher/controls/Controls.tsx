@@ -224,10 +224,6 @@ export class FooterControls extends React.Component<{
         this.manager.isShareMenuActive = !this.manager.isShareMenuActive
     }
 
-    @action.bound onDataSelect() {
-        this.manager.isSelectingData = true
-    }
-
     @computed private get availableTabs() {
         return this.manager.availableTabs || []
     }

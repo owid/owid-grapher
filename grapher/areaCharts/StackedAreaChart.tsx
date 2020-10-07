@@ -460,7 +460,7 @@ export class StackedAreaChart
                     </clipPath>
                 </defs>
                 <DualAxisComponent
-                    isInteractive={manager.isInteractive}
+                    isInteractive={!manager.isStaticSvg}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />

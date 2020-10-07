@@ -1,4 +1,5 @@
 import { TooltipProps } from "grapher/tooltip/TooltipProps"
+import { Bounds } from "grapher/utils/Bounds"
 
 export interface FooterManager {
     fontSize?: number
@@ -10,5 +11,5 @@ export interface FooterManager {
     isMediaCard?: boolean
     currentTab?: string
     tooltip?: TooltipProps
-    maxFooterWidth?: number
+    tabBounds?: Bounds
 }
