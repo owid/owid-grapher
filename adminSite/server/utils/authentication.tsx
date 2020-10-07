@@ -78,7 +78,7 @@ export async function authCloudflareSSOMiddleware(
 
     if (!payload.email) {
         console.error("Missing email in JWT claims.")
-        return next
+        return next()
     }
 
     const user = await User.findOne({ email: payload.email })
