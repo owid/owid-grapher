@@ -7,5 +7,15 @@ export default {
 }
 
 export const Default = () => {
-    return <DownloadTab manager={{ displaySlug: "some-graph" }} />
+    return (
+        <DownloadTab
+            manager={{
+                displaySlug: "some-graph",
+                toStaticSvg: () =>
+                    `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="850" height="600" viewBox="0 0 850 600">
+<rect x="10" y="10" width="30" height="30" fill="blue"/>
+</svg>`,
+            }}
+        />
+    )
 }
