@@ -64,13 +64,15 @@ const ControlsRowHeight = 36
 @observer
 export class ChartTab extends React.Component<{
     manager: ChartTabManager
+    bounds?: Bounds
+    isExporting?: boolean
 }> {
     @computed private get paddedBounds() {
         return this.bounds.pad(15)
     }
 
     @computed private get bounds() {
-        return this.manager.tabBounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? this.manager.tabBounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get manager() {
@@ -90,12 +92,10 @@ export class ChartTab extends React.Component<{
     }
 
     @computed private get isExporting() {
-        return this.manager.isExporting === true
+        return this.props.isExporting ?? this.manager.isExporting === true
     }
 
     @computed private get svgWidth() {
-        if (this.isExporting) return this.bounds.width
-
         return this.bounds.width
     }
 
@@ -175,42 +175,6 @@ export class ChartTab extends React.Component<{
         ) : null
     }
 
-    @computed private get svgStyle() {
-        return {
-            fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
-            backgroundColor: "white",
-            textRendering: "optimizeLegibility",
-            WebkitFontSmoothing: "antialiased",
-        }
-    }
-
-    @computed private get svgProps() {
-        return {
-            xmlns: "http://www.w3.org/2000/svg",
-            version: "1.1",
-            style: this.svgStyle as any,
-            width: this.svgWidth,
-            height: this.svgHeight,
-            viewBox: `0 0 ${this.svgWidth} ${this.svgHeight}`,
-        }
-    }
-
-    private renderWithSVGText() {
-        const { paddedBounds } = this
-
-        return (
-            <svg className="chartTabForSvg" {...this.svgProps}>
-                {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
-                {this.renderChart()}
-                {this.footer.renderStatic(
-                    paddedBounds.x,
-                    paddedBounds.bottom - this.footer.height
-                )}
-            </svg>
-        )
-    }
-
     @computed get controls() {
         const manager = this.manager
         // Todo: we don't yet show any controls on Maps, but seems like we would want to.
@@ -288,7 +252,7 @@ export class ChartTab extends React.Component<{
         ) : null
     }
 
-    private renderWithHTMLText() {
+    private renderInteractiveHTML() {
         const containerStyle: React.CSSProperties = {
             position: "relative",
             clear: "both",
@@ -308,9 +272,46 @@ export class ChartTab extends React.Component<{
         )
     }
 
+    @computed private get svgStyle() {
+        return {
+            fontFamily: "Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+            fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
+            backgroundColor: "white",
+            textRendering: "optimizeLegibility",
+            WebkitFontSmoothing: "antialiased",
+        }
+    }
+
+    @computed private get svgProps() {
+        const { svgWidth, svgHeight } = this
+        return {
+            xmlns: "http://www.w3.org/2000/svg",
+            version: "1.1",
+            style: this.svgStyle as any,
+            width: svgWidth,
+            height: svgHeight,
+            viewBox: `0 0 ${svgWidth} ${svgHeight}`,
+        }
+    }
+
+    private renderStaticSVG() {
+        const { paddedBounds } = this
+
+        return (
+            <svg className="chartTabForSvg" {...this.svgProps}>
+                {this.header.renderStatic(paddedBounds.x, paddedBounds.y)}
+                {this.renderChart()}
+                {this.footer.renderStatic(
+                    paddedBounds.x,
+                    paddedBounds.bottom - this.footer.height
+                )}
+            </svg>
+        )
+    }
+
     render() {
         return this.isExporting
-            ? this.renderWithSVGText()
-            : this.renderWithHTMLText()
+            ? this.renderStaticSVG()
+            : this.renderInteractiveHTML()
     }
 }

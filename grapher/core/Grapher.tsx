@@ -49,7 +49,12 @@ import {
     LegacyVariablesAndEntityKey,
 } from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
-import { OwidColumnSpec, OwidTable, SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    OwidColumnSpec,
+    OwidTable,
+    SampleColumnSlugs,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTable"
 import {
     ChartDimension,
     LegacyDimensionsManager,
@@ -432,7 +437,7 @@ export class Grapher
     }
 
     @observable.ref isMediaCard = false
-    @observable.ref isExporting?: boolean
+    @observable.ref isExporting = !!this.props.isExport
     @observable.ref tooltip?: TooltipProps
     @observable isPlaying = false
     @observable.ref isSelectingData = false
@@ -747,6 +752,8 @@ export class Grapher
         return this.overlay ? this.overlay : this.tab
     }
 
+    // Todo: let's add unit tests and/or stories for this one. There is an important behavior here (that we may want to simplify)
+    // where the behavior of the Download Tab depends upon which tab you are coming from.
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     set currentTab(desiredTab) {
         if (this.tab === GrapherTabOption.chart)
@@ -764,16 +771,16 @@ export class Grapher
         ) {
             this.tab = desiredTab
             this.overlay = undefined
-        } else {
-            // table tab cannot be downloaded, so revert to default tab
-            if (
-                desiredTab === GrapherTabOption.download &&
-                this.tab === GrapherTabOption.table
-            )
-                this.tab =
-                    this.legacyConfigAsAuthored.tab || GrapherTabOption.chart
-            this.overlay = desiredTab
+            return
         }
+
+        // table tab cannot be downloaded, so revert to default tab
+        if (
+            desiredTab === GrapherTabOption.download &&
+            this.tab === GrapherTabOption.table
+        )
+            this.tab = this.legacyConfigAsAuthored.tab || GrapherTabOption.chart
+        this.overlay = desiredTab
     }
 
     @computed get timelineFilter(): TimeBounds {
@@ -1110,13 +1117,15 @@ export class Grapher
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
+    // todo: we need this to be fast, and
     @computed get staticSVG() {
-        const props = {
-            ...this.toObject(),
-            isExport: true,
-            bounds: this.idealBounds,
-        }
-        return ReactDOMServer.renderToStaticMarkup(<Grapher {...props} />)
+        return ReactDOMServer.renderToStaticMarkup(
+            <ChartTab
+                manager={this}
+                isExporting={true}
+                bounds={this.idealBounds}
+            />
+        )
     }
 
     @computed get mapConfig() {
@@ -1198,14 +1207,10 @@ export class Grapher
         return view
     }
 
-    @computed private get isExport() {
-        return this.props.isExport
-    }
-
     @computed get isEmbed() {
         return (
             this.props.isEmbed ||
-            (!this.isExport && (window.self !== window.top || this.isEditor))
+            (!this.isExporting && (window.self !== window.top || this.isEditor))
         )
     }
 
@@ -1237,7 +1242,7 @@ export class Grapher
         const {
             isEditor,
             isEmbed,
-            isExport,
+            isExporting,
             bounds,
             authorWidth,
             authorHeight,
@@ -1247,7 +1252,7 @@ export class Grapher
 
         return (
             isEmbed ||
-            isExport ||
+            isExporting ||
             bounds.height < authorHeight ||
             bounds.width < authorWidth
         )
@@ -1280,18 +1285,18 @@ export class Grapher
     // These are the final render dimensions
     @computed private get renderWidth() {
         return this.fitBounds
-            ? this.bounds.width - (this.isExport ? 0 : 5)
+            ? this.bounds.width - (this.isExporting ? 0 : 5)
             : this.idealWidth
     }
     @computed private get renderHeight() {
         return this.fitBounds
-            ? this.bounds.height - (this.isExport ? 0 : 5)
+            ? this.bounds.height - (this.isExporting ? 0 : 5)
             : this.idealHeight
     }
 
     @computed get tabBounds() {
         return new Bounds(0, 0, this.renderWidth, this.renderHeight).padBottom(
-            this.isExport ? 0 : this.footerHeight
+            this.isExporting ? 0 : this.footerHeight
         )
     }
 
@@ -1309,7 +1314,7 @@ export class Grapher
     @computed private get classNames() {
         const classNames = [
             "chart",
-            this.isExport && "export",
+            this.isExporting && "export",
             this.isEditor && "editor",
             this.isEmbed && "embed",
             this.isPortrait && "portrait",
@@ -1330,13 +1335,13 @@ export class Grapher
     }
 
     private renderPrimaryTab() {
-        const { tabBounds } = this
         if (
             this.primaryTab === GrapherTabOption.chart ||
             this.primaryTab === GrapherTabOption.map
         )
             return <ChartTab manager={this} />
 
+        const { tabBounds } = this
         if (this.primaryTab === GrapherTabOption.table)
             return (
                 <div
@@ -1581,7 +1586,7 @@ export class Grapher
     render() {
         // TODO how to handle errors in exports?
         // TODO tidy this up
-        if (this.isExport) return this.renderPrimaryTab()
+        if (this.isExporting) return this.renderPrimaryTab() // todo: remove this? should have a simple toStaticSVG for importing.
 
         const { renderWidth, renderHeight } = this
 
@@ -1916,6 +1921,13 @@ export class Grapher
 
     @computed get maxHeaderWidth() {
         return this.maxChartWidth
+    }
+
+    @action.bound toStaticSvg() {
+        this.isExporting = true // Todo: cleanup this "isExporting" stuff. Add tests.
+        const staticSVG = this.staticSVG ?? ""
+        this.isExporting = false
+        return staticSVG
     }
 }
 
