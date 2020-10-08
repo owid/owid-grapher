@@ -27,7 +27,11 @@ export const getConsentPerformance = () => {
         ConsentType.Performance,
         Cookies.get(CONSENT_COOKIE)
     )
-    return consent !== undefined ? consent === "1" : undefined
+
+    // There are more concise ways of writing this but I find this more readable
+    if (consent === "1") return true
+    else if (consent === "0") return false
+    else return undefined
 }
 
 export const updateConsent = (

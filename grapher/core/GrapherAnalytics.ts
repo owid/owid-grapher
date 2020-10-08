@@ -1,4 +1,5 @@
-import { getConsentPerformance } from "site/client/Consent/Consent"
+// TODO CLEANUPCONSENT
+// import { getConsentPerformance } from "site/client/Consent/Consent"
 
 const DEBUG = true
 
@@ -36,12 +37,15 @@ type countrySelectorEvent =
 
 export class GrapherAnalytics {
     constructor(environment: string, version: string) {
-        this.mightBeImplicitConsent = getConsentPerformance() ?? true // TODO remove implicit consent
+        // Consent-based blocking dealt with at the GTM level
+        // TODO CLEANUPCONSENT
+        // this.mightBeImplicitConsent = getConsentPerformance() ?? true
         this.isDev = environment === "development"
         this.version = version
     }
 
-    private mightBeImplicitConsent: boolean
+    // TODO CLEANUPCONSENT
+    // private mightBeImplicitConsent: boolean
     private version: string // Ideally the Git hash commit
     private isDev: boolean
 
@@ -131,7 +135,8 @@ export class GrapherAnalytics {
     }
 
     startClickTracking() {
-        if (!this.mightBeImplicitConsent) return
+        // TODO CLEANUPCONSENT
+        // if (!this.mightBeImplicitConsent) return
 
         // Todo: add a Story and tests for this OR even better remove and use Google Tag Manager or similar fully SAAS tracking.
         // Todo: have different Attributes for Grapher charts vs Site.
@@ -154,7 +159,8 @@ export class GrapherAnalytics {
     }
 
     protected logToAmplitude(name: string, props?: any) {
-        if (!this.mightBeImplicitConsent) return
+        // TODO CLEANUPCONSENT
+        // if (!this.mightBeImplicitConsent) return
 
         const allProps = {
             context: {
@@ -182,7 +188,8 @@ export class GrapherAnalytics {
         eventLabel?: string,
         eventValue?: number
     ) {
-        if (!this.mightBeImplicitConsent) return
+        // TODO CLEANUPCONSENT
+        // if (!this.mightBeImplicitConsent) return
 
         // Todo: send the Grapher (or site) version to Git
         const event: GAEvent = {
@@ -213,6 +220,7 @@ export class GrapherAnalytics {
     }
 
     protected logToSA(eventLabel: string) {
+        // TODO CLEANUPCONSENT
         // No need to check for consent here as Simple Analytics doesn't use PII
 
         if (DEBUG && this.isDev) {
