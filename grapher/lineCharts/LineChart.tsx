@@ -245,7 +245,7 @@ export class LineChart
     }
 
     @computed private get tooltip() {
-        const { hoverX, dualAxis } = this
+        const { hoverX, dualAxis, inputTable } = this
 
         if (hoverX === undefined) return undefined
 
@@ -254,7 +254,7 @@ export class LineChart
             return value !== undefined ? -value.y : Infinity
         })
 
-        const formatted = this.manager.table.timeColumnFormatFunction(hoverX)
+        const formatted = inputTable.timeColumnFormatFunction(hoverX)
 
         return (
             <Tooltip
@@ -339,7 +339,7 @@ export class LineChart
                                             fontSize: "0.9em",
                                         }}
                                     >
-                                        {this.manager.table.getLabelForEntityName(
+                                        {inputTable.getLabelForEntityName(
                                             series.seriesName
                                         )}
                                         {annotation && (
@@ -546,7 +546,7 @@ export class LineChart
             ? this.manager.yColumnSlugs
             : this.manager.yColumnSlug
             ? [this.manager.yColumnSlug]
-            : this.manager.table.numericColumnSlugs
+            : this.inputTable.numericColumnSlugs
     }
 
     @computed private get annotationsMap() {
@@ -555,7 +555,7 @@ export class LineChart
 
     // todo: make work again
     @computed private get annotationsColumn() {
-        return this.manager.table.get("annotations")
+        return this.inputTable.get("annotations")
     }
 
     @computed private get colorScheme() {
@@ -566,16 +566,20 @@ export class LineChart
     }
 
     @computed get table() {
-        let table = this.manager.table.filterBySelectedOnly()
+        let table = this.inputTable.filterBySelectedOnly()
 
         table = table.filterByFullColumnsOnly(this.yColumnSlugs) // TODO: instead of this, just filter indvidaul points.
 
         if (this.manager.isRelativeMode)
             table = table.toTotalGrowthForEachColumnComparedToStartTime(
-                this.manager.table.minTime!,
+                this.inputTable.minTime!,
                 this.yColumnSlugs
             )
         return table
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
     }
 
     @computed get seriesStrategy() {
@@ -646,7 +650,7 @@ export class LineChart
         const colors = this.colorScheme.getColors(sorted.length)
         if (this.manager.invertColorScheme) colors.reverse()
 
-        const table = this.manager.table
+        const table = this.inputTable
 
         sorted.forEach((series, i) => {
             series.color =
@@ -713,7 +717,7 @@ export class LineChart
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
-        axis.formatColumn = this.manager.table.timeColumn
+        axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis

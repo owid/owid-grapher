@@ -355,7 +355,7 @@ export class DiscreteBarChart
     }
 
     @computed get rootYColumn() {
-        return this.manager.table.get(this.manager.yColumnSlug)!
+        return this.inputTable.get(this.manager.yColumnSlug)!
     }
 
     @computed private get yColumn() {
@@ -365,7 +365,7 @@ export class DiscreteBarChart
     @computed get table() {
         const { rootYColumn } = this
         const slug = rootYColumn.slug
-        let table = this.manager.table
+        let table = this.inputTable
             .filterBySelectedOnly()
             .filterByTargetTime(...rootYColumn.timeTarget)
 
@@ -374,6 +374,10 @@ export class DiscreteBarChart
             [slug, OwidTableSlugs.entityName],
             [SortOrder.desc, SortOrder.asc]
         )
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
     }
 
     @computed private get valuesToColorsMap() {

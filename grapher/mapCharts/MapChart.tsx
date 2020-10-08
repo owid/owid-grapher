@@ -89,7 +89,7 @@ export class MapChart
             this.manager.yColumnSlug ||
             (this.manager.yColumnSlugs?.length
                 ? this.manager.yColumnSlugs[0]
-                : this.manager.table.numericColumnSlugs[0])
+                : this.inputTable.numericColumnSlugs[0])
         )
     }
 
@@ -130,11 +130,11 @@ export class MapChart
     }
 
     @computed get table() {
-        return this.manager.table
+        return this.inputTable
     }
 
-    @computed get rootTable() {
-        return this.table.rootTable
+    @computed get inputTable() {
+        return this.manager.table
     }
 
     // Determine if we can go to line chart by clicking on a given map entity
@@ -148,10 +148,13 @@ export class MapChart
         const entityName = d.id as EntityName
         if (!this.isEntityClickable(entityName)) return
 
+        // Modify the selection at the root Grapher level.
+        const rootInputTable = this.inputTable.rootTable
+
         if (!ev.shiftKey) {
-            this.rootTable.setSelectedEntities([entityName])
+            rootInputTable.setSelectedEntities([entityName])
             this.manager.currentTab = "chart"
-        } else this.rootTable.toggleSelection(entityName)
+        } else rootInputTable.toggleSelection(entityName)
     }
 
     componentWillUnmount() {

@@ -244,9 +244,7 @@ export class StackedBarChart
                     in
                     <br />
                     <span>
-                        {this.manager.table.timeColumnFormatFunction(
-                            hoverBar.x
-                        )}
+                        {this.inputTable.timeColumnFormatFunction(hoverBar.x)}
                     </span>
                 </p>
             </Tooltip>

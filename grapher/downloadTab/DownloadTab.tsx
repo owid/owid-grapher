@@ -164,14 +164,14 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         ev.preventDefault()
     }
 
-    @computed private get table() {
-        return this.manager.table!
+    @computed private get inputTable() {
+        return this.manager.table ?? new OwidTable()
     }
 
     private onCsvDownload(ev: React.MouseEvent<HTMLAnchorElement>) {
-        const { manager, table } = this
+        const { manager, inputTable } = this
         const csvFilename = manager.displaySlug + ".csv"
-        const csv = table.toPrettyCsv() || ""
+        const csv = inputTable.toPrettyCsv() || ""
 
         // IE11 compatibility
         if (window.navigator.msSaveBlob) {

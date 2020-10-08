@@ -881,6 +881,10 @@ export class ScatterPlot
     }
 
     @computed get table() {
+        return this.inputTable
+    }
+
+    @computed get inputTable() {
         return this.manager.table
     }
 

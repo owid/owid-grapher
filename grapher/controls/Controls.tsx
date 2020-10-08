@@ -45,11 +45,15 @@ export class HighlightToggle extends React.Component<{
         return getQueryParams((this.highlight?.paramStr || "").substring(1))
     }
 
+    @computed get inputTable() {
+        return this.manager.table // todo: should this be rootTable?
+    }
+
     @action.bound private onHighlightToggle(
         event: React.FormEvent<HTMLInputElement>
     ) {
         if (!event.currentTarget.checked) {
-            this.manager.table.clearSelection()
+            this.inputTable.clearSelection()
             return
         }
 

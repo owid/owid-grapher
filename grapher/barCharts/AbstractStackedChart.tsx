@@ -52,7 +52,7 @@ export class AbstactStackedChart
             ? this.manager.yColumnSlugs
             : this.manager.yColumnSlug
             ? [this.manager.yColumnSlug]
-            : this.manager.table.numericColumnSlugs
+            : this.inputTable.numericColumnSlugs
     }
 
     // It seems we have 2 types of StackedAreas. If only 1 column, we stack
@@ -67,8 +67,12 @@ export class AbstactStackedChart
         )
     }
 
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
     @computed get table() {
-        let table = this.manager.table
+        let table = this.inputTable
         table = table.filterBySelectedOnly()
 
         if (this.manager.isRelativeMode)
@@ -98,7 +102,6 @@ export class AbstactStackedChart
     }
 
     @computed private get horizontalAxisPart() {
-        const { manager } = this
         const { startTimelineTime, endTimelineTime } = this.yColumns[0]
         const axisConfig =
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
@@ -109,7 +112,7 @@ export class AbstactStackedChart
             startTimelineTime,
             endTimelineTime,
         ])
-        axis.formatColumn = manager.table.timeColumn
+        axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
         return axis

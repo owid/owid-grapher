@@ -243,9 +243,7 @@ export class StackedAreaChart
             .map((series, index) => ({
                 color: series.color,
                 seriesName: series.seriesName,
-                label: this.manager.table.getLabelForEntityName(
-                    series.seriesName
-                ),
+                label: this.inputTable.getLabelForEntityName(series.seriesName),
                 yValue: midpoints[index],
             }))
             .reverse()
@@ -335,7 +333,7 @@ export class StackedAreaChart
                         <tr>
                             <td>
                                 <strong>
-                                    {this.manager.table.timeColumnFormatFunction(
+                                    {this.inputTable.timeColumnFormatFunction(
                                         bottomSeriesPoint.x
                                     )}
                                 </strong>
@@ -366,7 +364,7 @@ export class StackedAreaChart
                                                 backgroundColor: blockColor,
                                             }}
                                         />{" "}
-                                        {manager.table.getLabelForEntityName(
+                                        {this.inputTable.getLabelForEntityName(
                                             series.seriesName
                                         )}
                                     </td>

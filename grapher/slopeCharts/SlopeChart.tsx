@@ -96,7 +96,7 @@ export class SlopeChart
             return
         }
 
-        this.manager.table.toggleSelection(hoverKey)
+        this.inputTable.toggleSelection(hoverKey)
     }
 
     @action.bound onLegendMouseOver(color: string) {
@@ -108,7 +108,7 @@ export class SlopeChart
     }
 
     @computed private get selectedEntityNames() {
-        return this.manager.table.selectedEntityNames
+        return this.inputTable.selectedEntityNames
     }
 
     // When the color legend is clicked, toggle selection fo all associated keys
@@ -128,11 +128,11 @@ export class SlopeChart
             intersection(seriesNamesToToggle, this.selectedEntityNames)
                 .length === seriesNamesToToggle.length
         if (areAllSeriesActive)
-            this.manager.table.setSelectedEntities(
+            this.inputTable.setSelectedEntities(
                 without(this.selectedEntityNames, ...seriesNamesToToggle)
             )
         else
-            this.manager.table.setSelectedEntities(
+            this.inputTable.setSelectedEntities(
                 this.selectedEntityNames.concat(seriesNamesToToggle)
             )
     }
@@ -306,7 +306,7 @@ export class SlopeChart
             ? this.manager.yColumnSlug
             : this.manager.yColumnSlugs
             ? this.manager.yColumnSlugs[0]
-            : this.manager.table.numericColumnSlugs[0]
+            : this.inputTable.numericColumnSlugs[0]
     }
 
     @computed private get colorColumn() {
@@ -314,6 +314,10 @@ export class SlopeChart
     }
 
     @computed get table() {
+        return this.inputTable
+    }
+
+    @computed get inputTable() {
         return this.manager.table
     }
 
@@ -365,7 +369,7 @@ export class SlopeChart
         const { colorByEntity, sizeByEntity } = this
         const { minTime, maxTime } = column
 
-        const table = this.manager.table
+        const table = this.inputTable
 
         return column.entityNamesUniqArr
             .map((entityName) => {

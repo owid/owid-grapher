@@ -103,8 +103,12 @@ export class ColorScale {
         return this.manager.colorScaleColumn
     }
 
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
     @computed get formatCategoricalValue(): (v: string) => string {
-        return this.manager.table?.getLabelForEntityName ?? identity
+        return this.inputTable?.getLabelForEntityName ?? identity
     }
 
     @computed get legendDescription() {

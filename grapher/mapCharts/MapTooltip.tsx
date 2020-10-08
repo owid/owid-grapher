@@ -38,8 +38,12 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         }
     }
 
+    @computed get inputTable() {
+        return this.props.manager.table
+    }
+
     @computed private get mapColumn() {
-        return this.props.manager.table.get(this.mapColumnSlug)
+        return this.inputTable.get(this.mapColumnSlug)
     }
 
     @computed private get mapColumnSlug() {
@@ -49,7 +53,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     // Uses the rootTable because if a target year is set, we filter the years at the grapher level.
     // Todo: might want to do all filtering a step below the Grapher level?
     @computed private get sparkBarColumn() {
-        return this.props.manager.table.rootTable.get(this.mapColumnSlug)
+        return this.inputTable.rootTable.get(this.mapColumnSlug)
     }
 
     @computed private get sparkBarsData() {
@@ -135,7 +139,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
         const tooltipMessage = "Click to select" // todo: used to be "Click for Change over Time" when on line charts
 
-        const timeColumn = this.props.manager.table.timeColumn
+        const { timeColumn } = this.inputTable
         const { renderSparkBars, barColor, tooltipTarget, inputTime } = this
 
         const displayTime = timeColumn
