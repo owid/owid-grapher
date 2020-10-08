@@ -51,7 +51,12 @@ export const CookiePreferences = () => {
         setCookiePreference(CookiePreferenceType.Performance, !performance)
     }
 
-    return (
+    const cookiePreferencesDomSlot = document.querySelector(
+        ".wp-block-cookie-preferences"
+    )
+    if (!cookiePreferencesDomSlot) return null
+
+    return ReactDOM.createPortal(
         <div className="cookie-preferences">
             <CookiePreference
                 title="Necessary cookies"
@@ -69,7 +74,8 @@ export const CookiePreferences = () => {
             >
                 We use these cookies to monitor and improve website performance.
             </CookiePreference>
-        </div>
+        </div>,
+        cookiePreferencesDomSlot
     )
 }
 
@@ -121,14 +127,4 @@ export const readCookiePreferences = () => {
 
 export const writeCookiePreferences = (consents: string) => {
     Cookies.set(COOKIE_PREFERENCES_COOKIE, consents, { expires: 365 * 3 })
-}
-
-export const runCookiePreferences = () => {
-    Array.from(
-        document.querySelectorAll<HTMLDivElement>(
-            ".wp-block-cookie-preferences"
-        )
-    ).forEach((div) => {
-        ReactDOM.render(<CookiePreferences />, div)
-    })
 }

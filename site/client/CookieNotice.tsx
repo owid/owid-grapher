@@ -6,6 +6,7 @@ import { observable, action, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
+import { CookiePreferences } from "./CookiePreferences/CookiePreferences"
 
 const VERSION: string = "2019-10-09"
 const COOKIE_NAME: string = "cookienotice"
@@ -60,6 +61,7 @@ export class CookieNotice extends React.Component {
                         </div>
                     </div>
                 </div>
+                <CookiePreferences />
             </div>
         )
     }

@@ -6,7 +6,6 @@ import { render as renderHelp } from "./Help/Help"
 import { renderProminentLink } from "./ProminentLink/ProminentLink"
 import { shouldProgressiveEmbed } from "site/client/GrapherPageUtils"
 import { runSearchCountry } from "site/client/SearchCountry"
-import { runCookiePreferences } from "../CookiePreferences/CookiePreferences"
 
 export const renderBlocks = ($: CheerioStatic) => {
     renderAdditionalInformation($)
@@ -23,5 +22,4 @@ export const runBlocks = () => {
     hydrateAdditionalInformation()
     renderProminentLink()
     runSearchCountry()
-    runCookiePreferences()
 }
