@@ -16,7 +16,7 @@ import { observer } from "mobx-react"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import {
-    LineLabelMark,
+    LineLabelSeries,
     LineLegend,
     LineLegendManager,
 } from "grapher/lineLegend/LineLegend"
@@ -237,7 +237,7 @@ export class StackedAreaChart
         })
     }
 
-    @computed get labelMarks(): LineLabelMark[] {
+    @computed get labelSeries(): LineLabelSeries[] {
         const { midpoints } = this
         return this.series
             .map((series, index) => ({

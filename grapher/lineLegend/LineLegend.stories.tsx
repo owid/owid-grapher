@@ -26,7 +26,7 @@ const dualAxis = new DualAxis({
 const collidingNumber = 50
 
 const manager: LineLegendManager = {
-    labelMarks: [
+    labelSeries: [
         {
             seriesName: "Canada",
             label: "Canada",

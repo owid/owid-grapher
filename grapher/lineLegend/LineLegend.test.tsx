@@ -4,7 +4,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { LineLegend, LineLegendManager } from "./LineLegend"
 
 const manager: LineLegendManager = {
-    labelMarks: [
+    labelSeries: [
         {
             seriesName: "Canada",
             label: "Canada",

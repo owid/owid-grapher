@@ -19,7 +19,7 @@ import { DualAxis } from "grapher/axis/Axis"
 import { PointVector } from "grapher/utils/PointVector"
 import {
     LineLegend,
-    LineLabelMark,
+    LineLabelSeries,
     LineLegendManager,
 } from "grapher/lineLegend/LineLegend"
 import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
@@ -38,7 +38,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
     LinesProps,
-    LineChartMark,
+    LineChartSeries,
     LineChartManager,
 } from "./LineChartConstants"
 
@@ -49,7 +49,7 @@ class Lines extends React.Component<LinesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     @computed private get allValues() {
-        return flatten(this.props.placedMarks.map((series) => series.points))
+        return flatten(this.props.placedSeries.map((series) => series.points))
     }
 
     @action.bound private onCursorMove(ev: MouseEvent | TouchEvent) {
@@ -84,15 +84,15 @@ class Lines extends React.Component<LinesProps> {
     @computed private get focusedLines() {
         const { focusedSeriesNames } = this.props
         // If nothing is focused, everything is
-        if (!focusedSeriesNames.length) return this.props.placedMarks
-        return this.props.placedMarks.filter((series) =>
+        if (!focusedSeriesNames.length) return this.props.placedSeries
+        return this.props.placedSeries.filter((series) =>
             focusedSeriesNames.includes(series.seriesName)
         )
     }
 
     @computed private get backgroundLines() {
         const { focusedSeriesNames } = this.props
-        return this.props.placedMarks.filter(
+        return this.props.placedSeries.filter(
             (series) => !focusedSeriesNames.includes(series.seriesName)
         )
     }
@@ -103,7 +103,7 @@ class Lines extends React.Component<LinesProps> {
         if (this.props.hidePoints) return false
         return (
             sum(
-                this.props.placedMarks.map(
+                this.props.placedSeries.map(
                     (series) => series.placedPoints.length
                 )
             ) < 500
@@ -237,7 +237,7 @@ export class LineChart
         return this.bounds.width / 3
     }
 
-    seriesIsBlurred(series: LineChartMark) {
+    seriesIsBlurred(series: LineChartSeries) {
         return (
             this.isFocusMode &&
             !this.focusedSeriesNames.includes(series.seriesName)
@@ -489,7 +489,7 @@ export class LineChart
                     <LineLegend manager={this} />
                     <Lines
                         dualAxis={dualAxis}
-                        placedMarks={this.placedMarks}
+                        placedSeries={this.placedSeries}
                         hidePoints={manager.hidePoints}
                         onHover={this.onHover}
                         focusedSeriesNames={this.focusedSeriesNames}
@@ -593,7 +593,7 @@ export class LineChart
 
     @computed get series() {
         const { yColumns } = this
-        const chartData: LineChartMark[] = flatten(
+        const chartData: LineChartSeries[] = flatten(
             yColumns.map((col) => {
                 const { isProjection } = col
                 const map = col.owidRowsByEntityName
@@ -625,14 +625,14 @@ export class LineChart
         return chartData
     }
 
-    @computed get placedMarks() {
+    @computed get placedSeries() {
         const { dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        return this.series.map((mark) => {
+        return this.series.map((series) => {
             return {
-                ...mark,
-                placedPoints: mark.points.map(
+                ...series,
+                placedPoints: series.points.map(
                     (point) =>
                         new PointVector(
                             Math.round(horizontalAxis.place(point.x)),
@@ -643,7 +643,7 @@ export class LineChart
         })
     }
 
-    private _addColorsToSeries(allSeries: LineChartMark[]) {
+    private _addColorsToSeries(allSeries: LineChartSeries[]) {
         // Color from lowest to highest
         const sorted = sortBy(allSeries, (series) => last(series.points)!.y)
 
@@ -666,7 +666,7 @@ export class LineChart
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed get labelMarks(): LineLabelMark[] {
+    @computed get labelSeries(): LineLabelSeries[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
         let toShow = this.series

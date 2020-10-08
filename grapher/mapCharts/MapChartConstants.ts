@@ -12,7 +12,7 @@ export type MapBracket = ColorScaleBin
 
 export interface MapEntity {
     id: string | number | undefined
-    datum:
+    series:
         | ChoroplethSeries
         | {
               value: string

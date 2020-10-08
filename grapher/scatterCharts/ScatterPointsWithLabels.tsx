@@ -298,10 +298,10 @@ export class ScatterPointsWithLabels extends React.Component<
             })
 
             if (closestSeries && this.props.onMouseOver) {
-                const datum = this.seriesArray.find(
-                    (d) => d.seriesName === closestSeries.seriesName
+                const series = this.seriesArray.find(
+                    (series) => series.seriesName === closestSeries.seriesName
                 )
-                if (datum) this.props.onMouseOver(datum)
+                if (series) this.props.onMouseOver(series)
             }
         })
     }

@@ -1,7 +1,7 @@
 import { ChartManager } from "grapher/chart/ChartManager"
 import { Time, Color, SeriesName } from "grapher/core/GrapherConstants"
 
-export interface DiscreteBarDatum {
+export interface DiscreteBarSeries {
     seriesName: SeriesName
     value: number
     time: Time

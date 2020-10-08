@@ -19,7 +19,7 @@ import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
     DiscreteBarChartManager,
-    DiscreteBarDatum,
+    DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 
@@ -252,15 +252,16 @@ export class DiscreteBarChart
                     horizontalAxis={axis}
                     bounds={innerBounds}
                 />
-                {series.map((datum) => {
-                    const isNegative = datum.value < 0
+                {series.map((series) => {
+                    // Todo: add a "placedSeries" getter to get the transformed series, then just loop over the placedSeries and render a bar for each
+                    const isNegative = series.value < 0
                     const barX = isNegative
-                        ? axis.place(datum.value)
+                        ? axis.place(series.value)
                         : axis.place(this.x0)
                     const barWidth = isNegative
                         ? axis.place(this.x0) - barX
-                        : axis.place(datum.value) - barX
-                    const valueLabel = this.formatValue(datum)
+                        : axis.place(series.value) - barX
+                    const valueLabel = this.formatValue(series)
                     const labelX = isNegative
                         ? barX -
                           Bounds.forText(valueLabel, this.valueLabelStyle)
@@ -273,7 +274,7 @@ export class DiscreteBarChart
                     // it appears very slow. Also be careful with negative bar charts.
                     const result = (
                         <g
-                            key={datum.seriesName}
+                            key={series.seriesName}
                             className="bar"
                             transform={`translate(0, ${yOffset})`}
                             style={{ transition: "transform 200ms ease" }}
@@ -287,7 +288,7 @@ export class DiscreteBarChart
                                 textAnchor="end"
                                 {...this.legendLabelStyle}
                             >
-                                {datum.label}
+                                {series.label}
                             </text>
                             <rect
                                 x={0}
@@ -297,7 +298,7 @@ export class DiscreteBarChart
                                 })`}
                                 width={barWidth}
                                 height={barHeight}
-                                fill={datum.color}
+                                fill={series.color}
                                 opacity={0.85}
                                 style={{ transition: "height 200ms ease" }}
                             />
@@ -305,7 +306,7 @@ export class DiscreteBarChart
                                 x={0}
                                 y={0}
                                 transform={`translate(${
-                                    axis.place(datum.value) +
+                                    axis.place(series.value) +
                                     (isNegative
                                         ? -labelToBarPadding
                                         : labelToBarPadding)
@@ -338,18 +339,18 @@ export class DiscreteBarChart
         return column.isEmpty ? `No matching data in column ${column.name}` : ""
     }
 
-    private formatValue(datum: DiscreteBarDatum) {
+    private formatValue(series: DiscreteBarSeries) {
         const column = this.rootYColumn
         const { endTimelineTime } = column
         const { table } = this
 
         const showYearLabels =
-            this.manager.showYearLabels || datum.time !== endTimelineTime
-        const displayValue = column.formatValueShort(datum.value)
+            this.manager.showYearLabels || series.time !== endTimelineTime
+        const displayValue = column.formatValueShort(series.value)
         return (
             displayValue +
             (showYearLabels
-                ? ` (${table.timeColumnFormatFunction(datum.time)})`
+                ? ` (${table.timeColumnFormatFunction(series.time)})`
                 : "")
         )
     }
@@ -403,7 +404,7 @@ export class DiscreteBarChart
 
         return yColumn.owidRows.map((row) => {
             const { entityName } = row
-            const datum: DiscreteBarDatum = {
+            const series: DiscreteBarSeries = {
                 ...row,
                 seriesName: entityName,
                 label: getLabelForEntityName(entityName),
@@ -412,7 +413,7 @@ export class DiscreteBarChart
                     valuesToColorsMap.get(row.value) ||
                     DEFAULT_BAR_COLOR,
             }
-            return datum
+            return series
         })
     }
 

@@ -479,14 +479,6 @@ export class StackedBarChart
         return this.bounds.right - this.sidebarWidth
     }
 
-    @computed get barValueFormat(): (datum: StackedPoint) => string {
-        return (datum: StackedPoint) => datum.y.toString()
-    }
-
-    @computed get tickFormatFn(): (d: number) => string {
-        const yColumn = this.yColumns[0]
-        return yColumn ? yColumn.formatValueShort : (d: number) => `${d}`
-    }
     @computed private get xValues() {
         return uniq(this.allStackedPoints.map((bar) => bar.x))
     }

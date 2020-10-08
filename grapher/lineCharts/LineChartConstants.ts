@@ -8,20 +8,20 @@ interface LinePoint {
     y: number
 }
 
-export interface LineChartMark {
+export interface LineChartSeries {
     seriesName: SeriesName
     color: Color
     isProjection?: boolean
     points: LinePoint[]
 }
 
-export interface PlacedLineChartMark extends LineChartMark {
+export interface PlacedLineChartSeries extends LineChartSeries {
     placedPoints: PointVector[]
 }
 
 export interface LinesProps {
     dualAxis: DualAxis
-    placedMarks: PlacedLineChartMark[]
+    placedSeries: PlacedLineChartSeries[]
     focusedSeriesNames: SeriesName[]
     onHover: (hoverX: number | undefined) => void
     hidePoints?: boolean

@@ -99,13 +99,13 @@ export class MapChart
 
     base: React.RefObject<SVGGElement> = React.createRef()
     @action.bound onMapMouseOver(feature: GeoFeature, ev: React.MouseEvent) {
-        const datum =
+        const series =
             feature.id === undefined
                 ? undefined
                 : this.seriesMap.get(feature.id as string)
         this.focusEntity = {
             id: feature.id,
-            datum: datum || { value: "No data" },
+            series: series || { value: "No data" },
         }
 
         const { containerElement } = this.props
@@ -295,7 +295,7 @@ export class MapChart
     }
 
     @computed get focusValue() {
-        return this.focusEntity?.datum?.value
+        return this.focusEntity?.series?.value
     }
 
     @computed get fontSize() {
@@ -886,14 +886,14 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                                 this.isSelected(feature.id)
                             const outOfFocusBracket =
                                 !!this.focusBracket && !isFocus
-                            const datum = choroplethData.get(
+                            const series = choroplethData.get(
                                 feature.id as string
                             )
                             const stroke =
                                 isFocus || showSelectedStyle
                                     ? focusStrokeColor
                                     : "#333"
-                            const fill = datum ? datum.color : defaultFill
+                            const fill = series ? series.color : defaultFill
                             const fillOpacity = outOfFocusBracket
                                 ? blurFillOpacity
                                 : 1
