@@ -39,7 +39,17 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get mapColumn() {
-        return this.props.manager.table.get(this.props.manager.mapColumnSlug)
+        return this.props.manager.table.get(this.mapColumnSlug)
+    }
+
+    @computed private get mapColumnSlug() {
+        return this.props.manager.mapColumnSlug
+    }
+
+    // Uses the rootTable because if a target year is set, we filter the years at the grapher level.
+    // Todo: might want to do all filtering a step below the Grapher level?
+    @computed private get sparkBarColumn() {
+        return this.props.manager.table.rootTable.get(this.mapColumnSlug)
     }
 
     @computed private get sparkBarsData() {
@@ -47,7 +57,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         if (!tooltipDatum) return []
 
         const sparkBarValues: SparkBarsDatum[] = []
-        this.mapColumn?.valueByEntityNameAndTime
+        this.sparkBarColumn?.valueByEntityNameAndTime
             .get(tooltipDatum.seriesName)
             ?.forEach((value, key) => {
                 sparkBarValues.push({
