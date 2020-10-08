@@ -244,7 +244,7 @@ export const SiteFooter = ({
                 runBlocks();
                 runLightbox();
                 runSiteTools();
-                runCookieNotice();
+                runCookiePreferencesManager();
                 runCovid();
                 runFootnotes();
                 if (!document.querySelector(".ChartPage")) {
