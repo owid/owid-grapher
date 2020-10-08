@@ -45,7 +45,7 @@ export interface LabelledSlopesProps {
     manager: ChartManager
     yColumn: AbstractCoreColumn
     bounds: Bounds
-    data: SlopeChartSeries[]
+    seriesArr: SlopeChartSeries[]
     focusKeys: string[]
     hoverKeys: string[]
     onMouseOver: (slopeProps: SlopeProps) => void
@@ -56,7 +56,7 @@ export interface LabelledSlopesProps {
 export interface SlopeAxisProps {
     bounds: Bounds
     orient: "left" | "right"
-    tickFormat: (value: number) => string
+    column: AbstractCoreColumn
     scale: any
     scaleType: ScaleType
 }

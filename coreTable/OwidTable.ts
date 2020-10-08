@@ -142,10 +142,6 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this.availableEntityNames.length
     }
 
-    @computed get hasMultipleTimelineTimes() {
-        return this.timelineTimes.length > 1
-    }
-
     @computed get availableEntityNameSet() {
         return new Set(this.rows.map((row) => row.entityName))
     }
@@ -206,10 +202,6 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     @computed get allTimes() {
         return this.rows.map(rowTime)
-    }
-
-    @computed get timelineTimes() {
-        return sortedUniq(this.allTimes)
     }
 
     @computed get hasDayColumn() {

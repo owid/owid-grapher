@@ -12,6 +12,7 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "grapher/utils/TimeBounds"
+import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
 
 it("regression fix: container options are not serialized", () => {
     const grapher = new Grapher({ xAxis: { min: 1 } })
@@ -180,6 +181,31 @@ describe("base url", () => {
         bakedGrapherURL: "/grapher",
     })
     expect(url.baseUrl).toEqual("/grapher/foo")
+})
+
+describe("time domain tests", () => {
+    const seed = 1
+    const grapher = new Grapher({
+        table: SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            seed
+        )
+            .selectAll()
+            .dropRandomCells(17, [SampleColumnSlugs.GDP], seed),
+        dimensions: [
+            {
+                slug: SampleColumnSlugs.GDP,
+                property: DimensionProperty.y,
+                variableId: SampleColumnSlugs.GDP as any,
+            },
+        ],
+    })
+
+    it("get the default time domain from the primary dimensions", () => {
+        expect(grapher.times).toEqual([2003, 2004, 2008])
+        expect(grapher.startTime).toEqual(2003)
+        expect(grapher.endTime).toEqual(2008)
+    })
 })
 
 describe("if a user sets a query param but dropUnchangedParams is false, do not delete the param even if it is a default", () => {

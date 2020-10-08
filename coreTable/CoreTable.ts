@@ -61,7 +61,7 @@ abstract class InvalidValueType {
         this.value = value
     }
     toString() {
-        return this.value
+        return this.value ?? ""
     }
     toErrorString() {
         return this.constructor.name

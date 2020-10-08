@@ -28,6 +28,8 @@ import {
     next,
     sampleFrom,
     range,
+    flatten,
+    last,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -585,7 +587,13 @@ export class Grapher
         if (this.tab === GrapherTabOption.map)
             return this.rootTable.get(this.mapColumnSlug)!.timelineTimes || []
         // todo: filter out min times and end times?
-        return this.rootTable.timelineTimes
+        return this.timelineTimes
+    }
+
+    @computed get timelineTimes() {
+        return uniq(
+            flatten(this.yColumns.map((col) => col.timelineTimes))
+        ).sort()
     }
 
     // todo: remove ifs
@@ -599,7 +607,7 @@ export class Grapher
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
         if (this.isBarChartRace) return this.endTime
-        return this.table.minTime || 1900
+        return this.timelineTimes[0] || 1900
     }
 
     // todo: remove ifs
@@ -610,15 +618,15 @@ export class Grapher
     }
 
     // todo: remove ifs
-    set endTime(value: Time) {
+    set endTime(newValue: Time) {
         const activeTab = this.tab
         if (
             activeTab === GrapherTabOption.map ||
             activeTab === GrapherTabOption.table ||
             this.isBarChartRace
         )
-            this.timelineFilter = [value, value]
-        else this.timelineFilter = [this.timelineFilter[0], value]
+            this.timelineFilter = [newValue, newValue]
+        else this.timelineFilter = [this.timelineFilter[0], newValue]
     }
 
     // todo: remove ifs
@@ -630,7 +638,7 @@ export class Grapher
         //         : this.timeDomain[1]
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 2000
-        return this.table.maxTime || 2000
+        return last(this.timelineTimes) || 2000
     }
 
     @computed private get isBarChartRace() {
@@ -910,7 +918,7 @@ export class Grapher
     @computed get hasTimeline() {
         if (this.isStackedBar || this.isStackedArea) return false
         if (this.isOnOverlay) return false
-        return !this.hideTimeline && this.rootTable.hasMultipleTimelineTimes
+        return !this.hideTimeline && this.times.length > 1
     }
 
     /**

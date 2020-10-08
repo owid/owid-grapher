@@ -43,6 +43,7 @@ import {
     SlopeChartValue,
     SlopeProps,
 } from "./SlopeChartConstants"
+import { AbstractCoreColumn } from "coreTable/CoreTable"
 
 @observer
 export class SlopeChart
@@ -254,7 +255,7 @@ export class SlopeChart
                     manager={manager}
                     bounds={innerBounds}
                     yColumn={this.yColumn!}
-                    data={series}
+                    seriesArr={series}
                     focusKeys={focusKeys}
                     hoverKeys={hoverKeys}
                     onMouseOver={this.onSlopeMouseOver}
@@ -405,14 +406,14 @@ class SlopeChartAxis extends React.Component<SlopeAxisProps> {
     static calculateBounds(
         containerBounds: Bounds,
         props: {
-            tickFormat: (value: number) => string
+            column: AbstractCoreColumn
             orient: "left" | "right"
             scale: ScaleLinear<number, number>
         }
     ) {
-        const { scale } = props
+        const { scale, column } = props
         const longestTick = maxBy(
-            scale.ticks(6).map(props.tickFormat),
+            scale.ticks(6).map((tick) => column.formatValueShort(tick)),
             (tick) => tick.length
         )
         const axisWidth = Bounds.forText(longestTick).width
@@ -453,7 +454,7 @@ class SlopeChartAxis extends React.Component<SlopeAxisProps> {
     }
 
     render() {
-        const { bounds, scale, orient, tickFormat } = this.props
+        const { bounds, scale, orient, column } = this.props
         const { ticks } = this
         const textColor = "#666"
 
@@ -469,7 +470,7 @@ class SlopeChartAxis extends React.Component<SlopeAxisProps> {
                             dominantBaseline="middle"
                             textAnchor={orient === "left" ? "start" : "end"}
                         >
-                            {tickFormat(tick)}
+                            {column.formatValueShort(tick)}
                         </text>
                     )
                 })}
@@ -603,30 +604,30 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
     svg: SVGElement
 
-    @computed get data() {
-        return this.props.data
+    @computed private get data() {
+        return this.props.seriesArr
     }
 
-    @computed get yColumn() {
+    @computed private get yColumn() {
         return this.props.yColumn
     }
 
-    @computed get manager() {
+    @computed private get manager() {
         return this.props.manager
     }
 
-    @computed get bounds() {
+    @computed private get bounds() {
         return this.props.bounds
     }
 
-    @computed get focusKeys() {
+    @computed private get focusedSeriesNames() {
         return intersection(
             this.props.focusKeys || [],
             this.data.map((g) => g.seriesName)
         )
     }
 
-    @computed get hoverKeys() {
+    @computed private get hoveredSeriesNames() {
         return intersection(
             this.props.hoverKeys || [],
             this.data.map((g) => g.seriesName)
@@ -635,19 +636,22 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     // Layered mode occurs when any entity on the chart is hovered or focused
     // Then, a special "foreground" set of entities is rendered over the background
-    @computed get isLayerMode() {
-        return this.focusKeys.length > 0 || this.hoverKeys.length > 0
+    @computed private get isLayerMode() {
+        return (
+            this.focusedSeriesNames.length > 0 ||
+            this.hoveredSeriesNames.length > 0
+        )
     }
 
-    @computed get isPortrait() {
+    @computed private get isPortrait() {
         return this.bounds.width < 400
     }
 
-    @computed get allValues() {
-        return flatten(this.props.data.map((g) => g.values))
+    @computed private get allValues() {
+        return flatten(this.props.seriesArr.map((g) => g.values))
     }
 
-    @computed get xDomainDefault(): [number, number] {
+    @computed private get xDomainDefault(): [number, number] {
         return domainExtent(
             this.allValues.map((v) => v.x),
             ScaleType.linear
@@ -681,7 +685,10 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get sizeScale(): ScaleLinear<number, number> {
         return scaleLinear()
             .domain(
-                extent(this.props.data.map((d) => d.size)) as [number, number]
+                extent(this.props.seriesArr.map((d) => d.size)) as [
+                    number,
+                    number
+                ]
             )
             .range([1, 4])
     }
@@ -699,13 +706,13 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     @computed private get xScale(): ScaleLinear<number, number> {
-        const { bounds, isPortrait, xDomain, yScale } = this
+        const { bounds, isPortrait, xDomain, yScale, yColumn } = this
         const padding = isPortrait
             ? 0
             : SlopeChartAxis.calculateBounds(bounds, {
                   orient: "left",
                   scale: yScale,
-                  tickFormat: this.formatValueFn,
+                  column: yColumn,
               }).width
         return scaleLinear()
             .domain(xDomain)
@@ -723,6 +730,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             xScale,
             yScale,
             sizeScale,
+            yColumn,
             maxLabelWidth: maxWidth,
         } = this
 
@@ -745,8 +753,8 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             const fontSize =
                 (isPortrait ? 0.6 : 0.65) *
                 (this.manager.baseFontSize ?? BASE_FONT_SIZE)
-            const leftValueStr = this.formatValueFn(v1.y)
-            const rightValueStr = this.formatValueFn(v2.y)
+            const leftValueStr = yColumn.formatValueShort(v1.y)
+            const rightValueStr = yColumn.formatValueShort(v2.y)
             const leftValueWidth = Bounds.forText(leftValueStr, {
                 fontSize,
             }).width
@@ -839,14 +847,14 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
 
     // Get the final slope data with hover focusing and collision detection
     @computed get slopeData(): SlopeProps[] {
-        const { focusKeys, hoverKeys } = this
+        const { focusedSeriesNames, hoveredSeriesNames } = this
         let slopeData = this.labelAccountedSlopeData
 
         slopeData = slopeData.map((slope) => {
             return {
                 ...slope,
-                isFocused: focusKeys.includes(slope.seriesName),
-                isHovered: hoverKeys.includes(slope.seriesName),
+                isFocused: focusedSeriesNames.includes(slope.seriesName),
+                isHovered: hoveredSeriesNames.includes(slope.seriesName),
             }
         })
 
@@ -957,6 +965,10 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     }
 
     componentDidMount() {
+        this.playIntroAnimation()
+    }
+
+    private playIntroAnimation() {
         // Nice little intro animation
         select(this.base.current)
             .select(".slopes")
@@ -978,12 +990,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
         ))
     }
 
-    @computed get formatValueFn() {
-        return (val: any) => this.yColumn.formatValueShort(val)
-    }
-
     render() {
-        const yTickFormat = this.formatValueFn
         const baseFontSize = this.manager.baseFontSize ?? BASE_FONT_SIZE
         const yScaleType = this.yScaleType
         const {
@@ -993,6 +1000,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             xDomain,
             yScale,
             onMouseMove,
+            yColumn,
         } = this
 
         if (isEmpty(slopeData))
@@ -1039,7 +1047,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 {!isPortrait && (
                     <SlopeChartAxis
                         orient="left"
-                        tickFormat={yTickFormat}
+                        column={yColumn}
                         scale={yScale}
                         scaleType={yScaleType}
                         bounds={bounds}
@@ -1048,7 +1056,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
                 {!isPortrait && (
                     <SlopeChartAxis
                         orient="right"
-                        tickFormat={yTickFormat}
+                        column={yColumn}
                         scale={yScale}
                         scaleType={yScaleType}
                         bounds={bounds}

@@ -31,7 +31,6 @@ it("times work with a map chart", () => {
     expect(grapher.startTime).toBe(2000)
     expect(grapher.endTime).toBe(2000)
     expect(grapher.times).toEqual([2000, 2010])
-    expect(grapher.rootTable.timelineTimes).toEqual([2000, 2010])
 })
 
 it("can change time and see more points", () => {
