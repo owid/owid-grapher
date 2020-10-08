@@ -1,9 +1,8 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
+import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { computed } from "mobx"
 import {
-    BASE_FONT_SIZE,
     ChartTypeName,
     FacetStrategy,
     SeriesStrategy,
@@ -11,67 +10,23 @@ import {
 import { getChartComponent } from "grapher/chart/ChartTypeMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { makeGrid } from "grapher/utils/Util"
-import { getElementWithHalo } from "grapher/scatterCharts/Halos"
-
-interface FacetChartProps {
-    bounds?: Bounds
-    chartTypeName?: ChartTypeName
-    manager: ChartManager
-}
-
-// Facet by columnSlug. If the columnSlug is entityName than will do one chart per country. If it is an array of column slugs, then will do
-// one chart per slug with series broken out.
-
-interface SmallChart {
-    bounds: Bounds
-    chartTypeName: ChartTypeName
-    manager: ChartManager
-    title: string
-}
-
-interface Facet {
-    name: string
-    manager: Partial<ChartManager>
-    chartTypeName?: ChartTypeName
-}
-
-// not sure if we want to do something more sophisticated
-const getFontSize = (
-    count: number,
-    baseFontSize: number = BASE_FONT_SIZE,
-    min = 8
-) => {
-    if (count === 2) return baseFontSize
-    if (count < 5) return baseFontSize - 2
-    if (count < 10) return baseFontSize - 4
-    if (count < 17) return baseFontSize - 6
-    if (count < 36) return baseFontSize - 8
-    return min
-}
-
-const getChartPadding = (count: number) => {
-    if (count > 9) {
-        return {
-            rowPadding: 20,
-            columnPadding: 20,
-            outerPadding: 20,
-        }
-    }
-
-    return {
-        rowPadding: 40,
-        columnPadding: 40,
-        outerPadding: 20,
-    }
-}
+import { ChartInterface } from "grapher/chart/ChartInterface"
+import { FacetSubtitle, getChartPadding, getFontSize } from "./FacetChartUtils"
+import {
+    FacetSeries,
+    FacetChartProps,
+    PlacedFacetSeries,
+} from "./FacetChartConstants"
 
 @observer
-export class FacetChart extends React.Component<FacetChartProps> {
-    @computed protected get smallCharts() {
-        const { manager, facets } = this
+export class FacetChart
+    extends React.Component<FacetChartProps>
+    implements ChartInterface {
+    @computed get placedSeries() {
+        const { manager, series } = this
         const chartTypeName =
             this.props.chartTypeName ?? ChartTypeName.LineChart
-        const count = facets.length
+        const count = series.length
 
         const boundsArr = this.bounds.split(count, getChartPadding(count))
         const { columns, rows } = makeGrid(count)
@@ -87,15 +42,15 @@ export class FacetChart extends React.Component<FacetChartProps> {
         const baseFontSize = getFontSize(count, manager.baseFontSize)
         const lineStrokeWidth = count > 16 ? 1 : undefined
 
-        const table = this.rootTable
+        const table = this.inputTable
 
-        return facets.map((facet, index) => {
+        return series.map((series, index) => {
             const bounds = boundsArr[index]
             const column = index % columns
             const row = Math.floor(index / columns)
-            const hideXAxis = false // row < rows - 1
-            const hideYAxis = false // column > 0
-            const hideLegend = !!(column !== columns - 1) // todo: only sho 1?
+            const hideXAxis = false // row < rows - 1 // todo: figure out design issues here
+            const hideYAxis = false // column > 0 // todo: figure out design issues here
+            const hideLegend = !!(column !== columns - 1) // todo: only show 1?
             const hidePoints = true
             const xAxisConfig = undefined
             const yAxisConfig = undefined
@@ -116,19 +71,19 @@ export class FacetChart extends React.Component<FacetChartProps> {
                 colorColumnSlug,
                 sizeColumnSlug,
                 isRelativeMode,
-                ...facet.manager,
+                ...series.manager,
             }
             return {
                 bounds,
-                chartTypeName: facet.chartTypeName ?? chartTypeName,
+                chartTypeName: series.chartTypeName ?? chartTypeName,
                 manager,
-                title: facet.name,
-            } as SmallChart
+                seriesName: series.seriesName,
+            } as PlacedFacetSeries
         })
     }
 
-    @computed private get countryFacets(): Facet[] {
-        const table = this.rootTable.filterBySelectedOnly()
+    @computed private get countryFacets(): FacetSeries[] {
+        const table = this.inputTable.filterBySelectedOnly()
         const yDomain = table.domainFor(this.yColumnSlugs)
         const scaleType = this.manager.yAxis?.scaleType
         const sameYAxis = true
@@ -150,13 +105,13 @@ export class FacetChart extends React.Component<FacetChartProps> {
 
         const hideLegend = this.manager.yColumnSlugs?.length === 1
 
-        return this.rootTable.selectedEntityNames.map((name) => {
+        return this.inputTable.selectedEntityNames.map((seriesName) => {
             return {
-                name,
+                seriesName,
                 manager: {
-                    table: this.rootTable
-                        .filterByEntityName(name)
-                        .selectEntity(name),
+                    table: this.inputTable
+                        .filterByEntityName(seriesName)
+                        .selectEntity(seriesName),
                     hideLegend,
                     yAxisConfig,
                     xAxisConfig,
@@ -165,12 +120,10 @@ export class FacetChart extends React.Component<FacetChartProps> {
         })
     }
 
-    @computed private get columnFacets(): Facet[] {
-        const { yColumns } = this
-        return yColumns.map((col) => {
-            const name = col.displayName
+    @computed private get columnFacets(): FacetSeries[] {
+        return this.yColumns.map((col) => {
             return {
-                name,
+                seriesName: col.displayName,
                 manager: {
                     yColumnSlug: col.slug,
                     seriesStrategy: SeriesStrategy.entity,
@@ -179,11 +132,11 @@ export class FacetChart extends React.Component<FacetChartProps> {
         })
     }
 
-    @computed private get columnMapFacets(): Facet[] {
+    @computed private get columnMapFacets(): FacetSeries[] {
         return this.yColumns.map((col) => {
             return {
                 chartTypeName: ChartTypeName.WorldMap,
-                name: col.displayName,
+                seriesName: col.displayName,
                 manager: {
                     yColumnSlug: col.slug,
                 },
@@ -192,14 +145,14 @@ export class FacetChart extends React.Component<FacetChartProps> {
     }
 
     @computed private get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.rootTable.get(slug)!)
+        return this.yColumnSlugs.map((slug) => this.inputTable.get(slug)!)
     }
 
     @computed private get yColumnSlugs() {
         return this.manager.yColumnSlugs || []
     }
 
-    @computed private get facets() {
+    @computed get series() {
         const { facetStrategy } = this.manager
         if (facetStrategy === FacetStrategy.column) return this.columnFacets
         if (facetStrategy === FacetStrategy.columnWithMap)
@@ -213,53 +166,39 @@ export class FacetChart extends React.Component<FacetChartProps> {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
-    @computed protected get rootTable() {
+    @computed get inputTable() {
         return this.manager.table
+    }
+
+    @computed get table() {
+        return this.inputTable
     }
 
     @computed protected get manager() {
         return this.props.manager
     }
 
+    @computed get failMessage() {
+        return ""
+    }
+
     render() {
-        const fontSize = getFontSize(
-            this.smallCharts.length,
-            this.manager.baseFontSize
-        )
-        return this.smallCharts.map((smallChart, index: number) => {
+        const { placedSeries, manager } = this
+        const fontSize = getFontSize(placedSeries.length, manager.baseFontSize)
+        return placedSeries.map((smallChart, index: number) => {
             const ChartComponent = getChartComponent(
                 smallChart.chartTypeName
             ) as any // todo: how to type this?
-            const { bounds, title } = smallChart
+            const { bounds, seriesName } = smallChart
             return (
                 <React.Fragment key={index}>
                     <ChartComponent
                         bounds={bounds}
                         manager={smallChart.manager}
                     />
-                    {FacetTitle(title, bounds, fontSize, index)}
+                    {FacetSubtitle(seriesName, bounds, fontSize, index)}
                 </React.Fragment>
             )
         })
     }
 }
-
-const FacetTitle = (
-    title: string,
-    bounds: Bounds,
-    fontSize: number,
-    index: number
-) =>
-    getElementWithHalo(
-        `title${index}halo`,
-        <text
-            x={bounds.centerX}
-            y={bounds.top + fontSize}
-            fill={"black"}
-            textAnchor="middle"
-            fontSize={fontSize}
-        >
-            {title}
-        </text>,
-        { strokeWidth: ".2em" }
-    )
