@@ -9,17 +9,9 @@ export enum ConsentType {
 }
 
 export const getConsent = (type: ConsentType, consents = "") => {
-    return consents
-        .split("|")
-        .filter((consentStr) => {
-            const [key, ,] = consentStr
-            return key === type
-        })
-        .map((consentStr) => {
-            const [, , value] = consentStr
-            return value
-        })
-        .pop()
+    const regex = new RegExp(`${type}:(\\d+)`)
+    const match = regex.exec(consents)
+    return match ? match[1] : undefined
 }
 
 export const getConsentPerformance = () => {
