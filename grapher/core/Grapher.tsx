@@ -889,8 +889,16 @@ export class Grapher
         return text.trim()
     }
 
+    @computed private get isOnOverlay() {
+        return (
+            this.currentTab === GrapherTabOption.sources ||
+            this.currentTab === GrapherTabOption.download
+        )
+    }
+
     @computed get hasTimeline() {
         if (this.isStackedBar || this.isStackedArea) return false
+        if (this.isOnOverlay) return false
         return !this.hideTimeline && this.rootTable.hasMultipleTimelineTimes
     }
 
@@ -1131,7 +1139,7 @@ export class Grapher
             <StaticCaptionedChart
                 manager={this}
                 bounds={this.idealBounds}
-                maxWidth={this.idealBounds.width - 30}
+                maxWidth={this.idealBounds.width - 30} // todo: probably can clean this up
             />
         )
     }
