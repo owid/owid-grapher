@@ -1,5 +1,5 @@
 import { ColumnTypeNames } from "coreTable/CoreTableConstants"
-import { OwidColumnSpec } from "coreTable/OwidTable"
+import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 import { Time } from "grapher/core/GrapherConstants"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"

@@ -21,7 +21,7 @@ import {
     DiscreteBarChartManager,
     DiscreteBarDatum,
 } from "./DiscreteBarChartConstants"
-import { OwidTableSlugs } from "coreTable/OwidTable"
+import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5

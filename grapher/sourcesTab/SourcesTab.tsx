@@ -5,8 +5,8 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { OwidColumnSpec } from "coreTable/OwidTable"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 

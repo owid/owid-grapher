@@ -18,16 +18,16 @@ import {
 import moment from "moment"
 import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"
-import {
-    OwidTable,
-    OwidColumnSpec,
-    generateEntityId,
-} from "coreTable/OwidTable"
+import { OwidTable } from "coreTable/OwidTable"
 import {
     ColumnTypeNames,
     EntityName,
     ColumnSlug,
     Integer,
+    CoreRow,
+    ComputedColumnFn,
+    CoreColumnSpec,
+    HasComputedColumn,
 } from "coreTable/CoreTableConstants"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
@@ -43,13 +43,15 @@ import {
     sourceVariables,
     testRateExcludeList,
 } from "./CovidConstants"
-import {
-    ComputedColumnFn,
-    CoreColumnSpec,
-    CoreRow,
-    HasComputedColumn,
-} from "coreTable/CoreTable"
 import { computed, observable } from "mobx"
+import { OwidColumnSpec } from "coreTable/OwidTableConstants"
+
+const globalEntityIds = new Map()
+const generateEntityId = (entityName: string) => {
+    if (!globalEntityIds.has(entityName))
+        globalEntityIds.set(entityName, globalEntityIds.size)
+    return globalEntityIds.get(entityName)
+}
 
 interface AnnotationsRow {
     location: EntityName

@@ -1,6 +1,5 @@
 import {
     CellValue,
-    Integer,
     SortOrder,
     TickFormattingOptions,
     Time,
@@ -24,33 +23,19 @@ import {
     orderBy,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
-import { ColumnSlug, ColumnTypeNames, EntityName } from "./CoreTableConstants"
+import {
+    ColumnSlug,
+    ColumnTypeNames,
+    CoreColumnSpec,
+    CoreRow,
+    EntityName,
+} from "./CoreTableConstants"
 import {
     toAlignedTextTable,
     toDelimited,
     toMarkdownTable,
 } from "./CoreTablePrinters"
-import {
-    LegacyVariableDisplayConfig,
-    LegacyVariableDisplayConfigInterface,
-} from "./LegacyVariableCode"
-
-export interface CoreRow {
-    [columnName: string]: any
-}
-
-export interface CoreColumnSpec {
-    slug: ColumnSlug
-    name?: string
-    description?: string
-    unit?: string
-    shortUnit?: string
-    fn?: ComputedColumnFn
-    type?: ColumnTypeNames
-    generator?: () => number // A function for generating synthetic data for testing
-    growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.
-    display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
-}
+import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 
 // Since authors are uploading data at runtime, and errors in runtime data are extremely common,
 // it may be helpful to parse those invalid values into specific types, to provide better error messages
@@ -61,7 +46,7 @@ abstract class InvalidValueType {
         this.value = value
     }
     toString() {
-        return this.value ?? ""
+        return this.value instanceof InvalidValueType ? "" : this.value ?? ""
     }
     toErrorString() {
         return this.constructor.name
@@ -138,7 +123,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                     newRow[col.slug] = col.parse(row[col.slug])
                 })
                 computeds.forEach((spec) => {
-                    newRow[spec.slug] = spec.fn!(row, index, this)
+                    newRow[spec.slug] = spec.fn!(row, index)
                 })
                 return newRow as ROW_TYPE
             })
@@ -269,6 +254,15 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             this.specs,
             this,
             `Sort by ${slugs.join(",")} ${orders?.join(",")}`
+        )
+    }
+
+    reverse() {
+        return new (this.constructor as any)(
+            this.rows.slice(0).reverse(),
+            this.specs,
+            this,
+            `Reversed row order`
         )
     }
 
@@ -504,7 +498,6 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     }
 }
 
-export declare type MapOfColumnSpecs = Map<ColumnSlug, CoreColumnSpec>
 export declare type ObjectOfColumnSpecs = {
     [columnSlug: string]: CoreColumnSpec
 }
@@ -539,17 +532,6 @@ export class AnyTable extends AbstractCoreTable<CoreRow> {
 }
 
 // Todo: Add DayColumn, YearColumn, EntityColumn, etc?
-
-// todo: remove index param?
-export declare type ComputedColumnFn = (
-    row: CoreRow,
-    index?: Integer,
-    table?: AbstractCoreTable<CoreRow>
-) => any
-
-export interface HasComputedColumn {
-    fn: ComputedColumnFn
-}
 
 // todo: remove
 const rowTime = (row: CoreRow) =>
