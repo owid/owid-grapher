@@ -1,5 +1,5 @@
 #! /usr/bin/env yarn jest
-import { Grapher } from "grapher/core/Grapher"
+import { Grapher, TestGrapherConfig } from "grapher/core/Grapher"
 import {
     ChartTypeName,
     DimensionProperty,
@@ -150,6 +150,27 @@ describe("scaleType", () => {
             xAxis: { scaleType: ScaleType.linear },
         }).params.xScale
     ).toEqual(undefined)
+})
+
+describe("line chart to bar chart and bar chart race", () => {
+    const grapher = new Grapher(TestGrapherConfig())
+
+    it("can create a new line chart with different start and end times", () => {
+        expect(grapher.constrainedType).toEqual(ChartTypeName.LineChart)
+        expect(grapher.endTime).toBeGreaterThan(grapher.startTime)
+    })
+
+    it("switches from a line chart to a bar chart when there is only 1 year selected", () => {
+        const grapher = new Grapher(TestGrapherConfig())
+        grapher.startTime = 2000
+        grapher.endTime = 2000
+        expect(grapher.constrainedType).toEqual(ChartTypeName.DiscreteBar)
+    })
+
+    it("turns into a bar chart race when playing a line chart", () => {
+        grapher.timelineController.play(1)
+        expect(grapher.startTime).toEqual(grapher.endTime)
+    })
 })
 
 describe("base url", () => {

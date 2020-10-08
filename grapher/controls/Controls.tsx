@@ -6,10 +6,7 @@ import {
     getWindowQueryParams,
     QueryParams,
 } from "utils/client/url"
-import {
-    TimelineComponent,
-    TimelineComponentManager,
-} from "grapher/timeline/TimelineComponent"
+import { TimelineComponent } from "grapher/timeline/TimelineComponent"
 import { formatValue } from "grapher/utils/Util"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
@@ -24,6 +21,7 @@ import {
 } from "grapher/core/GrapherConstants"
 import { ShareMenu, ShareMenuManager } from "./ShareMenu"
 import { OwidTable } from "coreTable/OwidTable"
+import { TimelineController } from "grapher/timeline/TimelineController"
 
 export interface HighlightToggleManager {
     highlightToggle?: HighlightToggleConfig
@@ -197,9 +195,7 @@ export class FilterSmallCountriesToggle extends React.Component<{
     }
 }
 
-export interface FooterControlsManager
-    extends ShareMenuManager,
-        TimelineComponentManager {
+export interface FooterControlsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
     isSelectingData?: boolean
     availableTabs?: GrapherTabOption[]
@@ -210,6 +206,7 @@ export interface FooterControlsManager
     hasRelatedQuestion?: boolean
     relatedQuestions: RelatedQuestionsConfig[]
     footerControlsHeight?: number
+    timelineController?: TimelineController
 }
 
 @observer
@@ -309,7 +306,9 @@ export class FooterControls extends React.Component<{
 
         return (
             <div className="footerRowSingle">
-                <TimelineComponent manager={manager} />
+                <TimelineComponent
+                    timelineController={this.manager.timelineController!}
+                />
             </div>
         )
     }

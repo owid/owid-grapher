@@ -2,8 +2,9 @@ import * as React from "react"
 import { TimelineComponent } from "./TimelineComponent"
 import { action, computed, observable } from "mobx"
 import { range } from "grapher/utils/Util"
+import { TimelineController } from "./TimelineController"
 
-class Subject {
+class TimelineManager {
     @observable isPlaying = false
     @observable times = range(1900, 2021)
 
@@ -39,7 +40,7 @@ export default {
     component: TimelineComponent,
 }
 
-class SingleYearSubject extends Subject {
+class SingleYearManager extends TimelineManager {
     @action.bound updateEndTime(num: number) {
         // Simulate the Map class, which can only have 1 target time
         this._endTime = num
@@ -53,21 +54,30 @@ class SingleYearSubject extends Subject {
 }
 
 export const Default = () => {
-    const subject = new Subject()
-    subject.startTime = 1900
-    return <TimelineComponent manager={subject} />
+    const manager = new TimelineManager()
+    manager.startTime = 1900
+    const timelineController = new TimelineController(manager)
+    return <TimelineComponent timelineController={timelineController} />
 }
 
 export const StartPartialRange = () => (
-    <TimelineComponent manager={new Subject()} />
+    <TimelineComponent
+        timelineController={new TimelineController(new TimelineManager())}
+    />
 )
 
 export const OneYearAtATime = () => (
-    <TimelineComponent manager={new SingleYearSubject()} />
+    <TimelineComponent
+        timelineController={new TimelineController(new SingleYearManager())}
+    />
 )
 
 export const DisablePlayButton = () => {
-    const subject = new Subject()
-    subject.disablePlay = true
-    return <TimelineComponent manager={subject} />
+    const manager = new TimelineManager()
+    manager.disablePlay = true
+    return (
+        <TimelineComponent
+            timelineController={new TimelineController(manager)}
+        />
+    )
 }

@@ -5,26 +5,25 @@ import { range } from "grapher/utils/Util"
 import { TimelineController, TimelineManager } from "./TimelineController"
 
 it("can play a timeline", async () => {
-    const subject: TimelineManager = {
+    let wasPlayed = false
+    const manager: TimelineManager = {
         times: range(2000, 2010),
         startTime: 2000,
         endTime: 2005,
         isPlaying: false,
+        onPlay: () => (wasPlayed = true),
     }
 
-    let wasPlayed = false
-    const controller = new TimelineController(subject, {
-        onPlay: () => (wasPlayed = true),
-    })
-    expect(subject.isPlaying).toEqual(false)
-    expect(subject.endTime).toEqual(2005)
+    const controller = new TimelineController(manager)
+    expect(manager.isPlaying).toEqual(false)
+    expect(manager.endTime).toEqual(2005)
     expect(wasPlayed).toEqual(false)
     expect(controller.startTimeProgress).toEqual(0)
     expect(controller.endTimeProgress).toBeLessThan(1)
 
     const ticks = await controller.play()
-    expect(subject.isPlaying).toEqual(false)
-    expect(subject.endTime).toEqual(2009)
+    expect(manager.isPlaying).toEqual(false)
+    expect(manager.endTime).toEqual(2009)
     expect(wasPlayed).toEqual(true)
     expect(ticks).toEqual(4)
 
@@ -41,32 +40,32 @@ it("can play a timeline", async () => {
     // Can play single year mode
     controller.toggleRangeMode()
     await controller.play(2)
-    expect(subject.startTime).toEqual(2002)
+    expect(manager.startTime).toEqual(2002)
 })
 
 it("can handle when an end handle is dragged past a start handle", () => {
-    const subject: TimelineManager = {
+    const manager: TimelineManager = {
         times: range(1900, 2010),
         startTime: 2000,
         endTime: 2005,
         isPlaying: false,
     }
 
-    const controller = new TimelineController(subject)
+    const controller = new TimelineController(manager)
     controller.dragHandleToTime("end", 1950)
-    expect(subject.startTime).toEqual(1950)
-    expect(subject.endTime).toEqual(2000)
+    expect(manager.startTime).toEqual(1950)
+    expect(manager.endTime).toEqual(2000)
 })
 
 it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond end of timeline", () => {
-    const subject: TimelineManager = {
+    const manager: TimelineManager = {
         times: range(1900, 2010),
         startTime: 2000,
         endTime: 2005,
         isPlaying: false,
     }
 
-    const controller = new TimelineController(subject)
+    const controller = new TimelineController(manager)
 
     expect(controller.getTimeFromDrag(2009)).toBe(2009)
     expect(controller.getTimeFromDrag(2009.1)).toBe(

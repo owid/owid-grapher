@@ -3,13 +3,12 @@ import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import { findClosestTime, last } from "grapher/utils/Util"
 
 export interface TimelineManager {
+    disablePlay?: boolean
+    formatTimeFn?: (value: any) => any
     isPlaying: boolean
     times: Time[]
     startTime: Time
     endTime: Time
-}
-
-interface TimelineControllerOptions {
     msPerTick?: number
     onPlay?: () => void
 }
@@ -17,15 +16,10 @@ interface TimelineControllerOptions {
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TimelineController {
-    private manager: TimelineManager
-    private options: TimelineControllerOptions
+    manager: TimelineManager
 
-    constructor(
-        manager: TimelineManager,
-        options: TimelineControllerOptions = {}
-    ) {
+    constructor(manager: TimelineManager) {
         this.manager = manager
-        this.options = options
     }
 
     private get timesAsc() {
@@ -82,24 +76,26 @@ export class TimelineController {
     }
 
     private resetToBeginning() {
+        const { manager } = this
         const beginning =
-            this.manager.endTime !== this.manager.startTime
-                ? this.manager.startTime
+            manager.endTime !== manager.startTime
+                ? manager.startTime
                 : this.minTime
-        this.manager.endTime = beginning
+        manager.endTime = beginning
     }
 
     async play(numberOfTicks?: number) {
-        this.manager.isPlaying = true
+        const { manager } = this
+        manager.isPlaying = true
 
         if (this.isAtEnd()) this.resetToBeginning()
 
-        if (this.options.onPlay) this.options.onPlay()
+        if (manager.onPlay) manager.onPlay()
 
         // Keep and return a tickCount for easier testability
         let tickCount = 0
-        while (this.manager.isPlaying) {
-            const nextTime = this.getNextTime(this.manager.endTime)
+        while (manager.isPlaying) {
+            const nextTime = this.getNextTime(manager.endTime)
             if (!this.rangeMode) this.updateStartTime(nextTime)
             this.updateEndTime(nextTime)
             tickCount++
@@ -107,7 +103,7 @@ export class TimelineController {
                 this.stop()
                 break
             }
-            await delay(this.options.msPerTick ?? 0)
+            await delay(manager.msPerTick ?? 0)
         }
 
         return tickCount

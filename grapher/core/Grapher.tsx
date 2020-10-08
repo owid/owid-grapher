@@ -133,12 +133,15 @@ import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
 import { DiscreteBarChartManager } from "grapher/barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "grapher/controls/CommandPalette"
 import { ShareMenuManager } from "grapher/controls/ShareMenu"
-import { TimelineComponentManager } from "grapher/timeline/TimelineComponent"
 import {
     CaptionedChart,
     CaptionedChartManager,
     StaticCaptionedChart,
 } from "grapher/captionedChart/CaptionedChart"
+import {
+    TimelineController,
+    TimelineManager,
+} from "grapher/timeline/TimelineController"
 
 declare const window: any
 
@@ -154,6 +157,8 @@ const legacyConfigToConfig = (
     )
     return newConfig
 }
+
+const DEFAULT_MS_PER_TICK = 100
 
 // Exactly the same as GrapherInterface, but contains options that developers want but authors won't be touching.
 export interface GrapherProgrammaticInterface extends GrapherInterface {
@@ -177,7 +182,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
 export class Grapher
     extends React.Component<GrapherProgrammaticInterface>
     implements
-        TimelineComponentManager,
+        TimelineManager,
         ChartManager,
         FontSizeManager,
         CaptionedChartManager,
@@ -591,8 +596,9 @@ export class Grapher
                 // todo: readd this behavior. this.dataTableTransform.autoSelectedStartTime ??
                 this.timelineFilter[0]
             )
-        else if (activeTab === GrapherTabOption.map)
+        if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
+        if (this.isBarChartRace) return this.endTime
         return this.table.minTime || 1900
     }
 
@@ -608,7 +614,8 @@ export class Grapher
         const activeTab = this.tab
         if (
             activeTab === GrapherTabOption.map ||
-            activeTab === GrapherTabOption.table
+            activeTab === GrapherTabOption.table ||
+            this.isBarChartRace
         )
             this.timelineFilter = [value, value]
         else this.timelineFilter = [this.timelineFilter[0], value]
@@ -624,6 +631,10 @@ export class Grapher
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 2000
         return this.table.maxTime || 2000
+    }
+
+    @computed private get isBarChartRace() {
+        return this.type === ChartTypeName.LineChart && this.isPlaying
     }
 
     @computed get isNativeEmbed() {
@@ -1417,7 +1428,7 @@ export class Grapher
     }
 
     @action.bound togglePlayingCommand() {
-        this.isPlaying = !this.isPlaying
+        this.timelineController.togglePlay()
     }
 
     get keyboardShortcuts(): Command[] {
@@ -1811,10 +1822,15 @@ export class Grapher
         return undefined
     }
 
+    msPerTick = DEFAULT_MS_PER_TICK
+
+    timelineController = new TimelineController(this)
+
     onPlay() {
         this.analytics.logChartTimelinePlay(this.slug)
     }
 
+    // todo: restore this behavior??
     onStartPlayOrDrag() {
         this.debounceMode = true
         this.useTimelineDomains = true
