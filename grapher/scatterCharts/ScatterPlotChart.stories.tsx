@@ -1,12 +1,12 @@
 import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import * as React from "react"
-import { ScatterPlot } from "./ScatterPlot"
-import { ScatterPlotManager } from "./ScatterPlotConstants"
+import { ScatterPlotChart } from "./ScatterPlotChart"
+import { ScatterPlotManager } from "./ScatterPlotChartConstants"
 
 export default {
-    title: "ScatterPlot",
-    component: ScatterPlot,
+    title: "ScatterPlotChart",
+    component: ScatterPlotChart,
 }
 
 const basicSetup: ScatterPlotManager = {
@@ -46,7 +46,7 @@ const oneYearWithComparisons = {
 export const OneYearWithSizeColumn = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot manager={oneYearWithSizeColumn} />
+            <ScatterPlotChart manager={oneYearWithSizeColumn} />
         </svg>
     )
 }
@@ -54,7 +54,7 @@ export const OneYearWithSizeColumn = () => {
 export const WithComparisonLinesAndSelection = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot
+            <ScatterPlotChart
                 manager={{
                     ...oneYearWithComparisons,
                     table: SynthesizeGDPTable({ entityCount: 20 })
@@ -78,20 +78,20 @@ export const LogScales = () => {
     return (
         <div>
             <svg width={600} height={600}>
-                <ScatterPlot manager={oneYearWithComparisons} />
+                <ScatterPlotChart manager={oneYearWithComparisons} />
             </svg>
             <svg width={600} height={600}>
-                <ScatterPlot
+                <ScatterPlotChart
                     manager={{ ...oneYearWithComparisons, yAxisConfig }}
                 />
             </svg>
             <svg width={600} height={600}>
-                <ScatterPlot
+                <ScatterPlotChart
                     manager={{ ...oneYearWithComparisons, xAxisConfig }}
                 />
             </svg>
             <svg width={600} height={600}>
-                <ScatterPlot
+                <ScatterPlotChart
                     manager={{
                         ...oneYearWithComparisons,
                         yAxisConfig,
@@ -106,7 +106,7 @@ export const LogScales = () => {
 export const MultipleYearsWithConnectedLines = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot manager={basicSetup} />
+            <ScatterPlotChart manager={basicSetup} />
         </svg>
     )
 }
@@ -114,7 +114,7 @@ export const MultipleYearsWithConnectedLines = () => {
 export const MultipleYearsWithConnectedLinesAndBackgroundLines = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot
+            <ScatterPlotChart
                 manager={{
                     ...basicSetup,
                     table: SynthesizeGDPTable({ entityCount: 20 }).selectSample(
@@ -130,7 +130,7 @@ export const MultipleYearsWithConnectedLinesAndBackgroundLines = () => {
 export const OneYearWithSizeAndColorColumn = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot
+            <ScatterPlotChart
                 manager={{
                     ...oneYearWithSizeColumn,
                     colorColumnSlug: SampleColumnSlugs.LifeExpectancy,
@@ -144,7 +144,7 @@ export const OneYearWithSizeAndColorColumn = () => {
 export const AverageAnnualChange = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot manager={oneYear} />
+            <ScatterPlotChart manager={oneYear} />
         </svg>
     )
 }
@@ -153,7 +153,7 @@ export const AverageAnnualChange = () => {
 export const CustomColors = () => {
     return (
         <svg width={600} height={600}>
-            <ScatterPlot manager={oneYear} />
+            <ScatterPlotChart manager={oneYear} />
         </svg>
     )
 }

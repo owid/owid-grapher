@@ -1,9 +1,9 @@
 import { observer } from "mobx-react"
-import { ScatterPlot } from "./ScatterPlot"
+import { ScatterPlotChart } from "./ScatterPlotChart"
 
 // todo: readd
 @observer
-export class TimeScatter extends ScatterPlot {
+export class TimeScatterChart extends ScatterPlotChart {
     constructor(props: any) {
         super(props)
     }

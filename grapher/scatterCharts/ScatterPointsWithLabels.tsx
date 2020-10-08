@@ -28,7 +28,7 @@ import {
     ScatterLabel,
     ScatterRenderPoint,
     ScatterLabelFontFamily,
-} from "./ScatterPlotConstants"
+} from "./ScatterPlotChartConstants"
 import { ScatterLine, ScatterPoint } from "./ScatterPoints"
 import {
     makeStartLabel,

@@ -52,13 +52,13 @@ import {
     ScatterPlotManager,
     ScatterSeries,
     SeriesPoint,
-} from "./ScatterPlotConstants"
+} from "./ScatterPlotChartConstants"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 
 @observer
-export class ScatterPlot
+export class ScatterPlotChart
     extends React.Component<{
         bounds?: Bounds
         manager: ScatterPlotManager

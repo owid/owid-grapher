@@ -1,5 +1,5 @@
-import { ScatterPlot } from "grapher/scatterCharts/ScatterPlot"
-import { TimeScatter } from "grapher/scatterCharts/TimeScatter"
+import { ScatterPlotChart } from "grapher/scatterCharts/ScatterPlotChart"
+import { TimeScatterChart } from "grapher/scatterCharts/TimeScatterChart"
 import { SlopeChart } from "grapher/slopeCharts/SlopeChart"
 import { LineChart } from "grapher/lineCharts/LineChart"
 import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
@@ -14,8 +14,8 @@ export const getChartComponent = (type: ChartTypeName) => {
     if (type === ChartTypeName.SlopeChart) return SlopeChart
     if (type === ChartTypeName.StackedArea) return StackedAreaChart
     if (type === ChartTypeName.StackedBar) return StackedBarChart
-    if (type === ChartTypeName.ScatterPlot) return ScatterPlot
-    if (type === ChartTypeName.TimeScatter) return TimeScatter
+    if (type === ChartTypeName.ScatterPlot) return ScatterPlotChart
+    if (type === ChartTypeName.TimeScatter) return TimeScatterChart
     if (type === ChartTypeName.WorldMap) return MapChart
     return null
 }

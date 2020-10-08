@@ -3,7 +3,7 @@ import { first, last } from "lodash"
 import { observer } from "mobx-react"
 import React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
-import { ScatterRenderSeries } from "./ScatterPlotConstants"
+import { ScatterRenderSeries } from "./ScatterPlotChartConstants"
 import { Triangle } from "./Triangle"
 
 // When there's only a single point in a series (e.g. single year mode)

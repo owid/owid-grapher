@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { ScatterPlot } from "grapher/scatterCharts/ScatterPlot"
+import { ScatterPlotChart } from "grapher/scatterCharts/ScatterPlotChart"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
 const table = SynthesizeGDPTable({
@@ -14,7 +14,7 @@ const manager = {
 }
 
 it("can create a new chart", () => {
-    const chart = new ScatterPlot({ manager })
+    const chart = new ScatterPlotChart({ manager })
     expect(chart.failMessage).toBeFalsy()
     expect(chart.getEntityNamesToShow().length).toEqual(2)
     expect(chart.series.length).toEqual(2)

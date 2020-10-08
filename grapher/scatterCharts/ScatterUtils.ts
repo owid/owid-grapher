@@ -6,7 +6,7 @@ import {
     ScatterRenderPoint,
     ScatterRenderSeries,
     ScatterLabelFontFamily as fontFamily,
-} from "./ScatterPlotConstants"
+} from "./ScatterPlotChartConstants"
 
 export const labelPriority = (label: ScatterLabel) => {
     let priority = label.fontSize

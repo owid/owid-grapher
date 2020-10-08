@@ -2,7 +2,7 @@ import React from "react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { first, last, compact, uniq } from "grapher/utils/Util"
 import { observer } from "mobx-react"
-import { ScatterTooltipProps, SeriesPoint } from "./ScatterPlotConstants"
+import { ScatterTooltipProps, SeriesPoint } from "./ScatterPlotChartConstants"
 
 @observer
 export class ScatterTooltip extends React.Component<ScatterTooltipProps> {
