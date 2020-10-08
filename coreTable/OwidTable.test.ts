@@ -106,7 +106,7 @@ describe("creating a table from legacy", () => {
             "time", // todo: what is the best design here?
         ])
 
-        expect(Array.from(table.columnsByName.keys())).toEqual([
+        expect(table.columnNames).toEqual([
             "Entity",
             "entityId",
             "Code",
@@ -116,9 +116,7 @@ describe("creating a table from legacy", () => {
             "time",
         ])
 
-        expect(table.columnsByOwidVarId.get(3512)?.displayName).toBe(
-            "Some Display Name"
-        )
+        expect(table.get("3512")?.displayName).toBe("Some Display Name")
     })
 
     it("can apply legacy unit conversion factors", () => {

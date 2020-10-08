@@ -70,13 +70,13 @@ class NotAParseableNumberButShouldBeNumber extends InvalidValueType {
 }
 
 export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
-    @observable.ref protected _rows: ROW_TYPE[]
-    @observable protected _columns: Map<ColumnSlug, AbstractCoreColumn>
+    private _inputRows: ROW_TYPE[]
+    @observable.ref private _rows: ROW_TYPE[]
+    @observable private _columns: Map<ColumnSlug, AbstractCoreColumn>
     @observable.shallow protected selectedRows = new Set<CoreRow>()
 
     protected parent?: AbstractCoreTable<ROW_TYPE>
-    protected tableDescription?: string
-    private _inputRows: ROW_TYPE[]
+    private tableDescription?: string
 
     constructor(
         rows: ROW_TYPE[] = [],
@@ -84,7 +84,6 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         parentTable?: AbstractCoreTable<ROW_TYPE>,
         tableDescription?: string
     ) {
-        this._rows = rows
         this._inputRows = rows // Save a reference to original rows for debugging.
 
         this._columns = new Map()
@@ -94,7 +93,8 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             this._columns.set(slug, new columnType(this, spec))
         })
 
-        const slugsWithoutSpecs = rows[0]
+        const firstRow = rows[0]
+        const slugsWithoutSpecs = firstRow
             ? Object.keys(rows[0]).filter((slug) => !this.has(slug))
             : []
         slugsWithoutSpecs.forEach((slug) => {
@@ -112,12 +112,19 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         this.parent = parentTable
         this.tableDescription = tableDescription
 
-        const colsToParse = this.columnsToParse()
-        const computeds = columnSpecs.filter((spec) => spec.fn)
+        this._rows = this._buildRows(columnSpecs, rows)
 
+        // Pass selection strategy down from parent
+        if (parentTable) this.copySelectionFrom(parentTable)
+    }
+
+    private _buildRows(columnSpecs: CoreColumnSpec[], rows: ROW_TYPE[]) {
+        const firstRow = rows[0]
+        const colsToParse = this.getColumnsToParse(firstRow)
+        const computeds = columnSpecs.filter((spec) => spec.fn)
         // Clone and parse rows if necessary
         if (colsToParse.length || computeds.length)
-            this._rows = this._rows.map((row, index) => {
+            return rows.map((row, index) => {
                 const newRow: any = { ...row }
                 colsToParse.forEach((col) => {
                     newRow[col.slug] = col.parse(row[col.slug])
@@ -127,17 +134,14 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 })
                 return newRow as ROW_TYPE
             })
-
-        // Pass selection strategy down from parent
-        if (parentTable) this.copySelectionFrom(parentTable)
+        return rows
     }
 
     // todo
     copySelectionFrom(table: any) {}
 
     // For now just examine the first row, and if anything bad is found, reparse that column
-    private columnsToParse() {
-        const firstRow = this._rows[0]
+    private getColumnsToParse(firstRow: CoreRow) {
         if (!firstRow) return []
 
         return this.columnsAsArray.filter(
@@ -270,12 +274,8 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.columnsAsArray.map((col) => col.spec)
     }
 
-    @computed get columnsByName() {
-        const map = new Map<string, AbstractCoreColumn>()
-        this._columns.forEach((col) => {
-            map.set(col.name, col)
-        })
-        return map
+    @computed get columnNames() {
+        return this.columnsAsArray.map((col) => col.name)
     }
 
     @computed get columnSlugs() {

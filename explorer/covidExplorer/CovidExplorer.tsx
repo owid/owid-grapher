@@ -86,7 +86,7 @@ import {
     StackMode,
 } from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
-import { QueryParams, queryParamsToStr } from "utils/client/url"
+import { queryParamsToStr } from "utils/client/url"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -350,11 +350,11 @@ export class CovidExplorer
         )
     }
 
-    @computed get howLongAgo() {
+    @computed private get howLongAgo() {
         return moment.utc(this.props.updated).fromNow()
     }
 
-    @action.bound onResize() {
+    @action.bound private onResize() {
         this.isMobile = this._isMobile()
         this.chartBounds = this.getChartBounds()
     }

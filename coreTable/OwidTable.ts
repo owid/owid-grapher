@@ -71,17 +71,6 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return new OwidTable(rows, [...RequiredColumnSpecs, ...specs])
     }
 
-    @computed get columnsByOwidVarId() {
-        const map = new Map<number, AbstractCoreColumn>()
-        this.columnsAsArray.forEach((column, index) => {
-            map.set(
-                (column.spec as OwidColumnSpec).owidVariableId ?? index,
-                column
-            )
-        })
-        return map
-    }
-
     @computed get entityType() {
         return "Country"
     }
@@ -108,7 +97,7 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
     }
 
     // todo: can we remove at some point?
-    @computed get entityCodeToNameMap() {
+    @computed private get entityCodeToNameMap() {
         const map = new Map<EntityCode, EntityName>()
         this.rows.forEach((row) => {
             if (row.entityCode) map.set(row.entityCode, row.entityName)
@@ -172,10 +161,10 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
         return this.rowsBy<Time>(this.timeColumn.slug)
     }
 
-    private rowsBy<T>(property: string) {
+    private rowsBy<T>(columnSlug: ColumnSlug) {
         const map = new Map<T, OwidRow[]>()
         this.rows.forEach((row) => {
-            const key = row[property]
+            const key = row[columnSlug]
             if (!map.has(key)) map.set(key, [])
             map.get(key)!.push(row)
         })

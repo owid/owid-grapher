@@ -12,10 +12,7 @@ canada,20`
 it("a table can be made from csv", () => {
     const table = AnyTable.fromDelimited(sampleCsv)
     expect(table.numRows).toEqual(4)
-    expect(Array.from(table.columnsByName.keys())).toEqual([
-        "country",
-        "population",
-    ])
+    expect(table.columnNames).toEqual(["country", "population"])
 })
 
 it("rows can be added without mutating the parent table", () => {
