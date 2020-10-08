@@ -46,7 +46,7 @@ export class CookieNotice extends React.Component {
                         </div>
                         <div className="owid-col owid-col--lg-0 actions">
                             <a href="/privacy-policy" className="button">
-                                Read the privacy policy
+                                Manage preferences
                             </a>
                             <button
                                 className="button accept"
