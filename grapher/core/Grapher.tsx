@@ -973,6 +973,10 @@ export class Grapher
         return this.getSlugForProperty(DimensionProperty.size)
     }
 
+    @computed get colorColumnSlug() {
+        return this.getSlugForProperty(DimensionProperty.color)
+    }
+
     @computed private get timeTitleSuffix() {
         if (!this.table.timeColumn) return "" // Do not show year until data is loaded
         const { startTime, endTime } = this

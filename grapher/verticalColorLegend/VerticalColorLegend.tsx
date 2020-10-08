@@ -4,7 +4,7 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
-import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE, Color } from "grapher/core/GrapherConstants"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number
@@ -16,13 +16,13 @@ export interface VerticalColorLegendManager {
     onLegendMouseLeave?: () => void
     legendX?: number
     legendY?: number
-    activeColors: string[]
-    focusColors?: string[]
+    activeColors: Color[]
+    focusColors?: Color[]
 }
 
 interface LabelMark {
     label: TextWrap
-    color: string
+    color: Color
     width: number
     height: number
 }

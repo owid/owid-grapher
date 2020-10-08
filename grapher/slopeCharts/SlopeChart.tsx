@@ -25,7 +25,6 @@ import {
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import {
     BASE_FONT_SIZE,
-    Time,
     ScaleType,
     EntitySelectionMode,
 } from "grapher/core/GrapherConstants"
@@ -108,7 +107,7 @@ export class SlopeChart
         this.hoverColor = undefined
     }
 
-    @computed private get selectedKeys() {
+    @computed private get selectedEntityNames() {
         return this.manager.table.selectedEntityNames
     }
 
@@ -122,19 +121,19 @@ export class SlopeChart
         )
             return
 
-        const keysToToggle = this.series
+        const seriesNamesToToggle = this.series
             .filter((g) => g.color === hoverColor)
             .map((g) => g.seriesName)
-        const allKeysActive =
-            intersection(keysToToggle, this.selectedKeys).length ===
-            keysToToggle.length
-        if (allKeysActive)
+        const areAllSeriesActive =
+            intersection(seriesNamesToToggle, this.selectedEntityNames)
+                .length === seriesNamesToToggle.length
+        if (areAllSeriesActive)
             this.manager.table.setSelectedEntities(
-                without(this.selectedKeys, ...keysToToggle)
+                without(this.selectedEntityNames, ...seriesNamesToToggle)
             )
         else
             this.manager.table.setSelectedEntities(
-                this.selectedKeys.concat(keysToToggle)
+                this.selectedEntityNames.concat(seriesNamesToToggle)
             )
     }
 
@@ -142,18 +141,18 @@ export class SlopeChart
     @computed get focusColors() {
         const { colorsInUse } = this
         return colorsInUse.filter((color) => {
-            const matchingKeys = this.series
+            const matchingSeriesNames = this.series
                 .filter((g) => g.color === color)
                 .map((g) => g.seriesName)
             return (
-                intersection(matchingKeys, this.selectedKeys).length ===
-                matchingKeys.length
+                intersection(matchingSeriesNames, this.selectedEntityNames)
+                    .length === matchingSeriesNames.length
             )
         })
     }
 
     @computed get focusKeys() {
-        return this.selectedKeys
+        return this.selectedEntityNames
     }
 
     // All currently hovered group keys, combining the legend and the main UI
@@ -175,7 +174,7 @@ export class SlopeChart
     }
 
     // Colors currently on the chart and not greyed out
-    @computed get activeColors(): string[] {
+    @computed get activeColors() {
         const { hoverKeys, focusKeys } = this
         const activeKeys = hoverKeys.concat(focusKeys)
 
@@ -191,29 +190,27 @@ export class SlopeChart
     }
 
     // Only show colors on legend that are actually in use
-    @computed get colorsInUse() {
-        return uniq(this.series.map((g) => g.color))
+    @computed private get colorsInUse() {
+        return uniq(this.series.map((series) => series.color))
     }
 
-    @computed get sidebarMaxWidth() {
+    @computed private get sidebarMaxWidth() {
         return this.bounds.width * 0.5
     }
 
-    @computed get sidebarMinWidth() {
-        return 100
-    }
+    private sidebarMinWidth = 100
 
     @computed private get legendWidth() {
         return new VerticalColorLegend({ manager: this }).width
     }
 
-    @computed.struct get sidebarWidth() {
+    @computed.struct private get sidebarWidth() {
         const { sidebarMinWidth, sidebarMaxWidth, legendWidth } = this
         return Math.max(Math.min(legendWidth, sidebarMaxWidth), sidebarMinWidth)
     }
 
     // correction is to account for the space taken by the legend
-    @computed get innerBounds() {
+    @computed private get innerBounds() {
         const { sidebarWidth, showLegend } = this
 
         return showLegend
@@ -224,7 +221,7 @@ export class SlopeChart
     // verify the validity of data used to show legend
     // this is for backwards compatibility with charts that were added without legend
     // eg: https://ourworldindata.org/grapher/mortality-rate-improvement-by-cohort
-    @computed get showLegend() {
+    @computed private get showLegend() {
         const { colorsInUse } = this
         const { legendBins } = this.colorScale
         return legendBins.some((bin) => colorsInUse.includes(bin.color))
