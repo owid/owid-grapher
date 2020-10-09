@@ -28,8 +28,6 @@ export class ExplorerCreatePage extends React.Component<{ slug: string }> {
     componentDidMount() {
         this.context.admin.loadingIndicatorSetting = "off"
         this.fetchExplorerProgramOnLoad()
-        const win = window as any
-        win.ExplorerProgram = ExplorerProgram
     }
 
     @action

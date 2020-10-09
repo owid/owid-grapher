@@ -219,8 +219,6 @@ export class ExplorersIndexPage extends React.Component {
                 this.explorers = json.explorers.map(
                     (exp: any) => new ExplorerProgram(exp.slug, exp.program)
                 )
-                const win = window as any
-                win.explorers = this.explorers
                 this.numTotalRows = json.explorers.length
                 this.highlightSearch = searchInput
             }

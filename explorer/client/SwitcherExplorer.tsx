@@ -15,6 +15,7 @@ import { QueryParams, strToQueryParams } from "utils/client/url"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { OwidTable } from "coreTable/OwidTable"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
+import { exposeInstanceOnWindow } from "grapher/utils/Util"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -113,7 +114,8 @@ export class SwitcherExplorer
         autorun(() => {
             this.updateSelection(this.countryPickerTable.selectedEntityNames)
         })
-        ;(window as any).switcherExplorer = this
+
+        exposeInstanceOnWindow(this, "switcherExplorer")
     }
 
     @action.bound private updateSelection(entityNames: string[]) {

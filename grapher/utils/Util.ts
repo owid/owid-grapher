@@ -180,11 +180,11 @@ export const getRelativeMouse = (
     )
 }
 
-// Just a quick way to expose window.chart for debugging. Last chart wins.
-export const exposeChartOnWindow = (component: any) => {
+// Just a quick and dirty way to expose window.chart/explorer/etc for debugging. Last caller wins.
+export const exposeInstanceOnWindow = (component: any, name = "chart") => {
     if (typeof window === "undefined") return
     const win = window as any
-    win.chart = component
+    win[name] = component
 }
 
 // Make an arbitrary string workable as a css class name

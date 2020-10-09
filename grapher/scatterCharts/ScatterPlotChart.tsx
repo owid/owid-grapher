@@ -15,7 +15,7 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation,
     relativeMinAndMax,
     identity,
-    exposeChartOnWindow,
+    exposeInstanceOnWindow,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -324,7 +324,7 @@ export class ScatterPlotChart
     }
 
     componentDidMount() {
-        exposeChartOnWindow(this)
+        exposeInstanceOnWindow(this)
     }
 
     render() {

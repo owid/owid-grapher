@@ -24,6 +24,7 @@ import {
     next,
     previous,
     startCase,
+    exposeInstanceOnWindow,
 } from "grapher/utils/Util"
 import {
     ControlOption,
@@ -810,7 +811,7 @@ export class CovidExplorer
         // call resize for the first time to initialize chart
         this.onResize()
         this.grapher.embedExplorerCheckbox = this.controlsToggleElement
-        ;(window as any).covidDataExplorer = this
+        exposeInstanceOnWindow(this, "covidDataExplorer")
 
         if (this.props.enableKeyboardShortcuts)
             this.keyboardShortcuts.forEach((shortcut) => {
