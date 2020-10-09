@@ -1878,6 +1878,8 @@ export class Grapher
 
     @computed get showAbsRelToggle() {
         if (!this.canToggleRelativeMode) return false
+        if (this.isScatter)
+            return this.xOverrideTime === undefined && this.hasTimeline
         return this.isStackedArea || this.isScatter || this.isLineChart
     }
 
