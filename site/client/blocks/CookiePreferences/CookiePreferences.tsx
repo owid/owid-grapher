@@ -1,5 +1,12 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
+import {
+    Action,
+    getPreferenceValue,
+    POLICY_DATE,
+    Preference,
+    PreferenceType,
+} from "site/client/CookiePreferencesManager/CookiePreferencesManager"
 
 const CookiePreference = ({
     title,
@@ -32,11 +39,11 @@ const CookiePreference = ({
 }
 
 export const CookiePreferences = ({
-    performance,
-    togglePerformance,
+    preferences,
+    dispatch,
 }: {
-    performance: boolean
-    togglePerformance: any
+    preferences: Preference[]
+    dispatch: any
 }) => {
     const cookiePreferencesDomSlot = document.querySelector(
         ".wp-block-cookie-preferences"
@@ -56,8 +63,19 @@ export const CookiePreferences = ({
             </CookiePreference>
             <CookiePreference
                 title="Performance cookies"
-                consent={performance}
-                toggleConsent={togglePerformance}
+                consent={getPreferenceValue(
+                    PreferenceType.Performance,
+                    preferences
+                )}
+                toggleConsent={() =>
+                    dispatch({
+                        type: Action.TogglePreference,
+                        payload: {
+                            preferenceType: PreferenceType.Performance,
+                            date: POLICY_DATE,
+                        },
+                    })
+                }
             >
                 We use these cookies to monitor and improve website performance.
             </CookiePreference>

@@ -3,13 +3,19 @@ import { useEffect, useState } from "react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
+import {
+    Action,
+    POLICY_DATE,
+} from "./CookiePreferencesManager/CookiePreferencesManager"
 
 export const CookieNotice = ({
     accepted,
-    onAccept,
+    outdated,
+    dispatch,
 }: {
     accepted: boolean
-    onAccept: any
+    outdated: boolean
+    dispatch: any
 }) => {
     const [mounted, setMounted] = useState(false)
 
@@ -17,12 +23,12 @@ export const CookieNotice = ({
         setTimeout(() => {
             setMounted(true)
         }, 200)
-    }, [mounted])
+    }, [])
 
     return (
         <div
             className={classnames("cookie-notice", {
-                open: mounted && !accepted,
+                open: mounted && (!accepted || outdated),
             })}
         >
             <div className="wrapper">
@@ -38,7 +44,15 @@ export const CookieNotice = ({
                         <a href="/privacy-policy" className="button">
                             Manage preferences
                         </a>
-                        <button className="button accept" onClick={onAccept}>
+                        <button
+                            className="button accept"
+                            onClick={() =>
+                                dispatch({
+                                    type: Action.Accept,
+                                    payload: { date: POLICY_DATE },
+                                })
+                            }
+                        >
                             <span className="icon">
                                 <FontAwesomeIcon icon={faCheck} />
                             </span>{" "}

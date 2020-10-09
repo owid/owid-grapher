@@ -1,105 +1,193 @@
 import ReactDOM from "react-dom"
 import * as React from "react"
-import { useState } from "react"
+import { useEffect, useReducer } from "react"
 import * as Cookies from "js-cookie"
 
 import { CookiePreferences } from "site/client/blocks/CookiePreferences/CookiePreferences"
 import { CookieNotice } from "site/client/CookieNotice"
 
-export enum CookiePreferenceType {
+export enum PreferenceType {
     Performance = "p",
-    Date = "d",
+    Marketing = "m", // not used
 }
 
-const POLICY_DATE: number = 20201010
+export enum Action {
+    Accept,
+    TogglePreference,
+    Reset,
+}
+
+export interface Preference {
+    type: PreferenceType
+    value: boolean
+}
+
+export const POLICY_DATE: number = 20201015
 const COOKIE_NAME = "cookie_preferences"
-const SEPARATOR = "|"
+const PREFERENCES_SEPARATOR = "|"
+const DATE_SEPARATOR = "-"
+const PREFERENCE_KEY_VALUE_SEPARATOR = ":"
+// e.g. p:1-20200910
 
-export const CookiePreferencesManager = () => {
-    const [accepted, setAccepted] = useState(
-        getPreference(CookiePreferenceType.Date, readPreferences()) ===
-            POLICY_DATE
-    )
-    const [performance, setPerformance] = useState(
-        getImplicitConsent(CookiePreferenceType.Performance)
-    )
+interface State {
+    date?: number
+    preferences: Preference[]
+}
 
-    const onTogglePerformance = () => {
-        setAccepted(true)
-        setPerformance(!performance)
-        setPreference(CookiePreferenceType.Performance, performance ? 0 : 1)
-    }
+const defaultState: State = {
+    preferences: [
+        {
+            type: PreferenceType.Performance,
+            value: true,
+        },
+    ],
+}
 
-    const onAccept = () => {
-        setAccepted(true)
-        setPreference(CookiePreferenceType.Performance, performance ? 1 : 0)
-    }
+export const CookiePreferencesManager = ({
+    initialState = defaultState,
+}: {
+    initialState: State
+}) => {
+    const [state, dispatch] = useReducer(reducer, initialState)
+
+    // Reset state
+    useEffect(() => {
+        if (arePreferencesOutdated(state.date, POLICY_DATE)) {
+            dispatch({ type: Action.Reset })
+        }
+    }, [state.date])
+
+    // Commit state
+    useEffect(() => {
+        const serializedState = state.date ? serializeState(state) : ""
+        Cookies.set(COOKIE_NAME, serializedState, { expires: 365 * 3 })
+    }, [state])
 
     return (
         <div className="cookie-manager">
-            <CookieNotice accepted={accepted} onAccept={onAccept} />
+            <CookieNotice
+                accepted={!!state.date}
+                outdated={arePreferencesOutdated(state.date, POLICY_DATE)}
+                dispatch={dispatch}
+            />
             <CookiePreferences
-                performance={performance}
-                togglePerformance={onTogglePerformance}
+                preferences={state.preferences}
+                dispatch={dispatch}
             />
         </div>
     )
 }
 
-export const getPreference = (type: CookiePreferenceType, preferences = "") => {
-    const regex = new RegExp(`${type}:(\\d+)`)
-    const match = regex.exec(preferences)
-    return match ? parseInt(match[1], 10) : undefined
+const reducer = (
+    state: State,
+    { type: actionType, payload }: { type: Action; payload?: any }
+): State => {
+    switch (actionType) {
+        case Action.Accept: {
+            return {
+                date: payload.date,
+                preferences: updatePreference(
+                    PreferenceType.Performance,
+                    true,
+                    state.preferences
+                ),
+            }
+        }
+        case Action.TogglePreference:
+            return {
+                date: payload.date,
+                preferences: updatePreference(
+                    payload.preferenceType,
+                    !getPreferenceValue(
+                        payload.preferenceType,
+                        state.preferences
+                    ),
+                    state.preferences
+                ),
+            }
+        case Action.Reset:
+            return defaultState
+        default:
+            return state
+    }
 }
 
-const getImplicitConsent = (type: CookiePreferenceType) => {
-    return getPreference(type, readPreferences()) !== 0
+const getInitialState = (): State => {
+    return parseRawCookieValue(Cookies.get(COOKIE_NAME)) ?? defaultState
 }
 
-const setPreference = (type: CookiePreferenceType, preference: number) => {
-    const currentPreferences = readPreferences()
+export const parseRawCookieValue = (cookieValue?: string) => {
+    if (!cookieValue) return
+    const [preferences, date] = cookieValue.split(DATE_SEPARATOR)
 
-    let updatedPreferences = updatePreference(
-        type,
-        preference,
-        currentPreferences
+    return {
+        preferences: parsePreferences(preferences),
+        date: parseInt(date, 10),
+    }
+}
+
+export const parsePreferences = (preferences: string): Preference[] => {
+    return preferences.split(PREFERENCES_SEPARATOR).map((preference) => {
+        const [type, , value] = preference // only supports 1 digit values
+        return {
+            type: type as PreferenceType,
+            value: value === "1",
+        }
+    })
+}
+
+export const getPreferenceValue = (
+    type: PreferenceType,
+    preferences: Preference[]
+) => {
+    return (
+        preferences.find((preference) => {
+            return preference.type === type
+        })?.value ?? false
     )
-
-    // Concurrently append / update current policy date for every preference set
-    updatedPreferences = updatePreference(
-        CookiePreferenceType.Date,
-        POLICY_DATE,
-        updatedPreferences
-    )
-
-    writePreferences(updatedPreferences)
 }
 
 export const updatePreference = (
-    type: CookiePreferenceType,
-    preference: number,
-    preferences = ""
+    type: PreferenceType,
+    value: boolean,
+    preferences: Preference[]
 ) => {
-    const otherPreferences = preferences
-        .split(SEPARATOR)
-        .filter((consentStr) => {
-            const [key, ,] = consentStr
-            return key && key !== type
+    return preferences.map((preference) => {
+        if (preference.type !== type) return preference
+
+        return {
+            ...preference,
+            value,
+        }
+    })
+}
+
+export const arePreferencesOutdated = (
+    preferencesDate: number | undefined,
+    policyDate: number
+) => {
+    if (!preferencesDate) return false
+    return preferencesDate < policyDate
+}
+
+export const serializeState = (state: State) => {
+    const serializedPreferences = state.preferences
+        .map((preference) => {
+            return `${preference.type}${PREFERENCE_KEY_VALUE_SEPARATOR}${
+                preference.value ? 1 : 0
+            }`
         })
+        .join(PREFERENCES_SEPARATOR)
 
-    return [...otherPreferences, `${type}:${preference}`].join(SEPARATOR)
-}
-
-export const readPreferences = () => {
-    return Cookies.get(COOKIE_NAME)
-}
-
-const writePreferences = (consents: string) => {
-    Cookies.set(COOKIE_NAME, consents, { expires: 365 * 3 })
+    return `${serializedPreferences}${DATE_SEPARATOR}${state.date}`
 }
 
 export const runCookiePreferencesManager = () => {
     const div = document.createElement("div")
     document.body.appendChild(div)
-    ReactDOM.render(<CookiePreferencesManager />, div)
+
+    ReactDOM.render(
+        <CookiePreferencesManager initialState={getInitialState()} />,
+        div
+    )
 }
