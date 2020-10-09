@@ -414,10 +414,6 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (this.isBiweekly) this.smoothing = 14
     }
 
-    get multiplyRollingAveragesByWindowSize() {
-        return this.isWeekly || this.isBiweekly
-    }
-
     get isWeeklyOrBiweeklyChange() {
         return (
             this.interval === IntervalOptions.biweeklyChange ||

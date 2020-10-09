@@ -164,11 +164,11 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     withDataTableColumnsInTable(params: CovidConstrainedQueryParams) {
-        const dataTableParams = new CovidConstrainedQueryParams("")
         const { interval, tableMetrics, perCapita } = params
         let table: CovidExplorerTable = this
 
         tableMetrics?.forEach((metric) => {
+            const dataTableParams = new CovidConstrainedQueryParams("")
             dataTableParams.setMetric(metric)
             dataTableParams.interval = IntervalOptions.total
             dataTableParams.smoothing = 0
