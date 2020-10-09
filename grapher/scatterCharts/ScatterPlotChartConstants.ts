@@ -30,6 +30,8 @@ export interface ScatterTooltipProps {
     y: number
 }
 
+export type SeriesPointMap = Map<SeriesName, Map<Time, SeriesPoint>>
+
 export interface ScatterSeries {
     color: Color
     seriesName: SeriesName

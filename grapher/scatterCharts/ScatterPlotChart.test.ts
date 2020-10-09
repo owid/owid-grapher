@@ -9,7 +9,7 @@ it("can create a new chart", () => {
     }
     const chart = new ScatterPlotChart({ manager })
     expect(chart.failMessage).toBeFalsy()
-    expect(chart.getEntityNamesToShow().length).toEqual(2)
+    expect(chart.getSeriesNamesToShow().size).toEqual(2)
     expect(chart.series.length).toEqual(2)
 })
 
