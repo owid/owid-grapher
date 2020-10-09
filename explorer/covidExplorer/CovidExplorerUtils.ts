@@ -16,14 +16,15 @@ import {
 } from "grapher/utils/Util"
 import moment from "moment"
 import { csv } from "d3-fetch"
+import { csvParse } from "d3-dsv"
 import {
     covidChartAndVariableMetaPath,
     covidDataPath,
-    CovidGrapherRow,
+    CovidRow,
     covidLastUpdatedPath,
     IntervalOption,
     MetricKind,
-    ParsedCovidCsvRow,
+    MegaCovidRow,
 } from "./CovidConstants"
 import { CoreRow } from "coreTable/CoreTableConstants"
 
@@ -31,12 +32,14 @@ const stringColumnSlugs = new Set(
     `iso_code location date tests_units continent`.split(" ")
 )
 
-export const parseCovidRow = (row: ParsedCovidCsvRow): CovidGrapherRow => {
-    const newRow: Partial<CovidGrapherRow> = row
-    Object.keys(row).forEach((key) => {
-        const isNumeric = !stringColumnSlugs.has(key)
+const parseMegaCovidRow = (row: MegaCovidRow) => {
+    const newRow: Partial<CovidRow> = row
+    Object.keys(row).forEach((columnSlug) => {
+        const isNumeric = !stringColumnSlugs.has(columnSlug)
         if (isNumeric)
-            (row as any)[key] = parseFloatOrUndefined((row as any)[key])
+            (row as any)[columnSlug] = parseFloatOrUndefined(
+                (row as any)[columnSlug]
+            )
     })
 
     if (row.location === "International") row.iso_code = "OWID_INT"
@@ -49,7 +52,7 @@ export const parseCovidRow = (row: ParsedCovidCsvRow): CovidGrapherRow => {
 
     if (newRow.location === "World") newRow.group_members = "All"
 
-    return row as CovidGrapherRow
+    return newRow as CovidRow
 }
 
 const globalEntityIds = new Map()
@@ -72,11 +75,11 @@ const dateToYear = (dateString: string): number => {
     return dateToYearCache.get(dateString)!
 }
 
-export const calculateRowsForGroup = (
-    group: ParsedCovidCsvRow[],
+const calculateCovidRowsForGroup = (
+    group: MegaCovidRow[],
     groupName: string
 ) => {
-    const rowsByDay = new Map<string, CovidGrapherRow>()
+    const rowsByDay = new Map<string, CovidRow>()
     const rows = sortBy(group, (row) => dateToYear(row.date))
     const groupMembers = new Set()
     rows.forEach((row) => {
@@ -97,7 +100,7 @@ export const calculateRowsForGroup = (
                 entityId: generateEntityId(groupName),
                 new_deaths: 0,
                 population: 0,
-            } as CovidGrapherRow)
+            } as CovidRow)
         }
         const newRow = rowsByDay.get(day)!
         newRow.population += row.population
@@ -126,49 +129,50 @@ export const calculateRowsForGroup = (
 }
 
 // Generates rows for each region.
-export const generateContinentRows = (rows: ParsedCovidCsvRow[]) => {
+export const generateCovidRowsForContinents = (rows: MegaCovidRow[]) => {
     const grouped = groupBy(rows, "continent")
     return flatten(
         Object.keys(grouped)
             .filter((cont) => cont)
             .map((continentName) =>
-                calculateRowsForGroup(grouped[continentName], continentName)
+                calculateCovidRowsForGroup(
+                    grouped[continentName],
+                    continentName
+                )
             )
     )
 }
 
-const fetchData = async () => {
-    const rawData = (await csv(covidDataPath)) as any
-    return rawData
+const fetchMegaCovidRows = async () => {
+    const rows = await csv(covidDataPath)
+    return (rows as any) as MegaCovidRow[]
 }
 
-const parseData = (rawData: any) => {
-    const filtered: CovidGrapherRow[] = rawData
-        .map(parseCovidRow)
-        .filter((row: CovidGrapherRow) => row.location !== "International")
+// Todo: move these ops to the table class.
+const parseMegaCovidRows = (megaCovidRows: MegaCovidRow[]) => {
+    const filtered: CovidRow[] = megaCovidRows
+        .map(parseMegaCovidRow)
+        .filter((row: CovidRow) => row.location !== "International")
 
     const latestDate = max(filtered.map((row) => row.date))
 
-    const continentRows = generateContinentRows(filtered).filter(
+    const continentRows = generateCovidRowsForContinents(filtered).filter(
         // Drop the last day in aggregates containing Spain & Sweden
         (row) => !(row.date === latestDate && row.location === "Europe")
     )
 
-    const euRows = calculateRowsForGroup(
-        filtered.filter((row: ParsedCovidCsvRow) =>
-            euCountries.has(row.location)
-        ),
+    const euRows = calculateCovidRowsForGroup(
+        filtered.filter((row: MegaCovidRow) => euCountries.has(row.location)),
         "European Union"
         // Drop the last day in aggregates containing Spain & Sweden
     ).filter((row) => row.date !== latestDate)
 
-    const rows = filtered.concat(continentRows, euRows) as CovidGrapherRow[]
-    return rows
+    return filtered.concat(continentRows, euRows)
 }
 
-export const fetchAndParseData = async () => {
-    const rawData = await fetchData()
-    return parseData(rawData)
+export const fetchAndParseMegaCovidRows = async () => {
+    const megaRows = await fetchMegaCovidRows()
+    return parseMegaCovidRows(megaRows)
 }
 
 const euCountries = new Set([
@@ -236,7 +240,7 @@ export const computeRollingAveragesForEachGroup = (
     return flatten(groups)
 }
 
-const memoizedFetchAndParseData = memoize(fetchAndParseData)
+const memoizedFetchAndParseMegaCovidRows = memoize(fetchAndParseMegaCovidRows)
 
 const fetchLastUpdatedTime = memoize(() =>
     retryPromise(() => fetchText(covidLastUpdatedPath))
@@ -247,14 +251,14 @@ const fetchCovidChartAndVariableMeta = memoize(() =>
     retryPromise(() => fetchJSON(covidChartAndVariableMetaPath))
 )
 
-export const getRequiredData = async () => {
-    const [typedData, updated, covidMeta] = await Promise.all([
-        memoizedFetchAndParseData(),
+export const fetchRequiredData = async () => {
+    const [covidRows, updated, covidMeta] = await Promise.all([
+        memoizedFetchAndParseMegaCovidRows(),
         fetchLastUpdatedTime(),
         fetchCovidChartAndVariableMeta(),
     ])
     return {
-        typedData,
+        covidRows,
         updated,
         covidMeta,
     }
@@ -302,3 +306,21 @@ export const buildColumnSlug = (
     ]
         .filter((i) => i)
         .join("-")
+
+const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,new_cases,total_deaths,new_deaths,total_cases_per_million,new_cases_per_million,total_deaths_per_million,new_deaths_per_million,total_tests,new_tests,total_tests_per_thousand,new_tests_per_thousand,tests_units
+1000,ABW,Aruba,North America,2020-03-13,2,2,0,0,18.733,18.733,0.0,0.0,,,,,
+1000,ABW,Aruba,North America,2020-03-20,4,2,0,0,37.465,18.733,0.0,0.0,,,,,
+1000,ABW,Aruba,North America,2020-03-24,12,8,0,0,112.395,74.93,0.0,0.0,,,,,
+1000,ABW,Aruba,North America,2020-03-25,17,5,0,0,159.227,46.831,0.0,0.0,,,,,
+2000,USA,United States,North America,2020-05-05,1180634,22593,68934,1252,3566.842,68.256,208.258,3.782,7544328.0,258954.0,22.792,0.782,inconsistent units (COVID Tracking Project)
+2000,USA,United States,North America,2020-05-06,1204475,23841,71078,2144,3638.868,72.027,214.735,6.477,,,,,
+3000,,World,,2020-05-01,3215927,84440,232869,5534,412.573,10.833,29.875,0.71,,,,,
+3000,,World,,2020-05-02,3308891,92964,238707,5838,424.5,11.926,30.624,0.749,,,,,
+3000,,World,,2020-05-03,3389459,80568,243476,4769,434.836,10.336,31.236,0.612,,,,,
+3000,,World,,2020-05-04,3467502,78043,246999,3523,444.848,10.012,31.688,0.452,,,,,
+3000,,World,,2020-05-05,3544168,76666,250977,3978,454.684,9.836,32.198,0.51,,,,,
+3000,,World,,2020-05-06,3623803,79635,256880,5903,464.9,10.216,32.955,0.757,,,,,`
+
+export const covidSampleRows = (csvParse(sampleMegaCsv) as any).map(
+    parseMegaCovidRow
+) as CovidRow[]

@@ -12,7 +12,7 @@ import {
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
     trajectoryColumnSpecs,
-    CovidCsvColumnSlug,
+    MegaCovidColumnSlug,
     SmoothingOption,
     colorScaleOption,
     MetricKind,
@@ -66,7 +66,7 @@ export class CovidQueryParams {
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
-    @observable countryPickerMetric: CovidCsvColumnSlug = "location"
+    @observable countryPickerMetric: MegaCovidColumnSlug = "location"
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
     @observable interval: IntervalOption = "daily"

@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 
 import { CovidExplorerTable } from "./CovidExplorerTable"
-import { covidSampleRows } from "./CovidSampleRows"
-import uniq from "lodash/uniq"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
+import { covidSampleRows } from "./CovidExplorerUtils"
+import { uniq } from "grapher/utils/Util"
 
 describe("parse row", () => {
     it("correctly parses data from mega file", () => {

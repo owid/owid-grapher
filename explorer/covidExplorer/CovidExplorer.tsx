@@ -38,7 +38,7 @@ import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
-    CovidGrapherRow,
+    CovidRow,
     IntervalOption,
     MetricKind,
     covidDashboardSlug,
@@ -47,7 +47,7 @@ import {
     sourceCharts,
     metricLabels,
     metricPickerColumnSpecs,
-    CovidCsvColumnSlug,
+    MegaCovidColumnSlug,
     intervalSpecs,
     intervalsAvailableByMetric,
 } from "./CovidConstants"
@@ -83,7 +83,7 @@ import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 import { queryParamsToStr } from "utils/client/url"
 import {
     getLeastUsedColor,
-    getRequiredData,
+    fetchRequiredData,
     perCapitaDivisorByMetric,
 } from "./CovidExplorerUtils"
 
@@ -98,7 +98,7 @@ interface BootstrapProps {
 @observer
 export class CovidExplorer
     extends React.Component<{
-        data: CovidGrapherRow[]
+        covidRows: CovidRow[]
         params: CovidQueryParams
         covidChartAndVariableMeta: {
             charts: any
@@ -113,7 +113,7 @@ export class CovidExplorer
     }>
     implements ObservableUrl {
     static async bootstrap(props: BootstrapProps) {
-        const { typedData, updated, covidMeta } = await getRequiredData()
+        const { covidRows, updated, covidMeta } = await fetchRequiredData()
         const queryStr =
             props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
                 ? props.queryStr
@@ -121,7 +121,7 @@ export class CovidExplorer
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
             <CovidExplorer
-                data={typedData}
+                covidRows={covidRows}
                 updated={updated}
                 params={startingParams}
                 covidChartAndVariableMeta={covidMeta}
@@ -417,7 +417,7 @@ export class CovidExplorer
         ) as string[]
     }
 
-    @action.bound changePickerMetric(metric: CovidCsvColumnSlug) {
+    @action.bound changePickerMetric(metric: MegaCovidColumnSlug) {
         this.props.params.countryPickerMetric = metric
     }
 
@@ -657,7 +657,7 @@ export class CovidExplorer
         }, 1)
     }
 
-    private rootTable = new CovidExplorerTable(this.props.data)
+    private rootTable = new CovidExplorerTable(this.props.covidRows)
         .setOwidVariableSpecs(this.props.covidChartAndVariableMeta.variables)
         .withAnnotationColumns()
 

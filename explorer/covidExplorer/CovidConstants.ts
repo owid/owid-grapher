@@ -202,8 +202,9 @@ Luxembourg,2020-08-28,methodology change,
 Bolivia,2020-09-07,,probable/earlier deaths added
 Ecuador,2020-09-07,,probable/earlier deaths added`
 
-// https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
-export interface ParsedCovidCsvRow {
+// https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-codebook.csv
+// The "MegaCSV" from our CovidDataset is initially parsed into an array of objects with this interface
+export interface MegaCovidRow {
     iso_code: string
     location: string
     continent: string
@@ -245,7 +246,7 @@ export interface ParsedCovidCsvRow {
     hospital_beds_per_thousand: number
 }
 
-export interface CovidGrapherRow extends ParsedCovidCsvRow {
+export interface CovidRow extends MegaCovidRow {
     group_members?: string
     entityName: string
     entityCode: string
@@ -254,9 +255,9 @@ export interface CovidGrapherRow extends ParsedCovidCsvRow {
     time: Time
 }
 
-export declare type CovidCsvColumnSlug = keyof ParsedCovidCsvRow
+export declare type MegaCovidColumnSlug = keyof MegaCovidRow
 export const metricPickerColumnSpecs: Partial<Record<
-    CovidCsvColumnSlug,
+    MegaCovidColumnSlug,
     Partial<OwidColumnSpec>
 >> = {
     location: { slug: "location", name: "Country name" },
