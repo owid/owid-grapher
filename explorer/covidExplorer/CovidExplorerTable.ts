@@ -18,6 +18,7 @@ import {
     IntervalOptions,
     intervalsAvailableByMetric,
     intervalSpecs,
+    metricLabels,
     MetricOptions,
     SmoothingOption,
     sourceVariables,
@@ -37,6 +38,8 @@ interface AnnotationsRow {
     cases_annotations: string
     deaths_annotations: string
 }
+
+const dontIncludeInTable = { display: { includeInTable: false } }
 
 export class CovidExplorerTable extends OwidTable {
     @observable private owidVariableSpecs: {
@@ -129,19 +132,36 @@ export class CovidExplorerTable extends OwidTable {
         return templates
     }
 
+    withDataTableSpecs() {
+        const includeInDataTable = new Set(Object.values(MetricOptions))
+        return this.withTransformedSpecs((spec) => {
+            if (includeInDataTable.has(spec.slug as MetricOptions)) return spec
+            return {
+                ...spec,
+                ...dontIncludeInTable,
+            }
+        }) as CovidExplorerTable // todo: fix typings
+    }
+
     withAnnotationColumns() {
         const caseSlug = "cases_annotations"
         const deathSlug = "deaths_annotations"
         const cfrSlug = "case_fatality_rate_annotations"
         const table = this.withColumns([
-            { slug: caseSlug, type: ColumnTypeNames.String },
+            {
+                slug: caseSlug,
+                type: ColumnTypeNames.String,
+                ...dontIncludeInTable,
+            },
             {
                 slug: deathSlug,
                 type: ColumnTypeNames.String,
+                ...dontIncludeInTable,
             },
             {
                 slug: cfrSlug,
                 type: ColumnTypeNames.String,
+                ...dontIncludeInTable,
             },
         ])
 
@@ -185,21 +205,22 @@ export class CovidExplorerTable extends OwidTable {
             1e6: " per million people",
         }
 
-        if (!spec.display) spec.display = {}
-
-        spec.display!.name = `${params.intervalTitle} ${spec.display!.name}${
+        const display = spec.display || {}
+        display.name = `${params.intervalTitle} ${spec.name ?? display.name}${
             messages[perCapita]
         }`
 
         // Show decimal places for rolling average & per capita variables
-        if (perCapita > 1) spec.display!.numDecimalPlaces = 2
+        if (perCapita > 1) display.numDecimalPlaces = 2
         else if (
             name === MetricOptions.positive_test_rate ||
             name === MetricOptions.case_fatality_rate ||
             (rollingAverage && rollingAverage > 1)
         )
-            spec.display!.numDecimalPlaces = 1
-        else spec.display!.numDecimalPlaces = 0
+            display.numDecimalPlaces = 1
+        else display.numDecimalPlaces = 0
+
+        spec.display = display
 
         return spec
     }
