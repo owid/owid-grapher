@@ -3,22 +3,22 @@ import * as React from "react"
 import { useState } from "react"
 import * as Cookies from "js-cookie"
 
-import { CookiePreferences } from "../blocks/CookiePreferences/CookiePreferences"
-import { CookieNotice } from "../CookieNotice"
+import { CookiePreferences } from "site/client/blocks/CookiePreferences/CookiePreferences"
+import { CookieNotice } from "site/client/CookieNotice"
 
 export enum CookiePreferenceType {
     Performance = "p",
-    Version = "v",
+    Date = "d",
 }
 
-const VERSION: number = 20201009
+const POLICY_DATE: number = 20201010
 const COOKIE_NAME = "cookie_preferences"
 const SEPARATOR = "|"
 
 export const CookiePreferencesManager = () => {
     const [accepted, setAccepted] = useState(
-        getPreference(CookiePreferenceType.Version, readPreferences()) ===
-            VERSION
+        getPreference(CookiePreferenceType.Date, readPreferences()) ===
+            POLICY_DATE
     )
     const [performance, setPerformance] = useState(
         getImplicitConsent(CookiePreferenceType.Performance)
@@ -65,10 +65,10 @@ const setPreference = (type: CookiePreferenceType, preference: number) => {
         currentPreferences
     )
 
-    // Concurrently add / update version number for every preference set
+    // Concurrently append / update current policy date for every preference set
     updatedPreferences = updatePreference(
-        CookiePreferenceType.Version,
-        VERSION,
+        CookiePreferenceType.Date,
+        POLICY_DATE,
         updatedPreferences
     )
 
