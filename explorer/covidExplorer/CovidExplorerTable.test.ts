@@ -4,7 +4,6 @@ import { CovidExplorerTable } from "./CovidExplorerTable"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
 import { covidSampleRows } from "./CovidExplorerUtils"
-import { uniq } from "grapher/utils/Util"
 
 describe("parse row", () => {
     it("correctly parses data from mega file", () => {
@@ -23,10 +22,8 @@ describe("build covid column", () => {
     let table = new CovidExplorerTable(covidSampleRows)
     table = table.withRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
-        3,
         (row) => row.total_cases,
-        "day",
-        "entityName"
+        3
     )
 
     it("correctly builds a grapher variable", () => {
@@ -57,11 +54,9 @@ describe("build covid column", () => {
     let table2 = new CovidExplorerTable(rows as any)
     table2 = table2.withRollingAverageColumn(
         { slug: "weeklyCases" },
-        7,
         (row) => row.cases,
-        "day",
-        "entityName",
-        7
+        7,
+        true
     )
 
     it("correctly builds weekly average", () => {
@@ -71,12 +66,10 @@ describe("build covid column", () => {
     it("correctly builds weekly change", () => {
         table2 = table2.withRollingAverageColumn(
             { slug: "weeklyChange" },
-            7,
             (row) => row.cases,
-            "day",
-            "entityName",
             7,
-            7
+            true,
+            true
         )
 
         expect(table2.rows[3].weeklyChange).toEqual(undefined)
@@ -145,28 +138,5 @@ describe("do not include unselected groups in aligned charts", () => {
         table.rootTable.setSelectedEntities(["World"])
         table = (table.rootTable as CovidExplorerTable).filterGroups()
         expect(table.availableEntityNameSet.has("World")).toBeTruthy()
-    })
-})
-
-describe("column specs", () => {
-    const table = new CovidExplorerTable([])
-    it("computes unique slugs", () => {
-        expect(
-            uniq(
-                [
-                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "positiveTestRate=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=false",
-                    "testsMetric=true&dailyFreq=true&smoothing=0&perCapita=true",
-                    "testsMetric=true&totalFreq=true&smoothing=3&perCapita=true",
-                ].map(
-                    (queryStr) =>
-                        table.buildColumnSpec(new CovidQueryParams(queryStr))
-                            .slug
-                )
-            ).length
-        ).toEqual(6)
     })
 })

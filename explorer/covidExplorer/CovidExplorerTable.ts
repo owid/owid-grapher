@@ -12,25 +12,28 @@ import {
     CoreColumnSpec,
     HasComputedColumn,
 } from "coreTable/CoreTableConstants"
-import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
+import {
+    CovidConstrainedQueryParams,
+    CovidQueryParams,
+    makeColumnSpecFromParams,
+} from "./CovidParams"
 import {
     covidAnnotations,
     IntervalOptions,
     intervalsAvailableByMetric,
     intervalSpecs,
-    metricLabels,
     MetricOptions,
     SmoothingOption,
-    sourceVariables,
     testRateExcludeList,
 } from "./CovidConstants"
-import { computed, observable } from "mobx"
+import { observable } from "mobx"
 import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 import {
-    buildColumnSlug,
     computeRollingAveragesForEachGroup,
+    CovidColumnSpecObjectMap,
+    isCountMetric,
+    makeColumnSpecTemplates,
 } from "./CovidExplorerUtils"
-import { isCountMetric } from "site/client/covid/CovidUtils"
 
 interface AnnotationsRow {
     location: EntityName
@@ -42,95 +45,19 @@ interface AnnotationsRow {
 const dontIncludeInTable = { display: { includeInTable: false } }
 
 export class CovidExplorerTable extends OwidTable {
-    @observable private owidVariableSpecs: {
-        [key: string]: OwidColumnSpec
-    } = {}
-
-    setOwidVariableSpecs(
-        specs: {
-            [key: string]: OwidColumnSpec
-        } = {}
+    // Ideally we would just have 1 set of column specs. Currently however we have some statically coded, some coming from the Grapher backend, and some
+    // generated on the fly. These "template specs" are used in the generation of new specs on the fly. Todo: cleanup.
+    loadColumnSpecTemplatesFromGrapherBackend(
+        specsFromBackend: CovidColumnSpecObjectMap
     ) {
-        this.owidVariableSpecs = specs
+        this.columnSpecTemplates = cloneDeep(
+            makeColumnSpecTemplates(specsFromBackend)
+        )
         return this
     }
 
-    // Ideally we would just have 1 set of column specs. Currently however we have some hard coded here, some coming from the Grapher backend, and some
-    // generated on the fly. These "template specs" are used to generate specs on the fly. Todo: cleanup.
-    @computed get columnSpecTemplates(): {
-        [columnSlug: string]: OwidColumnSpec
-    } {
-        const { owidVariableSpecs } = this
-        const templates = {
-            positive_test_rate: {
-                ...owidVariableSpecs[sourceVariables.positive_test_rate],
-                isDailyMeasurement: true,
-                description:
-                    "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
-            },
-            tests_per_case: {
-                ...owidVariableSpecs[sourceVariables.tests_per_case],
-                isDailyMeasurement: true,
-                description:
-                    "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis.",
-            },
-            case_fatality_rate: {
-                ...owidVariableSpecs[sourceVariables.case_fatality_rate],
-                // annotationsColumnSlug: "case_fatality_rate_annotations", // todo: readd annotations as a propety like size or color
-                isDailyMeasurement: true,
-                description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
-            },
-            cases: {
-                ...owidVariableSpecs[sourceVariables.cases],
-                isDailyMeasurement: true,
-                // annotationsColumnSlug: "cases_annotations",
-                name: "Confirmed cases of COVID-19",
-                description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
-            },
-            deaths: {
-                ...owidVariableSpecs[sourceVariables.deaths],
-                isDailyMeasurement: true,
-                // annotationsColumnSlug: "deaths_annotations",
-                name: "Confirmed deaths due to COVID-19",
-                description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
-            },
-            tests: {
-                ...owidVariableSpecs[sourceVariables.tests],
-                isDailyMeasurement: true,
-                description: "",
-                name: "tests",
-                // annotationsColumnSlug: "tests_units",
-            },
-            days_since: {
-                ...owidVariableSpecs[sourceVariables.days_since],
-                isDailyMeasurement: true,
-                description: "",
-                name: "days_since",
-            },
-            continents: {
-                ...owidVariableSpecs[sourceVariables.continents],
-                description: "",
-                name: "continent",
-                slug: "continent",
-                type: ColumnTypeNames.Categorical,
-            },
-        }
-
-        // Todo: move to the grapher specs?
-        const ptrDisplay = templates.positive_test_rate.display
-        if (ptrDisplay)
-            ptrDisplay.tableDisplay = {
-                hideRelativeChange: true,
-            }
-
-        const cfrDisplay = templates.case_fatality_rate.display
-        if (cfrDisplay)
-            cfrDisplay.tableDisplay = {
-                hideRelativeChange: true,
-            }
-
-        return templates
-    }
+    // Todo: does this need to be observable?
+    @observable columnSpecTemplates = makeColumnSpecTemplates()
 
     withDataTableSpecs() {
         const includeInDataTable = new Set(Object.values(MetricOptions))
@@ -190,115 +117,72 @@ export class CovidExplorerTable extends OwidTable {
         return table as CovidExplorerTable
     }
 
-    buildColumnSpec(params: CovidQueryParams): OwidColumnSpec {
-        const name = params.metricName
-        const perCapita = params.perCapitaAdjustment
-        const interval = params.interval
-        const rollingAverage = params.smoothing
-
-        const spec = cloneDeep(this.columnSpecTemplates[name]) as OwidColumnSpec
-        spec.slug = buildColumnSlug(name, perCapita, interval, rollingAverage)
-
-        const messages: { [index: number]: string } = {
-            1: "",
-            1e3: " per thousand people",
-            1e6: " per million people",
-        }
-
-        const display = spec.display || {}
-        display.name = `${params.intervalTitle} ${spec.name ?? display.name}${
-            messages[perCapita]
-        }`
-
-        // Show decimal places for rolling average & per capita variables
-        if (perCapita > 1) display.numDecimalPlaces = 2
-        else if (
-            name === MetricOptions.positive_test_rate ||
-            name === MetricOptions.case_fatality_rate ||
-            (rollingAverage && rollingAverage > 1)
-        )
-            display.numDecimalPlaces = 1
-        else display.numDecimalPlaces = 0
-
-        spec.display = display
-
-        return spec
-    }
-
     private withColumn(
         params: CovidConstrainedQueryParams,
         rowFn: ComputedColumnFn
     ): CovidExplorerTable {
-        const columnName = params.metricName
-        const perCapita = params.perCapitaAdjustment
-        const smoothing = params.smoothing
-        const spec = this.buildColumnSpec(params)
-
+        const spec = makeColumnSpecFromParams(params, this.columnSpecTemplates)
         if (this.has(spec.slug)) return this
+
+        const { metricName, perCapitaAdjustment, smoothing } = params
 
         // The 7 day test smoothing is already calculated, so for now just reuse that instead of recalculating.
         const alreadySmoothed =
-            (columnName === MetricOptions.tests ||
-                columnName === MetricOptions.tests_per_case ||
-                columnName === MetricOptions.positive_test_rate) &&
+            (metricName === MetricOptions.tests ||
+                metricName === MetricOptions.tests_per_case ||
+                metricName === MetricOptions.positive_test_rate) &&
             smoothing === 7
 
-        // Per-capita transform done after rolling average to preserve precision.
-        const perCapitaTransform =
-            perCapita > 1
-                ? (fn: ComputedColumnFn) => (row: CoreRow, index?: number) => {
-                      const value = fn(row, index)
-                      if (value === undefined) return undefined
-                      const pop = row.population
-                      if (!pop) {
-                          console.log(
-                              `Warning: Missing population for ${row.location}. Excluding from perCapita`
-                          )
-                          return undefined
-                      }
-                      return perCapita * (value / pop)
-                  }
-                : undefined
+        // todo: have perCapita column derived from regular column.
+        if (perCapitaAdjustment > 1) {
+            const originalRowFn = rowFn
+            rowFn = (row) => {
+                const value = originalRowFn(row)
+                if (value === undefined) return undefined
+                const pop = row.population
+                if (!pop) {
+                    console.log(
+                        `Warning: Missing population for ${row.location}. Excluding from perCapita`
+                    )
+                    return undefined
+                }
+                return perCapitaAdjustment * (value / pop)
+            }
+        }
 
         if (smoothing && !alreadySmoothed)
             return this.withRollingAverageColumn(
                 spec,
-                smoothing,
                 rowFn,
-                "day",
-                "entityName",
-                params.rollingMultiplier,
-                params.intervalChange,
-                perCapitaTransform
+                smoothing,
+                params.isWeekly || params.isBiweekly,
+                params.intervalChange !== undefined
             )
 
-        return this.withColumns([
-            {
-                ...spec,
-                fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn,
-            },
-        ]) as CovidExplorerTable
+        spec.fn = rowFn
+        return this.withColumns([spec]) as CovidExplorerTable
     }
 
     withDataTableColumnsInTable(params: CovidConstrainedQueryParams) {
         const dataTableParams = new CovidConstrainedQueryParams("")
+        const { interval, tableMetrics, perCapita } = params
         let table: CovidExplorerTable = this
 
-        params.tableMetrics?.forEach((metric) => {
+        tableMetrics?.forEach((metric) => {
             dataTableParams.setMetric(metric)
             dataTableParams.interval = IntervalOptions.total
             dataTableParams.smoothing = 0
             dataTableParams.perCapita = false
             if (isCountMetric(metric)) {
-                dataTableParams.perCapita = params.perCapita
+                dataTableParams.perCapita = perCapita
                 table = this.withRequestedColumns(dataTableParams)
                 if (
-                    params.interval !== IntervalOptions.total &&
-                    intervalsAvailableByMetric.get(metric)?.has(params.interval)
+                    interval !== IntervalOptions.total &&
+                    intervalsAvailableByMetric.get(metric)?.has(interval)
                 ) {
-                    dataTableParams.interval = params.interval
+                    dataTableParams.interval = interval
                     dataTableParams.smoothing =
-                        intervalSpecs[params.interval].smoothing
+                        intervalSpecs[interval].smoothing
                 }
             }
 
@@ -307,44 +191,33 @@ export class CovidExplorerTable extends OwidTable {
         return table
     }
 
-    // todo: make immutable? return a new table?
-    // todo: this won't work when adding rows dynamically
+    // todo: remove these ops from here and move to CoreTable
     withRollingAverageColumn(
         spec: CoreColumnSpec,
-        windowSize: Integer,
         valueAccessor: (row: CoreRow) => any,
-        dateColName: ColumnSlug,
-        groupBy: ColumnSlug,
-        multiplier = 1,
-        intervalChange?: number,
-        transformation: (fn: ComputedColumnFn) => ComputedColumnFn = (fn) => (
-            row,
-            index
-        ) => fn(row, index)
+        windowSize: Integer,
+        multiplyByWindowSize = false,
+        convertToPercentChangeOverWindow = false
     ) {
         const averages = computeRollingAveragesForEachGroup(
             this.rows,
             valueAccessor,
-            groupBy,
-            dateColName,
+            "entityName",
+            "day",
             windowSize
         )
 
-        const computeIntervalTotals: ComputedColumnFn = (row, index) => {
+        spec.fn = (row, index) => {
             const val = averages[index!]
-            if (!intervalChange) return val ? val * multiplier : val
-            const previousValue = averages[index! - intervalChange]
+            if (!convertToPercentChangeOverWindow)
+                return val ? val * (multiplyByWindowSize ? windowSize : 1) : val
+            const previousValue = averages[index! - windowSize]
             return previousValue === undefined || previousValue === 0
                 ? undefined
                 : (100 * (val - previousValue)) / previousValue
         }
 
-        return this.withColumns([
-            {
-                ...spec,
-                fn: transformation(computeIntervalTotals),
-            },
-        ]) as CovidExplorerTable
+        return this.withColumns([spec]) as CovidExplorerTable
     }
 
     filterNegatives(slug: ColumnSlug) {
@@ -551,10 +424,8 @@ export class CovidExplorerTable extends OwidTable {
             {
                 slug,
             },
-            smoothing,
             (row) => row.new_cases,
-            "day",
-            "entityName"
+            smoothing
         )
     }
 }

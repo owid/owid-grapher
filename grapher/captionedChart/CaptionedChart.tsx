@@ -31,6 +31,7 @@ import { AddEntityButton } from "grapher/controls/AddEntityButton"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FooterManager } from "grapher/footer/FooterManager"
 import { HeaderManager } from "grapher/header/HeaderManager"
+import { exposeInstanceOnWindow } from "grapher/utils/Util"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -152,6 +153,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 containerElement={this.containerElement}
             />
         ) : null
+    }
+
+    componentDidMount() {
+        exposeInstanceOnWindow(this, "captionedChart")
     }
 
     @computed get controls() {

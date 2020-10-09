@@ -15,7 +15,10 @@ import {
     MetricOptions,
 } from "./CovidConstants"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
-import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerUtils"
+import {
+    makeColumnSpecTemplates,
+    perCapitaDivisorByMetric,
+} from "./CovidExplorerUtils"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.
@@ -254,7 +257,7 @@ export class CovidQueryParams {
 
     @computed get yColumnSlug() {
         if (this.yColumn) return this.yColumn
-        return buildColumnSlug(
+        return buildColumnSlugFromParams(
             this.metricName,
             this.perCapitaAdjustment,
             this.interval,
@@ -288,7 +291,7 @@ export class CovidQueryParams {
                     ? IntervalOptions.daily
                     : IntervalOptions.total
             ]
-        const sourceSlug = buildColumnSlug(
+        const sourceSlug = buildColumnSlugFromParams(
             key,
             this.perCapita ? 1e6 : 1,
             this.interval,
@@ -411,10 +414,8 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (this.isBiweekly) this.smoothing = 14
     }
 
-    get rollingMultiplier() {
-        if (this.isWeekly) return 7
-        else if (this.isBiweekly) return 14
-        return 1
+    get multiplyRollingAveragesByWindowSize() {
+        return this.isWeekly || this.isBiweekly
     }
 
     get isWeeklyOrBiweeklyChange() {
@@ -450,3 +451,61 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         )
     }
 }
+
+export const makeColumnSpecFromParams = (
+    params: CovidQueryParams,
+    specTemplates = makeColumnSpecTemplates()
+) => {
+    const { metricName, perCapitaAdjustment, interval, smoothing } = params
+    const spec = specTemplates[metricName]
+    spec.slug = buildColumnSlugFromParams(
+        metricName,
+        perCapitaAdjustment,
+        interval,
+        smoothing
+    )
+
+    const perCapitaMessages: { [index: number]: string } = {
+        1: "",
+        1e3: " per thousand people",
+        1e6: " per million people",
+    }
+
+    const display = spec.display || {}
+    display.name = `${params.intervalTitle} ${spec.name ?? display.name}${
+        perCapitaMessages[perCapitaAdjustment]
+    }`
+
+    // Show decimal places for rolling average & per capita variables
+    if (perCapitaAdjustment > 1) display.numDecimalPlaces = 2
+    else if (
+        metricName === MetricOptions.positive_test_rate ||
+        metricName === MetricOptions.case_fatality_rate ||
+        (smoothing && smoothing > 1)
+    )
+        display.numDecimalPlaces = 1
+    else display.numDecimalPlaces = 0
+
+    spec.display = display
+
+    return spec
+}
+
+const buildColumnSlugFromParams = (
+    name: MetricOptions,
+    perCapita: number,
+    interval: IntervalOptions,
+    rollingAverage?: number
+) =>
+    [
+        name,
+        perCapita === 1e3
+            ? "perThousand"
+            : perCapita === 1e6
+            ? "perMil"
+            : undefined,
+        interval,
+        rollingAverage ? `${rollingAverage}DayAvg` : undefined,
+    ]
+        .filter((i) => i)
+        .join("-")

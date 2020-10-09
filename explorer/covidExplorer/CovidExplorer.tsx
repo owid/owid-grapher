@@ -662,7 +662,9 @@ export class CovidExplorer
 
     private rootTable = new CovidExplorerTable(this.props.covidRows)
         .withDataTableSpecs()
-        .setOwidVariableSpecs(this.props.covidChartAndVariableMeta.variables)
+        .loadColumnSpecTemplatesFromGrapherBackend(
+            this.props.covidChartAndVariableMeta.variables
+        )
         .withAnnotationColumns()
 
     private _computedTable?: CovidExplorerTable

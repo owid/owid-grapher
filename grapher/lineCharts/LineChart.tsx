@@ -8,6 +8,7 @@ import {
     minBy,
     flatten,
     last,
+    exposeInstanceOnWindow,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -409,6 +410,7 @@ export class LineChart
     >
     componentDidMount() {
         if (!this.manager.isStaticSvg) this.runFancyIntroAnimation()
+        exposeInstanceOnWindow(this)
     }
 
     private runFancyIntroAnimation() {

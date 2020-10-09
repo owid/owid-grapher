@@ -180,11 +180,23 @@ export const getRelativeMouse = (
     )
 }
 
+// Purely for local development time
+const isStorybook = () =>
+    window.location.host.startsWith("localhost:6006") &&
+    document.title === "Storybook"
+
 // Just a quick and dirty way to expose window.chart/explorer/etc for debugging. Last caller wins.
-export const exposeInstanceOnWindow = (component: any, name = "chart") => {
+export const exposeInstanceOnWindow = (
+    component: any,
+    name = "chart",
+    alsoOnTopWindow?: boolean
+) => {
     if (typeof window === "undefined") return
     const win = window as any
     win[name] = component
+    alsoOnTopWindow =
+        alsoOnTopWindow === undefined ? isStorybook() : alsoOnTopWindow
+    if (alsoOnTopWindow && win !== win.top) win.top[name] = component
 }
 
 // Make an arbitrary string workable as a css class name

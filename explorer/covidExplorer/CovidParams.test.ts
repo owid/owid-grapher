@@ -1,6 +1,10 @@
 #! /usr/bin/env yarn jest
 
-import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
+import {
+    CovidQueryParams,
+    makeColumnSpecFromParams,
+} from "explorer/covidExplorer/CovidParams"
+import { uniq } from "grapher/utils/Util"
 import { IntervalOptions } from "./CovidConstants"
 
 it("parses params correctly", () => {
@@ -74,4 +78,26 @@ it("computes the correct source chart key given current params", () => {
         `casesMetric=true&dailyFreq=true&perCapita=true`
     )
     expect(params.sourceChartKey).toEqual("cases_daily_per_capita")
+})
+
+describe("column specs", () => {
+    it("computes unique slugs", () => {
+        expect(
+            uniq(
+                [
+                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "positiveTestRate=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=false",
+                    "testsMetric=true&dailyFreq=true&smoothing=0&perCapita=true",
+                    "testsMetric=true&totalFreq=true&smoothing=3&perCapita=true",
+                ].map(
+                    (queryStr) =>
+                        makeColumnSpecFromParams(new CovidQueryParams(queryStr))
+                            .slug
+                )
+            ).length
+        ).toEqual(6)
+    })
 })

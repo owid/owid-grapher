@@ -24,9 +24,10 @@ import {
     covidLastUpdatedPath,
     MegaCovidRow,
     MetricOptions,
-    IntervalOptions,
+    sourceVariables,
 } from "./CovidConstants"
-import { CoreRow } from "coreTable/CoreTableConstants"
+import { ColumnTypeNames, CoreRow } from "coreTable/CoreTableConstants"
+import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 
 const stringColumnSlugs = new Set(
     `iso_code location date tests_units continent`.split(" ")
@@ -288,25 +289,6 @@ export function getLeastUsedColor(
     return mostUnusedColor[0]
 }
 
-export const buildColumnSlug = (
-    name: MetricOptions,
-    perCapita: number,
-    interval: IntervalOptions,
-    rollingAverage?: number
-) =>
-    [
-        name,
-        perCapita === 1e3
-            ? "perThousand"
-            : perCapita === 1e6
-            ? "perMil"
-            : undefined,
-        interval,
-        rollingAverage ? `${rollingAverage}DayAvg` : undefined,
-    ]
-        .filter((i) => i)
-        .join("-")
-
 const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,new_cases,total_deaths,new_deaths,total_cases_per_million,new_cases_per_million,total_deaths_per_million,new_deaths_per_million,total_tests,new_tests,total_tests_per_thousand,new_tests_per_thousand,tests_units
 1000,ABW,Aruba,North America,2020-03-13,2,2,0,0,18.733,18.733,0.0,0.0,,,,,
 1000,ABW,Aruba,North America,2020-03-20,4,2,0,0,37.465,18.733,0.0,0.0,,,,,
@@ -324,3 +306,87 @@ const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,n
 export const covidSampleRows = (csvParse(sampleMegaCsv) as any).map(
     parseMegaCovidRow
 ) as CovidRow[]
+
+export const isCountMetric = (metric: MetricOptions) =>
+    metric === MetricOptions.deaths ||
+    metric === MetricOptions.cases ||
+    metric === MetricOptions.tests
+
+// Ideally we would just have 1 set of column specs. Currently however we have some hard coded here, some coming from the Grapher backend, and some
+// generated on the fly. These "template specs" are used to generate specs on the fly. Todo: cleanup.
+
+export type CovidColumnSpecObjectMap = { [key: string]: OwidColumnSpec }
+
+export const makeColumnSpecTemplates = (
+    specsFromGrapherBackend: CovidColumnSpecObjectMap = {}
+): CovidColumnSpecObjectMap => {
+    const templates = {
+        positive_test_rate: {
+            ...specsFromGrapherBackend[sourceVariables.positive_test_rate],
+            isDailyMeasurement: true,
+            description:
+                "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
+        },
+        tests_per_case: {
+            ...specsFromGrapherBackend[sourceVariables.tests_per_case],
+            isDailyMeasurement: true,
+            description:
+                "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis.",
+        },
+        case_fatality_rate: {
+            ...specsFromGrapherBackend[sourceVariables.case_fatality_rate],
+            // annotationsColumnSlug: "case_fatality_rate_annotations", // todo: readd annotations as a propety like size or color
+            isDailyMeasurement: true,
+            description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
+        },
+        cases: {
+            ...specsFromGrapherBackend[sourceVariables.cases],
+            isDailyMeasurement: true,
+            // annotationsColumnSlug: "cases_annotations",
+            name: "Confirmed cases of COVID-19",
+            description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
+        },
+        deaths: {
+            ...specsFromGrapherBackend[sourceVariables.deaths],
+            isDailyMeasurement: true,
+            // annotationsColumnSlug: "deaths_annotations",
+            name: "Confirmed deaths due to COVID-19",
+            description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
+        },
+        tests: {
+            ...specsFromGrapherBackend[sourceVariables.tests],
+            isDailyMeasurement: true,
+            description: "",
+            name: "tests",
+            // annotationsColumnSlug: "tests_units",
+        },
+        days_since: {
+            ...specsFromGrapherBackend[sourceVariables.days_since],
+            isDailyMeasurement: true,
+            description: "",
+            name: "days_since",
+        },
+        continents: {
+            ...specsFromGrapherBackend[sourceVariables.continents],
+            description: "",
+            name: "continent",
+            slug: "continent",
+            type: ColumnTypeNames.Categorical,
+        },
+    }
+
+    // Todo: move to the grapher specs?
+    const ptrDisplay = templates.positive_test_rate.display
+    if (ptrDisplay)
+        ptrDisplay.tableDisplay = {
+            hideRelativeChange: true,
+        }
+
+    const cfrDisplay = templates.case_fatality_rate.display
+    if (cfrDisplay)
+        cfrDisplay.tableDisplay = {
+            hideRelativeChange: true,
+        }
+
+    return templates
+}
