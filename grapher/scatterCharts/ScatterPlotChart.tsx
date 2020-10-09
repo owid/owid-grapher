@@ -20,6 +20,7 @@ import {
     lowerCaseFirstLetterUnlessAbbreviation,
     relativeMinAndMax,
     identity,
+    exposeChartOnWindow,
 } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -31,6 +32,8 @@ import {
     DimensionProperty,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
+    SeriesName,
+    Color,
 } from "grapher/core/GrapherConstants"
 import {
     ConnectedScatterLegend,
@@ -69,15 +72,15 @@ export class ScatterPlotChart
         VerticalColorLegendManager,
         ColorScaleManager {
     // currently hovered individual series key
-    @observable hoveredSeries?: EntityName
+    @observable private hoveredSeries?: SeriesName
     // currently hovered legend color
-    @observable hoverColor?: string
+    @observable private hoverColor?: Color
 
-    @computed get manager() {
+    @computed private get manager() {
         return this.props.manager
     }
 
-    @computed.struct get bounds() {
+    @computed.struct private get bounds() {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
@@ -86,12 +89,12 @@ export class ScatterPlotChart
         return addCountryMode && addCountryMode !== EntitySelectionMode.Disabled
     }
 
-    @action.bound onSelectEntity(entityName: EntityName) {
+    @action.bound private onSelectEntity(entityName: SeriesName) {
         if (this.canAddCountry) this.table.toggleSelection(entityName)
     }
 
     // Only want to show colors on legend that are actually on the chart right now
-    @computed get colorsInUse() {
+    @computed private get colorsInUse() {
         return excludeUndefined(
             uniq(
                 this.allPoints.map((point) =>
@@ -149,7 +152,7 @@ export class ScatterPlotChart
     }
 
     // All currently hovered series keys, combining the legend and the main UI
-    @computed get hoveredSeriesNames() {
+    @computed private get hoveredSeriesNames() {
         const { hoverColor, hoveredSeries } = this
 
         const hoveredSeriesNames =
@@ -182,10 +185,6 @@ export class ScatterPlotChart
         return this.table.timeColumnFormatFunction(this.table.maxTime ?? 2000)
     }
 
-    @computed get maxLegendWidth() {
-        return this.sidebarWidth
-    }
-
     @computed private get arrowLegend() {
         if (
             this.displayStartTime === this.displayEndTime ||
@@ -196,19 +195,19 @@ export class ScatterPlotChart
         return new ConnectedScatterLegend(this)
     }
 
-    @action.bound onScatterMouseOver(series: ScatterSeries) {
+    @action.bound private onScatterMouseOver(series: ScatterSeries) {
         this.hoveredSeries = series.seriesName
     }
 
-    @action.bound onScatterMouseLeave() {
+    @action.bound private onScatterMouseLeave() {
         this.hoveredSeries = undefined
     }
 
-    @action.bound onScatterClick() {
+    @action.bound private onScatterClick() {
         if (this.hoveredSeries) this.onSelectEntity(this.hoveredSeries)
     }
 
-    @computed get tooltipSeries() {
+    @computed private get tooltipSeries() {
         const { hoveredSeries, focusedEntityNames } = this
         if (hoveredSeries !== undefined)
             return this.series.find((g) => g.seriesName === hoveredSeries)
@@ -219,14 +218,25 @@ export class ScatterPlotChart
         return undefined
     }
 
-    @computed get sidebarMaxWidth() {
-        return Math.max(this.bounds.width * 0.2, this.sidebarMinWidth)
+    @computed private get legendDimensions(): VerticalColorLegend {
+        return new VerticalColorLegend({ manager: this })
     }
-    @computed get sidebarMinWidth() {
+
+    @computed get maxLegendWidth() {
+        return this.sidebarMaxWidth
+    }
+
+    @computed private get sidebarMinWidth() {
         return Math.max(this.bounds.width * 0.1, 60)
     }
-    @computed.struct get sidebarWidth() {
-        const { sidebarMinWidth, sidebarMaxWidth, legendDimensions } = this
+
+    @computed private get sidebarMaxWidth() {
+        return Math.max(this.bounds.width * 0.2, this.sidebarMinWidth)
+    }
+
+    @computed.struct private get sidebarWidth() {
+        const { legendDimensions, sidebarMinWidth, sidebarMaxWidth } = this
+
         return Math.max(
             Math.min(legendDimensions.width, sidebarMaxWidth),
             sidebarMinWidth
@@ -249,7 +259,7 @@ export class ScatterPlotChart
         return this.manager.comparisonLines
     }
 
-    @action.bound onToggleEndpoints() {
+    @action.bound private onToggleEndpoints() {
         this.compareEndPointsOnly = !this.compareEndPointsOnly
     }
 
@@ -269,7 +279,7 @@ export class ScatterPlotChart
         return excludeUndefined(colorValues.map(this.colorScale.getColor))
     }
 
-    @computed get hideLines() {
+    @computed private get hideLines() {
         return !!this.manager.hideConnectedScatterLines
     }
 
@@ -302,7 +312,7 @@ export class ScatterPlotChart
         )
     }
 
-    @computed get colorColumn() {
+    @computed private get colorColumn() {
         return this.table.get(this.manager.colorColumnSlug)
     }
 
@@ -316,8 +326,8 @@ export class ScatterPlotChart
         return this.colorScale.legendDescription
     }
 
-    @computed private get legendDimensions(): VerticalColorLegend {
-        return new VerticalColorLegend({ manager: this })
+    componentDidMount() {
+        exposeChartOnWindow(this)
     }
 
     render() {
@@ -535,11 +545,11 @@ export class ScatterPlotChart
         return this.possibleDataTimes
     }
 
-    @computed get compareEndPointsOnly() {
+    @computed private get compareEndPointsOnly() {
         return !!this.manager.compareEndPointsOnly
     }
 
-    set compareEndPointsOnly(value: boolean) {
+    private set compareEndPointsOnly(value: boolean) {
         this.manager.compareEndPointsOnly = value || undefined
     }
 
@@ -662,7 +672,7 @@ export class ScatterPlotChart
         })
     }
 
-    @computed get columnToPropertyMap() {
+    @computed private get columnToPropertyMap() {
         const map = new Map()
         map.set(this.xColumn, DimensionProperty.x)
         map.set(this.yColumn, DimensionProperty.y)
@@ -695,7 +705,7 @@ export class ScatterPlotChart
         })
     }
 
-    @computed get allPoints() {
+    @computed private get allPoints() {
         const allPoints: SeriesPoint[] = []
         this.getDataByEntityAndTime().forEach((dataByTime) => {
             dataByTime.forEach((point) => {
@@ -751,7 +761,7 @@ export class ScatterPlotChart
             : this.currentValues
     }
 
-    @computed get sizeDomain(): [number, number] {
+    @computed private get sizeDomain(): [number, number] {
         const sizeValues: number[] = []
         this.allPoints.forEach((g) => g.size && sizeValues.push(g.size))
         if (sizeValues.length === 0) return [1, 100]
@@ -768,7 +778,7 @@ export class ScatterPlotChart
         return this.domainDefault("y")
     }
 
-    @computed get verticalAxis() {
+    @computed private get verticalAxis() {
         const { manager, yDomainDefault } = this
         const axisConfig = this.yAxisConfig
 
@@ -806,7 +816,7 @@ export class ScatterPlotChart
         return xDimName
     }
 
-    @computed get horizontalAxis() {
+    @computed private get horizontalAxis() {
         const { xDomainDefault, manager, xAxisLabelBase } = this
         const { xAxisConfig } = this
         const axis = xAxisConfig.toHorizontalAxis()

@@ -3,17 +3,10 @@
 import { ScatterPlotChart } from "grapher/scatterCharts/ScatterPlotChart"
 import { SynthesizeGDPTable } from "coreTable/OwidTable"
 
-const table = SynthesizeGDPTable({
-    timeRange: [2000, 2010],
-    entityCount: 2,
-})
-const manager = {
-    table,
-    yColumnSlug: "GDP",
-    xColumnSlug: "Population",
-}
-
 it("can create a new chart", () => {
+    const manager = {
+        table: SynthesizeGDPTable(),
+    }
     const chart = new ScatterPlotChart({ manager })
     expect(chart.failMessage).toBeFalsy()
     expect(chart.getEntityNamesToShow().length).toEqual(2)

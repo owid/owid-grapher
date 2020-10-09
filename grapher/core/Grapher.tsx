@@ -432,10 +432,9 @@ export class Grapher
     }
 
     private filterByTime(table: OwidTable) {
-        if (false) return table
         const [startTime, endTime] = this.timelineFilter
         if (this.tab === GrapherTabOption.map) {
-            const tolerance = this.map.timeTolerance ?? 0
+            const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?
             return table.filterByTime(
                 startTime - tolerance,
                 endTime + tolerance

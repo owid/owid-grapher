@@ -20,7 +20,7 @@ export interface VerticalColorLegendManager {
     focusColors?: Color[]
 }
 
-interface LabelMark {
+interface LegendSeries {
     label: TextWrap
     color: Color
     width: number
@@ -64,7 +64,7 @@ export class VerticalColorLegend extends React.Component<{
         return this.title.height + 5
     }
 
-    @computed private get labelMarks() {
+    @computed private get series() {
         const { manager, fontSize, rectSize, rectPadding } = this
 
         return manager.colorBins
@@ -81,11 +81,11 @@ export class VerticalColorLegend extends React.Component<{
                     height: Math.max(label.height, rectSize),
                 }
             })
-            .filter((v) => !!v) as LabelMark[]
+            .filter((v) => !!v) as LegendSeries[]
     }
 
     @computed get width() {
-        const widths = this.labelMarks.map((d) => d.width)
+        const widths = this.series.map((series) => series.width)
         if (this.title) widths.push(this.title.width)
         return max(widths) ?? 0
     }
@@ -93,8 +93,8 @@ export class VerticalColorLegend extends React.Component<{
     @computed get height() {
         return (
             this.titleHeight +
-            sum(this.labelMarks.map((d) => d.height)) +
-            this.lineHeight * this.labelMarks.length
+            sum(this.series.map((series) => series.height)) +
+            this.lineHeight * this.series.length
         )
     }
 
@@ -102,7 +102,7 @@ export class VerticalColorLegend extends React.Component<{
         const {
             title,
             titleHeight,
-            labelMarks,
+            series,
             rectSize,
             rectPadding,
             lineHeight,
@@ -128,16 +128,16 @@ export class VerticalColorLegend extends React.Component<{
                     className="ScatterColorLegend clickable"
                     style={{ cursor: "pointer" }}
                 >
-                    {labelMarks.map((mark, index) => {
-                        const isActive = activeColors.includes(mark.color)
+                    {series.map((series, index) => {
+                        const isActive = activeColors.includes(series.color)
                         const isFocus =
-                            focusColors?.includes(mark.color) ?? false
+                            focusColors?.includes(series.color) ?? false
                         const mouseOver = onLegendMouseOver
-                            ? () => onLegendMouseOver(mark.color)
+                            ? () => onLegendMouseOver(series.color)
                             : undefined
                         const mouseLeave = onLegendMouseLeave || undefined
                         const click = onLegendClick
-                            ? () => onLegendClick(mark.color)
+                            ? () => onLegendClick(series.color)
                             : undefined
 
                         const result = (
@@ -152,8 +152,8 @@ export class VerticalColorLegend extends React.Component<{
                                 <rect
                                     x={x}
                                     y={y + markOffset - lineHeight / 2}
-                                    width={mark.width}
-                                    height={mark.height + lineHeight}
+                                    width={series.width}
+                                    height={series.height + lineHeight}
                                     fill="#fff"
                                     opacity={0}
                                 />
@@ -162,13 +162,13 @@ export class VerticalColorLegend extends React.Component<{
                                     y={
                                         y +
                                         markOffset +
-                                        (mark.height - rectSize) / 2
+                                        (series.height - rectSize) / 2
                                     }
                                     width={rectSize}
                                     height={rectSize}
-                                    fill={isActive ? mark.color : undefined}
+                                    fill={isActive ? series.color : undefined}
                                 />
-                                {mark.label.render(
+                                {series.label.render(
                                     x + rectSize + rectPadding,
                                     y + markOffset,
                                     isFocus
@@ -178,7 +178,7 @@ export class VerticalColorLegend extends React.Component<{
                             </g>
                         )
 
-                        markOffset += mark.height + lineHeight
+                        markOffset += series.height + lineHeight
                         return result
                     })}
                 </g>

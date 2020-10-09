@@ -360,6 +360,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 type: col.spec.type,
                 parsedType: col.parsedType,
                 name: col.name,
+                count: col.numValues,
             }
         })
 
@@ -380,7 +381,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             originalRows,
             `${this.numColumns} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. ${this.selectedRows.size} selected. \n`,
             toAlignedTextTable(
-                ["slug", "type", "parsedType", "name"],
+                ["slug", "type", "parsedType", "name", "count"],
                 colTable
             ) + "\n\n",
             toAlignedTextTable(

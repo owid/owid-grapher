@@ -180,6 +180,13 @@ export const getRelativeMouse = (
     )
 }
 
+// Just a quick way to expose window.chart for debugging. Last chart wins.
+export const exposeChartOnWindow = (component: any) => {
+    if (typeof window === "undefined") return
+    const win = window as any
+    win.chart = component
+}
+
 // Make an arbitrary string workable as a css class name
 export function makeSafeForCSS(name: string) {
     return name.replace(/[^a-z0-9]/g, (s) => {

@@ -191,10 +191,14 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     // todo: speed up
     filterByTime(start: Time, end: Time) {
+        // We may want to do this in Grapher instead of here.
+        const adjustedStart = start === Infinity ? this.maxTime! : start
+        const adjustedEnd = end === -Infinity ? this.minTime! : end
+
         return this.filterBy((row) => {
             const time = rowTime(row)
-            return time >= start && time <= end
-        }, `Keep only rows with Time between ${start} - ${end}`)
+            return time >= adjustedStart && time <= adjustedEnd
+        }, `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`)
     }
 
     withoutRows(rows: OwidRow[]) {

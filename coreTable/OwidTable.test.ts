@@ -267,6 +267,18 @@ describe("time filtering", () => {
         expect(table.filterByTime(2000, 2000).numRows).toBe(2)
     })
 
+    it("can handle infinity when filtering", () => {
+        const table = SynthesizeGDPTable({
+            entityCount: 2,
+            timeRange: [2000, 2005],
+        })
+
+        expect(table.numRows).toBe(10)
+        expect(table.filterByTime(Infinity, Infinity).numRows).toBe(2)
+        expect(table.filterByTime(-Infinity, -Infinity).numRows).toBe(2)
+        expect(table.filterByTime(-Infinity, Infinity).numRows).toBe(10)
+    })
+
     it("can filter by time target", () => {
         const table = SynthesizeGDPTable(
             {
