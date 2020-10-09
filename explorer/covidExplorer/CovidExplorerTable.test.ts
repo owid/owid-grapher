@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { getLeastUsedColor, CovidExplorerTable } from "./CovidExplorerTable"
+import { CovidExplorerTable } from "./CovidExplorerTable"
 import { covidSampleRows } from "./CovidSampleRows"
 import uniq from "lodash/uniq"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
@@ -16,16 +16,6 @@ describe("makeCountryOptions", () => {
     it("correctly computes options", () => {
         const table = new CovidExplorerTable(covidSampleRows)
         expect(table.availableEntityNames[2]).toEqual("World")
-    })
-})
-
-describe("generateContinentRows", () => {
-    it("correctly groups continents and adds rows for each", () => {
-        const regionRows = CovidExplorerTable.generateContinentRows(
-            covidSampleRows
-        )
-        expect(regionRows.length).toEqual(6)
-        expect(regionRows[regionRows.length - 1].total_cases).toEqual(46451)
     })
 })
 
@@ -133,18 +123,6 @@ describe("builds aligned tests column", () => {
         expect(table3.columnSlugs.includes("tests-perThousand-daily")).toEqual(
             false
         )
-    })
-})
-
-describe(getLeastUsedColor, () => {
-    it("returns unused color", () => {
-        expect(getLeastUsedColor(["red", "green"], ["red"])).toEqual("green")
-    })
-
-    it("returns least used color", () => {
-        expect(
-            getLeastUsedColor(["red", "green"], ["red", "green", "green"])
-        ).toEqual("red")
     })
 })
 

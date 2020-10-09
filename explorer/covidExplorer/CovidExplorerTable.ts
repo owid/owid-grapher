@@ -1,22 +1,5 @@
-import {
-    dateDiffInDays,
-    flatten,
-    groupBy,
-    parseFloatOrUndefined,
-    difference,
-    minBy,
-    sortBy,
-    cloneDeep,
-    retryPromise,
-    memoize,
-    fetchText,
-    fetchJSON,
-    computeRollingAverage,
-    insertMissingValuePlaceholders,
-    max,
-} from "grapher/utils/Util"
+import { cloneDeep } from "grapher/utils/Util"
 import moment from "moment"
-import { csv } from "d3-fetch"
 import { csvParse } from "d3-dsv"
 import { OwidTable } from "coreTable/OwidTable"
 import {
@@ -31,27 +14,17 @@ import {
 } from "coreTable/CoreTableConstants"
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
-    ParsedCovidCsvRow,
-    CovidGrapherRow,
-    covidDataPath,
-    covidLastUpdatedPath,
-    covidChartAndVariableMetaPath,
     covidAnnotations,
-    MetricKind,
     SmoothingOption,
-    IntervalOption,
     sourceVariables,
     testRateExcludeList,
 } from "./CovidConstants"
 import { computed, observable } from "mobx"
 import { OwidColumnSpec } from "coreTable/OwidTableConstants"
-
-const globalEntityIds = new Map()
-const generateEntityId = (entityName: string) => {
-    if (!globalEntityIds.has(entityName))
-        globalEntityIds.set(entityName, globalEntityIds.size)
-    return globalEntityIds.get(entityName)
-}
+import {
+    buildColumnSlug,
+    computeRollingAveragesForEachGroup,
+} from "./CovidExplorerUtils"
 
 interface AnnotationsRow {
     location: EntityName
@@ -60,66 +33,8 @@ interface AnnotationsRow {
     deaths_annotations: string
 }
 
-const stringColumnSlugs = new Set(
-    `iso_code location date tests_units continent`.split(" ")
-)
-
-// Todo: replace with someone else's library
-const computeRollingAveragesForEachGroup = (
-    rows: CoreRow[],
-    valueAccessor: (row: CoreRow) => any,
-    groupColName: string,
-    dateColName: string,
-    rollingAverage: number
-) => {
-    const groups: number[][] = []
-    if (!rows[0]) return []
-    let currentGroup = rows[0][groupColName]
-    let currentRows: CoreRow[] = []
-    // Assumes items are sorted by entity
-    for (let i = 0; i <= rows.length; i++) {
-        const row = rows[i]
-        const groupName = row && row[groupColName]
-
-        if (currentGroup !== groupName) {
-            const averages = computeRollingAverage(
-                insertMissingValuePlaceholders(
-                    currentRows.map(valueAccessor),
-                    currentRows.map((row) => row[dateColName])
-                ),
-                rollingAverage
-            ).filter((value) => value !== null) as number[]
-            groups.push(averages)
-            if (!row) break
-            currentRows = []
-            currentGroup = groupName
-        }
-        currentRows.push(row)
-    }
-    return flatten(groups)
-}
-
-export const buildColumnSlug = (
-    name: MetricKind,
-    perCapita: number,
-    interval: IntervalOption,
-    rollingAverage?: number
-) =>
-    [
-        name,
-        perCapita === 1e3
-            ? "perThousand"
-            : perCapita === 1e6
-            ? "perMil"
-            : undefined,
-        interval,
-        rollingAverage ? rollingAverage + "DayAvg" : undefined,
-    ]
-        .filter((i) => i)
-        .join("-")
-
 export class CovidExplorerTable extends OwidTable {
-    @observable owidVariableSpecs: {
+    @observable private owidVariableSpecs: {
         [key: string]: OwidColumnSpec
     } = {}
 
@@ -134,7 +49,9 @@ export class CovidExplorerTable extends OwidTable {
 
     // Ideally we would just have 1 set of column specs. Currently however we have some hard coded here, some coming from the Grapher backend, and some
     // generated on the fly. These "template specs" are used to generate specs on the fly. Todo: cleanup.
-    @computed get columnSpecTemplates(): { [name: string]: OwidColumnSpec } {
+    @computed get columnSpecTemplates(): {
+        [columnSlug: string]: OwidColumnSpec
+    } {
         const { owidVariableSpecs } = this
         const templates = {
             positive_test_rate: {
@@ -246,32 +163,6 @@ export class CovidExplorerTable extends OwidTable {
             })
         })
         return table as CovidExplorerTable
-    }
-
-    static async fetchAndParseData(): Promise<CovidGrapherRow[]> {
-        const rawData = (await csv(covidDataPath)) as any
-        const filtered: CovidGrapherRow[] = rawData
-            .map(CovidExplorerTable.parseCovidRow)
-            .filter((row: CovidGrapherRow) => row.location !== "International")
-
-        const latestDate = max(filtered.map((row) => row.date))
-
-        const continentRows = CovidExplorerTable.generateContinentRows(
-            filtered
-        ).filter(
-            // Drop the last day in aggregates containing Spain & Sweden
-            (row) => !(row.date === latestDate && row.location === "Europe")
-        )
-
-        const euRows = CovidExplorerTable.calculateRowsForGroup(
-            filtered.filter((row: ParsedCovidCsvRow) =>
-                CovidExplorerTable.euCountries.has(row.location)
-            ),
-            "European Union"
-            // Drop the last day in aggregates containing Spain & Sweden
-        ).filter((row) => row.date !== latestDate)
-
-        return filtered.concat(continentRows, euRows)
     }
 
     buildColumnSpec(params: CovidQueryParams): OwidColumnSpec {
@@ -613,172 +504,4 @@ export class CovidExplorerTable extends OwidTable {
             "entityName"
         )
     }
-
-    // Generates rows for each region.
-    static generateContinentRows(rows: ParsedCovidCsvRow[]) {
-        const grouped = groupBy(rows, "continent")
-        return flatten(
-            Object.keys(grouped)
-                .filter((cont) => cont)
-                .map((continentName) =>
-                    this.calculateRowsForGroup(
-                        grouped[continentName],
-                        continentName
-                    )
-                )
-        )
-    }
-
-    private static calculateRowsForGroup = (
-        group: ParsedCovidCsvRow[],
-        groupName: string
-    ) => {
-        const rowsByDay = new Map<string, CovidGrapherRow>()
-        const rows = sortBy(group, (row) => dateToYear(row.date))
-        const groupMembers = new Set()
-        rows.forEach((row) => {
-            const day = row.date
-            groupMembers.add(row.iso_code)
-            if (!rowsByDay.has(day)) {
-                const newRow: any = {}
-                Object.keys(row).forEach((key) => (newRow[key] = undefined))
-                rowsByDay.set(day, {
-                    location: groupName,
-                    continent: row.continent,
-                    iso_code: groupName.replace(" ", ""),
-                    date: day,
-                    day: dateToYear(day),
-                    new_cases: 0,
-                    entityName: groupName,
-                    entityCode: groupName.replace(" ", ""),
-                    entityId: generateEntityId(groupName),
-                    new_deaths: 0,
-                    population: 0,
-                } as CovidGrapherRow)
-            }
-            const newRow = rowsByDay.get(day)!
-            newRow.population += row.population
-            newRow.new_cases += row.new_cases || 0
-            newRow.new_deaths += row.new_deaths || 0
-        })
-        const newRows = Array.from(rowsByDay.values())
-        let total_cases = 0
-        let total_deaths = 0
-        let maxPopulation = 0
-        const group_members = Array.from(groupMembers).join("")
-        // We need to compute cumulatives again because sometimes data will stop for a country.
-        newRows.forEach((row) => {
-            total_cases += row.new_cases
-            total_deaths += row.new_deaths
-            row.total_cases = total_cases
-            row.total_deaths = total_deaths
-            row.group_members = group_members
-            if (row.population > maxPopulation) maxPopulation = row.population
-
-            // Once we add a country to a group, we assume we will always have data for that country, so even if the
-            // country is late in reporting the data keep that country in the population count.
-            row.population = maxPopulation
-        })
-        return newRows
-    }
-
-    private static euCountries = new Set([
-        "Austria",
-        "Belgium",
-        "Bulgaria",
-        "Croatia",
-        "Cyprus",
-        "Czech Republic",
-        "Denmark",
-        "Estonia",
-        "Finland",
-        "France",
-        "Germany",
-        "Greece",
-        "Hungary",
-        "Ireland",
-        "Italy",
-        "Latvia",
-        "Lithuania",
-        "Luxembourg",
-        "Malta",
-        "Netherlands",
-        "Poland",
-        "Portugal",
-        "Romania",
-        "Slovakia",
-        "Slovenia",
-        "Spain",
-        "Sweden",
-    ])
-
-    static parseCovidRow(row: ParsedCovidCsvRow): CovidGrapherRow {
-        const newRow: Partial<CovidGrapherRow> = row
-        Object.keys(row).forEach((key) => {
-            const isNumeric = !stringColumnSlugs.has(key)
-            if (isNumeric)
-                (row as any)[key] = parseFloatOrUndefined((row as any)[key])
-        })
-
-        if (row.location === "International") row.iso_code = "OWID_INT"
-
-        newRow.entityName = row.location
-        newRow.entityCode = row.iso_code
-        newRow.day = dateToYear(row.date)
-        newRow.time = newRow.day // todo: cleanup
-        newRow.entityId = generateEntityId(row.location)
-
-        if (newRow.location === "World") newRow.group_members = "All"
-
-        return row as CovidGrapherRow
-    }
-}
-
-export const fetchAndParseData = memoize(CovidExplorerTable.fetchAndParseData)
-
-const dateToYearCache = new Map<string, number>() // Cache for performance
-const dateToYear = (dateString: string): number => {
-    if (!dateToYearCache.has(dateString))
-        dateToYearCache.set(
-            dateString,
-            dateDiffInDays(
-                moment.utc(dateString).toDate(),
-                moment.utc("2020-01-21").toDate()
-            )
-        )
-    return dateToYearCache.get(dateString)!
-}
-
-export const fetchLastUpdatedTime = memoize(() =>
-    retryPromise(() => fetchText(covidLastUpdatedPath))
-)
-
-// Fetchs the baked JSON file containing chart and variables meta data for maps and source tabs.
-export const fetchCovidChartAndVariableMeta = memoize(() =>
-    retryPromise(() => fetchJSON(covidChartAndVariableMetaPath))
-)
-
-export function getLeastUsedColor(
-    availableColors: string[],
-    usedColors: string[]
-): string {
-    // If there are unused colors, return the first available
-    const unusedColors = difference(availableColors, usedColors)
-    if (unusedColors.length > 0) {
-        return unusedColors[0]
-    }
-    // If all colors are used, we want to count the times each color is used, and use the most
-    // unused one.
-    const colorCounts = Object.entries(
-        groupBy(usedColors)
-    ).map(([color, arr]) => [color, arr.length])
-    const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
-        string,
-        number
-    ]
-    return mostUnusedColor[0]
-}
-
-export function perCapitaDivisorByMetric(metric: MetricKind) {
-    return metric === "tests" ? 1e3 : 1e6
 }

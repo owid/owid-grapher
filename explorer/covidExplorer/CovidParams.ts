@@ -19,8 +19,8 @@ import {
     IntervalOption,
     intervalOptions,
 } from "./CovidConstants"
-import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerTable"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
+import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerUtils"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.

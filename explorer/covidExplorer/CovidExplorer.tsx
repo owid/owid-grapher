@@ -34,14 +34,7 @@ import {
 } from "explorer/client/ExplorerControls"
 import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
 import { CountryPicker } from "grapher/controls/CountryPicker"
-import {
-    fetchAndParseData,
-    fetchLastUpdatedTime,
-    getLeastUsedColor,
-    CovidExplorerTable,
-    fetchCovidChartAndVariableMeta,
-    perCapitaDivisorByMetric,
-} from "./CovidExplorerTable"
+import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
@@ -88,6 +81,11 @@ import {
 } from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 import { queryParamsToStr } from "utils/client/url"
+import {
+    getLeastUsedColor,
+    getRequiredData,
+    perCapitaDivisorByMetric,
+} from "./CovidExplorerUtils"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -115,11 +113,7 @@ export class CovidExplorer
     }>
     implements ObservableUrl {
     static async bootstrap(props: BootstrapProps) {
-        const [typedData, updated, covidMeta] = await Promise.all([
-            fetchAndParseData(),
-            fetchLastUpdatedTime(),
-            fetchCovidChartAndVariableMeta(),
-        ])
+        const { typedData, updated, covidMeta } = await getRequiredData()
         const queryStr =
             props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
                 ? props.queryStr
