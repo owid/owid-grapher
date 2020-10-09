@@ -144,6 +144,7 @@ import {
 } from "grapher/timeline/TimelineController"
 import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
+import * as Mousetrap from "mousetrap"
 
 declare const window: any
 
@@ -178,6 +179,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
+    additionalKeyboardShortcuts?: Command[]
 }
 
 @observer
@@ -1438,6 +1440,14 @@ export class Grapher
     }
 
     get keyboardShortcuts(): Command[] {
+        return this.defaultKeyboardShortcuts.concat(
+            this.additionalKeyboardShortcuts
+        )
+    }
+
+    additionalKeyboardShortcuts: Command[] = []
+
+    private get defaultKeyboardShortcuts(): Command[] {
         const nums = range(0, 10).map((num) => {
             return { combo: `${num}`, fn: () => this.randomSelection(num) }
         })
@@ -1467,6 +1477,12 @@ export class Grapher
                 category: "Selection",
             },
             {
+                combo: "f",
+                fn: () => this.toggleFilterAllCommand(),
+                title: "Hide unselected",
+                category: "Selection",
+            },
+            {
                 combo: "p",
                 fn: () => this.togglePlayingCommand(),
                 title: this.isPlaying ? `Pause` : `Play`,
@@ -1489,6 +1505,13 @@ export class Grapher
                 fn: () => (this.hasError = false),
             },
 
+            {
+                combo: "z",
+                fn: () => this.toggleTimelineCommand(),
+                title: "Latest/Earliest/All period",
+                category: "Timeline",
+            },
+
             // { // todo: add
             //     combo: "o",
             //     fn: () => this.updateFromObject(this.legacyConfigAsAuthored),
@@ -1498,7 +1521,19 @@ export class Grapher
         ]
     }
 
-    @action.bound toggleYScaleTypeCommand() {
+    @action.bound toggleTimelineCommand() {
+        // Todo: add tests for this
+        this.setTimeFromTimeQueryParam(
+            next(["latest", "earliest", ".."], this.timeParam!)
+        )
+    }
+
+    @action.bound private toggleFilterAllCommand() {
+        this.minPopulationFilter =
+            this.minPopulationFilter === 2e9 ? undefined : 2e9
+    }
+
+    @action.bound private toggleYScaleTypeCommand() {
         this.yAxis.scaleType = next(
             [ScaleType.linear, ScaleType.log],
             this.yAxis.scaleType

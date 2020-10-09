@@ -62,9 +62,6 @@ import {
     GlobalEntitySelectionModes,
 } from "site/globalEntityControl/GlobalEntitySelection"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
-import * as Mousetrap from "mousetrap"
-import { CommandPalette, Command } from "grapher/controls/CommandPalette"
-import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import { BinningStrategy } from "grapher/color/BinningStrategies"
 import {
     MultipleUrlBinder,
@@ -462,10 +459,6 @@ export class CovidExplorer
     render() {
         return (
             <>
-                <CommandPalette
-                    commands={this.keyboardShortcuts}
-                    display="none"
-                />
                 <div
                     className={classnames({
                         CovidExplorer: true,
@@ -802,10 +795,11 @@ export class CovidExplorer
 
     componentDidMount() {
         if (this.props.bindToWindow) this.bindToWindow()
+        const grapher = this.grapher
         // Show 'Add country' & 'Select countries' controls if the explorer controls are hidden.
-        this.grapher.hideEntityControls = this.showExplorerControls
-        this.grapher.externalCsvLink = covidDataPath
-        this.grapher.bakedGrapherURL = `${BAKED_BASE_URL}/${covidDashboardSlug}`
+        grapher.hideEntityControls = this.showExplorerControls
+        grapher.externalCsvLink = covidDataPath
+        grapher.bakedGrapherURL = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this.updateGrapher()
 
         this.observeGlobalEntitySelection()
@@ -815,115 +809,8 @@ export class CovidExplorer
 
         // call resize for the first time to initialize chart
         this.onResize()
-        this.grapher.embedExplorerCheckbox = this.controlsToggleElement
+        grapher.embedExplorerCheckbox = this.controlsToggleElement
         exposeInstanceOnWindow(this, "covidDataExplorer")
-
-        if (this.props.enableKeyboardShortcuts)
-            this.keyboardShortcuts.forEach((shortcut) => {
-                Mousetrap.bind(shortcut.combo, () => {
-                    shortcut.fn()
-                    this.grapher.analytics.logKeyboardShortcut(
-                        shortcut.title ?? "",
-                        shortcut.combo
-                    )
-                })
-            })
-    }
-
-    @action.bound playDefaultViewCommand() {
-        // todo: Should  just be "coronaDefaultView"
-        const props = this.grapher
-        props.tab = GrapherTabOption.chart
-        this.grapher.xAxis.scaleType = ScaleType.linear
-        this.grapher.yAxis.scaleType = ScaleType.log
-        this.grapher.timelineFilter = [
-            TimeBoundValue.unboundedLeft,
-            TimeBoundValue.unboundedRight,
-        ]
-        this.props.params.setParamsFromQueryString(coronaDefaultView)
-        this.renderControlsThenUpdateGrapher()
-    }
-
-    get keyboardShortcuts(): Command[] {
-        return [
-            {
-                combo: "h",
-                fn: () => this.playDefaultViewCommand(),
-                title: "Default view",
-                category: "Browse",
-            },
-            {
-                combo: "right",
-                fn: () => this.playIndexCommand(++this.currentIndex),
-                title: "Next view",
-                category: "Browse",
-            },
-            {
-                combo: "left",
-                fn: () => this.playIndexCommand(--this.currentIndex),
-                title: "Previous view",
-                category: "Browse",
-            },
-            {
-                combo: "t",
-                fn: () => this.grapher.toggleTabCommand(),
-                title: "Toggle tab",
-                category: "Navigation",
-            },
-            {
-                combo: "?",
-                fn: () => this.grapher.toggleKeyboardHelpCommand(),
-                title: "Toggle Help",
-                category: "Navigation",
-            },
-            {
-                combo: "a",
-                fn: () =>
-                    this.rootTable.hasSelection
-                        ? this.rootTable.clearSelection()
-                        : this.rootTable.selectAll(),
-                title: "Select/Deselect all",
-                category: "Selection",
-            },
-            {
-                combo: "f",
-                fn: () => this.toggleFilterAllCommand(),
-                title: "Hide unselected",
-                category: "Selection",
-            },
-            {
-                combo: "c",
-                fn: () => this.toggleColorStrategyCommand(),
-                title: "Change line colors",
-                category: "Chart",
-            },
-            {
-                combo: "l",
-                fn: () => this.grapher.toggleYScaleTypeCommand(),
-                title: "Toggle Y log/linear",
-                category: "Chart",
-            },
-            {
-                combo: "z",
-                fn: () => this.toggleTimelineCommand(),
-                title: "Latest/Earliest/All period",
-                category: "Timeline",
-            },
-            {
-                combo: "p",
-                fn: () => this.grapher.togglePlayingCommand(),
-                title: "Play/Pause",
-                category: "Timeline",
-            },
-        ]
-    }
-
-    @action.bound toggleTimelineCommand() {
-        // Todo: add tests for this
-        this.grapher.setTimeFromTimeQueryParam(
-            next(["latest", "earliest", ".."], this.grapher.timeParam!)
-        )
-        this.renderControlsThenUpdateGrapher()
     }
 
     @action.bound toggleColorStrategyCommand() {
@@ -931,12 +818,6 @@ export class CovidExplorer
             Object.values(ColorScaleOptions),
             this.props.params.colorScale
         )
-        this.renderControlsThenUpdateGrapher()
-    }
-
-    @action.bound toggleFilterAllCommand() {
-        this.grapher.minPopulationFilter =
-            this.grapher.minPopulationFilter === 2e9 ? undefined : 2e9
         this.renderControlsThenUpdateGrapher()
     }
 
@@ -1172,5 +1053,26 @@ export class CovidExplorer
         isPublished: true,
         map: this.defaultMapConfig as any,
         queryStr: this.props.queryStr,
+        enableKeyboardShortcuts: this.props.enableKeyboardShortcuts,
+        additionalKeyboardShortcuts: [
+            {
+                combo: "right",
+                fn: () => this.playIndexCommand(++this.currentIndex),
+                title: "Next view",
+                category: "Browse",
+            },
+            {
+                combo: "left",
+                fn: () => this.playIndexCommand(--this.currentIndex),
+                title: "Previous view",
+                category: "Browse",
+            },
+            {
+                combo: "c",
+                fn: () => this.toggleColorStrategyCommand(),
+                title: "Change line colors",
+                category: "Chart",
+            },
+        ],
     })
 }

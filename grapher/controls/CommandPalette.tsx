@@ -1,3 +1,5 @@
+import { BodyDiv } from "grapher/bodyDiv/BodyDiv"
+import { sortBy } from "grapher/utils/Util"
 import { observer } from "mobx-react"
 import React from "react"
 
@@ -20,9 +22,11 @@ export class CommandPalette extends React.Component<{
             display: this.props.display,
         }
         let lastCat = ""
-        const commands = this.props.commands
-            .filter((command) => command.title && command.category)
-            .map((command, index) => {
+        const commands = this.props.commands.filter(
+            (command) => command.title && command.category
+        )
+        const sortedCommands = sortBy(commands, "category").map(
+            (command, index) => {
                 let cat = undefined
                 if (command.category !== lastCat) {
                     lastCat = command.category!
@@ -39,13 +43,16 @@ export class CommandPalette extends React.Component<{
                         </div>
                     </div>
                 )
-            })
+            }
+        )
 
         return (
-            <div className="CommandPalette" style={style}>
-                <div className="paletteTitle">Keyboard Shortcuts</div>
-                {commands}
-            </div>
+            <BodyDiv>
+                <div className="CommandPalette" style={style}>
+                    <div className="paletteTitle">Keyboard Shortcuts</div>
+                    {sortedCommands}
+                </div>
+            </BodyDiv>
         )
     }
 }
