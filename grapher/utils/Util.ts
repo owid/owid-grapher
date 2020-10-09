@@ -855,6 +855,7 @@ export function parseFloatOrUndefined(s: string | undefined) {
     return isNaN(value) ? undefined : value
 }
 
+// todo: add the precision param to ensure no floating point effects
 export function computeRollingAverage(
     numbers: (number | undefined | null)[],
     windowSize: number,

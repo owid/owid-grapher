@@ -31,7 +31,6 @@ import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 import {
     computeRollingAveragesForEachGroup,
     CovidColumnSpecObjectMap,
-    isCountMetric,
     makeColumnSpecTemplates,
 } from "./CovidExplorerUtils"
 
@@ -60,6 +59,7 @@ export class CovidExplorerTable extends OwidTable {
     @observable columnSpecTemplates = makeColumnSpecTemplates()
 
     withDataTableSpecs() {
+        // todo: we might not need this "opt out", since we now explicitly list the columns to show in the table
         const includeInDataTable = new Set(Object.values(MetricOptions))
         return this.withTransformedSpecs((spec) => {
             if (includeInDataTable.has(spec.slug as MetricOptions)) return spec
@@ -163,19 +163,33 @@ export class CovidExplorerTable extends OwidTable {
         return this.withColumns([spec]) as CovidExplorerTable
     }
 
-    withDataTableColumnsInTable(params: CovidConstrainedQueryParams) {
-        const { interval, tableMetrics, perCapita } = params
-        let table: CovidExplorerTable = this
+    columnSlugsToShowInDataTable(params: CovidConstrainedQueryParams) {
+        return this.paramsForDataTableColumns(params).map(
+            (params) =>
+                makeColumnSpecFromParams(params, this.columnSpecTemplates).slug
+        )
+    }
 
+    private paramsForDataTableColumns(params: CovidConstrainedQueryParams) {
+        const { interval, tableMetrics, perCapita } = params
+        const results: CovidConstrainedQueryParams[] = []
         tableMetrics?.forEach((metric) => {
             const dataTableParams = new CovidConstrainedQueryParams("")
             dataTableParams.setMetric(metric)
             dataTableParams.interval = IntervalOptions.total
-            dataTableParams.smoothing = 0
-            dataTableParams.perCapita = false
-            if (isCountMetric(metric)) {
+            if (
+                metric === MetricOptions.deaths ||
+                metric === MetricOptions.cases ||
+                metric === MetricOptions.tests
+            ) {
+                const requiredSourceColumn = new CovidConstrainedQueryParams("")
+                requiredSourceColumn.setMetric(metric)
+                requiredSourceColumn.interval = IntervalOptions.total
+                requiredSourceColumn.perCapita = perCapita
+                results.push(requiredSourceColumn)
+
                 dataTableParams.perCapita = perCapita
-                table = this.withRequestedColumns(dataTableParams)
+
                 if (
                     interval !== IntervalOptions.total &&
                     intervalsAvailableByMetric.get(metric)?.has(interval)
@@ -186,7 +200,15 @@ export class CovidExplorerTable extends OwidTable {
                 }
             }
 
-            table = table.withRequestedColumns(dataTableParams)
+            results.push(dataTableParams)
+        })
+        return results
+    }
+
+    withDataTableColumnsInTable(params: CovidConstrainedQueryParams) {
+        let table: CovidExplorerTable = this
+        this.paramsForDataTableColumns(params).forEach((params) => {
+            table = table.withRequestedColumns(params)
         })
         return table
     }

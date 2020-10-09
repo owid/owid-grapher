@@ -33,29 +33,6 @@ const stringColumnSlugs = new Set(
     `iso_code location date tests_units continent`.split(" ")
 )
 
-const parseMegaCovidRow = (row: MegaCovidRow) => {
-    const newRow: Partial<CovidRow> = row
-    Object.keys(row).forEach((columnSlug) => {
-        const isNumeric = !stringColumnSlugs.has(columnSlug)
-        if (isNumeric)
-            (row as any)[columnSlug] = parseFloatOrUndefined(
-                (row as any)[columnSlug]
-            )
-    })
-
-    if (row.location === "International") row.iso_code = "OWID_INT"
-
-    newRow.entityName = row.location
-    newRow.entityCode = row.iso_code
-    newRow.day = dateToYear(row.date)
-    newRow.time = newRow.day // todo: cleanup
-    newRow.entityId = generateEntityId(row.location)
-
-    if (newRow.location === "World") newRow.group_members = "All"
-
-    return newRow as CovidRow
-}
-
 const globalEntityIds = new Map()
 const generateEntityId = (entityName: string) => {
     if (!globalEntityIds.has(entityName))
@@ -149,6 +126,29 @@ const fetchMegaCovidRows = async () => {
     return (rows as any) as MegaCovidRow[]
 }
 
+const parseMegaCovidRow = (row: MegaCovidRow) => {
+    const newRow: Partial<CovidRow> = row
+    Object.keys(row).forEach((columnSlug) => {
+        const isNumeric = !stringColumnSlugs.has(columnSlug)
+        if (isNumeric)
+            (row as any)[columnSlug] = parseFloatOrUndefined(
+                (row as any)[columnSlug]
+            )
+    })
+
+    if (row.location === "International") row.iso_code = "OWID_INT"
+
+    newRow.entityName = row.location
+    newRow.entityCode = row.iso_code
+    newRow.day = dateToYear(row.date)
+    newRow.time = newRow.day // todo: cleanup
+    newRow.entityId = generateEntityId(row.location)
+
+    if (newRow.location === "World") newRow.group_members = "All"
+
+    return newRow as CovidRow
+}
+
 // Todo: move these ops to the table class.
 const parseMegaCovidRows = (megaCovidRows: MegaCovidRow[]) => {
     const filtered: CovidRow[] = megaCovidRows
@@ -172,8 +172,9 @@ const parseMegaCovidRows = (megaCovidRows: MegaCovidRow[]) => {
 }
 
 export const fetchAndParseMegaCovidRows = async () => {
-    const megaRows = await fetchMegaCovidRows()
-    return parseMegaCovidRows(megaRows)
+    // const megaRows = await fetchMegaCovidRows()
+    // return parseMegaCovidRows(megaRows)
+    return parseMegaCovidRows(covidSampleRows)
 }
 
 const euCountries = new Set([
@@ -303,14 +304,8 @@ const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,n
 3000,,World,,2020-05-05,3544168,76666,250977,3978,454.684,9.836,32.198,0.51,,,,,
 3000,,World,,2020-05-06,3623803,79635,256880,5903,464.9,10.216,32.955,0.757,,,,,`
 
-export const covidSampleRows = (csvParse(sampleMegaCsv) as any).map(
-    parseMegaCovidRow
-) as CovidRow[]
-
-export const isCountMetric = (metric: MetricOptions) =>
-    metric === MetricOptions.deaths ||
-    metric === MetricOptions.cases ||
-    metric === MetricOptions.tests
+const covidSampleMegaRows = (csvParse(sampleMegaCsv) as any) as MegaCovidRow[]
+export const covidSampleRows = parseMegaCovidRows(covidSampleMegaRows)
 
 // Ideally we would just have 1 set of column specs. Currently however we have some hard coded here, some coming from the Grapher backend, and some
 // generated on the fly. These "template specs" are used to generate specs on the fly. Todo: cleanup.

@@ -20,6 +20,7 @@ import {
     sortBy,
     countBy,
     union,
+    exposeInstanceOnWindow,
 } from "grapher/utils/Util"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { Tippy } from "grapher/chart/Tippy"
@@ -27,7 +28,7 @@ import { OwidTable } from "coreTable/OwidTable"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { AbstractCoreColumn } from "coreTable/CoreTable"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { EntityName } from "coreTable/CoreTableConstants"
+import { ColumnSlug, EntityName } from "coreTable/CoreTableConstants"
 
 interface DataTableState {
     sort: DataTableSortState
@@ -65,6 +66,7 @@ export interface DataTableManager {
     endTime?: Time
     startTime?: Time
     minPopulationFilter?: number
+    dataTableColumnSlugsToShow?: ColumnSlug[]
 }
 
 @observer
@@ -433,6 +435,16 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get columnsToShow() {
+        if (this.manager.dataTableColumnSlugsToShow?.length) {
+            return this.manager.dataTableColumnSlugsToShow
+                .map((slug) => {
+                    const col = this.table.get(slug)!
+                    if (!col) console.log(`Warning: column '${slug}' not found`)
+                    return col
+                })
+                .filter((col) => col)
+        }
+
         const skips = new Set(Object.keys(OwidTableSlugs))
         return this.table.columnsAsArray.filter(
             (column) =>
@@ -442,10 +454,6 @@ export class DataTable extends React.Component<{
         )
     }
 
-    @computed private get columnSlugsToShow() {
-        return this.columnsToShow.map((col) => col.slug)
-    }
-
     @computed private get entityNames() {
         let tableForEntities = this.table.rootTable
         if (this.manager.minPopulationFilter)
@@ -453,10 +461,15 @@ export class DataTable extends React.Component<{
                 this.manager.minPopulationFilter
             )
         return union(
-            ...this.columnSlugsToShow.map(
-                (slug) => tableForEntities.get(slug)?.entityNamesUniqArr || []
+            ...this.columnsToShow.map(
+                (col) =>
+                    tableForEntities.get(col.slug)?.entityNamesUniqArr || []
             )
         )
+    }
+
+    componentDidMount() {
+        exposeInstanceOnWindow(this, "dataTable")
     }
 
     formatValue(

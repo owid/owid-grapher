@@ -232,7 +232,7 @@ export class CovidExplorer
 
     @action.bound changeMetric(metric: string) {
         this.props.params.setMetric(metric as MetricOptions)
-        this.renderControlsThenUpdateChart()
+        this.renderControlsThenUpdateGrapher()
     }
 
     private get frequencyPicker() {
@@ -284,7 +284,7 @@ export class CovidExplorer
                 options={[]}
                 onChange={(value: string) => {
                     writeableParams.setTimeline(value as IntervalOptions)
-                    this.renderControlsThenUpdateChart()
+                    this.renderControlsThenUpdateGrapher()
                 }}
                 explorerSlug="covid"
             />
@@ -314,7 +314,7 @@ export class CovidExplorer
                 explorerSlug="covid"
                 onChange={(value) => {
                     this.props.params.perCapita = value === "true"
-                    this.renderControlsThenUpdateChart()
+                    this.renderControlsThenUpdateGrapher()
                 }}
             />
         )
@@ -338,7 +338,7 @@ export class CovidExplorer
                 options={options}
                 onChange={(value) => {
                     this.props.params.aligned = value === "true"
-                    this.renderControlsThenUpdateChart()
+                    this.renderControlsThenUpdateGrapher()
                 }}
                 comment={this.constrainedParams.trajectoryColumnOption.name}
                 explorerSlug="covid"
@@ -516,7 +516,7 @@ export class CovidExplorer
     @action.bound toggleControls() {
         this.props.params.hideControls = !this.props.params.hideControls
         this.grapher.embedExplorerCheckbox = this.controlsToggleElement
-        this._updateChart()
+        this.updateGrapher()
         requestAnimationFrame(() => this.onResize())
     }
 
@@ -653,10 +653,10 @@ export class CovidExplorer
         return this._countryNameToColorMapCache
     }
 
-    private renderControlsThenUpdateChart() {
+    private renderControlsThenUpdateGrapher() {
         // Updating the chart may take a second so render the Data Explorer controls immediately then the chart.
         setTimeout(() => {
-            this._updateChart()
+            this.updateGrapher()
         }, 1)
     }
 
@@ -728,7 +728,7 @@ export class CovidExplorer
     // maintains state (for example, which tab is currently active). Temporary workaround is just to
     // manually update the chart when the chart builderselections change.
     // todo: cleanup
-    @action.bound private _updateChart() {
+    @action.bound private updateGrapher() {
         const params = this.constrainedParams
         const grapher = this.grapher
         grapher.title = this.chartTitle
@@ -763,18 +763,19 @@ export class CovidExplorer
         grapher.yAxis.min = params.intervalChange ? undefined : 0
         grapher.setDimensionsFromConfigs(this.dimensionSpecs)
 
-        this._updateMap()
-        this._updateColorScale()
+        this.updateMapSettings()
+
+        grapher.colorScale.updateFromObject(
+            this.colorScales[params.colorStrategy]
+        )
+
+        grapher.dataTableColumnSlugsToShow = this.table.columnSlugsToShowInDataTable(
+            params
+        )
 
         grapher.id = this.sourceChartId
         grapher.baseQueryString = queryParamsToStr(
             this.props.params.toQueryParams
-        )
-    }
-
-    private _updateColorScale() {
-        this.grapher.colorScale.updateFromObject(
-            this.colorScales[this.constrainedParams.colorStrategy]
         )
     }
 
@@ -786,7 +787,7 @@ export class CovidExplorer
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
-    private _updateMap() {
+    private updateMapSettings() {
         const map = this.grapher.map
         const region = map.projection
 
@@ -805,7 +806,7 @@ export class CovidExplorer
         this.grapher.hideEntityControls = this.showExplorerControls
         this.grapher.externalCsvLink = covidDataPath
         this.grapher.bakedGrapherURL = `${BAKED_BASE_URL}/${covidDashboardSlug}`
-        this._updateChart()
+        this.updateGrapher()
 
         this.observeGlobalEntitySelection()
 
@@ -840,7 +841,7 @@ export class CovidExplorer
             TimeBoundValue.unboundedRight,
         ]
         this.props.params.setParamsFromQueryString(coronaDefaultView)
-        this.renderControlsThenUpdateChart()
+        this.renderControlsThenUpdateGrapher()
     }
 
     get keyboardShortcuts(): Command[] {
@@ -922,7 +923,7 @@ export class CovidExplorer
         this.grapher.setTimeFromTimeQueryParam(
             next(["latest", "earliest", ".."], this.grapher.timeParam!)
         )
-        this.renderControlsThenUpdateChart()
+        this.renderControlsThenUpdateGrapher()
     }
 
     @action.bound toggleColorStrategyCommand() {
@@ -930,13 +931,13 @@ export class CovidExplorer
             Object.values(ColorScaleOptions),
             this.props.params.colorScale
         )
-        this.renderControlsThenUpdateChart()
+        this.renderControlsThenUpdateGrapher()
     }
 
     @action.bound toggleFilterAllCommand() {
         this.grapher.minPopulationFilter =
             this.grapher.minPopulationFilter === 2e9 ? undefined : 2e9
-        this.renderControlsThenUpdateChart()
+        this.renderControlsThenUpdateGrapher()
     }
 
     @action.bound toggleDimensionColumnCommand(
@@ -947,7 +948,7 @@ export class CovidExplorer
         const params = this.props.params as any
         const fn = backwards ? previous : next
         params[key] = fn(this.rootTable.numericColumnSlugs, params[key])
-        this.renderControlsThenUpdateChart()
+        this.renderControlsThenUpdateGrapher()
     }
 
     componentWillUnmount() {
@@ -963,7 +964,7 @@ export class CovidExplorer
         index = index < 0 ? combos.length + index : index
         const combo = combos[index]
         this.props.params.setParamsFromQueryString(combo)
-        this.renderControlsThenUpdateChart()
+        this.renderControlsThenUpdateGrapher()
     }
 
     onResizeThrottled?: () => void
@@ -983,7 +984,7 @@ export class CovidExplorer
                             this.props.params.selectedCountryCodes = new Set(
                                 selectedEntities.map((entity) => entity.code)
                             )
-                            this.renderControlsThenUpdateChart()
+                            this.renderControlsThenUpdateGrapher()
                         }
                     },
                     { fireImmediately: true }

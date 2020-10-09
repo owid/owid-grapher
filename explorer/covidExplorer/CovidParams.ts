@@ -19,6 +19,7 @@ import {
     makeColumnSpecTemplates,
     perCapitaDivisorByMetric,
 } from "./CovidExplorerUtils"
+import { EntityCode } from "coreTable/CoreTableConstants"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.
@@ -42,34 +43,38 @@ const legacyTimeToInterval = (
 export class CovidQueryParams {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
     // for back compat.
-    @observable casesMetric: boolean = false
-    @observable testsMetric: boolean = false
-    @observable testsPerCaseMetric: boolean = false
-    @observable positiveTestRate: boolean = false
-    @observable deathsMetric: boolean = false
-    @observable cfrMetric: boolean = false
+    @observable casesMetric = false
+    @observable testsMetric = false
+    @observable testsPerCaseMetric = false
+    @observable positiveTestRate = false
+    @observable deathsMetric = false
+    @observable cfrMetric = false
 
     @observable yColumn?: string
     @observable xColumn?: string
     @observable sizeColumn?: string
     @observable chartType?: ChartTypeName
 
-    @observable perCapita: boolean = false
-    @observable aligned: boolean = false
-    @observable hideControls: boolean = false
+    @observable perCapita = false
+    @observable aligned = false
+    @observable hideControls = false
     @observable smoothing: SmoothingOption = 0
     @observable colorScale?: ColorScaleOptions = undefined
 
     @observable tableMetrics?: MetricOptions[] = []
 
     // Country picker params
-    @observable selectedCountryCodes: Set<string> = new Set()
+    @observable selectedCountryCodes = new Set<EntityCode>()
     @observable countryPickerMetric: MegaCovidColumnSlug = "location"
-    @observable countryPickerSort: SortOrder = SortOrder.asc
+    @observable countryPickerSort = SortOrder.asc
 
     @observable interval = IntervalOptions.daily
 
     @observable everythingAvailable = false
+
+    constructor(queryString: string) {
+        this.setParamsFromQueryString(queryString)
+    }
 
     allAvailableCombos(): string[] {
         const metrics = [
@@ -165,10 +170,6 @@ export class CovidQueryParams {
         this.sizeColumn = params.sizeColumn
         this.colorScale = params.colorScale as ColorScaleOptions
         this.chartType = params.chartType as ChartTypeName
-    }
-
-    constructor(queryString: string) {
-        this.setParamsFromQueryString(queryString)
     }
 
     static hasAnyCovidParam(queryString: string) {

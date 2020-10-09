@@ -105,7 +105,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { EntityId, EntityName } from "coreTable/CoreTableConstants"
+import { ColumnSlug, EntityId, EntityName } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
@@ -128,7 +128,7 @@ import * as ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesTab, SourcesTabManager } from "grapher/sourcesTab/SourcesTab"
-import { DataTable } from "grapher/dataTable/DataTable"
+import { DataTable, DataTableManager } from "grapher/dataTable/DataTable"
 import { MapChartManager } from "grapher/mapCharts/MapChartConstants"
 import { DiscreteBarChartManager } from "grapher/barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "grapher/controls/CommandPalette"
@@ -199,6 +199,7 @@ export class Grapher
         AbsRelToggleManager,
         TooltipManager,
         FooterControlsManager,
+        DataTableManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
     @observable.ref isExplorable = false
@@ -598,11 +599,7 @@ export class Grapher
     // todo: remove ifs
     @computed get startTime(): Time {
         const activeTab = this.tab
-        if (activeTab === GrapherTabOption.table)
-            return (
-                // todo: readd this behavior. this.dataTableTransform.autoSelectedStartTime ??
-                this.timelineFilter[0]
-            )
+        if (activeTab === GrapherTabOption.table) return this.timelineFilter[0]
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
         if (this.isBarChartRace) return this.endTime
@@ -631,10 +628,6 @@ export class Grapher
     // todo: remove ifs
     @computed get endTime(): Time {
         const activeTab = this.tab
-        // if (activeTab === "table")
-        //     return this.multiMetricTableMode
-        //         ? this.timeDomain[1] // todo: readd this.dataTableTransform.startTimelineTime
-        //         : this.timeDomain[1]
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 2000
         return last(this.timelineTimes) || 2000
@@ -751,6 +744,8 @@ export class Grapher
     @computed get overlayTab() {
         return this.overlay
     }
+
+    @observable.ref dataTableColumnSlugsToShow: ColumnSlug[] = []
 
     /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     private chartMinPopulationFilter?: number = undefined

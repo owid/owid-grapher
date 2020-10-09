@@ -331,13 +331,13 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return Array.from(this._columns.values())
     }
 
-    cols(slugs: ColumnSlug[]) {
+    getColumns(slugs: ColumnSlug[]) {
         return slugs.map((slug) => this.get(slug)!)
     }
 
     // Get the min and max for multiple columns at once
     domainFor(slugs: ColumnSlug[]): ValueRange {
-        const cols = this.cols(slugs)
+        const cols = this.getColumns(slugs)
         const mins = cols.map((col) => col.minValue)
         const maxes = cols.map((col) => col.maxValue)
         return [min(mins), max(maxes)]
