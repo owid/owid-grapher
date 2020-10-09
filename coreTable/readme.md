@@ -24,6 +24,8 @@ One alternative is to only do transforms server side, in Python or R. Previously
 
 Another alternative is to use someone else's package. Most commerical web data studios likely have their own internal or ad hoc data table library. AFAIK there isn't a compelling open source one yet supported by a major organization. Two interesting open source projects to watch are [Data Forge](http://github.com/data-forge/data-forge-ts) and [DataFrame-js](https://github.com/Gmousse/dataframe-js). Over the past decade, a number of "data frames in JS" packages have started but not continued (like https://github.com/StratoDem/pandas-js, https://github.com/osdat/jsdataframe, https://github.com/nickslevine/zebras and https://github.com/davidguttman/node-dataframe). As we develop this package we should keep in mind that at some point we will likely migrate to someone else's effort.
 
+Update: Arquero (https://github.com/uwdata/arquero) looks like a promising new alternative
+
 ## Design Notes
 
 -   The split between CoreTable and OwidTable is to ensure we minimize the delta between our data model and the common model in data science, with the bet that this may require use to maintain a lot less code in the long run.
@@ -32,3 +34,4 @@ Another alternative is to use someone else's package. Most commerical web data s
 -   Because our clients are reactive, we are using Mobx in this library. No reason that needs to be a hard dependency here if we remove that.
 -   At some point we may want to look into integrating with Apache Arrow JS (https://github.com/apache/arrow/tree/master/js).
 -   Similarly for speed we may want to look into integrating/learning from CrossFilter (https://github.com/crossfilter/crossfilter).
+-   Table "Sythensizers" are also included for rapid testing. The word Synthesis is used as in "Program Synthesis".

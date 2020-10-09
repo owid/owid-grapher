@@ -1,6 +1,6 @@
 import * as React from "react"
 import { LineChart } from "grapher/lineCharts/LineChart"
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
 
 export default {
     title: "LineChart",

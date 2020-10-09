@@ -1,4 +1,4 @@
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
 import {
     ChartTypeName,
     GrapherTabOption,

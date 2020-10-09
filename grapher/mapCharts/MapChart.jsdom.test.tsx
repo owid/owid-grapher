@@ -1,6 +1,9 @@
 #! /usr/bin/env yarn jest
 
-import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SampleColumnSlugs,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 import { Grapher } from "grapher/core/Grapher"
 import { legacyMapGrapher } from "./MapChart.sample"
 import { MapChartManager } from "./MapChartConstants"

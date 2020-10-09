@@ -1,7 +1,10 @@
 #! /usr/bin/env yarn jest
 
 import { ScatterPlotChart } from "grapher/scatterCharts/ScatterPlotChart"
-import { SynthesizeFruitTable, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 import { ScatterPlotManager } from "./ScatterPlotChartConstants"
 
 it("can create a new chart", () => {

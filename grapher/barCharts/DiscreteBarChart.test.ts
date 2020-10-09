@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { DiscreteBarChart } from "./DiscreteBarChart"
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })

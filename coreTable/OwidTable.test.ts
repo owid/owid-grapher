@@ -1,10 +1,10 @@
 #! /usr/bin/env yarn jest
 import {
-    OwidTable,
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "coreTable/OwidTable"
+} from "coreTable/OwidTableSynthesizers"
+import { OwidTable } from "coreTable/OwidTable"
 import { flatten } from "grapher/utils/Util"
 import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"

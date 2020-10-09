@@ -3,7 +3,7 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
-} from "coreTable/OwidTable"
+} from "coreTable/OwidTableSynthesizers"
 import * as React from "react"
 import { StackedAreaChart } from "./StackedAreaChart"
 

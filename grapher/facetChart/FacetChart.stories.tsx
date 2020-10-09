@@ -1,6 +1,9 @@
 import * as React from "react"
 import { FacetChart } from "./FacetChart"
-import { SynthesizeFruitTable, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 import { Bounds } from "grapher/utils/Bounds"
 import { ChartTypeName, FacetStrategy } from "grapher/core/GrapherConstants"
 import { Meta } from "@storybook/react"

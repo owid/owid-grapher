@@ -1,7 +1,10 @@
 #! /usr/bin/env yarn jest
 
 import { LineChart } from "./LineChart"
-import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SampleColumnSlugs,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
 

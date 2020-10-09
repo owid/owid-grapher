@@ -1,6 +1,9 @@
 import * as React from "react"
 import { Grapher, GrapherProgrammaticInterface } from "./Grapher"
-import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SampleColumnSlugs,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 import {
     ChartTypeName,
     DimensionProperty,

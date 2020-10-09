@@ -1,6 +1,9 @@
 #! /usr/bin/env yarn jest
 
-import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SampleColumnSlugs,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {

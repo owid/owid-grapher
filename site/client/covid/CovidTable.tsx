@@ -4,10 +4,8 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { scaleLinear } from "d3-scale"
 import { schemeCategory10 } from "d3-scale-chromatic"
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleDoubleDown } from "@fortawesome/free-solid-svg-icons/faAngleDoubleDown"
-
 import {
     throttle,
     groupBy,
@@ -22,9 +20,7 @@ import {
     uniq,
 } from "grapher/utils/Util"
 import { SortOrder } from "grapher/core/GrapherConstants"
-
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
-
 import {
     CovidSortKey,
     CovidSeries,
@@ -32,9 +28,7 @@ import {
     DateRange,
     CovidCountryDatum,
 } from "./CovidTypes"
-
 import { getDoublingRange, sortAccessors, inverseSortOrder } from "./CovidUtils"
-
 import { CovidTableRow } from "./CovidTableRow"
 import {
     CovidTableColumnKey,

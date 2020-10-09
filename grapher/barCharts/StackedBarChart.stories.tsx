@@ -1,6 +1,9 @@
 import * as React from "react"
 import { StackedBarChart } from "./StackedBarChart"
-import { SynthesizeFruitTable, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SynthesizeFruitTable,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 
 export default {
     title: "StackedBarChart",

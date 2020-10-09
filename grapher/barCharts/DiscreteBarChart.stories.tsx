@@ -3,7 +3,7 @@ import { DiscreteBarChart } from "./DiscreteBarChart"
 import {
     SynthesizeGDPTable,
     SynthesizeNonCountryTable,
-} from "coreTable/OwidTable"
+} from "coreTable/OwidTableSynthesizers"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
 export default {

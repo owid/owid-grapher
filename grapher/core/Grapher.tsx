@@ -52,10 +52,9 @@ import {
 } from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
 import {
-    OwidTable,
     SampleColumnSlugs,
     SynthesizeGDPTable,
-} from "coreTable/OwidTable"
+} from "coreTable/OwidTableSynthesizers"
 import {
     ChartDimension,
     LegacyDimensionsManager,
@@ -144,6 +143,7 @@ import {
     TimelineManager,
 } from "grapher/timeline/TimelineController"
 import { OwidColumnSpec } from "coreTable/OwidTableConstants"
+import { OwidTable } from "coreTable/OwidTable"
 
 declare const window: any
 

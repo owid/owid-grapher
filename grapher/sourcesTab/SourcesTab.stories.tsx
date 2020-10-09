@@ -1,4 +1,4 @@
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
 import * as React from "react"
 import { SourcesTab } from "./SourcesTab"
 

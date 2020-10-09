@@ -12,7 +12,10 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
 import { TimeBoundValue, TimeBound, TimeBounds } from "grapher/utils/TimeBounds"
-import { SampleColumnSlugs, SynthesizeGDPTable } from "coreTable/OwidTable"
+import {
+    SampleColumnSlugs,
+    SynthesizeGDPTable,
+} from "coreTable/OwidTableSynthesizers"
 
 it("regression fix: container options are not serialized", () => {
     const grapher = new Grapher({ xAxis: { min: 1 } })

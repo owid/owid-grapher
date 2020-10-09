@@ -1,6 +1,6 @@
 import * as React from "react"
 import { DataTable, DataTableManager } from "./DataTable"
-import { SynthesizeGDPTable } from "coreTable/OwidTable"
+import { SynthesizeGDPTable } from "coreTable/OwidTableSynthesizers"
 import { childMortalityGrapher } from "./DataTable.sample"
 import { ChartTypeName, GrapherTabOption } from "grapher/core/GrapherConstants"
 
