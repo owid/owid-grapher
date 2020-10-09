@@ -4,20 +4,15 @@ import {
     strToQueryParams,
     queryParamsToStr,
 } from "utils/client/url"
-import {
-    SortOrder,
-    ScaleType,
-    ChartTypeName,
-} from "grapher/core/GrapherConstants"
+import { SortOrder, ChartTypeName } from "grapher/core/GrapherConstants"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
     trajectoryColumnSpecs,
     MegaCovidColumnSlug,
     SmoothingOption,
-    colorScaleOption,
-    MetricKind,
-    IntervalOption,
-    intervalOptions,
+    ColorScaleOptions,
+    IntervalOptions,
+    MetricOptions,
 } from "./CovidConstants"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { buildColumnSlug, perCapitaDivisorByMetric } from "./CovidExplorerUtils"
@@ -28,10 +23,10 @@ const legacyTimeToInterval = (
     totalFreq: boolean,
     dailyFreq: boolean,
     smoothing: boolean
-): IntervalOption | undefined => {
-    if (totalFreq) return "total"
-    else if (smoothing) return "smoothed"
-    else if (dailyFreq) return "daily"
+): IntervalOptions | undefined => {
+    if (totalFreq) return IntervalOptions.total
+    else if (smoothing) return IntervalOptions.smoothed
+    else if (dailyFreq) return IntervalOptions.daily
     return undefined
 }
 
@@ -60,16 +55,16 @@ export class CovidQueryParams {
     @observable aligned: boolean = false
     @observable hideControls: boolean = false
     @observable smoothing: SmoothingOption = 0
-    @observable colorScale?: colorScaleOption = undefined
+    @observable colorScale?: ColorScaleOptions = undefined
 
-    @observable tableMetrics?: MetricKind[] = []
+    @observable tableMetrics?: MetricOptions[] = []
 
     // Country picker params
     @observable selectedCountryCodes: Set<string> = new Set()
     @observable countryPickerMetric: MegaCovidColumnSlug = "location"
     @observable countryPickerSort: SortOrder = SortOrder.asc
 
-    @observable interval: IntervalOption = "daily"
+    @observable interval = IntervalOptions.daily
 
     @observable everythingAvailable = false
 
@@ -84,17 +79,16 @@ export class CovidQueryParams {
         ]
         const perCapita = [true, false]
         const aligned = [true, false]
-        const yScale = [ScaleType.log, ScaleType.linear] // todo
-        const tab = ["map", "chart"] // todo
         const combos: any = []
         metrics.forEach((metric) => {
-            intervalOptions.forEach((interval) => {
+            Object.values(IntervalOptions).forEach((interval) => {
                 perCapita.forEach((perCapita) => {
                     aligned.forEach((aligned) => {
                         const combo: any = {}
                         combo[metric] = true
                         combo.interval = interval
-                        if (interval === "smoothed") combo.smoothing = 7
+                        if (interval === IntervalOptions.smoothed)
+                            combo.smoothing = 7
                         combo.perCapita = perCapita
                         combo.aligned = aligned
                         combos.push(combo)
@@ -115,7 +109,7 @@ export class CovidQueryParams {
     @action.bound setParamsFromQueryString(queryString: string) {
         const params = strToQueryParams(queryString)
         this.interval =
-            (params.interval as IntervalOption) ||
+            (params.interval as IntervalOptions) ||
             legacyTimeToInterval(
                 params.totalFreq === "true",
                 params.dailyFreq === "true",
@@ -133,7 +127,11 @@ export class CovidQueryParams {
         this.aligned = params.aligned === "true"
         this.everythingAvailable = params.everythingAvailable === "true"
 
-        this.tableMetrics = getTableMetrics(params.tableMetrics)
+        this.tableMetrics = params.tableMetrics
+            ? params.tableMetrics
+                  .split("~")
+                  .map((metric) => metric as MetricOptions)
+            : undefined
 
         this.smoothing = params.smoothing
             ? (parseInt(params.smoothing) as SmoothingOption)
@@ -162,7 +160,7 @@ export class CovidQueryParams {
         this.yColumn = params.yColumn
         this.xColumn = params.xColumn
         this.sizeColumn = params.sizeColumn
-        this.colorScale = params.colorScale as colorScaleOption
+        this.colorScale = params.colorScale as ColorScaleOptions
         this.chartType = params.chartType as ChartTypeName
     }
 
@@ -179,17 +177,17 @@ export class CovidQueryParams {
         )
     }
 
-    @computed get metricName(): MetricKind {
-        if (this.testsMetric) return "tests"
-        if (this.casesMetric) return "cases"
-        if (this.deathsMetric) return "deaths"
-        if (this.cfrMetric) return "case_fatality_rate"
-        if (this.testsPerCaseMetric) return "tests_per_case"
-        return "positive_test_rate"
+    @computed get metricName(): MetricOptions {
+        if (this.testsMetric) return MetricOptions.tests
+        if (this.casesMetric) return MetricOptions.cases
+        if (this.deathsMetric) return MetricOptions.deaths
+        if (this.cfrMetric) return MetricOptions.case_fatality_rate
+        if (this.testsPerCaseMetric) return MetricOptions.tests_per_case
+        return MetricOptions.positive_test_rate
     }
 
     @computed get intervalTitle() {
-        const titles: { [K in IntervalOption]: string } = {
+        const titles: { [K in IntervalOptions]: string } = {
             total: "Cumulative",
             daily: "Daily new",
             smoothed: "Daily new",
@@ -243,14 +241,15 @@ export class CovidQueryParams {
             : ChartTypeName.LineChart
     }
 
-    @computed get colorStrategy(): colorScaleOption {
+    @computed get colorStrategy(): ColorScaleOptions {
         if (this.colorScale) return this.colorScale
 
-        if (this.type !== "ScatterPlot") return "none"
+        if (this.type !== ChartTypeName.ScatterPlot)
+            return ColorScaleOptions.none
 
-        if (this.casesMetric || this.testsMetric) return "ptr"
+        if (this.casesMetric || this.testsMetric) return ColorScaleOptions.ptr
 
-        return "continents"
+        return ColorScaleOptions.continents
     }
 
     @computed get yColumnSlug() {
@@ -264,25 +263,30 @@ export class CovidQueryParams {
     }
 
     @computed get isDailyOrSmoothed() {
-        return this.interval === "daily" || this.interval === "smoothed"
+        return (
+            this.interval === IntervalOptions.daily ||
+            this.interval === IntervalOptions.smoothed
+        )
     }
 
     @computed get xColumnSlug() {
         if (this.xColumn) return this.xColumn
-        return this.type === "ScatterPlot"
+        return this.type === ChartTypeName.ScatterPlot
             ? this.trajectoryColumnOption.slug
             : undefined
     }
 
     @computed get trajectoryColumnOption() {
-        const key = this.casesMetric ? "cases" : "deaths"
+        const key = this.casesMetric
+            ? MetricOptions.cases
+            : MetricOptions.deaths
         const config =
             trajectoryColumnSpecs[key][
                 this.perCapita
                     ? "perCapita"
                     : this.isDailyOrSmoothed
-                    ? "daily"
-                    : "total"
+                    ? IntervalOptions.daily
+                    : IntervalOptions.total
             ]
         const sourceSlug = buildColumnSlug(
             key,
@@ -305,18 +309,18 @@ export class CovidQueryParams {
         return new CovidConstrainedQueryParams(this.toString())
     }
 
-    setMetric(option: MetricKind) {
-        this.casesMetric = option === "cases"
-        this.testsMetric = option === "tests"
-        this.deathsMetric = option === "deaths"
-        this.cfrMetric = option === "case_fatality_rate"
-        this.testsPerCaseMetric = option === "tests_per_case"
-        this.positiveTestRate = option === "positive_test_rate"
+    setMetric(option: MetricOptions) {
+        this.casesMetric = option === MetricOptions.cases
+        this.testsMetric = option === MetricOptions.tests_per_case
+        this.deathsMetric = option === MetricOptions.deaths
+        this.cfrMetric = option === MetricOptions.case_fatality_rate
+        this.testsPerCaseMetric = option === MetricOptions.tests_per_case
+        this.positiveTestRate = option === MetricOptions.positive_test_rate
     }
 
-    setTimeline(option: IntervalOption) {
+    setTimeline(option: IntervalOptions) {
         this.interval = option
-        this.smoothing = option === "smoothed" ? 7 : 0
+        this.smoothing = option === IntervalOptions.smoothed ? 7 : 0
     }
 
     toString() {
@@ -324,19 +328,24 @@ export class CovidQueryParams {
     }
 
     get isWeekly() {
-        return this.interval === "weekly" || this.interval === "weeklyChange"
+        return (
+            this.interval === IntervalOptions.weekly ||
+            this.interval === IntervalOptions.weeklyChange
+        )
     }
 
     get isBiweekly() {
         return (
-            this.interval === "biweekly" || this.interval === "biweeklyChange"
+            this.interval === IntervalOptions.biweekly ||
+            this.interval === IntervalOptions.biweeklyChange
         )
     }
 
     @computed get sourceChartKey() {
         let interval: string = this.interval
-        if (interval === "smoothed") interval = "daily"
-        if (this.isWeekly || this.isBiweekly) interval = "weeklys"
+        if (interval === IntervalOptions.smoothed)
+            interval = IntervalOptions.daily
+        if (this.isWeekly || this.isBiweekly) interval = IntervalOptions.weekly
         return [
             this.metricName,
             interval,
@@ -348,8 +357,8 @@ export class CovidQueryParams {
     }
 
     get intervalChange() {
-        if (this.interval === "weeklyChange") return 7
-        else if (this.interval === "biweeklyChange") return 14
+        if (this.interval === IntervalOptions.weeklyChange) return 7
+        else if (this.interval === IntervalOptions.biweeklyChange) return 14
         return undefined
     }
 }
@@ -375,25 +384,28 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
         if (this.aligned && !available.aligned) this.aligned = false
 
         if ((this.isWeekly || this.isBiweekly) && !available.weekly)
-            this.interval = "total"
+            this.interval = IntervalOptions.total
 
         if (this.smoothing && !available.smoothed) {
             this.smoothing = 0
-            if (this.interval === "smoothed") this.interval = "total"
+            if (this.interval === IntervalOptions.smoothed)
+                this.interval = IntervalOptions.total
         }
 
-        if (this.interval === "daily" && !available.daily) {
+        if (this.interval === IntervalOptions.daily && !available.daily) {
             if (available.smoothed) {
-                this.interval = "smoothed"
+                this.interval = IntervalOptions.smoothed
                 this.smoothing = 7
             } else {
-                this.interval = "total"
+                this.interval = IntervalOptions.total
             }
         }
 
         if (!this.interval)
             this.interval =
-                this.smoothing && available.smoothed ? "smoothed" : "total"
+                this.smoothing && available.smoothed
+                    ? IntervalOptions.smoothed
+                    : IntervalOptions.total
 
         if (this.isWeekly) this.smoothing = 7
         if (this.isBiweekly) this.smoothing = 14
@@ -407,8 +419,8 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
 
     get isWeeklyOrBiweeklyChange() {
         return (
-            this.interval === "biweeklyChange" ||
-            this.interval === "weeklyChange"
+            this.interval === IntervalOptions.biweeklyChange ||
+            this.interval === IntervalOptions.weeklyChange
         )
     }
 
@@ -437,10 +449,4 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
             this.cfrMetric || this.testsPerCaseMetric || this.positiveTestRate
         )
     }
-}
-
-function getTableMetrics(queryParam?: string): MetricKind[] | undefined {
-    if (!queryParam) return undefined
-    const metricStrings = queryParam.split("~")
-    return metricStrings.map((metric) => metric as MetricKind)
 }

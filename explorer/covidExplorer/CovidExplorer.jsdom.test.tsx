@@ -4,8 +4,7 @@ import { CovidExplorer } from "./CovidExplorer"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
-import { defaultTo } from "grapher/utils/Util"
-import { MetricOptions } from "./CovidConstants"
+import { IntervalOptions, metricLabels, MetricOptions } from "./CovidConstants"
 import { covidSampleRows } from "./CovidExplorerUtils"
 
 const dummyMeta = {
@@ -33,20 +32,17 @@ describe(CovidExplorer, () => {
     })
 })
 
+const defaultParams = () =>
+    new CovidQueryParams(
+        "?tab=table&tableMetrics=cases~deaths~tests~tests_per_case~case_fatality_rate~positive_test_rate"
+    )
+
 class ExplorerDataTableTest {
-    params: CovidQueryParams
+    private params: CovidQueryParams
     view: ReactWrapper
 
-    static defaultQueryString: string =
-        "?tab=table&tableMetrics=cases~deaths~tests~tests_per_case~case_fatality_rate~positive_test_rate"
-
-    static get defaultParams() {
-        return new CovidQueryParams(ExplorerDataTableTest.defaultQueryString)
-    }
-
-    constructor(params?: CovidQueryParams) {
-        this.params = defaultTo(params, ExplorerDataTableTest.defaultParams)
-
+    constructor(params = defaultParams()) {
+        this.params = params
         this.view = mount(
             <CovidExplorer
                 covidRows={covidSampleRows}
@@ -88,14 +84,9 @@ describe("When you try to create a multimetric Data Explorer", () => {
     })
 
     it("renders correct table headers", () => {
-        expect(dataTableTester.headers).toEqual([
-            "Confirmed cases",
-            "Confirmed deaths",
-            "Tests",
-            "Tests per confirmed case",
-            "Case fatality rate",
-            "Share of positive tests",
-        ])
+        expect(dataTableTester.headers.sort()).toEqual(
+            Object.values(metricLabels).sort()
+        )
     })
 
     const SECOND_ROW = [
@@ -132,8 +123,8 @@ describe("When you try to create a multimetric Data Explorer", () => {
 
     describe("It doesn't change when", () => {
         it("explorer metrics change", () => {
-            MetricOptions.forEach((metric) => {
-                const params = ExplorerDataTableTest.defaultParams
+            Object.values(MetricOptions).forEach((metric) => {
+                const params = defaultParams()
                 params.setMetric(metric)
                 const dataTableTester = new ExplorerDataTableTest(params)
                 expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
@@ -141,7 +132,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
         })
 
         it("'align outbreaks' is enabled", () => {
-            const params = ExplorerDataTableTest.defaultParams
+            const params = defaultParams()
             params.aligned = true
             const dataTableTester = new ExplorerDataTableTest(params)
             expect(dataTableTester.bodyRow(1)).toEqual(SECOND_ROW)
@@ -150,7 +141,7 @@ describe("When you try to create a multimetric Data Explorer", () => {
 
     describe("It changes when", () => {
         test("'per capita' is enabled", () => {
-            const params = ExplorerDataTableTest.defaultParams
+            const params = defaultParams()
             params.perCapita = true
             const dataTableTester = new ExplorerDataTableTest(params)
 
@@ -167,8 +158,8 @@ describe("When you try to create a multimetric Data Explorer", () => {
 
         describe("interval is changed", () => {
             test("interval is set to daily", () => {
-                const params = ExplorerDataTableTest.defaultParams
-                params.interval = "daily"
+                const params = defaultParams()
+                params.interval = IntervalOptions.daily
                 const dataTableTester = new ExplorerDataTableTest(params)
 
                 expect(dataTableTester.bodyRow(1)).toEqual([
@@ -186,8 +177,8 @@ describe("When you try to create a multimetric Data Explorer", () => {
             })
 
             test("interval is set to weekly change", () => {
-                const params = ExplorerDataTableTest.defaultParams
-                params.interval = "weekly"
+                const params = defaultParams()
+                params.interval = IntervalOptions.weekly
                 const dataTableTester = new ExplorerDataTableTest(params)
 
                 expect(dataTableTester.bodyRow(1)).toEqual([

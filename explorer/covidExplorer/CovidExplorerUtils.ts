@@ -22,9 +22,9 @@ import {
     covidDataPath,
     CovidRow,
     covidLastUpdatedPath,
-    IntervalOption,
-    MetricKind,
     MegaCovidRow,
+    MetricOptions,
+    IntervalOptions,
 } from "./CovidConstants"
 import { CoreRow } from "coreTable/CoreTableConstants"
 
@@ -264,8 +264,8 @@ export const fetchRequiredData = async () => {
     }
 }
 
-export const perCapitaDivisorByMetric = (metric: MetricKind) =>
-    metric === "tests" ? 1e3 : 1e6
+export const perCapitaDivisorByMetric = (metric: MetricOptions) =>
+    metric === MetricOptions.tests ? 1e3 : 1e6
 
 export function getLeastUsedColor(
     availableColors: string[],
@@ -289,9 +289,9 @@ export function getLeastUsedColor(
 }
 
 export const buildColumnSlug = (
-    name: MetricKind,
+    name: MetricOptions,
     perCapita: number,
-    interval: IntervalOption,
+    interval: IntervalOptions,
     rollingAverage?: number
 ) =>
     [

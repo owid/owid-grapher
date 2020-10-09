@@ -11,6 +11,7 @@ import {
     CovidCountryDatum,
     CovidSortAccessor,
 } from "./CovidTypes"
+import { MetricOptions } from "explorer/covidExplorer/CovidConstants"
 
 export function inverseSortOrder(order: SortOrder): SortOrder {
     return order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
@@ -86,3 +87,8 @@ export const sortAccessors: Record<CovidSortKey, CovidSortAccessor> = {
     totalTests: (d: CovidCountryDatum) => d.latestWithTests?.tests?.totalTests,
     testDate: (d: CovidCountryDatum) => d.latestWithTests?.date,
 }
+
+export const isCountMetric = (metric: MetricOptions) =>
+    metric === MetricOptions.deaths ||
+    metric === MetricOptions.cases ||
+    metric === MetricOptions.tests

@@ -1,6 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
+import { IntervalOptions } from "./CovidConstants"
 
 it("parses params correctly", () => {
     const params = new CovidQueryParams(`cfrMetric=true&totalFreq=true`)
@@ -25,10 +26,10 @@ it("computes constrained params correctly", () => {
         `cfrMetric=true&dailyFreq=true&smoothing=7`
     )
     expect(params.isDailyOrSmoothed).toEqual(true)
-    expect(params.interval).toEqual("smoothed")
+    expect(params.interval).toEqual(IntervalOptions.smoothed)
     expect(params.smoothing).toEqual(7)
     const constrainedParams = params.toConstrainedParams()
-    expect(constrainedParams.interval).toEqual("total")
+    expect(constrainedParams.interval).toEqual(IntervalOptions.total)
     expect(constrainedParams.isDailyOrSmoothed).toEqual(false)
     expect(constrainedParams.smoothing).toEqual(0)
 })
@@ -36,9 +37,9 @@ it("computes constrained params correctly", () => {
 it("switches to 7-day smoothing param if on daily but daily is restricted", () => {
     const params = new CovidQueryParams(`positiveTestRate=true&dailyFreq=true`)
     expect(params.isDailyOrSmoothed).toEqual(true)
-    expect(params.interval).toEqual("daily")
+    expect(params.interval).toEqual(IntervalOptions.daily)
     const constrainedParams = params.constrainedParams
-    expect(constrainedParams.interval).toEqual("smoothed")
+    expect(constrainedParams.interval).toEqual(IntervalOptions.smoothed)
     expect(constrainedParams.smoothing).toEqual(7)
 })
 
@@ -46,17 +47,17 @@ it("converts legacy urls correctly", () => {
     const cases = [
         {
             str: `deathsMetric=true&dailyFreq=true&smoothing=0`,
-            interval: "daily",
+            interval: IntervalOptions.daily,
             smoothing: 0,
         },
         {
             str: `deathsMetric=true&totalFreq=true&smoothing=0`,
-            interval: "total",
+            interval: IntervalOptions.total,
             smoothing: 0,
         },
         {
             str: `deathsMetric=true&dailyFreq=true&smoothing=7`,
-            interval: "smoothed",
+            interval: IntervalOptions.smoothed,
             smoothing: 7,
         },
     ]

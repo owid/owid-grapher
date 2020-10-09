@@ -32,15 +32,13 @@ import {
     DropdownOption,
     ExplorerControlBar,
 } from "explorer/client/ExplorerControls"
-import { CovidQueryParams, CovidConstrainedQueryParams } from "./CovidParams"
+import { CovidQueryParams } from "./CovidParams"
 import { CountryPicker } from "grapher/controls/CountryPicker"
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
     CovidRow,
-    IntervalOption,
-    MetricKind,
     covidDashboardSlug,
     coronaDefaultView,
     covidDataPath,
@@ -49,7 +47,9 @@ import {
     metricPickerColumnSpecs,
     MegaCovidColumnSlug,
     intervalSpecs,
-    intervalsAvailableByMetric,
+    MetricOptions,
+    IntervalOptions,
+    ColorScaleOptions,
 } from "./CovidConstants"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -72,6 +72,7 @@ import {
     UrlBinder,
 } from "grapher/utils/UrlBinder"
 import {
+    ChartTypeName,
     DimensionProperty,
     EntitySelectionMode,
     GrapherTabOption,
@@ -169,20 +170,20 @@ export class CovidExplorer
                 available: true,
                 label: metricLabels.cases,
                 checked: this.constrainedParams.casesMetric,
-                value: "cases",
+                value: MetricOptions.cases,
             },
             {
                 available: true,
                 label: metricLabels.deaths,
                 checked: this.constrainedParams.deathsMetric,
-                value: "deaths",
+                value: MetricOptions.deaths,
             },
 
             {
                 available: true,
                 label: metricLabels.case_fatality_rate,
                 checked: this.constrainedParams.cfrMetric,
-                value: "case_fatality_rate",
+                value: MetricOptions.case_fatality_rate,
             },
         ]
 
@@ -191,19 +192,19 @@ export class CovidExplorer
                 available: true,
                 label: metricLabels.tests,
                 checked: this.constrainedParams.testsMetric,
-                value: "tests",
+                value: MetricOptions.tests,
             },
             {
                 available: true,
                 label: metricLabels.tests_per_case,
                 checked: this.constrainedParams.testsPerCaseMetric,
-                value: "tests_per_case",
+                value: MetricOptions.tests_per_case,
             },
             {
                 available: true,
                 label: metricLabels.positive_test_rate,
                 checked: this.constrainedParams.positiveTestRate,
-                value: "positive_test_rate",
+                value: MetricOptions.positive_test_rate,
             },
         ]
         return (
@@ -229,8 +230,8 @@ export class CovidExplorer
         )
     }
 
-    @action.bound changeMetric(value: string) {
-        this.props.params.setMetric(value as MetricKind)
+    @action.bound changeMetric(metric: string) {
+        this.props.params.setMetric(metric as MetricOptions)
         this.renderControlsThenUpdateChart()
     }
 
@@ -241,37 +242,37 @@ export class CovidExplorer
             {
                 available: true,
                 label: intervalSpecs.total.label,
-                value: "total",
+                value: IntervalOptions.total,
             },
             {
                 available: available.smoothed,
                 label: intervalSpecs.smoothed.label,
-                value: "smoothed",
+                value: IntervalOptions.smoothed,
             },
             {
                 available: available.daily,
                 label: intervalSpecs.daily.label,
-                value: "daily",
+                value: IntervalOptions.daily,
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.weekly.label,
-                value: "weekly",
+                value: IntervalOptions.weekly,
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.weeklyChange.label,
-                value: "weeklyChange",
+                value: IntervalOptions.weeklyChange,
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.biweekly.label,
-                value: "biweekly",
+                value: IntervalOptions.biweekly,
             },
             {
                 available: available.weekly,
                 label: intervalSpecs.biweeklyChange.label,
-                value: "biweeklyChange",
+                value: IntervalOptions.biweeklyChange,
             },
         ]
         return (
@@ -282,7 +283,7 @@ export class CovidExplorer
                 value={this.constrainedParams.interval}
                 options={[]}
                 onChange={(value: string) => {
-                    writeableParams.setTimeline(value as IntervalOption)
+                    writeableParams.setTimeline(value as IntervalOptions)
                     this.renderControlsThenUpdateChart()
                 }}
                 explorerSlug="covid"
@@ -542,7 +543,7 @@ export class CovidExplorer
         }
     }
 
-    private perCapitaTitle(metric: MetricKind) {
+    private perCapitaTitle(metric: MetricOptions) {
         return this.constrainedParams.perCapita
             ? " " + this.perCapitaOptions[perCapitaDivisorByMetric(metric)]
             : ""
@@ -556,7 +557,7 @@ export class CovidExplorer
         if (params.yColumn || params.xColumn)
             return startCase(`${this.yColumn.name} by ${this.xColumn?.name}`)
 
-        const isCumulative = interval === "total"
+        const isCumulative = interval === IntervalOptions.total
         const freq = params.intervalTitle
         if (params.cfrMetric)
             title = `Case fatality rate of the ongoing COVID-19 pandemic`
@@ -578,15 +579,17 @@ export class CovidExplorer
 
     @computed private get weekSubtitle() {
         const params = this.constrainedParams
-        const metric = params.deathsMetric ? "deaths" : "cases"
+        const metric = params.deathsMetric
+            ? MetricOptions.deaths
+            : MetricOptions.cases
 
-        if (params.interval === "weekly")
+        if (params.interval === IntervalOptions.weekly)
             return `Weekly confirmed ${metric} refer to the cumulative number of confirmed ${metric} over the previous week.`
-        if (params.interval === "biweekly")
+        if (params.interval === IntervalOptions.biweekly)
             return `Biweekly confirmed ${metric} refer to the cumulative number of confirmed ${metric} over the previous two weeks.`
-        if (params.interval === "weeklyChange")
+        if (params.interval === IntervalOptions.weeklyChange)
             return `The weekly growth rate on any given date measures the percentage change in number of confirmed ${metric} over the last seven days relative to the number in the previous seven days.`
-        if (params.interval === "biweeklyChange")
+        if (params.interval === IntervalOptions.biweeklyChange)
             return `The biweekly growth rate on any given date measures the percentage change in the number of new confirmed ${metric} over the last 14 days relative to the number in the previous 14 days.`
 
         return ""
@@ -686,7 +689,7 @@ export class CovidExplorer
         let table = computedTable
 
         // Init column for epi color strategy if needed
-        if (params.colorStrategy === "ptr") {
+        if (params.colorStrategy === ColorScaleOptions.ptr) {
             table = table.withShortTermPositivityRate()
             this.shortTermPositivityRateSlug = table.lastColumnSlug
         }
@@ -695,12 +698,12 @@ export class CovidExplorer
 
         const shouldFilterNegatives =
             (params.casesMetric || params.deathsMetric) &&
-            !(params.interval === "total") &&
+            !(params.interval === IntervalOptions.total) &&
             !params.intervalChange
 
         const shouldFilterGroups =
             (params.casesMetric || params.deathsMetric) &&
-            !(params.interval === "total") &&
+            !(params.interval === IntervalOptions.total) &&
             !params.intervalChange
 
         if (shouldFilterNegatives)
@@ -709,7 +712,12 @@ export class CovidExplorer
 
         table.setSelectedEntitiesByCode(Array.from(params.selectedCountryCodes)) // why 2?
 
+        // multimetric table
+        if (params.tableMetrics)
+            table = table.withDataTableColumnsInTable(params)
+
         this._computedTable = table
+
         return table
     }
 
@@ -726,7 +734,10 @@ export class CovidExplorer
 
         // If we switch to scatter, set zoomToSelection to true. I don't set it to true initially in the chart
         // config because then it won't appear in the URL.
-        if (grapher.type === "LineChart" && params.type === "ScatterPlot")
+        if (
+            grapher.type === ChartTypeName.LineChart &&
+            params.type === ChartTypeName.ScatterPlot
+        )
             grapher.zoomToSelection = true
 
         grapher.type = params.type
@@ -745,10 +756,6 @@ export class CovidExplorer
         }
 
         grapher.rootTable = this.table
-
-        // multimetric table
-        if (this.constrainedParams.tableMetrics)
-            this._generateDataTableColumnsInTable()
 
         grapher.yAxis.min = params.intervalChange ? undefined : 0
         grapher.setDimensionsFromConfigs(this.dimensionSpecs)
@@ -917,7 +924,7 @@ export class CovidExplorer
 
     @action.bound toggleColorStrategyCommand() {
         this.props.params.colorScale = next(
-            ["continents", "ptr", "none"],
+            Object.values(ColorScaleOptions),
             this.props.params.colorScale
         )
         this.renderControlsThenUpdateChart()
@@ -1017,34 +1024,6 @@ export class CovidExplorer
             : undefined
     }
 
-    @action private _generateDataTableColumnsInTable() {
-        const params = this.constrainedParams
-        const { rootTable } = this
-
-        const dataTableParams = new CovidConstrainedQueryParams("")
-
-        params.tableMetrics?.forEach((metric) => {
-            dataTableParams.setMetric(metric)
-            dataTableParams.interval = "total"
-            dataTableParams.smoothing = 0
-            dataTableParams.perCapita = false
-            if (isCountMetric(metric)) {
-                dataTableParams.perCapita = params.perCapita
-                rootTable.withRequestedColumns(dataTableParams)
-                if (
-                    params.interval !== "total" &&
-                    intervalsAvailableByMetric.get(metric)?.has(params.interval)
-                ) {
-                    dataTableParams.interval = params.interval
-                    dataTableParams.smoothing =
-                        intervalSpecs[params.interval].smoothing
-                }
-            }
-
-            rootTable.withRequestedColumns(dataTableParams)
-        })
-    }
-
     @computed private get yDimension(): LegacyChartDimensionInterface {
         const yColumn = this.yColumn
         yColumn.spec.name = this.chartTitle // todo: cleanup
@@ -1065,12 +1044,12 @@ export class CovidExplorer
     }
 
     @computed private get dimensionSpecs(): LegacyChartDimensionInterface[] {
-        if (this.constrainedParams.type !== "ScatterPlot")
+        if (this.constrainedParams.type !== ChartTypeName.ScatterPlot)
             return [this.yDimension]
 
         const dimensions = [this.yDimension, this.xDimension]
 
-        if (this.constrainedParams.colorStrategy !== "none")
+        if (this.constrainedParams.colorStrategy !== ColorScaleOptions.none)
             dimensions.push(this.colorDimension)
         if (this.sizeColumn) dimensions.push(this.sizeDimension)
         return dimensions
@@ -1087,8 +1066,9 @@ export class CovidExplorer
     private shortTermPositivityRateSlug: string = ""
     @computed private get colorDimension(): LegacyChartDimensionInterface {
         const slug =
-            this.constrainedParams.colorStrategy === "continents"
-                ? "continents"
+            this.constrainedParams.colorStrategy ===
+            ColorScaleOptions.continents
+                ? ColorScaleOptions.continents
                 : this.shortTermPositivityRateSlug
 
         // todo: tolerance 10
@@ -1136,7 +1116,7 @@ export class CovidExplorer
 
     private defaultMapConfig() {
         return {
-            columnSlug: "continents",
+            columnSlug: ColorScaleOptions.continents,
             timeTolerance: 7,
             projection: "World",
             colorScale: {
@@ -1190,8 +1170,4 @@ export class CovidExplorer
         map: this.defaultMapConfig as any,
         queryStr: this.props.queryStr,
     })
-}
-
-function isCountMetric(metric: MetricKind) {
-    return metric === "deaths" || metric === "cases" || metric === "tests"
 }

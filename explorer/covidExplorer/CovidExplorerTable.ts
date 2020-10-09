@@ -15,6 +15,10 @@ import {
 import { CovidConstrainedQueryParams, CovidQueryParams } from "./CovidParams"
 import {
     covidAnnotations,
+    IntervalOptions,
+    intervalsAvailableByMetric,
+    intervalSpecs,
+    MetricOptions,
     SmoothingOption,
     sourceVariables,
     testRateExcludeList,
@@ -25,6 +29,7 @@ import {
     buildColumnSlug,
     computeRollingAveragesForEachGroup,
 } from "./CovidExplorerUtils"
+import { isCountMetric } from "site/client/covid/CovidUtils"
 
 interface AnnotationsRow {
     location: EntityName
@@ -189,8 +194,8 @@ export class CovidExplorerTable extends OwidTable {
         // Show decimal places for rolling average & per capita variables
         if (perCapita > 1) spec.display!.numDecimalPlaces = 2
         else if (
-            name === "positive_test_rate" ||
-            name === "case_fatality_rate" ||
+            name === MetricOptions.positive_test_rate ||
+            name === MetricOptions.case_fatality_rate ||
             (rollingAverage && rollingAverage > 1)
         )
             spec.display!.numDecimalPlaces = 1
@@ -212,9 +217,9 @@ export class CovidExplorerTable extends OwidTable {
 
         // The 7 day test smoothing is already calculated, so for now just reuse that instead of recalculating.
         const alreadySmoothed =
-            (columnName === "tests" ||
-                columnName === "tests_per_case" ||
-                columnName === "positive_test_rate") &&
+            (columnName === MetricOptions.tests ||
+                columnName === MetricOptions.tests_per_case ||
+                columnName === MetricOptions.positive_test_rate) &&
             smoothing === 7
 
         // Per-capita transform done after rolling average to preserve precision.
@@ -252,6 +257,33 @@ export class CovidExplorerTable extends OwidTable {
                 fn: perCapitaTransform ? perCapitaTransform(rowFn) : rowFn,
             },
         ]) as CovidExplorerTable
+    }
+
+    withDataTableColumnsInTable(params: CovidConstrainedQueryParams) {
+        const dataTableParams = new CovidConstrainedQueryParams("")
+        let table: CovidExplorerTable = this
+
+        params.tableMetrics?.forEach((metric) => {
+            dataTableParams.setMetric(metric)
+            dataTableParams.interval = IntervalOptions.total
+            dataTableParams.smoothing = 0
+            dataTableParams.perCapita = false
+            if (isCountMetric(metric)) {
+                dataTableParams.perCapita = params.perCapita
+                table = this.withRequestedColumns(dataTableParams)
+                if (
+                    params.interval !== IntervalOptions.total &&
+                    intervalsAvailableByMetric.get(metric)?.has(params.interval)
+                ) {
+                    dataTableParams.interval = params.interval
+                    dataTableParams.smoothing =
+                        intervalSpecs[params.interval].smoothing
+                }
+            }
+
+            table = table.withRequestedColumns(dataTableParams)
+        })
+        return table
     }
 
     // todo: make immutable? return a new table?
@@ -309,17 +341,17 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     withTestingColumn(params: CovidConstrainedQueryParams) {
-        if (params.interval === "daily")
+        if (params.interval === IntervalOptions.daily)
             return this.withColumn(params, (row) => row.new_tests)
-        if (params.interval === "smoothed")
+        if (params.interval === IntervalOptions.smoothed)
             return this.withColumn(params, (row) => row.new_tests_smoothed)
-        if (params.interval === "total")
+        if (params.interval === IntervalOptions.total)
             return this.withColumn(params, (row) => row.total_tests)
         return this
     }
 
     withTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
-        if (params.interval === "smoothed") {
+        if (params.interval === IntervalOptions.smoothed) {
             const table = this.withNewCasesSmoothedColumn(params.smoothing)
             const casesSlug = table.lastColumnSlug
             return table.withColumn(params, (row) => {
@@ -336,7 +368,7 @@ export class CovidExplorerTable extends OwidTable {
             })
         }
 
-        if (params.interval === "total")
+        if (params.interval === IntervalOptions.total)
             return this.withColumn(params, (row) => {
                 if (row.total_tests === undefined || !row.total_cases)
                     return undefined
@@ -352,7 +384,7 @@ export class CovidExplorerTable extends OwidTable {
 
     withCfrColumn(params: CovidConstrainedQueryParams) {
         // We do not support daily freq for CFR
-        if (params.interval === "total")
+        if (params.interval === IntervalOptions.total)
             return this.withColumn(params, (row) =>
                 row.total_cases < 100
                     ? undefined
@@ -366,7 +398,7 @@ export class CovidExplorerTable extends OwidTable {
     withCasesColumn(params: CovidConstrainedQueryParams) {
         return this.withColumn(
             params,
-            params.interval === "total"
+            params.interval === IntervalOptions.total
                 ? (row) => row.total_cases
                 : (row) => row.new_cases
         )
@@ -377,7 +409,7 @@ export class CovidExplorerTable extends OwidTable {
         const params = new CovidQueryParams("")
         params.smoothing = 7
         params.perCapita = false
-        params.interval = "smoothed"
+        params.interval = IntervalOptions.smoothed
         params.positiveTestRate = true
         return this.withTestRateColumn(params.toConstrainedParams())
     }
@@ -419,7 +451,7 @@ export class CovidExplorerTable extends OwidTable {
     withDeathsColumn(params: CovidConstrainedQueryParams) {
         return this.withColumn(
             params,
-            params.interval === "total"
+            params.interval === IntervalOptions.total
                 ? (row) => row.total_deaths
                 : (row) => row.new_deaths
         )
@@ -437,7 +469,7 @@ export class CovidExplorerTable extends OwidTable {
 
         // Init tests per case for the country picker
         const tpc = new CovidQueryParams("")
-        tpc.interval = "smoothed"
+        tpc.interval = IntervalOptions.smoothed
         tpc.testsPerCaseMetric = true
         table = table.withTestsPerCaseColumn(tpc.toConstrainedParams())
 

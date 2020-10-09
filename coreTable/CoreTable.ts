@@ -467,6 +467,17 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
+    withTransformedSpecs(
+        fn: (spec: CoreColumnSpec) => CoreColumnSpec
+    ): AnyTable {
+        return new (this.constructor as any)(
+            this.rows,
+            this.specs.map(fn),
+            this,
+            `Updated column specs`
+        )
+    }
+
     withoutConstantColumns(): AnyTable {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)

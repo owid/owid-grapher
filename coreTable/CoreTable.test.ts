@@ -46,6 +46,23 @@ it("can drop columns", () => {
     expect(table.withoutColumns(["year"]).columnSlugs).toEqual(["country"])
 })
 
+it("can transform columns", () => {
+    const rows = [
+        { country: "USA", year: 1999 },
+        { country: "Germany", year: 2000 },
+    ]
+    const table = new AnyTable(rows)
+    expect(table.columnNames).toEqual(["country", "Year"])
+    expect(
+        table.withTransformedSpecs((spec) => {
+            return {
+                ...spec,
+                name: spec.slug.toUpperCase(),
+            }
+        }).columnNames
+    ).toEqual(["COUNTRY", "YEAR"])
+})
+
 describe("filtering", () => {
     const rootTable = AnyTable.fromDelimited(sampleCsv)
     const filteredTable = rootTable.filterBy(

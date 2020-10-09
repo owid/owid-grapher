@@ -31,31 +31,22 @@ export const covidPreloads = [
 
 export declare type SmoothingOption = 0 | 3 | 7 | 14
 
-export declare type IntervalOption =
-    | "daily"
-    | "weekly"
-    | "total"
-    | "smoothed"
-    | "biweekly"
-    | "weeklyChange"
-    | "biweeklyChange"
-
-export const intervalOptions: IntervalOption[] = [
-    "daily",
-    "weekly",
-    "total",
-    "smoothed",
-    "biweekly",
-    "weeklyChange",
-    "biweeklyChange",
-]
+export enum IntervalOptions {
+    daily = "daily",
+    weekly = "weekly",
+    total = "total",
+    smoothed = "smoothed",
+    biweekly = "biweekly",
+    weeklyChange = "weeklyChange",
+    biweeklyChange = "biweeklyChange",
+}
 
 export interface IntervalSpec {
     label: string
     smoothing: SmoothingOption
 }
 
-export const intervalSpecs: { [key in IntervalOption]: IntervalSpec } = {
+export const intervalSpecs: { [key in IntervalOptions]: IntervalSpec } = {
     daily: { label: "New per day", smoothing: 0 },
     weekly: { label: "Weekly", smoothing: 7 },
     total: { label: "Cumulative", smoothing: 0 },
@@ -65,24 +56,20 @@ export const intervalSpecs: { [key in IntervalOption]: IntervalSpec } = {
     biweeklyChange: { label: "Biweekly Change", smoothing: 14 },
 }
 
-export declare type colorScaleOption = "continents" | "ptr" | "none"
+export enum ColorScaleOptions {
+    continents = "continents",
+    ptr = "ptr",
+    none = "none",
+}
 
-export declare type MetricKind =
-    | "deaths"
-    | "cases"
-    | "tests"
-    | "case_fatality_rate"
-    | "tests_per_case"
-    | "positive_test_rate"
-
-export const MetricOptions: MetricKind[] = [
-    "deaths",
-    "cases",
-    "tests",
-    "case_fatality_rate",
-    "tests_per_case",
-    "positive_test_rate",
-]
+export enum MetricOptions {
+    deaths = "deaths",
+    cases = "cases",
+    tests = "tests",
+    case_fatality_rate = "case_fatality_rate",
+    tests_per_case = "tests_per_case",
+    positive_test_rate = "positive_test_rate",
+}
 
 export const sourceCharts = {
     epi: 4258,
@@ -158,7 +145,7 @@ export const trajectoryColumnSpecs = {
     },
 }
 
-export const metricLabels: { [key in MetricKind]: string } = {
+export const metricLabels: { [key in MetricOptions]: string } = {
     cases: "Confirmed cases",
     deaths: "Confirmed deaths",
     tests: "Tests",
@@ -168,15 +155,28 @@ export const metricLabels: { [key in MetricKind]: string } = {
 }
 
 export const intervalsAvailableByMetric: Map<
-    MetricKind,
-    Set<IntervalOption>
+    MetricOptions,
+    Set<IntervalOptions>
 > = new Map([
-    ["cases", new Set(intervalOptions)],
-    ["deaths", new Set(intervalOptions)],
-    ["tests", new Set(["total", "smoothed", "daily"])],
-    ["case_fatality_rate", new Set(["total"])],
-    ["tests_per_case", new Set(["total", "smoothed"])],
-    ["positive_test_rate", new Set(["total", "smoothed"])],
+    [MetricOptions.cases, new Set(Object.values(IntervalOptions))],
+    [MetricOptions.deaths, new Set(Object.values(IntervalOptions))],
+    [
+        MetricOptions.tests,
+        new Set([
+            IntervalOptions.total,
+            IntervalOptions.smoothed,
+            IntervalOptions.daily,
+        ]),
+    ],
+    [MetricOptions.case_fatality_rate, new Set([IntervalOptions.total])],
+    [
+        MetricOptions.tests_per_case,
+        new Set([IntervalOptions.total, IntervalOptions.smoothed]),
+    ],
+    [
+        MetricOptions.positive_test_rate,
+        new Set([IntervalOptions.total, IntervalOptions.smoothed]),
+    ],
 ])
 
 // todo: auto import from covid repo.
