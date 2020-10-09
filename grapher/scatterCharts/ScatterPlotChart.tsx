@@ -685,7 +685,7 @@ export class ScatterPlotChart
         })
     }
 
-    @computed private get allPoints() {
+    @computed get allPoints() {
         const allPoints: SeriesPoint[] = []
         this.getPointsByEntityAndTime().forEach((series) => {
             series.forEach((point) => {
