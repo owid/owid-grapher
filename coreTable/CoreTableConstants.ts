@@ -6,7 +6,13 @@ export declare type ColumnSlug = string // let's be very restrictive on valid co
 export enum ColumnTypeNames {
     Numeric = "Numeric",
     String = "String",
+    Region = "Region",
+    SeriesAnnotation = "SeriesAnnotation",
     Categorical = "Categorical",
+    Continent = "Continent",
+    EntityName = "EntityName",
+    EntityId = "EntityId",
+    EntityCode = "EntityCode",
     Boolean = "Boolean",
     Currency = "Currency",
     Percentage = "Percentage",

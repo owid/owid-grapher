@@ -61,6 +61,7 @@ export class ChartDimension
         this.targetTime = obj.targetTime
         this.variableId = obj.variableId
         this.property = obj.property
+        this.slug = obj.slug
     }
 
     toObject(): LegacyChartDimensionInterface {

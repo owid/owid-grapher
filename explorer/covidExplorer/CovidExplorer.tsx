@@ -647,33 +647,43 @@ export class CovidExplorer
         grapher.hideEntityControls = this.showExplorerControls
         grapher.externalCsvLink = covidDataPath
         grapher.bakedGrapherURL = `${BAKED_BASE_URL}/${covidDashboardSlug}`
+        grapher.hideTitleAnnotation = true
+        grapher.slug = covidDashboardSlug
+        grapher.yAxis.removePointsOutsideDomain = true
+        grapher.hasMapTab = true
+        grapher.isPublished = true
+        grapher.slideShow = new SlideShowController(
+            this.props.params.allAvailableQueryStringCombos(),
+            0,
+            this
+        )
         this.updateGrapher()
         this.observeGlobalEntitySelection()
-        exposeInstanceOnWindow(this, "covidDataExplorer")
+        exposeInstanceOnWindow(this, "covidExplorer")
     }
 
     private observeGlobalEntitySelection() {
         const { globalEntitySelection } = this.props
-        if (globalEntitySelection) {
-            this.disposers.push(
-                reaction(
-                    () => [
-                        globalEntitySelection.mode,
-                        globalEntitySelection.selectedEntities,
-                    ],
-                    () => {
-                        const { mode, selectedEntities } = globalEntitySelection
-                        if (mode === GlobalEntitySelectionModes.override) {
-                            this.props.params.selectedCountryCodes = new Set(
-                                selectedEntities.map((entity) => entity.code)
-                            )
-                            this.renderControlsThenUpdateGrapher()
-                        }
-                    },
-                    { fireImmediately: true }
-                )
+        if (!globalEntitySelection) return
+
+        this.disposers.push(
+            reaction(
+                () => [
+                    globalEntitySelection.mode,
+                    globalEntitySelection.selectedEntities,
+                ],
+                () => {
+                    const { mode, selectedEntities } = globalEntitySelection
+                    if (mode === GlobalEntitySelectionModes.override) {
+                        this.props.params.selectedCountryCodes = new Set(
+                            selectedEntities.map((entity) => entity.code)
+                        )
+                        this.renderControlsThenUpdateGrapher()
+                    }
+                },
+                { fireImmediately: true }
             )
-        }
+        )
     }
 
     bindToWindow() {
@@ -833,7 +843,7 @@ export class CovidExplorer
     // todo: cleanup
     @action.bound private updateGrapher() {
         const params = this.constrainedParams
-        const grapher = this.grapher
+        const { grapher, table } = this
         grapher.title = this.chartTitle
         grapher.subtitle = this.subtitle
         grapher.note = this.note
@@ -846,17 +856,8 @@ export class CovidExplorer
         )
             grapher.zoomToSelection = true
 
-        grapher.hideTitleAnnotation = true
-        grapher.slug = covidDashboardSlug
         grapher.type = params.type
-        grapher.yAxis.removePointsOutsideDomain = true
         grapher.yAxis.label = this.yAxisLabel
-        if (!grapher.slideShow)
-            grapher.slideShow = new SlideShowController(
-                params.allAvailableQueryStringCombos(),
-                0,
-                this
-            )
 
         if (!this.canDoLogScale) {
             this.switchBackToLog = grapher.yAxis.scaleType === ScaleType.log
@@ -870,9 +871,7 @@ export class CovidExplorer
             }
         }
 
-        grapher.inputTable = this.table
-        grapher.hasMapTab = true
-        grapher.isPublished = true
+        grapher.inputTable = table
         grapher.yAxis.min = params.intervalChange ? undefined : 0
         grapher.setDimensionsFromConfigs(this.dimensionSpecs)
 
@@ -882,7 +881,7 @@ export class CovidExplorer
             this.colorScales[params.colorStrategy]
         )
 
-        grapher.dataTableColumnSlugsToShow = this.table.columnSlugsToShowInDataTable(
+        grapher.dataTableColumnSlugsToShow = table.columnSlugsToShowInDataTable(
             params
         )
 

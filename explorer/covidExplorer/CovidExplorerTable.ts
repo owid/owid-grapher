@@ -13,9 +13,11 @@ import {
     HasComputedColumn,
 } from "coreTable/CoreTableConstants"
 import {
+    CovidColumnSpecObjectMap,
     CovidConstrainedQueryParams,
     CovidQueryParams,
     makeColumnSpecFromParams,
+    makeColumnSpecTemplates,
 } from "./CovidParams"
 import {
     covidAnnotations,
@@ -26,19 +28,14 @@ import {
     SmoothingOption,
     testRateExcludeList,
 } from "./CovidConstants"
-import { observable } from "mobx"
 import { OwidColumnSpec } from "coreTable/OwidTableConstants"
-import {
-    computeRollingAveragesForEachGroup,
-    CovidColumnSpecObjectMap,
-    makeColumnSpecTemplates,
-} from "./CovidExplorerUtils"
+import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
 
 interface AnnotationsRow {
     location: EntityName
     date: string
-    cases_annotations: string
-    deaths_annotations: string
+    cases_series_annotations: string
+    deaths_series_annotations: string
 }
 
 const dontIncludeInTable = { display: { includeInTable: false } }
@@ -71,23 +68,23 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     withAnnotationColumns() {
-        const caseSlug = "cases_annotations"
-        const deathSlug = "deaths_annotations"
-        const cfrSlug = "case_fatality_rate_annotations"
+        const caseSlug = "cases_series_annotations"
+        const deathSlug = "deaths_series_annotations"
+        const cfrSlug = "case_fatality_rate_series_annotations"
         const table = this.withColumns([
             {
                 slug: caseSlug,
-                type: ColumnTypeNames.String,
+                type: ColumnTypeNames.SeriesAnnotation,
                 ...dontIncludeInTable,
             },
             {
                 slug: deathSlug,
-                type: ColumnTypeNames.String,
+                type: ColumnTypeNames.SeriesAnnotation,
                 ...dontIncludeInTable,
             },
             {
                 slug: cfrSlug,
-                type: ColumnTypeNames.String,
+                type: ColumnTypeNames.SeriesAnnotation,
                 ...dontIncludeInTable,
             },
         ])
@@ -163,6 +160,48 @@ export class CovidExplorerTable extends OwidTable {
         return this.withColumns([spec]) as CovidExplorerTable
     }
 
+    private withNewCasesSmoothedColumn(smoothing: SmoothingOption) {
+        const slug = `new_cases_smoothed_${smoothing}day`
+        if (this.has(slug)) return this
+        return this.withRollingAverageColumn(
+            {
+                slug,
+                type: ColumnTypeNames.Ratio,
+            },
+            (row) => row.new_cases,
+            smoothing
+        )
+    }
+
+    // todo: remove these ops from here and move to CoreTable
+    withRollingAverageColumn(
+        spec: CoreColumnSpec,
+        valueAccessor: (row: CoreRow) => any,
+        windowSize: Integer,
+        multiplyByWindowSize = false,
+        convertToPercentChangeOverWindow = false
+    ) {
+        const averages = computeRollingAveragesForEachGroup(
+            this.rows,
+            valueAccessor,
+            "entityName",
+            "day",
+            windowSize
+        )
+
+        spec.fn = (row, index) => {
+            const val = averages[index!]
+            if (!convertToPercentChangeOverWindow)
+                return val ? val * (multiplyByWindowSize ? windowSize : 1) : val
+            const previousValue = averages[index! - windowSize]
+            return previousValue === undefined || previousValue === 0
+                ? undefined
+                : (100 * (val - previousValue)) / previousValue
+        }
+
+        return this.withColumns([spec]) as CovidExplorerTable
+    }
+
     columnSlugsToShowInDataTable(params: CovidConstrainedQueryParams) {
         return this.paramsForDataTableColumns(params).map(
             (params) =>
@@ -211,35 +250,6 @@ export class CovidExplorerTable extends OwidTable {
             table = table.withRequestedColumns(params)
         })
         return table
-    }
-
-    // todo: remove these ops from here and move to CoreTable
-    withRollingAverageColumn(
-        spec: CoreColumnSpec,
-        valueAccessor: (row: CoreRow) => any,
-        windowSize: Integer,
-        multiplyByWindowSize = false,
-        convertToPercentChangeOverWindow = false
-    ) {
-        const averages = computeRollingAveragesForEachGroup(
-            this.rows,
-            valueAccessor,
-            "entityName",
-            "day",
-            windowSize
-        )
-
-        spec.fn = (row, index) => {
-            const val = averages[index!]
-            if (!convertToPercentChangeOverWindow)
-                return val ? val * (multiplyByWindowSize ? windowSize : 1) : val
-            const previousValue = averages[index! - windowSize]
-            return previousValue === undefined || previousValue === 0
-                ? undefined
-                : (100 * (val - previousValue)) / previousValue
-        }
-
-        return this.withColumns([spec]) as CovidExplorerTable
     }
 
     filterNegatives(slug: ColumnSlug) {
@@ -437,17 +447,5 @@ export class CovidExplorerTable extends OwidTable {
         let currentCountry: number
         let countryExceededThresholdOnDay: number
         return this.withColumns([spec]) as CovidExplorerTable
-    }
-
-    private withNewCasesSmoothedColumn(smoothing: SmoothingOption) {
-        const slug = `new_cases_smoothed_${smoothing}day`
-        if (this.has(slug)) return this
-        return this.withRollingAverageColumn(
-            {
-                slug,
-            },
-            (row) => row.new_cases,
-            smoothing
-        )
     }
 }

@@ -34,16 +34,16 @@ export const RequiredColumnSpecs: OwidColumnSpec[] = [
     {
         name: "Entity",
         slug: OwidTableSlugs.entityName,
-        type: ColumnTypeNames.Categorical,
+        type: ColumnTypeNames.EntityName,
     },
     {
         slug: OwidTableSlugs.entityId,
-        type: ColumnTypeNames.Categorical,
+        type: ColumnTypeNames.EntityId,
     },
     {
         name: "Code",
         slug: OwidTableSlugs.entityCode,
-        type: ColumnTypeNames.Categorical,
+        type: ColumnTypeNames.EntityCode,
     },
 ]
 

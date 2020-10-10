@@ -10,7 +10,10 @@ al,1214,green`
 const rows = parseDelimited(input)
 
 it("to aligned table", () => {
-    const result = toAlignedTextTable(Object.keys(rows[0]), rows, false, 100)
+    const result = toAlignedTextTable(Object.keys(rows[0]), rows, {
+        alignRight: false,
+        maxCharactersPerColumn: 100,
+    })
     expect(result).toEqual(`name score color
 bob  12    red  
 mike 321   blue 

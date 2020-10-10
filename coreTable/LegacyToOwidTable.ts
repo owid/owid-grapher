@@ -82,7 +82,7 @@ export const legacyVariablesToTabular = (
             )
             columnSpecs.set(annotationsColumnSlug, {
                 slug: annotationsColumnSlug,
-                type: ColumnTypeNames.String,
+                type: ColumnTypeNames.SeriesAnnotation,
                 name: `${columnSpec.name} Annotations`,
             })
         }
@@ -173,7 +173,8 @@ const columnSpecFromLegacyVariable = (
     } = variable
 
     // Without this the much used var 123 appears as "Countries Continent". We could rename in Grapher but not sure the effects of that.
-    const name = variable.id == 123 ? "Continent" : variable.name
+    const isContinent = variable.id == 123
+    const name = isContinent ? "Continent" : variable.name
 
     return {
         name,
@@ -188,7 +189,7 @@ const columnSpecFromLegacyVariable = (
         display,
         source,
         owidVariableId: variable.id,
-        type: ColumnTypeNames.Numeric,
+        type: isContinent ? ColumnTypeNames.Continent : ColumnTypeNames.Numeric,
     }
 }
 

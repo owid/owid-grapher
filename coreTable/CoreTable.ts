@@ -31,6 +31,7 @@ import {
     EntityName,
 } from "./CoreTableConstants"
 import {
+    AlignedTextTableOptions,
     toAlignedTextTable,
     toDelimited,
     toMarkdownTable,
@@ -351,14 +352,14 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return !this.parent
     }
 
-    explainThis(showRows = 10): string {
+    explainThis(showRows = 10, options?: AlignedTextTableOptions): string {
         const rowCount = this.numRows
         const showRowsClamped = showRows > rowCount ? rowCount : showRows
         const colTable = this.columnsAsArray.map((col) => {
             return {
                 slug: col.slug,
                 type: col.spec.type,
-                parsedType: col.parsedType,
+                jsType: col.jsType,
                 name: col.name,
                 count: col.numValues,
             }
@@ -368,8 +369,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             ? toAlignedTextTable(
                   Object.keys(this._inputRows[0]),
                   this._inputRows.slice(0, showRows),
-                  undefined,
-                  10
+                  options
               )
             : ""
 
@@ -381,22 +381,22 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             originalRows,
             `${this.numColumns} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. ${this.selectedRows.size} selected. \n`,
             toAlignedTextTable(
-                ["slug", "type", "parsedType", "name", "count"],
-                colTable
+                ["slug", "type", "jsType", "name", "count"],
+                colTable,
+                options
             ) + "\n\n",
             toAlignedTextTable(
                 this.columnSlugs,
                 this.rows.slice(0, showRowsClamped),
-                undefined,
-                10
+                options
             ),
         ].join("")
     }
 
-    explain(showRows = 10): string {
+    explain(showRows = 10, options?: AlignedTextTableOptions): string {
         return (
-            (this.parent ? this.parent.explain(showRows) : "") +
-            this.explainThis(showRows)
+            (this.parent ? this.parent.explain(showRows, options) : "") +
+            this.explainThis(showRows, options)
         )
     }
 
@@ -549,6 +549,24 @@ export class AnyTable extends AbstractCoreTable<CoreRow> {
 const rowTime = (row: CoreRow) =>
     parseInt(row.time ?? row.year ?? row.day ?? row.date)
 
+interface ColumnStats {
+    numParseErrors: number
+    uniqueValues: number
+    numValues: number
+}
+
+interface ExtendedColumnStats extends ColumnStats {
+    median: number | string
+    sum: number
+    mean: number
+    min: number
+    max: number
+    range: number
+    mode: number
+    modeSize: number
+    deciles: { [which: number]: number }
+}
+
 export abstract class AbstractCoreColumn {
     spec: CoreColumnSpec
     table: AbstractCoreTable<CoreRow>
@@ -558,9 +576,9 @@ export abstract class AbstractCoreColumn {
         this.spec = spec
     }
 
-    abstract parsedType: string
+    abstract jsType: string
     isParsed(val: any) {
-        return typeof val === this.parsedType
+        return typeof val === this.jsType
     }
 
     parse(val: any) {
@@ -569,6 +587,80 @@ export abstract class AbstractCoreColumn {
 
     @computed get unit() {
         return this.spec.unit || this.display?.unit || ""
+    }
+
+    @computed protected get sortedValuesString() {
+        return this.parsedValues.slice().sort()
+    }
+
+    @computed protected get sortedValuesNumeric() {
+        const numericCompare = (av: number, bv: number) =>
+            av > bv ? 1 : av < bv ? -1 : 0
+        return this.parsedValues.slice().sort(numericCompare)
+    }
+
+    @computed get sortedValues() {
+        return this.sortedValuesString
+    }
+
+    @computed get stats() {
+        const { numParseErrors, numValues } = this
+        const basicStats: ColumnStats = {
+            numParseErrors,
+            uniqueValues: this.valuesUniq.length,
+            numValues,
+        }
+        if (!numValues) return basicStats
+        const stats: Partial<ExtendedColumnStats> = { ...basicStats }
+        const arr = this.sortedValues
+        const isNumeric = typeof arr[0] === "number"
+
+        let min = arr[0]
+        let max = arr[0]
+        let sum = 0
+        let mode = undefined
+        let modeSize = 0
+        let currentBucketValue = undefined
+        let currentBucketSize = 0
+        for (let index = 0; index < numValues; index++) {
+            const value = arr[index]
+            sum += value
+            if (value > max) max = value
+            if (value < min) min = value
+            if (value === currentBucketValue) currentBucketSize++
+            else {
+                currentBucketValue = value
+                currentBucketSize = 1
+            }
+            if (currentBucketSize > modeSize) {
+                modeSize = currentBucketSize
+                mode = currentBucketValue
+            }
+        }
+
+        const medianIndex = Math.floor(numValues / 2)
+        stats.sum = sum
+        stats.median = arr[medianIndex]
+        stats.mean = sum / numValues
+        stats.min = min
+        stats.max = max
+        stats.range = max - min
+        stats.mode = mode
+        stats.modeSize = modeSize
+        if (!isNumeric) {
+            stats.sum = undefined
+            stats.mean = undefined
+        }
+
+        stats.deciles = {}
+        const deciles = [10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100]
+        deciles.forEach((decile) => {
+            let index = Math.floor(numValues * (decile / 100))
+            index = index === numValues ? index - 1 : index
+            stats.deciles![decile] = arr[index]
+        })
+
+        return stats
     }
 
     // todo: migrate from unitConversionFactor to computed columns instead. then delete this.
@@ -859,11 +951,11 @@ export abstract class AbstractCoreColumn {
 }
 
 export class LoadingColumn extends AbstractCoreColumn {
-    parsedType = "string"
+    jsType = "string"
 } // Todo: remove. A placeholder for now. Represents a column that has not loaded yet
 
 class StringColumn extends AbstractCoreColumn {
-    parsedType = "string"
+    jsType = "string"
 
     parse(val: any) {
         if (val === null) return new NullButShouldBeString()
@@ -872,21 +964,26 @@ class StringColumn extends AbstractCoreColumn {
     }
 }
 
+class SeriesAnnotationColumn extends StringColumn {}
+
 class CategoricalColumn extends AbstractCoreColumn {
-    parsedType = "string"
+    jsType = "string"
 }
-class ColorColumn extends CategoricalColumn {
-    parsedType = "string"
-}
+class RegionColumn extends CategoricalColumn {}
+class ContinentColumn extends RegionColumn {}
+class EntityIdColumn extends CategoricalColumn {}
+class EntityCodeColumn extends CategoricalColumn {}
+class EntityNameColumn extends CategoricalColumn {}
+class ColorColumn extends CategoricalColumn {}
 class BooleanColumn extends AbstractCoreColumn {
-    parsedType = "boolean"
+    jsType = "boolean"
 
     parse(val: any) {
         return !!val
     }
 }
 export class NumericColumn extends AbstractCoreColumn {
-    parsedType = "number"
+    jsType = "number"
     formatValueShort(value: number, options?: TickFormattingOptions) {
         const numDecimalPlaces = this.numDecimalPlaces
         return formatValue(value, {
@@ -894,6 +991,10 @@ export class NumericColumn extends AbstractCoreColumn {
             numDecimalPlaces,
             ...options,
         })
+    }
+
+    @computed get sortedValues() {
+        return this.sortedValuesNumeric
     }
 
     formatValueLong(value: number) {
@@ -939,10 +1040,14 @@ class IntegerColumn extends NumericColumn {
 }
 
 abstract class TimeColumn extends AbstractCoreColumn {
-    parsedType = "number"
+    jsType = "number"
 
     parse(val: any) {
         return parseInt(val)
+    }
+
+    @computed get sortedValues() {
+        return this.sortedValuesNumeric
     }
 }
 
@@ -1050,7 +1155,10 @@ class RatioColumn extends NumericColumn {
 
 const columnTypeMap: { [key in ColumnTypeNames]: any } = {
     String: StringColumn,
+    SeriesAnnotation: SeriesAnnotationColumn,
     Categorical: CategoricalColumn,
+    Region: RegionColumn,
+    Continent: ContinentColumn,
     Numeric: NumericColumn,
     Date: DateColumn,
     Year: YearColumn,
@@ -1066,4 +1174,7 @@ const columnTypeMap: { [key in ColumnTypeNames]: any } = {
     PercentChangeOverTime: PercentChangeOverTimeColumn,
     Ratio: RatioColumn,
     Color: ColorColumn,
+    EntityCode: EntityCodeColumn,
+    EntityId: EntityIdColumn,
+    EntityName: EntityNameColumn,
 }

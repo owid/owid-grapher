@@ -1,13 +1,23 @@
 type CellFormatter = (str: string, rowIndex: number, colIndex: number) => any
 
+export interface AlignedTextTableOptions {
+    alignRight?: boolean
+    maxCharactersPerColumn?: number
+    maxCharactersPerLine?: number
+}
+
 // Output a pretty table for consles
 export const toAlignedTextTable = (
     headerSlugs: string[],
     rows: any[],
-    alignRight = true,
-    maxCharactersPerColumn = 20,
-    maxCharactersPerLine = 120
+    options: AlignedTextTableOptions = {}
 ) => {
+    const {
+        alignRight = true,
+        maxCharactersPerColumn = 20,
+        maxCharactersPerLine = 80,
+    } = options
+
     // Set initial column widths
     const colWidths = headerSlugs.map((slug) =>
         slug.length > maxCharactersPerColumn
