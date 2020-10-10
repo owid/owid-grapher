@@ -17,7 +17,7 @@ import {
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 
 interface Tickmark {
     value: number
@@ -30,7 +30,7 @@ interface Tickmark {
 abstract class AbstractAxis implements ScaleTypeConfig {
     protected config: AxisConfig
     @observable.ref domain: ValueRange
-    @observable formatColumn?: AbstractCoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
+    @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
     @observable hideGridlines = false
     @observable.struct range: ValueRange = [0, 0]

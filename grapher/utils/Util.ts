@@ -386,14 +386,14 @@ export function domainExtent(
 // cagr = ((new_value - old_value) ** (1 / Δt)) - 1
 // see https://en.wikipedia.org/wiki/Compound_annual_growth_rate
 interface Point {
-    year: number
+    timeValue: Time
     entityName?: string
     x?: number
     y?: number
 }
 // Todo: add unit tests
-export function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
-    const elapsed = endValue.year - startValue.year
+function cagr(startValue: Point, endValue: Point, property: "x" | "y") {
+    const elapsed = endValue.timeValue - startValue.timeValue
     if (!elapsed) return 0
 
     const frac = endValue[property]! / startValue[property]!
@@ -408,12 +408,14 @@ export const relativeMinAndMax = (
     let minChange = 0
     let maxChange = 0
 
-    const values = points.filter((point) => point.x !== 0 && point.y !== 0)
+    const filteredPoints = points.filter(
+        (point) => point.x !== 0 && point.y !== 0
+    )
 
-    for (let i = 0; i < values.length; i++) {
-        const indexValue = values[i]
-        for (let j = i + 1; j < values.length; j++) {
-            const targetValue = values[j]
+    for (let i = 0; i < filteredPoints.length; i++) {
+        const indexValue = filteredPoints[i]
+        for (let j = i + 1; j < filteredPoints.length; j++) {
+            const targetValue = filteredPoints[j]
 
             if (targetValue.entityName !== indexValue.entityName) continue
 

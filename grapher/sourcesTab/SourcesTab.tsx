@@ -5,14 +5,14 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
 export interface SourcesTabManager {
     adminBaseUrl?: string
-    columnsWithSources: AbstractCoreColumn[]
+    columnsWithSources: CoreColumn[]
     isAdmin?: boolean
 }
 
@@ -29,7 +29,7 @@ export class SourcesTab extends React.Component<{
         return this.props.manager
     }
 
-    private renderSource(column: AbstractCoreColumn) {
+    private renderSource(column: CoreColumn) {
         const spec = column.spec as OwidColumnSpec
         const source = spec.source!
         const { table } = column

@@ -26,7 +26,7 @@ import { SortIcon } from "grapher/controls/SortIcon"
 import { Tippy } from "grapher/chart/Tippy"
 import { OwidTable } from "coreTable/OwidTable"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { ColumnSlug, EntityName } from "coreTable/CoreTableConstants"
 
@@ -279,7 +279,7 @@ export class DataTable extends React.Component<{
         column: DataTableColumn,
         dv: DimensionValue | undefined,
         sorted: boolean,
-        actualColumn: AbstractCoreColumn
+        actualColumn: CoreColumn
     ) {
         if (dv === undefined || !(column.key in dv))
             return <td key={key} className="dimension" />
@@ -473,7 +473,7 @@ export class DataTable extends React.Component<{
     }
 
     formatValue(
-        column: AbstractCoreColumn,
+        column: CoreColumn,
         value: number | string | undefined,
         formattingOverrides?: TickFormattingOptions
     ) {
@@ -758,7 +758,7 @@ enum TargetTimeMode {
 interface Dimension {
     columns: DimensionColumn[]
     valueByEntity: Map<string, DimensionValue>
-    sourceColumn: AbstractCoreColumn
+    sourceColumn: CoreColumn
 }
 
 interface DimensionColumn {
@@ -808,7 +808,7 @@ type ColumnKey = SingleValueKey | RangeValueKey
 
 interface DataTableDimension {
     columns: DataTableColumn[]
-    coreTableColumn: AbstractCoreColumn
+    coreTableColumn: CoreColumn
     sortable: boolean
 }
 

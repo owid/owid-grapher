@@ -42,7 +42,7 @@ import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
 import { EntityName } from "coreTable/CoreTableConstants"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -553,7 +553,7 @@ export class ScatterPlotChart
             this.xColumn,
             this.colorColumn,
             this.sizeColumn,
-        ].filter(identity) as AbstractCoreColumn[]
+        ].filter(identity) as CoreColumn[]
     }
 
     // todo: move this sort of thing to OwidTable
@@ -598,7 +598,7 @@ export class ScatterPlotChart
     }
 
     private setPointsUsingTolerance(
-        column: AbstractCoreColumn,
+        column: CoreColumn,
         pointsByEntityAndTime: SeriesPointMap,
         rowsByEntity: Map<EntityName, OwidRow[]>
     ) {
@@ -639,7 +639,7 @@ export class ScatterPlotChart
                 if (point === undefined) {
                     point = {
                         entityName,
-                        year: outputTime,
+                        timeValue: outputTime,
                         time: {},
                     } as SeriesPoint
                     pointsByTime.set(outputTime, point)
@@ -655,7 +655,7 @@ export class ScatterPlotChart
         })
     }
 
-    propertyForColumn(column: AbstractCoreColumn) {
+    propertyForColumn(column: CoreColumn) {
         if (this.xColumn === column) return DimensionProperty.x
         if (this.yColumn === column) return DimensionProperty.y
         if (this.sizeColumn === column) return DimensionProperty.size
@@ -850,7 +850,7 @@ export class ScatterPlotChart
             pointsByTime.forEach((point) => {
                 let label
                 if (strat === ScatterPointLabelStrategy.year)
-                    label = table.timeColumnFormatFunction(point.time)
+                    label = table.timeColumnFormatFunction(point.timeValue)
                 else if (strat === ScatterPointLabelStrategy.x)
                     label = xColumn.formatValue(point.x)
                 else

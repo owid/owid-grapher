@@ -1,4 +1,4 @@
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 import { EntityName } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
@@ -21,8 +21,8 @@ export interface ScatterPlotManager extends ChartManager {
 }
 
 export interface ScatterTooltipProps {
-    yColumn: AbstractCoreColumn
-    xColumn: AbstractCoreColumn
+    yColumn: CoreColumn
+    xColumn: CoreColumn
     series: ScatterSeries
     maxWidth: number
     fontSize: number
@@ -48,7 +48,7 @@ export interface SeriesPoint {
     entityName?: EntityName
     label: string
     color?: number | string
-    year: Time
+    timeValue: Time
     time: {
         x: number
         y: number

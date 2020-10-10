@@ -1,4 +1,4 @@
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { ScaleType, SeriesName } from "grapher/core/GrapherConstants"
 import { TextWrap } from "grapher/text/TextWrap"
@@ -43,7 +43,7 @@ export interface SlopeProps {
 
 export interface LabelledSlopesProps {
     manager: ChartManager
-    yColumn: AbstractCoreColumn
+    yColumn: CoreColumn
     bounds: Bounds
     seriesArr: SlopeChartSeries[]
     focusKeys: string[]
@@ -56,7 +56,7 @@ export interface LabelledSlopesProps {
 export interface SlopeAxisProps {
     bounds: Bounds
     orient: "left" | "right"
-    column: AbstractCoreColumn
+    column: CoreColumn
     scale: any
     scaleType: ScaleType
 }

@@ -17,7 +17,7 @@ import { Color } from "grapher/core/GrapherConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 import { OwidTable } from "coreTable/OwidTable"
 
 const NO_DATA_LABEL = "No data"
@@ -28,7 +28,7 @@ export interface ColorScaleManager {
     hasNoDataBin: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: string
-    colorScaleColumn?: AbstractCoreColumn
+    colorScaleColumn?: CoreColumn
     table?: OwidTable
 }
 

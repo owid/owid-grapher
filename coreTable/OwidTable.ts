@@ -24,7 +24,8 @@ import {
     CoreRow,
     CoreColumnSpec,
 } from "./CoreTableConstants"
-import { CoreTable, DroppedForTesting } from "./CoreTable"
+import { CoreTable } from "./CoreTable"
+import { DroppedForTesting } from "./InvalidCells"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {

@@ -42,7 +42,7 @@ import {
     SlopeChartValue,
     SlopeProps,
 } from "./SlopeChartConstants"
-import { AbstractCoreColumn } from "coreTable/CoreTable"
+import { CoreColumn } from "coreTable/CoreTableColumns"
 
 @observer
 export class SlopeChart
@@ -407,7 +407,7 @@ class SlopeChartAxis extends React.Component<SlopeAxisProps> {
     static calculateBounds(
         containerBounds: Bounds,
         props: {
-            column: AbstractCoreColumn
+            column: CoreColumn
             orient: "left" | "right"
             scale: ScaleLinear<number, number>
         }

@@ -25,7 +25,7 @@ import { Analytics } from "grapher/core/Analytics"
 import { SortIcon } from "grapher/controls/SortIcon"
 import { SortOrder } from "grapher/core/GrapherConstants"
 import { getStylesForTargetHeight, asArray } from "utils/client/react-select"
-import { AbstractCoreColumn, NumericColumn } from "coreTable/CoreTable"
+import { CoreColumn, ColumnTypeMap } from "coreTable/CoreTableColumns"
 import { OwidTable } from "coreTable/OwidTable"
 
 const toggleSort = (order: SortOrder): SortOrder =>
@@ -142,7 +142,7 @@ export class CountryPicker extends React.Component<{
         )
     }
 
-    @computed get activePickerMetricColumn(): AbstractCoreColumn {
+    @computed get activePickerMetricColumn(): CoreColumn {
         return this.availablePickerColumns.find(
             (col) => col.slug === this.metric
         )!
@@ -395,7 +395,7 @@ export class CountryPicker extends React.Component<{
     @action updateMetric(columnSlug: string) {
         this.props.userState.countryPickerMetric = columnSlug
         this.props.userState.countryPickerSort =
-            this.activePickerMetricColumn instanceof NumericColumn
+            this.activePickerMetricColumn instanceof ColumnTypeMap.Numeric
                 ? SortOrder.desc
                 : SortOrder.asc
         this.props.analytics?.logCountrySelectorEvent(
