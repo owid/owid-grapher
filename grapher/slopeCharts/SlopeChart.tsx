@@ -371,7 +371,7 @@ export class SlopeChart
 
         const table = this.inputTable
 
-        return column.entityNamesUniqArr
+        return column.uniqEntityNames
             .map((entityName) => {
                 const values: SlopeChartValue[] = []
 

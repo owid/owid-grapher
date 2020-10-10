@@ -504,8 +504,8 @@ export class ScatterPlotChart
     @computed private get allEntityNamesWithXAndY(): EntityName[] {
         if (!this.yColumn || !this.xColumn) return []
         return intersection(
-            this.yColumn.entityNamesUniqArr,
-            this.xColumn.entityNamesUniqArr
+            this.yColumn.uniqEntityNames,
+            this.xColumn.uniqEntityNames
         )
     }
 
@@ -519,7 +519,7 @@ export class ScatterPlotChart
 
         if (this.manager.matchingEntitiesOnly && this.colorColumn)
             return new Set(
-                intersection(seriesNames, this.colorColumn.entityNamesUniqArr)
+                intersection(seriesNames, this.colorColumn.uniqEntityNames)
             )
 
         return new Set(seriesNames)

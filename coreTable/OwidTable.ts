@@ -569,12 +569,10 @@ export class OwidTable extends CoreTable<OwidRow> {
     entitiesWith(columnSlugs: string[]): Set<string> {
         if (!columnSlugs.length) return new Set()
         if (columnSlugs.length === 1)
-            return new Set(this.get(columnSlugs[0])!.entityNamesUniqArr)
+            return new Set(this.get(columnSlugs[0])!.uniqEntityNames)
 
         return intersectionOfSets<string>(
-            columnSlugs.map(
-                (slug) => new Set(this.get(slug)!.entityNamesUniqArr)
-            )
+            columnSlugs.map((slug) => new Set(this.get(slug)!.uniqEntityNames))
         )
     }
 

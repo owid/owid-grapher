@@ -190,7 +190,7 @@ export class MapChart
 
         const valueByEntityAndTime = mapColumn.valueByEntityNameAndTime
         const tolerance = mapConfig.timeTolerance ?? 0
-        const countriesOnTheMap = mapColumn.entityNamesUniqArr.filter((name) =>
+        const countriesOnTheMap = mapColumn.uniqEntityNames.filter((name) =>
             isOnTheMap(name)
         )
 
