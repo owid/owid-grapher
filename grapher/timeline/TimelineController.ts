@@ -5,7 +5,7 @@ import { findClosestTime, last } from "grapher/utils/Util"
 export interface TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (value: any) => any
-    isPlaying: boolean
+    isPlaying?: boolean
     times: Time[]
     startTime: Time
     endTime: Time
@@ -36,10 +36,10 @@ export class TimelineController {
     }
 
     get startTimeProgress() {
-        return (
-            (this.manager.startTime - this.minTime) /
-            (this.maxTime - this.minTime)
-        )
+        const { startTime } = this.manager
+        if (startTime === -Infinity) return 0
+        if (startTime === Infinity) return 1
+        return (startTime - this.minTime) / (this.maxTime - this.minTime)
     }
 
     snapTimes() {
@@ -53,10 +53,10 @@ export class TimelineController {
     }
 
     get endTimeProgress() {
-        return (
-            (this.manager.endTime - this.minTime) /
-            (this.maxTime - this.minTime)
-        )
+        const { endTime } = this.manager
+        if (endTime === -Infinity) return 0
+        if (endTime === Infinity) return 1
+        return (endTime - this.minTime) / (this.maxTime - this.minTime)
     }
 
     getNextTime(time: number) {

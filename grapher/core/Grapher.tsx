@@ -417,7 +417,7 @@ export class Grapher
 
     @observable private selectedEntitiesInQueryParam: string[] = []
 
-    setTimeFromTimeQueryParam(time: string) {
+    @action.bound private setTimeFromTimeQueryParam(time: string) {
         this.timelineFilter = getTimeDomainFromQueryString(time)
     }
 
@@ -1415,11 +1415,11 @@ export class Grapher
         )
     }
 
-    @action.bound toggleTabCommand() {
-        this.tab = next(this.availableTabs, this.tab)
+    @action.bound private toggleTabCommand() {
+        this.currentTab = next(this.availableTabs, this.currentTab)
     }
 
-    @action.bound toggleKeyboardHelpCommand() {
+    @action.bound private toggleKeyboardHelpCommand() {
         const element = document.getElementsByClassName(
             "CommandPalette"
         )[0] as HTMLElement
@@ -1427,16 +1427,16 @@ export class Grapher
             element.style.display === "none" ? "block" : "none"
     }
 
-    @action.bound togglePlayingCommand() {
+    @action.bound private togglePlayingCommand() {
         this.timelineController.togglePlay()
     }
 
     private get keyboardShortcuts(): Command[] {
-        const nums = range(0, 10).map((num) => {
+        const temporaryFacetTestCommands = range(0, 10).map((num) => {
             return { combo: `${num}`, fn: () => this.randomSelection(num) }
         })
         return [
-            ...nums,
+            ...temporaryFacetTestCommands,
             {
                 combo: "t",
                 fn: () => this.toggleTabCommand(),
@@ -1505,7 +1505,7 @@ export class Grapher
         ]
     }
 
-    @action.bound toggleTimelineCommand() {
+    @action.bound private toggleTimelineCommand() {
         // Todo: add tests for this
         this.setTimeFromTimeQueryParam(
             next(["latest", "earliest", ".."], this.timeParam!)

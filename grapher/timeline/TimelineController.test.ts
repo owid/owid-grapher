@@ -48,7 +48,6 @@ it("can handle when an end handle is dragged past a start handle", () => {
         times: range(1900, 2010),
         startTime: 2000,
         endTime: 2005,
-        isPlaying: false,
     }
 
     const controller = new TimelineController(manager)
@@ -57,12 +56,23 @@ it("can handle when an end handle is dragged past a start handle", () => {
     expect(manager.endTime).toEqual(2000)
 })
 
+it("can report correct progress with Infinity values", () => {
+    const manager: TimelineManager = {
+        times: range(1900, 2010),
+        startTime: -Infinity,
+        endTime: Infinity,
+    }
+
+    const controller = new TimelineController(manager)
+    expect(controller.startTimeProgress).toEqual(0)
+    expect(controller.endTimeProgress).toEqual(1)
+})
+
 it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond end of timeline", () => {
     const manager: TimelineManager = {
         times: range(1900, 2010),
         startTime: 2000,
         endTime: 2005,
-        isPlaying: false,
     }
 
     const controller = new TimelineController(manager)

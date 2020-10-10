@@ -36,7 +36,11 @@ import {
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
-import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GrapherTabOption,
+    SeriesName,
+} from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
     CategoricalBin,
@@ -153,7 +157,7 @@ export class MapChart
 
         if (!ev.shiftKey) {
             rootInputTable.setSelectedEntities([entityName])
-            this.manager.currentTab = "chart"
+            this.manager.currentTab = GrapherTabOption.chart
         } else rootInputTable.toggleSelection(entityName)
     }
 
