@@ -179,7 +179,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
-    additionalKeyboardShortcuts?: Command[]
 }
 
 @observer
@@ -516,12 +515,6 @@ export class Grapher
             console.error(err)
         }
     }
-
-    // Provide a way to insert an arbitrary element into the embed popup.
-    // The "hideControls" property is a param on the explorer, so to maintain
-    // modularity between the explorer and chart I am injecting the checkbox this way.
-    // In the future if we merge the two we could shift to a cleaner approach.
-    @observable.ref embedExplorerCheckbox?: JSX.Element
 
     @action.bound receiveLegacyData(json: LegacyVariablesAndEntityKey) {
         this._receiveLegacyData(json)
@@ -1414,7 +1407,7 @@ export class Grapher
         )
     }
 
-    @observable private enableKeyboardShortcuts = false
+    private enableKeyboardShortcuts = false
 
     private renderKeyboardShortcuts() {
         if (!this.enableKeyboardShortcuts) return null
@@ -1439,15 +1432,7 @@ export class Grapher
         this.timelineController.togglePlay()
     }
 
-    get keyboardShortcuts(): Command[] {
-        return this.defaultKeyboardShortcuts.concat(
-            this.additionalKeyboardShortcuts
-        )
-    }
-
-    additionalKeyboardShortcuts: Command[] = []
-
-    private get defaultKeyboardShortcuts(): Command[] {
+    private get keyboardShortcuts(): Command[] {
         const nums = range(0, 10).map((num) => {
             return { combo: `${num}`, fn: () => this.randomSelection(num) }
         })

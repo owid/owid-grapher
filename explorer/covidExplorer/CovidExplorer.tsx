@@ -1,10 +1,7 @@
 import React from "react"
-import classnames from "classnames"
 import ReactDOM from "react-dom"
-import { Bounds } from "grapher/utils/Bounds"
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
-import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
 import {
     computed,
     action,
@@ -18,11 +15,9 @@ import { bind } from "decko"
 import {
     pick,
     lastOfNonEmptyArray,
-    throttle,
     capitalize,
     mergeQueryStr,
     next,
-    previous,
     startCase,
     exposeInstanceOnWindow,
 } from "grapher/utils/Util"
@@ -30,7 +25,6 @@ import {
     ControlOption,
     ExplorerControlPanel,
     DropdownOption,
-    ExplorerControlBar,
 } from "explorer/client/ExplorerControls"
 import { CovidQueryParams } from "./CovidParams"
 import { CountryPicker } from "grapher/controls/CountryPicker"
@@ -45,13 +39,11 @@ import {
     sourceCharts,
     metricLabels,
     metricPickerColumnSpecs,
-    MegaCovidColumnSlug,
     intervalSpecs,
     MetricOptions,
     IntervalOptions,
     ColorScaleOptions,
 } from "./CovidConstants"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ColorScheme,
     ColorSchemes,
@@ -71,11 +63,7 @@ import {
 import {
     ChartTypeName,
     DimensionProperty,
-    EntitySelectionMode,
-    GrapherTabOption,
     ScaleType,
-    ScatterPointLabelStrategy,
-    StackMode,
 } from "grapher/core/GrapherConstants"
 import { LegacyChartDimensionInterface } from "coreTable/LegacyVariableCode"
 import { queryParamsToStr } from "utils/client/url"
@@ -84,31 +72,34 @@ import {
     fetchRequiredData,
     perCapitaDivisorByMetric,
 } from "./CovidExplorerUtils"
+import { ExplorerShell } from "explorer/client/ExplorerShell"
 
 interface BootstrapProps {
     containerNode: HTMLElement
-    isEmbed?: boolean
+    isEmbed?: boolean // todo: what specifically does this mean? Does it mean IFF in an iframe? Or does it mean in an iframe OR hoisted?
     queryStr?: string
     globalEntitySelection?: GlobalEntitySelection
     bindToWindow?: boolean
 }
 
+interface CovidExplorerProps {
+    covidRows: CovidRow[]
+    params: CovidQueryParams
+    covidChartAndVariableMeta: {
+        charts: any
+        variables: any
+    }
+    updated: string
+    queryStr?: string
+    isEmbed?: boolean
+    globalEntitySelection?: GlobalEntitySelection
+    enableKeyboardShortcuts?: boolean
+    bindToWindow?: boolean
+}
+
 @observer
 export class CovidExplorer
-    extends React.Component<{
-        covidRows: CovidRow[]
-        params: CovidQueryParams
-        covidChartAndVariableMeta: {
-            charts: any
-            variables: any
-        }
-        updated: string
-        queryStr?: string
-        isEmbed?: boolean
-        globalEntitySelection?: GlobalEntitySelection
-        enableKeyboardShortcuts?: boolean
-        bindToWindow?: boolean
-    }>
+    extends React.Component<CovidExplorerProps>
     implements ObservableUrl {
     static async bootstrap(props: BootstrapProps) {
         const { covidRows, updated, covidMeta } = await fetchRequiredData()
@@ -161,7 +152,7 @@ export class CovidExplorer
         HTMLDivElement
     > = React.createRef()
 
-    private get metricPicker() {
+    private get metricPanel() {
         const options: ControlOption[] = [
             {
                 available: true,
@@ -204,35 +195,35 @@ export class CovidExplorer
                 value: MetricOptions.positive_test_rate,
             },
         ]
-        return (
-            <>
-                <ExplorerControlPanel
-                    title="Metric"
-                    explorerSlug="covid"
-                    name={this.getScopedName("metric")}
-                    options={options}
-                    onChange={this.changeMetric}
-                    isCheckbox={false}
-                />
-                <ExplorerControlPanel
-                    title="Metric"
-                    explorerSlug="covid"
-                    hideTitle={true}
-                    name={this.getScopedName("metric")}
-                    onChange={this.changeMetric}
-                    options={optionsColumn2}
-                    isCheckbox={false}
-                />
-            </>
-        )
+        return [
+            <ExplorerControlPanel
+                key="metric1"
+                title="Metric"
+                explorerSlug="covid"
+                name={this.getScopedName("metric")}
+                options={options}
+                onChange={this.changeMetric}
+                isCheckbox={false}
+            />,
+            <ExplorerControlPanel
+                key="metric2"
+                title="Metric"
+                explorerSlug="covid"
+                hideTitle={true}
+                name={this.getScopedName("metric")}
+                onChange={this.changeMetric}
+                options={optionsColumn2}
+                isCheckbox={false}
+            />,
+        ]
     }
 
-    @action.bound changeMetric(metric: string) {
+    @action.bound private changeMetric(metric: string) {
         this.props.params.setMetric(metric as MetricOptions)
         this.renderControlsThenUpdateGrapher()
     }
 
-    private get frequencyPicker() {
+    private get frequencyPanel() {
         const writeableParams = this.props.params
         const { available } = this.constrainedParams
         const options: DropdownOption[] = [
@@ -274,6 +265,7 @@ export class CovidExplorer
         ]
         return (
             <ExplorerControlPanel
+                key="interval"
                 title="Interval"
                 name={this.getScopedName("interval")}
                 dropdownOptions={options}
@@ -292,7 +284,7 @@ export class CovidExplorer
         return this.props.params.constrainedParams
     }
 
-    @computed private get perCapitaPicker() {
+    @computed private get perCapitaPanel() {
         const { available } = this.constrainedParams
         const options: ControlOption[] = [
             {
@@ -304,6 +296,7 @@ export class CovidExplorer
         ]
         return (
             <ExplorerControlPanel
+                key="count"
                 title="Count"
                 name={this.getScopedName("count")}
                 isCheckbox={true}
@@ -317,7 +310,7 @@ export class CovidExplorer
         )
     }
 
-    @computed private get alignedPicker() {
+    @computed private get alignedPanel() {
         const { available } = this.constrainedParams
         const options: ControlOption[] = [
             {
@@ -329,6 +322,7 @@ export class CovidExplorer
         ]
         return (
             <ExplorerControlPanel
+                key="timeline"
                 title="Timeline"
                 name={this.getScopedName("timeline")}
                 isCheckbox={true}
@@ -347,36 +341,9 @@ export class CovidExplorer
         return moment.utc(this.props.updated).fromNow()
     }
 
-    @action.bound private onResize() {
-        this.isMobile = this._isMobile()
-        this.chartBounds = this.getChartBounds()
-    }
-
-    private _isMobile() {
+    private get header() {
         return (
-            window.screen.width < 450 ||
-            document.documentElement.clientWidth <= 800
-        )
-    }
-
-    @observable isMobile: boolean = this._isMobile()
-    @observable.ref chartBounds: Bounds | undefined = undefined
-
-    // Todo: add better logic to maximize the size of the chart
-    private getChartBounds(): Bounds | undefined {
-        const chartContainer = this.chartContainerRef.current
-        if (!chartContainer) return undefined
-        return new Bounds(
-            0,
-            0,
-            chartContainer.clientWidth,
-            chartContainer.clientHeight
-        )
-    }
-
-    get header() {
-        return (
-            <div className="ExplorerHeaderBox">
+            <>
                 <div>Coronavirus Pandemic</div>
                 <div className="ExplorerTitle">Data Explorer</div>
                 <div className="ExplorerSubtitle" title={this.howLongAgo}>
@@ -389,19 +356,21 @@ export class CovidExplorer
                         COVID-19 dataset.
                     </a>
                 </div>
-            </div>
+            </>
         )
     }
 
-    get countryPicker() {
+    private explorerSlug = "Covid"
+
+    private get countryPicker() {
         return (
             <CountryPicker
-                explorerSlug="Covid"
+                explorerSlug={this.explorerSlug}
                 table={this.table}
                 pickerColumnSlugs={
                     new Set(Object.keys(metricPickerColumnSpecs))
                 }
-                isDropdownMenu={this.isMobile}
+                isDropdownMenu={false}
                 optionColorMap={this.countryNameToColorMap}
                 userState={this.props.params}
                 countriesMustHaveColumns={this.activeColumnSlugs}
@@ -409,115 +378,45 @@ export class CovidExplorer
         )
     }
 
-    @computed get activeColumnSlugs(): string[] {
+    @computed private get activeColumnSlugs(): string[] {
         return [this.xColumn?.slug, this.yColumn?.slug].filter(
             (i) => i
         ) as string[]
     }
 
-    @action.bound changePickerMetric(metric: MegaCovidColumnSlug) {
-        this.props.params.countryPickerMetric = metric
-    }
-
-    get controlBar() {
-        return (
-            <ExplorerControlBar
-                isMobile={this.isMobile}
-                showControls={this.showMobileControlsPopup}
-                closeControls={this.closeControls}
-            >
-                {this.metricPicker}
-                {this.frequencyPicker}
-                {this.perCapitaPicker}
-                {this.alignedPicker}
-            </ExplorerControlBar>
-        )
-    }
-
-    @action.bound closeControls() {
-        this.showMobileControlsPopup = false
-    }
-
-    @action.bound toggleMobileControls() {
-        this.showMobileControlsPopup = !this.showMobileControlsPopup
-    }
-
-    @observable showMobileControlsPopup = false
-
-    get customizeChartMobileButton() {
-        return this.isMobile ? (
-            <a
-                className="btn btn-primary mobile-button"
-                onClick={this.toggleMobileControls}
-                data-track-note="covid-customize-chart"
-            >
-                <FontAwesomeIcon icon={faChartLine} /> Customize chart
-            </a>
-        ) : undefined
+    private get panels() {
+        return [
+            ...this.metricPanel,
+            this.frequencyPanel,
+            this.perCapitaPanel,
+            this.alignedPanel,
+        ]
     }
 
     render() {
         return (
-            <>
-                <div
-                    className={classnames({
-                        CovidExplorer: true,
-                        "mobile-explorer": this.isMobile,
-                        HideControls: !this.showExplorerControls,
-                        "is-embed": this.props.isEmbed,
-                    })}
-                >
-                    {this.showExplorerControls && this.header}
-                    {this.showExplorerControls && this.controlBar}
-                    {this.showExplorerControls && this.countryPicker}
-                    {this.showExplorerControls &&
-                        this.customizeChartMobileButton}
-                    <div
-                        className="CovidExplorerFigure"
-                        ref={this.chartContainerRef}
-                    >
-                        {this.chartBounds && this.renderGrapherComponent()}
-                    </div>
-                </div>
-            </>
+            <ExplorerShell
+                headerElement={this.header}
+                controlPanels={this.panels}
+                explorerSlug={this.explorerSlug}
+                countryPickerElement={this.countryPicker}
+                hideControls={this.props.params.hideControls}
+                isEmbed={!!this.props.isEmbed}
+                ref={this.explorerRef}
+                enableKeyboardShortcuts={this.props.enableKeyboardShortcuts}
+            />
         )
     }
 
-    private renderGrapherComponent() {
-        const grapherProps = {
-            ...this.grapher,
-            bounds: this.chartBounds,
-            isEmbed: true,
-        }
+    @observable.ref explorerRef: React.RefObject<
+        ExplorerShell
+    > = React.createRef()
 
-        return <Grapher {...grapherProps} />
-    }
-
-    get controlsToggleElement() {
-        return (
-            <label>
-                <input
-                    type="checkbox"
-                    checked={this.props.params.hideControls}
-                    onChange={this.toggleControls}
-                />{" "}
-                Hide controls
-            </label>
-        )
-    }
-
-    @action.bound toggleControls() {
-        this.props.params.hideControls = !this.props.params.hideControls
-        this.grapher.embedExplorerCheckbox = this.controlsToggleElement
-        this.updateGrapher()
-        requestAnimationFrame(() => this.onResize())
-    }
-
-    @computed get showExplorerControls() {
+    @computed private get showExplorerControls() {
         return !this.props.params.hideControls || !this.props.isEmbed
     }
 
-    @computed get selectedCountryOptions(): string[] {
+    @computed private get selectedCountryOptions(): string[] {
         const codeMap = this.grapher.table.entityNameToCodeMap
         return this.grapher.table.availableEntityNames.filter((option) =>
             this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
@@ -600,7 +499,7 @@ export class CovidExplorer
         return `${smoothing}${this.yColumn?.description || ""}`
     }
 
-    @computed get note() {
+    @computed private get note() {
         const params = this.constrainedParams
 
         if (params.yColumn || params.xColumn) return ""
@@ -614,7 +513,7 @@ export class CovidExplorer
         [key: string]: string | undefined
     } = {}
 
-    @computed get countryNameToColorMap(): {
+    @computed private get countryNameToColorMap(): {
         [key: string]: string | undefined
     } {
         const names = this.selectedCountryOptions.map((country) => country)
@@ -665,7 +564,7 @@ export class CovidExplorer
         return this._computedTable ? this._computedTable! : this.rootTable
     }
 
-    @computed get canDoLogScale() {
+    @computed private get canDoLogScale() {
         if (
             this.constrainedParams.positiveTestRate ||
             this.constrainedParams.cfrMetric ||
@@ -678,11 +577,9 @@ export class CovidExplorer
 
     private switchBackToLog = false
 
-    @computed get table() {
+    @computed private get table() {
         const params = this.constrainedParams
-        const { computedTable } = this
-
-        let table = computedTable
+        let table = this.computedTable
 
         // Init column for epi color strategy if needed
         if (params.colorStrategy === ColorScaleOptions.ptr) {
@@ -706,7 +603,7 @@ export class CovidExplorer
             table = table.filterNegatives(params.yColumnSlug)
         if (shouldFilterGroups) table = table.filterGroups()
 
-        table.setSelectedEntitiesByCode(Array.from(params.selectedCountryCodes)) // why 2?
+        // table.setSelectedEntitiesByCode(Array.from(params.selectedCountryCodes)) // why 2?
 
         // multimetric table
         if (params.tableMetrics)
@@ -717,66 +614,11 @@ export class CovidExplorer
         return table
     }
 
-    // We can't create a new chart object with every radio change because the Chart component itself
-    // maintains state (for example, which tab is currently active). Temporary workaround is just to
-    // manually update the chart when the chart builderselections change.
-    // todo: cleanup
-    @action.bound private updateGrapher() {
-        const params = this.constrainedParams
-        const grapher = this.grapher
-        grapher.title = this.chartTitle
-        grapher.subtitle = this.subtitle
-        grapher.note = this.note
-
-        // If we switch to scatter, set zoomToSelection to true. I don't set it to true initially in the chart
-        // config because then it won't appear in the URL.
-        if (
-            grapher.type === ChartTypeName.LineChart &&
-            params.type === ChartTypeName.ScatterPlot
-        )
-            grapher.zoomToSelection = true
-
-        grapher.type = params.type
-        grapher.yAxis.label = this.yAxisLabel
-
-        if (!this.canDoLogScale) {
-            this.switchBackToLog = grapher.yAxis.scaleType === ScaleType.log
-            grapher.yAxis.scaleType = ScaleType.linear
-            grapher.yAxis.canChangeScaleType = undefined
-        } else {
-            grapher.yAxis.canChangeScaleType = true
-            if (this.switchBackToLog) {
-                grapher.yAxis.scaleType = ScaleType.log
-                this.switchBackToLog = false
-            }
-        }
-
-        grapher.rootTable = this.table
-
-        grapher.yAxis.min = params.intervalChange ? undefined : 0
-        grapher.setDimensionsFromConfigs(this.dimensionSpecs)
-
-        this.updateMapSettings()
-
-        grapher.colorScale.updateFromObject(
-            this.colorScales[params.colorStrategy]
-        )
-
-        grapher.dataTableColumnSlugsToShow = this.table.columnSlugsToShowInDataTable(
-            params
-        )
-
-        grapher.id = this.sourceChartId
-        grapher.baseQueryString = queryParamsToStr(
-            this.props.params.toQueryParams
-        )
-    }
-
-    @computed get sourceChartId(): number {
+    @computed private get sourceChartId(): number {
         return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
     }
 
-    @computed get sourceChart(): GrapherInterface | undefined {
+    @computed private get sourceChart(): GrapherInterface | undefined {
         return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
     }
 
@@ -795,60 +637,16 @@ export class CovidExplorer
 
     componentDidMount() {
         if (this.props.bindToWindow) this.bindToWindow()
+        this.grapher = this.explorerRef.current!.grapherRef.current!
         const grapher = this.grapher
         // Show 'Add country' & 'Select countries' controls if the explorer controls are hidden.
         grapher.hideEntityControls = this.showExplorerControls
         grapher.externalCsvLink = covidDataPath
         grapher.bakedGrapherURL = `${BAKED_BASE_URL}/${covidDashboardSlug}`
         this.updateGrapher()
-
         this.observeGlobalEntitySelection()
-
-        this.onResizeThrottled = throttle(this.onResize, 100)
-        window.addEventListener("resize", this.onResizeThrottled)
-
-        // call resize for the first time to initialize chart
-        this.onResize()
-        grapher.embedExplorerCheckbox = this.controlsToggleElement
         exposeInstanceOnWindow(this, "covidDataExplorer")
     }
-
-    @action.bound toggleColorStrategyCommand() {
-        this.props.params.colorScale = next(
-            Object.values(ColorScaleOptions),
-            this.props.params.colorScale
-        )
-        this.renderControlsThenUpdateGrapher()
-    }
-
-    @action.bound toggleDimensionColumnCommand(
-        axis: DimensionProperty,
-        backwards = false
-    ) {
-        const key = `${axis}Column`
-        const params = this.props.params as any
-        const fn = backwards ? previous : next
-        params[key] = fn(this.rootTable.numericColumnSlugs, params[key])
-        this.renderControlsThenUpdateGrapher()
-    }
-
-    componentWillUnmount() {
-        if (this.onResizeThrottled) {
-            window.removeEventListener("resize", this.onResizeThrottled)
-        }
-    }
-
-    private currentIndex = -1
-    @action.bound playIndexCommand(index: number) {
-        const combos = this.constrainedParams.allAvailableCombos()
-        index = index >= combos.length ? index - combos.length : index
-        index = index < 0 ? combos.length + index : index
-        const combo = combos[index]
-        this.props.params.setParamsFromQueryString(combo)
-        this.renderControlsThenUpdateGrapher()
-    }
-
-    onResizeThrottled?: () => void
 
     private observeGlobalEntitySelection() {
         const { globalEntitySelection } = this.props
@@ -876,7 +674,6 @@ export class CovidExplorer
 
     bindToWindow() {
         const url = new MultipleUrlBinder([this.grapher, this])
-
         new UrlBinder().bindToWindow(url)
     }
 
@@ -947,7 +744,7 @@ export class CovidExplorer
         }
     }
 
-    private shortTermPositivityRateSlug: string = ""
+    private shortTermPositivityRateSlug = ""
     @computed private get colorDimension(): LegacyChartDimensionInterface {
         const slug =
             this.constrainedParams.colorStrategy ===
@@ -1020,59 +817,64 @@ export class CovidExplorer
             : ""
     }
 
-    @observable.ref grapher: Grapher = new Grapher({
-        slug: covidDashboardSlug,
-        type: this.constrainedParams.type,
-        isExplorable: false,
-        id: 4128,
-        version: 9,
-        title: "",
-        subtitle: "",
-        note: this.note,
-        hideTitleAnnotation: true,
-        xAxis: {
-            scaleType: ScaleType.linear,
-        },
-        yAxis: {
-            min: 0,
-            removePointsOutsideDomain: true,
-            scaleType: ScaleType.linear,
-            canChangeScaleType: true,
-            label: this.yAxisLabel,
-        },
-        dimensions: [],
-        scatterPointLabelStrategy: ScatterPointLabelStrategy.y,
-        addCountryMode: EntitySelectionMode.MultipleEntities,
-        stackMode: StackMode.absolute,
-        manuallyProvideData: true,
-        colorScale: this.colorScales.continents,
-        hideRelativeToggle: true,
-        hasChartTab: true,
-        hasMapTab: true,
-        tab: GrapherTabOption.chart,
-        isPublished: true,
-        map: this.defaultMapConfig as any,
-        queryStr: this.props.queryStr,
-        enableKeyboardShortcuts: this.props.enableKeyboardShortcuts,
-        additionalKeyboardShortcuts: [
-            {
-                combo: "right",
-                fn: () => this.playIndexCommand(++this.currentIndex),
-                title: "Next view",
-                category: "Browse",
-            },
-            {
-                combo: "left",
-                fn: () => this.playIndexCommand(--this.currentIndex),
-                title: "Previous view",
-                category: "Browse",
-            },
-            {
-                combo: "c",
-                fn: () => this.toggleColorStrategyCommand(),
-                title: "Change line colors",
-                category: "Chart",
-            },
-        ],
-    })
+    @observable.ref grapher = new Grapher()
+
+    // We can't create a new chart object with every radio change because the Chart component itself
+    // maintains state (for example, which tab is currently active). Temporary workaround is just to
+    // manually update the chart when the chart builderselections change.
+    // todo: cleanup
+    @action.bound private updateGrapher() {
+        const params = this.constrainedParams
+        const grapher = this.grapher
+        grapher.title = this.chartTitle
+        grapher.subtitle = this.subtitle
+        grapher.note = this.note
+
+        // If we switch to scatter, set zoomToSelection to true. I don't set it to true initially in the chart
+        // config because then it won't appear in the URL.
+        if (
+            grapher.type === ChartTypeName.LineChart &&
+            params.type === ChartTypeName.ScatterPlot
+        )
+            grapher.zoomToSelection = true
+
+        grapher.hideTitleAnnotation = true
+        grapher.slug = covidDashboardSlug
+        grapher.type = params.type
+        grapher.yAxis.removePointsOutsideDomain = true
+        grapher.yAxis.label = this.yAxisLabel
+
+        if (!this.canDoLogScale) {
+            this.switchBackToLog = grapher.yAxis.scaleType === ScaleType.log
+            grapher.yAxis.scaleType = ScaleType.linear
+            grapher.yAxis.canChangeScaleType = undefined
+        } else {
+            grapher.yAxis.canChangeScaleType = true
+            if (this.switchBackToLog) {
+                grapher.yAxis.scaleType = ScaleType.log
+                this.switchBackToLog = false
+            }
+        }
+
+        grapher.rootTable = this.table
+        grapher.hasMapTab = true
+        grapher.isPublished = true
+        grapher.yAxis.min = params.intervalChange ? undefined : 0
+        grapher.setDimensionsFromConfigs(this.dimensionSpecs)
+
+        this.updateMapSettings()
+
+        grapher.colorScale.updateFromObject(
+            this.colorScales[params.colorStrategy]
+        )
+
+        grapher.dataTableColumnSlugsToShow = this.table.columnSlugsToShowInDataTable(
+            params
+        )
+
+        grapher.id = this.sourceChartId
+        grapher.baseQueryString = queryParamsToStr(
+            this.props.params.toQueryParams
+        )
+    }
 }

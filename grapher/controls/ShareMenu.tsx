@@ -15,7 +15,6 @@ export interface ShareMenuManager {
     currentTitle?: string
     canonicalUrl?: string
     editUrl?: string
-    embedExplorerCheckbox?: JSX.Element
     addPopup: (popup: any) => void
     removePopup: (popup: any) => void
 }
@@ -232,7 +231,6 @@ class EmbedMenu extends React.Component<{
                     onFocus={(evt) => evt.currentTarget.select()}
                     value={`<iframe src="${url}" loading="lazy" style="width: 100%; height: 600px; border: 0px none;"></iframe>`}
                 />
-                {this.manager.embedExplorerCheckbox}
             </div>
         )
     }

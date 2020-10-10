@@ -11,25 +11,28 @@ import classNames from "classnames"
 import { throttle } from "grapher/utils/Util"
 import { OwidTable } from "coreTable/OwidTable"
 
-// TODO: Migrate CovidExplorer to use this class as well
-@observer
-export class ExplorerShell extends React.Component<{
+interface ExplorerShellProps {
     explorerSlug: string
     controlPanels: JSX.Element[]
     headerElement: JSX.Element
     hideControls?: boolean
-    countryPickerTable: OwidTable
+    countryPickerTable?: OwidTable
+    countryPickerElement?: JSX.Element
     isEmbed: boolean
-}> {
-    @computed get showExplorerControls() {
+    enableKeyboardShortcuts?: boolean
+}
+
+@observer
+export class ExplorerShell extends React.Component<ExplorerShellProps> {
+    @computed private get showExplorerControls() {
         return !this.props.hideControls || !this.props.isEmbed
     }
 
-    @action.bound toggleMobileControls() {
+    @action.bound private toggleMobileControls() {
         this.showMobileControlsPopup = !this.showMobileControlsPopup
     }
 
-    @action.bound onResize() {
+    @action.bound private onResize() {
         this.isMobile = this._isMobile()
         this.chartBounds = this.getChartBounds() || this.chartBounds
     }
@@ -45,7 +48,7 @@ export class ExplorerShell extends React.Component<{
         HTMLDivElement
     > = React.createRef()
 
-    @observable.ref chartBounds = DEFAULT_BOUNDS
+    @observable.ref private chartBounds = DEFAULT_BOUNDS
 
     // Todo: add better logic to maximize the size of the chart
     private getChartBounds() {
@@ -59,11 +62,11 @@ export class ExplorerShell extends React.Component<{
         )
     }
 
-    @observable isMobile = this._isMobile()
+    @observable private isMobile = this._isMobile()
 
-    @observable showMobileControlsPopup = false
+    @observable private showMobileControlsPopup = false
 
-    get customizeChartMobileButton() {
+    private get customizeChartMobileButton() {
         return this.isMobile ? (
             <a
                 className="btn btn-primary mobile-button"
@@ -75,13 +78,14 @@ export class ExplorerShell extends React.Component<{
         ) : undefined
     }
 
-    @computed get countryPickerTable() {
+    @computed private get countryPickerTable() {
         return this.props.countryPickerTable
     }
 
-    get countryPicker() {
+    private get countryPicker() {
         return (
             <CountryPicker
+                key="countryPicker"
                 explorerSlug={this.props.explorerSlug}
                 table={this.countryPickerTable}
                 isDropdownMenu={this.isMobile}
@@ -89,7 +93,7 @@ export class ExplorerShell extends React.Component<{
         )
     }
 
-    get controlBar() {
+    private get controlBar() {
         return (
             <ExplorerControlBar
                 isMobile={this.isMobile}
@@ -101,27 +105,28 @@ export class ExplorerShell extends React.Component<{
         )
     }
 
-    @action.bound closeControls() {
+    @action.bound private closeControls() {
         this.showMobileControlsPopup = false
     }
 
     componentDidMount() {
         this.onResizeThrottled = throttle(this.onResize, 100)
         window.addEventListener("resize", this.onResizeThrottled)
-        this.onResize()
+        this.onResize() // call resize for the first time to initialize chart
     }
 
     componentWillUnmount() {
-        if (this.onResizeThrottled) {
+        if (this.onResizeThrottled)
             window.removeEventListener("resize", this.onResizeThrottled)
-        }
     }
 
-    onResizeThrottled?: () => void
+    private onResizeThrottled?: () => void
 
     @observable.ref grapherRef: React.RefObject<Grapher> = React.createRef()
 
     render() {
+        const countryPicker =
+            this.props.countryPickerElement ?? this.countryPicker
         return (
             <>
                 <div
@@ -138,7 +143,7 @@ export class ExplorerShell extends React.Component<{
                         </div>
                     )}
                     {this.showExplorerControls && this.controlBar}
-                    {this.showExplorerControls && this.countryPicker}
+                    {this.showExplorerControls && countryPicker}
                     {this.showExplorerControls &&
                         this.customizeChartMobileButton}
                     <div
@@ -149,6 +154,9 @@ export class ExplorerShell extends React.Component<{
                             bounds={this.chartBounds}
                             isEmbed={true}
                             ref={this.grapherRef}
+                            enableKeyboardShortcuts={
+                                this.props.enableKeyboardShortcuts
+                            }
                         />
                     </div>
                 </div>

@@ -97,17 +97,13 @@ export class SwitcherExplorer
 
     componentDidMount() {
         autorun(() =>
-            this.switchGrapherConfig(
-                this.explorerProgram.switcherRuntime.chartId
-            )
+            this.updateGrapher(this.explorerProgram.switcherRuntime.chartId)
         )
 
         when(
             () => !!this.grapher,
             () => {
-                this.switchGrapherConfig(
-                    this.explorerProgram.switcherRuntime.chartId
-                )
+                this.updateGrapher(this.explorerProgram.switcherRuntime.chartId)
             }
         )
 
@@ -124,25 +120,25 @@ export class SwitcherExplorer
             this.grapher.rootTable.setSelectedEntities(entityNames)
     }
 
-    @action.bound private switchGrapherConfig(id: number) {
-        if (!this.grapher || this.grapher.id === id) return
+    @action.bound private updateGrapher(newGrapherId: number) {
+        const grapher = this.grapher
+        if (!grapher || grapher.id === newGrapherId) return
 
         const config: GrapherProgrammaticInterface = {
-            ...this.chartConfigs.get(id)!,
-            enableKeyboardShortcuts: true,
+            ...this.chartConfigs.get(newGrapherId)!,
             hideEntityControls: !this.hideControls && !this.isEmbed,
             dropUnchangedUrlParams: false,
         }
 
-        this.grapher.hasError = false
-        const queryStr = this.grapher.id
-            ? this.grapher.queryStr
+        grapher.hasError = false
+        const queryStr = grapher.id
+            ? grapher.queryStr
             : this.explorerProgram.queryString
 
-        this.grapher.updateFromObject(config)
-        this.grapher.rootTable = new OwidTable()
-        this.grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
-        this.grapher.downloadData()
+        grapher.updateFromObject(config)
+        grapher.rootTable = new OwidTable()
+        grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
+        grapher.downloadData()
         this.addEntityOptionsToPickerWhenReady()
         this.bindToWindow()
     }
@@ -219,6 +215,7 @@ export class SwitcherExplorer
                 countryPickerTable={this.countryPickerTable}
                 hideControls={this.hideControls}
                 isEmbed={this.isEmbed}
+                enableKeyboardShortcuts={!this.isEmbed}
                 ref={this.explorerRef}
             />
         )

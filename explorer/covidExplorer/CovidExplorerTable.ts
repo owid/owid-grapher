@@ -56,7 +56,7 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     // Todo: does this need to be observable?
-    @observable columnSpecTemplates = makeColumnSpecTemplates()
+    private columnSpecTemplates = makeColumnSpecTemplates()
 
     withDataTableSpecs() {
         // todo: we might not need this "opt out", since we now explicitly list the columns to show in the table
