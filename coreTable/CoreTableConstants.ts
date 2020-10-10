@@ -50,7 +50,7 @@ export declare type EntityId = number
 export declare type Time = Integer
 
 export interface CoreRow {
-    [columnName: string]: any
+    [columnSlug: string]: any
 }
 
 // todo: remove index param?

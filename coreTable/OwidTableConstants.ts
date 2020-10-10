@@ -21,6 +21,11 @@ export enum OwidTableSlugs {
     year = "year",
 }
 
+enum OwidTableNames {
+    Entity = "Entity",
+    Code = "Code",
+}
+
 export interface OwidColumnSpec extends CoreColumnSpec {
     owidVariableId?: LegacyVariableId
     coverage?: string
@@ -32,7 +37,7 @@ export interface OwidColumnSpec extends CoreColumnSpec {
 
 export const RequiredColumnSpecs: OwidColumnSpec[] = [
     {
-        name: "Entity",
+        name: OwidTableNames.Entity,
         slug: OwidTableSlugs.entityName,
         type: ColumnTypeNames.EntityName,
     },
@@ -41,7 +46,7 @@ export const RequiredColumnSpecs: OwidColumnSpec[] = [
         type: ColumnTypeNames.EntityId,
     },
     {
-        name: "Code",
+        name: OwidTableNames.Code,
         slug: OwidTableSlugs.entityCode,
         type: ColumnTypeNames.EntityCode,
     },

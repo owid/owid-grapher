@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { AnyTable } from "./CoreTable"
+import { CoreTable } from "./CoreTable"
 import { ColumnTypeNames } from "./CoreTableConstants"
 
 const sampleCsv = `country,population
@@ -10,13 +10,13 @@ usa,300
 canada,20`
 
 it("a table can be made from csv", () => {
-    const table = AnyTable.fromDelimited(sampleCsv)
+    const table = CoreTable.fromDelimited(sampleCsv)
     expect(table.numRows).toEqual(4)
     expect(table.columnNames).toEqual(["country", "population"])
 })
 
 it("rows can be added without mutating the parent table", () => {
-    const table = AnyTable.fromDelimited(sampleCsv)
+    const table = CoreTable.fromDelimited(sampleCsv)
     expect(table.numRows).toEqual(4)
     expect(
         table.withRows([{ country: "Japan", population: 123 }]).numRows
@@ -26,7 +26,7 @@ it("rows can be added without mutating the parent table", () => {
 
 it("input rows are never mutated", () => {
     const rows = [{ country: "USA" }, { country: "Germany" }]
-    const table = new AnyTable(rows, [
+    const table = new CoreTable(rows, [
         {
             slug: "firstLetter",
             fn: (row) => row.country.length,
@@ -41,7 +41,7 @@ it("can drop columns", () => {
         { country: "USA", year: 1999 },
         { country: "Germany", year: 2000 },
     ]
-    const table = new AnyTable(rows)
+    const table = new CoreTable(rows)
     expect(table.columnSlugs).toEqual(["country", "year"])
     expect(table.withoutColumns(["year"]).columnSlugs).toEqual(["country"])
 })
@@ -51,7 +51,7 @@ it("can transform columns", () => {
         { country: "USA", year: 1999 },
         { country: "Germany", year: 2000 },
     ]
-    const table = new AnyTable(rows)
+    const table = new CoreTable(rows)
     expect(table.columnNames).toEqual(["country", "Year"])
     expect(
         table.withTransformedSpecs((spec) => {
@@ -64,7 +64,7 @@ it("can transform columns", () => {
 })
 
 describe("filtering", () => {
-    const rootTable = AnyTable.fromDelimited(sampleCsv)
+    const rootTable = CoreTable.fromDelimited(sampleCsv)
     const filteredTable = rootTable.filterBy(
         (row) => parseInt(row.population) > 40,
         "Pop filter"
@@ -78,7 +78,7 @@ describe("filtering", () => {
 
     it("multiple filters work", () => {
         const filteredTwiceTable = filteredTable.filterBy(
-            (row) => (row.country as string).startsWith("u"),
+            (row: any) => (row.country as string).startsWith("u"),
             "Letter filter"
         )
         const parsedValues = filteredTwiceTable.get("country")!.parsedValues
@@ -88,7 +88,7 @@ describe("filtering", () => {
 })
 
 it("uses slugs for headers in toDelimited", () => {
-    const table = AnyTable.fromDelimited(`country,Population in 2020
+    const table = CoreTable.fromDelimited(`country,Population in 2020
 iceland,1`)
     const csv = table.toDelimited()
     expect(csv).toEqual(`country,Population-in-2020
@@ -97,7 +97,7 @@ iceland,1`)
 })
 
 it("can export a clean csv with dates", () => {
-    const table = new AnyTable(
+    const table = new CoreTable(
         [
             { entityName: "Aruba", day: 1, annotation: "Something, foo" },
             { entityName: "Canada", day: 2 },
@@ -116,14 +116,14 @@ Canada,2020-01-23,`)
 })
 
 it("can detect all integers", () => {
-    const table = AnyTable.fromDelimited(`gdp,perCapita
+    const table = CoreTable.fromDelimited(`gdp,perCapita
 123,123.1`)
     expect(table.get("gdp")?.isAllIntegers).toBeTruthy()
     expect(table.get("perCapita")?.isAllIntegers).toBeFalsy()
 })
 
 it("can format a value", () => {
-    const table = AnyTable.fromDelimited(
+    const table = CoreTable.fromDelimited(
         `growthRate
 123`,
         [
@@ -138,7 +138,7 @@ it("can format a value", () => {
 })
 
 it("can get the domain across all columns", () => {
-    const table = AnyTable.fromDelimited(
+    const table = CoreTable.fromDelimited(
         `gdp,perCapita
 0,123.1
 12,300
@@ -157,7 +157,7 @@ it("can get annotations for a row", () => {
 usa,322,in hundreds of millions,2000
 hi,1,in millions,2000
 hi,1,,2001`
-    const table = AnyTable.fromDelimited(csv)
+    const table = CoreTable.fromDelimited(csv)
 
     const annotationsColumn = table.get("notes")
     const entityNameMap = annotationsColumn!.entityNameMap
@@ -168,7 +168,7 @@ hi,1,,2001`
 })
 
 it("can get all defined values for a column", () => {
-    const table = new AnyTable(
+    const table = new CoreTable(
         [
             { pop: undefined, year: 1999 },
             { pop: 123, year: 2000 },
@@ -181,7 +181,7 @@ it("can get all defined values for a column", () => {
 })
 
 it("can rename a column", () => {
-    const table = new AnyTable([{ pop: 123, year: 2000 }])
+    const table = new CoreTable([{ pop: 123, year: 2000 }])
     expect(table.withRenamedColumn("pop", "Population").columnSlugs).toEqual([
         "Population",
         "year",

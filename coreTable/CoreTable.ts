@@ -41,48 +41,50 @@ import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 // Since authors are uploading data at runtime, and errors in runtime data are extremely common,
 // it may be helpful to parse those invalid values into specific types, to provide better error messages
 // and perhaps in the future suggested autocorrections or workarounds. Or this could be a dumb idea.
-abstract class InvalidValueType {
-    value?: any
-    constructor(value?: any) {
-        this.value = value
+abstract class InvalidCell {
+    protected cellValue?: any
+    constructor(cellValue?: any) {
+        this.cellValue = cellValue
     }
     toString() {
-        return this.value instanceof InvalidValueType ? "" : this.value ?? ""
+        return this.cellValue instanceof InvalidCell ? "" : this.cellValue ?? ""
     }
     toErrorString() {
         return this.constructor.name
     }
 }
-class NaNButShouldBeNumber extends InvalidValueType {
+class NaNButShouldBeNumber extends InvalidCell {
     toErrorString() {
-        return this.constructor.name + `: '${this.value}'`
+        return this.constructor.name + `: '${this.cellValue}'`
     }
 }
-export class DroppedForTesting extends InvalidValueType {}
-class UndefinedButShouldBeNumber extends InvalidValueType {}
-class NullButShouldBeNumber extends InvalidValueType {}
-class BlankButShouldBeNumber extends InvalidValueType {}
-class UndefinedButShouldBeString extends InvalidValueType {}
-class NullButShouldBeString extends InvalidValueType {}
-class NotAParseableNumberButShouldBeNumber extends InvalidValueType {
+export class DroppedForTesting extends InvalidCell {}
+class UndefinedButShouldBeNumber extends InvalidCell {}
+class NullButShouldBeNumber extends InvalidCell {}
+class BlankButShouldBeNumber extends InvalidCell {}
+class UndefinedButShouldBeString extends InvalidCell {}
+class NullButShouldBeString extends InvalidCell {}
+class NotAParseableNumberButShouldBeNumber extends InvalidCell {
     toErrorString() {
-        return this.constructor.name + `: '${this.value}'`
+        return this.constructor.name + `: '${this.cellValue}'`
     }
 }
 
-export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
-    private _inputRows: ROW_TYPE[]
-    @observable.ref private _rows: ROW_TYPE[]
+// The complex generic with default here just enables you to optionally specify a more
+// narrow interface for the input rows. This is helpful for OwidTable.
+export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
+    private _inputRows: INPUT_ROW_TYPE[]
+    @observable.ref private _rows: INPUT_ROW_TYPE[] // todo: might these rows be transformed into a new type? Are they still guaranteed to implement that row interface?
     @observable private _columns: Map<ColumnSlug, AbstractCoreColumn>
     @observable.shallow protected selectedRows = new Set<CoreRow>()
 
-    protected parent?: AbstractCoreTable<ROW_TYPE>
+    protected parent?: CoreTable<INPUT_ROW_TYPE>
     private tableDescription?: string
 
     constructor(
-        rows: ROW_TYPE[] = [],
+        rows: INPUT_ROW_TYPE[] = [],
         columnSpecs: CoreColumnSpec[] = [],
-        parentTable?: AbstractCoreTable<ROW_TYPE>,
+        parentTable?: CoreTable<INPUT_ROW_TYPE>,
         tableDescription?: string
     ) {
         this._inputRows = rows // Save a reference to original rows for debugging.
@@ -107,23 +109,20 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         if (parentTable) this.copySelectionFrom(parentTable)
     }
 
-    private _autodetectAndSpecs(rows: ROW_TYPE[]) {
+    private _autodetectAndSpecs(rows: INPUT_ROW_TYPE[]) {
         Object.keys(rows[0])
             .filter((slug) => !this.has(slug))
             .forEach((slug) => {
                 const firstRowWithValue = rows.find(
                     (row) => row[slug] !== undefined && row[slug] !== null
                 )
-                const spec = AbstractCoreTable.guessColumnSpec(
-                    slug,
-                    firstRowWithValue
-                )
+                const spec = CoreTable.guessColumnSpec(slug, firstRowWithValue)
                 const columnType = columnTypeMap[spec.type!]
                 this._columns.set(spec.slug, new columnType(this, spec))
             })
     }
 
-    private _buildRows(columnSpecs: CoreColumnSpec[], rows: ROW_TYPE[]) {
+    private _buildRows(columnSpecs: CoreColumnSpec[], rows: INPUT_ROW_TYPE[]) {
         const firstRow = rows[0]
         const colsToParse = this.getColumnsToParse(firstRow)
         const computeds = columnSpecs.filter((spec) => spec.fn)
@@ -137,7 +136,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
                 computeds.forEach((spec) => {
                     newRow[spec.slug] = spec.fn!(row, index)
                 })
-                return newRow as ROW_TYPE
+                return newRow as INPUT_ROW_TYPE
             })
         return rows
     }
@@ -243,12 +242,12 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return { slug, type: ColumnTypeNames.String }
     }
 
-    get rootTable(): AnyTable {
+    get rootTable(): CoreTable {
         return this.parent ? this.parent.rootTable : this
     }
 
     // todo: speed up
-    filterBy(predicate: (row: CoreRow) => boolean, opName: string): AnyTable {
+    filterBy(predicate: (row: CoreRow) => boolean, opName: string): CoreTable {
         return new (this.constructor as any)(
             this.rows.filter(predicate),
             this.specs,
@@ -257,7 +256,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): AnyTable {
+    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): CoreTable {
         return new (this.constructor as any)(
             orderBy(this.rows, slugs, orders),
             this.specs,
@@ -443,7 +442,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
-    withRows(rows: CoreRow[]): AnyTable {
+    withRows(rows: CoreRow[]): CoreTable {
         return new (this.constructor as any)(
             [...this.rows, ...rows],
             this.specs,
@@ -473,7 +472,7 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
     withTransformedSpecs(
         fn: (spec: CoreColumnSpec) => CoreColumnSpec
-    ): AnyTable {
+    ): CoreTable {
         return new (this.constructor as any)(
             this.rows,
             this.specs.map(fn),
@@ -482,12 +481,12 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
         )
     }
 
-    withoutConstantColumns(): AnyTable {
+    withoutConstantColumns(): CoreTable {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
     }
 
-    withoutColumns(slugs: ColumnSlug[], message?: string): AnyTable {
+    withoutColumns(slugs: ColumnSlug[], message?: string): CoreTable {
         const columnsToDrop = new Set(slugs)
         const specs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
@@ -514,16 +513,9 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
     toMatrix() {
         return [this.columnSlugs, ...this.extract()]
     }
-}
 
-export declare type ObjectOfColumnSpecs = {
-    [columnSlug: string]: CoreColumnSpec
-}
-
-// An AnyTable is a Table with 0 or more columns of any type.
-export class AnyTable extends AbstractCoreTable<CoreRow> {
     static fromDelimited(csvOrTsv: string, specs?: CoreColumnSpec[]) {
-        return new AnyTable(
+        return new CoreTable(
             this.standardizeSlugs(parseDelimited(csvOrTsv)),
             specs
         )
@@ -549,7 +541,9 @@ export class AnyTable extends AbstractCoreTable<CoreRow> {
     }
 }
 
-// Todo: Add DayColumn, YearColumn, EntityColumn, etc?
+export declare type ObjectOfColumnSpecs = {
+    [columnSlug: string]: CoreColumnSpec
+}
 
 // todo: remove
 const rowTime = (row: CoreRow) =>
@@ -575,9 +569,9 @@ interface ExtendedColumnStats extends ColumnStats {
 
 export abstract class AbstractCoreColumn {
     spec: CoreColumnSpec
-    table: AbstractCoreTable<CoreRow>
+    table: CoreTable<CoreRow>
 
-    constructor(table: AbstractCoreTable<CoreRow>, spec: CoreColumnSpec) {
+    constructor(table: CoreTable<CoreRow>, spec: CoreColumnSpec) {
         this.table = table
         this.spec = spec
     }
@@ -877,9 +871,7 @@ export abstract class AbstractCoreColumn {
 
     @computed private get rowsWithParseErrors() {
         const slug = this.spec.slug
-        return this.table.rows.filter(
-            (row) => row[slug] instanceof InvalidValueType
-        )
+        return this.table.rows.filter((row) => row[slug] instanceof InvalidCell)
     }
 
     @computed get numParseErrors() {
@@ -890,7 +882,7 @@ export abstract class AbstractCoreColumn {
     @computed get rowsWithValue() {
         const slug = this.spec.slug
         return this.table.rows.filter(
-            (row) => !(row[slug] instanceof InvalidValueType)
+            (row) => !(row[slug] instanceof InvalidCell)
         )
     }
 
@@ -1011,7 +1003,7 @@ export class NumericColumn extends AbstractCoreColumn {
         })
     }
 
-    parse(val: any): number | InvalidValueType {
+    parse(val: any): number | InvalidCell {
         if (val === null) return new NullButShouldBeNumber()
         if (val === undefined) return new UndefinedButShouldBeNumber()
         if (val === "") return new BlankButShouldBeNumber()

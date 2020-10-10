@@ -24,7 +24,7 @@ import {
     CoreRow,
     CoreColumnSpec,
 } from "./CoreTableConstants"
-import { AbstractCoreTable, DroppedForTesting } from "./CoreTable"
+import { CoreTable, DroppedForTesting } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
@@ -42,7 +42,7 @@ const rowTime = (row: CoreRow) =>
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
-export class OwidTable extends AbstractCoreTable<OwidRow> {
+export class OwidTable extends CoreTable<OwidRow> {
     static fromDelimited(csvOrTsv: string, specs: OwidColumnSpec[] = []) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
