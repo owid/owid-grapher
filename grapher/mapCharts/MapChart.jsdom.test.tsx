@@ -29,8 +29,8 @@ test("can create a new Map chart", () => {
 it("times work with a map chart", () => {
     const grapher = new Grapher(legacyMapGrapher)
     expect(grapher.mapColumnSlug).toBe("3512")
-    expect(grapher.rootTable.minTime).toBe(2000)
-    expect(grapher.rootTable.maxTime).toBe(2010)
+    expect(grapher.inputTable.minTime).toBe(2000)
+    expect(grapher.inputTable.maxTime).toBe(2010)
     expect(grapher.startTime).toBe(2000)
     expect(grapher.endTime).toBe(2000)
     expect(grapher.times).toEqual([2000, 2010])

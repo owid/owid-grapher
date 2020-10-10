@@ -9,6 +9,8 @@ import {
     Grid,
     trimGrid,
     getDropIndexes,
+    flatten,
+    uniq,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { SortOrder, Time } from "grapher/core/GrapherConstants"
@@ -148,6 +150,16 @@ export class OwidTable extends AbstractCoreTable<OwidRow> {
 
     @computed get rowsByTime() {
         return this.rowsBy<Time>(this.timeColumn.slug)
+    }
+
+    getTimeOptionsForColumns(columnSlugs: ColumnSlug[]) {
+        return uniq(
+            flatten(
+                this.getColumns(columnSlugs)
+                    .filter((col) => col)
+                    .map((col) => col.timelineTimes)
+            )
+        ).sort()
     }
 
     private rowsBy<T>(columnSlug: ColumnSlug) {

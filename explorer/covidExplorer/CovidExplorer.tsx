@@ -552,7 +552,7 @@ export class CovidExplorer
         }, 1)
     }
 
-    private rootTable = new CovidExplorerTable(this.props.covidRows)
+    private inputTable = new CovidExplorerTable(this.props.covidRows)
         .withDataTableSpecs()
         .loadColumnSpecTemplatesFromGrapherBackend(
             this.props.covidChartAndVariableMeta.variables
@@ -561,7 +561,7 @@ export class CovidExplorer
 
     private _computedTable?: CovidExplorerTable
     private get computedTable() {
-        return this._computedTable ? this._computedTable! : this.rootTable
+        return this._computedTable ? this._computedTable! : this.inputTable
     }
 
     @computed private get canDoLogScale() {
@@ -856,7 +856,7 @@ export class CovidExplorer
             }
         }
 
-        grapher.rootTable = this.table
+        grapher.inputTable = this.table
         grapher.hasMapTab = true
         grapher.isPublished = true
         grapher.yAxis.min = params.intervalChange ? undefined : 0

@@ -75,7 +75,7 @@ export class SwitcherExplorer
     @action.bound private addEntityOptionsToPicker() {
         if (!this.grapher) return
         const currentEntities = this.countryPickerTable.availableEntityNameSet
-        const newEntities = this.grapher.rootTable.availableEntityNameSet
+        const newEntities = this.grapher.inputTable.availableEntityNameSet
         const missingEntities = [...newEntities]
             .filter((entityName) => !currentEntities.has(entityName))
             .map((entityName) => {
@@ -87,7 +87,7 @@ export class SwitcherExplorer
             missingEntities
         ) as OwidTable
         this.countryPickerTable.addToSelection(
-            this.grapher.rootTable.selectedEntityNames
+            this.grapher.inputTable.selectedEntityNames
         )
     }
 
@@ -117,7 +117,7 @@ export class SwitcherExplorer
     @action.bound private updateSelection(entityNames: string[]) {
         if (!this.countryPickerTable.numRows) return
         if (this.grapher)
-            this.grapher.rootTable.setSelectedEntities(entityNames)
+            this.grapher.inputTable.setSelectedEntities(entityNames)
     }
 
     @action.bound private updateGrapher(newGrapherId: number) {
@@ -136,7 +136,7 @@ export class SwitcherExplorer
             : this.explorerProgram.queryString
 
         grapher.updateFromObject(config)
-        grapher.rootTable = new OwidTable()
+        grapher.inputTable = new OwidTable()
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         grapher.downloadData()
         this.addEntityOptionsToPickerWhenReady()

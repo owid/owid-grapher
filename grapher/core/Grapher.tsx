@@ -270,7 +270,7 @@ export class Grapher
         typeof window !== "undefined" && (window as any).isEditor === true
     @observable bakedGrapherURL = BAKED_GRAPHER_URL
 
-    @observable.ref rootTable: OwidTable
+    @observable.ref inputTable: OwidTable
 
     private legacyConfigAsAuthored: Partial<LegacyGrapherInterface>
 
@@ -278,7 +278,7 @@ export class Grapher
         super(props!)
         if (typeof window !== "undefined") window.grapher = this
 
-        this.rootTable = props.table ?? new OwidTable()
+        this.inputTable = props.table ?? new OwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
         this.legacyConfigAsAuthored = props || {}
@@ -422,7 +422,7 @@ export class Grapher
     }
 
     @computed get table() {
-        let table = this.rootTable
+        let table = this.inputTable
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
         table = this.minPopulationFilter
@@ -472,7 +472,7 @@ export class Grapher
 
     // Checks if the data 1) is about countries and 2) has countries with less than the filter option. Used to partly determine whether to show the filter control.
     @computed private get hasCountriesSmallerThanFilterOption() {
-        return this.rootTable.availableEntityNames.some(
+        return this.inputTable.availableEntityNames.some(
             (entityName) =>
                 populationMap[entityName] &&
                 populationMap[entityName] < this.populationFilterOption
@@ -523,23 +523,28 @@ export class Grapher
     @action.bound private _receiveLegacyData(
         json: LegacyVariablesAndEntityKey
     ) {
-        this.rootTable = OwidTable.fromLegacy(json, this.legacyConfigAsAuthored)
+        this.inputTable = OwidTable.fromLegacy(
+            json,
+            this.legacyConfigAsAuthored
+        )
 
         if (this.selectedEntitiesInQueryParam.length) {
-            const entityNames = this.rootTable.getEntityNamesFromCodes(
+            const entityNames = this.inputTable.getEntityNamesFromCodes(
                 this.selectedEntitiesInQueryParam
             )
             const notFoundEntities = entityNames.filter(
-                (name) => !this.rootTable.availableEntityNameSet.has(name)
+                (name) => !this.inputTable.availableEntityNameSet.has(name)
             )
 
-            this.rootTable.setSelectedEntities(entityNames)
+            this.inputTable.setSelectedEntities(entityNames)
             if (notFoundEntities.length)
                 this.analytics.logEntitiesNotFoundError(notFoundEntities)
         } else if (this.selectedEntityNames.length)
-            this.rootTable.setSelectedEntities(this.selectedEntityNames)
+            this.inputTable.setSelectedEntities(this.selectedEntityNames)
         else if (this.selectedEntityIds.length)
-            this.rootTable.setSelectedEntitiesByEntityId(this.selectedEntityIds)
+            this.inputTable.setSelectedEntitiesByEntityId(
+                this.selectedEntityIds
+            )
     }
 
     @observable.ref private _baseFontSize = BASE_FONT_SIZE
@@ -580,15 +585,9 @@ export class Grapher
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === GrapherTabOption.map)
-            return this.rootTable.get(this.mapColumnSlug)!.timelineTimes || []
+            return this.inputTable.get(this.mapColumnSlug)!.timelineTimes || []
         // todo: filter out min times and end times?
-        return this.timelineTimes
-    }
-
-    @computed get timelineTimes() {
-        return uniq(
-            flatten(this.yColumns.map((col) => col.timelineTimes))
-        ).sort()
+        return this.inputTable.getTimeOptionsForColumns(this.yColumnSlugs)
     }
 
     // todo: remove ifs
@@ -598,7 +597,7 @@ export class Grapher
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
         if (this.isBarChartRace) return this.endTime
-        return this.timelineTimes[0] || 1900
+        return this.timelineFilter[0] || 1900
     }
 
     // todo: remove ifs
@@ -625,7 +624,7 @@ export class Grapher
         const activeTab = this.tab
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.endTimelineTime || 2000
-        return last(this.timelineTimes) || 2000
+        return this.timelineFilter[1] || 2000
     }
 
     @computed private get isBarChartRace() {
@@ -1453,10 +1452,10 @@ export class Grapher
             {
                 combo: "a",
                 fn: () =>
-                    this.rootTable.hasSelection
-                        ? this.rootTable.clearSelection()
-                        : this.rootTable.selectAll(),
-                title: this.rootTable.hasSelection
+                    this.inputTable.hasSelection
+                        ? this.inputTable.clearSelection()
+                        : this.inputTable.selectAll(),
+                title: this.inputTable.hasSelection
                     ? `Select None`
                     : `Select All`,
                 category: "Selection",
@@ -1581,10 +1580,10 @@ export class Grapher
     @action.bound randomSelection(num: number) {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
         this.hasError = false
-        const currentSelection = this.rootTable.selectedEntityNames.length
+        const currentSelection = this.inputTable.selectedEntityNames.length
         const newNum = num ? num : currentSelection ? currentSelection * 2 : 10
-        this.rootTable.setSelectedEntities(
-            sampleFrom(this.rootTable.availableEntityNames, newNum, Date.now())
+        this.inputTable.setSelectedEntities(
+            sampleFrom(this.inputTable.availableEntityNames, newNum, Date.now())
         )
     }
 

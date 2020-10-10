@@ -206,8 +206,8 @@ describe("time domain tests", () => {
 
     it("get the default time domain from the primary dimensions", () => {
         expect(grapher.times).toEqual([2003, 2004, 2008])
-        expect(grapher.startTime).toEqual(2003)
-        expect(grapher.endTime).toEqual(2008)
+        expect(grapher.startTime).toEqual(-Infinity)
+        expect(grapher.endTime).toEqual(Infinity)
     })
 })
 
