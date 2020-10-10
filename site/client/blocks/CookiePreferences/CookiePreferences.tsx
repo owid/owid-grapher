@@ -7,6 +7,14 @@ import {
     Preference,
     PreferenceType,
 } from "site/client/CookiePreferencesManager/CookiePreferencesManager"
+import slugify from "slugify"
+
+// Note: CookiePreferences has been designed to be rendered through a portal
+// only. When this becomes limiting (e.g. cookies preferences rendered both in
+// the content and in the cookie bar), then at least two things need to be taken
+// care of:
+// - unique IDs for input elements in CookiePreference
+// - support for in-place rendering
 
 const CookiePreference = ({
     title,
@@ -21,18 +29,17 @@ const CookiePreference = ({
     toggleConsent?: any
     children: React.ReactNode
 }) => {
+    const id = `cookie-preference-${slugify(title, { lower: true })}`
     return (
         <div className="cookie-preference">
-            <div className="title">
-                {title}
-                <input
-                    type="checkbox"
-                    onChange={toggleConsent}
-                    checked={consent}
-                    disabled={disabled}
-                ></input>
-            </div>
-
+            <label htmlFor={id}>{title}</label>
+            <input
+                id={id}
+                type="checkbox"
+                onChange={toggleConsent}
+                checked={consent}
+                disabled={disabled}
+            ></input>
             <div className="description">{children}</div>
         </div>
     )

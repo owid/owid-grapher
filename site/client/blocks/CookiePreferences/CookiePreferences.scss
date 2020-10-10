@@ -1,0 +1,15 @@
+.cookie-preferences {
+    @include block-spacing;
+    border: 2px solid $primary-color;
+}
+.cookie-preference {
+    margin-bottom: $vertical-spacing;
+    &:last-child {
+        margin-bottom: 0;
+    }
+    label {
+        text-transform: uppercase;
+        font-weight: bold;
+        margin-right: 1rem;
+    }
+}
