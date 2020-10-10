@@ -12,12 +12,12 @@ import {
     TickFormattingOptions,
     ScaleType,
     ScaleTypeConfig,
-    ValueRange,
 } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
 import { CoreColumn } from "coreTable/CoreTableColumns"
+import { ValueRange } from "coreTable/CoreTableConstants"
 
 interface Tickmark {
     value: number

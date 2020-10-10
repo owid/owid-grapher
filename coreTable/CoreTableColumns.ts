@@ -2,7 +2,6 @@ import {
     TickFormattingOptions,
     Time,
     TimeTolerance,
-    CellValue,
 } from "grapher/core/GrapherConstants"
 import {
     anyToString,
@@ -35,6 +34,9 @@ import {
     NotAParseableNumberButShouldBeNumber,
 } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
+
+// A measurement value. Example: For "A GDP of 200" the CellValue is 200.
+type CellValue = number | string
 
 interface ColumnStats {
     numParseErrors: number
