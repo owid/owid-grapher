@@ -23,7 +23,6 @@ import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
     ScaleType,
-    Time,
     DimensionProperty,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
@@ -41,7 +40,7 @@ import {
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
 import { ComparisonLine } from "./ComparisonLine"
-import { EntityName } from "coreTable/CoreTableConstants"
+import { EntityName, Time } from "coreTable/CoreTableConstants"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
 import { AxisConfig } from "grapher/axis/AxisConfig"

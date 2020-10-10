@@ -4,8 +4,13 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import { SortOrder, ColumnSlug, EntityName } from "coreTable/CoreTableConstants"
-import { TickFormattingOptions, Time } from "grapher/core/GrapherConstants"
+import {
+    SortOrder,
+    ColumnSlug,
+    EntityName,
+    Time,
+} from "coreTable/CoreTableConstants"
+import { TickFormattingOptions } from "grapher/core/GrapherConstants"
 import {
     capitalize,
     orderBy,

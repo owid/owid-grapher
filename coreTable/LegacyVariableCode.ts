@@ -7,8 +7,8 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
 } from "grapher/persistable/Persistable"
-import { ColumnSlug, Integer } from "./CoreTableConstants"
-import { DimensionProperty, Time } from "grapher/core/GrapherConstants"
+import { ColumnSlug, Integer, Time } from "./CoreTableConstants"
+import { DimensionProperty } from "grapher/core/GrapherConstants"
 
 export declare type LegacyVariableId = Integer
 

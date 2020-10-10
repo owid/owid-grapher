@@ -6,7 +6,6 @@ import {
     RelatedQuestionsConfig,
     EntitySelectionMode,
     EntitySelection,
-    Time,
     ChartTypeName,
     FacetStrategy,
 } from "./GrapherConstants"
@@ -17,7 +16,7 @@ import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/captionedChart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
-import { EntityId, EntityName } from "coreTable/CoreTableConstants"
+import { EntityId, EntityName, Time } from "coreTable/CoreTableConstants"
 import { omit } from "grapher/utils/Util"
 
 // This configuration represents the entire persistent state of a grapher

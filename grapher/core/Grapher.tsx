@@ -39,7 +39,6 @@ import {
     HighlightToggleConfig,
     ScatterPointLabelStrategy,
     RelatedQuestionsConfig,
-    Time,
     BASE_FONT_SIZE,
     CookieKey,
     FacetStrategy,
@@ -103,7 +102,12 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import { ColumnSlug, EntityId, EntityName } from "coreTable/CoreTableConstants"
+import {
+    ColumnSlug,
+    EntityId,
+    EntityName,
+    Time,
+} from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"

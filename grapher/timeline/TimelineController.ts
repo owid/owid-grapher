@@ -1,4 +1,4 @@
-import { Time } from "grapher/core/GrapherConstants"
+import { Time } from "coreTable/CoreTableConstants"
 import { TimeBoundValue } from "grapher/utils/TimeBounds"
 import { findClosestTime, last } from "grapher/utils/Util"
 

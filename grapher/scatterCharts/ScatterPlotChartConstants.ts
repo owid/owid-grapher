@@ -1,5 +1,5 @@
 import { CoreColumn } from "coreTable/CoreTableColumns"
-import { EntityName } from "coreTable/CoreTableConstants"
+import { EntityName, Time } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { NoDataModalManager } from "grapher/noDataModal/NoDataModal"
@@ -9,7 +9,6 @@ import {
     EntitySelectionMode,
     SeriesName,
     Color,
-    Time,
 } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"

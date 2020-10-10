@@ -23,8 +23,8 @@ import {
     EntityName,
     CoreRow,
     CoreColumnSpec,
+    Time,
 } from "coreTable/CoreTableConstants"
-import { Time } from "grapher/core/GrapherConstants"
 import { CoreTable } from "./CoreTable"
 import { DroppedForTesting } from "./InvalidCells"
 import { populationMap } from "./PopulationMap"

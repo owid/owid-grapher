@@ -3,7 +3,7 @@
 
 import { observable, computed } from "mobx"
 import { trimObject } from "grapher/utils/Util"
-import { DimensionProperty, Time } from "grapher/core/GrapherConstants"
+import { DimensionProperty } from "grapher/core/GrapherConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { LoadingColumn } from "coreTable/CoreTableColumns"
 import {
@@ -11,7 +11,7 @@ import {
     LegacyVariableDisplayConfig,
     LegacyVariableId,
 } from "coreTable/LegacyVariableCode"
-import { ColumnSlug } from "coreTable/CoreTableConstants"
+import { ColumnSlug, Time } from "coreTable/CoreTableConstants"
 import {
     Persistable,
     deleteRuntimeAndUnchangedProps,

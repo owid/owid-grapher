@@ -1,4 +1,4 @@
-import { TickFormattingOptions, Time } from "grapher/core/GrapherConstants"
+import { TickFormattingOptions } from "grapher/core/GrapherConstants"
 import {
     anyToString,
     csvEscape,
@@ -19,6 +19,7 @@ import {
     EntityName,
     ColumnTypeNames,
     TimeTolerance,
+    Time,
 } from "./CoreTableConstants"
 import {
     InvalidCell,
