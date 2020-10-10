@@ -4,11 +4,8 @@ import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons/faInfoCircle"
-import {
-    SortOrder,
-    TickFormattingOptions,
-    Time,
-} from "grapher/core/GrapherConstants"
+import { SortOrder, ColumnSlug, EntityName } from "coreTable/CoreTableConstants"
+import { TickFormattingOptions, Time } from "grapher/core/GrapherConstants"
 import {
     capitalize,
     orderBy,
@@ -28,7 +25,6 @@ import { OwidTable } from "coreTable/OwidTable"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { ColumnSlug, EntityName } from "coreTable/CoreTableConstants"
 
 interface DataTableState {
     sort: DataTableSortState

@@ -33,7 +33,8 @@ import {
     getDropIndexes,
 } from "grapher/utils/Util"
 import { strToQueryParams } from "utils/client/url"
-import { SortOrder, ScaleType } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
+import { ScaleType } from "grapher/core/GrapherConstants"
 
 describe(findClosestTime, () => {
     describe("without tolerance", () => {

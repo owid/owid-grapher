@@ -1,18 +1,16 @@
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import classnames from "classnames"
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheckCircle } from "@fortawesome/free-regular-svg-icons/faCheckCircle"
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons/faExclamationCircle"
-
 import { CovidTable, CovidTableProps } from "./CovidTable"
 import { CovidTableColumnKey } from "./CovidTableColumns"
 import { CovidSortKey } from "./CovidTypes"
 import { fetchTestsData, fetchECDCData } from "./CovidFetch"
 import { formatDate } from "./CovidUtils"
 import { Tippy } from "grapher/chart/Tippy"
-import { SortOrder } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
 import { oneOf } from "grapher/utils/Util"
 
 type Measure = "cases" | "deaths" | "tests" | "deathsAndCases"

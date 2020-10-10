@@ -1,8 +1,7 @@
 import * as React from "react"
 import { bind } from "decko"
 import classnames from "classnames"
-
-import { SortOrder } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
 import { CovidSortKey } from "./CovidTypes"
 import { CovidTableSortIcon } from "./CovidTableSortIcon"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"

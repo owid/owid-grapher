@@ -1,8 +1,6 @@
 import * as React from "react"
 import classnames from "classnames"
-
-import { defaultTo } from "grapher/utils/Util"
-import { SortOrder } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
 
 export interface CovidTableSortIconProps {
     sortOrder: SortOrder
@@ -10,7 +8,7 @@ export interface CovidTableSortIconProps {
 }
 
 export const CovidTableSortIcon = (props: CovidTableSortIconProps) => {
-    const isActive = defaultTo(props.isActive, false)
+    const isActive = props.isActive ?? false
 
     return (
         <span

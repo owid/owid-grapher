@@ -4,11 +4,8 @@ import { min, max, maxBy } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import {
-    ScaleType,
-    BASE_FONT_SIZE,
-    SortOrder,
-} from "grapher/core/GrapherConstants"
+import { ScaleType, BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,

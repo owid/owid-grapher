@@ -19,7 +19,7 @@ import {
     fromPairs,
     uniq,
 } from "grapher/utils/Util"
-import { SortOrder } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
 import { DEFAULT_SORT_ORDER } from "./CovidConstants"
 import {
     CovidSortKey,

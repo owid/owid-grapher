@@ -1,7 +1,7 @@
 import { scaleLinear } from "d3-scale"
 import { select } from "d3-selection"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
-import { SortOrder } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
 import {

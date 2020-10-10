@@ -1,4 +1,3 @@
-import { SortOrder, ValueRange } from "grapher/core/GrapherConstants"
 import {
     formatYear,
     csvEscape,
@@ -16,6 +15,8 @@ import {
     ColumnTypeNames,
     CoreColumnSpec,
     CoreRow,
+    SortOrder,
+    ValueRange
 } from "./CoreTableConstants"
 import {
     AlignedTextTableOptions,

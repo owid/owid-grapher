@@ -1,4 +1,4 @@
-import { SortOrder } from "grapher/core/GrapherConstants"
+import { SortOrder } from "coreTable/CoreTableConstants"
 import { NounKey, NounGenerator } from "./CovidTypes"
 import { createNoun } from "./CovidUtils"
 

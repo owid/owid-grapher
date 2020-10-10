@@ -13,8 +13,8 @@ import {
     uniq,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
-import { SortOrder, Time } from "grapher/core/GrapherConstants"
 import {
+    SortOrder,
     ColumnTypeNames,
     ColumnSlug,
     EntityId,
@@ -23,7 +23,8 @@ import {
     EntityName,
     CoreRow,
     CoreColumnSpec,
-} from "./CoreTableConstants"
+} from "coreTable/CoreTableConstants"
+import { Time } from "grapher/core/GrapherConstants"
 import { CoreTable } from "./CoreTable"
 import { DroppedForTesting } from "./InvalidCells"
 import { populationMap } from "./PopulationMap"

@@ -3,6 +3,13 @@ import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"
 export declare type Integer = number
 export declare type ColumnSlug = string // let's be very restrictive on valid column names to start.
 
+export enum SortOrder {
+    asc = "asc",
+    desc = "desc",
+}
+
+export type ValueRange = [number, number]
+
 export enum ColumnTypeNames {
     Numeric = "Numeric",
     String = "String",

@@ -96,11 +96,6 @@ export enum ScatterPointLabelStrategy {
     y = "y",
 }
 
-export enum SortOrder {
-    asc = "asc",
-    desc = "desc",
-}
-
 export enum DimensionProperty {
     y = "y",
     x = "x",

@@ -113,11 +113,10 @@ import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-
+import { SortOrder } from "coreTable/CoreTableConstants"
 import { PointVector } from "./PointVector"
 import {
     TickFormattingOptions,
-    SortOrder,
     RelatedQuestionsConfig,
     ScaleType,
     EPOCH_DATE,
