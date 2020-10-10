@@ -1,6 +1,6 @@
 import { ChartManager } from "grapher/chart/ChartManager"
-import { Color, SeriesName } from "grapher/core/GrapherConstants"
-import { Time } from "coreTable/CoreTableConstants"
+import { SeriesName } from "grapher/core/GrapherConstants"
+import { Color, Time } from "coreTable/CoreTableConstants"
 
 export interface DiscreteBarSeries {
     seriesName: SeriesName

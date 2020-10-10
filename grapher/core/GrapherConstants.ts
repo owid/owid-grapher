@@ -51,8 +51,6 @@ export enum GrapherTabOption {
     table = "table",
 }
 
-export type Color = string
-
 export enum ScaleType {
     linear = "linear",
     log = "log",
@@ -105,7 +103,7 @@ export interface TickFormattingOptions {
 export interface EntitySelection {
     entityId: number
     index: number // Which dimension the entity is from
-    color?: Color
+    color?: string
 }
 
 export type SeriesName = string

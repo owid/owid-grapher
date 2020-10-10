@@ -1,4 +1,4 @@
-import { Color } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
 
 interface BinProps {
     color: Color

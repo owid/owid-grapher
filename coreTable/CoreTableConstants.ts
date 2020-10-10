@@ -54,6 +54,7 @@ export type Year = Integer
 export type EntityName = string
 export type EntityCode = string
 export type EntityId = number
+export type Color = string
 
 /**
  * A concrete point in time (year or date). It's always supposed to be a finite number, but we

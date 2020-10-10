@@ -12,7 +12,7 @@ import {
     CategoricalBin,
 } from "grapher/color/ColorScaleBin"
 import { clone, noop, last } from "grapher/utils/Util"
-import { Color } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
 import { asArray } from "utils/client/react-select"
 import {
     Section,

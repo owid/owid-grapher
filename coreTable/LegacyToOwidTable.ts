@@ -1,6 +1,13 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
-import { Color, EPOCH_DATE } from "grapher/core/GrapherConstants"
+import { EPOCH_DATE } from "grapher/core/GrapherConstants"
+import {
+    Color,
+    EntityId,
+    ColumnTypeNames,
+    ColumnSlug,
+    CoreColumnSpec,
+} from "coreTable/CoreTableConstants"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
     diffDateISOStringInDays,
@@ -8,12 +15,7 @@ import {
     sortBy,
     trimObject,
 } from "grapher/utils/Util"
-import {
-    EntityId,
-    ColumnTypeNames,
-    ColumnSlug,
-    CoreColumnSpec,
-} from "./CoreTableConstants"
+
 import {
     LegacyVariablesAndEntityKey,
     LegacyEntityMeta,

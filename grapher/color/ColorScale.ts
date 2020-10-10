@@ -1,7 +1,6 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 import { bind } from "decko"
-
 import { ColorScaleConfigInterface } from "./ColorScaleConfig"
 import {
     isEmpty,
@@ -13,7 +12,7 @@ import {
     roundSigFig,
     mapNullToUndefined,
 } from "grapher/utils/Util"
-import { Color } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"

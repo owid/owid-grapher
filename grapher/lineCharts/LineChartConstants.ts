@@ -1,6 +1,7 @@
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
-import { Color, SeriesName } from "grapher/core/GrapherConstants"
+import { SeriesName } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
 import { PointVector } from "grapher/utils/PointVector"
 
 interface LinePoint {

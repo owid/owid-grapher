@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { Color } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
 import { BinningStrategy } from "./BinningStrategies"
 import {
     deleteRuntimeAndUnchangedProps,

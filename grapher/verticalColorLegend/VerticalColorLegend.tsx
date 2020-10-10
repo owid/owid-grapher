@@ -4,7 +4,8 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
-import { BASE_FONT_SIZE, Color } from "grapher/core/GrapherConstants"
+import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number

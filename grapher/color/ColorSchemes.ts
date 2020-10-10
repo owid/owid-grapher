@@ -2,7 +2,7 @@ import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
 import { clone, lastOfNonEmptyArray } from "grapher/utils/Util"
 import * as colorbrewer from "colorbrewer"
-import { Color } from "grapher/core/GrapherConstants"
+import { Color } from "coreTable/CoreTableConstants"
 
 type ColorSchemeProps = { displayName: string; singleColorScale: boolean }
 
