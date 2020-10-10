@@ -1,7 +1,7 @@
 import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"
 
-export declare type Integer = number
-export declare type ColumnSlug = string // let's be very restrictive on valid column names to start.
+export type Integer = number
+export type ColumnSlug = string // let's be very restrictive on valid column names to start.
 
 export enum SortOrder {
     asc = "asc",
@@ -50,18 +50,25 @@ export interface CoreColumnSpec {
 }
 
 // todo: move below to GrapherConstants or OwidTable?
-export declare type Year = Integer
-export declare type EntityName = string
-export declare type EntityCode = string
-export declare type EntityId = number
-export declare type Time = Integer
+export type Year = Integer
+export type EntityName = string
+export type EntityCode = string
+export type EntityId = number
+
+/**
+ * A concrete point in time (year or date). It's always supposed to be a finite number, but we
+ * cannot enforce this in TypeScript.
+ */
+export type Time = Integer
+export type TimeRange = [Time, Time]
+export type TimeTolerance = Integer
 
 export interface CoreRow {
     [columnSlug: string]: any
 }
 
 // todo: remove index param?
-export declare type ComputedColumnFn = (row: CoreRow, index?: Integer) => any
+export type ComputedColumnFn = (row: CoreRow, index?: Integer) => any
 
 export interface HasComputedColumn {
     fn: ComputedColumnFn

@@ -113,7 +113,7 @@ import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-import { SortOrder } from "coreTable/CoreTableConstants"
+import { SortOrder, Integer } from "coreTable/CoreTableConstants"
 import { PointVector } from "./PointVector"
 import {
     TickFormattingOptions,
@@ -121,7 +121,6 @@ import {
     ScaleType,
     EPOCH_DATE,
     Time,
-    Integer,
 } from "grapher/core/GrapherConstants"
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"

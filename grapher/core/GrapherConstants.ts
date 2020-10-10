@@ -31,15 +31,12 @@ export const EPOCH_DATE = "2020-01-21"
 
 export const BASE_FONT_SIZE = 16
 
-export type Integer = number
+type Integer = number
 /**
  * A concrete point in time (year or date). It's always supposed to be a finite number, but we
  * cannot enforce this in TypeScript.
  */
 export type Time = Integer
-export type TimeTolerance = Integer
-
-export type TimeRange = [Time, Time]
 
 export enum FacetStrategy {
     country = "country", // One chart for each country
