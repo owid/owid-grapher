@@ -3,11 +3,14 @@
 import {
     generateCovidRowsForContinents,
     getLeastUsedColor,
-    covidSampleRows,
+    megaRowToCovidRow,
+    sampleMegaRows,
 } from "./CovidExplorerUtils"
 
 it("correctly groups continents and adds rows for each", () => {
-    const regionRows = generateCovidRowsForContinents(covidSampleRows)
+    const regionRows = generateCovidRowsForContinents(
+        sampleMegaRows.map(megaRowToCovidRow)
+    )
     expect(regionRows.length).toEqual(6)
     expect(regionRows[regionRows.length - 1].total_cases).toEqual(46451)
 })

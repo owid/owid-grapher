@@ -3,23 +3,23 @@
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
-import { covidSampleRows } from "./CovidExplorerUtils"
+import { sampleCovidRows } from "./CovidExplorerUtils"
 
 describe("parse row", () => {
     it("correctly parses data from mega file", () => {
-        expect(covidSampleRows[0].total_cases).toEqual(2)
+        expect(sampleCovidRows[0].total_cases).toEqual(2)
     })
 })
 
 describe("makeCountryOptions", () => {
     it("correctly computes options", () => {
-        const table = new CovidExplorerTable(covidSampleRows)
+        const table = new CovidExplorerTable(sampleCovidRows)
         expect(table.availableEntityNames[2]).toEqual("World")
     })
 })
 
 describe("build covid column", () => {
-    let table = new CovidExplorerTable(covidSampleRows)
+    let table = new CovidExplorerTable(sampleCovidRows)
     table = table.withRollingAverageColumn(
         { slug: "totalCasesSmoothed" },
         (row) => row.total_cases,
@@ -79,7 +79,7 @@ describe("build covid column", () => {
 })
 
 describe("builds aligned tests column", () => {
-    let table = new CovidExplorerTable(covidSampleRows)
+    let table = new CovidExplorerTable(sampleCovidRows)
 
     it("it has testing data", () => {
         expect(table.columnSlugs.includes("tests-daily")).toEqual(false)
@@ -111,7 +111,7 @@ describe("builds aligned tests column", () => {
         expect(table.columnSlugs.includes("deaths-perMil-total")).toEqual(true)
     })
 
-    const table3 = new CovidExplorerTable(covidSampleRows)
+    const table3 = new CovidExplorerTable(sampleCovidRows)
     it("rows are immutable", () => {
         expect(table3.columnSlugs.includes("tests-perThousand-daily")).toEqual(
             false
@@ -121,7 +121,7 @@ describe("builds aligned tests column", () => {
 
 describe("do not include unselected groups in aligned charts", () => {
     it("can filter rows without continent", () => {
-        let table = new CovidExplorerTable(covidSampleRows)
+        let table = new CovidExplorerTable(sampleCovidRows)
         expect(table.availableEntityNameSet.has("World")).toBeTruthy()
 
         table = table.filterGroups()

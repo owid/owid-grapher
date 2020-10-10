@@ -5,7 +5,7 @@ import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import React from "react"
 import { shallow, mount, ReactWrapper } from "enzyme"
 import { IntervalOptions, metricLabels, MetricOptions } from "./CovidConstants"
-import { covidSampleRows } from "./CovidExplorerUtils"
+import { sampleCovidRows } from "./CovidExplorerUtils"
 
 const dummyMeta = {
     charts: {},
@@ -17,7 +17,7 @@ describe(CovidExplorer, () => {
         const startingParams = new CovidQueryParams("")
         const element = shallow(
             <CovidExplorer
-                covidRows={covidSampleRows}
+                covidRows={sampleCovidRows}
                 params={startingParams}
                 covidChartAndVariableMeta={dummyMeta}
                 updated="2020-05-09T18:59:31"
@@ -45,7 +45,7 @@ class ExplorerDataTableTest {
         this.params = params
         this.view = mount(
             <CovidExplorer
-                covidRows={covidSampleRows}
+                covidRows={sampleCovidRows}
                 params={this.params}
                 queryStr="?tab=table&time=2020-05-06"
                 covidChartAndVariableMeta={dummyMeta}

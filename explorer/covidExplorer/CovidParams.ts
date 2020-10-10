@@ -8,7 +8,7 @@ import { SortOrder, ChartTypeName } from "grapher/core/GrapherConstants"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
     trajectoryColumnSpecs,
-    MegaCovidColumnSlug,
+    MegaColumnSlug,
     SmoothingOption,
     ColorScaleOptions,
     IntervalOptions,
@@ -65,7 +65,7 @@ export class CovidQueryParams {
 
     // Country picker params
     @observable selectedCountryCodes = new Set<EntityCode>()
-    @observable countryPickerMetric: MegaCovidColumnSlug = "location"
+    @observable countryPickerMetric: MegaColumnSlug = "location"
     @observable countryPickerSort = SortOrder.asc
 
     @observable interval = IntervalOptions.daily

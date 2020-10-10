@@ -1,7 +1,7 @@
 import * as React from "react"
 import { CovidExplorer } from "explorer/covidExplorer/CovidExplorer"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
-import { covidSampleRows } from "./CovidExplorerUtils"
+import { sampleCovidRows } from "./CovidExplorerUtils"
 
 export default {
     title: "CovidExplorer",
@@ -16,7 +16,7 @@ const EMPTY_DUMMY_META = {
 export const SingleExplorerWithKeyboardShortcuts = () => {
     return (
         <CovidExplorer
-            covidRows={covidSampleRows}
+            covidRows={sampleCovidRows}
             params={new CovidQueryParams("")}
             covidChartAndVariableMeta={EMPTY_DUMMY_META}
             updated="2020-05-09T18:59:31"
@@ -29,13 +29,13 @@ export const MultipleExplorers = () => {
     return (
         <div>
             <CovidExplorer
-                covidRows={covidSampleRows}
+                covidRows={sampleCovidRows}
                 params={new CovidQueryParams("")}
                 covidChartAndVariableMeta={EMPTY_DUMMY_META}
                 updated="2020-05-09T18:59:31"
             />
             <CovidExplorer
-                covidRows={covidSampleRows}
+                covidRows={sampleCovidRows}
                 params={new CovidQueryParams("")}
                 covidChartAndVariableMeta={EMPTY_DUMMY_META}
                 updated="2020-05-09T18:59:31"
@@ -50,7 +50,7 @@ export const MultiMetricExplorer = () => {
     )
     return (
         <CovidExplorer
-            covidRows={covidSampleRows}
+            covidRows={sampleCovidRows}
             params={startingParams}
             queryStr="?tab=table&time=2020-05-06"
             covidChartAndVariableMeta={EMPTY_DUMMY_META}
