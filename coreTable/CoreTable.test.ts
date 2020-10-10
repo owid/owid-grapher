@@ -179,3 +179,11 @@ it("can get all defined values for a column", () => {
     expect(table.get("pop")?.numParseErrors).toEqual(1)
     expect(table.numColumnsWithParseErrors).toEqual(1)
 })
+
+it("can rename a column", () => {
+    const table = new AnyTable([{ pop: 123, year: 2000 }])
+    expect(table.withRenamedColumn("pop", "Population").columnSlugs).toEqual([
+        "Population",
+        "year",
+    ])
+})

@@ -94,21 +94,9 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             this._columns.set(slug, new columnType(this, spec))
         })
 
-        const firstRow = rows[0]
-        const slugsWithoutSpecs = firstRow
-            ? Object.keys(rows[0]).filter((slug) => !this.has(slug))
-            : []
-        slugsWithoutSpecs.forEach((slug) => {
-            const firstRowWithValue = rows.find(
-                (row) => row[slug] !== undefined && row[slug] !== null
-            )
-            const spec = AbstractCoreTable.guessColumnSpec(
-                slug,
-                firstRowWithValue
-            )
-            const columnType = columnTypeMap[spec.type!]
-            this._columns.set(spec.slug, new columnType(this, spec))
-        })
+        // If this has a parent table, than we expect all specs. This makes "deletes" and "renames" fast.
+        // If this is the first input table, then we do a simple check to generate any missing column specs.
+        if (!parentTable) this._autodetectAndSpecs(rows)
 
         this.parent = parentTable
         this.tableDescription = tableDescription
@@ -117,6 +105,22 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
 
         // Pass selection strategy down from parent
         if (parentTable) this.copySelectionFrom(parentTable)
+    }
+
+    private _autodetectAndSpecs(rows: ROW_TYPE[]) {
+        Object.keys(rows[0])
+            .filter((slug) => !this.has(slug))
+            .forEach((slug) => {
+                const firstRowWithValue = rows.find(
+                    (row) => row[slug] !== undefined && row[slug] !== null
+                )
+                const spec = AbstractCoreTable.guessColumnSpec(
+                    slug,
+                    firstRowWithValue
+                )
+                const columnType = columnTypeMap[spec.type!]
+                this._columns.set(spec.slug, new columnType(this, spec))
+            })
     }
 
     private _buildRows(columnSpecs: CoreColumnSpec[], rows: ROW_TYPE[]) {
@@ -489,19 +493,21 @@ export abstract class AbstractCoreTable<ROW_TYPE extends CoreRow> {
             .filter((col) => !columnsToDrop.has(col.slug))
             .map((col) => col.spec)
         return new (this.constructor as any)(
-            this.rows.map((row) => {
-                // todo: speed up?
-                const newRow = {
-                    ...row,
-                }
-                slugs.forEach((slug) => {
-                    delete newRow[slug]
-                })
-                return newRow
-            }),
+            this.rows,
             specs,
             this,
             message ?? `Dropped columns '${slugs}'`
+        )
+    }
+
+    withRenamedColumn(currentSlug: ColumnSlug, newSlug: ColumnSlug) {
+        return new (this.constructor as any)(
+            this.rows,
+            this.specs.map((spec) =>
+                spec.slug === currentSlug ? { ...spec, slug: newSlug } : spec
+            ),
+            this,
+            `Renamed '${currentSlug}' to '${newSlug}'`
         )
     }
 
