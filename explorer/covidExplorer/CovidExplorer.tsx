@@ -73,6 +73,10 @@ import {
     perCapitaDivisorByMetric,
 } from "./CovidExplorerUtils"
 import { ExplorerShell } from "explorer/client/ExplorerShell"
+import {
+    SlideShowController,
+    SlideShowManager,
+} from "grapher/slideshowController/SlideShowController"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -100,7 +104,7 @@ interface CovidExplorerProps {
 @observer
 export class CovidExplorer
     extends React.Component<CovidExplorerProps>
-    implements ObservableUrl {
+    implements ObservableUrl, SlideShowManager {
     static async bootstrap(props: BootstrapProps) {
         const { covidRows, updated, covidMeta } = await fetchRequiredData()
         const queryStr =
@@ -819,6 +823,10 @@ export class CovidExplorer
 
     @observable.ref grapher = new Grapher()
 
+    @action.bound setSlide(queryString: string) {
+        this.props.params.setParamsFromQueryString(queryString)
+    }
+
     // We can't create a new chart object with every radio change because the Chart component itself
     // maintains state (for example, which tab is currently active). Temporary workaround is just to
     // manually update the chart when the chart builderselections change.
@@ -843,6 +851,12 @@ export class CovidExplorer
         grapher.type = params.type
         grapher.yAxis.removePointsOutsideDomain = true
         grapher.yAxis.label = this.yAxisLabel
+        if (!grapher.slideShow)
+            grapher.slideShow = new SlideShowController(
+                params.allAvailableQueryStringCombos(),
+                0,
+                this
+            )
 
         if (!this.canDoLogScale) {
             this.switchBackToLog = grapher.yAxis.scaleType === ScaleType.log

@@ -266,11 +266,16 @@ export class SwitcherRuntime implements ObservableUrl {
         this.parsed.forEach((row) => {
             row.chartId = parseInt(row.chartId)
         })
-        const queryParams = strToQueryParams(decodeURIComponent(queryString))
-        this.columnNames.forEach((name) => {
-            if (queryParams[name] === undefined)
-                this.setValue(name, this.firstAvailableOptionForGroup(name))
-            else this.setValue(name, queryParams[name])
+        this.setValuesFromQueryString(queryString)
+    }
+
+    allOptionsAsQueryStrings() {
+        return this.parsed.map((row) => {
+            const params: QueryParams = {}
+            this.columnNames.forEach((name) => {
+                params[name] = row[name]
+            })
+            return queryParamsToStr(params)
         })
     }
 
@@ -301,6 +306,15 @@ export class SwitcherRuntime implements ObservableUrl {
 
     @action.bound setValue(group: string, value: any) {
         this._settings[group] = value
+    }
+
+    @action.bound setValuesFromQueryString(queryString: string) {
+        const queryParams = strToQueryParams(decodeURIComponent(queryString))
+        this.columnNames.forEach((name) => {
+            if (queryParams[name] === undefined)
+                this.setValue(name, this.firstAvailableOptionForGroup(name))
+            else this.setValue(name, queryParams[name])
+        })
     }
 
     @computed get columnNames() {

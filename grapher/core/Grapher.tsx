@@ -28,8 +28,6 @@ import {
     next,
     sampleFrom,
     range,
-    flatten,
-    last,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -145,6 +143,7 @@ import {
 import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
+import { SlideShowController } from "grapher/slideshowController/SlideShowController"
 
 declare const window: any
 
@@ -1435,7 +1434,7 @@ export class Grapher
         const temporaryFacetTestCommands = range(0, 10).map((num) => {
             return { combo: `${num}`, fn: () => this.randomSelection(num) }
         })
-        return [
+        const shortcuts = [
             ...temporaryFacetTestCommands,
             {
                 combo: "t",
@@ -1503,7 +1502,27 @@ export class Grapher
             //     category: "Navigation",
             // },
         ]
+
+        if (this.slideShow) {
+            const slideShow = this.slideShow
+            shortcuts.push({
+                combo: "right",
+                fn: () => slideShow.playNext(),
+                title: "Next chart",
+                category: "Browse",
+            })
+            shortcuts.push({
+                combo: "left",
+                fn: () => slideShow.playPrevious(),
+                title: "Previous chart",
+                category: "Browse",
+            })
+        }
+
+        return shortcuts
     }
+
+    @observable slideShow?: SlideShowController
 
     @action.bound private toggleTimelineCommand() {
         // Todo: add tests for this

@@ -36,6 +36,10 @@ describe(SwitcherRuntime, () => {
         expect(options.toObject().indicator).toEqual("GDP")
     })
 
+    it("it can get all options", () => {
+        expect(options.allOptionsAsQueryStrings().length).toBe(7)
+    })
+
     it("can detect needed chart configs", () => {
         expect(SwitcherRuntime.getRequiredChartIds(code)).toEqual([
             21,

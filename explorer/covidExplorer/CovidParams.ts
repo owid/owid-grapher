@@ -76,7 +76,7 @@ export class CovidQueryParams {
         this.setParamsFromQueryString(queryString)
     }
 
-    allAvailableCombos(): string[] {
+    allAvailableQueryStringCombos(): string[] {
         const metrics = [
             "casesMetric",
             "deathsMetric",

@@ -16,6 +16,10 @@ import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { OwidTable } from "coreTable/OwidTable"
 import { GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { exposeInstanceOnWindow } from "grapher/utils/Util"
+import {
+    SlideShowController,
+    SlideShowManager,
+} from "grapher/slideshowController/SlideShowController"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -28,7 +32,7 @@ export interface SwitcherExplorerProps {
 @observer
 export class SwitcherExplorer
     extends React.Component<SwitcherExplorerProps>
-    implements ObservableUrl {
+    implements ObservableUrl, SlideShowManager {
     static bootstrap(props: SwitcherExplorerProps) {
         return ReactDOM.render(
             <SwitcherExplorer
@@ -135,12 +139,25 @@ export class SwitcherExplorer
             ? grapher.queryStr
             : this.explorerProgram.queryString
 
+        if (!grapher.slideShow)
+            grapher.slideShow = new SlideShowController(
+                this.explorerProgram.switcherRuntime.allOptionsAsQueryStrings(),
+                0,
+                this
+            )
+
         grapher.updateFromObject(config)
         grapher.inputTable = new OwidTable()
         grapher.populateFromQueryParams(strToQueryParams(queryStr ?? ""))
         grapher.downloadData()
         this.addEntityOptionsToPickerWhenReady()
         this.bindToWindow()
+    }
+
+    @action.bound setSlide(queryString: string) {
+        this.explorerProgram.switcherRuntime.setValuesFromQueryString(
+            queryString
+        )
     }
 
     bindToWindow() {
