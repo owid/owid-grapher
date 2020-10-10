@@ -5,11 +5,7 @@ import {
     queryParamsToStr,
 } from "utils/client/url"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import {
-    SortOrder,
-    ColumnTypeNames,
-    EntityCode,
-} from "coreTable/CoreTableConstants"
+import { SortOrder, ColumnTypeNames } from "coreTable/CoreTableConstants"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
     trajectoryColumnSpecs,
@@ -22,7 +18,7 @@ import {
 } from "./CovidConstants"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { perCapitaDivisorByMetric } from "./CovidExplorerUtils"
-import { OwidColumnSpec } from "coreTable/OwidTableConstants"
+import { OwidColumnSpec, EntityCode } from "coreTable/OwidTableConstants"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.

@@ -2,9 +2,9 @@ import { cloneDeep } from "grapher/utils/Util"
 import moment from "moment"
 import { csvParse } from "d3-dsv"
 import { OwidTable } from "coreTable/OwidTable"
+import { EntityName, OwidColumnSpec } from "coreTable/OwidTableConstants"
 import {
     ColumnTypeNames,
-    EntityName,
     ColumnSlug,
     Integer,
     CoreRow,
@@ -28,7 +28,6 @@ import {
     SmoothingOption,
     testRateExcludeList,
 } from "./CovidConstants"
-import { OwidColumnSpec } from "coreTable/OwidTableConstants"
 import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
 
 interface AnnotationsRow {

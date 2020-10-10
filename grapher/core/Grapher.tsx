@@ -102,12 +102,7 @@ import {
     deleteRuntimeAndUnchangedProps,
     updatePersistables,
 } from "grapher/persistable/Persistable"
-import {
-    ColumnSlug,
-    EntityId,
-    EntityName,
-    Time,
-} from "coreTable/CoreTableConstants"
+import { ColumnSlug, Time } from "coreTable/CoreTableConstants"
 import { isOnTheMap } from "grapher/mapCharts/EntitiesOnTheMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { UrlBinder, ObservableUrl } from "grapher/utils/UrlBinder"
@@ -144,7 +139,11 @@ import {
     TimelineController,
     TimelineManager,
 } from "grapher/timeline/TimelineController"
-import { OwidColumnSpec } from "coreTable/OwidTableConstants"
+import {
+    EntityId,
+    EntityName,
+    OwidColumnSpec,
+} from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"

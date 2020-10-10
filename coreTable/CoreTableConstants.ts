@@ -49,11 +49,7 @@ export interface CoreColumnSpec {
     display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
 }
 
-// todo: move below to GrapherConstants or OwidTable?
 export type Year = Integer
-export type EntityName = string
-export type EntityCode = string
-export type EntityId = number
 export type Color = string
 
 /**

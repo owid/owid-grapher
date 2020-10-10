@@ -15,7 +15,8 @@ import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { Bounds } from "grapher/utils/Bounds"
-import { EntityName, Color } from "coreTable/CoreTableConstants"
+import { EntityName } from "coreTable/OwidTableConstants"
+import { Color } from "coreTable/CoreTableConstants"
 import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
 
 // Minimum vertical space between two legend items

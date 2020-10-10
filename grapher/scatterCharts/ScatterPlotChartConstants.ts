@@ -1,5 +1,5 @@
 import { CoreColumn } from "coreTable/CoreTableColumns"
-import { EntityName, Time, Color } from "coreTable/CoreTableConstants"
+import { Time, Color } from "coreTable/CoreTableConstants"
 import { DualAxis } from "grapher/axis/Axis"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { NoDataModalManager } from "grapher/noDataModal/NoDataModal"
@@ -12,6 +12,7 @@ import {
 
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
+import { EntityName } from "coreTable/OwidTableConstants"
 
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean

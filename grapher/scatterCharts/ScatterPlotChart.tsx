@@ -28,7 +28,7 @@ import {
     ScatterPointLabelStrategy,
     SeriesName,
 } from "grapher/core/GrapherConstants"
-import { Color, EntityName, Time } from "coreTable/CoreTableConstants"
+import { Color, Time } from "coreTable/CoreTableConstants"
 import {
     ConnectedScatterLegend,
     ConnectedScatterLegendManager,
@@ -54,7 +54,7 @@ import {
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { OwidRow } from "coreTable/OwidTableConstants"
+import { EntityName, OwidRow } from "coreTable/OwidTableConstants"
 
 @observer
 export class ScatterPlotChart

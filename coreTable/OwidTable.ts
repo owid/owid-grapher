@@ -17,10 +17,7 @@ import {
     SortOrder,
     ColumnTypeNames,
     ColumnSlug,
-    EntityId,
-    EntityCode,
     Integer,
-    EntityName,
     CoreRow,
     CoreColumnSpec,
     Time,
@@ -30,6 +27,9 @@ import { DroppedForTesting } from "./InvalidCells"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
+    EntityCode,
+    EntityId,
+    EntityName,
     OwidColumnSpec,
     OwidRow,
     OwidTableSlugs,
@@ -569,10 +569,12 @@ export class OwidTable extends CoreTable<OwidRow> {
     entitiesWith(columnSlugs: string[]): Set<string> {
         if (!columnSlugs.length) return new Set()
         if (columnSlugs.length === 1)
-            return this.get(columnSlugs[0])!.entityNamesUniq
+            return new Set(this.get(columnSlugs[0])!.entityNamesUniqArr)
 
         return intersectionOfSets<string>(
-            columnSlugs.map((slug) => this.get(slug)!.entityNamesUniq)
+            columnSlugs.map(
+                (slug) => new Set(this.get(slug)!.entityNamesUniqArr)
+            )
         )
     }
 

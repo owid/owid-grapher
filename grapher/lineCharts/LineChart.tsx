@@ -27,7 +27,7 @@ import { ComparisonLine } from "grapher/scatterCharts/ComparisonLine"
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { extent } from "d3-array"
-import { EntityName } from "coreTable/CoreTableConstants"
+import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import {
     BASE_FONT_SIZE,
     SeriesName,
@@ -552,11 +552,13 @@ export class LineChart
     }
 
     @computed private get annotationsMap() {
-        return this.annotationsColumn?.entityNameMap
+        return this.seriesAnnotationsColumn?.getUniqueValuesGroupedBy(
+            OwidTableSlugs.entityName
+        )
     }
 
     // todo: make work again
-    @computed private get annotationsColumn() {
+    @computed private get seriesAnnotationsColumn() {
         return this.inputTable.get("annotations")
     }
 

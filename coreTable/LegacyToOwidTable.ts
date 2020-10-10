@@ -3,7 +3,6 @@
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
 import {
     Color,
-    EntityId,
     ColumnTypeNames,
     ColumnSlug,
     CoreColumnSpec,
@@ -26,6 +25,7 @@ import {
     RequiredColumnSpecs,
     OwidTableSlugs,
     OwidColumnSpec,
+    EntityId,
 } from "./OwidTableConstants"
 
 declare type MapOfColumnSpecs = Map<ColumnSlug, CoreColumnSpec>

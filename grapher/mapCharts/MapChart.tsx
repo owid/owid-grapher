@@ -24,7 +24,7 @@ import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
 import { ProjectionChooser } from "./ProjectionChooser"
 import { isOnTheMap } from "./EntitiesOnTheMap"
-import { EntityName } from "coreTable/CoreTableConstants"
+import { EntityName } from "coreTable/OwidTableConstants"
 import {
     GeoFeature,
     MapBracket,

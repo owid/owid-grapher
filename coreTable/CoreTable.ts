@@ -16,7 +16,7 @@ import {
     CoreColumnSpec,
     CoreRow,
     SortOrder,
-    ValueRange
+    ValueRange,
 } from "./CoreTableConstants"
 import {
     AlignedTextTableOptions,

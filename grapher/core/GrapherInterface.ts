@@ -16,8 +16,9 @@ import { ComparisonLineConfig } from "grapher/scatterCharts/ComparisonLine"
 import { LogoOption } from "grapher/captionedChart/Logos"
 import { ColorScaleConfigInterface } from "grapher/color/ColorScaleConfig"
 import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
-import { EntityId, EntityName, Time } from "coreTable/CoreTableConstants"
+import { Time } from "coreTable/CoreTableConstants"
 import { omit } from "grapher/utils/Util"
+import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again

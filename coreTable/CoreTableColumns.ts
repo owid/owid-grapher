@@ -9,6 +9,7 @@ import {
     sortedUniq,
     last,
     sortBy,
+    uniq,
 } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { CoreTable } from "./CoreTable"
@@ -16,11 +17,11 @@ import {
     CoreColumnSpec,
     CoreRow,
     ColumnSlug,
-    EntityName,
     ColumnTypeNames,
     TimeTolerance,
     Time,
 } from "./CoreTableConstants"
+import { EntityName } from "coreTable/OwidTableConstants"
 import {
     InvalidCell,
     NullButShouldBeString,
@@ -33,32 +34,37 @@ import {
 } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 
-// A measurement value. Example: For "A GDP of 200" the CellValue is 200.
-type CellValue = number | string
-
 interface ColumnStats {
     numParseErrors: number
     uniqueValues: number
     numValues: number
 }
 
+type PrimitiveType = number | string | boolean
+
 interface ExtendedColumnStats extends ColumnStats {
-    median: number | string
+    median: PrimitiveType
     sum: number
     mean: number
-    min: number
-    max: number
+    min: PrimitiveType
+    max: PrimitiveType
     range: number
-    mode: number
+    mode: PrimitiveType
     modeSize: number
-    deciles: { [which: number]: number }
+    deciles: { [decile: number]: PrimitiveType }
+}
+
+enum JsTypes {
+    string = "string",
+    boolean = "boolean",
+    number = "number",
 }
 
 // todo: remove
 const rowTime = (row: CoreRow) =>
     parseInt(row.time ?? row.year ?? row.day ?? row.date)
 
-abstract class AbstractCoreColumn {
+abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     spec: CoreColumnSpec
     table: CoreTable<CoreRow>
 
@@ -67,7 +73,7 @@ abstract class AbstractCoreColumn {
         this.spec = spec
     }
 
-    abstract jsType: string
+    abstract jsType: JsTypes
     isParsed(val: any) {
         return typeof val === this.jsType
     }
@@ -85,7 +91,7 @@ abstract class AbstractCoreColumn {
     }
 
     @computed protected get sortedValuesNumeric() {
-        const numericCompare = (av: number, bv: number) =>
+        const numericCompare = (av: JS_TYPE, bv: JS_TYPE) =>
             av > bv ? 1 : av < bv ? -1 : 0
         return this.parsedValues.slice().sort(numericCompare)
     }
@@ -94,6 +100,7 @@ abstract class AbstractCoreColumn {
         return this.sortedValuesString
     }
 
+    // todo: switch to a lib and/or add tests for this. handle non numerics better.
     @computed get stats() {
         const { numParseErrors, numValues } = this
         const basicStats: ColumnStats = {
@@ -114,7 +121,7 @@ abstract class AbstractCoreColumn {
         let currentBucketValue = undefined
         let currentBucketSize = 0
         for (let index = 0; index < numValues; index++) {
-            const value = arr[index]
+            const value = arr[index] as any
             sum += value
             if (value > max) max = value
             if (value < min) min = value
@@ -135,7 +142,7 @@ abstract class AbstractCoreColumn {
         stats.mean = sum / numValues
         stats.min = min
         stats.max = max
-        stats.range = max - min
+        stats.range = (max as any) - (min as any)
         stats.mode = mode
         stats.modeSize = modeSize
         if (!isNumeric) {
@@ -161,7 +168,7 @@ abstract class AbstractCoreColumn {
     }
 
     @computed get isAllIntegers() {
-        return this.parsedValues.every((val) => val % 1 === 0)
+        return false
     }
 
     @computed get tolerance() {
@@ -217,27 +224,24 @@ abstract class AbstractCoreColumn {
     }
 
     // A method for formatting for CSV
-    formatForCsv(value: any) {
+    formatForCsv(value: JS_TYPE) {
         return csvEscape(this.formatValue(value))
     }
 
-    // todo: remove/generalize?
-    @computed get entityNameMap() {
-        return this.mapBy("entityName")
-    }
-
-    private mapBy(columnSlug: ColumnSlug) {
-        const map = new Map<any, Set<any>>()
+    // Returns a map where the key is a series slug such as "name" and the value is a set
+    // of all the unique values that this column has for that particular series.
+    getUniqueValuesGroupedBy(indexColumnSlug: ColumnSlug) {
+        const map = new Map<ColumnSlug, Set<PrimitiveType>>()
         const slug = this.slug
         this.rowsWithValue.forEach((row) => {
-            const value = row[slug]
+            const thisValue = row[slug]
             // For now the behavior is to not overwrite an existing value with an empty one
-            if (value === "") return
+            if (thisValue === "" || thisValue instanceof InvalidCell) return
 
-            const indexVal = row[columnSlug]
+            const indexVal = row[indexColumnSlug]
             if (!map.has(indexVal)) !map.set(indexVal, new Set())
 
-            map.get(indexVal)!.add(value)
+            map.get(indexVal)!.add(thisValue)
         })
 
         return map
@@ -275,21 +279,7 @@ abstract class AbstractCoreColumn {
     }
 
     // todo: remove
-    @computed get entityNames() {
-        return this.rowsWithValue.map((row) => row.entityName)
-    }
-
-    // todo: remove
-    @computed get entityNamesUniq() {
-        return new Set<string>(this.entityNames)
-    }
-
-    @computed get entityNamesUniqArr(): EntityName[] {
-        return Array.from(this.entityNamesUniq)
-    }
-
-    // todo: remove
-    @computed get valuesUniq(): any[] {
+    @computed get valuesUniq() {
         return Array.from(this.valuesAsSet)
     }
 
@@ -298,10 +288,11 @@ abstract class AbstractCoreColumn {
     }
 
     @computed private get allValuesAsSet() {
-        return new Set(this.allValues)
+        const slug = this.slug
+        return new Set(this.table.rows.map((row) => row[slug]))
     }
 
-    // True if the column has only 1 value
+    // True if the column has only 1 value. Looks at the (potentially) unparsed values.
     @computed get isConstant() {
         return this.allValuesAsSet.size === 1
     }
@@ -355,11 +346,6 @@ abstract class AbstractCoreColumn {
         return last(this.valuesAscending)!
     }
 
-    @computed private get allValues() {
-        const slug = this.spec.slug
-        return this.table.rows.map((row) => row[slug])
-    }
-
     @computed private get rowsWithParseErrors() {
         const slug = this.spec.slug
         return this.table.rows.filter((row) => row[slug] instanceof InvalidCell)
@@ -382,7 +368,7 @@ abstract class AbstractCoreColumn {
         return this.rowsWithValue.length
     }
 
-    @computed get parsedValues() {
+    @computed get parsedValues(): JS_TYPE[] {
         const slug = this.spec.slug
         return this.rowsWithValue.map((row) => row[slug])
     }
@@ -391,11 +377,15 @@ abstract class AbstractCoreColumn {
         return sortBy(this.parsedValues)
     }
 
+    @computed get uniqEntityNames(): EntityName[] {
+        return uniq(this.rowsWithValue.map((row) => row.entityName))
+    }
+
     @computed get owidRows() {
         return this.rowsWithValue.map((row, index) => {
             return {
-                entityName: this.entityNames[index],
-                time: this.times[index],
+                entityName: row.entityName,
+                time: row.time,
                 value: this.parsedValues[index],
             }
         })
@@ -414,7 +404,7 @@ abstract class AbstractCoreColumn {
     @computed get valueByEntityNameAndTime() {
         const valueByEntityNameAndTime = new Map<
             EntityName,
-            Map<Time, CellValue>
+            Map<Time, JS_TYPE>
         >()
         this.owidRows.forEach((row) => {
             if (!valueByEntityNameAndTime.has(row.entityName))
@@ -426,8 +416,8 @@ abstract class AbstractCoreColumn {
         return valueByEntityNameAndTime
     }
 
-    @computed get latestValuesMap() {
-        const map = new Map<EntityName, any>()
+    @computed private get latestValuesMap() {
+        const map = new Map<EntityName, JS_TYPE>()
         this.rowsWithValue.forEach((row) =>
             map.set(row.entityName, row[this.slug])
         )
@@ -439,14 +429,14 @@ abstract class AbstractCoreColumn {
     }
 }
 
-export type CoreColumn = AbstractCoreColumn
+export type CoreColumn = AbstractCoreColumn<any>
 
-export class LoadingColumn extends AbstractCoreColumn {
-    jsType = "string"
+export class LoadingColumn extends AbstractCoreColumn<any> {
+    jsType = JsTypes.string
 } // Todo: remove. A placeholder for now. Represents a column that has not loaded yet
 
-class StringColumn extends AbstractCoreColumn {
-    jsType = "string"
+class StringColumn extends AbstractCoreColumn<string> {
+    jsType = JsTypes.string
 
     parse(val: any) {
         if (val === null) return new NullButShouldBeString()
@@ -457,8 +447,8 @@ class StringColumn extends AbstractCoreColumn {
 
 class SeriesAnnotationColumn extends StringColumn {}
 
-class CategoricalColumn extends AbstractCoreColumn {
-    jsType = "string"
+class CategoricalColumn extends AbstractCoreColumn<string> {
+    jsType = JsTypes.string
 }
 class RegionColumn extends CategoricalColumn {}
 class ContinentColumn extends RegionColumn {}
@@ -466,15 +456,15 @@ class EntityIdColumn extends CategoricalColumn {}
 class EntityCodeColumn extends CategoricalColumn {}
 class EntityNameColumn extends CategoricalColumn {}
 class ColorColumn extends CategoricalColumn {}
-class BooleanColumn extends AbstractCoreColumn {
-    jsType = "boolean"
+class BooleanColumn extends AbstractCoreColumn<boolean> {
+    jsType = JsTypes.boolean
 
     parse(val: any) {
         return !!val
     }
 }
-class NumericColumn extends AbstractCoreColumn {
-    jsType = "number"
+class NumericColumn extends AbstractCoreColumn<number> {
+    jsType = JsTypes.number
     formatValueShort(value: number, options?: TickFormattingOptions) {
         const numDecimalPlaces = this.numDecimalPlaces
         return formatValue(value, {
@@ -482,6 +472,10 @@ class NumericColumn extends AbstractCoreColumn {
             numDecimalPlaces,
             ...options,
         })
+    }
+
+    @computed get isAllIntegers() {
+        return this.parsedValues.every((val) => val % 1 === 0)
     }
 
     @computed get sortedValues() {
@@ -530,8 +524,8 @@ class IntegerColumn extends NumericColumn {
     }
 }
 
-abstract class TimeColumn extends AbstractCoreColumn {
-    jsType = "number"
+abstract class TimeColumn extends AbstractCoreColumn<number> {
+    jsType = JsTypes.number
 
     parse(val: any) {
         return parseInt(val)

@@ -160,7 +160,9 @@ hi,1,,2001`
     const table = CoreTable.fromDelimited(csv)
 
     const annotationsColumn = table.get("notes")
-    const entityNameMap = annotationsColumn!.entityNameMap
+    const entityNameMap = annotationsColumn!.getUniqueValuesGroupedBy(
+        "entityName"
+    )
 
     expect(entityNameMap.size).toEqual(2)
     expect(entityNameMap.get("hi")).toContain("in millions")

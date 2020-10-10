@@ -2,9 +2,6 @@ import {
     ColumnTypeNames,
     CoreColumnSpec,
     CoreRow,
-    EntityCode,
-    EntityId,
-    EntityName,
     Integer,
     Time,
     Year,
@@ -25,6 +22,10 @@ enum OwidTableNames {
     Entity = "Entity",
     Code = "Code",
 }
+
+export type EntityName = string
+export type EntityCode = string
+export type EntityId = number
 
 export interface OwidColumnSpec extends CoreColumnSpec {
     owidVariableId?: LegacyVariableId
