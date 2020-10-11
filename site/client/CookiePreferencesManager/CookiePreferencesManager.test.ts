@@ -3,6 +3,7 @@
 import {
     PreferenceType,
     parseRawCookieValue,
+    parseDate,
     parsePreferences,
     updatePreference,
     getPreferenceValue,
@@ -22,14 +23,32 @@ describe("cookie preferences", () => {
     it("parses raw cookie value", () => {
         expect(parseRawCookieValue()).toBeUndefined()
         expect(parseRawCookieValue("")).toBeUndefined()
+        expect(parseRawCookieValue("abcd")).toBeUndefined()
+        expect(parseRawCookieValue("p:1")).toBeUndefined()
+        expect(parseRawCookieValue("p:1-46")).toBeUndefined()
+        expect(parseRawCookieValue("p:1-2020")).toBeUndefined()
+        expect(parseRawCookieValue("1-20201009")).toBeUndefined()
+        expect(parseRawCookieValue(":1-20201009")).toBeUndefined()
+        expect(parseRawCookieValue("x:1-20201009")).toBeUndefined()
         expect(parseRawCookieValue(serializedState)).toEqual({
             preferences,
             date,
         })
     })
+    it("parses date", () => {
+        expect(parseDate()).toBeUndefined()
+        expect(parseDate("")).toBeUndefined()
+        expect(parseDate("abcd")).toBeUndefined()
+        expect(parseDate("2020")).toBeUndefined()
+        expect(parseDate("20201032")).toBeUndefined()
+        expect(parseDate("20201001")).toEqual(20201001)
+    })
 
     it("parses preferences", () => {
+        expect(parsePreferences()).toEqual([])
+        expect(parsePreferences("")).toEqual([])
         expect(parsePreferences("p:1")).toEqual(preferences)
+        expect(parsePreferences("x:1")).toEqual([])
         expect(parsePreferences("p:1|m:0")).toEqual([
             ...preferences,
             { type: PreferenceType.Marketing, value: false },
@@ -65,40 +84,4 @@ describe("cookie preferences", () => {
         expect(arePreferencesOutdated(date, date)).toEqual(false)
         expect(arePreferencesOutdated(undefined, date)).toEqual(false)
     })
-
-    // it("gets consent values", () => {
-    //     expect(getPreference(PreferenceType.Performance)).toBeUndefined()
-    //     expect(getPreference(PreferenceType.Performance, "")).toBeUndefined()
-    //     expect(getPreference(PreferenceType.Performance, "x:2")).toBeUndefined()
-    //     expect(getPreference(PreferenceType.Performance, "p:1|v:0")).toEqual(1)
-    //     expect(getPreference(PreferenceType.Performance, "p:13|v:2")).toEqual(
-    //         13
-    //     )
-    //     expect(getPreference(PreferenceType.Version, "p:1|v:2")).toEqual(2)
-    // })
-
-    // it("sets consent values", () => {
-    //     expect(updatePreference(PreferenceType.Performance, 0)).toEqual("p:0")
-    //     expect(updatePreference(PreferenceType.Performance, 0, "")).toEqual(
-    //         "p:0"
-    //     )
-    //     expect(updatePreference(PreferenceType.Version, 1, "p:1")).toEqual(
-    //         "p:1|v:1"
-    //     )
-    // })
-
-    // it("updates consent values", () => {
-    //     expect(updatePreference(PreferenceType.Performance, 0, "p:1")).toEqual(
-    //         "p:0"
-    //     )
-    //     expect(
-    //         updatePreference(PreferenceType.Performance, 0, "p:1|v:0|n:1")
-    //     ).toEqual("v:0|n:1|p:0")
-    //     expect(
-    //         updatePreference(PreferenceType.Performance, 13, "p:1|v:0|n:1")
-    //     ).toEqual("v:0|n:1|p:13")
-    //     expect(
-    //         updatePreference(PreferenceType.Version, 1, "p:1|v:0|n:1")
-    //     ).toEqual("p:1|n:1|v:1")
-    // })
 })

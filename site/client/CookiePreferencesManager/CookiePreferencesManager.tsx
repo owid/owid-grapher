@@ -69,7 +69,7 @@ export const CookiePreferencesManager = ({
     }, [state])
 
     return (
-        <div className="cookie-manager">
+        <div data-test-policy-date={POLICY_DATE} className="cookie-manager">
             <CookieNotice
                 accepted={!!state.date}
                 outdated={arePreferencesOutdated(state.date, POLICY_DATE)}

@@ -30,6 +30,7 @@ export const CookieNotice = ({
             className={classnames("cookie-notice", {
                 open: mounted && (!accepted || outdated),
             })}
+            data-test="cookie-notice"
         >
             <div className="wrapper">
                 <div className="owid-row">
@@ -52,6 +53,7 @@ export const CookieNotice = ({
                                     payload: { date: getTodayDate() },
                                 })
                             }
+                            data-test="accept"
                         >
                             <span className="icon">
                                 <FontAwesomeIcon icon={faCheck} />

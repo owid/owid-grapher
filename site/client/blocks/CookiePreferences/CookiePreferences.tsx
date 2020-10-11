@@ -18,18 +18,20 @@ import slugify from "slugify"
 
 const CookiePreference = ({
     title,
+    name,
     consent,
     disabled,
     toggleConsent,
     children,
 }: {
     title: string
+    name: string
     consent: boolean
     disabled?: boolean
     toggleConsent?: any
     children: React.ReactNode
 }) => {
-    const id = `cookie-preference-${slugify(title, { lower: true })}`
+    const id = `cookie-preference-${slugify(name, { lower: true })}`
     return (
         <div className="cookie-preference">
             <label htmlFor={id}>{title}</label>
@@ -39,6 +41,7 @@ const CookiePreference = ({
                 onChange={toggleConsent}
                 checked={consent}
                 disabled={disabled}
+                data-test={`${name}-preference`}
             ></input>
             <div className="description">{children}</div>
         </div>
@@ -61,6 +64,7 @@ export const CookiePreferences = ({
         <div className="cookie-preferences">
             <CookiePreference
                 title="Necessary cookies"
+                name="necessary"
                 consent={true}
                 disabled={true}
             >
@@ -70,6 +74,7 @@ export const CookiePreferences = ({
             </CookiePreference>
             <CookiePreference
                 title="Performance cookies"
+                name="performance"
                 consent={getPreferenceValue(
                     PreferenceType.Performance,
                     preferences
