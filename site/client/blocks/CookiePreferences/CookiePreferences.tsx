@@ -1,13 +1,17 @@
+import moment from "moment"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import {
     Action,
+    DATE_FORMAT,
     getPreferenceValue,
     getTodayDate,
     Preference,
     PreferenceType,
 } from "site/client/CookiePreferencesManager/CookiePreferencesManager"
 import slugify from "slugify"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
 
 // Note: CookiePreferences has been designed to be rendered through a portal
 // only. When this becomes limiting (e.g. cookies preferences rendered both in
@@ -50,9 +54,11 @@ const CookiePreference = ({
 
 export const CookiePreferences = ({
     preferences,
+    date,
     dispatch,
 }: {
     preferences: Preference[]
+    date?: number
     dispatch: any
 }) => {
     const cookiePreferencesDomSlot = document.querySelector(
@@ -91,6 +97,28 @@ export const CookiePreferences = ({
             >
                 We use these cookies to monitor and improve website performance.
             </CookiePreference>
+            {date ? (
+                <div date-test-last-updated className="last-updated">
+                    Preferences last updated:{" "}
+                    {moment(date, DATE_FORMAT).format("LL")}
+                </div>
+            ) : (
+                <button
+                    className="owid-button"
+                    onClick={() =>
+                        dispatch({
+                            type: Action.Accept,
+                            payload: { date: getTodayDate() },
+                        })
+                    }
+                    data-test="accept"
+                >
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faCheck} />
+                    </span>{" "}
+                    I agree
+                </button>
+            )}
         </div>,
         cookiePreferencesDomSlot
     )

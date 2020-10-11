@@ -1,7 +1,19 @@
 .cookie-preferences {
     @include block-spacing;
     border: 2px solid $primary-color;
+
+    .last-updated {
+        font-size: 0.9rem;
+    }
+
+    button {
+        margin-top: $vertical-spacing;
+        .icon {
+            margin-right: 0.35rem;
+        }
+    }
 }
+
 .cookie-preference {
     margin-bottom: $vertical-spacing;
     &:last-child {
