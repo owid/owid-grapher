@@ -19,13 +19,17 @@ export class Spreadsheet extends React.Component<{
     @action.bound private updateFromHot() {
         const newVersion = this.hotTableComponent.current?.hotInstance.getData() as Grid
         if (newVersion && this.isChanged(newVersion))
-            this.manager.table = OwidTable.fromMatrix(
-                newVersion
+            this.manager.table = new OwidTable(
+                OwidTable.rowsFromMatrix(newVersion)
             ).setSelectedEntities(this.manager.table.selectedEntityNames)
     }
 
     private isChanged(newVersion: Grid) {
-        return OwidTable.fromMatrix(newVersion).toDelimited() !== this._version
+        return (
+            new OwidTable(
+                OwidTable.rowsFromMatrix(newVersion)
+            ).toDelimited() !== this._version
+        )
     }
 
     @computed private get manager() {

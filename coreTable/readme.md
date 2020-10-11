@@ -1,12 +1,12 @@
 # CoreTable
 
-This is our core tabular data structure class which parses JSON or delimited data and makes it available for charts. This class performs core transformations like filtering, grouping, etc.
+This is our core tabular data structure class which parses JSON or delimited data and makes it available for charts. This class performs core transformations like filtering, grouping, etc. This is roughly our "Pandas for TypeScript".
 
 Tables are immutable, so all transformations generate a new lightweight table. Changes made to a parent table flow down to child tables.
 
-CoreTable is a generic class operating on generic tabular structures.
+CoreTable is a general purpose class operating on any kind of table.
 
-OwidTable is a subset of CoreTable, with the distinction that every OwidTable has an entity (aka country) column, a time integer ( year, day, quarter, etc) column, and one or more any columns ("values"). OwidTable also includes additional meta data like Source info, needed by our charts.
+OwidTable is a subset of CoreTable, with the distinction that every OwidTable has an entity (aka country) column, a time integer ( year, day, quarter, etc) column, and one or more value columns. OwidTable also includes additional meta data like Source info, needed by our charts.
 
 Most of our charts are built for country changes over time, so take an OwidTable specifically.
 
@@ -29,7 +29,7 @@ Update: Arquero (https://github.com/uwdata/arquero) looks like a promising new a
 ## Design Notes
 
 -   The split between CoreTable and OwidTable is to ensure we minimize the delta between our data model and the common model in data science, with the bet that this may require use to maintain a lot less code in the long run.
--   Consolidating our transform code and switching from a variable model to a table model is a work-in-progress so currently there is still a fair amount of legacy code yet to be ported over.
+-   Consolidating our transform code and switching from a variable model to a table model is a work-in-progress so currently there is still some legacy code to be removed.
 -   This library should treat Node and the Browser both as first class targets. Even though our primary usage will be in the browser, ensuring a great Node experience will ensure a fast headless testing experience. We may also use this in a headless environment for running the same transform code on bigger datasets.
 -   Because our clients are reactive, we are using Mobx in this library. No reason that needs to be a hard dependency here if we remove that.
 -   At some point we may want to look into integrating with Apache Arrow JS (https://github.com/apache/arrow/tree/master/js).

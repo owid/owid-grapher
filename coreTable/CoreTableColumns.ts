@@ -6,7 +6,6 @@ import {
     formatYear,
     formatDay,
     isString,
-    sortedUniq,
     last,
     sortBy,
     uniq,
@@ -18,10 +17,9 @@ import {
     CoreRow,
     ColumnSlug,
     ColumnTypeNames,
-    TimeTolerance,
     Time,
 } from "./CoreTableConstants"
-import { EntityName } from "coreTable/OwidTableConstants"
+import { EntityName } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
 import {
     InvalidCell,
     NullButShouldBeString,
@@ -66,9 +64,9 @@ const rowTime = (row: CoreRow) =>
 
 abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     spec: CoreColumnSpec
-    table: CoreTable<CoreRow>
+    table: CoreTable<any>
 
-    constructor(table: CoreTable<CoreRow>, spec: CoreColumnSpec) {
+    constructor(table: CoreTable<any>, spec: CoreColumnSpec) {
         this.table = table
         this.spec = spec
     }
@@ -105,7 +103,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         const { numParseErrors, numValues } = this
         const basicStats: ColumnStats = {
             numParseErrors,
-            uniqueValues: this.valuesUniq.length,
+            uniqueValues: this.valuesAsSet.size,
             numValues,
         }
         if (!numValues) return basicStats
@@ -278,11 +276,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return !!this.display?.isProjection
     }
 
-    // todo: remove
-    @computed get valuesUniq() {
-        return Array.from(this.valuesAsSet)
-    }
-
     @computed private get valuesAsSet() {
         return new Set(this.parsedValues)
     }
@@ -295,47 +288,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // True if the column has only 1 value. Looks at the (potentially) unparsed values.
     @computed get isConstant() {
         return this.allValuesAsSet.size === 1
-    }
-
-    // todo: remove
-    @computed get times(): Time[] {
-        return this.rowsWithValue.map((row) => rowTime(row))
-    }
-
-    @computed get timesUniq() {
-        return sortedUniq(this.times)
-    }
-
-    @computed get hasMultipleTimes() {
-        return this.timesUniq.length > 1
-    }
-
-    @computed get timeTarget(): [Time, TimeTolerance] {
-        return [this.endTimelineTime, this.tolerance]
-    }
-
-    @computed get targetTimes(): [Time, Time] {
-        return [this.startTimelineTime, this.endTimelineTime]
-    }
-
-    @computed get startTimelineTime() {
-        return this.minTime
-    }
-
-    @computed get endTimelineTime() {
-        return this.maxTime
-    }
-
-    @computed get timelineTimes() {
-        return this.timesUniq
-    }
-
-    @computed get maxTime() {
-        return last(this.timesUniq)!
-    }
-
-    @computed get minTime() {
-        return this.timesUniq[0]
     }
 
     @computed get minValue() {
@@ -377,20 +329,44 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return sortBy(this.parsedValues)
     }
 
+    // todo: remove. should not be on coretable
+    @computed get allTimes(): Time[] {
+        return this.rowsWithValue.map((row) => rowTime(row))
+    }
+
+    // todo: remove. should not be on coretable
+    @computed get uniqTimes(): Time[] {
+        return uniq(this.allTimes)
+    }
+
+    // todo: remove. should not be on coretable
+    @computed get maxTime() {
+        return last(this.uniqTimes) as Time
+    }
+
+    // todo: remove. should not be on coretable
+    @computed get minTime(): Time {
+        return this.uniqTimes[0]
+    }
+
+    // todo: remove? Should not be on CoreTable
     @computed get uniqEntityNames(): EntityName[] {
         return uniq(this.rowsWithValue.map((row) => row.entityName))
     }
 
+    // todo: remove? Should not be on CoreTable
     @computed get owidRows() {
+        const times = this.allTimes
         return this.rowsWithValue.map((row, index) => {
             return {
                 entityName: row.entityName,
-                time: row.time,
+                time: times[index],
                 value: this.parsedValues[index],
             }
         })
     }
 
+    // todo: remove? Should not be on CoreTable
     @computed get owidRowsByEntityName() {
         const map = new Map<EntityName, CoreRow[]>()
         this.owidRows.forEach((row) => {
@@ -400,7 +376,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return map
     }
 
-    // todo: remove? at least should not be on CoreTable
+    // todo: remove? Should not be on CoreTable
     @computed get valueByEntityNameAndTime() {
         const valueByEntityNameAndTime = new Map<
             EntityName,
@@ -416,6 +392,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return valueByEntityNameAndTime
     }
 
+    // todo: remove? Should not be on CoreTable
     @computed private get latestValuesMap() {
         const map = new Map<EntityName, JS_TYPE>()
         this.rowsWithValue.forEach((row) =>
@@ -424,6 +401,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return map
     }
 
+    // todo: remove? Should not be on CoreTable
     getLatestValueForEntity(entityName: string) {
         return this.latestValuesMap.get(entityName)
     }
@@ -452,9 +430,6 @@ class CategoricalColumn extends AbstractCoreColumn<string> {
 }
 class RegionColumn extends CategoricalColumn {}
 class ContinentColumn extends RegionColumn {}
-class EntityIdColumn extends CategoricalColumn {}
-class EntityCodeColumn extends CategoricalColumn {}
-class EntityNameColumn extends CategoricalColumn {}
 class ColorColumn extends CategoricalColumn {}
 class BooleanColumn extends AbstractCoreColumn<boolean> {
     jsType = JsTypes.boolean
@@ -637,6 +612,11 @@ class RatioColumn extends NumericColumn {
         })
     }
 }
+
+// todo: remove. should not be in coretable
+class EntityIdColumn extends CategoricalColumn {}
+class EntityCodeColumn extends CategoricalColumn {}
+class EntityNameColumn extends CategoricalColumn {}
 
 export const ColumnTypeMap: { [key in ColumnTypeNames]: any } = {
     String: StringColumn,

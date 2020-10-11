@@ -102,16 +102,13 @@ export class AbstactStackedChart
     }
 
     @computed private get horizontalAxisPart() {
-        const { startTimelineTime, endTimelineTime } = this.yColumns[0]
+        const { minTime, maxTime } = this.yColumns[0]
         const axisConfig =
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
         if (this.manager.hideXAxis) axisConfig.hideAxis = true
 
         const axis = axisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings([
-            startTimelineTime,
-            endTimelineTime,
-        ])
+        axis.updateDomainPreservingUserSettings([minTime, maxTime])
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true

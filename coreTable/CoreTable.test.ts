@@ -189,3 +189,32 @@ it("can rename a column", () => {
         "year",
     ])
 })
+
+it("can load a table from an array of arrays", () => {
+    const sampleRows = [
+        {
+            year: 2020,
+            time: 2020,
+            entityName: "United States",
+            population: 3e8,
+            entityId: 1,
+            entityCode: "USA",
+        },
+    ]
+    const matrix = [
+        Object.keys(sampleRows[0]),
+        Object.values(sampleRows[0]),
+    ] as any[][]
+    const table = new CoreTable(CoreTable.rowsFromMatrix(matrix))
+    expect(table.numRows).toEqual(1)
+    expect(table.numColumns).toEqual(6)
+    expect(table.toMatrix()).toEqual(matrix)
+
+    const tableTrim = new CoreTable(
+        CoreTable.rowsFromMatrix([
+            ["country", null],
+            ["usa", undefined],
+        ])
+    )
+    expect(tableTrim.toMatrix()).toEqual([["country"], ["usa"]])
+})

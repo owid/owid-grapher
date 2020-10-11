@@ -20,6 +20,7 @@ import {
     SlideShowController,
     SlideShowManager,
 } from "grapher/slideshowController/SlideShowController"
+import { OwidRow } from "coreTable/OwidTableConstants"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -85,7 +86,7 @@ export class SwitcherExplorer
             .map((entityName) => {
                 return {
                     entityName,
-                }
+                } as OwidRow
             })
         this.countryPickerTable = this.countryPickerTable.withRows(
             missingEntities

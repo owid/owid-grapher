@@ -26,23 +26,6 @@ it("can create a table and detect columns", () => {
     expect(table.numColumns).toEqual(6)
 })
 
-it("can load a table from an array of arrays", () => {
-    const matrix = [
-        Object.keys(sampleRows[0]),
-        Object.values(sampleRows[0]),
-    ] as any[][]
-    const table = OwidTable.fromMatrix(matrix)
-    expect(table.numRows).toEqual(1)
-    expect(table.numColumns).toEqual(6)
-    expect(table.toMatrix()).toEqual(matrix)
-
-    const tableTrim = OwidTable.fromMatrix([
-        ["country", null],
-        ["usa", undefined],
-    ])
-    expect(tableTrim.toMatrix()).toEqual([["country"], ["usa"]])
-})
-
 it("can create a new table by adding a column", () => {
     const table = new OwidTable(sampleRows, [
         {

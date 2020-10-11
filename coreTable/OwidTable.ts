@@ -6,24 +6,18 @@ import {
     intersectionOfSets,
     findClosestTimeIndex,
     sum,
-    Grid,
-    trimGrid,
-    getDropIndexes,
     flatten,
     uniq,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
-    SortOrder,
     ColumnTypeNames,
     ColumnSlug,
     Integer,
     CoreRow,
-    CoreColumnSpec,
     Time,
 } from "coreTable/CoreTableConstants"
 import { CoreTable } from "./CoreTable"
-import { DroppedForTesting } from "./InvalidCells"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
@@ -44,7 +38,7 @@ const rowTime = (row: CoreRow) =>
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
-export class OwidTable extends CoreTable<OwidRow> {
+export class OwidTable extends CoreTable<OwidTable, OwidRow> {
     static fromDelimited(csvOrTsv: string, specs: OwidColumnSpec[] = []) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
@@ -159,24 +153,9 @@ export class OwidTable extends CoreTable<OwidRow> {
             flatten(
                 this.getColumns(columnSlugs)
                     .filter((col) => col)
-                    .map((col) => col.timelineTimes)
+                    .map((col) => col.uniqTimes)
             )
         ).sort()
-    }
-
-    private rowsBy<T>(columnSlug: ColumnSlug) {
-        const map = new Map<T, OwidRow[]>()
-        this.rows.forEach((row) => {
-            const key = row[columnSlug]
-            if (!map.has(key)) map.set(key, [])
-            map.get(key)!.push(row)
-        })
-        return map
-    }
-
-    // Todo: figure out correct inheritance method here
-    get rootTable(): OwidTable {
-        return this.parent ? (this.parent.rootTable as OwidTable) : this
     }
 
     copySelectionFrom(table: OwidTable) {
@@ -204,99 +183,12 @@ export class OwidTable extends CoreTable<OwidRow> {
         }, `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`)
     }
 
-    withoutRows(rows: OwidRow[]) {
-        const set = new Set(rows)
-        return this.filterBy(
-            (row) => !set.has(row),
-            `Dropping ${rows.length} rows`
-        )
-    }
-
-    // for testing. Preserves ordering.
-    dropRandomRows(howMany = 1, seed = Date.now()) {
-        if (!howMany) return this // todo: clone?
-        const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
-        return this.filterBy(
-            (row, index) => !indexesToDrop.has(index),
-            `Dropping a random ${howMany} rows`
-        )
-    }
-
-    dropRandomCells(
-        howMany = 1,
-        columnSlugs: ColumnSlug[] = [],
-        seed = Date.now()
-    ) {
-        const specs = this.columnsAsArray.map((col) => {
-            const { spec } = col
-            if (!columnSlugs.includes(col.slug)) return spec
-            const indexesToDrop = getDropIndexes(
-                col.parsedValues.length,
-                howMany,
-                seed
-            )
-            return {
-                ...spec,
-                fn: (row: OwidRow, index: number) =>
-                    indexesToDrop.has(index)
-                        ? new DroppedForTesting()
-                        : row[col.slug],
-            }
-        })
-        return new (this.constructor as any)(
-            this.rows,
-            specs,
-            this,
-            `Dropped ${howMany} cells in ${columnSlugs}`
-        )
-    }
-
-    dropRandomPercent(dropHowMuch = 1, seed = Date.now()) {
-        return this.dropRandomRows(
-            Math.floor((dropHowMuch / 100) * this.numRows),
-            seed
-        )
-    }
-
     filterByPopulation(minPop: number) {
         return this.filterBy((row) => {
             const name = row.entityName
             const pop = populationMap[name]
             return !pop || this.isSelected(row) || pop >= minPop
         }, `Filter out countries with population less than ${minPop}`)
-    }
-
-    // todo: speed up
-    // todo: how can we just use super method?
-    filterBy(
-        predicate: (row: OwidRow, index: number) => boolean,
-        opName: string
-    ): OwidTable {
-        return super.filterBy(predicate as any, opName) as OwidTable
-    }
-
-    filterBySelectedOnly() {
-        return this.filterBy(
-            (row) => this.isSelected(row),
-            `Selected rows only`
-        )
-    }
-
-    filterByFullColumnsOnly(slugs: ColumnSlug[]) {
-        return this.filterBy(
-            (row) =>
-                slugs.every(
-                    (slug) => row[slug] !== null && row[slug] !== undefined
-                ),
-            `Dropping rows missing a value for any of ${slugs.join(",")}`
-        )
-    }
-
-    filterNegativesForLogScale(columnSlug: ColumnSlug) {
-        return this.filterBy(
-            (row) => row[columnSlug] > 0,
-            `Remove rows if ${columnSlug} is <= 0 for log scale`
-        )
     }
 
     filterByTargetTime(targetTime: Time, tolerance: Integer) {
@@ -408,10 +300,6 @@ export class OwidTable extends CoreTable<OwidRow> {
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): OwidTable {
-        return super.sortBy(slugs, orders) as OwidTable
-    }
-
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
     toPrettyCsv() {
         return this.withoutConstantColumns()
@@ -502,7 +390,7 @@ export class OwidTable extends CoreTable<OwidRow> {
         return this.selectedEntityNames.length
     }
 
-    @computed get selectedEntityNameSet() {
+    @computed private get selectedEntityNameSet() {
         return new Set<EntityName>(
             Array.from(this.selectedRows.values()).map((row) => row.entityName)
         )
@@ -537,33 +425,10 @@ export class OwidTable extends CoreTable<OwidRow> {
         return this.deselectRows(this.rowsByEntityName.get(entityName) ?? [])
     }
 
-    // todo: how do I make this generic and on CoreTable?
-    withColumns(columns: CoreColumnSpec[]): OwidTable {
-        return new (this.constructor as any)(
-            this.rows,
-            this.specs.concat(columns),
-            this,
-            `Added new columns ${columns.map((spec) => spec.slug)}`
-        )
-    }
-
     getColorForEntityName(entityName: string) {
-        return this.get("entityColor")?.getLatestValueForEntity(entityName)
-    }
-
-    specToObject() {
-        const output: any = {}
-        this.columnsAsArray.forEach((col) => {
-            output[col.slug] = col.spec
-        })
-        return output
-    }
-
-    toJs() {
-        return {
-            columns: this.specToObject(),
-            rows: this.rows,
-        }
+        return this.get(OwidTableSlugs.entityColor)?.getLatestValueForEntity(
+            entityName
+        )
     }
 
     entitiesWith(columnSlugs: string[]): Set<string> {
@@ -574,19 +439,6 @@ export class OwidTable extends CoreTable<OwidRow> {
         return intersectionOfSets<string>(
             columnSlugs.map((slug) => new Set(this.get(slug)!.uniqEntityNames))
         )
-    }
-
-    static fromMatrix(inputTable: Grid) {
-        const table = trimGrid(inputTable)
-        const header = table[0]
-        const rows = table.slice(1).map((row) => {
-            const newRow: any = {}
-            header.forEach((col, index) => {
-                newRow[col] = row[index]
-            })
-            return newRow as OwidRow
-        })
-        return new OwidTable(rows)
     }
 
     // This takes both the Variables and Dimensions data and generates an OwidTable.

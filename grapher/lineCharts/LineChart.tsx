@@ -716,8 +716,8 @@ export class LineChart
         const axis = axisConfig.toHorizontalAxis()
         const yColumn = this.yColumns[0]
         axis.updateDomainPreservingUserSettings([
-            yColumn.startTimelineTime,
-            yColumn.endTimelineTime,
+            yColumn.minTime,
+            yColumn.maxTime,
         ])
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]

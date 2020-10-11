@@ -338,11 +338,11 @@ export class DiscreteBarChart
 
     private formatValue(series: DiscreteBarSeries) {
         const column = this.rootYColumn
-        const { endTimelineTime } = column
+        const { maxTime } = column
         const { table } = this
 
         const showYearLabels =
-            this.manager.showYearLabels || series.time !== endTimelineTime
+            this.manager.showYearLabels || series.time !== maxTime
         const displayValue = column.formatValueShort(series.value)
         return (
             displayValue +
@@ -361,11 +361,10 @@ export class DiscreteBarChart
     }
 
     @computed get table() {
-        const { rootYColumn } = this
-        const slug = rootYColumn.slug
+        const { slug, maxTime, tolerance } = this.rootYColumn
         let table = this.inputTable
             .filterBySelectedOnly()
-            .filterByTargetTime(...rootYColumn.timeTarget)
+            .filterByTargetTime(maxTime, tolerance)
 
         if (this.isLogScale) table = table.filterNegativesForLogScale(slug)
         return table.sortBy(
@@ -381,7 +380,7 @@ export class DiscreteBarChart
     @computed private get valuesToColorsMap() {
         const { manager, yColumn } = this
         // todo: Restore if derived from line chart, use line chart colors
-        const uniqValues = yColumn.timesUniq
+        const uniqValues = yColumn.uniqTimes
         const colorScheme = manager.baseColorScheme
             ? ColorSchemes[manager.baseColorScheme]
             : undefined

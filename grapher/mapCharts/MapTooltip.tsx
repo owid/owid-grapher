@@ -131,7 +131,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed private get inputTime() {
-        return this.mapColumn!.endTimelineTime
+        return this.mapColumn!.maxTime
     }
 
     render() {

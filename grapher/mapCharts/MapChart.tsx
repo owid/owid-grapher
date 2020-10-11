@@ -185,7 +185,7 @@ export class MapChart
     @computed get series(): ChoroplethSeries[] {
         const { mapConfig, mapColumn, table } = this
         if (!mapColumn) return []
-        const endTime = mapColumn.endTimelineTime
+        const endTime = mapColumn.maxTime
         if (endTime === undefined) return []
 
         const valueByEntityAndTime = mapColumn.valueByEntityNameAndTime

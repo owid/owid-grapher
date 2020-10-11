@@ -38,13 +38,12 @@ export class SourcesTab extends React.Component<{
             ? `${this.props.manager.adminBaseUrl}/admin/datasets/${spec.datasetId}`
             : undefined
 
-        const minYear = min(column.times)
-        const maxYear = max(column.times)
+        const { minTime, maxTime } = column
         let timespan = ""
-        if (minYear !== undefined && maxYear !== undefined)
+        if (minTime !== undefined && maxTime !== undefined)
             timespan = `${table.timeColumn?.formatValue(
-                minYear
-            )} – ${table.timeColumn?.formatValue(maxYear)}`
+                minTime
+            )} – ${table.timeColumn?.formatValue(maxTime)}`
 
         return (
             <div key={spec.slug} className="datasource-wrapper">

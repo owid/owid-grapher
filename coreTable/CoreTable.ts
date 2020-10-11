@@ -7,6 +7,9 @@ import {
     max,
     last,
     orderBy,
+    getDropIndexes,
+    Grid,
+    trimGrid,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
@@ -24,22 +27,26 @@ import {
     toDelimited,
     toMarkdownTable,
 } from "./CoreTablePrinters"
+import { DroppedForTesting } from "./InvalidCells"
 
 // The complex generic with default here just enables you to optionally specify a more
 // narrow interface for the input rows. This is helpful for OwidTable.
-export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
-    private _inputRows: INPUT_ROW_TYPE[]
-    @observable.ref private _rows: INPUT_ROW_TYPE[] // todo: might these rows be transformed into a new type? Are they still guaranteed to implement that row interface?
+export class CoreTable<
+    TABLE_TYPE extends CoreTable<any>,
+    ROW_TYPE extends CoreRow = CoreRow
+> {
+    private _inputRows: ROW_TYPE[]
+    @observable.ref private _rows: ROW_TYPE[]
     @observable private _columns: Map<ColumnSlug, CoreColumn>
-    @observable.shallow protected selectedRows = new Set<CoreRow>()
+    @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
 
-    protected parent?: CoreTable<INPUT_ROW_TYPE>
+    protected parent?: TABLE_TYPE
     private tableDescription?: string
 
     constructor(
-        rows: INPUT_ROW_TYPE[] = [],
+        rows: ROW_TYPE[] = [],
         columnSpecs: CoreColumnSpec[] = [],
-        parentTable?: CoreTable<INPUT_ROW_TYPE>,
+        parentTable?: TABLE_TYPE,
         tableDescription?: string
     ) {
         this._inputRows = rows // Save a reference to original rows for debugging.
@@ -65,7 +72,7 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
         if (parentTable) this.copySelectionFrom(parentTable)
     }
 
-    private _autodetectAndSpecs(rows: INPUT_ROW_TYPE[]) {
+    private _autodetectAndSpecs(rows: ROW_TYPE[]) {
         Object.keys(rows[0])
             .filter((slug) => !this.has(slug))
             .forEach((slug) => {
@@ -78,7 +85,7 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
             })
     }
 
-    private _buildRows(columnSpecs: CoreColumnSpec[], rows: INPUT_ROW_TYPE[]) {
+    private _buildRows(columnSpecs: CoreColumnSpec[], rows: ROW_TYPE[]) {
         const firstRow = rows[0]
         const colsToParse = this.getColumnsToParse(firstRow)
         const computeds = columnSpecs.filter((spec) => spec.fn)
@@ -92,16 +99,17 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
                 computeds.forEach((spec) => {
                     newRow[spec.slug] = spec.fn!(row, index)
                 })
-                return newRow as INPUT_ROW_TYPE
+                return newRow as ROW_TYPE
             })
         return rows
     }
 
-    // todo
-    copySelectionFrom(table: any) {}
+    copySelectionFrom(table: any) {
+        // todo? Do we need a notion of selection outside of OwidTable?
+    }
 
     // For now just examine the first row, and if anything bad is found, reparse that column
-    private getColumnsToParse(firstRow: CoreRow) {
+    private getColumnsToParse(firstRow: ROW_TYPE) {
         if (!firstRow) return []
 
         return this.columnsAsArray.filter(
@@ -166,12 +174,25 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
         return this.numColumnsWithParseErrors
     }
 
-    get rootTable(): CoreTable {
+    get rootTable(): TABLE_TYPE {
         return this.parent ? this.parent.rootTable : this
     }
 
+    protected rowsBy<T>(columnSlug: ColumnSlug) {
+        const map = new Map<T, ROW_TYPE[]>()
+        this.rows.forEach((row) => {
+            const key = row[columnSlug]
+            if (!map.has(key)) map.set(key, [])
+            map.get(key)!.push(row)
+        })
+        return map
+    }
+
     // todo: speed up
-    filterBy(predicate: (row: CoreRow) => boolean, opName: string): CoreTable {
+    filterBy(
+        predicate: (row: ROW_TYPE, index: number) => boolean,
+        opName: string
+    ): TABLE_TYPE {
         return new (this.constructor as any)(
             this.rows.filter(predicate),
             this.specs,
@@ -180,7 +201,7 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): CoreTable {
+    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): TABLE_TYPE {
         return new (this.constructor as any)(
             orderBy(this.rows, slugs, orders),
             this.specs,
@@ -220,11 +241,11 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
             .map((col) => col.slug)
     }
 
-    isSelected(row: CoreRow) {
+    isSelected(row: ROW_TYPE) {
         return this.selectedRows.has(row)
     }
 
-    @action.bound selectRows(rows: CoreRow[]) {
+    @action.bound selectRows(rows: ROW_TYPE[]) {
         rows.forEach((row) => {
             this.selectedRows.add(row)
         })
@@ -235,7 +256,7 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
         return this.selectRows(this.rows)
     }
 
-    @action.bound deselectRows(rows: CoreRow[]) {
+    @action.bound deselectRows(rows: ROW_TYPE[]) {
         rows.forEach((row) => {
             this.selectedRows.delete(row)
         })
@@ -366,7 +387,7 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
-    withRows(rows: CoreRow[]): CoreTable {
+    withRows(rows: ROW_TYPE[]): TABLE_TYPE {
         return new (this.constructor as any)(
             [...this.rows, ...rows],
             this.specs,
@@ -396,7 +417,7 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
 
     withTransformedSpecs(
         fn: (spec: CoreColumnSpec) => CoreColumnSpec
-    ): CoreTable {
+    ): TABLE_TYPE {
         return new (this.constructor as any)(
             this.rows,
             this.specs.map(fn),
@@ -405,12 +426,12 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    withoutConstantColumns(): CoreTable {
+    withoutConstantColumns(): TABLE_TYPE {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
     }
 
-    withoutColumns(slugs: ColumnSlug[], message?: string): CoreTable {
+    withoutColumns(slugs: ColumnSlug[], message?: string): TABLE_TYPE {
         const columnsToDrop = new Set(slugs)
         const specs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
@@ -434,8 +455,123 @@ export class CoreTable<INPUT_ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
+    withoutRows(rows: ROW_TYPE[]) {
+        const set = new Set(rows)
+        return this.filterBy(
+            (row) => !set.has(row),
+            `Dropping ${rows.length} rows`
+        )
+    }
+
+    // for testing. Preserves ordering.
+    dropRandomRows(howMany = 1, seed = Date.now()) {
+        if (!howMany) return this // todo: clone?
+        const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
+        return this.filterBy(
+            (row, index) => !indexesToDrop.has(index),
+            `Dropping a random ${howMany} rows`
+        )
+    }
+
+    dropRandomCells(
+        howMany = 1,
+        columnSlugs: ColumnSlug[] = [],
+        seed = Date.now()
+    ) {
+        const specs = this.columnsAsArray.map((col) => {
+            const { spec } = col
+            if (!columnSlugs.includes(col.slug)) return spec
+            const indexesToDrop = getDropIndexes(
+                col.parsedValues.length,
+                howMany,
+                seed
+            )
+            return {
+                ...spec,
+                fn: (row: ROW_TYPE, index: number) =>
+                    indexesToDrop.has(index)
+                        ? new DroppedForTesting()
+                        : row[col.slug],
+            }
+        })
+        return new (this.constructor as any)(
+            this.rows,
+            specs,
+            this,
+            `Dropped ${howMany} cells in ${columnSlugs}`
+        )
+    }
+
+    dropRandomPercent(dropHowMuch = 1, seed = Date.now()) {
+        return this.dropRandomRows(
+            Math.floor((dropHowMuch / 100) * this.numRows),
+            seed
+        )
+    }
+
+    filterBySelectedOnly() {
+        return this.filterBy(
+            (row) => this.isSelected(row),
+            `Selected rows only`
+        )
+    }
+
+    filterByFullColumnsOnly(slugs: ColumnSlug[]) {
+        return this.filterBy(
+            (row) =>
+                slugs.every(
+                    (slug) => row[slug] !== null && row[slug] !== undefined
+                ),
+            `Dropping rows missing a value for any of ${slugs.join(",")}`
+        )
+    }
+
+    filterNegativesForLogScale(columnSlug: ColumnSlug) {
+        return this.filterBy(
+            (row) => row[columnSlug] > 0,
+            `Remove rows if ${columnSlug} is <= 0 for log scale`
+        )
+    }
+
+    // todo: how do I make this generic and on CoreTable?
+    withColumns(columns: CoreColumnSpec[]): TABLE_TYPE {
+        return new (this.constructor as any)(
+            this.rows,
+            this.specs.concat(columns),
+            this,
+            `Added new columns ${columns.map((spec) => spec.slug)}`
+        )
+    }
+
     toMatrix() {
         return [this.columnSlugs, ...this.extract()]
+    }
+
+    static rowsFromMatrix(inputTable: Grid) {
+        const table = trimGrid(inputTable)
+        const header = table[0]
+        return table.slice(1).map((row) => {
+            const newRow: any = {}
+            header.forEach((col, index) => {
+                newRow[col] = row[index]
+            })
+            return newRow
+        })
+    }
+
+    specToObject() {
+        const output: any = {}
+        this.columnsAsArray.forEach((col) => {
+            output[col.slug] = col.spec
+        })
+        return output
+    }
+
+    toJs() {
+        return {
+            columns: this.specToObject(),
+            rows: this.rows,
+        }
     }
 
     static fromDelimited(csvOrTsv: string, specs?: CoreColumnSpec[]) {

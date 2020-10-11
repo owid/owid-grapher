@@ -131,7 +131,7 @@ class VariableEditRow extends React.Component<{
             grapher.addCountryMode = EntitySelectionMode.SingleEntity
         } else {
             grapher.addCountryMode = EntitySelectionMode.MultipleEntities
-            if (grapher.filledDimensions[0].column.timesUniq.length === 1) {
+            if (grapher.filledDimensions[0].column.uniqTimes.length === 1) {
                 grapher.type = ChartTypeName.DiscreteBar
                 table.setSelectedEntities(
                     availableEntityNames.length > 15

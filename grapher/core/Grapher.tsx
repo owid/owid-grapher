@@ -587,7 +587,7 @@ export class Grapher
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === GrapherTabOption.map)
-            return this.inputTable.get(this.mapColumnSlug)!.timelineTimes || []
+            return this.inputTable.get(this.mapColumnSlug)!.uniqTimes || []
         // todo: filter out min times and end times?
         return this.inputTable.getTimeOptionsForColumns(this.yColumnSlugs)
     }
@@ -597,7 +597,7 @@ export class Grapher
         const activeTab = this.tab
         if (activeTab === GrapherTabOption.table) return this.timelineFilter[0]
         if (activeTab === GrapherTabOption.map)
-            return this.mapColumn?.endTimelineTime || 1900 // always use end time for maps
+            return this.mapColumn?.maxTime || 1900 // always use end time for maps
         if (this.isBarChartRace) return this.endTime
         return this.timelineFilter[0] || 1900
     }
@@ -625,7 +625,7 @@ export class Grapher
     @computed get endTime(): Time {
         const activeTab = this.tab
         if (activeTab === GrapherTabOption.map)
-            return this.mapColumn?.endTimelineTime || 2000
+            return this.mapColumn?.maxTime || 2000
         return this.timelineFilter[1] || 2000
     }
 
@@ -919,7 +919,11 @@ export class Grapher
     }
 
     @computed get mapHasTimeline() {
-        return !this.map.hideTimeline && this.mapColumn?.hasMultipleTimes
+        return (
+            !this.map.hideTimeline &&
+            this.mapColumn &&
+            this.mapColumn.uniqTimes.length > 1
+        )
     }
 
     @computed get mapColumn() {
