@@ -3,7 +3,7 @@ import * as ReactDOM from "react-dom"
 import {
     Action,
     getPreferenceValue,
-    POLICY_DATE,
+    getTodayDate,
     Preference,
     PreferenceType,
 } from "site/client/CookiePreferencesManager/CookiePreferencesManager"
@@ -79,7 +79,7 @@ export const CookiePreferences = ({
                         type: Action.TogglePreference,
                         payload: {
                             preferenceType: PreferenceType.Performance,
-                            date: POLICY_DATE,
+                            date: getTodayDate(),
                         },
                     })
                 }

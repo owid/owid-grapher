@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
 import {
     Action,
-    POLICY_DATE,
+    getTodayDate,
 } from "./CookiePreferencesManager/CookiePreferencesManager"
 
 export const CookieNotice = ({
@@ -49,7 +49,7 @@ export const CookieNotice = ({
                             onClick={() =>
                                 dispatch({
                                     type: Action.Accept,
-                                    payload: { date: POLICY_DATE },
+                                    payload: { date: getTodayDate() },
                                 })
                             }
                         >

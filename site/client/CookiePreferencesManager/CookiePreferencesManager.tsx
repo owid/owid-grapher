@@ -182,6 +182,10 @@ export const serializeState = (state: State) => {
     return `${serializedPreferences}${DATE_SEPARATOR}${state.date}`
 }
 
+export const getTodayDate = () => {
+    return moment().format(DATE_FORMAT)
+}
+
 export const runCookiePreferencesManager = () => {
     const div = document.createElement("div")
     document.body.appendChild(div)
