@@ -82,6 +82,7 @@ describe("cookie preferences", () => {
     it("checks if preferences are outdated", () => {
         expect(arePreferencesOutdated(date - 1, date)).toEqual(true)
         expect(arePreferencesOutdated(date, date)).toEqual(false)
+        expect(arePreferencesOutdated(date + 1, date)).toEqual(false)
         expect(arePreferencesOutdated(undefined, date)).toEqual(false)
     })
 })
