@@ -1,4 +1,4 @@
-import { cloneDeep } from "grapher/utils/Util"
+import { cloneDeep, isPresent } from "grapher/utils/Util"
 import { OwidTable } from "coreTable/OwidTable"
 import { OwidColumnDef } from "coreTable/OwidTableConstants"
 import {
@@ -58,13 +58,11 @@ export class CovidExplorerTable extends OwidTable {
         }) as CovidExplorerTable // todo: fix typings
     }
 
-    private withColumn(
+    private makeColumnDef(
         params: CovidConstrainedQueryParams,
         rowFn: ComputedColumnFn
-    ): CovidExplorerTable {
+    ) {
         const def = makeColumnDefFromParams(params, this.columnDefTemplates)
-        if (this.has(def.slug)) return this
-
         const { metricName, perCapitaAdjustment, smoothing } = params
 
         // The 7 day test smoothing is already calculated, so for now just reuse that instead of recalculating.
@@ -92,24 +90,21 @@ export class CovidExplorerTable extends OwidTable {
         }
 
         if (smoothing && !alreadySmoothed)
-            return this.withRollingAverageColumn(
+            return this.makeRollingAverageColumnDef(
                 def,
                 rowFn,
                 smoothing,
                 params.isWeekly || params.isBiweekly,
                 params.intervalChange !== undefined
             )
-
         def.fn = rowFn
-        return this.withColumns([def]) as CovidExplorerTable
+        return def
     }
 
-    private withNewCasesSmoothedColumn(smoothing: SmoothingOption) {
-        const slug = `new_cases_smoothed_${smoothing}day`
-        if (this.has(slug)) return this
-        return this.withRollingAverageColumn(
+    private makeNewCasesSmoothedColumnDef(smoothing: SmoothingOption) {
+        return this.makeRollingAverageColumnDef(
             {
-                slug,
+                slug: `new_cases_smoothed_${smoothing}day`,
                 type: ColumnTypeNames.Ratio,
             },
             (row) => row.new_cases,
@@ -118,22 +113,24 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     // todo: remove these ops from here and move to CoreTable
-    withRollingAverageColumn(
+    makeRollingAverageColumnDef(
         def: CoreColumnDef,
         valueAccessor: (row: CoreRow) => any,
         windowSize: Integer,
         multiplyByWindowSize = false,
         convertToPercentChangeOverWindow = false
     ) {
-        const averages = computeRollingAveragesForEachGroup(
-            this.rows,
-            valueAccessor,
-            "entityName",
-            "day",
-            windowSize
-        )
+        let averages: number[]
 
         def.fn = (row, index) => {
+            if (!averages)
+                averages = computeRollingAveragesForEachGroup(
+                    this.rows,
+                    valueAccessor,
+                    "entityName",
+                    "day",
+                    windowSize
+                )
             const val = averages[index!]
             if (!convertToPercentChangeOverWindow)
                 return val ? val * (multiplyByWindowSize ? windowSize : 1) : val
@@ -143,7 +140,7 @@ export class CovidExplorerTable extends OwidTable {
                 : (100 * (val - previousValue)) / previousValue
         }
 
-        return this.withColumns([def]) as CovidExplorerTable
+        return def
     }
 
     columnSlugsToShowInDataTable(params: CovidConstrainedQueryParams) {
@@ -210,63 +207,70 @@ export class CovidExplorerTable extends OwidTable {
         ) as CovidExplorerTable
     }
 
-    withTestingColumn(params: CovidConstrainedQueryParams) {
+    makeTestingColumnDef(params: CovidConstrainedQueryParams) {
         if (params.interval === IntervalOptions.daily)
-            return this.withColumn(params, (row) => row.new_tests)
+            return this.makeColumnDef(params, (row) => row.new_tests)
         if (params.interval === IntervalOptions.smoothed)
-            return this.withColumn(params, (row) => row.new_tests_smoothed)
+            return this.makeColumnDef(params, (row) => row.new_tests_smoothed)
         if (params.interval === IntervalOptions.total)
-            return this.withColumn(params, (row) => row.total_tests)
-        return this
+            return this.makeColumnDef(params, (row) => row.total_tests)
+        return undefined
     }
 
-    withTestsPerCaseColumn(params: CovidConstrainedQueryParams) {
+    makeTestsPerCaseColumnDefs(params: CovidConstrainedQueryParams) {
         if (params.interval === IntervalOptions.smoothed) {
-            const table = this.withNewCasesSmoothedColumn(params.smoothing)
-            const casesSlug = table.lastColumnSlug
-            return table.withColumn(params, (row) => {
-                if (
-                    row.new_tests_smoothed === undefined ||
-                    !(row as any)[casesSlug]
-                )
-                    return undefined
+            const def = this.makeNewCasesSmoothedColumnDef(params.smoothing)
+            const casesSlug = def.slug
+            return [
+                def,
+                this.makeColumnDef(params, (row) => {
+                    if (
+                        row.new_tests_smoothed === undefined ||
+                        !(row as any)[casesSlug]
+                    )
+                        return undefined
 
-                if (testRateExcludeList.has(row.entityName)) return undefined
+                    if (testRateExcludeList.has(row.entityName))
+                        return undefined
 
-                const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
-                return tpc >= 1 ? tpc : undefined
-            })
+                    const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
+                    return tpc >= 1 ? tpc : undefined
+                }),
+            ]
         }
 
         if (params.interval === IntervalOptions.total)
-            return this.withColumn(params, (row) => {
-                if (row.total_tests === undefined || !row.total_cases)
-                    return undefined
+            return [
+                this.makeColumnDef(params, (row) => {
+                    if (row.total_tests === undefined || !row.total_cases)
+                        return undefined
 
-                if (testRateExcludeList.has(row.entityName)) return undefined
+                    if (testRateExcludeList.has(row.entityName))
+                        return undefined
 
-                const tpc = row.total_tests / row.total_cases
-                return tpc >= 1 ? tpc : undefined
-            })
+                    const tpc = row.total_tests / row.total_cases
+                    return tpc >= 1 ? tpc : undefined
+                }),
+            ]
 
-        return this
+        return []
     }
 
-    withCfrColumn(params: CovidConstrainedQueryParams) {
+    makeCfrColumnDef(params: CovidConstrainedQueryParams) {
         // We do not support daily freq for CFR
         if (params.interval === IntervalOptions.total)
-            return this.withColumn(params, (row) =>
+            return this.makeColumnDef(params, (row) =>
                 row.total_cases < 100
                     ? undefined
                     : row.total_deaths && row.total_cases
                     ? (100 * row.total_deaths) / row.total_cases
                     : 0
             )
-        return this
+        return undefined
     }
 
-    withCasesColumn(params: CovidConstrainedQueryParams) {
-        return this.withColumn(
+    makeCasesColumnDef(params: CovidConstrainedQueryParams) {
+        return this.makeColumnDef(
             params,
             params.interval === IntervalOptions.total
                 ? (row) => row.total_cases
@@ -274,52 +278,58 @@ export class CovidExplorerTable extends OwidTable {
         )
     }
 
-    withShortTermPositivityRate() {
+    makeShortTermPositivityRateColumnDefs() {
         // We init this column for the epi line colors on ScatterPlots
         const params = new CovidQueryParams("")
         params.smoothing = 7
         params.perCapita = false
         params.interval = IntervalOptions.smoothed
         params.positiveTestRate = true
-        return this.withTestRateColumn(params.toConstrainedParams())
+        return this.makeTestRateColumnDefs(params.toConstrainedParams())
     }
 
-    withTestRateColumn(params: CovidConstrainedQueryParams) {
+    makeTestRateColumnDefs(params: CovidConstrainedQueryParams) {
         if (params.isDailyOrSmoothed) {
-            const table = this.withNewCasesSmoothedColumn(params.smoothing)
-            const casesSlug = table.lastColumnSlug
-            return table.withColumn(params, (row) => {
-                const testCount =
-                    params.smoothing === 7
-                        ? row.new_tests_smoothed
-                        : row.new_tests
+            const def = this.makeNewCasesSmoothedColumnDef(params.smoothing)
+            const casesSlug = def.slug
+            return [
+                def,
+                this.makeColumnDef(params, (row) => {
+                    const testCount =
+                        params.smoothing === 7
+                            ? row.new_tests_smoothed
+                            : row.new_tests
 
-                const cases =
-                    params.smoothing === 7
-                        ? (row as any)[casesSlug]
-                        : row.new_cases
+                    const cases =
+                        params.smoothing === 7
+                            ? (row as any)[casesSlug]
+                            : row.new_cases
+
+                    if (testRateExcludeList.has(row.entityName))
+                        return undefined
+
+                    if (!testCount) return undefined
+
+                    const rate = cases / testCount
+                    return rate >= 0 && rate <= 1 ? rate : undefined
+                }),
+            ]
+        }
+        return [
+            this.makeColumnDef(params, (row) => {
+                if (row.total_cases === undefined || !row.total_tests)
+                    return undefined
 
                 if (testRateExcludeList.has(row.entityName)) return undefined
 
-                if (!testCount) return undefined
-
-                const rate = cases / testCount
+                const rate = row.total_cases / row.total_tests
                 return rate >= 0 && rate <= 1 ? rate : undefined
-            })
-        }
-        return this.withColumn(params, (row) => {
-            if (row.total_cases === undefined || !row.total_tests)
-                return undefined
-
-            if (testRateExcludeList.has(row.entityName)) return undefined
-
-            const rate = row.total_cases / row.total_tests
-            return rate >= 0 && rate <= 1 ? rate : undefined
-        })
+            }),
+        ]
     }
 
-    withDeathsColumn(params: CovidConstrainedQueryParams) {
-        return this.withColumn(
+    makeDeathsColumnDef(params: CovidConstrainedQueryParams) {
+        return this.makeColumnDef(
             params,
             params.interval === IntervalOptions.total
                 ? (row) => row.total_deaths
@@ -328,20 +338,21 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     withRequestedColumns(params: CovidConstrainedQueryParams) {
-        let table = this as CovidExplorerTable
-        if (params.casesMetric) table = table.withCasesColumn(params)
-        if (params.deathsMetric) table = table.withDeathsColumn(params)
-        if (params.testsMetric) table = table.withTestingColumn(params)
+        const defs: (CoreColumnDef | undefined)[] = []
+        if (params.casesMetric) defs.push(this.makeCasesColumnDef(params))
+        if (params.deathsMetric) defs.push(this.makeDeathsColumnDef(params))
+        if (params.testsMetric) defs.push(this.makeTestingColumnDef(params))
         if (params.testsPerCaseMetric)
-            table = table.withTestsPerCaseColumn(params)
-        if (params.cfrMetric) table = table.withCfrColumn(params)
-        if (params.positiveTestRate) table = table.withTestRateColumn(params)
+            defs.push(...this.makeTestsPerCaseColumnDefs(params))
+        if (params.cfrMetric) defs.push(this.makeCfrColumnDef(params))
+        if (params.positiveTestRate)
+            defs.push(...this.makeTestRateColumnDefs(params))
 
         // Init tests per case for the country picker
         const tpc = new CovidQueryParams("")
         tpc.interval = IntervalOptions.smoothed
         tpc.testsPerCaseMetric = true
-        table = table.withTestsPerCaseColumn(tpc.toConstrainedParams())
+        defs.push(...this.makeTestsPerCaseColumnDefs(tpc.toConstrainedParams()))
 
         if (params.aligned) {
             // If we are an aligned chart showing tests, we need to make a start of
@@ -352,19 +363,20 @@ export class CovidExplorerTable extends OwidTable {
                 )
                 newParams.testsMetric = false
                 newParams.deathsMetric = true
-                table = table.withDeathsColumn(newParams)
+                defs.push(this.makeDeathsColumnDef(newParams))
             }
 
             const option = params.trajectoryColumnOption
-            const def = table.makeDaysSinceColumnDef(
-                option.slug,
-                option.sourceSlug,
-                option.threshold,
-                option.name
+            defs.push(
+                this.makeDaysSinceColumnDef(
+                    option.slug,
+                    option.sourceSlug,
+                    option.threshold,
+                    option.name
+                )
             )
-            table = table.withColumns([def]) as CovidExplorerTable
         }
-        return table
+        return this.withColumns(defs.filter(isPresent)) as CovidExplorerTable
     }
 
     makeDaysSinceColumnDef(

@@ -17,7 +17,7 @@ import {
     CoreRow,
     Time,
 } from "coreTable/CoreTableConstants"
-import { CoreTable } from "./CoreTable"
+import { CoreTable, TransformType } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
@@ -167,7 +167,8 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
             this.rowsByEntityName.get(name) || [],
             this.defs,
             this,
-            `Filter out all entities except '${name}'`
+            `Filter out all entities except '${name}'`,
+            TransformType.FilterRows
         )
     }
 
@@ -236,7 +237,8 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
             }),
             newDefs,
             this,
-            `Transformed ${columnSlug} column to be % contribution of each entity for that time`
+            `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
+            TransformType.UpdateColumns
         )
     }
 
@@ -262,7 +264,8 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
             this,
             `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
                 ","
-            )} `
+            )} `,
+            TransformType.UpdateColumns
         )
     }
 
@@ -296,7 +299,8 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
             this,
             `Transformed columns from absolute values to % of time ${startTime} for columns ${columnSlugs.join(
                 ","
-            )} `
+            )} `,
+            TransformType.UpdateColumns
         )
     }
 

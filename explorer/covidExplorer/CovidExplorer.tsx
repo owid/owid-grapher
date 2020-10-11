@@ -17,9 +17,9 @@ import {
     lastOfNonEmptyArray,
     capitalize,
     mergeQueryStr,
-    next,
     startCase,
     exposeInstanceOnWindow,
+    last,
 } from "grapher/utils/Util"
 import {
     ControlOption,
@@ -587,8 +587,8 @@ export class CovidExplorer
 
         // Init column for epi color strategy if needed
         if (params.colorStrategy === ColorScaleOptions.ptr) {
-            table = table.withShortTermPositivityRate()
-            this.shortTermPositivityRateSlug = table.lastColumnSlug
+            const defs = table.makeShortTermPositivityRateColumnDefs()
+            this.shortTermPositivityRateSlug = last(defs)!.slug
         }
 
         table = table.withRequestedColumns(params)

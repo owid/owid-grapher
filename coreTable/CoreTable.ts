@@ -29,6 +29,17 @@ import {
 } from "./CoreTablePrinters"
 import { DroppedForTesting } from "./InvalidCells"
 
+export enum TransformType {
+    Load = "Load",
+    FilterRows = "FilterRows",
+    FilterColumns = "FilterColumns",
+    SortRows = "SortRows",
+    UpdateColumns = "UpdateColumns",
+    AddRows = "AddRows",
+    AddColumns = "AddColumns",
+    DropValues = "DropValues",
+}
+
 // The complex generic with default here just enables you to optionally specify a more
 // narrow interface for the input rows. This is helpful for OwidTable.
 export class CoreTable<
@@ -41,13 +52,15 @@ export class CoreTable<
     @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
 
     protected parent?: TABLE_TYPE
-    private tableDescription?: string
+    private tableDescription = ""
+    private transformCategory = TransformType.Load
 
     constructor(
         rows: ROW_TYPE[] = [],
         columnDefs: CoreColumnDef[] = [],
         parentTable?: TABLE_TYPE,
-        tableDescription?: string
+        tableDescription?: string,
+        transformCategory?: TransformType
     ) {
         this._inputRows = rows // Save a reference to original rows for debugging.
 
@@ -64,7 +77,8 @@ export class CoreTable<
         if (!parentTable && rows.length) this._autodetectAndAddDefs(rows)
 
         this.parent = parentTable
-        this.tableDescription = tableDescription
+        this.tableDescription = tableDescription ?? ""
+        if (transformCategory) this.transformCategory = transformCategory
 
         this._rows = this._buildRows(columnDefs, rows)
 
@@ -197,7 +211,8 @@ export class CoreTable<
             this.rows.filter(predicate),
             this.defs,
             this,
-            opName
+            opName,
+            TransformType.FilterRows
         )
     }
 
@@ -206,7 +221,8 @@ export class CoreTable<
             orderBy(this.rows, slugs, orders),
             this.defs,
             this,
-            `Sort by ${slugs.join(",")} ${orders?.join(",")}`
+            `Sort by ${slugs.join(",")} ${orders?.join(",")}`,
+            TransformType.SortRows
         )
     }
 
@@ -215,7 +231,8 @@ export class CoreTable<
             this.rows.slice(0).reverse(),
             this.defs,
             this,
-            `Reversed row order`
+            `Reversed row order`,
+            TransformType.SortRows
         )
     }
 
@@ -321,12 +338,12 @@ export class CoreTable<
               )
             : ""
 
-        const originalRows = !this.isRoot()
-            ? `\n\n\n\n\n\n## ${this.tableDescription || ""}:\n\n`
-            : `Input Data: ${this._inputRows.length} Rows \n\n${inputTable}\n\n\n\n# Root Table:\n`
+        const tableDescription = this.isRoot()
+            ? `${this.oneLiner()}\n\n${inputTable}\n\n\n\n# Root Table:\n`
+            : `\n\n\n\n\n\n## ${this.oneLiner()}\n\n`
 
         return [
-            originalRows,
+            tableDescription,
             `${this.numColumns} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. ${this.selectedRows.size} selected. \n`,
             toAlignedTextTable(
                 ["slug", "type", "jsType", "name", "count"],
@@ -341,11 +358,27 @@ export class CoreTable<
         ].join("")
     }
 
+    private oneLiner() {
+        return this.isRoot()
+            ? `${this.transformCategory}: ${this.numColumns} Columns ${this._inputRows.length} Rows`
+            : `${this.transformCategory}: ${this.tableDescription}`
+    }
+
     explain(showRows = 10, options?: AlignedTextTableOptions): string {
         return (
             (this.parent ? this.parent.explain(showRows, options) : "") +
             this.explainThis(showRows, options)
         )
+    }
+
+    explainShort(): string {
+        if (!this.parent) return this.oneLiner()
+        return [
+            this.parent.explainShort(),
+            `${this.oneLiner()} >> ${this.numColumns} Columns ${
+                this.numRows
+            } Rows`,
+        ].join("\n")
     }
 
     // Output a pretty table for consles
@@ -392,7 +425,8 @@ export class CoreTable<
             [...this.rows, ...rows],
             this.defs,
             this,
-            `Added ${rows.length} new rows`
+            `Added ${rows.length} new rows`,
+            TransformType.AddRows
         )
     }
 
@@ -402,16 +436,8 @@ export class CoreTable<
             rows,
             this.defs,
             this,
-            `Kept the first ${rows.length} rows`
-        )
-    }
-
-    identity() {
-        return new (this.constructor as any)(
-            this.rows,
-            this.defs,
-            this,
-            `Cloned table`
+            `Kept the first ${rows.length} rows`,
+            TransformType.FilterRows
         )
     }
 
@@ -420,7 +446,8 @@ export class CoreTable<
             this.rows,
             this.defs.map(fn),
             this,
-            `Updated column defs`
+            `Updated column defs`,
+            TransformType.UpdateColumns
         )
     }
 
@@ -438,7 +465,8 @@ export class CoreTable<
             this.rows,
             defs,
             this,
-            message ?? `Dropped columns '${slugs}'`
+            message ?? `Dropped columns '${slugs}'`,
+            TransformType.FilterColumns
         )
     }
 
@@ -449,7 +477,8 @@ export class CoreTable<
                 def.slug === currentSlug ? { ...def, slug: newSlug } : def
             ),
             this,
-            `Renamed '${currentSlug}' to '${newSlug}'`
+            `Renamed '${currentSlug}' to '${newSlug}'`,
+            TransformType.UpdateColumns
         )
     }
 
@@ -496,7 +525,8 @@ export class CoreTable<
             this.rows,
             defs,
             this,
-            `Dropped ${howMany} cells in ${columnSlugs}`
+            `Dropped ${howMany} cells in ${columnSlugs}`,
+            TransformType.DropValues
         )
     }
 
@@ -536,7 +566,8 @@ export class CoreTable<
             this.rows,
             this.defs.concat(columns),
             this,
-            `Added new columns ${columns.map((def) => def.slug)}`
+            `Added new columns ${columns.map((def) => def.slug)}`,
+            TransformType.AddColumns
         )
     }
 

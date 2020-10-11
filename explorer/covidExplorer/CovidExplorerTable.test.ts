@@ -20,11 +20,13 @@ describe("makeCountryOptions", () => {
 
 describe("build covid column", () => {
     let table = new CovidExplorerTable(sampleCovidRows)
-    table = table.withRollingAverageColumn(
+    const def = table.makeRollingAverageColumnDef(
         { slug: "totalCasesSmoothed" },
         (row) => row.total_cases,
         3
     )
+
+    table = table.withColumns([def]) as CovidExplorerTable
 
     it("correctly builds a grapher variable", () => {
         expect(table.rows[3].totalCasesSmoothed).toEqual(14.5)
@@ -53,25 +55,27 @@ describe("build covid column", () => {
     }
 
     let table2 = new CovidExplorerTable(rows as any)
-    table2 = table2.withRollingAverageColumn(
+    const def2 = table2.makeRollingAverageColumnDef(
         { slug: "weeklyCases" },
         (row) => row.cases,
         7,
         true
     )
+    table2 = table2.withColumns([def2]) as CovidExplorerTable
 
     it("correctly builds weekly average", () => {
         expect(table2.rows[3].weeklyCases).toEqual(70)
     })
 
     it("correctly builds weekly change", () => {
-        table2 = table2.withRollingAverageColumn(
+        const def3 = table2.makeRollingAverageColumnDef(
             { slug: "weeklyChange" },
             (row) => row.cases,
             7,
             true,
             true
         )
+        table2 = table2.withColumns([def3]) as CovidExplorerTable
 
         expect(table2.rows[3].weeklyChange).toEqual(undefined)
         expect(table2.rows[8].weeklyChange).toEqual(0)
@@ -86,13 +90,15 @@ describe("builds aligned tests column", () => {
         expect(table.columnSlugs.includes("tests-daily")).toEqual(false)
 
         const params = new CovidQueryParams("testsMetric=true&dailyFreq=true")
-        table = table.withTestingColumn(params.toConstrainedParams())
+        const def = table.makeTestingColumnDef(params.toConstrainedParams())
+        table = table.withColumns([def!]) as CovidExplorerTable
 
         expect(table.columnSlugs.includes("tests-daily")).toEqual(true)
 
         const newParams = new CovidQueryParams(params.toString())
         newParams.perCapita = true
-        table = table.withTestingColumn(newParams.toConstrainedParams())
+        const def2 = table.makeTestingColumnDef(newParams.toConstrainedParams())
+        table = table.withColumns([def2!]) as CovidExplorerTable
 
         expect(table.columnSlugs.includes("tests-perThousand-daily")).toEqual(
             true
