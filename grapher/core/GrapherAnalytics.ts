@@ -1,6 +1,3 @@
-// TODO CLEANUPCONSENT
-// import { getConsentPerformance } from "site/client/Consent/Consent"
-
 const DEBUG = true
 
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
@@ -35,17 +32,14 @@ type countrySelectorEvent =
     | "sortBy"
     | "sortOrder"
 
+// Note: consent-based blocking dealt with at the Google Tag Manager level.
+// Events are discarded if consent not given.
 export class GrapherAnalytics {
     constructor(environment: string, version: string) {
-        // Consent-based blocking dealt with at the GTM level
-        // TODO CLEANUPCONSENT
-        // this.mightBeImplicitConsent = getConsentPerformance() ?? true
         this.isDev = environment === "development"
         this.version = version
     }
 
-    // TODO CLEANUPCONSENT
-    // private mightBeImplicitConsent: boolean
     private version: string // Ideally the Git hash commit
     private isDev: boolean
 
@@ -135,9 +129,6 @@ export class GrapherAnalytics {
     }
 
     startClickTracking() {
-        // TODO CLEANUPCONSENT
-        // if (!this.mightBeImplicitConsent) return
-
         // Todo: add a Story and tests for this OR even better remove and use Google Tag Manager or similar fully SAAS tracking.
         // Todo: have different Attributes for Grapher charts vs Site.
         const dataTrackAttr = "data-track-note"
@@ -159,9 +150,6 @@ export class GrapherAnalytics {
     }
 
     protected logToAmplitude(name: string, props?: any) {
-        // TODO CLEANUPCONSENT
-        // if (!this.mightBeImplicitConsent) return
-
         const allProps = {
             context: {
                 siteVersion: this.version,
@@ -188,9 +176,6 @@ export class GrapherAnalytics {
         eventLabel?: string,
         eventValue?: number
     ) {
-        // TODO CLEANUPCONSENT
-        // if (!this.mightBeImplicitConsent) return
-
         // Todo: send the Grapher (or site) version to Git
         const event: GAEvent = {
             hitType: "event",
@@ -220,9 +205,6 @@ export class GrapherAnalytics {
     }
 
     protected logToSA(eventLabel: string) {
-        // TODO CLEANUPCONSENT
-        // No need to check for consent here as Simple Analytics doesn't use PII
-
         if (DEBUG && this.isDev) {
             // eslint-disable-next-line no-console
             console.log("Analytics.logToSA", name, eventLabel)
