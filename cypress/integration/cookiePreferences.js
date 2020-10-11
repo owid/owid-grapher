@@ -14,7 +14,9 @@ describe("Cookie preferences", function () {
     it("Accepts default cookie preferences from cookie notice bar", function () {
         cy.get(COOKIE_NOTICE)
             .should("be.visible")
-            .get("[data-test=accept]")
+            .within(() => {
+                cy.get("[data-test=accept]")
+            })
             .click()
             .should("not.be.visible")
         cy.getCookie(COOKIE_NAME).should(
@@ -23,6 +25,20 @@ describe("Cookie preferences", function () {
             `p:1-${today}`
         )
     })
+
+    it("Accepts default cookie preferences from the preferences pane", function () {
+        cy.get(COOKIE_NOTICE).should("be.visible")
+        cy.get("[data-test=cookie-preferences]").within(() => {
+            cy.get("[data-test=accept]").click()
+        })
+        cy.get(COOKIE_NOTICE).should("not.be.visible")
+        cy.getCookie(COOKIE_NAME).should(
+            "have.property",
+            "value",
+            `p:1-${today}`
+        )
+    })
+
     it("Sets cookie preferences from privacy policy page", function () {
         cy.get(COOKIE_NOTICE).should("be.visible")
         cy.get("[data-test=performance-preference]")
@@ -49,7 +65,7 @@ describe("Cookie preferences", function () {
         cy.get(COOKIE_NOTICE).should("not.be.visible")
     })
 
-    it.only("Ignores malformed cookie", () => {
+    it("Ignores malformed cookie", () => {
         cy.setCookie(COOKIE_NAME, `abcd`)
         cy.reload()
         cy.get(COOKIE_NOTICE).should("be.visible")

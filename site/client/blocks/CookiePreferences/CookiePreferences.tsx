@@ -67,7 +67,7 @@ export const CookiePreferences = ({
     if (!cookiePreferencesDomSlot) return null
 
     return ReactDOM.createPortal(
-        <div className="cookie-preferences">
+        <div data-test="cookie-preferences" className="cookie-preferences">
             <CookiePreference
                 title="Necessary cookies"
                 name="necessary"
@@ -98,7 +98,7 @@ export const CookiePreferences = ({
                 We use these cookies to monitor and improve website performance.
             </CookiePreference>
             {date ? (
-                <div date-test-last-updated className="last-updated">
+                <div className="last-updated">
                     Preferences last updated:{" "}
                     {moment(date, DATE_FORMAT).format("LL")}
                 </div>

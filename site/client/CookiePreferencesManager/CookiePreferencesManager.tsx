@@ -2,7 +2,6 @@ import ReactDOM from "react-dom"
 import * as React from "react"
 import { useEffect, useReducer } from "react"
 import * as Cookies from "js-cookie"
-
 import { CookiePreferences } from "site/client/blocks/CookiePreferences/CookiePreferences"
 import { CookieNotice } from "site/client/CookieNotice"
 import moment from "moment"
