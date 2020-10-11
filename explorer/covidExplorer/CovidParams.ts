@@ -450,11 +450,11 @@ export class CovidConstrainedQueryParams extends CovidQueryParams {
 
 export const makeColumnDefFromParams = (
     params: CovidQueryParams,
-    specTemplates = makeColumnDefTemplates()
+    defTemplates = makeColumnDefTemplates()
 ) => {
     const { metricName, perCapitaAdjustment, interval, smoothing } = params
-    const spec = specTemplates[metricName]
-    spec.slug = buildColumnSlugFromParams(
+    const def = defTemplates[metricName]
+    def.slug = buildColumnSlugFromParams(
         metricName,
         perCapitaAdjustment,
         interval,
@@ -467,22 +467,22 @@ export const makeColumnDefFromParams = (
         1e6: " per million people",
     }
 
-    const display = spec.display || {}
-    display.name = `${params.intervalTitle} ${spec.name ?? display.name}${
+    const display = def.display || {}
+    display.name = `${params.intervalTitle} ${def.name ?? display.name}${
         perCapitaMessages[perCapitaAdjustment]
     }`
-    spec.display = display
+    def.display = display
 
     // Show decimal places for rolling average & per capita variables
-    if (perCapitaAdjustment > 1) spec.type = ColumnTypeNames.Ratio
+    if (perCapitaAdjustment > 1) def.type = ColumnTypeNames.Ratio
     else if (
         metricName === MetricOptions.positive_test_rate ||
         metricName === MetricOptions.case_fatality_rate ||
         (smoothing && smoothing > 1)
     )
-        spec.type = ColumnTypeNames.Percentage
+        def.type = ColumnTypeNames.Percentage
 
-    return spec
+    return def
 }
 
 const buildColumnSlugFromParams = (

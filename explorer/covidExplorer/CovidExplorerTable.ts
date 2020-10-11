@@ -1,8 +1,6 @@
 import { cloneDeep } from "grapher/utils/Util"
-import moment from "moment"
-import { csvParse } from "d3-dsv"
 import { OwidTable } from "coreTable/OwidTable"
-import { EntityName, OwidColumnDef } from "coreTable/OwidTableConstants"
+import { OwidColumnDef } from "coreTable/OwidTableConstants"
 import {
     ColumnTypeNames,
     ColumnSlug,
@@ -10,7 +8,6 @@ import {
     CoreRow,
     ComputedColumnFn,
     CoreColumnDef,
-    HasComputedColumn,
 } from "coreTable/CoreTableConstants"
 import {
     CovidColumnDefObjectMap,
@@ -20,7 +17,6 @@ import {
     makeColumnDefTemplates,
 } from "./CovidParams"
 import {
-    covidAnnotations,
     IntervalOptions,
     intervalsAvailableByMetric,
     intervalSpecs,
@@ -29,15 +25,7 @@ import {
     testRateExcludeList,
 } from "./CovidConstants"
 import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
-
-interface AnnotationsRow {
-    location: EntityName
-    date: string
-    cases_series_annotations: string
-    deaths_series_annotations: string
-}
-
-const dontIncludeInTable = { display: { includeInTable: false } }
+import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 
 export class CovidExplorerTable extends OwidTable {
     // Ideally we would just have 1 set of column specs. Currently however we have some statically coded, some coming from the Grapher backend, and some
@@ -51,74 +39,31 @@ export class CovidExplorerTable extends OwidTable {
         return this
     }
 
+    withAnnotationColumns() {
+        return this.withColumns(CovidAnnotationColumnDefs) as CovidExplorerTable
+    }
+
     // Todo: does this need to be observable?
     private columnDefTemplates = makeColumnDefTemplates()
 
     withDataTableDefs() {
         // todo: we might not need this "opt out", since we now explicitly list the columns to show in the table
         const includeInDataTable = new Set(Object.values(MetricOptions))
-        return this.withTransformedDefs((spec) => {
-            if (includeInDataTable.has(spec.slug as MetricOptions)) return spec
+        return this.withTransformedDefs((def) => {
+            if (includeInDataTable.has(def.slug as MetricOptions)) return def
             return {
-                ...spec,
-                ...dontIncludeInTable,
+                ...def,
+                display: { includeInTable: false },
             }
         }) as CovidExplorerTable // todo: fix typings
-    }
-
-    withAnnotationColumns() {
-        const caseSlug = "cases_series_annotations"
-        const deathSlug = "deaths_series_annotations"
-        const cfrSlug = "case_fatality_rate_series_annotations"
-        const table = this.withColumns([
-            {
-                slug: caseSlug,
-                type: ColumnTypeNames.SeriesAnnotation,
-                ...dontIncludeInTable,
-            },
-            {
-                slug: deathSlug,
-                type: ColumnTypeNames.SeriesAnnotation,
-                ...dontIncludeInTable,
-            },
-            {
-                slug: cfrSlug,
-                type: ColumnTypeNames.SeriesAnnotation,
-                ...dontIncludeInTable,
-            },
-        ])
-
-        const entityIndex = table.entityIndex
-        const annotationRows = csvParse(covidAnnotations) as AnnotationsRow[]
-        annotationRows.forEach((annoRow) => {
-            const rows = entityIndex.get(annoRow.location)
-            if (!rows) return
-            // If no date on annotation apply to all rows
-            const applyTo = annoRow.date
-                ? rows.filter((row) => row.date === annoRow.date)
-                : rows
-            const datePrefix = annoRow.date
-                ? moment(annoRow.date).format("MMM D") + ": "
-                : ""
-            applyTo.forEach((row) => {
-                if (annoRow[caseSlug])
-                    row[caseSlug] = datePrefix + annoRow[caseSlug]
-                if (annoRow[deathSlug])
-                    row[deathSlug] = datePrefix + annoRow[deathSlug]
-                row[cfrSlug] = `${datePrefix}${annoRow[caseSlug] || ""}${
-                    annoRow[deathSlug]
-                }`
-            })
-        })
-        return table as CovidExplorerTable
     }
 
     private withColumn(
         params: CovidConstrainedQueryParams,
         rowFn: ComputedColumnFn
     ): CovidExplorerTable {
-        const spec = makeColumnDefFromParams(params, this.columnDefTemplates)
-        if (this.has(spec.slug)) return this
+        const def = makeColumnDefFromParams(params, this.columnDefTemplates)
+        if (this.has(def.slug)) return this
 
         const { metricName, perCapitaAdjustment, smoothing } = params
 
@@ -148,15 +93,15 @@ export class CovidExplorerTable extends OwidTable {
 
         if (smoothing && !alreadySmoothed)
             return this.withRollingAverageColumn(
-                spec,
+                def,
                 rowFn,
                 smoothing,
                 params.isWeekly || params.isBiweekly,
                 params.intervalChange !== undefined
             )
 
-        spec.fn = rowFn
-        return this.withColumns([spec]) as CovidExplorerTable
+        def.fn = rowFn
+        return this.withColumns([def]) as CovidExplorerTable
     }
 
     private withNewCasesSmoothedColumn(smoothing: SmoothingOption) {
@@ -174,7 +119,7 @@ export class CovidExplorerTable extends OwidTable {
 
     // todo: remove these ops from here and move to CoreTable
     withRollingAverageColumn(
-        spec: CoreColumnDef,
+        def: CoreColumnDef,
         valueAccessor: (row: CoreRow) => any,
         windowSize: Integer,
         multiplyByWindowSize = false,
@@ -188,7 +133,7 @@ export class CovidExplorerTable extends OwidTable {
             windowSize
         )
 
-        spec.fn = (row, index) => {
+        def.fn = (row, index) => {
             const val = averages[index!]
             if (!convertToPercentChangeOverWindow)
                 return val ? val * (multiplyByWindowSize ? windowSize : 1) : val
@@ -198,7 +143,7 @@ export class CovidExplorerTable extends OwidTable {
                 : (100 * (val - previousValue)) / previousValue
         }
 
-        return this.withColumns([spec]) as CovidExplorerTable
+        return this.withColumns([def]) as CovidExplorerTable
     }
 
     columnSlugsToShowInDataTable(params: CovidConstrainedQueryParams) {
@@ -411,27 +356,31 @@ export class CovidExplorerTable extends OwidTable {
             }
 
             const option = params.trajectoryColumnOption
-            table = table.withDaysSinceColumn(
+            const def = table.makeDaysSinceColumnDef(
                 option.slug,
                 option.sourceSlug,
                 option.threshold,
                 option.name
             )
+            table = table.withColumns([def]) as CovidExplorerTable
         }
         return table
     }
 
-    withDaysSinceColumn(
-        slug: string,
-        sourceColumnSlug: string,
+    makeDaysSinceColumnDef(
+        slug: ColumnSlug,
+        sourceColumnSlug: ColumnSlug,
         threshold: number,
         title: string
-    ) {
-        const spec: OwidColumnDef & HasComputedColumn = {
+    ): OwidColumnDef {
+        let currentCountry: number
+        let countryExceededThresholdOnDay: number
+        return {
             ...this.columnDefTemplates.days_since,
             name: title,
             slug,
             fn: (row) => {
+                // NB: This assumes rows sorted by country then time. Would be better to do that more explicitly.
                 if (row.entityName !== currentCountry) {
                     const sourceValue = row[sourceColumnSlug]
                     if (sourceValue === undefined || sourceValue < threshold)
@@ -442,9 +391,5 @@ export class CovidExplorerTable extends OwidTable {
                 return row.day - countryExceededThresholdOnDay
             },
         }
-
-        let currentCountry: number
-        let countryExceededThresholdOnDay: number
-        return this.withColumns([spec]) as CovidExplorerTable
     }
 }

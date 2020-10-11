@@ -31,12 +31,13 @@ describe("build covid column", () => {
     })
 
     it("correctly builds a days since variable", () => {
-        const newTable = table.withDaysSinceColumn(
+        const def = table.makeDaysSinceColumnDef(
             "daysSince",
             "totalCasesSmoothed",
             5,
             "Some title"
         )
+        const newTable = table.withColumns([def])
         const slug = newTable.lastColumnSlug
         expect(newTable.rows[2][slug]).toEqual(0)
         expect(newTable.rows[3][slug]).toEqual(1)

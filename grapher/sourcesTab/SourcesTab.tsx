@@ -30,12 +30,12 @@ export class SourcesTab extends React.Component<{
     }
 
     private renderSource(column: CoreColumn) {
-        const spec = column.def as OwidColumnDef
-        const source = spec.source!
+        const def = column.def as OwidColumnDef
+        const source = def.source!
         const { table } = column
 
         const editUrl = this.manager.isAdmin
-            ? `${this.props.manager.adminBaseUrl}/admin/datasets/${spec.datasetId}`
+            ? `${this.props.manager.adminBaseUrl}/admin/datasets/${def.datasetId}`
             : undefined
 
         const { minTime, maxTime } = column
@@ -46,7 +46,7 @@ export class SourcesTab extends React.Component<{
             )} – ${table.timeColumn?.formatValue(maxTime)}`
 
         return (
-            <div key={spec.slug} className="datasource-wrapper">
+            <div key={def.slug} className="datasource-wrapper">
                 <h2>
                     {column.name}{" "}
                     {editUrl && (
@@ -67,10 +67,10 @@ export class SourcesTab extends React.Component<{
                                 />
                             </tr>
                         ) : null}
-                        {spec.coverage ? (
+                        {def.coverage ? (
                             <tr>
                                 <td>Variable geographic coverage</td>
-                                <td>{spec.coverage}</td>
+                                <td>{def.coverage}</td>
                             </tr>
                         ) : null}
                         {timespan ? (

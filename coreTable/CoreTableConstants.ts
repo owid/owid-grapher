@@ -66,7 +66,3 @@ export interface CoreRow {
 
 // todo: remove index param?
 export type ComputedColumnFn = (row: CoreRow, index?: Integer) => any
-
-export interface HasComputedColumn {
-    fn: ComputedColumnFn
-}

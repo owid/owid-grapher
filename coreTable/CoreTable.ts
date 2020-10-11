@@ -531,7 +531,6 @@ export class CoreTable<
         )
     }
 
-    // todo: how do I make this generic and on CoreTable?
     withColumns(columns: CoreColumnDef[]): TABLE_TYPE {
         return new (this.constructor as any)(
             this.rows,
