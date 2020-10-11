@@ -5,6 +5,7 @@ import * as Cookies from "js-cookie"
 
 import { CookiePreferences } from "site/client/blocks/CookiePreferences/CookiePreferences"
 import { CookieNotice } from "site/client/CookieNotice"
+import moment from "moment"
 
 export enum PreferenceType {
     Performance = "p",
@@ -22,7 +23,8 @@ export interface Preference {
     value: boolean
 }
 
-export const POLICY_DATE: number = 20201015
+export const POLICY_DATE: number = 20201009
+export const DATE_FORMAT = "YYYYMMDD"
 const COOKIE_NAME = "cookie_preferences"
 const PREFERENCES_SEPARATOR = "|"
 const DATE_SEPARATOR = "-"
@@ -59,8 +61,11 @@ export const CookiePreferencesManager = ({
 
     // Commit state
     useEffect(() => {
-        const serializedState = state.date ? serializeState(state) : ""
-        Cookies.set(COOKIE_NAME, serializedState, { expires: 365 * 3 })
+        if (state.date) {
+            Cookies.set(COOKIE_NAME, serializeState(state), {
+                expires: 365 * 3,
+            })
+        }
     }, [state])
 
     return (
@@ -118,22 +123,48 @@ const getInitialState = (): State => {
 
 export const parseRawCookieValue = (cookieValue?: string) => {
     if (!cookieValue) return
-    const [preferences, date] = cookieValue.split(DATE_SEPARATOR)
+
+    const [preferencesRaw, dateRaw] = cookieValue.split(DATE_SEPARATOR)
+    const date = parseDate(dateRaw)
+    if (!date) return
+
+    const preferences = parsePreferences(preferencesRaw)
+    if (!preferences.length) return
 
     return {
-        preferences: parsePreferences(preferences),
-        date: parseInt(date, 10),
+        preferences,
+        date,
     }
 }
 
-export const parsePreferences = (preferences: string): Preference[] => {
-    return preferences.split(PREFERENCES_SEPARATOR).map((preference) => {
-        const [type, , value] = preference // only supports 1 digit values
-        return {
-            type: type as PreferenceType,
-            value: value === "1",
-        }
-    })
+export const parsePreferences = (preferences?: string): Preference[] => {
+    if (!preferences) return []
+
+    return preferences
+        .split(PREFERENCES_SEPARATOR)
+        .map((preference) => {
+            const [type, , value] = preference // only supports 1 digit values
+            return {
+                type: type as PreferenceType,
+                value: value === "1",
+            }
+        })
+        .filter((preference) => isValidPreference(preference))
+}
+
+export const isValidPreference = ({ type, value }: Preference) => {
+    return (
+        Object.values(PreferenceType).includes(type as PreferenceType) &&
+        typeof value === "boolean"
+    )
+}
+
+export const parseDate = (date?: string): number | undefined => {
+    if (!date) return
+
+    return moment(date, DATE_FORMAT, true).isValid()
+        ? parseInt(date, 10)
+        : undefined
 }
 
 export const getPreferenceValue = (
