@@ -557,8 +557,8 @@ export class CovidExplorer
     }
 
     private inputTable = new CovidExplorerTable(this.props.covidRows)
-        .withDataTableSpecs()
-        .loadColumnSpecTemplatesFromGrapherBackend(
+        .withDataTableDefs()
+        .loadColumnDefTemplatesFromGrapherBackend(
             this.props.covidChartAndVariableMeta.variables
         )
         .withAnnotationColumns()
@@ -738,7 +738,7 @@ export class CovidExplorer
         }
     }
 
-    @computed private get dimensionSpecs(): LegacyChartDimensionInterface[] {
+    @computed private get legacyDimensions(): LegacyChartDimensionInterface[] {
         if (this.constrainedParams.type !== ChartTypeName.ScatterPlot)
             return [this.yDimension]
 
@@ -873,7 +873,7 @@ export class CovidExplorer
 
         grapher.inputTable = table
         grapher.yAxis.min = params.intervalChange ? undefined : 0
-        grapher.setDimensionsFromConfigs(this.dimensionSpecs)
+        grapher.setDimensionsFromConfigs(this.legacyDimensions)
 
         this.updateMapSettings()
 

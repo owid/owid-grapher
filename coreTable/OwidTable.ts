@@ -24,10 +24,10 @@ import {
     EntityCode,
     EntityId,
     EntityName,
-    OwidColumnSpec,
+    OwidColumnDef,
     OwidRow,
     OwidTableSlugs,
-    RequiredColumnSpecs,
+    RequiredColumnDefs,
 } from "./OwidTableConstants"
 import { legacyToOwidTable } from "./LegacyToOwidTable"
 
@@ -39,12 +39,12 @@ const rowTime = (row: CoreRow) =>
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
 export class OwidTable extends CoreTable<OwidTable, OwidRow> {
-    static fromDelimited(csvOrTsv: string, specs: OwidColumnSpec[] = []) {
+    static fromDelimited(csvOrTsv: string, defs: OwidColumnDef[] = []) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
 
-        const missingColumns = RequiredColumnSpecs.filter(
-            (spec) => !colSlugs.includes(spec.slug)
+        const missingColumns = RequiredColumnDefs.filter(
+            (def) => !colSlugs.includes(def.slug)
         )
 
         if (missingColumns.length)
@@ -55,7 +55,7 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
             )
 
         const rows = (parsed as any) as OwidRow[]
-        return new OwidTable(rows, [...RequiredColumnSpecs, ...specs])
+        return new OwidTable(rows, [...RequiredColumnDefs, ...defs])
     }
 
     @computed get entityType() {
@@ -165,7 +165,7 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
     filterByEntityName(name: EntityName) {
         return new OwidTable(
             this.rowsByEntityName.get(name) || [],
-            this.specs,
+            this.defs,
             this,
             `Filter out all entities except '${name}'`
         )
@@ -214,10 +214,10 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
 
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
-        const newSpecs = this.specs.map((spec) => {
-            if (columnSlug === spec.slug)
-                return { ...spec, type: ColumnTypeNames.Percentage }
-            return spec
+        const newDefs = this.defs.map((def) => {
+            if (columnSlug === def.slug)
+                return { ...def, type: ColumnTypeNames.Percentage }
+            return def
         })
         const rowsForYear = this.rowsByTime
         const timeColumnSlug = this.timeColumn.slug
@@ -234,7 +234,7 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
                 newRow[columnSlug] = (100 * row[columnSlug]) / total
                 return newRow
             }),
-            newSpecs,
+            newDefs,
             this,
             `Transformed ${columnSlug} column to be % contribution of each entity for that time`
         )
@@ -242,10 +242,10 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
 
     // If you want to see how much each column contributed to that entity for that year, use this.
     toPercentageFromEachColumnForEachEntityAndTime(columnSlugs: ColumnSlug[]) {
-        const newSpecs = this.specs.map((spec) => {
-            if (columnSlugs.includes(spec.slug))
-                return { ...spec, type: ColumnTypeNames.RelativePercentage }
-            return spec
+        const newDefs = this.defs.map((def) => {
+            if (columnSlugs.includes(def.slug))
+                return { ...def, type: ColumnTypeNames.RelativePercentage }
+            return def
         })
         return new OwidTable(
             this.rows.map((row) => {
@@ -258,7 +258,7 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
                 })
                 return newRow
             }),
-            newSpecs,
+            newDefs,
             this,
             `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
                 ","
@@ -271,10 +271,10 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
         startTime: Time,
         columnSlugs: ColumnSlug[]
     ) {
-        const newSpecs = this.specs.map((spec) => {
-            if (columnSlugs.includes(spec.slug))
-                return { ...spec, type: ColumnTypeNames.PercentChangeOverTime }
-            return spec
+        const newDefs = this.defs.map((def) => {
+            if (columnSlugs.includes(def.slug))
+                return { ...def, type: ColumnTypeNames.PercentChangeOverTime }
+            return def
         })
         return new OwidTable(
             this.rows.map((row) => {
@@ -292,7 +292,7 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
                 })
                 return newRow
             }),
-            newSpecs,
+            newDefs,
             this,
             `Transformed columns from absolute values to % of time ${startTime} for columns ${columnSlugs.join(
                 ","
@@ -446,7 +446,7 @@ export class OwidTable extends CoreTable<OwidTable, OwidRow> {
         json: LegacyVariablesAndEntityKey,
         grapherConfig: Partial<LegacyGrapherInterface> = {}
     ) {
-        const { rows, specs } = legacyToOwidTable(json, grapherConfig)
-        return new OwidTable(rows, specs)
+        const { rows, defs } = legacyToOwidTable(json, grapherConfig)
+        return new OwidTable(rows, defs)
     }
 }

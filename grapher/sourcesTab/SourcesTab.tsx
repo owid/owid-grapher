@@ -6,7 +6,7 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons/faPencilAlt"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { CoreColumn } from "coreTable/CoreTableColumns"
-import { OwidColumnSpec } from "coreTable/OwidTableConstants"
+import { OwidColumnDef } from "coreTable/OwidTableConstants"
 
 const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 
@@ -30,7 +30,7 @@ export class SourcesTab extends React.Component<{
     }
 
     private renderSource(column: CoreColumn) {
-        const spec = column.spec as OwidColumnSpec
+        const spec = column.def as OwidColumnDef
         const source = spec.source!
         const { table } = column
 
@@ -142,7 +142,7 @@ export class SourcesTab extends React.Component<{
         const { bounds } = this
         // todo: cleanup the Owidcolumn typings
         const cols = this.manager.columnsWithSources.filter(
-            (col) => (col.spec as OwidColumnSpec).source
+            (col) => (col.def as OwidColumnDef).source
         )
 
         return (

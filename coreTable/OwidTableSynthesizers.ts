@@ -3,13 +3,13 @@ import { countries } from "utils/countries"
 import { ColumnSlug, ColumnTypeNames, TimeRange } from "./CoreTableConstants"
 import { LegacyVariableDisplayConfigInterface } from "./LegacyVariableCode"
 import { OwidTable } from "./OwidTable"
-import { OwidColumnSpec, OwidTableSlugs } from "./OwidTableConstants"
+import { OwidColumnDef, OwidTableSlugs } from "./OwidTableConstants"
 
 interface SynthOptions {
     entityCount: number
     entityNames: string[]
     timeRange: TimeRange
-    columnSpecs: OwidColumnSpec[]
+    columnDefs: OwidColumnDef[]
 }
 
 const SynthesizeOwidTable = (
@@ -20,16 +20,16 @@ const SynthesizeOwidTable = (
         entityNames: [],
         entityCount: 2,
         timeRange: [1950, 2020],
-        columnSpecs: [],
+        columnDefs: [],
         ...options,
     }
-    const { entityCount, columnSpecs, timeRange, entityNames } = finalOptions
+    const { entityCount, columnDefs, timeRange, entityNames } = finalOptions
     const colSlugs = ([
         OwidTableSlugs.entityName,
         OwidTableSlugs.entityCode,
         OwidTableSlugs.entityId,
         OwidTableSlugs.year,
-    ] as ColumnSlug[]).concat(columnSpecs.map((col) => col.slug!))
+    ] as ColumnSlug[]).concat(columnDefs.map((col) => col.slug!))
 
     const entities = entityNames.length
         ? entityNames.map((name) => {
@@ -41,12 +41,12 @@ const SynthesizeOwidTable = (
         : sampleFrom(countries, entityCount, seed)
 
     const rows = entities.map((entity, index) => {
-        let values = columnSpecs.map((spec) => spec.generator!())
+        let values = columnDefs.map((def) => def.generator!())
         return range(timeRange[0], timeRange[1])
             .map((year) => {
-                values = columnSpecs.map((spec, index) =>
+                values = columnDefs.map((def, index) =>
                     Math.round(
-                        values[index] * (1 + spec.growthRateGenerator!() / 100)
+                        values[index] * (1 + def.growthRateGenerator!() / 100)
                     )
                 )
                 return [entity.name, entity.code, index, year, ...values].join(
@@ -58,7 +58,7 @@ const SynthesizeOwidTable = (
 
     return OwidTable.fromDelimited(
         `${colSlugs.join(",")}\n${rows.join("\n")}`,
-        columnSpecs
+        columnDefs
     )
 }
 
@@ -69,7 +69,7 @@ export const SynthesizeNonCountryTable = (
     SynthesizeOwidTable(
         {
             entityNames: ["Fire", "Earthquake", "Tornado"],
-            columnSpecs: [
+            columnDefs: [
                 {
                     slug: SampleColumnSlugs.Disasters,
                     type: ColumnTypeNames.Integer,
@@ -102,7 +102,7 @@ export const SynthesizeGDPTable = (
 ) =>
     SynthesizeOwidTable(
         {
-            columnSpecs: [
+            columnDefs: [
                 {
                     slug: SampleColumnSlugs.Population,
                     type: ColumnTypeNames.Population,
@@ -155,7 +155,7 @@ export const SynthesizeFruitTable = (
 ) =>
     SynthesizeOwidTable(
         {
-            columnSpecs: [
+            columnDefs: [
                 {
                     slug: SampleColumnSlugs.Fruit,
                     type: ColumnTypeNames.Numeric,

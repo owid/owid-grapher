@@ -36,7 +36,7 @@ export enum ColumnTypeNames {
     Color = "Color",
 }
 
-export interface CoreColumnSpec {
+export interface CoreColumnDef {
     slug: ColumnSlug
     name?: string
     description?: string

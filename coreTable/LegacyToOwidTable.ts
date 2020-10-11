@@ -5,7 +5,7 @@ import {
     Color,
     ColumnTypeNames,
     ColumnSlug,
-    CoreColumnSpec,
+    CoreColumnDef,
 } from "coreTable/CoreTableConstants"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {
@@ -22,13 +22,11 @@ import {
 } from "./LegacyVariableCode"
 import {
     OwidRow,
-    RequiredColumnSpecs,
+    RequiredColumnDefs,
     OwidTableSlugs,
-    OwidColumnSpec,
+    OwidColumnDef,
     EntityId,
 } from "./OwidTableConstants"
-
-declare type MapOfColumnSpecs = Map<ColumnSlug, CoreColumnSpec>
 
 export const legacyVariablesToTabular = (
     json: LegacyVariablesAndEntityKey,
@@ -36,15 +34,15 @@ export const legacyVariablesToTabular = (
 ) => {
     let rows: OwidRow[] = []
     const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
-    const columnSpecs: MapOfColumnSpecs = new Map()
-    RequiredColumnSpecs.forEach((spec) => {
-        columnSpecs.set(spec.slug, spec)
+    const columnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
+    RequiredColumnDefs.forEach((def) => {
+        columnDefs.set(def.slug, def)
     })
 
     const colorColumnSlug =
         colorMap.size > 0 ? OwidTableSlugs.entityColor : undefined
     if (colorColumnSlug) {
-        columnSpecs.set(colorColumnSlug, {
+        columnDefs.set(colorColumnSlug, {
             slug: colorColumnSlug,
             type: ColumnTypeNames.Color,
             name: colorColumnSlug,
@@ -59,20 +57,20 @@ export const legacyVariablesToTabular = (
         const entityCodes =
             variable.entities?.map((id) => entityMetaById[id].code) || []
 
-        const columnSpec = columnSpecFromLegacyVariable(variable)
-        const columnSlug = columnSpec.slug
-        columnSpec.isDailyMeasurement
-            ? columnSpecs.set(OwidTableSlugs.day, {
+        const columnDef = columnDefFromLegacyVariable(variable)
+        const columnSlug = columnDef.slug
+        columnDef.isDailyMeasurement
+            ? columnDefs.set(OwidTableSlugs.day, {
                   slug: OwidTableSlugs.day,
                   type: ColumnTypeNames.Date,
                   name: "Date",
               })
-            : columnSpecs.set(OwidTableSlugs.year, {
+            : columnDefs.set(OwidTableSlugs.year, {
                   slug: OwidTableSlugs.year,
                   type: ColumnTypeNames.Year,
                   name: "Year",
               })
-        columnSpecs.set(columnSlug, columnSpec)
+        columnDefs.set(columnSlug, columnDef)
 
         // todo: remove. move annotations to their own first class column.
         let annotationsColumnSlug: string
@@ -82,14 +80,14 @@ export const legacyVariablesToTabular = (
             annotationMap = annotationsToMap(
                 variable.display.entityAnnotationsMap
             )
-            columnSpecs.set(annotationsColumnSlug, {
+            columnDefs.set(annotationsColumnSlug, {
                 slug: annotationsColumnSlug,
                 type: ColumnTypeNames.SeriesAnnotation,
-                name: `${columnSpec.name} Annotations`,
+                name: `${columnDef.name} Annotations`,
             })
         }
 
-        const timeColumnName = columnSpec.isDailyMeasurement
+        const timeColumnName = columnDef.isDailyMeasurement
             ? OwidTableSlugs.day
             : OwidTableSlugs.year
 
@@ -144,7 +142,7 @@ export const legacyVariablesToTabular = (
 
     return {
         rows: sortBy(joinedRows, [OwidTableSlugs.year, OwidTableSlugs.day]),
-        columnSpecs,
+        columnDefs,
     }
 }
 
@@ -159,9 +157,9 @@ const convertLegacyYears = (years: number[], zeroDay: string) => {
     return years.map((y) => y + diff)
 }
 
-const columnSpecFromLegacyVariable = (
+const columnDefFromLegacyVariable = (
     variable: LegacyVariableConfig
-): OwidColumnSpec => {
+): OwidColumnDef => {
     const slug = variable.id.toString() // For now, the variableId will be the column slug
     const {
         unit,
@@ -218,7 +216,7 @@ export const legacyToOwidTable = (
             colorMap.set(item.entityId, item.color!)
         })
 
-    const { rows, columnSpecs } = legacyVariablesToTabular(json, colorMap)
+    const { rows, columnDefs } = legacyVariablesToTabular(json, colorMap)
 
     const dimensions = grapherConfig.dimensions || []
 
@@ -230,7 +228,7 @@ export const legacyToOwidTable = (
                 row[slug] = value * unitConversionFactor
         })
     }
-    Array.from(columnSpecs.values())
+    Array.from(columnDefs.values())
         .filter((col) => col.display?.conversionFactor !== undefined)
         .forEach((col) => {
             const { slug, display } = col
@@ -245,12 +243,12 @@ export const legacyToOwidTable = (
         })
 
     dimensions.forEach((dim) => {
-        const colSpec = columnSpecs.get(dim.variableId.toString())!
-        colSpec.display = {
-            ...trimObject(colSpec.display),
+        const def = columnDefs.get(dim.variableId.toString())!
+        def.display = {
+            ...trimObject(def.display),
             ...trimObject(dim.display),
         }
     })
 
-    return { rows, specs: Array.from(columnSpecs.values()) }
+    return { rows, defs: Array.from(columnDefs.values()) }
 }

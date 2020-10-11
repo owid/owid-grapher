@@ -2,22 +2,22 @@ import { cloneDeep } from "grapher/utils/Util"
 import moment from "moment"
 import { csvParse } from "d3-dsv"
 import { OwidTable } from "coreTable/OwidTable"
-import { EntityName, OwidColumnSpec } from "coreTable/OwidTableConstants"
+import { EntityName, OwidColumnDef } from "coreTable/OwidTableConstants"
 import {
     ColumnTypeNames,
     ColumnSlug,
     Integer,
     CoreRow,
     ComputedColumnFn,
-    CoreColumnSpec,
+    CoreColumnDef,
     HasComputedColumn,
 } from "coreTable/CoreTableConstants"
 import {
-    CovidColumnSpecObjectMap,
+    CovidColumnDefObjectMap,
     CovidConstrainedQueryParams,
     CovidQueryParams,
-    makeColumnSpecFromParams,
-    makeColumnSpecTemplates,
+    makeColumnDefFromParams,
+    makeColumnDefTemplates,
 } from "./CovidParams"
 import {
     covidAnnotations,
@@ -42,22 +42,22 @@ const dontIncludeInTable = { display: { includeInTable: false } }
 export class CovidExplorerTable extends OwidTable {
     // Ideally we would just have 1 set of column specs. Currently however we have some statically coded, some coming from the Grapher backend, and some
     // generated on the fly. These "template specs" are used in the generation of new specs on the fly. Todo: cleanup.
-    loadColumnSpecTemplatesFromGrapherBackend(
-        specsFromBackend: CovidColumnSpecObjectMap
+    loadColumnDefTemplatesFromGrapherBackend(
+        defsFromBackend: CovidColumnDefObjectMap
     ) {
-        this.columnSpecTemplates = cloneDeep(
-            makeColumnSpecTemplates(specsFromBackend)
+        this.columnDefTemplates = cloneDeep(
+            makeColumnDefTemplates(defsFromBackend)
         )
         return this
     }
 
     // Todo: does this need to be observable?
-    private columnSpecTemplates = makeColumnSpecTemplates()
+    private columnDefTemplates = makeColumnDefTemplates()
 
-    withDataTableSpecs() {
+    withDataTableDefs() {
         // todo: we might not need this "opt out", since we now explicitly list the columns to show in the table
         const includeInDataTable = new Set(Object.values(MetricOptions))
-        return this.withTransformedSpecs((spec) => {
+        return this.withTransformedDefs((spec) => {
             if (includeInDataTable.has(spec.slug as MetricOptions)) return spec
             return {
                 ...spec,
@@ -117,7 +117,7 @@ export class CovidExplorerTable extends OwidTable {
         params: CovidConstrainedQueryParams,
         rowFn: ComputedColumnFn
     ): CovidExplorerTable {
-        const spec = makeColumnSpecFromParams(params, this.columnSpecTemplates)
+        const spec = makeColumnDefFromParams(params, this.columnDefTemplates)
         if (this.has(spec.slug)) return this
 
         const { metricName, perCapitaAdjustment, smoothing } = params
@@ -174,7 +174,7 @@ export class CovidExplorerTable extends OwidTable {
 
     // todo: remove these ops from here and move to CoreTable
     withRollingAverageColumn(
-        spec: CoreColumnSpec,
+        spec: CoreColumnDef,
         valueAccessor: (row: CoreRow) => any,
         windowSize: Integer,
         multiplyByWindowSize = false,
@@ -204,7 +204,7 @@ export class CovidExplorerTable extends OwidTable {
     columnSlugsToShowInDataTable(params: CovidConstrainedQueryParams) {
         return this.paramsForDataTableColumns(params).map(
             (params) =>
-                makeColumnSpecFromParams(params, this.columnSpecTemplates).slug
+                makeColumnDefFromParams(params, this.columnDefTemplates).slug
         )
     }
 
@@ -427,8 +427,8 @@ export class CovidExplorerTable extends OwidTable {
         threshold: number,
         title: string
     ) {
-        const spec: OwidColumnSpec & HasComputedColumn = {
-            ...this.columnSpecTemplates.days_since,
+        const spec: OwidColumnDef & HasComputedColumn = {
+            ...this.columnDefTemplates.days_since,
             name: title,
             slug,
             fn: (row) => {

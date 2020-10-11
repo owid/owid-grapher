@@ -1,5 +1,5 @@
 import { ColumnTypeNames, Time } from "coreTable/CoreTableConstants"
-import { OwidColumnSpec } from "coreTable/OwidTableConstants"
+import { OwidColumnDef } from "coreTable/OwidTableConstants"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"
@@ -257,7 +257,7 @@ export interface CovidRow extends MegaRow {
 export declare type MegaColumnSlug = keyof MegaRow
 export const metricPickerColumnSpecs: Partial<Record<
     MegaColumnSlug,
-    Partial<OwidColumnSpec>
+    Partial<OwidColumnDef>
 >> = {
     location: {
         slug: "location",

@@ -142,7 +142,7 @@ import {
 import {
     EntityId,
     EntityName,
-    OwidColumnSpec,
+    OwidColumnDef,
 } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
@@ -995,13 +995,13 @@ export class Grapher
                 column.name === "Total population (Gapminder)"
             )
                 return false
-            return !!(column.spec as OwidColumnSpec).source
+            return !!(column.def as OwidColumnDef).source
         })
     }
 
     @computed private get defaultSourcesLine() {
         let sourceNames = this.columnsWithSources.map(
-            (column) => (column.spec as OwidColumnSpec)?.source?.name || ""
+            (column) => (column.def as OwidColumnDef)?.source?.name || ""
         )
 
         // Shorten automatic source names for certain major sources
@@ -1036,11 +1036,10 @@ export class Grapher
 
         if (
             this.hasMultipleYColumns &&
-            uniq(
-                yColumns.map((col) => (col.spec as OwidColumnSpec).datasetName)
-            ).length === 1
+            uniq(yColumns.map((col) => (col.def as OwidColumnDef).datasetName))
+                .length === 1
         )
-            return (yColumns[0].spec as OwidColumnSpec).datasetName!
+            return (yColumns[0].def as OwidColumnDef).datasetName!
 
         if (yColumns.length === 2)
             return yColumns.map((col) => col.displayName).join(" and ")

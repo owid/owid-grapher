@@ -16,7 +16,7 @@ import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
 import {
     ColumnSlug,
     ColumnTypeNames,
-    CoreColumnSpec,
+    CoreColumnDef,
     CoreRow,
     SortOrder,
     ValueRange,
@@ -45,50 +45,50 @@ export class CoreTable<
 
     constructor(
         rows: ROW_TYPE[] = [],
-        columnSpecs: CoreColumnSpec[] = [],
+        columnDefs: CoreColumnDef[] = [],
         parentTable?: TABLE_TYPE,
         tableDescription?: string
     ) {
         this._inputRows = rows // Save a reference to original rows for debugging.
 
         this._columns = new Map()
-        columnSpecs.forEach((spec) => {
-            const { slug, type } = spec
+        columnDefs.forEach((def) => {
+            const { slug, type } = def
             const ColumnType =
                 (type && ColumnTypeMap[type]) || ColumnTypeMap.String
-            this._columns.set(slug, new ColumnType(this, spec))
+            this._columns.set(slug, new ColumnType(this, def))
         })
 
-        // If this has a parent table, than we expect all specs. This makes "deletes" and "renames" fast.
-        // If this is the first input table, then we do a simple check to generate any missing column specs.
-        if (!parentTable && rows.length) this._autodetectAndSpecs(rows)
+        // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
+        // If this is the first input table, then we do a simple check to generate any missing column defs.
+        if (!parentTable && rows.length) this._autodetectAndAddDefs(rows)
 
         this.parent = parentTable
         this.tableDescription = tableDescription
 
-        this._rows = this._buildRows(columnSpecs, rows)
+        this._rows = this._buildRows(columnDefs, rows)
 
         // Pass selection strategy down from parent
         if (parentTable) this.copySelectionFrom(parentTable)
     }
 
-    private _autodetectAndSpecs(rows: ROW_TYPE[]) {
+    private _autodetectAndAddDefs(rows: ROW_TYPE[]) {
         Object.keys(rows[0])
             .filter((slug) => !this.has(slug))
             .forEach((slug) => {
                 const firstRowWithValue = rows.find(
                     (row) => row[slug] !== undefined && row[slug] !== null
                 )
-                const spec = guessColumnSpec(slug, firstRowWithValue)
-                const columnType = ColumnTypeMap[spec.type!]
-                this._columns.set(spec.slug, new columnType(this, spec))
+                const def = guessColumnDef(slug, firstRowWithValue)
+                const columnType = ColumnTypeMap[def.type!]
+                this._columns.set(def.slug, new columnType(this, def))
             })
     }
 
-    private _buildRows(columnSpecs: CoreColumnSpec[], rows: ROW_TYPE[]) {
+    private _buildRows(columnDefs: CoreColumnDef[], rows: ROW_TYPE[]) {
         const firstRow = rows[0]
         const colsToParse = this.getColumnsToParse(firstRow)
-        const computeds = columnSpecs.filter((spec) => spec.fn)
+        const computeds = columnDefs.filter((def) => def.fn)
         // Clone and parse rows if necessary
         if (colsToParse.length || computeds.length)
             return rows.map((row, index) => {
@@ -96,8 +96,8 @@ export class CoreTable<
                 colsToParse.forEach((col) => {
                     newRow[col.slug] = col.parse(row[col.slug])
                 })
-                computeds.forEach((spec) => {
-                    newRow[spec.slug] = spec.fn!(row, index)
+                computeds.forEach((def) => {
+                    newRow[def.slug] = def.fn!(row, index)
                 })
                 return newRow as ROW_TYPE
             })
@@ -195,7 +195,7 @@ export class CoreTable<
     ): TABLE_TYPE {
         return new (this.constructor as any)(
             this.rows.filter(predicate),
-            this.specs,
+            this.defs,
             this,
             opName
         )
@@ -204,7 +204,7 @@ export class CoreTable<
     sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): TABLE_TYPE {
         return new (this.constructor as any)(
             orderBy(this.rows, slugs, orders),
-            this.specs,
+            this.defs,
             this,
             `Sort by ${slugs.join(",")} ${orders?.join(",")}`
         )
@@ -213,14 +213,14 @@ export class CoreTable<
     reverse() {
         return new (this.constructor as any)(
             this.rows.slice(0).reverse(),
-            this.specs,
+            this.defs,
             this,
             `Reversed row order`
         )
     }
 
-    @computed get specs() {
-        return this.columnsAsArray.map((col) => col.spec)
+    @computed get defs() {
+        return this.columnsAsArray.map((col) => col.def)
     }
 
     @computed get columnNames() {
@@ -306,7 +306,7 @@ export class CoreTable<
         const colTable = this.columnsAsArray.map((col) => {
             return {
                 slug: col.slug,
-                type: col.spec.type,
+                type: col.def.type,
                 jsType: col.jsType,
                 name: col.name,
                 count: col.numValues,
@@ -390,7 +390,7 @@ export class CoreTable<
     withRows(rows: ROW_TYPE[]): TABLE_TYPE {
         return new (this.constructor as any)(
             [...this.rows, ...rows],
-            this.specs,
+            this.defs,
             this,
             `Added ${rows.length} new rows`
         )
@@ -400,7 +400,7 @@ export class CoreTable<
         const rows = this.rows.slice(0, howMany)
         return new (this.constructor as any)(
             rows,
-            this.specs,
+            this.defs,
             this,
             `Kept the first ${rows.length} rows`
         )
@@ -409,20 +409,18 @@ export class CoreTable<
     identity() {
         return new (this.constructor as any)(
             this.rows,
-            this.specs,
+            this.defs,
             this,
             `Cloned table`
         )
     }
 
-    withTransformedSpecs(
-        fn: (spec: CoreColumnSpec) => CoreColumnSpec
-    ): TABLE_TYPE {
+    withTransformedDefs(fn: (def: CoreColumnDef) => CoreColumnDef): TABLE_TYPE {
         return new (this.constructor as any)(
             this.rows,
-            this.specs.map(fn),
+            this.defs.map(fn),
             this,
-            `Updated column specs`
+            `Updated column defs`
         )
     }
 
@@ -433,12 +431,12 @@ export class CoreTable<
 
     withoutColumns(slugs: ColumnSlug[], message?: string): TABLE_TYPE {
         const columnsToDrop = new Set(slugs)
-        const specs = this.columnsAsArray
+        const defs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
-            .map((col) => col.spec)
+            .map((col) => col.def)
         return new (this.constructor as any)(
             this.rows,
-            specs,
+            defs,
             this,
             message ?? `Dropped columns '${slugs}'`
         )
@@ -447,8 +445,8 @@ export class CoreTable<
     withRenamedColumn(currentSlug: ColumnSlug, newSlug: ColumnSlug) {
         return new (this.constructor as any)(
             this.rows,
-            this.specs.map((spec) =>
-                spec.slug === currentSlug ? { ...spec, slug: newSlug } : spec
+            this.defs.map((def) =>
+                def.slug === currentSlug ? { ...def, slug: newSlug } : def
             ),
             this,
             `Renamed '${currentSlug}' to '${newSlug}'`
@@ -478,16 +476,16 @@ export class CoreTable<
         columnSlugs: ColumnSlug[] = [],
         seed = Date.now()
     ) {
-        const specs = this.columnsAsArray.map((col) => {
-            const { spec } = col
-            if (!columnSlugs.includes(col.slug)) return spec
+        const defs = this.columnsAsArray.map((col) => {
+            const { def } = col
+            if (!columnSlugs.includes(col.slug)) return def
             const indexesToDrop = getDropIndexes(
                 col.parsedValues.length,
                 howMany,
                 seed
             )
             return {
-                ...spec,
+                ...def,
                 fn: (row: ROW_TYPE, index: number) =>
                     indexesToDrop.has(index)
                         ? new DroppedForTesting()
@@ -496,7 +494,7 @@ export class CoreTable<
         })
         return new (this.constructor as any)(
             this.rows,
-            specs,
+            defs,
             this,
             `Dropped ${howMany} cells in ${columnSlugs}`
         )
@@ -534,12 +532,12 @@ export class CoreTable<
     }
 
     // todo: how do I make this generic and on CoreTable?
-    withColumns(columns: CoreColumnSpec[]): TABLE_TYPE {
+    withColumns(columns: CoreColumnDef[]): TABLE_TYPE {
         return new (this.constructor as any)(
             this.rows,
-            this.specs.concat(columns),
+            this.defs.concat(columns),
             this,
-            `Added new columns ${columns.map((spec) => spec.slug)}`
+            `Added new columns ${columns.map((def) => def.slug)}`
         )
     }
 
@@ -559,27 +557,27 @@ export class CoreTable<
         })
     }
 
-    specToObject() {
+    defToObject() {
         const output: any = {}
         this.columnsAsArray.forEach((col) => {
-            output[col.slug] = col.spec
+            output[col.slug] = col.def
         })
         return output
     }
 
     toJs() {
         return {
-            columns: this.specToObject(),
+            columns: this.defToObject(),
             rows: this.rows,
         }
     }
 
-    static fromDelimited(csvOrTsv: string, specs?: CoreColumnSpec[]) {
-        return new CoreTable(standardizeSlugs(parseDelimited(csvOrTsv)), specs)
+    static fromDelimited(csvOrTsv: string, defs?: CoreColumnDef[]) {
+        return new CoreTable(standardizeSlugs(parseDelimited(csvOrTsv)), defs)
     }
 }
 
-const guessColumnSpec = (slug: string, sampleRow: any) => {
+const guessColumnDef = (slug: string, sampleRow: any) => {
     if (slug === "day")
         return {
             slug: "day",
@@ -614,13 +612,13 @@ const guessColumnSpec = (slug: string, sampleRow: any) => {
 }
 
 const standardizeSlugs = (rows: CoreRow[]) => {
-    const colSpecs = Object.keys(rows[0]).map((name) => {
+    const defs = Object.keys(rows[0]).map((name) => {
         return {
             name,
             slug: slugifySameCase(name),
         }
     })
-    const colsToRename = colSpecs.filter((col) => col.name !== col.slug)
+    const colsToRename = defs.filter((col) => col.name !== col.slug)
     if (colsToRename.length) {
         rows.forEach((row: CoreRow) => {
             colsToRename.forEach((col) => {

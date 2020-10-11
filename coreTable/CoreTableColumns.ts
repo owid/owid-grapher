@@ -13,7 +13,7 @@ import {
 import { computed } from "mobx"
 import { CoreTable } from "./CoreTable"
 import {
-    CoreColumnSpec,
+    CoreColumnDef,
     CoreRow,
     ColumnSlug,
     ColumnTypeNames,
@@ -32,7 +32,7 @@ import {
 } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 
-interface ColumnStats {
+interface ColumnSummary {
     numParseErrors: number
     uniqueValues: number
     numValues: number
@@ -40,7 +40,7 @@ interface ColumnStats {
 
 type PrimitiveType = number | string | boolean
 
-interface ExtendedColumnStats extends ColumnStats {
+interface ExtendedColumnSummary extends ColumnSummary {
     median: PrimitiveType
     sum: number
     mean: number
@@ -63,12 +63,12 @@ const rowTime = (row: CoreRow) =>
     parseInt(row.time ?? row.year ?? row.day ?? row.date)
 
 abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
-    spec: CoreColumnSpec
+    def: CoreColumnDef
     table: CoreTable<any>
 
-    constructor(table: CoreTable<any>, spec: CoreColumnSpec) {
+    constructor(table: CoreTable<any>, def: CoreColumnDef) {
         this.table = table
-        this.spec = spec
+        this.def = def
     }
 
     abstract jsType: JsTypes
@@ -81,7 +81,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get unit() {
-        return this.spec.unit || this.display?.unit || ""
+        return this.def.unit || this.display?.unit || ""
     }
 
     @computed protected get sortedValuesString() {
@@ -99,15 +99,15 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: switch to a lib and/or add tests for this. handle non numerics better.
-    @computed get stats() {
+    @computed get summary() {
         const { numParseErrors, numValues } = this
-        const basicStats: ColumnStats = {
+        const basicSummary: ColumnSummary = {
             numParseErrors,
             uniqueValues: this.valuesAsSet.size,
             numValues,
         }
-        if (!numValues) return basicStats
-        const stats: Partial<ExtendedColumnStats> = { ...basicStats }
+        if (!numValues) return basicSummary
+        const summary: Partial<ExtendedColumnSummary> = { ...basicSummary }
         const arr = this.sortedValues
         const isNumeric = typeof arr[0] === "number"
 
@@ -135,28 +135,28 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         }
 
         const medianIndex = Math.floor(numValues / 2)
-        stats.sum = sum
-        stats.median = arr[medianIndex]
-        stats.mean = sum / numValues
-        stats.min = min
-        stats.max = max
-        stats.range = (max as any) - (min as any)
-        stats.mode = mode
-        stats.modeSize = modeSize
+        summary.sum = sum
+        summary.median = arr[medianIndex]
+        summary.mean = sum / numValues
+        summary.min = min
+        summary.max = max
+        summary.range = (max as any) - (min as any)
+        summary.mode = mode
+        summary.modeSize = modeSize
         if (!isNumeric) {
-            stats.sum = undefined
-            stats.mean = undefined
+            summary.sum = undefined
+            summary.mean = undefined
         }
 
-        stats.deciles = {}
+        summary.deciles = {}
         const deciles = [10, 20, 30, 40, 50, 60, 70, 80, 90, 99, 100]
         deciles.forEach((decile) => {
             let index = Math.floor(numValues * (decile / 100))
             index = index === numValues ? index - 1 : index
-            stats.deciles![decile] = arr[index]
+            summary.deciles![decile] = arr[index]
         })
 
-        return stats
+        return summary
     }
 
     // todo: migrate from unitConversionFactor to computed columns instead. then delete this.
@@ -179,7 +179,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get display() {
-        return this.spec.display || new LegacyVariableDisplayConfig()
+        return this.def.display || new LegacyVariableDisplayConfig()
     }
 
     formatValue(value: any) {
@@ -208,10 +208,10 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     @computed get shortUnit() {
         const shortUnit =
-            this.display.shortUnit ?? this.spec.shortUnit ?? undefined
+            this.display.shortUnit ?? this.def.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
 
-        const unit = this.display?.unit || this.spec.unit || ""
+        const unit = this.display?.unit || this.def.unit || ""
 
         if (!unit) return ""
 
@@ -246,7 +246,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get description() {
-        return this.spec.description
+        return this.def.description
     }
 
     @computed get isEmpty() {
@@ -254,7 +254,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get name() {
-        return this.spec.name ?? this.spec.slug
+        return this.def.name ?? this.def.slug
     }
 
     @computed get displayName() {
@@ -269,7 +269,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get slug() {
-        return this.spec.slug
+        return this.def.slug
     }
 
     @computed get isProjection() {
@@ -299,7 +299,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed private get rowsWithParseErrors() {
-        const slug = this.spec.slug
+        const slug = this.def.slug
         return this.table.rows.filter((row) => row[slug] instanceof InvalidCell)
     }
 
@@ -309,7 +309,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // Rows containing a value for this column
     @computed get rowsWithValue() {
-        const slug = this.spec.slug
+        const slug = this.def.slug
         return this.table.rows.filter(
             (row) => !(row[slug] instanceof InvalidCell)
         )
@@ -321,7 +321,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get parsedValues(): JS_TYPE[] {
-        const slug = this.spec.slug
+        const slug = this.def.slug
         return this.rowsWithValue.map((row) => row[slug])
     }
 

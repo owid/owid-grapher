@@ -2,7 +2,7 @@
 
 import {
     CovidQueryParams,
-    makeColumnSpecFromParams,
+    makeColumnDefFromParams,
 } from "explorer/covidExplorer/CovidParams"
 import { uniq } from "grapher/utils/Util"
 import { IntervalOptions } from "./CovidConstants"
@@ -80,24 +80,21 @@ it("computes the correct source chart key given current params", () => {
     expect(params.sourceChartKey).toEqual("cases_daily_per_capita")
 })
 
-describe("column specs", () => {
-    it("computes unique slugs", () => {
-        expect(
-            uniq(
-                [
-                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "positiveTestRate=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
-                    "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=false",
-                    "testsMetric=true&dailyFreq=true&smoothing=0&perCapita=true",
-                    "testsMetric=true&totalFreq=true&smoothing=3&perCapita=true",
-                ].map(
-                    (queryStr) =>
-                        makeColumnSpecFromParams(new CovidQueryParams(queryStr))
-                            .slug
-                )
-            ).length
-        ).toEqual(6)
-    })
+it("computes unique slugs for generated columns", () => {
+    expect(
+        uniq(
+            [
+                "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                "positiveTestRate=true&dailyFreq=true&smoothing=3&perCapita=true",
+                "casesMetric=true&dailyFreq=true&smoothing=3&perCapita=true",
+                "testsMetric=true&dailyFreq=true&smoothing=3&perCapita=false",
+                "testsMetric=true&dailyFreq=true&smoothing=0&perCapita=true",
+                "testsMetric=true&totalFreq=true&smoothing=3&perCapita=true",
+            ].map(
+                (queryStr) =>
+                    makeColumnDefFromParams(new CovidQueryParams(queryStr)).slug
+            )
+        ).length
+    ).toEqual(6)
 })

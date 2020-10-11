@@ -1,6 +1,6 @@
 import {
     ColumnTypeNames,
-    CoreColumnSpec,
+    CoreColumnDef,
     CoreRow,
     Integer,
     Time,
@@ -27,7 +27,7 @@ export type EntityName = string
 export type EntityCode = string
 export type EntityId = number
 
-export interface OwidColumnSpec extends CoreColumnSpec {
+export interface OwidColumnDef extends CoreColumnDef {
     owidVariableId?: LegacyVariableId
     coverage?: string
     datasetId?: string
@@ -36,7 +36,7 @@ export interface OwidColumnSpec extends CoreColumnSpec {
     isDailyMeasurement?: boolean // todo: remove
 }
 
-export const RequiredColumnSpecs: OwidColumnSpec[] = [
+export const RequiredColumnDefs: OwidColumnDef[] = [
     {
         name: OwidTableNames.Entity,
         slug: OwidTableSlugs.entityName,

@@ -214,7 +214,7 @@ france,fr,3,23,4`
 
 it("can get entities with required columns", () => {
     const table = OwidTable.fromDelimited(basicTableCsv)
-    expect(table.get("pop")?.spec.type).toEqual(ColumnTypeNames.Numeric)
+    expect(table.get("pop")?.def.type).toEqual(ColumnTypeNames.Numeric)
     expect(table.get("pop")?.uniqEntityNames.length).toEqual(2)
     expect(table.entitiesWith(["gdp"]).size).toEqual(3)
     expect(table.entitiesWith(["gdp", "pop"]).size).toEqual(2)
@@ -230,7 +230,7 @@ usa,us,23,`)
 
 it("can handle columns with commas", () => {
     const table = OwidTable.fromDelimited(basicTableCsv)
-    table.get("gdp")!.spec.name = "Gross, Domestic, Product"
+    table.get("gdp")!.def.name = "Gross, Domestic, Product"
     expect(table.toPrettyCsv())
         .toEqual(`Entity,Code,"Gross, Domestic, Product",pop
 france,fr,23,4

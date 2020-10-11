@@ -54,10 +54,10 @@ it("can transform columns", () => {
     const table = new CoreTable(rows)
     expect(table.columnNames).toEqual(["country", "Year"])
     expect(
-        table.withTransformedSpecs((spec) => {
+        table.withTransformedDefs((def) => {
             return {
-                ...spec,
-                name: spec.slug.toUpperCase(),
+                ...def,
+                name: def.slug.toUpperCase(),
             }
         }).columnNames
     ).toEqual(["COUNTRY", "YEAR"])

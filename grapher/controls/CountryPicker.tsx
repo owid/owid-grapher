@@ -134,7 +134,7 @@ export class CountryPicker extends React.Component<{
         return sortBy(
             this.availablePickerColumns.map((col) => {
                 return {
-                    label: col.spec.name, // todo: name
+                    label: col.def.name, // todo: name
                     value: col.slug,
                 }
             }),
