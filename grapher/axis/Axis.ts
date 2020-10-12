@@ -50,10 +50,11 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     // This will expand the domain but never shrink.
     // This will change the min unless the user's min setting is less
     // This will change the max unless the user's max setting is greater
-    updateDomainPreservingUserSettings(domain: ValueRange) {
+    // Undefined values are ignored
+    updateDomainPreservingUserSettings(domain: [number | undefined, number | undefined]) {
         this.domain = [
-            Math.min(this.domain[0], domain[0]),
-            Math.max(this.domain[1], domain[1]),
+            domain[0] !== undefined ? Math.min(this.domain[0], domain[0]) : this.domain[0],
+            domain[1] !== undefined ? Math.max(this.domain[1], domain[1]) : this.domain[1],
         ]
         return this
     }
