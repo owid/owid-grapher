@@ -10,14 +10,17 @@ import {
     getDropIndexes,
     Grid,
     trimGrid,
+    intersectionOfSets,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
+import { queryParamsToStr } from "utils/client/url"
 import { CoreColumn, ColumnTypeMap } from "./CoreTableColumns"
 import {
     ColumnSlug,
     ColumnTypeNames,
     CoreColumnDef,
     CoreRow,
+    PrimitiveType,
     SortOrder,
     ValueRange,
 } from "./CoreTableConstants"
@@ -38,6 +41,11 @@ export enum TransformType {
     AddRows = "AddRows",
     AddColumns = "AddColumns",
     DropValues = "DropValues",
+}
+
+// Every row will be checked against each column/value(s) pair.
+interface CoreQuery {
+    [columnSlug: string]: PrimitiveType | PrimitiveType[]
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -133,6 +141,10 @@ export class CoreTable<
 
     @computed get rows() {
         return this._rows
+    }
+
+    @computed get firstRow() {
+        return this.rows[0]
     }
 
     @computed get numRows() {
@@ -418,6 +430,32 @@ export class CoreTable<
     // Get all the columns that only have 1 value
     constantColumns() {
         return this.columnsAsArray.filter((col) => col.isConstant)
+    }
+
+    findRows(query: CoreQuery) {
+        const slugs = Object.keys(query)
+        if (!slugs.length) return this.rows
+        const sets = this.getColumns(slugs).map((col) =>
+            col.rowsWhere(query[col.slug])
+        )
+        return Array.from(intersectionOfSets(sets))
+    }
+
+    indexOf(row: ROW_TYPE) {
+        return this.rows.indexOf(row)
+    }
+
+    where(query: CoreQuery) {
+        const rows = this.findRows(query)
+        return new (this.constructor as any)(
+            rows,
+            this.defs,
+            this,
+            `Selecting ${rows.length} rows where ${queryParamsToStr(
+                query as any
+            )}`,
+            TransformType.FilterRows
+        ) as TABLE_TYPE
     }
 
     withRows(rows: ROW_TYPE[]): TABLE_TYPE {

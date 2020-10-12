@@ -63,6 +63,22 @@ it("can transform columns", () => {
     ).toEqual(["COUNTRY", "YEAR"])
 })
 
+it("can query rows", () => {
+    const rows = [
+        { country: "USA", year: 1999 },
+        { country: "Germany", year: 2000 },
+        { country: "Germany", year: 2001 },
+    ]
+    const table = new CoreTable(rows)
+    expect(table.where({ country: "Germany" }).numRows).toEqual(2)
+    expect(table.findRows({ country: "Germany" }).length).toEqual(2)
+    expect(table.where({ country: "Germany", year: 2001 }).numRows).toEqual(1)
+    expect(table.where({}).numRows).toEqual(3)
+    expect(table.where({ country: ["Germany", "USA"] }).numRows).toEqual(3)
+    expect(table.where({ year: [2002] }).numRows).toEqual(0)
+    expect(table.where({ year: [1999], country: "Germany" }).numRows).toEqual(0)
+})
+
 describe("filtering", () => {
     const rootTable = CoreTable.fromDelimited(sampleCsv)
     const filteredTable = rootTable.filterBy(

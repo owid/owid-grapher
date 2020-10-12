@@ -1000,6 +1000,18 @@ export function oneOf<T>(value: any, options: T[], defaultOption: T): T {
     return defaultOption
 }
 
+// Todo: add tests.
+export function unionOfSets<T>(sets: Set<T>[]) {
+    if (!sets.length) return new Set<T>()
+    const union = new Set<T>()
+    sets.forEach((set) => {
+        for (const elem of set) {
+            union.add(elem)
+        }
+    })
+    return union
+}
+
 export function intersectionOfSets<T>(sets: Set<T>[]) {
     if (!sets.length) return new Set<T>()
     const intersection = new Set<T>(sets[0])

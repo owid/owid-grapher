@@ -9,6 +9,8 @@ import {
     last,
     sortBy,
     uniq,
+    isPresent,
+    unionOfSets,
 } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { CoreTable } from "./CoreTable"
@@ -18,6 +20,8 @@ import {
     ColumnSlug,
     ColumnTypeNames,
     Time,
+    PrimitiveType,
+    JsTypes,
 } from "./CoreTableConstants"
 import { EntityName } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
 import {
@@ -38,8 +42,6 @@ interface ColumnSummary {
     numValues: number
 }
 
-type PrimitiveType = number | string | boolean
-
 interface ExtendedColumnSummary extends ColumnSummary {
     median: PrimitiveType
     sum: number
@@ -50,12 +52,6 @@ interface ExtendedColumnSummary extends ColumnSummary {
     mode: PrimitiveType
     modeSize: number
     deciles: { [decile: number]: PrimitiveType }
-}
-
-enum JsTypes {
-    string = "string",
-    boolean = "boolean",
-    number = "number",
 }
 
 // todo: remove
@@ -103,7 +99,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         const { numParseErrors, numValues } = this
         const basicSummary: ColumnSummary = {
             numParseErrors,
-            uniqueValues: this.valuesAsSet.size,
+            uniqueValues: this.uniqValues.length,
             numValues,
         }
         if (!numValues) return basicSummary
@@ -272,12 +268,30 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.slug
     }
 
+    // An index on rows
+    @computed private get valuesToRows() {
+        const map = new Map<JS_TYPE, Set<CoreRow>>()
+        const slug = this.slug
+        this.rowsWithValue.forEach((row) => {
+            if (!map.has(row[slug])) map.set(row[slug], new Set<CoreRow>())
+            map.get(row[slug])!.add(row)
+        })
+        return map
+    }
+
+    rowsWhere(value: JS_TYPE | JS_TYPE[]) {
+        const queries = Array.isArray(value) ? value : [value]
+        return unionOfSets(
+            queries.map((val) => this.valuesToRows.get(val)).filter(isPresent)
+        )
+    }
+
     @computed get isProjection() {
         return !!this.display?.isProjection
     }
 
-    @computed private get valuesAsSet() {
-        return new Set(this.parsedValues)
+    @computed get uniqValues() {
+        return uniq(this.parsedValues)
     }
 
     @computed private get allValuesAsSet() {

@@ -64,5 +64,13 @@ export interface CoreRow {
     [columnSlug: string]: any
 }
 
+export type PrimitiveType = number | string | boolean
+
+export enum JsTypes {
+    string = "string",
+    boolean = "boolean",
+    number = "number",
+}
+
 // todo: remove index param?
 export type ComputedColumnFn = (row: CoreRow, index?: Integer) => any

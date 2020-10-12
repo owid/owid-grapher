@@ -4,7 +4,7 @@ import {
     uniq,
     parseDelimited,
     isCellEmpty,
-    isPresent,
+    trimObject,
 } from "grapher/utils/Util"
 import {
     queryParamsToStr,
@@ -15,6 +15,8 @@ import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import { ObservableUrl } from "grapher/utils/UrlBinder"
 import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
+import { CoreTable } from "coreTable/CoreTable"
+import { ColumnTypeNames } from "coreTable/CoreTableConstants"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"
@@ -268,20 +270,19 @@ interface ChoiceMap {
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
 export class SwitcherRuntime implements ObservableUrl {
-    private rows: any[]
+    private table: CoreTable<any>
     @observable private _settings: SwitcherQuery = {}
     constructor(delimited: string, queryString: string = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
         delimited = removeChoiceControlTypeInfo(delimited)
-        this.rows = parseDelimited(delimited)
-        this.rows.forEach((row) => {
-            row.chartId = parseInt(row.chartId)
-        })
+        this.table = new CoreTable(parseDelimited(delimited), [
+            { slug: "chartId", type: ColumnTypeNames.Integer },
+        ])
         this.setValuesFromQueryString(queryString)
     }
 
     allOptionsAsQueryStrings() {
-        return this.rows.map((row) => {
+        return this.table.rows.map((row) => {
             const params: QueryParams = {}
             this.choiceNames.forEach((name) => {
                 params[name] = row[name]
@@ -334,17 +335,15 @@ export class SwitcherRuntime implements ObservableUrl {
     }
 
     @computed private get choiceNames(): ChoiceName[] {
-        const firstRow = this.rows[0]
-        if (!firstRow) return []
-        return Object.keys(firstRow).filter((name) => name !== CHART_ID_SYMBOL)
+        return this.table.columnNames.filter((name) => name !== CHART_ID_SYMBOL)
     }
 
     @computed private get allChoiceOptions(): ChoiceMap {
         const choiceMap: ChoiceMap = {}
         this.choiceNames.forEach((choiceName) => {
-            choiceMap[choiceName] = uniq(
-                this.rows.map((row) => row[choiceName])
-            ).filter((cell) => !isCellEmpty(cell)) as string[]
+            choiceMap[choiceName] = this.table
+                .get(choiceName)!
+                .uniqValues.filter((cell) => !isCellEmpty(cell)) as string[]
         })
         return choiceMap
     }
@@ -357,47 +356,41 @@ export class SwitcherRuntime implements ObservableUrl {
         )
     }
 
-    isOptionAvailable(choiceName: ChoiceName, optionName: string) {
+    isOptionAvailable(choiceName: ChoiceName, option: ChoiceValue) {
         const query: SwitcherQuery = {}
-        const columnNames = this.choiceNames
-        columnNames.slice(0, columnNames.indexOf(choiceName)).forEach((col) => {
-            query[col] = this._settings[col]
-        })
-        query[choiceName] = optionName
+        this.choiceNames
+            .slice(0, this.choiceNames.indexOf(choiceName))
+            .forEach((name) => {
+                query[name] = this._settings[name]
+            })
+        query[choiceName] = option
         return this.rowsWith(query, choiceName).length > 0
     }
 
-    private rowIndexesWith(query: SwitcherQuery, choiceName?: ChoiceName) {
-        return this.rows
-            .map((row, rowIndex) =>
-                Object.keys(query)
-                    .filter((key) => query[key] !== undefined)
-                    .every(
-                        (key) =>
-                            row[key] === query[key] ||
-                            (choiceName && choiceName !== key
-                                ? isCellEmpty(row[key])
-                                : false)
-                    )
-                    ? rowIndex
-                    : null
-            )
-            .filter(isPresent)
+    private rowsWith(query: SwitcherQuery, choiceName?: ChoiceName) {
+        // We allow other options to be blank.
+        const modifiedQuery: any = {}
+        Object.keys(trimObject(query)).forEach((queryColumn) => {
+            if (queryColumn !== choiceName)
+                // Blanks are fine if we are not talking about the column of interest
+                modifiedQuery[queryColumn] = [query[queryColumn], ""]
+            else modifiedQuery[queryColumn] = query[queryColumn]
+        })
+        return this.table.findRows(modifiedQuery)
     }
 
-    private rowsWith(query: SwitcherQuery, choiceName?: ChoiceName) {
-        return this.rowIndexesWith(query, choiceName).map(
-            (index) => this.rows[index]
-        )
+    @computed private get firstMatch() {
+        return this.rowsWith(this.toConstrainedOptions())[0]
     }
 
     @computed get chartId(): number {
-        const row = this.rowsWith(this.toConstrainedOptions())[0]
-        return row?.chartId
+        return this.firstMatch?.chartId
     }
 
-    @computed get selectedRowIndex(): number {
-        return this.rowIndexesWith(this.toConstrainedOptions())[0]
+    @computed get selectedRowIndex() {
+        return this.firstMatch === undefined
+            ? 0
+            : this.table.indexOf(this.firstMatch)
     }
 
     private toControlOption(
