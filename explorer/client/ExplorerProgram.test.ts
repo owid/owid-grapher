@@ -91,9 +91,9 @@ describe(SwitcherRuntime, () => {
         options.setValue("country", "usa")
         options.setValue("indicator", "GDP")
         options.setValue("interval", "annual")
-        expect(options.groups[2].value).toEqual("annual")
+        expect(options.choicesWithAvailability[2].value).toEqual("annual")
         options.setValue("country", "spain")
-        expect(options.groups[2].value).toEqual(undefined)
+        expect(options.choicesWithAvailability[2].value).toEqual(undefined)
     })
 
     it("fails if no chartId column is provided", () => {
@@ -118,12 +118,12 @@ france,Life expectancy`
 23,france,`
         )
         expect(options.chartId).toEqual(123)
-        expect(options.groups.length).toBeGreaterThan(0)
+        expect(options.choicesWithAvailability.length).toBeGreaterThan(0)
     })
 
     it("handles empty options", () => {
         const options = new SwitcherRuntime(``)
-        expect(options.groups.length).toEqual(0)
+        expect(options.choicesWithAvailability.length).toEqual(0)
     })
 
     it("marks a radio as checked if its the only option", () => {
@@ -140,8 +140,14 @@ france,Life expectancy`
         expect(options.toConstrainedOptions()["Accounting"]).toEqual(
             "Production-based"
         )
-        expect(options.groups[1].value).toEqual("Production-based")
-        expect(options.groups[1].options[0].value).toEqual("Production-based")
-        expect(options.groups[1].options[0].checked).toEqual(true)
+        expect(options.choicesWithAvailability[1].value).toEqual(
+            "Production-based"
+        )
+        expect(options.choicesWithAvailability[1].options[0].value).toEqual(
+            "Production-based"
+        )
+        expect(options.choicesWithAvailability[1].options[0].checked).toEqual(
+            true
+        )
     })
 })

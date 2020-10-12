@@ -587,7 +587,7 @@ export class Grapher
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === GrapherTabOption.map)
-            return this.inputTable.get(this.mapColumnSlug)!.uniqTimes || []
+            return this.inputTable.get(this.mapColumnSlug)?.uniqTimes || []
         // todo: filter out min times and end times?
         return this.inputTable.getTimeOptionsForColumns(this.yColumnSlugs)
     }

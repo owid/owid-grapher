@@ -9,7 +9,6 @@ import {
     ExplorerProgram,
 } from "explorer/client/ExplorerProgram"
 import { Request, Response } from "adminSite/server/utils/authentication"
-
 import {
     covidDashboardSlug,
     coronaOpenGraphImagePath,
@@ -17,7 +16,6 @@ import {
     covidPreloads,
     covidWpBlockId,
 } from "explorer/covidExplorer/CovidConstants"
-
 import { SwitcherExplorerProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
 import { getChartById } from "db/model/Chart"
@@ -25,6 +23,7 @@ import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/constants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
+import { getPublishedChartsBySlug } from "site/server/bakeChartsToImages"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
@@ -62,6 +61,12 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
 }
 
 export const addExplorerAdminRoutes = (app: Router) => {
+    app.get(`/explorers/preview/mega`, async (req, res) => {
+        const code = await getMegaExplorerCode()
+        if (code === undefined) res.send(`File not found`)
+        else res.send(await renderSwitcherExplorerPage(req.params.slug, code))
+    })
+
     // http://localhost:3030/admin/explorers/preview/some-slug
     app.get(`/explorers/preview/:slug`, async (req, res) => {
         const code = await getExplorerCodeBySlug(req.params.slug)
@@ -209,4 +214,20 @@ const CovidExplorerPage = (props: CovidExplorerPageProps) => {
             wpContent={props.wpContent}
         />
     )
+}
+
+const getMegaExplorerCode = async () => {
+    const { chartsBySlug } = await getPublishedChartsBySlug()
+    const lines = Array.from(chartsBySlug.values())
+        .map((grapher) => {
+            const { id, type, stackMode, title } = grapher
+            return "\t" + [id, type, stackMode, title].join("\t")
+        })
+        .join("\n")
+    return `title	Mega Explorer
+isPublished	false
+subtitle	All of our published charts
+switcher
+	chartId	Type Dropdown	StackMode Dropdown	Title Dropdown
+${lines}`
 }

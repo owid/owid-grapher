@@ -21,11 +21,7 @@ import {
     exposeInstanceOnWindow,
     last,
 } from "grapher/utils/Util"
-import {
-    ControlOption,
-    ExplorerControlPanel,
-    DropdownOption,
-} from "explorer/client/ExplorerControls"
+import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import { CovidQueryParams } from "./CovidParams"
 import { CountryPicker } from "grapher/controls/CountryPicker"
 import { CovidExplorerTable } from "./CovidExplorerTable"
@@ -77,6 +73,10 @@ import {
     SlideShowController,
     SlideShowManager,
 } from "grapher/slideshowController/SlideShowController"
+import {
+    ExplorerControlType,
+    ExplorerControlOption,
+} from "explorer/client/ExplorerConstants"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -157,7 +157,7 @@ export class CovidExplorer
     > = React.createRef()
 
     private get metricPanel() {
-        const options: ControlOption[] = [
+        const options: ExplorerControlOption[] = [
             {
                 available: true,
                 label: metricLabels.cases,
@@ -179,7 +179,7 @@ export class CovidExplorer
             },
         ]
 
-        const optionsColumn2: ControlOption[] = [
+        const optionsColumn2: ExplorerControlOption[] = [
             {
                 available: true,
                 label: metricLabels.tests,
@@ -207,7 +207,7 @@ export class CovidExplorer
                 name={this.getScopedName("metric")}
                 options={options}
                 onChange={this.changeMetric}
-                isCheckbox={false}
+                type={ExplorerControlType.Radio}
             />,
             <ExplorerControlPanel
                 key="metric2"
@@ -217,7 +217,7 @@ export class CovidExplorer
                 name={this.getScopedName("metric")}
                 onChange={this.changeMetric}
                 options={optionsColumn2}
-                isCheckbox={false}
+                type={ExplorerControlType.Radio}
             />,
         ]
     }
@@ -230,7 +230,7 @@ export class CovidExplorer
     private get frequencyPanel() {
         const writeableParams = this.props.params
         const { available } = this.constrainedParams
-        const options: DropdownOption[] = [
+        const options: ExplorerControlOption[] = [
             {
                 available: true,
                 label: intervalSpecs.total.label,
@@ -271,10 +271,10 @@ export class CovidExplorer
             <ExplorerControlPanel
                 key="interval"
                 title="Interval"
+                type={ExplorerControlType.Dropdown}
                 name={this.getScopedName("interval")}
-                dropdownOptions={options}
                 value={this.constrainedParams.interval}
-                options={[]}
+                options={options}
                 onChange={(value: string) => {
                     writeableParams.setTimeline(value as IntervalOptions)
                     this.renderControlsThenUpdateGrapher()
@@ -290,7 +290,7 @@ export class CovidExplorer
 
     @computed private get perCapitaPanel() {
         const { available } = this.constrainedParams
-        const options: ControlOption[] = [
+        const options: ExplorerControlOption[] = [
             {
                 available: available.perCapita,
                 label: capitalize(this.perCapitaOptions[this.perCapitaDivisor]),
@@ -303,7 +303,7 @@ export class CovidExplorer
                 key="count"
                 title="Count"
                 name={this.getScopedName("count")}
-                isCheckbox={true}
+                type={ExplorerControlType.Checkbox}
                 options={options}
                 explorerSlug="covid"
                 onChange={(value) => {
@@ -316,7 +316,7 @@ export class CovidExplorer
 
     @computed private get alignedPanel() {
         const { available } = this.constrainedParams
-        const options: ControlOption[] = [
+        const options: ExplorerControlOption[] = [
             {
                 available: available.aligned,
                 label: "Align outbreaks",
@@ -329,7 +329,7 @@ export class CovidExplorer
                 key="timeline"
                 title="Timeline"
                 name={this.getScopedName("timeline")}
-                isCheckbox={true}
+                type={ExplorerControlType.Checkbox}
                 options={options}
                 onChange={(value) => {
                     this.props.params.aligned = value === "true"

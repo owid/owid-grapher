@@ -4,26 +4,26 @@ import {
     uniq,
     parseDelimited,
     isCellEmpty,
+    isPresent,
 } from "grapher/utils/Util"
 import {
     queryParamsToStr,
     strToQueryParams,
     QueryParams,
 } from "utils/client/url"
-import { ControlOption, DropdownOption } from "explorer/client/ExplorerControls"
 import { action, observable, computed } from "mobx"
 import { SubNavId } from "site/server/views/SiteSubnavigation"
 import { ObservableUrl } from "grapher/utils/UrlBinder"
+import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 
 const CHART_ID_SYMBOL = "chartId"
 const FALSE_SYMBOL = "FALSE"
 
-interface Group {
+interface Choice {
     title: string
-    options: ControlOption[]
-    dropdownOptions?: DropdownOption[]
+    options: ExplorerControlOption[]
     value: string
-    isCheckbox: boolean
+    type: ExplorerControlType
 }
 
 export const explorerFileSuffix = ".explorer.tsv"
@@ -222,66 +222,77 @@ ${ProgramKeyword.switcher}
     }
 }
 
-enum ControlType {
-    Radio = "Radio",
-    Checkbox = "Checkbox",
-    Dropdown = "Dropdown",
+// todo: cleanup
+const makeControlTypesMap = (delimited: string) => {
+    const headerLine = delimited.split("\n")[0]
+    const map = new Map<ChoiceName, ExplorerControlType>()
+    headerLine
+        .split(detectDelimiter(headerLine))
+        .filter((name) => name !== CHART_ID_SYMBOL)
+        .forEach((choiceName) => {
+            const words = choiceName.split(" ")
+            const type = words.pop() as ExplorerControlType
+            if (ExplorerControlType[type]) map.set(words.join(" "), type)
+            else map.set(choiceName, ExplorerControlType.Radio)
+        })
+    return map
 }
 
-// todo: remove
-const extractColumnTypes = (str: string) => {
-    const header = str.split("\n")[0]
-    return header
-        .split(detectDelimiter(header))
-        .slice(1)
-        .map(
-            (name) =>
-                ControlType[name.split(" ").pop() as ControlType] || "Radio"
-        )
-}
-
-// todo: remove
-const removeColumnTypeInfo = (str: string) => {
+// todo: cleanup
+// This strips the "Dropdown" or "Checkbox" from "SomeChoice Dropdown" or "SomeChoice Checkbox"
+const removeChoiceControlTypeInfo = (str: string) => {
     const lines = str.split("\n")
-    const header = lines[0]
-    const delimiter = detectDelimiter(header)
-    const types = Object.values(ControlType).join("|")
-    const reg = new RegExp("(" + types + ")$")
-    lines[0] = header
+    const headerLine = lines[0]
+    const delimiter = detectDelimiter(headerLine)
+    const types = Object.values(ExplorerControlType).join("|")
+    const reg = new RegExp(" (" + types + ")$")
+    lines[0] = headerLine
         .split(delimiter)
         .map((cell) => cell.replace(reg, ""))
         .join(delimiter)
     return lines.join("\n")
 }
 
+type ChoiceName = string
+type ChoiceValue = string
+
+// A "query" here is just a map of choice names and values. Maps nicely to a query string.
+interface SwitcherQuery {
+    [choiceName: string]: ChoiceValue
+}
+
+interface ChoiceMap {
+    [choiceName: string]: ChoiceValue[]
+}
+
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
 export class SwitcherRuntime implements ObservableUrl {
-    private parsed: any[]
-    @observable private _settings: any = {}
+    private rows: any[]
+    @observable private _settings: SwitcherQuery = {}
     constructor(delimited: string, queryString: string = "") {
-        this.columnTypes = extractColumnTypes(delimited)
-        delimited = removeColumnTypeInfo(delimited)
-        this.parsed = parseDelimited(delimited)
-        this.parsed.forEach((row) => {
+        this.choiceControlTypes = makeControlTypesMap(delimited)
+        delimited = removeChoiceControlTypeInfo(delimited)
+        this.rows = parseDelimited(delimited)
+        this.rows.forEach((row) => {
             row.chartId = parseInt(row.chartId)
         })
         this.setValuesFromQueryString(queryString)
     }
 
     allOptionsAsQueryStrings() {
-        return this.parsed.map((row) => {
+        return this.rows.map((row) => {
             const params: QueryParams = {}
-            this.columnNames.forEach((name) => {
+            this.choiceNames.forEach((name) => {
                 params[name] = row[name]
             })
             return queryParamsToStr(params)
         })
     }
 
-    columnTypes: ControlType[]
+    private choiceControlTypes: Map<string, ExplorerControlType>
 
-    toObject() {
+    toObject(): SwitcherQuery {
         return { ...this._settings }
     }
 
@@ -297,80 +308,86 @@ export class SwitcherRuntime implements ObservableUrl {
 
     toConstrainedOptions() {
         const settings = this.toObject()
-        this.columnNames.forEach((group) => {
-            if (!this.isOptionAvailable(group, settings[group]))
-                settings[group] = this.firstAvailableOptionForGroup(group)
+        this.choiceNames.forEach((choiceName) => {
+            if (!this.isOptionAvailable(choiceName, settings[choiceName]))
+                settings[choiceName] = this.firstAvailableOptionForChoice(
+                    choiceName
+                )!
         })
         return settings
     }
 
-    @action.bound setValue(group: string, value: any) {
-        this._settings[group] = value
+    @action.bound setValue(choiceName: ChoiceName, value: ChoiceValue) {
+        this._settings[choiceName] = value
     }
 
     @action.bound setValuesFromQueryString(queryString: string) {
         const queryParams = strToQueryParams(decodeURIComponent(queryString))
-        this.columnNames.forEach((name) => {
-            if (queryParams[name] === undefined)
-                this.setValue(name, this.firstAvailableOptionForGroup(name))
-            else this.setValue(name, queryParams[name])
+        this.choiceNames.forEach((choiceName) => {
+            if (queryParams[choiceName] === undefined)
+                this.setValue(
+                    choiceName,
+                    this.firstAvailableOptionForChoice(choiceName)!
+                )
+            else this.setValue(choiceName, queryParams[choiceName]!)
         })
     }
 
-    @computed get columnNames() {
-        if (!this.parsed[0]) return []
-        return Object.keys(this.parsed[0]).filter(
-            (name) => name !== CHART_ID_SYMBOL
-        )
+    @computed private get choiceNames(): ChoiceName[] {
+        const firstRow = this.rows[0]
+        if (!firstRow) return []
+        return Object.keys(firstRow).filter((name) => name !== CHART_ID_SYMBOL)
     }
 
-    @computed get groupOptions(): { [title: string]: string[] } {
-        const optionMap: any = {}
-        this.columnNames.forEach((title, index) => {
-            optionMap[title] = uniq(
-                this.parsed.map((row) => row[title])
+    @computed private get allChoiceOptions(): ChoiceMap {
+        const choiceMap: ChoiceMap = {}
+        this.choiceNames.forEach((choiceName) => {
+            choiceMap[choiceName] = uniq(
+                this.rows.map((row) => row[choiceName])
             ).filter((cell) => !isCellEmpty(cell)) as string[]
         })
-        return optionMap
+        return choiceMap
     }
 
-    firstAvailableOptionForGroup(group: string) {
-        return this.groupOptions[group].find((option) =>
-            this.isOptionAvailable(group, option)
+    private firstAvailableOptionForChoice(
+        choiceName: ChoiceName
+    ): ChoiceValue | undefined {
+        return this.allChoiceOptions[choiceName].find((option) =>
+            this.isOptionAvailable(choiceName, option)
         )
     }
 
-    isOptionAvailable(groupName: string, optionName: string) {
-        const query: any = {}
-        const columnNames = this.columnNames
-        columnNames.slice(0, columnNames.indexOf(groupName)).forEach((col) => {
+    isOptionAvailable(choiceName: ChoiceName, optionName: string) {
+        const query: SwitcherQuery = {}
+        const columnNames = this.choiceNames
+        columnNames.slice(0, columnNames.indexOf(choiceName)).forEach((col) => {
             query[col] = this._settings[col]
         })
-        query[groupName] = optionName
-        return this.rowsWith(query, groupName).length > 0
+        query[choiceName] = optionName
+        return this.rowsWith(query, choiceName).length > 0
     }
 
-    rowIndexesWith(query: any, groupName?: string): number[] {
-        return this.parsed
+    private rowIndexesWith(query: SwitcherQuery, choiceName?: ChoiceName) {
+        return this.rows
             .map((row, rowIndex) =>
                 Object.keys(query)
                     .filter((key) => query[key] !== undefined)
                     .every(
                         (key) =>
                             row[key] === query[key] ||
-                            (groupName && groupName !== key
+                            (choiceName && choiceName !== key
                                 ? isCellEmpty(row[key])
                                 : false)
                     )
                     ? rowIndex
                     : null
             )
-            .filter((index) => index !== null) as number[]
+            .filter(isPresent)
     }
 
-    rowsWith(query: any, groupName?: string) {
-        return this.rowIndexesWith(query, groupName).map(
-            (index) => this.parsed[index]
+    private rowsWith(query: SwitcherQuery, choiceName?: ChoiceName) {
+        return this.rowIndexesWith(query, choiceName).map(
+            (index) => this.rows[index]
         )
     }
 
@@ -384,46 +401,34 @@ export class SwitcherRuntime implements ObservableUrl {
     }
 
     private toControlOption(
-        groupName: string,
+        choiceName: ChoiceName,
         optionName: string,
-        value: string
-    ): ControlOption {
+        value: ChoiceValue
+    ): ExplorerControlOption {
         return {
             label: optionName,
             checked: value === optionName,
             value: optionName,
-            available: this.isOptionAvailable(groupName, optionName),
+            available: this.isOptionAvailable(choiceName, optionName),
         }
     }
 
-    @computed get groups(): Group[] {
+    @computed get choicesWithAvailability(): Choice[] {
         const constrainedOptions = this.toConstrainedOptions()
-        return this.columnNames.map((title, index) => {
-            const optionNames = this.groupOptions[title]
-            let options = optionNames.map((optionName) =>
-                this.toControlOption(
-                    title,
-                    optionName,
-                    constrainedOptions[title]
-                )
+        return this.choiceNames.map((title) => {
+            const value = constrainedOptions[title]
+            let options = this.allChoiceOptions[title].map((optionName) =>
+                this.toControlOption(title, optionName, value)
             )
-            let dropdownOptions = undefined
-            const type = this.columnTypes[index]
-
-            const isCheckbox = type === ControlType.Checkbox
-            if (isCheckbox)
+            const type = this.choiceControlTypes.get(title)!
+            if (type === ExplorerControlType.Checkbox)
                 options = options.filter((opt) => opt.label !== FALSE_SYMBOL)
-
-            if (type === "Dropdown") {
-                dropdownOptions = options
-            }
 
             return {
                 title,
-                value: constrainedOptions[title],
+                type,
+                value,
                 options,
-                dropdownOptions,
-                isCheckbox,
             }
         })
     }

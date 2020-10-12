@@ -4,16 +4,7 @@ import { action } from "mobx"
 import classNames from "classnames"
 import Select from "react-select"
 import { getStylesForTargetHeight } from "utils/client/react-select"
-
-export interface DropdownOption {
-    label: string
-    available: boolean
-    value: string
-}
-
-export interface ControlOption extends DropdownOption {
-    checked: boolean
-}
+import { ExplorerControlType, ExplorerControlOption } from "./ExplorerConstants"
 
 export class ExplorerControlBar extends React.Component<{
     isMobile: boolean
@@ -55,22 +46,18 @@ export class ExplorerControlPanel extends React.Component<{
     name: string
     explorerSlug: string
     value?: string
-    options: ControlOption[]
-    dropdownOptions?: DropdownOption[]
-    isCheckbox?: boolean
+    options: ExplorerControlOption[]
+    type: ExplorerControlType
     comment?: string
     onChange: (value: string) => void
     hideTitle?: boolean
 }> {
-    renderOption(option: ControlOption, index: number) {
-        const {
-            title,
-            name,
-            comment,
-            isCheckbox,
-            explorerSlug,
-            value,
-        } = this.props
+    private renderCheckboxOrRadio(
+        option: ExplorerControlOption,
+        index: number
+    ) {
+        const { title, name, comment, explorerSlug, type, value } = this.props
+        const isCheckbox = type === ExplorerControlType.Checkbox
         const onChangeValue = isCheckbox
             ? option.checked
                 ? ""
@@ -113,9 +100,9 @@ export class ExplorerControlPanel extends React.Component<{
         )
     }
 
-    get renderDropdown() {
+    private renderDropdown() {
         const options = this.props
-            .dropdownOptions!.filter((option) => option.available)
+            .options!.filter((option) => option.available)
             .map((option) => {
                 return {
                     label: option.label,
@@ -142,23 +129,23 @@ export class ExplorerControlPanel extends React.Component<{
                     IndicatorSeparator: null,
                 }}
                 styles={styles}
-                isSearchable={false}
+                isSearchable={options.length > 20}
             />
         )
     }
 
-    @action.bound customOnChange(value: string) {
+    @action.bound private customOnChange(value: string) {
         this.props.onChange!(value)
     }
 
-    get renderOptions() {
+    private renderCheckboxesOrRadios() {
         return this.props.options.map((option, index) =>
-            this.renderOption(option, index)
+            this.renderCheckboxOrRadio(option, index)
         )
     }
 
     render() {
-        const { title, hideTitle, name } = this.props
+        const { title, hideTitle, name, type } = this.props
         return (
             <div key={name} className={classNames("ExplorerControl", name)}>
                 <div
@@ -169,9 +156,9 @@ export class ExplorerControlPanel extends React.Component<{
                 >
                     {title}
                 </div>
-                {this.props.dropdownOptions?.length
-                    ? this.renderDropdown
-                    : this.renderOptions}
+                {type === ExplorerControlType.Dropdown
+                    ? this.renderDropdown()
+                    : this.renderCheckboxesOrRadios()}
             </div>
         )
     }

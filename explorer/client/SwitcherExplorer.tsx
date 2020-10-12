@@ -178,24 +178,25 @@ export class SwitcherExplorer
     @observable.ref countryPickerTable = new OwidTable()
 
     private get panels() {
-        return this.explorerProgram.switcherRuntime.groups.map((group) => (
-            <ExplorerControlPanel
-                key={group.title}
-                value={group.value}
-                title={group.title}
-                explorerSlug={this.explorerProgram.slug}
-                name={group.title}
-                dropdownOptions={group.dropdownOptions}
-                options={group.options}
-                isCheckbox={group.isCheckbox}
-                onChange={(value) => {
-                    this.explorerProgram.switcherRuntime.setValue(
-                        group.title,
-                        value
-                    )
-                }}
-            />
-        ))
+        return this.explorerProgram.switcherRuntime.choicesWithAvailability.map(
+            (choice) => (
+                <ExplorerControlPanel
+                    key={choice.title}
+                    value={choice.value}
+                    title={choice.title}
+                    explorerSlug={this.explorerProgram.slug}
+                    name={choice.title}
+                    options={choice.options}
+                    type={choice.type}
+                    onChange={(value) => {
+                        this.explorerProgram.switcherRuntime.setValue(
+                            choice.title,
+                            value
+                        )
+                    }}
+                />
+            )
+        )
     }
 
     private get header() {
