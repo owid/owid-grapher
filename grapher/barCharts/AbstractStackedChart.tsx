@@ -107,7 +107,9 @@ export class AbstactStackedChart
         if (this.manager.hideXAxis) axisConfig.hideAxis = true
 
         const axis = axisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(this.table.timeDomainFor(this.yColumnSlugs))
+        axis.updateDomainPreservingUserSettings(
+            this.table.timeDomainFor(this.yColumnSlugs)
+        )
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
         axis.hideGridlines = true
