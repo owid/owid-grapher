@@ -189,7 +189,6 @@ export const covidAnnotations = `location,date,cases_annotations,deaths_annotati
 Spain,2020-04-19,methodology change,
 Spain,2020-04-25,methodology change,methodology change
 Ecuador,2020-05-08,methodology change,
-United Kingdom,2020-05-20,methodology change,
 France,2020-06-02,methodology change,
 India,2020-06-17,,earlier deaths added
 Chile,2020-06-18,earlier cases added,
@@ -197,6 +196,7 @@ Italy,2020-06-25,,methodology change
 United States,2020-06-26,,probable/earlier deaths added
 United States,2020-07-01,,probable/earlier deaths added
 United Kingdom,2020-07-03,methodology change,
+United Kingdom,2020-10-05,earlier cases added,
 Czech Republic,2020-07-05,,methodology change
 Kyrgyzstan,2020-07-18,methodology change,methodology change
 Chile,2020-07-18,,methodology change
@@ -205,7 +205,10 @@ European Union,,Some EU countries changed methodology. See country-by-country se
 United Kingdom,2020-08-14,,methodology change
 Luxembourg,2020-08-28,methodology change,
 Bolivia,2020-09-07,,probable/earlier deaths added
-Ecuador,2020-09-07,,probable/earlier deaths added`
+Ecuador,2020-09-07,,probable/earlier deaths added
+Ecuador,2020-10-09,,probable/earlier deaths added
+Mexico,2020-10-09,probable/earlier cases added,probable/earlier deaths added
+Argentina,2020-10-02,,earlier deaths added`
 
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md
 export interface ParsedCovidCsvRow {
