@@ -221,26 +221,35 @@ export const legacyToOwidTable = (
     const dimensions = grapherConfig.dimensions || []
 
     // todo: when we ditch dimensions and just have computed columns things like conversion factor will be easy (just a computed column)
-    const convertValues = (slug: ColumnSlug, unitConversionFactor: number) => {
-        rows.forEach((row) => {
-            const value = row[slug]
-            if (value !== undefined && value !== null)
-                row[slug] = value * unitConversionFactor
-        })
-    }
+    const conversionFactors: Record<string, number> = {}
+
+    // Dimension-level conversionFactors "override" variable-level conversionFactors, so we need to just choose the correct factor before we can apply it
+
     Array.from(columnDefs.values())
         .filter((col) => col.display?.conversionFactor !== undefined)
         .forEach((col) => {
             const { slug, display } = col
-            convertValues(slug, display!.conversionFactor!)
+            conversionFactors[slug] = display!.conversionFactor!
         })
 
     dimensions
         .filter((dim) => dim.display?.conversionFactor !== undefined)
         .forEach((dimension) => {
             const { display, variableId } = dimension
-            convertValues(variableId.toString(), display!.conversionFactor!)
+            conversionFactors[
+                variableId.toString()
+            ] = display!.conversionFactor!
         })
+
+    Object.entries(conversionFactors).forEach(
+        ([slug, unitConversionFactor]) => {
+            rows.forEach((row) => {
+                const value = row[slug]
+                if (value !== undefined && value !== null)
+                    row[slug] = value * unitConversionFactor
+            })
+        }
+    )
 
     dimensions.forEach((dim) => {
         const def = columnDefs.get(dim.variableId.toString())!
