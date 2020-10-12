@@ -22,7 +22,7 @@ export class Header {
     }
 
     @computed private get subtitleText() {
-        return this.props.grapher.subtitle
+        return this.props.grapher.subtitle ?? ""
     }
 
     @computed get logo(): Logo | undefined {

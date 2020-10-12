@@ -41,8 +41,9 @@ export class SourcesFooter {
         }
     }
 
-    @computed get finalUrl(): string {
+    @computed get finalUrl(): string | undefined {
         const originUrl = this.props.grapher.originUrlWithProtocol
+        if (!originUrl) return undefined
         const url = parseUrl(originUrl)
         return `https://${url.hostname}${url.pathname}`
     }

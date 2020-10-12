@@ -125,9 +125,9 @@ class GrapherDefaults implements GrapherInterface {
     @observable.ref version: number = 1
     @observable.ref slug?: string = undefined
     @observable.ref title?: string = undefined
-    @observable.ref subtitle: string = ""
+    @observable.ref subtitle?: string = undefined
     @observable.ref sourceDesc?: string = undefined
-    @observable.ref note: string = ""
+    @observable.ref note?: string = undefined
     @observable.ref hideTitleAnnotation?: true = undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
@@ -150,9 +150,9 @@ class GrapherDefaults implements GrapherInterface {
     @observable.ref hasMapTab: boolean = false
     @observable.ref tab: GrapherTabOption = "chart"
     @observable.ref overlay?: GrapherTabOption = undefined
-    @observable.ref internalNotes: string = ""
+    @observable.ref internalNotes?: string = undefined
     @observable.ref variantName?: string = undefined
-    @observable.ref originUrl: string = ""
+    @observable.ref originUrl?: string = undefined
     @observable.ref isPublished?: true = undefined
     @observable.ref baseColorScheme?: string = undefined
     @observable.ref invertColorScheme?: true = undefined
@@ -699,7 +699,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     }
 
     // todo: do we need this?
-    @computed get originUrlWithProtocol(): string {
+    @computed get originUrlWithProtocol(): string | undefined {
         let url = this.originUrl
         if (url && !url.startsWith("http")) url = `https://${url}`
         return url
