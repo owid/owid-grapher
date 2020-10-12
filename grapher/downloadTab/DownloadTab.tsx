@@ -53,7 +53,8 @@ const polyfillToBlob = () => {
 
 // Wrapped because JSDOM does not support this method yet:
 // https://stackoverflow.com/questions/52968969/jest-url-createobjecturl-is-not-a-function/56643520#56643520
-const createObjectURL = (obj: any) => URL.createObjectURL ? URL.createObjectURL(obj) : ""
+const createObjectURL = (obj: any) =>
+    URL.createObjectURL ? URL.createObjectURL(obj) : ""
 
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
