@@ -6,7 +6,7 @@
         },
         {
             "path": "./dist/webpack/js/owid.js",
-            "maxSize": "400 KB"
+            "maxSize": "450 KB"
         }
     ],
     "defaultCompression": "none"

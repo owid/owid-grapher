@@ -10,11 +10,19 @@ const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 module.exports = (env, argv) => {
     const isProduction = argv.mode === "production"
     return {
+        cache: {
+            type: "filesystem",
+            buildDependencies: {
+                config: [__filename],
+            },
+        },
+        mode: isProduction ? "production" : "development",
         context: __dirname,
         entry: {
             admin: "./adminSite/client/admin.entry.ts",
             owid: "./site/client/owid.entry.ts",
         },
+        target: "web",
         optimization: {
             splitChunks: {
                 cacheGroups: {
@@ -27,6 +35,9 @@ module.exports = (env, argv) => {
             },
             minimize: isProduction,
             minimizer: [new TerserJSPlugin(), new OptimizeCSSAssetsPlugin()],
+        },
+        performance: {
+            hints: false,
         },
         output: {
             path: path.join(__dirname, "dist/webpack"),
