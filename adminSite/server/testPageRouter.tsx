@@ -191,6 +191,21 @@ testPageRouter.get("/embeds", async (req, res) => {
         query = query.andWhere(`config->"$.hasChartTab" IS TRUE`)
     }
 
+    // Exclude charts that have the "Private" tag assigned, unless `includePrivate` is passed.
+    // The data for these charts is not included in the public database dump used to populate
+    // staging and local, so they are not comparable.
+    if (req.query.includePrivate === undefined) {
+        query.andWhere(`
+            NOT EXISTS(
+                SELECT *
+                FROM tags
+                JOIN chart_tags ON chart_tags.tagId = tags.id
+                WHERE chart_tags.chartId = charts.id
+                AND tags.name = 'Private'
+            )
+        `)
+    }
+
     if (req.query.namespace) {
         namespaces.push(req.query.namespace)
     }
