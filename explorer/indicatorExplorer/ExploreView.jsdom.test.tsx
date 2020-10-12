@@ -74,7 +74,7 @@ it("renders an empty chart", () => {
     expect(view.find(Grapher)).toHaveLength(1)
 })
 
-describe.skip("when you render with different model params", () => {
+describe("when you render with different model params", () => {
     initXhrMock()
     beforeAll(() => mockDataResponse())
 
@@ -84,7 +84,7 @@ describe.skip("when you render with different model params", () => {
         return view
     }
 
-    it("applies the chart type", async () => {
+    it.skip("applies the chart type", async () => {
         const model = getDefaultModel()
         model.setChartType(ChartTypeName.WorldMap)
         const view = await renderWithModel(model)
@@ -109,7 +109,7 @@ describe.skip("when you render with different model params", () => {
     })
 })
 
-describe.skip("chart types", () => {
+describe("chart types", () => {
     initXhrMock()
     beforeAll(() => mockDataResponse())
 
@@ -118,7 +118,7 @@ describe.skip("chart types", () => {
         expect(view.find(".chart-type-button")).toHaveLength(6)
     })
 
-    it("defaults to line chart", async () => {
+    it.skip("defaults to line chart", async () => {
         const view = mount(<ExploreView model={getDefaultModel()} />)
         await updateViewWhenReady(view)
         expect(view.find(LineChart)).toHaveLength(1)
@@ -133,7 +133,7 @@ describe.skip("chart types", () => {
     ]
 
     chartTypes.forEach((type) => {
-        describe(`when you click ${type.key}`, () => {
+        describe.skip(`when you click ${type.key}`, () => {
             let view: ReactWrapper
             const button = `.chart-type-button[data-type="${type.key}"]`
 
@@ -154,23 +154,23 @@ describe.skip("chart types", () => {
     })
 })
 
-describe.skip("indicator switching", () => {
+describe("indicator switching", () => {
     initXhrMock()
     beforeAll(() => mockDataResponse())
 
     it("loads an empty chart with no indicator", () => {
-        const view = shallow(<ExploreView model={getEmptyModel()} />)
+        const view = mount(<ExploreView model={getEmptyModel()} />)
         expect(view.find(Grapher)).toHaveLength(1)
     })
 
-    it("loads a chart with the initialized indicator", async () => {
+    it.skip("loads a chart with the initialized indicator", async () => {
         const view = mount(<ExploreView model={getDefaultModel()} />)
         await updateViewWhenReady(view)
         expect(view.find(Grapher)).toHaveLength(1)
         expect(view.find(".chart h1").text()).toContain(mockIndicator.title)
     })
 
-    it("loads the indicator when the indicatorId is changed", async () => {
+    it.skip("loads the indicator when the indicatorId is changed", async () => {
         const model = getEmptyModel()
         const view = mount(<ExploreView model={model} />)
         expect(view.find(Grapher)).toHaveLength(1)
@@ -181,7 +181,7 @@ describe.skip("indicator switching", () => {
         expect(view.find(".chart h1").text()).toContain(mockIndicator.title)
     })
 
-    it("shows the loaded indicator in the dropdown", async () => {
+    it.skip("shows the loaded indicator in the dropdown", async () => {
         const view = mount(<ExploreView model={getDefaultModel()} />)
         await updateViewWhenReady(view)
         expect(view.find(".indicator-dropdown").first().text()).toContain(

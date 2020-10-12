@@ -3,7 +3,7 @@
 import { CovidExplorer } from "./CovidExplorer"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import React from "react"
-import { shallow, mount, ReactWrapper } from "enzyme"
+import { mount, ReactWrapper } from "enzyme"
 import { IntervalOptions, metricLabels, MetricOptions } from "./CovidConstants"
 import { sampleCovidRows } from "./CovidExplorerUtils"
 
@@ -12,10 +12,10 @@ const dummyMeta = {
     variables: {},
 }
 
-describe.skip(CovidExplorer, () => {
+describe(CovidExplorer, () => {
     it("renders the Covid Data Explorer", () => {
         const startingParams = new CovidQueryParams("")
-        const element = shallow(
+        const element = mount(
             <CovidExplorer
                 covidRows={sampleCovidRows}
                 params={startingParams}
