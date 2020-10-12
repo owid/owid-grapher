@@ -2,8 +2,8 @@
 
 import { mount } from "enzyme"
 
-// This just does a sanity check that all the stories can do a shallow render.
-// This file might not be necessary, or there may be a way to do something similar with Storybook/Jest
+// This just does a sanity check that all the stories can mount.
+// This file might not be necessary as there may be a way to do something similar with Storybook/Jest.
 // For now, to get a list of all stories for updating this file:
 // git ls-tree -r master --name-only | grep .stories.tsx | sed 's/.tsx//'
 
@@ -23,6 +23,7 @@ import * as FacetChart from "grapher/facetChart/FacetChart.stories"
 import * as Footer from "grapher/footer/Footer.stories"
 import * as Header from "grapher/header/Header.stories"
 import * as LineChart from "grapher/lineCharts/LineChart.stories"
+import * as LoadingIndicator from "grapher/loadingIndicator/LoadingIndicator.stories"
 import * as ScatterPlot from "grapher/scatterCharts/ScatterPlotChart.stories"
 import * as SlopeChart from "grapher/slopeCharts/SlopeChart.stories"
 import * as TimelineComponent from "grapher/timeline/TimelineComponent.stories"
@@ -64,12 +65,13 @@ runTests(FacetChart)
 runTests(Footer)
 runTests(Header)
 runTests(LineChart)
+runTests(LoadingIndicator)
 runTests(ScatterPlot)
 runTests(SlopeChart)
 runTests(TimelineComponent)
 runTests(Feedback)
 runTests(StackedBarChart)
-//runTests(DownloadTab) // todo: add this back. Commented out because the Test environment does not have URL.createObjectURL
+runTests(DownloadTab)
 runTests(LineLegend)
 runTests(MapChart)
 runTests(MapTooltip)

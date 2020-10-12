@@ -51,6 +51,10 @@ const polyfillToBlob = () => {
     })
 }
 
+// Wrapped because JSDOM does not support this method yet:
+// https://stackoverflow.com/questions/52968969/jest-url-createobjecturl-is-not-a-function/56643520#56643520
+const createObjectURL = (obj: any) => URL.createObjectURL ? URL.createObjectURL(obj) : ""
+
 @observer
 export class DownloadTab extends React.Component<DownloadTabProps> {
     @computed private get idealBounds() {
@@ -95,7 +99,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
         this.svgBlob = new Blob([staticSVG], {
             type: "image/svg+xml;charset=utf-8",
         })
-        this.svgDownloadUrl = URL.createObjectURL(this.svgBlob)
+        this.svgDownloadUrl = createObjectURL(this.svgBlob)
     }
 
     @action.bound private tryCreatePng(svgPreviewUrl: string) {
@@ -117,7 +121,7 @@ export class DownloadTab extends React.Component<DownloadTabProps> {
                 this.pngPreviewUrl = canvas.toDataURL("image/png")
                 canvas.toBlob((blob) => {
                     this.pngBlob = blob as Blob
-                    this.pngDownloadUrl = URL.createObjectURL(blob)
+                    this.pngDownloadUrl = createObjectURL(blob)
                     this.markAsReady()
                 })
             } catch (e) {
