@@ -22,6 +22,7 @@ import {
     CoreRow,
     PrimitiveType,
     SortOrder,
+    Time,
     ValueRange,
 } from "./CoreTableConstants"
 import {
@@ -318,6 +319,13 @@ export class CoreTable<
         const cols = this.getColumns(slugs)
         const mins = cols.map((col) => col.minValue)
         const maxes = cols.map((col) => col.maxValue)
+        return [min(mins), max(maxes)]
+    }
+
+    timeDomainFor(slugs: ColumnSlug[]): [Time | undefined, Time | undefined] {
+        const cols = this.getColumns(slugs)
+        const mins = cols.map((col) => col.minTime)
+        const maxes = cols.map((col) => col.maxTime)
         return [min(mins), max(maxes)]
     }
 
