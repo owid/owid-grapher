@@ -60,9 +60,9 @@ const rowTime = (row: CoreRow) =>
 
 abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     def: CoreColumnDef
-    table: CoreTable<any>
+    table: CoreTable
 
-    constructor(table: CoreTable<any>, def: CoreColumnDef) {
+    constructor(table: CoreTable, def: CoreColumnDef) {
         this.table = table
         this.def = def
     }

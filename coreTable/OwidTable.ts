@@ -38,7 +38,7 @@ const rowTime = (row: CoreRow) =>
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
-export class OwidTable extends CoreTable<OwidTable, OwidRow> {
+export class OwidTable extends CoreTable<OwidRow> {
     static fromDelimited(csvOrTsv: string, defs: OwidColumnDef[] = []) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []

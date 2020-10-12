@@ -51,23 +51,20 @@ interface CoreQuery {
 
 // The complex generic with default here just enables you to optionally specify a more
 // narrow interface for the input rows. This is helpful for OwidTable.
-export class CoreTable<
-    TABLE_TYPE extends CoreTable<any>,
-    ROW_TYPE extends CoreRow = CoreRow
-> {
+export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     private _inputRows: ROW_TYPE[]
     @observable.ref private _rows: ROW_TYPE[]
     @observable private _columns: Map<ColumnSlug, CoreColumn>
     @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
 
-    protected parent?: TABLE_TYPE
+    protected parent?: this
     private tableDescription = ""
     private transformCategory = TransformType.Load
 
     constructor(
         rows: ROW_TYPE[] = [],
         columnDefs: CoreColumnDef[] = [],
-        parentTable?: TABLE_TYPE,
+        parentTable?: CoreTable,
         tableDescription?: string,
         transformCategory?: TransformType
     ) {
@@ -85,7 +82,7 @@ export class CoreTable<
         // If this is the first input table, then we do a simple check to generate any missing column defs.
         if (!parentTable && rows.length) this._autodetectAndAddDefs(rows)
 
-        this.parent = parentTable
+        this.parent = parentTable as this
         this.tableDescription = tableDescription ?? ""
         if (transformCategory) this.transformCategory = transformCategory
 
@@ -201,7 +198,7 @@ export class CoreTable<
         return this.numColumnsWithParseErrors
     }
 
-    get rootTable(): TABLE_TYPE {
+    get rootTable(): this {
         return this.parent ? this.parent.rootTable : this
     }
 
@@ -219,7 +216,7 @@ export class CoreTable<
     filterBy(
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
-    ): TABLE_TYPE {
+    ): this {
         return new (this.constructor as any)(
             this.rows.filter(predicate),
             this.defs,
@@ -229,7 +226,7 @@ export class CoreTable<
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): TABLE_TYPE {
+    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): this {
         return new (this.constructor as any)(
             orderBy(this.rows, slugs, orders),
             this.defs,
@@ -463,10 +460,10 @@ export class CoreTable<
                 query as any
             )}`,
             TransformType.FilterRows
-        ) as TABLE_TYPE
+        ) as this
     }
 
-    withRows(rows: ROW_TYPE[]): TABLE_TYPE {
+    withRows(rows: ROW_TYPE[]): this {
         return new (this.constructor as any)(
             [...this.rows, ...rows],
             this.defs,
@@ -487,7 +484,7 @@ export class CoreTable<
         )
     }
 
-    withTransformedDefs(fn: (def: CoreColumnDef) => CoreColumnDef): TABLE_TYPE {
+    withTransformedDefs(fn: (def: CoreColumnDef) => CoreColumnDef): this {
         return new (this.constructor as any)(
             this.rows,
             this.defs.map(fn),
@@ -497,12 +494,12 @@ export class CoreTable<
         )
     }
 
-    withoutConstantColumns(): TABLE_TYPE {
+    withoutConstantColumns(): this {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
     }
 
-    withoutColumns(slugs: ColumnSlug[], message?: string): TABLE_TYPE {
+    withoutColumns(slugs: ColumnSlug[], message?: string): this {
         const columnsToDrop = new Set(slugs)
         const defs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
@@ -607,7 +604,7 @@ export class CoreTable<
         )
     }
 
-    withColumns(columns: CoreColumnDef[]): TABLE_TYPE {
+    withColumns(columns: CoreColumnDef[]): this {
         return new (this.constructor as any)(
             this.rows,
             this.defs.concat(columns),

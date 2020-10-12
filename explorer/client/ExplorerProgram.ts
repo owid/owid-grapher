@@ -270,7 +270,7 @@ interface ChoiceMap {
 // Takes the author's program and the user's current settings and returns an object for
 // allow the user to navigate amongst charts.
 export class SwitcherRuntime implements ObservableUrl {
-    private table: CoreTable<any>
+    private table: CoreTable
     @observable private _settings: SwitcherQuery = {}
     constructor(delimited: string, queryString: string = "") {
         this.choiceControlTypes = makeControlTypesMap(delimited)
