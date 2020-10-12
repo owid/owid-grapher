@@ -714,11 +714,7 @@ export class LineChart
             this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
         if (this.manager.hideXAxis) axisConfig.hideAxis = true
         const axis = axisConfig.toHorizontalAxis()
-        const yColumn = this.yColumns[0]
-        axis.updateDomainPreservingUserSettings([
-            yColumn.minTime,
-            yColumn.maxTime,
-        ])
+        axis.updateDomainPreservingUserSettings(this.table.timeDomainFor(this.yColumnSlugs))
         axis.scaleType = ScaleType.linear
         axis.scaleTypeOptions = [ScaleType.linear]
         axis.formatColumn = this.inputTable.timeColumn
