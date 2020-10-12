@@ -74,7 +74,7 @@ it("renders an empty chart", () => {
     expect(view.find(Grapher)).toHaveLength(1)
 })
 
-describe("when you render with different model params", () => {
+describe.skip("when you render with different model params", () => {
     initXhrMock()
     beforeAll(() => mockDataResponse())
 
@@ -109,7 +109,7 @@ describe("when you render with different model params", () => {
     })
 })
 
-describe("chart types", () => {
+describe.skip("chart types", () => {
     initXhrMock()
     beforeAll(() => mockDataResponse())
 
@@ -154,7 +154,7 @@ describe("chart types", () => {
     })
 })
 
-describe("indicator switching", () => {
+describe.skip("indicator switching", () => {
     initXhrMock()
     beforeAll(() => mockDataResponse())
 
