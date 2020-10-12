@@ -701,7 +701,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     // todo: do we need this?
     @computed get originUrlWithProtocol(): string {
         let url = this.originUrl
-        if (!url.startsWith("http")) url = `https://${url}`
+        if (url && !url.startsWith("http")) url = `https://${url}`
         return url
     }
 
