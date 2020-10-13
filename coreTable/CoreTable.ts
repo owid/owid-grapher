@@ -39,6 +39,12 @@ interface CoreQuery {
     [columnSlug: string]: PrimitiveType | PrimitiveType[]
 }
 
+const TransformsRequiringCompute = new Set([
+    TransformType.Load,
+    TransformType.AppendRows,
+    TransformType.AppendColumns,
+])
+
 // The complex generic with default here just enables you to optionally specify a more
 // narrow interface for the input rows. This is helpful for OwidTable.
 export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
@@ -51,6 +57,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     private tableDescription = ""
     private transformCategory = TransformType.Load
     private timeToLoad = 0
+    private initTime = Date.now()
 
     constructor(
         rows: ROW_TYPE[] = [],
@@ -61,10 +68,15 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     ) {
         const start = Date.now()
         this._inputRows = rows // Save a reference to original rows for debugging.
+        this.tableDescription = tableDescription ?? ""
+        if (transformCategory) this.transformCategory = transformCategory
 
         this._columns = new Map()
+
         const colsToSet = incomingColumnDefs
-            ? incomingColumnDefs
+            ? transformCategory === TransformType.AppendColumns && parentTable
+                ? parentTable.defs.concat(incomingColumnDefs)
+                : incomingColumnDefs
             : parentTable
             ? parentTable.defs
             : []
@@ -80,11 +92,12 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         if (!parentTable && rows.length) this._autodetectAndAddDefs(rows)
 
         this.parent = parentTable as this
-        this.tableDescription = tableDescription ?? ""
-        if (transformCategory) this.transformCategory = transformCategory
 
-        const columnsToCompute =
-            incomingColumnDefs?.filter((def) => def.fn) ?? []
+        const columnsToCompute = TransformsRequiringCompute.has(
+            this.transformCategory
+        )
+            ? incomingColumnDefs?.filter((def) => def.fn) ?? []
+            : []
         this.numColsToCompute = columnsToCompute.length
         this._rows = this._buildRows(columnsToCompute)
 
@@ -106,7 +119,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             })
     }
 
-    private numColsToCompute: number
+    private numColsToCompute: number // todo: Currently reading this value in explain method. Need to type that.
     private _buildRows(columnsToCompute: CoreColumnDef[]) {
         const rows = this._inputRows
         if (!this.numColsToParse && !columnsToCompute.length) return rows
@@ -152,6 +165,19 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
 
     get totalTime(): number {
         return this.timeToLoad + (this.parent ? this.parent.totalTime : 0)
+    }
+
+    get elapsedTime(): number {
+        return this.initTime + this.timeToLoad - this.rootTable.initTime
+    }
+
+    // Time between when the parent table finished loading and this table started constructing.
+    // A large time may just be due to a transform only happening after a user action, or it
+    // could be do to other sync code executing between transforms.
+    get betweenTime(): number {
+        return this.parent
+            ? this.initTime - (this.parent.initTime + this.parent.timeToLoad)
+            : 0
     }
 
     @computed get rows() {
@@ -254,6 +280,18 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             this,
             `Sort by ${slugs.join(",")} ${orders?.join(",")}`,
             TransformType.SortRows
+        )
+    }
+
+    sortColumns(slugs: ColumnSlug[]): this {
+        const first = this.getColumns(slugs)
+        const rest = this.columnsAsArray.filter((col) => !first.includes(col))
+        return new (this.constructor as any)(
+            this.rows,
+            [...first, ...rest],
+            this,
+            `Sorted columns`,
+            TransformType.SortColumns
         )
     }
 
@@ -420,14 +458,15 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
                 "numColumns",
                 "numRows",
                 "timeToLoad",
+                "betweenTime",
                 "numColsToParse",
                 "numColsToCompute",
                 "tableDescription",
             ],
             this.ancestors,
             {
-                maxCharactersPerColumn: 50,
-                maxCharactersPerLine: 200,
+                maxCharactersPerColumn: 100,
+                maxCharactersPerLine: 300,
                 ...options,
             }
         )
@@ -493,7 +532,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             this,
             `Selecting ${rows.length} rows where ${queryParamsToStr(
                 query as any
-            )}`,
+            ).substr(1)}`,
             TransformType.FilterRows
         )
     }
@@ -504,7 +543,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             undefined,
             this,
             opDescription,
-            TransformType.AddRows
+            TransformType.AppendRows
         )
     }
 
@@ -525,7 +564,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             this.defs.map(fn),
             this,
             `Updated column defs`,
-            TransformType.UpdateColumns
+            TransformType.UpdateColumnDefs
         )
     }
 
@@ -549,24 +588,38 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     }
 
     // Todo: improve typings. After renaming a column the row interface should change. Applies to some other methods as well.
-    withRenamedColumn(currentSlug: ColumnSlug, newSlug: ColumnSlug): this {
+    withRenamedColumns(columnRenameMap: {
+        [columnSlug: string]: ColumnSlug
+    }): this {
+        const oldSlugs = Object.keys(columnRenameMap)
+        const newSlugs = Object.values(columnRenameMap)
+
+        const message =
+            `Renamed ` +
+            oldSlugs
+                .map((name, index) => `'${name}' to '${newSlugs[index]}'`)
+                .join(" and ")
+
         return new (this.constructor as any)(
             this.rows.map((row) => {
-                const newRow = { ...row, [newSlug]: row[currentSlug] }
-                delete newRow[currentSlug]
+                const newRow: any = { ...row }
+                newSlugs.forEach(
+                    (slug, index) => (newRow[slug] = row[oldSlugs[index]])
+                )
+                oldSlugs.forEach((slug) => delete newRow[slug])
                 return newRow
             }),
             this.defs.map((def) =>
-                def.slug === currentSlug
+                oldSlugs.indexOf(def.slug) > -1
                     ? {
                           ...def,
-                          slug: newSlug,
+                          slug: newSlugs[oldSlugs.indexOf(def.slug)],
                       }
                     : def
             ),
             this,
-            `Renamed '${currentSlug}' to '${newSlug}'`,
-            TransformType.UpdateColumns
+            message,
+            TransformType.RenameColumns
         )
     }
 
@@ -614,7 +667,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             defs,
             this,
             `Dropped ${howMany} cells in ${columnSlugs}`,
-            TransformType.DropValues
+            TransformType.PokeColumns
         )
     }
 
@@ -649,10 +702,12 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     withColumns(defs: CoreColumnDef[]): this {
         return new (this.constructor as any)(
             this.rows,
-            this.defs.concat(defs),
+            defs,
             this,
-            `Added new columns ${defs.map((def) => def.slug)}`,
-            TransformType.AddColumns
+            `Appended columns ${defs
+                .map((def) => `'${def.slug}'`)
+                .join(" and ")}`,
+            TransformType.AppendColumns
         )
     }
 

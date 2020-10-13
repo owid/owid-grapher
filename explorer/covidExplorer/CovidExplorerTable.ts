@@ -37,9 +37,16 @@ import { CoreTable } from "coreTable/CoreTable"
 
 export class CovidExplorerTable extends OwidTable {
     static fromMegaRows(megaRows: MegaRow[]) {
-        const coreTable = new CoreTable<MegaRow>(megaRows)
-            .withRenamedColumn("location", OwidTableSlugs.entityName)
-            .withRenamedColumn("iso_code", OwidTableSlugs.entityCode)
+        const coreTable = new CoreTable<MegaRow>(
+            megaRows,
+            undefined,
+            undefined,
+            "Load from MegaCSV"
+        )
+            .withRenamedColumns({
+                location: OwidTableSlugs.entityName,
+                iso_code: OwidTableSlugs.entityCode,
+            })
             .filter(
                 (row: MegaRow) => row.location !== "International",
                 "Drop International rows"
@@ -84,7 +91,7 @@ export class CovidExplorerTable extends OwidTable {
 
         return new CovidExplorerTable(
             (tableWithRows.rows as any) as CovidRow[], // todo: clean up typings
-            tableWithRows.defs,
+            undefined,
             tableWithRows as any,
             "Loaded into CovidExplorerTable"
         )

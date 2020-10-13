@@ -27,7 +27,7 @@ it("rows can be added without mutating the parent table", () => {
     expect(table.numRows).toEqual(4)
 
     expandedTable = expandedTable
-        .withRenamedColumn("population", "pop")
+        .withRenamedColumns({ population: "pop" })
         .withRows(
             [{ country: "USA", pop: 321 }],
             "Added a row after column renaming"
@@ -54,16 +54,34 @@ describe("explain", () => {
     })
 })
 
-it("input rows are never mutated", () => {
-    const rows = [{ country: "USA" }, { country: "Germany" }]
-    const table = new CoreTable(rows, [
-        {
-            slug: "firstLetter",
-            fn: (row) => row.country.length,
-        },
-    ])
-    expect(table.get("firstLetter")?.parsedValues.join("")).toEqual(`37`)
-    expect((rows[0] as any).firstLetter).toEqual(undefined)
+describe("it can add new computed columns", () => {
+    it("input rows are never mutated", () => {
+        const rows = [{ country: "USA" }, { country: "Germany" }]
+        const table = new CoreTable(rows, [
+            {
+                slug: "firstLetter",
+                fn: (row) => row.country.length,
+            },
+        ])
+        expect(table.get("firstLetter")?.parsedValues.join("")).toEqual(`37`)
+        expect((rows[0] as any).firstLetter).toEqual(undefined)
+    })
+
+    it("computations are only run once", () => {
+        const rows = [{ country: "USA" }]
+        let count = 0
+        let table = new CoreTable(rows, [
+            {
+                slug: "count",
+                fn: (row) => ++count,
+            },
+        ])
+        let firstRow = table.firstRow as any
+        expect(firstRow.count).toEqual(1)
+        table = table.withTransformedDefs((def) => def)
+        firstRow = table.firstRow as any
+        expect(firstRow.count).toEqual(1)
+    })
 })
 
 it("can drop columns", () => {
@@ -91,6 +109,19 @@ it("can transform columns", () => {
             }
         }).columnNames
     ).toEqual(["COUNTRY", "YEAR"])
+})
+
+it("can sort columns", () => {
+    const rows = [
+        { country: "USA", year: 1999 },
+        { country: "Germany", year: 2000 },
+    ]
+    const table = new CoreTable(rows)
+    expect(table.columnSlugs).toEqual(["country", "year"])
+    expect(table.sortColumns(["year", "country"]).columnSlugs).toEqual([
+        "year",
+        "country",
+    ])
 })
 
 it("can query rows", () => {
@@ -246,7 +277,7 @@ it("can get all defined values for a column", () => {
 
 it("can rename a column", () => {
     let table = new CoreTable([{ pop: 123, year: 2000 }])
-    table = table.withRenamedColumn("pop", "Population")
+    table = table.withRenamedColumns({ pop: "Population" })
     expect(table.columnSlugs).toEqual(["Population", "year"])
     const firstRow = table.firstRow as any
     expect(firstRow.Population).toEqual(123)

@@ -51,13 +51,19 @@ export interface CoreColumnDef {
 
 export enum TransformType {
     Load = "Load",
+
+    // Row ops
     FilterRows = "FilterRows",
-    FilterColumns = "FilterColumns",
     SortRows = "SortRows",
-    UpdateColumns = "UpdateColumns",
-    AddRows = "AddRows",
-    AddColumns = "AddColumns",
-    DropValues = "DropValues",
+    AppendRows = "AppendRows", // todo: should this will also rerun any column transforms on the new rows?
+
+    // Column ops
+    FilterColumns = "FilterColumns",
+    SortColumns = "SortColumns",
+    AppendColumns = "AppendColumns", // This will run column transform fns.
+    UpdateColumnDefs = "UpdateColumnDefs", // do not use for updates that add a column transform fn.
+    RenameColumns = "RenameColumns",
+    PokeColumns = "PokeColumns", // remove values from a column, for testing messy runtime data scenarios.
 }
 
 export type Year = Integer

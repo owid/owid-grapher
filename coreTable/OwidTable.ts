@@ -239,7 +239,7 @@ export class OwidTable extends CoreTable<OwidRow> {
             newDefs,
             this,
             `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
-            TransformType.UpdateColumns
+            TransformType.UpdateColumnDefs
         )
     }
 
@@ -266,7 +266,7 @@ export class OwidTable extends CoreTable<OwidRow> {
             `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
                 ","
             )} `,
-            TransformType.UpdateColumns
+            TransformType.UpdateColumnDefs
         )
     }
 
@@ -301,7 +301,7 @@ export class OwidTable extends CoreTable<OwidRow> {
             `Transformed columns from absolute values to % of time ${startTime} for columns ${columnSlugs.join(
                 ","
             )} `,
-            TransformType.UpdateColumns
+            TransformType.UpdateColumnDefs
         )
     }
 
