@@ -38,7 +38,6 @@ const CookiePreference = ({
     const id = `cookie-preference-${slugify(name, { lower: true })}`
     return (
         <div className="cookie-preference">
-            <label htmlFor={id}>{title}</label>
             <input
                 id={id}
                 type="checkbox"
@@ -47,6 +46,7 @@ const CookiePreference = ({
                 disabled={disabled}
                 data-test={`${name}-preference`}
             ></input>
+            <label htmlFor={id}>{title}</label>
             <div className="description">{children}</div>
         </div>
     )
