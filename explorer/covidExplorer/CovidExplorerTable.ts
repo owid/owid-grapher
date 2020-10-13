@@ -46,7 +46,7 @@ export class CovidExplorerTable extends OwidTable {
             .withRenamedColumns({
                 location: OwidTableSlugs.entityName,
                 iso_code: OwidTableSlugs.entityCode,
-            })
+            }) // todo: after a rename, the row interface has changed. how can we update the child tables with correct typings?
             .filter(
                 (row: MegaRow) => row.location !== "International",
                 "Drop International rows"
@@ -76,7 +76,7 @@ export class CovidExplorerTable extends OwidTable {
 
         const euRows = calculateCovidRowsForGroup(
             coreTable.rows.filter((row) =>
-                euCountries.has(row.entiyName)
+                euCountries.has(row.entityName)
             ) as any,
             "European Union"
         )
