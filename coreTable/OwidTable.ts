@@ -8,6 +8,7 @@ import {
     sum,
     flatten,
     uniq,
+    sortNumeric,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -150,13 +151,13 @@ export class OwidTable extends CoreTable<OwidRow> {
     }
 
     getTimeOptionsForColumns(columnSlugs: ColumnSlug[]) {
-        return uniq(
+        return sortNumeric(uniq(
             flatten(
                 this.getColumns(columnSlugs)
                     .filter((col) => col)
                     .map((col) => col.uniqTimes)
             )
-        ).sort()
+        ))
     }
 
     copySelectionFrom(table: OwidTable) {
