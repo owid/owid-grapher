@@ -77,13 +77,13 @@ it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond e
 
     const controller = new TimelineController(manager)
 
-    expect(controller.getTimeFromDrag(2009)).toBe(2009)
-    expect(controller.getTimeFromDrag(2009.1)).toBe(
+    expect(controller.getTimeBoundFromDrag(2009)).toBe(2009)
+    expect(controller.getTimeBoundFromDrag(2009.1)).toBe(
         TimeBoundValue.unboundedRight
     )
 
-    expect(controller.getTimeFromDrag(1900)).toBe(1900)
-    expect(controller.getTimeFromDrag(1899.9)).toBe(
+    expect(controller.getTimeBoundFromDrag(1900)).toBe(1900)
+    expect(controller.getTimeBoundFromDrag(1899.9)).toBe(
         TimeBoundValue.unboundedLeft
     )
 })
