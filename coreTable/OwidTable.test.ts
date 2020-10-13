@@ -338,7 +338,7 @@ describe("rolling averages", () => {
     it("a column can be added", () => {
         expect(table.numRows).toEqual(rows.length)
         expect(table.numColumns).toEqual(colLength)
-        const newTable = table.withColumns([
+        const newTable = table.appendColumns([
             {
                 slug: "populationInMillions",
                 fn: (row) => row.population / 1000000,

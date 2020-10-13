@@ -699,7 +699,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    withColumns(defs: CoreColumnDef[]): this {
+    appendColumns(defs: CoreColumnDef[]): this {
         return new (this.constructor as any)(
             this.rows,
             defs,

@@ -37,7 +37,7 @@ describe("build covid column", () => {
         3
     )
 
-    table = table.withColumns([def]) as CovidExplorerTable
+    table = table.appendColumns([def]) as CovidExplorerTable
 
     it("correctly builds a grapher variable", () => {
         expect(table.rows[3].totalCasesSmoothed).toEqual(14.5)
@@ -50,7 +50,7 @@ describe("build covid column", () => {
             5,
             "Some title"
         )
-        const newTable = table.withColumns([def])
+        const newTable = table.appendColumns([def])
         const slug = def.slug
         expect(newTable.rows[2][slug]).toEqual(0)
         expect(newTable.rows[3][slug]).toEqual(1)
@@ -72,7 +72,7 @@ describe("build covid column", () => {
         7,
         true
     )
-    table2 = table2.withColumns([def2]) as CovidExplorerTable
+    table2 = table2.appendColumns([def2]) as CovidExplorerTable
 
     it("correctly builds weekly average", () => {
         expect(table2.rows[3].weeklyCases).toEqual(70)
@@ -86,7 +86,7 @@ describe("build covid column", () => {
             true,
             true
         )
-        table2 = table2.withColumns([def3]) as CovidExplorerTable
+        table2 = table2.appendColumns([def3]) as CovidExplorerTable
 
         expect(table2.rows[3].weeklyChange).toEqual(undefined)
         expect(table2.rows[8].weeklyChange).toEqual(0)
@@ -101,14 +101,14 @@ describe("builds aligned tests column", () => {
 
     const params = new CovidQueryParams("testsMetric=true&dailyFreq=true")
     const def = table.makeTestingColumnDef(params.toConstrainedParams())
-    table = table.withColumns([def!]) as CovidExplorerTable
+    table = table.appendColumns([def!]) as CovidExplorerTable
 
     expect(table.columnSlugs.includes("tests-daily")).toEqual(true)
 
     const newParams = new CovidQueryParams(params.toString())
     newParams.perCapita = true
     const def2 = table.makeTestingColumnDef(newParams.toConstrainedParams())
-    table = table.withColumns([def2!]) as CovidExplorerTable
+    table = table.appendColumns([def2!]) as CovidExplorerTable
 
     expect(table.columnSlugs.includes("tests-perThousand-daily")).toEqual(true)
 

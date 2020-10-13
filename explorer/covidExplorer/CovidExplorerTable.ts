@@ -51,7 +51,7 @@ export class CovidExplorerTable extends OwidTable {
                 (row: MegaRow) => row.location !== "International",
                 "Drop International rows"
             )
-            .withColumns([
+            .appendColumns([
                 {
                     slug: OwidTableSlugs.time,
                     type: ColumnTypeNames.Date,
@@ -75,7 +75,9 @@ export class CovidExplorerTable extends OwidTable {
         )
 
         const euRows = calculateCovidRowsForGroup(
-            coreTable.findRows({ entityName: euCountries }) as any,
+            coreTable.rows.filter((row) =>
+                euCountries.has(row.entiyName)
+            ) as any,
             "European Union"
         )
 
@@ -115,7 +117,9 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     withAnnotationColumns() {
-        return this.withColumns(CovidAnnotationColumnDefs) as CovidExplorerTable
+        return this.appendColumns(
+            CovidAnnotationColumnDefs
+        ) as CovidExplorerTable
     }
 
     // Todo: does this need to be observable?
@@ -455,7 +459,7 @@ export class CovidExplorerTable extends OwidTable {
                 )
             )
         }
-        return this.withColumns(defs.filter(isPresent)) as CovidExplorerTable
+        return this.appendColumns(defs.filter(isPresent)) as CovidExplorerTable
     }
 
     makeDaysSinceColumnDef(

@@ -38,7 +38,7 @@ export const megaDateToTime = (dateString: string): Time => {
     return dateToTimeCache.get(dateString)!
 }
 
-export const euCountries = [
+export const euCountries = new Set([
     "Austria",
     "Belgium",
     "Bulgaria",
@@ -66,7 +66,7 @@ export const euCountries = [
     "Slovenia",
     "Spain",
     "Sweden",
-]
+])
 
 // Todo: this is just a group with reductions. Should be able to move it to mostly CoreTable ops.
 export const calculateCovidRowsForGroup = (
