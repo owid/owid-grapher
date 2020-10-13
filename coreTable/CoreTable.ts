@@ -23,6 +23,7 @@ import {
     PrimitiveType,
     SortOrder,
     Time,
+    TransformType,
     ValueRange,
 } from "./CoreTableConstants"
 import {
@@ -32,17 +33,6 @@ import {
     toMarkdownTable,
 } from "./CoreTablePrinters"
 import { DroppedForTesting } from "./InvalidCells"
-
-export enum TransformType {
-    Load = "Load",
-    FilterRows = "FilterRows",
-    FilterColumns = "FilterColumns",
-    SortRows = "SortRows",
-    UpdateColumns = "UpdateColumns",
-    AddRows = "AddRows",
-    AddColumns = "AddColumns",
-    DropValues = "DropValues",
-}
 
 // Every row will be checked against each column/value(s) pair.
 interface CoreQuery {
@@ -60,6 +50,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     protected parent?: this
     private tableDescription = ""
     private transformCategory = TransformType.Load
+    private _constructTime = 0
 
     constructor(
         rows: ROW_TYPE[] = [],
@@ -68,6 +59,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         tableDescription?: string,
         transformCategory?: TransformType
     ) {
+        const start = Date.now()
         this._inputRows = rows // Save a reference to original rows for debugging.
 
         this._columns = new Map()
@@ -90,6 +82,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
 
         // Pass selection strategy down from parent
         if (parentTable) this.copySelectionFrom(parentTable)
+        this._constructTime = Date.now() - start
     }
 
     private _autodetectAndAddDefs(rows: ROW_TYPE[]) {
@@ -110,18 +103,18 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         const colsToParse = this.getColumnsToParse(firstRow)
         const computeds = columnDefs.filter((def) => def.fn)
         // Clone and parse rows if necessary
-        if (colsToParse.length || computeds.length)
-            return rows.map((row, index) => {
-                const newRow: any = { ...row }
-                colsToParse.forEach((col) => {
-                    newRow[col.slug] = col.parse(row[col.slug])
-                })
-                computeds.forEach((def) => {
-                    newRow[def.slug] = def.fn!(row, index) // todo: add better typings around fn.
-                })
-                return newRow as ROW_TYPE
+        if (!colsToParse.length && !computeds.length) return rows
+
+        return rows.map((row, index) => {
+            const newRow: any = { ...row }
+            colsToParse.forEach((col) => {
+                newRow[col.slug] = col.parse(row[col.slug])
             })
-        return rows
+            computeds.forEach((def) => {
+                newRow[def.slug] = def.fn!(row, index) // todo: add better typings around fn.
+            })
+            return newRow as ROW_TYPE
+        })
     }
 
     copySelectionFrom(table: any) {
@@ -135,6 +128,10 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         return this.columnsAsArray.filter(
             (col) => !col.isParsed(firstRow[col.slug])
         )
+    }
+
+    get stepNumber(): number {
+        return !this.parent ? 0 : this.parent.stepNumber + 1
     }
 
     @computed get rows() {
@@ -376,9 +373,11 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     }
 
     private oneLiner() {
-        return this.isRoot()
-            ? `${this.transformCategory}: ${this.numColumns} Columns ${this._inputRows.length} Rows`
-            : `${this.transformCategory}: ${this.tableDescription}`
+        return `${this.stepNumber}. ${this.transformCategory}: ${
+            this.tableDescription ? this.tableDescription + ". " : ""
+        }${this.numColumns} Columns ${this._inputRows.length} Rows. ${
+            this._constructTime
+        }ms.`
     }
 
     explain(showRows = 10, options?: AlignedTextTableOptions): string {
@@ -390,12 +389,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
 
     explainShort(): string {
         if (!this.parent) return this.oneLiner()
-        return [
-            this.parent.explainShort(),
-            `${this.oneLiner()} >> ${this.numColumns} Columns ${
-                this.numRows
-            } Rows`,
-        ].join("\n")
+        return [this.parent.explainShort(), this.oneLiner()].join("\n")
     }
 
     // Output a pretty table for consles

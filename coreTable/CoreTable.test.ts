@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { CoreTable } from "./CoreTable"
-import { ColumnTypeNames } from "./CoreTableConstants"
+import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
 
 const sampleCsv = `country,population
 iceland,1
@@ -34,6 +34,24 @@ it("rows can be added without mutating the parent table", () => {
         )
     expect(expandedTable.numRows).toEqual(6)
     expect(expandedTable.rows[5].pop).toEqual(321)
+})
+
+describe("explain", () => {
+    const table = CoreTable.fromDelimited(sampleCsv).withoutColumns([
+        "population",
+    ])
+    it("transforms have an index", () => {
+        expect(table.stepNumber).toEqual(1)
+    })
+
+    it("explain short has a oneliner for each transform", () => {
+        expect(table.explainShort().split("\n").length).toEqual(2)
+    })
+
+    it("explain long contains useful info like Javscript types and perf info", () => {
+        expect(table.explain()).toContain("jsType")
+        expect(table.explain()).toContain("ms")
+    })
 })
 
 it("input rows are never mutated", () => {

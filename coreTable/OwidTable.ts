@@ -16,8 +16,9 @@ import {
     Integer,
     CoreRow,
     Time,
+    TransformType,
 } from "coreTable/CoreTableConstants"
-import { CoreTable, TransformType } from "./CoreTable"
+import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
 import { LegacyGrapherInterface } from "grapher/core/GrapherInterface"
 import {

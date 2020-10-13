@@ -49,6 +49,17 @@ export interface CoreColumnDef {
     display?: LegacyVariableDisplayConfigInterface // todo: move to OwidTable
 }
 
+export enum TransformType {
+    Load = "Load",
+    FilterRows = "FilterRows",
+    FilterColumns = "FilterColumns",
+    SortRows = "SortRows",
+    UpdateColumns = "UpdateColumns",
+    AddRows = "AddRows",
+    AddColumns = "AddColumns",
+    DropValues = "DropValues",
+}
+
 export type Year = Integer
 export type Color = string
 
