@@ -43,6 +43,7 @@ const TransformsRequiringCompute = new Set([
     TransformType.Load,
     TransformType.AppendRows,
     TransformType.AppendColumns,
+    TransformType.PokeColumns,
 ])
 
 // The complex generic with default here just enables you to optionally specify a more
