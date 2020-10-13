@@ -166,8 +166,6 @@ export class TimelineController {
         this.updateEndTime(endTime)
     }
 
-    // TODO
-    /// TODOOOOOO
     dragHandleToTime(handle: "start" | "end" | "both", inputTime: number) {
         const { manager } = this
 
