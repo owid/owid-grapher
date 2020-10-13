@@ -7,7 +7,7 @@ import { CookieNotice } from "site/client/CookieNotice"
 import moment from "moment"
 
 export enum PreferenceType {
-    Performance = "p",
+    Analytics = "a",
     Marketing = "m", // not used
 }
 
@@ -38,7 +38,7 @@ interface State {
 const defaultState: State = {
     preferences: [
         {
-            type: PreferenceType.Performance,
+            type: PreferenceType.Analytics,
             value: true,
         },
     ],
@@ -92,7 +92,7 @@ const reducer = (
             return {
                 date: payload.date,
                 preferences: updatePreference(
-                    PreferenceType.Performance,
+                    PreferenceType.Analytics,
                     true,
                     state.preferences
                 ),

@@ -14,19 +14,19 @@ import {
 describe("cookie preferences", () => {
     const preferences = [
         {
-            type: PreferenceType.Performance,
+            type: PreferenceType.Analytics,
             value: true,
         },
     ]
     const date = 20201009
-    const serializedState = "p:1-20201009"
+    const serializedState = "a:1-20201009"
     it("parses raw cookie value", () => {
         expect(parseRawCookieValue()).toBeUndefined()
         expect(parseRawCookieValue("")).toBeUndefined()
         expect(parseRawCookieValue("abcd")).toBeUndefined()
-        expect(parseRawCookieValue("p:1")).toBeUndefined()
-        expect(parseRawCookieValue("p:1-46")).toBeUndefined()
-        expect(parseRawCookieValue("p:1-2020")).toBeUndefined()
+        expect(parseRawCookieValue("a:1")).toBeUndefined()
+        expect(parseRawCookieValue("a:1-46")).toBeUndefined()
+        expect(parseRawCookieValue("a:1-2020")).toBeUndefined()
         expect(parseRawCookieValue("1-20201009")).toBeUndefined()
         expect(parseRawCookieValue(":1-20201009")).toBeUndefined()
         expect(parseRawCookieValue("x:1-20201009")).toBeUndefined()
@@ -47,9 +47,9 @@ describe("cookie preferences", () => {
     it("parses preferences", () => {
         expect(parsePreferences()).toEqual([])
         expect(parsePreferences("")).toEqual([])
-        expect(parsePreferences("p:1")).toEqual(preferences)
+        expect(parsePreferences("a:1")).toEqual(preferences)
         expect(parsePreferences("x:1")).toEqual([])
-        expect(parsePreferences("p:1|m:0")).toEqual([
+        expect(parsePreferences("a:1|m:0")).toEqual([
             ...preferences,
             { type: PreferenceType.Marketing, value: false },
         ])
@@ -57,10 +57,10 @@ describe("cookie preferences", () => {
 
     it("updates a preference", () => {
         expect(
-            updatePreference(PreferenceType.Performance, false, preferences)
+            updatePreference(PreferenceType.Analytics, false, preferences)
         ).toEqual([
             {
-                type: PreferenceType.Performance,
+                type: PreferenceType.Analytics,
                 value: false,
             },
         ])
@@ -68,7 +68,7 @@ describe("cookie preferences", () => {
 
     it("gets a preference value", () => {
         expect(
-            getPreferenceValue(PreferenceType.Performance, preferences)
+            getPreferenceValue(PreferenceType.Analytics, preferences)
         ).toEqual(true)
         expect(
             getPreferenceValue(PreferenceType.Marketing, preferences)

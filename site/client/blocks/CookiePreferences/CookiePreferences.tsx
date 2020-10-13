@@ -79,17 +79,17 @@ export const CookiePreferences = ({
                 preferences.
             </CookiePreference>
             <CookiePreference
-                title="Performance cookies"
-                name="performance"
+                title="Analytics cookies"
+                name="analytics"
                 consent={getPreferenceValue(
-                    PreferenceType.Performance,
+                    PreferenceType.Analytics,
                     preferences
                 )}
                 toggleConsent={() =>
                     dispatch({
                         type: Action.TogglePreference,
                         payload: {
-                            preferenceType: PreferenceType.Performance,
+                            preferenceType: PreferenceType.Analytics,
                             date: getTodayDate(),
                         },
                     })

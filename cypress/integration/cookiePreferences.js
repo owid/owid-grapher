@@ -22,7 +22,7 @@ describe("Cookie preferences", function () {
         cy.getCookie(COOKIE_NAME).should(
             "have.property",
             "value",
-            `p:1-${today}`
+            `a:1-${today}`
         )
     })
 
@@ -35,30 +35,30 @@ describe("Cookie preferences", function () {
         cy.getCookie(COOKIE_NAME).should(
             "have.property",
             "value",
-            `p:1-${today}`
+            `a:1-${today}`
         )
     })
 
     it("Sets cookie preferences from privacy policy page", function () {
         cy.get(COOKIE_NOTICE).should("be.visible")
-        cy.get("[data-test=performance-preference]")
-            .as("performanceCheckbox")
+        cy.get("[data-test=analytics-preference]")
+            .as("analyticsCheckbox")
             .should("be.checked")
             .click()
         cy.get(COOKIE_NOTICE).should("not.be.visible")
-        cy.get("@performanceCheckbox").should("be.not.checked")
+        cy.get("@analyticsCheckbox").should("be.not.checked")
 
         cy.getCookie(COOKIE_NAME).should(
             "have.property",
             "value",
-            `p:0-${today}`
+            `a:0-${today}`
         )
-        cy.get("@performanceCheckbox").click().should("be.checked")
+        cy.get("@analyticsCheckbox").click().should("be.checked")
 
         cy.getCookie(COOKIE_NAME).should(
             "have.property",
             "value",
-            `p:1-${today}`
+            `a:1-${today}`
         )
 
         cy.reload()
@@ -83,7 +83,7 @@ describe("Cookie preferences", function () {
 
             // Control: pretend the preferences are set the day the policy gets updated
             cy.clearCookies()
-            cy.setCookie(COOKIE_NAME, `p:0-${policyDate}`)
+            cy.setCookie(COOKIE_NAME, `a:0-${policyDate}`)
             cy.reload()
             cy.wait(500) // Hack: wait for the potential animation to finish before asserting
             cy.get(COOKIE_NOTICE).should("not.be.visible")
@@ -91,7 +91,7 @@ describe("Cookie preferences", function () {
             // Control: pretend the preferences are set the day after the policy
             // gets updated
             cy.clearCookies()
-            cy.setCookie(COOKIE_NAME, `p:0-${dayAfterPolicyUpdate}`)
+            cy.setCookie(COOKIE_NAME, `a:0-${dayAfterPolicyUpdate}`)
             cy.reload()
             cy.wait(500) // Hack: wait for the potential animation to finish before asserting
             cy.get(COOKIE_NOTICE).should("not.be.visible")
@@ -99,7 +99,7 @@ describe("Cookie preferences", function () {
             // Pretend the preferences are set the day before the policy
             // gets updated
             cy.clearCookies()
-            cy.setCookie(COOKIE_NAME, `p:0-${dayBeforePolicyUpdate}`)
+            cy.setCookie(COOKIE_NAME, `a:0-${dayBeforePolicyUpdate}`)
             cy.reload()
             // no need to wait here, Cypress does it automatically before timing
             // out
