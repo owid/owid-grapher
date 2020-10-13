@@ -593,7 +593,7 @@ export class Grapher
     }
 
     // todo: remove ifs
-    @computed get startTime(): Time {
+    @computed get startTime(): TimeBound {
         const activeTab = this.tab
         if (activeTab === GrapherTabOption.table) return this.timelineFilter[0]
         if (activeTab === GrapherTabOption.map)
@@ -603,14 +603,14 @@ export class Grapher
     }
 
     // todo: remove ifs
-    set startTime(newValue: Time) {
+    set startTime(newValue: TimeBound) {
         if (this.tab === GrapherTabOption.map)
             this.timelineFilter = [newValue, newValue]
         else this.timelineFilter = [newValue, this.timelineFilter[1]]
     }
 
     // todo: remove ifs
-    set endTime(newValue: Time) {
+    set endTime(newValue: TimeBound) {
         const activeTab = this.tab
         if (
             activeTab === GrapherTabOption.map ||
@@ -622,7 +622,7 @@ export class Grapher
     }
 
     // todo: remove ifs
-    @computed get endTime(): Time {
+    @computed get endTime(): TimeBound {
         const activeTab = this.tab
         if (activeTab === GrapherTabOption.map)
             return this.mapColumn?.maxTime || 2000

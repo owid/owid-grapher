@@ -1,5 +1,5 @@
 import { Time } from "coreTable/CoreTableConstants"
-import { TimeBoundValue } from "grapher/utils/TimeBounds"
+import { TimeBound, TimeBoundValue } from "grapher/utils/TimeBounds"
 import { findClosestTime, last } from "grapher/utils/Util"
 
 export interface TimelineManager {
@@ -7,8 +7,8 @@ export interface TimelineManager {
     formatTimeFn?: (value: any) => any
     isPlaying?: boolean
     times: Time[]
-    startTime: Time
-    endTime: Time
+    startTime: TimeBound
+    endTime: TimeBound
     msPerTick?: number
     onPlay?: () => void
 }
