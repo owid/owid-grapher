@@ -50,9 +50,9 @@ export class OwidTable extends CoreTable<OwidRow> {
 
         if (missingColumns.length)
             throw new Error(
-                `Table is missing required OWID columns: '${missingColumns.join(
-                    ","
-                )}'`
+                `Table is missing required OWID columns: '${missingColumns
+                    .map((col) => col.slug)
+                    .join(",")}'`
             )
 
         const rows = (parsed as any) as OwidRow[]
