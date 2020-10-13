@@ -269,9 +269,7 @@ usa,1,usa,1,1
 usa,1,usa,-5,1`
 
         const table = OwidTable.fromDelimited(csv)
-        const timeOptions = table.getTimeOptionsForColumns([
-            "value"
-        ])
+        const timeOptions = table.getTimeOptionsForColumns(["value"])
         expect(timeOptions).toEqual([-5, -4, 1])
     })
 

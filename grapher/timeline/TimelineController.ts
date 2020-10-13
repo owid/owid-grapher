@@ -94,7 +94,6 @@ export class TimelineController {
 
         if (manager.onPlay) manager.onPlay()
 
-
         // Keep and return a tickCount for easier testability
         let tickCount = 0
         while (manager.isPlaying) {

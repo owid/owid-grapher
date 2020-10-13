@@ -151,13 +151,15 @@ export class OwidTable extends CoreTable<OwidRow> {
     }
 
     getTimeOptionsForColumns(columnSlugs: ColumnSlug[]) {
-        return sortNumeric(uniq(
-            flatten(
-                this.getColumns(columnSlugs)
-                    .filter((col) => col)
-                    .map((col) => col.uniqTimes)
+        return sortNumeric(
+            uniq(
+                flatten(
+                    this.getColumns(columnSlugs)
+                        .filter((col) => col)
+                        .map((col) => col.uniqTimes)
+                )
             )
-        ))
+        )
     }
 
     copySelectionFrom(table: OwidTable) {
