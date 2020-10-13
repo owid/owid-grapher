@@ -18,10 +18,22 @@ it("a table can be made from csv", () => {
 it("rows can be added without mutating the parent table", () => {
     const table = CoreTable.fromDelimited(sampleCsv)
     expect(table.numRows).toEqual(4)
-    expect(
-        table.withRows([{ country: "Japan", population: 123 }]).numRows
-    ).toBe(5)
+
+    let expandedTable = table.withRows(
+        [{ country: "Japan", population: 123 }],
+        `Added 1 row`
+    )
+    expect(expandedTable.numRows).toBe(5)
     expect(table.numRows).toEqual(4)
+
+    expandedTable = expandedTable
+        .withRenamedColumn("population", "pop")
+        .withRows(
+            [{ country: "USA", pop: 321 }],
+            "Added a row after column renaming"
+        )
+    expect(expandedTable.numRows).toEqual(6)
+    expect(expandedTable.rows[5].pop).toEqual(321)
 })
 
 it("input rows are never mutated", () => {
@@ -81,7 +93,7 @@ it("can query rows", () => {
 
 describe("filtering", () => {
     const rootTable = CoreTable.fromDelimited(sampleCsv)
-    const filteredTable = rootTable.filterBy(
+    const filteredTable = rootTable.filter(
         (row) => parseInt(row.population) > 40,
         "Pop filter"
     )
@@ -93,7 +105,7 @@ describe("filtering", () => {
     })
 
     it("multiple filters work", () => {
-        const filteredTwiceTable = filteredTable.filterBy(
+        const filteredTwiceTable = filteredTable.filter(
             (row: any) => (row.country as string).startsWith("u"),
             "Letter filter"
         )
@@ -215,11 +227,11 @@ it("can get all defined values for a column", () => {
 })
 
 it("can rename a column", () => {
-    const table = new CoreTable([{ pop: 123, year: 2000 }])
-    expect(table.withRenamedColumn("pop", "Population").columnSlugs).toEqual([
-        "Population",
-        "year",
-    ])
+    let table = new CoreTable([{ pop: 123, year: 2000 }])
+    table = table.withRenamedColumn("pop", "Population")
+    expect(table.columnSlugs).toEqual(["Population", "year"])
+    const firstRow = table.firstRow as any
+    expect(firstRow.Population).toEqual(123)
 })
 
 it("can load a table from an array of arrays", () => {

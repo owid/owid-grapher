@@ -3,23 +3,34 @@
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
-import { sampleCovidRows } from "./CovidExplorerUtils"
+import { sampleMegaRows } from "./CovidExplorerUtils"
 
-describe("parse row", () => {
-    it("correctly parses data from mega file", () => {
-        expect(sampleCovidRows[0].total_cases).toEqual(2)
-    })
+it("correctly parses data from mega file", () => {
+    expect(
+        CovidExplorerTable.fromMegaRows(sampleMegaRows).rows[0].total_cases
+    ).toEqual(2)
 })
 
-describe("makeCountryOptions", () => {
-    it("correctly computes options", () => {
-        const table = new CovidExplorerTable(sampleCovidRows)
-        expect(table.availableEntityNames[2]).toEqual("World")
-    })
+it("correctly computes makeCountryOptions", () => {
+    const table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+    expect(table.availableEntityNames[3]).toEqual("World")
+})
+
+it("correctly groups continents and adds rows for each", () => {
+    const table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+    const regionRows = table.where({ entityName: "North America" })
+    expect(regionRows.numRows).toEqual(6)
+    expect(regionRows.lastRow?.total_cases).toEqual(46451)
+})
+
+it("correctly adds EU aggregates and drops last day", () => {
+    const table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+    const regionRows = table.where({ entityName: "European Union" })
+    expect(regionRows.numRows).toEqual(1)
 })
 
 describe("build covid column", () => {
-    let table = new CovidExplorerTable(sampleCovidRows)
+    let table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
     const def = table.makeRollingAverageColumnDef(
         { slug: "totalCasesSmoothed" },
         (row) => row.total_cases,
@@ -40,7 +51,7 @@ describe("build covid column", () => {
             "Some title"
         )
         const newTable = table.withColumns([def])
-        const slug = newTable.lastColumnSlug
+        const slug = def.slug
         expect(newTable.rows[2][slug]).toEqual(0)
         expect(newTable.rows[3][slug]).toEqual(1)
     })
@@ -50,7 +61,7 @@ describe("build covid column", () => {
         rows.push({
             entityName: "USA",
             cases: index < 15 ? 10 : 20,
-            day: index,
+            time: index,
         })
     }
 
@@ -84,66 +95,60 @@ describe("build covid column", () => {
 })
 
 describe("builds aligned tests column", () => {
-    let table = new CovidExplorerTable(sampleCovidRows)
+    let table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
 
-    it("it has testing data", () => {
-        expect(table.columnSlugs.includes("tests-daily")).toEqual(false)
+    expect(table.columnSlugs.includes("tests-daily")).toEqual(false)
 
-        const params = new CovidQueryParams("testsMetric=true&dailyFreq=true")
-        const def = table.makeTestingColumnDef(params.toConstrainedParams())
-        table = table.withColumns([def!]) as CovidExplorerTable
+    const params = new CovidQueryParams("testsMetric=true&dailyFreq=true")
+    const def = table.makeTestingColumnDef(params.toConstrainedParams())
+    table = table.withColumns([def!]) as CovidExplorerTable
 
-        expect(table.columnSlugs.includes("tests-daily")).toEqual(true)
+    expect(table.columnSlugs.includes("tests-daily")).toEqual(true)
 
-        const newParams = new CovidQueryParams(params.toString())
-        newParams.perCapita = true
-        const def2 = table.makeTestingColumnDef(newParams.toConstrainedParams())
-        table = table.withColumns([def2!]) as CovidExplorerTable
+    const newParams = new CovidQueryParams(params.toString())
+    newParams.perCapita = true
+    const def2 = table.makeTestingColumnDef(newParams.toConstrainedParams())
+    table = table.withColumns([def2!]) as CovidExplorerTable
 
-        expect(table.columnSlugs.includes("tests-perThousand-daily")).toEqual(
-            true
-        )
+    expect(table.columnSlugs.includes("tests-perThousand-daily")).toEqual(true)
 
-        const params3 = new CovidQueryParams(
-            queryParamsToStr({
-                aligned: "true",
-                perCapita: "true",
-                testsMetric: "true",
-                totalFreq: "true",
-            })
-        )
-
-        table = table.withRequestedColumns(params3.toConstrainedParams())
-
-        expect(table.columnSlugs.includes("deaths-perMil-total")).toEqual(true)
-    })
-
-    const table3 = new CovidExplorerTable(sampleCovidRows)
     it("rows are immutable", () => {
+        const table3 = CovidExplorerTable.fromMegaRows(sampleMegaRows)
         expect(table3.columnSlugs.includes("tests-perThousand-daily")).toEqual(
             false
         )
     })
+
+    const params3 = new CovidQueryParams(
+        queryParamsToStr({
+            aligned: "true",
+            perCapita: "true",
+            testsMetric: "true",
+            totalFreq: "true",
+        })
+    )
+
+    table = table.withRequestedColumns(params3.toConstrainedParams())
+
+    expect(table.columnSlugs.includes("deaths-perMil-total")).toEqual(true)
 })
 
-describe("do not include unselected groups in aligned charts", () => {
-    it("can filter rows without continent", () => {
-        let table = new CovidExplorerTable(sampleCovidRows)
-        expect(table.availableEntityNameSet.has("World")).toBeTruthy()
+it("can filter rows without continent", () => {
+    let table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+    expect(table.availableEntityNameSet.has("World")).toBeTruthy()
 
-        table = table.filterGroups()
-        expect(table.availableEntityNameSet.has("World")).toBeFalsy()
+    table = table.filterGroups()
+    expect(table.availableEntityNameSet.has("World")).toBeFalsy()
 
-        table.rootTable.selectEntity("World")
-        table = (table.rootTable as CovidExplorerTable).filterGroups()
-        expect(table.availableEntityNameSet.has("World")).toBeTruthy()
+    table.mainTable.selectEntity("World")
+    table = (table.mainTable as CovidExplorerTable).filterGroups()
+    expect(table.availableEntityNameSet.has("World")).toBeTruthy()
 
-        table.rootTable.deselectEntity("World")
-        table = (table.rootTable as CovidExplorerTable).filterGroups()
-        expect(table.availableEntityNameSet.has("World")).toBeFalsy()
+    table.mainTable.deselectEntity("World")
+    table = (table.mainTable as CovidExplorerTable).filterGroups()
+    expect(table.availableEntityNameSet.has("World")).toBeFalsy()
 
-        table.rootTable.setSelectedEntities(["World"])
-        table = (table.rootTable as CovidExplorerTable).filterGroups()
-        expect(table.availableEntityNameSet.has("World")).toBeTruthy()
-    })
+    table.mainTable.setSelectedEntities(["World"])
+    table = (table.mainTable as CovidExplorerTable).filterGroups()
+    expect(table.availableEntityNameSet.has("World")).toBeTruthy()
 })

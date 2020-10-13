@@ -1,12 +1,12 @@
-import { cloneDeep, isPresent } from "grapher/utils/Util"
+import { cloneDeep, flatten, isPresent } from "grapher/utils/Util"
 import { OwidTable } from "coreTable/OwidTable"
-import { OwidColumnDef } from "coreTable/OwidTableConstants"
+import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import {
     ColumnTypeNames,
     ColumnSlug,
     Integer,
     CoreRow,
-    ComputedColumnFn,
+    ColumnFn,
     CoreColumnDef,
 } from "coreTable/CoreTableConstants"
 import {
@@ -17,17 +17,85 @@ import {
     makeColumnDefTemplates,
 } from "./CovidParams"
 import {
+    CovidRow,
     IntervalOptions,
     intervalsAvailableByMetric,
     intervalSpecs,
+    MegaRow,
     MetricOptions,
     SmoothingOption,
     testRateExcludeList,
 } from "./CovidConstants"
-import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
+import {
+    calculateCovidRowsForGroup,
+    computeRollingAveragesForEachGroup,
+    euCountries,
+    megaDateToTime,
+} from "./CovidExplorerUtils"
 import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
+import { CoreTable } from "coreTable/CoreTable"
 
 export class CovidExplorerTable extends OwidTable {
+    static fromMegaRows(megaRows: MegaRow[]) {
+        const coreTable = new CoreTable<MegaRow>(megaRows)
+            .withRenamedColumn("location", OwidTableSlugs.entityName)
+            .withRenamedColumn("iso_code", OwidTableSlugs.entityCode)
+            .withColumns([
+                {
+                    slug: OwidTableSlugs.time,
+                    type: ColumnTypeNames.Date,
+                    fn: ((row: MegaRow) => megaDateToTime(row.date)) as any,
+                }, // todo: improve typings on ColumnFn.
+            ])
+            .filter(
+                (row: MegaRow) => row.location !== "International",
+                "Drop International rows"
+            )
+
+        // todo: this can be better expressed as a group + reduce.
+        const continentGroups = coreTable.get("continent")!.valuesToRows
+        const continentNames = Array.from(continentGroups.keys()).filter(
+            (cont) => cont
+        )
+
+        const continentRows = flatten(
+            continentNames.map((continentName) => {
+                const rows = Array.from(
+                    continentGroups.get(continentName)!.values()
+                ) as CovidRow[]
+                return calculateCovidRowsForGroup(rows, continentName)
+            })
+        )
+
+        const euRows = calculateCovidRowsForGroup(
+            coreTable.findRows({ entityName: euCountries }) as any,
+            "European Union"
+        )
+
+        // Drop the last day in aggregates containing Spain & Sweden
+        euRows.pop()
+
+        const tableWithRows = coreTable
+            .withRows(
+                continentRows as any,
+                `Added ${continentRows.length} continent rows`
+            )
+            .withRows(euRows as any, `Added ${euRows.length} EU rows`)
+
+        return new CovidExplorerTable(
+            (tableWithRows.rows as any) as CovidRow[], // todo: clean up typings
+            tableWithRows.defs,
+            tableWithRows as any,
+            "Loaded into CovidExplorerTable"
+        )
+    }
+
+    get mainTable(): CovidExplorerTable {
+        return this.parent && this.parent instanceof CovidExplorerTable
+            ? this.parent.mainTable
+            : this
+    }
+
     // Ideally we would just have 1 set of column specs. Currently however we have some statically coded, some coming from the Grapher backend, and some
     // generated on the fly. These "template specs" are used in the generation of new specs on the fly. Todo: cleanup.
     loadColumnDefTemplatesFromGrapherBackend(
@@ -60,7 +128,7 @@ export class CovidExplorerTable extends OwidTable {
 
     private makeColumnDef(
         params: CovidConstrainedQueryParams,
-        rowFn: ComputedColumnFn
+        rowFn: ColumnFn
     ) {
         const def = makeColumnDefFromParams(params, this.columnDefTemplates)
         const { metricName, perCapitaAdjustment, smoothing } = params
@@ -127,8 +195,8 @@ export class CovidExplorerTable extends OwidTable {
                 averages = computeRollingAveragesForEachGroup(
                     this.rows,
                     valueAccessor,
-                    "entityName",
-                    "day",
+                    OwidTableSlugs.entityName,
+                    OwidTableSlugs.time,
                     windowSize
                 )
             const val = averages[index!]
@@ -194,16 +262,20 @@ export class CovidExplorerTable extends OwidTable {
     }
 
     filterNegatives(slug: ColumnSlug) {
-        return this.filterBy(
+        return this.filter(
             (row) => !(row[slug] < 0),
             `Filter negative values for ${slug}`
         ) as CovidExplorerTable
     }
 
     filterGroups() {
-        return this.filterBy(
-            (row) => !row.group_members || this.isSelected(row),
-            `Filter out regions`
+        // "World" and our previously aggregated groups we sometimes want to filter out.
+        return this.filter(
+            (row) =>
+                row.entityName === "World"
+                    ? this.isSelected(row)
+                    : !row.group_members || this.isSelected(row),
+            `Filter out regions unless selected`
         ) as CovidExplorerTable
     }
 
@@ -398,9 +470,9 @@ export class CovidExplorerTable extends OwidTable {
                     if (sourceValue === undefined || sourceValue < threshold)
                         return undefined
                     currentCountry = row.entityName
-                    countryExceededThresholdOnDay = row.day
+                    countryExceededThresholdOnDay = row[OwidTableSlugs.time]
                 }
-                return row.day - countryExceededThresholdOnDay
+                return row[OwidTableSlugs.time] - countryExceededThresholdOnDay
             },
         }
     }

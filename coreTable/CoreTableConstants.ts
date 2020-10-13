@@ -42,7 +42,7 @@ export interface CoreColumnDef {
     description?: string
     unit?: string
     shortUnit?: string
-    fn?: ComputedColumnFn
+    fn?: ColumnFn
     type?: ColumnTypeNames
     generator?: () => number // A function for generating synthetic data for testing
     growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.
@@ -73,4 +73,5 @@ export enum JsTypes {
 }
 
 // todo: remove index param?
-export type ComputedColumnFn = (row: CoreRow, index?: Integer) => any
+// todo: improve typings on this
+export type ColumnFn = (row: CoreRow, index?: Integer) => any

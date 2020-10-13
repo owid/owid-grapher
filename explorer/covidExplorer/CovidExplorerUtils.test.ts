@@ -1,19 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import {
-    generateCovidRowsForContinents,
-    getLeastUsedColor,
-    megaRowToCovidRow,
-    sampleMegaRows,
-} from "./CovidExplorerUtils"
-
-it("correctly groups continents and adds rows for each", () => {
-    const regionRows = generateCovidRowsForContinents(
-        sampleMegaRows.map(megaRowToCovidRow)
-    )
-    expect(regionRows.length).toEqual(6)
-    expect(regionRows[regionRows.length - 1].total_cases).toEqual(46451)
-})
+import { getLeastUsedColor } from "./CovidExplorerUtils"
 
 describe(getLeastUsedColor, () => {
     it("returns unused color", () => {

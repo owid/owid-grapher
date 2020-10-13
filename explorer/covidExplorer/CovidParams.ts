@@ -9,7 +9,7 @@ import { SortOrder, ColumnTypeNames } from "coreTable/CoreTableConstants"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
     trajectoryColumnSpecs,
-    MegaColumnSlug,
+    CovidColumnSlug,
     SmoothingOption,
     ColorScaleOptions,
     IntervalOptions,
@@ -18,7 +18,11 @@ import {
 } from "./CovidConstants"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { perCapitaDivisorByMetric } from "./CovidExplorerUtils"
-import { OwidColumnDef, EntityCode } from "coreTable/OwidTableConstants"
+import {
+    OwidColumnDef,
+    EntityCode,
+    OwidTableSlugs,
+} from "coreTable/OwidTableConstants"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.
@@ -64,7 +68,7 @@ export class CovidQueryParams {
 
     // Country picker params
     @observable selectedCountryCodes = new Set<EntityCode>()
-    @observable countryPickerMetric: MegaColumnSlug = "location"
+    @observable countryPickerMetric: CovidColumnSlug = OwidTableSlugs.entityName
     @observable countryPickerSort = SortOrder.asc
 
     @observable interval = IntervalOptions.daily

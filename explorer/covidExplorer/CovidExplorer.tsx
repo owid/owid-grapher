@@ -28,17 +28,17 @@ import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
-    CovidRow,
     covidDashboardSlug,
     coronaDefaultView,
     covidDataPath,
     sourceCharts,
     metricLabels,
-    metricPickerColumnSpecs,
+    metricPickerColumnDefs,
     intervalSpecs,
     MetricOptions,
     IntervalOptions,
     ColorScaleOptions,
+    MegaRow,
 } from "./CovidConstants"
 import {
     ColorScheme,
@@ -87,7 +87,7 @@ interface BootstrapProps {
 }
 
 interface CovidExplorerProps {
-    covidRows: CovidRow[]
+    megaRows: MegaRow[]
     params: CovidQueryParams
     covidChartAndVariableMeta: {
         charts: any
@@ -106,7 +106,7 @@ export class CovidExplorer
     extends React.Component<CovidExplorerProps>
     implements ObservableUrl, SlideShowManager {
     static async bootstrap(props: BootstrapProps) {
-        const { covidRows, updated, covidMeta } = await fetchRequiredData()
+        const { megaRows, updated, covidMeta } = await fetchRequiredData()
         const queryStr =
             props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
                 ? props.queryStr
@@ -114,7 +114,7 @@ export class CovidExplorer
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
             <CovidExplorer
-                covidRows={covidRows}
+                megaRows={megaRows}
                 updated={updated}
                 params={startingParams}
                 covidChartAndVariableMeta={covidMeta}
@@ -371,9 +371,7 @@ export class CovidExplorer
             <CountryPicker
                 explorerSlug={this.explorerSlug}
                 table={this.table}
-                pickerColumnSlugs={
-                    new Set(Object.keys(metricPickerColumnSpecs))
-                }
+                pickerColumnSlugs={new Set(Object.keys(metricPickerColumnDefs))}
                 isDropdownMenu={false}
                 optionColorMap={this.countryNameToColorMap}
                 userState={this.props.params}
@@ -556,7 +554,7 @@ export class CovidExplorer
         }, 1)
     }
 
-    private inputTable = new CovidExplorerTable(this.props.covidRows)
+    private inputTable = CovidExplorerTable.fromMegaRows(this.props.megaRows)
         .withDataTableDefs()
         .loadColumnDefTemplatesFromGrapherBackend(
             this.props.covidChartAndVariableMeta.variables

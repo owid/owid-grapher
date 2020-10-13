@@ -1,5 +1,5 @@
-import { ColumnTypeNames, Time } from "coreTable/CoreTableConstants"
-import { OwidColumnDef } from "coreTable/OwidTableConstants"
+import { ColumnTypeNames, CoreRow, Time } from "coreTable/CoreTableConstants"
+import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 
 export const covidPageTitle = "Coronavirus Pandemic Data Explorer"
 export const covidDashboardSlug = "coronavirus-data-explorer"
@@ -180,7 +180,7 @@ export const intervalsAvailableByMetric: Map<
 
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-codebook.csv
 // The "MegaCSV" from our CovidDataset is initially parsed into an array of objects with this interface
-export interface MegaRow {
+export interface MegaRow extends CoreRow {
     iso_code: string
     location: string
     continent: string
@@ -222,22 +222,22 @@ export interface MegaRow {
     hospital_beds_per_thousand: number
 }
 
-export interface CovidRow extends MegaRow {
+// We parse MegaRows and turn them into CovidRows immediately.
+export interface CovidRow extends Omit<MegaRow, "location" | "iso_code"> {
     group_members?: string
     entityName: string
     entityCode: string
     entityId: number
-    day: number
     time: Time
 }
 
-export declare type MegaColumnSlug = keyof MegaRow
-export const metricPickerColumnSpecs: Partial<Record<
-    MegaColumnSlug,
+export declare type CovidColumnSlug = keyof CovidRow
+export const metricPickerColumnDefs: Partial<Record<
+    CovidColumnSlug,
     Partial<OwidColumnDef>
 >> = {
     location: {
-        slug: "location",
+        slug: OwidTableSlugs.entityName,
         name: "Country name",
         type: ColumnTypeNames.Region,
     },

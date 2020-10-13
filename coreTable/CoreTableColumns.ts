@@ -269,7 +269,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // An index on rows
-    @computed private get valuesToRows() {
+    @computed get valuesToRows() {
         const map = new Map<JS_TYPE, Set<CoreRow>>()
         const slug = this.slug
         this.rowsWithValue.forEach((row) => {

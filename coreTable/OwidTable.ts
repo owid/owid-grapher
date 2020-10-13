@@ -178,14 +178,14 @@ export class OwidTable extends CoreTable<OwidRow> {
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime! : end
 
-        return this.filterBy((row) => {
+        return this.filter((row) => {
             const time = rowTime(row)
             return time >= adjustedStart && time <= adjustedEnd
         }, `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`)
     }
 
     filterByPopulation(minPop: number) {
-        return this.filterBy((row) => {
+        return this.filter((row) => {
             const name = row.entityName
             const pop = populationMap[name]
             return !pop || this.isSelected(row) || pop >= minPop
@@ -207,7 +207,7 @@ export class OwidTable extends CoreTable<OwidRow> {
             if (rowIndex !== undefined) matchingRows.add(rows[rowIndex])
         })
 
-        return this.filterBy(
+        return this.filter(
             (row) => matchingRows.has(row),
             `Keep one row per entity closest to time ${targetTime} with tolerance ${tolerance}`
         )

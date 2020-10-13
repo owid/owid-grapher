@@ -117,7 +117,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
                     newRow[col.slug] = col.parse(row[col.slug])
                 })
                 computeds.forEach((def) => {
-                    newRow[def.slug] = def.fn!(row, index)
+                    newRow[def.slug] = def.fn!(row, index) // todo: add better typings around fn.
                 })
                 return newRow as ROW_TYPE
             })
@@ -143,6 +143,10 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
 
     @computed get firstRow() {
         return this.rows[0]
+    }
+
+    @computed get lastRow() {
+        return last(this.rows)
     }
 
     @computed get numRows() {
@@ -205,15 +209,15 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     protected rowsBy<T>(columnSlug: ColumnSlug) {
         const map = new Map<T, ROW_TYPE[]>()
         this.rows.forEach((row) => {
-            const key = row[columnSlug]
-            if (!map.has(key)) map.set(key, [])
-            map.get(key)!.push(row)
+            const value = row[columnSlug]
+            if (!map.has(value)) map.set(value, [])
+            map.get(value)!.push(row)
         })
         return map
     }
 
     // todo: speed up
-    filterBy(
+    filter(
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
     ): this {
@@ -256,10 +260,6 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
 
     @computed get columnSlugs() {
         return Array.from(this._columns.keys())
-    }
-
-    @computed get lastColumnSlug() {
-        return last(this.columnSlugs)!
     }
 
     @computed get numericColumnSlugs() {
@@ -463,12 +463,12 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         ) as this
     }
 
-    withRows(rows: ROW_TYPE[]): this {
+    withRows(rows: ROW_TYPE[], opDescription: string): this {
         return new (this.constructor as any)(
             [...this.rows, ...rows],
             this.defs,
             this,
-            `Added ${rows.length} new rows`,
+            opDescription,
             TransformType.AddRows
         )
     }
@@ -513,11 +513,21 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    withRenamedColumn(currentSlug: ColumnSlug, newSlug: ColumnSlug) {
+    // Todo: improve typings. After renaming a column the row interface should change. Applies to some other methods as well.
+    withRenamedColumn(currentSlug: ColumnSlug, newSlug: ColumnSlug): this {
         return new (this.constructor as any)(
-            this.rows,
+            this.rows.map((row) => {
+                const newRow = { ...row, [newSlug]: row[currentSlug] }
+                delete newRow[currentSlug]
+                return newRow
+            }),
             this.defs.map((def) =>
-                def.slug === currentSlug ? { ...def, slug: newSlug } : def
+                def.slug === currentSlug
+                    ? {
+                          ...def,
+                          slug: newSlug,
+                      }
+                    : def
             ),
             this,
             `Renamed '${currentSlug}' to '${newSlug}'`,
@@ -527,7 +537,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
 
     withoutRows(rows: ROW_TYPE[]) {
         const set = new Set(rows)
-        return this.filterBy(
+        return this.filter(
             (row) => !set.has(row),
             `Dropping ${rows.length} rows`
         )
@@ -537,7 +547,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     dropRandomRows(howMany = 1, seed = Date.now()) {
         if (!howMany) return this // todo: clone?
         const indexesToDrop = getDropIndexes(this.numRows, howMany, seed)
-        return this.filterBy(
+        return this.filter(
             (row, index) => !indexesToDrop.has(index),
             `Dropping a random ${howMany} rows`
         )
@@ -581,14 +591,11 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     }
 
     filterBySelectedOnly() {
-        return this.filterBy(
-            (row) => this.isSelected(row),
-            `Selected rows only`
-        )
+        return this.filter((row) => this.isSelected(row), `Selected rows only`)
     }
 
     filterByFullColumnsOnly(slugs: ColumnSlug[]) {
-        return this.filterBy(
+        return this.filter(
             (row) =>
                 slugs.every(
                     (slug) => row[slug] !== null && row[slug] !== undefined
@@ -598,18 +605,18 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     }
 
     filterNegativesForLogScale(columnSlug: ColumnSlug) {
-        return this.filterBy(
+        return this.filter(
             (row) => row[columnSlug] > 0,
             `Remove rows if ${columnSlug} is <= 0 for log scale`
         )
     }
 
-    withColumns(columns: CoreColumnDef[]): this {
+    withColumns(defs: CoreColumnDef[]): this {
         return new (this.constructor as any)(
             this.rows,
-            this.defs.concat(columns),
+            this.defs.concat(defs),
             this,
-            `Added new columns ${columns.map((def) => def.slug)}`,
+            `Added new columns ${defs.map((def) => def.slug)}`,
             TransformType.AddColumns
         )
     }
