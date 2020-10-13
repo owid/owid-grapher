@@ -50,11 +50,11 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     protected parent?: this
     private tableDescription = ""
     private transformCategory = TransformType.Load
-    private _constructTime = 0
+    private timeToLoad = 0
 
     constructor(
         rows: ROW_TYPE[] = [],
-        columnDefs: CoreColumnDef[] = [],
+        incomingColumnDefs?: CoreColumnDef[],
         parentTable?: CoreTable,
         tableDescription?: string,
         transformCategory?: TransformType
@@ -63,7 +63,12 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         this._inputRows = rows // Save a reference to original rows for debugging.
 
         this._columns = new Map()
-        columnDefs.forEach((def) => {
+        const colsToSet = incomingColumnDefs
+            ? incomingColumnDefs
+            : parentTable
+            ? parentTable.defs
+            : []
+        colsToSet.forEach((def) => {
             const { slug, type } = def
             const ColumnType =
                 (type && ColumnTypeMap[type]) || ColumnTypeMap.String
@@ -78,11 +83,14 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         this.tableDescription = tableDescription ?? ""
         if (transformCategory) this.transformCategory = transformCategory
 
-        this._rows = this._buildRows(columnDefs, rows)
+        const columnsToCompute =
+            incomingColumnDefs?.filter((def) => def.fn) ?? []
+        this.numColsToCompute = columnsToCompute.length
+        this._rows = this._buildRows(columnsToCompute)
 
-        // Pass selection strategy down from parent
+        // Pass selection strategy down from parent. todo: should selection be immutable as well?
         if (parentTable) this.copySelectionFrom(parentTable)
-        this._constructTime = Date.now() - start
+        this.timeToLoad = Date.now() - start
     }
 
     private _autodetectAndAddDefs(rows: ROW_TYPE[]) {
@@ -98,19 +106,19 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             })
     }
 
-    private _buildRows(columnDefs: CoreColumnDef[], rows: ROW_TYPE[]) {
-        const firstRow = rows[0]
-        const colsToParse = this.getColumnsToParse(firstRow)
-        const computeds = columnDefs.filter((def) => def.fn)
-        // Clone and parse rows if necessary
-        if (!colsToParse.length && !computeds.length) return rows
+    private numColsToCompute: number
+    private _buildRows(columnsToCompute: CoreColumnDef[]) {
+        const rows = this._inputRows
+        if (!this.numColsToParse && !columnsToCompute.length) return rows
+
+        const colsToParse = this.columnsToParse
 
         return rows.map((row, index) => {
-            const newRow: any = { ...row }
+            const newRow: any = Object.assign({}, row)
             colsToParse.forEach((col) => {
                 newRow[col.slug] = col.parse(row[col.slug])
             })
-            computeds.forEach((def) => {
+            columnsToCompute.forEach((def) => {
                 newRow[def.slug] = def.fn!(row, index) // todo: add better typings around fn.
             })
             return newRow as ROW_TYPE
@@ -121,17 +129,29 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         // todo? Do we need a notion of selection outside of OwidTable?
     }
 
-    // For now just examine the first row, and if anything bad is found, reparse that column
-    private getColumnsToParse(firstRow: ROW_TYPE) {
+    private get numColsToParse() {
+        return this.columnsToParse.length
+    }
+
+    private get columnsToParse() {
+        const firstRow = this._inputRows[0]
         if (!firstRow) return []
 
+        // Don't parse computeds. They should parse themselves (todo: add tests for this).
+        // Also don't parse columns already parsed. We approximate whether a column is parsed simply by looking at the first row. If subsequent rows
+        // have a different type, that could cause problems, but the user of this library should ensure their types remain consistent throughout
+        // all rows.
         return this.columnsAsArray.filter(
-            (col) => !col.isParsed(firstRow[col.slug])
+            (col) => !col.def.fn && !col.isParsed(firstRow[col.slug])
         )
     }
 
     get stepNumber(): number {
         return !this.parent ? 0 : this.parent.stepNumber + 1
+    }
+
+    get totalTime(): number {
+        return this.timeToLoad + (this.parent ? this.parent.totalTime : 0)
     }
 
     @computed get rows() {
@@ -220,7 +240,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     ): this {
         return new (this.constructor as any)(
             this.rows.filter(predicate),
-            this.defs,
+            undefined,
             this,
             opName,
             TransformType.FilterRows
@@ -230,17 +250,17 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): this {
         return new (this.constructor as any)(
             orderBy(this.rows, slugs, orders),
-            this.defs,
+            undefined,
             this,
             `Sort by ${slugs.join(",")} ${orders?.join(",")}`,
             TransformType.SortRows
         )
     }
 
-    reverse() {
+    reverse(): this {
         return new (this.constructor as any)(
             this.rows.slice(0).reverse(),
-            this.defs,
+            undefined,
             this,
             `Reversed row order`,
             TransformType.SortRows
@@ -376,8 +396,12 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         return `${this.stepNumber}. ${this.transformCategory}: ${
             this.tableDescription ? this.tableDescription + ". " : ""
         }${this.numColumns} Columns ${this._inputRows.length} Rows. ${
-            this._constructTime
+            this.timeToLoad
         }ms.`
+    }
+
+    private get ancestors(): this[] {
+        return this.parent ? [...this.parent.ancestors, this] : [this]
     }
 
     explain(showRows = 10, options?: AlignedTextTableOptions): string {
@@ -387,9 +411,26 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    explainShort(): string {
-        if (!this.parent) return this.oneLiner()
-        return [this.parent.explainShort(), this.oneLiner()].join("\n")
+    explainShort(options?: AlignedTextTableOptions) {
+        // todo: add typings
+        return toAlignedTextTable(
+            [
+                "stepNumber",
+                "transformCategory",
+                "numColumns",
+                "numRows",
+                "timeToLoad",
+                "numColsToParse",
+                "numColsToCompute",
+                "tableDescription",
+            ],
+            this.ancestors,
+            {
+                maxCharactersPerColumn: 50,
+                maxCharactersPerLine: 200,
+                ...options,
+            }
+        )
     }
 
     // Output a pretty table for consles
@@ -444,34 +485,34 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         return this.rows.indexOf(row)
     }
 
-    where(query: CoreQuery) {
+    where(query: CoreQuery): this {
         const rows = this.findRows(query)
         return new (this.constructor as any)(
             rows,
-            this.defs,
+            undefined,
             this,
             `Selecting ${rows.length} rows where ${queryParamsToStr(
                 query as any
             )}`,
             TransformType.FilterRows
-        ) as this
+        )
     }
 
     withRows(rows: ROW_TYPE[], opDescription: string): this {
         return new (this.constructor as any)(
             [...this.rows, ...rows],
-            this.defs,
+            undefined,
             this,
             opDescription,
             TransformType.AddRows
         )
     }
 
-    limit(howMany: number) {
+    limit(howMany: number): this {
         const rows = this.rows.slice(0, howMany)
         return new (this.constructor as any)(
             rows,
-            this.defs,
+            undefined,
             this,
             `Kept the first ${rows.length} rows`,
             TransformType.FilterRows
@@ -551,7 +592,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         howMany = 1,
         columnSlugs: ColumnSlug[] = [],
         seed = Date.now()
-    ) {
+    ): this {
         const defs = this.columnsAsArray.map((col) => {
             const { def } = col
             if (!columnSlugs.includes(col.slug)) return def

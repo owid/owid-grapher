@@ -40,6 +40,10 @@ export class CovidExplorerTable extends OwidTable {
         const coreTable = new CoreTable<MegaRow>(megaRows)
             .withRenamedColumn("location", OwidTableSlugs.entityName)
             .withRenamedColumn("iso_code", OwidTableSlugs.entityCode)
+            .filter(
+                (row: MegaRow) => row.location !== "International",
+                "Drop International rows"
+            )
             .withColumns([
                 {
                     slug: OwidTableSlugs.time,
@@ -47,10 +51,6 @@ export class CovidExplorerTable extends OwidTable {
                     fn: ((row: MegaRow) => megaDateToTime(row.date)) as any,
                 }, // todo: improve typings on ColumnFn.
             ])
-            .filter(
-                (row: MegaRow) => row.location !== "International",
-                "Drop International rows"
-            )
 
         // todo: this can be better expressed as a group + reduce.
         const continentGroups = coreTable.get("continent")!.valuesToRows

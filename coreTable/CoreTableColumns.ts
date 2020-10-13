@@ -294,9 +294,13 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return uniq(this.parsedValues)
     }
 
-    @computed private get allValuesAsSet() {
+    @computed private get allValues() {
         const slug = this.slug
-        return new Set(this.table.rows.map((row) => row[slug]))
+        return this.table.rows.map((row) => row[slug])
+    }
+
+    @computed private get allValuesAsSet() {
+        return new Set(this.allValues)
     }
 
     // True if the column has only 1 value. Looks at the (potentially) unparsed values.
@@ -438,6 +442,10 @@ class StringColumn extends AbstractCoreColumn<string> {
 }
 
 class SeriesAnnotationColumn extends StringColumn {}
+
+class NumericCategoricalColumn extends AbstractCoreColumn<number> {
+    jsType = JsTypes.number
+}
 
 class CategoricalColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
@@ -628,7 +636,7 @@ class RatioColumn extends NumericColumn {
 }
 
 // todo: remove. should not be in coretable
-class EntityIdColumn extends CategoricalColumn {}
+class EntityIdColumn extends NumericCategoricalColumn {}
 class EntityCodeColumn extends CategoricalColumn {}
 class EntityNameColumn extends CategoricalColumn {}
 

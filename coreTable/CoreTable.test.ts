@@ -1,7 +1,7 @@
 #! /usr/bin/env yarn jest
 
 import { CoreTable } from "./CoreTable"
-import { ColumnTypeNames, TransformType } from "./CoreTableConstants"
+import { ColumnTypeNames } from "./CoreTableConstants"
 
 const sampleCsv = `country,population
 iceland,1
@@ -44,8 +44,8 @@ describe("explain", () => {
         expect(table.stepNumber).toEqual(1)
     })
 
-    it("explain short has a oneliner for each transform", () => {
-        expect(table.explainShort().split("\n").length).toEqual(2)
+    it("explain short has a row for each transform", () => {
+        expect(table.explainShort().split("\n").length).toEqual(3)
     })
 
     it("explain long contains useful info like Javscript types and perf info", () => {

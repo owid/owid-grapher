@@ -166,7 +166,7 @@ export class OwidTable extends CoreTable<OwidRow> {
     filterByEntityName(name: EntityName) {
         return new OwidTable(
             this.rowsByEntityName.get(name) || [],
-            this.defs,
+            undefined,
             this,
             `Filter out all entities except '${name}'`,
             TransformType.FilterRows
