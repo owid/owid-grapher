@@ -1,4 +1,4 @@
-const DEBUG = true
+const DEBUG = false
 
 // Docs on GA's event interface: https://developers.google.com/analytics/devguides/collection/analyticsjs/events
 interface GAEvent {
