@@ -221,7 +221,7 @@ export const legacyToOwidTable = (
     const dimensions = grapherConfig.dimensions || []
 
     // todo: when we ditch dimensions and just have computed columns things like conversion factor will be easy (just a computed column)
-    const conversionFactors: Record<string, number> = {}
+    const conversionFactors = new Map<string, number>()
 
     // Dimension-level conversionFactors "override" variable-level conversionFactors, so we need to just choose the correct factor before we can apply it
 
@@ -229,27 +229,26 @@ export const legacyToOwidTable = (
         .filter((col) => col.display?.conversionFactor !== undefined)
         .forEach((col) => {
             const { slug, display } = col
-            conversionFactors[slug] = display!.conversionFactor!
+            conversionFactors.set(slug, display!.conversionFactor!)
         })
 
     dimensions
         .filter((dim) => dim.display?.conversionFactor !== undefined)
         .forEach((dimension) => {
             const { display, variableId } = dimension
-            conversionFactors[
-                variableId.toString()
-            ] = display!.conversionFactor!
+            conversionFactors.set(
+                variableId.toString(),
+                display!.conversionFactor!
+            )
         })
 
-    Object.entries(conversionFactors).forEach(
-        ([slug, unitConversionFactor]) => {
-            rows.forEach((row) => {
-                const value = row[slug]
-                if (value !== undefined && value !== null)
-                    row[slug] = value * unitConversionFactor
-            })
-        }
-    )
+    conversionFactors.forEach((unitConversionFactor, slug) => {
+        rows.forEach((row) => {
+            const value = row[slug]
+            if (value !== undefined && value !== null)
+                row[slug] = value * unitConversionFactor
+        })
+    })
 
     dimensions.forEach((dim) => {
         const def = columnDefs.get(dim.variableId.toString())!
