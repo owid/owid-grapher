@@ -54,10 +54,11 @@ export const CookieNotice = ({
                                 })
                             }
                             data-test="accept"
+                            data-track-note="cookie-notice"
                         >
                             <span className="icon">
                                 <FontAwesomeIcon icon={faCheck} />
-                            </span>{" "}
+                            </span>
                             I agree
                         </button>
                     </div>

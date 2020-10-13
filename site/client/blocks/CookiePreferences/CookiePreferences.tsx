@@ -12,6 +12,10 @@ import {
 import slugify from "slugify"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons/faCheck"
+import { SiteAnalytics } from "site/client/SiteAnalytics"
+
+const ANALYTICS_ACTION = "cookie-preferences"
+const analytics = new SiteAnalytics()
 
 // Note: CookiePreferences has been designed to be rendered through a portal
 // only. When this becomes limiting (e.g. cookies preferences rendered both in
@@ -36,12 +40,21 @@ const CookiePreference = ({
     children: React.ReactNode
 }) => {
     const id = `cookie-preference-${slugify(name, { lower: true })}`
+
+    const onChange = () => {
+        toggleConsent()
+        analytics.logSiteClick(
+            `${consent ? "Refuse" : "Accept"} ${name}`,
+            ANALYTICS_ACTION
+        )
+    }
+
     return (
         <div className="cookie-preference">
             <input
                 id={id}
                 type="checkbox"
-                onChange={toggleConsent}
+                onChange={onChange}
                 checked={consent}
                 disabled={disabled}
                 data-test={`${name}-preference`}
@@ -112,10 +125,11 @@ export const CookiePreferences = ({
                         })
                     }
                     data-test="accept"
+                    data-track-note={ANALYTICS_ACTION}
                 >
                     <span className="icon">
                         <FontAwesomeIcon icon={faCheck} />
-                    </span>{" "}
+                    </span>
                     I agree
                 </button>
             )}
