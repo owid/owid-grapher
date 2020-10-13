@@ -8,6 +8,7 @@ import {
     sum,
     flatten,
     uniq,
+    sortNumeric,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -50,9 +51,9 @@ export class OwidTable extends CoreTable<OwidRow> {
 
         if (missingColumns.length)
             throw new Error(
-                `Table is missing required OWID columns: '${missingColumns.join(
-                    ","
-                )}'`
+                `Table is missing required OWID columns: '${missingColumns
+                    .map((col) => col.slug)
+                    .join(",")}'`
             )
 
         const rows = (parsed as any) as OwidRow[]
@@ -150,13 +151,15 @@ export class OwidTable extends CoreTable<OwidRow> {
     }
 
     getTimeOptionsForColumns(columnSlugs: ColumnSlug[]) {
-        return uniq(
-            flatten(
-                this.getColumns(columnSlugs)
-                    .filter((col) => col)
-                    .map((col) => col.uniqTimes)
+        return sortNumeric(
+            uniq(
+                flatten(
+                    this.getColumns(columnSlugs)
+                        .filter((col) => col)
+                        .map((col) => col.uniqTimes)
+                )
             )
-        ).sort()
+        )
     }
 
     copySelectionFrom(table: OwidTable) {

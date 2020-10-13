@@ -593,24 +593,24 @@ export class Grapher
     }
 
     // todo: remove ifs
-    @computed get startTime(): Time {
+    @computed get startTime(): TimeBound {
         const activeTab = this.tab
         if (activeTab === GrapherTabOption.table) return this.timelineFilter[0]
         if (activeTab === GrapherTabOption.map)
-            return this.mapColumn?.maxTime || 1900 // always use end time for maps
+            return this.mapColumn?.maxTime ?? 1900 // always use end time for maps
         if (this.isBarChartRace) return this.endTime
-        return this.timelineFilter[0] || 1900
+        return this.timelineFilter[0] ?? 1900
     }
 
     // todo: remove ifs
-    set startTime(newValue: Time) {
+    set startTime(newValue: TimeBound) {
         if (this.tab === GrapherTabOption.map)
             this.timelineFilter = [newValue, newValue]
         else this.timelineFilter = [newValue, this.timelineFilter[1]]
     }
 
     // todo: remove ifs
-    set endTime(newValue: Time) {
+    set endTime(newValue: TimeBound) {
         const activeTab = this.tab
         if (
             activeTab === GrapherTabOption.map ||
@@ -622,11 +622,11 @@ export class Grapher
     }
 
     // todo: remove ifs
-    @computed get endTime(): Time {
+    @computed get endTime(): TimeBound {
         const activeTab = this.tab
         if (activeTab === GrapherTabOption.map)
-            return this.mapColumn?.maxTime || 2000
-        return this.timelineFilter[1] || 2000
+            return this.mapColumn?.maxTime ?? 2000
+        return this.timelineFilter[1] ?? 2000
     }
 
     @computed private get isBarChartRace() {

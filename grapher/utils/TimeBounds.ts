@@ -1,12 +1,10 @@
 import {
     parseIntOrUndefined,
-    findClosestTime,
     isString,
     diffDateISOStringInDays,
     formatDay,
 } from "grapher/utils/Util"
 import { EPOCH_DATE } from "grapher/core/GrapherConstants"
-import { Time } from "coreTable/CoreTableConstants"
 
 /**
  * An unbounded value (±Infinity) or a concrete point in time (year or date).
@@ -101,32 +99,6 @@ export function maxTimeFromJSON(
 
 export const minTimeToJSON = toJSON
 export const maxTimeToJSON = toJSON
-
-export function getTimeWithinTimeRange(
-    [minTime, maxTime]: [Time, Time],
-    bound: TimeBound
-): Time {
-    if (isUnboundedLeft(bound)) return minTime
-    if (isUnboundedRight(bound)) return maxTime
-    return Math.min(maxTime, Math.max(minTime, bound))
-}
-
-export function getClosestTime(
-    times: Time[],
-    bound: TimeBound,
-    defaultValue: Time
-): Time {
-    return findClosestTime(times, bound) ?? defaultValue
-}
-
-export function getBoundFromTimeRange(
-    [minTime, maxTime]: [Time, Time],
-    time: Time
-): TimeBound {
-    if (time <= minTime) return TimeBoundValue.unboundedLeft
-    if (time >= maxTime) return TimeBoundValue.unboundedRight
-    return time
-}
 
 const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
 const reISODate = new RegExp(`^(${reISODateComponent.source})$`)

@@ -262,6 +262,17 @@ describe("time filtering", () => {
         expect(timeOptions).toEqual([2000, 2001, 2002])
     })
 
+    it("time options are sorted in ascending order", () => {
+        const csv = `entityName,entityId,entityCode,date,value
+usa,1,usa,-4,1
+usa,1,usa,1,1
+usa,1,usa,-5,1`
+
+        const table = OwidTable.fromDelimited(csv)
+        const timeOptions = table.getTimeOptionsForColumns(["value"])
+        expect(timeOptions).toEqual([-5, -4, 1])
+    })
+
     it("can handle infinity when filtering", () => {
         const table = SynthesizeGDPTable({
             entityCount: 2,
