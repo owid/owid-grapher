@@ -16,9 +16,9 @@ class AxisConfigDefaults {
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
     @observable.ref scaleType?: ScaleType = undefined
-    @observable.ref canChangeScaleType?: true = undefined
+    @observable.ref canChangeScaleType?: boolean = undefined
     @observable label: string = ""
-    @observable.ref removePointsOutsideDomain?: true = undefined
+    @observable.ref removePointsOutsideDomain?: boolean = undefined
 }
 
 export class AxisConfig

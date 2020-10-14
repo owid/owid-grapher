@@ -173,10 +173,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (manager.showYScaleToggle)
             controls.push(
-                <ScaleSelector
-                    key="scaleSelector"
-                    manager={manager.yAxis!.toVerticalAxis()}
-                />
+                <ScaleSelector key="scaleSelector" manager={manager.yAxis!} />
             )
 
         if (manager.showSelectEntitiesButton)

@@ -242,13 +242,11 @@ export class ScatterPlotChart
     // todo: Refactor
     @computed private get dualAxis() {
         const { horizontalAxis, verticalAxis } = this
-        const axis = new DualAxis({
+        return new DualAxis({
             bounds: this.bounds.padRight(this.sidebarWidth + 20),
             horizontalAxis,
             verticalAxis,
         })
-
-        return axis
     }
 
     @computed private get comparisonLines() {
@@ -435,19 +433,19 @@ export class ScatterPlotChart
 
     @computed private get yAxisConfig() {
         return (
-            this.manager.yAxis || new AxisConfig(this.manager.yAxisConfig, this)
+            this.manager.yAxis ?? new AxisConfig(this.manager.yAxisConfig, this)
         )
     }
 
     @computed private get xAxisConfig() {
         return (
-            this.manager.xAxis || new AxisConfig(this.manager.xAxisConfig, this)
+            this.manager.xAxis ?? new AxisConfig(this.manager.xAxisConfig, this)
         )
     }
 
     @computed private get yColumnSlug() {
         const { yColumnSlug, yColumnSlugs, table } = this.manager
-        const ySlugs = yColumnSlugs || []
+        const ySlugs = yColumnSlugs ?? []
         return yColumnSlug ?? ySlugs[0] ?? table.numericColumnSlugs[0]
     }
 
@@ -543,7 +541,7 @@ export class ScatterPlotChart
     }
 
     private set compareEndPointsOnly(value: boolean) {
-        this.manager.compareEndPointsOnly = value || undefined
+        this.manager.compareEndPointsOnly = value ?? undefined
     }
 
     @computed private get columns() {
@@ -769,7 +767,6 @@ export class ScatterPlotChart
         axis.scaleType = this.yScaleType
 
         if (manager.isRelativeMode) {
-            axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = yDomainDefault // Overwrite user's min/max
             if (label && label.length > 1) {
                 axis.label = `Average annual change in ${lowerCaseFirstLetterUnlessAbbreviation(
@@ -787,7 +784,7 @@ export class ScatterPlotChart
     @computed private get xScaleType() {
         return this.manager.isRelativeMode
             ? ScaleType.linear
-            : this.xAxisConfig.scaleType || ScaleType.linear
+            : this.xAxisConfig.scaleType ?? ScaleType.linear
     }
 
     @computed private get xAxisLabelBase() {
@@ -804,7 +801,6 @@ export class ScatterPlotChart
         axis.formatColumn = this.xColumn
         axis.scaleType = this.xScaleType
         if (manager.isRelativeMode) {
-            axis.scaleTypeOptions = [ScaleType.linear]
             axis.domain = xDomainDefault // Overwrite user's min/max
             const label = xAxisConfig.label || xAxisLabelBase
             if (label && label.length > 1) {

@@ -1904,6 +1904,8 @@ export class Grapher
     }
 
     @computed get showYScaleToggle() {
+        if (this.isRelativeMode) return false
+        if (this.isStackedArea || this.isStackedBar) return false // We currently do not have these charts with log scale
         return this.yAxis.canChangeScaleType
     }
 

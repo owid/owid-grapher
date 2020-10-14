@@ -6,6 +6,6 @@ export interface AxisConfigInterface {
     label?: string
     min?: number
     max?: number
-    canChangeScaleType?: true
-    removePointsOutsideDomain?: true
+    canChangeScaleType?: boolean
+    removePointsOutsideDomain?: boolean
 }

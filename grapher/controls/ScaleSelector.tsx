@@ -1,14 +1,15 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ScaleType, ScaleTypeConfig } from "grapher/core/GrapherConstants"
+import { ScaleType } from "grapher/core/GrapherConstants"
 import classNames from "classnames"
 import { next } from "grapher/utils/Util"
+import { Bounds } from "grapher/utils/Bounds"
 
-export interface ScaleSelectorManager extends ScaleTypeConfig {
-    x?: number
-    y?: number
+export interface ScaleSelectorManager {
+    bounds?: Bounds
     maxX?: number // If set, the scale toggle will shift left if it exceeds this number
+    scaleType?: ScaleType
 }
 
 @observer
@@ -20,30 +21,22 @@ export class ScaleSelector extends React.Component<{
     }
 
     @computed private get isInline() {
-        return this.manager.x === undefined || this.manager.y === undefined
-    }
-
-    @computed get x() {
-        return this.manager.x ?? 0
-    }
-    @computed get y() {
-        return this.manager.y ?? 0
+        return this.manager.bounds === undefined
     }
 
     @computed get maxX() {
         return this.manager.maxX || 0
     }
 
-    @computed get scaleTypeOptions() {
-        return this.manager.scaleTypeOptions
-    }
-
     @computed get scaleType() {
-        return this.manager.scaleType
+        return this.manager.scaleType ?? ScaleType.linear
     }
 
     @action.bound onClick() {
-        this.manager.scaleType = next(this.scaleTypeOptions, this.scaleType)
+        this.manager.scaleType = next(
+            [ScaleType.linear, ScaleType.log],
+            this.scaleType
+        )
     }
 
     private componentWidth = 95
@@ -57,19 +50,27 @@ export class ScaleSelector extends React.Component<{
     }
 
     render() {
-        const { x, y, scaleType } = this
+        if (this.isInline) return this.renderToggle()
+        const bounds = this.manager.bounds!
+        return (
+            <foreignObject
+                id="horizontal-scale-selector"
+                y={bounds.y - 30}
+                x={bounds.x - this.getLeftShiftIfNeeded(bounds.x)}
+                width={1}
+                height={1}
+                style={{ overflow: "visible" }}
+            >
+                {this.renderToggle()}
+            </foreignObject>
+        )
+    }
 
-        const style = this.isInline
-            ? {}
-            : {
-                  top: y,
-                  left: x - this.getLeftShiftIfNeeded(x),
-              }
-
+    renderToggle() {
+        const { scaleType } = this
         return (
             <span
                 onClick={this.onClick}
-                style={style}
                 className={classNames([
                     "clickable",
                     "toggleSwitch",

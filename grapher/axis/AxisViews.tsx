@@ -4,7 +4,11 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
-import { ScaleSelector } from "grapher/controls/ScaleSelector"
+import {
+    ScaleSelector,
+    ScaleSelectorManager,
+} from "grapher/controls/ScaleSelector"
+import { ScaleType } from "grapher/core/GrapherConstants"
 
 @observer
 export class VerticalAxisGridLines extends React.Component<{
@@ -126,7 +130,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 axisPosition={innerBounds.bottom}
                 axis={horizontalAxis}
                 showTickMarks={showTickMarks}
-                isInteractive={this.props.isInteractive}
+                isInteractive={false} // Todo! Renable xAxis scale type toggle. this.props.isInteractive
             />
         )
 
@@ -177,34 +181,38 @@ export class VerticalAxisComponent extends React.Component<{
     }
 }
 
-export class HorizontalAxisComponent extends React.Component<{
-    bounds: Bounds
-    axis: HorizontalAxis
-    axisPosition: number
-    maxX?: number
-    showTickMarks?: boolean
-    isInteractive?: boolean
-}> {
-    @computed get controls() {
-        const { bounds, axis, maxX } = this.props
+export class HorizontalAxisComponent
+    extends React.Component<{
+        bounds: Bounds
+        axis: HorizontalAxis
+        axisPosition: number
+        maxX?: number
+        showTickMarks?: boolean
+        isInteractive?: boolean
+    }>
+    implements ScaleSelectorManager {
+    @computed private get controls() {
         const showControls =
-            this.props.isInteractive && axis.scaleTypeOptions.length > 1
+            this.props.isInteractive && this.props.axis.canChangeScaleType
         if (!showControls) return undefined
+        return <ScaleSelector manager={this} />
+    }
 
-        // todo: move these properties to this class and pass this class down?
-        const scaleSelectorManager = {
-            scaleType: axis.scaleType,
-            scaleTypeOptions: axis.scaleTypeOptions,
-            maxX,
-            x: bounds.right,
-            y: bounds.bottom,
-        }
+    @computed get scaleType() {
+        return this.props.axis.scaleType
+    }
 
-        return (
-            <foreignObject id="horizontal-scale-selector" y={10}>
-                <ScaleSelector manager={scaleSelectorManager} />
-            </foreignObject>
-        )
+    set scaleType(scaleType: ScaleType) {
+        this.props.axis.config.scaleType = scaleType
+    }
+
+    @computed get maxX() {
+        return this.props.maxX
+    }
+
+    @computed get bounds() {
+        const { bounds } = this.props
+        return new Bounds(bounds.right, bounds.bottom, 100, 100)
     }
 
     render() {

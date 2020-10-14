@@ -18,6 +18,12 @@ export default {
 const basics: GrapherProgrammaticInterface = {
     table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
     hasMapTab: true,
+    yAxis: {
+        canChangeScaleType: true,
+    },
+    xAxis: {
+        canChangeScaleType: true,
+    },
     dimensions: [
         {
             slug: SampleColumnSlugs.GDP,

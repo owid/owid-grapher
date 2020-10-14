@@ -8,11 +8,7 @@ import {
     sortBy,
     maxBy,
 } from "grapher/utils/Util"
-import {
-    TickFormattingOptions,
-    ScaleType,
-    ScaleTypeConfig,
-} from "grapher/core/GrapherConstants"
+import { TickFormattingOptions, ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TextWrap } from "grapher/text/TextWrap"
 import { AxisConfig } from "./AxisConfig"
@@ -27,8 +23,8 @@ interface Tickmark {
     isFirstOrLastTick?: boolean
 }
 
-abstract class AbstractAxis implements ScaleTypeConfig {
-    protected config: AxisConfig
+abstract class AbstractAxis {
+    config: AxisConfig
     @observable.ref domain: ValueRange
     @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
     @observable hideFractionalTicks = false
@@ -36,7 +32,6 @@ abstract class AbstractAxis implements ScaleTypeConfig {
     @observable.struct range: ValueRange = [0, 0]
     @observable private _scaleType?: ScaleType
     @observable private _label?: string
-    @observable private _scaleTypeOptions?: ScaleType[]
 
     constructor(config: AxisConfig) {
         this.config = config
@@ -85,16 +80,8 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         this._label = value
     }
 
-    @computed get scaleTypeOptions() {
-        return this._scaleTypeOptions
-            ? this._scaleTypeOptions
-            : this.config.canChangeScaleType
-            ? [ScaleType.linear, ScaleType.log]
-            : [this.scaleType]
-    }
-
-    set scaleTypeOptions(value: ScaleType[]) {
-        this._scaleTypeOptions = value
+    @computed get canChangeScaleType() {
+        return this.config.canChangeScaleType
     }
 
     // todo: refactor. switch to a parent pattern?
@@ -106,7 +93,6 @@ abstract class AbstractAxis implements ScaleTypeConfig {
         this.range = parentAxis.range.slice() as ValueRange
         this._scaleType = parentAxis._scaleType
         this._label = parentAxis._label
-        this._scaleTypeOptions = parentAxis._scaleTypeOptions?.slice()
         return this
     }
 
