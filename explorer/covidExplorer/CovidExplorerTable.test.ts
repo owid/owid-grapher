@@ -128,7 +128,7 @@ describe("builds aligned tests column", () => {
         })
     )
 
-    table = table.withRequestedColumns(params3.toConstrainedParams())
+    table = table.appendColumnsFromParamsIfNew(params3.toConstrainedParams())
 
     expect(table.columnSlugs.includes("deaths-perMil-total")).toEqual(true)
 })

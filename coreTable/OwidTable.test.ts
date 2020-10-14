@@ -197,6 +197,17 @@ usa,usa,1,322,2000,2`
     expect(table.timeColumn!.slug).toBe("day")
 })
 
+it("can get the latest values for an entity", () => {
+    const csv = `entityName,entityCode,entityId,pop,year,coal
+usa,usa,1,322,2000,10
+usa,usa,1,322,2001,
+usa,usa,1,4,2002,`
+
+    const table = OwidTable.fromDelimited(csv)
+    expect(table.getLatestValueForEntity("usa", "coal")).toBe(10)
+    expect(table.getLatestValueForEntity("usa", "pop")).toBe(4)
+})
+
 it("can synth numerics", () => {
     const table = SynthesizeGDPTable({
         timeRange: [2000, 2001],

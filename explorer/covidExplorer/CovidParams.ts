@@ -23,6 +23,7 @@ import {
     EntityCode,
     OwidTableSlugs,
 } from "coreTable/OwidTableConstants"
+import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.
@@ -43,7 +44,7 @@ const legacyTimeToInterval = (
  * constrainedParams and code that writes should always write to the params.
  */
 
-export class CovidQueryParams {
+export class CovidQueryParams implements CountryPickerManager {
     // Todo: in hindsight these 6 metrics should have been something like "yColumn". May want to switch to that and translate these
     // for back compat.
     @observable casesMetric = false

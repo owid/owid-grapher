@@ -20,10 +20,11 @@ import {
     startCase,
     exposeInstanceOnWindow,
     last,
+    isPresent,
 } from "grapher/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
 import { CovidQueryParams } from "./CovidParams"
-import { CountryPicker } from "grapher/controls/CountryPicker"
+import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
@@ -33,12 +34,12 @@ import {
     covidDataPath,
     sourceCharts,
     metricLabels,
-    metricPickerColumnDefs,
     intervalSpecs,
     MetricOptions,
     IntervalOptions,
     ColorScaleOptions,
     MegaRow,
+    CovidCountryPickerSlugs,
 } from "./CovidConstants"
 import {
     ColorScheme,
@@ -77,6 +78,7 @@ import {
     ExplorerControlType,
     ExplorerControlOption,
 } from "explorer/client/ExplorerConstants"
+import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -366,24 +368,27 @@ export class CovidExplorer
 
     private explorerSlug = "Covid"
 
+    @computed get tableForSelection() {
+        return this.table
+    }
+
     private get countryPicker() {
         return (
             <CountryPicker
-                explorerSlug={this.explorerSlug}
-                table={this.table}
-                pickerColumnSlugs={new Set(Object.keys(metricPickerColumnDefs))}
+                analyticsNamespace={this.explorerSlug}
+                analytics={this.grapher.analytics}
+                table={this.tableForSelection}
+                pickerColumnSlugs={CovidCountryPickerSlugs}
                 isDropdownMenu={false}
-                optionColorMap={this.countryNameToColorMap}
-                userState={this.props.params}
-                countriesMustHaveColumns={this.activeColumnSlugs}
-            ></CountryPicker>
+                entityColorMap={this.countryNameToColorMap}
+                manager={this.props.params}
+                requiredColumnSlugs={this.activeColumnSlugs}
+            />
         )
     }
 
-    @computed private get activeColumnSlugs(): string[] {
-        return [this.xColumn?.slug, this.yColumn?.slug].filter(
-            (i) => i
-        ) as string[]
+    @computed private get activeColumnSlugs(): ColumnSlug[] {
+        return [this.xColumn?.slug, this.yColumn?.slug].filter(isPresent)
     }
 
     private get panels() {
@@ -512,37 +517,31 @@ export class CovidExplorer
     }
 
     private _countryNameToColorMapCache: {
-        [key: string]: string | undefined
+        [entityName: string]: Color | undefined
     } = {}
 
     @computed private get countryNameToColorMap(): {
-        [key: string]: string | undefined
+        [entityName: string]: Color | undefined
     } {
         const names = this.selectedCountryOptions.map((country) => country)
-        // If there isn't a color for every country name, we need to update the color map
-        if (!names.every((name) => name in this._countryNameToColorMapCache)) {
-            // Omit any unselected country names from color map
-            const newColorMap = pick(this._countryNameToColorMapCache, names)
-            // Check for name *key* existence, not value.
-            // `undefined` value means we want the color to be automatic, determined by the chart.
-            const namesWithoutColor = names.filter(
-                (name) => !(name in newColorMap)
-            )
-            // For names that don't have a color, assign one.
-            namesWithoutColor.forEach((name) => {
-                const scheme = ColorSchemes["owid-distinct"] as ColorScheme
-                const availableColors = lastOfNonEmptyArray(scheme.colorSets)
-                const usedColors = Object.values(newColorMap).filter(
-                    (color) => color !== undefined
-                ) as string[]
-                newColorMap[name] = getLeastUsedColor(
-                    availableColors,
-                    usedColors
-                )
-            })
-            // Update the country color map cache
-            this._countryNameToColorMapCache = newColorMap
-        }
+        // If there isn't a color for every country name, we will need to update the color map
+        if (names.every((name) => name in this._countryNameToColorMapCache))
+            return this._countryNameToColorMapCache
+
+        // Omit any unselected country names from color map
+        const newColorMap = pick(this._countryNameToColorMapCache, names)
+        // Check for name *key* existence, not value.
+        // `undefined` value means we want the color to be automatic, determined by the chart.
+        const namesWithoutColor = names.filter((name) => !(name in newColorMap))
+        // For names that don't have a color, assign one.
+        namesWithoutColor.forEach((name) => {
+            const scheme = ColorSchemes["owid-distinct"] as ColorScheme
+            const availableColors = lastOfNonEmptyArray(scheme.colorSets)
+            const usedColors = Object.values(newColorMap).filter(isPresent)
+            newColorMap[name] = getLeastUsedColor(availableColors, usedColors)
+        })
+        // Update the country color map cache
+        this._countryNameToColorMapCache = newColorMap
 
         return this._countryNameToColorMapCache
     }
@@ -555,11 +554,11 @@ export class CovidExplorer
     }
 
     private inputTable = CovidExplorerTable.fromMegaRows(this.props.megaRows)
-        .withDataTableDefs()
+        .updateColumnsToHideInDataTable()
         .loadColumnDefTemplatesFromGrapherBackend(
             this.props.covidChartAndVariableMeta.variables
         )
-        .withAnnotationColumns()
+        .appendAnnotationColumns()
 
     private _computedTable?: CovidExplorerTable
     private get computedTable() {
@@ -589,7 +588,7 @@ export class CovidExplorer
             this.shortTermPositivityRateSlug = last(defs)!.slug
         }
 
-        table = table.withRequestedColumns(params)
+        table = table.appendColumnsFromParamsIfNew(params)
 
         const shouldFilterNegatives =
             (params.casesMetric || params.deathsMetric) &&
@@ -609,7 +608,7 @@ export class CovidExplorer
 
         // multimetric table
         if (params.tableMetrics)
-            table = table.withDataTableColumnsInTable(params)
+            table = table.appendColumnsForDataTableIfNew(params)
 
         this._computedTable = table
 

@@ -21,6 +21,7 @@ import {
     IntervalOptions,
     intervalsAvailableByMetric,
     intervalSpecs,
+    MegaColumnDefs,
     MegaRow,
     MetricOptions,
     SmoothingOption,
@@ -39,7 +40,7 @@ export class CovidExplorerTable extends OwidTable {
     static fromMegaRows(megaRows: MegaRow[]) {
         const coreTable = new CoreTable<MegaRow>(
             megaRows,
-            undefined,
+            MegaColumnDefs,
             undefined,
             "Load from MegaCSV"
         )
@@ -116,16 +117,14 @@ export class CovidExplorerTable extends OwidTable {
         return this
     }
 
-    withAnnotationColumns() {
-        return this.appendColumns(
-            CovidAnnotationColumnDefs
-        ) as CovidExplorerTable
+    appendAnnotationColumns() {
+        return this.appendColumns(CovidAnnotationColumnDefs)
     }
 
     // Todo: does this need to be observable?
     private columnDefTemplates = makeColumnDefTemplates()
 
-    withDataTableDefs() {
+    updateColumnsToHideInDataTable() {
         // todo: we might not need this "opt out", since we now explicitly list the columns to show in the table
         const includeInDataTable = new Set(Object.values(MetricOptions))
         return this.withTransformedDefs((def) => {
@@ -134,7 +133,7 @@ export class CovidExplorerTable extends OwidTable {
                 ...def,
                 display: { includeInTable: false },
             }
-        }) as CovidExplorerTable // todo: fix typings
+        })
     }
 
     private makeColumnDef(
@@ -157,14 +156,9 @@ export class CovidExplorerTable extends OwidTable {
             rowFn = (row) => {
                 const value = originalRowFn(row)
                 if (value === undefined) return undefined
-                const pop = row.population
-                if (!pop) {
-                    console.log(
-                        `Warning: Missing population for ${row.location}. Excluding from perCapita`
-                    )
-                    return undefined
-                }
-                return perCapitaAdjustment * (value / pop)
+                return row.population
+                    ? perCapitaAdjustment * (value / row.population)
+                    : undefined
             }
         }
 
@@ -264,10 +258,10 @@ export class CovidExplorerTable extends OwidTable {
         return results
     }
 
-    withDataTableColumnsInTable(params: CovidConstrainedQueryParams) {
+    appendColumnsForDataTableIfNew(params: CovidConstrainedQueryParams) {
         let table: CovidExplorerTable = this
         this.paramsForDataTableColumns(params).forEach((params) => {
-            table = table.withRequestedColumns(params)
+            table = table.appendColumnsFromParamsIfNew(params)
         })
         return table
     }
@@ -276,7 +270,7 @@ export class CovidExplorerTable extends OwidTable {
         return this.filter(
             (row) => !(row[slug] < 0),
             `Filter negative values for ${slug}`
-        ) as CovidExplorerTable
+        )
     }
 
     filterGroups() {
@@ -287,7 +281,7 @@ export class CovidExplorerTable extends OwidTable {
                     ? this.isSelected(row)
                     : !row.group_members || this.isSelected(row),
             `Filter out regions unless selected`
-        ) as CovidExplorerTable
+        )
     }
 
     makeTestingColumnDef(params: CovidConstrainedQueryParams) {
@@ -420,7 +414,7 @@ export class CovidExplorerTable extends OwidTable {
         )
     }
 
-    withRequestedColumns(params: CovidConstrainedQueryParams) {
+    appendColumnsFromParamsIfNew(params: CovidConstrainedQueryParams) {
         const defs: (CoreColumnDef | undefined)[] = []
         if (params.casesMetric) defs.push(this.makeCasesColumnDef(params))
         if (params.deathsMetric) defs.push(this.makeDeathsColumnDef(params))
@@ -459,7 +453,7 @@ export class CovidExplorerTable extends OwidTable {
                 )
             )
         }
-        return this.appendColumns(defs.filter(isPresent)) as CovidExplorerTable
+        return this.appendColumnsIfNew(defs.filter(isPresent))
     }
 
     makeDaysSinceColumnDef(

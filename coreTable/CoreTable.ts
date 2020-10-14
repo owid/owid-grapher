@@ -32,7 +32,7 @@ import {
     toDelimited,
     toMarkdownTable,
 } from "./CoreTablePrinters"
-import { DroppedForTesting } from "./InvalidCells"
+import { DroppedForTesting, InvalidCell } from "./InvalidCells"
 
 // Every row will be checked against each column/value(s) pair.
 interface CoreQuery {
@@ -151,13 +151,13 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         const firstRow = this._inputRows[0]
         if (!firstRow) return []
 
-        // Don't parse computeds. They should parse themselves (todo: add tests for this).
+        // Don't parse computeds. They should parse themselves (todo: add some test examples of the wrong way).
         // Also don't parse columns already parsed. We approximate whether a column is parsed simply by looking at the first row. If subsequent rows
         // have a different type, that could cause problems, but the user of this library should ensure their types remain consistent throughout
-        // all rows.
-        return this.columnsAsArray.filter(
-            (col) => !col.def.fn && !col.isParsed(firstRow[col.slug])
-        )
+        // all rows. We also consider a column parsed if the first row is of a failed parse attempt.
+        return this.columnsAsArray.filter((col) => {
+            return !col.def.fn && !col.isParsed(firstRow[col.slug])
+        })
     }
 
     get stepNumber(): number {
@@ -710,6 +710,10 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
                 .join(" and ")}`,
             TransformType.AppendColumns
         )
+    }
+
+    appendColumnsIfNew(defs: CoreColumnDef[]) {
+        return this.appendColumns(defs.filter((def) => !this.has(def.slug)))
     }
 
     toMatrix() {

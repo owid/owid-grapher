@@ -9,6 +9,8 @@ import {
     flatten,
     uniq,
     sortNumeric,
+    last,
+    isPresent,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -32,6 +34,7 @@ import {
     RequiredColumnDefs,
 } from "./OwidTableConstants"
 import { legacyToOwidTable } from "./LegacyToOwidTable"
+import { InvalidCell } from "./InvalidCells"
 
 // todo: remove
 const rowTime = (row: CoreRow) =>
@@ -340,7 +343,7 @@ export class OwidTable extends CoreTable<OwidRow> {
                 )
                 return rowIndex ? rows[rowIndex] : null
             })
-            .filter((row) => row) as OwidRow[]
+            .filter(isPresent)
     }
 
     // Clears and sets selected entities
@@ -382,7 +385,7 @@ export class OwidTable extends CoreTable<OwidRow> {
     }
 
     // todo: remove?
-    getLabelForEntityName(entityName: string) {
+    getLabelForEntityName(entityName: EntityName) {
         return entityName
     }
 
@@ -404,11 +407,11 @@ export class OwidTable extends CoreTable<OwidRow> {
         )
     }
 
-    @computed get selectedEntityCodes() {
+    @computed get selectedEntityCodes(): EntityCode[] {
         const map = this.entityNameToCodeMap
         return this.selectedEntityNames
             .map((name) => map.get(name))
-            .filter((code) => code) as string[]
+            .filter(isPresent)
     }
 
     @action.bound toggleSelection(entityName: EntityName) {
@@ -433,18 +436,30 @@ export class OwidTable extends CoreTable<OwidRow> {
         return this.deselectRows(this.rowsByEntityName.get(entityName) ?? [])
     }
 
-    getColorForEntityName(entityName: string) {
-        return this.get(OwidTableSlugs.entityColor)?.getLatestValueForEntity(
-            entityName
+    getColorForEntityName(entityName: EntityName) {
+        return this.getLatestValueForEntity(
+            entityName,
+            OwidTableSlugs.entityColor
         )
     }
 
-    entitiesWith(columnSlugs: string[]): Set<string> {
+    // This assumes the table is sorted where the times for entity names go in asc order.
+    // The whole table does not have to be sorted by time.
+    getLatestValueForEntity(entityName: EntityName, columnSlug: ColumnSlug) {
+        const rows = this.rowsByEntityName.get(entityName) || []
+        const hit = rows
+            .slice()
+            .reverse()
+            .find((row) => !(row[columnSlug] instanceof InvalidCell))
+        return hit ? hit[columnSlug] : undefined
+    }
+
+    entitiesWith(columnSlugs: ColumnSlug[]): Set<EntityName> {
         if (!columnSlugs.length) return new Set()
         if (columnSlugs.length === 1)
             return new Set(this.get(columnSlugs[0])!.uniqEntityNames)
 
-        return intersectionOfSets<string>(
+        return intersectionOfSets<EntityName>(
             columnSlugs.map((slug) => new Set(this.get(slug)!.uniqEntityNames))
         )
     }

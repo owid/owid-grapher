@@ -5,7 +5,7 @@ import { Grapher } from "grapher/core/Grapher"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons/faChartLine"
-import { CountryPicker } from "grapher/controls/CountryPicker"
+import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
 import { ExplorerControlBar } from "./ExplorerControls"
 import classNames from "classnames"
 import { throttle } from "grapher/utils/Util"
@@ -86,8 +86,8 @@ export class ExplorerShell extends React.Component<ExplorerShellProps> {
         return (
             <CountryPicker
                 key="countryPicker"
-                explorerSlug={this.props.explorerSlug}
-                table={this.countryPickerTable}
+                analyticsNamespace={this.props.explorerSlug}
+                table={this.countryPickerTable!}
                 isDropdownMenu={this.isMobile}
             ></CountryPicker>
         )

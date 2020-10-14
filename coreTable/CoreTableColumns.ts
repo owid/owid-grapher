@@ -69,6 +69,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     abstract jsType: JsTypes
     isParsed(val: any) {
+        if (val instanceof InvalidCell) return true // If we already tried to parse it consider it "parsed"
         return typeof val === this.jsType
     }
 
@@ -408,20 +409,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
                 .set(row.time, row.value)
         })
         return valueByEntityNameAndTime
-    }
-
-    // todo: remove? Should not be on CoreTable
-    @computed private get latestValuesMap() {
-        const map = new Map<EntityName, JS_TYPE>()
-        this.rowsWithValue.forEach((row) =>
-            map.set(row.entityName, row[this.slug])
-        )
-        return map
-    }
-
-    // todo: remove? Should not be on CoreTable
-    getLatestValueForEntity(entityName: string) {
-        return this.latestValuesMap.get(entityName)
     }
 }
 

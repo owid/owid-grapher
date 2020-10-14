@@ -24,6 +24,7 @@ import {
     MetricOptions,
 } from "./CovidConstants"
 import { CoreRow, Time } from "coreTable/CoreTableConstants"
+import { EntityName } from "coreTable/OwidTableConstants"
 
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
 export const megaDateToTime = (dateString: string): Time => {
@@ -71,41 +72,39 @@ export const euCountries = new Set([
 // Todo: this is just a group with reductions. Should be able to move it to mostly CoreTable ops.
 export const calculateCovidRowsForGroup = (
     rows: CovidRow[],
-    entityName: string
+    entityName: EntityName
 ) => {
     const rowsByTime = new Map<Time, CovidRow>()
-    const sortedRows = sortBy(rows, (row) => row.time)
+    const sortedRows = sortBy(rows, (row) => row.time) // We need to resort because rows are sorted by entityName first.
     const groupMembers = new Set()
     sortedRows.forEach((row) => {
-        const time = row.time
+        const { date, continent, time } = row
         groupMembers.add(row.iso_code)
-        if (!rowsByTime.has(time)) {
-            const newRow: any = {}
-            Object.keys(row).forEach((key) => (newRow[key] = undefined))
+        if (!rowsByTime.has(time))
             rowsByTime.set(time, {
                 entityName,
-                continent: row.continent,
+                continent,
                 entityCode: entityName.replace(" ", ""),
                 entityId: 0, // todo: remove this as a required Owid column?
-                date: row.date,
+                date,
                 time,
                 new_cases: 0,
                 new_deaths: 0,
                 population: 0,
             } as CovidRow)
-        }
         const newRow = rowsByTime.get(time)!
         newRow.population += row.population
-        newRow.new_cases += row.new_cases || 0
-        newRow.new_deaths += row.new_deaths || 0
+        if (typeof row.new_cases === "number") newRow.new_cases += row.new_cases
+        if (typeof row.new_deaths === "number")
+            newRow.new_deaths += row.new_deaths
     })
-    const newRows = Array.from(rowsByTime.values())
+    const newRowsForGroup = Array.from(rowsByTime.values())
     let total_cases = 0
     let total_deaths = 0
     let maxPopulation = 0
     const group_members = Array.from(groupMembers).join("")
     // We need to compute cumulatives again because sometimes data will stop for a country.
-    newRows.forEach((row) => {
+    newRowsForGroup.forEach((row) => {
         total_cases += row.new_cases
         total_deaths += row.new_deaths
         row.total_cases = total_cases
@@ -117,7 +116,7 @@ export const calculateCovidRowsForGroup = (
         // country is late in reporting the data keep that country in the population count.
         row.population = maxPopulation
     })
-    return newRows
+    return newRowsForGroup
 }
 
 const fetchMegaRows = async () => {

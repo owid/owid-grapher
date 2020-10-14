@@ -4,12 +4,14 @@
 // it may be helpful to parse those invalid values into specific types, to provide better error messages
 // and perhaps in the future suggested autocorrections or workarounds. Or this could be a dumb idea and can be discarded.
 export abstract class InvalidCell {
-    protected cellValue?: any
-    constructor(cellValue?: any) {
-        this.cellValue = cellValue
+    protected invalidCellValue?: any
+    constructor(invalidCellValue?: any) {
+        this.invalidCellValue = invalidCellValue
     }
     toString() {
-        return this.cellValue instanceof InvalidCell ? "" : this.cellValue ?? ""
+        return this.invalidCellValue instanceof InvalidCell
+            ? ""
+            : this.invalidCellValue ?? ""
     }
     toErrorString() {
         return this.constructor.name
@@ -17,7 +19,7 @@ export abstract class InvalidCell {
 }
 export class NaNButShouldBeNumber extends InvalidCell {
     toErrorString() {
-        return this.constructor.name + `: '${this.cellValue}'`
+        return this.constructor.name + `: '${this.invalidCellValue}'`
     }
 }
 export class DroppedForTesting extends InvalidCell {}
@@ -28,6 +30,6 @@ export class UndefinedButShouldBeString extends InvalidCell {}
 export class NullButShouldBeString extends InvalidCell {}
 export class NotAParseableNumberButShouldBeNumber extends InvalidCell {
     toErrorString() {
-        return this.constructor.name + `: '${this.cellValue}'`
+        return this.constructor.name + `: '${this.invalidCellValue}'`
     }
 }

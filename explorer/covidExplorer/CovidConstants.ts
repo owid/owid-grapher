@@ -181,45 +181,45 @@ export const intervalsAvailableByMetric: Map<
 // https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-codebook.csv
 // The "MegaCSV" from our CovidDataset is initially parsed into an array of objects with this interface
 export interface MegaRow extends CoreRow {
-    iso_code: string
+    iso_code?: string
     location: string
-    continent: string
+    continent?: string
     date: string
-    total_cases: number
-    new_cases: number
-    total_deaths: number
-    new_deaths: number
-    total_cases_per_million: number
-    new_cases_per_million: number
-    total_deaths_per_million: number
-    new_deaths_per_million: number
-    total_tests: number
-    new_tests: number
-    new_tests_smoothed: number
-    total_tests_per_thousand: number
-    new_tests_per_thousand: number
-    new_tests_smoothed_per_thousand: number
-    new_cases_smoothed: number
-    new_deaths_smoothed: number
-    tests_units: string
-    stringency_index: number
-    population: number
-    population_density: number
-    median_age: number
-    aged_65_older: number
-    aged_70_older: number
-    gdp_per_capita: number
-    life_expectancy: number
-    positive_rate: number
-    tests_per_case: number
-    extreme_poverty: number
-    human_development_index: number
-    cvd_death_rate: number
-    diabetes_prevalence: number
-    female_smokers: number
-    male_smokers: number
-    handwashing_facilities: number
-    hospital_beds_per_thousand: number
+    total_cases?: number
+    new_cases?: number
+    total_deaths?: number
+    new_deaths?: number
+    total_cases_per_million?: number
+    new_cases_per_million?: number
+    total_deaths_per_million?: number
+    new_deaths_per_million?: number
+    total_tests?: number
+    new_tests?: number
+    new_tests_smoothed?: number
+    total_tests_per_thousand?: number
+    new_tests_per_thousand?: number
+    new_tests_smoothed_per_thousand?: number
+    new_cases_smoothed?: number
+    new_deaths_smoothed?: number
+    tests_units?: string
+    stringency_index?: number
+    population?: number
+    population_density?: number
+    median_age?: number
+    aged_65_older?: number
+    aged_70_older?: number
+    gdp_per_capita?: number
+    life_expectancy?: number
+    positive_rate?: number
+    tests_per_case?: number
+    extreme_poverty?: number
+    human_development_index?: number
+    cvd_death_rate?: number
+    diabetes_prevalence?: number
+    female_smokers?: number
+    male_smokers?: number
+    handwashing_facilities?: number
+    hospital_beds_per_thousand?: number
 }
 
 // We parse MegaRows and turn them into CovidRows immediately.
@@ -232,62 +232,51 @@ export interface CovidRow extends Omit<MegaRow, "location" | "iso_code"> {
 }
 
 export declare type CovidColumnSlug = keyof CovidRow
-export const metricPickerColumnDefs: Partial<Record<
+const MegaColumnMap: Partial<Record<
     CovidColumnSlug,
     Partial<OwidColumnDef>
 >> = {
     location: {
-        slug: OwidTableSlugs.entityName,
         name: "Country name",
         type: ColumnTypeNames.Region,
     },
     population: {
-        slug: "population",
         name: "Population",
         type: ColumnTypeNames.Population,
     },
     population_density: {
-        slug: "population_density",
         name: "Population density (people per km²)",
         type: ColumnTypeNames.PopulationDensity,
     },
     median_age: {
-        slug: "median_age",
         name: "Median age",
         type: ColumnTypeNames.Age,
     },
     aged_65_older: {
-        slug: "aged_65_older",
         name: "Share aged 65+",
         type: ColumnTypeNames.Percentage,
     },
     aged_70_older: {
-        slug: "aged_70_older",
         name: "Share aged 70+",
         type: ColumnTypeNames.Percentage,
     },
     gdp_per_capita: {
-        slug: "gdp_per_capita",
         name: "GDP per capita (int.-$)",
         type: ColumnTypeNames.Currency,
     },
     extreme_poverty: {
-        slug: "extreme_poverty",
         name: "Population in extreme poverty",
         type: ColumnTypeNames.Percentage,
     },
     human_development_index: {
-        slug: "human_development_index",
         name: "Human Development Index",
         type: ColumnTypeNames.Numeric,
     },
     hospital_beds_per_thousand: {
-        slug: "hospital_beds_per_thousand",
         name: "Hospital beds (per 1000)",
         type: ColumnTypeNames.Ratio,
     },
     stringency_index: {
-        slug: "stringency_index",
         name: "Stringency Index",
         type: ColumnTypeNames.Numeric,
     },
@@ -325,3 +314,14 @@ export const metricPickerColumnDefs: Partial<Record<
 }
 // The ID of the Wordpress reusable block to show below the COVID explorer
 export const covidWpBlockId = 36313
+
+export const CovidCountryPickerSlugs = [
+    OwidTableSlugs.entityName,
+    ...Object.keys(MegaColumnMap),
+]
+export const MegaColumnDefs = Object.keys(MegaColumnMap).map((slug) => {
+    return {
+        ...MegaColumnMap[slug],
+        slug,
+    } as OwidColumnDef
+})
