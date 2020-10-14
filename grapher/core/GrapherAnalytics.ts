@@ -32,6 +32,8 @@ type countrySelectorEvent =
     | "sortBy"
     | "sortOrder"
 
+// Note: consent-based blocking dealt with at the Google Tag Manager level.
+// Events are discarded if consent not given.
 export class GrapherAnalytics {
     constructor(environment: string, version: string) {
         this.isDev = environment === "development"
