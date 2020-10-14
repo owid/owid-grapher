@@ -248,8 +248,8 @@ export class Grapher
     @observable.ref compareEndPointsOnly?: true = undefined
     @observable.ref matchingEntitiesOnly?: true = undefined
 
-    @observable.ref xAxis = new AxisConfig()
-    @observable.ref yAxis = new AxisConfig()
+    @observable.ref xAxis = new AxisConfig(undefined, this)
+    @observable.ref yAxis = new AxisConfig(undefined, this)
     @observable colorScale = new ColorScaleConfig()
     @observable map = new MapConfig()
     @observable.ref dimensions: ChartDimension[] = []
@@ -549,12 +549,12 @@ export class Grapher
             )
     }
 
-    @observable.ref private _baseFontSize = BASE_FONT_SIZE
+    @observable private _baseFontSize = BASE_FONT_SIZE
 
     @computed get baseFontSize() {
         if (this.isMediaCard) return 24
         else if (this.isExporting) return 18
-        else return this._baseFontSize
+        return this._baseFontSize
     }
 
     set baseFontSize(val: number) {
