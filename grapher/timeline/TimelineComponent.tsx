@@ -22,6 +22,8 @@ export interface TimelineComponentProps {
     onStopPlayOrDrag?: () => void
 }
 
+const DEFAULT_MS_PER_TICK = 100
+
 @observer
 export class TimelineComponent extends React.Component<TimelineComponentProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -36,7 +38,9 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return this.props.target
     }
 
-    private controller = new TimelineController(this.props.target)
+    private controller = new TimelineController(this.props.target, {
+        msPerTick: DEFAULT_MS_PER_TICK,
+    })
 
     private get sliderBounds() {
         return this.slider
