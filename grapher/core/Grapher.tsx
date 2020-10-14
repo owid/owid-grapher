@@ -1152,11 +1152,7 @@ export class Grapher
 
     get staticSVG() {
         return ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart
-                manager={this}
-                bounds={this.idealBounds}
-                maxWidth={this.idealBounds.width - 30} // todo: probably can clean this up
-            />
+            <StaticCaptionedChart manager={this} bounds={this.idealBounds} />
         )
     }
 

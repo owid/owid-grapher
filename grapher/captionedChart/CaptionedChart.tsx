@@ -62,15 +62,17 @@ export interface CaptionedChartManager
     showSelectEntitiesButton?: boolean
 }
 
-const ControlsRowHeight = 36
-
 interface CaptionedChartProps {
     manager: CaptionedChartManager
     bounds?: Bounds
     maxWidth?: number
 }
 
-const CHART_BOTTOM_PADDING = 25 // todo: what is this?
+const OUTSIDE_PADDING = 15
+const PADDING_BELOW_HEADER = 18
+const CONTROLS_ROW_HEIGHT = 36
+const PADDING_ABOVE_FOOTER = 25
+const EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART = 15 // Todo: should this be in SlopeChart class?
 
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
@@ -82,28 +84,32 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return this.manager?.containerElement
     }
 
+    @computed private get maxWidth() {
+        return this.props.maxWidth ?? this.bounds.width - OUTSIDE_PADDING * 2
+    }
+
     @computed protected get header() {
         return new Header({
             manager: this.manager,
-            maxWidth: this.props.maxWidth,
+            maxWidth: this.maxWidth,
         })
     }
 
     @computed protected get footer() {
         return new Footer({
             manager: this.manager,
-            maxWidth: this.props.maxWidth,
+            maxWidth: this.maxWidth,
         })
     }
 
     @computed protected get chartHeight() {
-        const controlsRowHeight = this.controls.length ? ControlsRowHeight : 0
+        const controlsRowHeight = this.controls.length ? CONTROLS_ROW_HEIGHT : 0
         return (
             this.bounds.height -
             this.header.height -
             controlsRowHeight -
             this.footer.height -
-            CHART_BOTTOM_PADDING
+            PADDING_ABOVE_FOOTER
         )
     }
 
@@ -118,12 +124,11 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart() {
-        // Todo: what is the 15 width padding?
         const bounds = new Bounds(0, 0, this.bounds.width, this.chartHeight)
-            .padWidth(15)
-            .padTop(18) // todo: what is the 18 padding?
+            .padWidth(OUTSIDE_PADDING)
+            .padTop(PADDING_BELOW_HEADER)
         if (this.manager.type === ChartTypeName.SlopeChart)
-            return bounds.padBottom(15) // Todo: this should be in SlopeChart class.
+            return bounds.padBottom(EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART)
         return bounds
     }
 
@@ -245,7 +250,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     render() {
-        const { bounds, chartHeight } = this
+        const { bounds, chartHeight, maxWidth } = this
         const { width } = bounds
 
         const containerStyle: React.CSSProperties = {
@@ -255,7 +260,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         return (
             <>
-                <Header manager={this.manager} />
+                <Header manager={this.manager} maxWidth={maxWidth} />
                 {this.renderControlsRow()}
                 <div style={containerStyle}>
                     <svg
@@ -269,7 +274,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                             : this.renderLoadingIndicator()}
                     </svg>
                 </div>
-                <Footer manager={this.manager} />
+                <Footer manager={this.manager} maxWidth={maxWidth} />
             </>
         )
     }
@@ -296,19 +301,18 @@ export class StaticCaptionedChart extends CaptionedChart {
         super(props)
     }
 
-    // We add some padding around the SVG
     @computed private get paddedBounds() {
-        return this.bounds.pad(15)
+        return this.bounds.pad(OUTSIDE_PADDING)
     }
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart() {
         const bounds = this.paddedBounds
             .padTop(this.header.height)
-            .padBottom(this.footer.height + CHART_BOTTOM_PADDING)
-            .padTop(18) // todo: what is the 18 padding?
+            .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
+            .padTop(PADDING_BELOW_HEADER)
         if (this.manager.type === ChartTypeName.SlopeChart)
-            return bounds.padBottom(15) // Todo: this should be in SlopeChart class.
+            return bounds.padBottom(EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART)
         return bounds
     }
 
