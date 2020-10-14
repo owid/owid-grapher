@@ -423,13 +423,6 @@ export class CovidExplorer
         return !this.props.params.hideControls || !this.props.isEmbed
     }
 
-    @computed private get selectedCountryOptions(): string[] {
-        const codeMap = this.grapher.table.entityNameToCodeMap
-        return this.grapher.table.availableEntityNames.filter((option) =>
-            this.props.params.selectedCountryCodes.has(codeMap.get(option)!)
-        )
-    }
-
     @computed private get perCapitaDivisor() {
         return perCapitaDivisorByMetric(this.constrainedParams.metricName)
     }
@@ -523,7 +516,7 @@ export class CovidExplorer
     @computed private get countryNameToColorMap(): {
         [entityName: string]: Color | undefined
     } {
-        const names = this.selectedCountryOptions.map((country) => country)
+        const names = this.tableForSelection.selectedEntityNames
         // If there isn't a color for every country name, we will need to update the color map
         if (names.every((name) => name in this._countryNameToColorMapCache))
             return this._countryNameToColorMapCache
@@ -604,8 +597,6 @@ export class CovidExplorer
             table = table.filterNegatives(params.yColumnSlug)
         if (shouldFilterGroups) table = table.filterGroups()
 
-        // table.setSelectedEntitiesByCode(Array.from(params.selectedCountryCodes)) // why 2?
-
         // multimetric table
         if (params.tableMetrics)
             table = table.appendColumnsForDataTableIfNew(params)
@@ -653,6 +644,10 @@ export class CovidExplorer
             this.props.params.allAvailableQueryStringCombos(),
             0,
             this
+        )
+
+        this.table.setSelectedEntitiesByCode(
+            Array.from(this.props.params.selectedCountryCodes.values())
         )
         this.updateGrapher()
         this.observeGlobalEntitySelection()

@@ -362,12 +362,12 @@ export class OwidTable extends CoreTable<OwidRow> {
         )
     }
 
-    // todo: change return type?
     @action.bound setSelectedEntitiesByCode(entityCodes: EntityCode[]) {
         const map = this.entityCodeToNameMap
         const codesInData = entityCodes.filter((code) => map.has(code))
-        this.setSelectedEntities(codesInData.map((code) => map.get(code)!))
-        return codesInData
+        return this.setSelectedEntities(
+            codesInData.map((code) => map.get(code)!)
+        )
     }
 
     getEntityNamesFromCodes(input: (EntityCode | EntityName)[]) {
