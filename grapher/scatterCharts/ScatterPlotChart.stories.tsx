@@ -1,5 +1,6 @@
 import {
     SampleColumnSlugs,
+    SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { ScaleType } from "grapher/core/GrapherConstants"
@@ -101,6 +102,29 @@ export const LogScales = () => {
                         xAxisConfig,
                     }}
                 />
+            </svg>
+        </div>
+    )
+}
+
+export const LogScaleWithNonPositives = () => {
+    const manager: ScatterPlotManager = {
+        table: SynthesizeFruitTableWithNonPositives().selectAll(),
+        yColumnSlug: SampleColumnSlugs.Fruit,
+        xColumnSlug: SampleColumnSlugs.Vegetables,
+        yAxisConfig: {
+            min: 0,
+            scaleType: ScaleType.log,
+        },
+        xAxisConfig: {
+            min: 0,
+            scaleType: ScaleType.log,
+        },
+    }
+    return (
+        <div>
+            <svg width={600} height={600}>
+                <ScatterPlotChart manager={manager} />
             </svg>
         </div>
     )

@@ -688,7 +688,9 @@ export class CoreTable<
             this.rows,
             defs,
             this,
-            `Replaced ${howMany} cells in ${columnSlugs}`,
+            `Replaced a random ${howMany} cells in ${columnSlugs.join(
+                " and "
+            )}`,
             TransformType.UpdateRows
         )
     }

@@ -240,12 +240,12 @@ export class ScatterPlotChart
     }
 
     // todo: Refactor
-    @computed private get dualAxis() {
-        const { horizontalAxis, verticalAxis } = this
+    @computed get dualAxis() {
+        const { horizontalAxisPart, verticalAxisPart } = this
         return new DualAxis({
             bounds: this.bounds.padRight(this.sidebarWidth + 20),
-            horizontalAxis,
-            verticalAxis,
+            horizontalAxis: horizontalAxisPart,
+            verticalAxis: verticalAxisPart,
         })
     }
 
@@ -760,7 +760,7 @@ export class ScatterPlotChart
         return this.domainDefault("y")
     }
 
-    @computed private get verticalAxis() {
+    @computed private get verticalAxisPart() {
         const { manager, yDomainDefault } = this
         const axisConfig = this.yAxisConfig
 
@@ -797,7 +797,7 @@ export class ScatterPlotChart
         return xDimName
     }
 
-    @computed private get horizontalAxis() {
+    @computed private get horizontalAxisPart() {
         const { xDomainDefault, manager, xAxisLabelBase } = this
         const { xAxisConfig } = this
         const axis = xAxisConfig.toHorizontalAxis()
@@ -820,7 +820,14 @@ export class ScatterPlotChart
     }
 
     @computed get table() {
-        return this.inputTable
+        let table = this.inputTable
+
+        if (this.xScaleType === ScaleType.log)
+            table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
+        if (this.yScaleType === ScaleType.log)
+            table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
+
+        return table
     }
 
     @computed get inputTable() {

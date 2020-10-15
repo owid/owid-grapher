@@ -366,6 +366,8 @@ export class DiscreteBarChart
             .filterBySelectedOnly()
             .filterByTargetTime(maxTime, tolerance)
 
+        // Here we can filter entire rows instead of using "replaceNonPositiveCellsForLogScale" since we currently don't support
+        // multiple ycolumn bar charts.
         if (this.isLogScale) table = table.filterNegativesForLogScale(slug)
         return table.sortBy(
             [slug, OwidTableSlugs.entityName],
