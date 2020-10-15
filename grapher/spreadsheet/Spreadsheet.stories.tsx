@@ -7,7 +7,7 @@ import { Spreadsheet } from "./Spreadsheet"
 // import "handsontable/dist/handsontable.full.css" // todo: this breaks storybook/webpack build. but without it this story is useless
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { StackedAreaChart } from "grapher/areaCharts/StackedAreaChart"
+import { StackedAreaChart } from "grapher/stackedCharts/StackedAreaChart"
 import { Bounds } from "grapher/utils/Bounds"
 import { OwidTable } from "coreTable/OwidTable"
 

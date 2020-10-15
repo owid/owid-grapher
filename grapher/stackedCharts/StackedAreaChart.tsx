@@ -28,8 +28,8 @@ import { rgb } from "d3-color"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
-} from "grapher/barCharts/AbstractStackedChart"
-import { StackedSeries } from "grapher/barCharts/StackedConstants"
+} from "grapher/stackedCharts/AbstractStackedChart"
+import { StackedSeries } from "./StackedConstants"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
