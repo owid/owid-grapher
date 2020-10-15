@@ -50,7 +50,9 @@ export interface CoreColumnDef {
 }
 
 export enum TransformType {
+    // Table level ops
     Load = "Load",
+    Tranpose = "Tranpose",
 
     // Row ops
     FilterRows = "FilterRows",

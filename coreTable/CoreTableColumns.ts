@@ -296,7 +296,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return uniq(this.parsedValues)
     }
 
-    @computed private get allValues() {
+    @computed get allValues() {
         const slug = this.slug
         return this.table.rows.map((row) => row[slug])
     }

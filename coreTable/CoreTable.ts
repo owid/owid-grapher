@@ -735,6 +735,30 @@ export class CoreTable<
         )
     }
 
+    transpose(
+        by: ColumnSlug,
+        columnTypeNameForNewColumns = ColumnTypeNames.Numeric
+    ) {
+        const newColumnSlugs = [by, ...this.get(by)!.uniqValues]
+        const newColumnDefs = newColumnSlugs.map((slug) => {
+            if (slug === by) return { slug }
+            return {
+                type: columnTypeNameForNewColumns,
+                slug,
+            }
+        })
+        const newRowValues = this.columnsAsArray
+            .filter((col) => col.slug !== by)
+            .map((col) => [col.slug, ...col.allValues])
+        return new (this.constructor as any)(
+            CoreTable.rowsFromMatrix([newColumnSlugs, ...newRowValues]),
+            newColumnDefs,
+            this,
+            `Transposed`,
+            TransformType.Tranpose
+        )
+    }
+
     appendColumnsIfNew(defs: COL_DEF_TYPE[]) {
         return this.appendColumns(defs.filter((def) => !this.has(def.slug)))
     }

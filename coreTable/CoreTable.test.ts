@@ -267,6 +267,19 @@ it("can rename a column", () => {
     expect(firstRow.Population).toEqual(123)
 })
 
+it("can tranpose a table", () => {
+    let table = new CoreTable([
+        { fruit: 123, veggies: 234, entity: "usa" },
+        { fruit: 456, veggies: 789, entity: "canada" },
+        { fruit: 333, veggies: 222, entity: "spain" },
+    ])
+    table = table.transpose("entity")
+    expect(table.columnSlugs).toEqual(["entity", "usa", "canada", "spain"])
+    expect(table.numRows).toEqual(2)
+    const firstRow = table.firstRow as any
+    expect(firstRow.canada).toEqual(456)
+})
+
 it("can replace cells for log scale", () => {
     let table = new CoreTable([
         { pop: -20, gdp: 100, births: -4 },
