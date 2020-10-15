@@ -44,7 +44,7 @@ export class AbstactStackedChart
     }
 
     @computed protected get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
+        return this.table.getColumns(this.yColumnSlugs)
     }
 
     @computed protected get yColumnSlugs() {

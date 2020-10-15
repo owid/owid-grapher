@@ -106,10 +106,6 @@ export class ColorScale {
         return this.manager.table
     }
 
-    @computed get formatCategoricalValue(): (v: string) => string {
-        return this.inputTable?.getLabelForEntityName ?? identity
-    }
-
     @computed get legendDescription() {
         return this.config.legendDescription
     }
@@ -324,9 +320,7 @@ export class ColorScale {
                 : bucketMaximums.length - 1
             const baseColor = baseColors[index + boundingOffset]
             const color = customCategoryColors[value] || baseColor
-            const label =
-                customCategoryLabels[value] ||
-                this.formatCategoricalValue(value)
+            const label = customCategoryLabels[value] || value
 
             return new CategoricalBin({
                 index,

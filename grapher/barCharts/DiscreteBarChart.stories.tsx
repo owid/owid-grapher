@@ -1,8 +1,9 @@
 import * as React from "react"
 import { DiscreteBarChart } from "./DiscreteBarChart"
 import {
+    SampleColumnSlugs,
+    SynthesizeFruitTable,
     SynthesizeGDPTable,
-    SynthesizeNonCountryTable,
 } from "coreTable/OwidTableSynthesizers"
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 
@@ -11,12 +12,15 @@ export default {
     component: DiscreteBarChart,
 }
 
-export const Countries = () => {
-    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] }).selectAll()
+export const EntitiesAsSeries = () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2010],
+        entityCount: 5,
+    }).selectAll()
 
     const manager: DiscreteBarChartManager = {
         table,
-        yColumnSlug: "Population",
+        yColumnSlug: SampleColumnSlugs.Population,
     }
 
     return (
@@ -26,11 +30,10 @@ export const Countries = () => {
     )
 }
 
-export const Other = () => {
-    const table = SynthesizeNonCountryTable().selectAll()
+export const ColumnsAsSeries = () => {
+    const table = SynthesizeFruitTable({ entityCount: 1 }).selectAll()
     const manager: DiscreteBarChartManager = {
         table,
-        yColumnSlug: "Disasters",
     }
 
     return (

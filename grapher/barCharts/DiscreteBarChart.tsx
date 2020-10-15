@@ -1,10 +1,14 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { min, max, maxBy } from "grapher/utils/Util"
+import { min, max, maxBy, sortBy } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { ScaleType, BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
+import {
+    ScaleType,
+    BASE_FONT_SIZE,
+    SeriesStrategy,
+} from "grapher/core/GrapherConstants"
 import { SortOrder } from "coreTable/CoreTableConstants"
 import {
     HorizontalAxisComponent,
@@ -62,7 +66,7 @@ export class DiscreteBarChart
 
     // Account for the width of the legend
     @computed private get legendWidth() {
-        const labels = this.series.map((d) => d.label)
+        const labels = this.series.map((series) => series.seriesName)
         const longestLabel = maxBy(labels, (d) => d.length)
         return Bounds.forText(longestLabel, this.legendLabelStyle).width
     }
@@ -285,7 +289,7 @@ export class DiscreteBarChart
                                 textAnchor="end"
                                 {...this.legendLabelStyle}
                             >
-                                {series.label}
+                                {series.seriesName}
                             </text>
                             <rect
                                 x={0}
@@ -353,11 +357,19 @@ export class DiscreteBarChart
     }
 
     @computed get rootYColumn() {
-        return this.inputTable.get(this.manager.yColumnSlug)!
+        return this.inputTable.get(this.yColumnSlugs[0])!
     }
 
     @computed private get yColumn() {
-        return this.table.get(this.manager.yColumnSlug)!
+        return this.table.get(this.yColumnSlugs[0])!
+    }
+
+    @computed protected get yColumnSlugs() {
+        return this.manager.yColumnSlugs
+            ? this.manager.yColumnSlugs
+            : this.manager.yColumnSlug
+            ? [this.manager.yColumnSlug]
+            : this.inputTable.numericColumnSlugs
     }
 
     @computed get table() {
@@ -372,6 +384,16 @@ export class DiscreteBarChart
         return table.sortBy(
             [slug, OwidTableSlugs.entityName],
             [SortOrder.desc, SortOrder.asc]
+        )
+    }
+
+    @computed private get seriesStrategy() {
+        return (
+            this.manager.seriesStrategy ||
+            (this.yColumnSlugs.length > 1 &&
+            this.inputTable.numSelectedEntities === 1
+                ? SeriesStrategy.column
+                : SeriesStrategy.entity)
         )
     }
 
@@ -396,23 +418,50 @@ export class DiscreteBarChart
         return colorByValue
     }
 
-    @computed get series() {
-        const { table, yColumn, valuesToColorsMap } = this
-        const { getLabelForEntityName } = table
+    @computed protected get yColumns() {
+        return this.table.getColumns(this.yColumnSlugs)
+    }
 
-        return yColumn.owidRows.map((row) => {
-            const { entityName } = row
+    @computed private get columnsAsSeries() {
+        const { table, valuesToColorsMap } = this
+        return sortBy(
+            this.yColumns.map((col) => {
+                const row = col.owidRows[0]
+                const seriesName = col.displayName
+                const series: DiscreteBarSeries = {
+                    ...row,
+                    seriesName,
+                    color:
+                        table.getColorForEntityName(seriesName) ||
+                        valuesToColorsMap.get(row.value) ||
+                        DEFAULT_BAR_COLOR,
+                }
+                return series
+            }),
+            "value"
+        ).reverse()
+    }
+
+    @computed private get entitiesAsSeries() {
+        const { table, valuesToColorsMap } = this
+        return this.yColumn.owidRows.map((row) => {
+            const seriesName = row.entityName
             const series: DiscreteBarSeries = {
                 ...row,
-                seriesName: entityName,
-                label: getLabelForEntityName(entityName),
+                seriesName,
                 color:
-                    table.getColorForEntityName(row.entityName) ||
+                    table.getColorForEntityName(seriesName) ||
                     valuesToColorsMap.get(row.value) ||
                     DEFAULT_BAR_COLOR,
             }
             return series
         })
+    }
+
+    @computed get series() {
+        return this.seriesStrategy === SeriesStrategy.entity
+            ? this.entitiesAsSeries
+            : this.columnsAsSeries
     }
 
     @computed private get isLogScale() {

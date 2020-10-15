@@ -341,9 +341,7 @@ export class LineChart
                                             fontSize: "0.9em",
                                         }}
                                     >
-                                        {inputTable.getLabelForEntityName(
-                                            series.seriesName
-                                        )}
+                                        {series.seriesName}
                                         {annotation && (
                                             <span
                                                 className="tooltipAnnotation"
@@ -673,9 +671,7 @@ export class LineChart
                 color: series.color,
                 seriesName: series.seriesName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: this.manager.hideLegend
-                    ? ""
-                    : `${this.table.getLabelForEntityName(series.seriesName)}`,
+                label: this.manager.hideLegend ? "" : `${series.seriesName}`,
                 annotation: this.getAnnotationsForSeries(series.seriesName),
                 yValue: lastValue,
             }

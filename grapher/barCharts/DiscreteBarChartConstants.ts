@@ -6,7 +6,6 @@ export interface DiscreteBarSeries {
     seriesName: SeriesName
     value: number
     time: Time
-    label: string
     color: Color
 }
 

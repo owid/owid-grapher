@@ -243,7 +243,7 @@ export class StackedAreaChart
             .map((series, index) => ({
                 color: series.color,
                 seriesName: series.seriesName,
-                label: this.inputTable.getLabelForEntityName(series.seriesName),
+                label: series.seriesName,
                 yValue: midpoints[index],
             }))
             .reverse()
@@ -364,9 +364,7 @@ export class StackedAreaChart
                                                 backgroundColor: blockColor,
                                             }}
                                         />{" "}
-                                        {this.inputTable.getLabelForEntityName(
-                                            series.seriesName
-                                        )}
+                                        {series.seriesName}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
                                         {!point.fake

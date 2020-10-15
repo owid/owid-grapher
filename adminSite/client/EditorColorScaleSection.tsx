@@ -470,16 +470,12 @@ class CategoricalBinView extends React.Component<{
     }
 
     render() {
-        const { bin, scale } = this.props
+        const { bin } = this.props
 
         return (
             <EditableListItem className="categorical">
                 <ColorBox color={bin.color} onColor={this.onColor} />
-                <TextField
-                    value={scale.formatCategoricalValue(bin.value)}
-                    disabled={true}
-                    onValue={noop}
-                />
+                <TextField value={bin.value} disabled={true} onValue={noop} />
                 <Toggle
                     label="Hide"
                     value={!!bin.isHidden}

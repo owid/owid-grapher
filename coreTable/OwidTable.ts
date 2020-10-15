@@ -399,11 +399,6 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.selectedEntityNameSet.has(entityName)
     }
 
-    // todo: remove?
-    getLabelForEntityName(entityName: EntityName) {
-        return entityName
-    }
-
     // Pretty print all column sources (currently just used in debugging)
     sourcesTable(options: AlignedTextTableOptions) {
         const header: OwidSourceProperty[] = [
