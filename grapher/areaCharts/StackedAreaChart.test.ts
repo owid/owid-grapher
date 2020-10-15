@@ -51,7 +51,7 @@ it("can filter a series when there are no points", () => {
                 timeRange: [2000, 2003],
             })
                 .selectSample(1)
-                .dropRandomCells(6, [SampleColumnSlugs.Fruit]),
+                .replaceRandomCells(6, [SampleColumnSlugs.Fruit]),
         },
     })
 

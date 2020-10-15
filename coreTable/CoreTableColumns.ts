@@ -229,7 +229,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     getUniqueValuesGroupedBy(indexColumnSlug: ColumnSlug) {
         const map = new Map<ColumnSlug, Set<PrimitiveType>>()
         const slug = this.slug
-        this.rowsWithValue.forEach((row) => {
+        this.validRows.forEach((row) => {
             const thisValue = row[slug]
             // For now the behavior is to not overwrite an existing value with an empty one
             if (thisValue === "" || thisValue instanceof InvalidCell) return
@@ -248,7 +248,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get isEmpty() {
-        return this.rowsWithValue.length === 0
+        return this.validRows.length === 0
     }
 
     @computed get name() {
@@ -274,7 +274,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     @computed get valuesToRows() {
         const map = new Map<JS_TYPE, Set<CoreRow>>()
         const slug = this.slug
-        this.rowsWithValue.forEach((row) => {
+        this.validRows.forEach((row) => {
             if (!map.has(row[slug])) map.set(row[slug], new Set<CoreRow>())
             map.get(row[slug])!.add(row)
         })
@@ -328,7 +328,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // Rows containing a value for this column
-    @computed get rowsWithValue() {
+    @computed get validRows() {
         const slug = this.def.slug
         return this.table.rows.filter(
             (row) => !(row[slug] instanceof InvalidCell)
@@ -337,12 +337,12 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // Number of correctly parsed values
     @computed get numValues() {
-        return this.rowsWithValue.length
+        return this.validRows.length
     }
 
     @computed get parsedValues(): JS_TYPE[] {
         const slug = this.def.slug
-        return this.rowsWithValue.map((row) => row[slug])
+        return this.validRows.map((row) => row[slug])
     }
 
     @computed get valuesAscending() {
@@ -351,7 +351,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove. should not be on coretable
     @computed private get allTimes(): Time[] {
-        return this.rowsWithValue.map((row) => rowTime(row))
+        return this.validRows.map((row) => rowTime(row))
     }
 
     // todo: remove. should not be on coretable
@@ -371,13 +371,13 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     @computed get uniqEntityNames(): EntityName[] {
-        return uniq(this.rowsWithValue.map((row) => row.entityName))
+        return uniq(this.validRows.map((row) => row.entityName))
     }
 
     // todo: remove? Should not be on CoreTable
     @computed get owidRows() {
         const times = this.allTimes
-        return this.rowsWithValue.map((row, index) => {
+        return this.validRows.map((row, index) => {
             return {
                 entityName: row.entityName,
                 time: times[index],

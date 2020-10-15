@@ -42,6 +42,7 @@ import {
     LineChartSeries,
     LineChartManager,
 } from "./LineChartConstants"
+import { columnToLineChartSeriesArray } from "./LineChartUtils"
 
 const BLUR_COLOR = "#eee"
 
@@ -579,6 +580,10 @@ export class LineChart
                 this.inputTable.minTime!,
                 this.yColumnSlugs
             )
+
+        if (this.isLogScale)
+            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
+
         return table
     }
 
@@ -595,38 +600,23 @@ export class LineChart
         )
     }
 
+    @computed get isLogScale() {
+        return this.yAxisConfig.scaleType === ScaleType.log
+    }
+
     @computed get series() {
-        const { yColumns } = this
-        const chartData: LineChartSeries[] = flatten(
-            yColumns.map((col) => {
-                const { isProjection } = col
-                const map = col.owidRowsByEntityName
-                return Array.from(map.keys()).map((entityName) => {
-                    const seriesName =
-                        this.seriesStrategy === SeriesStrategy.column
-                            ? col.displayName
-                            : entityName
-                    return {
-                        // todo: add log filter
-                        points: map
-                            .get(entityName)!
-                            .filter((row) => typeof row.value === "number") // todo: move somewhere else?
-                            .map((row) => {
-                                return {
-                                    x: row.time,
-                                    y: row.value,
-                                }
-                            }),
-                        seriesName,
-                        isProjection,
-                        color: "#000", // tmp
-                    }
-                })
-            })
+        const arrOfSeries: LineChartSeries[] = flatten(
+            this.yColumns.map((col) =>
+                columnToLineChartSeriesArray(col, this.seriesStrategy)
+            )
         )
 
-        this._addColorsToSeries(chartData)
-        return chartData
+        this._addColorsToSeries(arrOfSeries)
+        return arrOfSeries
+    }
+
+    @computed get allPoints() {
+        return flatten(this.series.map((series) => series.points))
     }
 
     @computed get placedSeries() {
@@ -725,10 +715,14 @@ export class LineChart
         return axis
     }
 
+    @computed private get yAxisConfig() {
+        const { manager } = this
+        return manager.yAxis ?? new AxisConfig(manager.yAxisConfig, this)
+    }
+
     @computed private get verticalAxisPart() {
         const { manager } = this
-        const axisConfig =
-            manager.yAxis ?? new AxisConfig(manager.yAxisConfig, this)
+        const axisConfig = this.yAxisConfig
         if (manager.hideYAxis) axisConfig.hideAxis = true
         const yColumn = this.yColumns[0]
         const yDomain = this.table.domainFor(this.yColumnSlugs)

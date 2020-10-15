@@ -194,7 +194,7 @@ describe("time domain tests", () => {
             seed
         )
             .selectAll()
-            .dropRandomCells(17, [SampleColumnSlugs.GDP], seed),
+            .replaceRandomCells(17, [SampleColumnSlugs.GDP], seed),
         dimensions: [
             {
                 slug: SampleColumnSlugs.GDP,

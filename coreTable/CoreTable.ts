@@ -32,7 +32,7 @@ import {
     toDelimited,
     toMarkdownTable,
 } from "./CoreTablePrinters"
-import { DroppedForTesting } from "./InvalidCells"
+import { DroppedForTesting, InvalidOnALogScale } from "./InvalidCells"
 
 // Every row will be checked against each column/value(s) pair.
 interface CoreQuery {
@@ -43,7 +43,7 @@ const TransformsRequiringCompute = new Set([
     TransformType.Load,
     TransformType.AppendRows,
     TransformType.AppendColumns,
-    TransformType.PokeColumns,
+    TransformType.UpdateRows,
 ])
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -635,11 +635,39 @@ export class CoreTable<
         )
     }
 
-    dropRandomCells(
+    replaceNonPositiveCellsForLogScale(columnSlugs: ColumnSlug[] = []) {
+        let replacedCellCount = 0
+        const newRows = this.rows.map((row) => {
+            const values = columnSlugs.map((slug) => row[slug])
+            if (values.every((value) => value > 0)) return row
+            const newRow: any = { ...row }
+            values.forEach((value, index) => {
+                const slug = columnSlugs[index]
+                if (value <= 0) {
+                    newRow[slug] = new InvalidOnALogScale()
+                    replacedCellCount++
+                }
+            })
+            return newRow
+        })
+        return new (this.constructor as any)(
+            newRows,
+            undefined,
+            this,
+            `Replaced ${replacedCellCount} negative or zero cells across columns ${columnSlugs.join(
+                " and "
+            )}`,
+            TransformType.UpdateRows
+        )
+    }
+
+    replaceRandomCells(
         howMany = 1,
         columnSlugs: ColumnSlug[] = [],
-        seed = Date.now()
+        seed = Date.now(),
+        replacementGenerator: () => any = () => new DroppedForTesting()
     ): this {
+        // todo: instead of doing column fns just mutate rows and pass the new rows?
         const defs = this.columnsAsArray.map((col) => {
             const { def } = col
             if (!columnSlugs.includes(col.slug)) return def
@@ -652,7 +680,7 @@ export class CoreTable<
                 ...def,
                 fn: (row: ROW_TYPE, index: number) =>
                     indexesToDrop.has(index)
-                        ? new DroppedForTesting()
+                        ? replacementGenerator()
                         : row[col.slug],
             }
         })
@@ -660,8 +688,8 @@ export class CoreTable<
             this.rows,
             defs,
             this,
-            `Dropped ${howMany} cells in ${columnSlugs}`,
-            TransformType.PokeColumns
+            `Replaced ${howMany} cells in ${columnSlugs}`,
+            TransformType.UpdateRows
         )
     }
 

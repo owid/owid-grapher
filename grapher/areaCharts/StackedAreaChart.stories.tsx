@@ -69,7 +69,7 @@ export const ColumnsAsSeriesWithMissingCells = () => (
             manager={{
                 table: SynthesizeFruitTable()
                     .selectSample(1)
-                    .dropRandomCells(200, [SampleColumnSlugs.Fruit]),
+                    .replaceRandomCells(200, [SampleColumnSlugs.Fruit]),
             }}
         />
     </svg>

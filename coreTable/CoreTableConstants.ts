@@ -56,6 +56,7 @@ export enum TransformType {
     FilterRows = "FilterRows",
     SortRows = "SortRows",
     AppendRows = "AppendRows", // todo: should this will also rerun any column transforms on the new rows?
+    UpdateRows = "UpdateRows", // replace values in a row. For example: to prep columns for log scale, or testing messy runtime data scenarios.
 
     // Column ops
     FilterColumns = "FilterColumns",
@@ -63,7 +64,6 @@ export enum TransformType {
     AppendColumns = "AppendColumns", // This will run column transform fns.
     UpdateColumnDefs = "UpdateColumnDefs", // do not use for updates that add a column transform fn.
     RenameColumns = "RenameColumns",
-    PokeColumns = "PokeColumns", // remove values from a column, for testing messy runtime data scenarios.
 }
 
 export type Year = Integer

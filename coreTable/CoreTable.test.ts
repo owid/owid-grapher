@@ -267,6 +267,19 @@ it("can rename a column", () => {
     expect(firstRow.Population).toEqual(123)
 })
 
+it("can replace cells for log scale", () => {
+    let table = new CoreTable([
+        { pop: -20, gdp: 100, births: -4 },
+        { pop: 0, gdp: -2, births: 20 },
+    ])
+    expect(table.get("pop")?.numValues).toEqual(2)
+    expect(table.get("gdp")?.numValues).toEqual(2)
+    table = table.replaceNonPositiveCellsForLogScale(["pop", "gdp"])
+    expect(table.get("pop")?.numValues).toEqual(0)
+    expect(table.get("gdp")?.numValues).toEqual(1)
+    expect(table.get("births")?.numValues).toEqual(2)
+})
+
 it("can load a table from an array of arrays", () => {
     const sampleRows = [
         {

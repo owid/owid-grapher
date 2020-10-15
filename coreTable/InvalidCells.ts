@@ -23,6 +23,7 @@ export class NaNButShouldBeNumber extends InvalidCell {
     }
 }
 export class DroppedForTesting extends InvalidCell {}
+export class InvalidOnALogScale extends InvalidCell {}
 export class UndefinedButShouldBeNumber extends InvalidCell {}
 export class NullButShouldBeNumber extends InvalidCell {}
 export class BlankButShouldBeNumber extends InvalidCell {}

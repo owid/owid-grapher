@@ -165,11 +165,11 @@ it("can drop random cells", () => {
         timeRange: [2000, 2010],
         entityCount: 1,
     })
-    expect(table.get(SampleColumnSlugs.GDP)!.rowsWithValue.length).toBe(10)
+    expect(table.get(SampleColumnSlugs.GDP)!.validRows.length).toBe(10)
     expect(
         table
-            .dropRandomCells(7, [SampleColumnSlugs.GDP])
-            .get(SampleColumnSlugs.GDP)!.rowsWithValue.length
+            .replaceRandomCells(7, [SampleColumnSlugs.GDP])
+            .get(SampleColumnSlugs.GDP)!.validRows.length
     ).toBe(3)
 })
 

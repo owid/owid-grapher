@@ -183,3 +183,20 @@ export const SynthesizeFruitTable = (
         },
         seed
     )
+
+export const SynthesizeFruitTableWithNonPositives = (
+    options?: Partial<SynthOptions>,
+    howManyNonPositives = 20,
+    seed = Date.now()
+) => {
+    const rand = getRandomNumberGenerator(-1000, 0)
+    return SynthesizeFruitTable(
+        options,
+        seed
+    ).replaceRandomCells(
+        howManyNonPositives,
+        [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
+        undefined,
+        () => rand()
+    )
+}
