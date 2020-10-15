@@ -19,7 +19,6 @@ import { GrapherPageUtils } from "site/client/GrapherPageUtils"
 import { ExploreView } from "explorer/indicatorExplorer/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
-import { runCookieNotice } from "./runCookieNotice"
 import { runBlocks } from "./blocks"
 import { runTableOfContents } from "./TableOfContents"
 import { runRelatedCharts } from "./blocks/RelatedCharts/RelatedCharts"
@@ -49,7 +48,6 @@ window.runFeedbackPage = runFeedbackPage
 window.runDonateForm = runDonateForm
 window.runVariableCountryPage = runVariableCountryPage
 window.runCountryProfilePage = runCountryProfilePage
-window.runCookieNotice = runCookieNotice
 window.runBlocks = runBlocks
 window.runTableOfContents = runTableOfContents
 window.runRelatedCharts = runRelatedCharts
