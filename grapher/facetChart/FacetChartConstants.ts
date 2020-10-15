@@ -1,3 +1,4 @@
+import { OwidTable } from "coreTable/OwidTable"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { ChartTypeName, SeriesName } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
