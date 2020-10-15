@@ -55,7 +55,7 @@ export class ScaleSelector extends React.Component<{
         return (
             <foreignObject
                 id="horizontal-scale-selector"
-                y={bounds.y - 30}
+                y={bounds.y}
                 x={bounds.x - this.getLeftShiftIfNeeded(bounds.x)}
                 width={1}
                 height={1}

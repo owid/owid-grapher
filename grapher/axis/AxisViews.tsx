@@ -210,9 +210,10 @@ export class HorizontalAxisComponent
         return this.props.maxX
     }
 
+    // for scale selector. todo: cleanup
     @computed get bounds() {
         const { bounds } = this.props
-        return new Bounds(bounds.right, bounds.bottom, 100, 100)
+        return new Bounds(bounds.right, bounds.bottom - 30, 100, 100)
     }
 
     render() {
