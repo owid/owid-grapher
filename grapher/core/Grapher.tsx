@@ -28,7 +28,6 @@ import {
     next,
     sampleFrom,
     range,
-    findClosestTime,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -618,9 +617,14 @@ export class Grapher
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === GrapherTabOption.map)
-            return this.inputTable.get(this.mapColumnSlug)?.uniqTimesAsc || []
+            return (
+                this.tablePreTimelineFilter.get(this.mapColumnSlug)
+                    ?.uniqTimesAsc || []
+            )
         // todo: filter out min times and end times?
-        return this.inputTable.getTimeOptionsForColumns(this.yColumnSlugs)
+        return this.tablePreTimelineFilter.getTimeOptionsForColumns(
+            this.yColumnSlugs
+        )
     }
 
     // todo: remove ifs
