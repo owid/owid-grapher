@@ -16,6 +16,7 @@ import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
 export interface ChartManager {
     baseFontSize?: number
     table: OwidTable // todo: abstract table?
+    transformedTable?: OwidTable
     isSelectingData?: boolean
     startSelectingWhenLineClicked?: boolean // used by lineLabels
     isStaticSvg?: boolean

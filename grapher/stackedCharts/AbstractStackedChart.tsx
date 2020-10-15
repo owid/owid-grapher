@@ -12,8 +12,10 @@ import { flatten, guid, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
+import { bind } from "decko"
 import { stackSeries, withFakePoints } from "./StackedUtils"
 import { StackedSeries } from "./StackedConstants"
+import { OwidTable } from "coreTable/OwidTable"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds
@@ -24,6 +26,33 @@ export interface AbstactStackedChartProps {
 export class AbstactStackedChart
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager {
+    @bind transformTable(table: OwidTable) {
+        table = table.filterBySelectedOnly()
+
+        if (this.manager.isRelativeMode) {
+            table =
+                this.seriesStrategy === SeriesStrategy.entity
+                    ? table.toPercentageFromEachEntityForEachTime(
+                          this.yColumnSlugs[0]
+                      )
+                    : table.toPercentageFromEachColumnForEachEntityAndTime(
+                          this.yColumnSlugs
+                      )
+        }
+        return table
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
+    @computed get transformedTable() {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
+    }
+
     @computed get manager() {
         return this.props.manager
     }
@@ -44,7 +73,7 @@ export class AbstactStackedChart
     }
 
     @computed protected get yColumns() {
-        return this.table.getColumns(this.yColumnSlugs)
+        return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
     @computed protected get yColumnSlugs() {
@@ -59,32 +88,9 @@ export class AbstactStackedChart
     // the entities, and have one series per entity. If 2+ columns, we stack the columns
     // and have 1 series per column.
     @computed get seriesStrategy() {
-        return (
-            this.manager.seriesStrategy ||
-            (this.yColumnSlugs.length > 1
-                ? SeriesStrategy.column
-                : SeriesStrategy.entity)
-        )
-    }
-
-    @computed get inputTable() {
-        return this.manager.table
-    }
-
-    @computed get table() {
-        let table = this.inputTable
-        table = table.filterBySelectedOnly()
-
-        if (this.manager.isRelativeMode)
-            table =
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? table.toPercentageFromEachEntityForEachTime(
-                          this.yColumnSlugs[0]
-                      )
-                    : table.toPercentageFromEachColumnForEachEntityAndTime(
-                          this.yColumnSlugs
-                      )
-        return table
+        return this.manager.seriesStrategy || this.yColumnSlugs.length > 1
+            ? SeriesStrategy.column
+            : SeriesStrategy.entity
     }
 
     @computed protected get dualAxis() {
@@ -108,7 +114,7 @@ export class AbstactStackedChart
 
         const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
-            this.table.timeDomainFor(this.yColumnSlugs)
+            this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
         axis.formatColumn = this.inputTable.timeColumn
         axis.hideFractionalTicks = true
@@ -145,7 +151,7 @@ export class AbstactStackedChart
 
     @computed private get entitiesAsSeries() {
         const { isProjection, owidRowsByEntityName } = this.yColumns[0]
-        return this.table.selectedEntityNames.map((seriesName) => {
+        return this.transformedTable.selectedEntityNames.map((seriesName) => {
             return {
                 isProjection,
                 seriesName,

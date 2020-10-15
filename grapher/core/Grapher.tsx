@@ -28,6 +28,7 @@ import {
     next,
     sampleFrom,
     range,
+    findClosestTime,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -147,6 +148,8 @@ import {
 import { OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
+import { getChartComponent } from "grapher/chart/ChartTypeMap"
+import { ChartTableTransformer } from "grapher/chart/ChartInterface"
 
 declare const window: any
 
@@ -423,29 +426,47 @@ export class Grapher
         this.timelineFilter = getTimeDomainFromQueryString(time)
     }
 
-    @computed get table() {
+    @computed private get tablePreTimelineFilter() {
         let table = this.inputTable
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
         table = this.minPopulationFilter
             ? table.filterByPopulation(this.minPopulationFilter)
             : table
-        table = this.filterByTime(table)
+
+        if (
+            this.tab === GrapherTabOption.chart ||
+            this.tab === GrapherTabOption.map
+        ) {
+            const chartComponent = getChartComponent(
+                this.tab === GrapherTabOption.map
+                    ? ChartTypeName.WorldMap
+                    : this.constrainedType
+            ) as any
+            if (chartComponent) {
+                const transformer = new chartComponent({ manager: this })
+                    .transformTable as ChartTableTransformer
+                table = transformer(table)
+            }
+        }
 
         return table
     }
 
-    private filterByTime(table: OwidTable) {
+    @computed get table() {
         const [startTime, endTime] = this.timelineFilter
         if (this.tab === GrapherTabOption.map) {
-            const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?
-            return table.filterByTime(
+            const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?	    }
+            return this.tablePreTimelineFilter.filterByTime(
                 startTime - tolerance,
                 endTime + tolerance
             )
         }
+        return this.tablePreTimelineFilter.filterByTime(startTime, endTime)
+    }
 
-        return table.filterByTime(startTime, endTime)
+    @computed get transformedTable() {
+        return this.table
     }
 
     @observable.ref isMediaCard = false
@@ -979,6 +1000,14 @@ export class Grapher
 
     @computed get colorColumnSlug() {
         return this.getSlugForProperty(DimensionProperty.color)
+    }
+
+    @computed get yScaleType() {
+        return this.yAxis.scaleType
+    }
+
+    @computed get xScaleType() {
+        return this.xAxis.scaleType
     }
 
     @computed private get timeTitleSuffix() {

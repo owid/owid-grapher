@@ -66,10 +66,9 @@ describe("when you select a range of years", () => {
     beforeAll(() => {
         const grapher = childMortalityGrapher({
             type: ChartTypeName.LineChart,
-            tab: GrapherTabOption.chart,
+            tab: GrapherTabOption.table,
         })
-        grapher.startTime = 1950
-        grapher.endTime = 2019
+        grapher.timelineFilter = [1950, 2019]
 
         view = mount(<DataTable manager={grapher} />)
     })
@@ -106,6 +105,7 @@ describe("when you select a range of years", () => {
 
 describe("when the table doesn't have data for all rows", () => {
     const grapher = new Grapher({
+        tab: GrapherTabOption.table,
         dimensions: [
             {
                 variableId: 3512,
@@ -135,8 +135,7 @@ describe("when the table doesn't have data for all rows", () => {
             },
         },
     })
-    grapher.startTime = 2000
-    grapher.endTime = 2000
+    grapher.timelineFilter = [2000, 2000]
     const view = shallow(<DataTable manager={grapher} />)
 
     it("renders no value when data is not available for years within the tolerance", () => {

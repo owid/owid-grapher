@@ -2,6 +2,7 @@ import * as React from "react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { bind } from "decko"
 import {
     CategoricalColorLegend,
     CategoricalColorLegendManager,
@@ -52,6 +53,7 @@ import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
 import { PointVector } from "grapher/utils/PointVector"
 import { worldRegionByMapEntity } from "./WorldRegions"
+import { OwidTable } from "coreTable/OwidTable"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -78,13 +80,32 @@ export class MapChart
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
 
+    @bind transformTable(table: OwidTable) {
+        const tolerance = this.mapConfig.timeTolerance
+        if (tolerance !== undefined) {
+            // TODO fillTolerance transform on map column
+        }
+        return table
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
+    @computed get transformedTable() {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
+    }
+
     @computed get failMessage() {
         if (!this.mapColumn) return "Missing map column"
         return ""
     }
 
     @computed get mapColumn() {
-        return this.table.get(this.mapColumnSlug)
+        return this.transformedTable.get(this.mapColumnSlug)
     }
 
     @computed get mapColumnSlug() {
@@ -133,19 +154,11 @@ export class MapChart
         return this.props.manager
     }
 
-    @computed get table() {
-        return this.inputTable
-    }
-
-    @computed get inputTable() {
-        return this.manager.table
-    }
-
     // Determine if we can go to line chart by clicking on a given map entity
     private isEntityClickable(entityName?: EntityName) {
         if (!this.manager.mapIsClickable || !entityName) return false
 
-        return this.table.availableEntityNameSet.has(entityName)
+        return this.transformedTable.availableEntityNameSet.has(entityName)
     }
 
     @action.bound onClick(d: GeoFeature, ev: React.MouseEvent<SVGElement>) {
@@ -183,7 +196,7 @@ export class MapChart
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapConfig, mapColumn, table } = this
+        const { mapConfig, mapColumn, transformedTable } = this
         if (!mapColumn) return []
         const endTime = mapColumn.maxTime
         if (endTime === undefined) return []
@@ -221,7 +234,7 @@ export class MapChart
                         mapColumn.formatValueLong(value),
                     time,
                     value,
-                    isSelected: table.isEntitySelected(entityName),
+                    isSelected: transformedTable.isEntitySelected(entityName),
                     color,
                     highlightFillColor: color,
                 }

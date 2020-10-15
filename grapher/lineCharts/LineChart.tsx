@@ -14,6 +14,7 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
+import { bind } from "decko"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
@@ -43,6 +44,7 @@ import {
     LineChartManager,
 } from "./LineChartConstants"
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
+import { OwidTable } from "coreTable/OwidTable"
 
 const BLUR_COLOR = "#eee"
 
@@ -221,6 +223,37 @@ export class LineChart
     }>
     implements ChartInterface, LineLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    @bind transformTable(table: OwidTable) {
+        table = table.filterBySelectedOnly()
+
+        // TODO not sure if this is right? Line charts shouldn't be filtering out any values?
+        // table = table.filterByFullColumnsOnly(this.manager.yColumnSlugs) // TODO: instead of this, just filter indvidaul points.
+
+        if (this.manager.isRelativeMode)
+            table = table.toTotalGrowthForEachColumnComparedToStartTime(
+                table.minTime!,
+                this.manager.yColumnSlugs ?? []
+            )
+
+        if (this.isLogScale)
+            table = table.replaceNonPositiveCellsForLogScale(
+                this.manager.yColumnSlugs
+            )
+
+        return table
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
+    @computed get transformedTable() {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
+    }
 
     @observable hoverX?: number
     @action.bound onHover(hoverX: number | undefined) {
@@ -539,7 +572,7 @@ export class LineChart
     }
 
     @computed private get yColumns() {
-        return this.yColumnSlugs.map((slug) => this.table.get(slug)!)
+        return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug)!)
     }
 
     @computed private get yColumnSlugs() {
@@ -566,27 +599,6 @@ export class LineChart
         return colorScheme !== undefined
             ? colorScheme
             : (ColorSchemes["owid-distinct"] as ColorScheme)
-    }
-
-    @computed get table() {
-        let table = this.inputTable.filterBySelectedOnly()
-
-        table = table.filterByFullColumnsOnly(this.yColumnSlugs) // TODO: instead of this, just filter indvidaul points.
-
-        if (this.manager.isRelativeMode)
-            table = table.toTotalGrowthForEachColumnComparedToStartTime(
-                this.inputTable.minTime!,
-                this.yColumnSlugs
-            )
-
-        if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
-
-        return table
-    }
-
-    @computed get inputTable() {
-        return this.manager.table
     }
 
     @computed get seriesStrategy() {
@@ -702,7 +714,7 @@ export class LineChart
         if (manager.hideXAxis) axisConfig.hideAxis = true
         const axis = axisConfig.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(
-            this.table.timeDomainFor(this.yColumnSlugs)
+            this.transformedTable.timeDomainFor(this.yColumnSlugs)
         )
         axis.scaleType = ScaleType.linear
         axis.formatColumn = this.inputTable.timeColumn
@@ -721,7 +733,7 @@ export class LineChart
         const axisConfig = this.yAxisConfig
         if (manager.hideYAxis) axisConfig.hideAxis = true
         const yColumn = this.yColumns[0]
-        const yDomain = this.table.domainFor(this.yColumnSlugs)
+        const yDomain = this.transformedTable.domainFor(this.yColumnSlugs)
         const domain = axisConfig.domain
         const axis = axisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings([
