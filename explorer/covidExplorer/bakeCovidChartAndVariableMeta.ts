@@ -5,13 +5,13 @@ import * as fs from "fs-extra"
 import { getVariableData } from "db/model/Variable"
 import {
     covidChartAndVariableMetaFilename,
-    sourceCharts,
-    sourceVariables,
+    sourceChartsForChartTemplates,
+    sourceVariablesForColumnDefTemplates,
 } from "explorer/covidExplorer/CovidConstants"
 import { uniq } from "lodash"
 
-const variableIds = Object.values(sourceVariables)
-const chartIds = uniq(Object.values(sourceCharts))
+const variableIds = Object.values(sourceVariablesForColumnDefTemplates)
+const chartIds = uniq(Object.values(sourceChartsForChartTemplates))
 
 export const bakeCovidChartAndVariableMeta = async () => {
     const output: any = {

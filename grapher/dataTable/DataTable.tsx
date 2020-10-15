@@ -404,7 +404,7 @@ export class DataTable extends React.Component<{
 
         this.columnsToShow.forEach((column) => {
             const numberOfEntitiesWithDataSortedByTime = sortBy(
-                Object.entries(countBy(column.allTimes)),
+                Object.entries(countBy(column.uniqTimesAsc)),
                 (value) => parseInt(value[0])
             )
 

@@ -587,7 +587,7 @@ export class Grapher
     // todo: remove ifs
     @computed get times(): Time[] {
         if (this.tab === GrapherTabOption.map)
-            return this.inputTable.get(this.mapColumnSlug)?.uniqTimes || []
+            return this.inputTable.get(this.mapColumnSlug)?.uniqTimesAsc || []
         // todo: filter out min times and end times?
         return this.inputTable.getTimeOptionsForColumns(this.yColumnSlugs)
     }
@@ -922,7 +922,7 @@ export class Grapher
         return (
             !this.map.hideTimeline &&
             this.mapColumn &&
-            this.mapColumn.uniqTimes.length > 1
+            this.mapColumn.uniqTimesAsc.length > 1
         )
     }
 
@@ -989,7 +989,7 @@ export class Grapher
     }
 
     @computed get columnsWithSources() {
-        return this.table.columnsAsArray.filter((column) => {
+        return this.inputTable.columnsAsArray.filter((column) => {
             if (
                 column.name === "Countries Continents" ||
                 column.name === "Total population (Gapminder)"

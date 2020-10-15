@@ -380,7 +380,7 @@ export class DiscreteBarChart
     @computed private get valuesToColorsMap() {
         const { manager, yColumn } = this
         // todo: Restore if derived from line chart, use line chart colors
-        const uniqValues = yColumn.uniqTimes
+        const uniqValues = yColumn.uniqTimesAsc
         const colorScheme = manager.baseColorScheme
             ? ColorSchemes[manager.baseColorScheme]
             : undefined

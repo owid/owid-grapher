@@ -52,6 +52,8 @@ export interface OwidSource {
     additionalInfo: string
 }
 
+export type OwidSourceProperty = keyof OwidSource
+
 export class LegacyVariableDisplayConfig
     extends LegacyVariableDisplayConfigDefaults
     implements Persistable {

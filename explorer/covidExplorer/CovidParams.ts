@@ -8,13 +8,13 @@ import { ChartTypeName } from "grapher/core/GrapherConstants"
 import { SortOrder, ColumnTypeNames } from "coreTable/CoreTableConstants"
 import { oneOf, uniq, intersection } from "grapher/utils/Util"
 import {
-    trajectoryColumnSpecs,
+    trajectoryColumnThresholds,
     CovidColumnSlug,
     SmoothingOption,
     ColorScaleOptions,
     IntervalOptions,
     MetricOptions,
-    sourceVariables,
+    sourceVariablesForColumnDefTemplates,
 } from "./CovidConstants"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { perCapitaDivisorByMetric } from "./CovidExplorerUtils"
@@ -289,7 +289,7 @@ export class CovidQueryParams implements CountryPickerManager {
             ? MetricOptions.cases
             : MetricOptions.deaths
         const config =
-            trajectoryColumnSpecs[key][
+            trajectoryColumnThresholds[key][
                 this.perCapita
                     ? "perCapita"
                     : this.isDailyOrSmoothed
@@ -519,28 +519,36 @@ export const makeColumnDefTemplates = (
 ): CovidColumnDefObjectMap => {
     const templates: CovidColumnDefObjectMap = {
         positive_test_rate: {
-            ...columnDefsFromGrapherBackend[sourceVariables.positive_test_rate],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.positive_test_rate
+            ],
             isDailyMeasurement: true,
             type: ColumnTypeNames.Percentage,
             description:
                 "The number of confirmed cases divided by the number of tests, expressed as a percentage. Tests may refer to the number of tests performed or the number of people tested – depending on which is reported by the particular country.",
         },
         tests_per_case: {
-            ...columnDefsFromGrapherBackend[sourceVariables.tests_per_case],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.tests_per_case
+            ],
             isDailyMeasurement: true,
             type: ColumnTypeNames.Ratio,
             description:
                 "The number of tests divided by the number of confirmed cases. Not all countries report testing data on a daily basis.",
         },
         case_fatality_rate: {
-            ...columnDefsFromGrapherBackend[sourceVariables.case_fatality_rate],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.case_fatality_rate
+            ],
             // annotationsColumnSlug: "case_fatality_rate_series_annotations", // todo: readd annotations as a propety like size or color
             isDailyMeasurement: true,
             type: ColumnTypeNames.Percentage,
             description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
         },
         cases: {
-            ...columnDefsFromGrapherBackend[sourceVariables.cases],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.cases
+            ],
             isDailyMeasurement: true,
             // annotationsColumnSlug: "cases_series_annotations",
             name: "Confirmed cases of COVID-19",
@@ -548,7 +556,9 @@ export const makeColumnDefTemplates = (
             description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
         },
         deaths: {
-            ...columnDefsFromGrapherBackend[sourceVariables.deaths],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.deaths
+            ],
             isDailyMeasurement: true,
             type: ColumnTypeNames.Integer,
             // annotationsColumnSlug: "deaths_series_annotations",
@@ -556,7 +566,9 @@ export const makeColumnDefTemplates = (
             description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
         },
         tests: {
-            ...columnDefsFromGrapherBackend[sourceVariables.tests],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.tests
+            ],
             isDailyMeasurement: true,
             type: ColumnTypeNames.Integer,
             description: "",
@@ -564,14 +576,18 @@ export const makeColumnDefTemplates = (
             // annotationsColumnSlug: "tests_units",
         },
         days_since: {
-            ...columnDefsFromGrapherBackend[sourceVariables.days_since],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.days_since
+            ],
             isDailyMeasurement: true,
             type: ColumnTypeNames.Integer,
             description: "",
             name: "days_since",
         },
         continents: {
-            ...columnDefsFromGrapherBackend[sourceVariables.continents],
+            ...columnDefsFromGrapherBackend[
+                sourceVariablesForColumnDefTemplates.continents
+            ],
             description: "",
             name: "continent",
             slug: "continent",

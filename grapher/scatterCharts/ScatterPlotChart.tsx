@@ -529,11 +529,14 @@ export class ScatterPlotChart
     @computed private get possibleTimes(): Time[] {
         if (!this.yColumn) return []
 
-        if (this.xOverrideTime !== undefined) return this.yColumn.uniqTimes
+        if (this.xOverrideTime !== undefined) return this.yColumn.uniqTimesAsc
 
         if (!this.xColumn) return []
 
-        return intersection(this.yColumn.uniqTimes, this.xColumn.uniqTimes)
+        return intersection(
+            this.yColumn.uniqTimesAsc,
+            this.xColumn.uniqTimesAsc
+        )
     }
 
     @computed private get compareEndPointsOnly() {

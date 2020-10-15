@@ -1,11 +1,16 @@
 #! /usr/bin/env yarn jest
 
 import {
+    CovidColumnDefObjectMap,
     CovidQueryParams,
     makeColumnDefFromParams,
+    makeColumnDefTemplates,
 } from "explorer/covidExplorer/CovidParams"
 import { uniq } from "grapher/utils/Util"
-import { IntervalOptions } from "./CovidConstants"
+import {
+    IntervalOptions,
+    sourceVariablesForColumnDefTemplates,
+} from "./CovidConstants"
 
 it("parses params correctly", () => {
     const params = new CovidQueryParams(`cfrMetric=true&totalFreq=true`)
@@ -71,6 +76,25 @@ it("converts legacy urls correctly", () => {
         expect(params.interval).toEqual(testCase.interval)
         expect(params.smoothing).toEqual(testCase.smoothing)
     })
+})
+
+it("generates the correct templates when pulling data from grapher backend", () => {
+    const incomingDefs: CovidColumnDefObjectMap = {}
+    incomingDefs[sourceVariablesForColumnDefTemplates.positive_test_rate] = {
+        slug: "positive_test_rate",
+        source: {
+            name: "Foobar",
+            id: 2,
+            dataPublishedBy: "",
+            dataPublisherSource: "",
+            link: "",
+            retrievedDate: "",
+            additionalInfo: "",
+        },
+    }
+    const templates = makeColumnDefTemplates(incomingDefs)
+    const template = templates["positive_test_rate"]
+    expect(template.source!.name).toEqual("Foobar")
 })
 
 it("computes the correct source chart key given current params", () => {

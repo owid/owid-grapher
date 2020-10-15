@@ -111,7 +111,7 @@ export class CovidExplorerTable extends OwidTable {
     loadColumnDefTemplatesFromGrapherBackend(
         defsFromBackend: CovidColumnDefObjectMap
     ) {
-        this.columnDefTemplates = cloneDeep(
+        this._columnDefTemplates = cloneDeep(
             makeColumnDefTemplates(defsFromBackend)
         )
         return this
@@ -121,8 +121,16 @@ export class CovidExplorerTable extends OwidTable {
         return this.appendColumns(CovidAnnotationColumnDefs)
     }
 
-    // Todo: does this need to be observable?
-    private columnDefTemplates = makeColumnDefTemplates()
+    // todo: ideally we can simplify this when we do data 2.0
+    get columnDefTemplates(): CovidColumnDefObjectMap {
+        return (
+            this._columnDefTemplates ??
+            this.parent?.columnDefTemplates ??
+            makeColumnDefTemplates()
+        )
+    }
+
+    private _columnDefTemplates?: CovidColumnDefObjectMap
 
     updateColumnsToHideInDataTable() {
         // todo: we might not need this "opt out", since we now explicitly list the columns to show in the table

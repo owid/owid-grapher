@@ -1,4 +1,7 @@
-import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
+import {
+    LegacyVariablesAndEntityKey,
+    OwidSourceProperty,
+} from "./LegacyVariableCode"
 import {
     max,
     min,
@@ -9,7 +12,6 @@ import {
     flatten,
     uniq,
     sortNumeric,
-    last,
     isPresent,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
@@ -35,6 +37,10 @@ import {
 } from "./OwidTableConstants"
 import { legacyToOwidTable } from "./LegacyToOwidTable"
 import { InvalidCell } from "./InvalidCells"
+import {
+    AlignedTextTableOptions,
+    toAlignedTextTable,
+} from "./CoreTablePrinters"
 
 // todo: remove
 const rowTime = (row: CoreRow) =>
@@ -43,7 +49,7 @@ const rowTime = (row: CoreRow) =>
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
 // to go from our Variables paradigm to the Table paradigm.
-export class OwidTable extends CoreTable<OwidRow> {
+export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     static fromDelimited(csvOrTsv: string, defs: OwidColumnDef[] = []) {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
@@ -159,7 +165,7 @@ export class OwidTable extends CoreTable<OwidRow> {
                 flatten(
                     this.getColumns(columnSlugs)
                         .filter((col) => col)
-                        .map((col) => col.uniqTimes)
+                        .map((col) => col.uniqTimesAsc)
                 )
             )
         )
@@ -167,6 +173,13 @@ export class OwidTable extends CoreTable<OwidRow> {
 
     copySelectionFrom(table: OwidTable) {
         return this.setSelectedEntities(table.selectedEntityNames)
+    }
+
+    timeDomainFor(slugs: ColumnSlug[]): [Time | undefined, Time | undefined] {
+        const cols = this.getColumns(slugs)
+        const mins = cols.map((col) => col.minTime)
+        const maxes = cols.map((col) => col.maxTime)
+        return [min(mins), max(maxes)]
     }
 
     filterByEntityName(name: EntityName) {
@@ -220,6 +233,7 @@ export class OwidTable extends CoreTable<OwidRow> {
         )
     }
 
+    // todo: this needs tests (and/or drop in favor of someone else's package)
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
         const newDefs = this.defs.map((def) => {
@@ -276,6 +290,7 @@ export class OwidTable extends CoreTable<OwidRow> {
         )
     }
 
+    // todo: this needs tests (and/or drop in favor of someone else's package)
     // If you wanted to build a table showing something like GDP growth relative to 1950, use this.
     toTotalGrowthForEachColumnComparedToStartTime(
         startTime: Time,
@@ -387,6 +402,24 @@ export class OwidTable extends CoreTable<OwidRow> {
     // todo: remove?
     getLabelForEntityName(entityName: EntityName) {
         return entityName
+    }
+
+    // Pretty print all column sources (currently just used in debugging)
+    sourcesTable(options: AlignedTextTableOptions) {
+        const header: OwidSourceProperty[] = [
+            `name`,
+            `retrievedDate`,
+            `dataPublishedBy`,
+            `dataPublisherSource`,
+            `additionalInfo`,
+        ]
+        return toAlignedTextTable(
+            [`slug`, ...header],
+            this.defs.map((def) => {
+                return { ...def.source, slug: def.slug }
+            }),
+            options
+        )
     }
 
     @computed get unselectedEntityNames() {

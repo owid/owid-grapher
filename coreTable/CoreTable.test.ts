@@ -229,22 +229,6 @@ it("can get the domain across all columns", () => {
     expect(domainFor).toEqual([0, 300])
 })
 
-it("can get the time domain across columns", () => {
-    const table = CoreTable.fromDelimited(
-        `gdp,perCapita,day
-0,123.1,0
-12,300,1
-20,,2`,
-        [
-            { slug: "gdp", type: ColumnTypeNames.Numeric },
-            { slug: "perCapita", type: ColumnTypeNames.Numeric },
-            { slug: "day", type: ColumnTypeNames.Date },
-        ]
-    )
-    expect(table.timeDomainFor(["gdp", "perCapita"])).toEqual([0, 2])
-    expect(table.timeDomainFor(["perCapita"])).toEqual([0, 1])
-})
-
 it("can get annotations for a row", () => {
     const csv = `entityName,pop,notes,year
 usa,322,in hundreds of millions,2000

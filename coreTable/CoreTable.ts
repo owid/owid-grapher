@@ -32,7 +32,7 @@ import {
     toDelimited,
     toMarkdownTable,
 } from "./CoreTablePrinters"
-import { DroppedForTesting, InvalidCell } from "./InvalidCells"
+import { DroppedForTesting } from "./InvalidCells"
 
 // Every row will be checked against each column/value(s) pair.
 interface CoreQuery {
@@ -48,21 +48,24 @@ const TransformsRequiringCompute = new Set([
 
 // The complex generic with default here just enables you to optionally specify a more
 // narrow interface for the input rows. This is helpful for OwidTable.
-export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
+export class CoreTable<
+    ROW_TYPE extends CoreRow = CoreRow,
+    COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef
+> {
     private _inputRows: ROW_TYPE[]
     @observable.ref private _rows: ROW_TYPE[]
     @observable private _columns: Map<ColumnSlug, CoreColumn>
     @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
 
     protected parent?: this
-    private tableDescription = ""
-    private transformCategory = TransformType.Load
-    private timeToLoad = 0
+    tableDescription = ""
+    transformCategory = TransformType.Load
+    timeToLoad = 0
     private initTime = Date.now()
 
     constructor(
         rows: ROW_TYPE[] = [],
-        incomingColumnDefs?: CoreColumnDef[],
+        incomingColumnDefs?: COL_DEF_TYPE[],
         parentTable?: CoreTable,
         tableDescription?: string,
         transformCategory?: TransformType
@@ -120,8 +123,8 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
             })
     }
 
-    private numColsToCompute: number // todo: Currently reading this value in explain method. Need to type that.
-    private _buildRows(columnsToCompute: CoreColumnDef[]) {
+    numColsToCompute: number
+    private _buildRows(columnsToCompute: COL_DEF_TYPE[]) {
         const rows = this._inputRows
         if (!this.numColsToParse && !columnsToCompute.length) return rows
 
@@ -143,7 +146,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         // todo? Do we need a notion of selection outside of OwidTable?
     }
 
-    private get numColsToParse() {
+    get numColsToParse() {
         return this.columnsToParse.length
     }
 
@@ -307,7 +310,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     }
 
     @computed get defs() {
-        return this.columnsAsArray.map((col) => col.def)
+        return this.columnsAsArray.map((col) => col.def) as COL_DEF_TYPE[]
     }
 
     @computed get columnNames() {
@@ -372,13 +375,6 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         const cols = this.getColumns(slugs)
         const mins = cols.map((col) => col.minValue)
         const maxes = cols.map((col) => col.maxValue)
-        return [min(mins), max(maxes)]
-    }
-
-    timeDomainFor(slugs: ColumnSlug[]): [Time | undefined, Time | undefined] {
-        const cols = this.getColumns(slugs)
-        const mins = cols.map((col) => col.minTime)
-        const maxes = cols.map((col) => col.maxTime)
         return [min(mins), max(maxes)]
     }
 
@@ -451,26 +447,23 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
     }
 
     explainShort(options?: AlignedTextTableOptions) {
-        // todo: add typings
-        return toAlignedTextTable(
-            [
-                "stepNumber",
-                "transformCategory",
-                "numColumns",
-                "numRows",
-                "timeToLoad",
-                "betweenTime",
-                "numColsToParse",
-                "numColsToCompute",
-                "tableDescription",
-            ],
-            this.ancestors,
-            {
-                maxCharactersPerColumn: 100,
-                maxCharactersPerLine: 300,
-                ...options,
-            }
-        )
+        type CoreTableGetter = keyof CoreTable
+        const header: CoreTableGetter[] = [
+            "stepNumber",
+            "transformCategory",
+            "numColumns",
+            "numRows",
+            "timeToLoad",
+            "betweenTime",
+            "numColsToParse",
+            "numColsToCompute",
+            "tableDescription",
+        ]
+        return toAlignedTextTable(header, this.ancestors, {
+            maxCharactersPerColumn: 100,
+            maxCharactersPerLine: 300,
+            ...options,
+        })
     }
 
     // Output a pretty table for consles
@@ -559,7 +552,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    withTransformedDefs(fn: (def: CoreColumnDef) => CoreColumnDef): this {
+    withTransformedDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE): this {
         return new (this.constructor as any)(
             this.rows,
             this.defs.map(fn),
@@ -700,7 +693,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    appendColumns(defs: CoreColumnDef[]): this {
+    appendColumns(defs: COL_DEF_TYPE[]): this {
         return new (this.constructor as any)(
             this.rows,
             defs,
@@ -712,7 +705,7 @@ export class CoreTable<ROW_TYPE extends CoreRow = CoreRow> {
         )
     }
 
-    appendColumnsIfNew(defs: CoreColumnDef[]) {
+    appendColumnsIfNew(defs: COL_DEF_TYPE[]) {
         return this.appendColumns(defs.filter((def) => !this.has(def.slug)))
     }
 

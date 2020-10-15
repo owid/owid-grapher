@@ -11,6 +11,7 @@ import {
     uniq,
     isPresent,
     unionOfSets,
+    sortNumeric,
 } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { CoreTable } from "./CoreTable"
@@ -349,23 +350,23 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove. should not be on coretable
-    @computed get allTimes(): Time[] {
+    @computed private get allTimes(): Time[] {
         return this.rowsWithValue.map((row) => rowTime(row))
     }
 
     // todo: remove. should not be on coretable
-    @computed get uniqTimes(): Time[] {
-        return uniq(this.allTimes)
+    @computed get uniqTimesAsc(): Time[] {
+        return sortNumeric(uniq(this.allTimes))
     }
 
     // todo: remove. should not be on coretable
     @computed get maxTime() {
-        return last(this.uniqTimes) as Time
+        return last(this.uniqTimesAsc) as Time
     }
 
     // todo: remove. should not be on coretable
     @computed get minTime(): Time {
-        return this.uniqTimes[0]
+        return this.uniqTimesAsc[0]
     }
 
     // todo: remove? Should not be on CoreTable

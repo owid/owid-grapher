@@ -32,7 +32,7 @@ import {
     covidDashboardSlug,
     coronaDefaultView,
     covidDataPath,
-    sourceCharts,
+    sourceChartsForChartTemplates,
     metricLabels,
     intervalSpecs,
     MetricOptions,
@@ -607,7 +607,9 @@ export class CovidExplorer
     }
 
     @computed private get sourceChartId(): number {
-        return (sourceCharts as any)[this.constrainedParams.sourceChartKey]
+        return (sourceChartsForChartTemplates as any)[
+            this.constrainedParams.sourceChartKey
+        ]
     }
 
     @computed private get sourceChart(): GrapherInterface | undefined {
@@ -770,8 +772,9 @@ export class CovidExplorer
         [name: string]: ColorScaleConfigInterface
     } {
         return {
-            ptr: this.props.covidChartAndVariableMeta.charts[sourceCharts.epi]
-                ?.colorScale as any,
+            ptr: this.props.covidChartAndVariableMeta.charts[
+                sourceChartsForChartTemplates.epi
+            ]?.colorScale as any,
             continents: {
                 binningStrategy: BinningStrategy.manual,
                 legendDescription: "Continent",

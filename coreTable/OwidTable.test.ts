@@ -394,3 +394,39 @@ describe("relative mode", () => {
     firstRow = table.rows[0]
     expect(Math.round(firstRow.Fruit + firstRow.Vegetables)).toEqual(100)
 })
+
+describe("time domain", () => {
+    it("can get the time domain across columns", () => {
+        const table = OwidTable.fromDelimited(
+            `gdp,perCapita,day,entityName,entityId,entityCode
+0,123.1,0,usa,,
+12,300,1,usa,,
+20,,2,usa,,`,
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "perCapita", type: ColumnTypeNames.Numeric },
+                { slug: "day", type: ColumnTypeNames.Date },
+            ]
+        )
+
+        expect(table.timeDomainFor(["gdp", "perCapita"])).toEqual([0, 2])
+        expect(table.timeDomainFor(["perCapita"])).toEqual([0, 1])
+    })
+
+    it("can get minTime and maxTimes when years are initially unsorted", () => {
+        const table = OwidTable.fromDelimited(
+            `gdp,day,entityName,entityId,entityCode
+0,2000,usa,,
+12,1950,usa,,
+20,1970,usa,,`,
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "day", type: ColumnTypeNames.Date },
+            ]
+        )
+
+        expect(table.get("gdp")!.minTime).toEqual(1950)
+        expect(table.get("gdp")!.maxTime).toEqual(2000)
+        expect(table.get("gdp")!.uniqTimesAsc).toEqual([1950, 1970, 2000])
+    })
+})
