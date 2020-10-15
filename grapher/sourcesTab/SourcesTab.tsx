@@ -13,7 +13,7 @@ const formatText = (s: string) => linkify(s).replace(/(?:\r\n|\r|\n)/g, "<br/>")
 export interface SourcesTabManager {
     adminBaseUrl?: string
     columnsWithSources: CoreColumn[]
-    isAdmin?: boolean
+    showAdminControls?: boolean
 }
 
 @observer
@@ -34,7 +34,7 @@ export class SourcesTab extends React.Component<{
         const source = def.source!
         const { table } = column
 
-        const editUrl = this.manager.isAdmin
+        const editUrl = this.manager.showAdminControls
             ? `${this.props.manager.adminBaseUrl}/admin/datasets/${def.datasetId}`
             : undefined
 

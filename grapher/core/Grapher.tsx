@@ -491,11 +491,21 @@ export class Grapher
         this._receiveLegacyData(json)
     }
 
-    @computed get isAdmin() {
+    /**
+     * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
+     */
+    @computed get useAdminAPI(): boolean {
         if (typeof window === "undefined") return false
+        return window.admin !== undefined
+    }
 
-        if (window.admin) return true
-
+    /**
+     * Whether the user viewing the chart is an admin and we should show admin controls,
+     * like the "Edit" option in the share menu.
+     */
+    @computed get showAdminControls(): boolean {
+        // This cookie is set by visiting ourworldindata.org/identifyadmin on the static site.
+        // There is an iframe on owid.cloud to trigger a visit to that page.
         return !!Cookies.get(CookieKey.isAdmin)
     }
 
@@ -505,7 +515,7 @@ export class Grapher
             return
 
         try {
-            if (this.isAdmin) {
+            if (this.useAdminAPI) {
                 const json = await window.admin.getJSON(
                     `/api/data/variables/${this.dataFileName}`
                 )
