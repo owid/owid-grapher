@@ -69,6 +69,10 @@ const legacyConfig = {
             "207": { name: "Iceland", id: 207, code: "ISL" },
         },
     },
+    selectedData: [
+        { entityId: 207, index: 0 },
+        { entityId: 15, index: 1 },
+    ],
 }
 
 it("can apply legacy chart dimension settings", () => {
