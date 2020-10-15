@@ -1,0 +1,27 @@
+.cookie-preferences {
+    @include block-spacing;
+    border: 2px solid $primary-color;
+
+    .last-updated {
+        font-size: 0.9rem;
+    }
+
+    button {
+        margin-top: $vertical-spacing;
+        .icon {
+            margin-right: 0.5rem;
+        }
+    }
+}
+
+.cookie-preference {
+    margin-bottom: $vertical-spacing;
+    &:last-child {
+        margin-bottom: 0;
+    }
+    label {
+        text-transform: uppercase;
+        font-weight: bold;
+        margin-left: 0.5rem;
+    }
+}

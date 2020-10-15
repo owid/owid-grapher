@@ -25,6 +25,7 @@ import {
     ColorBox,
     BindAutoFloat,
     BindString,
+    Button,
 } from "./Forms"
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
 import {
@@ -64,6 +65,10 @@ class ColorLegendSection extends React.Component<{
         this.props.scale.config.equalSizeBins = isEqual ? true : undefined
     }
 
+    @action.bound onManualBins() {
+        populateManualBinValuesIfAutomatic(this.props.scale)
+    }
+
     render() {
         const { scale, features } = this.props
         return (
@@ -86,7 +91,7 @@ class ColorLegendSection extends React.Component<{
                         />
                     </FieldsRow>
                 )}
-                {scale.isManualBuckets && (
+                {scale.isManualBuckets ? (
                     <EditableList>
                         {scale.legendBins.map((bin, index) => (
                             <BinLabelView
@@ -97,6 +102,13 @@ class ColorLegendSection extends React.Component<{
                             />
                         ))}
                     </EditableList>
+                ) : (
+                    <button
+                        className="btn btn-primary"
+                        onClick={this.onManualBins}
+                    >
+                        Assign custom labels
+                    </button>
                 )}
             </Section>
         )
