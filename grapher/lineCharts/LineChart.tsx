@@ -550,15 +550,17 @@ export class LineChart
             : this.inputTable.numericColumnSlugs
     }
 
+    // todo: for now just works with 1 y column
     @computed private get annotationsMap() {
-        return this.seriesAnnotationsColumn?.getUniqueValuesGroupedBy(
-            OwidTableSlugs.entityName
-        )
+        return this.inputTable
+            .getAnnotationColumnForColumn(this.yColumnSlugs[0])
+            ?.getUniqueValuesGroupedBy(OwidTableSlugs.entityName)
     }
 
-    // todo: make work again
-    @computed private get seriesAnnotationsColumn() {
-        return this.inputTable.get("annotations")
+    getAnnotationsForSeries(seriesName: SeriesName) {
+        const annotationsMap = this.annotationsMap
+        const annos = annotationsMap?.get(seriesName)
+        return annos ? Array.from(annos.values()).join(" & ") : undefined
     }
 
     @computed private get colorScheme() {
@@ -650,29 +652,24 @@ export class LineChart
         })
     }
 
-    getAnnotationsForSeries(entityName: EntityName) {
-        const annotationsMap = this.annotationsMap
-        const annos = annotationsMap?.get(entityName)
-        return annos ? Array.from(annos.values()).join(" & ") : undefined
-    }
-
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
     @computed get labelSeries(): LineLabelSeries[] {
         // If there are any projections, ignore non-projection legends
         // Bit of a hack
-        let toShow = this.series
-        if (toShow.some((g) => !!g.isProjection))
-            toShow = toShow.filter((g) => g.isProjection)
+        let seriesToShow = this.series
+        if (seriesToShow.some((series) => !!series.isProjection))
+            seriesToShow = seriesToShow.filter((series) => series.isProjection)
 
-        return toShow.map((series) => {
+        return seriesToShow.map((series) => {
+            const { seriesName } = series
             const lastValue = last(series.points)!.y
             return {
                 color: series.color,
-                seriesName: series.seriesName,
+                seriesName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: this.manager.hideLegend ? "" : `${series.seriesName}`,
-                annotation: this.getAnnotationsForSeries(series.seriesName),
+                label: this.manager.hideLegend ? "" : `${seriesName}`,
+                annotation: this.getAnnotationsForSeries(seriesName),
                 yValue: lastValue,
             }
         })

@@ -7,6 +7,7 @@ import {
 } from "coreTable/OwidTableSynthesizers"
 import { ScaleType } from "grapher/core/GrapherConstants"
 import { Bounds } from "grapher/utils/Bounds"
+import { makeAnnotationsSlug } from "coreTable/LegacyToOwidTable"
 
 export default {
     title: "LineChart",
@@ -66,11 +67,35 @@ export const WithLogScaleAndNegativeAndZeroValues = () => {
     )
 }
 
-export const WithPointsHidden = () => {
+export const WithoutCirclesOnPoints = () => {
     const table = SynthesizeGDPTable({
         entityCount: 6,
         timeRange: [1900, 2000],
     }).selectAll()
+    return (
+        <div>
+            <svg width={600} height={600}>
+                <LineChart
+                    manager={{ table, yColumnSlugs: [SampleColumnSlugs.GDP] }}
+                />
+            </svg>
+        </div>
+    )
+}
+
+export const WithAnnotations = () => {
+    const table = SynthesizeGDPTable({
+        entityCount: 6,
+        timeRange: [1900, 2000],
+    })
+        // todo: eventually we should create a better API for annotations
+        .appendColumns([
+            {
+                slug: makeAnnotationsSlug(SampleColumnSlugs.GDP),
+                fn: (row) => `${row.entityName} is a country`,
+            },
+        ])
+        .selectAll()
     return (
         <div>
             <svg width={600} height={600}>

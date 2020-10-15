@@ -52,7 +52,8 @@ export interface CoreColumnDef {
 export enum TransformType {
     // Table level ops
     Load = "Load",
-    Tranpose = "Tranpose",
+    Transpose = "Transpose",
+    Reload = "Reload",
 
     // Row ops
     FilterRows = "FilterRows",

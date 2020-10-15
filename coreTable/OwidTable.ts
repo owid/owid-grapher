@@ -35,7 +35,7 @@ import {
     OwidTableSlugs,
     RequiredColumnDefs,
 } from "./OwidTableConstants"
-import { legacyToOwidTable } from "./LegacyToOwidTable"
+import { legacyToOwidTable, makeAnnotationsSlug } from "./LegacyToOwidTable"
 import { InvalidCell } from "./InvalidCells"
 import {
     AlignedTextTableOptions,
@@ -157,6 +157,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     @computed get rowsByTime() {
         return this.rowsBy<Time>(this.timeColumn.slug)
+    }
+
+    // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
+    getAnnotationColumnForColumn(columnSlug: ColumnSlug) {
+        const def = this.get(columnSlug)?.def as OwidColumnDef
+        const slug =
+            (def && def.annotationsColumnSlug) ??
+            makeAnnotationsSlug(columnSlug)
+        return this.get(slug)
     }
 
     getTimeOptionsForColumns(columnSlugs: ColumnSlug[]) {

@@ -24,6 +24,7 @@ import {
     OwidTableSlugs,
 } from "coreTable/OwidTableConstants"
 import { CountryPickerManager } from "grapher/controls/countryPicker/CountryPickerConstants"
+import { CovidAnnotationColumnSlugs } from "./CovidAnnotations"
 
 // Previously the query string was a few booleans like dailyFreq=true. Now it is a single 'interval'.
 // This method is for backward compat.
@@ -540,7 +541,8 @@ export const makeColumnDefTemplates = (
             ...columnDefsFromGrapherBackend[
                 sourceVariablesForColumnDefTemplates.case_fatality_rate
             ],
-            // annotationsColumnSlug: "case_fatality_rate_series_annotations", // todo: readd annotations as a propety like size or color
+            annotationsColumnSlug:
+                CovidAnnotationColumnSlugs.case_fatality_rate_series_annotations,
             isDailyMeasurement: true,
             type: ColumnTypeNames.Percentage,
             description: `The Case Fatality Rate (CFR) is the ratio between confirmed deaths and confirmed cases. During an outbreak of a pandemic the CFR is a poor measure of the mortality risk of the disease. We explain this in detail at OurWorldInData.org/Coronavirus`,
@@ -550,7 +552,8 @@ export const makeColumnDefTemplates = (
                 sourceVariablesForColumnDefTemplates.cases
             ],
             isDailyMeasurement: true,
-            // annotationsColumnSlug: "cases_series_annotations",
+            annotationsColumnSlug:
+                CovidAnnotationColumnSlugs.cases_series_annotations,
             name: "Confirmed cases of COVID-19",
             type: ColumnTypeNames.Integer,
             description: `The number of confirmed cases is lower than the number of actual cases; the main reason for that is limited testing.`,
@@ -561,7 +564,8 @@ export const makeColumnDefTemplates = (
             ],
             isDailyMeasurement: true,
             type: ColumnTypeNames.Integer,
-            // annotationsColumnSlug: "deaths_series_annotations",
+            annotationsColumnSlug:
+                CovidAnnotationColumnSlugs.deaths_series_annotations,
             name: "Confirmed deaths due to COVID-19",
             description: `Limited testing and challenges in the attribution of the cause of death means that the number of confirmed deaths may not be an accurate count of the true number of deaths from COVID-19.`,
         },
@@ -573,7 +577,7 @@ export const makeColumnDefTemplates = (
             type: ColumnTypeNames.Integer,
             description: "",
             name: "tests",
-            // annotationsColumnSlug: "tests_units",
+            annotationsColumnSlug: "tests_units",
         },
         days_since: {
             ...columnDefsFromGrapherBackend[

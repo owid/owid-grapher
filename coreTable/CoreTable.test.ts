@@ -1,5 +1,6 @@
 #! /usr/bin/env yarn jest
 
+import { rowsFromGrid } from "grapher/utils/Util"
 import { CoreTable } from "./CoreTable"
 import { ColumnTypeNames } from "./CoreTableConstants"
 
@@ -124,20 +125,47 @@ it("can sort columns", () => {
     ])
 })
 
-it("can query rows", () => {
+describe("searching", () => {
     const rows = [
         { country: "USA", year: 1999 },
         { country: "Germany", year: 2000 },
         { country: "Germany", year: 2001 },
     ]
     const table = new CoreTable(rows)
-    expect(table.where({ country: "Germany" }).numRows).toEqual(2)
-    expect(table.findRows({ country: "Germany" }).length).toEqual(2)
-    expect(table.where({ country: "Germany", year: 2001 }).numRows).toEqual(1)
-    expect(table.where({}).numRows).toEqual(3)
-    expect(table.where({ country: ["Germany", "USA"] }).numRows).toEqual(3)
-    expect(table.where({ year: [2002] }).numRows).toEqual(0)
-    expect(table.where({ year: [1999], country: "Germany" }).numRows).toEqual(0)
+
+    it("can filter by exact matches to certain columns", () => {
+        expect(table.where({ country: "Germany" }).numRows).toEqual(2)
+        expect(table.findRows({ country: "Germany" }).length).toEqual(2)
+        expect(table.where({ country: "Germany", year: 2001 }).numRows).toEqual(
+            1
+        )
+        expect(table.where({}).numRows).toEqual(3)
+        expect(table.where({ country: ["Germany", "USA"] }).numRows).toEqual(3)
+        expect(table.where({ year: [2002] }).numRows).toEqual(0)
+        expect(
+            table.where({ year: [1999], country: "Germany" }).numRows
+        ).toEqual(0)
+    })
+
+    it("can just do simple grep like searching to find rows", () => {
+        expect(table.grep("Germany").numRows).toEqual(2)
+        expect(table.grep("USA").numRows).toEqual(1)
+        expect(table.grep("USA").numRows).toEqual(1)
+        expect(table.grep("Missing").numRows).toEqual(0)
+        expect(table.grep("200").numRows).toEqual(2)
+        expect(table.grep(/20\d+/).numRows).toEqual(2)
+
+        expect(table.grep("Germany").grepNot("2001").numRows).toEqual(1)
+        expect(table.grep(/(1999|2000)/).numRows).toEqual(2)
+    })
+
+    it("can filter columns as well", () => {
+        expect(table.grepColumns("country").numColumns).toEqual(1)
+        expect(table.grepColumns("r").numColumns).toEqual(2)
+        expect(table.grepColumns("zz").numColumns).toEqual(0)
+        expect(table.grepColumnsNot("year").numColumns).toEqual(1)
+        expect(table.grepColumnsNot(/co.+/).numColumns).toEqual(1)
+    })
 })
 
 describe("filtering", () => {
@@ -308,13 +336,13 @@ it("can load a table from an array of arrays", () => {
         Object.keys(sampleRows[0]),
         Object.values(sampleRows[0]),
     ] as any[][]
-    const table = new CoreTable(CoreTable.rowsFromMatrix(matrix))
+    const table = new CoreTable(rowsFromGrid(matrix))
     expect(table.numRows).toEqual(1)
     expect(table.numColumns).toEqual(6)
     expect(table.toMatrix()).toEqual(matrix)
 
     const tableTrim = new CoreTable(
-        CoreTable.rowsFromMatrix([
+        rowsFromGrid([
             ["country", null],
             ["usa", undefined],
         ])

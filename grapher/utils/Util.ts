@@ -821,6 +821,18 @@ export const trimEmptyRows = (grid: Grid): Grid => {
     return trimAt === undefined ? grid : grid.slice(0, trimAt)
 }
 
+export const rowsFromGrid = (inputTable: Grid) => {
+    const table = trimGrid(inputTable)
+    const header = table[0]
+    return table.slice(1).map((row) => {
+        const newRow: any = {}
+        header.forEach((col, index) => {
+            newRow[col] = row[index]
+        })
+        return newRow
+    })
+}
+
 export const trimArray = (arr: any[]) => {
     let index: number
     for (index = arr.length - 1; index >= 0; index--) {

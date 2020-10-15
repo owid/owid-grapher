@@ -2,7 +2,7 @@ import { observer } from "mobx-react"
 import React from "react"
 import { HotTable } from "@handsontable/react"
 import { action, computed } from "mobx"
-import { Grid } from "grapher/utils/Util"
+import { Grid, rowsFromGrid } from "grapher/utils/Util"
 import Handsontable from "handsontable"
 import { OwidTable } from "coreTable/OwidTable"
 
@@ -20,15 +20,14 @@ export class Spreadsheet extends React.Component<{
         const newVersion = this.hotTableComponent.current?.hotInstance.getData() as Grid
         if (newVersion && this.isChanged(newVersion))
             this.manager.table = new OwidTable(
-                OwidTable.rowsFromMatrix(newVersion)
-            ).setSelectedEntities(this.manager.table.selectedEntityNames)
+                rowsFromGrid(newVersion)
+            ).selectAll()
     }
 
     private isChanged(newVersion: Grid) {
         return (
-            new OwidTable(
-                OwidTable.rowsFromMatrix(newVersion)
-            ).toDelimited() !== this._version
+            new OwidTable(rowsFromGrid(newVersion)).toDelimited() !==
+            this._version
         )
     }
 

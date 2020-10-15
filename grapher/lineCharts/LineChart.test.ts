@@ -9,17 +9,17 @@ import {
 import { ChartManager } from "grapher/chart/ChartManager"
 import { ScaleType } from "grapher/core/GrapherConstants"
 
-const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-const manager = {
-    table,
-    yColumnSlugs: [SampleColumnSlugs.GDP],
-}
-
 it("can create a new chart", () => {
+    const manager = {
+        table: SynthesizeGDPTable({ timeRange: [2000, 2010] }),
+        yColumnSlugs: [SampleColumnSlugs.GDP],
+    }
     const chart = new LineChart({ manager })
 
     expect(chart.failMessage).toBeTruthy()
-    table.selectAll()
+
+    manager.table.selectAll()
+
     expect(chart.failMessage).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.placedSeries.length).toEqual(2)

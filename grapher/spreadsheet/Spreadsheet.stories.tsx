@@ -4,12 +4,12 @@ import {
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import { Spreadsheet } from "./Spreadsheet"
-// import "handsontable/dist/handsontable.full.css" // todo: this breaks storybook/webpack build. but without it this story is useless
-import { action, observable } from "mobx"
+import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { StackedAreaChart } from "grapher/stackedCharts/StackedAreaChart"
 import { Bounds } from "grapher/utils/Bounds"
 import { OwidTable } from "coreTable/OwidTable"
+import { ChartTypeName } from "grapher/core/GrapherConstants"
+import { getChartComponent } from "grapher/chart/ChartTypeMap"
 
 export default {
     title: "Spreadsheet",
@@ -19,9 +19,8 @@ export default {
 const getRandomTable = () =>
     SynthesizeGDPTable({
         entityCount: 2,
-        timeRange: [2000, 2005],
+        timeRange: [2020, 2024],
     })
-        .dropRandomRows(3)
         .withoutColumns([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
         .selectAll() as OwidTable
 
@@ -33,18 +32,25 @@ class Editor extends React.Component {
         this.table = getRandomTable()
     }
 
+    @computed get yColumnSlugs() {
+        return [SampleColumnSlugs.LifeExpectancy]
+    }
+
+    @observable chartTypeName = ChartTypeName.LineChart
+
     render() {
+        const ChartType = getChartComponent(this.chartTypeName) as any
+
         return (
             <div>
                 <Spreadsheet manager={this} />
                 <svg width={400} height={300}>
-                    <StackedAreaChart
+                    <ChartType
                         manager={this}
                         bounds={new Bounds(0, 0, 400, 300)}
                     />
                 </svg>
                 <button onClick={this.shuffleTable}>Shuffle</button>
-                <pre>${this.table.toAlignedTextTable()}</pre>
             </div>
         )
     }

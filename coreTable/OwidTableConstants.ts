@@ -1,4 +1,5 @@
 import {
+    ColumnSlug,
     ColumnTypeNames,
     CoreColumnDef,
     CoreRow,
@@ -35,6 +36,7 @@ export interface OwidColumnDef extends CoreColumnDef {
     datasetName?: string
     source?: OwidSource
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor
+    annotationsColumnSlug?: ColumnSlug
 }
 
 export const RequiredColumnDefs: OwidColumnDef[] = [

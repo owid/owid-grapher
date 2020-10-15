@@ -9,8 +9,8 @@ import {
     orderBy,
     getDropIndexes,
     Grid,
-    trimGrid,
     intersectionOfSets,
+    rowsFromGrid,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
@@ -22,7 +22,6 @@ import {
     CoreRow,
     PrimitiveType,
     SortOrder,
-    Time,
     TransformType,
     ValueRange,
 } from "./CoreTableConstants"
@@ -261,6 +260,50 @@ export class CoreTable<
             map.get(value)!.push(row)
         })
         return map
+    }
+
+    private _grep(searchStringOrRegex: string | RegExp, inverse = false) {
+        return this.filter((row) => {
+            const line = Object.values(row).join(" ")
+            const result =
+                typeof searchStringOrRegex === "string"
+                    ? line.includes(searchStringOrRegex)
+                    : searchStringOrRegex.test(line)
+            return inverse ? !result : result
+        }, `Dropped rows that ${inverse ? "" : "did not "}contain '${searchStringOrRegex.toString()}'`)
+    }
+
+    grep(searchStringOrRegex: string | RegExp) {
+        return this._grep(searchStringOrRegex)
+    }
+
+    grepNot(searchStringOrRegex: string | RegExp) {
+        return this._grep(searchStringOrRegex, true)
+    }
+
+    private _grepColumn(searchStringOrRegex: string | RegExp, inverse = false) {
+        const columnsToDrop = this.columnSlugs.filter((slug) => {
+            const result =
+                typeof searchStringOrRegex === "string"
+                    ? slug.includes(searchStringOrRegex)
+                    : searchStringOrRegex.test(slug)
+            return inverse ? !!result : !result
+        })
+
+        return this.withoutColumns(
+            columnsToDrop,
+            `Dropped columns that ${
+                inverse ? "" : "did not "
+            }contain '${searchStringOrRegex.toString()}'`
+        )
+    }
+
+    grepColumns(searchStringOrRegex: string | RegExp) {
+        return this._grepColumn(searchStringOrRegex)
+    }
+
+    grepColumnsNot(searchStringOrRegex: string | RegExp) {
+        return this._grepColumn(searchStringOrRegex, true)
     }
 
     // todo: speed up
@@ -735,6 +778,19 @@ export class CoreTable<
         )
     }
 
+    // Update the table from an array of arrays (method created for loading data from Handsontable)
+    // For now does a dumb overwrite
+    reloadFromGrid(inputTable: Grid) {
+        const rows = rowsFromGrid(inputTable)
+        return new (this.constructor as any)(
+            rows,
+            undefined,
+            this,
+            `Reloaded ${rows.length} rows`,
+            TransformType.Reload
+        )
+    }
+
     transpose(
         by: ColumnSlug,
         columnTypeNameForNewColumns = ColumnTypeNames.Numeric
@@ -751,11 +807,11 @@ export class CoreTable<
             .filter((col) => col.slug !== by)
             .map((col) => [col.slug, ...col.allValues])
         return new (this.constructor as any)(
-            CoreTable.rowsFromMatrix([newColumnSlugs, ...newRowValues]),
+            rowsFromGrid([newColumnSlugs, ...newRowValues]),
             newColumnDefs,
             this,
             `Transposed`,
-            TransformType.Tranpose
+            TransformType.Transpose
         )
     }
 
@@ -765,18 +821,6 @@ export class CoreTable<
 
     toMatrix() {
         return [this.columnSlugs, ...this.extract()]
-    }
-
-    static rowsFromMatrix(inputTable: Grid) {
-        const table = trimGrid(inputTable)
-        const header = table[0]
-        return table.slice(1).map((row) => {
-            const newRow: any = {}
-            header.forEach((col, index) => {
-                newRow[col] = row[index]
-            })
-            return newRow
-        })
     }
 
     defToObject() {

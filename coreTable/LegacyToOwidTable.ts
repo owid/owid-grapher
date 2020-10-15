@@ -28,6 +28,9 @@ import {
     EntityId,
 } from "./OwidTableConstants"
 
+export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
+    `${columnSlug}-annotations`
+
 export const legacyVariablesToTabular = (
     json: LegacyVariablesAndEntityKey,
     colorMap = new Map<EntityId, Color>()
@@ -76,7 +79,7 @@ export const legacyVariablesToTabular = (
         let annotationsColumnSlug: string
         let annotationMap: Map<string, string>
         if (variable.display?.entityAnnotationsMap) {
-            annotationsColumnSlug = `${columnSlug}-annotations`
+            annotationsColumnSlug = makeAnnotationsSlug(columnSlug)
             annotationMap = annotationsToMap(
                 variable.display.entityAnnotationsMap
             )
