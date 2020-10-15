@@ -70,7 +70,9 @@ export enum MetricOptions {
     positive_test_rate = "positive_test_rate",
 }
 
-export const sourceCharts = {
+// Authors edit these source charts, specifying color scales, for example, and we sync
+// some of that data for "chart templates"
+export const sourceChartsForChartTemplates = {
     epi: 4258,
 
     cases_total: 4018,
@@ -101,7 +103,9 @@ export const sourceCharts = {
     case_fatality_rate_total: 4056,
 }
 
-export const sourceVariables = {
+// Authors edit the metadata for these variables and we pull that from the database during baking.
+// Todo: when we do the next generation of data and column defs we should remove
+export const sourceVariablesForColumnDefTemplates = {
     positive_test_rate: 142721,
     tests_per_case: 142754,
     case_fatality_rate: 142600,
@@ -112,7 +116,8 @@ export const sourceVariables = {
     continents: 123,
 }
 
-export const trajectoryColumnSpecs = {
+// For the "days since" columns, we set some custom thresholds.
+export const trajectoryColumnThresholds = {
     deaths: {
         total: {
             name: "Days since the 5th total confirmed death",

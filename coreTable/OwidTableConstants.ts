@@ -27,13 +27,14 @@ export type EntityName = string
 export type EntityCode = string
 export type EntityId = number
 
+// Todo: coverage, datasetId, and datasetName can just be on source, right? or should we flatten source onto this?
 export interface OwidColumnDef extends CoreColumnDef {
-    owidVariableId?: LegacyVariableId
+    owidVariableId?: LegacyVariableId // todo: remove after data 2.0
     coverage?: string
     datasetId?: string
     datasetName?: string
     source?: OwidSource
-    isDailyMeasurement?: boolean // todo: remove
+    isDailyMeasurement?: boolean // todo: remove after mysql time refactor
 }
 
 export const RequiredColumnDefs: OwidColumnDef[] = [
