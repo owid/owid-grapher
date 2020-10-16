@@ -175,18 +175,16 @@ export class OldChart {
     }
 }
 
-export async function getChartById(
-    chartId: number
+export async function getGrapherById(
+    grapherId: number
 ): Promise<GrapherInterface | undefined> {
-    const chart = (
-        await db.query(`SELECT id, config FROM charts WHERE id=?`, [chartId])
+    const grapher = (
+        await db.query(`SELECT id, config FROM charts WHERE id=?`, [grapherId])
     )[0]
 
-    if (chart) {
-        const config = JSON.parse(chart.config)
-        config.id = chart.id
-        return config
-    } else {
-        return undefined
-    }
+    if (!grapher) return undefined
+
+    const config = JSON.parse(grapher.config)
+    config.id = grapher.id
+    return config
 }

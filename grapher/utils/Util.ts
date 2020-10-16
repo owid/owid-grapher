@@ -341,6 +341,15 @@ export function lastOfNonEmptyArray<T>(arr: T[]): T {
     return last(arr) as T
 }
 
+interface ObjectLiteral {
+    [key: string]: any
+}
+export const mapToObjectLiteral = (map: Map<string, any>) =>
+    Array.from(map).reduce((objLit, [key, value]) => {
+        objLit[key.toString()] = value
+        return objLit
+    }, {} as ObjectLiteral)
+
 export function next<T>(set: T[], current: T) {
     let nextIndex = set.indexOf(current) + 1
     nextIndex = nextIndex === -1 ? 0 : nextIndex

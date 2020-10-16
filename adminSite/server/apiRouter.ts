@@ -14,7 +14,7 @@ import {
     absoluteUrl,
 } from "utils/server/serverUtil"
 import { sendMail } from "adminSite/server/utils/mail"
-import { OldChart, Chart, getChartById } from "db/model/Chart"
+import { OldChart, Chart, getGrapherById } from "db/model/Chart"
 import { UserInvitation } from "db/model/UserInvitation"
 import { Request, Response, CurrentUser } from "./utils/authentication"
 import { getVariableData } from "db/model/Variable"
@@ -157,7 +157,7 @@ async function getRedirectsByChartId(
 }
 
 async function expectChartById(chartId: any): Promise<GrapherInterface> {
-    const chart = await getChartById(expectInt(chartId))
+    const chart = await getGrapherById(expectInt(chartId))
 
     if (chart) {
         return chart

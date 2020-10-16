@@ -7,7 +7,7 @@ import md5 from "md5"
 import { BAKED_BASE_URL, OPTIMIZE_SVG_EXPORTS } from "settings"
 import { BAKED_SITE_DIR } from "serverSettings"
 import * as db from "db/db"
-import { bakeChartsToImages } from "site/server/bakeChartsToImages"
+import { bakeGraphersToImages } from "site/server/bakeGraphersToImages"
 import { log } from "utils/server/log"
 import { Chart } from "db/model/Chart"
 
@@ -71,7 +71,7 @@ export async function bakeGrapherUrls(urls: string[]) {
     }
 
     if (toBake.length > 0) {
-        await bakeChartsToImages(
+        await bakeGraphersToImages(
             toBake,
             `${BAKED_SITE_DIR}/exports`,
             OPTIMIZE_SVG_EXPORTS

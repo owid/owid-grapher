@@ -18,12 +18,12 @@ import {
 } from "explorer/covidExplorer/CovidConstants"
 import { SwitcherExplorerProps } from "explorer/client/SwitcherExplorer"
 import { FunctionalRouter } from "adminSite/server/utils/FunctionalRouter"
-import { getChartById } from "db/model/Chart"
+import { getGrapherById } from "db/model/Chart"
 import { Router } from "express"
 import { GIT_CMS_DIR } from "gitCms/constants"
 import { getBlockContent } from "db/wpdb"
 import { ExplorerPage } from "./ExplorerPage"
-import { getPublishedChartsBySlug } from "site/server/bakeChartsToImages"
+import { getPublishedGraphersBySlug } from "site/server/bakeGraphersToImages"
 
 const storageFolder = `${GIT_CMS_DIR}/explorers/`
 
@@ -50,7 +50,7 @@ export const addExplorerApiRoutes = (app: FunctionalRouter) => {
             const configs = []
             for (const chartId of chartIds) {
                 try {
-                    configs.push(await getChartById(chartId))
+                    configs.push(await getGrapherById(chartId))
                 } catch (err) {
                     console.log(`Error with chartId '${chartId}'`)
                 }
@@ -217,8 +217,8 @@ const CovidExplorerPage = (props: CovidExplorerPageProps) => {
 }
 
 const getMegaExplorerCode = async () => {
-    const { chartsBySlug } = await getPublishedChartsBySlug()
-    const lines = Array.from(chartsBySlug.values())
+    const { graphersBySlug } = await getPublishedGraphersBySlug()
+    const lines = Array.from(graphersBySlug.values())
         .map((grapher) => {
             const { id, type, stackMode, title } = grapher
             return "\t" + [id, type, stackMode, title].join("\t")

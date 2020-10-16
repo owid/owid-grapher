@@ -4,9 +4,9 @@ import md5 from "md5"
 import { BAKED_GRAPHER_URL } from "settings"
 import React from "react"
 import {
-    bakeChartToImage,
-    getPublishedChartsBySlug,
-} from "site/server/bakeChartsToImages"
+    bakeGrapherToImage,
+    getPublishedGraphersBySlug,
+} from "site/server/bakeGraphersToImages"
 
 const header = `bakeOrder,timeToBake,slug,chartType,md5`
 const sampleRow = `1,123,world-pop,LineChart,ee5a6312...`
@@ -48,16 +48,16 @@ export async function bakeAndSaveResultsFile(
     outDir: string = __dirname + "/bakedSvgs"
 ) {
     if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
-    const { chartsBySlug } = await getPublishedChartsBySlug()
+    const { graphersBySlug } = await getPublishedGraphersBySlug()
     const resultsPath = outDir + "/results.csv"
     fs.writeFileSync(resultsPath, header + "\n")
     // eslint-disable-next-line no-console
     console.log(header)
     let bakeOrder = 1
-    for (const [slug, config] of chartsBySlug) {
+    for (const [slug, config] of graphersBySlug) {
         if (bakeOrder > bakeLimit) break
         const startTime = Date.now()
-        const svg = await bakeChartToImage(
+        const svg = await bakeGrapherToImage(
             config,
             outDir,
             slug,

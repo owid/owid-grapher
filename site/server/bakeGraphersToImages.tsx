@@ -12,38 +12,38 @@ global.window = { location: { search: "" } }
 import { GrapherInterface } from "grapher/core/GrapherInterface"
 import { Grapher } from "grapher/core/Grapher"
 
-export async function getChartsAndRedirectsBySlug() {
-    const { chartsBySlug, chartsById } = await getPublishedChartsBySlug()
+async function getGraphersAndRedirectsBySlug() {
+    const { graphersBySlug, graphersById } = await getPublishedGraphersBySlug()
 
     const redirectQuery = db.query(
         `SELECT slug, chart_id FROM chart_slug_redirects`
     )
 
     for (const row of await redirectQuery) {
-        chartsBySlug.set(row.slug, chartsById.get(row.chart_id))
+        graphersBySlug.set(row.slug, graphersById.get(row.chart_id))
     }
 
-    return chartsBySlug
+    return graphersBySlug
 }
 
-export async function getPublishedChartsBySlug() {
-    const chartsBySlug: Map<string, GrapherInterface> = new Map()
-    const chartsById = new Map()
+export async function getPublishedGraphersBySlug() {
+    const graphersBySlug: Map<string, GrapherInterface> = new Map()
+    const graphersById = new Map()
 
-    const chartsQuery = db.query(
+    const query = db.query(
         `SELECT * FROM charts WHERE JSON_EXTRACT(config, "$.isPublished") IS TRUE`
     )
-    for (const row of await chartsQuery) {
-        const chart = JSON.parse(row.config)
+    for (const row of await query) {
+        const grapher = JSON.parse(row.config)
 
-        chart.id = row.id
-        chartsBySlug.set(chart.slug, chart)
-        chartsById.set(row.id, chart)
+        grapher.id = row.id
+        graphersBySlug.set(grapher.slug, grapher)
+        graphersById.set(row.id, grapher)
     }
-    return { chartsBySlug, chartsById }
+    return { graphersBySlug, graphersById }
 }
 
-export async function bakeChartToImage(
+export async function bakeGrapherToImage(
     jsonConfig: GrapherInterface,
     outDir: string,
     slug: string,
@@ -79,20 +79,20 @@ export async function bakeChartToImage(
     return svgCode
 }
 
-export async function bakeChartsToImages(
-    chartUrls: string[],
+export async function bakeGraphersToImages(
+    grapherUrls: string[],
     outDir: string,
     optimizeSvgs = false
 ) {
     await fs.mkdirp(outDir)
-    const chartsBySlug = await getChartsAndRedirectsBySlug()
+    const graphersBySlug = await getGraphersAndRedirectsBySlug()
 
-    for (const urlStr of chartUrls) {
+    for (const urlStr of grapherUrls) {
         const url = parseUrl(urlStr)
         const slug = lodash.last(url.pathname.split("/")) as string
-        const jsonConfig = chartsBySlug.get(slug)
+        const jsonConfig = graphersBySlug.get(slug)
         if (jsonConfig) {
-            bakeChartToImage(
+            bakeGrapherToImage(
                 jsonConfig,
                 outDir,
                 slug,
