@@ -135,22 +135,6 @@ function toQueryParams(props?: Partial<GrapherInterface>) {
     return grapher.params
 }
 
-describe("legacy urls", () => {
-    it("can upgrade legacy urls", () => {
-        expect(
-            legacyQueryParamsToCurrentQueryParams({ year: "2000" })
-        ).toEqual({ time: "2000" })
-
-        // Do not override time if set
-        expect(
-            legacyQueryParamsToCurrentQueryParams({
-                year: "2000",
-                time: "2001..2002",
-            })
-        ).toEqual({ time: "2001..2002" })
-    })
-})
-
 describe("scaleType", () => {
     expect(new Grapher().params.xScale).toEqual(undefined)
     expect(
@@ -181,13 +165,36 @@ describe("line chart to bar chart and bar chart race", () => {
     })
 })
 
-describe("base url", () => {
-    const url = new Grapher({
-        isPublished: true,
-        slug: "foo",
-        bakedGrapherURL: "/grapher",
+describe("urls", () => {
+    it("can change base url", () => {
+        const url = new Grapher({
+            isPublished: true,
+            slug: "foo",
+            bakedGrapherURL: "/grapher",
+        })
+        expect(url.baseUrl).toEqual("/grapher/foo")
     })
-    expect(url.baseUrl).toEqual("/grapher/foo")
+
+    it("does not include country param in url if unchanged", () => {
+        const grapher = new Grapher(legacyConfig)
+        grapher.isPublished = true
+        console.log(grapher.canonicalUrl)
+        expect(grapher.canonicalUrl?.includes("country")).toBeFalsy()
+    })
+
+    it("can upgrade legacy urls", () => {
+        expect(
+            legacyQueryParamsToCurrentQueryParams({ year: "2000" })
+        ).toEqual({ time: "2000" })
+
+        // Do not override time if set
+        expect(
+            legacyQueryParamsToCurrentQueryParams({
+                year: "2000",
+                time: "2001..2002",
+            })
+        ).toEqual({ time: "2001..2002" })
+    })
 })
 
 describe("time domain tests", () => {

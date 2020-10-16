@@ -484,6 +484,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .filter(isPresent)
     }
 
+    @computed get selectedEntityIds(): EntityId[] {
+        const map = this.entityNameToIdMap
+        return this.selectedEntityNames
+            .map((name) => map.get(name))
+            .filter(isPresent)
+    }
+
     @action.bound toggleSelection(entityName: EntityName) {
         return this.isEntitySelected(entityName)
             ? this.deselectEntity(entityName)

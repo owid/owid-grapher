@@ -28,6 +28,7 @@ import {
     next,
     sampleFrom,
     range,
+    difference,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -1870,12 +1871,12 @@ export class Grapher
     }
 
     @computed get timeParam() {
-        const originalConfig = this.legacyConfigAsAuthored
+        const authoredConfig = this.legacyConfigAsAuthored
         const formatAsDay = this.table.hasDayColumn
 
         if (
-            this.minTime !== originalConfig.minTime ||
-            this.maxTime !== originalConfig.maxTime
+            this.minTime !== authoredConfig.minTime ||
+            this.maxTime !== authoredConfig.maxTime
         ) {
             const [minTime, maxTime] = this.timelineFilter
 
@@ -1894,12 +1895,20 @@ export class Grapher
     }
 
     @computed private get countryParam() {
-        const originalConfig = this.legacyConfigAsAuthored
-        if (
-            this.isReady &&
-            JSON.stringify(this.selectedEntityNames) !==
-                JSON.stringify(originalConfig.selectedEntityNames)
+        if (!this.isReady) return undefined
+
+        const authoredConfig = this.legacyConfigAsAuthored
+
+        const originalSelectedEntityIds =
+            authoredConfig.selectedData?.map((row) => row.entityId) || []
+        const currentSelectedEntityIds = this.table.selectedEntityIds
+
+        const diff = difference(
+            originalSelectedEntityIds,
+            currentSelectedEntityIds
         )
+
+        if (diff.length)
             return EntityUrlBuilder.entitiesToQueryParam(
                 this.table.selectedEntityCodes
             )
