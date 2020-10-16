@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
+import { bind } from "decko"
 import {
     intersection,
     without,
@@ -55,6 +56,7 @@ import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { EntityName, OwidRow } from "coreTable/OwidTableConstants"
+import { OwidTable } from "coreTable/OwidTable"
 
 @observer
 export class ScatterPlotChart
@@ -72,6 +74,27 @@ export class ScatterPlotChart
     // currently hovered legend color
     @observable private hoverColor?: Color
 
+    @bind transformTable(table: OwidTable) {
+        if (this.xScaleType === ScaleType.log && this.xColumnSlug)
+            table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
+
+        if (this.yScaleType === ScaleType.log && this.yColumnSlug)
+            table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
+
+        return table
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
+    @computed get transformedTable() {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
+    }
+
     @computed private get manager() {
         return this.props.manager
     }
@@ -86,7 +109,8 @@ export class ScatterPlotChart
     }
 
     @action.bound private onSelectEntity(entityName: SeriesName) {
-        if (this.canAddCountry) this.table.toggleSelection(entityName)
+        if (this.canAddCountry)
+            this.transformedTable.toggleSelection(entityName)
     }
 
     // Only want to show colors on legend that are actually on the chart right now
@@ -114,7 +138,7 @@ export class ScatterPlotChart
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick() {
-        const { hoverColor, table } = this
+        const { hoverColor, transformedTable } = this
         if (!this.canAddCountry || hoverColor === undefined) return
 
         const keysToToggle = this.series
@@ -124,11 +148,11 @@ export class ScatterPlotChart
             intersection(keysToToggle, this.selectedEntityNames).length ===
             keysToToggle.length
         if (allKeysActive)
-            table.setSelectedEntities(
+            transformedTable.setSelectedEntities(
                 without(this.selectedEntityNames, ...keysToToggle)
             )
         else
-            table.setSelectedEntities(
+            transformedTable.setSelectedEntities(
                 uniq(this.selectedEntityNames.concat(keysToToggle))
             )
     }
@@ -170,15 +194,19 @@ export class ScatterPlotChart
     }
 
     @computed private get selectedEntityNames() {
-        return this.table.selectedEntityNames
+        return this.transformedTable.selectedEntityNames
     }
 
     @computed get displayStartTime() {
-        return this.table.timeColumnFormatFunction(this.table.minTime ?? 1900)
+        return this.transformedTable.timeColumnFormatFunction(
+            this.transformedTable.minTime ?? 1900
+        )
     }
 
     @computed get displayEndTime() {
-        return this.table.timeColumnFormatFunction(this.table.maxTime ?? 2000)
+        return this.transformedTable.timeColumnFormatFunction(
+            this.transformedTable.maxTime ?? 2000
+        )
     }
 
     @computed private get arrowLegend() {
@@ -307,7 +335,7 @@ export class ScatterPlotChart
     }
 
     @computed private get colorColumn() {
-        return this.table.get(this.manager.colorColumnSlug)
+        return this.transformedTable.get(this.manager.colorColumnSlug)
     }
 
     @computed get colorBins() {
@@ -450,7 +478,7 @@ export class ScatterPlotChart
     }
 
     @computed private get yColumn() {
-        return this.table.get(this.yColumnSlug)
+        return this.transformedTable.get(this.yColumnSlug)
     }
 
     @computed private get xColumnSlug() {
@@ -459,11 +487,11 @@ export class ScatterPlotChart
     }
 
     @computed private get xColumn() {
-        return this.table.get(this.xColumnSlug)
+        return this.transformedTable.get(this.xColumnSlug)
     }
 
     @computed private get sizeColumn() {
-        return this.table.get(this.manager.sizeColumnSlug)
+        return this.transformedTable.get(this.manager.sizeColumnSlug)
     }
 
     @computed get failMessage() {
@@ -512,7 +540,7 @@ export class ScatterPlotChart
         filterBackgroundEntities = this.hideBackgroundEntities
     ): Set<SeriesName> {
         const seriesNames = filterBackgroundEntities
-            ? this.table.selectedEntityNames
+            ? this.transformedTable.selectedEntityNames
             : this.allEntityNamesWithXAndY
 
         if (this.manager.matchingEntitiesOnly && this.colorColumn)
@@ -733,7 +761,10 @@ export class ScatterPlotChart
     }
 
     @computed private get pointsForAxisDomains() {
-        if (!this.table.numSelectedEntities || !this.manager.zoomToSelection)
+        if (
+            !this.transformedTable.numSelectedEntities ||
+            !this.manager.zoomToSelection
+        )
             return this.currentValues
 
         return this.selectedPoints.length
@@ -819,24 +850,9 @@ export class ScatterPlotChart
         return axis
     }
 
-    @computed get table() {
-        let table = this.inputTable
-
-        if (this.xScaleType === ScaleType.log)
-            table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
-        if (this.yScaleType === ScaleType.log)
-            table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
-
-        return table
-    }
-
-    @computed get inputTable() {
-        return this.manager.table
-    }
-
     // todo: refactor/remove and/or add unit tests
     @computed get series() {
-        const { yColumn, table, xColumn } = this
+        const { yColumn, transformedTable, xColumn } = this
         if (!yColumn || !xColumn) return []
 
         const seriesArr: ScatterSeries[] = []
@@ -855,7 +871,9 @@ export class ScatterPlotChart
             pointsByTime.forEach((point) => {
                 let label
                 if (strat === ScatterPointLabelStrategy.year)
-                    label = table.timeColumnFormatFunction(point.timeValue)
+                    label = transformedTable.timeColumnFormatFunction(
+                        point.timeValue
+                    )
                 else if (strat === ScatterPointLabelStrategy.x)
                     label = xColumn.formatValue(point.x)
                 else
@@ -867,7 +885,9 @@ export class ScatterPlotChart
             // const lastPoint = last(series.values)
 
             if (series.points.length) {
-                const keyColor = table.getColorForEntityName(seriesName)
+                const keyColor = transformedTable.getColorForEntityName(
+                    seriesName
+                )
                 if (keyColor !== undefined) series.color = keyColor
                 else if (this.colorColumn) {
                     const colorValue = last(

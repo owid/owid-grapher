@@ -16,6 +16,7 @@ import {
 } from "grapher/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { bind } from "decko"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
@@ -43,6 +44,7 @@ import {
     SlopeProps,
 } from "./SlopeChartConstants"
 import { CoreColumn } from "coreTable/CoreTableColumns"
+import { OwidTable } from "coreTable/OwidTable"
 
 @observer
 export class SlopeChart
@@ -55,6 +57,10 @@ export class SlopeChart
     @observable hoverKey?: string
     // currently hovered legend color
     @observable hoverColor?: string
+
+    @bind transformTable(table: OwidTable) {
+        return table
+    }
 
     @computed get manager() {
         return this.props.manager
@@ -298,7 +304,7 @@ export class SlopeChart
     }
 
     @computed private get yColumn() {
-        return this.table.get(this.yColumnSlug)
+        return this.transformedTable.get(this.yColumnSlug)
     }
 
     @computed protected get yColumnSlug() {
@@ -310,10 +316,10 @@ export class SlopeChart
     }
 
     @computed private get colorColumn() {
-        return this.table.get(this.manager.colorColumnSlug)
+        return this.transformedTable.get(this.manager.colorColumnSlug)
     }
 
-    @computed get table() {
+    @computed get transformedTable() {
         return this.inputTable
     }
 
@@ -341,7 +347,7 @@ export class SlopeChart
     }
 
     @computed private get sizeColumn() {
-        return this.table.get(this.manager.sizeColumnSlug)
+        return this.transformedTable.get(this.manager.sizeColumnSlug)
     }
 
     // helper method to directly get the associated size value given an Entity

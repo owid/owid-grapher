@@ -3,6 +3,7 @@ import { select } from "d3-selection"
 import { min, max, maxBy, sortBy } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { bind } from "decko"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import {
     ScaleType,
@@ -23,6 +24,7 @@ import {
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
+import { OwidTable } from "coreTable/OwidTable"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -37,6 +39,36 @@ export class DiscreteBarChart
     }>
     implements ChartInterface {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    @bind transformTable(table: OwidTable) {
+        const column = table.get(this.manager.yColumnSlug)
+        if (!column) return table
+
+        const { slug, maxTime, tolerance } = column
+
+        table = table
+            .filterBySelectedOnly()
+            .filterByTargetTime(maxTime, tolerance)
+
+        // Here we can filter entire rows instead of using "replaceNonPositiveCellsForLogScale" since we currently don't support
+        // multiple ycolumn bar charts.
+        if (this.isLogScale) table = table.filterNegativesForLogScale(slug)
+        return table.sortBy(
+            [slug, OwidTableSlugs.entityName],
+            [SortOrder.desc, SortOrder.asc]
+        )
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
+    @computed get transformedTable() {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
+    }
 
     @computed private get manager() {
         return this.props.manager
@@ -343,7 +375,7 @@ export class DiscreteBarChart
     private formatValue(series: DiscreteBarSeries) {
         const column = this.rootYColumn
         const { maxTime } = column
-        const { table } = this
+        const { transformedTable } = this
 
         const showYearLabels =
             this.manager.showYearLabels || series.time !== maxTime
@@ -351,7 +383,7 @@ export class DiscreteBarChart
         return (
             displayValue +
             (showYearLabels
-                ? ` (${table.timeColumnFormatFunction(series.time)})`
+                ? ` (${transformedTable.timeColumnFormatFunction(series.time)})`
                 : "")
         )
     }
@@ -361,7 +393,7 @@ export class DiscreteBarChart
     }
 
     @computed private get yColumn() {
-        return this.table.get(this.yColumnSlugs[0])!
+        return this.transformedTable.get(this.yColumnSlugs[0])!
     }
 
     @computed protected get yColumnSlugs() {
@@ -372,21 +404,6 @@ export class DiscreteBarChart
             : this.inputTable.numericColumnSlugs
     }
 
-    @computed get table() {
-        const { slug, maxTime, tolerance } = this.rootYColumn
-        let table = this.inputTable
-            .filterBySelectedOnly()
-            .filterByTargetTime(maxTime, tolerance)
-
-        // Here we can filter entire rows instead of using "replaceNonPositiveCellsForLogScale" since we currently don't support
-        // multiple ycolumn bar charts.
-        if (this.isLogScale) table = table.filterNegativesForLogScale(slug)
-        return table.sortBy(
-            [slug, OwidTableSlugs.entityName],
-            [SortOrder.desc, SortOrder.asc]
-        )
-    }
-
     @computed private get seriesStrategy() {
         return (
             this.manager.seriesStrategy ||
@@ -395,10 +412,6 @@ export class DiscreteBarChart
                 ? SeriesStrategy.column
                 : SeriesStrategy.entity)
         )
-    }
-
-    @computed get inputTable() {
-        return this.manager.table
     }
 
     @computed private get valuesToColorsMap() {
@@ -419,11 +432,11 @@ export class DiscreteBarChart
     }
 
     @computed protected get yColumns() {
-        return this.table.getColumns(this.yColumnSlugs)
+        return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
     @computed private get columnsAsSeries() {
-        const { table, valuesToColorsMap } = this
+        const { transformedTable, valuesToColorsMap } = this
         return sortBy(
             this.yColumns.map((col) => {
                 const row = col.owidRows[0]
@@ -432,7 +445,7 @@ export class DiscreteBarChart
                     ...row,
                     seriesName,
                     color:
-                        table.getColorForEntityName(seriesName) ||
+                        transformedTable.getColorForEntityName(seriesName) ||
                         valuesToColorsMap.get(row.value) ||
                         DEFAULT_BAR_COLOR,
                 }
@@ -443,14 +456,14 @@ export class DiscreteBarChart
     }
 
     @computed private get entitiesAsSeries() {
-        const { table, valuesToColorsMap } = this
+        const { transformedTable, valuesToColorsMap } = this
         return this.yColumn.owidRows.map((row) => {
             const seriesName = row.entityName
             const series: DiscreteBarSeries = {
                 ...row,
                 seriesName,
                 color:
-                    table.getColorForEntityName(seriesName) ||
+                    transformedTable.getColorForEntityName(seriesName) ||
                     valuesToColorsMap.get(row.value) ||
                     DEFAULT_BAR_COLOR,
             }

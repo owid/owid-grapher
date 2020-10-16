@@ -9,6 +9,7 @@ import {
     minBy,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
+import { bind } from "decko"
 import { scaleOrdinal } from "d3-scale"
 import { SeriesStrategy, SeriesName } from "grapher/core/GrapherConstants"
 import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
@@ -491,7 +492,7 @@ export class StackedAreaChart
     @computed get colorScale() {
         const seriesCount =
             this.seriesStrategy === SeriesStrategy.entity
-                ? this.table.numSelectedEntities
+                ? this.transformedTable.numSelectedEntities
                 : this.yColumns.length
         const baseColors = this.colorScheme.getColors(seriesCount)
         if (this.manager.invertColorScheme) baseColors.reverse()
@@ -500,7 +501,7 @@ export class StackedAreaChart
 
     getColorForSeries(seriesName: SeriesName) {
         return (
-            this.table.getColorForEntityName(seriesName) ||
+            this.transformedTable.getColorForEntityName(seriesName) ||
             this.colorScale(seriesName)
         )
     }

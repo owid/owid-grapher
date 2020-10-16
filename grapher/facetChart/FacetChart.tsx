@@ -2,6 +2,7 @@ import React from "react"
 import { observer } from "mobx-react"
 import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { computed } from "mobx"
+import { bind } from "decko"
 import {
     ChartTypeName,
     FacetStrategy,
@@ -17,11 +18,27 @@ import {
     FacetChartProps,
     PlacedFacetSeries,
 } from "./FacetChartConstants"
+import { OwidTable } from "coreTable/OwidTable"
 
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
     implements ChartInterface {
+    @bind transformTable(table: OwidTable) {
+        return table
+    }
+
+    @computed get inputTable() {
+        return this.manager.table
+    }
+
+    @computed get transformedTable() {
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
+    }
+
     @computed get placedSeries() {
         const { manager, series } = this
         const chartTypeName =
@@ -164,14 +181,6 @@ export class FacetChart
 
     @computed protected get bounds() {
         return this.props.bounds ?? DEFAULT_BOUNDS
-    }
-
-    @computed get inputTable() {
-        return this.manager.table
-    }
-
-    @computed get table() {
-        return this.inputTable
     }
 
     @computed protected get manager() {

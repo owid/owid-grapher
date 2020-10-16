@@ -43,6 +43,7 @@ import {
     AlignedTextTableOptions,
     toAlignedTextTable,
 } from "./CoreTablePrinters"
+import { TimeBound } from "grapher/utils/TimeBounds"
 
 // todo: remove
 const rowTime = (row: CoreRow) =>
@@ -215,7 +216,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterByTime(start: Time, end: Time): this {
+    filterByTime(start: TimeBound, end: TimeBound): this {
         // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime! : end
