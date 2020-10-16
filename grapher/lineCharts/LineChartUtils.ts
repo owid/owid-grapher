@@ -8,11 +8,14 @@ export const columnToLineChartSeriesArray = (
 ): LineChartSeries[] => {
     const { isProjection, owidRowsByEntityName } = col
     const entityNames = Array.from(owidRowsByEntityName.keys())
+    const isMultiEntity = entityNames.length > 1
     return entityNames.map((entityName) => {
         const seriesName =
-            seriesStrategy === SeriesStrategy.column
-                ? col.displayName
-                : entityName
+            seriesStrategy === SeriesStrategy.entity
+                ? entityName
+                : isMultiEntity
+                ? `${entityName} - ${col.displayName}`
+                : col.displayName
         return {
             points: owidRowsByEntityName.get(entityName)!.map((row) => {
                 return {

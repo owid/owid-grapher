@@ -55,3 +55,11 @@ it("can filter points with negative values when using a log scale", () => {
     expect(logChart.series.length).toEqual(2)
     expect(logChart.allPoints.length).toEqual(180)
 })
+
+it("will combine entity and column name when we set multi country multi column", () => {
+    const manager = {
+        table: SynthesizeGDPTable().selectAll(),
+    }
+    const chart = new LineChart({ manager })
+    expect(chart.series[0].seriesName).toContain(" - ")
+})

@@ -2,6 +2,7 @@ import * as React from "react"
 import { LineChart } from "grapher/lineCharts/LineChart"
 import {
     SampleColumnSlugs,
+    SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
@@ -123,5 +124,15 @@ export const MultiColumnSingleCountry = () => {
                 />
             </svg>
         </div>
+    )
+}
+
+export const MultiColumnMultiCountry = () => {
+    const table = SynthesizeFruitTable({ entityCount: 5 }).selectAll()
+    const bounds = new Bounds(0, 0, 500, 250)
+    return (
+        <svg width={500} height={250}>
+            <LineChart bounds={bounds} manager={{ table }} />
+        </svg>
     )
 }
