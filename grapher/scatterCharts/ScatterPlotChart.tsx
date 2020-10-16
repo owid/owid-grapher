@@ -471,9 +471,11 @@ export class ScatterPlotChart
     }
 
     @computed private get yColumnSlug() {
-        const { yColumnSlug, yColumnSlugs, table } = this.manager
+        const { yColumnSlug, yColumnSlugs } = this.manager
         const ySlugs = yColumnSlugs ?? []
-        return yColumnSlug ?? ySlugs[0] ?? table.numericColumnSlugs[0]
+        return (
+            yColumnSlug ?? ySlugs[0] ?? this.manager.table.numericColumnSlugs[0]
+        )
     }
 
     @computed private get yColumn() {
@@ -481,8 +483,8 @@ export class ScatterPlotChart
     }
 
     @computed private get xColumnSlug() {
-        const { xColumnSlug, table } = this.manager
-        return xColumnSlug ?? table.numericColumnSlugs[1]
+        const { xColumnSlug } = this.manager
+        return xColumnSlug ?? this.manager.table.numericColumnSlugs[1]
     }
 
     @computed private get xColumn() {
