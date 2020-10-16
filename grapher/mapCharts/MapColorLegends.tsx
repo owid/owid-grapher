@@ -71,7 +71,7 @@ export interface CategoricalColorLegendManager extends ColorLegendManager {
 export interface NumericColorLegendManager extends ColorLegendManager {
     numericLegendData: ColorScaleBin[]
     numericFocusBracket?: ColorScaleBin
-    equalSizeBins?: true
+    equalSizeBins?: boolean
     onLegendMouseOver?: (d: ColorScaleBin) => void
 }
 

@@ -15,7 +15,7 @@ export interface FontSizeManager {
 class AxisConfigDefaults {
     @observable.ref min?: number = undefined
     @observable.ref max?: number = undefined
-    @observable.ref scaleType?: ScaleType = undefined
+    @observable.ref scaleType?: ScaleType = ScaleType.linear
     @observable.ref canChangeScaleType?: boolean = undefined
     @observable label: string = ""
     @observable.ref removePointsOutsideDomain?: boolean = undefined
@@ -61,10 +61,9 @@ export class AxisConfig
         return this.fontSizeManager?.fontSize || BASE_FONT_SIZE
     }
 
-    // A log scale domain cannot have values <= 0, so we
-    // double check here
+    // A log scale domain cannot have values <= 0, so we double check here
     @computed private get constrainedMin() {
-        if (this.scaleType === ScaleType.log && (this.min || 0) <= 0)
+        if (this.scaleType === ScaleType.log && (this.min ?? 0) <= 0)
             return Infinity
         return this.min ?? Infinity
     }

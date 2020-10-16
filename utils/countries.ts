@@ -7,7 +7,7 @@ export interface Country {
 }
 
 interface FilterableCountry extends Country {
-    filter?: true
+    filter?: boolean
 }
 
 const allCountriesSortedByCode: FilterableCountry[] = [

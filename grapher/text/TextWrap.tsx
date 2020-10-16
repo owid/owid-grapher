@@ -11,7 +11,7 @@ interface TextWrapProps {
     lineHeight?: number
     fontSize: FontSize
     fontWeight?: number
-    rawHtml?: true
+    rawHtml?: boolean
     /** Wrap URL-like text in <a> tag. Only works when rendering HTML. */
     linkifyText?: boolean
 }

@@ -19,12 +19,12 @@ class MapConfigDefaults {
     @observable columnSlug?: ColumnSlug
     @observable time?: number
     @observable timeTolerance?: number
-    @observable hideTimeline?: true
+    @observable hideTimeline?: boolean
     @observable projection: MapProjection = "World"
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable tooltipUseCustomLabels?: true = undefined
+    @observable tooltipUseCustomLabels?: boolean = undefined
 }
 
 export type MapConfigInterface = MapConfigDefaults

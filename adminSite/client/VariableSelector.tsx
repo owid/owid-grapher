@@ -41,7 +41,7 @@ interface Variable {
 export class VariableSelector extends React.Component<VariableSelectorProps> {
     @observable.ref chosenNamespace: Namespace | undefined
     @observable.ref searchInput?: string
-    @observable.ref isProjection?: true
+    @observable.ref isProjection?: boolean
     @observable.ref tolerance?: number
     @observable.ref chosenVariables: Variable[] = []
     searchField!: HTMLInputElement

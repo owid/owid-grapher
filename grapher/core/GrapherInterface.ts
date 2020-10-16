@@ -33,7 +33,7 @@ export interface GrapherInterface {
     subtitle?: string
     sourceDesc?: string
     note?: string
-    hideTitleAnnotation?: true
+    hideTitleAnnotation?: boolean
     minTime?: TimeBound
     maxTime?: TimeBound
     timelineMinTime?: Time
@@ -43,14 +43,14 @@ export interface GrapherInterface {
     comparisonLines?: ComparisonLineConfig[]
     highlightToggle?: HighlightToggleConfig
     stackMode?: StackMode
-    hideLegend?: true
+    hideLegend?: boolean
     logo?: LogoOption
     hideLogo?: boolean
     hideRelativeToggle?: boolean
     entityType?: string
     entityTypePlural?: string
-    hideTimeline?: true
-    zoomToSelection?: true
+    hideTimeline?: boolean
+    zoomToSelection?: boolean
     minPopulationFilter?: number
     showYearLabels?: boolean // Always show year in labels for bar charts
     hasChartTab?: boolean
@@ -61,14 +61,14 @@ export interface GrapherInterface {
     internalNotes?: string
     variantName?: string
     originUrl?: string
-    isPublished?: true
+    isPublished?: boolean
     baseColorScheme?: string
-    invertColorScheme?: true
-    hideLinesOutsideTolerance?: true
+    invertColorScheme?: boolean
+    hideLinesOutsideTolerance?: boolean
     hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     scatterPointLabelStrategy?: ScatterPointLabelStrategy
-    compareEndPointsOnly?: true
-    matchingEntitiesOnly?: true
+    compareEndPointsOnly?: boolean
+    matchingEntitiesOnly?: boolean
     excludedEntities?: number[]
     selectedEntityNames?: EntityName[]
     selectedEntityIds?: EntityId[]

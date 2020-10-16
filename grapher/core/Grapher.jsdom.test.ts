@@ -136,7 +136,7 @@ function toQueryParams(props?: Partial<GrapherInterface>) {
 }
 
 describe("scaleType", () => {
-    expect(new Grapher().params.xScale).toEqual(undefined)
+    expect(new Grapher().params.xScale).toEqual(ScaleType.linear)
     expect(
         new Grapher({
             xAxis: { scaleType: ScaleType.linear },

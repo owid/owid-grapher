@@ -1,4 +1,5 @@
 import * as fs from "fs"
+import * as db from "db/db"
 import { Grapher, GrapherProgrammaticInterface } from "grapher/core/Grapher"
 import { isPresent, mapToObjectLiteral } from "grapher/utils/Util"
 import { getPublishedGraphersBySlug } from "site/server/bakeGraphersToImages"
@@ -39,7 +40,7 @@ const dumpGraphers = async () => {
         JSON.stringify(mapToObjectLiteral(graphersById), null, 2),
         "utf8"
     )
-    // todo: call db end.
+    db.end()
 }
 
 export const tasks = [trimGraphers, dumpGraphers]

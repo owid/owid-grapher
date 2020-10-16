@@ -9,7 +9,7 @@ describe("width()", () => {
     const stringWidth = (text: string) =>
         Bounds.forText(text, { fontSize: FONT_SIZE }).width
 
-    const renderedWidth = (text: string, raw?: true) => {
+    const renderedWidth = (text: string, raw?: boolean) => {
         const textwrap = new TextWrap({
             maxWidth: Infinity,
             fontSize: FONT_SIZE,

@@ -40,7 +40,7 @@ export interface ScatterSeries {
     label: string
     size: number
     points: SeriesPoint[]
-    isScaleColor?: true
+    isScaleColor?: boolean
 }
 
 export interface SeriesPoint {

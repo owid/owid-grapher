@@ -215,7 +215,7 @@ export class Grapher
     @observable.ref subtitle = ""
     @observable.ref sourceDesc?: string = undefined
     @observable.ref note = ""
-    @observable.ref hideTitleAnnotation?: true = undefined
+    @observable.ref hideTitleAnnotation?: boolean = undefined
     @observable.ref minTime?: TimeBound = undefined
     @observable.ref maxTime?: TimeBound = undefined
     @observable.ref timelineMinTime?: Time = undefined
@@ -223,14 +223,14 @@ export class Grapher
     @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
     @observable.ref highlightToggle?: HighlightToggleConfig = undefined
     @observable.ref stackMode = StackMode.absolute
-    @observable.ref hideLegend?: true = undefined
+    @observable.ref hideLegend?: boolean = false
     @observable.ref logo?: LogoOption = undefined
     @observable.ref hideLogo?: boolean = undefined
     @observable.ref hideRelativeToggle? = true
     @observable.ref entityType = "country"
     @observable.ref entityTypePlural = "countries"
-    @observable.ref hideTimeline?: true = undefined
-    @observable.ref zoomToSelection?: true = undefined
+    @observable.ref hideTimeline?: boolean = undefined
+    @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref minPopulationFilter?: number = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasChartTab: boolean = true
@@ -240,15 +240,15 @@ export class Grapher
     @observable.ref internalNotes = ""
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
-    @observable.ref isPublished?: true = undefined
+    @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: string = undefined
-    @observable.ref invertColorScheme?: true = undefined
-    @observable.ref hideLinesOutsideTolerance?: true = undefined
+    @observable.ref invertColorScheme?: boolean = undefined
+    @observable.ref hideLinesOutsideTolerance?: boolean = undefined
     @observable hideConnectedScatterLines?: boolean = undefined // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
     @observable
     scatterPointLabelStrategy?: ScatterPointLabelStrategy = undefined
-    @observable.ref compareEndPointsOnly?: true = undefined
-    @observable.ref matchingEntitiesOnly?: true = undefined
+    @observable.ref compareEndPointsOnly?: boolean = undefined
+    @observable.ref matchingEntitiesOnly?: boolean = undefined
 
     @observable.ref xAxis = new AxisConfig(undefined, this)
     @observable.ref yAxis = new AxisConfig(undefined, this)
@@ -319,6 +319,9 @@ export class Grapher
             obj.selectedEntityNames = this.table.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
+
+        // todo: nulls got into the DB for this one. we can remove after moving Graphers from DB.
+        if (obj.stackMode === null) delete obj.stackMode
 
         // JSON doesn't support Infinity, so we use strings instead.
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
@@ -1252,7 +1255,7 @@ export class Grapher
     }: {
         jsonConfig: GrapherInterface
         containerNode: HTMLElement
-        isEmbed?: true
+        isEmbed?: boolean
         queryStr?: string
         globalEntitySelection?: GlobalEntitySelection
     }) {

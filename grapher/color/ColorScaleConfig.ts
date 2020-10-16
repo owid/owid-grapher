@@ -17,7 +17,7 @@ class ColorScaleConfigDefaults {
     @observable baseColorScheme?: string
 
     /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
-    @observable colorSchemeInvert?: true = undefined
+    @observable colorSchemeInvert?: boolean = undefined
 
     // Numeric bins
     // ============
@@ -40,7 +40,7 @@ class ColorScaleConfigDefaults {
     @observable customNumericLabels: (string | undefined | null)[] = []
 
     /** Whether `customNumericColors` are used to override the color scheme. */
-    @observable customNumericColorsActive?: true = undefined
+    @observable customNumericColorsActive?: boolean = undefined
     /**
      * Override some or all colors for the numerical color legend.
      * `undefined` or `null` falls back the color scheme color.
@@ -50,7 +50,7 @@ class ColorScaleConfigDefaults {
     @observable customNumericColors: (Color | undefined | null)[] = []
 
     /** Whether the visual scaling for the color legend is disabled. */
-    @observable equalSizeBins?: true = undefined
+    @observable equalSizeBins?: boolean = undefined
 
     // Categorical bins
     // ================
