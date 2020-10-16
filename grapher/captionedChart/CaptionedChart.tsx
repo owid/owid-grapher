@@ -127,6 +127,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const bounds = new Bounds(0, 0, this.bounds.width, this.chartHeight)
             .padWidth(OUTSIDE_PADDING)
             .padTop(PADDING_BELOW_HEADER)
+            .padBottom(OUTSIDE_PADDING)
         if (this.manager.type === ChartTypeName.SlopeChart)
             return bounds.padBottom(EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART)
         return bounds
