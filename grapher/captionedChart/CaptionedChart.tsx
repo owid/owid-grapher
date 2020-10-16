@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Header } from "grapher/header/Header"
@@ -166,6 +166,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         exposeInstanceOnWindow(this, "captionedChart")
     }
 
+    @action.bound startSelecting() {
+        this.manager.isSelectingData = true
+    }
+
     @computed get controls() {
         const manager = this.manager
         // Todo: we don't yet show any controls on Maps, but seems like we would want to.
@@ -184,6 +188,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     type="button"
                     key="grapher-select-entities"
                     data-track-note="grapher-select-entities"
+                    onClick={this.startSelecting}
                 >
                     <span className="SelectEntitiesButton">
                         <FontAwesomeIcon icon={faPencilAlt} />
@@ -199,6 +204,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     key="grapher-change-entities"
                     data-track-note="grapher-change-entity"
                     className="ChangeEntityButton"
+                    onClick={this.startSelecting}
                 >
                     <FontAwesomeIcon icon={faExchangeAlt} /> Change{" "}
                     {manager.entityType}
