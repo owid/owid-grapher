@@ -1,12 +1,11 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, observable } from "mobx"
-
 import { uniqBy, isTouchDevice, sortBy } from "grapher/utils/Util"
-import { Grapher } from "grapher/core/Grapher"
 import { FuzzySearch } from "./FuzzySearch"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { OwidTable } from "coreTable/OwidTable"
 
 interface SearchableEntity {
     name: string
@@ -14,7 +13,7 @@ interface SearchableEntity {
 
 @observer
 class EntitySelectorMulti extends React.Component<{
-    grapher: Grapher
+    table: OwidTable
     onDismiss: () => void
 }> {
     @observable searchInput?: string
@@ -23,7 +22,7 @@ class EntitySelectorMulti extends React.Component<{
     dismissable: boolean = true
 
     @computed get availableEntities() {
-        return this.props.grapher.table.availableEntityNames
+        return this.props.table.availableEntityNames
     }
 
     @computed get fuzzy(): FuzzySearch<SearchableEntity> {
@@ -65,20 +64,19 @@ class EntitySelectorMulti extends React.Component<{
 
     @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
         if (e.key === "Enter" && this.searchResults.length > 0) {
-            this.props.grapher.table.selectEntity(this.searchResults[0].name)
+            this.props.table.selectEntity(this.searchResults[0].name)
             this.searchInput = ""
         } else if (e.key === "Escape") this.props.onDismiss()
     }
 
     @action.bound onClear() {
-        this.props.grapher.table.clearSelection()
+        this.props.table.clearSelection()
     }
 
     render() {
-        const { grapher } = this.props
+        const { table } = this.props
         const { searchResults, searchInput } = this
 
-        const table = grapher.table
         const selectedEntityNames = table.selectedEntityNames
 
         return (
@@ -171,7 +169,7 @@ class EntitySelectorMulti extends React.Component<{
 
 @observer
 class EntitySelectorSingle extends React.Component<{
-    grapher: Grapher
+    table: OwidTable
     isMobile: boolean
     onDismiss: () => void
 }> {
@@ -182,7 +180,7 @@ class EntitySelectorSingle extends React.Component<{
 
     @computed private get availableEntities() {
         const availableItems: { id: string; label: string }[] = []
-        this.props.grapher.table.availableEntityNames.forEach((name) => {
+        this.props.table.availableEntityNames.forEach((name) => {
             availableItems.push({
                 id: name,
                 label: name,
@@ -231,7 +229,7 @@ class EntitySelectorSingle extends React.Component<{
     }
 
     @action.bound onSelect(entityName: string) {
-        this.props.grapher.table.setSelectedEntities([entityName])
+        this.props.table.setSelectedEntities([entityName])
         this.props.onDismiss()
     }
 
@@ -284,12 +282,13 @@ class EntitySelectorSingle extends React.Component<{
 
 @observer
 export class EntitySelectorModal extends React.Component<{
-    grapher: Grapher
+    table: OwidTable
+    canChangeEntity?: boolean
     isMobile: boolean
     onDismiss: () => void
 }> {
     render() {
-        return this.props.grapher.canChangeEntity ? (
+        return this.props.canChangeEntity ? (
             <EntitySelectorSingle {...this.props} />
         ) : (
             <EntitySelectorMulti {...this.props} />

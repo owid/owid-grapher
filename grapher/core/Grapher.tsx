@@ -1440,8 +1440,9 @@ export class Grapher
                 {this.renderKeyboardShortcuts()}
                 {this.isSelectingData && (
                     <EntitySelectorModal
+                        canChangeEntity={this.canChangeEntity}
+                        table={this.inputTable}
                         key="entitySelector"
-                        grapher={this}
                         isMobile={this.isMobile}
                         onDismiss={action(() => (this.isSelectingData = false))}
                     />
