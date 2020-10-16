@@ -439,7 +439,7 @@ export class ScatterPlotChart
     }
 
     @computed get colorScaleConfig() {
-        return this.manager.colorScale! || new ColorScaleConfig()
+        return this.manager.colorScale ?? new ColorScaleConfig()
     }
 
     defaultBaseColorScheme = "continents"

@@ -31,7 +31,7 @@ import {
 export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
     `${columnSlug}-annotations`
 
-export const legacyVariablesToTabular = (
+export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
     json: LegacyVariablesAndEntityKey,
     colorMap = new Map<EntityId, Color>()
 ) => {
@@ -133,14 +133,16 @@ export const legacyVariablesToTabular = (
         })
         rows = rows.concat(newRows)
     }
-    const groupMap = groupBy(rows, (row) => {
+    const rowsGroupedByTimeAndEntityName = groupBy(rows, (row) => {
         const timePart =
             row.year !== undefined ? `year:${row.year}` : `day:${row.day}`
         return timePart + " " + row.entityName
     })
 
-    const joinedRows: OwidRow[] = Object.keys(groupMap).map((groupKey) =>
-        Object.assign({}, ...groupMap[groupKey])
+    const joinedRows: OwidRow[] = Object.keys(
+        rowsGroupedByTimeAndEntityName
+    ).map((timeAndEntityName) =>
+        Object.assign({}, ...rowsGroupedByTimeAndEntityName[timeAndEntityName])
     )
 
     return {
@@ -219,7 +221,10 @@ export const legacyToOwidTable = (
             colorMap.set(item.entityId, item.color!)
         })
 
-    const { rows, columnDefs } = legacyVariablesToTabular(json, colorMap)
+    const {
+        rows,
+        columnDefs,
+    } = legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc(json, colorMap)
 
     const dimensions = grapherConfig.dimensions || []
 

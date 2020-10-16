@@ -13,6 +13,7 @@ import {
     domainExtent,
     minBy,
     maxBy,
+    exposeInstanceOnWindow,
 } from "grapher/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -27,6 +28,7 @@ import {
     BASE_FONT_SIZE,
     ScaleType,
     EntitySelectionMode,
+    SeriesName,
 } from "grapher/core/GrapherConstants"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import { ChartManager } from "grapher/chart/ChartManager"
@@ -36,6 +38,7 @@ import { select } from "d3-selection"
 import { Text } from "grapher/text/Text"
 import { TextWrap } from "grapher/text/TextWrap"
 import {
+    DEFAULT_SLOPE_CHART_COLOR,
     LabelledSlopesProps,
     SlopeAxisProps,
     SlopeChartSeries,
@@ -44,6 +47,8 @@ import {
 } from "./SlopeChartConstants"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { OwidTable } from "coreTable/OwidTable"
+import { Color } from "coreTable/CoreTableConstants"
+import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 
 @observer
 export class SlopeChart
@@ -288,7 +293,7 @@ export class SlopeChart
     }
 
     @computed get colorScaleConfig() {
-        return {} as any // grapher.colorScale
+        return this.manager.colorScale ?? new ColorScaleConfig()
     }
 
     @computed get colorScaleColumn() {
@@ -315,7 +320,10 @@ export class SlopeChart
     }
 
     @computed private get colorColumn() {
-        return this.transformedTable.get(this.manager.colorColumnSlug)
+        // NB: This is tricky. Often it seems we use the Continent variable (123) for colors, but we only have 1 year for that variable, which
+        // would likely get filtered by any time filtering. So we need to jump up to the root table to get the color values we want.
+        // We should probably refactor this as part of a bigger color refactoring.
+        return this.transformedTable.rootTable.get(this.manager.colorColumnSlug)
     }
 
     @computed get transformedTable() {
@@ -329,18 +337,22 @@ export class SlopeChart
     // helper method to directly get the associated color value given an Entity
     // dimension data saves color a level deeper. eg: { Afghanistan => { 2015: Asia|Color }}
     // this returns that data in the form { Afghanistan => Asia }
-    @computed private get colorByEntity(): Map<string, string | undefined> {
+    @computed private get colorBySeriesName(): Map<
+        SeriesName,
+        Color | undefined
+    > {
         const { colorScale, colorColumn } = this
-        const colorByEntity = new Map<string, string | undefined>()
+        if (!colorColumn) return new Map()
 
-        if (colorColumn)
-            colorColumn.valueByEntityNameAndTime.forEach(
-                (timeToColorMap, entity) => {
-                    const values = Array.from(timeToColorMap.values())
-                    const key = last(values)
-                    colorByEntity.set(entity, colorScale.getColor(key))
-                }
-            )
+        const colorByEntity = new Map<SeriesName, Color | undefined>()
+
+        colorColumn.valueByEntityNameAndTime.forEach(
+            (timeToColorMap, seriesName) => {
+                const values = Array.from(timeToColorMap.values())
+                const key = last(values)
+                colorByEntity.set(seriesName, colorScale.getColor(key))
+            }
+        )
 
         return colorByEntity
     }
@@ -367,43 +379,48 @@ export class SlopeChart
         return sizeByEntity
     }
 
+    componentDidMount() {
+        exposeInstanceOnWindow(this)
+    }
+
     @computed get series() {
         const column = this.yColumn
         if (!column) return []
 
-        const { colorByEntity, sizeByEntity } = this
+        const { colorBySeriesName, sizeByEntity } = this
         const { minTime, maxTime } = column
 
         const table = this.inputTable
 
         return column.uniqEntityNames
-            .map((entityName) => {
+            .map((seriesName) => {
                 const values: SlopeChartValue[] = []
 
                 const yValues =
-                    column.valueByEntityNameAndTime.get(entityName)! || []
+                    column.valueByEntityNameAndTime.get(seriesName)! || []
 
                 yValues.forEach((value, time) => {
                     if (time !== minTime && time !== maxTime) return
 
                     values.push({
                         x: time,
-                        y: typeof value === "string" ? parseInt(value) : value,
+                        y: value,
                     })
                 })
 
+                const color =
+                    table.getColorForEntityName(seriesName) ??
+                    colorBySeriesName.get(seriesName) ??
+                    DEFAULT_SLOPE_CHART_COLOR
+
                 return {
-                    seriesName: entityName,
-                    label: entityName,
-                    color:
-                        table.getColorForEntityName(entityName) ||
-                        colorByEntity.get(entityName) ||
-                        "#ff7f0e",
-                    size: sizeByEntity.get(entityName) || 1,
+                    seriesName,
+                    color,
+                    size: sizeByEntity.get(seriesName) || 1,
                     values,
                 } as SlopeChartSeries
             })
-            .filter((d) => d.values.length >= 2)
+            .filter((series) => series.values.length >= 2)
     }
 }
 
@@ -691,7 +708,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
     @computed get sizeScale(): ScaleLinear<number, number> {
         return scaleLinear()
             .domain(
-                extent(this.props.seriesArr.map((d) => d.size)) as [
+                extent(this.props.seriesArr.map((series) => series.size)) as [
                     number,
                     number
                 ]
@@ -752,7 +769,7 @@ class LabelledSlopes extends React.Component<LabelledSlopesProps> {
             )
                 return
 
-            const text = series.label
+            const text = series.seriesName
             const [v1, v2] = series.values
             const [x1, x2] = [xScale(v1.x), xScale(v2.x)]
             const [y1, y2] = [yScale(v1.y), yScale(v2.y)]

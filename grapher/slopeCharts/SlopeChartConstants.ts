@@ -10,12 +10,13 @@ export interface SlopeChartValue {
 }
 
 export interface SlopeChartSeries {
-    label: string
     seriesName: SeriesName
     color: string
     size: number
     values: SlopeChartValue[]
 }
+
+export const DEFAULT_SLOPE_CHART_COLOR = "#ff7f0e"
 
 export interface SlopeProps {
     seriesName: SeriesName
