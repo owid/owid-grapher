@@ -257,7 +257,7 @@ export class ScatterPlotChart
         return Math.max(this.bounds.width * 0.2, this.sidebarMinWidth)
     }
 
-    @computed.struct private get sidebarWidth() {
+    @computed.struct get sidebarWidth() {
         const { legendDimensions, sidebarMinWidth, sidebarMaxWidth } = this
 
         return Math.max(

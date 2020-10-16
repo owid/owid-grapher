@@ -5,7 +5,7 @@ import { TextWrap } from "grapher/text/TextWrap"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 
 export interface ConnectedScatterLegendManager {
-    maxLegendWidth: number
+    sidebarWidth: number
     displayStartTime: string
     displayEndTime: string
     fontSize?: number
@@ -25,7 +25,7 @@ export class ConnectedScatterLegend {
         return "#333"
     }
     @computed get maxLabelWidth() {
-        return this.manager.maxLegendWidth / 3
+        return this.manager.sidebarWidth / 3
     }
 
     @computed get startLabel() {
@@ -47,7 +47,7 @@ export class ConnectedScatterLegend {
     }
 
     @computed get width() {
-        return this.manager.maxLegendWidth
+        return this.manager.sidebarWidth
     }
 
     @computed get height() {
@@ -62,7 +62,7 @@ export class ConnectedScatterLegend {
         const { manager, startLabel, endLabel, fontColor } = this
 
         const lineLeft = targetX + startLabel.width + 5
-        const lineRight = targetX + manager.maxLegendWidth - endLabel.width - 5
+        const lineRight = targetX + manager.sidebarWidth - endLabel.width - 5
         const lineY = targetY + this.height / 2 - 0.5
 
         return (
@@ -77,7 +77,7 @@ export class ConnectedScatterLegend {
                 />
                 {startLabel.render(targetX, targetY, { fill: fontColor })}
                 {endLabel.render(
-                    targetX + manager.maxLegendWidth - endLabel.width,
+                    targetX + manager.sidebarWidth - endLabel.width,
                     targetY,
                     { fill: fontColor }
                 )}
