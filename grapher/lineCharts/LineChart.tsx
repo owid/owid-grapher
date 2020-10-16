@@ -14,7 +14,6 @@ import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
-import { bind } from "decko"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
@@ -224,7 +223,7 @@ export class LineChart
     implements ChartInterface, LineLegendManager {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @bind transformTable(table: OwidTable) {
+    transformTable(table: OwidTable) {
         table = table.filterBySelectedOnly()
 
         // TODO not sure if this is right? Line charts shouldn't be filtering out any values?

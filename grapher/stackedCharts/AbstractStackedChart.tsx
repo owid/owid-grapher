@@ -12,7 +12,6 @@ import { flatten, guid, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { bind } from "decko"
 import { stackSeries, withFakePoints } from "./StackedUtils"
 import { StackedSeries } from "./StackedConstants"
 import { OwidTable } from "coreTable/OwidTable"
@@ -26,7 +25,7 @@ export interface AbstactStackedChartProps {
 export class AbstactStackedChart
     extends React.Component<AbstactStackedChartProps>
     implements ChartInterface, FontSizeManager {
-    @bind transformTable(table: OwidTable) {
+    transformTable(table: OwidTable) {
         table = table.filterBySelectedOnly()
 
         if (this.manager.isRelativeMode) {

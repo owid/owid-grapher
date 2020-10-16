@@ -9,7 +9,7 @@ import { observer } from "mobx-react"
 import { Bounds } from "grapher/utils/Bounds"
 import { OwidTable } from "coreTable/OwidTable"
 import { ChartTypeName } from "grapher/core/GrapherConstants"
-import { getChartComponent } from "grapher/chart/ChartTypeMap"
+import { getChartComponentClass } from "grapher/chart/ChartTypeMap"
 
 export default {
     title: "Spreadsheet",
@@ -39,13 +39,13 @@ class Editor extends React.Component {
     @observable chartTypeName = ChartTypeName.LineChart
 
     render() {
-        const ChartType = getChartComponent(this.chartTypeName) as any
+        const ChartClass = getChartComponentClass(this.chartTypeName) as any
 
         return (
             <div>
                 <Spreadsheet manager={this} />
                 <svg width={400} height={300}>
-                    <ChartType
+                    <ChartClass
                         manager={this}
                         bounds={new Bounds(0, 0, 400, 300)}
                     />

@@ -3,7 +3,6 @@ import { select } from "d3-selection"
 import { min, max, maxBy, sortBy } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { bind } from "decko"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import {
     ScaleType,
@@ -40,7 +39,7 @@ export class DiscreteBarChart
     implements ChartInterface {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    @bind transformTable(table: OwidTable) {
+    transformTable(table: OwidTable) {
         const column = table.get(this.manager.yColumnSlug)
         if (!column) return table
 

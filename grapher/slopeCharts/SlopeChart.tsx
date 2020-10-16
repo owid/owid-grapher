@@ -16,7 +16,6 @@ import {
 } from "grapher/utils/Util"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { bind } from "decko"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import {
@@ -58,7 +57,7 @@ export class SlopeChart
     // currently hovered legend color
     @observable hoverColor?: string
 
-    @bind transformTable(table: OwidTable) {
+    transformTable(table: OwidTable) {
         return table
     }
 

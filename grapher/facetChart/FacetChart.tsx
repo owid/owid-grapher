@@ -2,13 +2,12 @@ import React from "react"
 import { observer } from "mobx-react"
 import { DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { computed } from "mobx"
-import { bind } from "decko"
 import {
     ChartTypeName,
     FacetStrategy,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
-import { getChartComponent } from "grapher/chart/ChartTypeMap"
+import { getChartComponentClass } from "grapher/chart/ChartTypeMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { makeGrid } from "grapher/utils/Util"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -24,7 +23,7 @@ import { OwidTable } from "coreTable/OwidTable"
 export class FacetChart
     extends React.Component<FacetChartProps>
     implements ChartInterface {
-    @bind transformTable(table: OwidTable) {
+    transformTable(table: OwidTable) {
         return table
     }
 
@@ -195,16 +194,11 @@ export class FacetChart
         const { placedSeries, manager } = this
         const fontSize = getFontSize(placedSeries.length, manager.baseFontSize)
         return placedSeries.map((smallChart, index: number) => {
-            const ChartComponent = getChartComponent(
-                smallChart.chartTypeName
-            ) as any // todo: how to type this?
+            const ChartClass = getChartComponentClass(smallChart.chartTypeName)!
             const { bounds, seriesName } = smallChart
             return (
                 <React.Fragment key={index}>
-                    <ChartComponent
-                        bounds={bounds}
-                        manager={smallChart.manager}
-                    />
+                    <ChartClass bounds={bounds} manager={smallChart.manager} />
                     {FacetSubtitle(seriesName, bounds, fontSize, index)}
                 </React.Fragment>
             )

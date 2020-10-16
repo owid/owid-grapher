@@ -1,6 +1,5 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
-import { bind } from "decko"
 import {
     intersection,
     without,
@@ -74,7 +73,7 @@ export class ScatterPlotChart
     // currently hovered legend color
     @observable private hoverColor?: Color
 
-    @bind transformTable(table: OwidTable) {
+    transformTable(table: OwidTable) {
         if (this.xScaleType === ScaleType.log && this.xColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.xColumnSlug])
 

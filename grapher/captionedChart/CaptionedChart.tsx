@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
-import { getChartComponent } from "grapher/chart/ChartTypeMap"
+import { getChartComponentClass } from "grapher/chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
@@ -141,7 +141,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const chartTypeName = this.isMapTab
             ? ChartTypeName.WorldMap
             : manager.constrainedType || manager.type || ChartTypeName.LineChart
-        const ChartType = getChartComponent(chartTypeName) as any // todo: add typing
+        const ChartClass = getChartComponentClass(chartTypeName)
 
         // Todo: make FacetChart a chart type name?
         if (!this.isMapTab && manager.facetStrategy)
@@ -153,8 +153,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 />
             )
 
-        return ChartType ? (
-            <ChartType
+        return ChartClass ? (
+            <ChartClass
                 bounds={bounds}
                 manager={manager}
                 containerElement={this.containerElement}

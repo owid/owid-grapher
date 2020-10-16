@@ -147,8 +147,7 @@ import {
 import { OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
-import { getChartComponent } from "grapher/chart/ChartTypeMap"
-import { ChartTableTransformer } from "grapher/chart/ChartInterface"
+import { getChartComponentClass } from "grapher/chart/ChartTypeMap"
 
 declare const window: any
 
@@ -437,16 +436,13 @@ export class Grapher
             this.tab === GrapherTabOption.chart ||
             this.tab === GrapherTabOption.map
         ) {
-            const chartComponent = getChartComponent(
+            const ChartClass = getChartComponentClass(
                 this.tab === GrapherTabOption.map
                     ? ChartTypeName.WorldMap
                     : this.constrainedType
-            ) as any
-            if (chartComponent) {
-                const transformer = new chartComponent({ manager: this })
-                    .transformTable as ChartTableTransformer
-                table = transformer(table)
-            }
+            )
+            if (ChartClass)
+                table = new ChartClass({ manager: this }).transformTable(table)
         }
 
         return table

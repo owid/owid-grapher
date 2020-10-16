@@ -2,7 +2,6 @@ import * as React from "react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { bind } from "decko"
 import {
     CategoricalColorLegend,
     CategoricalColorLegendManager,
@@ -80,7 +79,7 @@ export class MapChart
     @observable focusEntity?: MapEntity
     @observable focusBracket?: MapBracket
 
-    @bind transformTable(table: OwidTable) {
+    transformTable(table: OwidTable) {
         const tolerance = this.mapConfig.timeTolerance
         if (tolerance !== undefined) {
             // TODO fillTolerance transform on map column
