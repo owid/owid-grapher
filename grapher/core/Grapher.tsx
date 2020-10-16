@@ -1992,14 +1992,14 @@ export class Grapher
         return (
             !this.hideEntityControls &&
             this.addCountryMode !== EntitySelectionMode.Disabled &&
-            this.table.numAvailableEntityNames > 1 &&
+            this.numSelectableEntityNames > 1 &&
             !this.showAddEntityButton &&
             !this.showChangeEntityButton
         )
     }
 
     @computed get canSelectMultipleEntities() {
-        if (this.table.numAvailableEntityNames < 2) return false
+        if (this.numSelectableEntityNames < 2) return false
         if (this.addCountryMode === EntitySelectionMode.MultipleEntities)
             return true
         if (
@@ -2011,11 +2011,20 @@ export class Grapher
         return false
     }
 
+    // This is just a helper method to return the correct table for providing entity choices. We want to
+    // provide the root table, not the transformed table.
+    // A user may have added time or other filters that would filter out all rows from certain entities, but
+    // we may still want to show those entities as available in a picker. We also do not want to do things like
+    // hide the Add Entity button as the user drags the timeline.
+    @computed private get numSelectableEntityNames() {
+        return this.inputTable.numAvailableEntityNames
+    }
+
     @computed get canChangeEntity() {
         return (
             !this.isScatter &&
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.table.numAvailableEntityNames > 1
+            this.numSelectableEntityNames > 1
         )
     }
 

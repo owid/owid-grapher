@@ -3,6 +3,7 @@ import { Grapher, TestGrapherConfig } from "grapher/core/Grapher"
 import {
     ChartTypeName,
     DimensionProperty,
+    EntitySelectionMode,
     GrapherTabOption,
     ScaleType,
 } from "./GrapherConstants"
@@ -487,6 +488,14 @@ describe("time parameter", () => {
             }
         }
     })
+})
+
+it("canChangeEntity reflects all available entities before transforms", () => {
+    const grapher = new Grapher({
+        addCountryMode: EntitySelectionMode.SingleEntity,
+        table: SynthesizeGDPTable().selectSample(1),
+    })
+    expect(grapher.canChangeEntity).toBe(true)
 })
 
 describe("year parameter", () => {
