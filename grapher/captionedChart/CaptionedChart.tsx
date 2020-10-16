@@ -114,7 +114,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     // todo: should we remove this and not make a distinction between map and chart tabs?
-    @computed private get isMapTab() {
+    @computed protected get isMapTab() {
         return this.manager.tab === GrapherTabOption.map
     }
 
@@ -124,9 +124,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart() {
+        const paddingBelowHeader = this.isMapTab ? 0 : PADDING_BELOW_HEADER
         const bounds = new Bounds(0, 0, this.bounds.width, this.chartHeight)
             .padWidth(OUTSIDE_PADDING)
-            .padTop(PADDING_BELOW_HEADER)
+            .padTop(paddingBelowHeader)
             .padBottom(OUTSIDE_PADDING)
         if (this.manager.type === ChartTypeName.SlopeChart)
             return bounds.padBottom(EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART)
@@ -305,10 +306,11 @@ export class StaticCaptionedChart extends CaptionedChart {
 
     // The bounds for the middle chart part
     @computed protected get boundsForChart() {
+        const paddingBelowHeader = this.isMapTab ? 0 : PADDING_BELOW_HEADER
         const bounds = this.paddedBounds
             .padTop(this.header.height)
             .padBottom(this.footer.height + PADDING_ABOVE_FOOTER)
-            .padTop(PADDING_BELOW_HEADER)
+            .padTop(paddingBelowHeader)
         if (this.manager.type === ChartTypeName.SlopeChart)
             return bounds.padBottom(EXTRA_PADDING_ABOVE_FOOTER_FOR_SLOPE_CHART)
         return bounds
