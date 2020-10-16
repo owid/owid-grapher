@@ -164,7 +164,9 @@ describe("searching", () => {
         expect(table.grep("200").numRows).toEqual(2)
         expect(table.grep(/20\d+/).numRows).toEqual(2)
 
-        expect(table.grep("Germany").grepNot("2001").numRows).toEqual(1)
+        expect(
+            table.grep("Germany").grep("2001").opposite.rows[0].year
+        ).toEqual(2000)
         expect(table.grep(/(1999|2000)/).numRows).toEqual(2)
     })
 
@@ -172,8 +174,12 @@ describe("searching", () => {
         expect(table.grepColumns("country").numColumns).toEqual(1)
         expect(table.grepColumns("r").numColumns).toEqual(2)
         expect(table.grepColumns("zz").numColumns).toEqual(0)
-        expect(table.grepColumnsNot("year").numColumns).toEqual(1)
-        expect(table.grepColumnsNot(/co.+/).numColumns).toEqual(1)
+        expect(table.grepColumns("year").oppositeColumns.columnSlugs).toEqual([
+            "country",
+        ])
+        expect(table.grepColumns(/co.+/).oppositeColumns.columnSlugs).toEqual([
+            "year",
+        ])
     })
 })
 

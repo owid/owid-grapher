@@ -92,7 +92,7 @@ export class CoreTable<
 
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
-        if (!parentTable && rows.length) this._autodetectAndAddDefs(rows)
+        if (!parentTable && rows.length) this._autodetectAndAddColumnDefs(rows)
 
         this.parent = parentTable as this
 
@@ -109,7 +109,7 @@ export class CoreTable<
         this.timeToLoad = Date.now() - start
     }
 
-    private _autodetectAndAddDefs(rows: ROW_TYPE[]) {
+    private _autodetectAndAddColumnDefs(rows: ROW_TYPE[]) {
         Object.keys(rows[0])
             .filter((slug) => !this.has(slug))
             .forEach((slug) => {
@@ -262,48 +262,57 @@ export class CoreTable<
         return map
     }
 
-    private _grep(searchStringOrRegex: string | RegExp, inverse = false) {
+    grep(searchStringOrRegex: string | RegExp) {
         return this.filter((row) => {
             const line = Object.values(row).join(" ")
-            const result =
-                typeof searchStringOrRegex === "string"
-                    ? line.includes(searchStringOrRegex)
-                    : searchStringOrRegex.test(line)
-            return inverse ? !result : result
-        }, `Dropped rows that ${inverse ? "" : "did not "}contain '${searchStringOrRegex.toString()}'`)
+            return typeof searchStringOrRegex === "string"
+                ? line.includes(searchStringOrRegex)
+                : searchStringOrRegex.test(line)
+        }, `Kept rows that matched '${searchStringOrRegex.toString()}'`)
     }
 
-    grep(searchStringOrRegex: string | RegExp) {
-        return this._grep(searchStringOrRegex)
+    @computed get rowsAsSet() {
+        return new Set(this.rows)
     }
 
-    grepNot(searchStringOrRegex: string | RegExp) {
-        return this._grep(searchStringOrRegex, true)
+    @computed get opposite(): this {
+        if (this.isRoot()) return this
+        const { rowsAsSet } = this
+        return new (this.constructor as any)(
+            this.parent!.rows.filter((row) => !rowsAsSet.has(row)),
+            undefined,
+            this,
+            `Inversing previous filter`,
+            TransformType.InverseFilterRows
+        )
     }
 
-    private _grepColumn(searchStringOrRegex: string | RegExp, inverse = false) {
-        const columnsToDrop = this.columnSlugs.filter((slug) => {
-            const result =
-                typeof searchStringOrRegex === "string"
-                    ? slug.includes(searchStringOrRegex)
-                    : searchStringOrRegex.test(slug)
-            return inverse ? !!result : !result
-        })
-
-        return this.withoutColumns(
-            columnsToDrop,
-            `Dropped columns that ${
-                inverse ? "" : "did not "
-            }contain '${searchStringOrRegex.toString()}'`
+    @computed get oppositeColumns(): this {
+        if (this.isRoot()) return this
+        const columnsToDrop = new Set(this.columnSlugs)
+        const defs = this.parent!.columnsAsArray.filter(
+            (col) => !columnsToDrop.has(col.slug)
+        ).map((col) => col.def)
+        return new (this.constructor as any)(
+            this.rows,
+            defs,
+            this,
+            `Inversing previous column filter`,
+            TransformType.InverseFilterColumns
         )
     }
 
     grepColumns(searchStringOrRegex: string | RegExp) {
-        return this._grepColumn(searchStringOrRegex)
-    }
+        const columnsToDrop = this.columnSlugs.filter((slug) => {
+            return typeof searchStringOrRegex === "string"
+                ? !slug.includes(searchStringOrRegex)
+                : !searchStringOrRegex.test(slug)
+        })
 
-    grepColumnsNot(searchStringOrRegex: string | RegExp) {
-        return this._grepColumn(searchStringOrRegex, true)
+        return this.withoutColumns(
+            columnsToDrop,
+            `Kept columns that matched '${searchStringOrRegex.toString()}'`
+        )
     }
 
     // todo: speed up
