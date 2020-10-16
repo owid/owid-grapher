@@ -178,7 +178,6 @@ describe("urls", () => {
     it("does not include country param in url if unchanged", () => {
         const grapher = new Grapher(legacyConfig)
         grapher.isPublished = true
-        console.log(grapher.canonicalUrl)
         expect(grapher.canonicalUrl?.includes("country")).toBeFalsy()
     })
 
