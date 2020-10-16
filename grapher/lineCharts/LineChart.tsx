@@ -153,7 +153,7 @@ class Lines extends React.Component<LinesProps> {
         return this.backgroundLines.map((series, index) => (
             <g key={index}>
                 <path
-                    key={series.seriesName + "-line"}
+                    key={`${series.seriesName}-${series.color}-line`}
                     strokeLinecap="round"
                     stroke="#ddd"
                     d={pointsToPath(
@@ -352,7 +352,7 @@ export class LineChart
                                 : series.color
                             return (
                                 <tr
-                                    key={series.seriesName}
+                                    key={`${series.seriesName}-${series.color}`}
                                     style={{ color: textColor }}
                                 >
                                     <td>
@@ -540,7 +540,7 @@ export class LineChart
 
                             return (
                                 <circle
-                                    key={series.seriesName}
+                                    key={`${series.seriesName}-${series.color}`}
                                     cx={horizontalAxis.place(value.x)}
                                     cy={verticalAxis.place(value.y)}
                                     r={4}
