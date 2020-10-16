@@ -69,10 +69,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     abstract jsType: JsTypes
-    isParsed(val: any) {
-        if (val instanceof InvalidCell) return true // If we already tried to parse it consider it "parsed"
-        return typeof val === this.jsType
-    }
 
     parse(val: any) {
         return val
@@ -288,6 +284,19 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         )
     }
 
+    // We approximate whether a column is parsed simply by looking at the first row.
+    needsParsing(value: any) {
+        // Never parse computeds. The computed should return the correct JS type. Ideally we can provide some error messaging around this.
+        if (this.def.fn) return false
+
+        // If we already tried to parse it and failed we consider it "parsed"
+        if (value instanceof InvalidCell) return false
+
+        // If the passed value is of the correc type consider the column parsed.
+        if (typeof value === this.jsType) return false
+        return true
+    }
+
     @computed get isProjection() {
         return !!this.display?.isProjection
     }
@@ -430,14 +439,7 @@ class StringColumn extends AbstractCoreColumn<string> {
 }
 
 class SeriesAnnotationColumn extends StringColumn {}
-
-class NumericCategoricalColumn extends AbstractCoreColumn<number> {
-    jsType = JsTypes.number
-}
-
-class CategoricalColumn extends AbstractCoreColumn<string> {
-    jsType = JsTypes.string
-}
+class CategoricalColumn extends StringColumn {}
 class RegionColumn extends CategoricalColumn {}
 class ContinentColumn extends RegionColumn {}
 class ColorColumn extends CategoricalColumn {}
@@ -492,6 +494,8 @@ class NumericColumn extends AbstractCoreColumn<number> {
         return parseFloat(val)
     }
 }
+
+class NumericCategoricalColumn extends NumericColumn {}
 
 class IntegerColumn extends NumericColumn {
     formatValue(value: number) {

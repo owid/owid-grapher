@@ -153,13 +153,13 @@ export class CoreTable<
         const firstRow = this._inputRows[0]
         if (!firstRow) return []
 
-        // Don't parse computeds. They should parse themselves (todo: add some test examples of the wrong way).
-        // Also don't parse columns already parsed. We approximate whether a column is parsed simply by looking at the first row. If subsequent rows
-        // have a different type, that could cause problems, but the user of this library should ensure their types remain consistent throughout
-        // all rows. We also consider a column parsed if the first row is of a failed parse attempt.
-        return this.columnsAsArray.filter((col) => {
-            return !col.def.fn && !col.isParsed(firstRow[col.slug])
-        })
+        // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
+        // user data. Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
+        if (this.isRoot()) return this.columnsAsArray
+
+        return this.columnsAsArray.filter((col) =>
+            col.needsParsing(firstRow[col.slug])
+        )
     }
 
     get stepNumber(): number {
@@ -503,8 +503,8 @@ export class CoreTable<
             "tableDescription",
         ]
         return toAlignedTextTable(header, this.ancestors, {
-            maxCharactersPerColumn: 100,
-            maxCharactersPerLine: 300,
+            maxCharactersPerColumn: 50,
+            maxCharactersPerLine: 200,
             ...options,
         })
     }

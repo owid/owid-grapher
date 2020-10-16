@@ -17,6 +17,7 @@ import intersection from "lodash/intersection"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 import isNumber from "lodash/isNumber"
+import isObject from "lodash/isObject"
 import isString from "lodash/isString"
 import keyBy from "lodash/keyBy"
 import map from "lodash/map"
@@ -37,6 +38,7 @@ import round from "lodash/round"
 import sample from "lodash/sample"
 import sampleSize from "lodash/sampleSize"
 import sortBy from "lodash/sortBy"
+import sortedIndexBy from "lodash/sortedIndexBy"
 import sortedUniq from "lodash/sortedUniq"
 import startCase from "lodash/startCase"
 import sum from "lodash/sum"
@@ -90,6 +92,7 @@ export {
     sample,
     sampleSize,
     sortBy,
+    sortedIndexBy,
     sortedUniq,
     startCase,
     sum,
@@ -124,7 +127,6 @@ import {
 import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
-import { isObject } from "lodash"
 
 export type SVGElement = any
 export type VNode = any

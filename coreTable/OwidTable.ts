@@ -13,6 +13,8 @@ import {
     uniq,
     sortNumeric,
     isPresent,
+    sortBy,
+    sortedIndexBy,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -201,16 +203,44 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    // todo: speed up
-    filterByTime(start: Time, end: Time) {
-        // We may want to do this in Grapher instead of here.
+    // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
+    // fast time filtering.
+    @computed private get sortedByTime(): this {
+        return new (this.constructor as any)(
+            sortBy(this.rows, (row) => rowTime(row)),
+            undefined,
+            this,
+            `Sorted rows by time`,
+            TransformType.SortRows
+        )
+    }
+
+    filterByTime(start: Time, end: Time): this {
+        // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime! : end
 
-        return this.filter((row) => {
-            const time = rowTime(row)
-            return time >= adjustedStart && time <= adjustedEnd
-        }, `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`)
+        const sortedTable = this.sortedByTime
+        const rowsSortedByTime = sortedTable.rows
+
+        const firstRowIndex = sortedIndexBy(
+            rowsSortedByTime,
+            { time: adjustedStart } as any,
+            (row) => rowTime(row)
+        )
+        const lastRowIndex = sortedIndexBy(
+            rowsSortedByTime,
+            { time: adjustedEnd } as any,
+            (row) => rowTime(row)
+        )
+
+        return new (this.constructor as any)(
+            rowsSortedByTime.slice(firstRowIndex, lastRowIndex),
+            undefined,
+            sortedTable,
+            `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`,
+            TransformType.FilterRows
+        )
     }
 
     filterByPopulation(minPop: number) {

@@ -55,6 +55,15 @@ describe("explain", () => {
     })
 })
 
+it("it always parses all values in all rows to Javascript primitives when the table is initially loaded", () => {
+    const rows = [
+        { country: "USA", gdp: 2000 },
+        { country: "Germany", gdp: undefined },
+    ]
+    const table = new CoreTable(rows)
+    expect(table.get("gdp")?.validRows.length).toEqual(1)
+})
+
 describe("it can add new computed columns", () => {
     it("input rows are never mutated", () => {
         const rows = [{ country: "USA" }, { country: "Germany" }]
