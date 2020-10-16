@@ -14,7 +14,7 @@ class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
         timeRange: [1950, 2010],
     })
-    yColumnSlugs = ["GDP"]
+    yColumnSlugs = [SampleColumnSlugs.GDP]
     yAxis = new AxisConfig({ min: 0, max: 200 })
     @observable isRelativeMode = false
 }

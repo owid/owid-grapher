@@ -224,15 +224,17 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const sortedTable = this.sortedByTime
         const rowsSortedByTime = sortedTable.rows
 
+        // todo: we should set a time column onload so we don't have to worry about it again.
+        const timeColumnSlug = this.timeColumn?.slug || OwidTableSlugs.time
         const firstRowIndex = sortedIndexBy(
             rowsSortedByTime,
-            { time: adjustedStart } as any,
-            (row) => rowTime(row)
+            { [timeColumnSlug]: adjustedStart } as any,
+            (row) => row[timeColumnSlug]
         )
         const lastRowIndex = sortedIndexBy(
             rowsSortedByTime,
-            { time: adjustedEnd } as any,
-            (row) => rowTime(row)
+            { [timeColumnSlug]: adjustedEnd + 1 } as any,
+            (row) => row[timeColumnSlug]
         )
 
         return new (this.constructor as any)(

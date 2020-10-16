@@ -450,7 +450,7 @@ class BooleanColumn extends AbstractCoreColumn<boolean> {
         return !!val
     }
 }
-class NumericColumn extends AbstractCoreColumn<number> {
+abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     jsType = JsTypes.number
     formatValueShort(value: number, options?: TickFormattingOptions) {
         const numDecimalPlaces = this.numDecimalPlaces
@@ -495,7 +495,8 @@ class NumericColumn extends AbstractCoreColumn<number> {
     }
 }
 
-class NumericCategoricalColumn extends NumericColumn {}
+class NumericColumn extends AbstractNumericColumn {}
+class NumericCategoricalColumn extends AbstractNumericColumn {}
 
 class IntegerColumn extends NumericColumn {
     formatValue(value: number) {
