@@ -7,7 +7,7 @@ import {
     FacetStrategy,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
-import { getChartComponentClass } from "grapher/chart/ChartTypeMap"
+import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { makeGrid } from "grapher/utils/Util"
 import { ChartInterface } from "grapher/chart/ChartInterface"
@@ -195,7 +195,9 @@ export class FacetChart
         const { placedSeries, manager } = this
         const fontSize = getFontSize(placedSeries.length, manager.baseFontSize)
         return placedSeries.map((smallChart, index: number) => {
-            const ChartClass = getChartComponentClass(smallChart.chartTypeName)!
+            const ChartClass = ChartComponentClassMap.get(
+                smallChart.chartTypeName
+            )!
             const { bounds, seriesName } = smallChart
             return (
                 <React.Fragment key={index}>

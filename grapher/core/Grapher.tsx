@@ -148,7 +148,7 @@ import {
 import { OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
-import { getChartComponentClass } from "grapher/chart/ChartTypeMap"
+import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 
 declare const window: any
 
@@ -427,7 +427,14 @@ export class Grapher
         this.timelineFilter = getTimeDomainFromQueryString(time)
     }
 
-    @computed private get tablePreTimelineFilter() {
+    @computed private get isChartOrMapTab() {
+        return (
+            this.tab === GrapherTabOption.chart ||
+            this.tab === GrapherTabOption.map
+        )
+    }
+
+    @computed private get tablePreTimelineFilter(): OwidTable {
         let table = this.inputTable
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
@@ -435,20 +442,15 @@ export class Grapher
             ? table.filterByPopulation(this.minPopulationFilter)
             : table
 
-        if (
-            this.tab === GrapherTabOption.chart ||
-            this.tab === GrapherTabOption.map
-        ) {
-            const ChartClass = getChartComponentClass(
-                this.tab === GrapherTabOption.map
-                    ? ChartTypeName.WorldMap
-                    : this.constrainedType
-            )
-            if (ChartClass)
-                table = new ChartClass({ manager: this }).transformTable(table)
-        }
+        if (!this.isChartOrMapTab) return table
 
-        return table
+        const chartTypeName =
+            this.tab === GrapherTabOption.map
+                ? ChartTypeName.WorldMap
+                : this.type // Note: if we turned linechart to a bar chart, still use the line chart transform.
+
+        const ChartClass = ChartComponentClassMap.get(chartTypeName)!
+        return new ChartClass({ manager: this }).transformTable(table)
     }
 
     @computed get table() {
@@ -938,13 +940,11 @@ export class Grapher
     @computed get hasTimeline() {
         if (this.isStackedBar || this.isStackedArea) return false
         if (this.isOnOverlay) return false
-        return !this.hideTimeline && this.times.length > 1
+        if (this.hideTimeline) return false
+        return this.times.length > 1
     }
 
-    /**
-     * Whether the plotted data only contains a single year.
-     */
-    @computed get isSingleTime() {
+    @computed private get isSingleTime() {
         return this.startTime === this.endTime
     }
 
@@ -1100,7 +1100,7 @@ export class Grapher
         return this.toObject()
     }
 
-    @computed get constrainedType() {
+    @computed get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart() {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
         return this.type === ChartTypeName.LineChart && this.isSingleTime
             ? ChartTypeName.DiscreteBar

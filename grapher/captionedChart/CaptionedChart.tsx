@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { Header } from "grapher/header/Header"
 import { Footer } from "grapher/footer/Footer"
-import { getChartComponentClass } from "grapher/chart/ChartTypeMap"
+import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
     ChartTypeName,
@@ -46,8 +46,7 @@ export interface CaptionedChartManager
     fontSize?: number
     tab?: GrapherTabOption
     type?: ChartTypeName
-    constrainedType?: ChartTypeName
-    isSingleTime?: boolean // todo: remove?
+    typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart?: ChartTypeName
     isReady?: boolean
     isStaticSvg?: boolean
     entityType?: string
@@ -140,8 +139,10 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         const chartTypeName = this.isMapTab
             ? ChartTypeName.WorldMap
-            : manager.constrainedType || manager.type || ChartTypeName.LineChart
-        const ChartClass = getChartComponentClass(chartTypeName)
+            : manager.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ??
+              manager.type ??
+              ChartTypeName.LineChart
+        const ChartClass = ChartComponentClassMap.get(chartTypeName)
 
         // Todo: make FacetChart a chart type name?
         if (!this.isMapTab && manager.facetStrategy)

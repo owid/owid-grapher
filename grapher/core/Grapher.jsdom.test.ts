@@ -168,15 +168,23 @@ describe("line chart to bar chart and bar chart race", () => {
     const grapher = new Grapher(TestGrapherConfig())
 
     it("can create a new line chart with different start and end times", () => {
-        expect(grapher.constrainedType).toEqual(ChartTypeName.LineChart)
+        expect(
+            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+        ).toEqual(ChartTypeName.LineChart)
         expect(grapher.endTime).toBeGreaterThan(grapher.startTime)
     })
 
-    it("switches from a line chart to a bar chart when there is only 1 year selected", () => {
+    describe("switches from a line chart to a bar chart when there is only 1 year selected", () => {
         const grapher = new Grapher(TestGrapherConfig())
         grapher.startTime = 2000
         grapher.endTime = 2000
-        expect(grapher.constrainedType).toEqual(ChartTypeName.DiscreteBar)
+        expect(
+            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+        ).toEqual(ChartTypeName.DiscreteBar)
+
+        it("still has a timeline even though its now a bar chart", () => {
+            expect(grapher.hasTimeline).toBe(true)
+        })
     })
 
     it("turns into a bar chart race when playing a line chart", () => {

@@ -22,16 +22,16 @@ interface ChartComponentClass extends ComponentClass<ChartComponentProps> {
     new (props: ChartComponentProps): Component & ChartInterface
 }
 
-export const getChartComponentClass = (
-    type: ChartTypeName
-): ChartComponentClass | null => {
-    if (type === ChartTypeName.DiscreteBar) return DiscreteBarChart
-    if (type === ChartTypeName.LineChart) return LineChart
-    if (type === ChartTypeName.SlopeChart) return SlopeChart
-    if (type === ChartTypeName.StackedArea) return StackedAreaChart
-    if (type === ChartTypeName.StackedBar) return StackedBarChart
-    if (type === ChartTypeName.ScatterPlot) return ScatterPlotChart
-    if (type === ChartTypeName.TimeScatter) return TimeScatterChart
-    if (type === ChartTypeName.WorldMap) return MapChart
-    return null
-}
+export const ChartComponentClassMap = new Map<
+    ChartTypeName,
+    ChartComponentClass
+>([
+    [ChartTypeName.DiscreteBar, DiscreteBarChart],
+    [ChartTypeName.LineChart, LineChart],
+    [ChartTypeName.SlopeChart, SlopeChart],
+    [ChartTypeName.StackedArea, StackedAreaChart],
+    [ChartTypeName.StackedBar, StackedBarChart],
+    [ChartTypeName.ScatterPlot, ScatterPlotChart],
+    [ChartTypeName.TimeScatter, TimeScatterChart],
+    [ChartTypeName.WorldMap, MapChart],
+])
