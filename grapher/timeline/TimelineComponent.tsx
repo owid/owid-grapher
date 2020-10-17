@@ -10,6 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Tippy from "@tippyjs/react"
 import classNames from "classnames"
 import { TimelineController } from "./TimelineController"
+import { timeFromTimebounds } from "grapher/utils/TimeBounds"
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
@@ -246,8 +247,20 @@ export class TimelineComponent extends React.Component<{
 
     render() {
         const { manager, controller } = this
-        const { startTimeProgress, endTimeProgress } = controller
+        const {
+            startTimeProgress,
+            endTimeProgress,
+            minTime,
+            maxTime,
+        } = controller
         const { startTime, endTime } = manager
+
+        const formattedStartTime = this.formatTime(
+            timeFromTimebounds(startTime, minTime)
+        )
+        const formattedEndTime = this.formatTime(
+            timeFromTimebounds(endTime, maxTime)
+        )
 
         return (
             <div
@@ -277,7 +290,7 @@ export class TimelineComponent extends React.Component<{
                     <TimelineHandle
                         type="startMarker"
                         offsetPercent={startTimeProgress * 100}
-                        tooltipContent={this.formatTime(startTime)}
+                        tooltipContent={formattedStartTime}
                         tooltipVisible={this.startTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "startMarker" ? 2 : 1
@@ -293,7 +306,7 @@ export class TimelineComponent extends React.Component<{
                     <TimelineHandle
                         type="endMarker"
                         offsetPercent={endTimeProgress * 100}
-                        tooltipContent={this.formatTime(endTime)}
+                        tooltipContent={formattedEndTime}
                         tooltipVisible={this.endTooltipVisible}
                         tooltipZIndex={
                             this.lastUpdatedTooltip === "endMarker" ? 2 : 1
