@@ -98,12 +98,18 @@ const dumpComplexSelections = async () => {
         .isGreaterThan("selectedEntities", 0)
         .where({ couldBeAProblem: 1 })
 
+    const adminLink = `http://localhost:3030/admin/test/embeds?ids=${table.rows
+        .map((row) => row.grapherId)
+        .join(",")}`
+
     fs.writeFileSync(
         GRAPHER_SELECTIONS_LOCATION,
-        table.toAlignedTextTable({
-            maxCharactersPerColumn: 200,
-            maxCharactersPerLine: 500,
-        }),
+        adminLink +
+            "\n" +
+            table.toAlignedTextTable({
+                maxCharactersPerColumn: 200,
+                maxCharactersPerLine: 500,
+            }),
         "utf8"
     )
     db.end()

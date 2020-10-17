@@ -185,6 +185,10 @@ testPageRouter.get("/embeds", async (req, res) => {
         tab = "map"
     }
 
+    if (req.query.ids) {
+        query = query.andWhere(`charts.id IN (${req.query.ids})`)
+    }
+
     if (tab === "map") {
         query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
     } else if (tab === "chart") {
