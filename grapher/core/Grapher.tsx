@@ -1537,7 +1537,7 @@ export class Grapher
                 category: "Timeline",
             },
             {
-                combo: "o",
+                combo: "shift+o",
                 fn: () => this.clearQueryParams(),
                 title: "Reset to original",
                 category: "Navigation",
@@ -1792,29 +1792,18 @@ export class Grapher
     }
 
     @action.bound clearQueryParams() {
-        const blankGrapher = new Grapher()
-        const originalConfig = this.legacyConfigAsAuthored
-
-        this.tab = originalConfig.tab ?? blankGrapher.tab
-        this.xAxis.scaleType =
-            originalConfig.xAxis?.scaleType ?? blankGrapher.xAxis.scaleType
-        this.yAxis.scaleType =
-            originalConfig.yAxis?.scaleType ?? blankGrapher.yAxis.scaleType
-        this.stackMode = originalConfig.stackMode ?? blankGrapher.stackMode
-        this.zoomToSelection =
-            originalConfig.zoomToSelection ?? blankGrapher.zoomToSelection
-        this.minPopulationFilter =
-            originalConfig.minPopulationFilter ??
-            blankGrapher.minPopulationFilter
-        this.compareEndPointsOnly =
-            originalConfig.compareEndPointsOnly ??
-            blankGrapher.compareEndPointsOnly
-        this.map.projection =
-            originalConfig.map?.projection ?? blankGrapher.map?.projection
-
-        this.minTime = this.legacyConfigAsAuthored.minTime
-        this.maxTime = this.legacyConfigAsAuthored.maxTime
-        this.map.time = this.legacyConfigAsAuthored.map?.time
+        const { authorsVersion } = this
+        this.tab = authorsVersion.tab
+        this.xAxis.scaleType = authorsVersion.xAxis.scaleType
+        this.yAxis.scaleType = authorsVersion.yAxis.scaleType
+        this.stackMode = authorsVersion.stackMode
+        this.zoomToSelection = authorsVersion.zoomToSelection
+        this.minPopulationFilter = authorsVersion.minPopulationFilter
+        this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
+        this.minTime = authorsVersion.minTime
+        this.maxTime = authorsVersion.maxTime
+        this.map.time = authorsVersion.map.time
+        this.map.projection = authorsVersion.map.projection
         this.table.clearSelection()
         this.applyOriginalSelection()
     }
@@ -1847,16 +1836,21 @@ export class Grapher
             : this.allParams) as QueryParams
     }
 
+    // If you want to compare current state against the published grapher.
+    @computed private get authorsVersion() {
+        return new Grapher({
+            ...this.legacyConfigAsAuthored,
+            manuallyProvideData: true,
+            queryStr: "",
+        })
+    }
+
     // Autocomputed url params to reflect difference between current grapher state
     // and original config state
     @computed.struct private get changedParams() {
-        const originalGrapher = new Grapher({
-            ...this.legacyConfigAsAuthored,
-            manuallyProvideData: true,
-        })
         return deleteRuntimeAndUnchangedProps<GrapherQueryParams>(
             this.allParams,
-            originalGrapher.allParams
+            this.authorsVersion.allParams
         )
     }
 
