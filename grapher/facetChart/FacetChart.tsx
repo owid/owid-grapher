@@ -142,6 +142,7 @@ export class FacetChart
                 seriesName: col.displayName,
                 manager: {
                     yColumnSlug: col.slug,
+                    yColumnSlugs: [col.slug], // In a column facet strategy, only have 1 yColumn per chart.
                     seriesStrategy: SeriesStrategy.entity,
                 },
             }

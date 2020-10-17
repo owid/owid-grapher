@@ -1520,7 +1520,7 @@ export class Grapher
             {
                 combo: "f",
                 fn: () => this.toggleFacetStrategy(),
-                title: `Faceting ${this.facetStrategy ?? "off"}`,
+                title: `Toggle Faceting`,
                 category: "Chart",
             },
             {
@@ -1620,9 +1620,12 @@ export class Grapher
         return strategies
     }
 
+    private disableAutoFaceting = true // turned off for now
     @computed get facetStrategy() {
         if (this.facet && this.availableFacetStrategies.includes(this.facet))
             return this.facet
+
+        if (this.disableAutoFaceting) return undefined
 
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
