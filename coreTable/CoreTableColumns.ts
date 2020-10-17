@@ -39,7 +39,7 @@ import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 
 interface ColumnSummary {
     numParseErrors: number
-    uniqueValues: number
+    numUniqs: number
     numValues: number
 }
 
@@ -94,10 +94,10 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: switch to a lib and/or add tests for this. handle non numerics better.
     @computed get summary() {
-        const { numParseErrors, numValues } = this
+        const { numParseErrors, numValues, numUniqs } = this
         const basicSummary: ColumnSummary = {
             numParseErrors,
-            uniqueValues: this.uniqValues.length,
+            numUniqs,
             numValues,
         }
         if (!numValues) return basicSummary
@@ -347,6 +347,10 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // Number of correctly parsed values
     @computed get numValues() {
         return this.validRows.length
+    }
+
+    @computed get numUniqs() {
+        return this.uniqValues.length
     }
 
     @computed get parsedValues(): JS_TYPE[] {

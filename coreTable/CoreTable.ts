@@ -519,8 +519,8 @@ export class CoreTable<
     }
 
     // Output a pretty table for consles
-    toAlignedTextTable() {
-        return toAlignedTextTable(this.columnSlugs, this.rows)
+    toAlignedTextTable(options?: AlignedTextTableOptions) {
+        return toAlignedTextTable(this.columnSlugs, this.rows, options)
     }
 
     toMarkdownTable() {
@@ -751,6 +751,13 @@ export class CoreTable<
         return this.dropRandomRows(
             Math.floor((dropHowMuch / 100) * this.numRows),
             seed
+        )
+    }
+
+    isGreaterThan(columnSlug: ColumnSlug, value: PrimitiveType) {
+        return this.filter(
+            (row) => row[columnSlug] > value,
+            `Filter where ${columnSlug} > ${value}`
         )
     }
 
