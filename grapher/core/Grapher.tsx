@@ -343,6 +343,9 @@ export class Grapher
     @action.bound updateFromObject(obj?: GrapherProgrammaticInterface) {
         if (!obj) return
 
+        // we can remove when we purge current graphers which have this set.
+        if (obj.stackMode === null) delete obj.stackMode
+
         updatePersistables(this, obj)
 
         // Regression fix: some legacies have this set to Null. Todo: clean DB.
@@ -357,9 +360,6 @@ export class Grapher
             this.setDimensionsFromConfigs(obj.dimensions)
     }
 
-    /**
-     * Applies query parameters to the grapher config
-     */
     @action.bound populateFromQueryParams(params: GrapherQueryParams) {
         // Set tab if specified
         const tab = params.tab
@@ -569,7 +569,11 @@ export class Grapher
             this.inputTable.setSelectedEntities(entityNames)
             if (notFoundEntities.length)
                 this.analytics.logEntitiesNotFoundError(notFoundEntities)
-        } else if (this.selectedEntityNames.length)
+        } else this.applyOriginalSelection()
+    }
+
+    @action.bound private applyOriginalSelection() {
+        if (this.selectedEntityNames.length)
             this.inputTable.setSelectedEntities(this.selectedEntityNames)
         else if (this.selectedEntityIds.length)
             this.inputTable.setSelectedEntitiesByEntityId(
@@ -1526,20 +1530,18 @@ export class Grapher
                 combo: "esc",
                 fn: () => (this.hasError = false),
             },
-
             {
                 combo: "z",
                 fn: () => this.toggleTimelineCommand(),
                 title: "Latest/Earliest/All period",
                 category: "Timeline",
             },
-
-            // { // todo: add
-            //     combo: "o",
-            //     fn: () => this.updateFromObject(this.legacyConfigAsAuthored),
-            //     title: "Restore original",
-            //     category: "Navigation",
-            // },
+            {
+                combo: "o",
+                fn: () => this.clearQueryParams(),
+                title: "Reset to original",
+                category: "Navigation",
+            },
         ]
 
         if (this.slideShow) {
@@ -1789,6 +1791,34 @@ export class Grapher
         )
     }
 
+    @action.bound clearQueryParams() {
+        const blankGrapher = new Grapher()
+        const originalConfig = this.legacyConfigAsAuthored
+
+        this.tab = originalConfig.tab ?? blankGrapher.tab
+        this.xAxis.scaleType =
+            originalConfig.xAxis?.scaleType ?? blankGrapher.xAxis.scaleType
+        this.yAxis.scaleType =
+            originalConfig.yAxis?.scaleType ?? blankGrapher.yAxis.scaleType
+        this.stackMode = originalConfig.stackMode ?? blankGrapher.stackMode
+        this.zoomToSelection =
+            originalConfig.zoomToSelection ?? blankGrapher.zoomToSelection
+        this.minPopulationFilter =
+            originalConfig.minPopulationFilter ??
+            blankGrapher.minPopulationFilter
+        this.compareEndPointsOnly =
+            originalConfig.compareEndPointsOnly ??
+            blankGrapher.compareEndPointsOnly
+        this.map.projection =
+            originalConfig.map?.projection ?? blankGrapher.map?.projection
+
+        this.minTime = this.legacyConfigAsAuthored.minTime
+        this.maxTime = this.legacyConfigAsAuthored.maxTime
+        this.map.time = this.legacyConfigAsAuthored.map?.time
+        this.table.clearSelection()
+        this.applyOriginalSelection()
+    }
+
     debounceMode = false
 
     @computed.struct private get allParams() {
@@ -1820,36 +1850,14 @@ export class Grapher
     // Autocomputed url params to reflect difference between current grapher state
     // and original config state
     @computed.struct private get changedParams() {
-        const params = this.allParams
-        const originalConfig = this.legacyConfigAsAuthored
-
-        if (params.tab === originalConfig.tab) params.tab = undefined
-
-        if (params.xScale === originalConfig.xAxis?.scaleType)
-            params.xScale = undefined
-
-        if (params.yScale === originalConfig.yAxis?.scaleType)
-            params.yScale = undefined
-
-        if (params.stackMode === originalConfig.stackMode)
-            params.stackMode = undefined
-
-        if (this.zoomToSelection === originalConfig.zoomToSelection)
-            params.zoomToSelection = undefined
-
-        if (this.minPopulationFilter === originalConfig.minPopulationFilter)
-            params.minPopulationFilter = undefined
-
-        if (this.compareEndPointsOnly === originalConfig.compareEndPointsOnly)
-            params.endpointsOnly = undefined
-
-        if (
-            originalConfig.map &&
-            params.region === originalConfig.map.projection
+        const originalGrapher = new Grapher({
+            ...this.legacyConfigAsAuthored,
+            manuallyProvideData: true,
+        })
+        return deleteRuntimeAndUnchangedProps<GrapherQueryParams>(
+            this.allParams,
+            originalGrapher.allParams
         )
-            params.region = undefined
-
-        return params
     }
 
     @computed get queryStr() {
