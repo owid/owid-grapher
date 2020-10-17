@@ -4,7 +4,6 @@ import { LongFormPage, PageOverrides } from "./views/LongFormPage"
 import { BlogIndexPage } from "./views/BlogIndexPage"
 import { FrontPage } from "./views/FrontPage"
 import { ChartsIndexPage, ChartIndexItem } from "./views/ChartsIndexPage"
-import { ExplorePage } from "explorer/indicatorExplorer/ExplorePage"
 import { CovidPage } from "./views/CovidPage"
 import { SearchPage } from "./views/SearchPage"
 import { NotFoundPage } from "./views/NotFoundPage"
@@ -76,10 +75,6 @@ export async function renderChartsPage() {
     }
 
     return renderToHtmlPage(<ChartsIndexPage chartItems={chartItems} />)
-}
-
-export async function renderExplorePage() {
-    return renderToHtmlPage(<ExplorePage />)
 }
 
 // Only used in the dev server

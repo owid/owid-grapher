@@ -69,11 +69,6 @@ export const PUBLIC_TAG_PARENT_IDS: number[] = [
     1510,
 ]
 
-// Feature flag for explorable charts
-export const EXPLORER: boolean = process.env.EXPLORER
-    ? parseBool(process.env.EXPLORER)
-    : false
-
 // Feature flag for COVID Dashboard
 export const COVID_DASHBOARD: boolean = process.env.COVID_DASHBOARD
     ? parseBool(process.env.COVID_DASHBOARD)

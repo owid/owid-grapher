@@ -16,7 +16,6 @@ import { runFeedbackPage } from "./Feedback"
 import { runDonateForm } from "stripe/DonateForm"
 import { getParent } from "./utils"
 import { GrapherPageUtils } from "site/client/GrapherPageUtils"
-import { ExploreView } from "explorer/indicatorExplorer/ExploreView"
 import { runVariableCountryPage } from "./runVariableCountryPage"
 import { runCountryProfilePage } from "./runCountryProfilePage"
 import { runCookiePreferencesManager } from "./CookiePreferencesManager/CookiePreferencesManager"
@@ -39,7 +38,6 @@ window.GrapherPageUtils = GrapherPageUtils
 window.Grapher = Grapher
 window.CovidExplorer = CovidExplorer
 window.SwitcherExplorer = SwitcherExplorer
-window.ExploreView = ExploreView
 window.runChartsIndexPage = runChartsIndexPage
 window.runHeaderMenus = runHeaderMenus
 window.runSearchPage = runSearchPage

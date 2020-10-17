@@ -22,12 +22,6 @@ export class Analytics {
         this.logToSA("Errors :: Chart")
     }
 
-    logExploreError(error: any, info: any) {
-        this.logToAmplitude("EXPLORE_ERROR", { error, info })
-        this.logToGA("Errors", "Explore")
-        this.logToSA("Errors :: Explore")
-    }
-
     logEntitiesNotFoundError(entities: string[]) {
         this.logToAmplitude("ENTITIES_NOT_FOUND", { entities })
         this.logToGA("Errors", "ENTITIES_NOT_FOUND", JSON.stringify(entities))

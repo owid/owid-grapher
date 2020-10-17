@@ -19,7 +19,6 @@ enum Categories {
 
 enum EventNames {
     grapherViewError = "GRAPHER_VIEW_ERROR",
-    indicatorExplorerViewError = "INDICATOR_EXPLORER_VIEW_ERROR",
     entitiesNotFound = "ENTITIES_NOT_FOUND",
     timelinePlay = "TimelinePlay",
 }
@@ -48,20 +47,6 @@ export class GrapherAnalytics {
         this.logToGA(Categories.GrapherError, EventNames.grapherViewError)
         this.logToSA(
             `${Categories.GrapherError} :: ${EventNames.grapherViewError}`
-        )
-    }
-
-    logIndicatorExplorerViewError(error: any, info: any) {
-        this.logToAmplitude(EventNames.indicatorExplorerViewError, {
-            error,
-            info,
-        })
-        this.logToGA(
-            Categories.GrapherError,
-            EventNames.indicatorExplorerViewError
-        )
-        this.logToSA(
-            `${Categories.GrapherError} :: ${EventNames.indicatorExplorerViewError}`
         )
     }
 

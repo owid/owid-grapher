@@ -12,7 +12,6 @@ import { ChartEditor } from "./ChartEditor"
 import { VariableSelector } from "./VariableSelector"
 import { DimensionCard } from "./DimensionCard"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
-import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { LegacyVariableId } from "coreTable/LegacyVariableCode"
 
 @observer
@@ -224,30 +223,16 @@ export class EditorBasicTab extends React.Component<{ editor: ChartEditor }> {
                         options={chartTypes}
                         optionLabels={chartTypes.map((key) => startCase(key))}
                     />
-                    {editor.features.explorer && (
-                        <FieldsRow>
-                            <Toggle
-                                label="Explorable chart"
-                                value={grapher.isExplorableConstrained}
-                                onValue={(value) =>
-                                    (grapher.isExplorable = value)
-                                }
-                                disabled={!canBeExplorable(grapher)}
-                            />
-                        </FieldsRow>
-                    )}
                     <FieldsRow>
                         <Toggle
                             label="Chart tab"
                             value={grapher.hasChartTab}
                             onValue={(value) => (grapher.hasChartTab = value)}
-                            disabled={grapher.isExplorableConstrained}
                         />
                         <Toggle
                             label="Map tab"
                             value={grapher.hasMapTab}
                             onValue={(value) => (grapher.hasMapTab = value)}
-                            disabled={grapher.isExplorableConstrained}
                         />
                     </FieldsRow>
                 </Section>

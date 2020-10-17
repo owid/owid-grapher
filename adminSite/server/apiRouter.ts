@@ -40,7 +40,6 @@ import { enqueueChange, getDeploys } from "deploy/queue"
 import { FunctionalRouter } from "./utils/FunctionalRouter"
 import { addExplorerApiRoutes } from "explorer/admin/ExplorerBaker"
 import { addGitCmsApiRoutes } from "gitCms/server"
-import { isExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 
 const apiRouter = new FunctionalRouter()
 
@@ -233,33 +232,16 @@ async function saveGrapher(
         const now = new Date()
         let chartId = existingConfig && existingConfig.id
         const newJsonConfig = JSON.stringify(newConfig)
-
+        // todo: drop "isExplorable"
         if (existingConfig) {
             await t.query(
                 `UPDATE charts SET config=?, updatedAt=?, lastEditedAt=?, lastEditedByUserId=?, isExplorable=? WHERE id = ?`,
-                [
-                    newJsonConfig,
-                    now,
-                    now,
-                    user.id,
-                    isExplorable(newConfig),
-                    chartId,
-                ]
+                [newJsonConfig, now, now, user.id, false, chartId]
             )
         } else {
             const result = await t.execute(
                 `INSERT INTO charts (config, createdAt, updatedAt, lastEditedAt, lastEditedByUserId, starred, isExplorable) VALUES (?)`,
-                [
-                    [
-                        newJsonConfig,
-                        now,
-                        now,
-                        now,
-                        user.id,
-                        false,
-                        isExplorable(newConfig),
-                    ],
-                ]
+                [[newJsonConfig, now, now, now, user.id, false, false]]
             )
             chartId = result.insertId
         }

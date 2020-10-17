@@ -10,7 +10,7 @@ export function IndexPage(props: { username: string; isSuperuser: boolean }) {
         window.admin = new Admin({ username: "${
             props.username
         }", isSuperuser: ${props.isSuperuser.toString()}, settings: ${JSON.stringify(
-        lodash.pick(settings, ["ENV", "GITHUB_USERNAME", "EXPLORER"])
+        lodash.pick(settings, ["ENV", "GITHUB_USERNAME"])
     )}})
         admin.start(document.querySelector("#app"))
 `

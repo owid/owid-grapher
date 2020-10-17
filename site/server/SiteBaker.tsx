@@ -17,7 +17,6 @@ import {
     renderSubscribePage,
     renderBlogByPageNum,
     renderChartsPage,
-    renderExplorePage,
     renderMenuJson,
     renderSearchPage,
     renderDonatePage,
@@ -57,7 +56,6 @@ import {
     bakeAllPublishedExplorers,
     renderCovidExplorerPage,
 } from "explorer/admin/ExplorerBaker"
-import { renderExplorableIndicatorsJson } from "explorer/indicatorExplorer/IndicatorBaking"
 import { deserializeJSONFromHTML } from "utils/serializers"
 
 // Static site generator using Wordpress
@@ -334,16 +332,6 @@ export class SiteBaker {
             await makeSitemap()
         )
 
-        if (settings.EXPLORER) {
-            await this.stageWrite(
-                `${BAKED_SITE_DIR}/explore.html`,
-                await renderExplorePage()
-            )
-            await this.stageWrite(
-                `${BAKED_SITE_DIR}/explore/indicators.json`,
-                await renderExplorableIndicatorsJson()
-            )
-        }
         if (settings.COVID_DASHBOARD) {
             await this.stageWrite(
                 `${BAKED_SITE_DIR}/${covidDashboardSlug}.html`,

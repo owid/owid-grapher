@@ -82,8 +82,4 @@ export class EditorFeatures {
     @computed get comparisonLine() {
         return this.grapher.isLineChart || this.grapher.isScatter
     }
-
-    @computed get explorer() {
-        return this.editor.manager.admin.settings.EXPLORER
-    }
 }

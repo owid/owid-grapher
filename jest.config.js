@@ -1,7 +1,3 @@
-// We need to keep this until we make the EXPLORER flag obsolete (by enabling
-// the explorer on the live site)
-process.env.EXPLORER = true
-
 // For now:
 // - server tests end in .node.test.tsx? and are run in the node environment
 // - client tests end in .test.tsx? and are run in the jsdom environment

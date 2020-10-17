@@ -25,7 +25,6 @@ import { EntityId, EntityName } from "coreTable/OwidTableConstants"
 // under the same rendering conditions it ought to remain visually identical
 export interface GrapherInterface {
     type?: ChartTypeName
-    isExplorable?: boolean
     id?: number
     version?: number
     slug?: string
@@ -107,7 +106,6 @@ export interface LegacyGrapherQueryParams extends GrapherQueryParams {
 // Another approach we may want to try is this: https://github.com/mobxjs/serializr
 export const grapherKeysToSerialize = [
     "type",
-    "isExplorable",
     "id",
     "version",
     "slug",

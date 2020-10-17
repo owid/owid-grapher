@@ -6,7 +6,6 @@ import {
     renderFrontPage,
     renderPageBySlug,
     renderChartsPage,
-    renderExplorePage,
     renderMenuJson,
     renderSearchPage,
     renderDonatePage,
@@ -40,7 +39,6 @@ import { bakeCovidChartAndVariableMeta } from "explorer/covidExplorer/bakeCovidC
 import { chartExplorerRedirectsBySlug } from "explorer/covidExplorer/bakeCovidExplorerRedirects"
 import { countryProfileSpecs } from "site/server/countryProfileProjects"
 import { renderCovidExplorerPage } from "explorer/admin/ExplorerBaker"
-import { renderExplorableIndicatorsJson } from "explorer/indicatorExplorer/IndicatorBaking"
 
 const mockSiteRouter = Router()
 
@@ -117,10 +115,6 @@ mockSiteRouter.get("/charts", async (req, res) => {
     res.send(await renderChartsPage())
 })
 
-mockSiteRouter.get("/explore", async (req, res) => {
-    res.send(await renderExplorePage())
-})
-
 mockSiteRouter.get(`/${covidDashboardSlug}`, async (req, res) => {
     res.send(await renderCovidExplorerPage())
 })
@@ -138,10 +132,6 @@ mockSiteRouter.get(covidChartAndVariableMetaPath, async (req, res) => {
 // Route only available on the dev server
 mockSiteRouter.get("/covid", async (req, res) => {
     res.send(await renderCovidPage())
-})
-
-mockSiteRouter.get("/explore/indicators.json", async (req, res) => {
-    res.type("json").send(await renderExplorableIndicatorsJson())
 })
 
 mockSiteRouter.get("/search", async (req, res) => {

@@ -89,7 +89,6 @@ import {
     legacyQueryParamsToCurrentQueryParams,
 } from "grapher/core/GrapherInterface"
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
-import { canBeExplorable } from "explorer/indicatorExplorer/IndicatorUtils"
 import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
 import { MapProjection } from "grapher/mapCharts/MapProjections"
@@ -207,7 +206,6 @@ export class Grapher
         DataTableManager,
         MapChartManager {
     @observable.ref type = ChartTypeName.LineChart
-    @observable.ref isExplorable = false
     @observable.ref id?: number = undefined
     @observable.ref version = 1
     @observable.ref slug?: string = undefined
@@ -755,11 +753,6 @@ export class Grapher
         })
 
         return validDimensions
-    }
-
-    // Only true if isExplorable is true and chart meets certain criteria
-    @computed get isExplorableConstrained() {
-        return this.isExplorable && canBeExplorable(this)
     }
 
     // todo: do we need this?

@@ -61,7 +61,6 @@ const sandboxGrapher = {
     sourceDesc: "Placeholder source",
     hasChartTab: true,
     isPublished: true,
-    isExplorable: false,
     addCountryMode: "add-country",
     hideRelativeToggle: true,
 }
