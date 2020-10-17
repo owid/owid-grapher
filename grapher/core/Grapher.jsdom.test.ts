@@ -136,13 +136,14 @@ function toQueryParams(props?: Partial<GrapherInterface>) {
     return grapher.params
 }
 
-describe("scaleType", () => {
-    expect(new Grapher().params.xScale).toEqual(ScaleType.linear)
-    expect(
-        new Grapher({
-            xAxis: { scaleType: ScaleType.linear },
-        }).params.xScale
-    ).toEqual(undefined)
+it("can serialize scaleType if it changes", () => {
+    expect(new Grapher().params.xScale).toEqual(undefined)
+    const grapher = new Grapher({
+        xAxis: { scaleType: ScaleType.linear },
+    })
+    expect(grapher.params.xScale).toEqual(undefined)
+    grapher.xAxis.scaleType = ScaleType.log
+    expect(grapher.params.xScale).toEqual(ScaleType.log)
 })
 
 describe("line chart to bar chart and bar chart race", () => {
@@ -576,7 +577,7 @@ describe("year parameter", () => {
         ]
 
         for (const test of tests) {
-            it(`parse ${test.name}`, () => {
+            describe(`parse ${test.name}`, () => {
                 const grapher = getGrapher()
                 grapher.populateFromQueryParams(
                     legacyQueryParamsToCurrentQueryParams({
@@ -584,6 +585,12 @@ describe("year parameter", () => {
                     })
                 )
                 expect(grapher.timelineFilter).toEqual([test.param, test.param])
+
+                it("can clear query params", () => {
+                    expect(grapher.queryStr).toBeTruthy()
+                    grapher.clearQueryParams()
+                    expect(grapher.queryStr).toBeFalsy()
+                })
             })
             if (!test.irreversible) {
                 it(`encode ${test.name}`, () => {
