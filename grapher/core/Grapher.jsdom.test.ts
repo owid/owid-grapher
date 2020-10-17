@@ -146,6 +146,24 @@ it("can serialize scaleType if it changes", () => {
     expect(grapher.params.xScale).toEqual(ScaleType.log)
 })
 
+it("can show the year of the selected data in the title", () => {
+    const grapher = new Grapher({
+        table: SynthesizeGDPTable(
+            { entityCount: 2, timeRange: [2000, 2010] },
+            1
+        ).selectAll(),
+        dimensions: [
+            {
+                slug: SampleColumnSlugs.GDP,
+                property: DimensionProperty.y,
+                variableId: SampleColumnSlugs.GDP as any,
+            },
+        ],
+    })
+    expect(grapher.currentTitle).toContain("2009")
+    expect(grapher.currentTitle).not.toContain("Infinity")
+})
+
 describe("line chart to bar chart and bar chart race", () => {
     const grapher = new Grapher(TestGrapherConfig())
 

@@ -70,6 +70,7 @@ import {
     minTimeToJSON,
     maxTimeToJSON,
     formatTimeURIComponent,
+    timeFromTimebounds,
 } from "grapher/utils/TimeBounds"
 import {
     GlobalEntitySelection,
@@ -900,27 +901,24 @@ export class Grapher
     @computed get currentTitle() {
         let text = this.displayTitle
         const selectedEntityNames = this.table.selectedEntityNames
+        const showTitleAnnotation = !this.hideTitleAnnotation
 
         if (
             this.primaryTab === GrapherTabOption.chart &&
             this.addCountryMode !== EntitySelectionMode.MultipleEntities &&
             selectedEntityNames.length === 1 &&
-            (!this.hideTitleAnnotation || this.canChangeEntity)
+            (showTitleAnnotation || this.canChangeEntity)
         ) {
             const entityStr = selectedEntityNames[0]
             if (entityStr.length) text = `${text}, ${entityStr}`
         }
 
-        if (
-            !this.hideTitleAnnotation &&
-            this.isLineChart &&
-            this.isRelativeMode
-        )
+        if (showTitleAnnotation && this.isLineChart && this.isRelativeMode)
             text = "Change in " + lowerCaseFirstLetterUnlessAbbreviation(text)
 
         if (
             this.isReady &&
-            (!this.hideTitleAnnotation ||
+            (showTitleAnnotation ||
                 (this.isLineChart && this.isSingleTime && this.hasTimeline) ||
                 (this.primaryTab === GrapherTabOption.map &&
                     this.mapHasTimeline))
@@ -1014,9 +1012,15 @@ export class Grapher
     @computed private get timeTitleSuffix() {
         if (!this.table.timeColumn) return "" // Do not show year until data is loaded
         const { startTime, endTime } = this
-        const fn = this.table.timeColumn.formatValue
-        const timeFrom = fn(startTime)
-        const timeTo = fn(endTime)
+        const timeColumn = this.table.timeColumn
+        const tableForTime = this.table
+        // todo: should we add a startTime method and rename the current startTime method to startTimeBound?
+        const timeFrom = timeColumn.formatValue(
+            timeFromTimebounds(startTime, tableForTime.minTime ?? 1900)
+        )
+        const timeTo = timeColumn.formatValue(
+            timeFromTimebounds(endTime, tableForTime.maxTime ?? 2100)
+        )
         const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
 
         return ", " + time
