@@ -1,10 +1,11 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-
 import { isEmpty } from "grapher/utils/Util"
-import { MapProjection } from "grapher/mapCharts/MapProjections"
-
+import {
+    MapProjectionLabels,
+    MapProjectionName,
+} from "grapher/mapCharts/MapProjections"
 import { ChartEditor } from "./ChartEditor"
 import {
     NumericSelectField,
@@ -28,7 +29,7 @@ class VariableSection extends React.Component<{
     }
 
     @action.bound onProjection(projection: string | undefined) {
-        this.props.mapConfig.projection = projection as MapProjection
+        this.props.mapConfig.projection = projection as MapProjectionName
     }
 
     render() {
@@ -41,24 +42,8 @@ class VariableSection extends React.Component<{
                 </section>
             )
 
-        const projections = [
-            "World",
-            "Africa",
-            "NorthAmerica",
-            "SouthAmerica",
-            "Asia",
-            "Europe",
-            "Oceania",
-        ]
-        const labels = [
-            "World",
-            "Africa",
-            "North America",
-            "South America",
-            "Asia",
-            "Europe",
-            "Oceania",
-        ]
+        const projections = Object.keys(MapProjectionLabels)
+        const labels = Object.values(MapProjectionLabels)
 
         return (
             <Section name="Map">

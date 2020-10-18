@@ -2,20 +2,19 @@ import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import Select, { ValueType } from "react-select"
-import { worldRegions, labelsByRegion } from "./WorldRegions"
 import { first } from "grapher/utils/Util"
-import { MapProjection } from "./MapProjections"
+import { MapProjectionName, MapProjectionLabels } from "./MapProjections"
 import { asArray, getStylesForTargetHeight } from "utils/client/react-select"
 
 interface ProjectionChooserEntry {
     label: string
-    value: MapProjection
+    value: MapProjectionName
 }
 
 @observer
 export class ProjectionChooser extends React.Component<{
     value: string
-    onChange: (value: MapProjection) => void
+    onChange: (value: MapProjectionName) => void
 }> {
     @action.bound onChange(selected: ValueType<ProjectionChooserEntry>) {
         const selectedValue = first(asArray(selected))?.value
@@ -23,10 +22,10 @@ export class ProjectionChooser extends React.Component<{
     }
 
     @computed get options() {
-        return worldRegions.map((region) => {
+        return Object.values(MapProjectionName).map((projectName) => {
             return {
-                value: region,
-                label: labelsByRegion[region],
+                value: projectName,
+                label: MapProjectionLabels[projectName],
             }
         })
     }

@@ -64,12 +64,11 @@ import {
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
     TimeBounds,
-    TimeBoundValue,
     getTimeDomainFromQueryString,
     TimeBound,
     minTimeToJSON,
     maxTimeToJSON,
-    formatTimeURIComponent,
+    timeBoundToTimeBoundString,
     timeFromTimebounds,
 } from "grapher/utils/TimeBounds"
 import {
@@ -92,7 +91,7 @@ import {
 import { DimensionSlot } from "grapher/chart/DimensionSlot"
 import { Analytics } from "./Analytics"
 import { EntityUrlBuilder } from "./EntityUrlBuilder"
-import { MapProjection } from "grapher/mapCharts/MapProjections"
+import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 import { LogoOption } from "grapher/captionedChart/Logos"
 import { AxisConfig, FontSizeManager } from "grapher/axis/AxisConfig"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
@@ -149,6 +148,7 @@ import { OwidTable } from "coreTable/OwidTable"
 import * as Mousetrap from "mousetrap"
 import { SlideShowController } from "grapher/slideshowController/SlideShowController"
 import { ChartComponentClassMap } from "grapher/chart/ChartTypeMap"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 declare const window: any
 
@@ -240,7 +240,7 @@ export class Grapher
     @observable.ref variantName?: string = undefined
     @observable.ref originUrl = ""
     @observable.ref isPublished?: boolean = undefined
-    @observable.ref baseColorScheme?: string = undefined
+    @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
     @observable.ref hideLinesOutsideTolerance?: boolean = undefined
     @observable hideConnectedScatterLines?: boolean = undefined // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
@@ -413,7 +413,8 @@ export class Grapher
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
 
         const region = params.region
-        if (region !== undefined) this.map.projection = region as MapProjection
+        if (region !== undefined)
+            this.map.projection = region as MapProjectionName
 
         if (params.country) {
             // Selected countries -- we can't actually look these up until we have the data
@@ -525,8 +526,6 @@ export class Grapher
 
     // at startDrag, we want to show the full axis
     @observable.ref useTimelineDomains = false
-
-    @observable userHasSetTimeline = false
 
     @action.bound private async downloadLegacyDataFromUrl(url: string) {
         const json = await fetchJSON(url)
@@ -798,35 +797,11 @@ export class Grapher
 
     @observable.ref dataTableColumnSlugsToShow: ColumnSlug[] = []
 
-    /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
-    private chartMinPopulationFilter?: number = undefined
-
-    @action.bound private revertDataTableSpecificState() {
-        /** If the start year was autoselected in the DataTable, revert. */
-        if (!this.userHasSetTimeline)
-            this.timelineHandleTimeBounds = [
-                this.legacyConfigAsAuthored.minTime ??
-                    TimeBoundValue.negativeInfinity,
-                this.timelineHandleTimeBounds[1],
-            ]
-
-        /** Revert the state of minPopulationFilter */
-        this.minPopulationFilter = this.chartMinPopulationFilter
-    }
-
     @computed get currentTab() {
         return this.overlay ? this.overlay : this.tab
     }
 
-    // Todo: let's add unit tests and/or stories for this one. There is an important behavior here (that we may want to simplify)
-    // where the behavior of the Download Tab depends upon which tab you are coming from.
-    /** TEMPORARY: Needs to be replaced with declarative filter columns ASAP */
     set currentTab(desiredTab) {
-        if (this.tab === GrapherTabOption.chart)
-            this.chartMinPopulationFilter = this.minPopulationFilter
-        if (this.isOnTableTab && desiredTab !== GrapherTabOption.table)
-            this.revertDataTableSpecificState()
-
         if (
             desiredTab === GrapherTabOption.chart ||
             desiredTab === GrapherTabOption.map ||
@@ -1889,28 +1864,39 @@ export class Grapher
         return this.baseUrl ? this.baseUrl + this.queryStr : undefined
     }
 
+    @computed private get hasUserChangedTimeHandles() {
+        const authorsVersion = this.authorsVersion
+        return (
+            this.minTime !== authorsVersion.minTime ||
+            this.maxTime !== authorsVersion.maxTime
+        )
+    }
+
+    @computed private get hasUserChangedMapTimeHandle() {
+        return this.map.time !== this.authorsVersion.map.time
+    }
+
     @computed get timeParam() {
-        const authoredConfig = this.legacyConfigAsAuthored
         const formatAsDay = this.table.hasDayColumn
-
         if (
-            this.minTime !== authoredConfig.minTime ||
-            this.maxTime !== authoredConfig.maxTime
-        ) {
-            const [minTime, maxTime] = this.timelineHandleTimeBounds
+            this.isOnMapTab &&
+            this.map.time !== undefined &&
+            this.hasUserChangedMapTimeHandle
+        )
+            return timeBoundToTimeBoundString(this.map.time, formatAsDay)
+        if (!this.hasUserChangedTimeHandles) return undefined
 
-            const start = formatTimeURIComponent(minTime, formatAsDay)
-
-            if (minTime === maxTime) return start
-
-            const end = formatTimeURIComponent(maxTime, formatAsDay)
-            return `${start}..${end}`
-        }
-
-        if (this.map.time !== undefined)
-            return formatTimeURIComponent(this.map.time, formatAsDay)
-
-        return undefined
+        const [startHandleTime, rightHandleTime] = this.timelineHandleTimeBounds
+        const startTimeBoundString = timeBoundToTimeBoundString(
+            startHandleTime,
+            formatAsDay
+        )
+        return startHandleTime === rightHandleTime
+            ? startTimeBoundString
+            : `${startTimeBoundString}..${timeBoundToTimeBoundString(
+                  rightHandleTime,
+                  formatAsDay
+              )}`
     }
 
     @computed private get countryParam() {

@@ -10,6 +10,7 @@ import { TooltipProps } from "grapher/tooltip/TooltipProps"
 import { OwidTable } from "coreTable/OwidTable"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
 import { AxisConfigInterface } from "grapher/axis/AxisConfigInterface"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
@@ -27,7 +28,7 @@ export interface ChartManager {
     hideLegend?: boolean
     tooltip?: TooltipProps
     useTimelineDomains?: boolean
-    baseColorScheme?: string
+    baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
     compareEndPointsOnly?: boolean
     zoomToSelection?: boolean

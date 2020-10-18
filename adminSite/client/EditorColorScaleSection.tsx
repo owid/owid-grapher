@@ -25,13 +25,13 @@ import {
     ColorBox,
     BindAutoFloat,
     BindString,
-    Button,
 } from "./Forms"
 import { ColorSchemeOption, ColorSchemeDropdown } from "./ColorSchemeDropdown"
 import {
     BinningStrategy,
     binningStrategyLabels,
 } from "grapher/color/BinningStrategies"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 interface EditorColorScaleSectionFeatures {
     visualScaling: boolean
@@ -124,7 +124,7 @@ class ColorsSection extends React.Component<{
 
         if (selected.value === "custom") config.customNumericColorsActive = true
         else {
-            config.baseColorScheme = selected.value
+            config.baseColorScheme = selected.value as ColorSchemeName
             config.customNumericColorsActive = undefined
         }
     }

@@ -9,10 +9,9 @@ import {
     minBy,
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
-import { bind } from "decko"
 import { scaleOrdinal } from "d3-scale"
 import { SeriesStrategy, SeriesName } from "grapher/core/GrapherConstants"
-import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
+import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
 import { DualAxis } from "grapher/axis/Axis"
@@ -483,10 +482,11 @@ export class StackedAreaChart
 
     @computed private get colorScheme() {
         //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-        const colorScheme = ColorSchemes[this.manager.baseColorScheme as string]
-        return colorScheme !== undefined
-            ? colorScheme
-            : (ColorSchemes["stackedAreaDefault"] as ColorScheme)
+        return (
+            (this.manager.baseColorScheme
+                ? ColorSchemes[this.manager.baseColorScheme]
+                : null) ?? ColorSchemes.stackedAreaDefault
+        )
     }
 
     @computed get colorScale() {

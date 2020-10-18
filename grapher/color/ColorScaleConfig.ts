@@ -8,13 +8,14 @@ import {
     updatePersistables,
 } from "grapher/persistable/Persistable"
 import { extend, trimObject } from "grapher/utils/Util"
+import { ColorSchemeName } from "./ColorConstants"
 
 class ColorScaleConfigDefaults {
     // Color scheme
     // ============
 
     /** Key for a colorbrewer scheme */
-    @observable baseColorScheme?: string
+    @observable baseColorScheme?: ColorSchemeName
 
     /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
     @observable colorSchemeInvert?: boolean = undefined

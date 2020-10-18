@@ -20,6 +20,7 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons/faMinus"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
@@ -29,8 +30,9 @@ class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
         // we are not using the multi-option select we can force the type to be
         // a single value.
 
-        this.props.grapher.baseColorScheme =
-            selected.value === "default" ? undefined : selected.value
+        this.props.grapher.baseColorScheme = (selected.value === "default"
+            ? undefined
+            : selected.value) as ColorSchemeName
     }
 
     @action.bound onInvertColorScheme(value: boolean) {

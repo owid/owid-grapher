@@ -66,6 +66,8 @@ export interface RelatedQuestionsConfig {
     url: string
 }
 
+export const WorldEntityName = "World"
+
 // When a user hovers over a connected series line in a ScatterPlot we show
 // a label for each point. By default that value will be from the "year" column
 // but by changing this option the column used for the x or y axis could be used instead.

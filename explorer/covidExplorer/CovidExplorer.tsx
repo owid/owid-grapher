@@ -41,11 +41,7 @@ import {
     MegaRow,
     CovidCountryPickerSlugs,
 } from "./CovidConstants"
-import {
-    ColorScheme,
-    ColorSchemes,
-    continentColors,
-} from "grapher/color/ColorSchemes"
+import { ColorSchemes } from "grapher/color/ColorSchemes"
 import {
     GlobalEntitySelection,
     GlobalEntitySelectionModes,
@@ -79,6 +75,8 @@ import {
     ExplorerControlOption,
 } from "explorer/client/ExplorerConstants"
 import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
+import { ContinentColors } from "grapher/color/ColorConstants"
+import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -528,7 +526,7 @@ export class CovidExplorer
         const namesWithoutColor = names.filter((name) => !(name in newColorMap))
         // For names that don't have a color, assign one.
         namesWithoutColor.forEach((name) => {
-            const scheme = ColorSchemes["owid-distinct"] as ColorScheme
+            const scheme = ColorSchemes["owid-distinct"]
             const availableColors = lastOfNonEmptyArray(scheme.colorSets)
             const usedColors = Object.values(newColorMap).filter(isPresent)
             newColorMap[name] = getLeastUsedColor(availableColors, usedColors)
@@ -786,7 +784,7 @@ export class CovidExplorer
                 customNumericValues: [],
                 customNumericLabels: [],
                 customNumericColors: [],
-                customCategoryColors: continentColors,
+                customCategoryColors: ContinentColors,
                 customCategoryLabels: {
                     "No data": "Other",
                 },
@@ -799,7 +797,7 @@ export class CovidExplorer
                 customNumericValues: [],
                 customNumericLabels: [],
                 customNumericColors: [],
-                customCategoryColors: continentColors,
+                customCategoryColors: ContinentColors,
                 customCategoryLabels: {
                     "No data": "",
                 },
@@ -812,7 +810,7 @@ export class CovidExplorer
         return {
             columnSlug: ColorScaleOptions.continents,
             timeTolerance: 7,
-            projection: "World",
+            projection: MapProjectionName.World,
             colorScale: {
                 colorSchemeValues: [],
                 colorSchemeLabels: [],

@@ -3,19 +3,31 @@ import {
     geoConicConformal,
     geoAzimuthalEqualArea,
     GeoProjection,
+    GeoPath,
 } from "d3-geo"
 import { geoRobinson, geoPatterson } from "d3-geo-projection"
 
-export type MapProjection =
-    | "World"
-    | "Africa"
-    | "NorthAmerica"
-    | "SouthAmerica"
-    | "Asia"
-    | "Europe"
-    | "Oceania"
+export enum MapProjectionName {
+    World = "World",
+    Africa = "Africa",
+    NorthAmerica = "NorthAmerica",
+    SouthAmerica = "SouthAmerica",
+    Asia = "Asia",
+    Europe = "Europe",
+    Oceania = "Oceania",
+}
 
-export const MapProjections = {
+export const MapProjectionLabels: Record<MapProjectionName, string> = {
+    World: "World",
+    Africa: "Africa",
+    NorthAmerica: "North America",
+    SouthAmerica: "South America",
+    Asia: "Asia",
+    Europe: "Europe",
+    Oceania: "Oceania",
+}
+
+export const MapProjectionGeos: { [key in MapProjectionName]: GeoPath } = {
     World: geoPath().projection(geoRobinson() as GeoProjection),
 
     Africa: geoPath().projection(
@@ -60,4 +72,4 @@ export const MapProjections = {
             .center([0, -20])
             .parallels([-10, -30])
     ),
-}
+} as const

@@ -8,7 +8,6 @@ import {
     toArray,
     first,
     last,
-    identity,
     roundSigFig,
     mapNullToUndefined,
 } from "grapher/utils/Util"
@@ -18,6 +17,7 @@ import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { OwidTable } from "coreTable/OwidTable"
+import { ColorSchemeName } from "./ColorConstants"
 
 const NO_DATA_LABEL = "No data"
 
@@ -26,7 +26,7 @@ export interface ColorScaleManager {
     categoricalValues: string[]
     hasNoDataBin: boolean
     defaultNoDataColor?: string
-    defaultBaseColorScheme?: string
+    defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
     table?: OwidTable
 }
@@ -86,12 +86,12 @@ export class ColorScale {
         return (
             this.config.baseColorScheme ??
             this.manager.defaultBaseColorScheme ??
-            "BuGn"
+            ColorSchemeName.BuGn
         )
     }
 
     @computed private get defaultColorScheme() {
-        return ColorSchemes["BuGn"]!
+        return ColorSchemes[ColorSchemeName.BuGn]
     }
 
     @computed private get defaultNoDataColor() {

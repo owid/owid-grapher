@@ -35,6 +35,7 @@ import {
 } from "./CovidExplorerUtils"
 import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 import { CoreTable } from "coreTable/CoreTable"
+import { WorldEntityName } from "grapher/core/GrapherConstants"
 
 export class CovidExplorerTable extends OwidTable {
     static fromMegaRows(megaRows: MegaRow[]) {
@@ -285,7 +286,7 @@ export class CovidExplorerTable extends OwidTable {
         // "World" and our previously aggregated groups we sometimes want to filter out.
         return this.filter(
             (row) =>
-                row.entityName === "World"
+                row.entityName === WorldEntityName
                     ? this.isSelected(row)
                     : !row.group_members || this.isSelected(row),
             `Filter out regions unless selected`

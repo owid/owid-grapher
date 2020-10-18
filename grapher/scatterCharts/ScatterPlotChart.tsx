@@ -57,6 +57,7 @@ import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { EntityName, OwidRow } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 @observer
 export class ScatterPlotChart
@@ -443,7 +444,7 @@ export class ScatterPlotChart
         return this.manager.colorScale ?? new ColorScaleConfig()
     }
 
-    defaultBaseColorScheme = "continents"
+    defaultBaseColorScheme = ColorSchemeName.continents
     defaultNoDataColor = "#959595"
 
     @computed get hasNoDataBin() {

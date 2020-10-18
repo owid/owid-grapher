@@ -1,12 +1,13 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import Select, { ValueType } from "react-select"
-import { ColorScheme, ColorSchemes } from "grapher/color/ColorSchemes"
+import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { bind } from "decko"
 
 import { asArray } from "utils/client/react-select"
 import { first } from "grapher/utils/Util"
+import { ColorScheme } from "grapher/color/ColorScheme"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme
@@ -46,12 +47,12 @@ export class ColorSchemeDropdown extends React.Component<
             .filter(([, v]) => v !== undefined)
             .map(([key, scheme]) => {
                 return {
-                    colorScheme: scheme as ColorScheme,
+                    colorScheme: scheme,
                     gradient: this.createLinearGradient(
-                        scheme as ColorScheme,
+                        scheme,
                         this.gradientColorCount
                     ),
-                    label: (scheme as ColorScheme).name,
+                    label: scheme.name,
                     value: key,
                 }
             })

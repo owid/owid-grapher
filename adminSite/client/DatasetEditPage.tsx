@@ -31,6 +31,7 @@ import {
     ChartTypeName,
     EPOCH_DATE,
     GrapherTabOption,
+    WorldEntityName,
 } from "grapher/core/GrapherConstants"
 import { Tag } from "./TagBadge"
 import { VariableList, VariableListItem } from "./VariableList"
@@ -124,8 +125,8 @@ class VariableEditRow extends React.Component<{
         if (grapher.isScatter || grapher.isSlopeChart) {
             table.clearSelection()
         } else if (grapher.yColumns.length > 1) {
-            const entity = table.availableEntityNameSet.has("World")
-                ? "World"
+            const entity = table.availableEntityNameSet.has(WorldEntityName)
+                ? WorldEntityName
                 : lodash.sample(availableEntityNames)
             table.selectEntity(entity!)
             grapher.addCountryMode = EntitySelectionMode.SingleEntity

@@ -41,9 +41,9 @@ export function updatePersistables(target: any, obj: any) {
     if (obj === undefined) return
     for (const key in target) {
         if (key in obj) {
-            const newVal = obj[key]
             const currentVal = target[key]
             const currentValIsPersistableObject = currentVal?.updateFromObject
+            const newVal = obj[key]
             if (currentValIsPersistableObject)
                 currentVal.updateFromObject(newVal)
             else target[key] = newVal

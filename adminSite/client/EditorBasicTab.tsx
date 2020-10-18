@@ -6,6 +6,7 @@ import {
     EntitySelectionMode,
     ChartTypeName,
     DimensionProperty,
+    WorldEntityName,
 } from "grapher/core/GrapherConstants"
 import { Toggle, SelectField, EditableList, FieldsRow, Section } from "./Forms"
 import { ChartEditor } from "./ChartEditor"
@@ -72,8 +73,8 @@ class DimensionSlotView extends React.Component<{
                 if (grapher.isScatter || grapher.isSlopeChart) {
                     table.clearSelection()
                 } else if (grapher.yColumns.length > 1) {
-                    const entity = availableEntityNameSet.has("World")
-                        ? "World"
+                    const entity = availableEntityNameSet.has(WorldEntityName)
+                        ? WorldEntityName
                         : sample(availableEntityNames)
                     table.selectEntity(entity!)
                     grapher.addCountryMode = EntitySelectionMode.SingleEntity

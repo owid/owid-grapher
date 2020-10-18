@@ -3,7 +3,7 @@ import { action } from "mobx"
 import { SketchPicker } from "react-color"
 
 import { lastOfNonEmptyArray } from "grapher/utils/Util"
-import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
+import { ColorSchemes } from "grapher/color/ColorSchemes"
 
 interface ColorpickerProps {
     color?: string
@@ -20,7 +20,7 @@ export class Colorpicker extends React.Component<ColorpickerProps> {
     }
 
     render() {
-        const scheme = ColorSchemes["owid-distinct"] as ColorScheme
+        const scheme = ColorSchemes["owid-distinct"]
         const availableColors: string[] = lastOfNonEmptyArray(scheme.colorSets)
 
         return (

@@ -6,6 +6,7 @@ import {
     maxBy,
     sortBy,
     exposeInstanceOnWindow,
+    uniq,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -25,6 +26,7 @@ import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
+    DEFAULT_BAR_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
@@ -35,8 +37,6 @@ import { timeFromTimebounds } from "grapher/utils/TimeBounds"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
-
-const DEFAULT_BAR_COLOR = "#2E5778"
 
 @observer
 export class DiscreteBarChart
@@ -417,20 +417,16 @@ export class DiscreteBarChart
 
     @computed private get valuesToColorsMap() {
         const { manager } = this
-        const yColumn = this.yColumns[0] // todo: what about for columnsAsSeries
-        // todo: Restore if derived from line chart, use line chart colors
-        const uniqValues = yColumn.uniqTimesAsc
         const colorScheme = manager.baseColorScheme
             ? ColorSchemes[manager.baseColorScheme]
             : undefined
-        const colors = colorScheme?.getColors(uniqValues.length) || []
-        if (manager.invertColorScheme) colors.reverse()
+        if (!colorScheme) return undefined
 
-        // We want to display same values using the same color, e.g. two values of 100 get the same shade of green
-        // Therefore, we create a map from all possible (unique) values to the corresponding color
-        const colorByValue = new Map<number, string>()
-        uniqValues.forEach((value, i) => colorByValue.set(value, colors[i]))
-        return colorByValue
+        // todo: Restore if derived from line chart, use line chart colors
+        return colorScheme.getUniqValueColorMap(
+            uniq(this.rawSeries.map((series) => series.row.value)),
+            manager.invertColorScheme
+        )
     }
 
     @computed protected get yColumns() {
@@ -438,45 +434,44 @@ export class DiscreteBarChart
     }
 
     @computed private get columnsAsSeries() {
-        const { transformedTable, valuesToColorsMap } = this
         return sortBy(
             this.yColumns.map((col) => {
                 const row = col.owidRows[0]
-                const seriesName = col.displayName
-                const series: DiscreteBarSeries = {
-                    ...row,
-                    seriesName,
-                    color:
-                        transformedTable.getColorForEntityName(seriesName) ||
-                        valuesToColorsMap.get(row.value) ||
-                        DEFAULT_BAR_COLOR,
-                }
-                return series
+                return { row, seriesName: col.displayName }
             }),
-            "value"
+            (series) => series.row.value
         ).reverse()
     }
 
     @computed private get entitiesAsSeries() {
-        const { transformedTable, valuesToColorsMap } = this
         return this.yColumns[0].owidRows.map((row) => {
-            const seriesName = row.entityName
+            return {
+                seriesName: row.entityName,
+                row,
+            }
+        })
+    }
+
+    @computed private get rawSeries() {
+        return this.seriesStrategy === SeriesStrategy.entity
+            ? this.entitiesAsSeries
+            : this.columnsAsSeries
+    }
+
+    @computed get series() {
+        const { transformedTable, valuesToColorsMap } = this
+        return this.rawSeries.map((rawSeries) => {
+            const { row, seriesName } = rawSeries
             const series: DiscreteBarSeries = {
                 ...row,
                 seriesName,
                 color:
-                    transformedTable.getColorForEntityName(seriesName) ||
-                    valuesToColorsMap.get(row.value) ||
+                    transformedTable.getColorForEntityName(seriesName) ??
+                    valuesToColorsMap?.get(row.value) ??
                     DEFAULT_BAR_COLOR,
             }
             return series
         })
-    }
-
-    @computed get series() {
-        return this.seriesStrategy === SeriesStrategy.entity
-            ? this.entitiesAsSeries
-            : this.columnsAsSeries
     }
 
     @computed private get isLogScale() {

@@ -11,10 +11,8 @@ import Select, {
     GroupedOptionsType,
 } from "react-select"
 import classnames from "classnames"
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons/faTimes"
-
 import { countries } from "utils/countries"
 import {
     throttle,
@@ -30,12 +28,13 @@ import {
 import { asArray } from "utils/client/react-select"
 import { GrapherAnalytics } from "grapher/core/GrapherAnalytics"
 import { ENV, GRAPHER_VERSION } from "settings"
+import { WorldEntityName } from "grapher/core/GrapherConstants"
 
 const allEntities = sortBy(countries, (c) => c.name)
     // Add 'World'
     .concat([
         {
-            name: "World",
+            name: WorldEntityName,
             code: "OWID_WRL",
             slug: "world",
         },

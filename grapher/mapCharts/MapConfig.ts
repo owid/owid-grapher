@@ -1,5 +1,5 @@
 import { observable } from "mobx"
-import { MapProjection } from "./MapProjections"
+import { MapProjectionName } from "./MapProjections"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
 import { LegacyVariableId } from "coreTable/LegacyVariableCode"
@@ -23,7 +23,7 @@ class MapConfigDefaults {
     @observable time?: number
     @observable timeTolerance?: number
     @observable hideTimeline?: boolean
-    @observable projection: MapProjection = "World"
+    @observable projection = MapProjectionName.World
 
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
@@ -43,11 +43,13 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         if (obj.variableId && !obj.columnSlug)
             obj.columnSlug = obj.variableId.toString()
 
+        updatePersistables(this, obj)
+
         // Migrate "targetYear" to "time"
         if (obj.targetYear)
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.targetYear)
-
-        updatePersistables(this, obj)
+        else if (obj.time)
+            this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
     }
 
     toObject() {

@@ -26,6 +26,7 @@ import {
 } from "./AbstractStackedChart"
 import { StackedPoint } from "./StackedConstants"
 import { VerticalAxis } from "grapher/axis/Axis"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint
@@ -495,7 +496,7 @@ export class StackedBarChart
         return this.manager.colorScale ?? new ColorScaleConfig()
     }
 
-    defaultBaseColorScheme = "stackedAreaDefault"
+    defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
     hasNoDataBin = false
 
     @computed get categoricalValues() {

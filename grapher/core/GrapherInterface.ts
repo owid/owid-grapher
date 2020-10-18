@@ -19,6 +19,7 @@ import { MapConfigInterface } from "grapher/mapCharts/MapConfig"
 import { Time } from "coreTable/CoreTableConstants"
 import { omit } from "grapher/utils/Util"
 import { EntityId, EntityName } from "coreTable/OwidTableConstants"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 // This configuration represents the entire persistent state of a grapher
 // Ideally, this is also all of the interaction state: when a grapher is saved and loaded again
@@ -61,7 +62,7 @@ export interface GrapherInterface {
     variantName?: string
     originUrl?: string
     isPublished?: boolean
-    baseColorScheme?: string
+    baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
     hideLinesOutsideTolerance?: boolean
     hideConnectedScatterLines?: boolean // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts

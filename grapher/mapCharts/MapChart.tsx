@@ -17,8 +17,9 @@ import {
     sortBy,
     guid,
     minBy,
+    difference,
 } from "grapher/utils/Util"
-import { MapProjection, MapProjections } from "./MapProjections"
+import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
@@ -51,8 +52,12 @@ import { TextWrap } from "grapher/text/TextWrap"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
 import { PointVector } from "grapher/utils/PointVector"
-import { worldRegionByMapEntity } from "./WorldRegions"
+import {
+    WorldRegionName,
+    WorldRegionToProjection,
+} from "./WorldRegionsToProjection"
 import { OwidTable } from "coreTable/OwidTable"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -190,7 +195,7 @@ export class MapChart
         return this.manager.mapConfig || new MapConfig()
     }
 
-    @action.bound onProjectionChange(value: MapProjection) {
+    @action.bound onProjectionChange(value: MapProjectionName) {
         this.mapConfig.projection = value
     }
 
@@ -261,7 +266,7 @@ export class MapChart
         return this.mapConfig.colorScale
     }
 
-    defaultBaseColorScheme = "BuGn"
+    defaultBaseColorScheme = ColorSchemeName.BuGn
     hasNoDataBin = true
 
     @computed get categoricalValues() {
@@ -555,23 +560,19 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         ) as any).features
     }
 
-    // The d3 path generator for this projection
-    @computed private get pathGen() {
-        return MapProjections[this.props.projection]
-    }
-
     // Get the bounding box for every geographical feature
     @computed private get geoBounds() {
-        return this.geoFeatures.map((d) => {
-            const b = this.pathGen.bounds(d)
+        const projectionGeo = MapProjectionGeos[this.props.projection]
+        return this.geoFeatures.map((feature) => {
+            const corners = projectionGeo.bounds(feature)
 
             const bounds = Bounds.fromCorners(
-                new PointVector(...b[0]),
-                new PointVector(...b[1])
+                new PointVector(...corners[0]),
+                new PointVector(...corners[1])
             )
 
             // HACK (Mispy): The path generator calculates weird bounds for Fiji (probably it wraps around the map)
-            if (d.id === "Fiji")
+            if (feature.id === "Fiji")
                 return bounds.extend({
                     x: bounds.right - bounds.height,
                     width: bounds.height,
@@ -587,10 +588,11 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Get the svg path specification string for every feature
     @computed private get geoPaths() {
-        const { geoFeatures, pathGen } = this
+        const projectionGeo = MapProjectionGeos[this.props.projection]
+        const { geoFeatures } = this
 
         return geoFeatures.map((feature) => {
-            const s = pathGen(feature) as string
+            const s = projectionGeo(feature) as string
             const paths = s.split(/Z/).filter(identity)
 
             const newPaths = paths.map((path) => {
@@ -694,27 +696,24 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
 
     // Features that aren't part of the current projection (e.g. India if we're showing Africa)
     @computed private get featuresOutsideProjection() {
-        const { projection } = this.props
-        return this.renderFeatures.filter(
-            (feature) =>
-                projection !== "World" &&
-                worldRegionByMapEntity[feature.id] !== projection
-        )
+        return difference(this.renderFeatures, this.featuresInProjection)
     }
 
     @computed private get featuresInProjection() {
         const { projection } = this.props
+        if (projection === MapProjectionName.World) return this.renderFeatures
+
         return this.renderFeatures.filter(
             (feature) =>
-                projection === "World" ||
-                worldRegionByMapEntity[feature.id] === projection
+                projection ===
+                ((WorldRegionToProjection[
+                    feature.id as WorldRegionName
+                ] as any) as MapProjectionName)
         )
     }
 
     @computed private get featuresWithNoData() {
-        return this.featuresInProjection.filter(
-            (feature) => !this.choroplethData.has(feature.id)
-        )
+        return difference(this.featuresInProjection, this.featuresWithData)
     }
 
     @computed private get featuresWithData() {

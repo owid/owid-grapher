@@ -34,7 +34,7 @@ import {
     ScaleType,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
-import { ColorSchemes, ColorScheme } from "grapher/color/ColorSchemes"
+import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { AxisConfig } from "grapher/axis/AxisConfig"
 import { ChartInterface } from "grapher/chart/ChartInterface"
 import {
@@ -593,10 +593,11 @@ export class LineChart
     }
 
     @computed private get colorScheme() {
-        const colorScheme = ColorSchemes[this.manager.baseColorScheme as string]
-        return colorScheme !== undefined
-            ? colorScheme
-            : (ColorSchemes["owid-distinct"] as ColorScheme)
+        return (
+            (this.manager.baseColorScheme
+                ? ColorSchemes[this.manager.baseColorScheme]
+                : null) ?? ColorSchemes["owid-distinct"]
+        )
     }
 
     @computed get seriesStrategy() {

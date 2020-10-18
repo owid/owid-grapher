@@ -13,3 +13,5 @@ export interface DiscreteBarChartManager extends ChartManager {
     showYearLabels?: boolean
     endHandleTimeBound?: Time
 }
+
+export const DEFAULT_BAR_COLOR = "#2E5778"

@@ -82,7 +82,7 @@ export const maxTimeToJSON = toJSON
 const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
 const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
 
-export const formatTimeURIComponent = (
+export const timeBoundToTimeBoundString = (
     timeBound: TimeBound,
     isDate: boolean
 ) => {

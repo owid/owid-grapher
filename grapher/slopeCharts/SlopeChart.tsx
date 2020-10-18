@@ -50,6 +50,7 @@ import { OwidTable } from "coreTable/OwidTable"
 import { Color } from "coreTable/CoreTableConstants"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { ColorSchemeName } from "grapher/color/ColorConstants"
 
 @observer
 export class SlopeChart
@@ -301,7 +302,7 @@ export class SlopeChart
         return this.colorColumn
     }
 
-    defaultBaseColorScheme = "continents"
+    defaultBaseColorScheme = ColorSchemeName.continents
     hasNoDataBin = false
 
     @computed get categoricalValues() {

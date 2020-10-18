@@ -1,7 +1,7 @@
 import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 import { Bounds } from "grapher/utils/Bounds"
 import { PointVector } from "grapher/utils/PointVector"
-import { MapProjection } from "./MapProjections"
+import { MapProjectionName } from "./MapProjections"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ColumnSlug } from "coreTable/CoreTableConstants"
@@ -32,7 +32,7 @@ export interface ChoroplethSeries {
 export interface ChoroplethMapProps {
     choroplethData: Map<SeriesName, ChoroplethSeries>
     bounds: Bounds
-    projection: MapProjection
+    projection: MapProjectionName
     defaultFill: string
     focusBracket?: MapBracket
     focusEntity?: MapEntity

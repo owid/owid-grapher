@@ -539,7 +539,7 @@ it("canChangeEntity reflects all available entities before transforms", () => {
     expect(grapher.canChangeEntity).toBe(true)
 })
 
-describe("year parameter", () => {
+describe.skip("year parameter", () => {
     describe("with years", () => {
         const tests: {
             name: string
