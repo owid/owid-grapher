@@ -67,7 +67,7 @@ export class TimelineComponent extends React.Component<{
 
         if (this.dragTarget === "start") this.lastUpdatedTooltip = "startMarker"
         if (this.dragTarget === "end") this.lastUpdatedTooltip = "endMarker"
-        if (this.manager.startTime > this.manager.endTime)
+        if (this.manager.startHandleTimeBound > this.manager.endHandleTimeBound)
             this.lastUpdatedTooltip =
                 this.lastUpdatedTooltip === "startMarker"
                     ? "endMarker"
@@ -79,12 +79,16 @@ export class TimelineComponent extends React.Component<{
         isStartMarker: boolean,
         isEndMarker: boolean
     ) {
-        const { startTime, endTime } = this.manager
+        const { startHandleTimeBound, endHandleTimeBound } = this.manager
 
-        if (startTime === endTime && (isStartMarker || isEndMarker))
+        if (
+            startHandleTimeBound === endHandleTimeBound &&
+            (isStartMarker || isEndMarker)
+        )
             return "both"
-        else if (isStartMarker || inputTime <= startTime) return "start"
-        else if (isEndMarker || inputTime >= endTime) return "end"
+        else if (isStartMarker || inputTime <= startHandleTimeBound)
+            return "start"
+        else if (isEndMarker || inputTime >= endHandleTimeBound) return "end"
         return "both"
     }
 
@@ -253,13 +257,13 @@ export class TimelineComponent extends React.Component<{
             minTime,
             maxTime,
         } = controller
-        const { startTime, endTime } = manager
+        const { startHandleTimeBound, endHandleTimeBound } = manager
 
         const formattedStartTime = this.formatTime(
-            timeFromTimebounds(startTime, minTime)
+            timeFromTimebounds(startHandleTimeBound, minTime)
         )
         const formattedEndTime = this.formatTime(
-            timeFromTimebounds(endTime, maxTime)
+            timeFromTimebounds(endHandleTimeBound, maxTime)
         )
 
         return (

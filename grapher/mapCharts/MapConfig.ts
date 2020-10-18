@@ -9,7 +9,10 @@ import {
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
 } from "grapher/persistable/Persistable"
-import { maxTimeFromJSON, maxTimeToJSON } from "grapher/utils/TimeBounds"
+import {
+    maxTimeBoundFromJSONOrPositiveInfinity,
+    maxTimeToJSON,
+} from "grapher/utils/TimeBounds"
 import { trimObject } from "grapher/utils/Util"
 
 // MapConfig holds the data and underlying logic needed by MapTab.
@@ -41,7 +44,8 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             obj.columnSlug = obj.variableId.toString()
 
         // Migrate "targetYear" to "time"
-        if (obj.targetYear) this.time = maxTimeFromJSON(obj.targetYear)
+        if (obj.targetYear)
+            this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.targetYear)
 
         updatePersistables(this, obj)
     }

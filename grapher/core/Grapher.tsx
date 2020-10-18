@@ -61,8 +61,8 @@ import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
 import { TooltipProps, TooltipManager } from "grapher/tooltip/TooltipProps"
 import { BAKED_GRAPHER_URL, ENV, ADMIN_BASE_URL } from "settings"
 import {
-    minTimeFromJSON,
-    maxTimeFromJSON,
+    minTimeBoundFromJSONOrNegativeInfinity,
+    maxTimeBoundFromJSONOrPositiveInfinity,
     TimeBounds,
     TimeBoundValue,
     getTimeDomainFromQueryString,
@@ -314,8 +314,8 @@ export class Grapher
             grapherKeysToSerialize
         )
 
-        if (this.table.hasSelection)
-            obj.selectedEntityNames = this.table.selectedEntityNames
+        if (this.tableForSelection.hasSelection)
+            obj.selectedEntityNames = this.tableForSelection.selectedEntityNames
 
         deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
@@ -353,8 +353,10 @@ export class Grapher
         if (obj.originUrl === null) this.originUrl = ""
 
         // JSON doesn't support Infinity, so we use strings instead.
-        if (obj.minTime) this.minTime = minTimeFromJSON(obj.minTime)
-        if (obj.maxTime) this.maxTime = maxTimeFromJSON(obj.maxTime)
+        if (obj.minTime)
+            this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
+        if (obj.maxTime)
+            this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
 
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
@@ -424,49 +426,68 @@ export class Grapher
     @observable private selectedEntitiesInQueryParam: string[] = []
 
     @action.bound private setTimeFromTimeQueryParam(time: string) {
-        this.timelineFilter = getTimeDomainFromQueryString(time)
+        this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time)
     }
 
     @computed private get isChartOrMapTab() {
-        return (
-            this.tab === GrapherTabOption.chart ||
-            this.tab === GrapherTabOption.map
-        )
+        return this.tab === GrapherTabOption.chart || this.isOnMapTab
     }
 
-    @computed private get tablePreTimelineFilter(): OwidTable {
-        let table = this.inputTable
+    @computed private get isOnMapTab() {
+        return this.tab === GrapherTabOption.map
+    }
+
+    @computed private get tableForSelection() {
+        return this.inputTable // perform selection at root level
+    }
+
+    @computed private get tableAfterPopulationFilter() {
+        const table = this.inputTable
         // todo: could make these separate memoized computeds to speed up
         // todo: add cross filtering. 1 dimension at a time.
-        table = this.minPopulationFilter
+        return this.minPopulationFilter
             ? table.filterByPopulation(this.minPopulationFilter)
             : table
+    }
 
+    @computed
+    private get tableAfterPopulationFilterAndActiveChartTransform(): OwidTable {
+        const table = this.tableAfterPopulationFilter
         if (!this.isChartOrMapTab) return table
+        return this.chartInstance.transformTable(table)
+    }
 
-        const chartTypeName =
-            this.tab === GrapherTabOption.map
-                ? ChartTypeName.WorldMap
-                : this.type // Note: if we turned linechart to a bar chart, still use the line chart transform.
+    @computed get chartInstance() {
+        const chartTypeName = this.isOnMapTab
+            ? ChartTypeName.WorldMap
+            : this.type // Note: if we turned linechart to a bar chart, still use the line chart transform.
 
         const ChartClass = ChartComponentClassMap.get(chartTypeName)!
-        return new ChartClass({ manager: this }).transformTable(table)
+        return new ChartClass({ manager: this })
     }
 
     @computed get table() {
-        const [startTime, endTime] = this.timelineFilter
-        if (this.tab === GrapherTabOption.map) {
-            const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?	    }
-            return this.tablePreTimelineFilter.filterByTime(
+        return this.inputTable
+    }
+
+    @computed
+    private get tableAfterPopulationAndActiveChartAndTimelineFilters() {
+        const [startTime, endTime] = this.timelineHandleTimeBounds
+        if (this.isOnMapTab) {
+            const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?
+            return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTime(
                 startTime - tolerance,
                 endTime + tolerance
             )
         }
-        return this.tablePreTimelineFilter.filterByTime(startTime, endTime)
+        return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTime(
+            startTime,
+            endTime
+        )
     }
 
     @computed get transformedTable() {
-        return this.table
+        return this.tableAfterPopulationAndActiveChartAndTimelineFilters
     }
 
     @observable.ref isMediaCard = false
@@ -611,66 +632,68 @@ export class Grapher
     }
 
     @computed private get loadingDimensions() {
-        return this.dimensions.filter((dim) => !this.table.has(dim.columnSlug))
+        return this.dimensions.filter(
+            (dim) => !this.inputTable.has(dim.columnSlug)
+        )
     }
 
     @computed get isIframe() {
         return window.self !== window.top
     }
 
-    // todo: have the concept of an active table? active column? activeTimelineColumn? activeTimelineTable?
-    // todo: remove ifs
     @computed get times(): Time[] {
-        if (this.tab === GrapherTabOption.map)
-            return (
-                this.tablePreTimelineFilter.get(this.mapColumnSlug)
-                    ?.uniqTimesAsc || []
-            )
-        // todo: filter out min times and end times?
-        return this.tablePreTimelineFilter.getTimeOptionsForColumns(
-            this.yColumnSlugs
+        const columnSlugs = this.isOnMapTab
+            ? [this.mapColumnSlug]
+            : this.yColumnSlugs
+
+        return this.tableAfterPopulationFilter.getTimesUniqSortedAscForColumns(
+            columnSlugs
         )
     }
 
-    // todo: remove ifs
-    @computed get startTime(): TimeBound {
-        const activeTab = this.tab
-        if (activeTab === GrapherTabOption.table) return this.timelineFilter[0]
-        if (activeTab === GrapherTabOption.map)
-            return this.mapColumn?.maxTime ?? 1900 // always use end time for maps
-        if (this.isBarChartRace) return this.endTime
-        return this.timelineFilter[0] ?? 1900
-    }
-
-    // todo: remove ifs
-    set startTime(newValue: TimeBound) {
-        if (this.tab === GrapherTabOption.map)
-            this.timelineFilter = [newValue, newValue]
-        else this.timelineFilter = [newValue, this.timelineFilter[1]]
-    }
-
-    // todo: remove ifs
-    set endTime(newValue: TimeBound) {
-        const activeTab = this.tab
+    @computed get startHandleTimeBound(): TimeBound {
         if (
-            activeTab === GrapherTabOption.map ||
-            activeTab === GrapherTabOption.table ||
-            this.isBarChartRace
+            this.isDiscreteBarOrLineChartTransformedIntoDiscreteBar ||
+            this.isOnMapTab
         )
-            this.timelineFilter = [newValue, newValue]
-        else this.timelineFilter = [this.timelineFilter[0], newValue]
+            return this.endHandleTimeBound
+        return this.timelineHandleTimeBounds[0]
     }
 
-    // todo: remove ifs
-    @computed get endTime(): TimeBound {
-        const activeTab = this.tab
-        if (activeTab === GrapherTabOption.map)
-            return this.mapColumn?.maxTime ?? 2000
-        return this.timelineFilter[1] ?? 2000
+    set startHandleTimeBound(newValue: TimeBound) {
+        if (this.isOnMapTab)
+            this.timelineHandleTimeBounds = [newValue, newValue]
+        else
+            this.timelineHandleTimeBounds = [
+                newValue,
+                this.timelineHandleTimeBounds[1],
+            ]
     }
 
-    @computed private get isBarChartRace() {
-        return this.type === ChartTypeName.LineChart && this.isPlaying
+    set endHandleTimeBound(newValue: TimeBound) {
+        if (
+            this.isOnMapTab ||
+            this.isOnTableTab ||
+            this.isDiscreteBarOrLineChartTransformedIntoDiscreteBar
+        )
+            this.timelineHandleTimeBounds = [newValue, newValue]
+        else
+            this.timelineHandleTimeBounds = [
+                this.timelineHandleTimeBounds[0],
+                newValue,
+            ]
+    }
+
+    @computed get endHandleTimeBound(): TimeBound {
+        return this.timelineHandleTimeBounds[1]
+    }
+
+    @computed private get isDiscreteBarOrLineChartTransformedIntoDiscreteBar() {
+        return (
+            this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart ===
+                ChartTypeName.DiscreteBar ||
+            (this.type === ChartTypeName.LineChart && this.isPlaying)
+        )
     }
 
     @computed get isNativeEmbed() {
@@ -769,9 +792,6 @@ export class Grapher
         return url
     }
 
-    @computed get primaryTab() {
-        return this.tab
-    }
     @computed get overlayTab() {
         return this.overlay
     }
@@ -784,10 +804,10 @@ export class Grapher
     @action.bound private revertDataTableSpecificState() {
         /** If the start year was autoselected in the DataTable, revert. */
         if (!this.userHasSetTimeline)
-            this.timelineFilter = [
+            this.timelineHandleTimeBounds = [
                 this.legacyConfigAsAuthored.minTime ??
-                    TimeBoundValue.unboundedLeft,
-                this.timelineFilter[1],
+                    TimeBoundValue.negativeInfinity,
+                this.timelineHandleTimeBounds[1],
             ]
 
         /** Revert the state of minPopulationFilter */
@@ -804,10 +824,7 @@ export class Grapher
     set currentTab(desiredTab) {
         if (this.tab === GrapherTabOption.chart)
             this.chartMinPopulationFilter = this.minPopulationFilter
-        if (
-            this.tab === GrapherTabOption.table &&
-            desiredTab !== GrapherTabOption.table
-        )
+        if (this.isOnTableTab && desiredTab !== GrapherTabOption.table)
             this.revertDataTableSpecificState()
 
         if (
@@ -821,23 +838,20 @@ export class Grapher
         }
 
         // table tab cannot be downloaded, so revert to default tab
-        if (
-            desiredTab === GrapherTabOption.download &&
-            this.tab === GrapherTabOption.table
-        )
+        if (desiredTab === GrapherTabOption.download && this.isOnTableTab)
             this.tab = this.legacyConfigAsAuthored.tab || GrapherTabOption.chart
         this.overlay = desiredTab
     }
 
-    @computed get timelineFilter(): TimeBounds {
+    @computed get timelineHandleTimeBounds(): TimeBounds {
         return [
             // Handle `undefined` values in minTime/maxTime
-            minTimeFromJSON(this.minTime),
-            maxTimeFromJSON(this.maxTime),
+            minTimeBoundFromJSONOrNegativeInfinity(this.minTime),
+            maxTimeBoundFromJSONOrPositiveInfinity(this.maxTime),
         ]
     }
 
-    set timelineFilter(value: TimeBounds) {
+    set timelineHandleTimeBounds(value: TimeBounds) {
         this.minTime = value[0]
         this.maxTime = value[1]
     }
@@ -902,11 +916,11 @@ export class Grapher
 
     @computed get currentTitle() {
         let text = this.displayTitle
-        const selectedEntityNames = this.table.selectedEntityNames
+        const selectedEntityNames = this.tableForSelection.selectedEntityNames
         const showTitleAnnotation = !this.hideTitleAnnotation
 
         if (
-            this.primaryTab === GrapherTabOption.chart &&
+            this.tab === GrapherTabOption.chart &&
             this.addCountryMode !== EntitySelectionMode.MultipleEntities &&
             selectedEntityNames.length === 1 &&
             (showTitleAnnotation || this.canChangeEntity)
@@ -921,9 +935,9 @@ export class Grapher
         if (
             this.isReady &&
             (showTitleAnnotation ||
-                (this.isLineChart && this.isSingleTime && this.hasTimeline) ||
-                (this.primaryTab === GrapherTabOption.map &&
-                    this.mapHasTimeline))
+                (this.hasTimeline &&
+                    ((this.isLineChart && this.areHandlesOnSameTime) ||
+                        this.isOnMapTab)))
         )
             text += this.timeTitleSuffix
 
@@ -941,23 +955,13 @@ export class Grapher
         if (this.isStackedBar || this.isStackedArea) return false
         if (this.isOnOverlay) return false
         if (this.hideTimeline) return false
+        if (this.isOnMapTab && this.map.hideTimeline) return false
         return this.times.length > 1
     }
 
-    @computed private get isSingleTime() {
-        return this.startTime === this.endTime
-    }
-
-    @computed get mapHasTimeline() {
-        return (
-            !this.map.hideTimeline &&
-            this.mapColumn &&
-            this.mapColumn.uniqTimesAsc.length > 1
-        )
-    }
-
-    @computed get mapColumn() {
-        return this.table.get(this.mapColumnSlug)
+    @computed private get areHandlesOnSameTime() {
+        const [start, end] = this.timelineHandleTimeBounds
+        return start === end
     }
 
     @computed get mapColumnSlug() {
@@ -1011,15 +1015,18 @@ export class Grapher
 
     @computed private get timeTitleSuffix() {
         if (!this.table.timeColumn) return "" // Do not show year until data is loaded
-        const { startTime, endTime } = this
+        const { startHandleTimeBound, endHandleTimeBound } = this
         const timeColumn = this.table.timeColumn
         const tableForTime = this.table
         // todo: should we add a startTime method and rename the current startTime method to startTimeBound?
         const timeFrom = timeColumn.formatValue(
-            timeFromTimebounds(startTime, tableForTime.minTime ?? 1900)
+            timeFromTimebounds(
+                startHandleTimeBound,
+                tableForTime.minTime ?? 1900
+            )
         )
         const timeTo = timeColumn.formatValue(
-            timeFromTimebounds(endTime, tableForTime.maxTime ?? 2100)
+            timeFromTimebounds(endHandleTimeBound, tableForTime.maxTime ?? 2100)
         )
         const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
 
@@ -1102,7 +1109,8 @@ export class Grapher
 
     @computed get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart() {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
-        return this.type === ChartTypeName.LineChart && this.isSingleTime
+        return this.type === ChartTypeName.LineChart &&
+            this.areHandlesOnSameTime
             ? ChartTypeName.DiscreteBar
             : this.type
     }
@@ -1230,16 +1238,16 @@ export class Grapher
 
     @computed get canToggleRelativeMode() {
         if (this.isLineChart)
-            return !this.hideRelativeToggle && !this.isSingleTime
+            return !this.hideRelativeToggle && !this.areHandlesOnSameTime
         return !this.hideRelativeToggle
     }
 
     // Filter data to what can be display on the map (across all times)
     @computed get mappableData() {
+        const mapColumn = this.inputTable.get(this.mapColumnSlug)
         return (
-            this.mapColumn?.owidRows.filter((row) =>
-                isOnTheMap(row.entityName)
-            ) ?? []
+            mapColumn?.owidRows.filter((row) => isOnTheMap(row.entityName)) ??
+            []
         )
     }
 
@@ -1391,15 +1399,15 @@ export class Grapher
         this.popups = this.popups.filter((d) => !(d.type === vnodeType))
     }
 
+    @computed private get isOnTableTab() {
+        return this.tab === GrapherTabOption.table
+    }
+
     private renderPrimaryTab() {
-        if (
-            this.primaryTab === GrapherTabOption.chart ||
-            this.primaryTab === GrapherTabOption.map
-        )
-            return <CaptionedChart manager={this} />
+        if (this.isChartOrMapTab) return <CaptionedChart manager={this} />
 
         const { tabBounds } = this
-        if (this.primaryTab === GrapherTabOption.table)
+        if (this.isOnTableTab)
             // todo: should this "Div" and styling just be in DataTable class?
             return (
                 <div
@@ -1604,13 +1612,13 @@ export class Grapher
         if (this.hasMultipleYColumns) {
             strategies.push(FacetStrategy.column)
             if (
-                this.table.numAvailableEntityNames > 1 &&
+                this.tableForSelection.numAvailableEntityNames > 1 &&
                 this.hasMultipleCountriesOnTheMap
             )
                 strategies.push(FacetStrategy.columnWithMap)
         }
 
-        if (this.table.numSelectedEntities > 1) {
+        if (this.tableForSelection.numSelectedEntities > 1) {
             strategies.push(FacetStrategy.country)
             if (this.hasMultipleCountriesOnTheMap)
                 strategies.push(FacetStrategy.countryWithMap)
@@ -1629,7 +1637,7 @@ export class Grapher
         // Auto facet on SingleEntity charts with multiple selected entities
         if (
             this.addCountryMode === EntitySelectionMode.SingleEntity &&
-            this.table.numSelectedEntities > 1
+            this.tableForSelection.numSelectedEntities > 1
         )
             return FacetStrategy.country
 
@@ -1637,7 +1645,7 @@ export class Grapher
         if (
             this.addCountryMode === EntitySelectionMode.MultipleEntities &&
             this.hasMultipleYColumns &&
-            this.table.numSelectedEntities > 1
+            this.tableForSelection.numSelectedEntities > 1
         )
             return FacetStrategy.column
 
@@ -1647,10 +1655,15 @@ export class Grapher
     @action.bound randomSelection(num: number) {
         // Continent, Population, GDP PC, GDP, PopDens, UN, Language, etc.
         this.hasError = false
-        const currentSelection = this.inputTable.selectedEntityNames.length
+        const currentSelection = this.tableForSelection.selectedEntityNames
+            .length
         const newNum = num ? num : currentSelection ? currentSelection * 2 : 10
-        this.inputTable.setSelectedEntities(
-            sampleFrom(this.inputTable.availableEntityNames, newNum, Date.now())
+        this.tableForSelection.setSelectedEntities(
+            sampleFrom(
+                this.tableForSelection.availableEntityNames,
+                newNum,
+                Date.now()
+            )
         )
     }
 
@@ -1808,7 +1821,7 @@ export class Grapher
         this.maxTime = authorsVersion.maxTime
         this.map.time = authorsVersion.map.time
         this.map.projection = authorsVersion.map.projection
-        this.table.clearSelection()
+        this.tableForSelection.clearSelection()
         this.applyOriginalSelection()
     }
 
@@ -1884,7 +1897,7 @@ export class Grapher
             this.minTime !== authoredConfig.minTime ||
             this.maxTime !== authoredConfig.maxTime
         ) {
-            const [minTime, maxTime] = this.timelineFilter
+            const [minTime, maxTime] = this.timelineHandleTimeBounds
 
             const start = formatTimeURIComponent(minTime, formatAsDay)
 
@@ -1907,7 +1920,8 @@ export class Grapher
 
         const originalSelectedEntityIds =
             authoredConfig.selectedData?.map((row) => row.entityId) || []
-        const currentSelectedEntityIds = this.table.selectedEntityIds
+        const currentSelectedEntityIds = this.tableForSelection
+            .selectedEntityIds
 
         const diff = difference(
             originalSelectedEntityIds,
@@ -1916,7 +1930,7 @@ export class Grapher
 
         if (diff.length)
             return EntityUrlBuilder.entitiesToQueryParam(
-                this.table.selectedEntityCodes
+                this.tableForSelection.selectedEntityCodes
             )
 
         return undefined
@@ -1964,7 +1978,7 @@ export class Grapher
     }
 
     @computed get showZoomToggle() {
-        return this.isScatter && this.table.hasSelection
+        return this.isScatter && this.tableForSelection.hasSelection
     }
 
     @computed get showAbsRelToggle() {

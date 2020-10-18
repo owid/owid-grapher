@@ -124,7 +124,7 @@ import {
     ScaleType,
     EPOCH_DATE,
 } from "grapher/core/GrapherConstants"
-import { isUnboundedLeft, isUnboundedRight } from "./TimeBounds"
+import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
 
@@ -694,8 +694,8 @@ export function findClosestTime(
     targetTime: Time,
     tolerance?: number
 ): Time | undefined {
-    if (isUnboundedLeft(targetTime)) return min(times)
-    if (isUnboundedRight(targetTime)) return max(times)
+    if (isNegativeInfinity(targetTime)) return min(times)
+    if (isPositiveInfinity(targetTime)) return max(times)
     const index = findClosestTimeIndex(times, targetTime, tolerance)
     return index !== undefined ? times[index] : undefined
 }

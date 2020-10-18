@@ -164,6 +164,18 @@ it("can show the year of the selected data in the title", () => {
     expect(grapher.currentTitle).not.toContain("Infinity")
 })
 
+describe("authors can use maxTime", () => {
+    it("can can create a discretebar chart with correct maxtime", () => {
+        const grapher = new Grapher({
+            table: SynthesizeGDPTable({ timeRange: [2000, 2010] }).selectAll(),
+            type: ChartTypeName.DiscreteBar,
+            maxTime: 2005,
+        })
+        const chart = grapher.chartInstance
+        expect(chart.failMessage).toBeFalsy()
+    })
+})
+
 describe("line chart to bar chart and bar chart race", () => {
     const grapher = new Grapher(TestGrapherConfig())
 
@@ -171,13 +183,15 @@ describe("line chart to bar chart and bar chart race", () => {
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
         ).toEqual(ChartTypeName.LineChart)
-        expect(grapher.endTime).toBeGreaterThan(grapher.startTime)
+        expect(grapher.endHandleTimeBound).toBeGreaterThan(
+            grapher.startHandleTimeBound
+        )
     })
 
     describe("switches from a line chart to a bar chart when there is only 1 year selected", () => {
         const grapher = new Grapher(TestGrapherConfig())
-        grapher.startTime = 2000
-        grapher.endTime = 2000
+        grapher.startHandleTimeBound = 2000
+        grapher.endHandleTimeBound = 2000
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
         ).toEqual(ChartTypeName.DiscreteBar)
@@ -189,7 +203,7 @@ describe("line chart to bar chart and bar chart race", () => {
 
     it("turns into a bar chart race when playing a line chart", () => {
         grapher.timelineController.play(1)
-        expect(grapher.startTime).toEqual(grapher.endTime)
+        expect(grapher.startHandleTimeBound).toEqual(grapher.endHandleTimeBound)
     })
 })
 
@@ -244,8 +258,8 @@ describe("time domain tests", () => {
 
     it("get the default time domain from the primary dimensions", () => {
         expect(grapher.times).toEqual([2003, 2004, 2008])
-        expect(grapher.startTime).toEqual(-Infinity)
-        expect(grapher.endTime).toEqual(Infinity)
+        expect(grapher.startHandleTimeBound).toEqual(-Infinity)
+        expect(grapher.endHandleTimeBound).toEqual(Infinity)
     })
 })
 
@@ -281,16 +295,16 @@ describe("time parameter", () => {
                 name: "single year latest",
                 query: "latest",
                 param: [
-                    TimeBoundValue.unboundedRight,
-                    TimeBoundValue.unboundedRight,
+                    TimeBoundValue.positiveInfinity,
+                    TimeBoundValue.positiveInfinity,
                 ],
             },
             {
                 name: "single year earliest",
                 query: "earliest",
                 param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedLeft,
+                    TimeBoundValue.negativeInfinity,
+                    TimeBoundValue.negativeInfinity,
                 ],
             },
             { name: "two years", query: "2000..2005", param: [2000, 2005] },
@@ -302,19 +316,19 @@ describe("time parameter", () => {
             {
                 name: "right unbounded",
                 query: "2000..latest",
-                param: [2000, TimeBoundValue.unboundedRight],
+                param: [2000, TimeBoundValue.positiveInfinity],
             },
             {
                 name: "left unbounded",
                 query: "earliest..2005",
-                param: [TimeBoundValue.unboundedLeft, 2005],
+                param: [TimeBoundValue.negativeInfinity, 2005],
             },
             {
                 name: "left unbounded",
                 query: "earliest..latest",
                 param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedRight,
+                    TimeBoundValue.negativeInfinity,
+                    TimeBoundValue.positiveInfinity,
                 ],
             },
 
@@ -323,21 +337,21 @@ describe("time parameter", () => {
             {
                 name: "right unbounded [legacy]",
                 query: "2000..",
-                param: [2000, TimeBoundValue.unboundedRight],
+                param: [2000, TimeBoundValue.positiveInfinity],
                 irreversible: true,
             },
             {
                 name: "left unbounded [legacy]",
                 query: "..2005",
-                param: [TimeBoundValue.unboundedLeft, 2005],
+                param: [TimeBoundValue.negativeInfinity, 2005],
                 irreversible: true,
             },
             {
                 name: "both unbounded [legacy]",
                 query: "..",
                 param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedRight,
+                    TimeBoundValue.negativeInfinity,
+                    TimeBoundValue.positiveInfinity,
                 ],
                 irreversible: true,
             },
@@ -346,7 +360,7 @@ describe("time parameter", () => {
         for (const test of tests) {
             it(`parse ${test.name}`, () => {
                 const grapher = fromQueryParams({ time: test.query })
-                const [start, end] = grapher.timelineFilter
+                const [start, end] = grapher.timelineHandleTimeBounds
                 expect(start).toEqual(test.param[0])
                 expect(end).toEqual(test.param[1])
             })
@@ -366,7 +380,7 @@ describe("time parameter", () => {
                 { time: "" },
                 { minTime: 0, maxTime: 5 }
             )
-            const [start, end] = grapher.timelineFilter
+            const [start, end] = grapher.timelineHandleTimeBounds
             expect(start).toEqual(0)
             expect(end).toEqual(5)
         })
@@ -414,16 +428,16 @@ describe("time parameter", () => {
                 name: "single day latest",
                 query: "latest",
                 param: [
-                    TimeBoundValue.unboundedRight,
-                    TimeBoundValue.unboundedRight,
+                    TimeBoundValue.positiveInfinity,
+                    TimeBoundValue.positiveInfinity,
                 ],
             },
             {
                 name: "single day earliest",
                 query: "earliest",
                 param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedLeft,
+                    TimeBoundValue.negativeInfinity,
+                    TimeBoundValue.negativeInfinity,
                 ],
             },
             {
@@ -434,19 +448,19 @@ describe("time parameter", () => {
             {
                 name: "left unbounded (date)",
                 query: "earliest..2020-02-01",
-                param: [TimeBoundValue.unboundedLeft, 11],
+                param: [TimeBoundValue.negativeInfinity, 11],
             },
             {
                 name: "right unbounded (date)",
                 query: "2020-01-01..latest",
-                param: [-20, TimeBoundValue.unboundedRight],
+                param: [-20, TimeBoundValue.positiveInfinity],
             },
             {
                 name: "both unbounded (date)",
                 query: "earliest..latest",
                 param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedRight,
+                    TimeBoundValue.negativeInfinity,
+                    TimeBoundValue.positiveInfinity,
                 ],
             },
 
@@ -455,21 +469,21 @@ describe("time parameter", () => {
             {
                 name: "right unbounded (date) [legacy]",
                 query: "2020-01-01..",
-                param: [-20, TimeBoundValue.unboundedRight],
+                param: [-20, TimeBoundValue.positiveInfinity],
                 irreversible: true,
             },
             {
                 name: "left unbounded (date) [legacy]",
                 query: "..2020-01-01",
-                param: [TimeBoundValue.unboundedLeft, -20],
+                param: [TimeBoundValue.negativeInfinity, -20],
                 irreversible: true,
             },
             {
                 name: "both unbounded [legacy]",
                 query: "..",
                 param: [
-                    TimeBoundValue.unboundedLeft,
-                    TimeBoundValue.unboundedRight,
+                    TimeBoundValue.negativeInfinity,
+                    TimeBoundValue.positiveInfinity,
                 ],
                 irreversible: true,
             },
@@ -489,7 +503,7 @@ describe("time parameter", () => {
             {
                 name: "unbounded range (number)",
                 query: "-500..",
-                param: [-500, TimeBoundValue.unboundedRight],
+                param: [-500, TimeBoundValue.positiveInfinity],
                 irreversible: true,
             },
         ]
@@ -498,7 +512,7 @@ describe("time parameter", () => {
             it(`parse ${test.name}`, () => {
                 const grapher = getGrapher()
                 grapher.populateFromQueryParams({ time: test.query })
-                const [start, end] = grapher.timelineFilter
+                const [start, end] = grapher.timelineHandleTimeBounds
                 expect(start).toEqual(test.param[0])
                 expect(end).toEqual(test.param[1])
             })
@@ -542,19 +556,19 @@ describe("year parameter", () => {
             {
                 name: "single year latest",
                 query: "latest",
-                param: TimeBoundValue.unboundedRight,
+                param: TimeBoundValue.positiveInfinity,
             },
             {
                 name: "single year earliest",
                 query: "earliest",
-                param: TimeBoundValue.unboundedLeft,
+                param: TimeBoundValue.negativeInfinity,
             },
         ]
 
         for (const test of tests) {
             it(`parse ${test.name}`, () => {
                 const grapher = fromQueryParams({ year: test.query })
-                expect(grapher.timelineFilter[1]).toEqual(test.param)
+                expect(grapher.timelineHandleTimeBounds[1]).toEqual(test.param)
             })
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
@@ -566,7 +580,7 @@ describe("year parameter", () => {
 
         it("empty string doesn't change time", () => {
             const grapher = fromQueryParams({ year: "", time: "2015" })
-            expect(grapher.timelineFilter[1]).toEqual(2015)
+            expect(grapher.timelineHandleTimeBounds[1]).toEqual(2015)
         })
     })
 
@@ -587,12 +601,12 @@ describe("year parameter", () => {
             {
                 name: "single day latest",
                 query: "latest",
-                param: TimeBoundValue.unboundedRight,
+                param: TimeBoundValue.positiveInfinity,
             },
             {
                 name: "single day earliest",
                 query: "earliest",
-                param: TimeBoundValue.unboundedLeft,
+                param: TimeBoundValue.negativeInfinity,
             },
             {
                 name: "single day (number)",
@@ -610,7 +624,10 @@ describe("year parameter", () => {
                         year: test.query,
                     })
                 )
-                expect(grapher.timelineFilter).toEqual([test.param, test.param])
+                expect(grapher.timelineHandleTimeBounds).toEqual([
+                    test.param,
+                    test.param,
+                ])
 
                 it("can clear query params", () => {
                     expect(grapher.queryStr).toBeTruthy()

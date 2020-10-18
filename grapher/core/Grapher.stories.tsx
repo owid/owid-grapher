@@ -8,6 +8,7 @@ import {
     ChartTypeName,
     DimensionProperty,
     FacetStrategy,
+    GrapherTabOption,
 } from "./GrapherConstants"
 
 export default {
@@ -39,14 +40,6 @@ const basics: GrapherProgrammaticInterface = {
 }
 
 export const Line = () => <Grapher {...basics} />
-
-export const NoMap = () => {
-    const model = {
-        ...basics,
-        hasMapTab: false,
-    }
-    return <Grapher {...model} />
-}
 
 export const SlopeChart = () => {
     const model = {
@@ -84,6 +77,22 @@ export const StackedArea = () => {
     const model = {
         type: ChartTypeName.StackedArea,
         ...basics,
+    }
+    return <Grapher {...model} />
+}
+
+export const MapFirst = () => {
+    const model = {
+        ...basics,
+        tab: GrapherTabOption.map,
+    }
+    return <Grapher {...model} />
+}
+
+export const NoMap = () => {
+    const model = {
+        ...basics,
+        hasMapTab: false,
     }
     return <Grapher {...model} />
 }

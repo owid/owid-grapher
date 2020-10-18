@@ -762,7 +762,10 @@ export class CoreTable<
     }
 
     filterBySelectedOnly() {
-        return this.filter((row) => this.isSelected(row), `Selected rows only`)
+        return this.filter(
+            (row) => this.isSelected(row),
+            `Keep selected rows only`
+        )
     }
 
     filterByFullColumnsOnly(slugs: ColumnSlug[]) {

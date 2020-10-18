@@ -11,4 +11,5 @@ export interface DiscreteBarSeries {
 
 export interface DiscreteBarChartManager extends ChartManager {
     showYearLabels?: boolean
+    endHandleTimeBound?: Time
 }

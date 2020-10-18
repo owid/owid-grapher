@@ -18,8 +18,8 @@ export type TimeBounds = [TimeBound, TimeBound]
  * The two special TimeBound values: unbounded left & unbounded right.
  */
 export enum TimeBoundValue {
-    unboundedLeft = -Infinity,
-    unboundedRight = Infinity,
+    negativeInfinity = -Infinity,
+    positiveInfinity = Infinity,
 }
 
 enum TimeBoundValueStr {
@@ -27,79 +27,54 @@ enum TimeBoundValueStr {
     unboundedRight = "latest",
 }
 
-export const timeFromTimebounds = (time: TimeBound, fallbackTime: Time) =>
-    Math.abs(time) !== Infinity ? time : fallbackTime
+export const timeFromTimebounds = (timeBound: TimeBound, fallbackTime: Time) =>
+    Math.abs(timeBound) !== Infinity ? timeBound : fallbackTime
 
-export function isUnbounded(time: TimeBound): time is TimeBoundValue {
-    return isUnboundedLeft(time) || isUnboundedRight(time)
+const hasAnInfinity = (timeBound: TimeBound): timeBound is TimeBoundValue =>
+    isNegativeInfinity(timeBound) || isPositiveInfinity(timeBound)
+
+export const isNegativeInfinity = (
+    timeBound: TimeBound
+): timeBound is TimeBoundValue => timeBound === TimeBoundValue.negativeInfinity
+
+export const isPositiveInfinity = (
+    timeBound: TimeBound
+): timeBound is TimeBoundValue => timeBound === TimeBoundValue.positiveInfinity
+
+const formatTimeBound = (timeBound: TimeBound) => {
+    if (isNegativeInfinity(timeBound)) return TimeBoundValueStr.unboundedLeft
+    if (isPositiveInfinity(timeBound)) return TimeBoundValueStr.unboundedRight
+    return `${timeBound}`
 }
 
-export function isUnboundedLeft(time: TimeBound): time is TimeBoundValue {
-    return time === TimeBoundValue.unboundedLeft
-}
-
-export function isUnboundedRight(time: TimeBound): time is TimeBoundValue {
-    return time === TimeBoundValue.unboundedRight
-}
-
-export function formatTimeBound(time: TimeBound): string {
-    if (isUnboundedLeft(time)) {
-        return TimeBoundValueStr.unboundedLeft
-    }
-    if (isUnboundedRight(time)) {
-        return TimeBoundValueStr.unboundedRight
-    }
-    return `${time}`
-}
-
-export function parseTimeBound(
-    str: string,
-    defaultTo: TimeBoundValue
-): TimeBound {
+const parseTimeBound = (str: string): TimeBound | undefined => {
     if (str === TimeBoundValueStr.unboundedLeft)
-        return TimeBoundValue.unboundedLeft
+        return TimeBoundValue.negativeInfinity
 
     if (str === TimeBoundValueStr.unboundedRight)
-        return TimeBoundValue.unboundedRight
+        return TimeBoundValue.positiveInfinity
 
-    const time = parseIntOrUndefined(str)
-    return time !== undefined ? time : defaultTo
+    return parseIntOrUndefined(str)
 }
 
 // Use this to not repeat logic
-function fromJSON(
-    value: TimeBound | string | undefined,
-    defaultValue: TimeBound
-) {
-    if (isString(value)) return parseTimeBound(value, defaultValue)
-    if (value === undefined) return defaultValue
-    return value
-}
+const fromJSON = (value: TimeBound | string | undefined) =>
+    isString(value) ? parseTimeBound(value) : value
 
-function toJSON(bound: TimeBound | undefined): string | number | undefined {
-    if (bound === undefined) {
-        return undefined
-    }
-    if (isUnboundedLeft(bound)) {
-        return TimeBoundValueStr.unboundedLeft
-    }
-    if (isUnboundedRight(bound)) {
-        return TimeBoundValueStr.unboundedRight
-    }
+const toJSON = (bound: TimeBound | undefined): string | number | undefined => {
+    if (bound === undefined) return undefined
+    if (isNegativeInfinity(bound)) return TimeBoundValueStr.unboundedLeft
+    if (isPositiveInfinity(bound)) return TimeBoundValueStr.unboundedRight
     return bound
 }
 
-export function minTimeFromJSON(
+export const minTimeBoundFromJSONOrNegativeInfinity = (
     minTime: TimeBound | string | undefined
-): TimeBound {
-    return fromJSON(minTime, TimeBoundValue.unboundedLeft)
-}
+): TimeBound => fromJSON(minTime) ?? TimeBoundValue.negativeInfinity
 
-export function maxTimeFromJSON(
+export const maxTimeBoundFromJSONOrPositiveInfinity = (
     maxTime: TimeBound | string | undefined
-): TimeBound {
-    return fromJSON(maxTime, TimeBoundValue.unboundedRight)
-}
+): TimeBound => fromJSON(maxTime) ?? TimeBoundValue.positiveInfinity
 
 export const minTimeToJSON = toJSON
 export const maxTimeToJSON = toJSON
@@ -107,22 +82,20 @@ export const maxTimeToJSON = toJSON
 const reISODateComponent = new RegExp("\\d{4}-[01]\\d-[0-3]\\d")
 const reISODate = new RegExp(`^(${reISODateComponent.source})$`)
 
-export function formatTimeURIComponent(
-    time: TimeBound,
+export const formatTimeURIComponent = (
+    timeBound: TimeBound,
     isDate: boolean
-): string {
-    if (isUnbounded(time)) return formatTimeBound(time)
-    return isDate ? formatDay(time, { format: "YYYY-MM-DD" }) : `${time}`
+) => {
+    if (hasAnInfinity(timeBound)) return formatTimeBound(timeBound)
+    return isDate
+        ? formatDay(timeBound, { format: "YYYY-MM-DD" })
+        : `${timeBound}`
 }
 
-export function parseTimeURIComponent(
-    param: string,
-    defaultValue: TimeBound
-): TimeBound {
-    return reISODate.test(param)
+const parseTimeURIComponent = (param: string): TimeBound | undefined =>
+    reISODate.test(param)
         ? diffDateISOStringInDays(param, EPOCH_DATE)
-        : parseTimeBound(param, defaultValue)
-}
+        : parseTimeBound(param)
 
 const upgradeLegacyTimeString = (time: string) => {
     // In the past we supported unbounded time parameters like time=2015.. which would be
@@ -138,7 +111,9 @@ const upgradeLegacyTimeString = (time: string) => {
         : time
 }
 
-export function getTimeDomainFromQueryString(time: string): [number, number] {
+export const getTimeDomainFromQueryString = (
+    time: string
+): [number, number] => {
     time = upgradeLegacyTimeString(time)
 
     const reIntComponent = new RegExp("\\-?\\d+")
@@ -151,11 +126,12 @@ export function getTimeDomainFromQueryString(time: string): [number, number] {
     if (reIntRange.test(time) || reDateRange.test(time)) {
         const [start, end] = time.split("..")
         return [
-            parseTimeURIComponent(start, TimeBoundValue.unboundedLeft),
-            parseTimeURIComponent(end, TimeBoundValue.unboundedRight),
+            parseTimeURIComponent(start) ?? TimeBoundValue.negativeInfinity,
+            parseTimeURIComponent(end) ?? TimeBoundValue.positiveInfinity,
         ]
     }
 
-    const t = parseTimeURIComponent(time, TimeBoundValue.unboundedRight)
-    return [t, t]
+    const timebound =
+        parseTimeURIComponent(time) ?? TimeBoundValue.positiveInfinity
+    return [timebound, timebound]
 }

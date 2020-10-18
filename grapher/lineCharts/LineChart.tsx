@@ -44,6 +44,7 @@ import {
 } from "./LineChartConstants"
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
 import { OwidTable } from "coreTable/OwidTable"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 
 const BLUR_COLOR = "#eee"
 
@@ -574,12 +575,8 @@ export class LineChart
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug)!)
     }
 
-    @computed private get yColumnSlugs() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs
-            : this.manager.yColumnSlug
-            ? [this.manager.yColumnSlug]
-            : this.inputTable.numericColumnSlugs
+    @computed protected get yColumnSlugs() {
+        return autoDetectYColumnSlugs(this.manager)
     }
 
     // todo: for now just works with 1 y column

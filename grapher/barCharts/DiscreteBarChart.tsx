@@ -1,6 +1,12 @@
 import * as React from "react"
 import { select } from "d3-selection"
-import { min, max, maxBy, sortBy } from "grapher/utils/Util"
+import {
+    min,
+    max,
+    maxBy,
+    sortBy,
+    exposeInstanceOnWindow,
+} from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
@@ -24,6 +30,8 @@ import {
 } from "./DiscreteBarChartConstants"
 import { OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { timeFromTimebounds } from "grapher/utils/TimeBounds"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -40,14 +48,19 @@ export class DiscreteBarChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
-        const column = table.get(this.manager.yColumnSlug)
+        const column = table.get(this.yColumnSlugs[0])
         if (!column) return table
 
         const { slug, maxTime, tolerance } = column
 
+        const targetTime = timeFromTimebounds(
+            this.manager.endHandleTimeBound ?? maxTime,
+            maxTime
+        )
+
         table = table
             .filterBySelectedOnly()
-            .filterByTargetTime(maxTime, tolerance)
+            .filterByTargetTime(targetTime, tolerance)
 
         // Here we can filter entire rows instead of using "replaceNonPositiveCellsForLogScale" since we currently don't support
         // multiple ycolumn bar charts.
@@ -171,7 +184,7 @@ export class DiscreteBarChart
         const axis = this.yAxis.toHorizontalAxis()
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
-        axis.formatColumn = this.rootYColumn
+        axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
         axis.range = this.xRange
         axis.label = ""
         return axis
@@ -227,6 +240,7 @@ export class DiscreteBarChart
     componentDidMount() {
         this.d3Bars().attr("width", 0)
         this.animateBarWidth()
+        exposeInstanceOnWindow(this)
     }
 
     componentDidUpdate() {
@@ -362,7 +376,7 @@ export class DiscreteBarChart
     }
 
     @computed get failMessage() {
-        const column = this.rootYColumn
+        const column = this.yColumns[0]
 
         if (!column) return "No column to chart"
 
@@ -372,7 +386,7 @@ export class DiscreteBarChart
     }
 
     private formatValue(series: DiscreteBarSeries) {
-        const column = this.rootYColumn
+        const column = this.yColumns[0] // todo: do we need to use the right column here?
         const { maxTime } = column
         const { transformedTable } = this
 
@@ -387,20 +401,8 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get rootYColumn() {
-        return this.inputTable.get(this.yColumnSlugs[0])!
-    }
-
-    @computed private get yColumn() {
-        return this.transformedTable.get(this.yColumnSlugs[0])!
-    }
-
     @computed protected get yColumnSlugs() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs
-            : this.manager.yColumnSlug
-            ? [this.manager.yColumnSlug]
-            : this.inputTable.numericColumnSlugs
+        return autoDetectYColumnSlugs(this.manager)
     }
 
     @computed private get seriesStrategy() {
@@ -414,7 +416,8 @@ export class DiscreteBarChart
     }
 
     @computed private get valuesToColorsMap() {
-        const { manager, yColumn } = this
+        const { manager } = this
+        const yColumn = this.yColumns[0] // todo: what about for columnsAsSeries
         // todo: Restore if derived from line chart, use line chart colors
         const uniqValues = yColumn.uniqTimesAsc
         const colorScheme = manager.baseColorScheme
@@ -456,7 +459,7 @@ export class DiscreteBarChart
 
     @computed private get entitiesAsSeries() {
         const { transformedTable, valuesToColorsMap } = this
-        return this.yColumn.owidRows.map((row) => {
+        return this.yColumns[0].owidRows.map((row) => {
             const seriesName = row.entityName
             const series: DiscreteBarSeries = {
                 ...row,

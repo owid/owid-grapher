@@ -7,8 +7,8 @@ export interface TimelineManager {
     formatTimeFn?: (value: any) => any
     isPlaying?: boolean
     times: Time[]
-    startTime: TimeBound
-    endTime: TimeBound
+    startHandleTimeBound: TimeBound
+    endHandleTimeBound: TimeBound
     msPerTick?: number
     onPlay?: () => void
 }
@@ -28,11 +28,14 @@ export class TimelineController {
     }
 
     private get startTime() {
-        return findClosestTime(this.timesAsc, this.manager.startTime)!
+        return findClosestTime(
+            this.timesAsc,
+            this.manager.startHandleTimeBound
+        )!
     }
 
     private get endTime() {
-        return findClosestTime(this.timesAsc, this.manager.endTime)!
+        return findClosestTime(this.timesAsc, this.manager.endHandleTimeBound)!
     }
 
     get minTime() {
@@ -58,7 +61,7 @@ export class TimelineController {
         if (endTime - startTime > 1) return
 
         // if handles within 1 time of each other, snap to closest time.
-        this.manager.startTime = this.manager.endTime
+        this.manager.startHandleTimeBound = this.manager.endHandleTimeBound
     }
 
     getNextTime(time: number) {
@@ -80,10 +83,10 @@ export class TimelineController {
     private resetToBeginning() {
         const { manager } = this
         const beginning =
-            manager.endTime !== manager.startTime
-                ? manager.startTime
+            manager.endHandleTimeBound !== manager.startHandleTimeBound
+                ? manager.startHandleTimeBound
                 : this.minTime
-        manager.endTime = beginning
+        manager.endHandleTimeBound = beginning
     }
 
     async play(numberOfTicks?: number) {
@@ -136,8 +139,8 @@ export class TimelineController {
     }
 
     getTimeBoundFromDrag(inputTime: Time): TimeBound {
-        if (inputTime < this.minTime) return TimeBoundValue.unboundedLeft
-        if (inputTime > this.maxTime) return TimeBoundValue.unboundedRight
+        if (inputTime < this.minTime) return TimeBoundValue.negativeInfinity
+        if (inputTime > this.maxTime) return TimeBoundValue.positiveInfinity
         const closestTime =
             findClosestTime(this.timesAsc, inputTime) ?? inputTime
         return Math.min(this.maxTime, Math.max(this.minTime, closestTime))
@@ -179,8 +182,9 @@ export class TimelineController {
                 : handle
 
         if (constrainedHandle !== handle) {
-            if (handle === "start") this.updateStartTime(manager.endTime)
-            else this.updateEndTime(manager.startTime)
+            if (handle === "start")
+                this.updateStartTime(manager.endHandleTimeBound)
+            else this.updateEndTime(manager.startHandleTimeBound)
         }
 
         if (manager.isPlaying && !this.rangeMode) {
@@ -194,18 +198,18 @@ export class TimelineController {
     }
 
     private updateStartTime(timeBound: TimeBound) {
-        this.manager.startTime = timeBound
+        this.manager.startHandleTimeBound = timeBound
     }
 
     private updateEndTime(timeBound: TimeBound) {
-        this.manager.endTime = timeBound
+        this.manager.endHandleTimeBound = timeBound
     }
 
     resetStartToMin() {
-        this.updateStartTime(TimeBoundValue.unboundedLeft)
+        this.updateStartTime(TimeBoundValue.negativeInfinity)
     }
 
     resetEndToMax() {
-        this.updateEndTime(TimeBoundValue.unboundedRight)
+        this.updateEndTime(TimeBoundValue.positiveInfinity)
     }
 }

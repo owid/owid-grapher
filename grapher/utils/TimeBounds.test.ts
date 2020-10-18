@@ -2,67 +2,75 @@
 
 import {
     TimeBoundValue,
-    minTimeFromJSON,
-    maxTimeFromJSON,
+    minTimeBoundFromJSONOrNegativeInfinity,
+    maxTimeBoundFromJSONOrPositiveInfinity,
     minTimeToJSON,
     maxTimeToJSON,
     getTimeDomainFromQueryString,
 } from "grapher/utils/TimeBounds"
 
-describe(minTimeFromJSON, () => {
+describe(minTimeBoundFromJSONOrNegativeInfinity, () => {
     it("handles unbounded left", () => {
-        expect(minTimeFromJSON("earliest")).toEqual(
-            TimeBoundValue.unboundedLeft
+        expect(minTimeBoundFromJSONOrNegativeInfinity("earliest")).toEqual(
+            TimeBoundValue.negativeInfinity
         )
     })
     it("handles unbounded right", () => {
-        expect(minTimeFromJSON("latest")).toEqual(TimeBoundValue.unboundedRight)
+        expect(minTimeBoundFromJSONOrNegativeInfinity("latest")).toEqual(
+            TimeBoundValue.positiveInfinity
+        )
     })
     it("handles undefined", () => {
-        expect(minTimeFromJSON(undefined)).toEqual(TimeBoundValue.unboundedLeft)
+        expect(minTimeBoundFromJSONOrNegativeInfinity(undefined)).toEqual(
+            TimeBoundValue.negativeInfinity
+        )
     })
     it("handles number", () => {
-        expect(minTimeFromJSON(1990)).toEqual(1990)
+        expect(minTimeBoundFromJSONOrNegativeInfinity(1990)).toEqual(1990)
     })
     it("handles negative number", () => {
-        expect(minTimeFromJSON(-1990)).toEqual(-1990)
+        expect(minTimeBoundFromJSONOrNegativeInfinity(-1990)).toEqual(-1990)
     })
     it("handles zero", () => {
-        expect(minTimeFromJSON(0)).toEqual(0)
+        expect(minTimeBoundFromJSONOrNegativeInfinity(0)).toEqual(0)
     })
 })
 
-describe(maxTimeFromJSON, () => {
+describe(maxTimeBoundFromJSONOrPositiveInfinity, () => {
     it("handles unbounded left", () => {
-        expect(maxTimeFromJSON("earliest")).toEqual(
-            TimeBoundValue.unboundedLeft
+        expect(maxTimeBoundFromJSONOrPositiveInfinity("earliest")).toEqual(
+            TimeBoundValue.negativeInfinity
         )
     })
     it("handles unbounded right", () => {
-        expect(maxTimeFromJSON("latest")).toEqual(TimeBoundValue.unboundedRight)
+        expect(maxTimeBoundFromJSONOrPositiveInfinity("latest")).toEqual(
+            TimeBoundValue.positiveInfinity
+        )
     })
     it("handles undefined", () => {
-        expect(maxTimeFromJSON(undefined)).toEqual(
-            TimeBoundValue.unboundedRight
+        expect(maxTimeBoundFromJSONOrPositiveInfinity(undefined)).toEqual(
+            TimeBoundValue.positiveInfinity
         )
     })
     it("handles number", () => {
-        expect(maxTimeFromJSON(1990)).toEqual(1990)
+        expect(maxTimeBoundFromJSONOrPositiveInfinity(1990)).toEqual(1990)
     })
     it("handles negative number", () => {
-        expect(maxTimeFromJSON(-1990)).toEqual(-1990)
+        expect(maxTimeBoundFromJSONOrPositiveInfinity(-1990)).toEqual(-1990)
     })
     it("handles zero", () => {
-        expect(maxTimeFromJSON(0)).toEqual(0)
+        expect(maxTimeBoundFromJSONOrPositiveInfinity(0)).toEqual(0)
     })
 })
 
 describe(minTimeToJSON, () => {
     it("handles unbounded left", () => {
-        expect(minTimeToJSON(TimeBoundValue.unboundedLeft)).toEqual("earliest")
+        expect(minTimeToJSON(TimeBoundValue.negativeInfinity)).toEqual(
+            "earliest"
+        )
     })
     it("handles unbounded right", () => {
-        expect(minTimeToJSON(TimeBoundValue.unboundedRight)).toEqual("latest")
+        expect(minTimeToJSON(TimeBoundValue.positiveInfinity)).toEqual("latest")
     })
     it("handles undefined", () => {
         expect(minTimeToJSON(undefined)).toEqual(undefined)
@@ -80,10 +88,12 @@ describe(minTimeToJSON, () => {
 
 describe(maxTimeToJSON, () => {
     it("handles unbounded left", () => {
-        expect(maxTimeToJSON(TimeBoundValue.unboundedLeft)).toEqual("earliest")
+        expect(maxTimeToJSON(TimeBoundValue.negativeInfinity)).toEqual(
+            "earliest"
+        )
     })
     it("handles unbounded right", () => {
-        expect(maxTimeToJSON(TimeBoundValue.unboundedRight)).toEqual("latest")
+        expect(maxTimeToJSON(TimeBoundValue.positiveInfinity)).toEqual("latest")
     })
     it("handles undefined", () => {
         expect(maxTimeToJSON(undefined)).toEqual(undefined)

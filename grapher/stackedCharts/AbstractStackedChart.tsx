@@ -15,6 +15,7 @@ import React from "react"
 import { stackSeries, withFakePoints } from "./StackedUtils"
 import { StackedSeries } from "./StackedConstants"
 import { OwidTable } from "coreTable/OwidTable"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds
@@ -76,11 +77,7 @@ export class AbstactStackedChart
     }
 
     @computed protected get yColumnSlugs() {
-        return this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs
-            : this.manager.yColumnSlug
-            ? [this.manager.yColumnSlug]
-            : this.inputTable.numericColumnSlugs
+        return autoDetectYColumnSlugs(this.manager)
     }
 
     // It seems we have 2 types of StackedAreas. If only 1 column, we stack

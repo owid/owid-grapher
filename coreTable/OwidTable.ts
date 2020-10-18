@@ -171,7 +171,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.get(slug)
     }
 
-    getTimeOptionsForColumns(columnSlugs: ColumnSlug[]) {
+    getTimesUniqSortedAscForColumns(columnSlugs: ColumnSlug[]) {
+        // todo: should be easy to speed up if necessary.
         return sortNumeric(
             uniq(
                 flatten(
@@ -211,7 +212,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             sortBy(this.rows, (row) => rowTime(row)),
             undefined,
             this,
-            `Sorted rows by time`,
+            `Sort rows by time before filtering for speed`,
             TransformType.SortRows
         )
     }

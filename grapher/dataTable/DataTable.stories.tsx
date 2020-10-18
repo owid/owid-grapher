@@ -25,8 +25,8 @@ export const WithTimeRange = () => {
     const manager: DataTableManager = {
         table,
     }
-    manager.startTime = 1950
-    manager.endTime = 2000
+    manager.startHandleTimeBound = 1950
+    manager.endHandleTimeBound = 2000
     return <DataTable manager={manager} />
 }
 
@@ -53,8 +53,8 @@ export const WithTolerance = () => {
             <DataTable
                 manager={{
                     table,
-                    startTime: 2010,
-                    endTime: 2010,
+                    startHandleTimeBound: 2010,
+                    endHandleTimeBound: 2010,
                 }}
             />
             <div>
@@ -63,8 +63,8 @@ export const WithTolerance = () => {
             </div>
             <DataTable
                 manager={{
-                    startTime: 2010,
-                    endTime: 2010,
+                    startHandleTimeBound: 2010,
+                    endHandleTimeBound: 2010,
                     table: filteredTable,
                 }}
             />
@@ -82,8 +82,8 @@ export const FromLegacyWithTimeRange = () => {
         type: ChartTypeName.LineChart,
         tab: GrapherTabOption.chart,
     })
-    grapher.startTime = 1950
-    grapher.endTime = 2019
+    grapher.startHandleTimeBound = 1950
+    grapher.endHandleTimeBound = 2019
     return <DataTable manager={grapher} />
 }
 

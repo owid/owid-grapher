@@ -49,6 +49,7 @@ import { CoreColumn } from "coreTable/CoreTableColumns"
 import { OwidTable } from "coreTable/OwidTable"
 import { Color } from "coreTable/CoreTableConstants"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 
 @observer
 export class SlopeChart
@@ -312,11 +313,7 @@ export class SlopeChart
     }
 
     @computed protected get yColumnSlug() {
-        return this.manager.yColumnSlug
-            ? this.manager.yColumnSlug
-            : this.manager.yColumnSlugs
-            ? this.manager.yColumnSlugs[0]
-            : this.inputTable.numericColumnSlugs[0]
+        return autoDetectYColumnSlugs(this.manager)[0]
     }
 
     @computed private get colorColumn() {

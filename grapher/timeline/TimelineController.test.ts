@@ -8,22 +8,22 @@ it("can play a timeline", async () => {
     let wasPlayed = false
     const manager: TimelineManager = {
         times: range(2000, 2010),
-        startTime: 2000,
-        endTime: 2005,
+        startHandleTimeBound: 2000,
+        endHandleTimeBound: 2005,
         isPlaying: false,
         onPlay: () => (wasPlayed = true),
     }
 
     const controller = new TimelineController(manager)
     expect(manager.isPlaying).toEqual(false)
-    expect(manager.endTime).toEqual(2005)
+    expect(manager.endHandleTimeBound).toEqual(2005)
     expect(wasPlayed).toEqual(false)
     expect(controller.startTimeProgress).toEqual(0)
     expect(controller.endTimeProgress).toBeLessThan(1)
 
     const ticks = await controller.play()
     expect(manager.isPlaying).toEqual(false)
-    expect(manager.endTime).toEqual(2009)
+    expect(manager.endHandleTimeBound).toEqual(2009)
     expect(wasPlayed).toEqual(true)
     expect(ticks).toEqual(4)
 
@@ -40,27 +40,27 @@ it("can play a timeline", async () => {
     // Can play single year mode
     controller.toggleRangeMode()
     await controller.play(2)
-    expect(manager.startTime).toEqual(2002)
+    expect(manager.startHandleTimeBound).toEqual(2002)
 })
 
 it("can handle when an end handle is dragged past a start handle", () => {
     const manager: TimelineManager = {
         times: range(1900, 2010),
-        startTime: 2000,
-        endTime: 2005,
+        startHandleTimeBound: 2000,
+        endHandleTimeBound: 2005,
     }
 
     const controller = new TimelineController(manager)
     controller.dragHandleToTime("end", 1950)
-    expect(manager.startTime).toEqual(1950)
-    expect(manager.endTime).toEqual(2000)
+    expect(manager.startHandleTimeBound).toEqual(1950)
+    expect(manager.endHandleTimeBound).toEqual(2000)
 })
 
 it("can report correct progress with Infinity values", () => {
     const manager: TimelineManager = {
         times: range(1900, 2010),
-        startTime: -Infinity,
-        endTime: Infinity,
+        startHandleTimeBound: -Infinity,
+        endHandleTimeBound: Infinity,
     }
 
     const controller = new TimelineController(manager)
@@ -71,19 +71,19 @@ it("can report correct progress with Infinity values", () => {
 it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond end of timeline", () => {
     const manager: TimelineManager = {
         times: range(1900, 2010),
-        startTime: 2000,
-        endTime: 2005,
+        startHandleTimeBound: 2000,
+        endHandleTimeBound: 2005,
     }
 
     const controller = new TimelineController(manager)
 
     expect(controller.getTimeBoundFromDrag(2009)).toBe(2009)
     expect(controller.getTimeBoundFromDrag(2009.1)).toBe(
-        TimeBoundValue.unboundedRight
+        TimeBoundValue.positiveInfinity
     )
 
     expect(controller.getTimeBoundFromDrag(1900)).toBe(1900)
     expect(controller.getTimeBoundFromDrag(1899.9)).toBe(
-        TimeBoundValue.unboundedLeft
+        TimeBoundValue.negativeInfinity
     )
 })

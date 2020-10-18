@@ -267,7 +267,7 @@ describe("time filtering", () => {
             timeRange: [2000, 2003],
         })
 
-        const timeOptions = table.getTimeOptionsForColumns([
+        const timeOptions = table.getTimesUniqSortedAscForColumns([
             SampleColumnSlugs.GDP,
         ])
         expect(timeOptions).toEqual([2000, 2001, 2002])
@@ -280,7 +280,7 @@ usa,1,usa,1,1
 usa,1,usa,-5,1`
 
         const table = OwidTable.fromDelimited(csv)
-        const timeOptions = table.getTimeOptionsForColumns(["value"])
+        const timeOptions = table.getTimesUniqSortedAscForColumns(["value"])
         expect(timeOptions).toEqual([-5, -4, 1])
     })
 

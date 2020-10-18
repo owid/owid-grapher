@@ -2,17 +2,17 @@ import * as React from "react"
 import { TimelineComponent } from "./TimelineComponent"
 import { action, computed, observable } from "mobx"
 import { range } from "grapher/utils/Util"
-import { TimelineController } from "./TimelineController"
+import { TimelineController, TimelineManager } from "./TimelineController"
 
-class TimelineManager {
+class TimelineManagerMock implements TimelineManager {
     @observable isPlaying = false
     @observable times = range(1900, 2021)
 
     @observable protected _endTime = 2020
-    set endTime(num: number) {
+    set endHandleTimeBound(num: number) {
         this.updateEndTime(num)
     }
-    @computed get endTime() {
+    @computed get endHandleTimeBound() {
         return this._endTime
     }
 
@@ -21,10 +21,10 @@ class TimelineManager {
     }
 
     @observable protected _startTime = 1950
-    set startTime(num: number) {
+    set startHandleTimeBound(num: number) {
         this.updateStartTime(num)
     }
-    @computed get startTime() {
+    @computed get startHandleTimeBound() {
         return this._startTime
     }
 
@@ -40,7 +40,7 @@ export default {
     component: TimelineComponent,
 }
 
-class SingleYearManager extends TimelineManager {
+class SingleYearManager extends TimelineManagerMock {
     @action.bound updateEndTime(num: number) {
         // Simulate the Map class, which can only have 1 target time
         this._endTime = num
@@ -54,15 +54,15 @@ class SingleYearManager extends TimelineManager {
 }
 
 export const Default = () => {
-    const manager = new TimelineManager()
-    manager.startTime = 1900
+    const manager = new TimelineManagerMock()
+    manager.startHandleTimeBound = 1900
     const timelineController = new TimelineController(manager)
     return <TimelineComponent timelineController={timelineController} />
 }
 
 export const StartPartialRange = () => (
     <TimelineComponent
-        timelineController={new TimelineController(new TimelineManager())}
+        timelineController={new TimelineController(new TimelineManagerMock())}
     />
 )
 
@@ -73,7 +73,7 @@ export const OneYearAtATime = () => (
 )
 
 export const DisablePlayButton = () => {
-    const manager = new TimelineManager()
+    const manager = new TimelineManagerMock()
     manager.disablePlay = true
     return (
         <TimelineComponent

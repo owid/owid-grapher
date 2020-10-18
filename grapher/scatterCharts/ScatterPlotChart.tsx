@@ -56,6 +56,7 @@ import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { EntityName, OwidRow } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 
 @observer
 export class ScatterPlotChart
@@ -471,11 +472,7 @@ export class ScatterPlotChart
     }
 
     @computed private get yColumnSlug() {
-        const { yColumnSlug, yColumnSlugs } = this.manager
-        const ySlugs = yColumnSlugs ?? []
-        return (
-            yColumnSlug ?? ySlugs[0] ?? this.manager.table.numericColumnSlugs[0]
-        )
+        return autoDetectYColumnSlugs(this.manager)[0]
     }
 
     @computed private get yColumn() {
