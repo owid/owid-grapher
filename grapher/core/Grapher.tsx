@@ -547,9 +547,9 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         if (activeTab === "table")
             return (
                 this.dataTableTransform.autoSelectedStartTime ??
-                this.timeDomain[0]
+                this.activeTransform.startTimelineTime!
             )
-        else if (activeTab === "map") return this.mapTransform.startTimelineTime // todo: always use endTimelineTime for maps?
+        if (activeTab === "map") return this.mapTransform.startTimelineTime // todo: always use endTimelineTime for maps?
         return this.activeTransform.startTimelineTime!
     }
 
@@ -563,7 +563,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     set endTime(value: any) {
         const activeTab = this.tab
         if (activeTab === "map") this.map.time = value
-        if (activeTab === "table") this.timeDomain = [value, value]
+        if (activeTab === "table") this.timeDomain = [this.timeDomain[0], value]
         else this.timeDomain = [this.timeDomain[0], value]
     }
 
@@ -574,7 +574,7 @@ export class Grapher extends GrapherDefaults implements TimeViz {
         else if (activeTab === "table")
             return this.multiMetricTableMode
                 ? this.dataTableTransform.startTimelineTime
-                : this.timeDomain[1]
+                : this.activeTransform.endTimelineTime
         return this.activeTransform.endTimelineTime!
     }
 
