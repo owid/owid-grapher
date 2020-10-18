@@ -251,10 +251,19 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.controller.togglePlay()
     }
 
+    convertToTime(time: number) {
+        if (time === -Infinity) return this.controller.minTime
+        if (time === +Infinity) return this.controller.maxTime
+        return time
+    }
+
     render() {
         const { subject, controller } = this
         const { startTimeProgress, endTimeProgress } = controller
-        const { startTime, endTime } = subject
+        let { startTime, endTime } = subject
+
+        startTime = this.convertToTime(startTime)
+        endTime = this.convertToTime(endTime)
 
         return (
             <div
