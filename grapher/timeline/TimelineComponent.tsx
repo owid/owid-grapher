@@ -60,6 +60,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     @action.bound private onDrag(inputTime: number) {
+        if (!this.subject.isPlaying) this.subject.userHasSetTimeline = true
         this.dragTarget = this.controller.dragHandleToTime(
             this.dragTarget!,
             inputTime

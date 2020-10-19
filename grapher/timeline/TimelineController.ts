@@ -4,6 +4,7 @@ import { findClosestTime, last } from "grapher/utils/Util"
 
 export interface TimeViz {
     isPlaying: boolean
+    userHasSetTimeline: boolean
     times: Time[]
     startTime: Time
     endTime: Time
