@@ -11,6 +11,8 @@ import {
     Grid,
     intersectionOfSets,
     rowsFromGrid,
+    range,
+    difference,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
@@ -20,6 +22,7 @@ import {
     ColumnTypeNames,
     CoreColumnDef,
     CoreRow,
+    JsTypes,
     PrimitiveType,
     SortOrder,
     TransformType,
@@ -45,121 +48,181 @@ const TransformsRequiringCompute = new Set([
     TransformType.UpdateRows,
 ])
 
-// The complex generic with default here just enables you to optionally specify a more
-// narrow interface for the input rows. This is helpful for OwidTable.
-export class CoreTable<
-    ROW_TYPE extends CoreRow = CoreRow,
-    COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef
-> {
+abstract class StorageEngine<ROW_TYPE extends CoreRow = CoreRow> {
+    abstract get rows(): ROW_TYPE[]
+    abstract get inputRows(): ROW_TYPE[]
+}
+
+class RowStorageEngine<
+    ROW_TYPE extends CoreRow = CoreRow
+> extends StorageEngine<ROW_TYPE> {
     private _inputRows: ROW_TYPE[]
-    @observable.ref private _rows: ROW_TYPE[]
-    @observable private _columns: Map<ColumnSlug, CoreColumn>
-    @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
-
-    protected parent?: this
-    tableDescription = ""
-    transformCategory = TransformType.Load
-    timeToLoad = 0
-    private initTime = Date.now()
-
-    constructor(
-        rows: ROW_TYPE[] = [],
-        incomingColumnDefs?: COL_DEF_TYPE[],
-        parentTable?: CoreTable,
-        tableDescription?: string,
-        transformCategory?: TransformType
-    ) {
-        const start = Date.now()
-        this._inputRows = rows // Save a reference to original rows for debugging.
-        this.tableDescription = tableDescription ?? ""
-        if (transformCategory) this.transformCategory = transformCategory
-
-        this._columns = new Map()
-
-        const colsToSet = incomingColumnDefs
-            ? transformCategory === TransformType.AppendColumns && parentTable
-                ? parentTable.defs.concat(incomingColumnDefs)
-                : incomingColumnDefs
-            : parentTable
-            ? parentTable.defs
-            : []
-        colsToSet.forEach((def) => {
-            const { slug, type } = def
-            const ColumnType =
-                (type && ColumnTypeMap[type]) || ColumnTypeMap.String
-            this._columns.set(slug, new ColumnType(this, def))
-        })
-
-        // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
-        // If this is the first input table, then we do a simple check to generate any missing column defs.
-        if (!parentTable && rows.length) this._autodetectAndAddColumnDefs(rows)
-
-        this.parent = parentTable as this
-
-        const columnsToCompute = TransformsRequiringCompute.has(
-            this.transformCategory
-        )
-            ? incomingColumnDefs?.filter((def) => def.fn) ?? []
-            : []
-        this.numColsToCompute = columnsToCompute.length
-        this._rows = this._buildRows(columnsToCompute)
-
-        // Pass selection strategy down from parent. todo: should selection be immutable as well?
-        if (parentTable) this.copySelectionFrom(parentTable)
-        this.timeToLoad = Date.now() - start
+    private builtRows: ROW_TYPE[]
+    private table: CoreTable
+    @computed get numColsToCompute() {
+        return this.colsToCompute.length
     }
-
-    private _autodetectAndAddColumnDefs(rows: ROW_TYPE[]) {
-        Object.keys(rows[0])
-            .filter((slug) => !this.has(slug))
-            .forEach((slug) => {
-                const firstRowWithValue = rows.find(
-                    (row) => row[slug] !== undefined && row[slug] !== null
-                )
-                const def = guessColumnDef(slug, firstRowWithValue)
-                const columnType = ColumnTypeMap[def.type!]
-                this._columns.set(def.slug, new columnType(this, def))
-            })
+    @computed get numColsToParse() {
+        return this.columnsToParse.length
     }
-
-    numColsToCompute: number
-    private _buildRows(columnsToCompute: COL_DEF_TYPE[]) {
-        const rows = this._inputRows
-        if (!this.numColsToParse && !columnsToCompute.length) return rows
-
-        const colsToParse = this.columnsToParse
-
-        return rows.map((row, index) => {
+    constructor(rows: ROW_TYPE[] = [], table: CoreTable) {
+        super()
+        this._inputRows = rows
+        this.table = table
+        this.builtRows = this._inputRows.map((row, index) => {
             const newRow: any = Object.assign({}, row)
-            colsToParse.forEach((col) => {
+            this.columnsToParse.forEach((col) => {
                 newRow[col.slug] = col.parse(row[col.slug])
             })
-            columnsToCompute.forEach((def) => {
+            this.colsToCompute.forEach((def) => {
                 newRow[def.slug] = def.fn!(row, index) // todo: add better typings around fn.
             })
             return newRow as ROW_TYPE
         })
     }
 
-    copySelectionFrom(table: any) {
-        // todo? Do we need a notion of selection outside of OwidTable?
-    }
+    private get colsToCompute() {
+        // We never need to compute on certain transforms
+        if (!TransformsRequiringCompute.has(this.table.transformCategory))
+            return []
 
-    get numColsToParse() {
-        return this.columnsToParse.length
+        // Only compute new columns
+        return this.table.newColumnDefs.filter((def) => def.fn)
     }
 
     private get columnsToParse() {
         const firstRow = this._inputRows[0]
         if (!firstRow) return []
+        const cols = this.table.columnsAsArray
 
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data. Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
-        if (this.isRoot()) return this.columnsAsArray
+        if (this.table.isRoot()) return cols
 
-        return this.columnsAsArray.filter((col) =>
-            col.needsParsing(firstRow[col.slug])
-        )
+        return cols.filter((col) => col.needsParsing(firstRow[col.slug]))
+    }
+
+    get inputRows() {
+        return this._inputRows
+    }
+
+    get rows() {
+        return this.builtRows
+    }
+}
+
+class ColumnStorageEngine<
+    ROW_TYPE extends CoreRow = CoreRow
+> extends StorageEngine<ROW_TYPE> {
+    private columnVectors: JsTypes[][]
+    private columnSlugs: ColumnSlug[]
+    constructor(
+        columnVectors: JsTypes[][] = [],
+        columnSlugs: ColumnSlug[] = []
+    ) {
+        super()
+        this.columnVectors = columnVectors
+        this.columnSlugs = columnSlugs
+    }
+
+    // todo: fix for built.
+    get inputRows() {
+        return this.rows
+    }
+
+    private makeRowFor(rowIndex: number) {
+        const row: any = {}
+        this.columnSlugs.forEach((slug, colIndex) => {
+            row[slug] = this.columnVectors[colIndex][rowIndex]
+        })
+        return row as ROW_TYPE
+    }
+
+    @computed private get length() {
+        return this.columnVectors[0]?.length ?? 0
+    }
+
+    get rows() {
+        return range(0, this.length).map((index) => this.makeRowFor(index))
+    }
+}
+
+// The complex generic with default here just enables you to optionally specify a more
+// narrow interface for the input rows. This is helpful for OwidTable.
+export class CoreTable<
+    ROW_TYPE extends CoreRow = CoreRow,
+    COL_DEF_TYPE extends CoreColumnDef = CoreColumnDef
+> {
+    @observable private _columns: Map<ColumnSlug, CoreColumn> = new Map()
+    @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
+
+    protected parent?: this
+    tableDescription: string
+    transformCategory: TransformType
+    timeToLoad = 0
+    private initTime = Date.now()
+
+    private storageEngine: StorageEngine
+
+    inputColumnDefs: COL_DEF_TYPE[]
+    constructor(
+        rows: ROW_TYPE[] = [],
+        inputColumnDefs: COL_DEF_TYPE[] = [],
+        parent?: CoreTable,
+        tableDescription = "",
+        transformCategory = TransformType.Load
+    ) {
+        const start = Date.now() // Perf aid
+
+        this.tableDescription = tableDescription
+        this.transformCategory = transformCategory
+        this.parent = parent as this
+        this.inputColumnDefs = inputColumnDefs
+        this.inputColumnDefs.forEach((def) => this.setColumn(def))
+
+        // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
+        // If this is the first input table, then we do a simple check to generate any missing column defs.
+        if (!parent && rows.length)
+            this.autodetectAndAddColumnsFromFirstRow(rows)
+
+        const isRows = true
+        this.storageEngine = isRows
+            ? new RowStorageEngine<ROW_TYPE>(rows, this)
+            : new ColumnStorageEngine<ROW_TYPE>()
+
+        // Pass selection strategy down from parent. todo: move selection to Grapher.
+        if (parent) this.copySelectionFrom(parent)
+
+        this.timeToLoad = Date.now() - start // Perf aid
+    }
+
+    private setColumn(def: COL_DEF_TYPE) {
+        const { type, slug } = def
+        const ColumnType = (type && ColumnTypeMap[type]) ?? ColumnTypeMap.String
+        this._columns.set(slug, new ColumnType(this, def))
+    }
+
+    private autodetectAndAddColumnsFromFirstRow(rows: ROW_TYPE[]) {
+        Object.keys(rows[0])
+            .filter((slug) => !this.has(slug))
+            .forEach((slug) => {
+                const firstRowWithValue = rows.find(
+                    (row) => row[slug] !== undefined && row[slug] !== null
+                )
+                const def = guessColumnDefFromSlugAndRow(
+                    slug,
+                    firstRowWithValue
+                ) as COL_DEF_TYPE
+                this.setColumn(def)
+            })
+    }
+    copySelectionFrom(table: any) {
+        // todo? Do we need a notion of selection outside of OwidTable?
+    }
+
+    @computed get newColumnDefs() {
+        if (!this.parent) return this.inputColumnDefs
+        return difference(this.inputColumnDefs, this.parent.defs)
     }
 
     get stepNumber(): number {
@@ -184,7 +247,7 @@ export class CoreTable<
     }
 
     @computed get rows() {
-        return this._rows
+        return this.storageEngine.rows as ROW_TYPE[]
     }
 
     @computed get firstRow() {
@@ -280,7 +343,7 @@ export class CoreTable<
         const { rowsAsSet } = this
         return new (this.constructor as any)(
             this.parent!.rows.filter((row) => !rowsAsSet.has(row)),
-            undefined,
+            this.defs,
             this,
             `Inversing previous filter`,
             TransformType.InverseFilterRows
@@ -311,7 +374,9 @@ export class CoreTable<
 
         return this.withoutColumns(
             columnsToDrop,
-            `Kept columns that matched '${searchStringOrRegex.toString()}'`
+            `Kept ${
+                this.columnSlugs.length - columnsToDrop.length
+            } columns that matched '${searchStringOrRegex.toString()}'.`
         )
     }
 
@@ -322,7 +387,7 @@ export class CoreTable<
     ): this {
         return new (this.constructor as any)(
             this.rows.filter(predicate),
-            undefined,
+            this.defs,
             this,
             opName,
             TransformType.FilterRows
@@ -332,7 +397,7 @@ export class CoreTable<
     sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): this {
         return new (this.constructor as any)(
             orderBy(this.rows, slugs, orders),
-            undefined,
+            this.defs,
             this,
             `Sort by ${slugs.join(",")} ${orders?.join(",")}`,
             TransformType.SortRows
@@ -354,7 +419,7 @@ export class CoreTable<
     reverse(): this {
         return new (this.constructor as any)(
             this.rows.slice(0).reverse(),
-            undefined,
+            this.defs,
             this,
             `Reversed row order`,
             TransformType.SortRows
@@ -438,6 +503,10 @@ export class CoreTable<
         return !this.parent
     }
 
+    @computed private get inputRows() {
+        return this.storageEngine.inputRows
+    }
+
     explainThis(showRows = 10, options?: AlignedTextTableOptions): string {
         const rowCount = this.numRows
         const showRowsClamped = showRows > rowCount ? rowCount : showRows
@@ -451,10 +520,10 @@ export class CoreTable<
             }
         })
 
-        const inputTable = this._inputRows.length
+        const inputTable = this.inputRows.length
             ? toAlignedTextTable(
-                  Object.keys(this._inputRows[0]),
-                  this._inputRows.slice(0, showRows),
+                  Object.keys(this.inputRows[0]),
+                  this.inputRows.slice(0, showRows),
                   options
               )
             : ""
@@ -482,7 +551,7 @@ export class CoreTable<
     private oneLiner() {
         return `${this.stepNumber}. ${this.transformCategory}: ${
             this.tableDescription ? this.tableDescription + ". " : ""
-        }${this.numColumns} Columns ${this._inputRows.length} Rows. ${
+        }${this.numColumns} Columns ${this.inputRows.length} Rows. ${
             this.timeToLoad
         }ms.`
     }
@@ -496,6 +565,18 @@ export class CoreTable<
             (this.parent ? this.parent.explain(showRows, options) : "") +
             this.explainThis(showRows, options)
         )
+    }
+
+    @computed get numColsToCompute() {
+        return this.storageEngine instanceof RowStorageEngine
+            ? this.storageEngine.numColsToCompute
+            : 0
+    }
+
+    @computed get numColsToParse() {
+        return this.storageEngine instanceof RowStorageEngine
+            ? this.storageEngine.numColsToParse
+            : 0
     }
 
     explainShort(options?: AlignedTextTableOptions) {
@@ -574,7 +655,7 @@ export class CoreTable<
         const rows = this.findRows(query)
         return new (this.constructor as any)(
             rows,
-            undefined,
+            this.defs,
             this,
             `Selecting ${rows.length} rows where ${queryParamsToStr(
                 query as any
@@ -586,7 +667,7 @@ export class CoreTable<
     withRows(rows: ROW_TYPE[], opDescription: string): this {
         return new (this.constructor as any)(
             [...this.rows, ...rows],
-            undefined,
+            this.defs,
             this,
             opDescription,
             TransformType.AppendRows
@@ -597,7 +678,7 @@ export class CoreTable<
         const rows = this.rows.slice(0, howMany)
         return new (this.constructor as any)(
             rows,
-            undefined,
+            this.defs,
             this,
             `Kept the first ${rows.length} rows`,
             TransformType.FilterRows
@@ -704,7 +785,7 @@ export class CoreTable<
         })
         return new (this.constructor as any)(
             newRows,
-            undefined,
+            this.defs,
             this,
             `Replaced ${replacedCellCount} negative or zero cells across columns ${columnSlugs.join(
                 " and "
@@ -788,7 +869,7 @@ export class CoreTable<
     appendColumns(defs: COL_DEF_TYPE[]): this {
         return new (this.constructor as any)(
             this.rows,
-            defs,
+            this.defs.concat(defs),
             this,
             `Appended columns ${defs
                 .map((def) => `'${def.slug}'`)
@@ -803,7 +884,7 @@ export class CoreTable<
         const rows = rowsFromGrid(inputTable)
         return new (this.constructor as any)(
             rows,
-            undefined,
+            this.defs,
             this,
             `Reloaded ${rows.length} rows`,
             TransformType.Reload
@@ -862,7 +943,10 @@ export class CoreTable<
     }
 }
 
-const guessColumnDef = (slug: string, sampleRow: any) => {
+const guessColumnDefFromSlugAndRow = (
+    slug: string,
+    sampleRow: any
+): CoreColumnDef => {
     if (slug === "day")
         return {
             slug: "day",

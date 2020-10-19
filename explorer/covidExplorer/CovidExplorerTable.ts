@@ -95,7 +95,7 @@ export class CovidExplorerTable extends OwidTable {
 
         return new CovidExplorerTable(
             (tableWithRows.rows as any) as CovidRow[], // todo: clean up typings
-            undefined,
+            tableWithRows.defs,
             tableWithRows as any,
             "Loaded into CovidExplorerTable"
         )

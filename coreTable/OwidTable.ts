@@ -198,7 +198,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     filterByEntityName(name: EntityName) {
         return new OwidTable(
             this.rowsByEntityName.get(name) || [],
-            undefined,
+            this.defs,
             this,
             `Filter out all entities except '${name}'`,
             TransformType.FilterRows
@@ -210,7 +210,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     @computed private get sortedByTime(): this {
         return new (this.constructor as any)(
             sortBy(this.rows, (row) => rowTime(row)),
-            undefined,
+            this.defs,
             this,
             `Sort rows by time before filtering for speed`,
             TransformType.SortRows
@@ -240,7 +240,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         return new (this.constructor as any)(
             rowsSortedByTime.slice(firstRowIndex, lastRowIndex),
-            undefined,
+            this.defs,
             sortedTable,
             `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`,
             TransformType.FilterRows
