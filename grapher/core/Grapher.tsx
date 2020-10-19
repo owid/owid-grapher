@@ -563,7 +563,6 @@ export class Grapher extends GrapherDefaults implements TimeViz {
     set endTime(value: any) {
         const activeTab = this.tab
         if (activeTab === "map") this.map.time = value
-        if (activeTab === "table") this.timeDomain = [this.timeDomain[0], value]
         else this.timeDomain = [this.timeDomain[0], value]
     }
 
