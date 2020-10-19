@@ -11,6 +11,7 @@ describe(TimelineController, () => {
             startTime: 2000,
             endTime: 2005,
             isPlaying: false,
+            userHasSetTimeline: true,
         }
 
         let wasPlayed = false
@@ -51,6 +52,7 @@ describe(TimelineController, () => {
             startTime: 2000,
             endTime: 2005,
             isPlaying: false,
+            userHasSetTimeline: true,
         }
 
         const controller = new TimelineController(subject)
@@ -65,6 +67,7 @@ describe(TimelineController, () => {
             startTime: 2000,
             endTime: 2005,
             isPlaying: false,
+            userHasSetTimeline: true,
         }
 
         const controller = new TimelineController(subject)
