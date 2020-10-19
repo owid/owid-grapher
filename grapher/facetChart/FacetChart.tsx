@@ -18,6 +18,7 @@ import {
     PlacedFacetSeries,
 } from "./FacetChartConstants"
 import { OwidTable } from "coreTable/OwidTable"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 
 @observer
 export class FacetChart
@@ -166,7 +167,7 @@ export class FacetChart
     }
 
     @computed private get yColumnSlugs() {
-        return this.manager.yColumnSlugs || []
+        return autoDetectYColumnSlugs(this.manager)
     }
 
     @computed get series() {
