@@ -33,8 +33,20 @@ export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
 
 export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
     json: LegacyVariablesAndEntityKey,
-    colorMap = new Map<EntityId, Color>()
+    grapherConfig: Partial<LegacyGrapherInterface> = {}
 ) => {
+    const entityColorMap = new Map<EntityId, Color>()
+    const columnColorMap = new Map<string, Color>()
+    const dimensions = grapherConfig.dimensions || []
+
+    grapherConfig.selectedData
+        ?.filter((item) => item.entityId && item.color)
+        .forEach((item) => {
+            entityColorMap.set(item.entityId, item.color!)
+            const varId = dimensions[item.index]?.variableId
+            if (varId) columnColorMap.set(varId.toString(), item.color!)
+        })
+
     let rows: OwidRow[] = []
     const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
     const columnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
@@ -43,7 +55,7 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
     })
 
     const colorColumnSlug =
-        colorMap.size > 0 ? OwidTableSlugs.entityColor : undefined
+        entityColorMap.size > 0 ? OwidTableSlugs.entityColor : undefined
     if (colorColumnSlug) {
         columnDefs.set(colorColumnSlug, {
             slug: colorColumnSlug,
@@ -52,8 +64,8 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
         })
     }
 
-    for (const key in json.variables) {
-        const variable = json.variables[key]
+    for (const varId in json.variables) {
+        const variable = json.variables[varId]
 
         const entityNames =
             variable.entities?.map((id) => entityMetaById[id].name) || []
@@ -61,6 +73,10 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
             variable.entities?.map((id) => entityMetaById[id].code) || []
 
         const columnDef = columnDefFromLegacyVariable(variable)
+
+        const columnColor = columnColorMap.get(varId.toString())
+        if (columnColor) columnDef.color = columnColor
+
         const columnSlug = columnDef.slug
         columnDef.isDailyMeasurement
             ? columnDefs.set(OwidTableSlugs.day, {
@@ -126,7 +142,7 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
                 row[annotationsColumnSlug] = annotationMap.get(entityName)
 
             if (colorColumnSlug) {
-                const color = colorMap.get(entityId)
+                const color = entityColorMap.get(entityId)
                 if (color) row[colorColumnSlug] = color
             }
             return row
@@ -214,17 +230,10 @@ export const legacyToOwidTable = (
     json: LegacyVariablesAndEntityKey,
     grapherConfig: Partial<LegacyGrapherInterface> = {}
 ) => {
-    const colorMap = new Map<EntityId, Color>()
-    grapherConfig.selectedData
-        ?.filter((item) => item.entityId && item.color)
-        .forEach((item) => {
-            colorMap.set(item.entityId, item.color!)
-        })
-
     const {
         rows,
         columnDefs,
-    } = legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc(json, colorMap)
+    } = legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc(json, grapherConfig)
 
     const dimensions = grapherConfig.dimensions || []
 

@@ -30,7 +30,7 @@ import {
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
-import { OwidTableSlugs } from "coreTable/OwidTableConstants"
+import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 import { timeFromTimebounds } from "grapher/utils/TimeBounds"
@@ -424,7 +424,7 @@ export class DiscreteBarChart
 
         // todo: Restore if derived from line chart, use line chart colors
         return colorScheme.getUniqValueColorMap(
-            uniq(this.rawSeries.map((series) => series.row.value)),
+            uniq(this.sortedRawSeries.map((series) => series.row.value)),
             manager.invertColorScheme
         )
     }
@@ -434,39 +434,41 @@ export class DiscreteBarChart
     }
 
     @computed private get columnsAsSeries() {
-        return sortBy(
-            this.yColumns.map((col) => {
-                const row = col.owidRows[0]
-                return { row, seriesName: col.displayName }
-            }),
-            (series) => series.row.value
-        ).reverse()
+        return this.yColumns.map((col) => {
+            const row = col.owidRows[0]
+            const def = col.def as OwidColumnDef
+            return { row, seriesName: col.displayName, color: def.color }
+        })
     }
 
     @computed private get entitiesAsSeries() {
+        const { transformedTable } = this
         return this.yColumns[0].owidRows.map((row) => {
             return {
                 seriesName: row.entityName,
+                color: transformedTable.getColorForEntityName(row.entityName),
                 row,
             }
         })
     }
 
-    @computed private get rawSeries() {
-        return this.seriesStrategy === SeriesStrategy.entity
-            ? this.entitiesAsSeries
-            : this.columnsAsSeries
+    @computed private get sortedRawSeries() {
+        const raw =
+            this.seriesStrategy === SeriesStrategy.entity
+                ? this.entitiesAsSeries
+                : this.columnsAsSeries
+        return sortBy(raw, (series) => series.row.value)
     }
 
     @computed get series() {
-        const { transformedTable, valuesToColorsMap } = this
-        return this.rawSeries.map((rawSeries) => {
-            const { row, seriesName } = rawSeries
+        const { valuesToColorsMap } = this
+        return this.sortedRawSeries.reverse().map((rawSeries) => {
+            const { row, seriesName, color } = rawSeries
             const series: DiscreteBarSeries = {
                 ...row,
                 seriesName,
                 color:
-                    transformedTable.getColorForEntityName(seriesName) ??
+                    color ??
                     valuesToColorsMap?.get(row.value) ??
                     DEFAULT_BAR_COLOR,
             }
