@@ -1,6 +1,7 @@
 import * as React from "react"
 import { FacetChart } from "./FacetChart"
 import {
+    SampleColumnSlugs,
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
@@ -12,75 +13,57 @@ import { Meta } from "@storybook/react"
 const CSF: Meta = {
     title: "FacetChart",
     component: FacetChart,
-    argTypes: {
-        countryCount: {
-            defaultValue: 10,
-            control: { type: "range", min: 1, max: 200 },
-        },
-        chartTypeName: {
-            defaultValue: ChartTypeName.LineChart,
-            control: { type: "radio", options: Object.keys(ChartTypeName) },
-        },
-        dropRandomRows: {
-            defaultValue: 0,
-            control: { type: "range", min: 0, max: 100 },
-        },
-    },
 }
 
 export default CSF
 
 const bounds = new Bounds(0, 0, 1000, 500)
 
-export const OneMetricOneCountryPerChart = (args: any) => {
+export const OneMetricOneCountryPerChart = () => {
+    const manager = {
+        table: SynthesizeGDPTable({
+            entityCount: 4,
+        }).selectAll(),
+        yColumnSlug: SampleColumnSlugs.GDP,
+        xColumnSlug: SampleColumnSlugs.Population,
+    }
+
     return (
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
-                chartTypeName={args.chartTypeName}
-                manager={{
-                    table: SynthesizeGDPTable({
-                        entityCount: (args.countryCount ?? 4) || 1,
-                    })
-                        .selectAll()
-                        .dropRandomPercent(args.dropRandomRows),
-                    yColumnSlug: "GDP",
-                    xColumnSlug: "Population",
-                }}
+                chartTypeName={ChartTypeName.LineChart}
+                manager={manager}
             />
         </svg>
     )
 }
 
-export const MultipleMetricsOneCountryPerChart = (args: any) => {
+export const MultipleMetricsOneCountryPerChart = () => {
     return (
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
-                chartTypeName={args.chartTypeName}
+                chartTypeName={ChartTypeName.LineChart}
                 manager={{
                     table: SynthesizeFruitTable({
-                        entityCount: (args.countryCount ?? 4) || 1,
-                    })
-                        .selectAll()
-                        .dropRandomPercent(args.dropRandomRows),
+                        entityCount: 4,
+                    }).selectAll(),
                 }}
             />
         </svg>
     )
 }
 
-export const OneChartPerMetric = (args: any) => {
+export const OneChartPerMetric = () => {
     const table = SynthesizeGDPTable({
-        entityCount: (args.countryCount ?? 2) || 1,
-    })
-        .selectAll()
-        .dropRandomPercent(args.dropRandomRows)
+        entityCount: 2,
+    }).selectAll()
     return (
         <svg width={bounds.width} height={bounds.height}>
             <FacetChart
                 bounds={bounds}
-                chartTypeName={args.chartTypeName}
+                chartTypeName={ChartTypeName.LineChart}
                 manager={{
                     facetStrategy: FacetStrategy.column,
                     yColumnSlugs: table.numericColumnSlugs,
