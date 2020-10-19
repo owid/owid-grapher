@@ -69,6 +69,12 @@ class RowStorageEngine<
         super()
         this._inputRows = rows
         this.table = table
+        this.builtRows = rows
+
+        if (this.needsBuilding) this.buildRows()
+    }
+
+    private buildRows() {
         this.builtRows = this._inputRows.map((row, index) => {
             const newRow: any = Object.assign({}, row)
             this.columnsToParse.forEach((col) => {
@@ -79,6 +85,10 @@ class RowStorageEngine<
             })
             return newRow as ROW_TYPE
         })
+    }
+
+    private get needsBuilding() {
+        return this.colsToCompute.length || this.columnsToParse.length
     }
 
     private get colsToCompute() {
