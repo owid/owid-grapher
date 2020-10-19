@@ -384,7 +384,10 @@ export class DiscreteBarChart
 
         if (!column.table.hasSelection) return `No data selected`
 
-        return column.isEmpty ? `No matching data in column ${column.name}` : ""
+        // TODO is it better to use .series for this check?
+        return this.yColumns.every((col) => col.isEmpty)
+            ? `No matching data in columns ${this.yColumnSlugs.join(", ")}`
+            : ""
     }
 
     private formatValue(series: DiscreteBarSeries) {
