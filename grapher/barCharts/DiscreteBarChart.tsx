@@ -7,6 +7,8 @@ import {
     sortBy,
     exposeInstanceOnWindow,
     uniq,
+    first,
+    excludeUndefined,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -434,11 +436,15 @@ export class DiscreteBarChart
     }
 
     @computed private get columnsAsSeries() {
-        return this.yColumns.map((col) => {
-            const row = col.owidRows[0]
-            const def = col.def as OwidColumnDef
-            return { row, seriesName: col.displayName, color: def.color }
-        })
+        return excludeUndefined(
+            this.yColumns.map((col) => {
+                const row = first(col.owidRows)
+                // Do not plot a bar if column has no data for the selected time
+                if (!row) return undefined
+                const def = col.def as OwidColumnDef
+                return { row, seriesName: col.displayName, color: def.color }
+            })
+        )
     }
 
     @computed private get entitiesAsSeries() {

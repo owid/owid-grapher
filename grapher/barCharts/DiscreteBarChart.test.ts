@@ -3,6 +3,7 @@
 import { DiscreteBarChart } from "./DiscreteBarChart"
 import {
     SampleColumnSlugs,
+    SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
 import {
@@ -10,6 +11,7 @@ import {
     DiscreteBarChartManager,
 } from "./DiscreteBarChartConstants"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { SeriesStrategy } from "grapher/core/GrapherConstants"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -42,5 +44,42 @@ describe("barcharts with columns as the series", () => {
         manager.baseColorScheme = ColorSchemeName.Reds
         const chart = new DiscreteBarChart({ manager })
         expect(chart.series[0].color).not.toEqual(DEFAULT_BAR_COLOR)
+    })
+
+    it("can filter a series when there are no points (column strategy)", () => {
+        const chart = new DiscreteBarChart({
+            manager: {
+                seriesStrategy: SeriesStrategy.column,
+                yColumnSlugs: [
+                    SampleColumnSlugs.Fruit,
+                    SampleColumnSlugs.Vegetables,
+                ],
+                table: SynthesizeFruitTable({
+                    entityCount: 1,
+                    timeRange: [2000, 2001],
+                })
+                    .selectSample(1)
+                    .replaceRandomCells(1, [SampleColumnSlugs.Fruit]),
+            },
+        })
+
+        expect(chart.series.length).toEqual(1)
+    })
+
+    it("can filter a series when there are no points (entity strategy)", () => {
+        const chart = new DiscreteBarChart({
+            manager: {
+                seriesStrategy: SeriesStrategy.entity,
+                yColumnSlugs: [SampleColumnSlugs.Fruit],
+                table: SynthesizeFruitTable({
+                    entityCount: 2,
+                    timeRange: [2000, 2001],
+                })
+                    .selectSample(2)
+                    .replaceRandomCells(1, [SampleColumnSlugs.Fruit]),
+            },
+        })
+
+        expect(chart.series.length).toEqual(1)
     })
 })
