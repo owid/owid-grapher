@@ -93,7 +93,6 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 export class StackedBarChart
     extends AbstactStackedChart
     implements VerticalColorLegendManager, ColorScaleManager {
-    base!: SVGGElement
     readonly minBarSpacing = 4
 
     constructor(props: AbstactStackedChartProps) {
@@ -324,18 +323,6 @@ export class StackedBarChart
 
     @action.bound onBarMouseLeave() {
         this.hoverBar = undefined
-    }
-
-    componentDidMount() {
-        // Fancy intro animation
-        const base = select(this.base)
-        base.selectAll("clipPath > rect")
-            .attr("width", 0)
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.bounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
     }
 
     render() {

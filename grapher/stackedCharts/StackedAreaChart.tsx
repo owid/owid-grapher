@@ -214,8 +214,6 @@ class Areas extends React.Component<AreasProps> {
 export class StackedAreaChart
     extends AbstactStackedChart
     implements LineLegendManager {
-    base: React.RefObject<SVGGElement> = React.createRef()
-
     constructor(props: AbstactStackedChartProps) {
         super(props)
     }
@@ -253,7 +251,7 @@ export class StackedAreaChart
         return Math.min(150, this.bounds.width / 3)
     }
 
-    @computed get legendDimensions(): LineLegend | undefined {
+    @computed get legendDimensions() {
         if (this.manager.hideLegend) return undefined
         return new LineLegend({ manager: this })
     }
@@ -300,7 +298,7 @@ export class StackedAreaChart
     @computed private get tooltip() {
         if (this.hoveredPointIndex === undefined) return undefined
 
-        const { hoveredPointIndex, dualAxis, manager, series } = this
+        const { hoveredPointIndex, dualAxis, series } = this
 
         // Grab the first value to get the year from
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
@@ -402,31 +400,6 @@ export class StackedAreaChart
                 </table>
             </Tooltip>
         )
-    }
-
-    animSelection?: d3.Selection<
-        d3.BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
-
-    componentDidMount() {
-        // Fancy intro animation
-        this.animSelection = select(this.base.current)
-            .selectAll("clipPath > rect")
-            .attr("width", 0)
-
-        this.animSelection
-            .transition()
-            .duration(800)
-            .ease(easeLinear)
-            .attr("width", this.bounds.width)
-            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
-    }
-
-    componentWillUnmount() {
-        if (this.animSelection) this.animSelection.interrupt()
     }
 
     render() {

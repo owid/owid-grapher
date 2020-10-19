@@ -8,7 +8,7 @@ import {
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { flatten, guid, max } from "grapher/utils/Util"
+import { exposeInstanceOnWindow, flatten, guid, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
@@ -16,6 +16,7 @@ import { stackSeries, withFakePoints } from "./StackedUtils"
 import { StackedSeries } from "./StackedConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { easeLinear, select } from "d3"
 
 export interface AbstactStackedChartProps {
     bounds?: Bounds
@@ -78,6 +79,34 @@ export class AbstactStackedChart
 
     @computed protected get yColumnSlugs() {
         return autoDetectYColumnSlugs(this.manager)
+    }
+
+    private animSelection?: d3.Selection<
+        d3.BaseType,
+        unknown,
+        SVGGElement | null,
+        unknown
+    >
+
+    base: React.RefObject<SVGGElement> = React.createRef()
+    componentDidMount() {
+        // Fancy intro animation
+        this.animSelection = select(this.base.current)
+            .selectAll("clipPath > rect")
+            .attr("width", 0)
+
+        this.animSelection
+            .transition()
+            .duration(800)
+            .ease(easeLinear)
+            .attr("width", this.bounds.width)
+            .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+
+        exposeInstanceOnWindow(this)
+    }
+
+    componentWillUnmount() {
+        if (this.animSelection) this.animSelection.interrupt()
     }
 
     // It seems we have 2 types of StackedAreas. If only 1 column, we stack
