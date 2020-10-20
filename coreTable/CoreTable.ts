@@ -22,7 +22,6 @@ import {
     ColumnTypeNames,
     CoreColumnDef,
     CoreRow,
-    JsTypes,
     PrimitiveType,
     SortOrder,
     TransformType,
@@ -51,6 +50,7 @@ const TransformsRequiringCompute = new Set([
 abstract class StorageEngine<ROW_TYPE extends CoreRow = CoreRow> {
     abstract get rows(): ROW_TYPE[]
     abstract get inputRows(): ROW_TYPE[]
+    abstract getValuesFor(columnSlug: ColumnSlug): PrimitiveType[]
 }
 
 class RowStorageEngine<
@@ -72,6 +72,10 @@ class RowStorageEngine<
         this.builtRows = rows
 
         if (this.needsBuilding) this.buildRows()
+    }
+
+    getValuesFor(columnSlug: ColumnSlug) {
+        return this.rows.map((row) => row[columnSlug])
     }
 
     private buildRows() {
@@ -121,18 +125,17 @@ class RowStorageEngine<
     }
 }
 
+type ColumnStore = { [columnSlug: string]: PrimitiveType[] }
+
 class ColumnStorageEngine<
     ROW_TYPE extends CoreRow = CoreRow
 > extends StorageEngine<ROW_TYPE> {
-    private columnVectors: JsTypes[][]
-    private columnSlugs: ColumnSlug[]
-    constructor(
-        columnVectors: JsTypes[][] = [],
-        columnSlugs: ColumnSlug[] = []
-    ) {
+    private columnStore: ColumnStore
+    private table: CoreTable
+    constructor(columnStore: ColumnStore, table: CoreTable) {
         super()
-        this.columnVectors = columnVectors
-        this.columnSlugs = columnSlugs
+        this.columnStore = columnStore
+        this.table = table
     }
 
     // todo: fix for built.
@@ -140,16 +143,29 @@ class ColumnStorageEngine<
         return this.rows
     }
 
+    getValuesFor(columnSlug: ColumnSlug) {
+        return this.columnStore[columnSlug]
+    }
+
     private makeRowFor(rowIndex: number) {
         const row: any = {}
+        const columns = this.columns
         this.columnSlugs.forEach((slug, colIndex) => {
-            row[slug] = this.columnVectors[colIndex][rowIndex]
+            row[slug] = columns[colIndex][rowIndex]
         })
         return row as ROW_TYPE
     }
 
+    @computed get columnSlugs() {
+        return Object.keys(this.columnStore)
+    }
+
+    @computed get columns() {
+        return Object.values(this.columnStore)
+    }
+
     @computed private get length() {
-        return this.columnVectors[0]?.length ?? 0
+        return this.columns[0]?.length ?? 0
     }
 
     get rows() {
@@ -176,7 +192,7 @@ export class CoreTable<
 
     inputColumnDefs: COL_DEF_TYPE[]
     constructor(
-        rows: ROW_TYPE[] = [],
+        rowsOrColumns: ROW_TYPE[] | ColumnStore = [],
         inputColumnDefs: COL_DEF_TYPE[] = [],
         parent?: CoreTable,
         tableDescription = "",
@@ -190,15 +206,20 @@ export class CoreTable<
         this.inputColumnDefs = inputColumnDefs
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
 
+        const useRowStorage = Array.isArray(rowsOrColumns)
+        const rows = rowsOrColumns as ROW_TYPE[]
+        const cols = rowsOrColumns as ColumnStore
+
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
-        if (!parent && rows.length)
-            this.autodetectAndAddColumnsFromFirstRow(rows)
+        if (!parent)
+            useRowStorage
+                ? this.autodetectAndAddColumnsFromFirstRow(rows)
+                : this.autodetectAndAddColumnsFromFirstRowForColumnStore(cols)
 
-        const isRows = true
-        this.storageEngine = isRows
+        this.storageEngine = useRowStorage
             ? new RowStorageEngine<ROW_TYPE>(rows, this)
-            : new ColumnStorageEngine<ROW_TYPE>()
+            : new ColumnStorageEngine<ROW_TYPE>(cols, this)
 
         // Pass selection strategy down from parent. todo: move selection to Grapher.
         if (parent) this.copySelectionFrom(parent)
@@ -212,6 +233,23 @@ export class CoreTable<
         this._columns.set(slug, new ColumnType(this, def))
     }
 
+    private autodetectAndAddColumnsFromFirstRowForColumnStore(
+        columnStore: ColumnStore
+    ) {
+        Object.keys(columnStore)
+            .filter((slug) => !this.has(slug))
+            .forEach((slug) => {
+                this.setColumn(
+                    guessColumnDefFromSlugAndRow(
+                        slug,
+                        columnStore[slug].find(
+                            (val) => val !== undefined && val !== null
+                        )
+                    ) as COL_DEF_TYPE
+                )
+            })
+    }
+
     private autodetectAndAddColumnsFromFirstRow(rows: ROW_TYPE[]) {
         Object.keys(rows[0])
             .filter((slug) => !this.has(slug))
@@ -219,11 +257,15 @@ export class CoreTable<
                 const firstRowWithValue = rows.find(
                     (row) => row[slug] !== undefined && row[slug] !== null
                 )
-                const def = guessColumnDefFromSlugAndRow(
-                    slug,
-                    firstRowWithValue
-                ) as COL_DEF_TYPE
-                this.setColumn(def)
+                const firstValue = firstRowWithValue
+                    ? firstRowWithValue[slug]
+                    : undefined
+                this.setColumn(
+                    guessColumnDefFromSlugAndRow(
+                        slug,
+                        firstValue
+                    ) as COL_DEF_TYPE
+                )
             })
     }
     copySelectionFrom(table: any) {
@@ -266,6 +308,10 @@ export class CoreTable<
 
     @computed get lastRow() {
         return last(this.rows)
+    }
+
+    getValuesFor(columnSlug: ColumnSlug) {
+        return this.storageEngine.getValuesFor(columnSlug)
     }
 
     @computed get numRows() {
@@ -955,7 +1001,7 @@ export class CoreTable<
 
 const guessColumnDefFromSlugAndRow = (
     slug: string,
-    sampleRow: any
+    sampleValue: any
 ): CoreColumnDef => {
     if (slug === "day")
         return {
@@ -971,16 +1017,14 @@ const guessColumnDefFromSlugAndRow = (
             name: "Year",
         }
 
-    const value = sampleRow[slug]
-
-    if (typeof value === "number")
+    if (typeof sampleValue === "number")
         return {
             slug,
             type: ColumnTypeNames.Numeric,
         }
 
-    if (typeof value === "string") {
-        if (value.match(/^\d+$/))
+    if (typeof sampleValue === "string") {
+        if (sampleValue.match(/^\d+$/))
             return {
                 slug,
                 type: ColumnTypeNames.Numeric,

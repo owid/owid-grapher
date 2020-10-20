@@ -16,6 +16,15 @@ it("a table can be made from csv", () => {
     expect(table.columnNames).toEqual(["country", "population"])
 })
 
+it("can create a table from columns", () => {
+    const table = new CoreTable({
+        scores: [0, 1, 2],
+        team: ["usa", "france", "canada"],
+    })
+    expect(table.numRows).toEqual(3)
+    expect(table.columnNames).toEqual(["scores", "team"])
+})
+
 it("rows can be added without mutating the parent table", () => {
     const table = CoreTable.fromDelimited(sampleCsv)
     expect(table.numRows).toEqual(4)
@@ -61,7 +70,7 @@ it("it always parses all values in all rows to Javascript primitives when the ta
         { country: "Germany", gdp: undefined },
     ]
     const table = new CoreTable(rows)
-    expect(table.get("gdp")?.validRows.length).toEqual(1)
+    expect(table.get("gdp")?.numValues).toEqual(1)
 })
 
 describe("it can add new computed columns", () => {
