@@ -3,34 +3,32 @@
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
-import { sampleMegaRows } from "./CovidExplorerUtils"
+import { sampleMegaCsv } from "./CovidExplorerUtils"
+import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
+
+const table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
 
 it("correctly parses data from mega file", () => {
-    expect(
-        CovidExplorerTable.fromMegaRows(sampleMegaRows).rows[0].total_cases
-    ).toEqual(2)
+    expect(table.rows[0].total_cases).toEqual(2)
 })
 
 it("correctly computes makeCountryOptions", () => {
-    const table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
     expect(table.availableEntityNames[3]).toEqual("World")
 })
 
 it("correctly groups continents and adds rows for each", () => {
-    const table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
     const regionRows = table.where({ entityName: "North America" })
     expect(regionRows.numRows).toEqual(6)
     expect(regionRows.lastRow?.total_cases).toEqual(46451)
 })
 
 it("correctly adds EU aggregates and drops last day", () => {
-    const table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
     const regionRows = table.where({ entityName: "European Union" })
     expect(regionRows.numRows).toEqual(1)
 })
 
 describe("build covid column", () => {
-    let table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+    let table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
     const def = table.makeRollingAverageColumnDef(
         { slug: "totalCasesSmoothed" },
         (row) => row.total_cases,
@@ -95,7 +93,7 @@ describe("build covid column", () => {
 })
 
 describe("builds aligned tests column", () => {
-    let table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+    let table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
 
     expect(table.columnSlugs.includes("tests-daily")).toEqual(false)
 
@@ -113,7 +111,7 @@ describe("builds aligned tests column", () => {
     expect(table.columnSlugs.includes("tests-perThousand-daily")).toEqual(true)
 
     it("rows are immutable", () => {
-        const table3 = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+        const table3 = MegaCsvToCovidExplorerTable(sampleMegaCsv)
         expect(table3.columnSlugs.includes("tests-perThousand-daily")).toEqual(
             false
         )
@@ -134,7 +132,7 @@ describe("builds aligned tests column", () => {
 })
 
 it("can filter rows without continent", () => {
-    let table = CovidExplorerTable.fromMegaRows(sampleMegaRows)
+    let table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
     expect(table.availableEntityNameSet.has("World")).toBeTruthy()
 
     table = table.filterGroups()

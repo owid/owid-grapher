@@ -23,6 +23,7 @@ import {
     ColumnTypeNames,
     CoreColumnDef,
     CoreRow,
+    CsvString,
     PrimitiveType,
     SortOrder,
     TransformType,
@@ -182,8 +183,6 @@ interface AdvancedOptions {
     rowConversionFunction?: (row: any) => CoreRow
 }
 
-type csv = string
-
 const autoType = (object: any) => {
     for (const key in object) {
         let value = object[key].trim()
@@ -219,7 +218,7 @@ export class CoreTable<
 
     inputColumnDefs: COL_DEF_TYPE[]
     constructor(
-        rowsOrColumnsOrCsv: ROW_TYPE[] | ColumnStore | csv = [],
+        rowsOrColumnsOrCsv: ROW_TYPE[] | ColumnStore | CsvString = [],
         inputColumnDefs: COL_DEF_TYPE[] = [],
         advancedOptions: AdvancedOptions = {}
     ) {

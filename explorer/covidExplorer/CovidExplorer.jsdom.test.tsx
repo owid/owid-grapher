@@ -5,7 +5,7 @@ import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import React from "react"
 import { mount, ReactWrapper } from "enzyme"
 import { IntervalOptions, metricLabels, MetricOptions } from "./CovidConstants"
-import { sampleMegaRows } from "./CovidExplorerUtils"
+import { sampleMegaCsv } from "./CovidExplorerUtils"
 
 const dummyMeta = {
     charts: {},
@@ -17,7 +17,7 @@ describe(CovidExplorer, () => {
         const startingParams = new CovidQueryParams("")
         const element = mount(
             <CovidExplorer
-                megaRows={sampleMegaRows}
+                megaCsv={sampleMegaCsv}
                 params={startingParams}
                 covidChartAndVariableMeta={dummyMeta}
                 updated="2020-05-09T18:59:31"
@@ -45,7 +45,7 @@ class ExplorerDataTableTest {
         this.params = params
         this.view = mount(
             <CovidExplorer
-                megaRows={sampleMegaRows}
+                megaCsv={sampleMegaCsv}
                 params={this.params}
                 queryStr="?tab=table&time=2020-05-06"
                 covidChartAndVariableMeta={dummyMeta}

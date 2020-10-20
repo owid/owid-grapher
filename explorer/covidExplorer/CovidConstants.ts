@@ -237,7 +237,8 @@ export interface CovidRow extends Omit<MegaRow, "location" | "iso_code"> {
 }
 
 export declare type CovidColumnSlug = keyof CovidRow
-const MegaColumnMap: Partial<Record<
+
+export const MegaColumnMap: Partial<Record<
     CovidColumnSlug,
     Partial<OwidColumnDef>
 >> = {
@@ -324,9 +325,3 @@ export const CovidCountryPickerSlugs = [
     OwidTableSlugs.entityName,
     ...Object.keys(MegaColumnMap),
 ]
-export const MegaColumnDefs = Object.keys(MegaColumnMap).map((slug) => {
-    return {
-        ...MegaColumnMap[slug],
-        slug,
-    } as OwidColumnDef
-})

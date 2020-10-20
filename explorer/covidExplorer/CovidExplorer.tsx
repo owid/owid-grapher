@@ -38,7 +38,6 @@ import {
     MetricOptions,
     IntervalOptions,
     ColorScaleOptions,
-    MegaRow,
     CovidCountryPickerSlugs,
 } from "./CovidConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
@@ -74,9 +73,10 @@ import {
     ExplorerControlType,
     ExplorerControlOption,
 } from "explorer/client/ExplorerConstants"
-import { Color, ColumnSlug } from "coreTable/CoreTableConstants"
+import { Color, ColumnSlug, CsvString } from "coreTable/CoreTableConstants"
 import { ContinentColors } from "grapher/color/ColorConstants"
 import { MapProjectionName } from "grapher/mapCharts/MapProjections"
+import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -87,7 +87,7 @@ interface BootstrapProps {
 }
 
 interface CovidExplorerProps {
-    megaRows: MegaRow[]
+    megaCsv: CsvString
     params: CovidQueryParams
     covidChartAndVariableMeta: {
         charts: any
@@ -106,7 +106,7 @@ export class CovidExplorer
     extends React.Component<CovidExplorerProps>
     implements ObservableUrl, SlideShowManager {
     static async bootstrap(props: BootstrapProps) {
-        const { megaRows, updated, covidMeta } = await fetchRequiredData()
+        const { megaCsv, updated, covidMeta } = await fetchRequiredData()
         const queryStr =
             props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
                 ? props.queryStr
@@ -114,7 +114,7 @@ export class CovidExplorer
         const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
             <CovidExplorer
-                megaRows={megaRows}
+                megaCsv={megaCsv}
                 updated={updated}
                 params={startingParams}
                 covidChartAndVariableMeta={covidMeta}
@@ -544,7 +544,7 @@ export class CovidExplorer
         }, 1)
     }
 
-    private inputTable = CovidExplorerTable.fromMegaRows(this.props.megaRows)
+    private inputTable = MegaCsvToCovidExplorerTable(this.props.megaCsv)
         .updateColumnsToHideInDataTable()
         .loadColumnDefTemplatesFromGrapherBackend(
             this.props.covidChartAndVariableMeta.variables
