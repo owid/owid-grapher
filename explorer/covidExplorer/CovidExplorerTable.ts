@@ -25,7 +25,6 @@ import {
     testRateExcludeList,
 } from "./CovidConstants"
 import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
-import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
 
 export class CovidExplorerTable extends OwidTable {
@@ -44,10 +43,6 @@ export class CovidExplorerTable extends OwidTable {
             makeColumnDefTemplates(defsFromBackend)
         )
         return this
-    }
-
-    appendAnnotationColumns() {
-        return this.appendColumns(CovidAnnotationColumnDefs)
     }
 
     // todo: ideally we can simplify this when we do data 2.0

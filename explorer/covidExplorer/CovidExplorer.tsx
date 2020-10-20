@@ -544,12 +544,11 @@ export class CovidExplorer
         }, 1)
     }
 
-    private inputTable = MegaCsvToCovidExplorerTable(this.props.megaCsv)
-        .updateColumnsToHideInDataTable()
-        .loadColumnDefTemplatesFromGrapherBackend(
-            this.props.covidChartAndVariableMeta.variables
-        )
-        .appendAnnotationColumns()
+    private inputTable = MegaCsvToCovidExplorerTable(
+        this.props.megaCsv
+    ).loadColumnDefTemplatesFromGrapherBackend(
+        this.props.covidChartAndVariableMeta.variables
+    )
 
     private _expandedTable?: CovidExplorerTable
     // This is the inputTable with the addition of any columns the user has added.

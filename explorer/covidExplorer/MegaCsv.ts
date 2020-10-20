@@ -3,6 +3,7 @@ import { CsvString } from "coreTable/CoreTableConstants"
 import { InvalidCellTypes } from "coreTable/InvalidCells"
 import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { flatten } from "grapher/utils/Util"
+import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 import { MegaRow, CovidRow, MegaColumnMap, MegaSlugs } from "./CovidConstants"
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import {
@@ -92,4 +93,6 @@ export const MegaCsvToCovidExplorerTable = (megaCsv: CsvString) => {
             tableDescription: "Loaded into CovidExplorerTable",
         }
     )
+        .appendColumns(CovidAnnotationColumnDefs)
+        .updateColumnsToHideInDataTable()
 }
