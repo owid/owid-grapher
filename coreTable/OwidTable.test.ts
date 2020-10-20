@@ -8,6 +8,7 @@ import { OwidTable } from "coreTable/OwidTable"
 import { flatten } from "grapher/utils/Util"
 import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
+import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleRows = [
     {
@@ -449,5 +450,64 @@ describe("time domain", () => {
         expect(table.get("gdp")!.minTime).toEqual(1950)
         expect(table.get("gdp")!.maxTime).toEqual(2000)
         expect(table.get("gdp")!.uniqTimesAsc).toEqual([1950, 1970, 2000])
+    })
+})
+
+describe("tolerance", () => {
+    it("can apply tolerance to a column", () => {
+        const table = OwidTable.fromDelimited(
+            `gdp,year,entityName,entityId,entityCode
+,2000,usa,1,
+0,2001,usa,1,
+,2002,usa,1,
+,2003,usa,1,
+2,2004,uk,2,
+1,2005,usa,1,`,
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "year", type: ColumnTypeNames.Year },
+            ]
+        )
+
+        const toleranceTable = table.fillColumnWithTolerance("gdp", 1)
+
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "usa",
+                    gdp: 0,
+                    "gdp-originalTime": 2001,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "usa",
+                    gdp: InvalidCellTypes.NoValueWithinTolerance,
+                    "gdp-originalTime": 2003,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "uk",
+                    gdp: 2,
+                    "gdp-originalTime": 2004,
+                    year: 2004,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "uk",
+                    gdp: 2,
+                    "gdp-originalTime": 2004,
+                    year: 2005,
+                }),
+            ])
+        )
     })
 })

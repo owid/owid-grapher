@@ -8,6 +8,7 @@ import countBy from "lodash/countBy"
 import debounce from "lodash/debounce"
 import difference from "lodash/difference"
 import extend from "lodash/extend"
+import findIndex from "lodash/findIndex"
 import flatten from "lodash/flatten"
 import fromPairs from "lodash/fromPairs"
 import groupBy from "lodash/groupBy"
@@ -116,7 +117,12 @@ import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-import { SortOrder, Integer, Time } from "coreTable/CoreTableConstants"
+import {
+    SortOrder,
+    Integer,
+    Time,
+    ColumnSlug,
+} from "coreTable/CoreTableConstants"
 import { PointVector } from "./PointVector"
 import {
     TickFormattingOptions,
@@ -127,6 +133,7 @@ import {
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
+import { InvalidCell, InvalidCellTypes } from "coreTable/InvalidCells"
 
 export type SVGElement = any
 export type VNode = any
@@ -1063,7 +1070,83 @@ export function sortNumeric<T>(
     return arr.sort(compareFn)
 }
 
+function isNotInvalidOrEmptyCell(value: any) {
+    return value !== undefined && !(value instanceof InvalidCell)
+}
+
 // https://github.com/robertmassaioli/ts-is-present
 // A predicate for filtering an array of nulls and undefineds that returns the correct type
 export const isPresent = <T>(t: T | undefined | null | void): t is T =>
     t !== undefined && t !== null
+
+export function fillUndefinedWithClosest<
+    ValueSlug extends ColumnSlug,
+    TimeSlug extends ColumnSlug
+>(
+    rows: ({ [key in TimeSlug]?: number } & { [key in ValueSlug]?: any })[],
+    valueSlug: ValueSlug,
+    timeSlug: TimeSlug,
+    timeTolerance: number
+): any[] {
+    if (!rows.length) return rows
+
+    let prevNonBlankIndex: number | undefined = undefined
+    let nextNonBlankIndex: number | undefined = undefined
+
+    for (let index = 0; index < rows.length; index++) {
+        const currentValue = rows[index][valueSlug]
+        if (isNotInvalidOrEmptyCell(currentValue)) {
+            prevNonBlankIndex = index
+            continue
+        }
+
+        if (
+            nextNonBlankIndex !== -1 &&
+            (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
+        ) {
+            nextNonBlankIndex = findIndex(
+                rows,
+                (row) => isNotInvalidOrEmptyCell(row[valueSlug]),
+                index + 1
+            )
+        }
+
+        const timeOfCurrent: number = rows[index][timeSlug]
+        const timeOfPrevIndex: number =
+            prevNonBlankIndex !== undefined
+                ? rows[prevNonBlankIndex][timeSlug]
+                : -Infinity
+        const timeOfNextIndex: number =
+            nextNonBlankIndex !== undefined && nextNonBlankIndex !== -1
+                ? rows[nextNonBlankIndex][timeSlug]
+                : Infinity
+
+        const prevTimeDiff = Math.abs(timeOfPrevIndex - timeOfCurrent)
+        const nextTimeDiff = Math.abs(timeOfNextIndex - timeOfCurrent)
+
+        if (
+            nextNonBlankIndex !== -1 &&
+            nextTimeDiff <= prevTimeDiff &&
+            nextTimeDiff <= timeTolerance
+        ) {
+            rows[index] = {
+                ...rows[index],
+                [valueSlug]: rows[nextNonBlankIndex!][valueSlug],
+                [timeSlug]: rows[nextNonBlankIndex!][timeSlug],
+            }
+        } else if (prevTimeDiff <= timeTolerance) {
+            rows[index] = {
+                ...rows[index],
+                [valueSlug]: rows[prevNonBlankIndex!][valueSlug],
+                [timeSlug]: rows[prevNonBlankIndex!][timeSlug],
+            }
+        } else {
+            rows[index] = {
+                ...rows[index],
+                [valueSlug]: InvalidCellTypes.NoValueWithinTolerance,
+            }
+        }
+    }
+
+    return rows
+}

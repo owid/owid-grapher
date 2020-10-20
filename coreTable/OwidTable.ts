@@ -18,6 +18,8 @@ import {
     last,
     intersection,
     keyBy,
+    groupBy,
+    fillUndefinedWithClosest,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -47,6 +49,10 @@ import {
     toAlignedTextTable,
 } from "./CoreTablePrinters"
 import { TimeBound } from "grapher/utils/TimeBounds"
+import {
+    makeOriginalTimeSlugFromColumnSlug,
+    timeColumnSlugFromColumnDef,
+} from "./OwidTableUtil"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -267,7 +273,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         }, `Filter out countries with population less than ${minPop}`)
     }
 
-    filterByTargetTime(targetTime: Time, tolerance: Integer) {
+    filterByTargetTime(targetTime: Time, tolerance: Integer = 0) {
         const timeSlug = this.timeColumn!.slug
         const entityNameToRows = this.rowsByEntityName
         const matchingRows = new Set<OwidRow>()
@@ -583,6 +589,72 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         return intersectionOfSets<EntityName>(
             columnSlugs.map((slug) => new Set(this.get(slug)!.uniqEntityNames))
+        )
+    }
+
+    fillColumnWithTolerance(columnSlug: ColumnSlug, tolerance: number) {
+        const column = this.get(columnSlug)
+        const columnDef = column?.def as OwidColumnDef
+        const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
+        const timeColumnDef = this.get(timeColumnSlug)?.def as OwidColumnDef
+        const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
+
+        const originalRows = this.sortedByTime.rows
+        const allTimes = originalRows.map((row) => row[timeColumnSlug])
+
+        const rows = flatten(
+            Object.values(groupBy(originalRows, (row) => row.entityId)).map(
+                (rows) => {
+                    const { entityId, entityCode, entityName } = rows[0]
+                    const existingTimesSet = new Set(
+                        rows.map((row) => row[timeColumnSlug])
+                    )
+                    const timesToInject = allTimes.filter(
+                        (time) => !existingTimesSet.has(time)
+                    )
+                    rows = sortBy(
+                        rows.concat(
+                            timesToInject.map(
+                                (time) =>
+                                    ({
+                                        [timeColumnSlug]: time,
+                                        entityId,
+                                        entityCode,
+                                        entityName,
+                                    } as OwidRow)
+                            )
+                        ),
+                        timeColumnSlug
+                    )
+                    // Copy over times to originalTime column. That is the one that will be overriden
+                    // in fillUndefinedWithClosest().
+                    rows = rows.map((row) => ({
+                        ...row,
+                        [originalTimeSlug]: row[timeColumnSlug],
+                    }))
+                    return fillUndefinedWithClosest(
+                        rows,
+                        columnSlug,
+                        originalTimeSlug,
+                        tolerance
+                    )
+                }
+            )
+        )
+
+        const defs: OwidColumnDef[] = [
+            ...this.defs,
+            {
+                ...timeColumnDef,
+                slug: originalTimeSlug,
+            },
+        ]
+
+        return this.transform(
+            rows,
+            defs,
+            `Applied tolerance to column ${columnSlug} and appended column ${originalTimeSlug}`,
+            TransformType.UpdateColumnDefs
         )
     }
 
