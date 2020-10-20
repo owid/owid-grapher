@@ -244,7 +244,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get isEmpty() {
-        return this.validRows.length === 0
+        return this.allValues.length === 0
     }
 
     @computed get name() {
@@ -306,8 +306,15 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @computed get allValues() {
-        const slug = this.slug
-        return this.table.rows.map((row) => row[slug])
+        return this.table.getValuesFor(this.slug)
+    }
+
+    @computed get parsedValues() {
+        return this.table
+            .getValuesFor(this.slug)
+            .filter(
+                (value) => !((value as any) instanceof InvalidCell)
+            ) as JS_TYPE[]
     }
 
     @computed private get allValuesAsSet() {
@@ -327,17 +334,12 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return last(this.valuesAscending)!
     }
 
-    @computed private get rowsWithParseErrors() {
-        const slug = this.def.slug
-        return this.table.rows.filter((row) => row[slug] instanceof InvalidCell)
-    }
-
     @computed get numParseErrors() {
-        return this.rowsWithParseErrors.length
+        return this.allValues.length - this.numValues
     }
 
     // Rows containing a value for this column
-    @computed get validRows() {
+    @computed private get validRows() {
         const slug = this.def.slug
         return this.table.rows.filter(
             (row) => !(row[slug] instanceof InvalidCell)
@@ -346,16 +348,11 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // Number of correctly parsed values
     @computed get numValues() {
-        return this.validRows.length
+        return this.parsedValues.length
     }
 
     @computed get numUniqs() {
         return this.uniqValues.length
-    }
-
-    @computed get parsedValues(): JS_TYPE[] {
-        const slug = this.def.slug
-        return this.validRows.map((row) => row[slug])
     }
 
     @computed get valuesAscending() {
