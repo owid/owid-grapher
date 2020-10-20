@@ -405,12 +405,12 @@ export class MapChart
         )
     }
 
-    @computed get numericLegendHeight() {
-        return 5
+    @computed get numericLegendHeight(): number {
+        return this.numericLegend ? this.numericLegend.height : 0
     }
 
-    @computed get categoryLegendHeight() {
-        return 5
+    @computed get categoryLegendHeight(): number {
+        return this.categoryLegend ? this.categoryLegend.height + 5 : 0
     }
 
     @computed get categoryLegend() {
