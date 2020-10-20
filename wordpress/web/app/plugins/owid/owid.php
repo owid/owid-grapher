@@ -22,6 +22,7 @@ include 'src/AdditionalInformation/additional-information.php';
 include 'src/Help/help.php';
 include 'src/LastUpdated/last-updated.php';
 include 'src/Byline/byline.php';
+include 'src/Grid/grid.php';
 
 const KEY_PERFORMANCE_INDICATORS_META_FIELD = "owid_key_performance_indicators_meta_field";
 
@@ -121,6 +122,11 @@ function register()
     register_block_type('owid/byline', [
         'editor_script' => 'owid-blocks-script',
         'render_callback' => __NAMESPACE__ . '\blocks\byline\render',
+    ]);
+
+    register_block_type('owid/grid', [
+        'editor_script' => 'owid-blocks-script',
+        'render_callback' => __NAMESPACE__ . '\blocks\grid\render',
     ]);
 }
 
