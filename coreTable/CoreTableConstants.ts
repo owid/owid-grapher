@@ -96,6 +96,22 @@ export enum JsTypes {
 
 export type CsvString = string
 
+/**
+ * An Object Literal of Column Slugs and Primitives of the same type:
+ * {
+ *  score: [1, 2, 3],
+ *  year: [2000, 2001]
+ * }
+ */
+export type CoreColumnStore = { [columnSlug: string]: PrimitiveType[] }
+
+export type CoreTableInputOption = CoreRow[] | CoreColumnStore | CsvString
+
+// Every row will be checked against each column/value(s) pair.
+export interface CoreQuery {
+    [columnSlug: string]: PrimitiveType | PrimitiveType[]
+}
+
 // todo: remove index param?
 // todo: improve typings on this
 export type ColumnFn = (row: CoreRow, index?: Integer) => any

@@ -86,12 +86,14 @@ describe("it can add new computed columns", () => {
         const rows = [{ country: "USA" }, { country: "Germany" }]
         const table = new CoreTable(rows, [
             {
-                slug: "firstLetter",
+                slug: "countryNameLength",
                 fn: (row) => row.country.length,
             },
         ])
-        expect(table.get("firstLetter")?.parsedValues.join("")).toEqual(`37`)
-        expect((rows[0] as any).firstLetter).toEqual(undefined)
+        expect(table.get("countryNameLength")?.parsedValues.join("")).toEqual(
+            `37`
+        )
+        expect((rows[0] as any).countryNameLength).toEqual(undefined)
     })
 
     it("computations are only run once", () => {
