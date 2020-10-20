@@ -39,12 +39,9 @@ import { WorldEntityName } from "grapher/core/GrapherConstants"
 
 export class CovidExplorerTable extends OwidTable {
     static fromMegaRows(megaRows: MegaRow[]) {
-        const coreTable = new CoreTable<MegaRow>(
-            megaRows,
-            MegaColumnDefs,
-            undefined,
-            "Load from MegaCSV"
-        )
+        const coreTable = new CoreTable<MegaRow>(megaRows, MegaColumnDefs, {
+            tableDescription: "Load from MegaCSV",
+        })
             .withRenamedColumns({
                 location: OwidTableSlugs.entityName,
                 iso_code: OwidTableSlugs.entityCode,
@@ -96,8 +93,10 @@ export class CovidExplorerTable extends OwidTable {
         return new CovidExplorerTable(
             (tableWithRows.rows as any) as CovidRow[], // todo: clean up typings
             tableWithRows.defs,
-            tableWithRows as any,
-            "Loaded into CovidExplorerTable"
+            {
+                parent: tableWithRows as any,
+                tableDescription: "Loaded into CovidExplorerTable",
+            }
         )
     }
 

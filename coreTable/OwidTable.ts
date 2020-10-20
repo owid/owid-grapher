@@ -196,13 +196,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByEntityName(name: EntityName) {
-        return new OwidTable(
-            this.rowsByEntityName.get(name) || [],
-            this.defs,
-            this,
-            `Filter out all entities except '${name}'`,
-            TransformType.FilterRows
-        )
+        // todo; why not a filter by?
+        return new OwidTable(this.rowsByEntityName.get(name) || [], this.defs, {
+            parent: this,
+            tableDescription: `Filter out all entities except '${name}'`,
+            transformCategory: TransformType.FilterRows,
+        })
     }
 
     // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
@@ -299,9 +298,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 return newRow
             }),
             newDefs,
-            this,
-            `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
-            TransformType.UpdateColumnDefs
+            {
+                parent: this,
+                tableDescription: `Transformed ${columnSlug} column to be % contribution of each entity for that time`,
+                transformCategory: TransformType.UpdateColumnDefs,
+            }
         )
     }
 
@@ -324,11 +325,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 return newRow
             }),
             newDefs,
-            this,
-            `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
-                ","
-            )} `,
-            TransformType.UpdateColumnDefs
+            {
+                parent: this,
+                tableDescription: `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
+                    ","
+                )} `,
+                transformCategory: TransformType.UpdateColumnDefs,
+            }
         )
     }
 
@@ -360,11 +363,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 return newRow
             }),
             newDefs,
-            this,
-            `Transformed columns from absolute values to % of time ${startTime} for columns ${columnSlugs.join(
-                ","
-            )} `,
-            TransformType.UpdateColumnDefs
+            {
+                parent: this,
+                tableDescription: `Transformed columns from absolute values to % of time ${startTime} for columns ${columnSlugs.join(
+                    ","
+                )} `,
+                transformCategory: TransformType.UpdateColumnDefs,
+            }
         )
     }
 
