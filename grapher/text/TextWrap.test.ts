@@ -46,3 +46,20 @@ describe("width()", () => {
         expect(stringWidth(text)).toEqual(renderedWidth(text, true))
     })
 })
+
+describe("height()", () => {
+    const renderedHeight = (text: string, raw?: boolean) => {
+        const textwrap = new TextWrap({
+            maxWidth: Infinity,
+            fontSize: FONT_SIZE,
+            text,
+            rawHtml: raw,
+        })
+        return textwrap.height
+    }
+
+    it("calculates a height of zero for an empty string", () => {
+        const text = ""
+        expect(renderedHeight(text)).toEqual(0)
+    })
+})
