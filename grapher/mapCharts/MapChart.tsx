@@ -48,7 +48,6 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "grapher/color/ColorScaleBin"
-import { TextWrap } from "grapher/text/TextWrap"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
 import { PointVector } from "grapher/utils/PointVector"
@@ -311,10 +310,6 @@ export class MapChart
         return this.colorScale.config.equalSizeBins
     }
 
-    @computed get legendTitle() {
-        return ""
-    }
-
     @computed get focusValue() {
         return this.focusEntity?.series?.value
     }
@@ -356,14 +351,6 @@ export class MapChart
         return this.categoricalLegendData.length > 1
     }
 
-    @computed get mainLegendLabel() {
-        return new TextWrap({
-            maxWidth: this.legendBounds.width,
-            fontSize: 0.7 * this.fontSize,
-            text: this.legendTitle,
-        })
-    }
-
     @computed get numericFocusBracket(): ColorScaleBin | undefined {
         const { focusBracket, focusValue } = this
         const { numericLegendData } = this
@@ -397,12 +384,7 @@ export class MapChart
     }
 
     @computed get legendHeight() {
-        return (
-            this.mainLegendLabel.height +
-            this.categoryLegendHeight +
-            this.numericLegendHeight +
-            10
-        )
+        return this.categoryLegendHeight + this.numericLegendHeight + 10
     }
 
     @computed get numericLegendHeight(): number {
@@ -438,34 +420,24 @@ export class MapChart
             bounds,
             numericLegend,
             categoryLegend,
-            mainLegendLabel,
             categoryLegendHeight,
         } = this
         if (numericLegend)
             return (
-                bounds.bottom -
-                mainLegendLabel.height -
-                categoryLegendHeight -
-                numericLegend!.height -
-                4
+                bounds.bottom - categoryLegendHeight - numericLegend!.height - 4
             )
 
-        if (categoryLegend)
-            return bounds.bottom - mainLegendLabel.height - categoryLegendHeight
+        if (categoryLegend) return bounds.bottom - categoryLegendHeight
         return 0
     }
 
     renderMapLegend() {
-        const { bounds, mainLegendLabel, numericLegend, categoryLegend } = this
+        const { numericLegend, categoryLegend } = this
 
         return (
             <g className="mapLegend">
                 {numericLegend && <NumericColorLegend manager={this} />}
                 {categoryLegend && <CategoricalColorLegend manager={this} />}
-                {mainLegendLabel.render(
-                    bounds.centerX - mainLegendLabel.width / 2,
-                    bounds.bottom - mainLegendLabel.height
-                )}
             </g>
         )
     }
