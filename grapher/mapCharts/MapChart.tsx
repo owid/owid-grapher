@@ -18,6 +18,7 @@ import {
     guid,
     minBy,
     difference,
+    uniq,
 } from "grapher/utils/Util"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
@@ -271,7 +272,7 @@ export class MapChart
     @computed get categoricalValues() {
         // return uniq(this.mappableData.values.filter(isString))
         // return this.options.mapColumn.values || [] // todo: mappable data
-        return this.mapColumn!.parsedValues.filter(isString)
+        return uniq(this.mapColumn!.parsedValues.filter(isString))
     }
 
     componentDidMount() {
