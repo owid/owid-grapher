@@ -6,3 +6,11 @@
 .owid-key-performance-indicators .md-preview p:nth-of-type(2) {
     font-size: 1rem;
 }
+
+.wp-block-owid-grid
+    > .block-editor-inner-blocks
+    > .block-editor-block-list__layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 1rem;
+}

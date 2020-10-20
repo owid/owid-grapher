@@ -2,4 +2,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-gap: $padding-x-sm;
+
+    .wp-block-owid-prominent-link {
+        margin: 0 !important;
+    }
 }
