@@ -5,6 +5,7 @@ import Help from "./Help/Help"
 import LastUpdated from "./LastUpdated/LastUpdated"
 import Byline from "./Byline/Byline"
 import Grid from "./Grid/Grid"
+import Card from "./Card/Card"
 const { registerBlockType, registerBlockStyle } = wp.blocks
 const { createHigherOrderComponent } = wp.compose
 const { addFilter } = wp.hooks
@@ -16,6 +17,7 @@ registerBlockType("owid/help", Help)
 registerBlockType("owid/last-updated", LastUpdated)
 registerBlockType("owid/byline", Byline)
 registerBlockType("owid/grid", Grid)
+registerBlockType("owid/card", Card)
 
 registerBlockStyle("core/columns", {
     name: "sticky-right",
