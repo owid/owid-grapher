@@ -52,28 +52,35 @@ const TransformsRequiringCompute = new Set([
 ])
 
 abstract class StorageEngine<ROW_TYPE extends CoreRow = CoreRow> {
+    protected table: CoreTable
     abstract get rows(): ROW_TYPE[]
-    abstract get inputRows(): ROW_TYPE[]
     abstract getValuesFor(columnSlug: ColumnSlug): PrimitiveType[]
+    abstract get inputAsTable(): any[]
+
+    constructor(table: CoreTable) {
+        this.table = table
+    }
 }
 
 class RowStorageEngine<
     ROW_TYPE extends CoreRow = CoreRow
 > extends StorageEngine<ROW_TYPE> {
-    private _inputRows: ROW_TYPE[]
     private builtRows: ROW_TYPE[]
-    private table: CoreTable
-    @computed get numColsToCompute() {
-        return this.colsToCompute.length
-    }
     @computed get numColsToParse() {
         return this.columnsToParse.length
     }
-    constructor(rows: ROW_TYPE[] = [], table: CoreTable) {
-        super()
-        this._inputRows = rows
-        this.table = table
-        this.builtRows = rows
+
+    get inputRows() {
+        return this.table.inputAsRows as ROW_TYPE[]
+    }
+
+    get inputAsTable() {
+        return this.inputRows
+    }
+
+    constructor(table: CoreTable) {
+        super(table)
+        this.builtRows = this.inputRows
 
         if (this.slugsToBuild.length) this.buildRows()
     }
@@ -83,12 +90,12 @@ class RowStorageEngine<
     }
 
     private buildRows() {
-        this.builtRows = this._inputRows.map((row, index) => {
+        this.builtRows = this.inputRows.map((row, index) => {
             const newRow: any = Object.assign({}, row)
             this.columnsToParse.forEach((col) => {
                 newRow[col.slug] = col.parse(row[col.slug])
             })
-            this.colsToCompute.forEach((def) => {
+            this.table.colsToCompute.forEach((def) => {
                 newRow[def.slug] = def.fn!(row, index) // todo: add better typings around fn.
             })
             return newRow as ROW_TYPE
@@ -97,24 +104,15 @@ class RowStorageEngine<
 
     private get slugsToBuild() {
         return [
-            ...this.colsToCompute.map((col) => col.slug),
+            ...this.table.colsToCompute.map((col) => col.slug),
             ...this.columnsToParse.map((col) => col.slug),
         ]
     }
 
-    private get colsToCompute() {
-        // We never need to compute on certain transforms
-        if (!TransformsRequiringCompute.has(this.table.transformCategory))
-            return []
-
-        // Only compute new columns
-        return this.table.newColumnDefs.filter((def) => def.fn)
-    }
-
     private get columnsToParse() {
-        if (this.table.isParsed) return []
+        if (this.table.isFromCsv) return []
 
-        const firstRow = this._inputRows[0]
+        const firstRow = this.inputRows[0]
         if (!firstRow) return []
         const cols = this.table.columnsAsArray
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
@@ -124,10 +122,6 @@ class RowStorageEngine<
         return cols.filter((col) => col.needsParsing(firstRow[col.slug]))
     }
 
-    get inputRows() {
-        return this._inputRows
-    }
-
     get rows() {
         return this.builtRows
     }
@@ -135,20 +129,32 @@ class RowStorageEngine<
 
 type ColumnStore = { [columnSlug: string]: PrimitiveType[] }
 
+const columnStoreToRows = (columnStore: ColumnStore) => {
+    const firstCol = Object.values(columnStore)[0]
+    if (!firstCol) return []
+    const slugs = Object.keys(columnStore)
+    return firstCol.map((val, index) => {
+        const newRow: any = {}
+        slugs.forEach((slug) => {
+            newRow[slug] = columnStore[slug][index]
+        })
+        return newRow
+    })
+}
+
 class ColumnStorageEngine<
     ROW_TYPE extends CoreRow = CoreRow
 > extends StorageEngine<ROW_TYPE> {
-    private columnStore: ColumnStore
-    private table: CoreTable
-    constructor(columnStore: ColumnStore, table: CoreTable) {
-        super()
-        this.columnStore = columnStore
-        this.table = table
+    constructor(table: CoreTable) {
+        super(table)
     }
 
-    // todo: fix for built.
-    get inputRows() {
-        return this.rows
+    get columnStore() {
+        return this.table.inputAsColumnStore
+    }
+
+    get inputAsTable() {
+        return columnStoreToRows(this.columnStore)
     }
 
     getValuesFor(columnSlug: ColumnSlug) {
@@ -172,12 +178,12 @@ class ColumnStorageEngine<
         return Object.values(this.columnStore)
     }
 
-    @computed private get length() {
+    @computed private get numRows() {
         return this.columns[0]?.length ?? 0
     }
 
     get rows() {
-        return range(0, this.length).map((index) => this.makeRowFor(index))
+        return range(0, this.numRows).map((index) => this.makeRowFor(index))
     }
 }
 
@@ -203,6 +209,8 @@ const autoType = (object: any) => {
     return object
 }
 
+type AcceptableCoreTableInput = CoreRow[] | ColumnStore | CsvString
+
 // The complex generic with default here just enables you to optionally specify a more
 // narrow interface for the input rows. This is helpful for OwidTable.
 export class CoreTable<
@@ -219,11 +227,12 @@ export class CoreTable<
     private initTime = Date.now()
 
     private storageEngine: StorageEngine
-    private _inputCsv?: string
+    inputData: AcceptableCoreTableInput
+    advancedOptions: AdvancedOptions
 
     inputColumnDefs: COL_DEF_TYPE[]
     constructor(
-        rowsOrColumnsOrCsv: ROW_TYPE[] | ColumnStore | CsvString = [],
+        rowsOrColumnsOrCsv: AcceptableCoreTableInput = [],
         inputColumnDefs: COL_DEF_TYPE[] = [],
         advancedOptions: AdvancedOptions = {}
     ) {
@@ -239,31 +248,23 @@ export class CoreTable<
         this.parent = parent as this
         this.inputColumnDefs = inputColumnDefs
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
+        this.advancedOptions = advancedOptions
+        this.inputData = rowsOrColumnsOrCsv
 
-        if (typeof rowsOrColumnsOrCsv === "string") {
-            this._inputCsv = rowsOrColumnsOrCsv
-            rowsOrColumnsOrCsv = (csvParse(
-                rowsOrColumnsOrCsv,
-                advancedOptions.rowConversionFunction ?? autoType
-            ) as any) as ROW_TYPE[]
-        }
-
-        const useRowStorage = Array.isArray(rowsOrColumnsOrCsv)
-        const rows = rowsOrColumnsOrCsv as ROW_TYPE[]
-        const cols = rowsOrColumnsOrCsv as ColumnStore
-
+        const useRowStorage =
+            Array.isArray(rowsOrColumnsOrCsv) || this.isFromCsv
         const autodetectColumns = !parent
 
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
         if (autodetectColumns)
             useRowStorage
-                ? this.autodetectAndAddColumnsFromFirstRow(rows)
-                : this.autodetectAndAddColumnsFromFirstRowForColumnStore(cols)
+                ? this.autodetectAndAddColumnsFromFirstRow()
+                : this.autodetectAndAddColumnsFromFirstRowForColumnStore()
 
         this.storageEngine = useRowStorage
-            ? new RowStorageEngine<ROW_TYPE>(rows, this)
-            : new ColumnStorageEngine<ROW_TYPE>(cols, this)
+            ? new RowStorageEngine<ROW_TYPE>(this)
+            : new ColumnStorageEngine<ROW_TYPE>(this)
 
         // Pass selection strategy down from parent. todo: move selection to Grapher.
         if (parent) this.copySelectionFrom(parent)
@@ -271,8 +272,34 @@ export class CoreTable<
         this.timeToLoad = Date.now() - start // Perf aid
     }
 
-    get isParsed() {
-        return !!this._inputCsv // for now we auto parse csvs on load.
+    @computed get inputAsRows() {
+        const rows = this.isFromCsv
+            ? (csvParse(
+                  this.inputData as string,
+                  this.advancedOptions.rowConversionFunction ?? autoType
+              ) as any)
+            : this.inputData
+        return rows as ROW_TYPE[]
+    }
+
+    get colsToCompute() {
+        // We never need to compute on certain transforms
+        if (!TransformsRequiringCompute.has(this.transformCategory)) return []
+
+        // Only compute new columns
+        return this.newColumnDefs.filter((def) => def.fn)
+    }
+
+    @computed get numColsToCompute() {
+        return this.colsToCompute.length
+    }
+
+    @computed get inputAsColumnStore() {
+        return this.inputData as ColumnStore
+    }
+
+    @computed get isFromCsv() {
+        return typeof this.inputData === "string"
     }
 
     private setColumn(def: COL_DEF_TYPE) {
@@ -296,9 +323,8 @@ export class CoreTable<
         })
     }
 
-    private autodetectAndAddColumnsFromFirstRowForColumnStore(
-        columnStore: ColumnStore
-    ) {
+    private autodetectAndAddColumnsFromFirstRowForColumnStore() {
+        const columnStore = this.inputAsColumnStore
         Object.keys(columnStore)
             .filter((slug) => !this.has(slug))
             .forEach((slug) => {
@@ -313,7 +339,8 @@ export class CoreTable<
             })
     }
 
-    private autodetectAndAddColumnsFromFirstRow(rows: ROW_TYPE[]) {
+    private autodetectAndAddColumnsFromFirstRow() {
+        const rows = this.inputAsRows
         if (!rows[0]) return
 
         Object.keys(rows[0])
@@ -639,10 +666,6 @@ export class CoreTable<
         return !this.parent
     }
 
-    @computed private get inputRows() {
-        return this.storageEngine.inputRows
-    }
-
     dump() {
         // eslint-disable-next-line no-console
         console.table(this.rows, this.columnSlugs)
@@ -664,10 +687,12 @@ export class CoreTable<
             }
         })
 
-        const inputTable = this.inputRows.length
+        const rootInputTable = this.storageEngine.inputAsTable
+
+        const inputTable = rootInputTable.length
             ? toAlignedTextTable(
-                  Object.keys(this.inputRows[0]),
-                  this.inputRows.slice(0, showRows),
+                  Object.keys(rootInputTable[0]),
+                  rootInputTable.slice(0, showRows),
                   options
               )
             : ""
@@ -695,9 +720,9 @@ export class CoreTable<
     private oneLiner() {
         return `${this.stepNumber}. ${this.transformCategory}: ${
             this.tableDescription ? this.tableDescription + ". " : ""
-        }${this.numColumns} Columns ${this.inputRows.length} Rows. ${
-            this.timeToLoad
-        }ms.`
+        }${this.numColumns} Columns ${
+            this.storageEngine.inputAsTable.length
+        } Rows. ${this.timeToLoad}ms.`
     }
 
     private get ancestors(): this[] {
@@ -709,12 +734,6 @@ export class CoreTable<
             (this.parent ? this.parent.explainLong(showRows, options) : "") +
             this._explainLong(showRows, options)
         )
-    }
-
-    @computed get numColsToCompute() {
-        return this.storageEngine instanceof RowStorageEngine
-            ? this.storageEngine.numColsToCompute
-            : 0
     }
 
     @computed get numColsToParse() {
