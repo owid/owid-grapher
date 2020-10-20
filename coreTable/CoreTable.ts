@@ -173,6 +173,12 @@ class ColumnStorageEngine<
     }
 }
 
+interface AdvancedOptions {
+    tableDescription?: string
+    transformCategory?: TransformType
+    parent?: CoreTable
+}
+
 // The complex generic with default here just enables you to optionally specify a more
 // narrow interface for the input rows. This is helpful for OwidTable.
 export class CoreTable<
@@ -194,11 +200,14 @@ export class CoreTable<
     constructor(
         rowsOrColumns: ROW_TYPE[] | ColumnStore = [],
         inputColumnDefs: COL_DEF_TYPE[] = [],
-        parent?: CoreTable,
-        tableDescription = "",
-        transformCategory = TransformType.Load
+        advancedOptions: AdvancedOptions = {}
     ) {
         const start = Date.now() // Perf aid
+        const {
+            parent,
+            tableDescription = "",
+            transformCategory = TransformType.Load,
+        } = advancedOptions
 
         this.tableDescription = tableDescription
         this.transformCategory = transformCategory
@@ -241,13 +250,11 @@ export class CoreTable<
     ): this {
         // The combo of the "this" return type and then casting this to any allows subclasses to create transforms of the
         // same type. The "any" typing is very brief (the returned type will have the same type as the instance being transformed).
-        return new (this.constructor as any)(
-            rows,
-            defs,
-            this,
-            description,
-            transformType
-        )
+        return new (this.constructor as any)(rows, defs, {
+            parent: this,
+            tableDescription: description,
+            transformCategory: transformType,
+        })
     }
 
     private autodetectAndAddColumnsFromFirstRowForColumnStore(
@@ -268,6 +275,8 @@ export class CoreTable<
     }
 
     private autodetectAndAddColumnsFromFirstRow(rows: ROW_TYPE[]) {
+        if (!rows[0]) return
+
         Object.keys(rows[0])
             .filter((slug) => !this.has(slug))
             .forEach((slug) => {
