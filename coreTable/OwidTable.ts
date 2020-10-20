@@ -15,13 +15,13 @@ import {
     isPresent,
     sortBy,
     sortedIndexBy,
+    last,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
     ColumnTypeNames,
     ColumnSlug,
     Integer,
-    CoreRow,
     Time,
     TransformType,
 } from "coreTable/CoreTableConstants"
@@ -44,10 +44,6 @@ import {
     toAlignedTextTable,
 } from "./CoreTablePrinters"
 import { TimeBound } from "grapher/utils/TimeBounds"
-
-// todo: remove
-const rowTime = (row: CoreRow) =>
-    parseInt(row.time ?? row.year ?? row.day ?? row.date)
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -135,15 +131,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @computed get maxTime() {
-        return max(this.allTimes)
+        return last(this.allTimes)
     }
 
     @computed get minTime() {
-        return min(this.allTimes)
+        return this.allTimes[0]
     }
 
-    @computed get allTimes() {
-        return this.rows.map(rowTime)
+    @computed private get allTimes(): Time[] {
+        return this.sortedByTime.get(this.timeColumn?.slug)?.parsedValues ?? []
     }
 
     @computed get hasDayColumn() {
@@ -159,7 +155,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @computed get rowsByTime() {
-        return this.rowsBy<Time>(this.timeColumn.slug)
+        return this.rowsBy<Time>(this.timeColumn!.slug)
     }
 
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
@@ -207,8 +203,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
     // fast time filtering.
     @computed private get sortedByTime() {
+        const timeColumnSlug = this.timeColumn!.slug!
         return this.transform(
-            sortBy(this.rows, (row) => rowTime(row)),
+            sortBy(this.rows, (row) => row[timeColumnSlug]),
             this.defs,
             `Sort rows by time before filtering for speed`,
             TransformType.SortRows
@@ -254,7 +251,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByTargetTime(targetTime: Time, tolerance: Integer) {
-        const timeSlug = this.timeColumn.slug
+        const timeSlug = this.timeColumn!.slug
         const entityNameToRows = this.rowsByEntityName
         const matchingRows = new Set<OwidRow>()
         this.availableEntityNames.forEach((entityName) => {
@@ -283,7 +280,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             return def
         })
         const rowsForYear = this.rowsByTime
-        const timeColumnSlug = this.timeColumn.slug
+        const timeColumnSlug = this.timeColumn!.slug
         return new OwidTable(
             this.rows.map((row) => {
                 const newRow = {

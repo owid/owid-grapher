@@ -63,12 +63,12 @@ describe("explain", () => {
     })
 
     it("explain short has a row for each transform", () => {
-        expect(table.explainShort().split("\n").length).toEqual(3)
+        expect(table.explain().split("\n").length).toEqual(3)
     })
 
     it("explain long contains useful info like Javscript types and perf info", () => {
-        expect(table.explain()).toContain("jsType")
-        expect(table.explain()).toContain("ms")
+        expect(table.explainLong()).toContain("jsType")
+        expect(table.explainLong()).toContain("ms")
     })
 })
 
