@@ -274,7 +274,7 @@ describe("time filtering", () => {
     })
 
     it("time options are sorted in ascending order", () => {
-        const csv = `entityName,entityId,entityCode,date,value
+        const csv = `entityName,entityId,entityCode,day,value
 usa,1,usa,-4,1
 usa,1,usa,1,1
 usa,1,usa,-5,1`

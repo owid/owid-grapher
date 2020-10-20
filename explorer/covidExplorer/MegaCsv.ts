@@ -1,8 +1,9 @@
 import { CoreTable } from "coreTable/CoreTable"
-import { CsvString, ColumnTypeNames } from "coreTable/CoreTableConstants"
+import { CsvString } from "coreTable/CoreTableConstants"
+import { InvalidCellTypes } from "coreTable/InvalidCells"
 import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { flatten } from "grapher/utils/Util"
-import { MegaRow, CovidRow, MegaColumnMap } from "./CovidConstants"
+import { MegaRow, CovidRow, MegaColumnMap, MegaSlugs } from "./CovidConstants"
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import {
     megaDateToTime,
@@ -20,35 +21,51 @@ export const MegaColumnDefs = Object.keys(MegaColumnMap).map((slug) => {
 export const MegaCsvToCovidExplorerTable = (megaCsv: CsvString) => {
     const coreTable = new CoreTable<MegaRow>(megaCsv, MegaColumnDefs, {
         tableDescription: "Load from MegaCSV",
-    })
-        .withRenamedColumns({
-            location: OwidTableSlugs.entityName,
-            iso_code: OwidTableSlugs.entityCode,
-        }) // todo: after a rename, the row interface has changed. how can we update the child tables with correct typings?
-        .filter(
-            (row: MegaRow) => row.location !== "International",
-            "Drop International rows"
-        )
-        .appendColumns([
-            {
-                slug: OwidTableSlugs.time,
-                type: ColumnTypeNames.Date,
-                fn: ((row: MegaRow) => megaDateToTime(row.date)) as any,
-            }, // todo: improve typings on ColumnFn.
-        ])
+        rowConversionFunction: (object) => {
+            for (const key in object) {
+                const value = object[key]
+                if (key === MegaSlugs.location) {
+                    delete object[key]
+                    object[OwidTableSlugs.entityName] = value
+                } else if (key === MegaSlugs.iso_code) {
+                    delete object[key]
+                    object[OwidTableSlugs.entityCode] = value
+                } else if (key === MegaSlugs.date) {
+                    object[OwidTableSlugs.time] = megaDateToTime(value)
+                } else if (
+                    key === MegaSlugs.test_units ||
+                    key === MegaSlugs.continent
+                ) {
+                } else {
+                    const number = +value
+                    if (!isNaN(number)) object[key] = number
+                    else
+                        object[key] =
+                            InvalidCellTypes.UndefinedButShouldBeNumber
+                }
+            }
+            return object
+        },
+    }).filter(
+        (row: MegaRow) => row[OwidTableSlugs.entityName] !== "International",
+        "Drop International rows"
+    )
 
     // todo: this can be better expressed as a group + reduce.
-    const continentGroups = coreTable.get("continent")!.valuesToRows
+    const continentGroups = coreTable.get(MegaSlugs.continent)!.valuesToIndices
     const continentNames = Array.from(continentGroups.keys()).filter(
         (cont) => cont
     )
 
     const continentRows = flatten(
         continentNames.map((continentName) => {
-            const rows = Array.from(
-                continentGroups.get(continentName)!.values()
-            ) as CovidRow[]
-            return calculateCovidRowsForGroup(rows, continentName)
+            const rows = coreTable.rowsAt(
+                Array.from(continentGroups.get(continentName)!.values())
+            )
+            return calculateCovidRowsForGroup(
+                (rows as any) as CovidRow[],
+                continentName
+            )
         })
     )
 

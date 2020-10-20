@@ -10,10 +10,10 @@ import {
     orderBy,
     getDropIndexes,
     Grid,
-    intersectionOfSets,
     rowsFromGrid,
     range,
     difference,
+    intersection,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
@@ -26,6 +26,7 @@ import {
     CsvString,
     PrimitiveType,
     SortOrder,
+    Time,
     TransformType,
     ValueRange,
 } from "./CoreTableConstants"
@@ -35,7 +36,8 @@ import {
     toDelimited,
     toMarkdownTable,
 } from "./CoreTablePrinters"
-import { DroppedForTesting, InvalidOnALogScale } from "./InvalidCells"
+import { InvalidCellTypes } from "./InvalidCells"
+import { OwidTableSlugs } from "./OwidTableConstants"
 
 // Every row will be checked against each column/value(s) pair.
 interface CoreQuery {
@@ -73,7 +75,7 @@ class RowStorageEngine<
         this.table = table
         this.builtRows = rows
 
-        if (this.needsBuilding) this.buildRows()
+        if (this.slugsToBuild.length) this.buildRows()
     }
 
     getValuesFor(columnSlug: ColumnSlug) {
@@ -93,8 +95,11 @@ class RowStorageEngine<
         })
     }
 
-    private get needsBuilding() {
-        return this.colsToCompute.length || this.columnsToParse.length
+    private get slugsToBuild() {
+        return [
+            ...this.colsToCompute.map((col) => col.slug),
+            ...this.columnsToParse.map((col) => col.slug),
+        ]
     }
 
     private get colsToCompute() {
@@ -362,6 +367,15 @@ export class CoreTable<
         return this.storageEngine.rows as ROW_TYPE[]
     }
 
+    getTimesAtIndices(indices: number[]) {
+        return this.getValuesAtIndices(this.timeColumn!.slug, indices) as Time[]
+    }
+
+    getValuesAtIndices(columnSlug: ColumnSlug, indices: number[]) {
+        const values = this.get(columnSlug)!.allValues
+        return indices.map((index) => values[index])
+    }
+
     @computed get firstRow() {
         return this.rows[0]
     }
@@ -402,7 +416,11 @@ export class CoreTable<
                 (col) => col instanceof ColumnTypeMap.Date
             ) ||
             this.columnsAsArray.find((col) => col instanceof ColumnTypeMap.Year)
-        return col!
+        return col
+            ? col
+            : this.get(OwidTableSlugs.time) ??
+                  this.get(OwidTableSlugs.day) ??
+                  this.get(OwidTableSlugs.year)
     }
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
@@ -625,7 +643,15 @@ export class CoreTable<
         return this.storageEngine.inputRows
     }
 
-    explainThis(showRows = 10, options?: AlignedTextTableOptions): string {
+    dump() {
+        // eslint-disable-next-line no-console
+        console.table(this.rows, this.columnSlugs)
+    }
+
+    private _explainLong(
+        showRows = 10,
+        options?: AlignedTextTableOptions
+    ): string {
         const rowCount = this.numRows
         const showRowsClamped = showRows > rowCount ? rowCount : showRows
         const colTable = this.columnsAsArray.map((col) => {
@@ -678,10 +704,10 @@ export class CoreTable<
         return this.parent ? [...this.parent.ancestors, this] : [this]
     }
 
-    explain(showRows = 10, options?: AlignedTextTableOptions): string {
+    explainLong(showRows = 10, options?: AlignedTextTableOptions): string {
         return (
-            (this.parent ? this.parent.explain(showRows, options) : "") +
-            this.explainThis(showRows, options)
+            (this.parent ? this.parent.explainLong(showRows, options) : "") +
+            this._explainLong(showRows, options)
         )
     }
 
@@ -697,7 +723,7 @@ export class CoreTable<
             : 0
     }
 
-    explainShort(options?: AlignedTextTableOptions) {
+    explain(options?: AlignedTextTableOptions) {
         type CoreTableGetter = keyof CoreTable
         const header: CoreTableGetter[] = [
             "stepNumber",
@@ -756,13 +782,18 @@ export class CoreTable<
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
+    rowsAt(indices: number[]) {
+        const rows = this.rows
+        return indices.map((index) => rows[index])
+    }
+
     findRows(query: CoreQuery) {
         const slugs = Object.keys(query)
         if (!slugs.length) return this.rows
-        const sets = this.getColumns(slugs).map((col) =>
-            col.rowsWhere(query[col.slug])
+        const arrs = this.getColumns(slugs).map((col) =>
+            col.indicesWhere(query[col.slug])
         )
-        return Array.from(intersectionOfSets(sets)) as ROW_TYPE[]
+        return this.rowsAt(intersection(...arrs))
     }
 
     indexOf(row: ROW_TYPE) {
@@ -806,6 +837,14 @@ export class CoreTable<
             this.defs.map(fn),
             `Updated column defs`,
             TransformType.UpdateColumnDefs
+        )
+    }
+
+    limitColumns(howMany: number) {
+        const slugs = this.columnSlugs.slice(howMany)
+        return this.withoutColumns(
+            slugs,
+            `Kept ${howMany} columns and dropped '${slugs}'`
         )
     }
 
@@ -887,7 +926,7 @@ export class CoreTable<
             values.forEach((value, index) => {
                 const slug = columnSlugs[index]
                 if (value <= 0) {
-                    newRow[slug] = new InvalidOnALogScale()
+                    newRow[slug] = InvalidCellTypes.InvalidOnALogScale
                     replacedCellCount++
                 }
             })
@@ -907,7 +946,8 @@ export class CoreTable<
         howMany = 1,
         columnSlugs: ColumnSlug[] = [],
         seed = Date.now(),
-        replacementGenerator: () => any = () => new DroppedForTesting()
+        replacementGenerator: () => any = () =>
+            InvalidCellTypes.DroppedForTesting
     ) {
         // todo: instead of doing column fns just mutate rows and pass the new rows?
         const defs = this.columnsAsArray.map((col) => {
@@ -1052,6 +1092,8 @@ const guessColumnDefFromSlugAndRow = (
     slug: string,
     sampleValue: any
 ): CoreColumnDef => {
+    const valueType = typeof sampleValue
+
     if (slug === "day")
         return {
             slug: "day",
@@ -1066,13 +1108,13 @@ const guessColumnDefFromSlugAndRow = (
             name: "Year",
         }
 
-    if (typeof sampleValue === "number")
+    if (valueType === "number")
         return {
             slug,
             type: ColumnTypeNames.Numeric,
         }
 
-    if (typeof sampleValue === "string") {
+    if (valueType === "string") {
         if (sampleValue.match(/^\d+$/))
             return {
                 slug,

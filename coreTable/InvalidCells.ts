@@ -4,33 +4,32 @@
 // it may be helpful to parse those invalid values into specific types, to provide better error messages
 // and perhaps in the future suggested autocorrections or workarounds. Or this could be a dumb idea and can be discarded.
 export abstract class InvalidCell {
-    protected invalidCellValue?: any
-    constructor(invalidCellValue?: any) {
-        this.invalidCellValue = invalidCellValue
-    }
     toString() {
-        return this.invalidCellValue instanceof InvalidCell
-            ? ""
-            : this.invalidCellValue ?? ""
+        return ""
     }
     toErrorString() {
         return this.constructor.name
     }
 }
-export class NaNButShouldBeNumber extends InvalidCell {
-    toErrorString() {
-        return this.constructor.name + `: '${this.invalidCellValue}'`
-    }
-}
-export class DroppedForTesting extends InvalidCell {}
-export class InvalidOnALogScale extends InvalidCell {}
-export class UndefinedButShouldBeNumber extends InvalidCell {}
-export class NullButShouldBeNumber extends InvalidCell {}
-export class BlankButShouldBeNumber extends InvalidCell {}
-export class UndefinedButShouldBeString extends InvalidCell {}
-export class NullButShouldBeString extends InvalidCell {}
-export class NotAParseableNumberButShouldBeNumber extends InvalidCell {
-    toErrorString() {
-        return this.constructor.name + `: '${this.invalidCellValue}'`
-    }
+
+class NaNButShouldBeNumber extends InvalidCell {}
+class DroppedForTesting extends InvalidCell {}
+class InvalidOnALogScale extends InvalidCell {}
+class UndefinedButShouldBeNumber extends InvalidCell {}
+class NullButShouldBeNumber extends InvalidCell {}
+class BlankButShouldBeNumber extends InvalidCell {}
+class UndefinedButShouldBeString extends InvalidCell {}
+class NullButShouldBeString extends InvalidCell {}
+class NotAParseableNumberButShouldBeNumber extends InvalidCell {}
+
+export const InvalidCellTypes = {
+    NaNButShouldBeNumber: new NaNButShouldBeNumber(),
+    DroppedForTesting: new DroppedForTesting(),
+    InvalidOnALogScale: new InvalidOnALogScale(),
+    UndefinedButShouldBeNumber: new UndefinedButShouldBeNumber(),
+    NullButShouldBeNumber: new NullButShouldBeNumber(),
+    BlankButShouldBeNumber: new BlankButShouldBeNumber(),
+    UndefinedButShouldBeString: new UndefinedButShouldBeString(),
+    NullButShouldBeString: new NullButShouldBeString(),
+    NotAParseableNumberButShouldBeNumber: new NotAParseableNumberButShouldBeNumber(),
 }

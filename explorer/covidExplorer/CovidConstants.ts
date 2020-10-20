@@ -227,8 +227,17 @@ export interface MegaRow extends CoreRow {
     hospital_beds_per_thousand?: number
 }
 
+export enum MegaSlugs {
+    location = "location",
+    iso_code = "iso_code",
+    date = "date",
+    test_units = "test_units",
+    continent = "continent",
+}
+
 // We parse MegaRows and turn them into CovidRows immediately.
-export interface CovidRow extends Omit<MegaRow, "location" | "iso_code"> {
+export interface CovidRow
+    extends Omit<MegaRow, MegaSlugs.location | MegaSlugs.iso_code> {
     group_members?: string
     entityName: string
     entityCode: string
@@ -242,7 +251,7 @@ export const MegaColumnMap: Partial<Record<
     CovidColumnSlug,
     Partial<OwidColumnDef>
 >> = {
-    location: {
+    entityName: {
         name: "Country name",
         type: ColumnTypeNames.Region,
     },

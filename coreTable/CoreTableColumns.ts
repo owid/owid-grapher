@@ -10,8 +10,9 @@ import {
     sortBy,
     uniq,
     isPresent,
-    unionOfSets,
     sortNumeric,
+    range,
+    union,
 } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { CoreTable } from "./CoreTable"
@@ -24,17 +25,8 @@ import {
     PrimitiveType,
     JsTypes,
 } from "./CoreTableConstants"
-import { EntityName } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
-import {
-    InvalidCell,
-    NullButShouldBeString,
-    UndefinedButShouldBeString,
-    NullButShouldBeNumber,
-    UndefinedButShouldBeNumber,
-    BlankButShouldBeNumber,
-    NaNButShouldBeNumber,
-    NotAParseableNumberButShouldBeNumber,
-} from "./InvalidCells"
+import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
+import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 
 interface ColumnSummary {
@@ -54,10 +46,6 @@ interface ExtendedColumnSummary extends ColumnSummary {
     modeSize: number
     deciles: { [decile: number]: PrimitiveType }
 }
-
-// todo: remove
-const rowTime = (row: CoreRow) =>
-    parseInt(row.time ?? row.year ?? row.day ?? row.date)
 
 abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     def: CoreColumnDef
@@ -223,19 +211,16 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     // Returns a map where the key is a series slug such as "name" and the value is a set
     // of all the unique values that this column has for that particular series.
     getUniqueValuesGroupedBy(indexColumnSlug: ColumnSlug) {
-        const map = new Map<ColumnSlug, Set<PrimitiveType>>()
-        const slug = this.slug
-        this.validRows.forEach((row) => {
-            const thisValue = row[slug]
-            // For now the behavior is to not overwrite an existing value with an empty one
-            if (thisValue === "" || thisValue instanceof InvalidCell) return
-
-            const indexVal = row[indexColumnSlug]
-            if (!map.has(indexVal)) !map.set(indexVal, new Set())
-
-            map.get(indexVal)!.add(thisValue)
+        const map = new Map<PrimitiveType, Set<PrimitiveType>>()
+        const values = this.parsedValues
+        const indexValues = this.table.getValuesAtIndices(
+            indexColumnSlug,
+            this.validRowIndices
+        )
+        indexValues.forEach((indexVal, index) => {
+            if (!map.has(indexVal)) map.set(indexVal, new Set())
+            map.get(indexVal)!.add(values[index])
         })
-
         return map
     }
 
@@ -266,21 +251,21 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.def.slug
     }
 
-    // An index on rows
-    @computed get valuesToRows() {
-        const map = new Map<JS_TYPE, Set<CoreRow>>()
-        const slug = this.slug
-        this.validRows.forEach((row) => {
-            if (!map.has(row[slug])) map.set(row[slug], new Set<CoreRow>())
-            map.get(row[slug])!.add(row)
+    @computed get valuesToIndices() {
+        const map = new Map<any, number[]>()
+        this.allValues.forEach((value, index) => {
+            if (!map.has(value)) map.set(value, [])
+            map.get(value)!.push(index)
         })
         return map
     }
 
-    rowsWhere(value: JS_TYPE | JS_TYPE[]) {
+    indicesWhere(value: JS_TYPE | JS_TYPE[]) {
         const queries = Array.isArray(value) ? value : [value]
-        return unionOfSets(
-            queries.map((val) => this.valuesToRows.get(val)).filter(isPresent)
+        return union(
+            ...queries
+                .map((val) => this.valuesToIndices.get(val))
+                .filter(isPresent)
         )
     }
 
@@ -309,12 +294,17 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.table.getValuesFor(this.slug)
     }
 
+    @computed private get validRowIndices() {
+        return this.allValues
+            .map((value, index) =>
+                (value as any) instanceof InvalidCell ? null : index
+            )
+            .filter(isPresent)
+    }
+
     @computed get parsedValues() {
-        return this.table
-            .getValuesFor(this.slug)
-            .filter(
-                (value) => !((value as any) instanceof InvalidCell)
-            ) as JS_TYPE[]
+        const values = this.allValues
+        return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
 
     @computed private get allValuesAsSet() {
@@ -338,14 +328,6 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.allValues.length - this.numValues
     }
 
-    // Rows containing a value for this column
-    @computed private get validRows() {
-        const slug = this.def.slug
-        return this.table.rows.filter(
-            (row) => !(row[slug] instanceof InvalidCell)
-        )
-    }
-
     // Number of correctly parsed values
     @computed get numValues() {
         return this.parsedValues.length
@@ -361,7 +343,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove. should not be on coretable
     @computed private get allTimes(): Time[] {
-        return this.validRows.map((row) => rowTime(row))
+        return this.table.getTimesAtIndices(this.validRowIndices)
     }
 
     // todo: remove. should not be on coretable
@@ -381,17 +363,27 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     @computed get uniqEntityNames(): EntityName[] {
-        return uniq(this.validRows.map((row) => row.entityName))
+        return uniq(this.allEntityNames)
+    }
+
+    // todo: remove? Should not be on CoreTable
+    @computed private get allEntityNames() {
+        return this.table.getValuesAtIndices(
+            OwidTableSlugs.entityName,
+            this.validRowIndices
+        ) as EntityName[]
     }
 
     // todo: remove? Should not be on CoreTable
     @computed get owidRows() {
         const times = this.allTimes
-        return this.validRows.map((row, index) => {
+        const values = this.parsedValues
+        const entities = this.allEntityNames
+        return range(0, times.length).map((index) => {
             return {
-                entityName: row.entityName,
+                entityName: entities[index],
                 time: times[index],
-                value: this.parsedValues[index],
+                value: values[index],
             }
         })
     }
@@ -433,8 +425,9 @@ class StringColumn extends AbstractCoreColumn<string> {
     jsType = JsTypes.string
 
     parse(val: any) {
-        if (val === null) return new NullButShouldBeString()
-        if (val === undefined) return new UndefinedButShouldBeString()
+        if (val === null) return InvalidCellTypes.NullButShouldBeString
+        if (val === undefined)
+            return InvalidCellTypes.UndefinedButShouldBeString
         return val.toString() || ""
     }
 }
@@ -479,14 +472,16 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
     }
 
     parse(val: any): number | InvalidCell {
-        if (val === null) return new NullButShouldBeNumber()
-        if (val === undefined) return new UndefinedButShouldBeNumber()
-        if (val === "") return new BlankButShouldBeNumber()
-        if (isNaN(val)) return new NaNButShouldBeNumber()
+        if (val === null) return InvalidCellTypes.NullButShouldBeNumber
+        if (val === undefined)
+            return InvalidCellTypes.UndefinedButShouldBeNumber
+        if (val === "") return InvalidCellTypes.BlankButShouldBeNumber
+        if (isNaN(val)) return InvalidCellTypes.NaNButShouldBeNumber
 
         const res = this._parse(val)
 
-        if (isNaN(res)) return new NotAParseableNumberButShouldBeNumber(val)
+        if (isNaN(res))
+            return InvalidCellTypes.NotAParseableNumberButShouldBeNumber
 
         return res
     }
