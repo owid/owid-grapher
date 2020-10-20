@@ -25,6 +25,14 @@ it("can create a table from columns", () => {
     expect(table.columnNames).toEqual(["scores", "team"])
 })
 
+it("can create a table from csv", () => {
+    const table = new CoreTable(sampleCsv)
+    expect(table.numRows).toEqual(4)
+    expect(table.columnNames).toEqual(["country", "population"])
+    expect(table.columnTypes).toEqual(["String", "Numeric"])
+    expect(table.columnJsTypes).toEqual(["string", "number"])
+})
+
 it("rows can be added without mutating the parent table", () => {
     const table = CoreTable.fromDelimited(sampleCsv)
     expect(table.numRows).toEqual(4)
