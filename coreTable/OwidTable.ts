@@ -207,11 +207,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
     // fast time filtering.
-    @computed private get sortedByTime(): this {
-        return new (this.constructor as any)(
+    @computed private get sortedByTime() {
+        return this.transform(
             sortBy(this.rows, (row) => rowTime(row)),
             this.defs,
-            this,
             `Sort rows by time before filtering for speed`,
             TransformType.SortRows
         )
@@ -238,10 +237,10 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             (row) => row[timeColumnSlug]
         )
 
-        return new (this.constructor as any)(
+        // NB: this one does something tricky in that it is a 2 step transform. Probably want to do indexes instead.
+        return sortedTable.transform(
             rowsSortedByTime.slice(firstRowIndex, lastRowIndex),
             this.defs,
-            sortedTable,
             `Keep only rows with Time between ${adjustedStart} - ${adjustedEnd}`,
             TransformType.FilterRows
         )

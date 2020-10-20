@@ -233,6 +233,23 @@ export class CoreTable<
         this._columns.set(slug, new ColumnType(this, def))
     }
 
+    protected transform(
+        rows: ROW_TYPE[],
+        defs: COL_DEF_TYPE[],
+        description: string,
+        transformType: TransformType
+    ): this {
+        // The combo of the "this" return type and then casting this to any allows subclasses to create transforms of the
+        // same type. The "any" typing is very brief (the returned type will have the same type as the instance being transformed).
+        return new (this.constructor as any)(
+            rows,
+            defs,
+            this,
+            description,
+            transformType
+        )
+    }
+
     private autodetectAndAddColumnsFromFirstRowForColumnStore(
         columnStore: ColumnStore
     ) {
@@ -394,28 +411,26 @@ export class CoreTable<
         return new Set(this.rows)
     }
 
-    @computed get opposite(): this {
+    @computed get opposite() {
         if (this.isRoot()) return this
         const { rowsAsSet } = this
-        return new (this.constructor as any)(
+        return this.transform(
             this.parent!.rows.filter((row) => !rowsAsSet.has(row)),
             this.defs,
-            this,
             `Inversing previous filter`,
             TransformType.InverseFilterRows
         )
     }
 
-    @computed get oppositeColumns(): this {
+    @computed get oppositeColumns() {
         if (this.isRoot()) return this
         const columnsToDrop = new Set(this.columnSlugs)
         const defs = this.parent!.columnsAsArray.filter(
             (col) => !columnsToDrop.has(col.slug)
-        ).map((col) => col.def)
-        return new (this.constructor as any)(
+        ).map((col) => col.def) as COL_DEF_TYPE[]
+        return this.transform(
             this.rows,
             defs,
-            this,
             `Inversing previous column filter`,
             TransformType.InverseFilterColumns
         )
@@ -440,43 +455,39 @@ export class CoreTable<
     filter(
         predicate: (row: ROW_TYPE, index: number) => boolean,
         opName: string
-    ): this {
-        return new (this.constructor as any)(
+    ) {
+        return this.transform(
             this.rows.filter(predicate),
             this.defs,
-            this,
             opName,
             TransformType.FilterRows
         )
     }
 
-    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]): this {
-        return new (this.constructor as any)(
+    sortBy(slugs: ColumnSlug[], orders?: SortOrder[]) {
+        return this.transform(
             orderBy(this.rows, slugs, orders),
             this.defs,
-            this,
             `Sort by ${slugs.join(",")} ${orders?.join(",")}`,
             TransformType.SortRows
         )
     }
 
-    sortColumns(slugs: ColumnSlug[]): this {
+    sortColumns(slugs: ColumnSlug[]) {
         const first = this.getColumns(slugs)
         const rest = this.columnsAsArray.filter((col) => !first.includes(col))
-        return new (this.constructor as any)(
+        return this.transform(
             this.rows,
-            [...first, ...rest],
-            this,
+            [...first, ...rest].map((col) => col.def as COL_DEF_TYPE),
             `Sorted columns`,
             TransformType.SortColumns
         )
     }
 
-    reverse(): this {
-        return new (this.constructor as any)(
+    reverse() {
+        return this.transform(
             this.rows.slice(0).reverse(),
             this.defs,
-            this,
             `Reversed row order`,
             TransformType.SortRows
         )
@@ -700,19 +711,18 @@ export class CoreTable<
         const sets = this.getColumns(slugs).map((col) =>
             col.rowsWhere(query[col.slug])
         )
-        return Array.from(intersectionOfSets(sets))
+        return Array.from(intersectionOfSets(sets)) as ROW_TYPE[]
     }
 
     indexOf(row: ROW_TYPE) {
         return this.rows.indexOf(row)
     }
 
-    where(query: CoreQuery): this {
+    where(query: CoreQuery) {
         const rows = this.findRows(query)
-        return new (this.constructor as any)(
+        return this.transform(
             rows,
             this.defs,
-            this,
             `Selecting ${rows.length} rows where ${queryParamsToStr(
                 query as any
             ).substr(1)}`,
@@ -720,60 +730,54 @@ export class CoreTable<
         )
     }
 
-    withRows(rows: ROW_TYPE[], opDescription: string): this {
-        return new (this.constructor as any)(
+    withRows(rows: ROW_TYPE[], opDescription: string) {
+        return this.transform(
             [...this.rows, ...rows],
             this.defs,
-            this,
             opDescription,
             TransformType.AppendRows
         )
     }
 
-    limit(howMany: number): this {
+    limit(howMany: number) {
         const rows = this.rows.slice(0, howMany)
-        return new (this.constructor as any)(
+        return this.transform(
             rows,
             this.defs,
-            this,
             `Kept the first ${rows.length} rows`,
             TransformType.FilterRows
         )
     }
 
-    withTransformedDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE): this {
-        return new (this.constructor as any)(
+    withTransformedDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE) {
+        return this.transform(
             this.rows,
             this.defs.map(fn),
-            this,
             `Updated column defs`,
             TransformType.UpdateColumnDefs
         )
     }
 
-    withoutConstantColumns(): this {
+    withoutConstantColumns() {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
     }
 
-    withoutColumns(slugs: ColumnSlug[], message?: string): this {
+    withoutColumns(slugs: ColumnSlug[], message?: string) {
         const columnsToDrop = new Set(slugs)
         const defs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
-            .map((col) => col.def)
-        return new (this.constructor as any)(
+            .map((col) => col.def) as COL_DEF_TYPE[]
+        return this.transform(
             this.rows,
             defs,
-            this,
             message ?? `Dropped columns '${slugs}'`,
             TransformType.FilterColumns
         )
     }
 
     // Todo: improve typings. After renaming a column the row interface should change. Applies to some other methods as well.
-    withRenamedColumns(columnRenameMap: {
-        [columnSlug: string]: ColumnSlug
-    }): this {
+    withRenamedColumns(columnRenameMap: { [columnSlug: string]: ColumnSlug }) {
         const oldSlugs = Object.keys(columnRenameMap)
         const newSlugs = Object.values(columnRenameMap)
 
@@ -783,7 +787,7 @@ export class CoreTable<
                 .map((name, index) => `'${name}' to '${newSlugs[index]}'`)
                 .join(" and ")
 
-        return new (this.constructor as any)(
+        return this.transform(
             this.rows.map((row) => {
                 const newRow: any = { ...row }
                 newSlugs.forEach(
@@ -800,7 +804,6 @@ export class CoreTable<
                       }
                     : def
             ),
-            this,
             message,
             TransformType.RenameColumns
         )
@@ -839,10 +842,9 @@ export class CoreTable<
             })
             return newRow
         })
-        return new (this.constructor as any)(
+        return this.transform(
             newRows,
             this.defs,
-            this,
             `Replaced ${replacedCellCount} negative or zero cells across columns ${columnSlugs.join(
                 " and "
             )}`,
@@ -855,7 +857,7 @@ export class CoreTable<
         columnSlugs: ColumnSlug[] = [],
         seed = Date.now(),
         replacementGenerator: () => any = () => new DroppedForTesting()
-    ): this {
+    ) {
         // todo: instead of doing column fns just mutate rows and pass the new rows?
         const defs = this.columnsAsArray.map((col) => {
             const { def } = col
@@ -872,11 +874,10 @@ export class CoreTable<
                         ? replacementGenerator()
                         : row[col.slug],
             }
-        })
-        return new (this.constructor as any)(
+        }) as COL_DEF_TYPE[]
+        return this.transform(
             this.rows,
             defs,
-            this,
             `Replaced a random ${howMany} cells in ${columnSlugs.join(
                 " and "
             )}`,
@@ -922,11 +923,10 @@ export class CoreTable<
         )
     }
 
-    appendColumns(defs: COL_DEF_TYPE[]): this {
-        return new (this.constructor as any)(
+    appendColumns(defs: COL_DEF_TYPE[]) {
+        return this.transform(
             this.rows,
             this.defs.concat(defs),
-            this,
             `Appended columns ${defs
                 .map((def) => `'${def.slug}'`)
                 .join(" and ")}`,
@@ -938,10 +938,9 @@ export class CoreTable<
     // For now does a dumb overwrite
     reloadFromGrid(inputTable: Grid) {
         const rows = rowsFromGrid(inputTable)
-        return new (this.constructor as any)(
+        return this.transform(
             rows,
             this.defs,
-            this,
             `Reloaded ${rows.length} rows`,
             TransformType.Reload
         )
@@ -958,14 +957,13 @@ export class CoreTable<
                 type: columnTypeNameForNewColumns,
                 slug,
             }
-        })
+        }) as COL_DEF_TYPE[]
         const newRowValues = this.columnsAsArray
             .filter((col) => col.slug !== by)
             .map((col) => [col.slug, ...col.allValues])
-        return new (this.constructor as any)(
+        return this.transform(
             rowsFromGrid([newColumnSlugs, ...newRowValues]),
             newColumnDefs,
-            this,
             `Transposed`,
             TransformType.Transpose
         )
