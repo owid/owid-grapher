@@ -20,6 +20,8 @@ export const testRateExcludeList = new Set([
     "Ecuador",
     "Brazil",
     "Costa Rica",
+    "Colombia",
+    "Argentina",
 ])
 
 export const covidPreloads = [
