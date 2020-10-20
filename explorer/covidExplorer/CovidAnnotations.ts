@@ -5,7 +5,7 @@ import {
     CoreRow,
 } from "coreTable/CoreTableConstants"
 import { EntityName } from "coreTable/OwidTableConstants"
-import { csvParse } from "d3"
+import { csvParse } from "d3-dsv"
 import moment from "moment"
 
 // todo: auto import from covid repo.
