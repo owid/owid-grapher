@@ -1164,7 +1164,7 @@ export class CovidExplorer extends React.Component<{
             property: "table",
             variableId: column?.spec.owidVariableId,
             display: {
-                tolerance: 2,
+                tolerance: column?.spec.display?.tolerance ?? 10,
                 name:
                     metricLabels[metric] +
                     (isCountMetric(metric) ? this.perCapitaTitle(metric) : ""),
@@ -1246,13 +1246,13 @@ export class CovidExplorer extends React.Component<{
             ? "%"
             : undefined
 
+        console.log(yColumn.spec.display)
+
         return {
             property: "y",
             variableId: yColumn.spec.owidVariableId!,
             display: {
-                // Allow ± 1 day difference in data plotted on bar charts
-                // This is what we use for charts on the Grapher too
-                tolerance: 1,
+                tolerance: yColumn.spec.display?.tolerance ?? 10,
                 unit,
                 name: this.chartTitle,
                 tableDisplay: yColumn.display.tableDisplay,
