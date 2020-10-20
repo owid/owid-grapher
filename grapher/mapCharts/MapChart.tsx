@@ -18,6 +18,7 @@ import {
     guid,
     minBy,
     difference,
+    uniq,
 } from "grapher/utils/Util"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
@@ -48,7 +49,6 @@ import {
     ColorScaleBin,
     NumericBin,
 } from "grapher/color/ColorScaleBin"
-import { TextWrap } from "grapher/text/TextWrap"
 import * as topojson from "topojson-client"
 import { MapTopology } from "./MapTopology"
 import { PointVector } from "grapher/utils/PointVector"
@@ -272,7 +272,7 @@ export class MapChart
     @computed get categoricalValues() {
         // return uniq(this.mappableData.values.filter(isString))
         // return this.options.mapColumn.values || [] // todo: mappable data
-        return this.mapColumn!.parsedValues.filter(isString)
+        return uniq(this.mapColumn!.parsedValues.filter(isString))
     }
 
     componentDidMount() {
@@ -309,10 +309,6 @@ export class MapChart
 
     @computed get equalSizeBins() {
         return this.colorScale.config.equalSizeBins
-    }
-
-    @computed get legendTitle() {
-        return ""
     }
 
     @computed get focusValue() {
@@ -356,14 +352,6 @@ export class MapChart
         return this.categoricalLegendData.length > 1
     }
 
-    @computed get mainLegendLabel() {
-        return new TextWrap({
-            maxWidth: this.legendBounds.width,
-            fontSize: 0.7 * this.fontSize,
-            text: this.legendTitle,
-        })
-    }
-
     @computed get numericFocusBracket(): ColorScaleBin | undefined {
         const { focusBracket, focusValue } = this
         const { numericLegendData } = this
@@ -397,20 +385,15 @@ export class MapChart
     }
 
     @computed get legendHeight() {
-        return (
-            this.mainLegendLabel.height +
-            this.categoryLegendHeight +
-            this.numericLegendHeight +
-            10
-        )
+        return this.categoryLegendHeight + this.numericLegendHeight + 10
     }
 
-    @computed get numericLegendHeight() {
-        return 5
+    @computed get numericLegendHeight(): number {
+        return this.numericLegend ? this.numericLegend.height : 0
     }
 
-    @computed get categoryLegendHeight() {
-        return 5
+    @computed get categoryLegendHeight(): number {
+        return this.categoryLegend ? this.categoryLegend.height + 5 : 0
     }
 
     @computed get categoryLegend() {
@@ -438,34 +421,24 @@ export class MapChart
             bounds,
             numericLegend,
             categoryLegend,
-            mainLegendLabel,
             categoryLegendHeight,
         } = this
         if (numericLegend)
             return (
-                bounds.bottom -
-                mainLegendLabel.height -
-                categoryLegendHeight -
-                numericLegend!.height -
-                4
+                bounds.bottom - categoryLegendHeight - numericLegend!.height - 4
             )
 
-        if (categoryLegend)
-            return bounds.bottom - mainLegendLabel.height - categoryLegendHeight
+        if (categoryLegend) return bounds.bottom - categoryLegendHeight
         return 0
     }
 
     renderMapLegend() {
-        const { bounds, mainLegendLabel, numericLegend, categoryLegend } = this
+        const { numericLegend, categoryLegend } = this
 
         return (
             <g className="mapLegend">
                 {numericLegend && <NumericColorLegend manager={this} />}
                 {categoryLegend && <CategoricalColorLegend manager={this} />}
-                {mainLegendLabel.render(
-                    bounds.centerX - mainLegendLabel.width / 2,
-                    bounds.bottom - mainLegendLabel.height
-                )}
             </g>
         )
     }

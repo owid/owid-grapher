@@ -102,6 +102,8 @@ export class TextWrap {
     }
 
     @computed get height() {
+        if (this.lines.length === 0) return 0
+
         return (
             this.lines.reduce((total, line) => total + line.height, 0) +
             this.lineHeight * (this.lines.length - 1)
