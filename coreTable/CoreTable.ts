@@ -1,3 +1,4 @@
+import { csvParse } from "d3"
 import {
     formatYear,
     csvEscape,
@@ -105,10 +106,11 @@ class RowStorageEngine<
     }
 
     private get columnsToParse() {
+        if (this.table.isParsed) return []
+
         const firstRow = this._inputRows[0]
         if (!firstRow) return []
         const cols = this.table.columnsAsArray
-
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data. Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
         if (this.table.isRoot()) return cols
@@ -177,6 +179,24 @@ interface AdvancedOptions {
     tableDescription?: string
     transformCategory?: TransformType
     parent?: CoreTable
+    rowConversionFunction?: (row: any) => CoreRow
+}
+
+type csv = string
+
+const autoType = (object: any) => {
+    for (const key in object) {
+        let value = object[key].trim()
+        let number
+        if (!value) value = null
+        else if (value === "true") value = true
+        else if (value === "false") value = false
+        else if (value === "NaN") value = NaN
+        else if (!isNaN((number = +value))) value = number
+        else continue
+        object[key] = value
+    }
+    return object
 }
 
 // The complex generic with default here just enables you to optionally specify a more
@@ -195,10 +215,11 @@ export class CoreTable<
     private initTime = Date.now()
 
     private storageEngine: StorageEngine
+    private _inputCsv?: string
 
     inputColumnDefs: COL_DEF_TYPE[]
     constructor(
-        rowsOrColumns: ROW_TYPE[] | ColumnStore = [],
+        rowsOrColumnsOrCsv: ROW_TYPE[] | ColumnStore | csv = [],
         inputColumnDefs: COL_DEF_TYPE[] = [],
         advancedOptions: AdvancedOptions = {}
     ) {
@@ -215,13 +236,23 @@ export class CoreTable<
         this.inputColumnDefs = inputColumnDefs
         this.inputColumnDefs.forEach((def) => this.setColumn(def))
 
-        const useRowStorage = Array.isArray(rowsOrColumns)
-        const rows = rowsOrColumns as ROW_TYPE[]
-        const cols = rowsOrColumns as ColumnStore
+        if (typeof rowsOrColumnsOrCsv === "string") {
+            this._inputCsv = rowsOrColumnsOrCsv
+            rowsOrColumnsOrCsv = (csvParse(
+                rowsOrColumnsOrCsv,
+                advancedOptions.rowConversionFunction ?? autoType
+            ) as any) as ROW_TYPE[]
+        }
+
+        const useRowStorage = Array.isArray(rowsOrColumnsOrCsv)
+        const rows = rowsOrColumnsOrCsv as ROW_TYPE[]
+        const cols = rowsOrColumnsOrCsv as ColumnStore
+
+        const autodetectColumns = !parent
 
         // If this has a parent table, than we expect all defs. This makes "deletes" and "renames" fast.
         // If this is the first input table, then we do a simple check to generate any missing column defs.
-        if (!parent)
+        if (autodetectColumns)
             useRowStorage
                 ? this.autodetectAndAddColumnsFromFirstRow(rows)
                 : this.autodetectAndAddColumnsFromFirstRowForColumnStore(cols)
@@ -234,6 +265,10 @@ export class CoreTable<
         if (parent) this.copySelectionFrom(parent)
 
         this.timeToLoad = Date.now() - start // Perf aid
+    }
+
+    get isParsed() {
+        return !!this._inputCsv // for now we auto parse csvs on load.
     }
 
     private setColumn(def: COL_DEF_TYPE) {
@@ -508,6 +543,14 @@ export class CoreTable<
 
     @computed get columnNames() {
         return this.columnsAsArray.map((col) => col.name)
+    }
+
+    @computed get columnTypes() {
+        return this.columnsAsArray.map((col) => col.def.type)
+    }
+
+    @computed get columnJsTypes() {
+        return this.columnsAsArray.map((col) => col.jsType)
     }
 
     @computed get columnSlugs() {
