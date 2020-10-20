@@ -13,14 +13,11 @@ import {
     sortBy,
 } from "grapher/utils/Util"
 import moment from "moment"
-import { csv } from "d3-fetch"
-import { csvParse } from "d3-dsv"
 import {
     covidChartAndVariableMetaPath,
     covidDataPath,
     CovidRow,
     covidLastUpdatedPath,
-    MegaRow,
     MetricOptions,
 } from "./CovidConstants"
 import { CoreRow, Time } from "coreTable/CoreTableConstants"
@@ -119,11 +116,6 @@ export const calculateCovidRowsForGroup = (
     return newRowsForGroup
 }
 
-const fetchMegaRows = async () => {
-    const rows = await csv(covidDataPath)
-    return (rows as any) as MegaRow[]
-}
-
 // Todo: replace with someone else's library
 export const computeRollingAveragesForEachGroup = (
     rows: CoreRow[],
@@ -159,7 +151,12 @@ export const computeRollingAveragesForEachGroup = (
     return flatten(groups)
 }
 
-const memoizedFetchedMegaRows = memoize(fetchMegaRows)
+const fetchMegaCsv = async () => {
+    const csv = await fetchText(covidDataPath)
+    return csv
+}
+
+const memoizedFetchedMegaRows = memoize(fetchMegaCsv)
 
 const fetchLastUpdatedTime = memoize(() =>
     retryPromise(() => fetchText(covidLastUpdatedPath))
@@ -171,13 +168,13 @@ const fetchCovidChartAndVariableMeta = memoize(() =>
 )
 
 export const fetchRequiredData = async () => {
-    const [megaRows, updated, covidMeta] = await Promise.all([
+    const [megaCsv, updated, covidMeta] = await Promise.all([
         memoizedFetchedMegaRows(),
         fetchLastUpdatedTime(),
         fetchCovidChartAndVariableMeta(),
     ])
     return {
-        megaRows,
+        megaCsv,
         updated,
         covidMeta,
     }
@@ -207,7 +204,7 @@ export function getLeastUsedColor(
     return mostUnusedColor[0]
 }
 
-const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,new_cases,total_deaths,new_deaths,total_cases_per_million,new_cases_per_million,total_deaths_per_million,new_deaths_per_million,total_tests,new_tests,total_tests_per_thousand,new_tests_per_thousand,tests_units
+export const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,new_cases,total_deaths,new_deaths,total_cases_per_million,new_cases_per_million,total_deaths_per_million,new_deaths_per_million,total_tests,new_tests,total_tests_per_thousand,new_tests_per_thousand,tests_units
 1000,ABW,Aruba,North America,2020-03-13,2,2,0,0,18.733,18.733,0.0,0.0,,,,,
 1000,ABW,Aruba,North America,2020-03-20,4,2,0,0,37.465,18.733,0.0,0.0,,,,,
 1000,ABW,Aruba,North America,2020-03-24,12,8,0,0,112.395,74.93,0.0,0.0,,,,,
@@ -222,5 +219,3 @@ const sampleMegaCsv = `population,iso_code,location,continent,date,total_cases,n
 3000,,World,,2020-05-04,3467502,78043,246999,3523,444.848,10.012,31.688,0.452,,,,,
 3000,,World,,2020-05-05,3544168,76666,250977,3978,454.684,9.836,32.198,0.51,,,,,
 3000,,World,,2020-05-06,3623803,79635,256880,5903,464.9,10.216,32.955,0.757,,,,,`
-
-export const sampleMegaRows = (csvParse(sampleMegaCsv) as any) as MegaRow[]

@@ -94,6 +94,8 @@ export enum JsTypes {
     number = "number",
 }
 
+export type CsvString = string
+
 // todo: remove index param?
 // todo: improve typings on this
 export type ColumnFn = (row: CoreRow, index?: Integer) => any
