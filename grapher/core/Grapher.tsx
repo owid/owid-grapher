@@ -43,16 +43,13 @@ import {
     BASE_FONT_SIZE,
     CookieKey,
     FacetStrategy,
+    ThereWasAProblemLoadingThisChart,
 } from "grapher/core/GrapherConstants"
 import {
     LegacyChartDimensionInterface,
     LegacyVariablesAndEntityKey,
 } from "coreTable/LegacyVariableCode"
 import * as Cookies from "js-cookie"
-import {
-    SampleColumnSlugs,
-    SynthesizeGDPTable,
-} from "coreTable/OwidTableSynthesizers"
 import {
     ChartDimension,
     LegacyDimensionsManager,
@@ -1658,8 +1655,8 @@ export class Grapher
                 }}
             >
                 <p style={{ color: "#cc0000", fontWeight: 700 }}>
-                    <FontAwesomeIcon icon={faExclamationTriangle} /> There was a
-                    problem loading this chart
+                    <FontAwesomeIcon icon={faExclamationTriangle} />
+                    {ThereWasAProblemLoadingThisChart}
                 </p>
                 <p>
                     We have been notified of this error, please check back later
@@ -1910,13 +1907,17 @@ export class Grapher
             .selectedEntityIds
 
         const diff = difference(
-            originalSelectedEntityIds,
-            currentSelectedEntityIds
+            currentSelectedEntityIds,
+            originalSelectedEntityIds
         )
 
-        if (diff.length)
+        if (
+            currentSelectedEntityIds.length !==
+                originalSelectedEntityIds.length ||
+            diff.length
+        )
             return EntityUrlBuilder.entitiesToQueryParam(
-                this.tableForSelection.selectedEntityCodes
+                this.tableForSelection.selectedEntityCodesOrNames
             )
 
         return undefined
@@ -2044,16 +2045,3 @@ const defaultObject = objectWithPersistablesToObject(
     new Grapher(),
     grapherKeysToSerialize
 )
-
-export const TestGrapherConfig = () => {
-    return {
-        table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
-        dimensions: [
-            {
-                slug: SampleColumnSlugs.GDP,
-                property: DimensionProperty.y,
-                variableId: SampleColumnSlugs.GDP as any,
-            },
-        ],
-    }
-}

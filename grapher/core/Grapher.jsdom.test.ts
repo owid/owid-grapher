@@ -1,5 +1,5 @@
 #! /usr/bin/env yarn jest
-import { Grapher, TestGrapherConfig } from "grapher/core/Grapher"
+import { Grapher } from "grapher/core/Grapher"
 import {
     ChartTypeName,
     DimensionProperty,
@@ -17,6 +17,19 @@ import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "coreTable/OwidTableSynthesizers"
+
+const TestGrapherConfig = () => {
+    return {
+        table: SynthesizeGDPTable({ entityCount: 10 }).selectSample(5),
+        dimensions: [
+            {
+                slug: SampleColumnSlugs.GDP,
+                property: DimensionProperty.y,
+                variableId: SampleColumnSlugs.GDP as any,
+            },
+        ],
+    }
+}
 
 it("regression fix: container options are not serialized", () => {
     const grapher = new Grapher({ xAxis: { min: 1 } })
@@ -81,6 +94,27 @@ it("can apply legacy chart dimension settings", () => {
     const col = grapher.yColumns[0]!
     expect(col.unit).toEqual(unit)
     expect(col.displayName).toEqual(name)
+})
+
+it("can generate a url with country selection even if there is no entity code", () => {
+    const config = {
+        ...legacyConfig,
+        selectedData: [],
+    }
+    const grapher = new Grapher(config)
+    expect(grapher.queryStr).toBe("")
+    grapher.inputTable.selectAll()
+    expect(grapher.queryStr).toContain("AFG")
+
+    const config2 = {
+        ...legacyConfig,
+        selectedData: [],
+    }
+    config2.owidDataset.entityKey[15].code = undefined as any
+    const grapher2 = new Grapher(config2)
+    expect(grapher2.queryStr).toBe("")
+    grapher2.inputTable.selectAll()
+    expect(grapher2.queryStr).toContain("Afghanistan")
 })
 
 it("stackedbars should not have timelines", () => {

@@ -43,6 +43,8 @@ export enum SeriesStrategy {
     entity = "entity", // One line per entity
 }
 
+export const ThereWasAProblemLoadingThisChart = `There was a problem loading this chart`
+
 export enum GrapherTabOption {
     chart = "chart",
     map = "map",

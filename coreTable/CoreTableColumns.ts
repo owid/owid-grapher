@@ -294,7 +294,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.table.getValuesFor(this.slug)
     }
 
-    @computed private get validRowIndices() {
+    @computed get validRowIndices() {
         return this.allValues
             .map((value, index) =>
                 (value as any) instanceof InvalidCell ? null : index

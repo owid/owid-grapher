@@ -16,6 +16,7 @@ import {
     sortBy,
     sortedIndexBy,
     last,
+    intersection,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -24,6 +25,7 @@ import {
     Integer,
     Time,
     TransformType,
+    PrimitiveType,
 } from "coreTable/CoreTableConstants"
 import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
@@ -86,39 +88,53 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // todo: can we remove at some point?
     @computed get entityIdToNameMap() {
-        const map = new Map<EntityId, EntityName>()
-        this.rows.forEach((row) => {
-            map.set(row.entityId, row.entityName)
-        })
-        return map
+        return this.makeIndex(
+            OwidTableSlugs.entityId,
+            OwidTableSlugs.entityName
+        ) as Map<number, string>
     }
 
     // todo: can we remove at some point?
     @computed private get entityCodeToNameMap() {
-        const map = new Map<EntityCode, EntityName>()
-        this.rows.forEach((row) => {
-            if (row.entityCode) map.set(row.entityCode, row.entityName)
-            else map.set(row.entityName, row.entityName)
+        return this.makeIndex(
+            OwidTableSlugs.entityCode,
+            OwidTableSlugs.entityName
+        ) as Map<string, string>
+    }
+
+    makeIndex(indexColumnSlug: ColumnSlug, valueColumnSlug: ColumnSlug) {
+        const indexCol = this.get(indexColumnSlug)
+        const valueCol = this.get(valueColumnSlug)
+
+        if (!indexCol || !valueCol) return new Map()
+
+        const indexValues = indexCol.allValues
+        const valueValues = valueCol.allValues
+        const indices = intersection(
+            indexCol.validRowIndices,
+            valueCol.validRowIndices
+        )
+        const map = new Map<PrimitiveType, PrimitiveType>()
+        indices.forEach((index) => {
+            map.set(indexValues[index], valueValues[index])
         })
         return map
     }
 
     // todo: can we remove at some point?
     @computed get entityNameToIdMap() {
-        const map = new Map<EntityName, number>()
-        this.rows.forEach((row) => {
-            map.set(row.entityName, row.entityId)
-        })
-        return map
+        return this.makeIndex(
+            OwidTableSlugs.entityName,
+            OwidTableSlugs.entityId
+        ) as Map<string, number>
     }
 
     // todo: can we remove at some point?
     @computed get entityNameToCodeMap() {
-        const map = new Map<EntityName, EntityCode>()
-        this.rows.forEach((row) => {
-            map.set(row.entityName, row.entityCode)
-        })
-        return map
+        return this.makeIndex(
+            OwidTableSlugs.entityName,
+            OwidTableSlugs.entityCode
+        ) as Map<string, string>
     }
 
     @computed get entityIndex() {
@@ -484,6 +500,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.selectedEntityNames
             .map((name) => map.get(name))
             .filter(isPresent)
+    }
+
+    @computed get selectedEntityCodesOrNames(): (EntityCode | EntityName)[] {
+        const map = this.entityNameToCodeMap
+        return this.selectedEntityNames.map((name) => map.get(name) ?? name)
     }
 
     @computed get selectedEntityIds(): EntityId[] {

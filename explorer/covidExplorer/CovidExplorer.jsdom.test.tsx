@@ -6,29 +6,38 @@ import React from "react"
 import { mount, ReactWrapper } from "enzyme"
 import { IntervalOptions, metricLabels, MetricOptions } from "./CovidConstants"
 import { sampleMegaCsv } from "./CovidExplorerUtils"
+import { ThereWasAProblemLoadingThisChart } from "grapher/core/GrapherConstants"
 
 const dummyMeta = {
     charts: {},
     variables: {},
 }
 
+const makeMountedExplorer = (params: string) =>
+    mount(
+        <CovidExplorer
+            megaCsv={sampleMegaCsv}
+            params={new CovidQueryParams(params)}
+            covidChartAndVariableMeta={dummyMeta}
+            updated="2020-05-09T18:59:31"
+        />
+    )
+
 describe(CovidExplorer, () => {
     it("renders the Covid Data Explorer", () => {
-        const startingParams = new CovidQueryParams("")
-        const element = mount(
-            <CovidExplorer
-                megaCsv={sampleMegaCsv}
-                params={startingParams}
-                covidChartAndVariableMeta={dummyMeta}
-                updated="2020-05-09T18:59:31"
-            />
-        )
-
+        const element = makeMountedExplorer("")
         const headerText = element.find(".ExplorerHeaderBox").text()
-
         // Need to split it off because the lines are in separate elements
         expect(headerText).toContain("Coronavirus Pandemic")
         expect(headerText).toContain("Data Explorer")
+    })
+
+    it("cfr works", () => {
+        const text = makeMountedExplorer(
+            "?cfrMetric=true&country=North%20America"
+        ).text()
+        expect(text).not.toContain(ThereWasAProblemLoadingThisChart)
+        expect(text).toContain(`ratio`)
     })
 })
 
