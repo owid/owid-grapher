@@ -923,7 +923,8 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
-        if (this.isStackedBar || this.isStackedArea) return false
+        if (this.isStackedBar || this.isStackedArea || this.isDiscreteBar)
+            return false
         if (this.isOnOverlay) return false
         if (this.hideTimeline) return false
         if (this.isOnMapTab && this.map.hideTimeline) return false
