@@ -127,7 +127,7 @@ export class FacetChart
                 seriesName,
                 manager: {
                     table: this.inputTable
-                        .filterByEntityName(seriesName)
+                        .filterByEntityNames([seriesName])
                         .selectEntity(seriesName),
                     hideLegend,
                     yAxisConfig,
