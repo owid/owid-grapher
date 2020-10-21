@@ -304,19 +304,6 @@ export class FooterControls extends React.Component<{
         )
     }
 
-    @computed private get timeline() {
-        const manager = this.manager
-        if (!manager.hasTimeline) return null
-
-        return (
-            <div className="footerRowSingle">
-                <TimelineComponent
-                    timelineController={this.manager.timelineController!}
-                />
-            </div>
-        )
-    }
-
     render() {
         const { manager } = this
         const {
@@ -347,12 +334,20 @@ export class FooterControls extends React.Component<{
             </div>
         )
 
+        const timeline = !manager.hasTimeline ? null : (
+            <div className="footerRowSingle">
+                <TimelineComponent
+                    timelineController={this.manager.timelineController!}
+                />
+            </div>
+        )
+
         return (
             <div
                 className={"ControlsFooter"}
                 style={{ height: manager.footerControlsHeight ?? 1 }}
             >
-                {this.timeline}
+                {timeline}
                 {tabsElement}
                 {shareMenuElement}
                 {relatedQuestionElement}

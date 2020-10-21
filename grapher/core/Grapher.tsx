@@ -1441,6 +1441,10 @@ export class Grapher
         )
     }
 
+    formatTimeFn(time: Time) {
+        return this.inputTable.timeColumnFormatFunction(time)
+    }
+
     @action.bound private toggleTabCommand() {
         this.currentTab = next(this.availableTabs, this.currentTab)
     }

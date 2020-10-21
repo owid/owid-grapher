@@ -4,7 +4,7 @@ import { findClosestTime, last } from "grapher/utils/Util"
 
 export interface TimelineManager {
     disablePlay?: boolean
-    formatTimeFn?: (value: any) => any
+    formatTimeFn?: (time: Time) => string
     isPlaying?: boolean
     times: Time[]
     startHandleTimeBound: TimeBound
