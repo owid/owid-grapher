@@ -421,7 +421,9 @@ export const makeColumnDefFromParams = (
     defTemplates = makeColumnDefTemplates()
 ) => {
     const { metricName, perCapitaAdjustment, interval, smoothing } = params
-    const def = defTemplates[metricName]
+    const def = {
+        ...defTemplates[metricName], // do not modify the templates
+    }
     def.slug = buildColumnSlugFromParams(
         metricName,
         perCapitaAdjustment,
@@ -442,11 +444,11 @@ export const makeColumnDefFromParams = (
     def.display = display
 
     // Show decimal places for rolling average & per capita variables
-    if (perCapitaAdjustment > 1) def.type = ColumnTypeNames.Ratio
+    if (perCapitaAdjustment > 1 || (smoothing && smoothing > 1))
+        def.type = ColumnTypeNames.Ratio
     else if (
         metricName === MetricOptions.positive_test_rate ||
-        metricName === MetricOptions.case_fatality_rate ||
-        (smoothing && smoothing > 1)
+        metricName === MetricOptions.case_fatality_rate
     )
         def.type = ColumnTypeNames.Percentage
 

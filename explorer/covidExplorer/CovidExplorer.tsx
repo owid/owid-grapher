@@ -842,6 +842,7 @@ export class CovidExplorer
 
     @action.bound setSlide(queryString: string) {
         this.props.params.setParamsFromQueryString(queryString)
+        this.updateGrapher()
     }
 
     // We can't create a new chart object with every radio change because the Chart component itself
