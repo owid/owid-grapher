@@ -50,15 +50,15 @@ function render($attributes, $content)
     }
 
     $block = <<<EOD
-      <div class="$classes">
+      <div class="$classes" data-no-lightbox>
         $linkStart
-          <div class="content-wrapper">
             $figure
-            <div class="content">
+            <div class="text-wrapper">
               $title
-              $content
+              <div class="description">
+                $content
+              </div>
             </div>
-          </div>
         $linkEnd
       </div>
 EOD;
