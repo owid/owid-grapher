@@ -786,12 +786,12 @@ export class CoreTable<
         )
     }
 
-    limit(howMany: number) {
-        const rows = this.rows.slice(0, howMany)
+    limit(howMany: number, offset: number = 0) {
+        const rows = this.rows.slice(offset, howMany)
         return this.transform(
             rows,
             this.defs,
-            `Kept the first ${rows.length} rows`,
+            `Kept ${rows.length} rows starting at ${offset}`,
             TransformType.FilterRows
         )
     }
@@ -805,8 +805,8 @@ export class CoreTable<
         )
     }
 
-    limitColumns(howMany: number) {
-        const slugs = this.columnSlugs.slice(howMany)
+    limitColumns(howMany: number, offset: number = 0) {
+        const slugs = this.columnSlugs.slice(offset, howMany)
         return this.withoutColumns(
             slugs,
             `Kept ${howMany} columns and dropped '${slugs}'`
