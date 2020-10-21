@@ -23,7 +23,7 @@ import {
     isPresent,
 } from "grapher/utils/Util"
 import { ExplorerControlPanel } from "explorer/client/ExplorerControls"
-import { CovidQueryParams } from "./CovidParams"
+import { allAvailableQueryStringCombos, CovidQueryParams } from "./CovidParams"
 import { CountryPicker } from "grapher/controls/countryPicker/CountryPicker"
 import { CovidExplorerTable } from "./CovidExplorerTable"
 import { BAKED_BASE_URL } from "settings"
@@ -644,7 +644,7 @@ export class CovidExplorer
         grapher.hasMapTab = true
         grapher.isPublished = true
         grapher.slideShow = new SlideShowController(
-            this.props.params.allAvailableQueryStringCombos(),
+            allAvailableQueryStringCombos(),
             0,
             this
         )

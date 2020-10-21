@@ -26,6 +26,25 @@ import {
 } from "./CovidConstants"
 import { computeRollingAveragesForEachGroup } from "./CovidExplorerUtils"
 import { WorldEntityName } from "grapher/core/GrapherConstants"
+import { InvalidCell } from "coreTable/InvalidCells"
+
+class NotApplicableCell extends InvalidCell {}
+class TestRateExclusionList extends InvalidCell {}
+class NoTestData extends InvalidCell {}
+class TestRateTooHigh extends InvalidCell {}
+class TestRateTooLow extends InvalidCell {}
+class UndefinedValue extends InvalidCell {}
+class UnableToCompute extends InvalidCell {} // a catchall out of laziness
+
+const CovidCellTypes = {
+    BelowDeathsThreshold: new NotApplicableCell(),
+    TestRateExclusionList: new TestRateExclusionList(),
+    NoTestData: new NoTestData(),
+    TestRateTooHigh: new TestRateTooHigh(),
+    TestRateTooLow: new TestRateTooLow(),
+    UnableToCompute: new UnableToCompute(),
+    UndefinedValue: new UndefinedValue(),
+}
 
 export class CovidExplorerTable extends OwidTable {
     get mainTable(): CovidExplorerTable {
@@ -87,7 +106,7 @@ export class CovidExplorerTable extends OwidTable {
             const originalRowFn = rowFn
             rowFn = (row) => {
                 const value = originalRowFn(row)
-                if (value === undefined) return undefined
+                if (value === undefined) return CovidCellTypes.UndefinedValue
                 return row.population
                     ? perCapitaAdjustment * (value / row.population)
                     : undefined
@@ -125,7 +144,7 @@ export class CovidExplorerTable extends OwidTable {
         multiplyByWindowSize = false,
         convertToPercentChangeOverWindow = false
     ) {
-        let averages: number[]
+        let averages: (number | InvalidCell)[]
 
         def.fn = (row, index) => {
             if (!averages)
@@ -138,10 +157,15 @@ export class CovidExplorerTable extends OwidTable {
                 )
             const val = averages[index!]
             if (!convertToPercentChangeOverWindow)
-                return val ? val * (multiplyByWindowSize ? windowSize : 1) : val
+                return val instanceof InvalidCell
+                    ? val
+                    : val * (multiplyByWindowSize ? windowSize : 1)
             const previousValue = averages[index! - windowSize]
-            return previousValue === undefined || previousValue === 0
-                ? undefined
+            return previousValue instanceof InvalidCell ||
+                previousValue === undefined ||
+                previousValue === 0 ||
+                val instanceof InvalidCell
+                ? CovidCellTypes.UndefinedValue
                 : (100 * (val - previousValue)) / previousValue
         }
 
@@ -237,13 +261,13 @@ export class CovidExplorerTable extends OwidTable {
                         row.new_tests_smoothed === undefined ||
                         !(row as any)[casesSlug]
                     )
-                        return undefined
+                        return CovidCellTypes.UndefinedValue
 
                     if (testRateExcludeList.has(row.entityName))
-                        return undefined
+                        return CovidCellTypes.TestRateExclusionList
 
                     const tpc = row.new_tests_smoothed / (row as any)[casesSlug]
-                    return tpc >= 1 ? tpc : undefined
+                    return tpc >= 1 ? tpc : CovidCellTypes.UnableToCompute
                 }),
             ]
         }
@@ -252,13 +276,13 @@ export class CovidExplorerTable extends OwidTable {
             return [
                 this.makeColumnDef(params, (row) => {
                     if (row.total_tests === undefined || !row.total_cases)
-                        return undefined
+                        return CovidCellTypes.UnableToCompute
 
                     if (testRateExcludeList.has(row.entityName))
-                        return undefined
+                        return CovidCellTypes.TestRateExclusionList
 
                     const tpc = row.total_tests / row.total_cases
-                    return tpc >= 1 ? tpc : undefined
+                    return tpc >= 1 ? tpc : CovidCellTypes.UnableToCompute
                 }),
             ]
 
@@ -270,7 +294,7 @@ export class CovidExplorerTable extends OwidTable {
         if (params.interval === IntervalOptions.total)
             return this.makeColumnDef(params, (row) =>
                 row.total_cases < 100
-                    ? undefined
+                    ? CovidCellTypes.BelowDeathsThreshold
                     : row.total_deaths && row.total_cases
                     ? (100 * row.total_deaths) / row.total_cases
                     : 0
@@ -315,24 +339,30 @@ export class CovidExplorerTable extends OwidTable {
                             : row.new_cases
 
                     if (testRateExcludeList.has(row.entityName))
-                        return undefined
+                        return CovidCellTypes.TestRateExclusionList
 
-                    if (!testCount) return undefined
+                    if (!testCount) return CovidCellTypes.NoTestData
 
                     const rate = cases / testCount
-                    return rate >= 0 && rate <= 1 ? rate : undefined
+                    if (rate > 1) return CovidCellTypes.TestRateTooHigh
+                    if (rate < 0) return CovidCellTypes.TestRateTooLow
+                    return rate
                 }),
             ]
         }
         return [
             this.makeColumnDef(params, (row) => {
                 if (row.total_cases === undefined || !row.total_tests)
-                    return undefined
+                    return CovidCellTypes.UnableToCompute
 
-                if (testRateExcludeList.has(row.entityName)) return undefined
+                if (testRateExcludeList.has(row.entityName))
+                    return CovidCellTypes.TestRateExclusionList
 
                 const rate = row.total_cases / row.total_tests
-                return rate >= 0 && rate <= 1 ? rate : undefined
+
+                if (rate > 1) return CovidCellTypes.TestRateTooHigh
+                if (rate < 0) return CovidCellTypes.TestRateTooLow
+                return rate
             }),
         ]
     }
@@ -405,7 +435,7 @@ export class CovidExplorerTable extends OwidTable {
                 if (row.entityName !== currentCountry) {
                     const sourceValue = row[sourceColumnSlug]
                     if (sourceValue === undefined || sourceValue < threshold)
-                        return undefined
+                        return CovidCellTypes.UnableToCompute
                     currentCountry = row.entityName
                     countryExceededThresholdOnDay = row[OwidTableSlugs.time]
                 }

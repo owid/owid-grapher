@@ -1,10 +1,15 @@
 #! /usr/bin/env yarn jest
 
 import { CovidExplorerTable } from "./CovidExplorerTable"
-import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
+import {
+    allAvailableQueryStringCombos,
+    CovidQueryParams,
+} from "explorer/covidExplorer/CovidParams"
 import { queryParamsToStr } from "utils/client/url"
 import { sampleMegaCsv } from "./CovidExplorerUtils"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
+import { flatten } from "grapher/utils/Util"
+import { InvalidCell } from "coreTable/InvalidCells"
 
 const table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
 
@@ -35,7 +40,7 @@ describe("build covid column", () => {
         3
     )
 
-    table = table.appendColumns([def]) as CovidExplorerTable
+    table = table.appendColumns([def])
 
     it("correctly builds a grapher variable", () => {
         expect(table.rows[3].totalCasesSmoothed).toEqual(14.5)
@@ -70,7 +75,7 @@ describe("build covid column", () => {
         7,
         true
     )
-    table2 = table2.appendColumns([def2]) as CovidExplorerTable
+    table2 = table2.appendColumns([def2])
 
     it("correctly builds weekly average", () => {
         expect(table2.rows[3].weeklyCases).toEqual(70)
@@ -84,11 +89,30 @@ describe("build covid column", () => {
             true,
             true
         )
-        table2 = table2.appendColumns([def3]) as CovidExplorerTable
+        table2 = table2.appendColumns([def3])
 
-        expect(table2.rows[3].weeklyChange).toEqual(undefined)
         expect(table2.rows[8].weeklyChange).toEqual(0)
         expect(table2.rows[21].weeklyChange).toEqual(100)
+        expect(table2.rows[3].weeklyChange).toBeInstanceOf(InvalidCell)
+    })
+
+    it("never creates nulls or undefineds", () => {
+        expect(
+            table2
+                .toOneDimensionalArray()
+                .filter((item) => item === null || item === undefined).length
+        ).toBe(0)
+    })
+})
+
+it("can build all columns", () => {
+    let table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
+    allAvailableQueryStringCombos().forEach((combo) => {
+        const count = table.numColumns
+        table = table.appendColumnsFromParamsIfNew(
+            new CovidQueryParams(combo).toConstrainedParams()
+        )
+        expect(table.numColumns).toBeGreaterThanOrEqual(count)
     })
 })
 
@@ -99,14 +123,14 @@ describe("builds aligned tests column", () => {
 
     const params = new CovidQueryParams("testsMetric=true&dailyFreq=true")
     const def = table.makeTestingColumnDef(params.toConstrainedParams())
-    table = table.appendColumns([def!]) as CovidExplorerTable
+    table = table.appendColumns([def!])
 
     expect(table.columnSlugs.includes("tests-daily")).toEqual(true)
 
     const newParams = new CovidQueryParams(params.toString())
     newParams.perCapita = true
     const def2 = table.makeTestingColumnDef(newParams.toConstrainedParams())
-    table = table.appendColumns([def2!]) as CovidExplorerTable
+    table = table.appendColumns([def2!])
 
     expect(table.columnSlugs.includes("tests-perThousand-daily")).toEqual(true)
 
@@ -139,14 +163,14 @@ it("can filter rows without continent", () => {
     expect(table.availableEntityNameSet.has("World")).toBeFalsy()
 
     table.mainTable.selectEntity("World")
-    table = (table.mainTable as CovidExplorerTable).filterGroups()
+    table = table.mainTable.filterGroups()
     expect(table.availableEntityNameSet.has("World")).toBeTruthy()
 
     table.mainTable.deselectEntity("World")
-    table = (table.mainTable as CovidExplorerTable).filterGroups()
+    table = table.mainTable.filterGroups()
     expect(table.availableEntityNameSet.has("World")).toBeFalsy()
 
     table.mainTable.setSelectedEntities(["World"])
-    table = (table.mainTable as CovidExplorerTable).filterGroups()
+    table = table.mainTable.filterGroups()
     expect(table.availableEntityNameSet.has("World")).toBeTruthy()
 })

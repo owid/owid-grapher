@@ -81,44 +81,6 @@ export class CovidQueryParams implements CountryPickerManager {
         this.setParamsFromQueryString(queryString)
     }
 
-    allAvailableQueryStringCombos(): string[] {
-        const metrics = [
-            "casesMetric",
-            "deathsMetric",
-            "cfrMetric",
-            "testsMetric",
-            "testsPerCaseMetric",
-            "positiveTestRate",
-        ]
-        const perCapita = [true, false]
-        const aligned = [true, false]
-        const combos: any = []
-        metrics.forEach((metric) => {
-            Object.values(IntervalOptions).forEach((interval) => {
-                perCapita.forEach((perCapita) => {
-                    aligned.forEach((aligned) => {
-                        const combo: any = {}
-                        combo[metric] = true
-                        combo.interval = interval
-                        if (interval === IntervalOptions.smoothed)
-                            combo.smoothing = 7
-                        combo.perCapita = perCapita
-                        combo.aligned = aligned
-                        combos.push(combo)
-                    })
-                })
-            })
-        })
-
-        return uniq(
-            combos.map((combo: any) =>
-                new CovidQueryParams(queryParamsToStr(combo))
-                    .toConstrainedParams()
-                    .toString()
-            )
-        )
-    }
-
     @action.bound setParamsFromQueryString(queryString: string) {
         const params = strToQueryParams(queryString)
         this.interval =
@@ -320,7 +282,7 @@ export class CovidQueryParams implements CountryPickerManager {
 
     setMetric(option: MetricOptions) {
         this.casesMetric = option === MetricOptions.cases
-        this.testsMetric = option === MetricOptions.tests_per_case
+        this.testsMetric = option === MetricOptions.tests
         this.deathsMetric = option === MetricOptions.deaths
         this.cfrMetric = option === MetricOptions.case_fatality_rate
         this.testsPerCaseMetric = option === MetricOptions.tests_per_case
@@ -613,4 +575,42 @@ export const makeColumnDefTemplates = (
         }
 
     return templates
+}
+
+export const allAvailableQueryStringCombos = (): string[] => {
+    const metrics = [
+        "casesMetric",
+        "deathsMetric",
+        "cfrMetric",
+        "testsMetric",
+        "testsPerCaseMetric",
+        "positiveTestRate",
+    ]
+    const perCapita = [true, false]
+    const aligned = [true, false]
+    const combos: any = []
+    metrics.forEach((metric) => {
+        Object.values(IntervalOptions).forEach((interval) => {
+            perCapita.forEach((perCapita) => {
+                aligned.forEach((aligned) => {
+                    const combo: any = {}
+                    combo[metric] = true
+                    combo.interval = interval
+                    if (interval === IntervalOptions.smoothed)
+                        combo.smoothing = 7
+                    combo.perCapita = perCapita
+                    combo.aligned = aligned
+                    combos.push(combo)
+                })
+            })
+        })
+    })
+
+    return uniq(
+        combos.map((combo: any) =>
+            new CovidQueryParams(queryParamsToStr(combo))
+                .toConstrainedParams()
+                .toString()
+        )
+    )
 }

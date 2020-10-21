@@ -21,35 +21,32 @@ export const columnStoreToRows = (columnStore: CoreColumnStore) => {
 
 export const autoType = (object: any) => {
     for (const key in object) {
-        let value = object[key].trim()
-        let number
-        if (!value) value = null
-        else if (value === "true") value = true
-        else if (value === "false") value = false
-        else if (value === "NaN") value = NaN
-        else if (!isNaN((number = +value))) value = number
-        else continue
-        object[key] = value
+        const value = object[key]
+        const number = +value
+        if (!isNaN(number)) object[key] = number
+        else object[key] = value
     }
     return object
 }
 
 export const standardizeSlugs = (rows: CoreRow[]) => {
-    const defs = Object.keys(rows[0]).map((name) => {
-        return {
-            name,
-            slug: slugifySameCase(name),
-        }
-    })
-    const colsToRename = defs.filter((col) => col.name !== col.slug)
-    if (colsToRename.length) {
-        rows.forEach((row: CoreRow) => {
-            colsToRename.forEach((col) => {
-                row[col.slug] = row[col.name]
-                delete row[col.name]
-            })
+    const colsToRename = Object.keys(rows[0])
+        .map((name) => {
+            return {
+                name,
+                slug: slugifySameCase(name),
+            }
         })
-    }
+        .filter((col) => col.name !== col.slug)
+    if (!colsToRename.length) return rows
+
+    rows.forEach((row: CoreRow) => {
+        colsToRename.forEach((col) => {
+            row[col.slug] = row[col.name]
+            delete row[col.name]
+        })
+    })
+
     return rows
 }
 

@@ -37,6 +37,7 @@ export const MegaCsvToCovidExplorerTable = (megaCsv: CsvString) => {
                     key === MegaSlugs.test_units ||
                     key === MegaSlugs.continent
                 ) {
+                    object[key] = value.toString()
                 } else {
                     const number = +value
                     if (!isNaN(number)) object[key] = number

@@ -13,6 +13,7 @@ import {
     range,
     difference,
     intersection,
+    flatten,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
@@ -153,10 +154,14 @@ export class CoreTable<
 
     @computed private get csvAsRows() {
         const { inputData, advancedOptions } = this
-        return csvParse(
+        const parsed = csvParse(
             inputData as string,
             advancedOptions.rowConversionFunction ?? autoType
-        )
+        ) as any
+        // csvParse adds a columns prop to the result we don't want
+        // https://github.com/d3/d3-dsv#dsv_parse
+        delete parsed.columns
+        return parsed
     }
 
     @computed private get inputAsRows() {
@@ -224,6 +229,10 @@ export class CoreTable<
 
     @computed private get isFromCsv() {
         return typeof this.inputData === "string"
+    }
+
+    toOneDimensionalArray() {
+        return flatten(this.toMatrix().slice(1))
     }
 
     private setColumn(def: COL_DEF_TYPE) {
