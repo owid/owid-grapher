@@ -59,7 +59,7 @@ export const Scatter = () => (
         manager={{
             ...manager,
             type: ChartTypeName.ScatterPlot,
-            table: table.filterByTargetTime(1999, 0),
+            table: table.filterByTargetTimes([1999], 0),
         }}
     />
 )

@@ -29,7 +29,7 @@ const oneYear: ScatterPlotManager = {
     ...basicSetup,
     table: SynthesizeGDPTable({ entityCount: 20 })
         .selectAll()
-        .filterByTargetTime(2000, 0),
+        .filterByTargetTimes([2000], 0),
 }
 
 const oneYearWithSizeColumn = {
@@ -62,7 +62,7 @@ export const WithComparisonLinesAndSelection = () => {
                 manager={{
                     ...oneYearWithComparisons,
                     table: SynthesizeGDPTable({ entityCount: 20 })
-                        .filterByTargetTime(2000, 0)
+                        .filterByTargetTimes([2000], 0)
                         .selectSample(5),
                 }}
             />

@@ -307,14 +307,14 @@ usa,1,usa,-5,1`
         )
 
         expect(table.numRows).toBe(10)
-        expect(table.filterByTargetTime(2010, 2).numRows).toBe(0)
-        expect(table.filterByTargetTime(2010, 20).numRows).toBe(2)
+        expect(table.filterByTargetTimes([2010], 2).numRows).toBe(0)
+        expect(table.filterByTargetTimes([2010], 20).numRows).toBe(2)
 
         expect(
             table
                 .selectEntity(table.availableEntityNames[0])
                 .filterBySelectedOnly()
-                .filterByTargetTime(2010, 20).numRows
+                .filterByTargetTimes([2010], 20).numRows
         ).toBe(1)
 
         const table2 = SynthesizeGDPTable({
@@ -322,7 +322,34 @@ usa,1,usa,-5,1`
             timeRange: [2000, 2001],
         })
 
-        expect(table2.filterByTargetTime(2000, 1).numRows).toBe(1)
+        expect(table2.filterByTargetTimes([2000], 1).numRows).toBe(1)
+    })
+
+    it("can filter by multiple time targets", () => {
+        const table = SynthesizeGDPTable(
+            {
+                entityCount: 2,
+                timeRange: [2000, 2005],
+            },
+            1
+        )
+
+        expect(table.numRows).toBe(10)
+        expect(table.filterByTargetTimes([2000, 2002], 0).numRows).toBe(4)
+
+        expect(
+            table
+                .selectEntity(table.availableEntityNames[0])
+                .filterBySelectedOnly()
+                .filterByTargetTimes([2000, 2003], 1).numRows
+        ).toBe(2)
+
+        const table2 = SynthesizeGDPTable({
+            entityCount: 1,
+            timeRange: [2000, 2001],
+        })
+
+        expect(table2.filterByTargetTimes([2000, 2007], 1).numRows).toBe(1)
     })
 })
 

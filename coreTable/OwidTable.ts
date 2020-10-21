@@ -273,24 +273,29 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         }, `Filter out countries with population less than ${minPop}`)
     }
 
-    filterByTargetTime(targetTime: Time, tolerance: Integer = 0) {
+    filterByTargetTimes(targetTimes: Time[], tolerance: Integer = 0) {
         const timeSlug = this.timeColumn!.slug
         const entityNameToRows = this.rowsByEntityName
         const matchingRows = new Set<OwidRow>()
         this.availableEntityNames.forEach((entityName) => {
             const rows = entityNameToRows.get(entityName) || []
+            const allTimes = rows.map((row) => row[timeSlug]) as number[]
 
-            const rowIndex = findClosestTimeIndex(
-                rows.map((row) => row[timeSlug]) as number[],
-                targetTime,
-                tolerance
-            )
-            if (rowIndex !== undefined) matchingRows.add(rows[rowIndex])
+            targetTimes.forEach((targetTime) => {
+                const rowIndex = findClosestTimeIndex(
+                    allTimes,
+                    targetTime,
+                    tolerance
+                )
+                if (rowIndex !== undefined) matchingRows.add(rows[rowIndex])
+            })
         })
 
         return this.filter(
             (row) => matchingRows.has(row),
-            `Keep one row per entity closest to time ${targetTime} with tolerance ${tolerance}`
+            `Keep a row for each entity for each of the closest times ${targetTimes.join(
+                ", "
+            )} with tolerance ${tolerance}`
         )
     }
 

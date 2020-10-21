@@ -62,7 +62,7 @@ export class DiscreteBarChart
 
         table = table
             .filterBySelectedOnly()
-            .filterByTargetTime(targetTime, tolerance)
+            .filterByTargetTimes([targetTime], tolerance)
 
         // Here we can filter entire rows instead of using "replaceNonPositiveCellsForLogScale" since we currently don't support
         // multiple ycolumn bar charts.
