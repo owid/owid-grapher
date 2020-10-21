@@ -255,6 +255,9 @@ export const MegaColumnMap: Partial<Record<
         name: "Country name",
         type: ColumnTypeNames.Region,
     },
+    time: {
+        type: ColumnTypeNames.Date,
+    },
     population: {
         name: "Population",
         type: ColumnTypeNames.Population,
