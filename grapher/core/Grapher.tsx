@@ -1109,7 +1109,8 @@ export class Grapher
     }
 
     @computed get activeColorScale() {
-        return this.colorScale as any // todo: restore
+        const chart = this.chartInstance as any
+        return chart.colorScale
     }
 
     @computed get supportsMultipleYColumns() {

@@ -457,20 +457,15 @@ export class StackedAreaChart
     }
 
     @computed private get colorScheme() {
-        //return ["#9e0142","#d53e4f","#f46d43","#fdae61","#fee08b","#ffffbf","#e6f598","#abdda4","#66c2a5","#3288bd","#5e4fa2"]
-        return (
+        const scheme =
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
                 : null) ?? ColorSchemes.stackedAreaDefault
-        )
-    }
-
-    @computed get colorScale() {
         const seriesCount =
             this.seriesStrategy === SeriesStrategy.entity
                 ? this.transformedTable.numSelectedEntities
                 : this.yColumns.length
-        const baseColors = this.colorScheme.getColors(seriesCount)
+        const baseColors = scheme.getColors(seriesCount)
         if (this.manager.invertColorScheme) baseColors.reverse()
         return scaleOrdinal(baseColors)
     }
@@ -478,7 +473,7 @@ export class StackedAreaChart
     getColorForSeries(seriesName: SeriesName) {
         return (
             this.transformedTable.getColorForEntityName(seriesName) ||
-            this.colorScale(seriesName)
+            this.colorScheme(seriesName)
         )
     }
 
