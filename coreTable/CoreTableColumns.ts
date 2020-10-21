@@ -28,6 +28,7 @@ import {
 import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants" // todo: remove. Should not be on CoreTable
 import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
+import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
 
 interface ColumnSummary {
     numInvalidCells: number
@@ -307,6 +308,18 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
 
+    @computed get originalTimes() {
+        const originalTimeColumnSlug = getOriginalTimeColumnSlug(
+            this.table,
+            this.slug
+        )
+        if (!originalTimeColumnSlug) return []
+        return this.table.getValuesAtIndices(
+            originalTimeColumnSlug,
+            this.validRowIndices
+        ) as number[]
+    }
+
     @computed private get allValuesAsSet() {
         return new Set(this.allValues)
     }
@@ -376,7 +389,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove? Should not be on CoreTable
     @computed get owidRows() {
-        const times = this.allTimes
+        const times = this.originalTimes
         const values = this.parsedValues
         const entities = this.allEntityNames
         return range(0, times.length).map((index) => {

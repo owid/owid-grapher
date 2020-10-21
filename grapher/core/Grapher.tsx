@@ -30,6 +30,7 @@ import {
     range,
     difference,
     exposeInstanceOnWindow,
+    findClosestTime,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -469,18 +470,19 @@ export class Grapher
 
     @computed
     private get tableAfterPopulationAndActiveChartAndTimelineFilters() {
-        const [startTime, endTime] = this.timelineHandleTimeBounds
-        if (this.isOnMapTab) {
-            const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?
-            return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTimeRange(
-                startTime - tolerance,
-                endTime + tolerance
-            )
+        const { startTime, endTime } = this
+        const table = this.tableAfterPopulationFilterAndActiveChartTransform
+
+        if (startTime === undefined || endTime === undefined) return table
+
+        if (
+            this.isOnMapTab ||
+            this.isDiscreteBar ||
+            (this.isLineChart && this.areHandlesOnSameTime)
+        ) {
+            return table.filterByTargetTimes([endTime])
         }
-        return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTimeRange(
-            startTime,
-            endTime
-        )
+        return table.filterByTimeRange(startTime, endTime)
     }
 
     @computed get transformedTable() {
@@ -681,6 +683,14 @@ export class Grapher
 
     @computed get endHandleTimeBound(): TimeBound {
         return this.timelineHandleTimeBounds[1]
+    }
+
+    @computed get startTime(): Time | undefined {
+        return findClosestTime(this.times, this.startHandleTimeBound)
+    }
+
+    @computed get endTime(): Time | undefined {
+        return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
     @computed private get isDiscreteBarOrLineChartTransformedIntoDiscreteBar() {
