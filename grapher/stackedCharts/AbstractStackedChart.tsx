@@ -12,7 +12,6 @@ import { exposeInstanceOnWindow, flatten, guid, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
-import { stackSeries, withFakePoints } from "./StackedUtils"
 import { StackedSeries } from "./StackedConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
@@ -21,6 +20,7 @@ import { easeLinear, select } from "d3"
 export interface AbstactStackedChartProps {
     bounds?: Bounds
     manager: ChartManager
+    disableLinearInterpolation?: boolean // just for testing
 }
 
 @observer
@@ -207,7 +207,7 @@ export class AbstactStackedChart
         return "#ddd"
     }
 
-    @computed get series() {
+    @computed get unstackedSeries() {
         const seriesArr = this.rawSeries
             .filter((series) => series.rows.length)
             .map((series) => {
@@ -226,7 +226,12 @@ export class AbstactStackedChart
                 } as StackedSeries
             })
 
+        // todo: explain why we do this reversal. will it still be needed when we sort by selection?
         if (this.seriesStrategy !== SeriesStrategy.entity) seriesArr.reverse()
-        return stackSeries(withFakePoints(seriesArr))
+        return seriesArr
+    }
+
+    @computed get series() {
+        return this.unstackedSeries
     }
 }

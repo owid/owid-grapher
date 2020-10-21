@@ -12,21 +12,18 @@ export default {
     component: StackedAreaChart,
 }
 
-const entitiesChart: ChartManager = {
-    table: SynthesizeGDPTable({
+const seed = Date.now()
+const table = SynthesizeGDPTable(
+    {
         entityCount: 10,
         timeRange: [1950, 2010],
-    }).selectSample(5),
+    },
+    seed
+).selectSample(5)
+const entitiesChart: ChartManager = {
+    table,
     yColumnSlugs: [SampleColumnSlugs.GDP],
 }
-
-export const EntitiesAsSeries = () => (
-    <svg width={600} height={600}>
-        <StackedAreaChart
-            manager={{ ...entitiesChart, isRelativeMode: false }}
-        />
-    </svg>
-)
 
 export const EntitiesAsSeriesRelative = () => (
     <svg width={600} height={600}>
@@ -36,12 +33,32 @@ export const EntitiesAsSeriesRelative = () => (
     </svg>
 )
 
-export const EntitiesAsSeriesWithMissingRows = () => (
+export const EntitiesAsSeries = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            manager={{ ...entitiesChart, isRelativeMode: false }}
+        />
+    </svg>
+)
+
+export const EntitiesAsSeriesWithMissingRowsAndInterpolation = () => (
     <svg width={600} height={600}>
         <StackedAreaChart
             manager={{
                 ...entitiesChart,
-                table: entitiesChart.table.dropRandomRows(30),
+                table: table.dropRandomRows(30, seed),
+            }}
+        />
+    </svg>
+)
+
+export const EntitiesAsSeriesWithMissingRowsNoInterpolation = () => (
+    <svg width={600} height={600}>
+        <StackedAreaChart
+            disableLinearInterpolation={true}
+            manager={{
+                ...entitiesChart,
+                table: table.dropRandomRows(30, seed),
             }}
         />
     </svg>

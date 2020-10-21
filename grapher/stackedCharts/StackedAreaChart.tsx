@@ -22,14 +22,17 @@ import {
 } from "grapher/lineLegend/LineLegend"
 import { NoDataModal } from "grapher/noDataModal/NoDataModal"
 import { Tooltip } from "grapher/tooltip/Tooltip"
-import { select } from "d3-selection"
-import { easeLinear } from "d3-ease"
 import { rgb } from "d3-color"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
 } from "grapher/stackedCharts/AbstractStackedChart"
 import { StackedSeries } from "./StackedConstants"
+import {
+    stackSeries,
+    withZeroesAsInterpolatedPoints,
+    withLinearInterpolatedPoints,
+} from "./StackedUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
@@ -482,5 +485,13 @@ export class StackedAreaChart
     private formatYTick(v: number) {
         const yColumn = this.yColumns[0]
         return yColumn ? yColumn.formatValueShort(v) : v // todo: restore { noTrailingZeroes: false }
+    }
+
+    @computed get series() {
+        if (this.props.disableLinearInterpolation === true)
+            return stackSeries(
+                withZeroesAsInterpolatedPoints(this.unstackedSeries)
+            )
+        return stackSeries(withLinearInterpolatedPoints(this.unstackedSeries))
     }
 }

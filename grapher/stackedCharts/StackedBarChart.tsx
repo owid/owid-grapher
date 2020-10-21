@@ -1,8 +1,6 @@
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { select } from "d3-selection"
-import { easeLinear } from "d3-ease"
 import { uniq, makeSafeForCSS } from "grapher/utils/Util"
 import { Bounds } from "grapher/utils/Bounds"
 import {
@@ -27,6 +25,7 @@ import {
 import { StackedPoint } from "./StackedConstants"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint
@@ -488,5 +487,9 @@ export class StackedBarChart
 
     @computed get categoricalValues() {
         return this.rawSeries.map((series) => series.seriesName).reverse()
+    }
+
+    @computed get series() {
+        return stackSeries(withZeroesAsInterpolatedPoints(this.unstackedSeries))
     }
 }
