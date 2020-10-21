@@ -681,10 +681,14 @@ export class CoreTable<
         return this.columnsToParse.length
     }
 
+    private static guids = 0
+    private guid = ++CoreTable.guids
+
     private get explanation() {
         const {
             tableDescription,
             transformCategory,
+            guid,
             numColumns,
             numRows,
             timeToLoad,
@@ -695,6 +699,7 @@ export class CoreTable<
         return {
             tableDescription,
             transformCategory,
+            guid,
             numColumns,
             numRows,
             timeToLoad,
