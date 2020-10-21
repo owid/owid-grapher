@@ -6,6 +6,7 @@ export interface TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (time: Time) => string
     isPlaying?: boolean
+    userHasSetTimeline?: boolean
     times: Time[]
     startHandleTimeBound: TimeBound
     endHandleTimeBound: TimeBound

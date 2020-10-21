@@ -52,6 +52,7 @@ export class TimelineComponent extends React.Component<{
     }
 
     @action.bound private onDrag(inputTime: number) {
+        if (!this.manager.isPlaying) this.manager.userHasSetTimeline = true
         this.dragTarget = this.controller.dragHandleToTime(
             this.dragTarget!,
             inputTime
@@ -247,6 +248,12 @@ export class TimelineComponent extends React.Component<{
 
     @action.bound private togglePlay() {
         this.controller.togglePlay()
+    }
+
+    convertToTime(time: number) {
+        if (time === -Infinity) return this.controller.minTime
+        if (time === +Infinity) return this.controller.maxTime
+        return time
     }
 
     render() {

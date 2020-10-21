@@ -6,6 +6,7 @@ import { TimelineController, TimelineManager } from "./TimelineController"
 
 class TimelineManagerMock implements TimelineManager {
     @observable isPlaying = false
+    @observable userHasSetTimeline = true
     @observable times = range(1900, 2021)
 
     @observable protected _endTime = 2020

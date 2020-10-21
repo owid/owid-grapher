@@ -313,7 +313,13 @@ export class DataTable extends React.Component<{
                 {value.displayValue}
                 {value.time !== undefined &&
                     column.targetTimeMode === TargetTimeMode.range && (
-                        <span className="range-time"> in {value.time}</span>
+                        <span className="range-time">
+                            {" "}
+                            in{" "}
+                            {formatTime(value.time!, {
+                                format: "MMM D",
+                            })}
+                        </span>
                     )}
             </td>
         )
