@@ -1,4 +1,4 @@
-import { cloneDeep, isPresent } from "grapher/utils/Util"
+import { cloneDeep, flatten, isPresent } from "grapher/utils/Util"
 import { OwidTable } from "coreTable/OwidTable"
 import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import {
@@ -214,12 +214,12 @@ export class CovidExplorerTable extends OwidTable {
         return results
     }
 
-    appendColumnsForDataTableIfNew(params: CovidConstrainedQueryParams) {
-        let table: CovidExplorerTable = this
-        this.paramsForDataTableColumns(params).forEach((params) => {
-            table = table.appendColumnsFromParamsIfNew(params)
-        })
-        return table
+    makeColumnDefsForDataTable(params: CovidConstrainedQueryParams) {
+        return flatten(
+            this.paramsForDataTableColumns(params).map((params) =>
+                this.makeColumnDefsFromParams(params)
+            )
+        )
     }
 
     filterNegatives(slug: ColumnSlug) {
@@ -376,7 +376,7 @@ export class CovidExplorerTable extends OwidTable {
         )
     }
 
-    appendColumnsFromParamsIfNew(params: CovidConstrainedQueryParams) {
+    makeColumnDefsFromParams(params: CovidConstrainedQueryParams) {
         const defs: (CoreColumnDef | undefined)[] = []
         if (params.casesMetric) defs.push(this.makeCasesColumnDef(params))
         if (params.deathsMetric) defs.push(this.makeDeathsColumnDef(params))
@@ -415,7 +415,7 @@ export class CovidExplorerTable extends OwidTable {
                 )
             )
         }
-        return this.appendColumnsIfNew(defs.filter(isPresent))
+        return defs.filter(isPresent)
     }
 
     makeDaysSinceColumnDef(

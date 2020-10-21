@@ -109,9 +109,10 @@ it("can build all columns", () => {
     let table = MegaCsvToCovidExplorerTable(sampleMegaCsv)
     allAvailableQueryStringCombos().forEach((combo) => {
         const count = table.numColumns
-        table = table.appendColumnsFromParamsIfNew(
+        const defs = table.makeColumnDefsFromParams(
             new CovidQueryParams(combo).toConstrainedParams()
         )
+        table = table.appendColumnsIfNew(defs)
         expect(table.numColumns).toBeGreaterThanOrEqual(count)
     })
 })
@@ -150,7 +151,9 @@ describe("builds aligned tests column", () => {
         })
     )
 
-    table = table.appendColumnsFromParamsIfNew(params3.toConstrainedParams())
+    table = table.appendColumnsIfNew(
+        table.makeColumnDefsFromParams(params3.toConstrainedParams())
+    )
 
     expect(table.columnSlugs.includes("deaths-perMil-total")).toEqual(true)
 })

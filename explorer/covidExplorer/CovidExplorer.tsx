@@ -73,10 +73,16 @@ import {
     ExplorerControlType,
     ExplorerControlOption,
 } from "explorer/client/ExplorerConstants"
-import { Color, ColumnSlug, CsvString } from "coreTable/CoreTableConstants"
+import {
+    Color,
+    ColumnSlug,
+    CoreColumnDef,
+    CsvString,
+} from "coreTable/CoreTableConstants"
 import { ContinentColors } from "grapher/color/ColorConstants"
 import { MapProjectionName } from "grapher/mapCharts/MapProjections"
 import { MegaCsvToCovidExplorerTable } from "./MegaCsv"
+import { CovidAnnotationColumnDefs } from "./CovidAnnotations"
 
 interface BootstrapProps {
     containerNode: HTMLElement
@@ -554,25 +560,30 @@ export class CovidExplorer
     // This is the inputTable with the addition of any columns the user has added.
     @computed private get expandedTable() {
         const params = this.constrainedParams
-        let table = this._expandedTable ?? this.inputTable
+        const table = this._expandedTable ?? this.inputTable
+
+        const defs: CoreColumnDef[] = [...CovidAnnotationColumnDefs]
 
         // Add column for epi color strategy if needed
         if (params.colorStrategy === ColorScaleOptions.ptr) {
-            const defs = table.makeShortTermPositivityRateColumnDefs()
-            table = table.appendColumnsIfNew(defs)
+            table
+                .makeShortTermPositivityRateColumnDefs()
+                .forEach((def) => defs.push(def))
             this.shortTermPositivityRateSlug = last(defs)!.slug
         }
 
         // Add user selected columns
-        table = table.appendColumnsFromParamsIfNew(params)
+        table.makeColumnDefsFromParams(params).forEach((def) => defs.push(def))
 
         // Add columns for datatable
         if (params.tableMetrics)
-            table = table.appendColumnsForDataTableIfNew(params)
+            table
+                .makeColumnDefsForDataTable(params)
+                .forEach((def) => defs.push(def))
 
         // Cache the expanded table and add on to that if the user selects new columns, to save from recomputing current columns.
-        this._expandedTable = table
-        return table
+        this._expandedTable = table.appendColumnsIfNew(defs)
+        return this._expandedTable
     }
 
     @computed private get canDoLogScale() {
