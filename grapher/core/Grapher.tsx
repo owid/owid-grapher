@@ -29,6 +29,7 @@ import {
     sampleFrom,
     range,
     difference,
+    exposeInstanceOnWindow,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -276,8 +277,6 @@ export class Grapher
 
     constructor(props: GrapherProgrammaticInterface = {}) {
         super(props!)
-        if (typeof window !== "undefined") window.grapher = this
-
         this.inputTable = props.table ?? new OwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
@@ -1712,6 +1711,7 @@ export class Grapher
         window.addEventListener("scroll", this.checkVisibility)
         this.setBaseFontSize()
         this.checkVisibility()
+        exposeInstanceOnWindow(this, "grapher")
     }
 
     private _shortcutsBound = false
