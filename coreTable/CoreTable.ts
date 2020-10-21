@@ -72,9 +72,9 @@ export class CoreTable<
     @observable.shallow protected selectedRows = new Set<ROW_TYPE>()
 
     protected parent?: this
-    tableDescription: string
-    transformCategory: TransformType
-    timeToLoad = 0
+    private tableDescription: string
+    private transformCategory: TransformType
+    private timeToLoad = 0
     private initTime = Date.now()
 
     private inputData: CoreTableInputOption
@@ -219,7 +219,7 @@ export class CoreTable<
         return cols.filter((col) => col.needsParsing(firstInputRow[col.slug]))
     }
 
-    @computed get numColsToCompute() {
+    @computed private get numColsToCompute() {
         return this.colsToCompute.length
     }
 
@@ -305,22 +305,14 @@ export class CoreTable<
         return difference(this.inputColumnDefs, this.parent.defs)
     }
 
-    get stepNumber(): number {
-        return !this.parent ? 0 : this.parent.stepNumber + 1
-    }
-
-    get totalTime(): number {
+    private get totalTime(): number {
         return this.timeToLoad + (this.parent ? this.parent.totalTime : 0)
-    }
-
-    get elapsedTime(): number {
-        return this.initTime + this.timeToLoad - this.rootTable.initTime
     }
 
     // Time between when the parent table finished loading and this table started constructing.
     // A large time may just be due to a transform only happening after a user action, or it
     // could be do to other sync code executing between transforms.
-    get betweenTime(): number {
+    private get betweenTime(): number {
         return this.parent
             ? this.initTime - (this.parent.initTime + this.parent.timeToLoad)
             : 0
@@ -666,14 +658,15 @@ export class CoreTable<
     }
 
     private oneLiner() {
-        return `${this.stepNumber}. ${this.transformCategory}: ${
+        const stepNumber = this.ancestors.length
+        return `${stepNumber}. ${this.transformCategory}: ${
             this.tableDescription ? this.tableDescription + ". " : ""
         }${this.numColumns} Columns ${this.inputAsTable.length} Rows. ${
             this.timeToLoad
         }ms.`
     }
 
-    private get ancestors(): this[] {
+    get ancestors(): this[] {
         return this.parent ? [...this.parent.ancestors, this] : [this]
     }
 
@@ -684,28 +677,35 @@ export class CoreTable<
         )
     }
 
-    @computed get numColsToParse() {
+    @computed private get numColsToParse() {
         return this.columnsToParse.length
     }
 
-    explain(options?: AlignedTextTableOptions) {
-        type CoreTableGetter = keyof CoreTable
-        const header: CoreTableGetter[] = [
-            "stepNumber",
-            "transformCategory",
-            "numColumns",
-            "numRows",
-            "timeToLoad",
-            "betweenTime",
-            "numColsToParse",
-            "numColsToCompute",
-            "tableDescription",
-        ]
-        return toAlignedTextTable(header, this.ancestors, {
-            maxCharactersPerColumn: 50,
-            maxCharactersPerLine: 200,
-            ...options,
-        })
+    private get explanation() {
+        const {
+            tableDescription,
+            transformCategory,
+            numColumns,
+            numRows,
+            timeToLoad,
+            betweenTime,
+            numColsToParse,
+            numColsToCompute,
+        } = this
+        return {
+            tableDescription,
+            transformCategory,
+            numColumns,
+            numRows,
+            timeToLoad,
+            betweenTime,
+            numColsToParse,
+            numColsToCompute,
+        }
+    }
+
+    explain() {
+        console.table(this.ancestors.map((tb) => tb.explanation))
     }
 
     // Output a pretty table for consles

@@ -58,12 +58,9 @@ describe("explain", () => {
     const table = CoreTable.fromDelimited(sampleCsv).withoutColumns([
         "population",
     ])
-    it("transforms have an index", () => {
-        expect(table.stepNumber).toEqual(1)
-    })
 
     it("explain short has a row for each transform", () => {
-        expect(table.explain().split("\n").length).toEqual(3)
+        expect(table.ancestors.length).toEqual(3)
     })
 
     it("explain long contains useful info like Javscript types and perf info", () => {
