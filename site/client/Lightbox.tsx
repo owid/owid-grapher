@@ -9,7 +9,6 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons/faDownload"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LoadingIndicator } from "grapher/loadingIndicator/LoadingIndicator"
-import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink/ProminentLink"
 
 const Lightbox = ({
     children,
@@ -138,11 +137,7 @@ export const runLightbox = () => {
     Array.from(
         document.querySelectorAll<HTMLImageElement>(".article-content img")
     ).forEach((img) => {
-        if (
-            img.closest(`.${PROMINENT_LINK_CLASSNAME}`) ||
-            img.closest("[data-no-lightbox]")
-        )
-            return
+        if (img.closest("[data-no-lightbox]")) return
 
         img.classList.add("lightbox-enabled")
         img.addEventListener("click", () => {
