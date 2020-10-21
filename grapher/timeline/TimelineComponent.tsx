@@ -220,7 +220,7 @@ export class TimelineComponent extends React.Component<{
     private formatTime(time: number) {
         return this.manager.formatTimeFn
             ? this.manager.formatTimeFn(time)
-            : time
+            : time.toString()
     }
 
     private timelineEdgeMarker(markerType: "start" | "end") {
