@@ -732,6 +732,9 @@ export class CovidExplorer
             property: DimensionProperty.y,
             slug: yColumn.slug,
             variableId: 0,
+            display: {
+                tolerance: yColumn.def.display?.tolerance ?? 10,
+            },
         }
     }
 
@@ -772,11 +775,13 @@ export class CovidExplorer
                 ? ColorScaleOptions.continents
                 : this.shortTermPositivityRateSlug
 
-        // todo: tolerance 10
         return {
             property: DimensionProperty.color,
             slug,
             variableId: 0,
+            display: {
+                tolerance: 10,
+            },
         }
     }
 

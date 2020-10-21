@@ -219,7 +219,11 @@ export class CovidExplorerTable extends OwidTable {
             this.paramsForDataTableColumns(params).map((params) =>
                 this.makeColumnDefsFromParams(params)
             )
-        )
+        ).map((def) => {
+            if (!def.display) def.display = {}
+            def.display.tolerance = 10
+            return def
+        })
     }
 
     filterNegatives(slug: ColumnSlug) {
