@@ -4,7 +4,7 @@ import { PointVector } from "grapher/utils/PointVector"
 import { MapProjectionName } from "./MapProjections"
 import { ChartManager } from "grapher/chart/ChartManager"
 import { MapConfig } from "./MapConfig"
-import { ColumnSlug } from "coreTable/CoreTableConstants"
+import { ColumnSlug, Time } from "coreTable/CoreTableConstants"
 import { SeriesName } from "grapher/core/GrapherConstants"
 
 export type GeoFeature = GeoJSON.Feature<GeoJSON.GeometryObject>
@@ -54,4 +54,5 @@ export interface MapChartManager extends ChartManager {
     mapIsClickable?: boolean
     currentTab?: string // Used to switch to chart tab on map click
     mapConfig?: MapConfig
+    endTime?: Time
 }

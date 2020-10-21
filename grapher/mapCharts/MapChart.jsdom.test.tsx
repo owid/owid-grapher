@@ -8,12 +8,13 @@ import { MapChartManager } from "./MapChartConstants"
 import { MapChart } from "./MapChart"
 
 const table = SynthesizeGDPTable({
-    timeRange: [2000, 2010],
+    timeRange: [2000, 2001],
     entityNames: ["France", "Germany"],
 })
 const manager: MapChartManager = {
     table,
     mapColumnSlug: SampleColumnSlugs.Population,
+    endTime: 2000,
 }
 
 test("can create a new Map chart", () => {

@@ -9,7 +9,6 @@ import {
     NumericColorLegendManager,
 } from "grapher/mapCharts/MapColorLegends"
 import {
-    findClosestTime,
     flatten,
     getRelativeMouse,
     isString,
@@ -19,6 +18,7 @@ import {
     minBy,
     difference,
     uniq,
+    excludeUndefined,
 } from "grapher/utils/Util"
 import { MapProjectionName, MapProjectionGeos } from "./MapProjections"
 import { select } from "d3-selection"
@@ -86,11 +86,15 @@ export class MapChart
     @observable focusBracket?: MapBracket
 
     transformTable(table: OwidTable) {
-        const tolerance = this.mapConfig.timeTolerance
-        if (tolerance !== undefined) {
-            // TODO fillTolerance transform on map column
-        }
+        const entityNamesToSelect = table.availableEntityNames.filter(
+            isOnTheMap
+        )
         return table
+            .filterByEntityNames(entityNamesToSelect)
+            .interpolateColumnWithTolerance(
+                this.mapColumnSlug,
+                this.mapConfig.timeTolerance
+            )
     }
 
     @computed get inputTable() {
@@ -118,6 +122,10 @@ export class MapChart
             this.manager.mapColumnSlug ??
             autoDetectYColumnSlugs(this.manager)[0]!
         )
+    }
+
+    @computed private get targetTime() {
+        return this.manager.endTime
     }
 
     @computed get bounds() {
@@ -198,37 +206,19 @@ export class MapChart
     }
 
     @computed get series(): ChoroplethSeries[] {
-        const { mapConfig, mapColumn, transformedTable } = this
+        const { mapConfig, mapColumn, transformedTable, targetTime } = this
         if (!mapColumn) return []
-        const endTime = mapColumn.maxTime
-        if (endTime === undefined) return []
-
-        const valueByEntityAndTime = mapColumn.valueByEntityNameAndTime
-        const tolerance = mapConfig.timeTolerance ?? 0
-        const countriesOnTheMap = mapColumn.uniqEntityNames.filter((name) =>
-            isOnTheMap(name)
-        )
+        if (targetTime === undefined) return []
 
         const customLabels = mapConfig.tooltipUseCustomLabels
             ? this.colorScale.customNumericLabels
             : []
 
-        return countriesOnTheMap
-            .map((entityName) => {
-                const valueByTime = valueByEntityAndTime.get(entityName)
-                if (!valueByTime) return
-                const time = findClosestTime(
-                    Array.from(valueByTime.keys()),
-                    endTime,
-                    tolerance
-                )
-                if (time === undefined) return
-                const value = valueByTime.get(time)
-                if (value === undefined) return
-
+        return excludeUndefined(
+            mapColumn.owidRows.map((row) => {
+                const { entityName, value, time } = row
                 const color = this.colorScale.getColor(value) || "red" // todo: color fix
-                if (!color) return
-
+                if (!color) return undefined
                 return {
                     seriesName: entityName,
                     displayValue:
@@ -241,7 +231,7 @@ export class MapChart
                     highlightFillColor: color,
                 }
             })
-            .filter((i) => i) as ChoroplethSeries[]
+        )
     }
 
     @computed private get seriesMap() {
@@ -494,6 +484,7 @@ export class MapChart
                         tooltipTarget={tooltipTarget}
                         manager={this.manager}
                         colorScale={this.colorScale}
+                        targetTime={this.targetTime}
                     />
                 )}
             </g>
