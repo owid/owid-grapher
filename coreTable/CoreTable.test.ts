@@ -59,8 +59,8 @@ describe("explain", () => {
         "population",
     ])
 
-    it("explain short has a row for each transform", () => {
-        expect(table.ancestors.length).toEqual(3)
+    it("tables have access to their ancestors", () => {
+        expect(table.ancestors.length).toEqual(2)
     })
 
     it("explain long contains useful info like Javscript types and perf info", () => {
