@@ -25,10 +25,11 @@
     }
 
     .title {
+        margin-bottom: $vertical-spacing / 2;
         font-family: $serif-font-stack;
         font-size: 1.3rem;
         font-weight: bold;
-        margin-bottom: $vertical-spacing / 4;
+        line-height: 1.2;
     }
 
     .description {
