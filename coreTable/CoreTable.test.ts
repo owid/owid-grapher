@@ -314,7 +314,7 @@ it("can get all defined values for a column", () => {
         [{ type: ColumnTypeNames.Numeric, slug: "pop" }]
     )
     expect(table.get("pop")?.numValues).toEqual(1)
-    expect(table.get("pop")?.numParseErrors).toEqual(1)
+    expect(table.get("pop")?.numInvalidCells).toEqual(1)
     expect(table.numColumnsWithParseErrors).toEqual(1)
 })
 

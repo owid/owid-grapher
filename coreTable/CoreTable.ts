@@ -387,7 +387,7 @@ export class CoreTable<
     }
 
     @computed private get columnsWithParseErrors() {
-        return this.columnsAsArray.filter((col) => col.numParseErrors)
+        return this.columnsAsArray.filter((col) => col.numInvalidCells)
     }
 
     @computed get numColumnsWithParseErrors() {

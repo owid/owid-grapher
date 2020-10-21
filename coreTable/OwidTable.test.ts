@@ -385,14 +385,35 @@ describe("relative mode", () => {
         timeRange: [2000, 2002],
     })
 
-    let firstRow = table.rows[0]
-    expect(firstRow.Fruit).toBeGreaterThan(400)
+    table.rows.forEach((row) => {
+        expect(row.Fruit).toBeGreaterThan(100)
+    })
     table = table.toPercentageFromEachColumnForEachEntityAndTime([
-        "Fruit",
-        "Vegetables",
+        SampleColumnSlugs.Fruit,
+        SampleColumnSlugs.Vegetables,
     ])
-    firstRow = table.rows[0]
-    expect(Math.round(firstRow.Fruit + firstRow.Vegetables)).toEqual(100)
+    table.rows.forEach((row) => {
+        expect(Math.round(row.Fruit + row.Vegetables)).toEqual(100)
+    })
+
+    it("works with missing values", () => {
+        let table = SynthesizeFruitTable({
+            entityCount: 2,
+            timeRange: [2000, 2002],
+        }).replaceRandomCells(
+            1,
+            [SampleColumnSlugs.Fruit, SampleColumnSlugs.Vegetables],
+            1
+        )
+
+        table = table.toPercentageFromEachColumnForEachEntityAndTime([
+            SampleColumnSlugs.Fruit,
+            SampleColumnSlugs.Vegetables,
+        ])
+        expect(
+            table.get(SampleColumnSlugs.Fruit)?.summary.numInvalidCells
+        ).toEqual(1)
+    })
 })
 
 describe("time domain", () => {

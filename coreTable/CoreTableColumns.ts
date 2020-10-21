@@ -30,7 +30,7 @@ import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 
 interface ColumnSummary {
-    numParseErrors: number
+    numInvalidCells: number
     numUniqs: number
     numValues: number
 }
@@ -82,9 +82,9 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: switch to a lib and/or add tests for this. handle non numerics better.
     @computed get summary() {
-        const { numParseErrors, numValues, numUniqs } = this
+        const { numInvalidCells, numValues, numUniqs } = this
         const basicSummary: ColumnSummary = {
-            numParseErrors,
+            numInvalidCells,
             numUniqs,
             numValues,
         }
@@ -324,7 +324,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return last(this.valuesAscending)!
     }
 
-    @computed get numParseErrors() {
+    @computed get numInvalidCells() {
         return this.allValues.length - this.numValues
     }
 

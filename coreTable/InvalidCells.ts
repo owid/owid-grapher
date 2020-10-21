@@ -22,6 +22,7 @@ class UndefinedButShouldBeString extends InvalidCell {}
 class NullButShouldBeString extends InvalidCell {}
 class NotAParseableNumberButShouldBeNumber extends InvalidCell {}
 class MissingValuePlaceholder extends InvalidCell {}
+class DivideByZeroError extends InvalidCell {}
 
 export const InvalidCellTypes = {
     NaNButShouldBeNumber: new NaNButShouldBeNumber(),
@@ -34,4 +35,10 @@ export const InvalidCellTypes = {
     NullButShouldBeString: new NullButShouldBeString(),
     MissingValuePlaceholder: new MissingValuePlaceholder(),
     NotAParseableNumberButShouldBeNumber: new NotAParseableNumberButShouldBeNumber(),
+    DivideByZeroError: new DivideByZeroError(),
 }
+
+// https://github.com/robertmassaioli/ts-is-present
+// A predicate for filtering an array of valid and invalid cells that returns the correct type
+export const isValid = <TYPE>(item: TYPE | InvalidCell): item is TYPE =>
+    !(item instanceof InvalidCell)

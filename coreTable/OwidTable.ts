@@ -40,7 +40,7 @@ import {
     RequiredColumnDefs,
 } from "./OwidTableConstants"
 import { legacyToOwidTable, makeAnnotationsSlug } from "./LegacyToOwidTable"
-import { InvalidCell } from "./InvalidCells"
+import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
 import {
     AlignedTextTableOptions,
     toAlignedTextTable,
@@ -319,7 +319,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    // If you want to see how much each column contributed to that entity for that year, use this.
+    // If you want to see how much each column contributed to the entity for that year, use this.
+    // NB: Uses absolute value. So if one entity added 100, and another -100, they both would have contributed "50%" to that year.
+    // Otherwise we'd have NaN.
     toPercentageFromEachColumnForEachEntityAndTime(columnSlugs: ColumnSlug[]) {
         const newDefs = this.defs.map((def) => {
             if (columnSlugs.includes(def.slug))
@@ -331,16 +333,27 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                 const newRow = {
                     ...row,
                 }
-                const total = sum(columnSlugs.map((slug) => row[slug]))
+                const total = sum(
+                    columnSlugs
+                        .map((slug) => row[slug])
+                        .filter(isValid)
+                        .map((val) => Math.abs(val))
+                )
                 columnSlugs.forEach((slug) => {
-                    newRow[slug] = (100 * row[slug]) / total
+                    const value =
+                        total === 0
+                            ? InvalidCellTypes.DivideByZeroError
+                            : row[slug]
+                    newRow[slug] = isValid(value)
+                        ? (100 * value) / total
+                        : value
                 })
                 return newRow
             }),
             newDefs,
             {
                 parent: this,
-                tableDescription: `Transformed columns from absolute values to % of sum of ${columnSlugs.join(
+                tableDescription: `Transformed columns from absolute numbers to % of abs sum of ${columnSlugs.join(
                     ","
                 )} `,
                 transformCategory: TransformType.UpdateColumnDefs,
