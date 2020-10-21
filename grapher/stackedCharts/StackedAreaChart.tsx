@@ -307,7 +307,7 @@ export class StackedAreaChart
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
 
         // If some data is missing, don't calculate a total
-        const somePointsMissingForYear = series.some(
+        const somePointsMissingForHoveredTime = series.some(
             (series) => series.points[hoveredPointIndex].fake
         )
 
@@ -317,6 +317,9 @@ export class StackedAreaChart
             display: "inline-block",
             marginRight: "2px",
         }
+
+        const lastStackedPoint = last(series)!.points[hoveredPointIndex]
+        const totalValue = lastStackedPoint.y + lastStackedPoint.yOffset
 
         return (
             <Tooltip
@@ -368,7 +371,7 @@ export class StackedAreaChart
                                         {series.seriesName}
                                     </td>
                                     <td style={{ textAlign: "right" }}>
-                                        {!point.fake
+                                        {point.fake
                                             ? "No data"
                                             : this.formatYTick(point.y)}
                                     </td>
@@ -376,7 +379,7 @@ export class StackedAreaChart
                             )
                         })}
                         {/* Total */}
-                        {!somePointsMissingForYear && (
+                        {!somePointsMissingForHoveredTime && (
                             <tr>
                                 <td style={{ fontSize: "0.9em" }}>
                                     <div
@@ -390,10 +393,7 @@ export class StackedAreaChart
                                 <td style={{ textAlign: "right" }}>
                                     <span>
                                         <strong>
-                                            {this.formatYTick(
-                                                series[series.length - 1]
-                                                    .points[hoveredPointIndex].y
-                                            )}
+                                            {this.formatYTick(totalValue)}
                                         </strong>
                                     </span>
                                 </td>
