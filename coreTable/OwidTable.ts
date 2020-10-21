@@ -235,7 +235,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterByTime(start: TimeBound, end: TimeBound): this {
+    filterByTimeRange(start: TimeBound, end: TimeBound): this {
         // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime! : end

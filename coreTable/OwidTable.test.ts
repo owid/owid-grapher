@@ -258,8 +258,8 @@ describe("time filtering", () => {
         })
 
         expect(table.numRows).toBe(10)
-        expect(table.filterByTime(2000, 2003).numRows).toBe(8)
-        expect(table.filterByTime(2000, 2000).numRows).toBe(2)
+        expect(table.filterByTimeRange(2000, 2003).numRows).toBe(8)
+        expect(table.filterByTimeRange(2000, 2000).numRows).toBe(2)
     })
 
     it("can get time options", () => {
@@ -292,9 +292,9 @@ usa,1,usa,-5,1`
         })
 
         expect(table.numRows).toBe(10)
-        expect(table.filterByTime(Infinity, Infinity).numRows).toBe(2)
-        expect(table.filterByTime(-Infinity, -Infinity).numRows).toBe(2)
-        expect(table.filterByTime(-Infinity, Infinity).numRows).toBe(10)
+        expect(table.filterByTimeRange(Infinity, Infinity).numRows).toBe(2)
+        expect(table.filterByTimeRange(-Infinity, -Infinity).numRows).toBe(2)
+        expect(table.filterByTimeRange(-Infinity, Infinity).numRows).toBe(10)
     })
 
     it("can filter by time target", () => {
