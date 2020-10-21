@@ -1406,6 +1406,12 @@ export class Grapher
         return undefined
     }
 
+    private get commandPalette() {
+        return this.enableKeyboardShortcuts ? (
+            <CommandPalette commands={this.keyboardShortcuts} display="none" />
+        ) : null
+    }
+
     private renderReady() {
         return (
             <>
@@ -1418,7 +1424,6 @@ export class Grapher
                     height={this.renderHeight}
                     tooltipProvider={this}
                 />
-                {this.renderKeyboardShortcuts()}
                 {this.isSelectingData && (
                     <EntitySelectorModal
                         canChangeEntity={this.canChangeEntity}
@@ -1434,27 +1439,12 @@ export class Grapher
 
     private enableKeyboardShortcuts = false
 
-    private renderKeyboardShortcuts() {
-        if (!this.enableKeyboardShortcuts) return null
-        return (
-            <CommandPalette commands={this.keyboardShortcuts} display="none" />
-        )
-    }
-
     formatTimeFn(time: Time) {
         return this.inputTable.timeColumnFormatFunction(time)
     }
 
     @action.bound private toggleTabCommand() {
         this.currentTab = next(this.availableTabs, this.currentTab)
-    }
-
-    @action.bound private toggleKeyboardHelpCommand() {
-        const element = document.getElementsByClassName(
-            "CommandPalette"
-        )[0] as HTMLElement
-        element.style.display =
-            element.style.display === "none" ? "block" : "none"
     }
 
     @action.bound private togglePlayingCommand() {
@@ -1475,7 +1465,7 @@ export class Grapher
             },
             {
                 combo: "?",
-                fn: () => this.toggleKeyboardHelpCommand(),
+                fn: () => CommandPalette.togglePalette(),
                 title: `Toggle Help`,
                 category: "Navigation",
             },
@@ -1692,6 +1682,7 @@ export class Grapher
 
         return (
             <div ref={this.base} className={this.classNames} style={style}>
+                {this.commandPalette}
                 {this.hasError ? this.renderError() : this.renderReady()}
             </div>
         )

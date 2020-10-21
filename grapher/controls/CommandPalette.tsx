@@ -12,11 +12,22 @@ export interface Command {
     category?: string
 }
 
+const CommandPaletteClassName = "CommandPalette"
+
 @observer
 export class CommandPalette extends React.Component<{
     commands: Command[]
     display: "none" | "block"
 }> {
+    static togglePalette() {
+        const element = document.getElementsByClassName(
+            CommandPaletteClassName
+        )[0] as HTMLElement
+        if (element)
+            element.style.display =
+                element.style.display === "none" ? "block" : "none"
+    }
+
     render() {
         const style: any = {
             display: this.props.display,
@@ -48,7 +59,7 @@ export class CommandPalette extends React.Component<{
 
         return (
             <BodyDiv>
-                <div className="CommandPalette" style={style}>
+                <div className={CommandPaletteClassName} style={style}>
                     <div className="paletteTitle">Keyboard Shortcuts</div>
                     {sortedCommands}
                 </div>
