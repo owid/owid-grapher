@@ -569,6 +569,10 @@ class PercentageColumn extends NumericColumn {
         })
     }
 
+    formatValueLong(value: number) {
+        return this.formatValue(value)
+    }
+
     formatValueShort(value: any) {
         return this.formatValue(value)
     }

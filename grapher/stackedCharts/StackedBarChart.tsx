@@ -22,19 +22,20 @@ import {
     AbstactStackedChart,
     AbstactStackedChartProps,
 } from "./AbstractStackedChart"
-import { StackedPoint } from "./StackedConstants"
+import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint
+    series: StackedSeries
     color: string
     opacity: number
     yAxis: VerticalAxis
     xOffset: number
     barWidth: number
-    onBarMouseOver: (bar: StackedPoint) => void
+    onBarMouseOver: (bar: StackedPoint, series: StackedSeries) => void
     onBarMouseLeave: () => void
 }
 
@@ -60,7 +61,7 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @action.bound onBarMouseOver() {
         this.mouseOver = true
-        this.props.onBarMouseOver(this.props.bar)
+        this.props.onBarMouseOver(this.props.bar, this.props.series)
     }
 
     @action.bound onBarMouseLeave() {
@@ -102,6 +103,7 @@ export class StackedBarChart
     @observable hoverColor?: string
     // current hovered individual bar
     @observable hoverBar?: StackedPoint
+    @observable hoverSeries?: StackedSeries
 
     @computed private get baseFontSize() {
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
@@ -203,6 +205,8 @@ export class StackedBarChart
             barWidth,
             dualAxis,
             yColumns,
+            inputTable,
+            hoverSeries,
         } = this
         if (hoverBar === undefined) return
 
@@ -211,6 +215,7 @@ export class StackedBarChart
 
         const yPos = dualAxis.verticalAxis.place(hoverBar.yOffset + hoverBar.y)
 
+        const yColumn = yColumns[0] // we can just use the first column for formatting, b/c we assume all columns have same type
         return (
             <Tooltip
                 tooltipManager={this.props.manager}
@@ -228,8 +233,7 @@ export class StackedBarChart
                         fontSize: "1em",
                     }}
                 >
-                    {/* todo: add label back */}
-                    {/* {hoverBar.label} */}
+                    {hoverSeries?.seriesName}
                 </h3>
                 <p
                     style={{
@@ -238,12 +242,12 @@ export class StackedBarChart
                         fontSize: "0.8em",
                     }}
                 >
-                    <span>{yColumns[0].formatValueLong(hoverBar.y)}</span>
+                    <span>{yColumn.formatValueLong(hoverBar.y)}</span>
                     <br />
                     in
                     <br />
                     <span>
-                        {this.inputTable.timeColumnFormatFunction(hoverBar.x)}
+                        {inputTable.timeColumnFormatFunction(hoverBar.x)}
                     </span>
                 </p>
             </Tooltip>
@@ -316,8 +320,9 @@ export class StackedBarChart
 
     @action.bound onLegendClick() {}
 
-    @action.bound onBarMouseOver(bar: StackedPoint) {
+    @action.bound onBarMouseOver(bar: StackedPoint, series: StackedSeries) {
         this.hoverBar = bar
+        this.hoverSeries = series
     }
 
     @action.bound onBarMouseLeave() {
@@ -439,6 +444,7 @@ export class StackedBarChart
                                             xOffset={xPos}
                                             opacity={barOpacity}
                                             yAxis={verticalAxis}
+                                            series={series}
                                             onBarMouseOver={this.onBarMouseOver}
                                             onBarMouseLeave={
                                                 this.onBarMouseLeave
