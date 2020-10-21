@@ -16,8 +16,4 @@
     @include lg-up {
         grid-template-columns: repeat(4, 1fr);
     }
-
-    .wp-block-owid-prominent-link {
-        margin: 0 !important;
-    }
 }
