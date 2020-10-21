@@ -1081,13 +1081,14 @@ export const isPresent = <T>(t: T | undefined | null | void): t is T =>
 
 export function fillUndefinedWithClosest<
     ValueSlug extends ColumnSlug,
-    TimeSlug extends ColumnSlug
+    TimeSlug extends ColumnSlug,
+    Row extends { [key in TimeSlug]?: number } & { [key in ValueSlug]?: any }
 >(
-    rows: ({ [key in TimeSlug]?: number } & { [key in ValueSlug]?: any })[],
+    rows: Row[],
     valueSlug: ValueSlug,
     timeSlug: TimeSlug,
     timeTolerance: number
-): any[] {
+): Row[] {
     if (!rows.length) return rows
 
     let prevNonBlankIndex: number | undefined = undefined
