@@ -306,10 +306,6 @@ export class CoreTable<
         return difference(this.inputColumnDefs, this.parent.defs)
     }
 
-    private get totalTime(): number {
-        return this.timeToLoad + (this.parent ? this.parent.totalTime : 0)
-    }
-
     // Time between when the parent table finished loading and this table started constructing.
     // A large time may just be due to a transform only happening after a user action, or it
     // could be do to other sync code executing between transforms.
@@ -599,7 +595,16 @@ export class CoreTable<
 
     dump() {
         // eslint-disable-next-line no-console
+        console.table(this.ancestors.map((tb) => tb.explanation))
+        // eslint-disable-next-line no-console
+        console.table(this.explainColumns)
+        // eslint-disable-next-line no-console
         console.table(this.rows, this.columnSlugs)
+    }
+
+    dumpInputTable() {
+        // eslint-disable-next-line no-console
+        console.table(this.inputAsTable)
     }
 
     @computed private get isInputFromRowsOrCsv() {
@@ -616,70 +621,32 @@ export class CoreTable<
             : columnStoreToRows(this.inputAsColumnStore)
     }
 
-    private _explainLong(
-        showRows = 10,
-        options?: AlignedTextTableOptions
-    ): string {
-        const rowCount = this.numRows
-        const showRowsClamped = showRows > rowCount ? rowCount : showRows
-        const colTable = this.columnsAsArray.map((col) => {
+    private get explainColumns() {
+        return this.columnsAsArray.map((col) => {
+            const {
+                slug,
+                jsType,
+                name,
+                numValues,
+                numInvalidCells,
+                displayName,
+                def,
+            } = col
             return {
-                slug: col.slug,
-                type: col.def.type,
-                jsType: col.jsType,
-                name: col.name,
-                count: col.numValues,
+                slug,
+                type: def.type,
+                jsType,
+                name,
+                numValues,
+                numInvalidCells,
+                displayName,
+                color: def.color,
             }
         })
-
-        const inputAsTable = this.inputAsTable
-
-        const inputTable = inputAsTable.length
-            ? toAlignedTextTable(
-                  Object.keys(inputAsTable[0]),
-                  inputAsTable.slice(0, showRows),
-                  options
-              )
-            : ""
-
-        const tableDescription = this.isRoot()
-            ? `${this.oneLiner()}\n\n${inputTable}\n\n\n\n# Root Table:\n`
-            : `\n\n\n\n\n\n## ${this.oneLiner()}\n\n`
-
-        return [
-            tableDescription,
-            `${this.numColumns} Columns. ${rowCount} Rows. ${showRowsClamped} shown below. ${this.selectedRows.size} selected. \n`,
-            toAlignedTextTable(
-                ["slug", "type", "jsType", "name", "count"],
-                colTable,
-                options
-            ) + "\n\n",
-            toAlignedTextTable(
-                this.columnSlugs,
-                this.rows.slice(0, showRowsClamped),
-                options
-            ),
-        ].join("")
-    }
-
-    private oneLiner() {
-        const stepNumber = this.ancestors.length
-        return `${stepNumber}. ${this.transformCategory}: ${
-            this.tableDescription ? this.tableDescription + ". " : ""
-        }${this.numColumns} Columns ${this.inputAsTable.length} Rows. ${
-            this.timeToLoad
-        }ms.`
     }
 
     get ancestors(): this[] {
         return this.parent ? [...this.parent.ancestors, this] : [this]
-    }
-
-    explainLong(showRows = 10, options?: AlignedTextTableOptions): string {
-        return (
-            (this.parent ? this.parent.explainLong(showRows, options) : "") +
-            this._explainLong(showRows, options)
-        )
     }
 
     @computed private get numColsToParse() {
@@ -690,6 +657,7 @@ export class CoreTable<
     private guid = ++CoreTable.guids
 
     private get explanation() {
+        // todo: is there a better way to do this in JS?
         const {
             tableDescription,
             transformCategory,
@@ -718,10 +686,6 @@ export class CoreTable<
             numInvalidCells,
             numColumnsWithInvalidCells,
         }
-    }
-
-    explain() {
-        console.table(this.ancestors.map((tb) => tb.explanation))
     }
 
     // Output a pretty table for consles

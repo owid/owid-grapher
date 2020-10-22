@@ -80,10 +80,13 @@ export class SlopeChart
         return this.manager.baseFontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get colorBins() {
-        return this.colorScale.legendBins.filter((bin) =>
-            this.colorsInUse.includes(bin.color)
-        )
+    @computed get legendItems() {
+        return this.series.map((series) => {
+            return {
+                label: series.seriesName,
+                color: series.color,
+            }
+        })
     }
 
     @computed get maxLegendWidth() {

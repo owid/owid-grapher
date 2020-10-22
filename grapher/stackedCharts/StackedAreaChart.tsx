@@ -475,7 +475,11 @@ export class StackedAreaChart
     }
 
     getColorForSeries(seriesName: SeriesName) {
-        return this.colorScheme(seriesName)
+        const table = this.transformedTable
+        const color = this.isEntitySeries
+            ? table.getColorForEntityName(seriesName)
+            : table.getColorForColumnByDisplayName(seriesName)
+        return color ?? this.colorScheme(seriesName) ?? "#ddd"
     }
 
     @computed get series() {

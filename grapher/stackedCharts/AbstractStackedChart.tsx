@@ -208,12 +208,6 @@ export class AbstactStackedChart
         return ""
     }
 
-    getSelectionColor(seriesName: SeriesName, index: number) {
-        return this.isEntitySeries
-            ? this.transformedTable.getColorForEntityName(seriesName)
-            : this.yColumns[index].def.color
-    }
-
     getColorForSeries(seriesName: SeriesName) {
         return "#ddd"
     }
@@ -239,7 +233,7 @@ export class AbstactStackedChart
     @computed get unstackedSeries() {
         const seriesArr = this.rawSeries
             .filter((series) => series.rows.length)
-            .map((series, index) => {
+            .map((series) => {
                 const { isProjection, seriesName, rows } = series
                 return {
                     seriesName,
@@ -251,9 +245,7 @@ export class AbstactStackedChart
                             yOffset: 0,
                         }
                     }),
-                    color:
-                        this.getSelectionColor(seriesName, index) ??
-                        this.getColorForSeries(seriesName),
+                    color: this.getColorForSeries(seriesName),
                 } as StackedSeries
             })
 

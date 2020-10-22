@@ -339,7 +339,7 @@ export class ScatterPlotChart
         return this.transformedTable.get(this.manager.colorColumnSlug)
     }
 
-    @computed get colorBins() {
+    @computed get legendItems() {
         return this.colorScale.legendBins.filter((bin) =>
             this.colorsInUse.includes(bin.color)
         )

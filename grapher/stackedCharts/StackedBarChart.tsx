@@ -165,15 +165,15 @@ export class StackedBarChart
         )
     }
 
-    // Only show colors on legend that are actually in use
-    @computed private get colorsInUse() {
-        return uniq(this.series.map((series) => series.color))
-    }
-
-    @computed get colorBins() {
-        return this.colorScale.legendBins.filter(
-            (bin) => true // todo: we can have custom colors and these seem to be getting filtered out. this.colorsInUse.includes(bin.color)
-        )
+    @computed get legendItems() {
+        return this.series
+            .map((series) => {
+                return {
+                    label: series.seriesName,
+                    color: series.color,
+                }
+            })
+            .reverse() // Vertical legend orders things in the opposite direction we want
     }
 
     @computed get maxLegendWidth() {
@@ -481,7 +481,11 @@ export class StackedBarChart
     }
 
     getColorForSeries(seriesName: SeriesName) {
-        return this.colorScale.getColor(seriesName) ?? "#ddd"
+        const table = this.transformedTable
+        const color = this.isEntitySeries
+            ? table.getColorForEntityName(seriesName)
+            : table.getColorForColumnByDisplayName(seriesName)
+        return color ?? this.colorScale.getColor(seriesName) ?? "#ddd"
     }
 
     @computed get colorScaleConfig() {

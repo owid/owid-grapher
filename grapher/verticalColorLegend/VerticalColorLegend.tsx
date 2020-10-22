@@ -3,14 +3,13 @@ import { sum, max } from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { TextWrap } from "grapher/text/TextWrap"
-import { ColorScaleBin } from "grapher/color/ColorScaleBin"
 import { BASE_FONT_SIZE } from "grapher/core/GrapherConstants"
 import { Color } from "coreTable/CoreTableConstants"
 
 export interface VerticalColorLegendManager {
     maxLegendWidth?: number
     fontSize?: number
-    colorBins: ColorScaleBin[]
+    legendItems: LegendItem[]
     title?: string
     onLegendMouseOver?: (color: string) => void
     onLegendClick?: (color: string) => void
@@ -21,8 +20,13 @@ export interface VerticalColorLegendManager {
     focusColors?: Color[]
 }
 
-interface LegendSeries {
-    label: TextWrap
+interface LegendItem {
+    label?: string
+    color: Color
+}
+
+interface SizedLegendSeries {
+    textWrap: TextWrap
     color: Color
     width: number
     height: number
@@ -68,21 +72,21 @@ export class VerticalColorLegend extends React.Component<{
     @computed private get series() {
         const { manager, fontSize, rectSize, rectPadding } = this
 
-        return manager.colorBins
-            .map((bin) => {
-                const label = new TextWrap({
+        return manager.legendItems
+            .map((series) => {
+                const textWrap = new TextWrap({
                     maxWidth: this.maxLegendWidth,
                     fontSize,
-                    text: bin.label || "",
+                    text: series.label ?? "",
                 })
                 return {
-                    label,
-                    color: bin.color,
-                    width: rectSize + rectPadding + label.width,
-                    height: Math.max(label.height, rectSize),
+                    textWrap,
+                    color: series.color,
+                    width: rectSize + rectPadding + textWrap.width,
+                    height: Math.max(textWrap.height, rectSize),
                 }
             })
-            .filter((v) => !!v) as LegendSeries[]
+            .filter((v) => !!v) as SizedLegendSeries[]
     }
 
     @computed get width() {
@@ -169,7 +173,7 @@ export class VerticalColorLegend extends React.Component<{
                                     height={rectSize}
                                     fill={isActive ? series.color : undefined}
                                 />
-                                {series.label.render(
+                                {series.textWrap.render(
                                     x + rectSize + rectPadding,
                                     y + markOffset,
                                     isFocus

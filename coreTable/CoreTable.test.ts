@@ -62,11 +62,6 @@ describe("explain", () => {
     it("tables have access to their ancestors", () => {
         expect(table.ancestors.length).toEqual(2)
     })
-
-    it("explain long contains useful info like Javscript types and perf info", () => {
-        expect(table.explainLong()).toContain("jsType")
-        expect(table.explainLong()).toContain("ms")
-    })
 })
 
 it("it always parses all values in all rows to Javascript primitives when the table is initially loaded", () => {

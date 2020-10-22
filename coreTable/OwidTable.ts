@@ -17,6 +17,7 @@ import {
     sortedIndexBy,
     last,
     intersection,
+    keyBy,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -554,6 +555,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             entityName,
             OwidTableSlugs.entityColor
         )
+    }
+
+    @computed get columnDisplayNameToColorMap() {
+        return keyBy(this.columnsAsArray, (col) => col.displayName)
+    }
+
+    getColorForColumnByDisplayName(displayName: string) {
+        return this.columnDisplayNameToColorMap[displayName]?.def.color
     }
 
     // This assumes the table is sorted where the times for entity names go in asc order.

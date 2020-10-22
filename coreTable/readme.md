@@ -24,7 +24,7 @@ Update: Arquero (https://github.com/uwdata/arquero) looks like a promising new a
 
 Tables are just traditional tables with rows and columns. Currently storage is row based and columns are generated on the fly, but likely we will inverse that.
 
-Below is an example CoreTable, pretty printed with `table.explain()`:
+Below is an example CoreTable, pretty printed with `table.dump()`:
 
 ```
  entityName entityId entityCode year   people time
