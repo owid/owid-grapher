@@ -58,6 +58,7 @@ import {
 } from "./WorldRegionsToProjection"
 import { OwidTable } from "coreTable/OwidTable"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -114,11 +115,8 @@ export class MapChart
 
     @computed get mapColumnSlug() {
         return (
-            this.manager.mapColumnSlug ||
-            this.manager.yColumnSlug ||
-            (this.manager.yColumnSlugs?.length
-                ? this.manager.yColumnSlugs[0]
-                : this.inputTable.numericColumnSlugs[0])
+            this.manager.mapColumnSlug ??
+            autoDetectYColumnSlugs(this.manager)[0]!
         )
     }
 
