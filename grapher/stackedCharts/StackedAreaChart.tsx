@@ -10,7 +10,7 @@ import {
 } from "grapher/utils/Util"
 import { computed, action, observable } from "mobx"
 import { scaleOrdinal } from "d3-scale"
-import { SeriesStrategy, SeriesName } from "grapher/core/GrapherConstants"
+import { SeriesName } from "grapher/core/GrapherConstants"
 import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "grapher/axis/AxisViews"
@@ -465,20 +465,17 @@ export class StackedAreaChart
             (this.manager.baseColorScheme
                 ? ColorSchemes[this.manager.baseColorScheme]
                 : null) ?? ColorSchemes.stackedAreaDefault
-        const seriesCount =
-            this.seriesStrategy === SeriesStrategy.entity
-                ? this.transformedTable.numSelectedEntities
-                : this.yColumns.length
+        const seriesCount = this.isEntitySeries
+            ? this.transformedTable.numSelectedEntities
+            : this.yColumns.length
         const baseColors = scheme.getColors(seriesCount)
+        if (!this.isEntitySeries) baseColors.reverse() // I don't know why
         if (this.manager.invertColorScheme) baseColors.reverse()
         return scaleOrdinal(baseColors)
     }
 
     getColorForSeries(seriesName: SeriesName) {
-        return (
-            this.transformedTable.getColorForEntityName(seriesName) ||
-            this.colorScheme(seriesName)
-        )
+        return this.colorScheme(seriesName)
     }
 
     @computed get series() {

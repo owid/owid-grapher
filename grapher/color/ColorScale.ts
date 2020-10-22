@@ -319,8 +319,8 @@ export class ColorScale {
                 ? 0
                 : bucketMaximums.length - 1
             const baseColor = baseColors[index + boundingOffset]
-            const color = customCategoryColors[value] || baseColor
-            const label = customCategoryLabels[value] || value
+            const color = customCategoryColors[value] ?? baseColor
+            const label = customCategoryLabels[value] ?? value
 
             return new CategoricalBin({
                 index,
@@ -332,6 +332,7 @@ export class ColorScale {
         })
     }
 
+    // todo: why do we need bind here?
     @bind getColor(value: number | string | undefined) {
         return value === undefined
             ? this.customCategoryColors[NO_DATA_LABEL]

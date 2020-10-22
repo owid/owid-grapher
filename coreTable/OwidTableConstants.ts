@@ -38,7 +38,6 @@ export interface OwidColumnDef extends CoreColumnDef {
     source?: OwidSource
     isDailyMeasurement?: boolean // todo: remove after mysql time refactor
     annotationsColumnSlug?: ColumnSlug
-    color?: Color // We have some charts where the column is the series, and authors may have picked a custom color for that series.
 }
 
 export const RequiredColumnDefs: OwidColumnDef[] = [

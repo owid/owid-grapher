@@ -27,6 +27,28 @@ it("can create a basic chart", () => {
     expect(chart.failMessage).toEqual("")
 })
 
+describe("column charts", () => {
+    it("can show custom colors for a column series", () => {
+        let table = SynthesizeFruitTable().selectSample(1)
+        table = table.withTransformedDefs((def) => {
+            def.color = def.slug // Slug is not a valid color but good enough for testing
+            return def
+        })
+        const columnsChart: ChartManager = {
+            table,
+            yColumnSlugs: [
+                SampleColumnSlugs.Fruit,
+                SampleColumnSlugs.Vegetables,
+            ],
+        }
+        const chart = new StackedAreaChart({ manager: columnsChart })
+        expect(chart.seriesColors).toEqual([
+            SampleColumnSlugs.Vegetables,
+            SampleColumnSlugs.Fruit,
+        ])
+    })
+})
+
 it("use author axis settings unless relative mode", () => {
     const manager = new MockManager()
     const chart = new StackedAreaChart({ manager })

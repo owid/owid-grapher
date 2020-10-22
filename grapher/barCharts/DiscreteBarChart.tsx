@@ -444,8 +444,7 @@ export class DiscreteBarChart
                 const row = first(col.owidRows)
                 // Do not plot a bar if column has no data for the selected time
                 if (!row) return undefined
-                const def = col.def as OwidColumnDef
-                return { row, seriesName: col.displayName, color: def.color }
+                return { row, seriesName: col.displayName, color: col.def.color }
             })
         )
     }

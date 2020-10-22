@@ -1572,6 +1572,24 @@ export class Grapher
         return this.yColumnSlugs.length > 1
     }
 
+    @computed get selectedEntityNamesInOrder(): EntityName[] {
+        const { selectedData } = this.legacyConfigAsAuthored
+        const map = this.inputTable.entityIdToNameMap
+        return selectedData
+            ? selectedData.map((item) => map.get(item.entityId)!)
+            : []
+    }
+
+    @computed get selectedColumnNamesInOrder(): string[] {
+        const { selectedData } = this.legacyConfigAsAuthored
+        const dimensions = this.filledDimensions
+        return selectedData
+            ? selectedData.map(
+                  (item) => dimensions[item.index].column.displayName
+              )
+            : []
+    }
+
     @computed private get availableFacetStrategies() {
         const strategies: (FacetStrategy | undefined)[] = [undefined]
 

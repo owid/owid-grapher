@@ -8,7 +8,13 @@ import {
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
 import { Bounds, DEFAULT_BOUNDS } from "grapher/utils/Bounds"
-import { exposeInstanceOnWindow, flatten, guid, max } from "grapher/utils/Util"
+import {
+    exposeInstanceOnWindow,
+    flatten,
+    guid,
+    max,
+    orderBy,
+} from "grapher/utils/Util"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import React from "react"
@@ -31,14 +37,13 @@ export class AbstactStackedChart
         table = table.filterBySelectedOnly()
 
         if (this.manager.isRelativeMode) {
-            table =
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? table.toPercentageFromEachEntityForEachTime(
-                          this.yColumnSlugs[0]
-                      )
-                    : table.toPercentageFromEachColumnForEachEntityAndTime(
-                          this.yColumnSlugs
-                      )
+            table = this.isEntitySeries
+                ? table.toPercentageFromEachEntityForEachTime(
+                      this.yColumnSlugs[0]
+                  )
+                : table.toPercentageFromEachColumnForEachEntityAndTime(
+                      this.yColumnSlugs
+                  )
         }
         return table
     }
@@ -186,9 +191,9 @@ export class AbstactStackedChart
     }
 
     @computed protected get rawSeries() {
-        return this.seriesStrategy === SeriesStrategy.column
-            ? this.columnsAsSeries
-            : this.entitiesAsSeries
+        return this.isEntitySeries
+            ? this.entitiesAsSeries
+            : this.columnsAsSeries
     }
 
     @computed protected get allStackedPoints() {
@@ -203,14 +208,38 @@ export class AbstactStackedChart
         return ""
     }
 
+    getSelectionColor(seriesName: SeriesName, index: number) {
+        return this.isEntitySeries
+            ? this.transformedTable.getColorForEntityName(seriesName)
+            : this.yColumns[index].def.color
+    }
+
     getColorForSeries(seriesName: SeriesName) {
         return "#ddd"
+    }
+
+    reorderSeries(seriesArr: StackedSeries[]) {
+        const { manager } = this
+        const seriesNames = this.isEntitySeries
+            ? manager.selectedEntityNamesInOrder
+            : manager.selectedColumnNamesInOrder
+        return orderBy(seriesArr, (series: StackedSeries) =>
+            seriesNames?.indexOf(series.seriesName)
+        ).reverse() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
+    }
+
+    @computed get isEntitySeries() {
+        return this.seriesStrategy === SeriesStrategy.entity
+    }
+
+    @computed get seriesColors() {
+        return this.series.map((series) => series.color)
     }
 
     @computed get unstackedSeries() {
         const seriesArr = this.rawSeries
             .filter((series) => series.rows.length)
-            .map((series) => {
+            .map((series, index) => {
                 const { isProjection, seriesName, rows } = series
                 return {
                     seriesName,
@@ -222,13 +251,13 @@ export class AbstactStackedChart
                             yOffset: 0,
                         }
                     }),
-                    color: this.getColorForSeries(seriesName),
+                    color:
+                        this.getSelectionColor(seriesName, index) ??
+                        this.getColorForSeries(seriesName),
                 } as StackedSeries
             })
 
-        // todo: explain why we do this reversal. will it still be needed when we sort by selection?
-        if (this.seriesStrategy !== SeriesStrategy.entity) seriesArr.reverse()
-        return seriesArr
+        return this.reorderSeries(seriesArr)
     }
 
     @computed get series() {
