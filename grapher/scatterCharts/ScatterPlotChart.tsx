@@ -82,6 +82,16 @@ export class ScatterPlotChart
         if (this.yScaleType === ScaleType.log && this.yColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
 
+        // To avoid injecting unnecessary rows in the interpolateColumnWithTolerance() transform,
+        // we drop any rows which are blank for both X and Y values.
+        // The common case is that the Population data goes back to 10,000 BCE and in almost every
+        // case we don't have that data for X and Y.
+        // -@danielgavrilov, 2020-10-22
+        table = table.dropRowsWithInvalidValuesForAllColumns([
+            this.xColumnSlug,
+            this.yColumnSlug,
+        ])
+
         if (this.xColumnSlug) {
             table = table.interpolateColumnWithTolerance(this.xColumnSlug)
         }
@@ -89,6 +99,13 @@ export class ScatterPlotChart
         if (this.yColumnSlug) {
             table = table.interpolateColumnWithTolerance(this.yColumnSlug)
         }
+
+        // Drop any rows which don't have data for either X or Y.
+        // This needs to be done after the tolerance, because the tolerance may fill in some gaps.
+        table = table.dropRowsWithInvalidValuesForAnyColumn([
+            this.xColumnSlug,
+            this.yColumnSlug,
+        ])
 
         return table
     }

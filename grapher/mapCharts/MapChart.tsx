@@ -91,6 +91,7 @@ export class MapChart
         )
         return table
             .filterByEntityNames(entityNamesToSelect)
+            .dropRowsWithInvalidValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
                 this.mapConfig.timeTolerance

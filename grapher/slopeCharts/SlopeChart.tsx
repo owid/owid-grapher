@@ -65,7 +65,9 @@ export class SlopeChart
     @observable hoverColor?: string
 
     transformTable(table: OwidTable) {
-        return table.interpolateColumnWithTolerance(this.yColumnSlug)
+        return table
+            .dropRowsWithInvalidValuesForColumn(this.yColumnSlug)
+            .interpolateColumnWithTolerance(this.yColumnSlug)
     }
 
     @computed get manager() {

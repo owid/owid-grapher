@@ -51,15 +51,17 @@ export class DiscreteBarChart
 
         table = table.filterBySelectedOnly()
 
+        if (this.isLogScale)
+            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
+
+        table = table.dropRowsWithInvalidValuesForAllColumns(this.yColumnSlugs)
+
         this.yColumnSlugs.forEach((slug) => {
             const column = table.get(slug)
             if (column) {
                 table = table.interpolateColumnWithTolerance(slug)
             }
         })
-
-        if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
 
         return table
     }

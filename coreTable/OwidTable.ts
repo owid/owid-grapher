@@ -299,6 +299,31 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
+    dropRowsWithInvalidValuesForColumn(slug: ColumnSlug) {
+        return this.filter(
+            (row) => isValid(row[slug]),
+            `Drop rows with empty or invalid values in ${slug} column`
+        )
+    }
+
+    dropRowsWithInvalidValuesForAnyColumn(slugs: ColumnSlug[]) {
+        return this.filter(
+            (row) => slugs.every((slug) => isValid(row[slug])),
+            `Drop rows with empty or invalid values in any column: ${slugs.join(
+                ", "
+            )}`
+        )
+    }
+
+    dropRowsWithInvalidValuesForAllColumns(slugs: ColumnSlug[]) {
+        return this.filter(
+            (row) => slugs.some((slug) => isValid(row[slug])),
+            `Drop rows with empty or invalid values in every column: ${slugs.join(
+                ", "
+            )}`
+        )
+    }
+
     // todo: this needs tests (and/or drop in favor of someone else's package)
     // Shows how much each entity contributed to the given column for each time period
     toPercentageFromEachEntityForEachTime(columnSlug: ColumnSlug) {
