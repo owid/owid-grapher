@@ -12,6 +12,7 @@ import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesVal
 import { MapChartManager, ChoroplethSeries } from "./MapChartConstants"
 import { ColorScale } from "grapher/color/ColorScale"
 import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
+import { Time } from "coreTable/CoreTableConstants"
 
 interface MapTooltipProps {
     tooltipDatum?: ChoroplethSeries
@@ -19,6 +20,7 @@ interface MapTooltipProps {
     isEntityClickable?: boolean
     manager: MapChartManager
     colorScale?: ColorScale
+    targetTime?: Time
 }
 
 @observer
@@ -40,10 +42,6 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
 
     @computed get inputTable() {
         return this.props.manager.table
-    }
-
-    @computed private get mapColumn() {
-        return this.inputTable.get(this.mapColumnSlug)
     }
 
     @computed private get mapColumnSlug() {
@@ -130,21 +128,17 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
         )
     }
 
-    @computed private get inputTime() {
-        return this.mapColumn!.maxTime
-    }
-
     render() {
-        const { tooltipDatum, isEntityClickable } = this.props
+        const { tooltipDatum, isEntityClickable, targetTime } = this.props
 
         const tooltipMessage = "Click to select" // todo: used to be "Click for Change over Time" when on line charts
 
         const { timeColumn } = this.inputTable
-        const { renderSparkBars, barColor, tooltipTarget, inputTime } = this
+        const { renderSparkBars, barColor, tooltipTarget } = this
 
         const displayTime = timeColumn
-            ? timeColumn.formatValue(inputTime)
-            : inputTime
+            ? timeColumn.formatValue(targetTime)
+            : targetTime
         const displayDatumTime =
             timeColumn && tooltipDatum
                 ? timeColumn.formatValue(tooltipDatum.time)

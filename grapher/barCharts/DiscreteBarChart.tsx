@@ -18,7 +18,6 @@ import {
     BASE_FONT_SIZE,
     SeriesStrategy,
 } from "grapher/core/GrapherConstants"
-import { SortOrder } from "coreTable/CoreTableConstants"
 import {
     HorizontalAxisComponent,
     HorizontalAxisGridLines,
@@ -32,10 +31,8 @@ import {
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
-import { OwidColumnDef, OwidTableSlugs } from "coreTable/OwidTableConstants"
 import { OwidTable } from "coreTable/OwidTable"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
-import { timeFromTimebounds } from "grapher/utils/TimeBounds"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -50,27 +47,23 @@ export class DiscreteBarChart
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable) {
-        const column = table.get(this.yColumnSlugs[0])
-        if (!column) return table
+        if (!this.yColumnSlugs.length) return table
 
-        const { slug, maxTime, tolerance } = column
+        table = table.filterBySelectedOnly()
 
-        const targetTime = timeFromTimebounds(
-            this.manager.endHandleTimeBound ?? maxTime,
-            maxTime
-        )
+        if (this.isLogScale)
+            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
 
-        table = table
-            .filterBySelectedOnly()
-            .filterByTargetTimes([targetTime], tolerance)
+        table = table.dropRowsWithInvalidValuesForAllColumns(this.yColumnSlugs)
 
-        // Here we can filter entire rows instead of using "replaceNonPositiveCellsForLogScale" since we currently don't support
-        // multiple ycolumn bar charts.
-        if (this.isLogScale) table = table.filterNegativesForLogScale(slug)
-        return table.sortBy(
-            [slug, OwidTableSlugs.entityName],
-            [SortOrder.desc, SortOrder.asc]
-        )
+        this.yColumnSlugs.forEach((slug) => {
+            const column = table.get(slug)
+            if (column) {
+                table = table.interpolateColumnWithTolerance(slug)
+            }
+        })
+
+        return table
     }
 
     @computed get inputTable() {
@@ -86,6 +79,10 @@ export class DiscreteBarChart
 
     @computed private get manager() {
         return this.props.manager
+    }
+
+    @computed private get targetTime() {
+        return this.manager.endTime
     }
 
     @computed private get bounds() {
@@ -392,11 +389,10 @@ export class DiscreteBarChart
 
     private formatValue(series: DiscreteBarSeries) {
         const column = this.yColumns[0] // todo: do we need to use the right column here?
-        const { maxTime } = column
         const { transformedTable } = this
 
         const showYearLabels =
-            this.manager.showYearLabels || series.time !== maxTime
+            this.manager.showYearLabels || series.time !== this.targetTime
         const displayValue = column.formatValueShort(series.value)
         return (
             displayValue +

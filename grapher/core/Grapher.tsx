@@ -30,6 +30,7 @@ import {
     range,
     difference,
     exposeInstanceOnWindow,
+    findClosestTime,
 } from "grapher/utils/Util"
 import {
     ChartTypeName,
@@ -455,9 +456,11 @@ export class Grapher
     }
 
     @computed get chartInstance() {
+        // Note: when timeline handles on a LineChart are collapsed into a single handle, the
+        // LineChart turns into a DiscreteBar.
         const chartTypeName = this.isOnMapTab
             ? ChartTypeName.WorldMap
-            : this.type // Note: if we turned linechart to a bar chart, still use the line chart transform.
+            : this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
 
         const ChartClass = ChartComponentClassMap.get(chartTypeName)!
         return new ChartClass({ manager: this })
@@ -469,18 +472,22 @@ export class Grapher
 
     @computed
     private get tableAfterPopulationAndActiveChartAndTimelineFilters() {
-        const [startTime, endTime] = this.timelineHandleTimeBounds
-        if (this.isOnMapTab) {
-            const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?
-            return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTimeRange(
-                startTime - tolerance,
-                endTime + tolerance
-            )
+        const { startTime, endTime } = this
+        const table = this.tableAfterPopulationFilterAndActiveChartTransform
+
+        if (startTime === undefined || endTime === undefined) return table
+
+        if (
+            this.isOnMapTab ||
+            this.isDiscreteBar ||
+            this.isLineChartThatTurnedIntoDiscreteBar
+        ) {
+            return table.filterByTargetTimes([endTime])
         }
-        return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTimeRange(
-            startTime,
-            endTime
-        )
+        if (this.isSlopeChart) {
+            return table.filterByTargetTimes([startTime, endTime])
+        }
+        return table.filterByTimeRange(startTime, endTime)
     }
 
     @computed get transformedTable() {
@@ -641,7 +648,11 @@ export class Grapher
             ? [this.mapColumnSlug]
             : this.yColumnSlugs
 
-        return this.tableAfterPopulationFilter.getTimesUniqSortedAscForColumns(
+        // Generate the times only after the chart transform has been applied, so that we don't show
+        // times on the timeline for which data may not exist, e.g. when the selected entity
+        // doesn't contain data for all years in the table.
+        // -@danielgavrilov, 2020-10-22
+        return this.tableAfterPopulationFilterAndActiveChartTransform.getTimesUniqSortedAscForColumns(
             columnSlugs
         )
     }
@@ -681,6 +692,14 @@ export class Grapher
 
     @computed get endHandleTimeBound(): TimeBound {
         return this.timelineHandleTimeBounds[1]
+    }
+
+    @computed get startTime(): Time | undefined {
+        return findClosestTime(this.times, this.startHandleTimeBound)
+    }
+
+    @computed get endTime(): Time | undefined {
+        return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
     @computed private get isDiscreteBarOrLineChartTransformedIntoDiscreteBar() {
@@ -907,7 +926,7 @@ export class Grapher
             this.isReady &&
             (showTitleAnnotation ||
                 (this.hasTimeline &&
-                    ((this.isLineChart && this.areHandlesOnSameTime) ||
+                    (this.isLineChartThatTurnedIntoDiscreteBar ||
                         this.isOnMapTab)))
         )
             text += this.timeTitleSuffix
@@ -923,7 +942,8 @@ export class Grapher
     }
 
     @computed get hasTimeline() {
-        if (this.isStackedBar || this.isStackedArea) return false
+        if (this.isStackedBar || this.isStackedArea || this.isDiscreteBar)
+            return false
         if (this.isOnOverlay) return false
         if (this.hideTimeline) return false
         if (this.isOnMapTab && this.map.hideTimeline) return false
@@ -986,20 +1006,14 @@ export class Grapher
 
     @computed private get timeTitleSuffix() {
         if (!this.table.timeColumn) return "" // Do not show year until data is loaded
-        const { startHandleTimeBound, endHandleTimeBound } = this
+        const { startTime, endTime } = this
         const timeColumn = this.table.timeColumn
-        const tableForTime = this.table
-        // todo: should we add a startTime method and rename the current startTime method to startTimeBound?
-        const timeFrom = timeColumn.formatValue(
-            timeFromTimebounds(
-                startHandleTimeBound,
-                tableForTime.minTime ?? 1900
-            )
-        )
-        const timeTo = timeColumn.formatValue(
-            timeFromTimebounds(endHandleTimeBound, tableForTime.maxTime ?? 2100)
-        )
-        const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+        const time =
+            startTime === endTime
+                ? timeColumn.formatValue(startTime)
+                : timeColumn.formatValue(startTime) +
+                  " to " +
+                  timeColumn.formatValue(endTime)
 
         return ", " + time
     }
@@ -1080,8 +1094,7 @@ export class Grapher
 
     @computed get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart() {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
-        return this.type === ChartTypeName.LineChart &&
-            this.areHandlesOnSameTime
+        return this.isLineChartThatTurnedIntoDiscreteBar
             ? ChartTypeName.DiscreteBar
             : this.type
     }
@@ -1106,6 +1119,10 @@ export class Grapher
     }
     @computed get isStackedBar() {
         return this.type === ChartTypeName.StackedBar
+    }
+
+    @computed get isLineChartThatTurnedIntoDiscreteBar() {
+        return this.isLineChart && this.areHandlesOnSameTime
     }
 
     @computed get activeColorScale() {

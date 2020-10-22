@@ -180,22 +180,39 @@ it("can serialize scaleType if it changes", () => {
     expect(grapher.params.xScale).toEqual(ScaleType.log)
 })
 
-it("can show the year of the selected data in the title", () => {
-    const grapher = new Grapher({
-        table: SynthesizeGDPTable(
-            { entityCount: 2, timeRange: [2000, 2010] },
-            1
-        ).selectAll(),
-        dimensions: [
-            {
-                slug: SampleColumnSlugs.GDP,
-                property: DimensionProperty.y,
-                variableId: SampleColumnSlugs.GDP as any,
-            },
-        ],
+describe("currentTitle", () => {
+    it("shows the year of the selected data in the title", () => {
+        const grapher = new Grapher({
+            table: SynthesizeGDPTable(
+                { entityCount: 2, timeRange: [2000, 2010] },
+                1
+            ).selectAll(),
+            dimensions: [
+                {
+                    slug: SampleColumnSlugs.GDP,
+                    property: DimensionProperty.y,
+                    variableId: SampleColumnSlugs.GDP as any,
+                },
+            ],
+        })
+
+        grapher.timelineHandleTimeBounds = [2001, 2005]
+        expect(grapher.currentTitle).toContain("2001")
+        expect(grapher.currentTitle).toContain("2005")
+        expect(grapher.currentTitle).not.toContain("Infinity")
+
+        grapher.timelineHandleTimeBounds = [1900, 2020]
+        expect(grapher.currentTitle).toContain("2000")
+        expect(grapher.currentTitle).toContain("2009")
+
+        grapher.timelineHandleTimeBounds = [-Infinity, Infinity]
+        expect(grapher.currentTitle).toContain("2000")
+        expect(grapher.currentTitle).toContain("2009")
+
+        grapher.timelineHandleTimeBounds = [Infinity, Infinity]
+        expect(grapher.currentTitle).not.toContain("2000")
+        expect(grapher.currentTitle).toContain("2009")
     })
-    expect(grapher.currentTitle).toContain("2009")
-    expect(grapher.currentTitle).not.toContain("Infinity")
 })
 
 describe("authors can use maxTime", () => {

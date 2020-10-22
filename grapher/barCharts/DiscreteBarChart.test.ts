@@ -14,11 +14,12 @@ import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { SeriesStrategy } from "grapher/core/GrapherConstants"
 
 it("can create a new bar chart", () => {
-    const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
+    const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
 
     const manager: DiscreteBarChartManager = {
         table,
         yColumnSlug: SampleColumnSlugs.Population,
+        endTime: 2000,
     }
     const chart = new DiscreteBarChart({ manager })
 

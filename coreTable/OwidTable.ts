@@ -215,13 +215,12 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return [min(mins), max(maxes)]
     }
 
-    filterByEntityName(name: EntityName) {
-        // todo; why not a filter by?
-        return new OwidTable(this.rowsByEntityName.get(name) || [], this.defs, {
-            parent: this,
-            tableDescription: `Filter out all entities except '${name}'`,
-            transformCategory: TransformType.FilterRows,
-        })
+    filterByEntityNames(names: EntityName[]) {
+        const namesSet = new Set(names)
+        return this.filter(
+            (row) => namesSet.has(row[OwidTableSlugs.entityName]),
+            `Filter out all entities except '${names}'`
+        )
     }
 
     // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
@@ -297,6 +296,31 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             `Keep a row for each entity for each of the closest times ${targetTimes.join(
                 ", "
             )} with tolerance ${tolerance}`
+        )
+    }
+
+    dropRowsWithInvalidValuesForColumn(slug: ColumnSlug) {
+        return this.filter(
+            (row) => isValid(row[slug]),
+            `Drop rows with empty or invalid values in ${slug} column`
+        )
+    }
+
+    dropRowsWithInvalidValuesForAnyColumn(slugs: ColumnSlug[]) {
+        return this.filter(
+            (row) => slugs.every((slug) => isValid(row[slug])),
+            `Drop rows with empty or invalid values in any column: ${slugs.join(
+                ", "
+            )}`
+        )
+    }
+
+    dropRowsWithInvalidValuesForAllColumns(slugs: ColumnSlug[]) {
+        return this.filter(
+            (row) => slugs.some((slug) => isValid(row[slug])),
+            `Drop rows with empty or invalid values in every column: ${slugs.join(
+                ", "
+            )}`
         )
     }
 
@@ -654,6 +678,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         toleranceOverride?: number
     ) {
         const column = this.get(columnSlug)
+        // If the column doesn't exist, return the table unchanged.
+        if (!column) return this
+
         const columnDef = column?.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
         const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)

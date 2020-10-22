@@ -66,6 +66,8 @@ export class SlopeChart
 
     transformTable(table: OwidTable) {
         return table
+            .dropRowsWithInvalidValuesForColumn(this.yColumnSlug)
+            .interpolateColumnWithTolerance(this.yColumnSlug)
     }
 
     @computed get manager() {
@@ -328,7 +330,10 @@ export class SlopeChart
     }
 
     @computed get transformedTable() {
-        return this.inputTable
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
     }
 
     @computed get inputTable() {
