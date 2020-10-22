@@ -496,7 +496,7 @@ describe("tolerance", () => {
             ]
         )
 
-        const toleranceTable = table.fillColumnWithTolerance("gdp", 1)
+        const toleranceTable = table.interpolateColumnWithTolerance("gdp", 1)
 
         expect(toleranceTable.rows).toEqual(
             expect.arrayContaining([
