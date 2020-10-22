@@ -65,6 +65,7 @@ export {
     debounce,
     difference,
     extend,
+    findIndex,
     flatten,
     fromPairs,
     groupBy,
@@ -117,12 +118,7 @@ import { extent } from "d3-array"
 import striptags from "striptags"
 import parseUrl from "url-parse"
 import linkifyHtml from "linkifyjs/html"
-import {
-    SortOrder,
-    Integer,
-    Time,
-    ColumnSlug,
-} from "coreTable/CoreTableConstants"
+import { SortOrder, Integer, Time } from "coreTable/CoreTableConstants"
 import { PointVector } from "./PointVector"
 import {
     TickFormattingOptions,
@@ -133,7 +129,6 @@ import {
 import { isNegativeInfinity, isPositiveInfinity } from "./TimeBounds"
 import { queryParamsToStr, strToQueryParams } from "utils/client/url"
 import { dsvFormat } from "d3-dsv"
-import { InvalidCell, InvalidCellTypes } from "coreTable/InvalidCells"
 
 export type SVGElement = any
 export type VNode = any
@@ -1070,84 +1065,7 @@ export function sortNumeric<T>(
     return arr.sort(compareFn)
 }
 
-function isNotInvalidOrEmptyCell(value: any) {
-    return value !== undefined && !(value instanceof InvalidCell)
-}
-
 // https://github.com/robertmassaioli/ts-is-present
 // A predicate for filtering an array of nulls and undefineds that returns the correct type
 export const isPresent = <T>(t: T | undefined | null | void): t is T =>
     t !== undefined && t !== null
-
-export function fillUndefinedWithClosest<
-    ValueSlug extends ColumnSlug,
-    TimeSlug extends ColumnSlug,
-    Row extends { [key in TimeSlug]?: number } & { [key in ValueSlug]?: any }
->(
-    rowsSortedByTimeAsc: Row[],
-    valueSlug: ValueSlug,
-    timeSlug: TimeSlug,
-    timeTolerance: number
-): Row[] {
-    if (!rowsSortedByTimeAsc.length) return rowsSortedByTimeAsc
-
-    let prevNonBlankIndex: number | undefined = undefined
-    let nextNonBlankIndex: number | undefined = undefined
-
-    for (let index = 0; index < rowsSortedByTimeAsc.length; index++) {
-        const currentValue = rowsSortedByTimeAsc[index][valueSlug]
-        if (isNotInvalidOrEmptyCell(currentValue)) {
-            prevNonBlankIndex = index
-            continue
-        }
-
-        if (
-            nextNonBlankIndex !== -1 &&
-            (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
-        ) {
-            nextNonBlankIndex = findIndex(
-                rowsSortedByTimeAsc,
-                (row) => isNotInvalidOrEmptyCell(row[valueSlug]),
-                index + 1
-            )
-        }
-
-        const timeOfCurrent: number = rowsSortedByTimeAsc[index][timeSlug]
-        const timeOfPrevIndex: number =
-            prevNonBlankIndex !== undefined
-                ? rowsSortedByTimeAsc[prevNonBlankIndex][timeSlug]
-                : -Infinity
-        const timeOfNextIndex: number =
-            nextNonBlankIndex !== undefined && nextNonBlankIndex !== -1
-                ? rowsSortedByTimeAsc[nextNonBlankIndex][timeSlug]
-                : Infinity
-
-        const prevTimeDiff = Math.abs(timeOfPrevIndex - timeOfCurrent)
-        const nextTimeDiff = Math.abs(timeOfNextIndex - timeOfCurrent)
-
-        if (
-            nextNonBlankIndex !== -1 &&
-            nextTimeDiff <= prevTimeDiff &&
-            nextTimeDiff <= timeTolerance
-        ) {
-            rowsSortedByTimeAsc[index] = {
-                ...rowsSortedByTimeAsc[index],
-                [valueSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][valueSlug],
-                [timeSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][timeSlug],
-            }
-        } else if (prevTimeDiff <= timeTolerance) {
-            rowsSortedByTimeAsc[index] = {
-                ...rowsSortedByTimeAsc[index],
-                [valueSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][valueSlug],
-                [timeSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][timeSlug],
-            }
-        } else {
-            rowsSortedByTimeAsc[index] = {
-                ...rowsSortedByTimeAsc[index],
-                [valueSlug]: InvalidCellTypes.NoValueWithinTolerance,
-            }
-        }
-    }
-
-    return rowsSortedByTimeAsc
-}

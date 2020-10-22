@@ -19,7 +19,6 @@ import {
     intersection,
     keyBy,
     groupBy,
-    fillUndefinedWithClosest,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -53,6 +52,7 @@ import {
     makeOriginalTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
 } from "./OwidTableUtil"
+import { interpolateRowValuesWithTolerance } from "./CoreTableUtils"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -637,7 +637,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                         ...row,
                         [originalTimeSlug]: row[timeColumnSlug],
                     }))
-                    return fillUndefinedWithClosest(
+                    return interpolateRowValuesWithTolerance(
                         rows,
                         columnSlug,
                         originalTimeSlug,
