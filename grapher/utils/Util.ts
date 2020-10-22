@@ -1084,18 +1084,18 @@ export function fillUndefinedWithClosest<
     TimeSlug extends ColumnSlug,
     Row extends { [key in TimeSlug]?: number } & { [key in ValueSlug]?: any }
 >(
-    rows: Row[],
+    rowsSortedByTimeAsc: Row[],
     valueSlug: ValueSlug,
     timeSlug: TimeSlug,
     timeTolerance: number
 ): Row[] {
-    if (!rows.length) return rows
+    if (!rowsSortedByTimeAsc.length) return rowsSortedByTimeAsc
 
     let prevNonBlankIndex: number | undefined = undefined
     let nextNonBlankIndex: number | undefined = undefined
 
-    for (let index = 0; index < rows.length; index++) {
-        const currentValue = rows[index][valueSlug]
+    for (let index = 0; index < rowsSortedByTimeAsc.length; index++) {
+        const currentValue = rowsSortedByTimeAsc[index][valueSlug]
         if (isNotInvalidOrEmptyCell(currentValue)) {
             prevNonBlankIndex = index
             continue
@@ -1106,20 +1106,20 @@ export function fillUndefinedWithClosest<
             (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
         ) {
             nextNonBlankIndex = findIndex(
-                rows,
+                rowsSortedByTimeAsc,
                 (row) => isNotInvalidOrEmptyCell(row[valueSlug]),
                 index + 1
             )
         }
 
-        const timeOfCurrent: number = rows[index][timeSlug]
+        const timeOfCurrent: number = rowsSortedByTimeAsc[index][timeSlug]
         const timeOfPrevIndex: number =
             prevNonBlankIndex !== undefined
-                ? rows[prevNonBlankIndex][timeSlug]
+                ? rowsSortedByTimeAsc[prevNonBlankIndex][timeSlug]
                 : -Infinity
         const timeOfNextIndex: number =
             nextNonBlankIndex !== undefined && nextNonBlankIndex !== -1
-                ? rows[nextNonBlankIndex][timeSlug]
+                ? rowsSortedByTimeAsc[nextNonBlankIndex][timeSlug]
                 : Infinity
 
         const prevTimeDiff = Math.abs(timeOfPrevIndex - timeOfCurrent)
@@ -1130,24 +1130,24 @@ export function fillUndefinedWithClosest<
             nextTimeDiff <= prevTimeDiff &&
             nextTimeDiff <= timeTolerance
         ) {
-            rows[index] = {
-                ...rows[index],
-                [valueSlug]: rows[nextNonBlankIndex!][valueSlug],
-                [timeSlug]: rows[nextNonBlankIndex!][timeSlug],
+            rowsSortedByTimeAsc[index] = {
+                ...rowsSortedByTimeAsc[index],
+                [valueSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][valueSlug],
+                [timeSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][timeSlug],
             }
         } else if (prevTimeDiff <= timeTolerance) {
-            rows[index] = {
-                ...rows[index],
-                [valueSlug]: rows[prevNonBlankIndex!][valueSlug],
-                [timeSlug]: rows[prevNonBlankIndex!][timeSlug],
+            rowsSortedByTimeAsc[index] = {
+                ...rowsSortedByTimeAsc[index],
+                [valueSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][valueSlug],
+                [timeSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][timeSlug],
             }
         } else {
-            rows[index] = {
-                ...rows[index],
+            rowsSortedByTimeAsc[index] = {
+                ...rowsSortedByTimeAsc[index],
                 [valueSlug]: InvalidCellTypes.NoValueWithinTolerance,
             }
         }
     }
 
-    return rows
+    return rowsSortedByTimeAsc
 }
