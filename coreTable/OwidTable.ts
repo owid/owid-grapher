@@ -617,28 +617,28 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
 
         const rows = flatten(
-            Object.values(groupBy(originalRows, (row) => row.entityId)).map(
-                (rows) => {
-                    const { entityId, entityCode, entityName } = rows[0]
-                    const existingTimesSet = new Set(
-                        rows.map((row) => row[timeColumnSlug])
-                    )
-                    const timesToInject = allTimes.filter(
-                        (time) => !existingTimesSet.has(time)
-                    )
-                    const rowsToInject = timesToInject.map(
-                        (time) =>
-                            ({
-                                [timeColumnSlug]: time,
-                                entityId,
-                                entityCode,
-                                entityName,
-                            } as OwidRow)
-                    )
-                    rows = rows.concat(rowsToInject)
-                    return sortBy(rows, timeColumnSlug)
-                }
-            )
+            Object.values(
+                groupBy(originalRows, (row) => row[OwidTableSlugs.entityName])
+            ).map((rows) => {
+                const { entityId, entityCode, entityName } = rows[0]
+                const existingTimesSet = new Set(
+                    rows.map((row) => row[timeColumnSlug])
+                )
+                const timesToInject = allTimes.filter(
+                    (time) => !existingTimesSet.has(time)
+                )
+                const rowsToInject = timesToInject.map(
+                    (time) =>
+                        ({
+                            [timeColumnSlug]: time,
+                            entityId,
+                            entityCode,
+                            entityName,
+                        } as OwidRow)
+                )
+                rows = rows.concat(rowsToInject)
+                return sortBy(rows, timeColumnSlug)
+            })
         )
 
         return this.transform(
@@ -659,23 +659,23 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             .sortedByTime.rows
 
         const rows = flatten(
-            Object.values(groupBy(originalRows, (row) => row.entityId)).map(
-                (rows) => {
-                    // Copy over times to originalTime column. interpolateRowValuesWithTolerance()
-                    // will overwrite values in this column if a row value from a different time is
-                    // used.
-                    rows = rows.map((row) => ({
-                        ...row,
-                        [originalTimeSlug]: row[timeColumnSlug],
-                    }))
-                    return interpolateRowValuesWithTolerance(
-                        rows,
-                        columnSlug,
-                        originalTimeSlug,
-                        tolerance
-                    )
-                }
-            )
+            Object.values(
+                groupBy(originalRows, (row) => row[OwidTableSlugs.entityName])
+            ).map((rows) => {
+                // Copy over times to originalTime column. interpolateRowValuesWithTolerance()
+                // will overwrite values in this column if a row value from a different time is
+                // used.
+                rows = rows.map((row) => ({
+                    ...row,
+                    [originalTimeSlug]: row[timeColumnSlug],
+                }))
+                return interpolateRowValuesWithTolerance(
+                    rows,
+                    columnSlug,
+                    originalTimeSlug,
+                    tolerance
+                )
+            })
         )
 
         const defs: OwidColumnDef[] = [
