@@ -14,6 +14,7 @@ import {
     difference,
     intersection,
     flatten,
+    sum,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
@@ -390,12 +391,16 @@ export class CoreTable<
         return this.columnsAsArray.filter((col) => col.numInvalidCells)
     }
 
-    @computed get numColumnsWithParseErrors() {
+    @computed get numColumnsWithInvalidCells() {
         return this.columnsWithParseErrors.length
     }
 
-    @computed get hasParseErrors() {
-        return this.numColumnsWithParseErrors
+    @computed get numInvalidCells() {
+        return sum(this.columnsAsArray.map((col) => col.numInvalidCells))
+    }
+
+    @computed get numValidCells() {
+        return sum(this.columnsAsArray.map((col) => col.numValues))
     }
 
     get rootTable(): this {
@@ -695,6 +700,9 @@ export class CoreTable<
             betweenTime,
             numColsToParse,
             numColsToCompute,
+            numValidCells,
+            numInvalidCells,
+            numColumnsWithInvalidCells,
         } = this
         return {
             tableDescription,
@@ -706,6 +714,9 @@ export class CoreTable<
             betweenTime,
             numColsToParse,
             numColsToCompute,
+            numValidCells,
+            numInvalidCells,
+            numColumnsWithInvalidCells,
         }
     }
 
@@ -821,6 +832,19 @@ export class CoreTable<
     withoutConstantColumns() {
         const slugs = this.constantColumns().map((col) => col.slug)
         return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
+    }
+
+    withColumns(slugs: ColumnSlug[]) {
+        const columnsToKeep = new Set(slugs)
+        const defs = this.columnsAsArray
+            .filter((col) => columnsToKeep.has(col.slug))
+            .map((col) => col.def) as COL_DEF_TYPE[]
+        return this.transform(
+            this.rows,
+            defs,
+            `Kept columns '${slugs}'`,
+            TransformType.FilterColumns
+        )
     }
 
     withoutColumns(slugs: ColumnSlug[], message?: string) {

@@ -315,7 +315,7 @@ it("can get all defined values for a column", () => {
     )
     expect(table.get("pop")?.numValues).toEqual(1)
     expect(table.get("pop")?.numInvalidCells).toEqual(1)
-    expect(table.numColumnsWithParseErrors).toEqual(1)
+    expect(table.numColumnsWithInvalidCells).toEqual(1)
 })
 
 it("can rename a column", () => {
