@@ -4,11 +4,24 @@
 @include md-up {
     .site-tools {
         position: fixed;
+        display: block;
         z-index: $zindex-popover;
-        display: flex;
         right: 20px;
         bottom: 20px;
         border: none;
+
+        .hide-wrapper {
+            display: flex;
+            transition: all 0.3s;
+            &.hide {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            > .active {
+                z-index: $zindex-popover;
+            }
+        }
 
         .prompt {
             position: relative;
@@ -23,10 +36,6 @@
             right: 0;
             bottom: 0;
             background-color: rgba(255, 255, 255, 0.5);
-        }
-
-        > div.active {
-            z-index: $zindex-popover;
         }
 
         .box {
