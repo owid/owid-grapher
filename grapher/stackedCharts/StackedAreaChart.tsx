@@ -321,6 +321,8 @@ export class StackedAreaChart
         const lastStackedPoint = last(series)!.points[hoveredPointIndex]
         const totalValue = lastStackedPoint.y + lastStackedPoint.yOffset
 
+        const yColumn = this.yColumns[0] // Assumes same type for all columns.
+
         return (
             <Tooltip
                 tooltipManager={this.props.manager}
@@ -373,7 +375,7 @@ export class StackedAreaChart
                                     <td style={{ textAlign: "right" }}>
                                         {point.fake
                                             ? "No data"
-                                            : this.formatYTick(point.y)}
+                                            : yColumn.formatValueLong(point.y)}
                                     </td>
                                 </tr>
                             )
@@ -393,7 +395,9 @@ export class StackedAreaChart
                                 <td style={{ textAlign: "right" }}>
                                     <span>
                                         <strong>
-                                            {this.formatYTick(totalValue)}
+                                            {yColumn.formatValueLong(
+                                                totalValue
+                                            )}
                                         </strong>
                                     </span>
                                 </td>
@@ -475,11 +479,6 @@ export class StackedAreaChart
             this.transformedTable.getColorForEntityName(seriesName) ||
             this.colorScheme(seriesName)
         )
-    }
-
-    private formatYTick(v: number) {
-        const yColumn = this.yColumns[0]
-        return yColumn ? yColumn.formatValueShort(v) : v // todo: restore { noTrailingZeroes: false }
     }
 
     @computed get series() {

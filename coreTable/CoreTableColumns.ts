@@ -570,7 +570,12 @@ class PercentageColumn extends NumericColumn {
     }
 
     formatValueLong(value: number) {
-        return this.formatValue(value)
+        return formatValue(value, {
+            numDecimalPlaces: 2,
+            noTrailingZeroes: true,
+            numberPrefixes: false,
+            unit: "%",
+        })
     }
 
     formatValueShort(value: any) {
@@ -588,7 +593,7 @@ class PercentChangeOverTimeColumn extends PercentageColumn {
     }
 }
 
-// Expectes 50% to be .5
+// Expects 50% to be .5
 class DecimalPercentageColumn extends NumericColumn {
     formatValue(value: number) {
         return formatValue(value * 100, {
