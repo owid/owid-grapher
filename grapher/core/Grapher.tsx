@@ -456,9 +456,11 @@ export class Grapher
     }
 
     @computed get chartInstance() {
+        // Note: when timeline handles on a LineChart are collapsed into a single handle, the
+        // LineChart turns into a DiscreteBar.
         const chartTypeName = this.isOnMapTab
             ? ChartTypeName.WorldMap
-            : this.type // Note: if we turned linechart to a bar chart, still use the line chart transform.
+            : this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
 
         const ChartClass = ChartComponentClassMap.get(chartTypeName)!
         return new ChartClass({ manager: this })
