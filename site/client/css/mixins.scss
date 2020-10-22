@@ -109,13 +109,14 @@
 
 @mixin popover-box-button {
     button {
-        padding: 0.7rem 0.85rem;
+        padding: 0.2rem 0.5rem;
+        line-height: 1.6rem;
         border: none;
         border-radius: 3px;
         box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
         color: white;
         cursor: pointer;
-        font-size: 15px;
+        font-size: 0.875rem;
         background: #002147;
 
         @include button-disabled;

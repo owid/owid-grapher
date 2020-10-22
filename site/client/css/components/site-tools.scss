@@ -6,8 +6,8 @@
         position: fixed;
         display: block;
         z-index: $zindex-popover;
-        right: 20px;
-        bottom: 20px;
+        right: $vertical-spacing;
+        bottom: $vertical-spacing;
         border: none;
 
         .hide-wrapper {
