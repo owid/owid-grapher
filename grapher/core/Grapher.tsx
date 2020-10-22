@@ -478,7 +478,7 @@ export class Grapher
         if (
             this.isOnMapTab ||
             this.isDiscreteBar ||
-            (this.isLineChart && this.areHandlesOnSameTime)
+            this.isLineChartThatTurnedIntoDiscreteBar
         ) {
             return table.filterByTargetTimes([endTime])
         }
@@ -921,7 +921,7 @@ export class Grapher
             this.isReady &&
             (showTitleAnnotation ||
                 (this.hasTimeline &&
-                    ((this.isLineChart && this.areHandlesOnSameTime) ||
+                    (this.isLineChartThatTurnedIntoDiscreteBar ||
                         this.isOnMapTab)))
         )
             text += this.timeTitleSuffix
@@ -1089,8 +1089,7 @@ export class Grapher
 
     @computed get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart() {
         // Switch to bar chart if a single year is selected. Todo: do we want to do this?
-        return this.type === ChartTypeName.LineChart &&
-            this.areHandlesOnSameTime
+        return this.isLineChartThatTurnedIntoDiscreteBar
             ? ChartTypeName.DiscreteBar
             : this.type
     }
@@ -1115,6 +1114,10 @@ export class Grapher
     }
     @computed get isStackedBar() {
         return this.type === ChartTypeName.StackedBar
+    }
+
+    @computed get isLineChartThatTurnedIntoDiscreteBar() {
+        return this.isLineChart && this.areHandlesOnSameTime
     }
 
     @computed get activeColorScale() {
