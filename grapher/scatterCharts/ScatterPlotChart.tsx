@@ -82,6 +82,14 @@ export class ScatterPlotChart
         if (this.yScaleType === ScaleType.log && this.yColumnSlug)
             table = table.replaceNonPositiveCellsForLogScale([this.yColumnSlug])
 
+        if (this.xColumnSlug) {
+            table = table.interpolateColumnWithTolerance(this.xColumnSlug)
+        }
+
+        if (this.yColumnSlug) {
+            table = table.interpolateColumnWithTolerance(this.yColumnSlug)
+        }
+
         return table
     }
 

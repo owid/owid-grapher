@@ -652,6 +652,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         toleranceOverride?: number
     ) {
         const column = this.get(columnSlug)
+        // If the column doesn't exist, return the table unchanged.
+        if (!column) return this
+
         const columnDef = column?.def as OwidColumnDef
         const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
         const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
