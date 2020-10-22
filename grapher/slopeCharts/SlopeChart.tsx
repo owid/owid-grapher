@@ -328,7 +328,10 @@ export class SlopeChart
     }
 
     @computed get transformedTable() {
-        return this.inputTable
+        return (
+            this.manager.transformedTable ??
+            this.transformTable(this.inputTable)
+        )
     }
 
     @computed get inputTable() {

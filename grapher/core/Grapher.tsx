@@ -482,6 +482,9 @@ export class Grapher
         ) {
             return table.filterByTargetTimes([endTime])
         }
+        if (this.isSlopeChart) {
+            return table.filterByTargetTimes([startTime, endTime])
+        }
         return table.filterByTimeRange(startTime, endTime)
     }
 
