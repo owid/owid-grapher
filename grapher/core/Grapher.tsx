@@ -997,20 +997,14 @@ export class Grapher
 
     @computed private get timeTitleSuffix() {
         if (!this.table.timeColumn) return "" // Do not show year until data is loaded
-        const { startHandleTimeBound, endHandleTimeBound } = this
+        const { startTime, endTime } = this
         const timeColumn = this.table.timeColumn
-        const tableForTime = this.table
-        // todo: should we add a startTime method and rename the current startTime method to startTimeBound?
-        const timeFrom = timeColumn.formatValue(
-            timeFromTimebounds(
-                startHandleTimeBound,
-                tableForTime.minTime ?? 1900
-            )
-        )
-        const timeTo = timeColumn.formatValue(
-            timeFromTimebounds(endHandleTimeBound, tableForTime.maxTime ?? 2100)
-        )
-        const time = timeFrom === timeTo ? timeFrom : timeFrom + " to " + timeTo
+        const time =
+            startTime === endTime
+                ? timeColumn.formatValue(startTime)
+                : timeColumn.formatValue(startTime) +
+                  " to " +
+                  timeColumn.formatValue(endTime)
 
         return ", " + time
     }
