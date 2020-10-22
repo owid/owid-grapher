@@ -32,6 +32,7 @@
         .box {
             position: absolute;
             bottom: 100%;
+            margin-bottom: $vertical-spacing;
             right: 0;
             @include popover-box-styles;
         }
