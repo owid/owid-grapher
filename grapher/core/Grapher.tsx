@@ -643,7 +643,11 @@ export class Grapher
             ? [this.mapColumnSlug]
             : this.yColumnSlugs
 
-        return this.tableAfterPopulationFilter.getTimesUniqSortedAscForColumns(
+        // Generate the times only after the chart transform has been applied, so that we don't show
+        // times on the timeline for which data may not exist, e.g. when the selected entity
+        // doesn't contain data for all years in the table.
+        // -@danielgavrilov, 2020-10-22
+        return this.tableAfterPopulationFilterAndActiveChartTransform.getTimesUniqSortedAscForColumns(
             columnSlugs
         )
     }
