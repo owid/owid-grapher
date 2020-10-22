@@ -649,9 +649,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    interpolateColumnWithTolerance(columnSlug: ColumnSlug, tolerance: number) {
+    interpolateColumnWithTolerance(
+        columnSlug: ColumnSlug,
+        toleranceOverride?: number
+    ) {
         const column = this.get(columnSlug)
         const columnDef = column?.def as OwidColumnDef
+        const tolerance = toleranceOverride ?? column?.display.tolerance ?? 0
         const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
         const timeColumnDef = this.get(timeColumnSlug)?.def as OwidColumnDef
         const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
