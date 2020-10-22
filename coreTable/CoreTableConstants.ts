@@ -43,6 +43,7 @@ export interface CoreColumnDef {
     unit?: string
     shortUnit?: string
     fn?: ColumnFn
+    values?: PrimitiveType[] // Similar to Fn, but the already computed values.
     type?: ColumnTypeNames
     generator?: () => number // A function for generating synthetic data for testing
     growthRateGenerator?: () => number // A function for generating synthetic data for testing. Can probably combine with the above.

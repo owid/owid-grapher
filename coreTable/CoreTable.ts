@@ -15,6 +15,7 @@ import {
     intersection,
     flatten,
     sum,
+    differenceBy,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
@@ -173,9 +174,9 @@ export class CoreTable<
     private get computedColumns() {
         const columnsObject: CoreColumnStore = {}
         this.colsToCompute.forEach((def) => {
-            columnsObject[def.slug] = this.inputAsRows.map((row, index) =>
-                def.fn!(row, index)
-            )
+            columnsObject[def.slug] =
+                def.values ??
+                this.inputAsRows.map((row, index) => def.fn!(row, index))
         })
 
         return columnsObject
@@ -194,10 +195,16 @@ export class CoreTable<
 
     private get colsToCompute() {
         // We never need to compute on certain transforms
-        if (!TransformsRequiringCompute.has(this.transformCategory)) return []
+        return TransformsRequiringCompute.has(this.transformCategory)
+            ? this.newProvidedColumnDefsToCompute
+            : []
+    }
 
-        // Only compute new columns
-        return this.newProvidedColumnDefs.filter((def) => def.fn)
+    @computed private get newProvidedColumnDefsToCompute() {
+        const cols = this.parent
+            ? difference(this.inputColumnDefs, this.parent.defs)
+            : this.inputColumnDefs
+        return cols.filter((def) => def.fn || def.values)
     }
 
     private get slugsToBuild() {
@@ -214,8 +221,14 @@ export class CoreTable<
         if (!firstInputRow) return []
         const cols = this.columnsAsArray
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
-        // user data. Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
-        if (this.isRoot()) return cols.filter((col) => !col.def.fn)
+        // user data, with the exception of computed columns.
+        // Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
+        if (this.isRoot())
+            return differenceBy(
+                cols,
+                this.newProvidedColumnDefsToCompute,
+                (item) => item.slug
+            )
 
         return cols.filter((col) => col.needsParsing(firstInputRow[col.slug]))
     }
@@ -299,11 +312,6 @@ export class CoreTable<
 
     copySelectionFrom(table: any) {
         // todo? Do we need a notion of selection outside of OwidTable?
-    }
-
-    @computed private get newProvidedColumnDefs() {
-        if (!this.parent) return this.inputColumnDefs
-        return difference(this.inputColumnDefs, this.parent.defs)
     }
 
     // Time between when the parent table finished loading and this table started constructing.

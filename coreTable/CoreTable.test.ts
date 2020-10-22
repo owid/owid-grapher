@@ -33,6 +33,20 @@ it("can create a table from csv", () => {
     expect(table.columnJsTypes).toEqual(["string", "number"])
 })
 
+it("can add a column from an array", () => {
+    let table = new CoreTable({
+        scores: [0, 1, 2],
+        team: ["usa", "france", "canada"],
+    })
+    table = table.appendColumns([
+        {
+            slug: "population",
+            values: [100, 200, 300],
+        },
+    ])
+    expect(table.where({ team: "canada" }).rows[0].population).toEqual(300)
+})
+
 it("rows can be added without mutating the parent table", () => {
     const table = CoreTable.fromDelimited(sampleCsv)
     expect(table.numRows).toEqual(4)
