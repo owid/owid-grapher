@@ -8,6 +8,7 @@ import { OwidTable } from "coreTable/OwidTable"
 import { flatten } from "grapher/utils/Util"
 import { ColumnTypeNames } from "./CoreTableConstants"
 import { LegacyVariablesAndEntityKey } from "./LegacyVariableCode"
+import { InvalidCellTypes } from "./InvalidCells"
 
 const sampleRows = [
     {
@@ -257,8 +258,8 @@ describe("time filtering", () => {
         })
 
         expect(table.numRows).toBe(10)
-        expect(table.filterByTime(2000, 2003).numRows).toBe(8)
-        expect(table.filterByTime(2000, 2000).numRows).toBe(2)
+        expect(table.filterByTimeRange(2000, 2003).numRows).toBe(8)
+        expect(table.filterByTimeRange(2000, 2000).numRows).toBe(2)
     })
 
     it("can get time options", () => {
@@ -291,9 +292,9 @@ usa,1,usa,-5,1`
         })
 
         expect(table.numRows).toBe(10)
-        expect(table.filterByTime(Infinity, Infinity).numRows).toBe(2)
-        expect(table.filterByTime(-Infinity, -Infinity).numRows).toBe(2)
-        expect(table.filterByTime(-Infinity, Infinity).numRows).toBe(10)
+        expect(table.filterByTimeRange(Infinity, Infinity).numRows).toBe(2)
+        expect(table.filterByTimeRange(-Infinity, -Infinity).numRows).toBe(2)
+        expect(table.filterByTimeRange(-Infinity, Infinity).numRows).toBe(10)
     })
 
     it("can filter by time target", () => {
@@ -306,14 +307,14 @@ usa,1,usa,-5,1`
         )
 
         expect(table.numRows).toBe(10)
-        expect(table.filterByTargetTime(2010, 2).numRows).toBe(0)
-        expect(table.filterByTargetTime(2010, 20).numRows).toBe(2)
+        expect(table.filterByTargetTimes([2010], 2).numRows).toBe(0)
+        expect(table.filterByTargetTimes([2010], 20).numRows).toBe(2)
 
         expect(
             table
                 .selectEntity(table.availableEntityNames[0])
                 .filterBySelectedOnly()
-                .filterByTargetTime(2010, 20).numRows
+                .filterByTargetTimes([2010], 20).numRows
         ).toBe(1)
 
         const table2 = SynthesizeGDPTable({
@@ -321,7 +322,34 @@ usa,1,usa,-5,1`
             timeRange: [2000, 2001],
         })
 
-        expect(table2.filterByTargetTime(2000, 1).numRows).toBe(1)
+        expect(table2.filterByTargetTimes([2000], 1).numRows).toBe(1)
+    })
+
+    it("can filter by multiple time targets", () => {
+        const table = SynthesizeGDPTable(
+            {
+                entityCount: 2,
+                timeRange: [2000, 2005],
+            },
+            1
+        )
+
+        expect(table.numRows).toBe(10)
+        expect(table.filterByTargetTimes([2000, 2002], 0).numRows).toBe(4)
+
+        expect(
+            table
+                .selectEntity(table.availableEntityNames[0])
+                .filterBySelectedOnly()
+                .filterByTargetTimes([2000, 2003], 1).numRows
+        ).toBe(2)
+
+        const table2 = SynthesizeGDPTable({
+            entityCount: 1,
+            timeRange: [2000, 2001],
+        })
+
+        expect(table2.filterByTargetTimes([2000, 2007], 1).numRows).toBe(1)
     })
 })
 
@@ -449,5 +477,64 @@ describe("time domain", () => {
         expect(table.get("gdp")!.minTime).toEqual(1950)
         expect(table.get("gdp")!.maxTime).toEqual(2000)
         expect(table.get("gdp")!.uniqTimesAsc).toEqual([1950, 1970, 2000])
+    })
+})
+
+describe("tolerance", () => {
+    it("can apply tolerance to a column", () => {
+        const table = OwidTable.fromDelimited(
+            `gdp,year,entityName,entityId,entityCode
+,2000,usa,1,
+0,2001,usa,1,
+,2002,usa,1,
+,2003,usa,1,
+2,2004,uk,2,
+1,2005,usa,1,`,
+            [
+                { slug: "gdp", type: ColumnTypeNames.Numeric },
+                { slug: "year", type: ColumnTypeNames.Year },
+            ]
+        )
+
+        const toleranceTable = table.interpolateColumnWithTolerance("gdp", 1)
+
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "usa",
+                    gdp: 0,
+                    "gdp-originalTime": 2001,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "usa",
+                    gdp: InvalidCellTypes.NoValueWithinTolerance,
+                    "gdp-originalTime": 2003,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "uk",
+                    gdp: 2,
+                    "gdp-originalTime": 2004,
+                    year: 2004,
+                }),
+            ])
+        )
+        expect(toleranceTable.rows).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    entityName: "uk",
+                    gdp: 2,
+                    "gdp-originalTime": 2004,
+                    year: 2005,
+                }),
+            ])
+        )
     })
 })

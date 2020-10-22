@@ -1,10 +1,12 @@
-import { slugifySameCase } from "grapher/utils/Util"
+import { findIndex, slugifySameCase } from "grapher/utils/Util"
 import {
     CoreColumnStore,
     ColumnTypeNames,
     CoreColumnDef,
     CoreRow,
+    ColumnSlug,
 } from "./CoreTableConstants"
+import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 
 export const columnStoreToRows = (columnStore: CoreColumnStore) => {
     const firstCol = Object.values(columnStore)[0]
@@ -97,4 +99,81 @@ export const makeRowFromColumnStore = (
         row[slug] = columns[colIndex][rowIndex]
     })
     return row
+}
+
+function isNotInvalidOrEmptyCell(value: any) {
+    return value !== undefined && !(value instanceof InvalidCell)
+}
+
+export function interpolateRowValuesWithTolerance<
+    ValueSlug extends ColumnSlug,
+    TimeSlug extends ColumnSlug,
+    Row extends { [key in TimeSlug]?: number } & { [key in ValueSlug]?: any }
+>(
+    rowsSortedByTimeAsc: Row[],
+    valueSlug: ValueSlug,
+    timeSlug: TimeSlug,
+    timeTolerance: number
+): Row[] {
+    if (!rowsSortedByTimeAsc.length) return rowsSortedByTimeAsc
+
+    let prevNonBlankIndex: number | undefined = undefined
+    let nextNonBlankIndex: number | undefined = undefined
+
+    for (let index = 0; index < rowsSortedByTimeAsc.length; index++) {
+        const currentValue = rowsSortedByTimeAsc[index][valueSlug]
+        if (isNotInvalidOrEmptyCell(currentValue)) {
+            prevNonBlankIndex = index
+            continue
+        }
+
+        if (
+            nextNonBlankIndex !== -1 &&
+            (nextNonBlankIndex === undefined || nextNonBlankIndex <= index)
+        ) {
+            nextNonBlankIndex = findIndex(
+                rowsSortedByTimeAsc,
+                (row) => isNotInvalidOrEmptyCell(row[valueSlug]),
+                index + 1
+            )
+        }
+
+        const timeOfCurrent: number = rowsSortedByTimeAsc[index][timeSlug]
+        const timeOfPrevIndex: number =
+            prevNonBlankIndex !== undefined
+                ? rowsSortedByTimeAsc[prevNonBlankIndex][timeSlug]
+                : -Infinity
+        const timeOfNextIndex: number =
+            nextNonBlankIndex !== undefined && nextNonBlankIndex !== -1
+                ? rowsSortedByTimeAsc[nextNonBlankIndex][timeSlug]
+                : Infinity
+
+        const prevTimeDiff = Math.abs(timeOfPrevIndex - timeOfCurrent)
+        const nextTimeDiff = Math.abs(timeOfNextIndex - timeOfCurrent)
+
+        if (
+            nextNonBlankIndex !== -1 &&
+            nextTimeDiff <= prevTimeDiff &&
+            nextTimeDiff <= timeTolerance
+        ) {
+            rowsSortedByTimeAsc[index] = {
+                ...rowsSortedByTimeAsc[index],
+                [valueSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][valueSlug],
+                [timeSlug]: rowsSortedByTimeAsc[nextNonBlankIndex!][timeSlug],
+            }
+        } else if (prevTimeDiff <= timeTolerance) {
+            rowsSortedByTimeAsc[index] = {
+                ...rowsSortedByTimeAsc[index],
+                [valueSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][valueSlug],
+                [timeSlug]: rowsSortedByTimeAsc[prevNonBlankIndex!][timeSlug],
+            }
+        } else {
+            rowsSortedByTimeAsc[index] = {
+                ...rowsSortedByTimeAsc[index],
+                [valueSlug]: InvalidCellTypes.NoValueWithinTolerance,
+            }
+        }
+    }
+
+    return rowsSortedByTimeAsc
 }

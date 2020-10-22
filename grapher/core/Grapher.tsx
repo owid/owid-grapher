@@ -472,12 +472,12 @@ export class Grapher
         const [startTime, endTime] = this.timelineHandleTimeBounds
         if (this.isOnMapTab) {
             const tolerance = this.map.timeTolerance ?? 0 // todo: is this the right place for this?
-            return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTime(
+            return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTimeRange(
                 startTime - tolerance,
                 endTime + tolerance
             )
         }
-        return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTime(
+        return this.tableAfterPopulationFilterAndActiveChartTransform.filterByTimeRange(
             startTime,
             endTime
         )

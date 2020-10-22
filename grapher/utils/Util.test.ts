@@ -280,8 +280,8 @@ describe("jsTables", () => {
 
     it("handles extra blank cells", () => {
         const table = toJsTable(
-            parseDelimited(`gdp pop code    
-123 345 usa    
+            parseDelimited(`gdp pop code
+123 345 usa
 `)
         )
         expect(jsTableToDelimited(trimGrid(table!) as JsTable, " "))

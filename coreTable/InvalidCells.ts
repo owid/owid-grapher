@@ -23,6 +23,7 @@ class NullButShouldBeString extends InvalidCell {}
 class NotAParseableNumberButShouldBeNumber extends InvalidCell {}
 class MissingValuePlaceholder extends InvalidCell {}
 class DivideByZeroError extends InvalidCell {}
+class NoValueWithinTolerance extends InvalidCell {}
 
 export const InvalidCellTypes = {
     NaNButShouldBeNumber: new NaNButShouldBeNumber(),
@@ -36,6 +37,7 @@ export const InvalidCellTypes = {
     MissingValuePlaceholder: new MissingValuePlaceholder(),
     NotAParseableNumberButShouldBeNumber: new NotAParseableNumberButShouldBeNumber(),
     DivideByZeroError: new DivideByZeroError(),
+    NoValueWithinTolerance: new NoValueWithinTolerance(),
 }
 
 // https://github.com/robertmassaioli/ts-is-present

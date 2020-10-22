@@ -27,6 +27,7 @@ import {
     OwidColumnDef,
     EntityId,
 } from "./OwidTableConstants"
+import { timeColumnSlugFromColumnDef } from "./OwidTableUtil"
 
 export const makeAnnotationsSlug = (columnSlug: ColumnSlug) =>
     `${columnSlug}-annotations`
@@ -106,9 +107,7 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
             })
         }
 
-        const timeColumnName = columnDef.isDailyMeasurement
-            ? OwidTableSlugs.day
-            : OwidTableSlugs.year
+        const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
 
         // Todo: remove
         const display = variable.display
@@ -131,7 +130,7 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
             const entityId = entities[index]
             const time = years[index]
             const row: OwidRow = {
-                [timeColumnName]: time,
+                [timeColumnSlug]: time,
                 time,
                 [columnSlug]: value,
                 entityName,

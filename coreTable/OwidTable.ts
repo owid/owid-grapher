@@ -18,6 +18,8 @@ import {
     last,
     intersection,
     keyBy,
+    groupBy,
+    sortedUniq,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -47,6 +49,11 @@ import {
     toAlignedTextTable,
 } from "./CoreTablePrinters"
 import { TimeBound } from "grapher/utils/TimeBounds"
+import {
+    makeOriginalTimeSlugFromColumnSlug,
+    timeColumnSlugFromColumnDef,
+} from "./OwidTableUtil"
+import { interpolateRowValuesWithTolerance } from "./CoreTableUtils"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -229,7 +236,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    filterByTime(start: TimeBound, end: TimeBound): this {
+    filterByTimeRange(start: TimeBound, end: TimeBound): this {
         // We may want to do this time adjustment in Grapher instead of here.
         const adjustedStart = start === Infinity ? this.maxTime! : start
         const adjustedEnd = end === -Infinity ? this.minTime! : end
@@ -267,24 +274,29 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         }, `Filter out countries with population less than ${minPop}`)
     }
 
-    filterByTargetTime(targetTime: Time, tolerance: Integer) {
+    filterByTargetTimes(targetTimes: Time[], tolerance: Integer = 0) {
         const timeSlug = this.timeColumn!.slug
         const entityNameToRows = this.rowsByEntityName
         const matchingRows = new Set<OwidRow>()
         this.availableEntityNames.forEach((entityName) => {
             const rows = entityNameToRows.get(entityName) || []
+            const allTimes = rows.map((row) => row[timeSlug]) as number[]
 
-            const rowIndex = findClosestTimeIndex(
-                rows.map((row) => row[timeSlug]) as number[],
-                targetTime,
-                tolerance
-            )
-            if (rowIndex !== undefined) matchingRows.add(rows[rowIndex])
+            targetTimes.forEach((targetTime) => {
+                const rowIndex = findClosestTimeIndex(
+                    allTimes,
+                    targetTime,
+                    tolerance
+                )
+                if (rowIndex !== undefined) matchingRows.add(rows[rowIndex])
+            })
         })
 
         return this.filter(
             (row) => matchingRows.has(row),
-            `Keep one row per entity closest to time ${targetTime} with tolerance ${tolerance}`
+            `Keep a row for each entity for each of the closest times ${targetTimes.join(
+                ", "
+            )} with tolerance ${tolerance}`
         )
     }
 
@@ -583,6 +595,102 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
         return intersectionOfSets<EntityName>(
             columnSlugs.map((slug) => new Set(this.get(slug)!.uniqEntityNames))
+        )
+    }
+
+    /**
+     * Injects rows to ensure every entity has a row for all uniqTimes in the table.
+     *
+     * For example, if USA has data points for 2000 & 2002, and UK has a data point for 2001,
+     * this transform will inject a row for USA (2001) and two rows for UK (2000 & 2002).
+     *
+     * All injected rows have a blank value.
+     */
+    injectAllTimeRowsForEveryEntity(columnSlug: ColumnSlug) {
+        const column = this.get(columnSlug)
+        const columnDef = column?.def as OwidColumnDef
+        const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
+
+        const originalRows = this.sortedByTime.rows
+        const allTimes = sortedUniq(
+            originalRows.map((row) => row[timeColumnSlug])
+        )
+
+        const rows = flatten(
+            Object.values(
+                groupBy(originalRows, (row) => row[OwidTableSlugs.entityName])
+            ).map((rows) => {
+                const { entityId, entityCode, entityName } = rows[0]
+                const existingTimesSet = new Set(
+                    rows.map((row) => row[timeColumnSlug])
+                )
+                const timesToInject = allTimes.filter(
+                    (time) => !existingTimesSet.has(time)
+                )
+                const rowsToInject = timesToInject.map(
+                    (time) =>
+                        ({
+                            [timeColumnSlug]: time,
+                            entityId,
+                            entityCode,
+                            entityName,
+                        } as OwidRow)
+                )
+                rows = rows.concat(rowsToInject)
+                return sortBy(rows, timeColumnSlug)
+            })
+        )
+
+        return this.transform(
+            rows,
+            this.defs,
+            `Injected rows to ensure every entity has a row for all uniqTimes in the table`,
+            TransformType.AppendRows
+        )
+    }
+
+    interpolateColumnWithTolerance(columnSlug: ColumnSlug, tolerance: number) {
+        const column = this.get(columnSlug)
+        const columnDef = column?.def as OwidColumnDef
+        const timeColumnSlug = timeColumnSlugFromColumnDef(columnDef)
+        const timeColumnDef = this.get(timeColumnSlug)?.def as OwidColumnDef
+        const originalTimeSlug = makeOriginalTimeSlugFromColumnSlug(columnSlug)
+        const originalRows = this.injectAllTimeRowsForEveryEntity(columnSlug)
+            .sortedByTime.rows
+
+        const rows = flatten(
+            Object.values(
+                groupBy(originalRows, (row) => row[OwidTableSlugs.entityName])
+            ).map((rows) => {
+                // Copy over times to originalTime column. interpolateRowValuesWithTolerance()
+                // will overwrite values in this column if a row value from a different time is
+                // used.
+                rows = rows.map((row) => ({
+                    ...row,
+                    [originalTimeSlug]: row[timeColumnSlug],
+                }))
+                return interpolateRowValuesWithTolerance(
+                    rows,
+                    columnSlug,
+                    originalTimeSlug,
+                    tolerance
+                )
+            })
+        )
+
+        const defs: OwidColumnDef[] = [
+            ...this.defs,
+            {
+                ...timeColumnDef,
+                slug: originalTimeSlug,
+            },
+        ]
+
+        return this.transform(
+            rows,
+            defs,
+            `Interpolated values in column ${columnSlug} with tolerance ${tolerance} and appended column ${originalTimeSlug} with the original times`,
+            TransformType.UpdateColumnDefs
         )
     }
 
