@@ -216,8 +216,9 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     filterByEntityNames(names: EntityName[]) {
+        const namesSet = new Set(names)
         return this.filter(
-            (row) => names.includes(row[OwidTableSlugs.entityName]),
+            (row) => namesSet.has(row[OwidTableSlugs.entityName]),
             `Filter out all entities except '${names}'`
         )
     }
