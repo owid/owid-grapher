@@ -138,6 +138,16 @@ export class TestIndexPage extends React.Component {
                             <Link
                                 native
                                 target="_blank"
+                                to="/test/embeds?relativeToggle=true"
+                            >
+                                All charts with relative toggles
+                            </Link>
+                        </li>
+
+                        <li>
+                            <Link
+                                native
+                                target="_blank"
                                 to="/test/embedVariants"
                             >
                                 Embed Variants
