@@ -10,6 +10,7 @@ import {
     CoreColumnDef,
 } from "coreTable/CoreTableConstants"
 import {
+    allAvailableQueryStringCombos,
     CovidColumnDefObjectMap,
     CovidConstrainedQueryParams,
     CovidQueryParams,
@@ -177,6 +178,17 @@ export class CovidExplorerTable extends OwidTable {
             (params) =>
                 makeColumnDefFromParams(params, this.columnDefTemplates).slug
         )
+    }
+
+    appendEveryColumn() {
+        const defs = flatten(
+            allAvailableQueryStringCombos().map((str) =>
+                this.makeColumnDefsFromParams(
+                    new CovidQueryParams(str).toConstrainedParams()
+                )
+            )
+        )
+        return this.appendColumnsIfNew(defs)
     }
 
     private paramsForDataTableColumns(params: CovidConstrainedQueryParams) {
