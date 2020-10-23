@@ -1,5 +1,4 @@
 import {
-    Color,
     ColumnSlug,
     ColumnTypeNames,
     CoreColumnDef,
@@ -40,30 +39,35 @@ export interface OwidColumnDef extends CoreColumnDef {
     annotationsColumnSlug?: ColumnSlug
 }
 
-export const RequiredColumnDefs: OwidColumnDef[] = [
-    {
-        name: OwidTableNames.Entity,
-        slug: OwidTableSlugs.entityName,
-        type: ColumnTypeNames.EntityName,
-    },
-    {
-        slug: OwidTableSlugs.entityId,
-        type: ColumnTypeNames.EntityId,
-    },
-    {
-        name: OwidTableNames.Code,
-        slug: OwidTableSlugs.entityCode,
-        type: ColumnTypeNames.EntityCode,
-    },
+export const OwidEntityNameColumnDef = {
+    name: OwidTableNames.Entity,
+    slug: OwidTableSlugs.entityName,
+    type: ColumnTypeNames.EntityName,
+}
+
+export const OwidEntityIdColumnDef = {
+    slug: OwidTableSlugs.entityId,
+    type: ColumnTypeNames.EntityId,
+}
+
+export const OwidEntityCodeColumnDef = {
+    name: OwidTableNames.Code,
+    slug: OwidTableSlugs.entityCode,
+    type: ColumnTypeNames.EntityCode,
+}
+
+export const StandardOwidColumnDefs: OwidColumnDef[] = [
+    OwidEntityNameColumnDef,
+    OwidEntityIdColumnDef,
+    OwidEntityCodeColumnDef,
 ]
 
 // This is a row with the additional columns specific to our OWID data model
-// todo: don't export?
 export interface OwidRow extends CoreRow {
     entityName: EntityName
-    entityCode: EntityCode
-    entityId: EntityId
     time: Time
+    entityCode?: EntityCode
+    entityId?: EntityId
     year?: Year
     day?: Integer
     date?: string

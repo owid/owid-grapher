@@ -22,7 +22,7 @@ import {
 } from "./LegacyVariableCode"
 import {
     OwidRow,
-    RequiredColumnDefs,
+    StandardOwidColumnDefs,
     OwidTableSlugs,
     OwidColumnDef,
     EntityId,
@@ -51,7 +51,7 @@ export const legacyVariablesToColDefsAndOwidRowsSortedByTimeAsc = (
     let rows: OwidRow[] = []
     const entityMetaById: { [id: string]: LegacyEntityMeta } = json.entityKey
     const columnDefs: Map<ColumnSlug, CoreColumnDef> = new Map()
-    RequiredColumnDefs.forEach((def) => {
+    StandardOwidColumnDefs.forEach((def) => {
         columnDefs.set(def.slug, def)
     })
 

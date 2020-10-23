@@ -7,6 +7,12 @@ import {
     ColumnSlug,
 } from "./CoreTableConstants"
 import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
+import {
+    OwidEntityCodeColumnDef,
+    OwidEntityIdColumnDef,
+    OwidTableSlugs,
+    StandardOwidColumnDefs,
+} from "./OwidTableConstants"
 
 export const columnStoreToRows = (columnStore: CoreColumnStore) => {
     const firstCol = Object.values(columnStore)[0]
@@ -71,6 +77,10 @@ export const guessColumnDefFromSlugAndRow = (
             type: ColumnTypeNames.Year,
             name: "Year",
         }
+
+    if (slug === OwidTableSlugs.entityCode) return OwidEntityCodeColumnDef
+
+    if (slug === OwidTableSlugs.entityId) return OwidEntityIdColumnDef
 
     if (valueType === "number")
         return {

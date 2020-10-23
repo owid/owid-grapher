@@ -654,7 +654,7 @@ export class LineChart
 
         sorted.forEach((series, i) => {
             series.color =
-                colors[i] || table.getColorForEntityName(series.seriesName)
+                table.getColorForEntityName(series.seriesName) ?? colors[i]
         })
     }
 

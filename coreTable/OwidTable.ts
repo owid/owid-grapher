@@ -16,7 +16,6 @@ import {
     sortBy,
     sortedIndexBy,
     last,
-    intersection,
     keyBy,
     groupBy,
     sortedUniq,
@@ -28,7 +27,6 @@ import {
     Integer,
     Time,
     TransformType,
-    PrimitiveType,
 } from "coreTable/CoreTableConstants"
 import { CoreTable } from "./CoreTable"
 import { populationMap } from "./PopulationMap"
@@ -37,10 +35,10 @@ import {
     EntityCode,
     EntityId,
     EntityName,
+    OwidEntityNameColumnDef,
     OwidColumnDef,
     OwidRow,
     OwidTableSlugs,
-    RequiredColumnDefs,
 } from "./OwidTableConstants"
 import { legacyToOwidTable, makeAnnotationsSlug } from "./LegacyToOwidTable"
 import { InvalidCell, InvalidCellTypes, isValid } from "./InvalidCells"
@@ -63,19 +61,13 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const parsed = parseDelimited(csvOrTsv)
         const colSlugs = parsed[0] ? Object.keys(parsed[0]) : []
 
-        const missingColumns = RequiredColumnDefs.filter(
-            (def) => !colSlugs.includes(def.slug)
-        )
-
-        if (missingColumns.length)
+        if (!colSlugs.includes(OwidTableSlugs.entityName))
             throw new Error(
-                `Table is missing required OWID columns: '${missingColumns
-                    .map((col) => col.slug)
-                    .join(",")}'`
+                `Table is missing an ${OwidTableSlugs.entityName} column`
             )
 
         const rows = (parsed as any) as OwidRow[]
-        return new OwidTable(rows, [...RequiredColumnDefs, ...defs])
+        return new OwidTable(rows, [OwidEntityNameColumnDef, ...defs])
     }
 
     @computed get entityType() {

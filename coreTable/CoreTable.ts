@@ -123,14 +123,17 @@ export class CoreTable<
             : this.inputAsColumnStore[columnSlug]
     }
 
-    @computed private get rowsFromColumns() {
+    private _rows?: ROW_TYPE[]
+    private get rowsFromColumns() {
+        if (this._rows) return this._rows
         const columnStore = this.inputAsColumnStore
-        return range(
+        this._rows = range(
             0,
             Object.values(columnStore)[0]?.length ?? 0
         ).map((index) =>
             makeRowFromColumnStore(index, columnStore)
         ) as ROW_TYPE[]
+        return this._rows
     }
 
     // Currently we only do parsing and computeds when the input is rows
