@@ -63,6 +63,7 @@ import {
     getLeastUsedColor,
     fetchRequiredData,
     perCapitaDivisorByMetric,
+    sampleMegaCsv,
 } from "./CovidExplorerUtils"
 import { ExplorerShell } from "explorer/client/ExplorerShell"
 import {
@@ -92,14 +93,18 @@ interface BootstrapProps {
     bindToWindow?: boolean
 }
 
+const EMPTY_DUMMY_META = {
+    charts: {},
+    variables: {},
+}
+
 interface CovidExplorerProps {
-    megaCsv: CsvString
-    params: CovidQueryParams
-    covidChartAndVariableMeta: {
+    megaCsv?: CsvString
+    covidChartAndVariableMeta?: {
         charts: any
         variables: any
     }
-    updated: string
+    updated?: string
     queryStr?: string
     isEmbed?: boolean
     globalEntitySelection?: GlobalEntitySelection
@@ -117,12 +122,10 @@ export class CovidExplorer
             props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
                 ? props.queryStr
                 : coronaDefaultView
-        const startingParams = new CovidQueryParams(queryStr)
         return ReactDOM.render(
             <CovidExplorer
                 megaCsv={megaCsv}
                 updated={updated}
-                params={startingParams}
                 covidChartAndVariableMeta={covidMeta}
                 queryStr={queryStr}
                 isEmbed={props.isEmbed}
@@ -133,6 +136,8 @@ export class CovidExplorer
             props.containerNode
         )
     }
+
+    writeableParams = new CovidQueryParams(this.props.queryStr ?? "")
 
     private uniqId = Math.random().toString(36).substr(2, 8)
 
@@ -229,12 +234,12 @@ export class CovidExplorer
     }
 
     @action.bound private changeMetric(metric: string) {
-        this.props.params.setMetric(metric as MetricOptions)
+        this.writeableParams.setMetric(metric as MetricOptions)
         this.renderControlsThenUpdateGrapher()
     }
 
     private get frequencyPanel() {
-        const writeableParams = this.props.params
+        const writeableParams = this.writeableParams
         const { available } = this.constrainedParams
         const options: ExplorerControlOption[] = [
             {
@@ -291,7 +296,7 @@ export class CovidExplorer
     }
 
     @computed private get constrainedParams() {
-        return this.props.params.constrainedParams
+        return this.writeableParams.constrainedParams
     }
 
     @computed private get perCapitaPanel() {
@@ -313,7 +318,7 @@ export class CovidExplorer
                 options={options}
                 explorerSlug="covid"
                 onChange={(value) => {
-                    this.props.params.perCapita = value === "true"
+                    this.writeableParams.perCapita = value === "true"
                     this.renderControlsThenUpdateGrapher()
                 }}
             />
@@ -338,7 +343,7 @@ export class CovidExplorer
                 type={ExplorerControlType.Checkbox}
                 options={options}
                 onChange={(value) => {
-                    this.props.params.aligned = value === "true"
+                    this.writeableParams.aligned = value === "true"
                     this.renderControlsThenUpdateGrapher()
                 }}
                 comment={this.constrainedParams.trajectoryColumnOption.name}
@@ -347,9 +352,9 @@ export class CovidExplorer
         )
     }
 
-    @computed private get howLongAgo() {
-        return moment.utc(this.props.updated).fromNow()
-    }
+    private howLongAgo = this.props.updated
+        ? moment.utc(this.props.updated).fromNow()
+        : ""
 
     private get header() {
         return (
@@ -385,7 +390,7 @@ export class CovidExplorer
                 pickerColumnSlugs={CovidCountryPickerSlugs}
                 isDropdownMenu={false}
                 entityColorMap={this.countryNameToColorMap}
-                manager={this.props.params}
+                manager={this.writeableParams}
                 requiredColumnSlugs={this.activeColumnSlugs}
             />
         )
@@ -411,7 +416,7 @@ export class CovidExplorer
                 controlPanels={this.panels}
                 explorerSlug={this.explorerSlug}
                 countryPickerElement={this.countryPicker}
-                hideControls={this.props.params.hideControls}
+                hideControls={this.writeableParams.hideControls}
                 isEmbed={!!this.props.isEmbed}
                 ref={this.explorerRef}
                 enableKeyboardShortcuts={this.props.enableKeyboardShortcuts}
@@ -424,7 +429,7 @@ export class CovidExplorer
     > = React.createRef()
 
     @computed private get showExplorerControls() {
-        return !this.props.params.hideControls || !this.props.isEmbed
+        return !this.writeableParams.hideControls || !this.props.isEmbed
     }
 
     @computed private get perCapitaDivisor() {
@@ -550,10 +555,13 @@ export class CovidExplorer
         }, 1)
     }
 
+    private metaDataFromGrapherBackend =
+        this.props.covidChartAndVariableMeta ?? EMPTY_DUMMY_META
+
     private inputTable = MegaCsvToCovidExplorerTable(
-        this.props.megaCsv
+        this.props.megaCsv ?? sampleMegaCsv
     ).loadColumnDefTemplatesFromGrapherBackend(
-        this.props.covidChartAndVariableMeta.variables
+        this.metaDataFromGrapherBackend.variables
     )
 
     private _expandedTable?: CovidExplorerTable
@@ -625,7 +633,7 @@ export class CovidExplorer
     }
 
     @computed private get sourceChart(): GrapherInterface | undefined {
-        return this.props.covidChartAndVariableMeta.charts[this.sourceChartId]
+        return this.metaDataFromGrapherBackend.charts[this.sourceChartId]
     }
 
     private updateMapSettings() {
@@ -661,7 +669,7 @@ export class CovidExplorer
         )
 
         this.expandedTable.setSelectedEntitiesByCode(
-            Array.from(this.props.params.selectedCountryCodes.values())
+            Array.from(this.writeableParams.selectedCountryCodes.values())
         )
         this.updateGrapher()
         this.observeGlobalEntitySelection()
@@ -681,7 +689,7 @@ export class CovidExplorer
                 () => {
                     const { mode, selectedEntities } = globalEntitySelection
                     if (mode === GlobalEntitySelectionModes.override) {
-                        this.props.params.selectedCountryCodes = new Set(
+                        this.writeableParams.selectedCountryCodes = new Set(
                             selectedEntities.map((entity) => entity.code)
                         )
                         this.renderControlsThenUpdateGrapher()
@@ -698,7 +706,7 @@ export class CovidExplorer
     }
 
     @computed get params() {
-        return this.props.params.toQueryParams
+        return this.writeableParams.toQueryParams
     }
 
     disposers: (IReactionDisposer | Lambda)[] = []
@@ -789,7 +797,7 @@ export class CovidExplorer
         [name: string]: ColorScaleConfigInterface
     } {
         return {
-            ptr: this.props.covidChartAndVariableMeta.charts[
+            ptr: this.metaDataFromGrapherBackend.charts[
                 sourceChartsForChartTemplates.epi
             ]?.colorScale as any,
             continents: {
@@ -846,7 +854,7 @@ export class CovidExplorer
     @observable.ref grapher = new Grapher()
 
     @action.bound setSlide(queryString: string) {
-        this.props.params.setParamsFromQueryString(queryString)
+        this.writeableParams.setParamsFromQueryString(queryString)
         this.updateGrapher()
     }
 
@@ -899,8 +907,6 @@ export class CovidExplorer
         )
 
         grapher.id = this.sourceChartId
-        grapher.baseQueryString = queryParamsToStr(
-            this.props.params.toQueryParams
-        )
+        grapher.baseQueryString = queryParamsToStr(this.params)
     }
 }

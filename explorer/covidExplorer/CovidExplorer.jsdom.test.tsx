@@ -5,23 +5,11 @@ import { CovidQueryParams } from "explorer/covidExplorer/CovidParams"
 import React from "react"
 import { mount, ReactWrapper } from "enzyme"
 import { IntervalOptions, metricLabels, MetricOptions } from "./CovidConstants"
-import { sampleMegaCsv } from "./CovidExplorerUtils"
 import { ThereWasAProblemLoadingThisChart } from "grapher/core/GrapherConstants"
+import { queryParamsToStr } from "utils/client/url"
 
-const dummyMeta = {
-    charts: {},
-    variables: {},
-}
-
-const makeMountedExplorer = (params: string) =>
-    mount(
-        <CovidExplorer
-            megaCsv={sampleMegaCsv}
-            params={new CovidQueryParams(params)}
-            covidChartAndVariableMeta={dummyMeta}
-            updated="2020-05-09T18:59:31"
-        />
-    )
+const makeMountedExplorer = (queryStr: string) =>
+    mount(<CovidExplorer queryStr={queryStr} />)
 
 describe(CovidExplorer, () => {
     it("renders the Covid Data Explorer", () => {
@@ -47,20 +35,12 @@ const defaultParams = () =>
     )
 
 class ExplorerDataTableTest {
-    private params: CovidQueryParams
     view: ReactWrapper
 
     constructor(params = defaultParams()) {
-        this.params = params
-        this.view = mount(
-            <CovidExplorer
-                megaCsv={sampleMegaCsv}
-                params={this.params}
-                queryStr="?tab=table&time=2020-05-06"
-                covidChartAndVariableMeta={dummyMeta}
-                updated="2020-05-09T18:59:31"
-            />
-        )
+        // "?tab=table&time=2020-05-06" // todo: apply thise before or after?
+        const queryStr = queryParamsToStr(params.toQueryParams)
+        this.view = mount(<CovidExplorer queryStr={queryStr} />)
     }
 
     // untested with subheaders
