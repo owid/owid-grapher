@@ -11,7 +11,6 @@ import {
 import { SparkBarTimeSeriesValue } from "grapher/sparkBars/SparkBarTimeSeriesValue"
 import { MapChartManager, ChoroplethSeries } from "./MapChartConstants"
 import { ColorScale } from "grapher/color/ColorScale"
-import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { Time } from "coreTable/CoreTableConstants"
 
 interface MapTooltipProps {
@@ -89,14 +88,7 @@ export class MapTooltip extends React.Component<MapTooltipProps> {
     }
 
     @computed get colorScale() {
-        return (
-            this.props.colorScale ??
-            new ColorScale({
-                hasNoDataBin: false,
-                categoricalValues: [],
-                colorScaleConfig: new ColorScaleConfig(),
-            })
-        )
+        return this.props.colorScale ?? new ColorScale()
     }
 
     @computed private get renderSparkBars() {

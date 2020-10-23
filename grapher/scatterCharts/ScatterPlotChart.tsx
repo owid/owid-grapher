@@ -51,7 +51,6 @@ import {
     SeriesPoint,
     SeriesPointMap,
 } from "./ScatterPlotChartConstants"
-import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { ScatterTooltip } from "./ScatterTooltip"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { EntityName, OwidRow } from "coreTable/OwidTableConstants"
@@ -466,7 +465,7 @@ export class ScatterPlotChart
     }
 
     @computed get colorScaleConfig() {
-        return this.manager.colorScale ?? new ColorScaleConfig()
+        return this.manager.colorScale
     }
 
     defaultBaseColorScheme = ColorSchemeName.continents
@@ -481,8 +480,7 @@ export class ScatterPlotChart
     }
 
     @computed get categoricalValues() {
-        const colorColumn = this.colorColumn
-        return colorColumn?.sortedUniqNonEmptyStringVals ?? []
+        return this.colorColumn?.sortedUniqNonEmptyStringVals
     }
 
     @computed private get yAxisConfig() {

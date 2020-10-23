@@ -42,7 +42,7 @@ describe("column charts", () => {
             ],
         }
         const chart = new StackedAreaChart({ manager: columnsChart })
-        expect(chart.seriesColors).toEqual([
+        expect(chart.series.map((series) => series.color)).toEqual([
             SampleColumnSlugs.Vegetables,
             SampleColumnSlugs.Fruit,
         ])

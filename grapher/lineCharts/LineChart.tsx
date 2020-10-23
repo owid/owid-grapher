@@ -668,10 +668,10 @@ export class LineChart
             seriesToShow = seriesToShow.filter((series) => series.isProjection)
 
         return seriesToShow.map((series) => {
-            const { seriesName } = series
+            const { seriesName, color } = series
             const lastValue = last(series.points)!.y
             return {
-                color: series.color,
+                color,
                 seriesName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
                 label: this.manager.hideLegend ? "" : `${seriesName}`,

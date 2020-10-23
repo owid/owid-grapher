@@ -1,7 +1,7 @@
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 import { bind } from "decko"
-import { ColorScaleConfigInterface } from "./ColorScaleConfig"
+import { ColorScaleConfig, ColorScaleConfigInterface } from "./ColorScaleConfig"
 import {
     isEmpty,
     reverse,
@@ -16,31 +16,29 @@ import { ColorSchemes } from "grapher/color/ColorSchemes"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { BinningStrategy, getBinMaximums } from "./BinningStrategies"
 import { CoreColumn } from "coreTable/CoreTableColumns"
-import { OwidTable } from "coreTable/OwidTable"
 import { ColorSchemeName } from "./ColorConstants"
 
 const NO_DATA_LABEL = "No data"
 
 export interface ColorScaleManager {
-    colorScaleConfig: ColorScaleConfigInterface
-    categoricalValues: string[]
-    hasNoDataBin: boolean
+    colorScaleConfig?: ColorScaleConfigInterface
+    categoricalValues?: string[]
+    hasNoDataBin?: boolean
     defaultNoDataColor?: string
     defaultBaseColorScheme?: ColorSchemeName
     colorScaleColumn?: CoreColumn
-    table?: OwidTable
 }
 
 export class ColorScale {
     private manager: Readonly<ColorScaleManager>
-    constructor(manager: ColorScaleManager) {
+    constructor(manager: ColorScaleManager = {}) {
         this.manager = manager
     }
 
     // Config accessors
 
     @computed get config() {
-        return this.manager.colorScaleConfig
+        return this.manager.colorScaleConfig ?? new ColorScaleConfig()
     }
 
     @computed get customNumericValues() {
@@ -102,10 +100,6 @@ export class ColorScale {
         return this.manager.colorScaleColumn
     }
 
-    @computed get inputTable() {
-        return this.manager.table
-    }
-
     @computed get legendDescription() {
         return this.config.legendDescription
     }
@@ -113,7 +107,7 @@ export class ColorScale {
     // Transforms
 
     @computed private get hasNoDataBin() {
-        return this.manager.hasNoDataBin
+        return this.manager.hasNoDataBin || false
     }
 
     @computed get sortedNumericValues() {
@@ -129,7 +123,7 @@ export class ColorScale {
     }
 
     @computed private get categoricalValues() {
-        return this.manager.categoricalValues
+        return this.manager.categoricalValues ?? []
     }
 
     @computed private get colorScheme() {

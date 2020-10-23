@@ -17,7 +17,6 @@ import {
 import { Tooltip } from "grapher/tooltip/Tooltip"
 import { BASE_FONT_SIZE, SeriesName } from "grapher/core/GrapherConstants"
 import { ColorScale, ColorScaleManager } from "grapher/color/ColorScale"
-import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import {
     AbstactStackedChart,
     AbstactStackedChartProps,
@@ -483,11 +482,10 @@ export class StackedBarChart
     }
 
     @computed get colorScaleConfig() {
-        return this.manager.colorScale ?? new ColorScaleConfig()
+        return this.manager.colorScale
     }
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault
-    hasNoDataBin = false
 
     @computed get categoricalValues() {
         return this.rawSeries.map((series) => series.seriesName).reverse()

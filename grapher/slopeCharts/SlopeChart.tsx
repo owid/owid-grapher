@@ -48,7 +48,6 @@ import {
 import { CoreColumn } from "coreTable/CoreTableColumns"
 import { OwidTable } from "coreTable/OwidTable"
 import { Color } from "coreTable/CoreTableConstants"
-import { ColorScaleConfig } from "grapher/color/ColorScaleConfig"
 import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 
@@ -300,7 +299,7 @@ export class SlopeChart
     }
 
     @computed get colorScaleConfig() {
-        return this.manager.colorScale ?? new ColorScaleConfig()
+        return this.manager.colorScale
     }
 
     @computed get colorScaleColumn() {
@@ -308,10 +307,9 @@ export class SlopeChart
     }
 
     defaultBaseColorScheme = ColorSchemeName.continents
-    hasNoDataBin = false
 
     @computed get categoricalValues() {
-        return this.colorColumn?.sortedUniqNonEmptyStringVals ?? []
+        return this.colorColumn?.sortedUniqNonEmptyStringVals
     }
 
     @computed private get yColumn() {
