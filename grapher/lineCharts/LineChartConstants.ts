@@ -3,6 +3,7 @@ import { ChartManager } from "grapher/chart/ChartManager"
 import { SeriesName } from "grapher/core/GrapherConstants"
 import { Color } from "coreTable/CoreTableConstants"
 import { PointVector } from "grapher/utils/PointVector"
+import { TimeBound } from "grapher/utils/TimeBounds"
 
 interface LinePoint {
     x: number
@@ -32,4 +33,5 @@ export interface LinesProps {
 export interface LineChartManager extends ChartManager {
     hidePoints?: boolean
     lineStrokeWidth?: number
+    startHandleTimeBound?: TimeBound
 }

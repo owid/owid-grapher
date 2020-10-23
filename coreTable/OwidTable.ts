@@ -19,6 +19,7 @@ import {
     keyBy,
     groupBy,
     sortedUniq,
+    isNumber,
 } from "grapher/utils/Util"
 import { computed, action } from "mobx"
 import {
@@ -199,7 +200,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
     // fast time filtering.
     @computed private get sortedByTime() {
-        const timeColumnSlug = this.timeColumn!.slug!
+        if (!this.timeColumn) return this
+        const timeColumnSlug = this.timeColumn.slug
         return this.transform(
             sortBy(this.rows, (row) => row[timeColumnSlug]),
             this.defs,
@@ -374,38 +376,68 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     // todo: this needs tests (and/or drop in favor of someone else's package)
     // If you wanted to build a table showing something like GDP growth relative to 1950, use this.
     toTotalGrowthForEachColumnComparedToStartTime(
-        startTime: Time,
+        startTimeBound: TimeBound,
         columnSlugs: ColumnSlug[]
     ) {
+        if (!this.timeColumn) return this
+        const timeColumnSlug = this.timeColumn.slug
         const newDefs = this.defs.map((def) => {
             if (columnSlugs.includes(def.slug))
                 return { ...def, type: ColumnTypeNames.PercentChangeOverTime }
             return def
         })
-        return new OwidTable(
-            this.rows.map((row) => {
-                const newRow = {
-                    ...row,
-                }
-                columnSlugs.forEach((slug) => {
-                    const comparisonValue = this.get(slug)!
-                        .valueByEntityNameAndTime.get(row.entityName)
-                        ?.get(startTime)
-                    newRow[slug] =
-                        typeof comparisonValue === "number"
-                            ? -100 + (100 * row[slug]) / comparisonValue
-                            : undefined
+        const newRows = flatten(
+            Object.values(
+                groupBy(
+                    this.sortedByTime.rows,
+                    (row) => row[OwidTableSlugs.entityName]
+                )
+            ).map((rowsForSingleEntity) => {
+                columnSlugs.forEach((valueSlug) => {
+                    let comparisonValue: number
+                    rowsForSingleEntity = rowsForSingleEntity.map(
+                        (row: Readonly<OwidRow>) => {
+                            const newRow = {
+                                ...row,
+                            }
+
+                            const value = row[valueSlug]
+
+                            if (row[timeColumnSlug] < startTimeBound) {
+                                newRow[valueSlug] =
+                                    InvalidCellTypes.MissingValuePlaceholder
+                            } else if (!isNumber(value)) {
+                                newRow[valueSlug] =
+                                    InvalidCellTypes.NaNButShouldBeNumber
+                            } else if (comparisonValue !== undefined) {
+                                // Note: comparisonValue can be negative!
+                                // +value / -comparisonValue = negative growth, which is incorrect.
+                                newRow[valueSlug] =
+                                    (100 * (value - comparisonValue)) /
+                                    Math.abs(comparisonValue)
+                            } else if (value === 0) {
+                                newRow[valueSlug] =
+                                    InvalidCellTypes.MissingValuePlaceholder
+                            } else {
+                                comparisonValue = value
+                                newRow[valueSlug] = 0
+                            }
+
+                            return newRow
+                        }
+                    )
                 })
-                return newRow
-            }),
+                return rowsForSingleEntity
+            })
+        )
+
+        return this.transform(
+            newRows,
             newDefs,
-            {
-                parent: this,
-                tableDescription: `Transformed columns from absolute values to % of time ${startTime} for columns ${columnSlugs.join(
-                    ","
-                )} `,
-                transformCategory: TransformType.UpdateColumnDefs,
-            }
+            `Transformed columns from absolute values to % of time ${startTimeBound} for columns ${columnSlugs.join(
+                ","
+            )} `,
+            TransformType.UpdateColumnDefs
         )
     }
 

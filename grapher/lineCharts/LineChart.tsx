@@ -227,12 +227,6 @@ export class LineChart
     transformTable(table: OwidTable) {
         table = table.filterBySelectedOnly()
 
-        if (this.manager.isRelativeMode)
-            table = table.toTotalGrowthForEachColumnComparedToStartTime(
-                table.minTime!,
-                this.manager.yColumnSlugs ?? []
-            )
-
         if (this.isLogScale)
             table = table.replaceNonPositiveCellsForLogScale(
                 this.manager.yColumnSlugs
@@ -245,11 +239,25 @@ export class LineChart
         return this.manager.table
     }
 
-    @computed get transformedTable() {
+    @computed private get transformedTableFromGrapher() {
         return (
             this.manager.transformedTable ??
             this.transformTable(this.inputTable)
         )
+    }
+
+    @computed get transformedTable() {
+        let table = this.transformedTableFromGrapher
+        // The % growth transform cannot be applied in transformTable() because it will filter out
+        // any rows before startHandleTimeBound and change the timeline bounds.
+        const { isRelativeMode, startHandleTimeBound } = this.manager
+        if (isRelativeMode && startHandleTimeBound !== undefined) {
+            table = table.toTotalGrowthForEachColumnComparedToStartTime(
+                startHandleTimeBound,
+                this.manager.yColumnSlugs ?? []
+            )
+        }
+        return table
     }
 
     @observable hoverX?: number
