@@ -1038,16 +1038,6 @@ export class CoreTable<
         )
     }
 
-    filterByFullColumnsOnly(slugs: ColumnSlug[]) {
-        return this.filter(
-            (row) =>
-                slugs.every(
-                    (slug) => row[slug] !== null && row[slug] !== undefined
-                ),
-            `Dropping rows missing a value for any of ${slugs.join(",")}`
-        )
-    }
-
     filterNegativesForLogScale(columnSlug: ColumnSlug) {
         return this.filter(
             (row) => row[columnSlug] > 0,

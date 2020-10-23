@@ -227,9 +227,6 @@ export class LineChart
     transformTable(table: OwidTable) {
         table = table.filterBySelectedOnly()
 
-        // TODO not sure if this is right? Line charts shouldn't be filtering out any values?
-        // table = table.filterByFullColumnsOnly(this.manager.yColumnSlugs) // TODO: instead of this, just filter indvidaul points.
-
         if (this.manager.isRelativeMode)
             table = table.toTotalGrowthForEachColumnComparedToStartTime(
                 table.minTime!,
