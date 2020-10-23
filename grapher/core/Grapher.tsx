@@ -182,6 +182,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bounds?: Bounds
     table?: OwidTable
     bakedGrapherURL?: string
+    getGrapherInstance?: (instance: Grapher) => void
 }
 
 @observer
@@ -276,8 +277,13 @@ export class Grapher
 
     private legacyConfigAsAuthored: Partial<LegacyGrapherInterface>
 
-    constructor(props: GrapherProgrammaticInterface = {}) {
-        super(props!)
+    constructor(
+        propsWithGrapherInstanceGetter: GrapherProgrammaticInterface = {}
+    ) {
+        super(propsWithGrapherInstanceGetter)
+
+        const { getGrapherInstance, ...props } = propsWithGrapherInstanceGetter
+
         this.inputTable = props.table ?? new OwidTable()
         const modernConfig = props ? legacyConfigToConfig(props) : props
 
@@ -303,6 +309,8 @@ export class Grapher
         }
 
         if (this.isEditor) this.ensureValidConfigWhenEditing()
+
+        if (getGrapherInstance) getGrapherInstance(this)
     }
 
     toObject() {

@@ -92,6 +92,8 @@ export class ChartEditorPage
     @observable references: PostReference[] = []
     @observable redirects: ChartRedirect[] = []
 
+    @observable.ref grapherElement?: JSX.Element
+
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -104,7 +106,7 @@ export class ChartEditorPage
             grapherId === undefined
                 ? grapherConfig
                 : await admin.getJSON(`/api/charts/${grapherId}.config.json`)
-        this.setGrapher(json)
+        this.loadGrapherJson(json)
     }
 
     @observable private _isDbSet = false
@@ -113,8 +115,21 @@ export class ChartEditorPage
         return this._isDbSet && this._isGrapherSet
     }
 
-    @action.bound private setGrapher(json: any) {
-        this.grapher = new Grapher(json)
+    @action.bound private loadGrapherJson(json: any) {
+        this.grapherElement = (
+            <Grapher
+                {...{
+                    ...json,
+                    bounds:
+                        this.editor?.previewMode === "mobile"
+                            ? new Bounds(0, 0, 360, 500)
+                            : new Bounds(0, 0, 800, 600),
+                    getGrapherInstance: (grapher) => {
+                        this.grapher = grapher
+                    },
+                }}
+            />
+        )
         this._isGrapherSet = true
     }
 
@@ -221,14 +236,6 @@ export class ChartEditorPage
     renderReady(editor: ChartEditor) {
         const { grapher, availableTabs, previewMode } = editor
 
-        const grapherProps = {
-            ...grapher,
-            bounds:
-                previewMode === "mobile"
-                    ? new Bounds(0, 0, 360, 500)
-                    : new Bounds(0, 0, 800, 600),
-        }
-
         return (
             <React.Fragment>
                 {!editor.newChartId && (
@@ -302,7 +309,7 @@ export class ChartEditorPage
                                 `url(#${this.simulateVisionDeficiency.id})`,
                         }}
                     >
-                        {<Grapher {...grapherProps} />}
+                        {this.grapherElement}
                     </figure>
                     <div>
                         <div
