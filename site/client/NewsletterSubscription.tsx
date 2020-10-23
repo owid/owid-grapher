@@ -20,7 +20,7 @@ export const NewsletterSubscription = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false)
 
-    const subscribeText = "Subscribe to receive updates"
+    const subscribeText = "Subscribe"
     const closeText = "Close"
 
     return (
