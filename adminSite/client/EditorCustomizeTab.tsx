@@ -21,6 +21,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ColorSchemeDropdown, ColorSchemeOption } from "./ColorSchemeDropdown"
 import { EditorColorScaleSection } from "./EditorColorScaleSection"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
+import { TimeBoundValue } from "grapher/utils/TimeBounds"
 
 @observer
 class ColorSchemeSelector extends React.Component<{ grapher: Grapher }> {
@@ -97,11 +98,13 @@ class TimelineSection extends React.Component<{ editor: ChartEditor }> {
     }
 
     @action.bound onMinTime(value: number | undefined) {
-        this.grapher.minTime = value
+        this.grapher.startHandleTimeBound =
+            value ?? TimeBoundValue.negativeInfinity
     }
 
     @action.bound onMaxTime(value: number | undefined) {
-        this.grapher.maxTime = value
+        this.grapher.endHandleTimeBound =
+            value ?? TimeBoundValue.positiveInfinity
     }
 
     @action.bound onTimelineMinTime(value: number | undefined) {
