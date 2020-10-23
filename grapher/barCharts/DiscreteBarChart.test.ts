@@ -32,6 +32,22 @@ it("can create a new bar chart", () => {
     expect(series[0].time).toBeTruthy()
 })
 
+it.skip("can create a new bar chart with entities as series", () => {
+    const table = SynthesizeGDPTable({
+        timeRange: [2000, 2010],
+        entityCount: 5,
+    }).selectAll()
+
+    const manager: DiscreteBarChartManager = {
+        table,
+        yColumnSlug: SampleColumnSlugs.Population,
+        endTime: 2000,
+    }
+    const chart = new DiscreteBarChart({ manager })
+    const series = chart.series
+    expect(series.length).toEqual(5)
+})
+
 describe("barcharts with columns as the series", () => {
     const manager: DiscreteBarChartManager = {
         table: SynthesizeGDPTable({ timeRange: [2000, 2010] }).selectSample(1),
