@@ -10,3 +10,5 @@ export interface ExplorerControlOption {
     value: string
     checked?: boolean
 }
+
+export const ExplorerContainerId = "explorerContainer"

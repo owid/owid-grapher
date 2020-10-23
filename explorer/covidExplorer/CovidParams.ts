@@ -15,6 +15,7 @@ import {
     IntervalOptions,
     MetricOptions,
     sourceVariablesForColumnDefTemplates,
+    coronaDefaultView,
 } from "./CovidConstants"
 import { EntityUrlBuilder } from "grapher/core/EntityUrlBuilder"
 import { perCapitaDivisorByMetric } from "./CovidExplorerUtils"
@@ -139,12 +140,18 @@ export class CovidQueryParams implements CountryPickerManager {
         this.chartType = params.chartType as ChartTypeName
     }
 
-    static hasAnyCovidParam(queryString: string) {
-        return (
+    static fromQueryString(queryString?: string) {
+        // If the user is coming from some link with a query param but with no covid param, show the default view.
+        // Otherwise if they come in from something like a link with a FB tracking id, we wouldn't show the default view.
+        // Not sure if this is worth keeping.
+        const hasAnyCovidParam =
+            !!queryString &&
             intersection(
                 Object.keys(new CovidQueryParams("")),
                 Object.keys(strToQueryParams(queryString))
             ).length > 0
+        return new CovidQueryParams(
+            queryString && hasAnyCovidParam ? queryString : coronaDefaultView
         )
     }
 

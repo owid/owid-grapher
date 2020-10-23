@@ -10,6 +10,7 @@ import {
     SubNavId,
 } from "site/server/views/SiteSubnavigation"
 import ExplorerContent from "./ExplorerContent"
+import { ExplorerContainerId } from "explorer/client/ExplorerConstants"
 
 interface ExplorerPageSettings {
     title: string
@@ -53,7 +54,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
             <body className="ChartPage">
                 <SiteHeader hideAlertBanner={props.hideAlertBanner || false} />
                 {subNav}
-                <main id="explorerContainer">
+                <main id={ExplorerContainerId}>
                     <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}

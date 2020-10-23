@@ -188,18 +188,9 @@ const CovidExplorerPage = (props: CovidExplorerPageProps) => {
     // This script allows us to replace existing Grapher pages with Explorer pages.
     // Part of the reason for doing the redirect client-side is that Netlify doesn't support
     // redirecting while preserving all query parameters.
-    const script = `
-    var props = {
-        containerNode: document.getElementById("explorerContainer"),
-        queryStr: window.location.search,
-        isEmbed: window != window.top,
-        bindToWindow: true
-    };
-    window.CovidExplorer.replaceStateAndBootstrap(
-        "${props.explorerQueryStr ?? ""}",
-        props
-    )
-`
+    const script = `window.CovidExplorer.replaceStateAndCreateCovidExplorerAndRenderToDom("${
+        props.explorerQueryStr ?? ""
+    }")`
 
     return (
         <ExplorerPage

@@ -30,7 +30,6 @@ import { BAKED_BASE_URL } from "settings"
 import moment from "moment"
 import {
     covidDashboardSlug,
-    coronaDefaultView,
     covidDataPath,
     sourceChartsForChartTemplates,
     metricLabels,
@@ -73,6 +72,7 @@ import {
 import {
     ExplorerControlType,
     ExplorerControlOption,
+    ExplorerContainerId,
 } from "explorer/client/ExplorerConstants"
 import {
     Color,
@@ -116,18 +116,14 @@ interface CovidExplorerProps {
 export class CovidExplorer
     extends React.Component<CovidExplorerProps>
     implements ObservableUrl, SlideShowManager {
-    static async bootstrap(props: BootstrapProps) {
+    static async createCovidExplorerAndRenderToDom(props: BootstrapProps) {
         const { megaCsv, updated, covidMeta } = await fetchRequiredData()
-        const queryStr =
-            props.queryStr && CovidQueryParams.hasAnyCovidParam(props.queryStr)
-                ? props.queryStr
-                : coronaDefaultView
         return ReactDOM.render(
             <CovidExplorer
                 megaCsv={megaCsv}
                 updated={updated}
                 covidChartAndVariableMeta={covidMeta}
-                queryStr={queryStr}
+                queryStr={props.queryStr}
                 isEmbed={props.isEmbed}
                 globalEntitySelection={props.globalEntitySelection}
                 enableKeyboardShortcuts={true}
@@ -137,23 +133,26 @@ export class CovidExplorer
         )
     }
 
-    writeableParams = new CovidQueryParams(this.props.queryStr ?? "")
-
-    static async replaceStateAndBootstrap(
-        explorerQueryStr: string,
-        props: BootstrapProps
+    static async replaceStateAndCreateCovidExplorerAndRenderToDom(
+        explorerQueryStr: string
     ) {
-        const queryStr = mergeQueryStr(explorerQueryStr, props.queryStr)
+        const queryStr = mergeQueryStr(explorerQueryStr, window.location.search)
         window.history.replaceState(
             null,
             document.title,
             `${BAKED_BASE_URL}/${covidDashboardSlug}${queryStr}`
         )
-        return CovidExplorer.bootstrap({
-            ...props,
+        return CovidExplorer.createCovidExplorerAndRenderToDom({
+            containerNode: document.getElementById(ExplorerContainerId)!,
             queryStr,
+            isEmbed: window != window.top,
+            bindToWindow: true,
         })
     }
+
+    private writeableParams = CovidQueryParams.fromQueryString(
+        this.props.queryStr
+    )
 
     @observable private chartContainerRef: React.RefObject<
         HTMLDivElement

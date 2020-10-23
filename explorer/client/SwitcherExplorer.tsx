@@ -21,6 +21,7 @@ import {
     SlideShowManager,
 } from "grapher/slideshowController/SlideShowController"
 import { OwidRow } from "coreTable/OwidTableConstants"
+import { ExplorerContainerId } from "./ExplorerConstants"
 
 export interface SwitcherExplorerProps {
     explorerProgramCode: string
@@ -40,7 +41,7 @@ export class SwitcherExplorer
                 {...props}
                 queryString={window.location.search}
             />,
-            document.getElementById("explorerContainer")
+            document.getElementById(ExplorerContainerId)
         )
     }
 

@@ -36,7 +36,7 @@ export class CovidExplorerFigure implements Figure {
     async load(loadProps: LoadProps) {
         if (!this._isLoaded) {
             this._isLoaded = true
-            CovidExplorer.bootstrap({
+            CovidExplorer.createCovidExplorerAndRenderToDom({
                 containerNode: this.container,
                 isEmbed: true,
                 queryStr: this.props.queryStr,
