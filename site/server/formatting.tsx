@@ -531,6 +531,7 @@ export async function formatWordpressPost(
             } else if (
                 el.name === "h3" ||
                 $el.hasClass("wp-block-columns") ||
+                $el.hasClass("wp-block-owid-grid") ||
                 $el.hasClass("wp-block-full-content-width") ||
                 $el.find(
                     '.wp-block-owid-additional-information[data-variation="full-width"]'

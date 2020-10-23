@@ -1,0 +1,19 @@
+.wp-block-owid-grid {
+    display: grid;
+    grid-gap: $vertical-spacing;
+    grid-template-columns: repeat(1, 1fr);
+    margin: $vertical-spacing 0;
+
+    @media (min-width: 30rem) {
+        grid-gap: $padding-x-sm;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include md-up {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @include lg-up {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

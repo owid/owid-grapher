@@ -63,7 +63,7 @@ function render($attributes, $content)
     $block = null;
     if ($style === STYLE_THIN) {
         $block = <<<EOD
-      <div class="$classes">
+      <div class="$classes" data-no-lightbox>
         $linkStart
           $figure
           <div class="content-wrapper">
@@ -77,7 +77,7 @@ function render($attributes, $content)
 EOD;
     } else {
         $block = <<<EOD
-      <div class="$classes">
+      <div class="$classes" data-no-lightbox>
         $linkStart
           $title
           <div class="content-wrapper">
