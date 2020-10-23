@@ -14,7 +14,6 @@ import {
     range,
     union,
 } from "grapher/utils/Util"
-import { computed } from "mobx"
 import { CoreTable } from "./CoreTable"
 import {
     CoreColumnDef,
@@ -29,6 +28,7 @@ import { EntityName, OwidTableSlugs } from "coreTable/OwidTableConstants" // tod
 import { InvalidCell, InvalidCellTypes } from "./InvalidCells"
 import { LegacyVariableDisplayConfig } from "./LegacyVariableCode"
 import { getOriginalTimeColumnSlug } from "./OwidTableUtil"
+import { imemo } from "./CoreTableUtils"
 
 interface ColumnSummary {
     numInvalidCells: number
@@ -63,26 +63,26 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return val
     }
 
-    @computed get unit() {
+    @imemo get unit() {
         return this.def.unit || this.display?.unit || ""
     }
 
-    @computed protected get sortedValuesString() {
+    @imemo protected get sortedValuesString() {
         return this.parsedValues.slice().sort()
     }
 
-    @computed protected get sortedValuesNumeric() {
+    @imemo protected get sortedValuesNumeric() {
         const numericCompare = (av: JS_TYPE, bv: JS_TYPE) =>
             av > bv ? 1 : av < bv ? -1 : 0
         return this.parsedValues.slice().sort(numericCompare)
     }
 
-    @computed get sortedValues() {
+    @imemo get sortedValues() {
         return this.sortedValuesString
     }
 
     // todo: switch to a lib and/or add tests for this. handle non numerics better.
-    @computed get summary() {
+    @imemo get summary() {
         const { numInvalidCells, numValues, numUniqs } = this
         const basicSummary: ColumnSummary = {
             numInvalidCells,
@@ -144,24 +144,24 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: migrate from unitConversionFactor to computed columns instead. then delete this.
     // note: unitConversionFactor is used >400 times in charts and >800 times in variables!!!
-    @computed get unitConversionFactor() {
+    @imemo get unitConversionFactor() {
         return this.display.conversionFactor ?? 1
     }
 
-    @computed get isAllIntegers() {
+    @imemo get isAllIntegers() {
         return false
     }
 
-    @computed get tolerance() {
+    @imemo get tolerance() {
         return this.display.tolerance ?? 0
         // (this.property === "color" ? Infinity : 0) ... todo: figure out where color was being used
     }
 
-    @computed get domain() {
+    @imemo get domain() {
         return [this.minValue, this.maxValue]
     }
 
-    @computed get display() {
+    @imemo get display() {
         return this.def.display || new LegacyVariableDisplayConfig()
     }
 
@@ -185,11 +185,11 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return this.formatValueShort(value, options)
     }
 
-    @computed get numDecimalPlaces() {
+    @imemo get numDecimalPlaces() {
         return this.display.numDecimalPlaces ?? 2
     }
 
-    @computed get shortUnit() {
+    @imemo get shortUnit() {
         const shortUnit =
             this.display.shortUnit ?? this.def.shortUnit ?? undefined
         if (shortUnit !== undefined) return shortUnit
@@ -225,34 +225,34 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return map
     }
 
-    @computed get description() {
+    @imemo get description() {
         return this.def.description
     }
 
-    @computed get isEmpty() {
+    @imemo get isEmpty() {
         return this.allValues.length === 0
     }
 
-    @computed get name() {
+    @imemo get name() {
         return this.def.name ?? this.def.slug
     }
 
-    @computed get displayName() {
+    @imemo get displayName() {
         return this.display?.name ?? this.name ?? ""
     }
 
     // todo: is the isString necessary?
-    @computed get sortedUniqNonEmptyStringVals() {
+    @imemo get sortedUniqNonEmptyStringVals() {
         return Array.from(
             new Set(this.parsedValues.filter(isString).filter((i) => i))
         ).sort()
     }
 
-    @computed get slug() {
+    @imemo get slug() {
         return this.def.slug
     }
 
-    @computed get valuesToIndices() {
+    @imemo get valuesToIndices() {
         const map = new Map<any, number[]>()
         this.allValues.forEach((value, index) => {
             if (!map.has(value)) map.set(value, [])
@@ -283,19 +283,19 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         return true
     }
 
-    @computed get isProjection() {
+    @imemo get isProjection() {
         return !!this.display?.isProjection
     }
 
-    @computed get uniqValues() {
+    @imemo get uniqValues() {
         return uniq(this.parsedValues)
     }
 
-    @computed get allValues() {
+    @imemo get allValues() {
         return this.table.getValuesFor(this.slug)
     }
 
-    @computed get validRowIndices() {
+    @imemo get validRowIndices() {
         return this.allValues
             .map((value, index) =>
                 (value as any) instanceof InvalidCell ? null : index
@@ -303,12 +303,12 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
             .filter(isPresent)
     }
 
-    @computed get parsedValues() {
+    @imemo get parsedValues() {
         const values = this.allValues
         return this.validRowIndices.map((index) => values[index]) as JS_TYPE[]
     }
 
-    @computed get originalTimes() {
+    @imemo get originalTimes() {
         const originalTimeColumnSlug = getOriginalTimeColumnSlug(
             this.table,
             this.slug
@@ -320,67 +320,67 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         ) as number[]
     }
 
-    @computed private get allValuesAsSet() {
+    @imemo private get allValuesAsSet() {
         return new Set(this.allValues)
     }
 
     // True if the column has only 1 value. Looks at the (potentially) unparsed values.
-    @computed get isConstant() {
+    @imemo get isConstant() {
         return this.allValuesAsSet.size === 1
     }
 
-    @computed get minValue() {
+    @imemo get minValue() {
         return this.valuesAscending[0]
     }
 
-    @computed get maxValue() {
+    @imemo get maxValue() {
         return last(this.valuesAscending)!
     }
 
-    @computed get numInvalidCells() {
+    @imemo get numInvalidCells() {
         return this.allValues.length - this.numValues
     }
 
     // Number of correctly parsed values
-    @computed get numValues() {
+    @imemo get numValues() {
         return this.parsedValues.length
     }
 
-    @computed get numUniqs() {
+    @imemo get numUniqs() {
         return this.uniqValues.length
     }
 
-    @computed get valuesAscending() {
+    @imemo get valuesAscending() {
         return sortBy(this.parsedValues)
     }
 
     // todo: remove. should not be on coretable
-    @computed private get allTimes(): Time[] {
+    @imemo private get allTimes(): Time[] {
         return this.table.getTimesAtIndices(this.validRowIndices)
     }
 
     // todo: remove. should not be on coretable
-    @computed get uniqTimesAsc(): Time[] {
+    @imemo get uniqTimesAsc(): Time[] {
         return sortNumeric(uniq(this.allTimes))
     }
 
     // todo: remove. should not be on coretable
-    @computed get maxTime() {
+    @imemo get maxTime() {
         return last(this.uniqTimesAsc) as Time
     }
 
     // todo: remove. should not be on coretable
-    @computed get minTime(): Time {
+    @imemo get minTime(): Time {
         return this.uniqTimesAsc[0]
     }
 
     // todo: remove? Should not be on CoreTable
-    @computed get uniqEntityNames(): EntityName[] {
+    @imemo get uniqEntityNames(): EntityName[] {
         return uniq(this.allEntityNames)
     }
 
     // todo: remove? Should not be on CoreTable
-    @computed private get allEntityNames() {
+    @imemo private get allEntityNames() {
         return this.table.getValuesAtIndices(
             OwidTableSlugs.entityName,
             this.validRowIndices
@@ -388,7 +388,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @computed get owidRows() {
+    @imemo get owidRows() {
         const times = this.originalTimes
         const values = this.parsedValues
         const entities = this.allEntityNames
@@ -402,7 +402,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @computed get owidRowsByEntityName() {
+    @imemo get owidRowsByEntityName() {
         const map = new Map<EntityName, CoreRow[]>()
         this.owidRows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
@@ -412,7 +412,7 @@ abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     // todo: remove? Should not be on CoreTable
-    @computed get valueByEntityNameAndTime() {
+    @imemo get valueByEntityNameAndTime() {
         const valueByEntityNameAndTime = new Map<
             EntityName,
             Map<Time, JS_TYPE>
@@ -468,11 +468,11 @@ abstract class AbstractNumericColumn extends AbstractCoreColumn<number> {
         })
     }
 
-    @computed get isAllIntegers() {
+    @imemo get isAllIntegers() {
         return this.parsedValues.every((val) => val % 1 === 0)
     }
 
-    @computed get sortedValues() {
+    @imemo get sortedValues() {
         return this.sortedValuesNumeric
     }
 
@@ -530,7 +530,7 @@ abstract class TimeColumn extends AbstractCoreColumn<number> {
         return parseInt(val)
     }
 
-    @computed get sortedValues() {
+    @imemo get sortedValues() {
         return this.sortedValuesNumeric
     }
 }

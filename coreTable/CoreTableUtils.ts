@@ -191,3 +191,25 @@ export function interpolateRowValuesWithTolerance<
 // A dumb function for making a function that makes a key for a row given certain columns.
 export const makeKeyFn = (columnSlugs: ColumnSlug[]) => (row: CoreRow) =>
     columnSlugs.map((slug) => row[slug]).join(" ")
+
+// Memoization for immutable getters. Run the function once for this instance and cache the result.
+export const imemo = (
+    target: any,
+    propertyName: string,
+    descriptor: TypedPropertyDescriptor<any>
+) => {
+    const originalFn = descriptor.get!
+    descriptor.get = function (this: any) {
+        const propName = `${propertyName}_memoized`
+        if (this[propName] === undefined) {
+            // Define the prop the long way so we don't enumerate over it
+            Object.defineProperty(this, propName, {
+                configurable: false,
+                enumerable: false,
+                writable: false,
+                value: originalFn.apply(this),
+            })
+        }
+        return this[propName]
+    }
+}

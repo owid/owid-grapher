@@ -52,7 +52,7 @@ import {
     makeOriginalTimeSlugFromColumnSlug,
     timeColumnSlugFromColumnDef,
 } from "./OwidTableUtil"
-import { interpolateRowValuesWithTolerance } from "./CoreTableUtils"
+import { imemo, interpolateRowValuesWithTolerance } from "./CoreTableUtils"
 
 // An OwidTable is a subset of Table. An OwidTable always has EntityName, EntityCode, EntityId, and Time columns,
 // and value column(s). Whether or not we need in the long run is uncertain and it may just be a stepping stone
@@ -71,24 +71,22 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return new OwidTable(rows, [OwidEntityNameColumnDef, ...defs])
     }
 
-    @computed get entityType() {
-        return "Country"
-    }
+    entityType = "Country"
 
-    @computed get availableEntityNames() {
+    @imemo get availableEntityNames() {
         return Array.from(this.availableEntityNameSet)
     }
 
-    @computed get numAvailableEntityNames() {
+    @imemo get numAvailableEntityNames() {
         return this.availableEntityNames.length
     }
 
-    @computed get availableEntityNameSet() {
+    @imemo get availableEntityNameSet() {
         return new Set(this.rows.map((row) => row.entityName))
     }
 
     // todo: can we remove at some point?
-    @computed get entityIdToNameMap() {
+    @imemo get entityIdToNameMap() {
         return this.valueIndex(
             OwidTableSlugs.entityId,
             OwidTableSlugs.entityName
@@ -96,7 +94,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: can we remove at some point?
-    @computed private get entityCodeToNameMap() {
+    @imemo private get entityCodeToNameMap() {
         return this.valueIndex(
             OwidTableSlugs.entityCode,
             OwidTableSlugs.entityName
@@ -104,7 +102,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: can we remove at some point?
-    @computed get entityNameToIdMap() {
+    @imemo get entityNameToIdMap() {
         return this.valueIndex(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityId
@@ -112,14 +110,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     // todo: can we remove at some point?
-    @computed get entityNameToCodeMap() {
+    @imemo get entityNameToCodeMap() {
         return this.valueIndex(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityCode
         ) as Map<string, string>
     }
 
-    @computed get entityIndex() {
+    @imemo get entityIndex() {
         const map = new Map<EntityName, OwidRow[]>()
         this.rows.forEach((row) => {
             if (!map.has(row.entityName)) map.set(row.entityName, [])
@@ -128,31 +126,31 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return map
     }
 
-    @computed get maxTime() {
+    @imemo get maxTime() {
         return last(this.allTimes)
     }
 
-    @computed get minTime() {
+    @imemo get minTime() {
         return this.allTimes[0]
     }
 
-    @computed private get allTimes(): Time[] {
+    @imemo private get allTimes(): Time[] {
         return this.sortedByTime.get(this.timeColumn?.slug)?.parsedValues ?? []
     }
 
-    @computed get hasDayColumn() {
+    @imemo get hasDayColumn() {
         return this.has(OwidTableSlugs.day)
     }
 
-    @computed get dayColumn() {
+    @imemo get dayColumn() {
         return this.get(OwidTableSlugs.day)
     }
 
-    @computed get rowsByEntityName() {
+    @imemo get rowsByEntityName() {
         return this.rowIndex([OwidTableSlugs.entityName]).index
     }
 
-    @computed get rowsByTime() {
+    @imemo get rowsByTime() {
         return this.rowTypedIndex<Time>(this.timeColumn!.slug)
     }
 
@@ -199,7 +197,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // Does a stable sort by time. Mobx will cache this, and then you can refer to this table for
     // fast time filtering.
-    @computed private get sortedByTime() {
+    @imemo private get sortedByTime() {
         if (!this.timeColumn) return this
         const timeColumnSlug = this.timeColumn.slug
         return this.transform(
@@ -598,7 +596,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         )
     }
 
-    @computed get columnDisplayNameToColorMap() {
+    @imemo get columnDisplayNameToColorMap() {
         return keyBy(this.columnsAsArray, (col) => col.displayName)
     }
 

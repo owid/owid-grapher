@@ -1,6 +1,6 @@
 #! /usr/bin/env yarn jest
 
-import { interpolateRowValuesWithTolerance } from "./CoreTableUtils"
+import { imemo, interpolateRowValuesWithTolerance } from "./CoreTableUtils"
 import { InvalidCellTypes } from "./InvalidCells"
 
 describe(interpolateRowValuesWithTolerance, () => {
@@ -66,5 +66,27 @@ describe(interpolateRowValuesWithTolerance, () => {
             3,
         ])
         expect(result.map((r) => r.time)).toEqual([0, 2, 2, 2, 4, 6, 6, 6])
+    })
+})
+
+describe("immutable memoization", () => {
+    class WeatherForecast {
+        conditions = "rainy"
+
+        @imemo get forecast() {
+            return this.conditions
+        }
+    }
+
+    it("runs getters once", () => {
+        const forecast = new WeatherForecast()
+        expect(forecast.forecast).toEqual("rainy")
+
+        forecast.conditions = "sunny"
+        expect(forecast.forecast).toEqual("rainy")
+
+        const forecast2 = new WeatherForecast()
+        forecast2.conditions = "sunny"
+        expect(forecast2.forecast).toEqual("sunny")
     })
 })

@@ -45,6 +45,7 @@ import {
     autoType,
     columnStoreToRows,
     guessColumnDefFromSlugAndRow,
+    imemo,
     makeKeyFn,
     makeRowFromColumnStore,
     standardizeSlugs,
@@ -159,7 +160,7 @@ export class CoreTable<
         return this._processedRows
     }
 
-    @computed private get csvAsRows() {
+    @imemo private get csvAsRows() {
         const { inputData, advancedOptions } = this
         const parsed = csvParse(
             inputData as string,
@@ -171,7 +172,7 @@ export class CoreTable<
         return parsed
     }
 
-    @computed private get inputAsRows() {
+    @imemo private get inputAsRows() {
         const { inputData, isFromCsv } = this
         return (isFromCsv ? this.csvAsRows : inputData) as ROW_TYPE[]
     }
@@ -205,7 +206,7 @@ export class CoreTable<
             : []
     }
 
-    @computed private get newProvidedColumnDefsToCompute() {
+    @imemo private get newProvidedColumnDefsToCompute() {
         const cols = this.parent
             ? difference(this.inputColumnDefs, this.parent.defs)
             : this.inputColumnDefs
@@ -238,7 +239,7 @@ export class CoreTable<
         return cols.filter((col) => col.needsParsing(firstInputRow[col.slug]))
     }
 
-    @computed private get numColsToCompute() {
+    @imemo private get numColsToCompute() {
         return this.colsToCompute.length
     }
 
@@ -246,7 +247,7 @@ export class CoreTable<
         return this.inputData as CoreColumnStore
     }
 
-    @computed private get isFromCsv() {
+    @imemo private get isFromCsv() {
         return typeof this.inputData === "string"
     }
 
@@ -328,7 +329,7 @@ export class CoreTable<
             : 0
     }
 
-    @computed get rows() {
+    @imemo get rows() {
         return this.isInputFromRowsOrCsv
             ? this.rowsFromRowsProcessed
             : this.rowsFromColumns
@@ -343,19 +344,19 @@ export class CoreTable<
         return indices.map((index) => values[index])
     }
 
-    @computed get firstRow() {
+    @imemo get firstRow() {
         return this.rows[0]
     }
 
-    @computed get lastRow() {
+    @imemo get lastRow() {
         return last(this.rows)
     }
 
-    @computed get numRows() {
+    @imemo get numRows() {
         return this.rows.length
     }
 
-    @computed get numColumns() {
+    @imemo get numColumns() {
         return this.columnSlugs.length
     }
 
@@ -372,7 +373,7 @@ export class CoreTable<
     // TODO: remove this. Currently we use this to get the right day/year time formatting. For now a chart is either a "day chart" or a "year chart".
     // But we can have charts with multiple time columns. Ideally each place that needs access to the timeColumn, would get the specific column
     // and not the first time column from the table.
-    @computed get timeColumn() {
+    @imemo get timeColumn() {
         // For now, return a day column first if present. But see note above about removing this method.
         const col =
             this.columnsAsArray.find(
@@ -388,7 +389,7 @@ export class CoreTable<
 
     // Todo: remove this. Generally this should not be called until the data is loaded. Even then, all calls should probably be made
     // on the column itself, and not tied tightly to the idea of a time column.
-    @computed get timeColumnFormatFunction() {
+    @imemo get timeColumnFormatFunction() {
         return this.timeColumn ? this.timeColumn.formatValue : formatYear
     }
 
@@ -396,19 +397,19 @@ export class CoreTable<
         return this.timeColumnFormatFunction(value)
     }
 
-    @computed private get columnsWithParseErrors() {
+    @imemo private get columnsWithParseErrors() {
         return this.columnsAsArray.filter((col) => col.numInvalidCells)
     }
 
-    @computed get numColumnsWithInvalidCells() {
+    @imemo get numColumnsWithInvalidCells() {
         return this.columnsWithParseErrors.length
     }
 
-    @computed get numInvalidCells() {
+    @imemo get numInvalidCells() {
         return sum(this.columnsAsArray.map((col) => col.numInvalidCells))
     }
 
-    @computed get numValidCells() {
+    @imemo get numValidCells() {
         return sum(this.columnsAsArray.map((col) => col.numValues))
     }
 
@@ -489,11 +490,11 @@ export class CoreTable<
         }, `Kept rows that matched '${searchStringOrRegex.toString()}'`)
     }
 
-    @computed get rowsAsSet() {
+    @imemo get rowsAsSet() {
         return new Set(this.rows)
     }
 
-    @computed get opposite() {
+    @imemo get opposite() {
         if (this.isRoot) return this
         const { rowsAsSet } = this
         return this.transform(
@@ -504,7 +505,7 @@ export class CoreTable<
         )
     }
 
-    @computed get oppositeColumns() {
+    @imemo get oppositeColumns() {
         if (this.isRoot) return this
         const columnsToDrop = new Set(this.columnSlugs)
         const defs = this.parent!.columnsAsArray.filter(
@@ -575,27 +576,27 @@ export class CoreTable<
         )
     }
 
-    @computed get defs() {
+    @imemo get defs() {
         return this.columnsAsArray.map((col) => col.def) as COL_DEF_TYPE[]
     }
 
-    @computed get columnNames() {
+    @imemo get columnNames() {
         return this.columnsAsArray.map((col) => col.name)
     }
 
-    @computed get columnTypes() {
+    @imemo get columnTypes() {
         return this.columnsAsArray.map((col) => col.def.type)
     }
 
-    @computed get columnJsTypes() {
+    @imemo get columnJsTypes() {
         return this.columnsAsArray.map((col) => col.jsType)
     }
 
-    @computed get columnSlugs() {
+    @imemo get columnSlugs() {
         return Array.from(this._columns.keys())
     }
 
-    @computed get numericColumnSlugs() {
+    @imemo get numericColumnSlugs() {
         return this.columnsAsArray
             .filter((col) => col instanceof ColumnTypeMap.Numeric)
             .map((col) => col.slug)
@@ -636,7 +637,7 @@ export class CoreTable<
         return this
     }
 
-    @computed get columnsAsArray() {
+    @imemo get columnsAsArray() {
         return Array.from(this._columns.values())
     }
 
@@ -674,15 +675,15 @@ export class CoreTable<
         console.table(this.inputAsTable)
     }
 
-    @computed private get isInputFromRowsOrCsv() {
+    @imemo private get isInputFromRowsOrCsv() {
         return Array.isArray(this.inputData) || this.isFromCsv
     }
 
-    @computed private get isInputFromColumns() {
+    @imemo private get isInputFromColumns() {
         return !this.isInputFromRowsOrCsv
     }
 
-    @computed private get inputAsTable() {
+    @imemo private get inputAsTable() {
         return this.isInputFromRowsOrCsv
             ? this.inputAsRows
             : columnStoreToRows(this.inputAsColumnStore)
@@ -716,7 +717,7 @@ export class CoreTable<
         return this.parent ? [...this.parent.ancestors, this] : [this]
     }
 
-    @computed private get numColsToParse() {
+    @imemo private get numColsToParse() {
         return this.columnsToParse.length
     }
 
@@ -891,7 +892,7 @@ export class CoreTable<
         )
     }
 
-    @computed get duplicateRowIndices() {
+    @imemo get duplicateRowIndices() {
         const keyFn = makeKeyFn(this.columnSlugs)
         const dupeSet = new Set()
         const dupeIndices: number[] = []
