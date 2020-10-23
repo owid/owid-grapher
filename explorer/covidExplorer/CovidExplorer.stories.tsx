@@ -10,10 +10,14 @@ export const SingleExplorerWithKeyboardShortcuts = () => (
     <CovidExplorer enableKeyboardShortcuts={true} />
 )
 
-export const MultipleExplorers = () => (
+export const MultipleExplorersOnOnePage = () => (
     <div>
-        <CovidExplorer />
-        <CovidExplorer />
+        <div style={{ height: "800px" }}>
+            <CovidExplorer />
+        </div>
+        <div>
+            <CovidExplorer />
+        </div>
     </div>
 )
 

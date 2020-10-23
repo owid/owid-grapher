@@ -24,7 +24,7 @@ export class ExplorerControlBar extends React.Component<{
 
         const showMobileControls = isMobile && showControls
         return (
-            <div
+            <form
                 className={`ExplorerControlBar${
                     showMobileControls
                         ? ` show-controls-popup`
@@ -35,7 +35,7 @@ export class ExplorerControlBar extends React.Component<{
             >
                 {this.props.children}
                 {mobileCloseButton}
-            </div>
+            </form>
         )
     }
 }

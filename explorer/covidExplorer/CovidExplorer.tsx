@@ -139,14 +139,6 @@ export class CovidExplorer
 
     writeableParams = new CovidQueryParams(this.props.queryStr ?? "")
 
-    private uniqId = Math.random().toString(36).substr(2, 8)
-
-    // Since there can be multiple explorers embedded on a page, we need to use distinct names when
-    // creating radio button groups, etc.
-    private getScopedName(name: string) {
-        return `${name}_${this.uniqId}`
-    }
-
     static async replaceStateAndBootstrap(
         explorerQueryStr: string,
         props: BootstrapProps
@@ -215,7 +207,7 @@ export class CovidExplorer
                 key="metric1"
                 title="Metric"
                 explorerSlug="covid"
-                name={this.getScopedName("metric")}
+                name="metric"
                 options={options}
                 onChange={this.changeMetric}
                 type={ExplorerControlType.Radio}
@@ -225,7 +217,7 @@ export class CovidExplorer
                 title="Metric"
                 explorerSlug="covid"
                 hideTitle={true}
-                name={this.getScopedName("metric")}
+                name="metric"
                 onChange={this.changeMetric}
                 options={optionsColumn2}
                 type={ExplorerControlType.Radio}
@@ -283,7 +275,7 @@ export class CovidExplorer
                 key="interval"
                 title="Interval"
                 type={ExplorerControlType.Dropdown}
-                name={this.getScopedName("interval")}
+                name="interval"
                 value={this.constrainedParams.interval}
                 options={options}
                 onChange={(value: string) => {
@@ -313,7 +305,7 @@ export class CovidExplorer
             <ExplorerControlPanel
                 key="count"
                 title="Count"
-                name={this.getScopedName("count")}
+                name="count"
                 type={ExplorerControlType.Checkbox}
                 options={options}
                 explorerSlug="covid"
@@ -339,7 +331,7 @@ export class CovidExplorer
             <ExplorerControlPanel
                 key="timeline"
                 title="Timeline"
-                name={this.getScopedName("timeline")}
+                name="timeline"
                 type={ExplorerControlType.Checkbox}
                 options={options}
                 onChange={(value) => {
