@@ -26,6 +26,7 @@ import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { VerticalAxis } from "grapher/axis/Axis"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
 import { stackSeries, withZeroesAsInterpolatedPoints } from "./StackedUtils"
+import { makeClipPath } from "grapher/chart/ChartUtils"
 
 interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     bar: StackedPoint
@@ -353,22 +354,15 @@ export class StackedBarChart
 
         const textColor = "#666"
 
+        const clipPath = makeClipPath(renderUid, innerBounds)
+
         return (
             <g
                 className="StackedBarChart"
                 width={bounds.width}
                 height={bounds.height}
             >
-                <defs>
-                    <clipPath id={`boundsClip-${renderUid}`}>
-                        <rect
-                            x={innerBounds.x}
-                            y={innerBounds.y}
-                            width={innerBounds.width}
-                            height={innerBounds.height}
-                        ></rect>
-                    </clipPath>
-                </defs>
+                {clipPath.element}
 
                 <rect
                     x={bounds.left}
@@ -411,7 +405,7 @@ export class StackedBarChart
                     })}
                 </g>
 
-                <g clipPath={`url(#boundsClip-${renderUid})`}>
+                <g clipPath={clipPath.id}>
                     {series.map((series, index) => {
                         const isLegendHovered = this.hoverKeys.includes(
                             series.seriesName

@@ -44,7 +44,7 @@ import {
 } from "./LineChartConstants"
 import { columnToLineChartSeriesArray } from "./LineChartUtils"
 import { OwidTable } from "coreTable/OwidTable"
-import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeClipPath } from "grapher/chart/ChartUtils"
 
 const BLUR_COLOR = "#eee"
 
@@ -489,33 +489,27 @@ export class LineChart
                 />
             )
 
-        const { manager, bounds, tooltip, dualAxis, renderUid, hoverX } = this
+        const { manager, tooltip, dualAxis, hoverX, renderUid, bounds } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
         const comparisonLines = manager.comparisonLines || []
 
+        // The tiny bit of extra space in the clippath is to ensure circles centered on the very edge are still fully visible
+        const clipPath = makeClipPath(renderUid, {
+            x: dualAxis.innerBounds.x - 10,
+            y: bounds.y - 18, // subtract 18 to reverse the padding after header in captioned chart
+            width: bounds.width + 10,
+            height: bounds.height * 2,
+        })
         return (
             <g ref={this.base} className="LineChart">
-                <defs>
-                    <clipPath id={`boundsClip-${renderUid}`}>
-                        {/* The tiny bit of extra space here is to ensure circles centered on the very edge are still fully visible */}
-                        <rect
-                            x={dualAxis.innerBounds.x - 10}
-                            y={
-                                bounds.y -
-                                18 /* subtract 18 to reverse the padding after header in captioned chart. todo: cleanup */
-                            }
-                            width={bounds.width + 10}
-                            height={bounds.height * 2}
-                        ></rect>
-                    </clipPath>
-                </defs>
+                {clipPath.element}
                 <DualAxisComponent
                     isInteractive={!manager.isStaticSvg}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />
-                <g clipPath={`url(#boundsClip-${renderUid})`}>
+                <g clipPath={clipPath.id}>
                     {comparisonLines.map((line, index) => (
                         <ComparisonLine
                             key={index}

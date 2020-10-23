@@ -106,3 +106,10 @@ export interface EntitySelection {
 }
 
 export type SeriesName = string
+
+export interface Box {
+    x: number
+    y: number
+    width: number
+    height: number
+}

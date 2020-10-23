@@ -58,7 +58,7 @@ import {
 } from "./WorldRegionsToProjection"
 import { OwidTable } from "coreTable/OwidTable"
 import { ColorSchemeName } from "grapher/color/ColorConstants"
-import { autoDetectYColumnSlugs } from "grapher/chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeClipPath } from "grapher/chart/ChartUtils"
 
 const PROJECTION_CHOOSER_WIDTH = 110
 const PROJECTION_CHOOSER_HEIGHT = 22
@@ -767,11 +767,13 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
         const blurFillOpacity = 0.2
         const blurStrokeOpacity = 0.5
 
+        const clipPath = makeClipPath(uid, bounds)
+
         return (
             <g
                 ref={this.base}
                 className="ChoroplethMap"
-                clipPath={`url(#boundsClip-${uid})`}
+                clipPath={clipPath.id}
                 onMouseDown={
                     (ev: SVGMouseEvent) =>
                         ev.preventDefault() /* Without this, title may get selected while shift clicking */
@@ -788,16 +790,7 @@ class ChoroplethMap extends React.Component<ChoroplethMapProps> {
                     fill="rgba(255,255,255,0)"
                     opacity={0}
                 />
-                <defs>
-                    <clipPath id={`boundsClip-${uid}`}>
-                        <rect
-                            x={bounds.x}
-                            y={bounds.y}
-                            width={bounds.width}
-                            height={bounds.height}
-                        ></rect>
-                    </clipPath>
-                </defs>
+                {clipPath.element}
                 <g className="subunits" transform={matrixTransform}>
                     {featuresOutsideProjection.length && (
                         <g className="nonProjectionFeatures">

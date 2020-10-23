@@ -33,6 +33,7 @@ import {
     withZeroesAsInterpolatedPoints,
     withLinearInterpolatedPoints,
 } from "./StackedUtils"
+import { makeClipPath } from "grapher/chart/ChartUtils"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
@@ -423,24 +424,21 @@ export class StackedAreaChart
 
         const showLegend = !this.manager.hideLegend
 
+        const clipPath = makeClipPath(renderUid, {
+            ...bounds,
+            height: bounds.height * 2,
+            x: dualAxis.innerBounds.x,
+        })
+
         return (
             <g ref={this.base} className="StackedArea">
-                <defs>
-                    <clipPath id={`boundsClip-${renderUid}`}>
-                        <rect
-                            x={dualAxis.innerBounds.x}
-                            y={bounds.y}
-                            width={bounds.width}
-                            height={bounds.height * 2}
-                        ></rect>
-                    </clipPath>
-                </defs>
+                {clipPath.element}
                 <DualAxisComponent
                     isInteractive={!manager.isStaticSvg}
                     dualAxis={dualAxis}
                     showTickMarks={true}
                 />
-                <g clipPath={`url(#boundsClip-${renderUid})`}>
+                <g clipPath={clipPath.id}>
                     {showLegend && <LineLegend manager={this} />}
                     <Areas
                         dualAxis={dualAxis}

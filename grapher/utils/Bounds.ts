@@ -1,6 +1,7 @@
 import { makeGrid, range } from "grapher/utils/Util"
 import { PointVector } from "grapher/utils/PointVector"
 import pixelWidth from "string-pixel-width"
+import { Box } from "grapher/core/GrapherConstants"
 
 // Important utility class for all visualizations
 // Since we want to be able to render charts headlessly and functionally, we
@@ -10,22 +11,12 @@ export class Bounds {
     static textBoundsCache: { [key: string]: Bounds } = {}
     static ctx: CanvasRenderingContext2D
 
-    static fromProps(props: {
-        x: number
-        y: number
-        width: number
-        height: number
-    }) {
+    static fromProps(props: Box) {
         const { x, y, width, height } = props
         return new Bounds(x, y, width, height)
     }
 
-    static fromBBox(bbox: {
-        x: number
-        y: number
-        width: number
-        height: number
-    }) {
+    static fromBBox(bbox: Box) {
         return this.fromProps(bbox)
     }
 
