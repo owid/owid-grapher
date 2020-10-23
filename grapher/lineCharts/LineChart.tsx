@@ -501,7 +501,10 @@ export class LineChart
                         {/* The tiny bit of extra space here is to ensure circles centered on the very edge are still fully visible */}
                         <rect
                             x={dualAxis.innerBounds.x - 10}
-                            y={bounds.y}
+                            y={
+                                bounds.y -
+                                18 /* subtract 18 to reverse the padding after header in captioned chart. todo: cleanup */
+                            }
                             width={bounds.width + 10}
                             height={bounds.height * 2}
                         ></rect>
