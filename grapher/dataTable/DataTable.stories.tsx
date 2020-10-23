@@ -42,11 +42,7 @@ export const WithTolerance = () => {
         }
     )
 
-    const filteredTable = table.withoutRows([
-        table.rows[0],
-        table.rows[10],
-        table.rows[11],
-    ])
+    const filteredTable = table.dropRowsAt([0, 10, 11])
 
     return (
         <div>

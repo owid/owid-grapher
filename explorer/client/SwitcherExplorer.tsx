@@ -88,7 +88,7 @@ export class SwitcherExplorer
                     entityName,
                 } as OwidRow
             })
-        this.countryPickerTable = this.countryPickerTable.withRows(
+        this.countryPickerTable = this.countryPickerTable.appendRows(
             missingEntities,
             `Added ${missingEntities.length} entity names to Country Picker`
         ) as OwidTable

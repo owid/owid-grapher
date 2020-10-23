@@ -21,7 +21,7 @@ const getRandomTable = () =>
         entityCount: 2,
         timeRange: [2020, 2024],
     })
-        .withoutColumns([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
+        .dropColumns([SampleColumnSlugs.GDP, SampleColumnSlugs.Population])
         .selectAll() as OwidTable
 
 @observer

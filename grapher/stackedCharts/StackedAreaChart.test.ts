@@ -30,7 +30,7 @@ it("can create a basic chart", () => {
 describe("column charts", () => {
     it("can show custom colors for a column series", () => {
         let table = SynthesizeFruitTable().selectSample(1)
-        table = table.withTransformedDefs((def) => {
+        table = table.updateDefs((def) => {
             def.color = def.slug // Slug is not a valid color but good enough for testing
             return def
         })

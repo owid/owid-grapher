@@ -56,6 +56,7 @@ export enum TransformType {
     Load = "Load",
     Transpose = "Transpose",
     Reload = "Reload",
+    Concat = "Concat",
 
     // Row ops
     FilterRows = "FilterRows",

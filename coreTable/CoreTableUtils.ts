@@ -177,3 +177,7 @@ export function interpolateRowValuesWithTolerance<
 
     return rowsSortedByTimeAsc
 }
+
+// A dumb function for making a function that makes a key for a row given certain columns.
+export const makeKeyFn = (columnSlugs: ColumnSlug[]) => (row: CoreRow) =>
+    columnSlugs.map((slug) => row[slug]).join(" ")

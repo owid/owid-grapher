@@ -79,11 +79,11 @@ export const MegaCsvToCovidExplorerTable = (megaCsv: CsvString) => {
     euRows.pop()
 
     const tableWithRows = coreTable
-        .withRows(
+        .appendRows(
             continentRows as any,
             `Added ${continentRows.length} continent rows`
         )
-        .withRows(euRows as any, `Added ${euRows.length} EU rows`)
+        .appendRows(euRows as any, `Added ${euRows.length} EU rows`)
 
     return new CovidExplorerTable(
         (tableWithRows.rows as any) as CovidRow[], // todo: clean up typings

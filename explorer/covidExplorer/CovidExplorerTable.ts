@@ -78,7 +78,7 @@ export class CovidExplorerTable extends OwidTable {
     updateColumnsToHideInDataTable() {
         // todo: we might not need this "opt out", since we now explicitly list the columns to show in the table
         const includeInDataTable = new Set(Object.values(MetricOptions))
-        return this.withTransformedDefs((def) => {
+        return this.updateDefs((def) => {
             if (includeInDataTable.has(def.slug as MetricOptions)) return def
             return {
                 ...def,

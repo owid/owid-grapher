@@ -16,6 +16,7 @@ import {
     flatten,
     sum,
     differenceBy,
+    uniqBy,
 } from "grapher/utils/Util"
 import { observable, action, computed } from "mobx"
 import { queryParamsToStr } from "utils/client/url"
@@ -44,6 +45,7 @@ import {
     autoType,
     columnStoreToRows,
     guessColumnDefFromSlugAndRow,
+    makeKeyFn,
     makeRowFromColumnStore,
     standardizeSlugs,
 } from "./CoreTableUtils"
@@ -223,7 +225,7 @@ export class CoreTable<
         // The default behavior is to assume some missing or bad data in user data, so we always parse the full input the first time we load
         // user data, with the exception of computed columns.
         // Todo: measure the perf hit and add a parameter to opt out of this this if you know the data is complete?
-        if (this.isRoot())
+        if (this.isRoot)
             return differenceBy(
                 cols,
                 this.newProvidedColumnDefsToCompute,
@@ -411,12 +413,66 @@ export class CoreTable<
         return this.parent ? this.parent.rootTable : this
     }
 
-    protected rowsBy<T>(columnSlug: ColumnSlug) {
+    /**
+     * Returns a string map (aka index) where the keys are the combined string values of columnSlug[], and the values
+     * are the values are the rows that match.
+     *
+     * {country: "USA", population: 100}
+     *
+     * So `table.rowIndex(["country", "population"]).get("USA 100")` would return [{country: "USA", population: 100}].
+     *
+     */
+    rowIndex(columnSlugs: ColumnSlug[]) {
+        const index = new Map<string, ROW_TYPE[]>()
+        // keyFn generates a key for each row. Does not have to be unique.
+        // todo: be smarter for string keys
+        const keyFn = makeKeyFn(columnSlugs)
+        this.rows.forEach((row) => {
+            const key = keyFn(row)
+            if (!index.has(key)) index.set(key, [])
+            index.get(key)!.push(row)
+        })
+        return { index, keyFn }
+    }
+
+    // Same as above, but the index is typed and it only supports ony column.
+    protected rowTypedIndex<T>(columnSlug: ColumnSlug) {
         const map = new Map<T, ROW_TYPE[]>()
         this.rows.forEach((row) => {
             const value = row[columnSlug]
             if (!map.has(value)) map.set(value, [])
             map.get(value)!.push(row)
+        })
+        return map
+    }
+
+    /**
+     * Returns a map (aka index) where the keys are the values of the indexColumnSlug, and the values
+     * are the values of the valueColumnSlug.
+     *
+     * {country: "USA", population: 100}
+     *
+     * So `table.valueIndex("country", "population").get("USA")` would return 100.
+     *
+     */
+    protected valueIndex(
+        indexColumnSlug: ColumnSlug,
+        valueColumnSlug: ColumnSlug
+    ) {
+        const indexCol = this.get(indexColumnSlug)
+        const valueCol = this.get(valueColumnSlug)
+
+        if (!indexCol || !valueCol) return new Map()
+
+        const indexValues = indexCol.allValues
+        const valueValues = valueCol.allValues
+        const indices = intersection(
+            indexCol.validRowIndices,
+            valueCol.validRowIndices
+        )
+        const map = new Map<PrimitiveType, PrimitiveType>()
+        indices.forEach((index) => {
+            map.set(indexValues[index], valueValues[index])
         })
         return map
     }
@@ -435,7 +491,7 @@ export class CoreTable<
     }
 
     @computed get opposite() {
-        if (this.isRoot()) return this
+        if (this.isRoot) return this
         const { rowsAsSet } = this
         return this.transform(
             this.parent!.rows.filter((row) => !rowsAsSet.has(row)),
@@ -446,7 +502,7 @@ export class CoreTable<
     }
 
     @computed get oppositeColumns() {
-        if (this.isRoot()) return this
+        if (this.isRoot) return this
         const columnsToDrop = new Set(this.columnSlugs)
         const defs = this.parent!.columnsAsArray.filter(
             (col) => !columnsToDrop.has(col.slug)
@@ -466,7 +522,7 @@ export class CoreTable<
                 : !searchStringOrRegex.test(slug)
         })
 
-        return this.withoutColumns(
+        return this.dropColumns(
             columnsToDrop,
             `Kept ${
                 this.columnSlugs.length - columnsToDrop.length
@@ -597,7 +653,7 @@ export class CoreTable<
         return this.rows.map((row) => slugs.map((slug) => row[slug] ?? ""))
     }
 
-    isRoot() {
+    private get isRoot() {
         return !this.parent
     }
 
@@ -731,7 +787,7 @@ export class CoreTable<
     }
 
     // Get all the columns that only have 1 value
-    constantColumns() {
+    get constantColumns() {
         return this.columnsAsArray.filter((col) => col.isConstant)
     }
 
@@ -765,7 +821,7 @@ export class CoreTable<
         )
     }
 
-    withRows(rows: ROW_TYPE[], opDescription: string) {
+    appendRows(rows: ROW_TYPE[], opDescription: string) {
         return this.transform(
             [...this.rows, ...rows],
             this.defs,
@@ -775,7 +831,7 @@ export class CoreTable<
     }
 
     limit(howMany: number, offset: number = 0) {
-        const rows = this.rows.slice(offset, howMany)
+        const rows = this.rows.slice(offset, howMany + offset)
         return this.transform(
             rows,
             this.defs,
@@ -784,7 +840,7 @@ export class CoreTable<
         )
     }
 
-    withTransformedDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE) {
+    updateDefs(fn: (def: COL_DEF_TYPE) => COL_DEF_TYPE) {
         return this.transform(
             this.rows,
             this.defs.map(fn),
@@ -794,19 +850,19 @@ export class CoreTable<
     }
 
     limitColumns(howMany: number, offset: number = 0) {
-        const slugs = this.columnSlugs.slice(offset, howMany)
-        return this.withoutColumns(
+        const slugs = this.columnSlugs.slice(offset, howMany + offset)
+        return this.dropColumns(
             slugs,
             `Kept ${howMany} columns and dropped '${slugs}'`
         )
     }
 
-    withoutConstantColumns() {
-        const slugs = this.constantColumns().map((col) => col.slug)
-        return this.withoutColumns(slugs, `Dropped constant columns '${slugs}'`)
+    dropConstantColumns() {
+        const slugs = this.constantColumns.map((col) => col.slug)
+        return this.dropColumns(slugs, `Dropped constant columns '${slugs}'`)
     }
 
-    withColumns(slugs: ColumnSlug[]) {
+    select(slugs: ColumnSlug[]) {
         const columnsToKeep = new Set(slugs)
         const defs = this.columnsAsArray
             .filter((col) => columnsToKeep.has(col.slug))
@@ -819,7 +875,7 @@ export class CoreTable<
         )
     }
 
-    withoutColumns(slugs: ColumnSlug[], message?: string) {
+    dropColumns(slugs: ColumnSlug[], message?: string) {
         const columnsToDrop = new Set(slugs)
         const defs = this.columnsAsArray
             .filter((col) => !columnsToDrop.has(col.slug))
@@ -832,8 +888,24 @@ export class CoreTable<
         )
     }
 
+    @computed get duplicateRowIndices() {
+        const keyFn = makeKeyFn(this.columnSlugs)
+        const dupeSet = new Set()
+        const dupeIndices: number[] = []
+        this.rows.forEach((row, rowIndex) => {
+            const key = keyFn(row)
+            if (dupeSet.has(key)) dupeIndices.push(rowIndex)
+            else dupeSet.add(key)
+        })
+        return dupeIndices
+    }
+
+    dropDuplicateRows() {
+        return this.dropRowsAt(this.duplicateRowIndices)
+    }
+
     // Todo: improve typings. After renaming a column the row interface should change. Applies to some other methods as well.
-    withRenamedColumns(columnRenameMap: { [columnSlug: string]: ColumnSlug }) {
+    renameColumns(columnRenameMap: { [columnSlug: string]: ColumnSlug }) {
         const oldSlugs = Object.keys(columnRenameMap)
         const newSlugs = Object.values(columnRenameMap)
 
@@ -865,11 +937,11 @@ export class CoreTable<
         )
     }
 
-    withoutRows(rows: ROW_TYPE[]) {
-        const set = new Set(rows)
+    dropRowsAt(indices: number[]) {
+        const set = new Set(indices)
         return this.filter(
-            (row) => !set.has(row),
-            `Dropping ${rows.length} rows`
+            (row, index) => !set.has(index),
+            `Dropping ${indices.length} rows`
         )
     }
 
@@ -1047,6 +1119,82 @@ export class CoreTable<
             columns: this.defToObject(),
             rows: this.rows,
         }
+    }
+
+    private join(
+        destinationTable: CoreTable,
+        sourceTable: CoreTable,
+        by?: ColumnSlug[]
+    ) {
+        by =
+            by ??
+            intersection(sourceTable.columnSlugs, destinationTable.columnSlugs)
+        const columnSlugsToAdd = difference(
+            sourceTable.columnSlugs,
+            destinationTable.columnSlugs
+        )
+        const defsToAdd = sourceTable
+            .getColumns(columnSlugsToAdd)
+            .map((col) => {
+                const def = { ...col.def }
+                def.values = []
+                return def
+            }) as COL_DEF_TYPE[]
+
+        const { index, keyFn } = sourceTable.rowIndex(by)
+
+        destinationTable.rows.forEach((row) => {
+            const matchingRightRow = index.get(keyFn(row))
+            defsToAdd.forEach((def) => {
+                if (matchingRightRow)
+                    def.values?.push(matchingRightRow[0][def.slug])
+                // todo: use first or last match?
+                else
+                    def.values?.push(
+                        InvalidCellTypes.NoMatchingValueAfterJoin as any
+                    )
+            })
+        })
+        return defsToAdd
+    }
+
+    concat(table: CoreTable) {
+        const defs = [...this.defs, ...table.defs] as COL_DEF_TYPE[]
+        return this.transform(
+            this.rows.concat(table.rows as ROW_TYPE[]),
+            uniqBy(defs, (def) => def.slug),
+            `Combined table`,
+            TransformType.Concat
+        )
+    }
+
+    leftJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
+        return this.appendColumns(this.join(this, rightTable, by))
+    }
+
+    rightJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
+        return rightTable.leftJoin(this, by) as any // todo: change parent?
+    }
+
+    innerJoin(rightTable: CoreTable, by?: ColumnSlug[]) {
+        const defs = this.join(this, rightTable, by)
+        const newValues = defs.map((def) => def.values)
+        const rowsToDrop: number[] = []
+        newValues.forEach((col) => {
+            col?.forEach((value, index) => {
+                if (
+                    (value as any) === InvalidCellTypes.NoMatchingValueAfterJoin
+                )
+                    rowsToDrop.push(index)
+            })
+        })
+        return this.appendColumns(defs).dropRowsAt(rowsToDrop)
+    }
+
+    fullJoin(rightTable: CoreTable, by?: ColumnSlug[]): this {
+        return this.leftJoin(rightTable, by)
+            .concat(rightTable.leftJoin(this, by))
+            .dropDuplicateRows()
     }
 
     static fromDelimited(csvOrTsv: string, defs?: CoreColumnDef[]) {

@@ -96,7 +96,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // todo: can we remove at some point?
     @computed get entityIdToNameMap() {
-        return this.makeIndex(
+        return this.valueIndex(
             OwidTableSlugs.entityId,
             OwidTableSlugs.entityName
         ) as Map<number, string>
@@ -104,34 +104,15 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // todo: can we remove at some point?
     @computed private get entityCodeToNameMap() {
-        return this.makeIndex(
+        return this.valueIndex(
             OwidTableSlugs.entityCode,
             OwidTableSlugs.entityName
         ) as Map<string, string>
     }
 
-    makeIndex(indexColumnSlug: ColumnSlug, valueColumnSlug: ColumnSlug) {
-        const indexCol = this.get(indexColumnSlug)
-        const valueCol = this.get(valueColumnSlug)
-
-        if (!indexCol || !valueCol) return new Map()
-
-        const indexValues = indexCol.allValues
-        const valueValues = valueCol.allValues
-        const indices = intersection(
-            indexCol.validRowIndices,
-            valueCol.validRowIndices
-        )
-        const map = new Map<PrimitiveType, PrimitiveType>()
-        indices.forEach((index) => {
-            map.set(indexValues[index], valueValues[index])
-        })
-        return map
-    }
-
     // todo: can we remove at some point?
     @computed get entityNameToIdMap() {
-        return this.makeIndex(
+        return this.valueIndex(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityId
         ) as Map<string, number>
@@ -139,7 +120,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // todo: can we remove at some point?
     @computed get entityNameToCodeMap() {
-        return this.makeIndex(
+        return this.valueIndex(
             OwidTableSlugs.entityName,
             OwidTableSlugs.entityCode
         ) as Map<string, string>
@@ -175,11 +156,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @computed get rowsByEntityName() {
-        return this.rowsBy<EntityName>(OwidTableSlugs.entityName)
+        return this.rowIndex([OwidTableSlugs.entityName]).index
     }
 
     @computed get rowsByTime() {
-        return this.rowsBy<Time>(this.timeColumn!.slug)
+        return this.rowTypedIndex<Time>(this.timeColumn!.slug)
     }
 
     // todo: instead of this we should probably make annotations another property on charts—something like "annotationsColumnSlugs"
@@ -438,8 +419,8 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
 
     // Give our users a clean CSV of each Grapher. Assumes an Owid Table with entityName.
     toPrettyCsv() {
-        return this.withoutConstantColumns()
-            .withoutColumns([
+        return this.dropConstantColumns()
+            .dropColumns([
                 OwidTableSlugs.entityId,
                 OwidTableSlugs.time,
                 OwidTableSlugs.entityColor,
