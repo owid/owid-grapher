@@ -150,10 +150,19 @@ testPageRouter.get("/embeds", async (req, res) => {
             query = query.andWhere(`config->"$.hasMapTab" IS TRUE`)
             tab = tab || "map"
         } else {
-            query = query.andWhere(
-                `config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`,
-                { type: req.query.type }
-            )
+            if (req.query.type === "LineChart") {
+                query = query.andWhere(
+                    `(
+                        config->"$.type" = "LineChart"
+                        OR config->"$.type" IS NULL
+                    ) AND config->"$.hasChartTab" IS TRUE`
+                )
+            } else {
+                query = query.andWhere(
+                    `config->"$.type" = :type AND config->"$.hasChartTab" IS TRUE`,
+                    { type: req.query.type }
+                )
+            }
             tab = tab || "chart"
         }
     }
